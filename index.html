@@ -1245,7 +1245,7 @@
       <div class="surface p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div class="flex items-center gap-4 flex-wrap">
           <h2 id="game-title" class="font-display text-3xl md:text-4xl"></h2>
-          <div id="round-intel" class="chip" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);"></div>
+          <div id="round-intel" class="font-display text-3xl md:text-4xl" style="color:var(--emerald);"></div>
         </div>
         <div class="flex flex-wrap gap-2 items-center relative">
           <div class="relative">
@@ -3347,8 +3347,18 @@
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
         if(r.hailMaryBonus)return;
-        const bidInfo=(isWiz&&r.bids&&r.bids[p]!==undefined)
-          ? `<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${r.bids[p]}</div>` : '';
+        let bidInfo='';
+        if(isWiz&&r.bids&&r.bids[p]!==undefined){
+          const rBid=r.bids[p], rAct=r.actuals?.[p], rTricks=r.round;
+          let overUnder='';
+          if(rAct!==undefined){
+            const diff=rAct-rBid;
+            if(diff===0) overUnder=`<span style="color:var(--emerald);">exact ✓</span>`;
+            else if(diff>0) overUnder=`<span style="color:var(--rose);">${diff} over</span>`;
+            else overUnder=`<span style="color:var(--blue);">${Math.abs(diff)} under</span>`;
+          }
+          bidInfo=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${rBid}/${rTricks}</div>${overUnder?`<div class="text-[8px] font-bold mb-0.5">${overUnder}</div>`:''}`;
+        }
         body+=`<td class="px-1 py-2 text-center score-cell">
           ${bidInfo}
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
@@ -3362,17 +3372,16 @@
         let bidShow='';
         if(isWiz&&wPhase==='scoring'){
           const bid=currentGame.currentBids?.[p]!==undefined?currentGame.currentBids[p]:0;
-          // Read live tricks-won entry from input (if it exists) to determine status
           const liveEl = document.getElementById(`score-input-${p}`);
           const liveTricks = liveEl && liveEl.value !== '' ? parseInt(liveEl.value) : null;
-          let dot = '';
+          let dot = '', overUnderLive = '';
           if(liveTricks !== null && !isNaN(liveTricks)){
-            if(liveTricks === bid) dot = `<span class="bid-dot bid-dot-exact" title="Exact bid — score!"></span>`;
-            else if(liveTricks > bid) dot = `<span class="bid-dot bid-dot-busted" title="Over bid — busted"></span>`;
-            else if(bid - liveTricks <= 1) dot = `<span class="bid-dot bid-dot-close" title="Close — need ${bid - liveTricks} more"></span>`;
-            else dot = `<span class="bid-dot bid-dot-under" title="Need ${bid - liveTricks} more"></span>`;
+            const diff=liveTricks-bid;
+            if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid — score!"></span>`; overUnderLive=`<div class="text-[9px] font-bold mt-0.5" style="color:var(--emerald);">exact ✓</div>`; }
+            else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid — busted"></span>`; overUnderLive=`<div class="text-[9px] font-bold mt-0.5" style="color:var(--rose);">${diff} over</div>`; }
+            else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close — need ${Math.abs(diff)} more"></span>` : `<span class="bid-dot bid-dot-under" title="Need ${Math.abs(diff)} more"></span>`; overUnderLive=`<div class="text-[9px] font-bold mt-0.5" style="color:var(--blue);">${Math.abs(diff)} under</div>`; }
           }
-          bidShow=`<div class="text-xs font-extrabold mb-1 font-mono-num flex items-center justify-end gap-1.5" style="color:var(--blue);">Target: ${bid}${dot}</div>`;
+          bidShow=`<div class="text-xs font-extrabold mb-1 font-mono-num flex items-center justify-end gap-1.5" style="color:var(--blue);">Bid ${bid}/${currentGame.currentRound}${dot}</div>${overUnderLive}`;
         }
         let val='';
         if(isWiz&&wPhase==='bidding'&&currentGame.currentBids?.[p]!==undefined)val=currentGame.currentBids[p];
@@ -3847,21 +3856,26 @@
   // ── Update Wizard bid status dot without full re-render ──
   function updateBidDotFor(playerName){
     if(!currentGame || currentGame.name !== 'Wizard' || currentGame.wizardPhase !== 'scoring') return;
-    // Find the target display container for this player's row and rebuild the dot
     const liveEl = document.getElementById(`score-input-${playerName}`);
     if(!liveEl) return;
-    const targetEl = liveEl.closest('td')?.querySelector('.text-xs');
+    const td = liveEl.closest('td');
+    const targetEl = td?.querySelector('.text-xs');
     if(!targetEl) return;
     const bid = currentGame.currentBids?.[playerName] !== undefined ? currentGame.currentBids[playerName] : 0;
     const liveTricks = liveEl.value !== '' ? parseInt(liveEl.value) : null;
-    let dot = '';
+    let dot = '', overUnderHtml = '';
     if(liveTricks !== null && !isNaN(liveTricks)){
-      if(liveTricks === bid) dot = `<span class="bid-dot bid-dot-exact" title="Exact bid"></span>`;
-      else if(liveTricks > bid) dot = `<span class="bid-dot bid-dot-busted" title="Over bid"></span>`;
-      else if(bid - liveTricks <= 1) dot = `<span class="bid-dot bid-dot-close" title="Close"></span>`;
-      else dot = `<span class="bid-dot bid-dot-under" title="Under"></span>`;
+      const diff=liveTricks-bid;
+      if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid"></span>`; overUnderHtml=`<div class="text-[9px] font-bold mt-0.5" style="color:var(--emerald);">exact ✓</div>`; }
+      else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid"></span>`; overUnderHtml=`<div class="text-[9px] font-bold mt-0.5" style="color:var(--rose);">${diff} over</div>`; }
+      else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close"></span>` : `<span class="bid-dot bid-dot-under" title="Under"></span>`; overUnderHtml=`<div class="text-[9px] font-bold mt-0.5" style="color:var(--blue);">${Math.abs(diff)} under</div>`; }
     }
-    targetEl.innerHTML = `Target: ${bid}${dot}`;
+    targetEl.innerHTML = `Bid ${bid}/${currentGame.currentRound}${dot}`;
+    let ouEl = td.querySelector('.wizard-over-under');
+    if(overUnderHtml){
+      if(!ouEl){ ouEl=document.createElement('div'); ouEl.className='wizard-over-under'; targetEl.after(ouEl); }
+      ouEl.innerHTML=overUnderHtml;
+    } else if(ouEl){ ouEl.remove(); }
   }
 
   function numpadNext(){
