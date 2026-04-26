@@ -1600,43 +1600,63 @@
     </div>
 
     <!-- ═══ ROOK: Results Modal ═══ -->
-    <div id="rook-results-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
-        <div class="text-center mb-6">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Hand Complete</div>
-          <h3 class="font-display text-3xl">Enter Results</h3>
-          <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Bidder: <span id="rook-results-bidder" class="font-extrabold" style="color:var(--ink);"></span> · Bid: <span id="rook-results-bid" class="font-extrabold" style="color:var(--ink);"></span></p>
+    <div id="rook-results-modal" class="hidden fixed inset-0 flex items-end sm:items-center justify-center z-[150] p-0 sm:p-4 opacity-0 transition-opacity">
+      <div onclick="cancelRookResults()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-lg relative pop-in flex flex-col max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-6 pt-6 pb-4 border-b hairline flex-shrink-0">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Hand Complete — Score the Round</div>
+          <div class="flex items-baseline gap-3">
+            <h3 class="font-display text-2xl" id="rook-results-bidder-header"></h3>
+            <span class="chip" style="background:var(--blue-bg);color:var(--blue);" id="rook-results-bid-chip"></span>
+            <span class="chip" id="rook-results-trump-chip"></span>
+          </div>
+          <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Called card: <span id="rook-results-called-card" class="font-extrabold" style="color:var(--ink);"></span></p>
         </div>
 
-        <div class="space-y-5">
+        <!-- Scrollable body -->
+        <div class="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+
+          <!-- Step 1: Partner -->
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Who Was the Partner?</div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold" style="background:var(--blue);color:#fff;">1</div>
+              <div class="text-xs font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Who held the called card? (Partner)</div>
+            </div>
             <div id="rook-partner-grid" class="grid grid-cols-2 gap-2"></div>
-            <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Tap the player who held the called card.</p>
           </div>
 
+          <!-- Step 2: Counters -->
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Bidder's Team Counters Captured</div>
-            <div class="flex items-center gap-3">
-              <button onclick="rookCounterAdj(-5)" class="w-12 h-12 rounded-xl font-extrabold text-xl border hairline hover:opacity-70 transition-opacity" style="background:var(--bg-2);">−5</button>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold" style="background:var(--blue);color:#fff;">2</div>
+              <div class="text-xs font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Bidder's Team — Counters Captured</div>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+              <button onclick="rookCounterAdj(-10)" class="w-12 h-12 rounded-xl font-extrabold text-sm border hairline hover:opacity-70 transition-opacity" style="background:var(--bg-2);">−10</button>
+              <button onclick="rookCounterAdj(-5)" class="w-12 h-12 rounded-xl font-extrabold text-sm border hairline hover:opacity-70 transition-opacity" style="background:var(--bg-2);">−5</button>
               <div class="flex-1 text-center">
                 <input id="rook-counters-input" type="number" min="0" max="200" value="100"
                   oninput="rookCounterUpdate()"
-                  class="w-full text-center text-4xl font-extrabold rounded-xl py-3 border hairline outline-none"
-                  style="background:var(--bg-2);color:var(--ink);">
+                  class="w-full text-center text-5xl font-extrabold rounded-xl py-2 border-2 outline-none font-mono-num"
+                  style="background:var(--bg-2);color:var(--ink);border-color:var(--hairline);">
               </div>
-              <button onclick="rookCounterAdj(5)" class="w-12 h-12 rounded-xl font-extrabold text-xl border hairline hover:opacity-70 transition-opacity" style="background:var(--bg-2);">+5</button>
+              <button onclick="rookCounterAdj(5)" class="w-12 h-12 rounded-xl font-extrabold text-sm border hairline hover:opacity-70 transition-opacity" style="background:var(--bg-2);">+5</button>
+              <button onclick="rookCounterAdj(10)" class="w-12 h-12 rounded-xl font-extrabold text-sm border hairline hover:opacity-70 transition-opacity" style="background:var(--bg-2);">+10</button>
             </div>
-            <div id="rook-counter-breakdown" class="mt-2 text-center text-xs font-bold" style="color:var(--muted);"></div>
+            <div id="rook-counter-breakdown" class="text-center text-xs font-bold py-1" style="color:var(--muted);"></div>
           </div>
+
+          <!-- Score Preview -->
+          <div id="rook-result-preview" class="rounded-2xl p-4 border-2 text-sm font-bold space-y-1" style="background:var(--bg-2);border-color:var(--hairline);"></div>
+
         </div>
 
-        <div id="rook-result-preview" class="mt-5 p-4 rounded-xl border hairline text-sm font-bold" style="background:var(--bg-2);"></div>
-
-        <div class="flex gap-2 mt-5">
-          <button onclick="cancelRookResults()" class="btn-ghost flex-1 py-3 text-sm">Back</button>
-          <button onclick="submitRookRound()" class="btn-primary flex-1 py-4 font-display text-lg">Submit Round →</button>
+        <!-- Footer -->
+        <div class="px-6 pb-6 pt-3 border-t hairline flex-shrink-0 flex gap-3">
+          <button onclick="cancelRookResults()" class="btn-ghost flex-1 py-3 text-sm">← Back</button>
+          <button onclick="submitRookRound()" class="btn-primary flex-1 py-4 font-display text-xl">Save &amp; Next Round →</button>
         </div>
       </div>
     </div>
@@ -2929,6 +2949,7 @@
       currentGame.rookConfig = { winTarget:rc.winTarget||300, minBid:rc.minBid||70, totalCounters:rc.totalCounters||200 };
       currentGame.rookPhase = 'bidding';
       currentGame.rookCurrentBids = {};
+      currentGame.rookPendingBids = {};
       currentGame.rookPassed = {};
       currentGame.rookHighBid = 0;
       currentGame.rookHighBidder = null;
@@ -2990,6 +3011,7 @@
     if(!currentGame||currentGame.name!=='Rook')return;
     currentGame.rookPhase='bidding';
     currentGame.rookCurrentBids={};
+    currentGame.rookPendingBids={};
     currentGame.rookPassed={};
     currentGame.rookHighBid=currentGame.rookConfig.minBid-5;
     currentGame.rookHighBidder=null;
@@ -2999,16 +3021,46 @@
   }
 
   // ── Rook: Bid actions ──
-  function rookPlaceBid(player){
+  // Each player has a pending bid amount stored in rookPendingBids (not yet locked)
+  // rookCurrentBids holds locked bids; rookHighBid/Bidder tracks the current high
+
+  function rookAdjPendingBid(player, delta){
+    if(!currentGame||currentGame.rookPhase!=='bidding')return;
+    if(currentGame.rookPassed?.[player])return;
+    if(!currentGame.rookPendingBids)currentGame.rookPendingBids={};
+    const cfg=currentGame.rookConfig;
+    const current=currentGame.rookPendingBids[player]||cfg.minBid;
+    const minAllowed=Math.max(cfg.minBid,(currentGame.rookHighBid||0)+5);
+    let next=current+delta;
+    // Can't go below minBid or below highBid+5 (they haven't locked yet, so they can bid any amount ≥ their personal pending minimum)
+    // For display, clamp at minBid from below, no upper cap
+    next=Math.max(cfg.minBid,next);
+    currentGame.rookPendingBids[player]=next;
+    // Update the display inline without a full re-render
+    const el=document.getElementById(`rook-pending-${player.replace(/\W/g,'_')}`);
+    if(el)el.textContent=next;
+    // Update lock button label
+    const lockBtn=document.getElementById(`rook-lockbid-${player.replace(/\W/g,'_')}`);
+    if(lockBtn) lockBtn.textContent=`Bid ${next}`;
+    // Gray out lock button if pending bid isn't higher than current high
+    if(lockBtn){
+      const canBid=next>=(currentGame.rookHighBid||0)+5&&next>=cfg.minBid;
+      lockBtn.disabled=!canBid;
+      lockBtn.style.opacity=canBid?'1':'0.4';
+    }
+  }
+
+  function rookLockBid(player){
     if(!currentGame||currentGame.rookPhase!=='bidding')return;
     if(currentGame.rookPassed?.[player]){toast('Already passed','warning');return;}
     const cfg=currentGame.rookConfig;
-    const minNext=Math.max(cfg.minBid,(currentGame.rookHighBid||0)+5);
-    const rawBid=prompt(`${player} — Enter bid (min ${minNext}, increments of 5):`);
-    if(rawBid===null)return;
-    const bid=parseInt(rawBid);
-    if(isNaN(bid)||bid<minNext){toast(`Bid must be at least ${minNext}`, 'warning');return;}
-    if(bid%5!==0){toast('Bid must be a multiple of 5','warning');return;}
+    if(!currentGame.rookPendingBids)currentGame.rookPendingBids={};
+    const bid=currentGame.rookPendingBids[player]||cfg.minBid;
+    const minAllowed=Math.max(cfg.minBid,(currentGame.rookHighBid||0)+5);
+    if(bid<minAllowed){
+      toast(`Bid must be at least ${minAllowed}`, 'warning');
+      return;
+    }
     currentGame.rookCurrentBids[player]=bid;
     currentGame.rookHighBid=bid;
     currentGame.rookHighBidder=player;
@@ -3020,7 +3072,6 @@
   function rookPass(player){
     if(!currentGame||currentGame.rookPhase!=='bidding')return;
     if(currentGame.rookPassed?.[player]){toast('Already passed','warning');return;}
-    if(!confirm(`${player} — Pass this round?`))return;
     if(!currentGame.rookPassed)currentGame.rookPassed={};
     currentGame.rookPassed[player]=true;
     addAuditEntry('Rook Pass',`${player} passes`);
@@ -3037,26 +3088,27 @@
     if(notPassed.length===1&&passedCount>=activePlayers.length-1){
       // All but one have passed — the remaining player wins
       const winner=notPassed[0];
-      // If winner hasn't placed a bid yet, they must take the minimum
       if(!(currentGame.rookCurrentBids?.[winner])){
-        const minBid=currentGame.rookConfig.minBid;
-        currentGame.rookCurrentBids[winner]=minBid;
-        currentGame.rookHighBid=minBid;
+        // Not locked yet — use their pending bid if it meets threshold, else minimum
+        const cfg=currentGame.rookConfig;
+        const pending=currentGame.rookPendingBids?.[winner]||cfg.minBid;
+        const minAllowed=Math.max(cfg.minBid,(currentGame.rookHighBid||0)+5);
+        const finalBid=pending>=minAllowed?pending:cfg.minBid;
+        currentGame.rookCurrentBids[winner]=finalBid;
+        currentGame.rookHighBid=finalBid;
         currentGame.rookHighBidder=winner;
-        toast(`${winner} wins bid at ${minBid} (minimum)`, 'success');
+        toast(`${winner} wins bid at ${finalBid}`, 'success');
       } else {
         toast(`${winner} wins the bid at ${currentGame.rookHighBid}!`, 'success');
       }
       currentGame.rookPhase='calling';
       haptic([40,60,40]);
       saveData(); renderGame();
-      // Open the trump/partner call modal
       openRookCallModal(winner, currentGame.rookHighBid);
     } else if(passedCount===activePlayers.length){
       // Everyone passed — dealer is forced to take minimum bid
       const offset=currentGame.dealerOffset||0;
-      const activeRoster=activePlayers;
-      const dealerName=activeRoster.length?activeRoster[(currentGame.currentRound-1+offset)%activeRoster.length]:null;
+      const dealerName=activePlayers.length?activePlayers[(currentGame.currentRound-1+offset)%activePlayers.length]:null;
       if(dealerName){
         const minBid=currentGame.rookConfig.minBid;
         currentGame.rookCurrentBids[dealerName]=minBid;
@@ -3121,26 +3173,41 @@
   let _rookSelectedPartner = null;
 
   function openRookResultsModal(){
-    _rookSelectedPartner = null;
+    _rookSelectedPartner = currentGame.rookPartner || null; // restore if already set
     const bidder=currentGame.rookHighBidder;
     const bid=currentGame.rookHighBid;
-    document.getElementById('rook-results-bidder').textContent=bidder;
-    document.getElementById('rook-results-bid').textContent=bid;
 
-    // Build partner grid (all players except bidder)
+    // Header fields
+    const el=document.getElementById('rook-results-bidder-header');
+    if(el)el.textContent=bidder;
+    const bidChip=document.getElementById('rook-results-bid-chip');
+    if(bidChip)bidChip.textContent=`Bid: ${bid}`;
+    const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[currentGame.rookTrump]||'';
+    const trumpChip=document.getElementById('rook-results-trump-chip');
+    if(trumpChip){
+      trumpChip.textContent=`${trumpEmoji} ${currentGame.rookTrump||'?'} Trump`;
+      trumpChip.style.background='var(--bg-2)';trumpChip.style.color='var(--muted)';
+    }
+    const calledEl=document.getElementById('rook-results-called-card');
+    if(calledEl)calledEl.textContent=currentGame.rookCalledCard||'(not specified)';
+
+    // Build partner grid (all players except bidder) — two columns with avatars
     const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p)&&p!==bidder);
     let grid='';
     activePlayers.forEach(p=>{
-      grid+=`<button class="rook-player-btn" id="rook-partner-btn-${p.replace(/\s+/g,'_')}" onclick="rookSelectPartner('${p.replace(/'/g,"\\'")}')">
+      const isSelected=_rookSelectedPartner===p;
+      grid+=`<button class="rook-player-btn${isSelected?' rook-partner-active':''}" id="rook-partner-btn-${p.replace(/\W/g,'_')}" onclick="rookSelectPartner('${p.replace(/'/g,"\\'")}')">
         ${getAvatarImg(p,'avatar-img')}
-        <span>${p}</span>
+        <span class="text-sm">${p}</span>
       </button>`;
     });
     document.getElementById('rook-partner-grid').innerHTML=grid;
 
-    // Set default counter value
+    // Set default counter value (half of total)
     const totalCounters=currentGame.rookConfig.totalCounters;
-    document.getElementById('rook-counters-input').value=Math.round(totalCounters/2);
+    const inp=document.getElementById('rook-counters-input');
+    if(inp)inp.value=Math.round(totalCounters/2);
+    inp.max=totalCounters;
     rookCounterUpdate();
 
     const m=document.getElementById('rook-results-modal');
@@ -3150,9 +3217,10 @@
 
   function rookSelectPartner(player){
     _rookSelectedPartner=player;
+    currentGame.rookPartner=player; // persist immediately
     // Update button highlighting
     document.querySelectorAll('[id^="rook-partner-btn-"]').forEach(b=>b.classList.remove('rook-partner-active'));
-    const safeId=player.replace(/\s+/g,'_');
+    const safeId=player.replace(/\W/g,'_');
     const btn=document.getElementById(`rook-partner-btn-${safeId}`);
     if(btn)btn.classList.add('rook-partner-active');
     rookCounterUpdate();
@@ -3174,35 +3242,51 @@
     const bid=currentGame.rookHighBid;
     const bidder=currentGame.rookHighBidder;
     const partner=_rookSelectedPartner;
+    const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const opponents=activePlayers.filter(p=>p!==bidder&&p!==partner);
 
-    document.getElementById('rook-counter-breakdown').textContent=
-      `Opponents captured: ${oppCounters} pts (of ${total} total)`;
+    // Breakdown label
+    const breakdown=document.getElementById('rook-counter-breakdown');
+    if(breakdown) breakdown.textContent=`Opponents captured: ${oppCounters} pts · Total: ${total} pts`;
 
     const madeIt=bidderCounters>=bid;
     const preview=document.getElementById('rook-result-preview');
+    if(!preview)return;
 
-    const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[currentGame.rookTrump]||'';
-    let html=`<div class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em]" style="color:var(--muted);">Trump: ${trumpEmoji} ${currentGame.rookTrump||'?'} · Called: ${currentGame.rookCalledCard||'?'}</div>`;
+    // Color the border based on outcome
+    preview.style.borderColor=madeIt?'var(--emerald-border)':'var(--rose-border)';
+    preview.style.background=madeIt?'var(--emerald-bg)':'var(--rose-bg)';
+
+    let html='';
 
     if(madeIt){
-      html+=`<div style="color:var(--emerald);">✅ Bid Made (${bidderCounters} ≥ ${bid})</div>`;
-      html+=`<div class="mt-1" style="color:var(--ink-2);">${bidder}${partner?` &amp; ${partner}`:''} each score <strong>+${bidderCounters}</strong></div>`;
-      if(partner){
-        const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p)&&p!==bidder&&p!==partner);
-        if(activePlayers.length){
-          html+=`<div class="mt-1" style="color:var(--ink-2);">Opponents each score <strong>+${oppCounters}</strong></div>`;
-        }
-      }
+      html+=`<div class="font-extrabold text-base mb-2" style="color:var(--emerald);">✅ Bid Made! (${bidderCounters} ≥ ${bid})</div>`;
     } else {
-      html+=`<div style="color:var(--rose);">❌ Bid Busted (${bidderCounters} &lt; ${bid})</div>`;
-      html+=`<div class="mt-1" style="color:var(--ink-2);">${bidder}${partner?` &amp; ${partner}`:''} each score <strong>−${bid}</strong></div>`;
-      if(partner){
-        const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p)&&p!==bidder&&p!==partner);
-        if(activePlayers.length){
-          html+=`<div class="mt-1" style="color:var(--ink-2);">Opponents each score <strong>+${oppCounters}</strong></div>`;
-        }
-      }
+      html+=`<div class="font-extrabold text-base mb-2" style="color:var(--rose);">❌ Bid Busted (${bidderCounters} < ${bid})</div>`;
     }
+
+    // Bidder's team row
+    const bidderTeamNames=[bidder, partner?partner:null].filter(Boolean);
+    const bidderScore=madeIt?bidderCounters:-bid;
+    const bidderColor=madeIt?'var(--emerald)':'var(--rose)';
+    html+=`<div class="flex items-center justify-between py-1.5 border-b hairline">
+      <div class="flex items-center gap-1.5 flex-wrap">
+        ${bidderTeamNames.map(n=>`<span class="font-bold">${n}${n===bidder?' <span class="text-[9px] font-extrabold px-1 py-0.5 rounded" style="background:var(--blue);color:#fff;vertical-align:middle;">BID</span>':''}</span>`).join('<span style="color:var(--muted);margin:0 0.25rem;">+</span>')}
+        ${!partner?`<span class="text-xs font-bold italic" style="color:var(--muted);">(partner TBD)</span>`:''}
+      </div>
+      <span class="font-extrabold text-lg font-mono-num" style="color:${bidderColor};">${bidderScore>=0?'+':''}${bidderScore} ea</span>
+    </div>`;
+
+    // Opponents rows
+    if(opponents.length){
+      html+=`<div class="flex items-center justify-between py-1.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          ${opponents.map(n=>`<span class="font-bold">${n}</span>`).join('<span style="color:var(--muted);margin:0 0.25rem;">·</span>')}
+        </div>
+        <span class="font-extrabold text-lg font-mono-num" style="color:var(--ink-2);">+${oppCounters} ea</span>
+      </div>`;
+    }
+
     preview.innerHTML=html;
   }
 
@@ -3210,7 +3294,9 @@
     const m=document.getElementById('rook-results-modal');
     m.classList.add('opacity-0');
     setTimeout(()=>m.classList.add('hidden'),280);
-    // Go back to calling phase — re-open the call modal
+    // Clear transient partner state and go back to calling phase
+    _rookSelectedPartner=null;
+    currentGame.rookPartner=null;
     currentGame.rookPhase='calling';
     saveData(); renderGame();
     openRookCallModal(currentGame.rookHighBidder, currentGame.rookHighBid);
@@ -3218,7 +3304,9 @@
 
   function submitRookRound(){
     if(!currentGame||currentGame.name!=='Rook')return;
-    if(!_rookSelectedPartner){toast('Select the partner first','warning');return;}
+    const _partner=_rookSelectedPartner||currentGame.rookPartner;
+    if(!_partner){toast('Select the partner first','warning');return;}
+    _rookSelectedPartner=_partner;
 
     const bidder=currentGame.rookHighBidder;
     const partner=_rookSelectedPartner;
@@ -3437,56 +3525,122 @@
     // Replace the standard submit button with Rook bidding UI
     let rookUI='';
     if(phase==='bidding'){
+      const highBid=currentGame.rookHighBid||0;
+      const highBidder=currentGame.rookHighBidder;
       rookUI=`<div class="surface p-5 mb-4">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-4">
           <div>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Bidding Phase · Round ${currentGame.currentRound}</div>
-            ${currentGame.rookHighBidder?`<div class="font-jakarta font-bold text-sm mt-0.5">High bid: <strong style="color:var(--blue);">${currentGame.rookHighBid}</strong> by ${currentGame.rookHighBidder}</div>`:'<div class="font-jakarta text-sm mt-0.5" style="color:var(--muted);">Min bid: ${cfg.minBid}</div>'}
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Bidding · Round ${currentGame.currentRound}</div>
+            ${highBidder
+              ? `<div class="font-jakarta font-bold text-sm mt-0.5">🏆 High bid: <strong style="color:var(--blue);">${highBid}</strong> — ${highBidder}</div>`
+              : `<div class="font-jakarta text-sm mt-0.5" style="color:var(--muted);">Starting bid: ${cfg.minBid} · increments of 5</div>`}
           </div>
-          <div class="text-xs font-bold px-3 py-1.5 rounded-full" style="background:var(--blue-bg);color:var(--blue);">Min ${cfg.minBid}</div>
+          <div class="chip" style="background:var(--blue-bg);color:var(--blue);">Min ${cfg.minBid}</div>
         </div>
-        <div class="space-y-1">`;
+        <div class="space-y-2">`;
+
       activePlayers.forEach(p=>{
+        const safe=p.replace(/'/g,"\\'");
+        const safeId=p.replace(/\W/g,'_');
         const hasPassed=currentGame.rookPassed?.[p];
-        const hasBid=currentGame.rookCurrentBids?.[p];
+        const lockedBid=currentGame.rookCurrentBids?.[p];
         const isHigh=currentGame.rookHighBidder===p;
-        let rowCls=hasPassed?'rook-passed':'';
-        let badgeHtml='';
-        if(hasPassed) badgeHtml=`<span class="text-xs font-extrabold px-2 py-0.5 rounded-full" style="background:var(--rose-bg);color:var(--rose);">Passed</span>`;
-        else if(isHigh) badgeHtml=`<span class="text-xs font-extrabold px-2 py-0.5 rounded-full" style="background:var(--blue-bg);color:var(--blue);">High ${hasBid}</span>`;
-        else if(hasBid) badgeHtml=`<span class="text-xs font-extrabold px-2 py-0.5 rounded-full" style="background:var(--bg-2);color:var(--muted);">${hasBid}</span>`;
-        rookUI+=`<div class="rook-bid-row ${rowCls}">
-          ${getAvatarImg(p,'avatar-img')}
-          <span class="font-jakarta font-bold flex-1 ${isHigh?'leader-text':''}">${p}</span>
-          ${badgeHtml}
-          ${!hasPassed?`
-            <button onclick="rookPlaceBid('${p.replace(/'/g,"\\'")}')" class="btn-ghost px-3 py-1.5 text-xs font-extrabold" style="color:var(--blue);">Bid</button>
-            <button onclick="rookPass('${p.replace(/'/g,"\\'")}')" class="btn-ghost px-3 py-1.5 text-xs font-extrabold" style="color:var(--rose);">Pass</button>
-          `:`<span style="color:var(--muted);font-size:0.7rem;">—</span>`}
-        </div>`;
+        const pendingBid=currentGame.rookPendingBids?.[p]||cfg.minBid;
+        const minAllowed=Math.max(cfg.minBid,highBid+5);
+        const canBid=pendingBid>=minAllowed;
+
+        if(hasPassed){
+          rookUI+=`<div class="rook-bid-row rook-passed">
+            ${getAvatarImg(p,'avatar-img')}
+            <span class="font-jakarta font-bold flex-1">${p}</span>
+            <span class="text-xs font-extrabold px-2 py-0.5 rounded-full" style="background:var(--rose-bg);color:var(--rose);">Passed</span>
+          </div>`;
+        } else if(lockedBid){
+          // Already locked in this round
+          rookUI+=`<div class="rook-bid-row ${isHigh?'rook-high-bid':''}">
+            ${getAvatarImg(p,'avatar-img')}
+            <span class="font-jakarta font-bold flex-1 ${isHigh?'leader-text':''}">${p}</span>
+            <span class="text-sm font-extrabold font-mono-num" style="color:${isHigh?'var(--blue)':'var(--muted)'};">${lockedBid}</span>
+            ${isHigh?`<span class="text-xs font-extrabold px-2 py-0.5 rounded-full ml-2" style="background:var(--blue-bg);color:var(--blue);">High Bid ✓</span>`:'<span class="text-xs font-bold ml-2" style="color:var(--muted);">Bid ✓</span>'}
+            <button onclick="rookPass('${safe}')" class="ml-2 text-xs font-extrabold px-2 py-1 rounded-lg border hairline hover:opacity-70 transition-opacity" style="color:var(--rose);">Pass</button>
+          </div>`;
+        } else {
+          // Active — show stepper
+          rookUI+=`<div class="rook-bid-row" style="flex-wrap:wrap;gap:0.5rem;">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+              ${getAvatarImg(p,'avatar-img')}
+              <span class="font-jakarta font-bold truncate">${p}</span>
+            </div>
+            <div class="flex items-center gap-1.5 ml-auto">
+              <button onclick="rookAdjPendingBid('${safe}',-5)" class="w-9 h-9 rounded-xl font-extrabold text-base border hairline hover:opacity-70 transition-opacity flex items-center justify-center" style="background:var(--bg-2);color:var(--ink-2);">−</button>
+              <span id="rook-pending-${safeId}" class="font-extrabold text-xl font-mono-num w-12 text-center" style="color:${canBid?'var(--blue)':'var(--muted)'};">${pendingBid}</span>
+              <button onclick="rookAdjPendingBid('${safe}',5)" class="w-9 h-9 rounded-xl font-extrabold text-base border hairline hover:opacity-70 transition-opacity flex items-center justify-center" style="background:var(--bg-2);color:var(--ink-2);">+</button>
+              <button id="rook-lockbid-${safeId}" onclick="rookLockBid('${safe}')" ${canBid?'':'disabled'} style="opacity:${canBid?'1':'0.4'};background:var(--blue);color:#fff;" class="px-3 py-2 rounded-xl text-xs font-extrabold transition-all">Bid ${pendingBid}</button>
+              <button onclick="rookPass('${safe}')" class="px-3 py-2 rounded-xl text-xs font-extrabold border hairline hover:opacity-70 transition-opacity" style="color:var(--rose);">Pass</button>
+            </div>
+          </div>`;
+        }
       });
       rookUI+=`</div>`;
 
-      // "Force bid winner" button if enough info
+      // "Lock winner" button when all others passed
       const notPassed=activePlayers.filter(p=>!currentGame.rookPassed?.[p]);
-      if(notPassed.length===1&&currentGame.rookHighBidder){
-        rookUI+=`<button onclick="rookForceWinner()" class="btn-primary w-full py-3 mt-4 font-display text-base">✅ ${notPassed[0]} Wins Bid at ${currentGame.rookHighBid} →</button>`;
+      const notLocked=notPassed.filter(p=>!currentGame.rookCurrentBids?.[p]);
+      if(notPassed.length===1&&currentGame.rookHighBidder&&notLocked.length===0){
+        rookUI+=`<button onclick="rookForceWinner()" class="btn-primary w-full py-3 mt-4 font-display text-base">✅ ${notPassed[0]} Wins Bid at ${currentGame.rookHighBid} — Continue →</button>`;
+      } else if(notPassed.length===1&&!currentGame.rookHighBidder){
+        // Last player must take minimum
+        rookUI+=`<button onclick="rookForceWinner()" class="btn-primary w-full py-3 mt-4 font-display text-base">📋 ${notPassed[0]} Takes Minimum Bid (${cfg.minBid}) →</button>`;
       }
       rookUI+=`</div>`;
+
     } else if(phase==='calling'){
-      rookUI=`<div class="surface p-5 mb-4 text-center">
-        <div class="text-2xl mb-2">📣</div>
-        <div class="font-display text-xl mb-1">${currentGame.rookHighBidder} won the bid at ${currentGame.rookHighBid}</div>
-        <div class="text-sm font-bold mb-4" style="color:var(--muted);">Picking trump and calling partner card…</div>
-        <button onclick="openRookCallModal('${(currentGame.rookHighBidder||'').replace(/'/g,"\\'")}',${ currentGame.rookHighBid})" class="btn-primary px-6 py-3 font-display text-base">📣 Name Trump &amp; Call Partner →</button>
+      const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[currentGame.rookTrump]||'';
+      rookUI=`<div class="surface p-5 mb-4">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="text-3xl">📣</div>
+          <div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Bid Won · Round ${currentGame.currentRound}</div>
+            <div class="font-display text-xl">${currentGame.rookHighBidder} won at <span style="color:var(--blue);">${currentGame.rookHighBid}</span></div>
+          </div>
+        </div>
+        <div class="text-sm font-bold mb-4" style="color:var(--muted);">Now ${currentGame.rookHighBidder} names trump and calls a partner card.</div>
+        <button onclick="openRookCallModal('${(currentGame.rookHighBidder||'').replace(/'/g,"\\'")}',${ currentGame.rookHighBid})" class="btn-primary w-full py-4 font-display text-lg">📣 Name Trump &amp; Call Partner Card →</button>
       </div>`;
+
     } else if(phase==='results'){
-      rookUI=`<div class="surface p-5 mb-4 text-center">
-        <div class="text-2xl mb-2">📝</div>
-        <div class="font-display text-xl mb-1">${currentGame.rookHighBidder} bid ${currentGame.rookHighBid}</div>
-        <div class="text-sm font-bold mb-1" style="color:var(--muted);">Trump: ${currentGame.rookTrump} · Called: ${currentGame.rookCalledCard}</div>
-        <div class="text-sm font-bold mb-4" style="color:var(--muted);">Play the hand, then enter who partnered and counters captured.</div>
-        <button onclick="openRookResultsModal()" class="btn-primary px-6 py-3 font-display text-base">📊 Enter Hand Results →</button>
+      const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[currentGame.rookTrump]||'';
+      const partnerName=currentGame.rookPartner;
+      rookUI=`<div class="surface p-5 mb-4">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="text-3xl">🃏</div>
+          <div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Playing · Round ${currentGame.currentRound}</div>
+            <div class="font-display text-xl">${currentGame.rookHighBidder} · Bid ${currentGame.rookHighBid}</div>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap mb-4">
+          <span class="chip" style="background:var(--blue-bg);color:var(--blue);">${trumpEmoji} ${currentGame.rookTrump} Trump</span>
+          <span class="chip" style="background:var(--bg-2);color:var(--muted);">Called: ${currentGame.rookCalledCard}</span>
+        </div>`;
+
+      // Show teams if partner already known
+      if(partnerName){
+        const opponents=activePlayers.filter(p=>p!==currentGame.rookHighBidder&&p!==partnerName);
+        rookUI+=`<div class="rounded-xl p-3 mb-3 border-2" style="border-color:var(--blue-border);background:var(--blue-bg);">
+          <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--blue);">Bidder's Team — Target: ${currentGame.rookHighBid}+</div>
+          <div class="flex gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5">${getAvatarImg(currentGame.rookHighBidder,'avatar-img')}<span class="font-bold text-sm">${currentGame.rookHighBidder} <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Bidder</span></span></div>
+            <div class="flex items-center gap-1.5">${getAvatarImg(partnerName,'avatar-img')}<span class="font-bold text-sm">${partnerName} <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Partner</span></span></div>
+          </div>
+        </div>
+        <div class="rounded-xl p-3 mb-4 border hairline" style="background:var(--surface-2);">
+          <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Opponents</div>
+          <div class="flex gap-2 flex-wrap">${opponents.map(p=>`<div class="flex items-center gap-1.5">${getAvatarImg(p,'avatar-img')}<span class="font-bold text-sm">${p}</span></div>`).join('')}</div>
+        </div>`;
+      }
+
+      rookUI+=`<button onclick="openRookResultsModal()" class="btn-primary w-full py-4 font-display text-lg">📊 Enter Results &amp; Score Round →</button>
       </div>`;
     }
 
@@ -3509,9 +3663,17 @@
     const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
     const notPassed=activePlayers.filter(p=>!currentGame.rookPassed?.[p]);
     if(notPassed.length===1){
+      const winner=notPassed[0];
+      // If they haven't locked a bid yet, give them the minimum
+      if(!currentGame.rookCurrentBids?.[winner]){
+        const minBid=currentGame.rookConfig.minBid;
+        currentGame.rookCurrentBids[winner]=minBid;
+        currentGame.rookHighBid=minBid;
+        currentGame.rookHighBidder=winner;
+      }
       currentGame.rookPhase='calling';
       saveData(); renderGame();
-      openRookCallModal(notPassed[0], currentGame.rookHighBid);
+      openRookCallModal(winner, currentGame.rookHighBid);
     }
   }
 
