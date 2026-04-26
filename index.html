@@ -2963,7 +2963,9 @@
       const keys=Object.keys(currentGame.totals).filter(p => !retired.includes(p));
       if(keys.length){
         const sorted=keys.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
-        history.unshift({id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:retired});
+        const snapshot={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:retired};
+        Object.assign(snapshot, rookCurrentStateSnapshot(currentGame));
+        history.unshift(snapshot);
       }
     }
     _pendingGameName = name;
@@ -3078,6 +3080,23 @@
 
   function rookElementId(player){
     return String(player || '').replace(/\W/g,'_');
+  }
+
+  function rookPersistedState(game=currentGame){
+    if(!game||game.name!=='Rook')return {};
+    return {
+      rookConfig:game.rookConfig,
+      rookPhase:game.rookPhase,
+      rookCurrentBids:game.rookCurrentBids||{},
+      rookPendingBids:game.rookPendingBids||{},
+      rookPassed:game.rookPassed||{},
+      rookHighBid:game.rookHighBid,
+      rookHighBidder:game.rookHighBidder||null,
+      rookTrump:game.rookTrump||null,
+      rookCalledCard:game.rookCalledCard||null,
+      rookPartner:game.rookPartner||null,
+      rookBidderCountersDraft:game.rookBidderCountersDraft
+    };
   }
 
   function rookAdjPendingBid(player, delta){
@@ -4802,7 +4821,7 @@
     const topScore=currentGame.totals[sorted[0]];
     const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
 
-    const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[]};
+    const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[],...rookStateSnapshot(currentGame)};
     if(currentGame.name==='Wizard'){data.wizardPhase=currentGame.wizardPhase;data.currentBids=currentGame.currentBids;}
     if(currentGame.name==='Rook'){data.rookConfig=currentGame.rookConfig;}
 
