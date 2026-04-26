@@ -1243,9 +1243,12 @@
     <!-- ═══ GAME SCREEN ═══ -->
     <div id="game-screen" class="hidden">
       <div class="surface p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div class="flex items-center gap-4 flex-wrap">
-          <h2 id="game-title" class="font-display text-3xl md:text-4xl"></h2>
-          <div id="round-intel" class="font-display text-3xl md:text-4xl" style="color:var(--emerald);"></div>
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center gap-4 flex-wrap">
+            <h2 id="game-title" class="font-display text-3xl md:text-4xl"></h2>
+            <div id="round-intel" class="font-display text-3xl md:text-4xl" style="color:var(--emerald);"></div>
+          </div>
+          <div id="wizard-bid-status" class="hidden flex items-center gap-2 flex-wrap"></div>
         </div>
         <div class="flex flex-wrap gap-2 items-center relative">
           <div class="relative">
@@ -1272,6 +1275,10 @@
               <button onclick="openSportsCenter();closeActionsMenu();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
                 <span class="text-base w-5 text-center">📺</span>
                 <span>SportsCenter Standings</span>
+              </button>
+              <button id="actions-retire-btn" onclick="openRetirePlayerModal();closeActionsMenu();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
+                <span class="text-base w-5 text-center">🚪</span>
+                <span>Retire Player</span>
               </button>
               <div class="my-1 border-t hairline"></div>
               <button onclick="scratchMatch();closeActionsMenu();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--rose);">
@@ -1313,7 +1320,7 @@
           </div>
 
           <div id="submit-section" class="p-4 border-t hairline flex flex-col sm:flex-row sm:justify-between items-center gap-4" style="background:var(--surface-2);">
-            <p class="text-xs font-medium" style="color:var(--muted);">Tap past scores to edit · 🃏 tap to reassign dealer · 🛟 Hail Mary · 🚪 Tap out</p>
+            <p class="text-xs font-medium" style="color:var(--muted);">Tap past scores to edit · 🃏 tap to reassign dealer · 🛟 Hail Mary · 🚪 Actions → Retire Player</p>
             <button id="submit-action-btn" onclick="submitRound()" class="btn-accent w-full sm:w-auto px-12 py-4 text-lg">Submit Round</button>
           </div>
 
@@ -1635,6 +1642,20 @@
           <h3 class="font-display text-3xl">Pass the Deck</h3>
         </div>
         <div id="dealer-player-list" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- Retire Player Modal -->
+    <div id="retire-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+      <div onclick="closeRetirePlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-sm p-7 relative pop-in">
+        <button onclick="closeRetirePlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <div class="text-center mb-5">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--rose);">Mid-Game Exit</div>
+          <h3 class="font-display text-3xl">Retire Player</h3>
+          <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Their score is frozen and they leave the rotation.</p>
+        </div>
+        <div id="retire-player-list" class="space-y-2"></div>
       </div>
     </div>
 
@@ -2010,6 +2031,27 @@
   function closeScorecard(){ closeModal('scorecard-modal'); }
   function openDealerModal(){ buildDealerList(); openModal('dealer-modal'); }
   function closeDealerModal(){ closeModal('dealer-modal'); }
+
+  function openRetirePlayerModal(){
+    if(!currentGame)return;
+    const list=document.getElementById('retire-player-list');
+    list.innerHTML='';
+    const active=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    if(!active.length){
+      list.innerHTML=`<div class="text-center py-4 font-bold" style="color:var(--muted);">No active players to retire.</div>`;
+    } else {
+      active.forEach(p=>{
+        const btn=document.createElement('button');
+        btn.className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80 font-jakarta font-extrabold';
+        btn.style.cssText='background:var(--surface-2);border:1.5px solid var(--hairline);color:var(--ink);';
+        btn.innerHTML=`${getAvatarImg(p,'avatar-img')}<span class="text-lg">${p}</span>`;
+        btn.onclick=()=>{ closeRetirePlayerModal(); tapOut(p); };
+        list.appendChild(btn);
+      });
+    }
+    openModal('retire-player-modal');
+  }
+  function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
   function closeWheel(){ const m=document.getElementById('wheel-modal'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),280); }
 
   // ── Actions Menu ──
@@ -3181,6 +3223,33 @@
     banner.innerHTML=html; banner.classList.remove('hidden');
   }
 
+  /* ═══ WIZARD BID STATUS (header badge) ═══ */
+  function updateWizardBidStatus(){
+    const el=document.getElementById('wizard-bid-status');
+    if(!el)return;
+    if(!currentGame||currentGame.name!=='Wizard'||currentGame.wizardPhase!=='scoring'){
+      el.classList.add('hidden'); el.innerHTML=''; return;
+    }
+    const round=currentGame.currentRound;
+    const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    let totalBids=0;
+    gp.forEach(p=>{ totalBids+=(currentGame.currentBids?.[p]||0); });
+    const diff=totalBids-round;
+    let badge='', statusColor='', statusText='';
+    if(diff===0){
+      statusColor='var(--amber)'; statusText=`Bids even — dealer had to adjust`;
+      badge=`<span class="text-xs font-extrabold px-3 py-1 rounded-full" style="background:rgba(245,158,11,0.15);color:var(--amber);border:1.5px solid rgba(245,158,11,0.3);">⚠️ Even · ${totalBids}/${round}</span>`;
+    } else if(diff<0){
+      statusColor='var(--blue)'; statusText=`${Math.abs(diff)} trick${Math.abs(diff)!==1?'s':''} uncontested`;
+      badge=`<span class="text-xs font-extrabold px-3 py-1 rounded-full" style="background:var(--blue-bg);color:var(--blue);border:1.5px solid var(--blue-border);">${Math.abs(diff)} under · ${totalBids}/${round}</span>`;
+    } else {
+      statusColor='var(--rose)'; statusText=`${diff} trick${diff!==1?'s':''} overbid 🌶️`;
+      badge=`<span class="text-xs font-extrabold px-3 py-1 rounded-full" style="background:var(--rose-bg);color:var(--rose);border:1.5px solid var(--rose-border);">${diff} over · ${totalBids}/${round}</span>`;
+    }
+    el.innerHTML=`<span class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Bids locked:</span>${badge}<span class="text-[10px] font-semibold hidden sm:inline" style="color:var(--muted);">${statusText}</span>`;
+    el.classList.remove('hidden');
+  }
+
   /* ═══ WIZARD TRICK COUNTER ═══ */
   function updateWizardTrickCounter(){
     const banner=document.getElementById('wizard-trick-counter');
@@ -3329,8 +3398,6 @@
       if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button onclick="authorizeHailMary('${p}')" class="ml-2 text-2xl hover:scale-125 transition-transform" title="Hail Mary Unlocked">🛟</button>`;
       else if(currentGame.hailMaryUsed.includes(p)) hailBtn=`<span class="ml-2 text-lg opacity-25">🛟</span>`;
 
-      // Inline action icons (kept subtle)
-      const tapBtn=(!over&&!isRetired)?`<button onclick="tapOut('${p}')" class="ml-1.5 text-sm opacity-25 hover:opacity-80 transition-opacity" title="Tap Out (retire)">🚪</button>`:'';
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
@@ -3339,7 +3406,7 @@
           <span class="text-sm w-5 font-mono-num ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
           ${getStreakAvatarHtml(p,'avatar-img mx-2')}
           <span class="font-jakarta font-extrabold text-xl ${isLeader?'leader-text':''}">${p}</span>
-          ${hailBtn}${tapBtn}${retiredTag}
+          ${hailBtn}${retiredTag}
           ${isDealer?`<button onclick="openDealerModal()" class="ml-2 text-xl hover:scale-110 transition-transform" title="Tap to pass the deck">🃏</button>`:''}
         </td>
         <td class="px-4 py-2 font-jakarta font-extrabold text-3xl font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
@@ -3409,6 +3476,16 @@
       if(isWiz) btnTxt = wPhase==='bidding' ? '🔒 Lock In Bids' : '✅ Submit Tricks & Score';
       const sb=document.getElementById('submit-action-btn'); if(sb)sb.innerHTML=btnTxt;
       if(isWiz) updateWizardTrickCounter(); else document.getElementById('wizard-trick-counter').classList.add('hidden');
+    }
+
+    updateWizardBidStatus();
+
+    // Show/hide "Retire Player" action based on whether there are active retirable players
+    const retireBtn=document.getElementById('actions-retire-btn');
+    if(retireBtn){
+      const activeCount=(currentGame.originalRoster||[]).filter(p=>p&&!currentGame.retired?.includes(p)).length;
+      if(over||activeCount<=1) retireBtn.classList.add('hidden');
+      else retireBtn.classList.remove('hidden');
     }
 
     renderPortraitView();
