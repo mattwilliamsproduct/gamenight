@@ -4345,13 +4345,14 @@
   /* ═══ MAIN GAME RENDER ═══ */
   function renderGame(){
     if(!currentGame)return;
+    const sb=document.getElementById('submit-action-btn');
+    if(sb)sb.style.display='';
     const rookPanel=document.getElementById('rook-round-panel');
     if(rookPanel){
       rookPanel.classList.add('hidden');
       rookPanel.innerHTML='';
     }
     if(currentGame.name==='Rook'){
-      const sb=document.getElementById('submit-action-btn');
       if(sb)sb.style.display='none';
       return renderRookGame();
     }
@@ -4658,7 +4659,10 @@
   function submitRound(){
     if(!currentGame||isSubmitting)return;
     // Rook uses its own command center above the score list.
-    if(currentGame.name==='Rook'){isSubmitting=false;return;}
+    if(currentGame.name==='Rook'){
+      toast('Use the Rook command center above the scorecard to submit results.', 'warning');
+      return;
+    }
     isSubmitting=true;
     if(activeInputId)saveActiveInputToModel();
     closeNumpad();
