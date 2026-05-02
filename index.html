@@ -537,7 +537,12 @@
     #stat-montage {
       position: fixed; inset: 0; z-index: 195;
       background: #000;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      padding: 1.5rem 1rem 1.25rem;
       overflow: hidden;
     }
     #stat-montage.hidden { display: none; }
@@ -548,70 +553,79 @@
         radial-gradient(ellipse at 70% 60%, rgba(59,130,246,0.22) 0%, transparent 55%);
       pointer-events: none;
     }
-    .montage-slide {
-      position: absolute;
+    #montage-slide-container {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      min-height: 0;
+      width: min(1100px, 100%);
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 1rem;
+      align-content: start;
+      padding: 0.25rem 0.15rem;
+      -webkit-overflow-scrolling: touch;
+      animation: montageGridIn 0.55s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes montageGridIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .montage-card {
       text-align: center;
       color: #fff;
-      opacity: 0;
-      padding: 2rem 1.5rem;
-      width: 100%;
-      max-width: 92vw;
-      pointer-events: none;
-    }
-    .montage-slide.active {
-      animation: montageSlideIn 2.4s cubic-bezier(0.16,1,0.3,1) forwards;
-    }
-    @keyframes montageSlideIn {
-      0%   { opacity: 0; transform: scale(0.88); filter: blur(18px); }
-      18%  { opacity: 1; transform: scale(1); filter: blur(0); }
-      82%  { opacity: 1; transform: scale(1.02); filter: blur(0); }
-      100% { opacity: 0; transform: scale(1.08); filter: blur(12px); }
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 1.35rem 1.15rem 1.45rem;
+      backdrop-filter: blur(10px);
     }
     .montage-label {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: clamp(0.82rem, 1.6vw, 1.05rem);
+      font-size: clamp(0.72rem, 1.4vw, 0.95rem);
       font-weight: 800;
-      letter-spacing: 0.28em;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
       color: #34d399;
-      margin-bottom: 1.2rem;
+      margin-bottom: 0.85rem;
     }
     .montage-value {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 800;
-      font-size: clamp(3rem, 11vw, 7rem);
+      font-size: clamp(2rem, 7vw, 4.25rem);
       line-height: 1;
       letter-spacing: -0.05em;
       color: #fff;
-      margin-bottom: 1.2rem;
-      text-shadow: 0 0 60px rgba(255,255,255,0.28);
+      margin-bottom: 0.85rem;
+      text-shadow: 0 0 48px rgba(255,255,255,0.22);
     }
     .montage-detail {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: clamp(1.05rem, 2.4vw, 1.65rem);
+      font-size: clamp(0.95rem, 2.1vw, 1.25rem);
       font-weight: 600;
       color: rgba(255,255,255,0.82);
-      max-width: 42ch;
+      max-width: 40ch;
       margin: 0 auto;
       line-height: 1.35;
     }
-    .montage-value.winner { color: #34d399; }
-    .montage-skip {
-      position: absolute;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255,255,255,0.4);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      cursor: pointer;
-      padding: 0.55rem 1.4rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 999px;
+    .montage-next-wrap {
+      position: relative;
       z-index: 10;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      justify-content: center;
+    }
+    .montage-next {
+      width: 100%;
+      padding: 0.9rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      border: none;
     }
 
     /* ════════ TRICK COUNTER ════════ */
@@ -1104,7 +1118,9 @@
   <div id="stat-montage" class="hidden">
     <div class="montage-bg"></div>
     <div id="montage-slide-container"></div>
-    <div class="montage-skip" onclick="dismissStatMontage()">Skip ›</div>
+    <div class="montage-next-wrap">
+      <button type="button" class="montage-next btn-primary" onclick="dismissStatMontage()">Next ›</button>
+    </div>
   </div>
 
   <!-- SportsCenter on-demand view -->
@@ -2897,17 +2913,6 @@
       }
     }
 
-    // Winner slide (always last)
-    if(gameData.winners?.length){
-      const name = gameData.winners.length > 1 ? gameData.winners.join(' & ') : gameData.winners[0];
-      stats.push({
-        label: 'Winner',
-        value: `${cfg.emoji}`,
-        detail: gameData.winners.length > 1 ? `${name} tied!` : `${name} wins!`,
-        isWinner: true
-      });
-    }
-
     return stats;
   }
 
@@ -2917,33 +2922,17 @@
     if(!stats.length){ onDone?.(); return; }
     const container = document.getElementById('montage-slide-container');
     container.innerHTML = stats.map((s, i) => {
-      const winnerClass = s.isWinner ? ' winner' : '';
-      return `<div class="montage-slide" data-idx="${i}">
+      return `<div class="montage-card" data-idx="${i}">
         <div class="montage-label">${s.label}</div>
-        <div class="montage-value${winnerClass}">${s.value}</div>
+        <div class="montage-value">${s.value}</div>
         <div class="montage-detail">${s.detail}</div>
       </div>`;
     }).join('');
     document.getElementById('stat-montage').classList.remove('hidden');
     _montageOnDone = onDone;
-    // Start the slideshow
     _montageTimeouts.forEach(t => clearTimeout(t));
     _montageTimeouts = [];
-    const SLIDE_MS = 2400;
-    stats.forEach((s, i) => {
-      _montageTimeouts.push(setTimeout(() => {
-        // Deactivate previous
-        container.querySelectorAll('.montage-slide').forEach(el => el.classList.remove('active'));
-        const next = container.querySelector(`[data-idx="${i}"]`);
-        if(next) next.classList.add('active');
-        if(s.isWinner){ haptic([100,50,100,50,150]); soundRecord(); }
-        else haptic(30);
-      }, i * SLIDE_MS));
-    });
-    // Final timeout: dismiss
-    _montageTimeouts.push(setTimeout(() => {
-      dismissStatMontage();
-    }, stats.length * SLIDE_MS));
+    haptic(30);
   }
 
   let _montageOnDone = null;
