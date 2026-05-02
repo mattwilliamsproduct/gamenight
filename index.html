@@ -3007,7 +3007,7 @@
       if(keys.length){
         const sorted=keys.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
         const snapshot={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:retired};
-        Object.assign(snapshot, rookCurrentStateSnapshot(currentGame));
+        Object.assign(snapshot, rookPersistedState(currentGame));
         history.unshift(snapshot);
       }
     }
@@ -4998,7 +4998,7 @@
     const topScore=currentGame.totals[sorted[0]];
     const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
 
-    const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[],...rookStateSnapshot(currentGame)};
+    const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[],...rookPersistedState(currentGame)};
     if(currentGame.name==='Wizard'){data.wizardPhase=currentGame.wizardPhase;data.currentBids=currentGame.currentBids;data.currentScoreDrafts=currentGame.currentScoreDrafts||{};}
     if(currentGame.name==='Rook'){data.rookConfig=currentGame.rookConfig;}
 
