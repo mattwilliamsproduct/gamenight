@@ -4166,10 +4166,12 @@
     const container = document.getElementById('montage-slide-container');
     container.innerHTML = stats.map((s, i) => {
       const winnerClass = s.isWinner ? ' winner' : '';
+      const kicker = s.kicker || (s.isSpotlight ? 'End-of-game ceremony' : '');
       return `<div class="montage-slide" data-idx="${i}">
         <div class="montage-label">${s.label}</div>
         <div class="montage-value${winnerClass}">${s.value}</div>
         <div class="montage-detail">${s.detail}</div>
+        ${kicker ? `<div class="montage-kicker">${kicker}</div>` : ''}
       </div>`;
     }).join('');
     document.getElementById('stat-montage').classList.remove('hidden');
