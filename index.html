@@ -653,6 +653,12 @@
       overflow: hidden;
     }
     #stat-montage.hidden { display: none; }
+    #montage-slide-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
     .montage-bg {
       position: absolute; inset: 0;
       background:
@@ -662,22 +668,23 @@
     }
     .montage-slide {
       position: absolute;
+      top: 50%;
+      left: 50%;
       text-align: center;
       color: #fff;
       opacity: 0;
       padding: 2rem 1.5rem;
-      width: 100%;
-      max-width: 92vw;
+      width: min(92vw, 1100px);
       pointer-events: none;
     }
     .montage-slide.active {
       animation: montageSlideIn 2.4s cubic-bezier(0.16,1,0.3,1) forwards;
     }
     @keyframes montageSlideIn {
-      0%   { opacity: 0; transform: scale(0.88); filter: blur(18px); }
-      18%  { opacity: 1; transform: scale(1); filter: blur(0); }
-      82%  { opacity: 1; transform: scale(1.02); filter: blur(0); }
-      100% { opacity: 0; transform: scale(1.08); filter: blur(12px); }
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.88); filter: blur(18px); }
+      18%  { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+      82%  { opacity: 1; transform: translate(-50%, -50%) scale(1.02); filter: blur(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); filter: blur(12px); }
     }
     .montage-label {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -708,6 +715,15 @@
       line-height: 1.35;
     }
     .montage-value.winner { color: #34d399; }
+    .montage-kicker {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(0.82rem, 1.7vw, 1.05rem);
+      font-weight: 800;
+      color: rgba(255,255,255,0.55);
+      margin-top: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
     .montage-skip {
       position: absolute;
       bottom: 2rem;
@@ -3909,115 +3925,235 @@
   }
 
   // ── Post-game: Stat Montage ──
+  function pushAward(stats, label, value, detail, opts={}){
+    if(value === undefined || value === null || value === '') return;
+    if(stats.some(s => s.label === label && s.detail === detail)) return;
+    stats.push({ label, value: String(value), detail, ...opts });
+  }
+
+  function formatPlayerList(names){
+    if(!names?.length) return '';
+    if(names.length === 1) return names[0];
+    if(names.length === 2) return names.join(' & ');
+    return `${names.slice(0,-1).join(', ')} & ${names[names.length-1]}`;
+  }
+
+  function sortPlayersByTotal(playersToSort, totals, cfg){
+    return [...playersToSort].sort((a,b)=>{
+      const diff = cfg.winLow ? (totals[a]||0) - (totals[b]||0) : (totals[b]||0) - (totals[a]||0);
+      return diff || a.localeCompare(b);
+    });
+  }
+
+  function roundScoresForPlayer(rounds, player){
+    return rounds
+      .filter(r => !r.hailMaryBonus && !r.joinBonus?.[player] && r.scores && r.scores[player] !== undefined)
+      .map(r => ({ round: r.round, score: Number(r.scores[player]) || 0, data: r }));
+  }
+
+  function awardLeaderChanges(rounds, playersToUse, cfg){
+    let leaders = [];
+    const totals = Object.fromEntries(playersToUse.map(p => [p, 0]));
+    rounds.forEach(r => {
+      if(r.hailMaryBonus) return;
+      playersToUse.forEach(p => {
+        if(r.joinBonus?.[p]) return;
+        totals[p] = (totals[p] || 0) + (Number(r.scores?.[p]) || 0);
+      });
+      const sorted = sortPlayersByTotal(playersToUse, totals, cfg);
+      if(sorted.length) leaders.push(sorted[0]);
+    });
+    let changes = 0;
+    for(let i=1;i<leaders.length;i++) if(leaders[i] !== leaders[i-1]) changes++;
+    return changes;
+  }
+
   // Compute key stats from finished match
   function computeMatchStats(gameData){
     const stats = [];
     const cfg = configs[gameData.game];
     if(!cfg || !gameData.rounds || !gameData.rounds.length) return stats;
 
+    const retired = gameData.retired || [];
+    const playersToUse = (gameData.originalRoster || Object.keys(gameData.totals || {}))
+      .filter(p => p && !retired.includes(p) && gameData.totals[p] !== undefined);
+    const scoringRounds = gameData.rounds.filter(r => !r.hailMaryBonus);
+    if(!playersToUse.length || !scoringRounds.length) return stats;
+
+    const sortedFinal = sortPlayersByTotal(playersToUse, gameData.totals, cfg);
+    const winnerNames = gameData.winners?.length ? gameData.winners : sortedFinal.slice(0,1);
+    const winnerText = formatPlayerList(winnerNames);
+    const finalBest = sortedFinal[0];
+    const finalWorst = sortedFinal[sortedFinal.length-1];
+
+    pushAward(stats, "Tonight's MVP", cfg.emoji, winnerNames.length > 1 ? `${winnerText} shared the crown` : `${winnerText} owned the final scoreboard`, { isSpotlight: true });
+
     // Biggest / worst single round
     let extremeRound = null;
-    gameData.rounds.forEach(r => {
-      if(r.hailMaryBonus) return;
+    scoringRounds.forEach(r => {
       Object.entries(r.scores || {}).forEach(([p, s]) => {
-        if(r.joinBonus?.[p]) return;
-        if(cfg.winLow){
-          // "Biggest" = worst penalty round
-          if(!extremeRound || s > extremeRound.score){
-            extremeRound = { score: s, player: p, round: r.round, type: 'worst' };
-          }
-        } else {
-          // "Biggest" = highest positive round
-          if(!extremeRound || s > extremeRound.score){
-            extremeRound = { score: s, player: p, round: r.round, type: 'best' };
-          }
+        if(!playersToUse.includes(p) || r.joinBonus?.[p]) return;
+        if(!extremeRound || s > extremeRound.score){
+          extremeRound = { score: s, player: p, round: r.round };
         }
       });
     });
     if(extremeRound && extremeRound.score > 0){
-      stats.push({
-        label: extremeRound.type === 'best' ? 'Biggest Round' : 'Worst Round',
-        value: `${extremeRound.score}`,
-        detail: `${extremeRound.player} · Round ${extremeRound.round}`
-      });
+      pushAward(
+        stats,
+        cfg.winLow ? 'Toughest Round' : 'Biggest Round',
+        extremeRound.score,
+        `${extremeRound.player} ${cfg.winLow ? 'took the biggest hit' : 'went nuclear'} in Round ${extremeRound.round}`
+      );
     }
 
-    // Comeback detection
-    if(gameData.rounds.length >= 4 && gameData.winners?.length){
-      const halfIdx = Math.floor(gameData.rounds.length / 2);
-      const halfTotals = {};
-      Object.keys(gameData.totals).forEach(p => halfTotals[p] = 0);
-      gameData.rounds.slice(0, halfIdx).forEach(r => {
-        if(r.hailMaryBonus) return;
+    // Comeback detection from halftime to finish
+    if(scoringRounds.length >= 4 && winnerNames.length){
+      const halfIdx = Math.floor(scoringRounds.length / 2);
+      const halfTotals = Object.fromEntries(playersToUse.map(p => [p, 0]));
+      scoringRounds.slice(0, halfIdx).forEach(r => {
         Object.entries(r.scores || {}).forEach(([p, s]) => {
-          if(halfTotals[p] === undefined) halfTotals[p] = 0;
-          halfTotals[p] += s;
+          if(halfTotals[p] === undefined || r.joinBonus?.[p]) return;
+          halfTotals[p] += Number(s) || 0;
         });
       });
-      const sortedAtHalf = Object.keys(halfTotals).sort((a,b)=>cfg.winLow?halfTotals[a]-halfTotals[b]:halfTotals[b]-halfTotals[a]);
-      const winner = gameData.winners[0];
+      const sortedAtHalf = sortPlayersByTotal(playersToUse, halfTotals, cfg);
       const leaderAtHalf = sortedAtHalf[0];
-      if(winner !== leaderAtHalf){
-        const deficit = Math.abs(halfTotals[winner] - halfTotals[leaderAtHalf]);
-        if(deficit >= 20){
-          stats.push({
-            label: 'Biggest Comeback',
-            value: `${deficit}`,
-            detail: `${winner} was down ${deficit} at halftime`
-          });
-        }
+      let comeback = null;
+      winnerNames.forEach(winner => {
+        if(winner === leaderAtHalf) return;
+        const deficit = cfg.winLow ? (halfTotals[winner] - halfTotals[leaderAtHalf]) : (halfTotals[leaderAtHalf] - halfTotals[winner]);
+        if(deficit > 0 && (!comeback || deficit > comeback.deficit)) comeback = { winner, leaderAtHalf, deficit };
+      });
+      if(comeback && comeback.deficit >= 20){
+        pushAward(stats, 'Biggest Comeback', comeback.deficit, `${comeback.winner} erased a ${comeback.deficit}-point gap after halftime`);
       }
     }
 
-    // Wizard: most exact bids
+    // Most improved second half
+    if(scoringRounds.length >= 4){
+      const halfIdx = Math.floor(scoringRounds.length / 2);
+      let mostImproved = null;
+      playersToUse.forEach(p => {
+        const first = scoringRounds.slice(0, halfIdx).reduce((sum, r) => sum + (r.joinBonus?.[p] ? 0 : (Number(r.scores?.[p]) || 0)), 0);
+        const second = scoringRounds.slice(halfIdx).reduce((sum, r) => sum + (r.joinBonus?.[p] ? 0 : (Number(r.scores?.[p]) || 0)), 0);
+        const swing = cfg.winLow ? first - second : second - first;
+        if(swing > 0 && (!mostImproved || swing > mostImproved.swing)) mostImproved = { player: p, swing };
+      });
+      if(mostImproved && mostImproved.swing >= 15){
+        pushAward(stats, 'Most Improved Round', `+${mostImproved.swing}`, `${mostImproved.player} turned the second half into a comeback reel`);
+      }
+    }
+
+    // Most consistent player, based on the tightest score spread across rounds.
+    let consistent = null;
+    playersToUse.forEach(p => {
+      const scores = roundScoresForPlayer(scoringRounds, p);
+      if(scores.length < 3) return;
+      const values = scores.map(r => r.score);
+      const spread = Math.max(...values) - Math.min(...values);
+      if(!consistent || spread < consistent.spread) consistent = { player: p, spread };
+    });
+    if(consistent){
+      pushAward(stats, 'Most Consistent', `${consistent.spread}`, `${consistent.player} kept every round within a ${consistent.spread}-point lane`);
+    }
+
+    // Hardest fought loss: closest non-winner to the winner.
+    if(sortedFinal.length > winnerNames.length){
+      const runnerUp = sortedFinal.find(p => !winnerNames.includes(p));
+      const margin = Math.abs((gameData.totals[finalBest]||0) - (gameData.totals[runnerUp]||0));
+      const closeEnough = margin > 0 && (margin <= 20 || margin <= Math.max(25, Math.abs(gameData.totals[finalBest]||0) * 0.12));
+      if(closeEnough){
+        pushAward(stats, 'Hardest Fought Loss', `${margin}`, `${runnerUp} finished only ${margin} back`);
+      }
+    }
+
+    // Hail Mary / late drama.
+    const hailMaryRounds = gameData.rounds.filter(r => r.hailMaryBonus);
+    if(hailMaryRounds.length){
+      const bestHailMary = hailMaryRounds
+        .flatMap(r => Object.entries(r.scores || {}).map(([player, score]) => ({ player, score: Number(score) || 0 })))
+        .sort((a,b)=>Math.abs(b.score)-Math.abs(a.score))[0];
+      if(bestHailMary){
+        pushAward(stats, 'Luckiest Hail Mary', `${bestHailMary.score >= 0 ? '+' : ''}${bestHailMary.score}`, `${bestHailMary.player} spun the chaos wheel and survived`);
+      }
+    }
+
+    // Rare round callouts.
+    const allZeroRound = scoringRounds.find(r => {
+      const values = playersToUse.filter(p => !r.joinBonus?.[p]).map(p => Number(r.scores?.[p]) || 0);
+      return values.length >= 2 && values.every(s => s === 0);
+    });
+    if(allZeroRound){
+      pushAward(stats, 'Table Wipeout', '0s', `Everybody posted zero in Round ${allZeroRound.round}`);
+    }
+
+    const leaderChanges = awardLeaderChanges(scoringRounds, playersToUse, cfg);
+    if(leaderChanges >= 3){
+      pushAward(stats, 'Lead Change Frenzy', leaderChanges, `The top spot changed hands ${leaderChanges} times`);
+    }
+
+    if(finalWorst && !winnerNames.includes(finalWorst)){
+      const gap = Math.abs((gameData.totals[finalBest]||0) - (gameData.totals[finalWorst]||0));
+      if(gap >= 50){
+        pushAward(stats, 'Basement Survivor', gameData.totals[finalWorst] ?? 0, `${finalWorst} endured the night and made it to the credits`);
+      }
+    }
+
+    // Game-specific title cards.
     if(gameData.game === 'Wizard'){
       const exacts = {};
-      gameData.rounds.forEach(r => {
-        if(!r.scores) return;
-        Object.entries(r.scores).forEach(([p, s]) => {
-          if(r.joinBonus?.[p]) return;
-          if(s > 0){ exacts[p] = (exacts[p]||0) + 1; }
+      scoringRounds.forEach(r => {
+        Object.entries(r.scores || {}).forEach(([p, s]) => {
+          if(!playersToUse.includes(p) || r.joinBonus?.[p]) return;
+          if(s > 0) exacts[p] = (exacts[p]||0) + 1;
         });
       });
       const sorted = Object.entries(exacts).sort((a,b)=>b[1]-a[1]);
       if(sorted.length && sorted[0][1] >= 2){
-        stats.push({
-          label: 'Clairvoyant',
-          value: `${sorted[0][1]}`,
-          detail: `${sorted[0][0]} nailed ${sorted[0][1]} exact bids`
-        });
+        pushAward(stats, 'Clairvoyant', sorted[0][1], `${sorted[0][0]} nailed ${sorted[0][1]} exact bids`);
       }
     }
 
-    // Five Crowns: most perfect hands (zeros)
     if(gameData.game === 'Five Crowns'){
       const zeros = {};
-      gameData.rounds.forEach(r => {
-        if(!r.scores) return;
-        Object.entries(r.scores).forEach(([p, s]) => {
-          if(r.joinBonus?.[p]) return;
-          if(s === 0){ zeros[p] = (zeros[p]||0) + 1; }
+      scoringRounds.forEach(r => {
+        Object.entries(r.scores || {}).forEach(([p, s]) => {
+          if(!playersToUse.includes(p) || r.joinBonus?.[p]) return;
+          if(s === 0) zeros[p] = (zeros[p]||0) + 1;
         });
       });
       const sorted = Object.entries(zeros).sort((a,b)=>b[1]-a[1]);
       if(sorted.length && sorted[0][1] >= 2){
-        stats.push({
-          label: 'Perfect Hands',
-          value: `${sorted[0][1]}`,
-          detail: `${sorted[0][0]} went out ${sorted[0][1]} times`
+        pushAward(stats, 'Perfect Hands', sorted[0][1], `${sorted[0][0]} went out ${sorted[0][1]} times`);
+      }
+    }
+
+    if(gameData.game === 'Flip 7 Vengeance'){
+      const zeroRounds = {};
+      scoringRounds.forEach(r => {
+        Object.entries(r.scores || {}).forEach(([p, s]) => {
+          if(!playersToUse.includes(p) || r.joinBonus?.[p]) return;
+          if(s === 0) zeroRounds[p] = (zeroRounds[p]||0) + 1;
         });
+      });
+      const sortedZeros = Object.entries(zeroRounds).sort((a,b)=>b[1]-a[1]);
+      if(sortedZeros.length && sortedZeros[0][1] >= 2){
+        pushAward(stats, 'Bust Magnet', sortedZeros[0][1], `${sortedZeros[0][0]} stared down vengeance ${sortedZeros[0][1]} times`);
+      }
+    }
+
+    if(gameData.game === 'Rook'){
+      const setRounds = scoringRounds.filter(r => r.rookMadeIt === false);
+      if(setRounds.length){
+        const biggestSet = setRounds.sort((a,b)=>(b.rookBid||0)-(a.rookBid||0))[0];
+        pushAward(stats, 'Biggest Set', biggestSet.rookBid, `${biggestSet.rookBidder} and ${biggestSet.rookPartner} got stuffed in Round ${biggestSet.round}`);
       }
     }
 
     // Winner slide (always last)
-    if(gameData.winners?.length){
-      const name = gameData.winners.length > 1 ? gameData.winners.join(' & ') : gameData.winners[0];
-      stats.push({
-        label: 'Winner',
-        value: `${cfg.emoji}`,
-        detail: gameData.winners.length > 1 ? `${name} tied!` : `${name} wins!`,
-        isWinner: true
-      });
+    if(winnerNames.length){
+      pushAward(stats, 'Winner', cfg.emoji, winnerNames.length > 1 ? `${winnerText} tied!` : `${winnerText} wins!`, { isWinner: true });
     }
 
     return stats;
@@ -4030,10 +4166,12 @@
     const container = document.getElementById('montage-slide-container');
     container.innerHTML = stats.map((s, i) => {
       const winnerClass = s.isWinner ? ' winner' : '';
+      const kicker = s.kicker || (s.isSpotlight ? 'End-of-game ceremony' : '');
       return `<div class="montage-slide" data-idx="${i}">
         <div class="montage-label">${s.label}</div>
         <div class="montage-value${winnerClass}">${s.value}</div>
         <div class="montage-detail">${s.detail}</div>
+        ${kicker ? `<div class="montage-kicker">${kicker}</div>` : ''}
       </div>`;
     }).join('');
     document.getElementById('stat-montage').classList.remove('hidden');
