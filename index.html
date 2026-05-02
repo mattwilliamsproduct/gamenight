@@ -1890,7 +1890,7 @@
     </div>
 
     <!-- Victory -->
-    <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[60] p-4">
+    <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:var(--emerald);">
         <div class="text-7xl mb-4">🏆</div>
@@ -1907,7 +1907,7 @@
     </div>
 
     <!-- Loser -->
-    <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[70] p-4">
+    <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:var(--rose);">
         <div class="text-7xl mb-4">💔</div>
@@ -1920,7 +1920,7 @@
     </div>
 
     <!-- Sudden Death -->
-    <div id="sudden-death-modal" class="hidden fixed inset-0 flex items-center justify-center z-[75] p-4">
+    <div id="sudden-death-modal" class="hidden fixed inset-0 flex items-center justify-center z-[205] p-4">
       <div class="absolute inset-0 bg-black/65 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:#f97316;">
         <div class="text-6xl mb-3">⚡</div>
@@ -2735,7 +2735,8 @@
     const vid=document.createElement('video'); vid.src=`${clean}_${type}.mp4`; vid.autoplay=true; vid.controls=true; vid.playsInline=true;
     vid.className='w-full max-w-sm rounded-2xl mt-2 border-[3px]';
     vid.style.cssText=`border-color:${type==='win'?'var(--emerald)':'var(--rose)'};box-shadow:var(--shadow-lg);`;
-    vid.onerror=()=>c.innerHTML=''; vid.onloadeddata=()=>c.appendChild(vid);
+    c.appendChild(vid);
+    vid.onerror=()=>c.innerHTML='';
   }
 
   /* ═══ HAIL MARY WHEEL ═══ */
@@ -5033,6 +5034,16 @@
     if(pendingGameData) finishMatch(pendingGameData, false);
   }
 
+  function showPostGameStage(){
+    // The match has been saved, so make the page underneath the ceremony match that state.
+    navigateTo('home-screen');
+    renderRoster();
+    ['sudden-death-modal','rook-results-modal','rook-call-modal','custom-numpad'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.classList.add('hidden');
+    });
+  }
+
   function finishMatch(data, silent){
     const cfg=configs[data.game];
     const sorted=Object.keys(data.totals).sort((a,b)=>cfg.winLow?data.totals[a]-data.totals[b]:data.totals[b]-data.totals[a]);
@@ -5044,14 +5055,15 @@
     releaseWakeLock(); saveData();
 
     if(silent){ goHome(); return; }
+    showPostGameStage();
 
-    // Show stat montage first (if enabled and we have stats), then victory modal
+    // Show stat montage first (if enabled and we have stats), then victory modal.
+    const showVictory=()=>_presentVictoryModal(data, alerts);
     if(prefs.statMontage){
-      showStatMontage(data, () => {
-        _presentVictoryModal(data, alerts);
-      });
+      try{ showStatMontage(data, showVictory); }
+      catch(e){ console.warn('Stat montage failed; showing winner modal instead.', e); showVictory(); }
     } else {
-      _presentVictoryModal(data, alerts);
+      showVictory();
     }
   }
 
@@ -5060,7 +5072,8 @@
     document.getElementById('victory-names').textContent=wn;
     document.getElementById('victory-records').innerHTML=alerts.map(a=>`<div class="px-4 py-2 rounded-xl font-bold text-sm mx-auto w-fit" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;">${a}</div>`).join('');
     loadPlayerVideo(data.winners[0],'win','victory-video-container');
-    document.getElementById('victory-modal').classList.remove('hidden');
+    const modal=document.getElementById('victory-modal');
+    modal.classList.remove('hidden','opacity-0');
     if(alerts.length > 0){
       soundRecord();
       haptic([40, 60, 40, 60, 80]);
@@ -5070,8 +5083,10 @@
     }
     const end=Date.now()+3000;
     (function frame(){
-      confetti({particleCount:5,angle:60,spread:55,origin:{x:0},colors:['#047857','#10b981','#fbbf24']});
-      confetti({particleCount:5,angle:120,spread:55,origin:{x:1},colors:['#047857','#10b981','#fbbf24']});
+      if(typeof confetti==='function'){
+        confetti({particleCount:5,angle:60,spread:55,origin:{x:0},colors:['#047857','#10b981','#fbbf24']});
+        confetti({particleCount:5,angle:120,spread:55,origin:{x:1},colors:['#047857','#10b981','#fbbf24']});
+      }
       if(Date.now()<end)requestAnimationFrame(frame);
     })();
   }
