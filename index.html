@@ -425,10 +425,11 @@
     .bid-dot-busted { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.7); }
 
     .wizard-current-bid {
-      min-width: 4.5rem;
-      text-align: center;
+      min-width: 4.25rem;
+      text-align: right;
       line-height: 1;
       flex-shrink: 0;
+      align-self: center;
     }
     .wizard-current-bid-label {
       font-size: 0.58rem;
@@ -645,19 +646,34 @@
       animation: popIn 0.45s cubic-bezier(0.16,1,0.3,1);
     }
 
-    /* ════════ POST-GAME STAT MONTAGE ════════ */
+    /* ════════ POST-GAME STAT MONTAGE (ceremony cards, then Next → winner) ════════ */
     #stat-montage {
       position: fixed; inset: 0; z-index: 195;
       background: #000;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; flex-direction: column;
       overflow: hidden;
     }
     #stat-montage.hidden { display: none; }
-    #montage-slide-container {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+    .montage-ceremony-shell {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 0.75rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    #montage-slide-container.montage-ceremony-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.5rem 0.5rem 1rem;
     }
     .montage-bg {
       position: absolute; inset: 0;
@@ -667,79 +683,72 @@
       pointer-events: none;
     }
     .montage-slide {
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
       text-align: center;
       color: #fff;
-      opacity: 0;
-      padding: 2rem 1.5rem;
-      width: min(92vw, 1100px);
-      pointer-events: none;
-    }
-    .montage-slide.active {
-      animation: montageSlideIn 2.4s cubic-bezier(0.16,1,0.3,1) forwards;
-    }
-    @keyframes montageSlideIn {
-      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.88); filter: blur(18px); }
-      18%  { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
-      82%  { opacity: 1; transform: translate(-50%, -50%) scale(1.02); filter: blur(0); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); filter: blur(12px); }
+      opacity: 1;
+      padding: 1.2rem 1.35rem;
+      width: min(92vw, 520px);
+      flex-shrink: 0;
+      pointer-events: auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 1.15rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
     }
     .montage-label {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: clamp(0.82rem, 1.6vw, 1.05rem);
+      font-size: clamp(0.68rem, 1.35vw, 0.88rem);
       font-weight: 800;
-      letter-spacing: 0.28em;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
       color: #34d399;
-      margin-bottom: 1.2rem;
+      margin-bottom: 0.65rem;
     }
     .montage-value {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 800;
-      font-size: clamp(3rem, 11vw, 7rem);
-      line-height: 1;
-      letter-spacing: -0.05em;
+      font-size: clamp(1.65rem, 5.5vw, 2.65rem);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
       color: #fff;
-      margin-bottom: 1.2rem;
-      text-shadow: 0 0 60px rgba(255,255,255,0.28);
+      margin-bottom: 0.65rem;
+      text-shadow: 0 0 40px rgba(255,255,255,0.2);
     }
     .montage-detail {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: clamp(1.05rem, 2.4vw, 1.65rem);
+      font-size: clamp(0.92rem, 2.1vw, 1.12rem);
       font-weight: 600;
       color: rgba(255,255,255,0.82);
-      max-width: 42ch;
+      max-width: 36ch;
       margin: 0 auto;
-      line-height: 1.35;
+      line-height: 1.4;
     }
     .montage-value.winner { color: #34d399; }
     .montage-kicker {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: clamp(0.82rem, 1.7vw, 1.05rem);
+      font-size: clamp(0.68rem, 1.45vw, 0.82rem);
       font-weight: 800;
-      color: rgba(255,255,255,0.55);
-      margin-top: 1rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.65rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
-    .montage-skip {
-      position: absolute;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255,255,255,0.4);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      cursor: pointer;
-      padding: 0.55rem 1.4rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 999px;
+    .montage-footer {
+      flex-shrink: 0;
+      padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
       z-index: 10;
+      display: flex;
+      justify-content: center;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 30%, transparent);
+    }
+    .montage-next-btn {
+      width: min(92vw, 420px);
+      padding: 0.95rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 800;
     }
 
     /* ════════ TRICK COUNTER ════════ */
@@ -1231,8 +1240,12 @@
   <!-- Post-Game Stat Montage -->
   <div id="stat-montage" class="hidden">
     <div class="montage-bg"></div>
-    <div id="montage-slide-container"></div>
-    <div class="montage-skip" onclick="dismissStatMontage()">Skip ›</div>
+    <div class="montage-ceremony-shell">
+      <div id="montage-slide-container" class="montage-ceremony-scroll"></div>
+    </div>
+    <div class="montage-footer">
+      <button type="button" class="btn-primary montage-next-btn" onclick="dismissStatMontage()">Next →</button>
+    </div>
   </div>
 
   <!-- SportsCenter on-demand view -->
@@ -2742,41 +2755,60 @@
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0;
 
+  /** Mix "bad" and "good" slices around the wheel (weights unchanged). */
+  function interleaveWheelSlicesByKind(slices){
+    const bad = slices.filter(s => s._wheelBad);
+    const good = slices.filter(s => !s._wheelBad);
+    if(!bad.length || !good.length) return slices.map(({ _wheelBad, ...rest }) => rest);
+    const out = [];
+    let bi = 0, gi = 0;
+    const nb = bad.length, ng = good.length;
+    while(bi < nb || gi < ng){
+      const remB = nb - bi, remG = ng - gi;
+      if(remB === 0){ good.slice(gi).forEach(s => out.push(s)); break; }
+      if(remG === 0){ bad.slice(bi).forEach(s => out.push(s)); break; }
+      const ratioB = bi / nb, ratioG = gi / ng;
+      if(ratioB <= ratioG) out.push(bad[bi++]);
+      else out.push(good[gi++]);
+    }
+    return out.map(({ _wheelBad, ...rest }) => rest);
+  }
+
   function getWheelSlices(){
     const winLow=configs[currentGame.name].winLow;
     const score=currentGame?.totals[wheelPlayer]||0;
     if(winLow){
-      return [
-        {label:"+15 ☠️",     color:"#7f1d1d", effect:()=>15,                 weight:18},
-        {label:"+5 ☠️",      color:"#991b1b", effect:()=>5,                  weight:14},
-        {label:"−5 Pts",     color:"#78716c", effect:()=>-5,                 weight:16},
-        {label:"−15 Pts",    color:"#6ee7b7", effect:()=>-15,                weight:16},
-        {label:"−25 Pts",    color:"#34d399", effect:()=>-25,                weight:12},
+      return interleaveWheelSlicesByKind([
+        {label:"+15 ☠️",     color:"#7f1d1d", effect:()=>15,                 weight:18, _wheelBad:true},
+        {label:"+5 ☠️",      color:"#991b1b", effect:()=>5,                  weight:14, _wheelBad:true},
+        {label:"−5 Pts",     color:"#78716c", effect:()=>-5,                 weight:16, _wheelBad:false},
+        {label:"−15 Pts",    color:"#6ee7b7", effect:()=>-15,                weight:16, _wheelBad:false},
+        {label:"−25 Pts",    color:"#34d399", effect:()=>-25,                weight:12, _wheelBad:false},
         {label:"Wipe Worst", color:"#7c3aed", effect:(p)=>{
           if(!currentGame.rounds.length)return 0;
           let w=-Infinity; currentGame.rounds.forEach(r=>{const s=r.scores[p]||0;if(s>w)w=s;}); return w>0?-w:0;
-        }, weight:10},
-        {label:"−50 Pts",    color:"#10b981", effect:()=>-50,                weight:8 },
-        {label:"Half Score", color:"#2563eb", effect:(p)=>-Math.floor((currentGame.totals[p]||0)/2), weight:6 }
-      ];
+        }, weight:10, _wheelBad:false},
+        {label:"−50 Pts",    color:"#10b981", effect:()=>-50,                weight:8,  _wheelBad:false},
+        {label:"Half Score", color:"#2563eb", effect:(p)=>-Math.floor((currentGame.totals[p]||0)/2), weight:6, _wheelBad:false}
+      ]);
     } else {
       const canDouble=score>10;
       const jackpot=canDouble
-        ? {label:"×2 Score",color:"#2563eb",effect:(p)=>currentGame.totals[p]||0,weight:1}
-        : {label:"+75 Pts", color:"#2563eb",effect:()=>75,                       weight:1};
-      return [
-        {label:"−15 ☠️",     color:"#7f1d1d", effect:()=>-15, weight:18},
-        {label:"−5 ☠️",      color:"#991b1b", effect:()=>-5,  weight:14},
-        {label:"+5 Pts",     color:"#78716c", effect:()=>5,   weight:16},
-        {label:"+15 Pts",    color:"#6ee7b7", effect:()=>15,  weight:16},
-        {label:"+25 Pts",    color:"#34d399", effect:()=>25,  weight:12},
+        ? {label:"×2 Score",color:"#2563eb",effect:(p)=>currentGame.totals[p]||0,weight:1, _wheelBad:false}
+        : {label:"+75 Pts", color:"#2563eb",effect:()=>75,                       weight:1, _wheelBad:false};
+      return interleaveWheelSlicesByKind([
+        {label:"−15 ☠️",     color:"#7f1d1d", effect:()=>-15, weight:18, _wheelBad:true},
+        {label:"−5 ☠️",      color:"#991b1b", effect:()=>-5,  weight:14, _wheelBad:true},
+        {label:"+5 Pts",     color:"#78716c", effect:()=>5,   weight:16, _wheelBad:false},
+        {label:"+15 Pts",    color:"#6ee7b7", effect:()=>15,  weight:16, _wheelBad:false},
+        {label:"+25 Pts",    color:"#34d399", effect:()=>25,  weight:12, _wheelBad:false},
         {label:"Dbl Best",   color:"#7c3aed", effect:(p)=>{
           if(!currentGame.rounds.length)return 0;
           let b=-Infinity; currentGame.rounds.forEach(r=>{const s=r.scores[p]||0;if(s>b)b=s;}); return b>0?b:0;
-        }, weight:5},
-        {label:"+50 Pts",    color:"#10b981", effect:()=>50,  weight:8 },
+        }, weight:5, _wheelBad:false},
+        {label:"+50 Pts",    color:"#10b981", effect:()=>50,  weight:8,  _wheelBad:false},
         jackpot
-      ];
+      ]);
     }
   }
 
@@ -4152,55 +4184,30 @@
       }
     }
 
-    // Winner slide (always last)
-    if(winnerNames.length){
-      pushAward(stats, 'Winner', cfg.emoji, winnerNames.length > 1 ? `${winnerText} tied!` : `${winnerText} wins!`, { isWinner: true });
-    }
-
     return stats;
   }
 
-  let _montageTimeouts = [];
   function showStatMontage(gameData, onDone){
     const stats = computeMatchStats(gameData);
     if(!stats.length){ onDone?.(); return; }
     const container = document.getElementById('montage-slide-container');
     container.innerHTML = stats.map((s, i) => {
-      const winnerClass = s.isWinner ? ' winner' : '';
       const kicker = s.kicker || (s.isSpotlight ? 'End-of-game ceremony' : '');
       return `<div class="montage-slide" data-idx="${i}">
         <div class="montage-label">${s.label}</div>
-        <div class="montage-value${winnerClass}">${s.value}</div>
+        <div class="montage-value">${s.value}</div>
         <div class="montage-detail">${s.detail}</div>
         ${kicker ? `<div class="montage-kicker">${kicker}</div>` : ''}
       </div>`;
     }).join('');
     document.getElementById('stat-montage').classList.remove('hidden');
     _montageOnDone = onDone;
-    // Start the slideshow
-    _montageTimeouts.forEach(t => clearTimeout(t));
-    _montageTimeouts = [];
-    const SLIDE_MS = 2400;
-    stats.forEach((s, i) => {
-      _montageTimeouts.push(setTimeout(() => {
-        // Deactivate previous
-        container.querySelectorAll('.montage-slide').forEach(el => el.classList.remove('active'));
-        const next = container.querySelector(`[data-idx="${i}"]`);
-        if(next) next.classList.add('active');
-        if(s.isWinner){ haptic([100,50,100,50,150]); soundRecord(); }
-        else haptic(30);
-      }, i * SLIDE_MS));
-    });
-    // Final timeout: dismiss
-    _montageTimeouts.push(setTimeout(() => {
-      dismissStatMontage();
-    }, stats.length * SLIDE_MS));
+    container.scrollTop = 0;
+    haptic(25);
   }
 
   let _montageOnDone = null;
   function dismissStatMontage(){
-    _montageTimeouts.forEach(t => clearTimeout(t));
-    _montageTimeouts = [];
     document.getElementById('stat-montage').classList.add('hidden');
     const done = _montageOnDone;
     _montageOnDone = null;
@@ -4657,14 +4664,17 @@
         })()
         : '';
 
+      const playerCellPad = isWiz && wPhase === 'scoring' && !over ? 'pl-5 pr-2' : 'px-5';
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
-        <td class="px-5 py-2 flex items-center gap-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
-          ${dragHandle}${arrows}
-          <span class="text-sm w-5 font-mono-num ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
-          ${getStreakAvatarHtml(p,'avatar-img mx-2')}
-          <span class="font-jakarta font-extrabold text-xl ${isLeader?'leader-text':''}">${p}</span>
-          ${hailBtn}${retiredTag}
-          ${isDealer?`<button onclick="openDealerModal()" class="ml-2 text-xl hover:scale-110 transition-transform" title="Tap to pass the deck">🃏</button>`:''}
+        <td class="${playerCellPad} py-2 flex items-center gap-2 sticky left-0 z-10 border-r hairline min-w-0" style="background:${cellBg};">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            ${dragHandle}${arrows}
+            <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
+            ${getStreakAvatarHtml(p,'avatar-img mx-2')}
+            <span class="font-jakarta font-extrabold text-xl truncate ${isLeader?'leader-text':''}">${p}</span>
+            ${hailBtn}${retiredTag}
+            ${isDealer?`<button onclick="openDealerModal()" class="ml-2 text-xl hover:scale-110 transition-transform shrink-0" title="Tap to pass the deck">🃏</button>`:''}
+          </div>
           ${wizardCurrentBid}
         </td>
         <td class="px-4 py-2 font-jakarta font-extrabold text-3xl font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
@@ -4858,7 +4868,6 @@
           currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
         });
         if(allZero&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
-        if(totalBids===currentGame.currentRound&&!confirm(`Wizard Rule Check: Total bids (${totalBids}) = tricks (${currentGame.currentRound}). The dealer usually can't bid to make these equal. Proceed?`)){isSubmitting=false;return;}
         currentGame.wizardPhase='scoring';
         addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
         haptic([30,60,30]); soundSubmit();
