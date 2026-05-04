@@ -145,46 +145,108 @@
       font-size: clamp(1.35rem, 3.2vw, 2.45rem) !important;
       line-height: 1.2;
     }
-    /* Compact strip under the scorecard table — keeps player rows higher on screen */
-    #live-records-banner {
-      line-height: 1.2;
-    }
-    #live-records-banner .live-records-strip {
+    /* Active match — screensaver meta, career records, Wizard bids */
+    .ss-active-meta {
       display: flex;
       flex-wrap: wrap;
-      align-items: baseline;
-      gap: 0.2rem 0.5rem;
-      width: 100%;
+      gap: 0.45rem 0.55rem;
+      margin-bottom: 1rem;
+      justify-content: center;
     }
-    #live-records-banner .live-records-strip-lead {
-      font-size: clamp(0.72rem, 1.55vw, 0.86rem);
+    .ss-meta-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      background: #ffffff;
+      border: 1px solid rgba(15,15,14,0.1);
+      border-radius: 999px;
+      box-shadow: 0 1px 2px rgba(15,15,14,0.05);
+    }
+    .ss-meta-k {
+      font-size: clamp(0.62rem, 1.25vw, 0.72rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(15,15,14,0.45);
+    }
+    .ss-meta-v {
+      font-size: clamp(0.85rem, 1.9vw, 1.05rem);
+      font-weight: 800;
+      color: #0f0f0e;
+      letter-spacing: -0.02em;
+    }
+    .ss-wiz-bids {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.65rem 0.85rem;
+      background: rgba(29, 78, 216, 0.08);
+      border: 1px solid rgba(29, 78, 216, 0.18);
+      border-radius: 12px;
+    }
+    .ss-wiz-bids-title {
+      font-size: clamp(0.62rem, 1.35vw, 0.75rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(15,15,14,0.5);
+      margin-bottom: 0.45rem;
+    }
+    .ss-wiz-bids-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.65rem;
+    }
+    .ss-wiz-bid {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      padding: 0.2rem 0.45rem;
+      background: rgba(255,255,255,0.85);
+      border-radius: 8px;
+      font-size: clamp(0.78rem, 1.7vw, 0.95rem);
+    }
+    .ss-wiz-bid-name { font-weight: 700; color: #0f0f0e; max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ss-wiz-bid-num { font-weight: 900; font-variant-numeric: tabular-nums; color: #1d4ed8; }
+    .ss-active-records {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+      gap: 0.45rem 0.65rem;
+      margin-bottom: 1.1rem;
+    }
+    .ss-active-records-head {
+      width: 100%;
+      font-size: clamp(0.62rem, 1.35vw, 0.75rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(15,15,14,0.45);
+      margin-bottom: 0.35rem;
+      grid-column: 1 / -1;
+    }
+    .ss-active-record {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      padding: 0.5rem 0.65rem;
+      background: #ffffff;
+      border: 1px solid rgba(15,15,14,0.08);
+      border-radius: 10px;
+      animation: scRowIn 0.55s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .ss-active-record-label {
+      font-size: clamp(0.62rem, 1.35vw, 0.72rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(15,15,14,0.48);
+    }
+    .ss-active-record-value {
+      font-size: clamp(0.88rem, 2vw, 1.08rem);
       font-weight: 800;
       letter-spacing: -0.02em;
-      white-space: nowrap;
-    }
-    #live-records-banner .live-records-strip-lead strong { font-weight: 800; }
-    #live-records-banner .live-records-chunk {
-      font-size: clamp(0.72rem, 1.55vw, 0.86rem);
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    #live-records-banner .live-records-lbl {
-      font-weight: 700;
-      opacity: 0.88;
-    }
-    #live-records-banner .live-records-name {
-      font-weight: 700;
-    }
-    #live-records-banner .live-records-paren {
-      opacity: 0.65;
-      font-weight: 600;
-    }
-    #live-records-banner .live-records-num {
-      font-weight: 900;
-      font-size: clamp(0.92rem, 2.15vw, 1.14rem);
-      letter-spacing: -0.03em;
       font-variant-numeric: tabular-nums;
-      font-feature-settings: 'tnum';
     }
     .tv-wizard-header-badge {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -1676,6 +1738,10 @@
                 <span class="text-base w-5 text-center">📺</span>
                 <span>SportsCenter Standings</span>
               </button>
+              <button onclick="openScreensaverNow();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
+                <span class="text-base w-5 text-center">🌙</span>
+                <span>Screensaver</span>
+              </button>
               <button id="actions-retire-btn" onclick="openRetirePlayerModal();closeActionsMenu();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
                 <span class="text-base w-5 text-center">🚪</span>
                 <span>Retire Player</span>
@@ -1718,8 +1784,6 @@
               <tbody id="scorecard-body" class="divide-y hairline"></tbody>
             </table>
           </div>
-
-          <div id="live-records-banner" class="hidden surface py-1.5 px-3 font-bold" style="background:var(--blue-bg);color:var(--blue);"></div>
 
           <div id="submit-section" class="p-4 border-t hairline flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4" style="background:var(--surface-2);">
             <div class="scorecard-hints-strip">
@@ -2525,6 +2589,17 @@
   function resetIdleTimer(){ if(ssActive)return; clearTimeout(idleTimer); idleTimer=setTimeout(activateScreensaver,IDLE_MS); }
   ['click','touchstart','keydown','mousemove','scroll'].forEach(ev=>{ document.addEventListener(ev,()=>{if(!ssActive)resetIdleTimer();},{passive:true}); });
 
+  function openScreensaverNow(){
+    closeActionsMenu();
+    clearTimeout(idleTimer);
+    if(ssActive){
+      updateScreensaverContent();
+      updateSSClock();
+      return;
+    }
+    activateScreensaver();
+  }
+
   function activateScreensaver(){
     if(ssActive)return;
     ssActive=true;
@@ -2554,11 +2629,53 @@
     container.classList.remove('sc-compact', 'sc-ultra', 'ss-compact', 'ss-ultra');
 
     if(currentGame){
-      // Active match → render ScoreCenter-style standings
       const cfg = configs[currentGame.name];
       const gp = currentGame.originalRoster.filter(p => p && !currentGame.retired?.includes(p));
+      const rosterLen = currentGame.originalRoster.filter(Boolean).length;
+      const maxR = typeof cfg.maxRounds === 'function' ? cfg.maxRounds(rosterLen) : cfg.maxRounds;
+      const over = currentGame.currentRound > maxR;
       const sorted = [...gp].sort((a,b) => cfg.winLow ? (currentGame.totals[a]||0) - (currentGame.totals[b]||0) : (currentGame.totals[b]||0) - (currentGame.totals[a]||0));
       const topScore = sorted.length ? (currentGame.totals[sorted[0]] || 0) : 0;
+
+      const chips = [];
+      if(over){
+        chips.push({k:'Status', v:'Final scores'});
+      } else {
+        chips.push({k:'Round', v:`${currentGame.currentRound} / ${maxR}`});
+        if(currentGame.name === 'Five Crowns'){
+          const wilds = ['3','4','5','6','7','8','9','10','J','Q','K'];
+          const ri = currentGame.currentRound - 1;
+          if(ri >= 0 && ri < wilds.length){
+            chips.push({k:'Hand', v:`${currentGame.currentRound + 2} cards · ${wilds[ri]}s wild`});
+          }
+        } else if(currentGame.name === 'Wizard'){
+          const r = currentGame.currentRound;
+          chips.push({k:'Deal', v:`${r} card${r !== 1 ? 's' : ''} · ${r} trick${r !== 1 ? 's' : ''}`});
+          const wPhase = currentGame.wizardPhase || 'bidding';
+          chips.push({k:'Phase', v: wPhase === 'bidding' ? 'Bidding' : 'Scoring tricks'});
+        } else if(currentGame.name === 'Rook'){
+          const phase = currentGame.rookPhase || 'bidSetup';
+          let pv = `R${currentGame.currentRound}`;
+          if(phase === 'bidSetup') pv += ' · Bid';
+          else if(phase === 'calling') pv += ' · Trump & call';
+          else if(phase === 'results') pv += ' · Hand';
+          chips.push({k:'Rook', v: pv});
+        }
+        const offset = currentGame.dealerOffset || 0;
+        if(gp.length){
+          const dealerName = gp[(currentGame.currentRound - 1 + offset + gp.length) % gp.length];
+          if(dealerName) chips.push({k:'Dealer', v: dealerName});
+        }
+      }
+
+      const chipsHtml = `<div class="ss-active-meta">${chips.map(c => `<div class="ss-meta-chip"><span class="ss-meta-k">${c.k}</span><span class="ss-meta-v">${c.v}</span></div>`).join('')}</div>`;
+      const wizBidsHtml = screensaverWizardBidsHtml(currentGame);
+      const hall = calculateHallOfFame();
+      const recEntries = screensaverCareerRecordEntries(currentGame.name, hall);
+      let recBlock = '';
+      if(recEntries.length){
+        recBlock = `<div class="ss-active-records"><div class="ss-active-records-head">All-time ${currentGame.name} records</div>${recEntries.map((rec, i) => `<div class="ss-active-record" style="animation-delay:${i * 0.05}s"><span class="ss-active-record-label">${rec.label}</span><span class="ss-active-record-value">${rec.value}</span></div>`).join('')}</div>`;
+      }
 
       let rowsHtml = '';
       sorted.forEach((p, i) => {
@@ -2573,12 +2690,24 @@
         </div>`;
       });
 
-      // Adaptive density
       if(sorted.length >= 11) container.classList.add('ss-ultra');
       else if(sorted.length >= 8) container.classList.add('ss-compact');
 
-      container.innerHTML = `<div class="ss-standings-inner">${rowsHtml}</div>`;
-      tagline.textContent = `${cfg.emoji} ${currentGame.name} · Round ${currentGame.currentRound}`;
+      container.innerHTML = `<div class="ss-standings-inner">${chipsHtml}${wizBidsHtml}${recBlock}${rowsHtml}</div>`;
+
+      let tag = `${cfg.emoji} ${currentGame.name}`;
+      if(over) tag += ' · Final scores';
+      else {
+        tag += ` · Round ${currentGame.currentRound}`;
+        if(currentGame.name === 'Five Crowns'){
+          const wilds = ['3','4','5','6','7','8','9','10','J','Q','K'];
+          const ri = currentGame.currentRound - 1;
+          if(ri >= 0 && ri < wilds.length) tag += ` · ${currentGame.currentRound + 2} cards`;
+        } else if(currentGame.name === 'Wizard'){
+          tag += ` · ${currentGame.currentRound} tricks this round`;
+        }
+      }
+      tagline.textContent = tag;
       headerText.textContent = 'Live Standings';
     } else {
       // Idle (no active match) → welcome panel with hall of fame
@@ -3832,8 +3961,6 @@
     else if(phase==='results') phaseLabel=`📝 Play hand · R${currentGame.currentRound}`;
     document.getElementById('round-intel').textContent=phaseLabel;
 
-    updateLiveRecordsBanner();
-
     // Recompute totals from rounds
     currentGame.totals={};
     currentGame.originalRoster.forEach(p=>{if(p)currentGame.totals[p]=0;});
@@ -4646,38 +4773,44 @@
     }
   }
 
-  /* ═══ LIVE RECORDS BANNER ═══ */
-  function liveRecordChunkHtml(label, player, value){
-    if(!player || player==='-') return '';
-    if(typeof value==='number' && !Number.isFinite(value)) return '';
-    return `<span class="live-records-chunk"><span class="live-records-lbl">${label}:</span> <span class="live-records-name">${player}</span> <span class="live-records-paren">(</span><span class="live-records-num font-mono-num">${value}</span><span class="live-records-paren">)</span></span>`;
-  }
-  function updateLiveRecordsBanner(){
-    const banner=document.getElementById('live-records-banner'); if(!currentGame){banner.classList.add('hidden');return;}
-    const r=calculateHallOfFame(); const g=r[currentGame.name];
-    if(!g||g.bestPlayer==='-'){banner.classList.add('hidden');return;}
-    const nm=currentGame.name;
-    const parts=[];
+  /* ═══ SCREENSAVER: career records + meta (used when idle overlay shows during a match) ═══ */
+  function screensaverCareerRecordEntries(nm, hall){
+    const g=hall[nm];
+    if(!g||g.bestPlayer==='-') return [];
+    const out=[];
     if(nm==='Wizard'){
-      if(g.bestScore!==-Infinity) parts.push(liveRecordChunkHtml('Best Score', g.bestPlayer, g.bestScore));
-      if(g.worstRoundPlayer!=='-') parts.push(liveRecordChunkHtml('Worst Bust', g.worstRoundPlayer, g.worstRound));
-      if(g.mostExactBidsPlayer!=='-') parts.push(liveRecordChunkHtml('Most Exacts', g.mostExactBidsPlayer, g.mostExactBids));
+      if(g.bestScore!==-Infinity) out.push({label:'Best score', value:`${g.bestPlayer} (${g.bestScore})`});
+      if(g.worstRoundPlayer!=='-') out.push({label:'Worst bust', value:`${g.worstRoundPlayer} (${g.worstRound})`});
+      if(g.mostExactBidsPlayer!=='-') out.push({label:'Most exacts', value:`${g.mostExactBidsPlayer} (${g.mostExactBids})`});
     } else if(nm==='Five Crowns'){
-      if(g.bestScore!==Infinity) parts.push(liveRecordChunkHtml('Lowest', g.bestPlayer, g.bestScore));
-      if(g.worstRoundPlayer!=='-') parts.push(liveRecordChunkHtml('Worst Round', g.worstRoundPlayer, g.worstRound));
-      if(g.mostZerosPlayer!=='-') parts.push(liveRecordChunkHtml('Perfect Hands', g.mostZerosPlayer, g.mostZeros));
+      if(g.bestScore!==Infinity) out.push({label:'Lowest game', value:`${g.bestPlayer} (${g.bestScore})`});
+      if(g.worstRoundPlayer!=='-') out.push({label:'Worst round', value:`${g.worstRoundPlayer} (${g.worstRound})`});
+      if(g.mostZerosPlayer!=='-') out.push({label:'Perfect hands', value:`${g.mostZerosPlayer} (${g.mostZeros})`});
     } else if(nm==='Flip 7 Vengeance'){
-      if(g.bestScore!==-Infinity) parts.push(liveRecordChunkHtml('Best', g.bestPlayer, g.bestScore));
-      if(g.bestRoundPlayer!=='-') parts.push(liveRecordChunkHtml('High Roller', g.bestRoundPlayer, g.bestRound));
+      if(g.bestScore!==-Infinity) out.push({label:'Best game', value:`${g.bestPlayer} (${g.bestScore})`});
+      if(g.bestRoundPlayer!=='-') out.push({label:'High roller', value:`${g.bestRoundPlayer} (${g.bestRound})`});
     } else if(nm==='Rook'){
-      if(g.bestScore!==-Infinity) parts.push(liveRecordChunkHtml('Best', g.bestPlayer, g.bestScore));
-      if(g.mostBidsPlayer!=='-') parts.push(liveRecordChunkHtml('Most bid teams', g.mostBidsPlayer, g.mostBids));
-      if(g.mostSetsPlayer!=='-') parts.push(liveRecordChunkHtml('Most set', g.mostSetsPlayer, g.mostSets));
+      if(g.bestScore!==-Infinity) out.push({label:'Best game', value:`${g.bestPlayer} (${g.bestScore})`});
+      if(g.mostBidsPlayer!=='-') out.push({label:'Most bid teams', value:`${g.mostBidsPlayer} (${g.mostBids})`});
+      if(g.mostSetsPlayer!=='-') out.push({label:'Most set', value:`${g.mostSetsPlayer} (${g.mostSets})`});
     }
-    const chunks=parts.filter(Boolean);
-    if(!chunks.length){ banner.classList.add('hidden'); return; }
-    banner.innerHTML=`<div class="live-records-strip"><span class="live-records-strip-lead">🏆 <strong>${nm}</strong> Records</span>${chunks.join('')}</div>`;
-    banner.classList.remove('hidden');
+    return out;
+  }
+  function screensaverWizardBidsHtml(game){
+    if(game.name!=='Wizard') return '';
+    const gp=game.originalRoster.filter(p=>p&&!game.retired?.includes(p));
+    if(!gp.length) return '';
+    const bids=game.currentBids||{};
+    const phase=game.wizardPhase||'bidding';
+    const hasEntry=gp.some(p=> bids[p]!==undefined && bids[p]!==null && bids[p]!=='');
+    if(phase==='bidding' && !hasEntry) return '';
+    const title= phase==='scoring'?'Bids this round':'Bids (so far)';
+    const parts=gp.map(p=>{
+      const raw=bids[p];
+      const v=(raw===undefined||raw===null||raw==='')?'—':String(parseInt(raw,10)||0);
+      return `<div class="ss-wiz-bid"><span class="ss-wiz-bid-name">${p}</span><span class="ss-wiz-bid-num">${v}</span></div>`;
+    });
+    return `<div class="ss-wiz-bids"><div class="ss-wiz-bids-title">${title}</div><div class="ss-wiz-bids-grid">${parts.join('')}</div></div>`;
   }
 
   /* ═══ WIZARD BID STATUS (header badge) ═══ */
@@ -4758,8 +4891,6 @@
     const over=currentGame.currentRound>maxR;
     const half=maxR===999?4:Math.ceil(maxR/2);
     const pastHalf=currentGame.currentRound>half&&!over;
-
-    updateLiveRecordsBanner();
 
     let intel=`Round ${currentGame.currentRound}`;
     if(currentGame.name==='Five Crowns'){
