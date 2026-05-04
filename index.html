@@ -146,10 +146,65 @@
       line-height: 1.2;
     }
     #live-records-banner {
-      font-size: clamp(0.88rem, 2vw, 1.2rem);
-      line-height: 1.4;
+      font-size: clamp(1.02rem, 2.6vw, 1.28rem);
+      line-height: 1.45;
     }
-    #live-records-banner strong { font-weight: 800; }
+    #live-records-banner .live-records-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      width: 100%;
+    }
+    #live-records-banner .live-records-title {
+      font-size: clamp(1.12rem, 2.9vw, 1.45rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    #live-records-banner .live-records-title strong { font-weight: 800; }
+    #live-records-banner .live-records-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      gap: 0.65rem 0.9rem;
+    }
+    #live-records-banner .live-records-stat {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(29, 78, 216, 0.12);
+      border-radius: 0.75rem;
+      padding: 0.65rem 0.9rem 0.7rem;
+      min-width: 0;
+    }
+    html.dark #live-records-banner .live-records-stat {
+      background: rgba(0, 0, 0, 0.22);
+      border-color: rgba(96, 165, 250, 0.18);
+    }
+    #live-records-banner .live-records-stat-label {
+      font-size: clamp(0.72rem, 1.65vw, 0.82rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.88;
+      margin-bottom: 0.38rem;
+      line-height: 1.2;
+    }
+    #live-records-banner .live-records-stat-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.15rem 0.28rem;
+      font-weight: 800;
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+      line-height: 1.25;
+    }
+    #live-records-banner .live-records-stat-player { word-break: break-word; }
+    #live-records-banner .live-records-stat-num {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    #live-records-banner .live-records-stat-paren {
+      opacity: 0.72;
+      font-weight: 700;
+    }
     .tv-wizard-header-badge {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: clamp(1.45rem, 3.5vw, 2.65rem);
@@ -1668,7 +1723,7 @@
           <div id="trick-counter-status" class="font-bold px-4 py-2.5 rounded-xl" style="background:rgba(255,255,255,0.45);"></div>
         </div>
 
-        <div id="live-records-banner" class="hidden mb-3 surface p-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);"></div>
+        <div id="live-records-banner" class="hidden mb-3 surface p-4 md:p-5 font-bold" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);"></div>
 
         <div id="leader-banner" class="hidden mb-4 surface p-5 flex items-center gap-4" style="background:var(--emerald-bg);border-color:var(--emerald-border);">
           <div class="text-4xl">🏆</div>
@@ -4611,28 +4666,44 @@
   }
 
   /* ═══ LIVE RECORDS BANNER ═══ */
+  function liveRecordStatHtml(label, player, value){
+    if(!player || player==='-') return '';
+    if(typeof value==='number' && !Number.isFinite(value)) return '';
+    const numHtml=`<span class="live-records-stat-paren" aria-hidden="true">(</span><span class="live-records-stat-num font-mono-num">${value}</span><span class="live-records-stat-paren" aria-hidden="true">)</span>`;
+    return `<div class="live-records-stat">
+      <div class="live-records-stat-label">${label}</div>
+      <div class="live-records-stat-line"><span class="live-records-stat-player">${player}</span>${numHtml}</div>
+    </div>`;
+  }
   function updateLiveRecordsBanner(){
     const banner=document.getElementById('live-records-banner'); if(!currentGame){banner.classList.add('hidden');return;}
     const r=calculateHallOfFame(); const g=r[currentGame.name];
     if(!g||g.bestPlayer==='-'){banner.classList.add('hidden');return;}
-    let html=`<span>🏆 <strong>${currentGame.name} Records:</strong></span>`;
-    if(currentGame.name==='Wizard'){
-      if(g.bestScore!==-Infinity) html+=`<span><strong>Best Score:</strong> ${g.bestPlayer} (${g.bestScore})</span>`;
-      if(g.worstRoundPlayer!=='-') html+=`<span><strong>Worst Bust:</strong> ${g.worstRoundPlayer} (${g.worstRound})</span>`;
-      if(g.mostExactBidsPlayer!=='-') html+=`<span><strong>Most Exacts:</strong> ${g.mostExactBidsPlayer} (${g.mostExactBids})</span>`;
-    } else if(currentGame.name==='Five Crowns'){
-      if(g.bestScore!==Infinity) html+=`<span><strong>Lowest:</strong> ${g.bestPlayer} (${g.bestScore})</span>`;
-      if(g.worstRoundPlayer!=='-') html+=`<span><strong>Worst Round:</strong> ${g.worstRoundPlayer} (${g.worstRound})</span>`;
-      if(g.mostZerosPlayer!=='-') html+=`<span><strong>Perfect Hands:</strong> ${g.mostZerosPlayer} (${g.mostZeros})</span>`;
-    } else if(currentGame.name==='Flip 7 Vengeance'){
-      if(g.bestScore!==-Infinity) html+=`<span><strong>Best:</strong> ${g.bestPlayer} (${g.bestScore})</span>`;
-      if(g.bestRoundPlayer!=='-') html+=`<span><strong>High Roller:</strong> ${g.bestRoundPlayer} (${g.bestRound})</span>`;
-    } else if(currentGame.name==='Rook'){
-      if(g.bestScore!==-Infinity) html+=`<span><strong>Best:</strong> ${g.bestPlayer} (${g.bestScore})</span>`;
-      if(g.mostBidsPlayer!=='-') html+=`<span><strong>Most bid teams:</strong> ${g.mostBidsPlayer} (${g.mostBids})</span>`;
-      if(g.mostSetsPlayer!=='-') html+=`<span><strong>Most set:</strong> ${g.mostSetsPlayer} (${g.mostSets})</span>`;
+    const nm=currentGame.name;
+    const parts=[];
+    if(nm==='Wizard'){
+      if(g.bestScore!==-Infinity) parts.push(liveRecordStatHtml('Best Score', g.bestPlayer, g.bestScore));
+      if(g.worstRoundPlayer!=='-') parts.push(liveRecordStatHtml('Worst Bust', g.worstRoundPlayer, g.worstRound));
+      if(g.mostExactBidsPlayer!=='-') parts.push(liveRecordStatHtml('Most Exacts', g.mostExactBidsPlayer, g.mostExactBids));
+    } else if(nm==='Five Crowns'){
+      if(g.bestScore!==Infinity) parts.push(liveRecordStatHtml('Lowest', g.bestPlayer, g.bestScore));
+      if(g.worstRoundPlayer!=='-') parts.push(liveRecordStatHtml('Worst Round', g.worstRoundPlayer, g.worstRound));
+      if(g.mostZerosPlayer!=='-') parts.push(liveRecordStatHtml('Perfect Hands', g.mostZerosPlayer, g.mostZeros));
+    } else if(nm==='Flip 7 Vengeance'){
+      if(g.bestScore!==-Infinity) parts.push(liveRecordStatHtml('Best', g.bestPlayer, g.bestScore));
+      if(g.bestRoundPlayer!=='-') parts.push(liveRecordStatHtml('High Roller', g.bestRoundPlayer, g.bestRound));
+    } else if(nm==='Rook'){
+      if(g.bestScore!==-Infinity) parts.push(liveRecordStatHtml('Best', g.bestPlayer, g.bestScore));
+      if(g.mostBidsPlayer!=='-') parts.push(liveRecordStatHtml('Most bid teams', g.mostBidsPlayer, g.mostBids));
+      if(g.mostSetsPlayer!=='-') parts.push(liveRecordStatHtml('Most set', g.mostSetsPlayer, g.mostSets));
     }
-    banner.innerHTML=html; banner.classList.remove('hidden');
+    const statsHtml=parts.filter(Boolean).join('');
+    if(!statsHtml){ banner.classList.add('hidden'); return; }
+    banner.innerHTML=`<div class="live-records-inner">
+      <div class="live-records-title">🏆 <strong>${nm}</strong> Records</div>
+      <div class="live-records-grid">${statsHtml}</div>
+    </div>`;
+    banner.classList.remove('hidden');
   }
 
   /* ═══ WIZARD BID STATUS (header badge) ═══ */
