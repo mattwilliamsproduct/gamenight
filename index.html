@@ -261,6 +261,23 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
+    /* Wizard scoring: bid sum vs tricks — standalone pill on title row */
+    .wizard-bid-tally-pill {
+      display: inline-flex;
+      align-items: center;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid var(--hairline);
+      background: var(--surface-2);
+      color: var(--ink);
+      line-height: 1;
+      white-space: nowrap;
+    }
     .trick-counter-label {
       font-size: clamp(0.62rem, 1.45vw, 0.76rem);
       font-weight: 900;
@@ -319,9 +336,13 @@
     }
     .scorecard-hint-item {
       display: flex;
-      align-items: flex-start;
-      gap: 0.55rem;
-      padding: 0.55rem 0.65rem;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.45rem;
+      padding: 0.75rem 0.5rem;
+      min-height: 5.5rem;
       border-radius: 12px;
       border: 1px solid var(--hairline);
       background: var(--surface);
@@ -330,26 +351,17 @@
     html.dark .scorecard-hint-item { background: var(--surface-2); }
     .scorecard-hint-item .hint-emoji {
       flex-shrink: 0;
-      font-size: 1.2rem;
-      line-height: 1.2;
-      width: 1.5rem;
-      text-align: center;
+      font-size: 1.45rem;
+      line-height: 1;
     }
-    .scorecard-hint-item .hint-body {
-      min-width: 0;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--ink-2);
-      line-height: 1.38;
-    }
-    .scorecard-hint-item .hint-body strong {
-      display: block;
-      font-size: 0.7rem;
+    .scorecard-hint-item .hint-title {
+      font-size: 0.65rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.07em;
+      letter-spacing: 0.08em;
       color: var(--ink);
-      margin-bottom: 0.15rem;
+      line-height: 1.25;
+      max-width: 11rem;
     }
 
     /* ════════ SURFACE SYSTEM ════════ */
@@ -1100,6 +1112,7 @@
     .trick-counter-over  { background:var(--rose-bg);border-color:var(--rose-border);color:var(--rose); }
     .trick-counter-under { background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue); }
     .trick-counter-exact { background:var(--emerald-bg);border-color:var(--emerald);color:var(--emerald); }
+    .trick-counter-neutral { background:var(--surface-2);border-color:var(--hairline);color:var(--ink-2); }
 
     /* ════════ ORIENTATION TOGGLE ════════ */
     .portrait-only  { display:none; }
@@ -1740,12 +1753,12 @@
     <!-- ═══ GAME SCREEN ═══ -->
     <div id="game-screen" class="hidden">
       <div class="surface p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div class="flex flex-col gap-1.5">
-          <div class="flex items-center gap-4 flex-wrap">
-            <h2 id="game-title" class="font-display"></h2>
-            <div id="round-intel" class="font-display" style="color:var(--emerald);"></div>
+        <div class="flex flex-col gap-1.5 min-w-0">
+          <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+            <h2 id="game-title" class="font-display shrink-0"></h2>
+            <div id="round-intel" class="font-display min-w-0" style="color:var(--emerald);"></div>
+            <div id="wizard-bid-status" class="hidden shrink-0"></div>
           </div>
-          <div id="wizard-bid-status" class="hidden flex items-center gap-2 flex-wrap"></div>
         </div>
         <div class="flex flex-wrap gap-2 items-center relative">
           <div class="relative">
@@ -1794,15 +1807,15 @@
 
       <!-- Landscape: Scorecard view -->
       <div class="landscape-only">
-        <div id="wizard-trick-counter" class="hidden mb-3 rounded-2xl border-2 p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 transition-all">
-          <div class="flex items-center gap-4">
+        <div id="wizard-trick-counter" class="hidden mb-3 rounded-2xl border-2 p-4 md:p-5 flex flex-wrap items-center gap-4 md:gap-6 transition-all">
+          <div class="flex items-center gap-4 min-w-0 flex-1">
             <span class="text-4xl md:text-5xl shrink-0">🪄</span>
-            <div>
+            <div class="min-w-0">
               <div class="trick-counter-label" id="trick-counter-label">Bids This Round</div>
-              <div class="font-jakarta font-extrabold font-mono-num" id="trick-counter-fraction">0 / 0</div>
+              <div class="font-jakarta font-extrabold font-mono-num mt-1.5" id="trick-counter-fraction">0 / 0</div>
             </div>
           </div>
-          <div id="trick-counter-status" class="font-bold px-4 py-2.5 rounded-xl" style="background:rgba(255,255,255,0.45);"></div>
+          <div id="trick-counter-status" class="hidden font-bold px-4 py-2.5 rounded-xl shrink-0" style="background:rgba(255,255,255,0.45);"></div>
         </div>
 
         <div id="leader-banner" class="hidden mb-4 surface p-5 flex items-center gap-4" style="background:var(--emerald-bg);border-color:var(--emerald-border);">
@@ -1826,19 +1839,19 @@
               <div class="scorecard-hints-grid">
                 <div class="scorecard-hint-item">
                   <span class="hint-emoji" aria-hidden="true">✏️</span>
-                  <div class="hint-body"><strong>Edit a past round</strong>Tap any score in a completed round column.</div>
+                  <span class="hint-title">Edit a past round</span>
                 </div>
                 <div class="scorecard-hint-item">
                   <span class="hint-emoji" aria-hidden="true">🃏</span>
-                  <div class="hint-body"><strong>Change dealer</strong>Tap the current dealer’s name (highlighted in the scorecard).</div>
+                  <span class="hint-title">Change dealer</span>
                 </div>
                 <div class="scorecard-hint-item">
                   <span class="hint-emoji" aria-hidden="true">🛟</span>
-                  <div class="hint-body"><strong>Hail Mary</strong>When it appears by a name, tap the life ring for a comeback spin.</div>
+                  <span class="hint-title">Hail Mary</span>
                 </div>
                 <div class="scorecard-hint-item">
                   <span class="hint-emoji" aria-hidden="true">🚪</span>
-                  <div class="hint-body"><strong>Retire a player</strong>Use the Actions menu at the top, then tap Retire Player.</div>
+                  <span class="hint-title">Retire a player</span>
                 </div>
               </div>
             </div>
@@ -4860,19 +4873,7 @@
     const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
     let totalBids=0;
     gp.forEach(p=>{ totalBids+=(currentGame.currentBids?.[p]||0); });
-    const diff=totalBids-round;
-    let badge='', statusText='';
-    if(diff===0){
-      statusText=`Bids even — dealer had to adjust`;
-      badge=`<span class="tv-wizard-header-badge leading-none" style="color:var(--amber);">⚠️ Even · ${totalBids}/${round}</span>`;
-    } else if(diff<0){
-      statusText=`${Math.abs(diff)} trick${Math.abs(diff)!==1?'s':''} uncontested`;
-      badge=`<span class="tv-wizard-header-badge leading-none" style="color:var(--blue);">${Math.abs(diff)} under · ${totalBids}/${round}</span>`;
-    } else {
-      statusText=`${diff} trick${diff!==1?'s':''} overbid`;
-      badge=`<span class="tv-wizard-header-badge leading-none" style="color:var(--rose);">${diff} over · ${totalBids}/${round}</span>`;
-    }
-    el.innerHTML=`${badge}<span class="tv-wizard-header-sub hidden lg:inline" style="color:var(--muted);">${statusText}</span>`;
+    el.innerHTML=`<span class="wizard-bid-tally-pill font-mono-num" title="Bid tricks placed vs tricks this round">${totalBids}/${round}</span>`;
     el.classList.remove('hidden');
   }
 
@@ -4891,19 +4892,21 @@
     const diff=total-round; let cls='',status='',label='';
     if(phase==='bidding'){
       label='Total Bids This Round';
-      if(diff===0){cls='trick-counter-over';status='⚠️ Dealer must adjust — bids = tricks';}
+      if(diff===0){cls='trick-counter-neutral';status='';}
       else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} trick${Math.abs(diff)!==1?'s':''} under`;}
-      else{cls='trick-counter-ok';status=`${diff} trick${diff!==1?'s':''} over 🌶️`;}
+      else{cls='trick-counter-ok';status=`${diff} trick${diff!==1?'s':''} over`;}
     } else {
       label='Tricks Won This Round';
       if(diff===0){cls='trick-counter-exact';status=`✅ All ${round} accounted for`;}
       else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} still unaccounted`;}
       else{cls='trick-counter-over';status=`❌ ${diff} too many — recount`;}
     }
-    banner.className=`mb-3 rounded-2xl border-2 p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 transition-all ${cls}`;
+    banner.className=`mb-3 rounded-2xl border-2 p-4 md:p-5 flex flex-wrap items-center gap-4 md:gap-6 transition-all ${cls}`;
     document.getElementById('trick-counter-label').textContent=label;
     document.getElementById('trick-counter-fraction').textContent=`${total} / ${round}`;
-    document.getElementById('trick-counter-status').textContent=status;
+    const stEl=document.getElementById('trick-counter-status');
+    stEl.textContent=status;
+    if(status){ stEl.classList.remove('hidden'); } else { stEl.classList.add('hidden'); }
     banner.classList.remove('hidden');
   }
 
