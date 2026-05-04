@@ -1791,32 +1791,27 @@
               <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold" style="background:var(--blue);color:#fff;">2</div>
               <div class="text-xs font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Points each team earned</div>
             </div>
-            <p class="text-xs font-semibold mb-4 leading-relaxed" style="color:var(--muted);">Enter both teams’ points from the hand. If the sum doesn’t match your “points in a full hand” setting, we’ll double-check before saving.</p>
+            <p class="text-xs font-semibold mb-4 leading-relaxed" style="color:var(--muted);">Enter how many points the bid winner’s team took. The other team’s points are the rest of the hand total (from your “points in a full hand” setting) so the two sides always add up.</p>
             <div class="grid sm:grid-cols-2 gap-4">
               <div class="rounded-2xl p-4 border-2 space-y-3" style="background:var(--blue-bg);border-color:var(--blue-border);">
                 <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--blue);">Bid winner’s team</div>
                 <div class="flex items-center justify-center gap-1.5">
-                  <button type="button" onclick="rookTeamPointsAdj('bidder',-10)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−10</button>
-                  <button type="button" onclick="rookTeamPointsAdj('bidder',-5)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−5</button>
+                  <button type="button" onclick="rookTeamPointsAdj(-10)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−10</button>
+                  <button type="button" onclick="rookTeamPointsAdj(-5)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−5</button>
                   <input id="rook-bidder-team-input" type="number" min="0" max="999" value="100"
                     oninput="rookTeamPointsUpdate()"
                     class="flex-1 min-w-0 text-center text-3xl sm:text-4xl font-extrabold rounded-xl py-2 border-2 outline-none font-mono-num"
                     style="background:var(--surface);color:var(--ink);border-color:var(--hairline);">
-                  <button type="button" onclick="rookTeamPointsAdj('bidder',5)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+5</button>
-                  <button type="button" onclick="rookTeamPointsAdj('bidder',10)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+10</button>
+                  <button type="button" onclick="rookTeamPointsAdj(5)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+5</button>
+                  <button type="button" onclick="rookTeamPointsAdj(10)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+10</button>
                 </div>
               </div>
               <div class="rounded-2xl p-4 border hairline space-y-3" style="background:var(--surface-2);">
-                <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">Other team</div>
-                <div class="flex items-center justify-center gap-1.5">
-                  <button type="button" onclick="rookTeamPointsAdj('other',-10)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−10</button>
-                  <button type="button" onclick="rookTeamPointsAdj('other',-5)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−5</button>
-                  <input id="rook-other-team-input" type="number" min="0" max="999" value="100"
-                    oninput="rookTeamPointsUpdate()"
-                    class="flex-1 min-w-0 text-center text-3xl sm:text-4xl font-extrabold rounded-xl py-2 border-2 outline-none font-mono-num"
-                    style="background:var(--surface);color:var(--ink);border-color:var(--hairline);">
-                  <button type="button" onclick="rookTeamPointsAdj('other',5)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+5</button>
-                  <button type="button" onclick="rookTeamPointsAdj('other',10)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-extrabold text-xs border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+10</button>
+                <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">Other team <span class="font-semibold normal-case tracking-normal">(auto)</span></div>
+                <div class="flex items-center justify-center">
+                  <input id="rook-other-team-input" type="number" min="0" max="999" value="100" readonly tabindex="-1" aria-readonly="true"
+                    class="flex-1 min-w-0 text-center text-3xl sm:text-4xl font-extrabold rounded-xl py-2 border-2 outline-none font-mono-num cursor-default opacity-90"
+                    style="background:var(--bg-2);color:var(--ink);border-color:var(--hairline);">
                 </div>
               </div>
             </div>
@@ -2510,7 +2505,7 @@
     "Five Crowns":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest score after 11 rounds.</li><li><strong>Deal:</strong> Round 1 = 3 cards, growing to 13.</li><li><strong>Wilds:</strong> Jokers always wild. Round's number is also wild.</li><li><strong>Going Out:</strong> Meld hand into Books (3+ same) or Runs (3+ consecutive same suit).</li><li><strong>Penalty:</strong> Unmelded = face value. Faces = 10. Wilds = 20. Jokers = 50.</li></ul>`,
     "Wizard":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score by accurately predicting tricks.</li><li><strong>Deal:</strong> Round 1 = 1 card, grows each round.</li><li><strong>Bidding:</strong> Bid exactly how many tricks you'll win.</li><li><strong>Play:</strong> Follow lead suit. Wizards always win. Jesters always lose.</li><li><strong>Score:</strong> Exact = 20 + 10/trick. Miss = −10 per trick off.</li></ul>`,
     "Flip 7 Vengeance":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score without busting.</li><li><strong>Flip:</strong> Reveal cards to build your tableau.</li><li><strong>Bust:</strong> Duplicate number = 0 for the round.</li><li><strong>Bank:</strong> Secure your score anytime.</li><li><strong>Vengeance:</strong> Special cards attack others.</li></ul>`,
-    "Rook":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins. This scorecard is tuned for call-your-partner Rook with rotating round partnerships.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and type the amount they won with (no in-app auction).</li><li><strong>Trump &amp; call:</strong> That player names trump and calls a partner card (for example "Rook", "Black 1", "Yellow 14").</li><li><strong>After the hand:</strong> Say who the bidder’s teammate was, then enter both teams’ points. If the bid team’s points are at least the bid, each of them scores that team total; otherwise each loses the bid. Everyone on the other team scores the other team’s points.</li><li><strong>House rules:</strong> Counter values (5s, 10s, 14, Rook, etc.) are up to your table—the app just needs the two team totals.</li></ul>`
+    "Rook":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins. This scorecard is tuned for call-your-partner Rook with rotating round partnerships.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and type the amount they won with (no in-app auction).</li><li><strong>Trump &amp; call:</strong> That player names trump and calls a partner card (for example "Rook", "Black 1", "Yellow 14").</li><li><strong>After the hand:</strong> Say who the bidder’s teammate was, then enter the bid team’s points; the other team’s points fill in to match your “points in a full hand” setting. If the bid team’s points are at least the bid, each of them scores that team total; otherwise each loses the bid. Everyone on the other team scores the other team’s points.</li><li><strong>House rules:</strong> Counter values (5s, 10s, 14, Rook, etc.) are up to your table—the app just needs the bid team’s total and derives the rest.</li></ul>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -3396,15 +3391,11 @@
     const bInp=document.getElementById('rook-bidder-team-input');
     const oInp=document.getElementById('rook-other-team-input');
     let defB=currentGame.rookBidderCountersDraft;
-    let defO=currentGame.rookOppTeamPointsDraft;
-    if(defB!=null&&defO==null)defO=Math.max(0,handTotal-defB);
-    else if(defO!=null&&defB==null)defB=Math.max(0,handTotal-defO);
-    else if(defB==null&&defO==null){
-      defB=Math.round(handTotal/2);
-      defO=Math.max(0,handTotal-defB);
-    }
-    if(bInp)bInp.value=defB;
-    if(oInp)oInp.value=defO;
+    if(defB==null)defB=Math.round(handTotal/2);
+    defB=Math.max(0,Math.min(handTotal,defB));
+    const defO=handTotal-defB;
+    if(bInp){bInp.min=0;bInp.max=handTotal;bInp.value=defB;}
+    if(oInp){oInp.value=defO;}
     rookTeamPointsUpdate();
 
     const m=document.getElementById('rook-results-modal');
@@ -3425,12 +3416,14 @@
     rookTeamPointsUpdate();
   }
 
-  function rookTeamPointsAdj(which, delta){
-    const id=which==='bidder'?'rook-bidder-team-input':'rook-other-team-input';
-    const inp=document.getElementById(id);
-    if(!inp)return;
-    const cur=parseInt(inp.value,10)||0;
-    inp.value=Math.max(0,cur+delta);
+  function rookTeamPointsAdj(delta){
+    const inp=document.getElementById('rook-bidder-team-input');
+    if(!inp||!currentGame)return;
+    const handTotal=currentGame.rookConfig.totalCounters;
+    const cur=parseInt(inp.value,10);
+    const base=Number.isFinite(cur)?cur:0;
+    const next=Math.max(0,Math.min(handTotal,base+delta));
+    inp.value=next;
     rookTeamPointsUpdate();
   }
 
@@ -3438,16 +3431,16 @@
     const bInp=document.getElementById('rook-bidder-team-input');
     const oInp=document.getElementById('rook-other-team-input');
     if(!bInp||!oInp||!currentGame)return;
-    let bidderTeam=parseInt(bInp.value,10)||0;
-    let otherTeam=parseInt(oInp.value,10)||0;
-    bidderTeam=Math.max(0,bidderTeam);
-    otherTeam=Math.max(0,otherTeam);
+    const handTotal=currentGame.rookConfig.totalCounters;
+    let bidderTeam=parseInt(bInp.value,10);
+    if(!Number.isFinite(bidderTeam))bidderTeam=0;
+    bidderTeam=Math.max(0,Math.min(handTotal,bidderTeam));
+    const otherTeam=handTotal-bidderTeam;
+    bInp.min=0;bInp.max=handTotal;
     if(bInp.value!=String(bidderTeam))bInp.value=bidderTeam;
     if(oInp.value!=String(otherTeam))oInp.value=otherTeam;
     currentGame.rookBidderCountersDraft=bidderTeam;
     currentGame.rookOppTeamPointsDraft=otherTeam;
-    const handTotal=currentGame.rookConfig.totalCounters;
-    const sum=bidderTeam+otherTeam;
     const bid=currentGame.rookHighBid;
     const bidder=currentGame.rookHighBidder;
     const partner=_rookSelectedPartner;
@@ -3456,15 +3449,9 @@
 
     const breakdown=document.getElementById('rook-counter-breakdown');
     if(breakdown){
-      if(sum===handTotal){
-        breakdown.textContent=`Teams add up to ${handTotal} pts — matches your hand setting.`;
-        breakdown.style.color='var(--muted)';
-        breakdown.style.borderColor='var(--hairline)';
-      }else{
-        breakdown.textContent=`Teams total ${sum} pts · your hand setting is ${handTotal}. You can still save if that’s correct for your table.`;
-        breakdown.style.color='var(--amber)';
-        breakdown.style.borderColor='var(--amber)';
-      }
+      breakdown.textContent=`Bid team ${bidderTeam} + other team ${otherTeam} = ${handTotal} pts (full hand).`;
+      breakdown.style.color='var(--muted)';
+      breakdown.style.borderColor='var(--hairline)';
     }
     const bidderLabel=document.getElementById('rook-bidder-team-counter-label');
     if(bidderLabel) bidderLabel.textContent=bidderTeam;
@@ -3529,13 +3516,11 @@
     const bidder=currentGame.rookHighBidder;
     const partner=_rookSelectedPartner;
     const bid=currentGame.rookHighBid;
-    const bidderTeamPts=parseInt(document.getElementById('rook-bidder-team-input').value,10)||0;
-    const otherTeamPts=parseInt(document.getElementById('rook-other-team-input').value,10)||0;
-    if(bidderTeamPts<0||otherTeamPts<0){toast('Points can’t be negative','warning');return;}
     const handTotal=currentGame.rookConfig.totalCounters;
-    if(bidderTeamPts+otherTeamPts!==handTotal){
-      if(!confirm(`Teams total ${bidderTeamPts+otherTeamPts} pts, but your hand setting is ${handTotal}. Save anyway?`))return;
-    }
+    let bidderTeamPts=parseInt(document.getElementById('rook-bidder-team-input').value,10);
+    if(!Number.isFinite(bidderTeamPts))bidderTeamPts=0;
+    bidderTeamPts=Math.max(0,Math.min(handTotal,bidderTeamPts));
+    const otherTeamPts=handTotal-bidderTeamPts;
     const madeIt=bidderTeamPts>=bid;
     const oppCounters=otherTeamPts;
 
