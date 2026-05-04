@@ -956,6 +956,39 @@
       margin: 0.5rem 0 1rem;
       animation: popIn 0.45s cubic-bezier(0.16,1,0.3,1);
     }
+    button.dealer-name-indicator {
+      appearance: none;
+      -webkit-appearance: none;
+      margin: 0;
+      max-width: 100%;
+      font: inherit;
+      line-height: inherit;
+      color: inherit;
+      text-align: left;
+      background: var(--emerald-bg);
+      border: 2px solid var(--emerald);
+      border-radius: 0.5rem;
+      padding: 0.15em 0.55em 0.2em;
+      cursor: pointer;
+      transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+    }
+    button.dealer-name-indicator:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.22);
+    }
+    button.dealer-name-indicator:active { transform: scale(0.98); }
+    button.dealer-name-indicator:focus-visible {
+      outline: 2px solid var(--emerald);
+      outline-offset: 2px;
+    }
+    button.dealer-name-indicator.leader-text {
+      background: var(--surface);
+      border-color: var(--emerald);
+      color: var(--emerald);
+    }
+    html.dark button.dealer-name-indicator.leader-text {
+      background: var(--surface-2);
+    }
 
     /* ════════ POST-GAME STAT MONTAGE (ceremony cards, then Next → winner) ════════ */
     #stat-montage {
@@ -1797,7 +1830,7 @@
                 </div>
                 <div class="scorecard-hint-item">
                   <span class="hint-emoji" aria-hidden="true">🃏</span>
-                  <div class="hint-body"><strong>Change dealer</strong>Tap the card icon next to the current dealer’s name.</div>
+                  <div class="hint-body"><strong>Change dealer</strong>Tap the current dealer’s name (highlighted in the scorecard).</div>
                 </div>
                 <div class="scorecard-hint-item">
                   <span class="hint-emoji" aria-hidden="true">🛟</span>
@@ -4044,10 +4077,11 @@
 
       body+=`<tr class="${rowCls}">
         <td class="px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 min-w-0">
             ${getStreakAvatarHtml(p,'avatar-img mx-1')}
-            <span class="font-jakarta font-extrabold text-lg ${isLeader?'leader-text':''}">${p}</span>
-            ${isDealer?`<button onclick="openDealerModal()" class="ml-1 text-lg hover:scale-110 transition-transform" title="Dealer">🃏</button>`:''}
+            ${isDealer
+              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-extrabold text-lg truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
+              : `<span class="font-jakarta font-extrabold text-lg ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
         </td>
@@ -5027,9 +5061,10 @@
             ${dragHandle}${arrows}
             <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
             ${getStreakAvatarHtml(p,'avatar-img mx-2')}
-            <span class="font-jakarta font-extrabold text-xl truncate ${isLeader?'leader-text':''}">${p}</span>
+            ${isDealer
+              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-extrabold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
+              : `<span class="font-jakarta font-extrabold text-xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
             ${hailBtn}${retiredTag}
-            ${isDealer?`<button onclick="openDealerModal()" class="ml-2 text-xl hover:scale-110 transition-transform shrink-0" title="Tap to pass the deck">🃏</button>`:''}
           </div>
           ${wizardCurrentBid}
         </td>
