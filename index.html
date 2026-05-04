@@ -108,6 +108,152 @@
     .font-jakarta { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     .font-mono-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
 
+    /* ════════ TV / ACROSS-THE-ROOM READABILITY (e.g. ~8ft, 55") ════════ */
+    #game-screen #round-intel {
+      font-size: clamp(1.35rem, 3.6vw, 2.85rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+    }
+    #game-screen #game-title {
+      font-size: clamp(1.2rem, 3.1vw, 2.45rem);
+      line-height: 1.1;
+    }
+    .tv-stat-num {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+      font-size: clamp(1.65rem, 3.85vw, 2.95rem) !important;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+    .tv-stat-delta {
+      font-size: clamp(0.78rem, 1.85vw, 1.08rem) !important;
+      font-weight: 700;
+    }
+    .tv-round-cell-num {
+      font-size: clamp(1.05rem, 2.5vw, 1.5rem) !important;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .tv-target-pct {
+      font-size: clamp(0.72rem, 1.85vw, 1.05rem) !important;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    #leader-text {
+      font-size: clamp(1.35rem, 3.2vw, 2.45rem) !important;
+      line-height: 1.2;
+    }
+    #live-records-banner {
+      font-size: clamp(0.88rem, 2vw, 1.2rem);
+      line-height: 1.4;
+    }
+    #live-records-banner strong { font-weight: 800; }
+    .tv-wizard-header-badge {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: clamp(1.45rem, 3.5vw, 2.65rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+    .tv-wizard-header-sub {
+      font-size: clamp(0.68rem, 1.45vw, 0.85rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .trick-counter-label {
+      font-size: clamp(0.62rem, 1.45vw, 0.76rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      opacity: 0.88;
+      margin-bottom: 0.2rem;
+    }
+    #trick-counter-fraction {
+      font-size: clamp(1.8rem, 4.25vw, 3rem) !important;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    #trick-counter-status {
+      font-size: clamp(0.82rem, 1.9vw, 1.12rem) !important;
+      font-weight: 800;
+      line-height: 1.25;
+      padding: 0.55rem 1rem !important;
+    }
+    .tv-submit-round-btn {
+      font-size: clamp(1.05rem, 2.4vw, 1.35rem) !important;
+      font-weight: 800;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+    td.score-cell .score-cell-input {
+      font-size: clamp(0.95rem, 2.25vw, 1.3rem) !important;
+      font-weight: 800;
+      min-width: 2.85rem;
+    }
+    .rook-bid-amount-input {
+      font-size: clamp(1.45rem, 3.5vw, 2.65rem) !important;
+    }
+
+    /* ════════ SCORECARD FOOTER HINTS ════════ */
+    .scorecard-hints-strip { width: 100%; flex: 1; min-width: 0; }
+    .scorecard-hints-strip .hints-heading {
+      font-size: 0.62rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+    .scorecard-hints-grid {
+      display: grid;
+      gap: 0.5rem 0.75rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 640px) {
+      .scorecard-hints-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1100px) {
+      .scorecard-hints-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem 1rem; }
+    }
+    .scorecard-hint-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: 12px;
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    html.dark .scorecard-hint-item { background: var(--surface-2); }
+    .scorecard-hint-item .hint-emoji {
+      flex-shrink: 0;
+      font-size: 1.2rem;
+      line-height: 1.2;
+      width: 1.5rem;
+      text-align: center;
+    }
+    .scorecard-hint-item .hint-body {
+      min-width: 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      line-height: 1.38;
+    }
+    .scorecard-hint-item .hint-body strong {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink);
+      margin-bottom: 0.15rem;
+    }
+
     /* ════════ SURFACE SYSTEM ════════ */
     .surface { background: var(--surface); border: 1px solid var(--hairline); border-radius: 20px; transition: background 0.3s, border-color 0.3s; }
     .surface-raised { background: var(--surface); border: 1px solid var(--hairline); border-radius: 20px; box-shadow: var(--shadow-md); transition: background 0.3s, border-color 0.3s; }
@@ -290,13 +436,13 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 2.75rem;
-      padding: 0.4rem 0.7rem;
+      min-width: clamp(3rem, 8vw, 4.25rem);
+      padding: 0.45rem 0.85rem;
       border-radius: 11px;
       background: linear-gradient(180deg, #10b981 0%, #059669 100%);
       color: #fff;
       font-weight: 900;
-      font-size: 1.05rem;
+      font-size: clamp(1.1rem, 2.85vw, 1.85rem);
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
       line-height: 1;
@@ -405,9 +551,12 @@
       border-radius: 14px;
       transition: all 0.15s ease;
       font-variant-numeric: tabular-nums;
+      font-size: clamp(1.45rem, 3.6vw, 2.55rem) !important;
+      font-weight: 800;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
       color: var(--ink);
       line-height: 1.3;
+      min-height: 3rem;
     }
     .score-current-input:hover { border-color: var(--muted); }
 
@@ -463,7 +612,7 @@
     /* ════════ WIZARD BID STATUS DOTS ════════ */
     .bid-dot {
       display: inline-block;
-      width: 10px; height: 10px;
+      width: 12px; height: 12px;
       border-radius: 50%;
       vertical-align: middle;
     }
@@ -473,12 +622,12 @@
     .bid-dot-busted { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.7); }
 
     .wizard-current-bid {
-      min-width: 4.5rem;
+      min-width: clamp(4.75rem, 12vw, 6.25rem);
       text-align: center;
       line-height: 1;
       flex-shrink: 0;
       align-self: center;
-      padding: 0.4rem 0.55rem 0.45rem;
+      padding: 0.45rem 0.65rem 0.5rem;
       border-radius: 12px;
       background: linear-gradient(145deg, #059669 0%, #047857 55%, #065f46 100%);
       border: 2px solid rgba(255,255,255,0.28);
@@ -490,7 +639,7 @@
       box-shadow: 0 2px 14px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
     }
     .wizard-current-bid-label {
-      font-size: 0.58rem;
+      font-size: clamp(0.58rem, 1.35vw, 0.72rem);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.88);
@@ -498,10 +647,11 @@
       margin-bottom: 0.15rem;
     }
     .wizard-current-bid-value {
-      font-size: 1.875rem;
+      font-size: clamp(1.85rem, 4.25vw, 3rem);
       line-height: 1;
       letter-spacing: -0.04em;
       color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.22);
     }
     .wizard-current-bid .bid-dot { box-shadow: 0 0 6px rgba(0,0,0,0.35); }
     .wizard-over-under {
@@ -509,7 +659,7 @@
       line-height: 1.05;
       margin-top: 0.18rem;
     }
-    .wizard-current-bid .wizard-over-under { font-size: 0.82rem; margin-top: 0.22rem; }
+    .wizard-current-bid .wizard-over-under { font-size: clamp(0.72rem, 1.85vw, 0.95rem); margin-top: 0.22rem; font-weight: 800; }
     .wizard-current-bid .wizard-bid-status-exact { color: #d1fae5 !important; }
     .wizard-current-bid .wizard-bid-status-over { color: #fecaca !important; }
     .wizard-current-bid .wizard-bid-status-under { color: #bfdbfe !important; }
@@ -834,7 +984,7 @@
 
     /* ════════ TABLE HEADER ════════ */
     .scorecard-table thead tr { background: var(--ink); }
-    .scorecard-table thead th { font-size:0.7rem; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#d4d4cc; white-space:nowrap; }
+    .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#d4d4cc; white-space:nowrap; }
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
 
@@ -1459,8 +1609,8 @@
       <div class="surface p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center gap-4 flex-wrap">
-            <h2 id="game-title" class="font-display text-3xl md:text-4xl"></h2>
-            <div id="round-intel" class="font-display text-3xl md:text-4xl" style="color:var(--emerald);"></div>
+            <h2 id="game-title" class="font-display"></h2>
+            <div id="round-intel" class="font-display" style="color:var(--emerald);"></div>
           </div>
           <div id="wizard-bid-status" class="hidden flex items-center gap-2 flex-wrap"></div>
         </div>
@@ -1507,22 +1657,22 @@
 
       <!-- Landscape: Scorecard view -->
       <div class="landscape-only">
-        <div id="wizard-trick-counter" class="hidden mb-3 rounded-2xl border-2 p-4 flex flex-wrap items-center justify-between gap-3 transition-all">
+        <div id="wizard-trick-counter" class="hidden mb-3 rounded-2xl border-2 p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 transition-all">
           <div class="flex items-center gap-4">
-            <span class="text-3xl">🪄</span>
+            <span class="text-4xl md:text-5xl shrink-0">🪄</span>
             <div>
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] opacity-70 mb-0.5" id="trick-counter-label">Bids This Round</div>
-              <div class="font-jakarta text-3xl font-extrabold font-mono-num" id="trick-counter-fraction">0 / 0</div>
+              <div class="trick-counter-label" id="trick-counter-label">Bids This Round</div>
+              <div class="font-jakarta font-extrabold font-mono-num" id="trick-counter-fraction">0 / 0</div>
             </div>
           </div>
-          <div id="trick-counter-status" class="text-sm font-bold px-4 py-2.5 rounded-xl" style="background:rgba(255,255,255,0.45);"></div>
+          <div id="trick-counter-status" class="font-bold px-4 py-2.5 rounded-xl" style="background:rgba(255,255,255,0.45);"></div>
         </div>
 
         <div id="live-records-banner" class="hidden mb-3 surface p-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);"></div>
 
         <div id="leader-banner" class="hidden mb-4 surface p-5 flex items-center gap-4" style="background:var(--emerald-bg);border-color:var(--emerald-border);">
           <div class="text-4xl">🏆</div>
-          <div id="leader-text" class="font-jakarta text-2xl md:text-3xl font-extrabold leading-tight" style="color:var(--emerald);"></div>
+          <div id="leader-text" class="font-jakarta font-extrabold leading-tight" style="color:var(--emerald);"></div>
         </div>
 
         <div id="rook-round-panel" class="hidden mb-4"></div>
@@ -1535,9 +1685,29 @@
             </table>
           </div>
 
-          <div id="submit-section" class="p-4 border-t hairline flex flex-col sm:flex-row sm:justify-between items-center gap-4" style="background:var(--surface-2);">
-            <p class="text-xs font-medium" style="color:var(--muted);">Tap past scores to edit · 🃏 tap to reassign dealer · 🛟 Hail Mary · 🚪 Actions → Retire Player</p>
-            <button id="submit-action-btn" onclick="submitRound()" class="btn-accent w-full sm:w-auto px-12 py-4 text-lg">Submit Round</button>
+          <div id="submit-section" class="p-4 border-t hairline flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4" style="background:var(--surface-2);">
+            <div class="scorecard-hints-strip">
+              <div class="hints-heading">How to use this scorecard</div>
+              <div class="scorecard-hints-grid">
+                <div class="scorecard-hint-item">
+                  <span class="hint-emoji" aria-hidden="true">✏️</span>
+                  <div class="hint-body"><strong>Edit a past round</strong>Tap any score in a completed round column.</div>
+                </div>
+                <div class="scorecard-hint-item">
+                  <span class="hint-emoji" aria-hidden="true">🃏</span>
+                  <div class="hint-body"><strong>Change dealer</strong>Tap the card icon next to the current dealer’s name.</div>
+                </div>
+                <div class="scorecard-hint-item">
+                  <span class="hint-emoji" aria-hidden="true">🛟</span>
+                  <div class="hint-body"><strong>Hail Mary</strong>When it appears by a name, tap the life ring for a comeback spin.</div>
+                </div>
+                <div class="scorecard-hint-item">
+                  <span class="hint-emoji" aria-hidden="true">🚪</span>
+                  <div class="hint-body"><strong>Retire a player</strong>Use the Actions menu at the top, then tap Retire Player.</div>
+                </div>
+              </div>
+            </div>
+            <button id="submit-action-btn" onclick="submitRound()" class="btn-accent tv-submit-round-btn w-full lg:w-auto shrink-0 px-12 py-4">Submit Round</button>
           </div>
 
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
@@ -3686,13 +3856,13 @@
 
       // Progress bar toward win target
       const pct=Math.min(100,Math.max(0,Math.round(total/winTarget*100)));
-      const progressBar=`<div class="mt-1 h-1.5 rounded-full" style="background:var(--hairline);width:100%;">
-        <div class="h-1.5 rounded-full transition-all" style="width:${pct}%;background:${isLeader?'var(--emerald)':'var(--blue)'};" ></div>
+      const progressBar=`<div class="mt-1.5 h-2 rounded-full" style="background:var(--hairline);width:100%;">
+        <div class="h-2 rounded-full transition-all" style="width:${pct}%;background:${isLeader?'var(--emerald)':'var(--blue)'};" ></div>
       </div>`;
 
       const leaderScore=currentGame.totals[sortedP[0]]||0;
       const dist=(!isLeader&&currentGame.currentRound>1)
-        ?`<span class="text-sm font-bold font-mono-num ml-2" style="opacity:0.45;">−${Math.abs(total-leaderScore)}</span>`:'';
+        ?`<span class="tv-stat-delta font-mono-num ml-2" style="opacity:0.45;">−${Math.abs(total-leaderScore)}</span>`:'';
 
       let liveRoundBid=null;
       const rb=currentGame.rookHighBidder;
@@ -3717,9 +3887,9 @@
           ${progressBar}
         </td>
         <td class="px-3 py-2 text-center align-middle">${bidCell}</td>
-        <td class="px-4 py-2 font-jakarta font-extrabold text-3xl font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
+        <td class="px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
         <td class="px-3 py-2 text-center">
-          <span class="text-xs font-extrabold font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
+          <span class="tv-target-pct font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
         </td>`;
 
       // Past rounds
@@ -3739,7 +3909,7 @@
         else if(isPartner) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Partner ${indicator}</div>`;
         body+=`<td class="px-1 py-2 text-center score-cell">
           ${label}
-          <span class="font-bold text-base font-mono-num" style="color:${cellColor};">${s>=0?'+':''}${s}</span>
+          <span class="tv-round-cell-num font-mono-num" style="color:${cellColor};">${s>=0?'+':''}${s}</span>
         </td>`;
       });
 
@@ -3784,7 +3954,7 @@
           <button type="button" onclick="rookBidSetupAmountAdj(-5)" class="w-11 h-11 rounded-xl font-extrabold border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−5</button>
           <input id="rook-bid-amount-input" type="number" min="${cfg.minBid}" max="999" value="${bidAmt}"
             oninput="rookBidAmountDraftSync()"
-            class="flex-1 min-w-0 max-w-[9rem] text-center text-3xl font-extrabold rounded-xl py-2.5 border-2 outline-none font-mono-num"
+            class="rook-bid-amount-input flex-1 min-w-0 max-w-[9rem] text-center font-extrabold rounded-xl py-2.5 border-2 outline-none font-mono-num"
             style="background:var(--bg-2);color:var(--ink);border-color:var(--hairline);">
           <button type="button" onclick="rookBidSetupAmountAdj(5)" class="w-11 h-11 rounded-xl font-extrabold border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+5</button>
         </div>
@@ -4480,15 +4650,15 @@
     let badge='', statusText='';
     if(diff===0){
       statusText=`Bids even — dealer had to adjust`;
-      badge=`<span class="font-display text-3xl md:text-4xl leading-none" style="color:var(--amber);">⚠️ Even · ${totalBids}/${round}</span>`;
+      badge=`<span class="tv-wizard-header-badge leading-none" style="color:var(--amber);">⚠️ Even · ${totalBids}/${round}</span>`;
     } else if(diff<0){
       statusText=`${Math.abs(diff)} trick${Math.abs(diff)!==1?'s':''} uncontested`;
-      badge=`<span class="font-display text-3xl md:text-4xl leading-none" style="color:var(--blue);">${Math.abs(diff)} under · ${totalBids}/${round}</span>`;
+      badge=`<span class="tv-wizard-header-badge leading-none" style="color:var(--blue);">${Math.abs(diff)} under · ${totalBids}/${round}</span>`;
     } else {
       statusText=`${diff} trick${diff!==1?'s':''} overbid`;
-      badge=`<span class="font-display text-3xl md:text-4xl leading-none" style="color:var(--rose);">${diff} over · ${totalBids}/${round}</span>`;
+      badge=`<span class="tv-wizard-header-badge leading-none" style="color:var(--rose);">${diff} over · ${totalBids}/${round}</span>`;
     }
-    el.innerHTML=`${badge}<span class="text-xs font-extrabold hidden lg:inline uppercase tracking-[0.12em]" style="color:var(--muted);">${statusText}</span>`;
+    el.innerHTML=`${badge}<span class="tv-wizard-header-sub hidden lg:inline" style="color:var(--muted);">${statusText}</span>`;
     el.classList.remove('hidden');
   }
 
@@ -4516,7 +4686,7 @@
       else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} still unaccounted`;}
       else{cls='trick-counter-over';status=`❌ ${diff} too many — recount`;}
     }
-    banner.className=`mb-3 rounded-2xl border-2 p-4 flex flex-wrap items-center justify-between gap-3 transition-all ${cls}`;
+    banner.className=`mb-3 rounded-2xl border-2 p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 transition-all ${cls}`;
     document.getElementById('trick-counter-label').textContent=label;
     document.getElementById('trick-counter-fraction').textContent=`${total} / ${round}`;
     document.getElementById('trick-counter-status').textContent=status;
@@ -4616,7 +4786,7 @@
       const rowCls=isLeader?'leader-row':(isRetired?'row-retired':'');
       const cellBg=isLeader?'var(--emerald-bg)':(isRetired?'var(--surface-2)':'var(--surface)');
       const dist=(!isLeader&&currentGame.currentRound>1)
-        ? `<span class="text-sm font-bold font-mono-num ml-2" style="opacity:0.45;">${cfg.winLow?'+':'−'}${Math.abs(currentGame.totals[p]-leaderScore)}</span>`
+        ? `<span class="tv-stat-delta font-mono-num ml-2" style="opacity:0.45;">${cfg.winLow?'+':'−'}${Math.abs(currentGame.totals[p]-leaderScore)}</span>`
         : '';
 
       let arrows='';
@@ -4685,7 +4855,7 @@
           </div>
           ${wizardCurrentBid}
         </td>
-        <td class="px-4 py-2 font-jakarta font-extrabold text-3xl font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
+        <td class="px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
 
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
@@ -4706,7 +4876,7 @@
           ${bidInfo}
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
-            class="w-12 score-cell-input px-1 py-1.5 text-center font-bold text-base cursor-pointer caret-transparent no-select">
+            class="w-12 score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select">
         </td>`;
       });
 
@@ -4718,7 +4888,7 @@
         body+=`<td class="px-5 py-2 text-right">
           <input type="text" id="score-input-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}','current')" value="${val}" placeholder=""
-            class="w-24 score-current-input px-2 py-2 text-center text-3xl font-extrabold cursor-pointer caret-transparent no-select font-jakarta">
+            class="w-24 score-current-input px-2 py-2 text-center font-extrabold cursor-pointer caret-transparent no-select font-jakarta">
         </td>`;
       } else if(!over&&isRetired){
         body+=`<td class="px-5 py-2 text-right"><span class="text-xs font-bold" style="color:var(--muted);">—</span></td>`;
@@ -4793,7 +4963,7 @@
         <div class="${i===0?'text-7xl':'text-5xl'} mb-2">${medals[i]}</div>
         ${getStreakAvatarHtml(p,'avatar-img-lg')}
         <div class="mt-3 font-jakarta font-extrabold truncate w-full text-center text-lg">${p}</div>
-        <div class="font-jakarta font-extrabold text-3xl font-mono-num mb-2">${currentGame.totals[p]||0}</div>
+        <div class="font-jakarta font-extrabold tv-stat-num font-mono-num mb-2">${currentGame.totals[p]||0}</div>
         <div class="podium-bar w-full" style="height:${bh(p,i)}px;"></div>
       </div>`;
     });
@@ -5353,8 +5523,8 @@
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
         <td class="px-4 py-2 font-extrabold sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
-        <td class="px-4 py-2 font-extrabold text-xl font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
-      g.rounds?.forEach(r=>body+=`<td class="px-3 py-2 text-center font-bold font-mono-num" style="color:var(--muted);">${r.scores[p]!==undefined?r.scores[p]:''}</td>`);
+        <td class="px-4 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
+      g.rounds?.forEach(r=>body+=`<td class="px-3 py-2 text-center tv-round-cell-num font-mono-num" style="color:var(--muted);">${r.scores[p]!==undefined?r.scores[p]:''}</td>`);
       body+=`</tr>`;
     });
     document.getElementById('modal-scorecard-body').innerHTML=body;
