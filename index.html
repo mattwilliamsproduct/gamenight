@@ -285,6 +285,32 @@
       padding: 0.85rem;
       background: var(--surface-2);
     }
+    /* Live round bid on scorecard — distinct from running total */
+    .rook-scorecard-bid-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.75rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 11px;
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.05rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.2) inset,
+        0 2px 10px rgba(16, 185, 129, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    html.dark .rook-scorecard-bid-pill {
+      background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.15) inset,
+        0 2px 12px rgba(16, 185, 129, 0.45);
+    }
 
     /* ════════ SCORECARD LEADER ════════ */
     .leader-row { background: var(--emerald-bg) !important; }
@@ -447,31 +473,46 @@
     .bid-dot-busted { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.7); }
 
     .wizard-current-bid {
-      min-width: 4.25rem;
-      text-align: right;
+      min-width: 4.5rem;
+      text-align: center;
       line-height: 1;
       flex-shrink: 0;
       align-self: center;
+      padding: 0.4rem 0.55rem 0.45rem;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #059669 0%, #047857 55%, #065f46 100%);
+      border: 2px solid rgba(255,255,255,0.28);
+      box-shadow: 0 2px 10px rgba(5,150,105,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    html.dark .wizard-current-bid {
+      background: linear-gradient(145deg, #10b981 0%, #059669 50%, #047857 100%);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 2px 14px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
     }
     .wizard-current-bid-label {
       font-size: 0.58rem;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--blue);
-      opacity: 0.78;
+      color: rgba(255,255,255,0.88);
       line-height: 1;
-      margin-bottom: 0.12rem;
+      margin-bottom: 0.15rem;
     }
     .wizard-current-bid-value {
       font-size: 1.875rem;
       line-height: 1;
       letter-spacing: -0.04em;
+      color: #fff !important;
     }
+    .wizard-current-bid .bid-dot { box-shadow: 0 0 6px rgba(0,0,0,0.35); }
     .wizard-over-under {
       font-size: 0.95rem;
       line-height: 1.05;
       margin-top: 0.18rem;
     }
+    .wizard-current-bid .wizard-over-under { font-size: 0.82rem; margin-top: 0.22rem; }
+    .wizard-current-bid .wizard-bid-status-exact { color: #d1fae5 !important; }
+    .wizard-current-bid .wizard-bid-status-over { color: #fecaca !important; }
+    .wizard-current-bid .wizard-bid-status-under { color: #bfdbfe !important; }
 
     /* ════════ DRAG & DROP (Round 1 reorder) ════════ */
     .drag-handle {
@@ -784,6 +825,9 @@
     .landscape-only { display:block; }
     body.force-portrait-view .portrait-only  { display:block; }
     body.force-portrait-view .landscape-only { display:none; }
+    /* Active match: always show scorecard + submit (portrait phones & tall desktop windows hid them before). */
+    body.force-portrait-view #game-screen .landscape-only { display:block !important; }
+    body.force-portrait-view #game-screen .portrait-only { display:none !important; }
 
     /* ════════ PODIUM ════════ */
     .podium-bar { background:linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%); border-radius:12px 12px 0 0; }
@@ -3635,6 +3679,9 @@
     // --- HEAD ---
     let head=`<tr>
       <th class="px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
+      <th class="px-3 py-3 text-center">
+        <span class="text-[10px] font-extrabold uppercase tracking-[0.12em]" style="color:#34d399;">Hand bid</span>
+      </th>
       <th class="px-4 py-3 text-left">Total</th>
       <th class="px-3 py-3 text-center" style="color:#6ee7b7;">Target: ${winTarget}</th>`;
     currentGame.rounds.forEach(r=>{
@@ -3662,6 +3709,19 @@
       const dist=(!isLeader&&currentGame.currentRound>1)
         ?`<span class="text-sm font-bold font-mono-num ml-2" style="opacity:0.45;">−${Math.abs(total-leaderScore)}</span>`:'';
 
+      let liveRoundBid=null;
+      const rb=currentGame.rookHighBidder;
+      if(rb===p){
+        if(phase==='bidSetup'&&rb){
+          liveRoundBid=currentGame.rookBidAmountDraft!=null?currentGame.rookBidAmountDraft:cfg.minBid;
+        }else if((phase==='calling'||phase==='results')&&currentGame.rookHighBid>0){
+          liveRoundBid=currentGame.rookHighBid;
+        }
+      }
+      const bidCell=liveRoundBid!=null
+        ?`<span class="rook-scorecard-bid-pill font-mono-num">${liveRoundBid}</span>`
+        :'';
+
       body+=`<tr class="${rowCls}">
         <td class="px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2">
@@ -3671,6 +3731,7 @@
           </div>
           ${progressBar}
         </td>
+        <td class="px-3 py-2 text-center align-middle">${bidCell}</td>
         <td class="px-4 py-2 font-jakarta font-extrabold text-3xl font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
         <td class="px-3 py-2 text-center">
           <span class="text-xs font-extrabold font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
@@ -4614,13 +4675,13 @@
           let dot = '', overUnderLive = '';
           if(liveTricks !== null && !isNaN(liveTricks)){
             const diff=liveTricks-bid;
-            if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid - score!"></span>`; overUnderLive=`<div class="wizard-over-under font-bold" style="color:var(--emerald);">exact ✓</div>`; }
-            else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid - busted"></span>`; overUnderLive=`<div class="wizard-over-under font-bold" style="color:var(--rose);">${diff} over</div>`; }
-            else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close - need ${Math.abs(diff)} more"></span>` : `<span class="bid-dot bid-dot-under" title="Need ${Math.abs(diff)} more"></span>`; overUnderLive=`<div class="wizard-over-under font-bold" style="color:var(--blue);">${Math.abs(diff)} under</div>`; }
+            if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid - score!"></span>`; overUnderLive=`<div class="wizard-over-under font-bold wizard-bid-status-exact">exact ✓</div>`; }
+            else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid - busted"></span>`; overUnderLive=`<div class="wizard-over-under font-bold wizard-bid-status-over">${diff} over</div>`; }
+            else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close - need ${Math.abs(diff)} more"></span>` : `<span class="bid-dot bid-dot-under" title="Need ${Math.abs(diff)} more"></span>`; overUnderLive=`<div class="wizard-over-under font-bold wizard-bid-status-under">${Math.abs(diff)} under</div>`; }
           }
           return `<div class="wizard-current-bid font-mono-num" id="wizard-current-bid-${rookElementId(p)}">
             <div class="wizard-current-bid-label font-extrabold">Bid</div>
-            <div class="wizard-current-bid-value font-jakarta font-extrabold ${isLeader?'leader-text':''}">${bid}${dot}</div>
+            <div class="wizard-current-bid-value font-jakarta font-extrabold">${bid}${dot}</div>
             ${overUnderLive}
           </div>`;
         })()
@@ -4692,7 +4753,11 @@
       document.getElementById('game-over-section').classList.add('hidden');
       let btnTxt='Submit Round';
       if(isWiz) btnTxt = wPhase==='bidding' ? '🔒 Lock In Bids' : '✅ Submit Tricks & Score';
-      const sb=document.getElementById('submit-action-btn'); if(sb)sb.innerHTML=btnTxt;
+      const sb=document.getElementById('submit-action-btn');
+      if(sb){
+        sb.innerHTML=btnTxt;
+        sb.style.display='';
+      }
       if(isWiz) updateWizardTrickCounter(); else document.getElementById('wizard-trick-counter').classList.add('hidden');
     }
 
@@ -5214,9 +5279,9 @@
     let dot = '', overUnderHtml = '';
     if(liveTricks !== null && !isNaN(liveTricks)){
       const diff=liveTricks-bid;
-      if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold" style="color:var(--emerald);">exact ✓</div>`; }
-      else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold" style="color:var(--rose);">${diff} over</div>`; }
-      else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close"></span>` : `<span class="bid-dot bid-dot-under" title="Under"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold" style="color:var(--blue);">${Math.abs(diff)} under</div>`; }
+      if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-exact">exact ✓</div>`; }
+      else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-over">${diff} over</div>`; }
+      else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close"></span>` : `<span class="bid-dot bid-dot-under" title="Under"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-under">${Math.abs(diff)} under</div>`; }
     }
     valueEl.innerHTML = `${bid}${dot}`;
     let ouEl = bidWrap.querySelector('.wizard-over-under');
