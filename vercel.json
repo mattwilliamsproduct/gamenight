@@ -1,0 +1,7 @@
+{
+  "outputDirectory": ".",
+  "public": true,
+  "rewrites": [
+    { "source": "/avatars/:path*", "destination": "/public/avatars/:path*" }
+  ]
+}
