@@ -1,7 +1,5 @@
 {
-  "outputDirectory": ".",
-  "public": true,
-  "rewrites": [
-    { "source": "/avatars/:path*", "destination": "/public/avatars/:path*" }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
+  "public": true
 }

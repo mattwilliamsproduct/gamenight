@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-HTML = ROOT / "index.html"
+HTML = ROOT / "public" / "index.html"
 OUT_DIR = ROOT / "public" / "avatars"
 PREFIX = "  const embeddedAvatars = "
 
