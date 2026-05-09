@@ -1035,7 +1035,6 @@
       margin: 0 auto;
       line-height: 1.4;
     }
-    .montage-value.winner { color: #34d399; }
     .montage-kicker {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: clamp(0.68rem, 1.45vw, 0.82rem);
@@ -2402,6 +2401,35 @@
   let playerProfiles = safeGetObject('gn_profiles');
 
   let currentGame = null;
+  let _historyRevision = 0;
+  let _hallOfFameCache = null;
+  let _lastPersistedState = {};
+  function markHistoryChanged(){
+    _historyRevision++;
+    _hallOfFameCache = null;
+  }
+  function getHallOfFame(){
+    if(!_hallOfFameCache || _hallOfFameCache.rev !== _historyRevision){
+      _hallOfFameCache = { rev:_historyRevision, data:calculateHallOfFame() };
+    }
+    return _hallOfFameCache.data;
+  }
+  function recomputeGameTotals(game){
+    if(!game)return {};
+    game.totals={};
+    (game.originalRoster||[]).forEach(p=>{if(p)game.totals[p]=0;});
+    (game.rounds||[]).forEach(r=>{
+      Object.keys(r.scores||{}).forEach(p=>{
+        if(game.totals[p]===undefined)game.totals[p]=0;
+        game.totals[p]+=(r.scores[p]||0);
+      });
+    });
+    return game.totals;
+  }
+  function getActiveRoster(game){
+    const retired=game?.retired||[];
+    return (game?.originalRoster||[]).filter(p=>p&&!retired.includes(p));
+  }
   try {
     currentGame = JSON.parse(localStorage.getItem('gn_current'));
     if (currentGame && (!currentGame.name || !Array.isArray(currentGame.originalRoster))) currentGame=null;
@@ -2623,13 +2651,22 @@
   // ── Save + nav ──
   let _saveDebounceTimer = null;
   const SAVE_DEBOUNCE_MS = 220;
+  function persistJsonIfChanged(key, value){
+    const json=JSON.stringify(value);
+    if(_lastPersistedState[key]===json)return;
+    localStorage.setItem(key,json);
+    _lastPersistedState[key]=json;
+  }
   function _persistGamenightState(){
-    localStorage.setItem('gn_all_players',JSON.stringify(allPlayers));
-    localStorage.setItem('gn_players_v2',JSON.stringify(players));
-    localStorage.setItem('gn_history',JSON.stringify(history));
-    localStorage.setItem('gn_profiles',JSON.stringify(playerProfiles));
-    if(currentGame) localStorage.setItem('gn_current',JSON.stringify(currentGame));
-    else localStorage.removeItem('gn_current');
+    persistJsonIfChanged('gn_all_players',allPlayers);
+    persistJsonIfChanged('gn_players_v2',players);
+    persistJsonIfChanged('gn_history',history);
+    persistJsonIfChanged('gn_profiles',playerProfiles);
+    if(currentGame) persistJsonIfChanged('gn_current',currentGame);
+    else if(_lastPersistedState.gn_current!==null){
+      localStorage.removeItem('gn_current');
+      _lastPersistedState.gn_current=null;
+    }
     updateNavButton();
     flashSaveIndicator();
   }
@@ -2657,7 +2694,10 @@
     _persistGamenightState();
   }
   document.addEventListener('visibilitychange', async ()=>{
-    if(document.visibilityState === 'hidden') flushPendingSave();
+    if(document.visibilityState === 'hidden'){
+      cleanupActiveTouchDrags();
+      flushPendingSave();
+    }
     else if(document.visibilityState === 'visible' && currentGame) await requestWakeLock();
   });
   window.addEventListener('pagehide', flushPendingSave);
@@ -2682,6 +2722,7 @@
     }
   }
   function navigateTo(id){
+    cleanupActiveTouchDrags();
     ['home-screen','game-screen','history-screen','profiles-screen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
     window.scrollTo({top:0,behavior:'auto'});
@@ -2725,26 +2766,6 @@
     const img = `<img src="${getAvatarSrc(name)}" class="${cls} ${ring}" data-fb="${fb}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
     if(!isCincoMayo) return img;
     return `<span class="cinco-avatar-wrap">${img}<span class="cinco-sombrero">🪇</span></span>`;
-  }
-
-  // ── Streak detection ──
-  function getPlayerStreaks(){
-    const s={}; allPlayers.forEach(p=>{s[p]={streak:0,type:null};});
-    const sorted = history.slice().reverse(); // oldest first
-    sorted.forEach(h=>{
-      if(!h.totals)return;
-      Object.keys(h.totals).forEach(p=>{
-        if(!s[p]) s[p]={streak:0,type:null};
-        if(h.winners?.includes(p)) s[p].streak = Math.max(0,s[p].streak)+1;
-        else s[p].streak = Math.min(0,s[p].streak)-1;
-      });
-    });
-    Object.keys(s).forEach(p=>{
-      if(s[p].streak>=2) s[p].type='fire';
-      else if(s[p].streak<=-2) s[p].type='ice';
-      else s[p].type=null;
-    });
-    return s;
   }
 
   function getStreakAvatarHtml(name, cls){
@@ -2851,7 +2872,7 @@
 
       const chipsHtml = `<div class="ss-active-meta">${chips.map(c => `<div class="ss-meta-chip"><span class="ss-meta-k">${c.k}</span><span class="ss-meta-v">${c.v}</span></div>`).join('')}</div>`;
       const wizBidsHtml = screensaverWizardBidsHtml(currentGame);
-      const hall = calculateHallOfFame();
+      const hall = getHallOfFame();
       const recEntries = screensaverCareerRecordEntries(currentGame.name, hall);
       let recBlock = '';
       if(recEntries.length){
@@ -2892,7 +2913,7 @@
       headerText.textContent = 'Live Standings';
     } else {
       // Idle (no active match) → welcome panel with hall of fame
-      const r = calculateHallOfFame();
+      const r = getHallOfFame();
       const records = [];
       if(r['Five Crowns'].bestPlayer !== '-' && r['Five Crowns'].bestScore !== Infinity)
         records.push({ label: '🎴 Five Crowns Low', value: `${r['Five Crowns'].bestPlayer} · ${r['Five Crowns'].bestScore}` });
@@ -2970,7 +2991,7 @@
     openModal('retire-player-modal');
   }
   function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
-  function closeWheel(){ const m=document.getElementById('wheel-modal'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),280); }
+  function closeWheel(){ closeModal('wheel-modal'); }
 
   // ── Actions Menu ──
   function toggleActionsMenu(ev){
@@ -3015,7 +3036,9 @@
       const d=JSON.parse(text);
       if(d.allPlayers) d.allPlayers.forEach(p=>{if(p&&!allPlayers.includes(p))allPlayers.push(p);});
       if(d.players) d.players.forEach(p=>{if(p&&!players.includes(p))players.push(p);});
-      if(d.history) d.history.forEach(h=>{if(!history.find(x=>x.id===h.id))history.push(h);});
+      let importedHistory=false;
+      if(d.history) d.history.forEach(h=>{if(!history.find(x=>x.id===h.id)){history.push(h);importedHistory=true;}});
+      if(importedHistory) markHistoryChanged();
       if(d.playerProfiles) Object.assign(playerProfiles,d.playerProfiles);
       saveData(); alert('Merged successfully.'); closeSettings(); goHome();
     }catch(e){alert('Invalid JSON.');}
@@ -3272,6 +3295,7 @@
         h.hailMaryUsed = h.hailMaryUsed.map(p => p === oldName ? newName : p);
       }
     });
+    markHistoryChanged();
     // current game (if active)
     if(currentGame){
       if(currentGame.totals && currentGame.totals[oldName] !== undefined){
@@ -3339,6 +3363,7 @@
     allPlayers = allPlayers.filter(p => p !== src);
     players = players.filter(p => p !== src);
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
+    markHistoryChanged();
     saveData();
   }
 
@@ -3443,7 +3468,7 @@
     document.getElementById('btn-spin').disabled=false;
     document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
     drawWheel();
-    const m=document.getElementById('wheel-modal'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10);
+    openModal('wheel-modal');
   }
 
   function spinWheel(){
@@ -3622,6 +3647,7 @@
         if(h.rounds)h.rounds.forEach(r=>{if(r.scores[src]!==undefined){r.scores[target]=(r.scores[target]||0)+r.scores[src];delete r.scores[src];}});
       });
       allPlayers=allPlayers.filter(p=>p!==src); players=players.filter(p=>p!==src);
+      markHistoryChanged();
       saveData(); renderRoster(); alert(`Merged "${src}" → "${target}".`);
     }
   }
@@ -3644,6 +3670,7 @@
         const snapshot={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:retired};
         Object.assign(snapshot, rookPersistedState(currentGame));
         history.unshift(snapshot);
+        markHistoryChanged();
       }
     }
     _pendingGameName = name;
@@ -3692,6 +3719,8 @@
   // ══════════════════════════════════════════════════
   // ═══ ROOK GAME IMPLEMENTATION ═══
   // ══════════════════════════════════════════════════
+
+  const ROOK_TRUMP_EMOJI={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'};
 
   // ── Rook Setup Modal ──
   let _rookSetupConfig = { winTarget:300, minBid:70, totalCounters:200 };
@@ -3888,7 +3917,7 @@
     if(el)el.textContent=bidder;
     const bidChip=document.getElementById('rook-results-bid-chip');
     if(bidChip)bidChip.textContent=`Bid: ${bid}`;
-    const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[currentGame.rookTrump]||'';
+    const trumpEmoji=ROOK_TRUMP_EMOJI[currentGame.rookTrump]||'';
     const trumpChip=document.getElementById('rook-results-trump-chip');
     if(trumpChip){
       trumpChip.textContent=`${trumpEmoji} ${currentGame.rookTrump||'?'} Trump`;
@@ -4149,18 +4178,10 @@
     else if(phase==='results') phaseLabel=`Play hand · R${currentGame.currentRound}`;
     document.getElementById('round-intel').textContent=phaseLabel;
 
-    // Recompute totals from rounds
-    currentGame.totals={};
-    currentGame.originalRoster.forEach(p=>{if(p)currentGame.totals[p]=0;});
-    currentGame.rounds.forEach(r=>{
-      Object.keys(r.scores).forEach(p=>{
-        if(currentGame.totals[p]===undefined)currentGame.totals[p]=0;
-        currentGame.totals[p]+=(r.scores[p]||0);
-      });
-    });
+    recomputeGameTotals(currentGame);
 
     const retired=currentGame.retired||[];
-    const activePlayers=currentGame.originalRoster.filter(p=>p&&!retired.includes(p));
+    const activePlayers=getActiveRoster(currentGame);
     const sortedP=[...activePlayers].sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0));
 
     const offset=currentGame.dealerOffset||0;
@@ -4255,7 +4276,7 @@
           if(r.rookMadeIt){cellColor='var(--emerald)';indicator='✓';}
           else{cellColor='var(--rose)';indicator='✗';}
         }
-        const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[r.rookTrump]||'';
+        const trumpEmoji=ROOK_TRUMP_EMOJI[r.rookTrump]||'';
         let label='';
         if(isBidder) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${r.rookBid} ${trumpEmoji}</div>`;
         else if(isPartner) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Partner ${indicator}</div>`;
@@ -4269,8 +4290,6 @@
     });
 
     document.getElementById('scorecard-body').innerHTML=body;
-    document.getElementById('game-over-section').classList.add('hidden');
-
     // Rook uses the panel above the score list instead of the bottom submit strip.
     const submitSection=document.getElementById('submit-section');
     submitSection.classList.add('hidden');
@@ -4328,7 +4347,7 @@
       </div>`;
 
     } else if(phase==='results'){
-      const trumpEmoji={Red:'🔴',Black:'⚫',Green:'🟢',Yellow:'🟡',None:'🚫'}[currentGame.rookTrump]||'';
+      const trumpEmoji=ROOK_TRUMP_EMOJI[currentGame.rookTrump]||'';
       const partnerName=currentGame.rookPartner;
       rookUI=`<div class="rook-command-center surface-raised p-5 md:p-6">
         <div class="flex items-center gap-3 mb-3">
@@ -4779,6 +4798,7 @@
     if(currentGame&&!confirm('This will scratch your active match. Proceed?'))return;
     const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
+    markHistoryChanged();
     currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[]};
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
     currentGame.currentScoreDrafts = g.currentScoreDrafts || {};
@@ -4855,6 +4875,48 @@
 
   // ── Desktop HTML5 drag & drop ──
   let _rosterDragFromIdx = null;
+  function scheduleDragGhostMove(state, x, y){
+    if(!state?.ghost)return;
+    state.pendingX=x;
+    state.pendingY=y;
+    if(state.ghostRaf)return;
+    state.ghostRaf=requestAnimationFrame(()=>{
+      state.ghostRaf=null;
+      if(!state.ghost)return;
+      state.ghost.style.left=state.pendingX+'px';
+      state.ghost.style.top=state.pendingY+'px';
+    });
+  }
+  function clearTouchDragOver(state){
+    if(!state?.dragOverRow)return;
+    state.dragOverRow.classList.remove('drag-over-top','drag-over-bottom');
+    state.dragOverRow=null;
+    state.dragOverBefore=null;
+  }
+  function setTouchDragOver(state, row, before){
+    if(!state||!row)return;
+    if(state.dragOverRow!==row || state.dragOverBefore!==before){
+      clearTouchDragOver(state);
+      row.classList.add(before?'drag-over-top':'drag-over-bottom');
+      state.dragOverRow=row;
+      state.dragOverBefore=before;
+    }
+  }
+  function cleanupTouchDragState(state, rowClass){
+    if(!state)return;
+    if(state.ghostRaf)cancelAnimationFrame(state.ghostRaf);
+    clearTouchDragOver(state);
+    if(state.ghost)state.ghost.remove();
+    if(state.row)state.row.classList.remove(rowClass);
+  }
+  function cleanupActiveTouchDrags(){
+    detachRosterDragDocumentTouchListeners();
+    if(_rosterTouch){
+      cleanupTouchDragState(_rosterTouch,'dragging-row');
+      _rosterTouch=null;
+    }
+    reorderModalDragCleanup();
+  }
   function rosterDragStart(ev, idx){
     if(currentGame?.currentRound !== 1) return;
     _rosterDragFromIdx = idx;
@@ -4898,11 +4960,6 @@
     });
     _rosterDragFromIdx = null;
   }
-  // Handle mousedown on grip (prevents accidental text selection)
-  function rosterDragMouseStart(ev, idx){
-    // Let HTML5 drag handle the actual move — nothing to do here beyond letting the event propagate
-  }
-
   // ── Touch drag (iPad) ──
   let _rosterTouch = null;
   const _rosterDocTouchOpts = { passive: false };
@@ -4916,11 +4973,7 @@
     // .drag-handle uses touch-action:none; avoid touchstart preventDefault (iOS can leave the page non-interactive if mis-combined with document listeners).
     detachRosterDragDocumentTouchListeners();
     if(_rosterTouch){
-      if(_rosterTouch.ghost) _rosterTouch.ghost.remove();
-      if(_rosterTouch.row) _rosterTouch.row.classList.remove('dragging-row');
-      document.querySelectorAll('tr.drag-over-top, tr.drag-over-bottom').forEach(r => {
-        r.classList.remove('drag-over-top', 'drag-over-bottom');
-      });
+      cleanupTouchDragState(_rosterTouch,'dragging-row');
       _rosterTouch = null;
     }
     const touch = ev.touches[0];
@@ -4935,7 +4988,10 @@
       row: row,
       ghost: null,
       dropTargetIdx: null,
-      dropBefore: true
+      dropBefore: true,
+      dragOverRow: null,
+      dragOverBefore: null,
+      ghostRaf: null
     };
     row.classList.add('dragging-row');
     // Build floating ghost element
@@ -4943,10 +4999,9 @@
     const ghost = document.createElement('div');
     ghost.className = 'drag-ghost';
     ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span>${name}</span>`;
-    ghost.style.left = touch.clientX + 'px';
-    ghost.style.top = touch.clientY + 'px';
     document.body.appendChild(ghost);
     _rosterTouch.ghost = ghost;
+    scheduleDragGhostMove(_rosterTouch,touch.clientX,touch.clientY);
     haptic(20);
     document.addEventListener('touchmove', rosterDragTouchMove, _rosterDocTouchOpts);
     document.addEventListener('touchend', rosterDragTouchEnd);
@@ -4958,10 +5013,7 @@
     const touch = ev.touches[0];
     _rosterTouch.currentX = touch.clientX;
     _rosterTouch.currentY = touch.clientY;
-    if(_rosterTouch.ghost){
-      _rosterTouch.ghost.style.left = touch.clientX + 'px';
-      _rosterTouch.ghost.style.top = touch.clientY + 'px';
-    }
+    scheduleDragGhostMove(_rosterTouch,touch.clientX,touch.clientY);
     // Find which row is under the touch point
     // Temporarily hide ghost so elementFromPoint doesn't return it
     const ghost = _rosterTouch.ghost;
@@ -4969,19 +5021,16 @@
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     if(ghost) ghost.style.display = '';
     const targetRow = el?.closest('tr[data-roster-idx]');
-    // Clear previous indicators
-    document.querySelectorAll('tr.drag-over-top, tr.drag-over-bottom').forEach(r => {
-      r.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
     if(targetRow && targetRow !== _rosterTouch.row){
       const targetIdx = parseInt(targetRow.dataset.rosterIdx, 10);
       const rect = targetRow.getBoundingClientRect();
       const midY = rect.top + rect.height / 2;
       const before = touch.clientY < midY;
-      targetRow.classList.add(before ? 'drag-over-top' : 'drag-over-bottom');
+      setTouchDragOver(_rosterTouch,targetRow,before);
       _rosterTouch.dropTargetIdx = targetIdx;
       _rosterTouch.dropBefore = before;
     } else {
+      clearTouchDragOver(_rosterTouch);
       _rosterTouch.dropTargetIdx = null;
     }
   }
@@ -4990,11 +5039,7 @@
     detachRosterDragDocumentTouchListeners();
     const state = _rosterTouch;
     _rosterTouch = null;
-    if(state.ghost) state.ghost.remove();
-    if(state.row) state.row.classList.remove('dragging-row');
-    document.querySelectorAll('tr.drag-over-top, tr.drag-over-bottom').forEach(r => {
-      r.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
+    cleanupTouchDragState(state,'dragging-row');
     if(state.dropTargetIdx !== null && state.dropTargetIdx !== state.fromIdx){
       const toIdx = state.dropBefore ? state.dropTargetIdx : state.dropTargetIdx + 1;
       moveRosterRow(state.fromIdx, toIdx);
@@ -5030,7 +5075,6 @@
           draggable="true"
           ondragstart="reorderModalHandleDragStart(event, ${i})"
           ondragend="reorderModalDragEnd(event)"
-          onmousedown="reorderModalDragMouseStart(event, ${i})"
           ontouchstart="reorderModalTouchStart(event, ${i})"
           title="Drag to reorder">⋮⋮</span>
         <div class="flex flex-col gap-0 mr-0.5 shrink-0">
@@ -5067,8 +5111,6 @@
       reorderModalMoveRowInWorking(index, index + 2);
     }
   }
-
-  function reorderModalDragMouseStart(){}
 
   function reorderModalHandleDragStart(ev, idx){
     if(!_reorderPlayersWorking) return;
@@ -5120,13 +5162,9 @@
     reorderModalDragEnd();
     detachReorderModalTouchListeners();
     if(_reorderModalTouch){
-      if(_reorderModalTouch.ghost) _reorderModalTouch.ghost.remove();
-      if(_reorderModalTouch.row) _reorderModalTouch.row.classList.remove('reorder-dragging');
+      cleanupTouchDragState(_reorderModalTouch,'reorder-dragging');
       _reorderModalTouch = null;
     }
-    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(el => {
-      el.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
   }
 
   function detachReorderModalTouchListeners(){
@@ -5151,17 +5189,19 @@
       row,
       ghost: null,
       dropTargetIdx: null,
-      dropBefore: true
+      dropBefore: true,
+      dragOverRow: null,
+      dragOverBefore: null,
+      ghostRaf: null
     };
     row.classList.add('reorder-dragging');
     const name = _reorderPlayersWorking[idx];
     const ghost = document.createElement('div');
     ghost.className = 'drag-ghost';
     ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span>${name}</span>`;
-    ghost.style.left = touch.clientX + 'px';
-    ghost.style.top = touch.clientY + 'px';
     document.body.appendChild(ghost);
     _reorderModalTouch.ghost = ghost;
+    scheduleDragGhostMove(_reorderModalTouch,touch.clientX,touch.clientY);
     haptic(20);
     document.addEventListener('touchmove', reorderModalTouchMove, _rosterDocTouchOpts);
     document.addEventListener('touchend', reorderModalTouchEnd);
@@ -5174,27 +5214,22 @@
     const touch = ev.touches[0];
     _reorderModalTouch.currentX = touch.clientX;
     _reorderModalTouch.currentY = touch.clientY;
-    if(_reorderModalTouch.ghost){
-      _reorderModalTouch.ghost.style.left = touch.clientX + 'px';
-      _reorderModalTouch.ghost.style.top = touch.clientY + 'px';
-    }
+    scheduleDragGhostMove(_reorderModalTouch,touch.clientX,touch.clientY);
     const ghost = _reorderModalTouch.ghost;
     if(ghost) ghost.style.display = 'none';
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     if(ghost) ghost.style.display = '';
     const targetRow = el?.closest?.('.reorder-player-row[data-reorder-idx]');
-    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(r => {
-      r.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
     if(targetRow && targetRow !== _reorderModalTouch.row){
       const targetIdx = parseInt(targetRow.dataset.reorderIdx, 10);
       const rect = targetRow.getBoundingClientRect();
       const midY = rect.top + rect.height / 2;
       const before = touch.clientY < midY;
-      targetRow.classList.add(before ? 'drag-over-top' : 'drag-over-bottom');
+      setTouchDragOver(_reorderModalTouch,targetRow,before);
       _reorderModalTouch.dropTargetIdx = targetIdx;
       _reorderModalTouch.dropBefore = before;
     } else {
+      clearTouchDragOver(_reorderModalTouch);
       _reorderModalTouch.dropTargetIdx = null;
     }
   }
@@ -5204,11 +5239,7 @@
     detachReorderModalTouchListeners();
     const state = _reorderModalTouch;
     _reorderModalTouch = null;
-    if(state.ghost) state.ghost.remove();
-    if(state.row) state.row.classList.remove('reorder-dragging');
-    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(r => {
-      r.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
+    cleanupTouchDragState(state,'reorder-dragging');
     if(state.dropTargetIdx !== null && state.dropTargetIdx !== state.fromIdx){
       const toIdx = state.dropBefore ? state.dropTargetIdx : state.dropTargetIdx + 1;
       reorderModalMoveRowInWorking(state.fromIdx, toIdx);
@@ -5304,8 +5335,8 @@
     const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
     let total=0;
     gp.forEach(p=>{
-      const el=document.getElementById(`score-input-${p}`);
-      const v=el?(parseInt(el.value)||0):(phase==='bidding'?(currentGame.currentBids?.[p]||0):0);
+      const source = phase==='bidding' ? currentGame.currentBids : currentGame.currentScoreDrafts;
+      const v=parseInt(source?.[p] ?? 0,10)||0;
       total+=v;
     });
     const diff=total-round; let cls='',status='';
@@ -5359,18 +5390,10 @@
     if(!currentGame.retired)currentGame.retired=[];
     const retired=currentGame.retired;
     const offset=currentGame.dealerOffset||0;
-    const activeRoster=currentGame.originalRoster.filter(p=>!retired.includes(p));
+    const activeRoster=getActiveRoster(currentGame);
     const dealerName=activeRoster.length?activeRoster[(currentGame.currentRound-1+offset)%activeRoster.length]:null;
 
-    // Recompute totals from rounds
-    currentGame.totals={};
-    currentGame.originalRoster.forEach(p=>{if(p)currentGame.totals[p]=0;});
-    currentGame.rounds.forEach(r=>{
-      Object.keys(r.scores).forEach(p=>{
-        if(currentGame.totals[p]===undefined)currentGame.totals[p]=0;
-        currentGame.totals[p]+=(r.scores[p]||0);
-      });
-    });
+    recomputeGameTotals(currentGame);
 
     let gamePlayers=[...currentGame.originalRoster.filter(p=>p&&p.trim()&&!retired.includes(p))];
     Object.keys(currentGame.totals).forEach(p=>{if(p&&!gamePlayers.includes(p)&&!retired.includes(p))gamePlayers.push(p);});
@@ -5428,7 +5451,6 @@
           <button onclick="movePlayerOrder(${ri},1)"  class="text-lg leading-none hover:opacity-70 transition-opacity ${ri===sortedP.length-1?'invisible':''}" style="color:var(--muted);">▼</button>
         </div>`;
         dragHandle=`<span class="drag-handle"
-          onmousedown="rosterDragMouseStart(event, ${ri})"
           ontouchstart="rosterDragTouchStart(event, ${ri})"
           title="Drag to reorder">⋮⋮</span>`;
         rowDragAttrs = `data-roster-idx="${ri}" draggable="true"
@@ -5565,7 +5587,7 @@
   function renderPortraitView(){
     if(!currentGame)return;
     const cfg=configs[currentGame.name];
-    const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const gp=getActiveRoster(currentGame);
     const sorted=[...gp].sort((a,b)=>cfg.winLow?(currentGame.totals[a]||0)-(currentGame.totals[b]||0):(currentGame.totals[b]||0)-(currentGame.totals[a]||0));
     const pe=document.getElementById('live-podium');
     if(!sorted.length){ pe.innerHTML='<div class="text-center py-10 font-bold" style="color:var(--muted);">No players yet.</div>'; return; }
@@ -5618,7 +5640,7 @@
 
     const rc=document.getElementById('portrait-records');
     if(!history.length){ rc.innerHTML=`<div class="md:col-span-2 surface p-6 text-center font-bold" style="color:var(--muted);">No records yet — play a match to build history.</div>`; return; }
-    const recs=calculateHallOfFame();
+    const recs=getHallOfFame();
     const row=(ttl,val,player,icon,pos)=>{
       const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':val;
       const col=pos?'var(--emerald)':'var(--rose)';
@@ -5887,7 +5909,7 @@
     const finish=()=>{
       const result = bueno===horrible?'tie':(bueno>horrible?'bueno':'horrible');
       matchData.cincoRating = { result, buenoVotes:bueno, horribleVotes:horrible };
-      if(history[0]&&history[0].id===matchData.id){ history[0].cincoRating = {...matchData.cincoRating}; saveData(); }
+      if(history[0]&&history[0].id===matchData.id){ history[0].cincoRating = {...matchData.cincoRating}; markHistoryChanged(); saveData(); }
       fadeStopAudio(cincoVoteMusic); cincoVoteMusic=null;
       reveal.classList.add('show');
       if(result==='bueno'){
@@ -5927,6 +5949,7 @@
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
     const alerts=silent?[]:analyzeRecords(data);
     history.unshift(data);
+    markHistoryChanged();
     currentGame=null; pendingGameData=null;
     releaseWakeLock(); saveData();
 
@@ -5971,7 +5994,7 @@
   }
 
   function analyzeRecords(data){
-    const r=calculateHallOfFame(); const msgs=[];
+    const r=getHallOfFame(); const msgs=[];
     Object.keys(data.totals).forEach(p=>{
       const s=data.totals[p];
       if(data.game==='Five Crowns'&&r['Five Crowns']&&s<r['Five Crowns'].bestScore&&r['Five Crowns'].bestScore!==Infinity)
@@ -6051,6 +6074,7 @@
 
   /* ═══ NUMPAD ═══ */
   let activeInputContext=null, activeInputId=null;
+  let _numpadCloseTimer=null;
 
   function ensureCurrentScoreDrafts(){
     if(!currentGame)return {};
@@ -6075,6 +6099,7 @@
   }
 
   function openNumpad(player, roundIndex){
+    if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
     if(activeInputId)saveActiveInputToModel();
     flushPendingSave();
     activeInputContext={player,roundIndex};
@@ -6151,14 +6176,22 @@
     else closeNumpad();
   }
 
-  function closeNumpad(){
+  function closeNumpad(options){
+    const shouldRender = !options || options.render !== false;
+    const hadInput = !!activeInputContext;
+    const shouldRefreshTotals = hadInput && activeInputContext.roundIndex !== 'current';
+    if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
     if(activeInputId)saveActiveInputToModel();
     flushPendingSave();
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
     const np=document.getElementById('custom-numpad'); np.classList.add('translate-y-full');
-    setTimeout(()=>{np.classList.add('hidden'); if(currentGame)renderGame();},300);
+    _numpadCloseTimer=setTimeout(()=>{
+      _numpadCloseTimer=null;
+      np.classList.add('hidden');
+      if(currentGame&&shouldRender&&shouldRefreshTotals)renderGame();
+    },300);
   }
 
   /* ═══ HISTORY LIST ═══ */
@@ -6194,6 +6227,7 @@
     const g = history.find(h => h.id === id); if(!g) return;
     if(!confirm(`Permanently delete this ${g.game} match from ${g.date}?\n\nThis cannot be undone.`)) return;
     history = history.filter(h => h.id !== id);
+    markHistoryChanged();
     saveData();
     toast(`🗑 ${g.game} record deleted`, 'warning');
     renderHistoryList();
@@ -6372,7 +6406,7 @@
   }
 
   function renderHallOfFame(){
-    const r=calculateHallOfFame();
+    const r=getHallOfFame();
     const c=document.getElementById('hall-of-fame-view');
     if(!history.length){
       c.classList.remove('grid');
