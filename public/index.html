@@ -2426,7 +2426,6 @@
   let wakeLock = null;
   async function requestWakeLock(){ try{ if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); } } catch(e){ console.warn('Wake lock unavailable',e); } }
   function releaseWakeLock(){ if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; } }
-  document.addEventListener('visibilitychange',async()=>{ if(document.visibilityState==='visible'&&currentGame) await requestWakeLock(); });
 
   // ── Haptic feedback ──
   function haptic(pattern){
@@ -2465,13 +2464,23 @@
   let cincoIntroMusic = null;
   let cincoVoteMusic = null;
   let _cincoVotingTimer = null;
+  /** Single Audio for embedded mariachi — avoids repeated decode of the large data URL on each play (iOS). */
+  let _cincoMariachiAudioSingleton = null;
+  function getCincoMariachiAudio(){
+    if(!_cincoMariachiAudioSingleton){
+      _cincoMariachiAudioSingleton = new Audio(CINCO_ASSETS.mariachi);
+      try{ _cincoMariachiAudioSingleton.preload = 'auto'; }catch(e){}
+    }
+    return _cincoMariachiAudioSingleton;
+  }
 
   function hailMaryLabel(){ return isCincoMayo ? 'Tequila Shot 🥃' : 'Hail Mary'; }
   function wheelTitleLabel(){ return isCincoMayo ? '¡Tequila Shot! 🥃' : '🛟 Hail Mary Unlocked'; }
   function playCincoMusic(channel='intro'){
     if(!isCincoMayo) return null;
     try{
-      const a = new Audio(CINCO_ASSETS.mariachi);
+      const a = getCincoMariachiAudio();
+      try{ a.pause(); a.currentTime = 0; }catch(e){}
       a.volume = 0.4;
       a.loop = true;
       const p = a.play();
@@ -2576,7 +2585,9 @@
   function closeAuditLog(){ closeModal('audit-modal'); }
 
   // ── Save + nav ──
-  function saveData(){
+  let _saveDebounceTimer = null;
+  const SAVE_DEBOUNCE_MS = 220;
+  function _persistGamenightState(){
     localStorage.setItem('gn_all_players',JSON.stringify(allPlayers));
     localStorage.setItem('gn_players_v2',JSON.stringify(players));
     localStorage.setItem('gn_history',JSON.stringify(history));
@@ -2586,6 +2597,34 @@
     updateNavButton();
     flashSaveIndicator();
   }
+  /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
+  function flushPendingSave(){
+    if(_saveDebounceTimer !== null){
+      clearTimeout(_saveDebounceTimer);
+      _saveDebounceTimer = null;
+      _persistGamenightState();
+    }
+  }
+  /** @param {object} [options] If options.debounceMs > 0, coalesce rapid writes (numpad) instead of syncing entire history on every key. */
+  function saveData(options){
+    const ms = options && typeof options.debounceMs === 'number' ? options.debounceMs : 0;
+    if(ms > 0){
+      clearTimeout(_saveDebounceTimer);
+      _saveDebounceTimer = setTimeout(()=>{
+        _saveDebounceTimer = null;
+        _persistGamenightState();
+      }, ms);
+      return;
+    }
+    clearTimeout(_saveDebounceTimer);
+    _saveDebounceTimer = null;
+    _persistGamenightState();
+  }
+  document.addEventListener('visibilitychange', async ()=>{
+    if(document.visibilityState === 'hidden') flushPendingSave();
+    else if(document.visibilityState === 'visible' && currentGame) await requestWakeLock();
+  });
+  window.addEventListener('pagehide', flushPendingSave);
   function updateNavButton(){
     const b=document.getElementById('nav-active-btn');
     if(currentGame){
@@ -2682,10 +2721,14 @@
   }
 
   /* ═══ SCREENSAVER ═══ */
-  let idleTimer=null, ssActive=false, ssClockInterval=null;
+  let idleTimer=null, ssActive=false, ssClockInterval=null, ssDismissHideTimer=null;
   const IDLE_MS = 5*60*1000;
 
-  function resetIdleTimer(){ if(ssActive)return; clearTimeout(idleTimer); idleTimer=setTimeout(activateScreensaver,IDLE_MS); }
+  function resetIdleTimer(){
+    if(ssActive) return;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(activateScreensaver, IDLE_MS);
+  }
   ['click','touchstart','keydown','mousemove','scroll'].forEach(ev=>{ document.addEventListener(ev,()=>{if(!ssActive)resetIdleTimer();},{passive:true}); });
 
   function openScreensaverNow(){
@@ -2701,6 +2744,8 @@
 
   function activateScreensaver(){
     if(ssActive)return;
+    clearTimeout(ssDismissHideTimer);
+    ssDismissHideTimer=null;
     ssActive=true;
     updateScreensaverContent();
     const el=document.getElementById('screensaver');
@@ -2717,7 +2762,8 @@
     ssActive=false; clearInterval(ssClockInterval);
     const el=document.getElementById('screensaver');
     el.style.opacity='0';
-    setTimeout(()=>{el.classList.add('hidden');el.style.transition='';},900);
+    clearTimeout(ssDismissHideTimer);
+    ssDismissHideTimer = setTimeout(()=>{ ssDismissHideTimer=null; el.classList.add('hidden'); el.style.transition=''; }, 900);
     resetIdleTimer();
   }
 
@@ -4818,9 +4864,24 @@
 
   // ── Touch drag (iPad) ──
   let _rosterTouch = null;
+  const _rosterDocTouchOpts = { passive: false };
+  function detachRosterDragDocumentTouchListeners(){
+    document.removeEventListener('touchmove', rosterDragTouchMove, _rosterDocTouchOpts);
+    document.removeEventListener('touchend', rosterDragTouchEnd);
+    document.removeEventListener('touchcancel', rosterDragTouchEnd);
+  }
   function rosterDragTouchStart(ev, idx){
     if(currentGame?.currentRound !== 1) return;
-    ev.preventDefault();
+    // .drag-handle uses touch-action:none; avoid touchstart preventDefault (iOS can leave the page non-interactive if mis-combined with document listeners).
+    detachRosterDragDocumentTouchListeners();
+    if(_rosterTouch){
+      if(_rosterTouch.ghost) _rosterTouch.ghost.remove();
+      if(_rosterTouch.row) _rosterTouch.row.classList.remove('dragging-row');
+      document.querySelectorAll('tr.drag-over-top, tr.drag-over-bottom').forEach(r => {
+        r.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+      _rosterTouch = null;
+    }
     const touch = ev.touches[0];
     const row = ev.currentTarget.closest('tr');
     if(!row) return;
@@ -4846,7 +4907,7 @@
     document.body.appendChild(ghost);
     _rosterTouch.ghost = ghost;
     haptic(20);
-    document.addEventListener('touchmove', rosterDragTouchMove, { passive: false });
+    document.addEventListener('touchmove', rosterDragTouchMove, _rosterDocTouchOpts);
     document.addEventListener('touchend', rosterDragTouchEnd);
     document.addEventListener('touchcancel', rosterDragTouchEnd);
   }
@@ -4885,9 +4946,7 @@
   }
   function rosterDragTouchEnd(ev){
     if(!_rosterTouch) return;
-    document.removeEventListener('touchmove', rosterDragTouchMove);
-    document.removeEventListener('touchend', rosterDragTouchEnd);
-    document.removeEventListener('touchcancel', rosterDragTouchEnd);
+    detachRosterDragDocumentTouchListeners();
     const state = _rosterTouch;
     _rosterTouch = null;
     if(state.ghost) state.ghost.remove();
@@ -5729,18 +5788,19 @@
     let v=parseInt(el.value); if(isNaN(v))v=0;
     if(activeInputContext.roundIndex!=='current'){
       if(currentGame?.rounds[activeInputContext.roundIndex]) currentGame.rounds[activeInputContext.roundIndex].scores[activeInputContext.player]=v;
-      saveData();
+      saveData({ debounceMs: SAVE_DEBOUNCE_MS });
     } else if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='bidding'){
       if(!currentGame.currentBids)currentGame.currentBids={};
-      currentGame.currentBids[activeInputContext.player]=v; saveData();
+      currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: SAVE_DEBOUNCE_MS });
     } else if(activeInputContext.roundIndex==='current'){
       ensureCurrentScoreDrafts()[activeInputContext.player]=v;
-      saveData();
+      saveData({ debounceMs: SAVE_DEBOUNCE_MS });
     }
   }
 
   function openNumpad(player, roundIndex){
     if(activeInputId)saveActiveInputToModel();
+    flushPendingSave();
     activeInputContext={player,roundIndex};
     activeInputId=roundIndex==='current'?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
@@ -5804,6 +5864,7 @@
     const el=document.getElementById(activeInputId);
     if(el&&(el.value===''||el.value==='-'))el.value='0';
     saveActiveInputToModel();
+    flushPendingSave();
     // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
     // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
     const seatOrder = currentGame.originalRoster.filter(p => p && !currentGame.retired?.includes(p));
@@ -5816,6 +5877,7 @@
 
   function closeNumpad(){
     if(activeInputId)saveActiveInputToModel();
+    flushPendingSave();
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
