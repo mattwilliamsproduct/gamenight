@@ -2430,6 +2430,22 @@
     const retired=game?.retired||[];
     return (game?.originalRoster||[]).filter(p=>p&&!retired.includes(p));
   }
+  function getActivePlayers(game=currentGame){
+    return getActiveRoster(game);
+  }
+  function getActivePlayerCount(game=currentGame){
+    return getActivePlayers(game).length;
+  }
+  function getMaxRoundsForGame(game=currentGame){
+    const cfg=configs[game?.name];
+    if(!cfg)return 0;
+    return typeof cfg.maxRounds==='function'?cfg.maxRounds(getActivePlayerCount(game)):cfg.maxRounds;
+  }
+  function getRecordedPlayers(gameData){
+    const retired=gameData?.retired||[];
+    const totals=gameData?.totals||{};
+    return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
+  }
   try {
     currentGame = JSON.parse(localStorage.getItem('gn_current'));
     if (currentGame && (!currentGame.name || !Array.isArray(currentGame.originalRoster))) currentGame=null;
@@ -2832,9 +2848,8 @@
 
     if(currentGame){
       const cfg = configs[currentGame.name];
-      const gp = currentGame.originalRoster.filter(p => p && !currentGame.retired?.includes(p));
-      const rosterLen = currentGame.originalRoster.filter(Boolean).length;
-      const maxR = typeof cfg.maxRounds === 'function' ? cfg.maxRounds(rosterLen) : cfg.maxRounds;
+      const gp = getActivePlayers(currentGame);
+      const maxR = getMaxRoundsForGame(currentGame);
       const over = currentGame.currentRound > maxR;
       const sorted = [...gp].sort((a,b) => cfg.winLow ? (currentGame.totals[a]||0) - (currentGame.totals[b]||0) : (currentGame.totals[b]||0) - (currentGame.totals[a]||0));
       const topScore = sorted.length ? (currentGame.totals[sorted[0]] || 0) : 0;
@@ -2975,7 +2990,7 @@
     if(!currentGame)return;
     const list=document.getElementById('retire-player-list');
     list.innerHTML='';
-    const active=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const active=getActivePlayers(currentGame);
     if(!active.length){
       list.innerHTML=`<div class="text-center py-4 font-bold" style="color:var(--muted);">No active players to retire.</div>`;
     } else {
@@ -3076,10 +3091,10 @@
     const av=document.getElementById('detail-avatar'); av.src=getAvatarSrc(name); av.onerror=()=>av.src=fb;
     let games=0,wins=0,lasts=0,labels=[],data=[];
     history.slice().reverse().forEach(h=>{
-      if(!h.totals||h.totals[name]===undefined)return;
+      if(!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
       games++; if(h.winners?.includes(name))wins++;
       const cfg=configs[h.game]; if(!cfg)return;
-      const sorted=Object.keys(h.totals).sort((a,b)=>cfg.winLow?h.totals[a]-h.totals[b]:h.totals[b]-h.totals[a]);
+      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(h.totals[name]===h.totals[sorted[sorted.length-1]])lasts++;
       const myRank=sorted.findIndex(p=>p===name)+1;
       labels.push(`${h.game.split(' ')[0]}`); data.push(myRank);
@@ -3401,6 +3416,8 @@
   }
 
   function getWheelSlices(){
+    const activePlayers=getActivePlayers(currentGame);
+    if(!activePlayers.includes(wheelPlayer))return [];
     const winLow=configs[currentGame.name].winLow;
     const score=currentGame?.totals[wheelPlayer]||0;
     if(winLow){
@@ -3441,6 +3458,7 @@
   function drawWheel(){
     const c=document.getElementById('wheel-canvas'); const ctx=c.getContext('2d');
     const slices=getWheelSlices();
+    if(!slices.length)return slices;
     const total=slices.reduce((s,x)=>s+x.weight,0);
     const cx=c.width/2, cy=c.height/2, r=cx;
     ctx.clearRect(0,0,c.width,c.height);
@@ -3461,6 +3479,7 @@
   }
 
   function authorizeHailMary(p){
+    if(!getActivePlayers(currentGame).includes(p))return;
     if(currentGame.hailMaryUsed?.includes(p))return;
     wheelPlayer=p;
     document.getElementById('wheel-player-name').textContent=p;
@@ -3663,11 +3682,10 @@
     if(currentGame&&!confirm('Save current game and start new?'))return;
     if(currentGame){
       const cfg=configs[currentGame.name];
-      const retired = currentGame.retired || [];
-      const keys=Object.keys(currentGame.totals).filter(p => !retired.includes(p));
+      const keys=getRecordedPlayers(currentGame);
       if(keys.length){
-        const sorted=keys.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
-        const snapshot={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:retired};
+        const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
+        const snapshot={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[]};
         Object.assign(snapshot, rookPersistedState(currentGame));
         history.unshift(snapshot);
         markHistoryChanged();
@@ -3927,7 +3945,7 @@
     if(calledEl)calledEl.textContent=currentGame.rookCalledCard||'(not specified)';
 
     // Build partner grid (all players except bidder) — two columns with avatars
-    const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p)&&p!==bidder);
+    const activePlayers=getActivePlayers(currentGame).filter(p=>p!==bidder);
     let grid='';
     activePlayers.forEach(p=>{
       const isSelected=_rookSelectedPartner===p;
@@ -3995,7 +4013,7 @@
     const bid=currentGame.rookHighBid;
     const bidder=currentGame.rookHighBidder;
     const partner=_rookSelectedPartner;
-    const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const activePlayers=getActivePlayers(currentGame);
     const opponents=activePlayers.filter(p=>p!==bidder&&p!==partner);
 
     const breakdown=document.getElementById('rook-counter-breakdown');
@@ -4075,7 +4093,7 @@
     const madeIt=bidderTeamPts>=bid;
     const oppCounters=otherTeamPts;
 
-    const activePlayers=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const activePlayers=getActivePlayers(currentGame);
     const opponents=activePlayers.filter(p=>p!==bidder&&p!==partner);
 
     let scores={};
@@ -4131,8 +4149,8 @@
     soundSubmit();
     saveData();
 
-    // Check if any player hit win target
-    currentGame.originalRoster.forEach(p=>{
+    // Check if any active player hit win target
+    getActivePlayers(currentGame).forEach(p=>{
       if(p&&currentGame.totals&&(currentGame.totals[p]||0)+(scores[p]||0)>=winTarget){
         // Will be recalculated in renderGame, just note it
       }
@@ -4142,7 +4160,7 @@
     checkLeaderChange(prevLeader);
 
     // Check win target after render (totals are now recalculated)
-    const players_=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const players_=getActivePlayers(currentGame);
     const winners_=players_.filter(p=>(currentGame.totals[p]||0)>=winTarget);
     if(winners_.length>0){
       const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
@@ -4154,7 +4172,7 @@
 
   function rookGetLeader(){
     if(!currentGame)return null;
-    const pp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const pp=getActivePlayers(currentGame);
     if(!pp.length)return null;
     return pp.sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0];
   }
@@ -4680,6 +4698,7 @@
     if(hailMaryRounds.length){
       const bestHailMary = hailMaryRounds
         .flatMap(r => Object.entries(r.scores || {}).map(([player, score]) => ({ player, score: Number(score) || 0 })))
+        .filter(entry => playersToUse.includes(entry.player))
         .sort((a,b)=>Math.abs(b.score)-Math.abs(a.score))[0];
       if(bestHailMary){
         pushAward(stats, 'Luckiest Hail Mary', `${bestHailMary.score >= 0 ? '+' : ''}${bestHailMary.score}`, `${bestHailMary.player} spun the chaos wheel and survived`);
@@ -4833,7 +4852,7 @@
 
   function buildDealerList(){
     const list=document.getElementById('dealer-player-list'); list.innerHTML='';
-    const gp=currentGame.originalRoster.filter(p=>!currentGame.retired?.includes(p));
+    const gp=getActivePlayers(currentGame);
     gp.forEach(p=>{
       const btn=document.createElement('button');
       btn.className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80 font-jakarta font-extrabold';
@@ -4844,16 +4863,20 @@
     });
   }
   function setDealer(player){
-    const gp=currentGame.originalRoster.filter(p=>!currentGame.retired?.includes(p));
+    const gp=getActivePlayers(currentGame);
     const idx=gp.indexOf(player); if(idx<0)return;
     currentGame.dealerOffset=(idx-(currentGame.currentRound-1)%gp.length+gp.length)%gp.length;
     saveData(); closeDealerModal(); renderGame();
   }
 
   function movePlayerOrder(index,dir){
-    let ni=index+dir; if(ni<0||ni>=currentGame.originalRoster.length)return;
-    let t=currentGame.originalRoster[index];
-    currentGame.originalRoster[index]=currentGame.originalRoster[ni]; currentGame.originalRoster[ni]=t;
+    const activeOrder=getActivePlayers(currentGame);
+    let ni=index+dir; if(ni<0||ni>=activeOrder.length)return;
+    const fromIdx=currentGame.originalRoster.indexOf(activeOrder[index]);
+    const toIdx=currentGame.originalRoster.indexOf(activeOrder[ni]);
+    if(fromIdx<0||toIdx<0)return;
+    let t=currentGame.originalRoster[fromIdx];
+    currentGame.originalRoster[fromIdx]=currentGame.originalRoster[toIdx]; currentGame.originalRoster[toIdx]=t;
     saveData(); renderGame();
   }
 
@@ -5292,7 +5315,7 @@
   }
   function screensaverWizardBidsHtml(game){
     if(game.name!=='Wizard') return '';
-    const gp=game.originalRoster.filter(p=>p&&!game.retired?.includes(p));
+    const gp=getActivePlayers(game);
     if(!gp.length) return '';
     const bids=game.currentBids||{};
     const phase=game.wizardPhase||'bidding';
@@ -5315,7 +5338,7 @@
       el.classList.add('hidden'); el.innerHTML=''; return;
     }
     const round=currentGame.currentRound;
-    const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const gp=getActivePlayers(currentGame);
     let totalBids=0;
     gp.forEach(p=>{ totalBids+=(currentGame.currentBids?.[p]||0); });
     el.innerHTML=`<span class="wizard-bid-tally-pill font-mono-num" title="Bid tricks placed vs tricks this round">${totalBids}/${round}</span>`;
@@ -5332,7 +5355,7 @@
       return;
     }
     const phase=currentGame.wizardPhase, round=currentGame.currentRound;
-    const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const gp=getActivePlayers(currentGame);
     let total=0;
     gp.forEach(p=>{
       const source = phase==='bidding' ? currentGame.currentBids : currentGame.currentScoreDrafts;
@@ -5372,7 +5395,7 @@
     document.getElementById('game-title').textContent=currentGame.name;
     const whm=document.getElementById('wizard-header-metrics');
     if(whm&&!isWiz){ whm.classList.add('hidden'); whm.innerHTML=''; }
-    const maxR=typeof cfg.maxRounds==='function'?cfg.maxRounds(currentGame.originalRoster.length):cfg.maxRounds;
+    const maxR=getMaxRoundsForGame(currentGame);
     const over=currentGame.currentRound>maxR;
     const half=maxR===999?4:Math.ceil(maxR/2);
     const pastHalf=currentGame.currentRound>half&&!over;
@@ -5395,8 +5418,8 @@
 
     recomputeGameTotals(currentGame);
 
-    let gamePlayers=[...currentGame.originalRoster.filter(p=>p&&p.trim()&&!retired.includes(p))];
-    Object.keys(currentGame.totals).forEach(p=>{if(p&&!gamePlayers.includes(p)&&!retired.includes(p))gamePlayers.push(p);});
+    let gamePlayers=[...getActivePlayers(currentGame)];
+    getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
 
     let sortedP = currentGame.currentRound===1
       ? [...gamePlayers]
@@ -5575,7 +5598,7 @@
     // Show/hide "Retire Player" action based on whether there are active retirable players
     const retireBtn=document.getElementById('actions-retire-btn');
     if(retireBtn){
-      const activeCount=(currentGame.originalRoster||[]).filter(p=>p&&!currentGame.retired?.includes(p)).length;
+      const activeCount=getActivePlayerCount(currentGame);
       if(over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
@@ -5683,12 +5706,12 @@
     if(activeInputId)saveActiveInputToModel();
     closeNumpad();
 
-    const gp=currentGame.originalRoster.filter(p=>p&&!currentGame.retired?.includes(p));
+    const gp=getActivePlayers(currentGame);
 
     // Capture leader BEFORE this submission for change detection (excluding retired)
     const cfg=configs[currentGame.name];
     const prevLeader = (() => {
-      const pp = Object.keys(currentGame.totals).filter(p => !currentGame.retired?.includes(p));
+      const pp = getActivePlayers(currentGame).filter(p => currentGame.totals[p] !== undefined);
       if(!pp.length) return null;
       const s = pp.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
       return s[0];
@@ -5742,7 +5765,7 @@
   function checkLeaderChange(prevLeader){
     if(!currentGame || !prevLeader) return;
     const cfg=configs[currentGame.name];
-    const pp = Object.keys(currentGame.totals).filter(p => !currentGame.retired?.includes(p));
+    const pp = getActivePlayers(currentGame).filter(p => currentGame.totals[p] !== undefined);
     if(!pp.length) return;
     const newLeader = pp.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a])[0];
     if(newLeader && newLeader !== prevLeader){
@@ -5809,8 +5832,8 @@
 
     // Bottom-half average calculation
     const cfg=configs[currentGame.name];
-    const activePlayers=currentGame.originalRoster.filter(p=>p!==name&&!currentGame.retired.includes(p));
-    const sortedByScore=[...activePlayers].sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
+    const activePlayers=getActivePlayers(currentGame).filter(p=>p!==name);
+    const sortedByScore=sortPlayersByTotal(activePlayers, currentGame.totals, cfg);
     // "Worst" = losing half. For winLow games, worst = highest scores (end of sorted). For winHigh, worst = lowest (end of sorted).
     const halfCount=Math.max(1,Math.ceil(sortedByScore.length/2));
     const worstHalf=sortedByScore.slice(-halfCount);
@@ -5835,11 +5858,10 @@
     if(!currentGame)return;
     if(!silent&&!confirm('Save match to records?'))return;
     const cfg=configs[currentGame.name];
-    const retired = currentGame.retired || [];
-    // Exclude retired players from winner consideration
-    const keys=Object.keys(currentGame.totals).filter(p => !retired.includes(p));
+    // Exclude retired players from winner consideration.
+    const keys=getRecordedPlayers(currentGame);
     if(!keys.length){currentGame=null;saveData();goHome();return;}
-    const sorted=keys.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
+    const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
     const topScore=currentGame.totals[sorted[0]];
     const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
 
@@ -5944,7 +5966,8 @@
 
   function finishMatch(data, silent){
     const cfg=configs[data.game];
-    const sorted=Object.keys(data.totals).sort((a,b)=>cfg.winLow?data.totals[a]-data.totals[b]:data.totals[b]-data.totals[a]);
+    const sorted=sortPlayersByTotal(getRecordedPlayers(data), data.totals, cfg);
+    if(!sorted.length){ if(silent){goHome();} return; }
     const worst=data.totals[sorted[sorted.length-1]];
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
     const alerts=silent?[]:analyzeRecords(data);
@@ -5995,7 +6018,7 @@
 
   function analyzeRecords(data){
     const r=getHallOfFame(); const msgs=[];
-    Object.keys(data.totals).forEach(p=>{
+    getRecordedPlayers(data).forEach(p=>{
       const s=data.totals[p];
       if(data.game==='Five Crowns'&&r['Five Crowns']&&s<r['Five Crowns'].bestScore&&r['Five Crowns'].bestScore!==Infinity)
         msgs.push(`⭐ ${p} set new Lowest Five Crowns Score! (${s})`);
@@ -6168,7 +6191,7 @@
     flushPendingSave();
     // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
     // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
-    const seatOrder = currentGame.originalRoster.filter(p => p && !currentGame.retired?.includes(p));
+    const seatOrder = getActivePlayers(currentGame);
     const ci = seatOrder.indexOf(activeInputContext.player);
     const np = ci >= 0 ? seatOrder[ci + 1] : null;
     if(activeInputContext.roundIndex!=='current'){closeNumpad();return;}
@@ -6200,7 +6223,7 @@
     if(!history.length){c.innerHTML=`<div class="surface p-10 text-center font-bold" style="color:var(--muted);">No match history yet.</div>`;return;}
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
-      const sorted=Object.keys(h.totals).sort((a,b)=>cfg.winLow?h.totals[a]-h.totals[b]:h.totals[b]-h.totals[a]);
+      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const rows=sorted.map((p,i)=>`<div class="flex items-center justify-between py-2">
         <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${i+1}.</span>${getAvatarImg(p,'avatar-img')}<span class="font-jakarta font-extrabold ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
@@ -6239,7 +6262,7 @@
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${g.game}`;
     document.getElementById('modal-game-date').textContent=g.date;
     const cfg=configs[g.game];
-    const sorted=Object.keys(g.totals).sort((a,b)=>cfg?.winLow?g.totals[a]-g.totals[b]:g.totals[b]-g.totals[a]);
+    const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
     let head=`<tr><th class="px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th class="px-4 py-3">Total</th>`;
     g.rounds?.forEach(r=>head+=`<th class="px-3 py-3 text-center">R${r.round}</th>`);
     head+=`</tr>`;
@@ -6263,7 +6286,7 @@
     const h2h = {};
     history.forEach(m => {
       const cfg = configs[m.game]; if(!cfg || !m.totals) return;
-      const playersInMatch = Object.keys(m.totals);
+      const playersInMatch = getRecordedPlayers(m);
       playersInMatch.forEach(pa => {
         playersInMatch.forEach(pb => {
           if(pa === pb) return;
@@ -6310,7 +6333,7 @@
   function getPersonalBests(name){
     const bests = {};
     history.forEach(h => {
-      const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined) return;
+      const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
       const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]));
       if(!hasLegit && h.rounds) return;
       const s = h.totals[name];
@@ -6336,12 +6359,13 @@
     let stats={};
     history.forEach(h=>{
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
-      const sorted=Object.keys(h.totals).sort((a,b)=>cfg.winLow?h.totals[a]-h.totals[b]:h.totals[b]-h.totals[a]);
+      const playersInMatch=getRecordedPlayers(h);
+      const sorted=sortPlayersByTotal(playersInMatch, h.totals, cfg);
       if(!sorted.length)return;
       const lastScore=h.totals[sorted[sorted.length-1]];
       const lastPlayers=sorted.filter(p=>h.totals[p]===lastScore);
 
-      Object.keys(h.totals).forEach(p=>{
+      playersInMatch.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
         stats[p].games++;
         if(h.winners?.includes(p))stats[p].wins++;
@@ -6349,7 +6373,8 @@
       });
 
       // Per-match totals: only if player has at least one LEGIT (non-joinBonus) round
-      Object.entries(h.totals).forEach(([p,score])=>{
+      playersInMatch.forEach(p=>{
+        const score=h.totals[p];
         const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]));
         if(!hasLegit) return;
         if(h.game==='Wizard'||h.game==='Flip 7 Vengeance'||h.game==='Rook'){
@@ -6364,10 +6389,11 @@
 
       if(Array.isArray(h.rounds)){
         let ms={};
-        Object.keys(h.totals).forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0});
+        playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0});
         h.rounds.forEach(round=>{
           if(!round.scores)return;
           Object.entries(round.scores).forEach(([p,score])=>{
+            if(!playersInMatch.includes(p))return;
             if(round.joinBonus?.[p])return; // exclude join-bonus scores
             if(!ms[p])ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0};
             if(h.game==='Wizard'){
@@ -6464,8 +6490,7 @@
   function openSportsCenter(){
     if(!currentGame){ toast('Start a match first', 'warning'); return; }
     const cfg = configs[currentGame.name];
-    const gp = currentGame.originalRoster.filter(p => p && !currentGame.retired?.includes(p));
-    const sorted = [...gp].sort((a,b) => cfg.winLow ? (currentGame.totals[a]||0) - (currentGame.totals[b]||0) : (currentGame.totals[b]||0) - (currentGame.totals[a]||0));
+    const sorted = sortPlayersByTotal(getActivePlayers(currentGame), currentGame.totals, cfg);
     const topScore = currentGame.totals[sorted[0]] || 0;
 
     let rowsHtml = '';
