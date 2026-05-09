@@ -1849,7 +1849,8 @@
       <div class="flex justify-center mb-8">
         <div class="border hairline p-1 rounded-full flex gap-1" style="background:var(--surface);">
           <button onclick="switchTab('history-list-view')" id="tab-history" class="nav-btn active">Timeline</button>
-          <button onclick="switchTab('hall-of-fame-view')" id="tab-fame" class="nav-btn">Records</button>
+          <button onclick="switchTab('hall-of-fame-view')" id="tab-fame" class="nav-btn">Hall of Fame</button>
+          <button onclick="switchTab('records-view')" id="tab-records" class="nav-btn">Records</button>
         </div>
       </div>
       <div id="history-list-view" class="space-y-4 max-w-4xl mx-auto"></div>
@@ -1863,6 +1864,7 @@
           <div id="shame-content" class="space-y-3"></div>
         </div>
       </div>
+      <div id="records-view" class="hidden space-y-6"></div>
     </div>
 
     <!-- ═══ PROFILES ═══ -->
@@ -2403,16 +2405,24 @@
   let currentGame = null;
   let _historyRevision = 0;
   let _hallOfFameCache = null;
+  let _allTimeRecordsCache = null;
   let _lastPersistedState = {};
   function markHistoryChanged(){
     _historyRevision++;
     _hallOfFameCache = null;
+    _allTimeRecordsCache = null;
   }
   function getHallOfFame(){
     if(!_hallOfFameCache || _hallOfFameCache.rev !== _historyRevision){
       _hallOfFameCache = { rev:_historyRevision, data:calculateHallOfFame() };
     }
     return _hallOfFameCache.data;
+  }
+  function getAllTimeRecords(){
+    if(!_allTimeRecordsCache || _allTimeRecordsCache.rev !== _historyRevision){
+      _allTimeRecordsCache = { rev:_historyRevision, data:calculateAllTimeRecords() };
+    }
+    return _allTimeRecordsCache.data;
   }
   function recomputeGameTotals(game){
     if(!game)return {};
@@ -2750,10 +2760,12 @@
   function showHistory(){ navigateTo('history-screen'); renderHistoryList(); renderHallOfFame(); }
   function showProfiles(){ navigateTo('profiles-screen'); renderProfilesGrid(); }
   function switchTab(id){
-    ['history-list-view','hall-of-fame-view'].forEach(t=>document.getElementById(t).classList.add('hidden'));
+    ['history-list-view','hall-of-fame-view','records-view'].forEach(t=>document.getElementById(t).classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
     document.getElementById('tab-history').className=`nav-btn ${id==='history-list-view'?'active':''}`;
     document.getElementById('tab-fame').className=`nav-btn ${id==='hall-of-fame-view'?'active':''}`;
+    document.getElementById('tab-records').className=`nav-btn ${id==='records-view'?'active':''}`;
+    if(id==='records-view') renderRecordsPage();
   }
 
   // ── Avatar helpers ──
@@ -6429,6 +6441,409 @@
       if(s.games>=3){const wr=Math.round(s.wins/s.games*100);if(wr>r.Overall.bestWinRate){r.Overall.bestWinRate=wr;r.Overall.bestWinRatePlayer=p;}}
     });
     return r;
+  }
+
+  function calculateAllTimeRecords(){
+    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
+    const chrono = completed.slice().sort((a,b)=>(a.id||0)-(b.id||0));
+    const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
+    const players = {};
+    const wizardBidStats = {};
+    const comebackWins = {};
+    const pairMap = {};
+    const games = {
+      "Five Crowns": {
+        bestGame:null,worstGame:null,bestRound:null,worstRound:null,mostPerfectRounds:null,
+        mostConsistent:null,closestMargin:null,mostLopsided:null
+      },
+      "Wizard": {
+        bestGame:null,worstGame:null,bestRound:null,worstRound:null,bestExactBidPct:null,
+        mostExactSingleGame:null,biggestOverbid:null,biggestUnderbid:null,mostTricksRound:null
+      },
+      "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,closestMargin:null},
+      "Rook": {bestGame:null,worstGame:null,mostSuccessfulBids:null,highestBidMade:null,biggestSet:null}
+    };
+    const allTime = {
+      mostWins:[],bestWinRate:[],mostGames:[],mostLasts:[],
+      longestWinningStreak:null,longestLosingStreak:null,longestNoLastStreak:null,
+      biggestComeback:null,finalRoundDecisions:[],mostHailMarys:null
+    };
+
+    const ensurePlayer = (p) => {
+      if(!players[p]) players[p] = {
+        name:p,games:0,wins:0,lasts:0,positions:[],byGame:{},curWin:0,curLoss:0,curNoLast:0,curLast:0,
+        currentType:null,currentCount:0,longestWin:0,longestLoss:0,longestNoLast:0,longestLast:0,lastGameId:0
+      };
+      return players[p];
+    };
+    const entry = (player,value,h,extra={}) => ({player,value,score:value,game:h.game,date:h.date,id:h.id,...extra});
+    const betterHigh = (next, cur) => !cur || next.value > cur.value;
+    const betterLow = (next, cur) => !cur || next.value < cur.value;
+    const update = (obj,key,next,better) => { if(next && better(next,obj[key])) obj[key]=next; };
+    const variance = (nums) => {
+      if(!nums.length) return 0;
+      const avg = nums.reduce((s,n)=>s+n,0)/nums.length;
+      return nums.reduce((s,n)=>s+Math.pow(n-avg,2),0)/nums.length;
+    };
+    const sortedFor = (h) => {
+      const cfg = configs[h.game];
+      return sortPlayersByTotal(getRecordedPlayers(h).filter(p=>h.totals[p]!==undefined), h.totals, cfg);
+    };
+    const positionOf = (sorted,p) => sorted.indexOf(p)+1;
+    const lastPlayersFor = (h,sorted) => {
+      if(!sorted.length) return [];
+      const lastScore = h.totals[sorted[sorted.length-1]];
+      return sorted.filter(p=>h.totals[p]===lastScore);
+    };
+    const leaderBeforeRound = (h,roundCount) => {
+      const cfg = configs[h.game], totals = {};
+      const roster = getRecordedPlayers(h);
+      roster.forEach(p=>totals[p]=0);
+      h.rounds.slice(0,roundCount).forEach(r=>{
+        Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; });
+      });
+      const sorted = sortPlayersByTotal(roster.filter(p=>totals[p]!==undefined), totals, cfg);
+      return sorted[0] || null;
+    };
+    const addPair = (a,b,h,winner) => {
+      const key = [a,b].sort().join('|||');
+      if(!pairMap[key]) pairMap[key] = {a:[a,b].sort()[0],b:[a,b].sort()[1],together:0,aWins:0,bWins:0,events:[]};
+      const pair = pairMap[key];
+      pair.together++;
+      if(winner===pair.a) pair.aWins++;
+      if(winner===pair.b) pair.bWins++;
+      pair.events.push({date:h.date,id:h.id,winner,game:h.game});
+    };
+
+    chrono.forEach(h=>{
+      const cfg = configs[h.game];
+      const sorted = sortedFor(h);
+      if(!sorted.length) return;
+      const lastPlayers = lastPlayersFor(h, sorted);
+      const winners = (h.winners||[]).filter(p=>sorted.includes(p));
+      const hailMaryCount = Array.isArray(h.hailMaryUsed) ? h.hailMaryUsed.length : 0;
+      update(allTime,'mostHailMarys',entry(winners[0]||sorted[0],hailMaryCount,h,{label:`${hailMaryCount} used`}),betterHigh);
+
+      sorted.forEach((p,idx)=>{
+        const ps = ensurePlayer(p);
+        const won = winners.includes(p), last = lastPlayers.includes(p), pos = idx+1;
+        ps.games++; ps.wins += won?1:0; ps.lasts += last?1:0; ps.positions.push({pos,game:h.game,date:h.date,id:h.id});
+        ps.lastGameId = h.id||ps.lastGameId;
+        ps.currentType = won ? 'W' : 'L';
+        ps.currentCount = (won ? ps.curWin : ps.curLoss) + 1;
+        ps.curWin = won ? ps.curWin+1 : 0; ps.curLoss = won ? 0 : ps.curLoss+1;
+        ps.curNoLast = last ? 0 : ps.curNoLast+1; ps.curLast = last ? ps.curLast+1 : 0;
+        ps.longestWin = Math.max(ps.longestWin, ps.curWin);
+        ps.longestLoss = Math.max(ps.longestLoss, ps.curLoss);
+        ps.longestNoLast = Math.max(ps.longestNoLast, ps.curNoLast);
+        ps.longestLast = Math.max(ps.longestLast, ps.curLast);
+        update(allTime,'longestWinningStreak',entry(p,ps.curWin,h),betterHigh);
+        update(allTime,'longestLosingStreak',entry(p,ps.curLoss,h),betterHigh);
+        update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
+        const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
+        bg.games++; bg.wins += won?1:0; bg.posSum += pos;
+        const scoreEntry = entry(p,h.totals[p],h);
+        if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
+        if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+      });
+
+      for(let i=0;i<sorted.length;i++){
+        for(let j=i+1;j<sorted.length;j++){
+          const a=sorted[i], b=sorted[j], sa=h.totals[a], sb=h.totals[b];
+          const winner = sa===sb ? null : (cfg.winLow ? (sa<sb?a:b) : (sa>sb?a:b));
+          addPair(a,b,h,winner);
+        }
+      }
+
+      if(winners.length){
+        const half = Math.max(1, Math.floor(h.rounds.length/2));
+        const halfwayLeader = leaderBeforeRound(h, half);
+        const halfwaySorted = (() => {
+          const totals = {};
+          sorted.forEach(p=>totals[p]=0);
+          h.rounds.slice(0,half).forEach(r=>Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; }));
+          return sortPlayersByTotal(sorted, totals, cfg).map(p=>({p,score:totals[p]}));
+        })();
+        const halfwayLastScore = halfwaySorted.length ? halfwaySorted[halfwaySorted.length-1].score : null;
+        const halfwayLeaderScore = halfwaySorted.length ? halfwaySorted[0].score : null;
+        winners.forEach(w=>{
+          const wasLast = halfwaySorted.some(x=>x.p===w&&x.score===halfwayLastScore);
+          const wasBehind = halfwayLeader && halfwayLeader !== w;
+          const winnerHalfScore = halfwaySorted.find(x=>x.p===w)?.score ?? halfwayLeaderScore ?? 0;
+          const deficit = cfg.winLow ? winnerHalfScore-halfwayLeaderScore : halfwayLeaderScore-winnerHalfScore;
+          if(wasLast) update(allTime,'biggestComeback',entry(w,deficit,h,{label:`Last at halfway, won ${h.game}`}),betterHigh);
+          if(wasBehind) comebackWins[w]=(comebackWins[w]||0)+1;
+        });
+      }
+
+      if(h.rounds.length>1){
+        const prevLeader = leaderBeforeRound(h, h.rounds.length-1);
+        if(prevLeader && winners.length && !winners.includes(prevLeader)){
+          allTime.finalRoundDecisions.push({player:winners[0],value:1,date:h.date,game:h.game,label:`${winners.join(' & ')} passed ${prevLeader}`});
+        }
+      }
+
+      const gameRecords = games[h.game];
+      if(gameRecords){
+        sorted.forEach(p=>{
+          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p]);
+          if(!hasLegit) return;
+          const finalEntry = entry(p,h.totals[p],h);
+          if(cfg.winLow){
+            update(gameRecords,'bestGame',finalEntry,betterLow);
+            update(gameRecords,'worstGame',finalEntry,betterHigh);
+          } else {
+            update(gameRecords,'bestGame',finalEntry,betterHigh);
+            update(gameRecords,'worstGame',finalEntry,betterLow);
+          }
+        });
+        if(sorted.length>1 && gameRecords.closestMargin!==undefined){
+          const margin = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[1]]||0));
+          update(gameRecords,'closestMargin',entry(sorted[0],margin,h,{label:`${sorted[0]} by ${margin} over ${sorted[1]}`}),betterLow);
+        }
+        if(h.game==='Five Crowns' && sorted.length>1){
+          const gap = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[sorted.length-1]]||0));
+          update(gameRecords,'mostLopsided',entry(sorted[0],gap,h,{label:`${sorted[0]} over ${sorted[sorted.length-1]} by ${gap}`}),betterHigh);
+        }
+      }
+
+      const perMatch = {};
+      sorted.forEach(p=>perMatch[p]={zeros:0,exacts:0,busted:0,roundScores:[],rookMade:0});
+      h.rounds.forEach(r=>{
+        Object.entries(r.scores||{}).forEach(([p,score])=>{
+          if(!perMatch[p] || r.joinBonus?.[p]) return;
+          perMatch[p].roundScores.push(score);
+          if(h.game==='Five Crowns'){
+            if(score!==0) update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round}),betterLow);
+            update(games["Five Crowns"],'worstRound',entry(p,score,h,{round:r.round}),betterHigh);
+            if(score===0) perMatch[p].zeros++;
+          }
+          if(h.game==='Wizard'){
+            update(games.Wizard,'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
+            update(games.Wizard,'worstRound',entry(p,score,h,{round:r.round}),betterLow);
+            const bid = r.bids?.[p], actual = r.actuals?.[p];
+            if(bid!==undefined && actual!==undefined){
+              if(!wizardBidStats[p]) wizardBidStats[p]={exact:0,total:0,busted:0};
+              wizardBidStats[p].total++;
+              if(bid===actual){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
+              else { wizardBidStats[p].busted++; perMatch[p].busted++; }
+              if(actual<bid) update(games.Wizard,'biggestOverbid',entry(p,bid-actual,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
+              if(actual>bid) update(games.Wizard,'biggestUnderbid',entry(p,actual-bid,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
+              update(games.Wizard,'mostTricksRound',entry(p,actual,h,{round:r.round,label:`${actual} tricks`}),betterHigh);
+            }
+          }
+          if(h.game==='Flip 7 Vengeance') update(games["Flip 7 Vengeance"],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
+        });
+        if(h.game==='Rook' && r.rookBid!==undefined){
+          const made = r.rookMade===true || r.rookMadeIt===true;
+          const failed = r.rookMade===false || r.rookMadeIt===false;
+          const credited = [r.rookBidder,r.rookPartner].filter(Boolean);
+          if(made){
+            credited.forEach(p=>{ if(perMatch[p]) perMatch[p].rookMade++; });
+            update(games.Rook,'highestBidMade',entry(r.rookBidder||credited[0]||'-',r.rookBid,h,{round:r.round,label:`Made ${r.rookBid}`}),betterHigh);
+          }
+          if(failed) update(games.Rook,'biggestSet',entry(r.rookBidder||credited[0]||'-',r.rookBid,h,{round:r.round,label:`Set on ${r.rookBid}`}),betterHigh);
+        }
+      });
+      Object.entries(perMatch).forEach(([p,m])=>{
+        if(h.game==='Five Crowns'){
+          update(games["Five Crowns"],'mostPerfectRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero rounds`}),betterHigh);
+          if(m.roundScores.length>=5){
+            const v = variance(m.roundScores);
+            update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Variance ${v.toFixed(1)}`}),betterLow);
+          }
+        }
+        if(h.game==='Wizard') update(games.Wizard,'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
+        if(h.game==='Rook') update(games.Rook,'mostSuccessfulBids',entry(p,m.rookMade,h,{label:`${m.rookMade} made bids`}),betterHigh);
+      });
+    });
+
+    const playerList = Object.values(players);
+    allTime.mostWins = playerList.slice().sort((a,b)=>b.wins-a.wins||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.wins,label:`${p.wins} wins`}));
+    allTime.bestWinRate = playerList.filter(p=>p.games>=5).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.wins-a.wins).slice(0,10).map(p=>({player:p.name,value:Math.round(p.wins/p.games*100),label:`${p.wins}-${p.games-p.wins}`}));
+    allTime.mostGames = playerList.slice().sort((a,b)=>b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.games,label:`${p.games} games`}));
+    allTime.mostLasts = playerList.slice().sort((a,b)=>b.lasts-a.lasts||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.lasts,label:`${p.lasts} last-place finishes`}));
+    Object.entries(wizardBidStats).forEach(([p,s])=>{
+      const pct = Math.round(s.exact/s.total*100);
+      if(s.total>=10) update(games.Wizard,'bestExactBidPct',{player:p,value:pct,label:`${pct}% (${s.exact}/${s.total})`,date:'Career',game:'Wizard'},betterHigh);
+    });
+
+    const playerCards = playerList.filter(p=>p.games>=3).sort((a,b)=>b.games-a.games||b.wins-a.wins).map(p=>{
+      const gameEntries = Object.entries(p.byGame);
+      const favorite = gameEntries.slice().sort((a,b)=>b[1].games-a[1].games)[0];
+      const winRateGames = gameEntries.filter(([_,g])=>g.games>0).map(([name,g])=>({name,rate:g.wins/g.games,games:g.games}));
+      const bestType = winRateGames.slice().sort((a,b)=>b.rate-a.rate||b.games-a.games)[0];
+      const nemesisType = winRateGames.slice().sort((a,b)=>a.rate-b.rate||b.games-a.games)[0];
+      const first5 = p.positions.slice(0,5), last5 = p.positions.slice(-5);
+      const avg = (arr)=>arr.length ? arr.reduce((s,x)=>s+x.pos,0)/arr.length : null;
+      const firstAvg = avg(first5), lastAvg = avg(last5);
+      let trend = 'Not enough games yet';
+      if(firstAvg!==null && lastAvg!==null && p.positions.length>=5){
+        const delta = firstAvg-lastAvg;
+        trend = Math.abs(delta)<0.15 ? 'Holding steady' : (delta>0 ? `Improving (${firstAvg.toFixed(1)} to ${lastAvg.toFixed(1)})` : `Declining (${firstAvg.toFixed(1)} to ${lastAvg.toFixed(1)})`);
+      }
+      return {
+        player:p.name,games:p.games,wins:p.wins,winRate:Math.round(p.wins/p.games*100),
+        favorite:favorite?favorite[0]:'-',currentStreak:`${p.currentType||'L'}${Math.max(p.curWin,p.curLoss)||0}`,
+        bestGameType:bestType?`${bestType.name} (${Math.round(bestType.rate*100)}%)`:'-',
+        nemesisGame:nemesisType?`${nemesisType.name} (${Math.round(nemesisType.rate*100)}%)`:'-',
+        bests:Object.entries(p.byGame).map(([name,g])=>({name,best:g.best,worst:g.worst})),
+        trend
+      };
+    });
+
+    const rivalries = Object.values(pairMap).filter(r=>r.together>=5).map(r=>{
+      const orderedEvents = r.events.slice().sort((a,b)=>(b.id||0)-(a.id||0));
+      const recent = orderedEvents[0];
+      let streakWinner = recent?.winner || null, streak = 0;
+      for(const ev of orderedEvents){
+        if(!streakWinner || ev.winner!==streakWinner) break;
+        streak++;
+      }
+      const edgeWins = Math.max(r.aWins,r.bWins);
+      return {
+        ...r,edgePct:Math.round(edgeWins/r.together*100),
+        edgePlayer:r.aWins===r.bWins?'Even':(r.aWins>r.bWins?r.a:r.b),
+        recent,streakWinner,streak
+      };
+    });
+    const topRivalries = rivalries.slice().sort((a,b)=>b.together-a.together).slice(0,5);
+    const lopsidedRivalries = rivalries.slice().sort((a,b)=>b.edgePct-a.edgePct||b.together-a.together).slice(0,5);
+    const shameAwards = [
+      {emoji:'🏴',name:'The Disaster Award',record:games["Five Crowns"].worstGame,stat:r=>`${r.value} in Five Crowns`},
+      {emoji:'💀',name:'The Crash and Burn',record:games["Five Crowns"].worstRound,stat:r=>`${r.value} points in one round`},
+      {emoji:'🎰',name:'The Overconfident',record:Object.entries(wizardBidStats).map(([p,s])=>({player:p,value:s.busted,label:`${s.busted} busted bids`,date:'Career',game:'Wizard'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
+      {emoji:'👻',name:'The Invisible Man',record:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0] ? {player:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].name,value:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].games,label:`${playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].games} games, 0 wins`,date:'Career'} : null,stat:r=>r.label},
+      {emoji:'🐢',name:'The Slow Learner',record:playerList.map(p=>({player:p.name,value:p.longestLast,label:`${p.longestLast} straight last-place finishes`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
+      {emoji:'🎯',name:'The Sharp Shooter',record:games.Wizard.bestExactBidPct,stat:r=>r.label},
+      {emoji:'👑',name:'The Comeback Kid',record:Object.entries(comebackWins).map(([p,v])=>({player:p,value:v,label:`${v} wins from a halftime deficit`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
+      {emoji:'🔥',name:'The Streaker',record:allTime.longestWinningStreak,stat:r=>`${r.value} wins in a row`}
+    ];
+    return {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries},shameAwards};
+  }
+
+  function renderRecordsPage(){
+    const data = getAllTimeRecords();
+    const c = document.getElementById('records-view');
+    if(!data.completed.length){
+      c.innerHTML=`<div class="surface p-10 text-center font-bold max-w-xl mx-auto w-full" style="color:var(--muted);">Play completed matches to unlock deep Records.</div>`;
+      return;
+    }
+    const empty = '<div class="surface p-5 text-sm font-bold" style="color:var(--muted);">No qualifying history yet.</div>';
+    const playerLine = (r,idx) => `<div class="surface p-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="font-jakarta font-extrabold truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+      <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
+    </div>`;
+    const recordCard = (title,r,pos=true) => {
+      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-bold mt-2" style="color:var(--muted);">No qualifying history</div></div>`;
+      return `<div class="surface p-5 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-jakarta font-extrabold text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+        <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${Number.isFinite(r.value)?(Number.isInteger(r.value)?r.value:r.value.toFixed(1)):(r.value??'—')}</div>
+      </div>`;
+    };
+    const section = (id,title,body) => `<section id="${id}" class="space-y-4"><h2 class="font-display text-3xl border-b-2 hairline pb-3">${title}</h2>${body}</section>`;
+    const gameSection = (name,items) => `<div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">${configs[name]?.emoji||''} ${name}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${items.join('')}</div></div>`;
+
+    const allTimeHtml = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">Leaders</h3>${[
+        ['Most Wins All Time',data.allTime.mostWins],['Best Win Rate (Min 5)',data.allTime.bestWinRate],['Most Games Played',data.allTime.mostGames],['Dead Last Derby',data.allTime.mostLasts]
+      ].map(([t,arr])=>`<div><div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--muted);">${t}</div><div class="space-y-2">${arr.length?arr.slice(0,5).map(playerLine).join(''):empty}</div></div>`).join('')}</div>
+      <div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--amber);">Streaks & Drama</h3>
+        ${recordCard('Longest Winning Streak Ever',data.allTime.longestWinningStreak,true)}
+        ${recordCard('Longest Losing Streak Ever',data.allTime.longestLosingStreak,false)}
+        ${recordCard('Most Consecutive Games Without Last',data.allTime.longestNoLastStreak,true)}
+        ${recordCard('Biggest Single-Game Comeback',data.allTime.biggestComeback,true)}
+        ${recordCard('Most Hail Marys In One Game',data.allTime.mostHailMarys,true)}
+        <div><div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--muted);">Games Decided In The Final Round</div><div class="space-y-2">${data.allTime.finalRoundDecisions.length?data.allTime.finalRoundDecisions.slice(0,8).map(playerLine).join(''):empty}</div></div>
+      </div>
+    </div>`;
+
+    const perGameHtml = [
+      gameSection('Five Crowns',[
+        recordCard('Best Game Ever',data.games["Five Crowns"].bestGame,true),
+        recordCard('Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
+        recordCard('Best Single Round Ever',data.games["Five Crowns"].bestRound,true),
+        recordCard('Crash and Burn: Worst Round',data.games["Five Crowns"].worstRound,false),
+        recordCard('Most Perfect Rounds In One Game',data.games["Five Crowns"].mostPerfectRounds,true),
+        recordCard('Most Consistent Game',data.games["Five Crowns"].mostConsistent,true),
+        recordCard('Closest Margin Of Victory',data.games["Five Crowns"].closestMargin,true),
+        recordCard('Most Lopsided Game Ever',data.games["Five Crowns"].mostLopsided,true)
+      ]),
+      gameSection('Wizard',[
+        recordCard('Best Game Ever',data.games.Wizard.bestGame,true),
+        recordCard('Worst Game Ever',data.games.Wizard.worstGame,false),
+        recordCard('Best Single Round',data.games.Wizard.bestRound,true),
+        recordCard('Worst Single Round',data.games.Wizard.worstRound,false),
+        recordCard('Best Exact Bid Percentage',data.games.Wizard.bestExactBidPct,true),
+        recordCard('Most Exact Bids In One Game',data.games.Wizard.mostExactSingleGame,true),
+        recordCard('Biggest Overbid Disaster',data.games.Wizard.biggestOverbid,false),
+        recordCard('Biggest Underbid Surprise',data.games.Wizard.biggestUnderbid,true),
+        recordCard('Most Tricks Won In One Round',data.games.Wizard.mostTricksRound,true)
+      ]),
+      gameSection('Flip 7 Vengeance',[
+        recordCard('Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
+        recordCard('Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
+        recordCard('Best Single Round',data.games["Flip 7 Vengeance"].bestRound,true),
+        recordCard('Closest Margin Of Victory',data.games["Flip 7 Vengeance"].closestMargin,true)
+      ]),
+      gameSection('Rook',[
+        recordCard('Best Game Ever',data.games.Rook.bestGame,true),
+        recordCard('Worst Game Ever',data.games.Rook.worstGame,false),
+        recordCard('Most Successful Bids In One Game',data.games.Rook.mostSuccessfulBids,true),
+        recordCard('Highest Bid Ever Made',data.games.Rook.highestBidMade,true),
+        recordCard('Biggest Set Ever',data.games.Rook.biggestSet,false)
+      ])
+    ].join('');
+
+    const cardsHtml = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${data.playerCards.length?data.playerCards.map(card=>`
+      <div class="surface p-5 space-y-4">
+        <div class="flex items-center gap-3">${getAvatarImg(card.player,'avatar-img')}<div><h3 class="font-display text-2xl leading-tight">${card.player}</h3><div class="text-xs font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${card.games} games · ${card.wins} wins · ${card.winRate}%</div></div></div>
+        <div class="grid grid-cols-2 gap-2 text-sm font-bold">
+          <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Favorite</div>${card.favorite}</div>
+          <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Current Streak</div>${card.currentStreak}</div>
+          <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Best Type</div>${card.bestGameType}</div>
+          <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Nemesis Game</div>${card.nemesisGame}</div>
+        </div>
+        <div class="text-sm font-bold" style="color:var(--muted);">${card.trend}</div>
+        <div class="space-y-1">${card.bests.map(g=>`<div class="flex justify-between gap-2 text-xs font-bold"><span>${g.name}</span><span class="font-mono-num">Best ${g.best?.value ?? '—'} · Worst ${g.worst?.value ?? '—'}</span></div>`).join('')}</div>
+      </div>`).join(''):empty}</div>`;
+
+    const rivalryCard = (r) => `<div class="surface p-5 space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">${getAvatarImg(r.a,'avatar-img')}<span class="font-jakarta font-extrabold">${r.a}</span></div>
+        <div class="text-xs font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);">vs</div>
+        <div class="flex items-center gap-2">${getAvatarImg(r.b,'avatar-img')}<span class="font-jakarta font-extrabold">${r.b}</span></div>
+      </div>
+      <div class="font-jakarta font-extrabold text-center text-xl">${r.aWins} - ${r.bWins}</div>
+      <div class="text-sm font-bold text-center" style="color:var(--muted);">${r.together} meetings · Edge: ${r.edgePlayer} (${r.edgePct}%)</div>
+      <div class="text-xs font-bold" style="color:var(--muted);">Recent: ${r.recent?.winner||'Tie'} in ${r.recent?.game||'-'} · Streak: ${r.streakWinner||'None'} ${r.streak||0}</div>
+    </div>`;
+    const rivalriesHtml = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div><h3 class="font-display text-2xl mb-3" style="color:var(--emerald);">Most Played Rivalries</h3><div class="space-y-3">${data.rivalries.top.length?data.rivalries.top.map(rivalryCard).join(''):empty}</div></div>
+      <div><h3 class="font-display text-2xl mb-3" style="color:var(--rose);">Most Lopsided Rivalries</h3><div class="space-y-3">${data.rivalries.lopsided.length?data.rivalries.lopsided.map(rivalryCard).join(''):empty}</div></div>
+    </div>`;
+    const shameHtml = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">${data.shameAwards.map(a=>{
+      const r=a.record;
+      return `<div class="surface p-5 text-center space-y-3">
+        <div class="text-4xl">${a.emoji}</div>
+        <div><div class="font-display text-xl">${a.name}</div><div class="text-xs font-bold mt-1" style="color:var(--muted);">${r?a.stat(r):'No qualifying history'}</div></div>
+        ${r?`<div class="flex flex-col items-center gap-2">${getAvatarImg(r.player,'avatar-img')}<div class="font-jakarta font-extrabold">${r.player}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.date||'Career'}</div></div>`:''}
+      </div>`;
+    }).join('')}</div>`;
+
+    c.innerHTML = `
+      <div class="surface-raised p-6">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div><h1 class="font-display text-4xl" style="color:var(--emerald);">Records</h1><p class="text-sm font-bold mt-1" style="color:var(--muted);">Calculated from ${data.completed.length} completed matches already saved in history.</p></div>
+          <div class="flex flex-wrap gap-2 text-xs font-extrabold uppercase tracking-[0.12em]">${['All-Time','Per-Game','Player Cards','Rivalries','Hall of Shame'].map(t=>`<a href="#records-${t.toLowerCase().replaceAll(' ','-')}" class="btn-ghost px-3 py-2">${t}</a>`).join('')}</div>
+        </div>
+      </div>
+      ${section('records-all-time','All-Time Records',allTimeHtml)}
+      ${section('records-per-game','Per-Game Records',perGameHtml)}
+      ${section('records-player-cards','Player Career Cards',cardsHtml)}
+      ${section('records-rivalries','Rivalries',rivalriesHtml)}
+      ${section('records-hall-of-shame','Hall of Shame',shameHtml)}
+    `;
   }
 
   function renderHallOfFame(){
