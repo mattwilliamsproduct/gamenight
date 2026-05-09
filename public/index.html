@@ -741,6 +741,21 @@
     tr.drag-over-top td:first-child    { box-shadow: inset 0 3px 0 0 var(--emerald); }
     tr.drag-over-bottom td:first-child { box-shadow: inset 0 -3px 0 0 var(--emerald); }
 
+    /* Reorder Players modal — same green drop line as round 1 roster */
+    .reorder-player-row {
+      transition: box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+    .reorder-player-row.reorder-dragging {
+      opacity: 0.4;
+      transform: scale(0.985);
+    }
+    .reorder-player-row.drag-over-top {
+      box-shadow: inset 0 3px 0 0 var(--emerald);
+    }
+    .reorder-player-row.drag-over-bottom {
+      box-shadow: inset 0 -3px 0 0 var(--emerald);
+    }
+
     /* Floating preview while dragging on touch */
     .drag-ghost {
       position: fixed;
@@ -1761,6 +1776,10 @@
                 <span class="text-base w-5 text-center">➕</span>
                 <span>Add Player Mid-Game</span>
               </button>
+              <button onclick="openReorderPlayersModal();closeActionsMenu();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
+                <span class="text-base w-5 text-center">↕️</span>
+                <span>Reorder Players</span>
+              </button>
               <button onclick="openSportsCenter();closeActionsMenu();" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
                 <span class="text-base w-5 text-center">📺</span>
                 <span>SportsCenter Standings</span>
@@ -2316,6 +2335,23 @@
           <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Their score is frozen and they leave the rotation.</p>
         </div>
         <div id="retire-player-list" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- Reorder Players (mid-game seating / deal order) -->
+    <div id="reorder-players-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+      <div onclick="closeReorderPlayersModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-md p-7 relative pop-in flex flex-col max-h-[90vh]">
+        <button onclick="closeReorderPlayersModal()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <div class="text-center mb-4 pr-8">
+          <h3 class="font-display text-3xl">Reorder Players</h3>
+          <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Drag to match seating order around the table</p>
+        </div>
+        <div id="reorder-players-list" class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1"></div>
+        <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-2 border-t hairline">
+          <button type="button" onclick="closeReorderPlayersModal()" class="btn-ghost flex-1 py-3.5 text-base font-extrabold">Cancel</button>
+          <button type="button" onclick="applyReorderPlayersFromModal()" class="btn-primary flex-1 py-3.5 text-base font-extrabold">Apply New Order</button>
+        </div>
       </div>
     </div>
 
@@ -2908,6 +2944,11 @@
   function closeScorecard(){ closeModal('scorecard-modal'); }
   function openDealerModal(){ buildDealerList(); openModal('dealer-modal'); }
   function closeDealerModal(){ closeModal('dealer-modal'); }
+  function closeReorderPlayersModal(){
+    reorderModalDragCleanup();
+    _reorderPlayersWorking = null;
+    closeModal('reorder-players-modal');
+  }
 
   function openRetirePlayerModal(){
     if(!currentGame)return;
@@ -4958,6 +4999,241 @@
       const toIdx = state.dropBefore ? state.dropTargetIdx : state.dropTargetIdx + 1;
       moveRosterRow(state.fromIdx, toIdx);
     }
+  }
+
+  /* ═══ Reorder Players modal (any round; active players only) ═══ */
+  let _reorderPlayersWorking = null;
+  let _reorderModalDragFromIdx = null;
+  let _reorderModalTouch = null;
+
+  function openReorderPlayersModal(){
+    if(!currentGame || !currentGame.originalRoster){ toast('No active match', 'warning'); return; }
+    const retired = currentGame.retired || [];
+    _reorderPlayersWorking = currentGame.originalRoster.filter(p => p && !retired.includes(p)).slice();
+    if(_reorderPlayersWorking.length < 2){ toast('Need at least two active players to reorder.', 'warning'); _reorderPlayersWorking = null; return; }
+    renderReorderPlayersModalList();
+    openModal('reorder-players-modal');
+  }
+
+  function renderReorderPlayersModalList(){
+    const list = document.getElementById('reorder-players-list');
+    if(!list || !_reorderPlayersWorking) return;
+    const n = _reorderPlayersWorking.length;
+    list.innerHTML = _reorderPlayersWorking.map((p, i) => `
+      <div class="reorder-player-row flex items-center gap-2 px-3 py-2.5 rounded-xl border hairline"
+        style="background:var(--surface-2);border-color:var(--hairline);"
+        data-reorder-idx="${i}"
+        ondragover="reorderModalDragOver(event, ${i})"
+        ondragleave="reorderModalDragLeave(event)"
+        ondrop="reorderModalDragDrop(event, ${i})">
+        <span class="drag-handle"
+          draggable="true"
+          ondragstart="reorderModalHandleDragStart(event, ${i})"
+          ondragend="reorderModalDragEnd(event)"
+          onmousedown="reorderModalDragMouseStart(event, ${i})"
+          ontouchstart="reorderModalTouchStart(event, ${i})"
+          title="Drag to reorder">⋮⋮</span>
+        <div class="flex flex-col gap-0 mr-0.5 shrink-0">
+          <button type="button" onclick="reorderModalMoveArrow(${i},-1)" class="text-lg leading-none hover:opacity-70 transition-opacity ${i===0?'invisible':''}" style="color:var(--muted);">▲</button>
+          <button type="button" onclick="reorderModalMoveArrow(${i},1)" class="text-lg leading-none hover:opacity-70 transition-opacity ${i===n-1?'invisible':''}" style="color:var(--muted);">▼</button>
+        </div>
+        <span class="text-sm w-6 font-mono-num shrink-0 text-center" style="color:var(--muted);">${i + 1}</span>
+        ${getAvatarImg(p, 'avatar-img')}
+        <span class="font-jakarta font-extrabold text-base truncate min-w-0 flex-1">${p}</span>
+      </div>
+    `).join('');
+  }
+
+  function reorderModalMoveRowInWorking(fromIdx, toIdx){
+    if(!_reorderPlayersWorking) return;
+    if(fromIdx === toIdx) return;
+    if(fromIdx < 0 || fromIdx >= _reorderPlayersWorking.length) return;
+    if(toIdx < 0 || toIdx > _reorderPlayersWorking.length) return;
+    const arr = _reorderPlayersWorking;
+    const [moved] = arr.splice(fromIdx, 1);
+    const insertAt = fromIdx < toIdx ? toIdx - 1 : toIdx;
+    arr.splice(insertAt, 0, moved);
+    haptic([30, 20, 50]);
+    renderReorderPlayersModalList();
+  }
+
+  function reorderModalMoveArrow(index, dir){
+    if(!_reorderPlayersWorking) return;
+    if(dir < 0){
+      if(index <= 0) return;
+      reorderModalMoveRowInWorking(index, index - 1);
+    } else {
+      if(index >= _reorderPlayersWorking.length - 1) return;
+      reorderModalMoveRowInWorking(index, index + 2);
+    }
+  }
+
+  function reorderModalDragMouseStart(){}
+
+  function reorderModalHandleDragStart(ev, idx){
+    if(!_reorderPlayersWorking) return;
+    _reorderModalDragFromIdx = idx;
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', String(idx));
+    const row = ev.currentTarget.closest('.reorder-player-row');
+    if(row) row.classList.add('reorder-dragging');
+  }
+
+  function reorderModalDragOver(ev, idx){
+    if(_reorderModalDragFromIdx === null) return;
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = 'move';
+    const row = ev.currentTarget;
+    const rect = row.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    row.classList.remove('drag-over-top', 'drag-over-bottom');
+    if(ev.clientY < midY) row.classList.add('drag-over-top');
+    else row.classList.add('drag-over-bottom');
+  }
+
+  function reorderModalDragLeave(ev){
+    ev.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+  }
+
+  function reorderModalDragDrop(ev, idx){
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+    if(_reorderModalDragFromIdx === null || _reorderModalDragFromIdx === idx) return;
+    const row = ev.currentTarget;
+    const rect = row.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const insertBefore = ev.clientY < midY;
+    const toIdx = insertBefore ? idx : idx + 1;
+    reorderModalMoveRowInWorking(_reorderModalDragFromIdx, toIdx);
+    _reorderModalDragFromIdx = null;
+  }
+
+  function reorderModalDragEnd(){
+    document.querySelectorAll('.reorder-player-row.reorder-dragging').forEach(el => el.classList.remove('reorder-dragging'));
+    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(el => {
+      el.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    _reorderModalDragFromIdx = null;
+  }
+
+  function reorderModalDragCleanup(){
+    reorderModalDragEnd();
+    detachReorderModalTouchListeners();
+    if(_reorderModalTouch){
+      if(_reorderModalTouch.ghost) _reorderModalTouch.ghost.remove();
+      if(_reorderModalTouch.row) _reorderModalTouch.row.classList.remove('reorder-dragging');
+      _reorderModalTouch = null;
+    }
+    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(el => {
+      el.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+  }
+
+  function detachReorderModalTouchListeners(){
+    document.removeEventListener('touchmove', reorderModalTouchMove, _rosterDocTouchOpts);
+    document.removeEventListener('touchend', reorderModalTouchEnd);
+    document.removeEventListener('touchcancel', reorderModalTouchEnd);
+  }
+
+  function reorderModalTouchStart(ev, idx){
+    if(!_reorderPlayersWorking) return;
+    reorderModalDragCleanup();
+    _reorderModalDragFromIdx = null;
+    const touch = ev.touches[0];
+    const row = ev.currentTarget.closest('.reorder-player-row');
+    if(!row) return;
+    _reorderModalTouch = {
+      fromIdx: idx,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      currentX: touch.clientX,
+      currentY: touch.clientY,
+      row,
+      ghost: null,
+      dropTargetIdx: null,
+      dropBefore: true
+    };
+    row.classList.add('reorder-dragging');
+    const name = _reorderPlayersWorking[idx];
+    const ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span>${name}</span>`;
+    ghost.style.left = touch.clientX + 'px';
+    ghost.style.top = touch.clientY + 'px';
+    document.body.appendChild(ghost);
+    _reorderModalTouch.ghost = ghost;
+    haptic(20);
+    document.addEventListener('touchmove', reorderModalTouchMove, _rosterDocTouchOpts);
+    document.addEventListener('touchend', reorderModalTouchEnd);
+    document.addEventListener('touchcancel', reorderModalTouchEnd);
+  }
+
+  function reorderModalTouchMove(ev){
+    if(!_reorderModalTouch) return;
+    ev.preventDefault();
+    const touch = ev.touches[0];
+    _reorderModalTouch.currentX = touch.clientX;
+    _reorderModalTouch.currentY = touch.clientY;
+    if(_reorderModalTouch.ghost){
+      _reorderModalTouch.ghost.style.left = touch.clientX + 'px';
+      _reorderModalTouch.ghost.style.top = touch.clientY + 'px';
+    }
+    const ghost = _reorderModalTouch.ghost;
+    if(ghost) ghost.style.display = 'none';
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if(ghost) ghost.style.display = '';
+    const targetRow = el?.closest?.('.reorder-player-row[data-reorder-idx]');
+    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(r => {
+      r.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    if(targetRow && targetRow !== _reorderModalTouch.row){
+      const targetIdx = parseInt(targetRow.dataset.reorderIdx, 10);
+      const rect = targetRow.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const before = touch.clientY < midY;
+      targetRow.classList.add(before ? 'drag-over-top' : 'drag-over-bottom');
+      _reorderModalTouch.dropTargetIdx = targetIdx;
+      _reorderModalTouch.dropBefore = before;
+    } else {
+      _reorderModalTouch.dropTargetIdx = null;
+    }
+  }
+
+  function reorderModalTouchEnd(){
+    if(!_reorderModalTouch) return;
+    detachReorderModalTouchListeners();
+    const state = _reorderModalTouch;
+    _reorderModalTouch = null;
+    if(state.ghost) state.ghost.remove();
+    if(state.row) state.row.classList.remove('reorder-dragging');
+    document.querySelectorAll('.reorder-player-row.drag-over-top, .reorder-player-row.drag-over-bottom').forEach(r => {
+      r.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    if(state.dropTargetIdx !== null && state.dropTargetIdx !== state.fromIdx){
+      const toIdx = state.dropBefore ? state.dropTargetIdx : state.dropTargetIdx + 1;
+      reorderModalMoveRowInWorking(state.fromIdx, toIdx);
+    }
+  }
+
+  function applyReorderPlayersFromModal(){
+    if(!currentGame || !currentGame.originalRoster || !_reorderPlayersWorking) return;
+    const retiredSet = new Set(currentGame.retired || []);
+    const order = _reorderPlayersWorking.slice();
+    let i = 0;
+    currentGame.originalRoster = currentGame.originalRoster.map(p => {
+      if(!p || retiredSet.has(p)) return p;
+      return order[i++];
+    });
+    if(i !== order.length){
+      toast('Could not apply order — roster changed.', 'warning');
+      return;
+    }
+    _reorderPlayersWorking = null;
+    reorderModalDragCleanup();
+    saveData();
+    renderGame();
+    closeModal('reorder-players-modal');
+    toast('Deal order updated', 'success');
   }
 
   /* ═══ SCREENSAVER: career records + meta (used when idle overlay shows during a match) ═══ */
