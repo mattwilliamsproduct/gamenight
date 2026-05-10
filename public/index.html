@@ -2407,10 +2407,25 @@
   let _hallOfFameCache = null;
   let _allTimeRecordsCache = null;
   let _lastPersistedState = {};
+  let _matchHallOfFameSnap = null;
+  let _matchAllTimeRecordsSnap = null;
+  let _matchH2HSnap = null;
+  let _personalBestsFrozenMap = null;
+  let _lastPersistedHistoryRev = -1;
+  let _deferredColdPersistTimer = null;
+  const GN_PERF_TIMING = typeof location !== 'undefined' && /(?:^|[?&])gnperf=1(?:&|$)/.test(location.search || '');
   function markHistoryChanged(){
     _historyRevision++;
     _hallOfFameCache = null;
     _allTimeRecordsCache = null;
+    _matchHallOfFameSnap = null;
+    _matchAllTimeRecordsSnap = null;
+    _matchH2HSnap = null;
+    _personalBestsFrozenMap = null;
+    if(_deferredColdPersistTimer){
+      clearTimeout(_deferredColdPersistTimer);
+      _deferredColdPersistTimer = null;
+    }
   }
   function getHallOfFame(){
     if(!_hallOfFameCache || _hallOfFameCache.rev !== _historyRevision){
@@ -2678,55 +2693,114 @@
   let _saveDebounceTimer = null;
   const SAVE_DEBOUNCE_MS = 220;
   function persistJsonIfChanged(key, value){
-    const json=JSON.stringify(value);
-    if(_lastPersistedState[key]===json)return;
-    localStorage.setItem(key,json);
-    _lastPersistedState[key]=json;
-  }
-  function _persistGamenightState(){
-    persistJsonIfChanged('gn_all_players',allPlayers);
-    persistJsonIfChanged('gn_players_v2',players);
-    persistJsonIfChanged('gn_history',history);
-    persistJsonIfChanged('gn_profiles',playerProfiles);
-    if(currentGame) persistJsonIfChanged('gn_current',currentGame);
-    else if(_lastPersistedState.gn_current!==null){
-      localStorage.removeItem('gn_current');
-      _lastPersistedState.gn_current=null;
+    if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
+      return;
     }
+    if(GN_PERF_TIMING && (key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current')){
+      console.time('stringify:' + key);
+    }
+    const json = JSON.stringify(value);
+    if(GN_PERF_TIMING && (key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current')){
+      console.timeEnd('stringify:' + key);
+    }
+    if(_lastPersistedState[key] === json) return;
+    localStorage.setItem(key, json);
+    _lastPersistedState[key] = json;
+    if(key === 'gn_history') _lastPersistedHistoryRev = _historyRevision;
+  }
+  /** @param {{ fullPersist?: boolean, syncCold?: boolean, flushDeferred?: boolean }} [opts] */
+  function _persistGamenightState(opts){
+    opts = opts || {};
+    const fullPersist = opts.fullPersist !== undefined ? opts.fullPersist : !currentGame;
+    const syncCold = opts.syncCold !== undefined ? opts.syncCold : !currentGame;
+
+    if(opts.flushDeferred && _deferredColdPersistTimer && (!currentGame || fullPersist)){
+      clearTimeout(_deferredColdPersistTimer);
+      _deferredColdPersistTimer = null;
+      if(GN_PERF_TIMING) console.time('persistDeferredCold(flush)');
+      persistJsonIfChanged('gn_history', history);
+      persistJsonIfChanged('gn_profiles', playerProfiles);
+      if(GN_PERF_TIMING) console.timeEnd('persistDeferredCold(flush)');
+    }
+
+    if(GN_PERF_TIMING) console.time('persistState');
+
+    if(fullPersist){
+      persistJsonIfChanged('gn_all_players', allPlayers);
+      persistJsonIfChanged('gn_players_v2', players);
+      const runLargeCold = () => {
+        if(GN_PERF_TIMING) console.time('persistLargeCold');
+        persistJsonIfChanged('gn_history', history);
+        persistJsonIfChanged('gn_profiles', playerProfiles);
+        if(GN_PERF_TIMING) console.timeEnd('persistLargeCold');
+      };
+      if(syncCold){
+        if(_deferredColdPersistTimer){
+          clearTimeout(_deferredColdPersistTimer);
+          _deferredColdPersistTimer = null;
+        }
+        runLargeCold();
+      } else {
+        if(_deferredColdPersistTimer) clearTimeout(_deferredColdPersistTimer);
+        _deferredColdPersistTimer = setTimeout(() => {
+          _deferredColdPersistTimer = null;
+          runLargeCold();
+        }, 0);
+      }
+    }
+
+    if(currentGame){
+      persistJsonIfChanged('gn_current', currentGame);
+    } else if(_lastPersistedState.gn_current !== null){
+      localStorage.removeItem('gn_current');
+      _lastPersistedState.gn_current = null;
+    }
+
+    if(GN_PERF_TIMING) console.timeEnd('persistState');
+
     updateNavButton();
     flashSaveIndicator();
   }
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
   function flushPendingSave(){
-    if(_saveDebounceTimer !== null){
-      clearTimeout(_saveDebounceTimer);
-      _saveDebounceTimer = null;
-      _persistGamenightState();
-    }
+    if(_saveDebounceTimer === null) return;
+    clearTimeout(_saveDebounceTimer);
+    _saveDebounceTimer = null;
+    _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
   }
   /** @param {object} [options] If options.debounceMs > 0, coalesce rapid writes (numpad) instead of syncing entire history on every key. */
   function saveData(options){
-    const ms = options && typeof options.debounceMs === 'number' ? options.debounceMs : 0;
+    const o = options || {};
+    const ms = typeof o.debounceMs === 'number' ? o.debounceMs : 0;
+    const fullPersist = o.fullPersist === true || !currentGame;
+    const syncCold = o.syncCold === true || !currentGame;
+    const exec = () => {
+      _persistGamenightState({ fullPersist, syncCold });
+    };
     if(ms > 0){
       clearTimeout(_saveDebounceTimer);
-      _saveDebounceTimer = setTimeout(()=>{
+      _saveDebounceTimer = setTimeout(() => {
         _saveDebounceTimer = null;
-        _persistGamenightState();
+        exec();
       }, ms);
       return;
     }
     clearTimeout(_saveDebounceTimer);
     _saveDebounceTimer = null;
-    _persistGamenightState();
+    exec();
   }
   document.addEventListener('visibilitychange', async ()=>{
     if(document.visibilityState === 'hidden'){
       cleanupActiveTouchDrags();
       flushPendingSave();
+      _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
     }
     else if(document.visibilityState === 'visible' && currentGame) await requestWakeLock();
   });
-  window.addEventListener('pagehide', flushPendingSave);
+  window.addEventListener('pagehide', ()=>{
+    flushPendingSave();
+    _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+  });
   function updateNavButton(){
     const b=document.getElementById('nav-active-btn');
     if(currentGame){
@@ -3067,7 +3141,7 @@
       if(d.history) d.history.forEach(h=>{if(!history.find(x=>x.id===h.id)){history.push(h);importedHistory=true;}});
       if(importedHistory) markHistoryChanged();
       if(d.playerProfiles) Object.assign(playerProfiles,d.playerProfiles);
-      saveData(); alert('Merged successfully.'); closeSettings(); goHome();
+      saveData({ fullPersist: true, syncCold: true }); alert('Merged successfully.'); closeSettings(); goHome();
     }catch(e){alert('Invalid JSON.');}
   }
 
@@ -3205,7 +3279,7 @@
   function selectAvatar(f){
     if(!playerProfiles[editingPlayerProfile])playerProfiles[editingPlayerProfile]={};
     playerProfiles[editingPlayerProfile].avatar=f;
-    saveData(); closeAvatarPicker(); openProfileDetail(editingPlayerProfile); renderProfilesGrid();
+    saveData({ fullPersist: true, syncCold: true }); closeAvatarPicker(); openProfileDetail(editingPlayerProfile); renderProfilesGrid();
     if(currentGame)renderGame();
   }
 
@@ -3225,7 +3299,7 @@
     if(!editingPlayerProfile) return;
     if(!playerProfiles[editingPlayerProfile]) playerProfiles[editingPlayerProfile] = {};
     playerProfiles[editingPlayerProfile].color = colorIdx;
-    saveData();
+    saveData({ fullPersist: true, syncCold: true });
     closeColorPicker();
     // Re-render profile detail to show updated ring
     openProfileDetail(editingPlayerProfile);
@@ -3363,7 +3437,7 @@
         delete currentGame.currentBids[oldName];
       }
     }
-    saveData();
+    saveData({ fullPersist: true, syncCold: true });
     if(currentGame) renderGame();
   }
 
@@ -3391,7 +3465,7 @@
     players = players.filter(p => p !== src);
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
     markHistoryChanged();
-    saveData();
+    saveData({ fullPersist: true, syncCold: true });
   }
 
   /* ═══ VIDEO LOADER ═══ */
@@ -3528,7 +3602,7 @@
       currentGame.hailMaryUsed.push(wheelPlayer);
       addAuditEntry(`${hailMaryLabel()} Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
-      saveData(); renderGame(); closeWheel();
+      saveData(); requestAnimationFrame(()=>{ renderGame(); closeWheel(); });
     },6200);
   }
 
@@ -3576,10 +3650,10 @@
     if(!allPlayers.includes(name)) allPlayers.push(name);
     if(!players.includes(name)) players.push(name);
     document.getElementById('quick-add-player').value='';
-    saveData(); renderRoster();
+    saveData({ fullPersist: true, syncCold: true }); renderRoster();
   }
-  function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData(); renderRoster(); }
-  function moveToBench(n){ players=players.filter(p=>p!==n); saveData(); renderRoster(); }
+  function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
+  function moveToBench(n){ players=players.filter(p=>p!==n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
 
   // ── Swipe to delete (bench) ──
   let _benchSwipe = null; // { startX, currentEl, delta, moved }
@@ -3639,7 +3713,7 @@
         if(confirm(`Delete "${name}"? History remains intact.`)){
           allPlayers = allPlayers.filter(p => p !== name);
           players   = players.filter(p => p !== name);
-          saveData();
+          saveData({ fullPersist: true, syncCold: true });
           toast(`🗑 "${name}" deleted`, 'warning');
           renderRoster();
         } else {
@@ -3662,7 +3736,7 @@
   function permanentlyDeletePlayer(n){
     if(!confirm(`Delete "${n}"? History remains intact.`))return;
     allPlayers=allPlayers.filter(p=>p!==n); players=players.filter(p=>p!==n);
-    saveData(); renderRoster();
+    saveData({ fullPersist: true, syncCold: true }); renderRoster();
   }
   function dragStart(ev,n){ev.dataTransfer.setData('text/plain',n);}
   function allowDrop(ev){ev.preventDefault();}
@@ -3679,7 +3753,7 @@
       });
       allPlayers=allPlayers.filter(p=>p!==src); players=players.filter(p=>p!==src);
       markHistoryChanged();
-      saveData(); renderRoster(); alert(`Merged "${src}" → "${target}".`);
+      saveData({ fullPersist: true, syncCold: true }); renderRoster(); alert(`Merged "${src}" → "${target}".`);
     }
   }
 
@@ -3829,7 +3903,7 @@
   function rookSelectBidWinner(player){
     if(!currentGame||currentGame.rookPhase!=='bidSetup')return;
     currentGame.rookHighBidder=player;
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   function rookBidSetupAmountAdj(delta){
@@ -3865,7 +3939,7 @@
     currentGame.rookBidAmountDraft=amt;
     currentGame.rookPhase='calling';
     addAuditEntry('Rook Bid recorded',`${bidder} won at ${amt}`);
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
     openRookCallModal(bidder,amt);
   }
 
@@ -3877,7 +3951,7 @@
     currentGame.rookTrump=null;
     currentGame.rookCalledCard=null;
     currentGame.rookPartner=null;
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   // ── Rook: Trump & Partner Call Modal ──
@@ -3918,7 +3992,7 @@
       currentGame.rookTrump=null;
       currentGame.rookCalledCard=null;
     }
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   function confirmRookCall(){
@@ -3931,7 +4005,7 @@
     m.classList.add('opacity-0');
     setTimeout(()=>m.classList.add('hidden'),280);
     addAuditEntry('Rook Called', `Trump: ${_rookCallTrump} · Partner card: ${currentGame.rookCalledCard}`);
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   // ── Rook: Results Modal ──
@@ -4085,7 +4159,7 @@
     m.classList.add('opacity-0');
     setTimeout(()=>m.classList.add('hidden'),280);
     currentGame.rookPhase='results';
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   function submitRookRound(){
@@ -4168,18 +4242,20 @@
       }
     });
 
-    renderGame();
-    checkLeaderChange(prevLeader);
+    requestAnimationFrame(()=>{
+      renderGame();
+      checkLeaderChange(prevLeader);
 
-    // Check win target after render (totals are now recalculated)
-    const players_=getActivePlayers(currentGame);
-    const winners_=players_.filter(p=>(currentGame.totals[p]||0)>=winTarget);
-    if(winners_.length>0){
-      const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
-      if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
-        endGame(false);
+      // Check win target after render (totals are now recalculated)
+      const players_=getActivePlayers(currentGame);
+      const winners_=players_.filter(p=>(currentGame.totals[p]||0)>=winTarget);
+      if(winners_.length>0){
+        const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
+        if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
+          endGame(false);
+        }
       }
-    }
+    });
   }
 
   function rookGetLeader(){
@@ -4848,7 +4924,7 @@
       currentGame.rookBidAmountDraft=g.rookBidAmountDraft;
     }
     Object.keys(currentGame.totals).forEach(p=>{if(!players.includes(p))players.push(p);if(!allPlayers.includes(p))allPlayers.push(p);});
-    saveData(); requestWakeLock(); goActiveMatch();
+    saveData({ fullPersist: true, syncCold: true }); requestWakeLock(); goActiveMatch();
   }
 
   /* ═══ TAP OUT + DEALER ═══ */
@@ -4859,7 +4935,7 @@
     addAuditEntry('Tap Out', `${player} retired mid-match`);
     haptic([50, 50, 50]);
     toast(`🚪 ${player} tapped out`, 'warning');
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   function buildDealerList(){
@@ -4878,7 +4954,7 @@
     const gp=getActivePlayers(currentGame);
     const idx=gp.indexOf(player); if(idx<0)return;
     currentGame.dealerOffset=(idx-(currentGame.currentRound-1)%gp.length+gp.length)%gp.length;
-    saveData(); closeDealerModal(); renderGame();
+    saveData(); requestAnimationFrame(()=>{ closeDealerModal(); renderGame(); });
   }
 
   function movePlayerOrder(index,dir){
@@ -4889,7 +4965,7 @@
     if(fromIdx<0||toIdx<0)return;
     let t=currentGame.originalRoster[fromIdx];
     currentGame.originalRoster[fromIdx]=currentGame.originalRoster[toIdx]; currentGame.originalRoster[toIdx]=t;
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   // Move a roster entry from one index to another (splice-based, arbitrary distance)
@@ -4904,7 +4980,7 @@
     const insertAt = fromIdx < toIdx ? toIdx - 1 : toIdx;
     arr.splice(insertAt, 0, moved);
     haptic([30, 20, 50]);
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
     toast(`Moved "${moved}" to position ${insertAt + 1}`, 'success');
   }
 
@@ -5742,7 +5818,7 @@
         currentGame.wizardPhase='scoring';
         addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
         haptic([30,60,30]); soundSubmit();
-        saveData(); renderGame(); setTimeout(()=>isSubmitting=false,500); return;
+        saveData(); requestAnimationFrame(()=>renderGame()); setTimeout(()=>isSubmitting=false,500); return;
       } else {
         let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
@@ -5754,8 +5830,10 @@
         addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.wizardPhase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
-        saveData(); renderGame();
-        checkLeaderChange(prevLeader);
+        saveData(); requestAnimationFrame(()=>{
+          renderGame();
+          checkLeaderChange(prevLeader);
+        });
         setTimeout(()=>isSubmitting=false,500); return;
       }
     }
@@ -5769,8 +5847,10 @@
     currentGame.currentRound++;
     currentGame.currentScoreDrafts={};
     haptic([20,40,20,40,60]); soundSubmit();
-    saveData(); renderGame();
-    checkLeaderChange(prevLeader);
+    saveData(); requestAnimationFrame(()=>{
+      renderGame();
+      checkLeaderChange(prevLeader);
+    });
     setTimeout(()=>isSubmitting=false,500);
   }
 
@@ -5828,7 +5908,7 @@
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
@@ -5860,7 +5940,7 @@
     } else {
       currentGame.totals[name]=0;
     }
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   /* ═══ END GAME + SUDDEN DEATH ═══ */
@@ -5905,7 +5985,7 @@
     // Redefine the cfg check: we'll extend config via a tiebreaker flag consumed in renderGame
     // Easiest: override the config's maxRounds by bumping currentRound backwards
     currentGame.currentRound -= 1;
-    saveData(); renderGame();
+    saveData(); requestAnimationFrame(()=>renderGame());
   }
 
   function acceptTie(){
@@ -5943,7 +6023,7 @@
     const finish=()=>{
       const result = bueno===horrible?'tie':(bueno>horrible?'bueno':'horrible');
       matchData.cincoRating = { result, buenoVotes:bueno, horribleVotes:horrible };
-      if(history[0]&&history[0].id===matchData.id){ history[0].cincoRating = {...matchData.cincoRating}; markHistoryChanged(); saveData(); }
+      if(history[0]&&history[0].id===matchData.id){ history[0].cincoRating = {...matchData.cincoRating}; markHistoryChanged(); saveData({ fullPersist: true, syncCold: true }); }
       fadeStopAudio(cincoVoteMusic); cincoVoteMusic=null;
       reveal.classList.add('show');
       if(result==='bueno'){
@@ -6079,7 +6159,7 @@
       currentGame.rookOppTeamPointsDraft=null;
       currentGame.rookBidAmountDraft=null;
     }
-    saveData(); requestWakeLock(); goActiveMatch();
+    saveData({ fullPersist: true, syncCold: true }); requestWakeLock(); goActiveMatch();
   }
 
   /* ═══ SHARE RECEIPT ═══ */
@@ -6225,7 +6305,7 @@
     _numpadCloseTimer=setTimeout(()=>{
       _numpadCloseTimer=null;
       np.classList.add('hidden');
-      if(currentGame&&shouldRender&&shouldRefreshTotals)renderGame();
+      if(currentGame&&shouldRender&&shouldRefreshTotals)requestAnimationFrame(()=>renderGame());
     },300);
   }
 
@@ -6263,7 +6343,7 @@
     if(!confirm(`Permanently delete this ${g.game} match from ${g.date}?\n\nThis cannot be undone.`)) return;
     history = history.filter(h => h.id !== id);
     markHistoryChanged();
-    saveData();
+    saveData({ fullPersist: true, syncCold: true });
     toast(`🗑 ${g.game} record deleted`, 'warning');
     renderHistoryList();
     renderHallOfFame();
@@ -6295,6 +6375,11 @@
   /* ═══ HALL OF FAME (joinBonus exclusion) ═══ */
   /* ═══ HEAD-TO-HEAD / RIVALRIES / PERSONAL BESTS ═══ */
   function computeHeadToHead(){
+    if(currentGame){
+      if(_matchH2HSnap !== null) return _matchH2HSnap;
+    } else {
+      _matchH2HSnap = null;
+    }
     const h2h = {};
     history.forEach(m => {
       const cfg = configs[m.game]; if(!cfg || !m.totals) return;
@@ -6315,6 +6400,7 @@
         });
       });
     });
+    if(currentGame) _matchH2HSnap = h2h;
     return h2h;
   }
 
@@ -6342,7 +6428,7 @@
     return worst;
   }
 
-  function getPersonalBests(name){
+  function _personalBestsForPlayer(name){
     const bests = {};
     history.forEach(h => {
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
@@ -6359,8 +6445,26 @@
     });
     return bests;
   }
+  function getPersonalBests(name){
+    if(currentGame){
+      if(_personalBestsFrozenMap === null){
+        _personalBestsFrozenMap = {};
+        const names = new Set(allPlayers);
+        history.forEach(h => { getRecordedPlayers(h).forEach(p => { if(p) names.add(p); }); });
+        names.forEach(n => { _personalBestsFrozenMap[n] = _personalBestsForPlayer(n); });
+      }
+      return _personalBestsFrozenMap[name] || {};
+    }
+    _personalBestsFrozenMap = null;
+    return _personalBestsForPlayer(name);
+  }
 
   function calculateHallOfFame(){
+    if(currentGame){
+      if(_matchHallOfFameSnap !== null) return _matchHallOfFameSnap;
+    } else {
+      _matchHallOfFameSnap = null;
+    }
     let r={
       "Overall":{mostGames:0,mostGamesPlayer:'-',bestWinRate:0,bestWinRatePlayer:'-',mostLastPlace:0,mostLastPlacePlayer:'-'},
       "Five Crowns":{bestScore:Infinity,bestPlayer:'-',worstScore:-Infinity,worstPlayer:'-',worstRound:-Infinity,worstRoundPlayer:'-',mostZeros:0,mostZerosPlayer:'-'},
@@ -6440,10 +6544,16 @@
       if(s.lasts>r.Overall.mostLastPlace){r.Overall.mostLastPlace=s.lasts;r.Overall.mostLastPlacePlayer=p;}
       if(s.games>=3){const wr=Math.round(s.wins/s.games*100);if(wr>r.Overall.bestWinRate){r.Overall.bestWinRate=wr;r.Overall.bestWinRatePlayer=p;}}
     });
+    if(currentGame) _matchHallOfFameSnap = r;
     return r;
   }
 
   function calculateAllTimeRecords(){
+    if(currentGame){
+      if(_matchAllTimeRecordsSnap !== null) return _matchAllTimeRecordsSnap;
+    } else {
+      _matchAllTimeRecordsSnap = null;
+    }
     const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
     const chrono = completed.slice().sort((a,b)=>(a.id||0)-(b.id||0));
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
@@ -6719,7 +6829,9 @@
       {emoji:'👑',name:'The Comeback Kid',record:Object.entries(comebackWins).map(([p,v])=>({player:p,value:v,label:`${v} wins from a halftime deficit`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
       {emoji:'🔥',name:'The Streaker',record:allTime.longestWinningStreak,stat:r=>`${r.value} wins in a row`}
     ];
-    return {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries},shameAwards};
+    const _atr = {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries},shameAwards};
+    if(currentGame) _matchAllTimeRecordsSnap = _atr;
+    return _atr;
   }
 
   function renderRecordsPage(){
