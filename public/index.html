@@ -133,7 +133,7 @@
     }
     .tv-round-cell-num {
       font-size: clamp(1.05rem, 2.5vw, 1.5rem) !important;
-      font-weight: 800;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
     .tv-target-pct {
@@ -294,12 +294,15 @@
       padding-bottom: 1rem !important;
     }
     td.score-cell .score-cell-input {
-      font-size: clamp(0.68rem, 1.85vw, 1.05rem) !important;
-      font-weight: 800;
+      font-size: clamp(0.82rem, 2.15vw, 1.125rem) !important;
+      font-weight: 700;
+      line-height: 1.18;
       width: 100%;
       max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
+      overflow: visible;
+      text-overflow: clip;
     }
     .rook-bid-amount-input {
       font-size: clamp(1.45rem, 3.5vw, 2.65rem) !important;
@@ -1134,12 +1137,26 @@
       white-space: normal;
       word-break: break-word;
       overflow-wrap: anywhere;
+      overflow: visible;
     }
     .scorecard-round-th { font-size: clamp(0.55rem, 1vw, 0.72rem) !important; letter-spacing: 0.06em; }
     .scorecard-round--hidden { display: none !important; }
     .scorecard-round-td .tv-round-cell-num {
-      font-size: clamp(0.65rem, 1.75vw, 0.95rem);
+      font-size: clamp(0.8rem, 2.1vw, 1.125rem) !important;
+      font-weight: 700;
       line-height: 1.15;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    /* History modal: round values live on the <td> itself; match live scorecard round column type */
+    td.scorecard-round-td.tv-round-cell-num {
+      font-size: clamp(0.8rem, 2.1vw, 1.125rem) !important;
+      font-weight: 700 !important;
+      line-height: 1.15;
+      color: var(--ink) !important;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     /* ════════ NUMPAD ════════ */
@@ -4442,7 +4459,7 @@
         const s=r.scores[p];
         const isBidder=r.rookBidder===p;
         const isPartner=r.rookPartner===p;
-        let cellColor='var(--ink-2)';
+        let cellColor='var(--ink)';
         let indicator='';
         if(isBidder||isPartner){
           if(r.rookMadeIt){cellColor='var(--emerald)';indicator='✓';}
@@ -6493,7 +6510,7 @@
         <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td" style="color:var(--muted);">${r.scores[p]!==undefined?r.scores[p]:''}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${r.scores[p]!==undefined?r.scores[p]:''}</td>`;
       });
       body+=`</tr>`;
     });
