@@ -294,13 +294,12 @@
       padding-bottom: 1rem !important;
     }
     td.score-cell .score-cell-input {
-      font-size: clamp(0.95rem, 2.25vw, 1.3rem) !important;
+      font-size: clamp(0.68rem, 1.85vw, 1.05rem) !important;
       font-weight: 800;
-      min-width: 2.85rem;
-    }
-    td.score-cell .wizard-past-round-score.score-cell-input {
-      min-width: 5.5rem;
-      width: auto;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
     .rook-bid-amount-input {
       font-size: clamp(1.45rem, 3.5vw, 2.65rem) !important;
@@ -1083,10 +1082,65 @@
     .podium-bar { background:linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%); border-radius:12px 12px 0 0; }
 
     /* ════════ TABLE HEADER ════════ */
+    .scorecard-table-wrap {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+    /* auto layout + min-width so intrinsic width can exceed the viewport when needed; trim JS hides oldest rounds */
+    .scorecard-table {
+      table-layout: auto;
+      min-width: 100%;
+      width: auto;
+    }
     .scorecard-table thead tr { background: var(--ink); }
     .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#d4d4cc; white-space:nowrap; }
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
+    .scorecard-col-player {
+      min-width: 7.5rem;
+      max-width: min(22rem, 48vw);
+      white-space: nowrap;
+    }
+    .scorecard-col-total {
+      min-width: 3.5rem;
+      max-width: 5.5rem;
+      white-space: nowrap;
+    }
+    .scorecard-col-entry {
+      min-width: 6rem;
+      max-width: 8rem;
+      white-space: nowrap;
+    }
+    .scorecard-col-bid {
+      min-width: 3.1rem;
+      max-width: 4rem;
+      white-space: nowrap;
+    }
+    .scorecard-col-target {
+      min-width: 3.25rem;
+      max-width: 4.75rem;
+      white-space: nowrap;
+    }
+    .scorecard-round-th,
+    .scorecard-round-td {
+      width: clamp(3.65rem, 10vw, 5rem);
+      min-width: 3.65rem;
+      max-width: 5rem;
+      box-sizing: border-box;
+      padding-left: 0.2rem;
+      padding-right: 0.2rem;
+      vertical-align: middle;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .scorecard-round-th { font-size: clamp(0.55rem, 1vw, 0.72rem) !important; letter-spacing: 0.06em; }
+    .scorecard-round--hidden { display: none !important; }
+    .scorecard-round-td .tv-round-cell-num {
+      font-size: clamp(0.65rem, 1.75vw, 0.95rem);
+      line-height: 1.15;
+    }
 
     /* ════════ NUMPAD ════════ */
     .numpad-btn { transition: background-color 0.1s, transform 0.08s; }
@@ -1815,8 +1869,9 @@
         <div id="rook-round-panel" class="hidden mb-4"></div>
 
         <div id="scorecard-capture" class="surface-raised overflow-hidden mb-20">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left whitespace-nowrap scorecard-table">
+          <div id="scorecard-rounds-hint" class="scorecard-rounds-hint scorecard-hidden-rounds-hint hidden text-center py-1.5 px-2 text-[10px] font-extrabold tracking-wide select-none" style="color:var(--muted);background:var(--surface-2);"></div>
+          <div class="scorecard-table-wrap">
+            <table class="text-left scorecard-table">
               <thead id="scorecard-head"></thead>
               <tbody id="scorecard-body" class="divide-y hairline"></tbody>
             </table>
@@ -2266,7 +2321,12 @@
           <div id="modal-game-name" class="font-display text-3xl"></div>
           <div id="modal-game-date" class="text-[10px] font-extrabold uppercase tracking-[0.18em] mt-1" style="color:var(--muted);"></div>
         </div>
-        <div class="overflow-auto rounded-2xl border hairline flex-1"><table class="w-full text-left whitespace-nowrap scorecard-table"><thead id="modal-scorecard-head"></thead><tbody id="modal-scorecard-body" class="divide-y hairline"></tbody></table></div>
+        <div id="modal-scorecard-block" class="overflow-hidden rounded-2xl border hairline flex-1 min-h-0 flex flex-col">
+          <div id="modal-scorecard-rounds-hint" class="scorecard-rounds-hint scorecard-hidden-rounds-hint hidden text-center py-1.5 px-2 text-[10px] font-extrabold tracking-wide select-none" style="color:var(--muted);background:var(--surface-2);"></div>
+          <div class="scorecard-table-wrap flex-1 min-h-0 overflow-x-hidden overflow-y-auto">
+            <table class="text-left scorecard-table"><thead id="modal-scorecard-head"></thead><tbody id="modal-scorecard-body" class="divide-y hairline"></tbody></table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -4315,14 +4375,15 @@
 
     // --- HEAD ---
     let head=`<tr>
-      <th class="px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
-      <th class="px-3 py-3 text-center">
+      <th data-sc-part="lead" class="scorecard-col-player px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
+      <th data-sc-part="lead" class="scorecard-col-bid px-3 py-3 text-center">
         <span class="text-[10px] font-extrabold uppercase tracking-[0.12em]" style="color:#34d399;">Hand bid</span>
       </th>
-      <th class="px-4 py-3 text-left">Total</th>
-      <th class="px-3 py-3 text-center" style="color:#6ee7b7;">Target: ${winTarget}</th>`;
-    currentGame.rounds.forEach(r=>{
-      head+=`<th class="px-2 py-3 text-center">R${r.round}</th>`;
+      <th data-sc-part="lead" class="scorecard-col-total px-4 py-3 text-left">Total</th>
+      <th data-sc-part="lead" class="scorecard-col-target px-3 py-3 text-center" style="color:#6ee7b7;">Target: ${winTarget}</th>`;
+    currentGame.rounds.forEach((r,rIdx)=>{
+      if(r.hailMaryBonus) return;
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`;
     });
     head+=`</tr>`;
     document.getElementById('scorecard-head').innerHTML=head;
@@ -4360,7 +4421,7 @@
         :'';
 
       body+=`<tr class="${rowCls}">
-        <td class="px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
+        <td data-sc-part="lead" class="scorecard-col-player px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
             ${getStreakAvatarHtml(p,'avatar-img mx-1')}
             ${isDealer
@@ -4369,14 +4430,15 @@
           </div>
           ${progressBar}
         </td>
-        <td class="px-3 py-2 text-center align-middle">${bidCell}</td>
-        <td class="px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
-        <td class="px-3 py-2 text-center">
+        <td data-sc-part="lead" class="scorecard-col-bid px-3 py-2 text-center align-middle">${bidCell}</td>
+        <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
+        <td data-sc-part="lead" class="scorecard-col-target px-3 py-2 text-center">
           <span class="tv-target-pct font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
         </td>`;
 
       // Past rounds
-      currentGame.rounds.forEach(r=>{
+      currentGame.rounds.forEach((r,rIdx)=>{
+        if(r.hailMaryBonus) return;
         const s=r.scores[p];
         const isBidder=r.rookBidder===p;
         const isPartner=r.rookPartner===p;
@@ -4390,7 +4452,7 @@
         let label='';
         if(isBidder) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${r.rookBid} ${trumpEmoji}</div>`;
         else if(isPartner) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Partner ${indicator}</div>`;
-        body+=`<td class="px-1 py-2 text-center score-cell">
+        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           ${label}
           <span class="tv-round-cell-num font-mono-num" style="color:${cellColor};">${s>=0?'+':''}${s}</span>
         </td>`;
@@ -4502,6 +4564,7 @@
     }
 
     renderPortraitView();
+    requestAnimationFrame(()=>requestAnimationFrame(scheduleScorecardColumnTrimAll));
   }
 
   // ── Pre-game: Dealer Dice Roll ──
@@ -5469,6 +5532,61 @@
     wrap.classList.remove('hidden');
   }
 
+  /* ═══ SCORECARD: compact round columns + hide oldest rounds when overflow (no horizontal scroll) ═══ */
+  let _scorecardTrimRaf = null;
+  function updateScorecardColumnTrim(root){
+    if(!root) return;
+    const wrap=root.querySelector('.scorecard-table-wrap');
+    const table=root.querySelector('table.scorecard-table');
+    const hint=root.querySelector('.scorecard-rounds-hint');
+    if(!wrap||!table) return;
+    if(wrap.clientWidth<40) return;
+    const roundThs=[...table.querySelectorAll('thead th[data-sc-round]')];
+    const roundIdxs=[...new Set(roundThs.map(th=>th.getAttribute('data-sc-round')))].sort((a,b)=>Number(a)-Number(b));
+    table.querySelectorAll('[data-sc-round]').forEach(el=>el.classList.remove('scorecard-round--hidden'));
+    function applyHidden(count){
+      table.querySelectorAll('[data-sc-round]').forEach(el=>el.classList.remove('scorecard-round--hidden'));
+      for(let i=0;i<count;i++){
+        const idx=roundIdxs[i];
+        table.querySelectorAll(`[data-sc-round="${idx}"]`).forEach(el=>el.classList.add('scorecard-round--hidden'));
+      }
+    }
+    if(!roundIdxs.length){
+      if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
+      return;
+    }
+    const fudge=3;
+    let hidden=0;
+    applyHidden(0);
+    while(table.scrollWidth>wrap.clientWidth-fudge&&hidden<roundIdxs.length){
+      hidden++;
+      applyHidden(hidden);
+    }
+    if(hint){
+      if(hidden>0){
+        const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
+        const lastHTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[hidden-1]}"]`);
+        const a=firstTh?.getAttribute('data-sc-round-label')||'';
+        const b=lastHTh?.getAttribute('data-sc-round-label')||'';
+        hint.textContent=hidden===1?`← R${a}`:`← R${a}–R${b}`;
+        hint.classList.remove('hidden');
+      } else {
+        hint.classList.add('hidden');
+        hint.textContent='';
+      }
+    }
+  }
+  function scheduleScorecardColumnTrimAll(){
+    if(_scorecardTrimRaf) return;
+    _scorecardTrimRaf=requestAnimationFrame(()=>{
+      _scorecardTrimRaf=null;
+      updateScorecardColumnTrim(document.getElementById('scorecard-capture'));
+      const modal=document.getElementById('scorecard-modal');
+      const block=document.getElementById('modal-scorecard-block');
+      if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
+    });
+  }
+
   /* ═══ MAIN GAME RENDER ═══ */
   function renderGame(){
     if(!currentGame)return;
@@ -5534,12 +5652,12 @@
 
     // Head
     let head=`<tr>
-      <th class="px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
-      <th class="px-4 py-3">Total</th>`;
-    currentGame.rounds.forEach(r=>{ if(!r.hailMaryBonus) head+=`<th class="px-2 py-3 text-center">R${r.round}</th>`; });
+      <th data-sc-part="lead" class="scorecard-col-player px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
+      <th data-sc-part="lead" class="scorecard-col-total px-4 py-3">Total</th>`;
+    currentGame.rounds.forEach((r,rIdx)=>{ if(!r.hailMaryBonus) head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
     if(!over){
       const hdr=isWiz?(wPhase==='bidding'?`R${currentGame.currentRound} Bids`:`R${currentGame.currentRound} Tricks`):(`R${currentGame.currentRound} Entry`);
-      head+=`<th class="px-5 py-3 text-right" style="color:#6ee7b7;">${hdr}</th>`;
+      head+=`<th data-sc-part="entry" class="scorecard-col-entry px-5 py-3 text-right scorecard-entry-th" style="color:#6ee7b7;">${hdr}</th>`;
     }
     head+=`</tr>`;
     document.getElementById('scorecard-head').innerHTML=head;
@@ -5611,7 +5729,7 @@
 
       const playerCellPad = isWiz && wPhase === 'scoring' && !over ? 'pl-5 pr-2' : 'px-5';
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
-        <td class="${playerCellPad} py-2 flex items-center gap-2 sticky left-0 z-10 border-r hairline min-w-0" style="background:${cellBg};">
+        <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 flex items-center gap-2 sticky left-0 z-10 border-r hairline min-w-0" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0 flex-1">
             ${dragHandle}${arrows}
             <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
@@ -5623,7 +5741,7 @@
           </div>
           ${wizardCurrentBid}
         </td>
-        <td class="px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
 
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
@@ -5640,11 +5758,11 @@
           }
           bidInfo=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${rBid}/${rTricks}</div>${overUnder?`<div class="text-[8px] font-bold mb-0.5">${overUnder}</div>`:''}`;
         }
-        body+=`<td class="px-1 py-2 text-center score-cell">
+        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           ${bidInfo}
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
-            class="score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select ${isWiz?'wizard-past-round-score':'w-12'}">
+            class="score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select">
         </td>`;
       });
 
@@ -5653,13 +5771,13 @@
         let val='';
         if(isWiz&&wPhase==='bidding'&&currentGame.currentBids?.[p]!==undefined)val=currentGame.currentBids[p];
         else if(currentGame.currentScoreDrafts?.[p]!==undefined)val=currentGame.currentScoreDrafts[p];
-        body+=`<td class="px-5 py-2 text-right">
+        body+=`<td data-sc-part="entry" class="scorecard-col-entry px-5 py-2 text-right">
           <input type="text" id="score-input-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}','current')" value="${val}" placeholder=""
-            class="w-24 score-current-input px-2 py-2 text-center font-extrabold cursor-pointer caret-transparent no-select font-jakarta">
+            class="w-full max-w-[6.5rem] ml-auto score-current-input px-2 py-2 text-center font-extrabold cursor-pointer caret-transparent no-select font-jakarta">
         </td>`;
       } else if(!over&&isRetired){
-        body+=`<td class="px-5 py-2 text-right"><span class="text-xs font-bold" style="color:var(--muted);">—</span></td>`;
+        body+=`<td data-sc-part="entry" class="scorecard-col-entry px-5 py-2 text-right"><span class="text-xs font-bold" style="color:var(--muted);">—</span></td>`;
       }
 
       body+=`</tr>`;
@@ -5696,6 +5814,7 @@
     }
 
     renderPortraitView();
+    requestAnimationFrame(()=>requestAnimationFrame(scheduleScorecardColumnTrimAll));
   }
 
   /* ═══ PORTRAIT VIEW ═══ */
@@ -6359,21 +6478,28 @@
     document.getElementById('modal-game-date').textContent=g.date;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
-    let head=`<tr><th class="px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th class="px-4 py-3">Total</th>`;
-    g.rounds?.forEach(r=>head+=`<th class="px-3 py-3 text-center">R${r.round}</th>`);
+    let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-4 py-3">Total</th>`;
+    g.rounds?.forEach((r,rIdx)=>{
+      if(r.hailMaryBonus) return;
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}</th>`;
+    });
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
     let body='';
     sorted.forEach(p=>{
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
-        <td class="px-4 py-2 font-extrabold sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
-        <td class="px-4 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
-      g.rounds?.forEach(r=>body+=`<td class="px-3 py-2 text-center tv-round-cell-num font-mono-num" style="color:var(--muted);">${r.scores[p]!==undefined?r.scores[p]:''}</td>`);
+        <td data-sc-part="lead" class="scorecard-col-player px-4 py-2 font-extrabold sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
+        <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
+      g.rounds?.forEach((r,rIdx)=>{
+        if(r.hailMaryBonus) return;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td" style="color:var(--muted);">${r.scores[p]!==undefined?r.scores[p]:''}</td>`;
+      });
       body+=`</tr>`;
     });
     document.getElementById('modal-scorecard-body').innerHTML=body;
     openModal('scorecard-modal');
+    setTimeout(()=>scheduleScorecardColumnTrimAll(),60);
   }
 
   /* ═══ HALL OF FAME (joinBonus exclusion) ═══ */
@@ -7058,6 +7184,7 @@
     const portrait=window.matchMedia('(orientation: portrait)').matches;
     document.body.classList.toggle('force-portrait-view',portrait);
     if(portrait&&currentGame&&!document.getElementById('game-screen').classList.contains('hidden')) renderPortraitView();
+    scheduleScorecardColumnTrimAll();
   }
   const om=window.matchMedia('(orientation: portrait)');
   (om.addEventListener?om.addEventListener('change',handleOrientation):om.addListener?.(handleOrientation));
