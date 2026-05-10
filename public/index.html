@@ -623,6 +623,11 @@
     /* ════════ ANIMATIONS ════════ */
     .pop-in { animation: popIn 0.42s cubic-bezier(0.16,1,0.3,1) forwards; }
     @keyframes popIn { 0%{transform:scale(0.92);opacity:0} 100%{transform:scale(1);opacity:1} }
+    /* Fallback loser “confetti” if emoji shapes unavailable */
+    @keyframes postgamePoopFall {
+      from { top: -6%; opacity: 1; }
+      to { top: 106%; opacity: 0.88; }
+    }
     .lineup-enter { animation: lineupSlide 0.32s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes lineupSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
     .drag-over { border-color: var(--rose) !important; background: var(--rose-bg) !important; transform: scale(1.02); }
@@ -2356,7 +2361,6 @@
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
         <div id="victory-records" class="w-full space-y-2 mb-5"></div>
-        <div id="victory-video-container" class="w-full mb-5 flex justify-center"></div>
         <div class="flex flex-col sm:flex-row gap-2 w-full mb-2">
           <button onclick="runItBack()" class="btn-ghost flex-1 py-4 text-base font-bold">🔄 Run It Back</button>
           <button onclick="shareReceipt()" class="btn-ghost flex-1 py-4 text-base font-bold">📸 Share Receipt</button>
@@ -2372,7 +2376,6 @@
         <div class="text-7xl mb-4">💔</div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--rose);">Hall of Shame</div>
         <h3 id="loser-names" class="font-display text-3xl sm:text-4xl mb-3 leading-tight"></h3>
-        <div id="loser-video-container" class="w-full mb-5 flex justify-center"></div>
         <p class="text-base font-bold mb-6 italic" style="color:var(--muted);">I'm weawwy vewy sowwy. 😢</p>
         <button onclick="closeLoserModal()" class="btn-primary w-full py-4 text-lg">Return Home</button>
       </div>
@@ -3547,17 +3550,6 @@
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
-  }
-
-  /* ═══ VIDEO LOADER ═══ */
-  function loadPlayerVideo(name,type,containerId){
-    const c=document.getElementById(containerId); c.innerHTML=''; if(!name)return;
-    const clean=name.replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
-    const vid=document.createElement('video'); vid.src=`${clean}_${type}.mp4`; vid.autoplay=true; vid.controls=true; vid.playsInline=true;
-    vid.className='w-full max-w-sm rounded-2xl mt-2 border-[3px]';
-    vid.style.cssText=`border-color:${type==='win'?'var(--emerald)':'var(--rose)'};box-shadow:var(--shadow-lg);`;
-    c.appendChild(vid);
-    vid.onerror=()=>c.innerHTML='';
   }
 
   /* ═══ HAIL MARY WHEEL ═══ */
@@ -6085,6 +6077,59 @@
 
   /* ═══ END GAME + SUDDEN DEATH ═══ */
   let currentLosers=[], pendingGameData=null;
+  /** Above all end-game overlays (victory 210, loser 220, cinco vote 260) so confetti is not blurred by backdrop-filter. */
+  const POSTGAME_CONFETTI_Z = 64000;
+  let _cachedPoopConfettiShape = null;
+  let _poopConfettiShapeResolved = false;
+  function getPoopConfettiShape(){
+    if(_poopConfettiShapeResolved) return _cachedPoopConfettiShape;
+    _poopConfettiShapeResolved = true;
+    if(typeof confetti !== 'function' || typeof confetti.shapeFromText !== 'function'){
+      _cachedPoopConfettiShape = null;
+      return null;
+    }
+    try{
+      const scalar = 2;
+      _cachedPoopConfettiShape = confetti.shapeFromText({ text: '\u{1F4A9}', scalar });
+    } catch(e){
+      _cachedPoopConfettiShape = null;
+    }
+    return _cachedPoopConfettiShape;
+  }
+  function fireWinnerConfettiLoop(){
+    if(typeof confetti !== 'function') return;
+    const colors = isCincoMayo ? ['#006847','#ffffff','#CE1126'] : ['#047857','#10b981','#fbbf24'];
+    const end = Date.now() + 3000;
+    (function frame(){
+      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors, zIndex: POSTGAME_CONFETTI_Z });
+      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors, zIndex: POSTGAME_CONFETTI_Z });
+      if(Date.now() < end) requestAnimationFrame(frame);
+    })();
+  }
+  function fireLoserConfettiLoop(){
+    const shape = getPoopConfettiShape();
+    const end = Date.now() + 3000;
+    if(shape && typeof confetti === 'function'){
+      (function frame(){
+        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_Z });
+        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_Z });
+        if(Date.now() < end) requestAnimationFrame(frame);
+      })();
+      return;
+    }
+    const shell = document.createElement('div');
+    shell.setAttribute('aria-hidden','true');
+    shell.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:'+POSTGAME_CONFETTI_Z+';overflow:hidden;';
+    document.body.appendChild(shell);
+    for(let i = 0; i < 46; i++){
+      const el = document.createElement('div');
+      el.textContent = '\u{1F4A9}';
+      const dur = 2.4 + Math.random() * 1.15;
+      el.style.cssText = 'position:absolute;left:'+(Math.random()*100)+'%;top:-6%;font-size:'+(18+Math.random()*22)+'px;line-height:1;animation:postgamePoopFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*0.35)+'s;';
+      shell.appendChild(el);
+    }
+    setTimeout(()=>{ shell.remove(); }, 4500);
+  }
 
   function endGame(silent=false){
     if(!currentGame)return;
@@ -6168,7 +6213,7 @@
       reveal.classList.add('show');
       if(result==='bueno'){
         reveal.innerHTML=`<div class="cinco-reveal-card"><img src="${CINCO_ASSETS.mayo1}" alt="Bueno"><div class="cinco-reveal-caption">¡Noche legendaria! The people have spoken. 🏆</div></div>`;
-        if(typeof confetti==='function') confetti({particleCount:140,spread:80,origin:{y:0.6},colors:['#006847','#ffffff','#CE1126']});
+        if(typeof confetti==='function') confetti({particleCount:140,spread:80,origin:{y:0.6},colors:['#006847','#ffffff','#CE1126'],zIndex:POSTGAME_CONFETTI_Z});
       } else if(result==='horrible'){
         reveal.innerHTML=`<div class="cinco-reveal-card"><img src="${CINCO_ASSETS.mayo2}" alt="Horrible" style="filter:contrast(1.05) saturate(0.75) brightness(0.72);"><div class="cinco-reveal-caption">Yeah that sucked. Tequila? 🥃</div></div>`;
       } else {
@@ -6228,7 +6273,6 @@
     const vs=document.getElementById('victory-subtitle');
     if(vs){ if(isCincoMayo){vs.textContent='¡Feliz Cinco de Mayo! 🎉';vs.classList.remove('hidden');} else {vs.textContent='';vs.classList.add('hidden');} }
     document.getElementById('victory-records').innerHTML=alerts.map(a=>`<div class="px-4 py-2 rounded-xl font-bold text-sm mx-auto w-fit" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;">${a}</div>`).join('');
-    loadPlayerVideo(data.winners[0],'win','victory-video-container');
     const modal=document.getElementById('victory-modal');
     modal.classList.remove('hidden','opacity-0');
     if(alerts.length > 0){
@@ -6238,14 +6282,7 @@
     } else {
       haptic([60, 40, 100]);
     }
-    const end=Date.now()+3000;
-    (function frame(){
-      if(typeof confetti==='function'){
-        confetti({particleCount:5,angle:60,spread:55,origin:{x:0},colors:isCincoMayo?['#006847','#ffffff','#CE1126']:['#047857','#10b981','#fbbf24']});
-        confetti({particleCount:5,angle:120,spread:55,origin:{x:1},colors:isCincoMayo?['#006847','#ffffff','#CE1126']:['#047857','#10b981','#fbbf24']});
-      }
-      if(Date.now()<end)requestAnimationFrame(frame);
-    })();
+    fireWinnerConfettiLoop();
   }
 
   function analyzeRecords(data){
@@ -6264,16 +6301,14 @@
 
   function showLoserModal(){
     document.getElementById('victory-modal').classList.add('hidden');
-    const vc=document.getElementById('victory-video-container');
-    if(vc.firstChild?.pause)vc.firstChild.pause();
+    if(typeof confetti==='function'&&confetti.reset)confetti.reset();
     document.getElementById('loser-names').textContent=currentLosers.length>1?`${currentLosers.join(' & ')} lose.`:`${currentLosers[0]} loses.`;
-    loadPlayerVideo(currentLosers[0],'lose','loser-video-container');
     document.getElementById('loser-modal').classList.remove('hidden');
+    fireLoserConfettiLoop();
   }
   function closeLoserModal(){
-    const lc=document.getElementById('loser-video-container');
-    if(lc.firstChild?.pause)lc.firstChild.pause();
     document.getElementById('loser-modal').classList.add('hidden');
+    if(typeof confetti==='function'&&confetti.reset)confetti.reset();
     goHome();
   }
 
