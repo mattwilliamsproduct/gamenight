@@ -298,6 +298,10 @@
       font-weight: 800;
       min-width: 2.85rem;
     }
+    td.score-cell .wizard-past-round-score.score-cell-input {
+      min-width: 5.5rem;
+      width: auto;
+    }
     .rook-bid-amount-input {
       font-size: clamp(1.45rem, 3.5vw, 2.65rem) !important;
     }
@@ -710,7 +714,7 @@
     .wizard-current-bid .wizard-over-under { font-size: clamp(0.72rem, 1.85vw, 0.95rem); margin-top: 0.22rem; font-weight: 800; }
     .wizard-current-bid .wizard-bid-status-exact { color: #d1fae5 !important; }
     .wizard-current-bid .wizard-bid-status-over { color: #fecaca !important; }
-    .wizard-current-bid .wizard-bid-status-under { color: #bfdbfe !important; }
+    .wizard-current-bid .wizard-bid-status-under { color: #fecaca !important; }
 
     /* ════════ DRAG & DROP (Round 1 reorder) ════════ */
     .drag-handle {
@@ -5632,7 +5636,7 @@
             const diff=rAct-rBid;
             if(diff===0) overUnder=`<span style="color:var(--emerald);">exact ✓</span>`;
             else if(diff>0) overUnder=`<span style="color:var(--rose);">${diff} over</span>`;
-            else overUnder=`<span style="color:var(--blue);">${Math.abs(diff)} under</span>`;
+            else overUnder=`<span style="color:var(--rose);">${Math.abs(diff)} under</span>`;
           }
           bidInfo=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${rBid}/${rTricks}</div>${overUnder?`<div class="text-[8px] font-bold mb-0.5">${overUnder}</div>`:''}`;
         }
@@ -5640,7 +5644,7 @@
           ${bidInfo}
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
-            class="w-12 score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select">
+            class="score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select ${isWiz?'wizard-past-round-score':'w-12'}">
         </td>`;
       });
 
