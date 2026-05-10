@@ -628,6 +628,23 @@
       from { top: -6%; opacity: 1; }
       to { top: 106%; opacity: 0.88; }
     }
+    /*
+      Post-game confetti: dedicated full-viewport canvas, last stacking layer on <body>.
+      The default canvas-confetti canvas only applies z-index when the element is first
+      created; a first burst at the default z-index (100) leaves the canvas behind
+      z-[210] modals and visually under backdrop-filter (blurred/muted). User-supplied
+      canvas via confetti.create() is not removed after bursts and uses this fixed layer.
+    */
+    #postgame-confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: 100vw;
+      height: 100%;
+      min-height: 100vh;
+      pointer-events: none;
+      z-index: 2147483647;
+    }
     .lineup-enter { animation: lineupSlide 0.32s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes lineupSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
     .drag-over { border-color: var(--rose) !important; background: var(--rose-bg) !important; transform: scale(1.02); }
@@ -6077,8 +6094,22 @@
 
   /* ═══ END GAME + SUDDEN DEATH ═══ */
   let currentLosers=[], pendingGameData=null;
-  /** Above all end-game overlays (victory 210, loser 220, cinco vote 260) so confetti is not blurred by backdrop-filter. */
-  const POSTGAME_CONFETTI_Z = 64000;
+  /** Same numeric layer as #postgame-confetti-canvas for DOM fallback (💩 rain). */
+  const POSTGAME_CONFETTI_LAYER_Z = 2147483647;
+  let _postgameConfettiFire = null;
+  function getPostgameConfetti(){
+    if(_postgameConfettiFire) return _postgameConfettiFire;
+    if(typeof confetti !== 'function' || typeof confetti.create !== 'function') return null;
+    const canvas = document.getElementById('postgame-confetti-canvas');
+    if(!canvas) return null;
+    _postgameConfettiFire = confetti.create(canvas, { resize: true });
+    return _postgameConfettiFire;
+  }
+  function resetPostgameConfetti(){
+    if(_postgameConfettiFire && typeof _postgameConfettiFire.reset === 'function'){
+      _postgameConfettiFire.reset();
+    }
+  }
   let _cachedPoopConfettiShape = null;
   let _poopConfettiShapeResolved = false;
   function getPoopConfettiShape(){
@@ -6097,29 +6128,43 @@
     return _cachedPoopConfettiShape;
   }
   function fireWinnerConfettiLoop(){
-    if(typeof confetti !== 'function') return;
     const colors = isCincoMayo ? ['#006847','#ffffff','#CE1126'] : ['#047857','#10b981','#fbbf24'];
     const end = Date.now() + 3000;
+    const c = getPostgameConfetti();
     (function frame(){
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors, zIndex: POSTGAME_CONFETTI_Z });
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors, zIndex: POSTGAME_CONFETTI_Z });
+      if(c){
+        c({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
+        c({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      } else if(typeof confetti === 'function'){
+        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+      }
       if(Date.now() < end) requestAnimationFrame(frame);
     })();
   }
   function fireLoserConfettiLoop(){
     const shape = getPoopConfettiShape();
     const end = Date.now() + 3000;
+    const c = getPostgameConfetti();
+    if(shape && c){
+      (function frame(){
+        c({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2 });
+        c({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2 });
+        if(Date.now() < end) requestAnimationFrame(frame);
+      })();
+      return;
+    }
     if(shape && typeof confetti === 'function'){
       (function frame(){
-        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_Z });
-        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_Z });
+        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_LAYER_Z });
         if(Date.now() < end) requestAnimationFrame(frame);
       })();
       return;
     }
     const shell = document.createElement('div');
     shell.setAttribute('aria-hidden','true');
-    shell.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:'+POSTGAME_CONFETTI_Z+';overflow:hidden;';
+    shell.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:'+POSTGAME_CONFETTI_LAYER_Z+';overflow:hidden;';
     document.body.appendChild(shell);
     for(let i = 0; i < 46; i++){
       const el = document.createElement('div');
@@ -6213,7 +6258,9 @@
       reveal.classList.add('show');
       if(result==='bueno'){
         reveal.innerHTML=`<div class="cinco-reveal-card"><img src="${CINCO_ASSETS.mayo1}" alt="Bueno"><div class="cinco-reveal-caption">¡Noche legendaria! The people have spoken. 🏆</div></div>`;
-        if(typeof confetti==='function') confetti({particleCount:140,spread:80,origin:{y:0.6},colors:['#006847','#ffffff','#CE1126'],zIndex:POSTGAME_CONFETTI_Z});
+        const cGo = getPostgameConfetti();
+        if(cGo) cGo({particleCount:140,spread:80,origin:{y:0.6},colors:['#006847','#ffffff','#CE1126']});
+        else if(typeof confetti==='function') confetti({particleCount:140,spread:80,origin:{y:0.6},colors:['#006847','#ffffff','#CE1126'],zIndex:POSTGAME_CONFETTI_LAYER_Z});
       } else if(result==='horrible'){
         reveal.innerHTML=`<div class="cinco-reveal-card"><img src="${CINCO_ASSETS.mayo2}" alt="Horrible" style="filter:contrast(1.05) saturate(0.75) brightness(0.72);"><div class="cinco-reveal-caption">Yeah that sucked. Tequila? 🥃</div></div>`;
       } else {
@@ -6301,14 +6348,14 @@
 
   function showLoserModal(){
     document.getElementById('victory-modal').classList.add('hidden');
-    if(typeof confetti==='function'&&confetti.reset)confetti.reset();
+    resetPostgameConfetti();
     document.getElementById('loser-names').textContent=currentLosers.length>1?`${currentLosers.join(' & ')} lose.`:`${currentLosers[0]} loses.`;
     document.getElementById('loser-modal').classList.remove('hidden');
     fireLoserConfettiLoop();
   }
   function closeLoserModal(){
     document.getElementById('loser-modal').classList.add('hidden');
-    if(typeof confetti==='function'&&confetti.reset)confetti.reset();
+    resetPostgameConfetti();
     goHome();
   }
 
@@ -7254,5 +7301,6 @@
     else{navigateTo('home-screen'); renderRoster();}
   };
   </script>
+  <canvas id="postgame-confetti-canvas" width="2" height="2" aria-hidden="true"></canvas>
 </body>
 </html>
