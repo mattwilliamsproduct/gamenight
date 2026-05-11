@@ -2843,11 +2843,14 @@
         }
         runLargeCold();
       } else {
+        // PERF: Defer history/profiles serialization by 2s during active gameplay.
+        // The hot path (gn_current) is already saved synchronously above; the large
+        // cold blobs only need to reach localStorage before pagehide/visibilitychange.
         if(_deferredColdPersistTimer) clearTimeout(_deferredColdPersistTimer);
         _deferredColdPersistTimer = setTimeout(() => {
           _deferredColdPersistTimer = null;
           runLargeCold();
-        }, 0);
+        }, 2000);
       }
     }
 
@@ -3382,7 +3385,7 @@
     if(!playerProfiles[editingPlayerProfile])playerProfiles[editingPlayerProfile]={};
     playerProfiles[editingPlayerProfile].avatar=f;
     saveData({ fullPersist: true, syncCold: true }); closeAvatarPicker(); openProfileDetail(editingPlayerProfile); renderProfilesGrid();
-    if(currentGame)renderGame();
+    if(currentGame)scheduleRender();
   }
 
   // ── Color Picker ──
@@ -3403,10 +3406,9 @@
     playerProfiles[editingPlayerProfile].color = colorIdx;
     saveData({ fullPersist: true, syncCold: true });
     closeColorPicker();
-    // Re-render profile detail to show updated ring
     openProfileDetail(editingPlayerProfile);
     renderProfilesGrid();
-    if(currentGame) renderGame();
+    if(currentGame) scheduleRender();
   }
 
   // ── Rename Player ──
@@ -3540,7 +3542,7 @@
       }
     }
     saveData({ fullPersist: true, syncCold: true });
-    if(currentGame) renderGame();
+    if(currentGame) scheduleRender();
   }
 
   // Helper: merge oldName's data into newName, then delete oldName.
@@ -3693,7 +3695,7 @@
       currentGame.hailMaryUsed.push(wheelPlayer);
       addAuditEntry(`${hailMaryLabel()} Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
-      saveData(); requestAnimationFrame(()=>{ renderGame(); closeWheel(); });
+      saveData(); closeWheel(); scheduleRender();
     },6200);
   }
 
@@ -3994,7 +3996,7 @@
   function rookSelectBidWinner(player){
     if(!currentGame||currentGame.rookPhase!=='bidSetup')return;
     currentGame.rookHighBidder=player;
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   function rookBidSetupAmountAdj(delta){
@@ -4030,7 +4032,7 @@
     currentGame.rookBidAmountDraft=amt;
     currentGame.rookPhase='calling';
     addAuditEntry('Rook Bid recorded',`${bidder} won at ${amt}`);
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
     openRookCallModal(bidder,amt);
   }
 
@@ -4042,7 +4044,7 @@
     currentGame.rookTrump=null;
     currentGame.rookCalledCard=null;
     currentGame.rookPartner=null;
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   // ── Rook: Trump & Partner Call Modal ──
@@ -4083,7 +4085,7 @@
       currentGame.rookTrump=null;
       currentGame.rookCalledCard=null;
     }
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   function confirmRookCall(){
@@ -4096,7 +4098,7 @@
     m.classList.add('opacity-0');
     setTimeout(()=>m.classList.add('hidden'),280);
     addAuditEntry('Rook Called', `Trump: ${_rookCallTrump} · Partner card: ${currentGame.rookCalledCard}`);
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   // ── Rook: Results Modal ──
@@ -4158,7 +4160,7 @@
     const btn=document.getElementById(`rook-partner-btn-${safeId}`);
     if(btn)btn.classList.add('rook-partner-active');
     saveData();
-    renderGame();
+    scheduleRender();
     rookTeamPointsUpdate();
   }
 
@@ -4250,7 +4252,7 @@
     m.classList.add('opacity-0');
     setTimeout(()=>m.classList.add('hidden'),280);
     currentGame.rookPhase='results';
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   function submitRookRound(){
@@ -4333,20 +4335,18 @@
       }
     });
 
-    requestAnimationFrame(()=>{
-      renderGame();
-      checkLeaderChange(prevLeader);
-
-      // Check win target after render (totals are now recalculated)
-      const players_=getActivePlayers(currentGame);
-      const winners_=players_.filter(p=>(currentGame.totals[p]||0)>=winTarget);
-      if(winners_.length>0){
-        const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
-        if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
-          endGame(false);
-        }
+    // PERF: Recompute totals eagerly for immediate leader/win-target checks; defer DOM render.
+    recomputeGameTotals(currentGame);
+    checkLeaderChange(prevLeader);
+    const players_=getActivePlayers(currentGame);
+    const winners_=players_.filter(p=>(currentGame.totals[p]||0)>=winTarget);
+    if(winners_.length>0){
+      const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
+      if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
+        endGame(false);
       }
-    });
+    }
+    scheduleRender();
   }
 
   function rookGetLeader(){
@@ -4725,6 +4725,10 @@
     const intro=document.getElementById('lineup-intro');
     intro.classList.add('hidden');
     intro.onclick=null;
+    // PERF: Remove the 30 .cinco-float spans with infinite CSS animations so the
+    // compositor doesn't keep running them while the overlay is hidden.
+    const cf=document.getElementById('cinco-intro-confetti');
+    if(cf) cf.innerHTML='';
     fadeStopAudio(cincoIntroMusic);
     cincoIntroMusic = null;
     commitGameStart(_lineupIntroDealerOffset);
@@ -5029,7 +5033,7 @@
     addAuditEntry('Tap Out', `${player} retired mid-match`);
     haptic([50, 50, 50]);
     toast(`🚪 ${player} tapped out`, 'warning');
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   function buildDealerList(){
@@ -5048,7 +5052,7 @@
     const gp=getActivePlayers(currentGame);
     const idx=gp.indexOf(player); if(idx<0)return;
     currentGame.dealerOffset=(idx-(currentGame.currentRound-1)%gp.length+gp.length)%gp.length;
-    saveData(); requestAnimationFrame(()=>{ closeDealerModal(); renderGame(); });
+    saveData(); closeDealerModal(); scheduleRender();
   }
 
   function movePlayerOrder(index,dir){
@@ -5059,7 +5063,7 @@
     if(fromIdx<0||toIdx<0)return;
     let t=currentGame.originalRoster[fromIdx];
     currentGame.originalRoster[fromIdx]=currentGame.originalRoster[toIdx]; currentGame.originalRoster[toIdx]=t;
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   // Move a roster entry from one index to another (splice-based, arbitrary distance)
@@ -5074,7 +5078,7 @@
     const insertAt = fromIdx < toIdx ? toIdx - 1 : toIdx;
     arr.splice(insertAt, 0, moved);
     haptic([30, 20, 50]);
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
     toast(`Moved "${moved}" to position ${insertAt + 1}`, 'success');
   }
 
@@ -5467,7 +5471,7 @@
     _reorderPlayersWorking = null;
     reorderModalDragCleanup();
     saveData();
-    renderGame();
+    scheduleRender();
     closeModal('reorder-players-modal');
     toast('Deal order updated', 'success');
   }
@@ -5570,23 +5574,30 @@
     if(wrap.clientWidth<40) return;
     const roundThs=[...table.querySelectorAll('thead th[data-sc-round]')];
     const roundIdxs=[...new Set(roundThs.map(th=>th.getAttribute('data-sc-round')))].sort((a,b)=>Number(a)-Number(b));
-    table.querySelectorAll('[data-sc-round]').forEach(el=>el.classList.remove('scorecard-round--hidden'));
+    const allRoundEls=table.querySelectorAll('[data-sc-round]');
     function applyHidden(count){
-      table.querySelectorAll('[data-sc-round]').forEach(el=>el.classList.remove('scorecard-round--hidden'));
-      for(let i=0;i<count;i++){
-        const idx=roundIdxs[i];
-        table.querySelectorAll(`[data-sc-round="${idx}"]`).forEach(el=>el.classList.add('scorecard-round--hidden'));
-      }
+      allRoundEls.forEach(el=>{
+        const idx=el.getAttribute('data-sc-round');
+        const pos=roundIdxs.indexOf(idx);
+        el.classList.toggle('scorecard-round--hidden', pos>=0 && pos<count);
+      });
     }
     if(!roundIdxs.length){
       if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
       return;
     }
+    // PERF: Binary search for minimum hidden count, O(log n) forced layouts instead of O(n).
     const fudge=4;
-    let hidden=0;
     applyHidden(0);
-    while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
-      hidden++;
+    let lo=0, hi=roundIdxs.length, hidden=0;
+    if(wrap.scrollWidth>wrap.clientWidth+fudge){
+      while(lo<hi){
+        const mid=(lo+hi)>>>1;
+        applyHidden(mid);
+        if(wrap.scrollWidth>wrap.clientWidth+fudge) lo=mid+1;
+        else hi=mid;
+      }
+      hidden=lo;
       applyHidden(hidden);
     }
     if(hint){
@@ -5615,6 +5626,13 @@
   }
 
   /* ═══ MAIN GAME RENDER ═══ */
+  // PERF: Coalesce multiple renderGame() calls into a single repaint per frame.
+  let _renderPending = false;
+  function scheduleRender(){
+    if(_renderPending) return;
+    _renderPending = true;
+    requestAnimationFrame(() => { _renderPending = false; renderGame(); });
+  }
   function renderGame(){
     if(!currentGame)return;
     const rookPanel=document.getElementById('rook-round-panel');
@@ -5968,7 +5986,7 @@
         currentGame.wizardPhase='scoring';
         addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
         haptic([30,60,30]); soundSubmit();
-        saveData(); requestAnimationFrame(()=>renderGame()); setTimeout(()=>isSubmitting=false,500); return;
+        saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
         let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
@@ -5980,10 +5998,9 @@
         addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.wizardPhase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
-        saveData(); requestAnimationFrame(()=>{
-          renderGame();
-          checkLeaderChange(prevLeader);
-        });
+        // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
+        saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
+        scheduleRender();
         setTimeout(()=>isSubmitting=false,500); return;
       }
     }
@@ -5997,10 +6014,9 @@
     currentGame.currentRound++;
     currentGame.currentScoreDrafts={};
     haptic([20,40,20,40,60]); soundSubmit();
-    saveData(); requestAnimationFrame(()=>{
-      renderGame();
-      checkLeaderChange(prevLeader);
-    });
+    // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
+    saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
+    scheduleRender();
     setTimeout(()=>isSubmitting=false,500);
   }
 
@@ -6058,7 +6074,7 @@
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
@@ -6090,7 +6106,7 @@
     } else {
       currentGame.totals[name]=0;
     }
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   /* ═══ END GAME + SUDDEN DEATH ═══ */
@@ -6098,6 +6114,9 @@
   /** Same numeric layer as #postgame-confetti-canvas for DOM fallback (💩 rain). */
   const POSTGAME_CONFETTI_LAYER_Z = 2147483647;
   let _postgameConfettiFire = null;
+  // PERF: Kill flag stops confetti rAF loops immediately when modals close,
+  // instead of letting them spin for the full 3-second timeout.
+  let _confettiLoopGeneration = 0;
   function getPostgameConfetti(){
     if(_postgameConfettiFire) return _postgameConfettiFire;
     if(typeof confetti !== 'function' || typeof confetti.create !== 'function') return null;
@@ -6107,6 +6126,7 @@
     return _postgameConfettiFire;
   }
   function resetPostgameConfetti(){
+    _confettiLoopGeneration++;
     if(_postgameConfettiFire && typeof _postgameConfettiFire.reset === 'function'){
       _postgameConfettiFire.reset();
     }
@@ -6132,7 +6152,10 @@
     const colors = isCincoMayo ? ['#006847','#ffffff','#CE1126'] : ['#047857','#10b981','#fbbf24'];
     const end = Date.now() + 3000;
     const c = getPostgameConfetti();
+    // PERF: Capture generation so resetPostgameConfetti() kills this loop immediately.
+    const gen = _confettiLoopGeneration;
     (function frame(){
+      if(gen !== _confettiLoopGeneration) return;
       if(c){
         c({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
         c({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
@@ -6147,8 +6170,11 @@
     const shape = getPoopConfettiShape();
     const end = Date.now() + 3000;
     const c = getPostgameConfetti();
+    // PERF: Capture generation so resetPostgameConfetti() kills this loop immediately.
+    const gen = _confettiLoopGeneration;
     if(shape && c){
       (function frame(){
+        if(gen !== _confettiLoopGeneration) return;
         c({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2 });
         c({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2 });
         if(Date.now() < end) requestAnimationFrame(frame);
@@ -6157,6 +6183,7 @@
     }
     if(shape && typeof confetti === 'function'){
       (function frame(){
+        if(gen !== _confettiLoopGeneration) return;
         confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_LAYER_Z });
         confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_LAYER_Z });
         if(Date.now() < end) requestAnimationFrame(frame);
@@ -6216,7 +6243,7 @@
     // Redefine the cfg check: we'll extend config via a tiebreaker flag consumed in renderGame
     // Easiest: override the config's maxRounds by bumping currentRound backwards
     currentGame.currentRound -= 1;
-    saveData(); requestAnimationFrame(()=>renderGame());
+    saveData(); scheduleRender();
   }
 
   function acceptTie(){
@@ -6528,7 +6555,7 @@
     _numpadCloseTimer=setTimeout(()=>{
       _numpadCloseTimer=null;
       np.classList.add('hidden');
-      if(currentGame&&shouldRender&&shouldRefreshTotals)requestAnimationFrame(()=>renderGame());
+      if(currentGame&&shouldRender&&shouldRefreshTotals)scheduleRender();
     },300);
   }
 
