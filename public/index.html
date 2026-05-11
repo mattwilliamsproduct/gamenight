@@ -596,6 +596,10 @@
       padding-bottom: 0.5rem;
       height: auto;
       min-height: 2.4rem;
+      width: 100%;
+      max-width: 4rem;
+      margin-left: auto;
+      margin-right: auto;
     }
     .score-cell-input:hover { border-color: var(--hairline); }
     .score-cell-active { background: var(--surface) !important; border-color: var(--emerald) !important; box-shadow: 0 0 0 3px rgba(4,120,87,0.18); }
@@ -1124,7 +1128,6 @@
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
-      width: 18%;
       white-space: nowrap;
       overflow: hidden;
     }
@@ -1133,7 +1136,7 @@
       white-space: nowrap;
     }
     .scorecard-col-entry {
-      width: 7rem;
+      width: 5rem;
       white-space: nowrap;
     }
     .scorecard-col-bid {
@@ -1146,9 +1149,10 @@
     }
     .scorecard-round-th,
     .scorecard-round-td {
+      width: 4.5rem;
       box-sizing: border-box;
-      padding-left: 0.2rem;
-      padding-right: 0.2rem;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
       vertical-align: middle;
       white-space: normal;
       word-break: break-word;
@@ -5699,7 +5703,7 @@
     currentGame.rounds.forEach((r,rIdx)=>{ if(!r.hailMaryBonus) head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
     if(!over){
       const hdr=isWiz?(wPhase==='bidding'?`R${currentGame.currentRound} Bids`:`R${currentGame.currentRound} Tricks`):(`R${currentGame.currentRound} Entry`);
-      head+=`<th data-sc-part="entry" class="scorecard-col-entry px-5 py-3 text-right scorecard-entry-th" style="color:#6ee7b7;">${hdr}</th>`;
+      head+=`<th data-sc-part="entry" class="scorecard-col-entry px-2 py-3 text-right scorecard-entry-th" style="color:#6ee7b7;">${hdr}</th>`;
     }
     head+=`</tr>`;
     document.getElementById('scorecard-head').innerHTML=head;
@@ -5815,13 +5819,13 @@
         let val='';
         if(isWiz&&wPhase==='bidding'&&currentGame.currentBids?.[p]!==undefined)val=currentGame.currentBids[p];
         else if(currentGame.currentScoreDrafts?.[p]!==undefined)val=currentGame.currentScoreDrafts[p];
-        body+=`<td data-sc-part="entry" class="scorecard-col-entry px-5 py-2 text-right">
+        body+=`<td data-sc-part="entry" class="scorecard-col-entry px-2 py-2 text-right">
           <input type="text" id="score-input-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}','current')" value="${val}" placeholder=""
-            class="w-full max-w-[6.5rem] ml-auto score-current-input px-2 py-2 text-center font-extrabold cursor-pointer caret-transparent no-select font-jakarta">
+            class="w-full max-w-[4.5rem] ml-auto score-current-input px-1 py-2 text-center font-extrabold cursor-pointer caret-transparent no-select font-jakarta">
         </td>`;
       } else if(!over&&isRetired){
-        body+=`<td data-sc-part="entry" class="scorecard-col-entry px-5 py-2 text-right"><span class="text-xs font-bold" style="color:var(--muted);">—</span></td>`;
+        body+=`<td data-sc-part="entry" class="scorecard-col-entry px-2 py-2 text-right"><span class="text-xs font-bold" style="color:var(--muted);">—</span></td>`;
       }
 
       body+=`</tr>`;
