@@ -1114,46 +1114,38 @@
       width: 100%;
       max-width: 100%;
     }
-    /* auto layout + min-width so intrinsic width can exceed the viewport when needed; trim JS hides oldest rounds */
+    /* fixed layout gives us explicit control over column proportions; trim JS hides oldest rounds when they get too narrow */
     .scorecard-table {
-      table-layout: auto;
-      min-width: 100%;
-      width: auto;
+      table-layout: fixed;
+      width: 100%;
     }
     .scorecard-table thead tr { background: var(--ink); }
     .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#d4d4cc; white-space:nowrap; }
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
-      min-width: 7.5rem;
-      max-width: min(22rem, 48vw);
+      width: 18%;
       white-space: nowrap;
+      overflow: hidden;
     }
     .scorecard-col-total {
-      min-width: 3.5rem;
-      max-width: 5.5rem;
+      width: 5.5rem;
       white-space: nowrap;
     }
     .scorecard-col-entry {
-      min-width: 6rem;
-      max-width: 8rem;
+      width: 7rem;
       white-space: nowrap;
     }
     .scorecard-col-bid {
-      min-width: 3.1rem;
-      max-width: 4rem;
+      width: 3.5rem;
       white-space: nowrap;
     }
     .scorecard-col-target {
-      min-width: 3.25rem;
-      max-width: 4.75rem;
+      width: 4rem;
       white-space: nowrap;
     }
     .scorecard-round-th,
     .scorecard-round-td {
-      width: clamp(3.65rem, 10vw, 5rem);
-      min-width: 3.65rem;
-      max-width: 5rem;
       box-sizing: border-box;
       padding-left: 0.2rem;
       padding-right: 0.2rem;
@@ -5588,14 +5580,18 @@
       return;
     }
     // PERF: Binary search for minimum hidden count, O(log n) forced layouts instead of O(n).
-    const fudge=4;
+    // With table-layout:fixed the table never overflows; instead round columns shrink.
+    // Hide oldest rounds until each visible round column is at least MIN_ROUND_COL_W wide.
+    const MIN_ROUND_COL_W=56;
     applyHidden(0);
     let lo=0, hi=roundIdxs.length, hidden=0;
-    if(wrap.scrollWidth>wrap.clientWidth+fudge){
+    const sampleTh=table.querySelector('thead th[data-sc-round]:not(.scorecard-round--hidden)');
+    if(sampleTh&&sampleTh.getBoundingClientRect().width<MIN_ROUND_COL_W){
       while(lo<hi){
         const mid=(lo+hi)>>>1;
         applyHidden(mid);
-        if(wrap.scrollWidth>wrap.clientWidth+fudge) lo=mid+1;
+        const probe=table.querySelector('thead th[data-sc-round]:not(.scorecard-round--hidden)');
+        if(probe&&probe.getBoundingClientRect().width<MIN_ROUND_COL_W) lo=mid+1;
         else hi=mid;
       }
       hidden=lo;
@@ -5775,17 +5771,19 @@
 
       const playerCellPad = isWiz && wPhase === 'scoring' && !over ? 'pl-5 pr-2' : 'px-5';
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
-        <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 flex items-center gap-2 sticky left-0 z-10 border-r hairline min-w-0" style="background:${cellBg};">
-          <div class="flex items-center gap-2 min-w-0 flex-1">
-            ${dragHandle}${arrows}
-            <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
-            ${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}
-            ${isDealer
-              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-bold text-2xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
-              : `<span class="font-jakarta font-bold text-2xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
-            ${hailBtn}${retiredTag}
+        <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              ${dragHandle}${arrows}
+              <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
+              ${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}
+              ${isDealer
+                ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-bold text-2xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
+                : `<span class="font-jakarta font-bold text-2xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
+              ${hailBtn}${retiredTag}
+            </div>
+            ${wizardCurrentBid}
           </div>
-          ${wizardCurrentBid}
         </td>
         <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
 
