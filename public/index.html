@@ -658,6 +658,7 @@
 
     /* ════════ AVATARS ════════ */
     .avatar-img { width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid var(--hairline);background:var(--bg-2);flex-shrink:0; }
+    .avatar-img-sc { width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--hairline);background:var(--bg-2);flex-shrink:0; }
     .avatar-img-lg { width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--emerald);background:var(--bg-2); }
     .avatar-picker-img { width:80px;height:80px;border-radius:18px;object-fit:cover;border:3px solid transparent;cursor:pointer;transition:transform 0.12s;background:var(--bg-2); }
     .avatar-picker-img:hover { transform:scale(1.06); }
@@ -4450,10 +4451,10 @@
       body+=`<tr class="${rowCls}">
         <td data-sc-part="lead" class="scorecard-col-player px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
-            ${getStreakAvatarHtml(p,'avatar-img mx-1')}
+            ${getStreakAvatarHtml(p,'avatar-img-sc mx-1')}
             ${isDealer
-              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-extrabold text-lg truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
-              : `<span class="font-jakarta font-extrabold text-lg ${isLeader?'leader-text':''}">${p}</span>`}
+              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-bold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
+              : `<span class="font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
         </td>
@@ -5778,10 +5779,10 @@
           <div class="flex items-center gap-2 min-w-0 flex-1">
             ${dragHandle}${arrows}
             <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
-            ${getStreakAvatarHtml(p,'avatar-img mx-2')}
+            ${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}
             ${isDealer
-              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-extrabold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
-              : `<span class="font-jakarta font-extrabold text-xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
+              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-bold text-2xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
+              : `<span class="font-jakarta font-bold text-2xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
             ${hailBtn}${retiredTag}
           </div>
           ${wizardCurrentBid}
