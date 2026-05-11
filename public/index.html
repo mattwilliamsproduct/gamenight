@@ -1118,9 +1118,9 @@
       width: 100%;
       max-width: 100%;
     }
-    /* fixed layout gives us explicit control over column proportions; trim JS hides oldest rounds when they get too narrow */
+    /* auto layout: Player column grows; round cols use 1px + nowrap shrink-to-fit; trim JS hides oldest rounds on overflow */
     .scorecard-table {
-      table-layout: fixed;
+      table-layout: auto;
       width: 100%;
     }
     .scorecard-table thead tr { background: var(--ink); }
@@ -1128,7 +1128,6 @@
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
-      width: 200px;
       white-space: nowrap;
       overflow: hidden;
     }
@@ -1142,14 +1141,12 @@
     }
     .scorecard-round-th,
     .scorecard-round-td {
-      width: 80px;
+      width: 1px;
+      white-space: nowrap;
       box-sizing: border-box;
       padding-left: 0.25rem;
       padding-right: 0.25rem;
       vertical-align: middle;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: anywhere;
       overflow: visible;
     }
     .scorecard-round-th { font-size: clamp(0.55rem, 1vw, 0.72rem) !important; letter-spacing: 0.06em; }
@@ -5553,7 +5550,7 @@
     wrap.classList.remove('hidden');
   }
 
-  /* ═══ SCORECARD: compact round columns + hide oldest rounds when overflow (no horizontal scroll) ═══ */
+  /* ═══ SCORECARD: hide oldest round columns when table overflows wrap (table-layout: auto + re-measure loop) ═══ */
   let _scorecardTrimRaf = null;
   function updateScorecardColumnTrim(root){
     if(!root) return;
@@ -5576,16 +5573,13 @@
       if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
       return;
     }
-    const playerWidth=200;
-    const totalWidth=88;
-    const entryWidth=80;
-    const roundWidth=80;
-    const containerWidth=wrap.clientWidth;
-    const availableForRounds=containerWidth-playerWidth-totalWidth-entryWidth;
-    const totalRounds=roundIdxs.length;
-    const maxVisible=Math.max(1,Math.floor(availableForRounds/roundWidth));
-    const hidden=Math.max(0,totalRounds-maxVisible);
-    applyHidden(hidden);
+    applyHidden(0);
+    let hidden=0;
+    const fudge=4;
+    while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
+      hidden++;
+      applyHidden(hidden);
+    }
     if(hint){
       if(hidden>0){
         const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
