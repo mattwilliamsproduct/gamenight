@@ -5583,24 +5583,22 @@
       if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
       return;
     }
-    // PERF: Binary search for minimum hidden count, O(log n) forced layouts instead of O(n).
-    // With table-layout:fixed the table never overflows; instead round columns shrink.
-    // Hide oldest rounds until each visible round column is at least MIN_ROUND_COL_W wide.
-    const MIN_ROUND_COL_W=56;
-    applyHidden(0);
-    let lo=0, hi=roundIdxs.length, hidden=0;
-    const sampleTh=table.querySelector('thead th[data-sc-round]:not(.scorecard-round--hidden)');
-    if(sampleTh&&sampleTh.getBoundingClientRect().width<MIN_ROUND_COL_W){
-      while(lo<hi){
-        const mid=(lo+hi)>>>1;
-        applyHidden(mid);
-        const probe=table.querySelector('thead th[data-sc-round]:not(.scorecard-round--hidden)');
-        if(probe&&probe.getBoundingClientRect().width<MIN_ROUND_COL_W) lo=mid+1;
-        else hi=mid;
+    // Calculate how many round columns fit from container width and known CSS column sizes.
+    // No DOM measurement of round columns needed — avoids table-layout:fixed measurement bugs.
+    const remPx=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
+    const COL_REM={'scorecard-col-total':5.5,'scorecard-col-entry':5,'scorecard-col-bid':3.5,'scorecard-col-target':4};
+    const ROUND_COL_PX=4.5*remPx;
+    const MIN_PLAYER_PX=150;
+    let fixedPx=0;
+    table.querySelectorAll('thead th').forEach(th=>{
+      if(th.hasAttribute('data-sc-round')||th.classList.contains('scorecard-col-player')) return;
+      for(const[cls,rem] of Object.entries(COL_REM)){
+        if(th.classList.contains(cls)){fixedPx+=rem*remPx;break;}
       }
-      hidden=lo;
-      applyHidden(hidden);
-    }
+    });
+    const maxVisible=Math.max(1,Math.floor((wrap.clientWidth-MIN_PLAYER_PX-fixedPx)/ROUND_COL_PX));
+    const hidden=Math.max(0,roundIdxs.length-maxVisible);
+    applyHidden(hidden);
     if(hint){
       if(hidden>0){
         const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
