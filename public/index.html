@@ -1128,28 +1128,21 @@
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
+      width: 200px;
       white-space: nowrap;
       overflow: hidden;
     }
     .scorecard-col-total {
-      width: 5.5rem;
+      width: 88px;
       white-space: nowrap;
     }
     .scorecard-col-entry {
-      width: 5rem;
-      white-space: nowrap;
-    }
-    .scorecard-col-bid {
-      width: 3.5rem;
-      white-space: nowrap;
-    }
-    .scorecard-col-target {
-      width: 4rem;
+      width: 80px;
       white-space: nowrap;
     }
     .scorecard-round-th,
     .scorecard-round-td {
-      width: 4.5rem;
+      width: 80px;
       box-sizing: border-box;
       padding-left: 0.25rem;
       padding-right: 0.25rem;
@@ -5583,21 +5576,15 @@
       if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
       return;
     }
-    // Calculate how many round columns fit from container width and known CSS column sizes.
-    // No DOM measurement of round columns needed — avoids table-layout:fixed measurement bugs.
-    const remPx=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
-    const COL_REM={'scorecard-col-total':5.5,'scorecard-col-entry':5,'scorecard-col-bid':3.5,'scorecard-col-target':4};
-    const ROUND_COL_PX=4.5*remPx;
-    const MIN_PLAYER_PX=150;
-    let fixedPx=0;
-    table.querySelectorAll('thead th').forEach(th=>{
-      if(th.hasAttribute('data-sc-round')||th.classList.contains('scorecard-col-player')) return;
-      for(const[cls,rem] of Object.entries(COL_REM)){
-        if(th.classList.contains(cls)){fixedPx+=rem*remPx;break;}
-      }
-    });
-    const maxVisible=Math.max(1,Math.floor((wrap.clientWidth-MIN_PLAYER_PX-fixedPx)/ROUND_COL_PX));
-    const hidden=Math.max(0,roundIdxs.length-maxVisible);
+    const playerWidth=200;
+    const totalWidth=88;
+    const entryWidth=80;
+    const roundWidth=80;
+    const containerWidth=wrap.clientWidth;
+    const availableForRounds=containerWidth-playerWidth-totalWidth-entryWidth;
+    const totalRounds=roundIdxs.length;
+    const maxVisible=Math.max(1,Math.floor(availableForRounds/roundWidth));
+    const hidden=Math.max(0,totalRounds-maxVisible);
     applyHidden(hidden);
     if(hint){
       if(hidden>0){
