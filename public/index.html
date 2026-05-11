@@ -644,6 +644,7 @@
       min-height: 100vh;
       pointer-events: none;
       z-index: 2147483647;
+      background: transparent;
     }
     .lineup-enter { animation: lineupSlide 0.32s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes lineupSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
@@ -5581,10 +5582,10 @@
       if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
       return;
     }
-    const fudge=3;
+    const fudge=4;
     let hidden=0;
     applyHidden(0);
-    while(table.scrollWidth>wrap.clientWidth-fudge&&hidden<roundIdxs.length){
+    while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
       hidden++;
       applyHidden(hidden);
     }
