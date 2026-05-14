@@ -2606,6 +2606,8 @@
   let _lastPersistedHistoryRev = -1;
   let _deferredColdPersistTimer = null;
   const GN_PERF_TIMING = typeof location !== 'undefined' && /(?:^|[?&])gnperf=1(?:&|$)/.test(location.search || '');
+  function gnPerfStart(label){ if(!GN_PERF_TIMING) return null; console.time(label); return label; }
+  function gnPerfEnd(label){ if(label) console.timeEnd(label); }
   function markHistoryChanged(){
     _historyRevision++;
     _hallOfFameCache = null;
@@ -2888,78 +2890,88 @@
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
     }
-    const trackCurrentPerf = GN_PERF_TIMING && key === 'gn_current';
-    if(trackCurrentPerf) console.time('persistJsonIfChanged:gn_current');
-    if(GN_PERF_TIMING && (key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current')){
-      console.time('stringify:' + key);
+    const trackPersistPerf = key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current';
+    const persistTimer = trackPersistPerf ? gnPerfStart('GN persist ' + key) : null;
+    try{
+      const stringifyTimer = trackPersistPerf ? gnPerfStart('GN stringify ' + key) : null;
+      let json;
+      try{
+        json = JSON.stringify(value);
+      } finally {
+        gnPerfEnd(stringifyTimer);
+      }
+      if(_lastPersistedState[key] === json) return;
+      const setItemTimer = key === 'gn_current' ? gnPerfStart('GN localStorage gn_current') : null;
+      try{
+        localStorage.setItem(key, json);
+      } finally {
+        gnPerfEnd(setItemTimer);
+      }
+      _lastPersistedState[key] = json;
+      if(key === 'gn_history') _lastPersistedHistoryRev = _historyRevision;
+    } finally {
+      gnPerfEnd(persistTimer);
     }
-    const json = JSON.stringify(value);
-    if(GN_PERF_TIMING && (key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current')){
-      console.timeEnd('stringify:' + key);
-    }
-    if(_lastPersistedState[key] === json){
-      if(trackCurrentPerf) console.timeEnd('persistJsonIfChanged:gn_current');
-      return;
-    }
-    if(trackCurrentPerf) console.time('localStorage.setItem:gn_current');
-    localStorage.setItem(key, json);
-    if(trackCurrentPerf) console.timeEnd('localStorage.setItem:gn_current');
-    _lastPersistedState[key] = json;
-    if(key === 'gn_history') _lastPersistedHistoryRev = _historyRevision;
-    if(trackCurrentPerf) console.timeEnd('persistJsonIfChanged:gn_current');
   }
   /** @param {{ fullPersist?: boolean, syncCold?: boolean, flushDeferred?: boolean }} [opts] */
   function _persistGamenightState(opts){
-    opts = opts || {};
-    const fullPersist = opts.fullPersist !== undefined ? opts.fullPersist : !currentGame;
-    const syncCold = opts.syncCold !== undefined ? opts.syncCold : !currentGame;
+    const persistStateTimer = gnPerfStart('GN persist state');
+    try{
+      opts = opts || {};
+      const fullPersist = opts.fullPersist !== undefined ? opts.fullPersist : !currentGame;
+      const syncCold = opts.syncCold !== undefined ? opts.syncCold : !currentGame;
 
-    if(opts.flushDeferred && _deferredColdPersistTimer && (!currentGame || fullPersist)){
-      clearTimeout(_deferredColdPersistTimer);
-      _deferredColdPersistTimer = null;
-      if(GN_PERF_TIMING) console.time('persistDeferredCold(flush)');
-      persistJsonIfChanged('gn_history', history);
-      persistJsonIfChanged('gn_profiles', playerProfiles);
-      if(GN_PERF_TIMING) console.timeEnd('persistDeferredCold(flush)');
-    }
-
-    if(GN_PERF_TIMING) console.time('persistState');
-
-    if(fullPersist){
-      persistJsonIfChanged('gn_all_players', allPlayers);
-      persistJsonIfChanged('gn_players_v2', players);
-      const runLargeCold = () => {
-        if(GN_PERF_TIMING) console.time('persistLargeCold');
-        persistJsonIfChanged('gn_history', history);
-        persistJsonIfChanged('gn_profiles', playerProfiles);
-        if(GN_PERF_TIMING) console.timeEnd('persistLargeCold');
-      };
-      if(syncCold){
-        if(_deferredColdPersistTimer){
-          clearTimeout(_deferredColdPersistTimer);
-          _deferredColdPersistTimer = null;
+      if(opts.flushDeferred && _deferredColdPersistTimer && (!currentGame || fullPersist)){
+        clearTimeout(_deferredColdPersistTimer);
+        _deferredColdPersistTimer = null;
+        const deferredColdTimer = gnPerfStart('GN persist deferred cold flush');
+        try{
+          persistJsonIfChanged('gn_history', history);
+          persistJsonIfChanged('gn_profiles', playerProfiles);
+        } finally {
+          gnPerfEnd(deferredColdTimer);
         }
-        runLargeCold();
-      } else {
-        // PERF: Defer history/profiles serialization by 2s during active gameplay.
-        // The hot path (gn_current) is already saved synchronously above; the large
-        // cold blobs only need to reach localStorage before pagehide/visibilitychange.
-        if(_deferredColdPersistTimer) clearTimeout(_deferredColdPersistTimer);
-        _deferredColdPersistTimer = setTimeout(() => {
-          _deferredColdPersistTimer = null;
-          runLargeCold();
-        }, 2000);
       }
-    }
 
-    if(currentGame){
-      persistJsonIfChanged('gn_current', currentGame);
-    } else if(_lastPersistedState.gn_current !== null){
-      localStorage.removeItem('gn_current');
-      _lastPersistedState.gn_current = null;
-    }
+      if(fullPersist){
+        persistJsonIfChanged('gn_all_players', allPlayers);
+        persistJsonIfChanged('gn_players_v2', players);
+        const runLargeCold = () => {
+          const largeColdTimer = gnPerfStart('GN persist large cold');
+          try{
+            persistJsonIfChanged('gn_history', history);
+            persistJsonIfChanged('gn_profiles', playerProfiles);
+          } finally {
+            gnPerfEnd(largeColdTimer);
+          }
+        };
+        if(syncCold){
+          if(_deferredColdPersistTimer){
+            clearTimeout(_deferredColdPersistTimer);
+            _deferredColdPersistTimer = null;
+          }
+          runLargeCold();
+        } else {
+          // PERF: Defer history/profiles serialization by 2s during active gameplay.
+          // The hot path (gn_current) is already saved synchronously above; the large
+          // cold blobs only need to reach localStorage before pagehide/visibilitychange.
+          if(_deferredColdPersistTimer) clearTimeout(_deferredColdPersistTimer);
+          _deferredColdPersistTimer = setTimeout(() => {
+            _deferredColdPersistTimer = null;
+            runLargeCold();
+          }, 2000);
+        }
+      }
 
-    if(GN_PERF_TIMING) console.timeEnd('persistState');
+      if(currentGame){
+        persistJsonIfChanged('gn_current', currentGame);
+      } else if(_lastPersistedState.gn_current !== null){
+        localStorage.removeItem('gn_current');
+        _lastPersistedState.gn_current = null;
+      }
+    } finally {
+      gnPerfEnd(persistStateTimer);
+    }
 
     updateNavButton();
     flashSaveIndicator();
@@ -2967,32 +2979,45 @@
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
   function flushPendingSave(){
     if(_saveDebounceTimer === null) return;
-    if(GN_PERF_TIMING) console.time('flushPendingSave');
-    clearTimeout(_saveDebounceTimer);
-    _saveDebounceTimer = null;
-    _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
-    if(GN_PERF_TIMING) console.timeEnd('flushPendingSave');
+    const flushTimer = gnPerfStart('GN flushPendingSave');
+    try{
+      clearTimeout(_saveDebounceTimer);
+      _saveDebounceTimer = null;
+      _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+    } finally {
+      gnPerfEnd(flushTimer);
+    }
   }
   /** @param {object} [options] If options.debounceMs > 0, coalesce rapid writes (numpad) instead of syncing entire history on every key. */
   function saveData(options){
+    const saveTimer = gnPerfStart('GN saveData');
     const o = options || {};
     const ms = typeof o.debounceMs === 'number' ? o.debounceMs : 0;
     const fullPersist = o.fullPersist === true || !currentGame;
     const syncCold = o.syncCold === true || !currentGame;
     const exec = () => {
-      _persistGamenightState({ fullPersist, syncCold });
+      const execTimer = gnPerfStart('GN saveData exec');
+      try{
+        _persistGamenightState({ fullPersist, syncCold });
+      } finally {
+        gnPerfEnd(execTimer);
+      }
     };
-    if(ms > 0){
+    try{
+      if(ms > 0){
+        clearTimeout(_saveDebounceTimer);
+        _saveDebounceTimer = setTimeout(() => {
+          _saveDebounceTimer = null;
+          exec();
+        }, ms);
+        return;
+      }
       clearTimeout(_saveDebounceTimer);
-      _saveDebounceTimer = setTimeout(() => {
-        _saveDebounceTimer = null;
-        exec();
-      }, ms);
-      return;
+      _saveDebounceTimer = null;
+      exec();
+    } finally {
+      gnPerfEnd(saveTimer);
     }
-    clearTimeout(_saveDebounceTimer);
-    _saveDebounceTimer = null;
-    exec();
   }
   document.addEventListener('visibilitychange', async ()=>{
     if(document.visibilityState === 'hidden'){
@@ -5748,55 +5773,65 @@
   /* ═══ SCORECARD: hide oldest round columns when table overflows wrap (table-layout: auto + re-measure loop) ═══ */
   let _scorecardTrimRaf = null;
   function updateScorecardColumnTrim(root){
-    if(!root) return;
-    const wrap=root.querySelector('.scorecard-table-wrap');
-    const table=root.querySelector('table.scorecard-table');
-    const hint=root.querySelector('.scorecard-rounds-hint');
-    if(!wrap||!table) return;
-    if(wrap.clientWidth<40) return;
-    const roundThs=[...table.querySelectorAll('thead th[data-sc-round]')];
-    const roundIdxs=[...new Set(roundThs.map(th=>th.getAttribute('data-sc-round')))].sort((a,b)=>Number(a)-Number(b));
-    const allRoundEls=table.querySelectorAll('[data-sc-round]');
-    function applyHidden(count){
-      allRoundEls.forEach(el=>{
-        const idx=el.getAttribute('data-sc-round');
-        const pos=roundIdxs.indexOf(idx);
-        el.classList.toggle('scorecard-round--hidden', pos>=0 && pos<count);
-      });
-    }
-    if(!roundIdxs.length){
-      if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
-      return;
-    }
-    applyHidden(0);
-    let hidden=0;
-    const fudge=4;
-    while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
-      hidden++;
-      applyHidden(hidden);
-    }
-    if(hint){
-      if(hidden>0){
-        const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
-        const lastHTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[hidden-1]}"]`);
-        const a=firstTh?.getAttribute('data-sc-round-label')||'';
-        const b=lastHTh?.getAttribute('data-sc-round-label')||'';
-        hint.textContent=hidden===1?`← R${a}`:`← R${a}–R${b}`;
-        hint.classList.remove('hidden');
-      } else {
-        hint.classList.add('hidden');
-        hint.textContent='';
+    const trimTimer = gnPerfStart('GN scorecard trim');
+    try{
+      if(!root) return;
+      const wrap=root.querySelector('.scorecard-table-wrap');
+      const table=root.querySelector('table.scorecard-table');
+      const hint=root.querySelector('.scorecard-rounds-hint');
+      if(!wrap||!table) return;
+      if(wrap.clientWidth<40) return;
+      const roundThs=[...table.querySelectorAll('thead th[data-sc-round]')];
+      const roundIdxs=[...new Set(roundThs.map(th=>th.getAttribute('data-sc-round')))].sort((a,b)=>Number(a)-Number(b));
+      const allRoundEls=table.querySelectorAll('[data-sc-round]');
+      function applyHidden(count){
+        allRoundEls.forEach(el=>{
+          const idx=el.getAttribute('data-sc-round');
+          const pos=roundIdxs.indexOf(idx);
+          el.classList.toggle('scorecard-round--hidden', pos>=0 && pos<count);
+        });
       }
+      if(!roundIdxs.length){
+        if(hint){ hint.classList.add('hidden'); hint.textContent=''; }
+        return;
+      }
+      applyHidden(0);
+      let hidden=0;
+      const fudge=4;
+      while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
+        hidden++;
+        applyHidden(hidden);
+      }
+      if(hint){
+        if(hidden>0){
+          const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
+          const lastHTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[hidden-1]}"]`);
+          const a=firstTh?.getAttribute('data-sc-round-label')||'';
+          const b=lastHTh?.getAttribute('data-sc-round-label')||'';
+          hint.textContent=hidden===1?`← R${a}`:`← R${a}–R${b}`;
+          hint.classList.remove('hidden');
+        } else {
+          hint.classList.add('hidden');
+          hint.textContent='';
+        }
+      }
+    } finally {
+      gnPerfEnd(trimTimer);
     }
   }
   function scheduleScorecardColumnTrimAll(){
     if(_scorecardTrimRaf) return;
     _scorecardTrimRaf=requestAnimationFrame(()=>{
-      _scorecardTrimRaf=null;
-      updateScorecardColumnTrim(document.getElementById('scorecard-capture'));
-      const modal=document.getElementById('scorecard-modal');
-      const block=document.getElementById('modal-scorecard-block');
-      if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
+      const trimAllTimer = gnPerfStart('GN scorecard trim all');
+      try{
+        _scorecardTrimRaf=null;
+        updateScorecardColumnTrim(document.getElementById('scorecard-capture'));
+        const modal=document.getElementById('scorecard-modal');
+        const block=document.getElementById('modal-scorecard-block');
+        if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
+      } finally {
+        gnPerfEnd(trimAllTimer);
+      }
     });
   }
 
@@ -5809,9 +5844,9 @@
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
   function renderGame(){
-    if(GN_PERF_TIMING) console.time('renderGame');
+    const renderTimer = gnPerfStart('GN renderGame total');
+    try{
     if(!currentGame){
-      if(GN_PERF_TIMING) console.timeEnd('renderGame');
       return;
     }
     const rookPanel=document.getElementById('rook-round-panel');
@@ -5822,9 +5857,7 @@
     if(currentGame.name==='Rook'){
       const sb=document.getElementById('submit-action-btn');
       if(sb)sb.style.display='none';
-      const rookRenderResult = renderRookGame();
-      if(GN_PERF_TIMING) console.timeEnd('renderGame');
-      return rookRenderResult;
+      return renderRookGame();
     }
     const cfg=configs[currentGame.name];
     const isWiz=currentGame.name==='Wizard', wPhase=isWiz?currentGame.wizardPhase:null;
@@ -5886,11 +5919,18 @@
       head+=`<th data-sc-part="entry" class="scorecard-col-entry px-2 py-3 text-right scorecard-entry-th" style="color:#6ee7b7;">${hdr}</th>`;
     }
     head+=`</tr>`;
-    document.getElementById('scorecard-head').innerHTML=head;
+    const headAssignTimer = gnPerfStart('GN renderGame dom assign');
+    try{
+      document.getElementById('scorecard-head').innerHTML=head;
+    } finally {
+      gnPerfEnd(headAssignTimer);
+    }
 
     // Body
+    const buildHtmlTimer = gnPerfStart('GN renderGame build html');
     if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
     let body='';
+    try{
     sortedP.forEach((p,ri)=>{
       const isLeader=currentGame.currentRound>1&&currentGame.totals[p]===leaderScore;
       const isRetired=retired.includes(p);
@@ -6010,8 +6050,16 @@
 
       body+=`</tr>`;
     });
-    document.getElementById('scorecard-body').innerHTML=body;
-    if(rookPanel){rookPanel.classList.add('hidden');rookPanel.innerHTML='';}
+    } finally {
+    gnPerfEnd(buildHtmlTimer);
+    }
+    const bodyAssignTimer = gnPerfStart('GN renderGame dom assign');
+    try{
+      document.getElementById('scorecard-body').innerHTML=body;
+      if(rookPanel){rookPanel.classList.add('hidden');rookPanel.innerHTML='';}
+    } finally {
+      gnPerfEnd(bodyAssignTimer);
+    }
 
     if(over){
       document.getElementById('submit-section').classList.add('hidden');
@@ -6041,13 +6089,27 @@
       else retireBtn.classList.remove('hidden');
     }
 
-    renderPortraitView();
-    requestAnimationFrame(()=>requestAnimationFrame(scheduleScorecardColumnTrimAll));
-    if(GN_PERF_TIMING) console.timeEnd('renderGame');
+    const portraitTimer = gnPerfStart('GN renderGame renderPortraitView');
+    try{
+      renderPortraitView();
+    } finally {
+      gnPerfEnd(portraitTimer);
+    }
+    const scheduleTrimTimer = gnPerfStart('GN renderGame schedule trim');
+    try{
+      requestAnimationFrame(()=>requestAnimationFrame(scheduleScorecardColumnTrimAll));
+    } finally {
+      gnPerfEnd(scheduleTrimTimer);
+    }
+    } finally {
+      gnPerfEnd(renderTimer);
+    }
   }
 
   /* ═══ PORTRAIT VIEW ═══ */
   function renderPortraitView(){
+    const portraitTimer = gnPerfStart('GN renderPortraitView');
+    try{
     if(!currentGame)return;
     const cfg=configs[currentGame.name];
     const gp=getActiveRoster(currentGame);
@@ -6134,6 +6196,9 @@
     if(currentGame.name==='Rook')sh+=row('Worst Score',recs.Rook&&recs.Rook.worstScore===Infinity?'—':recs.Rook?.worstScore,recs.Rook?.worstPlayer||'-','💀',false);
     sh+=`</div>`;
     rc.innerHTML=fh+sh;
+    } finally {
+      gnPerfEnd(portraitTimer);
+    }
   }
 
   /* ═══ SUBMIT ROUND ═══ */
