@@ -628,6 +628,10 @@
     .pop-in { animation: popIn 0.42s cubic-bezier(0.16,1,0.3,1) forwards; }
     @keyframes popIn { 0%{transform:scale(0.92);opacity:0} 100%{transform:scale(1);opacity:1} }
     .whammy-card {
+      width: min(90vw, 850px);
+      max-height: min(92vh, 900px);
+      box-sizing: border-box;
+      padding: clamp(1.25rem, 3vw, 2.35rem);
       background:
         radial-gradient(circle at 20% 15%, rgba(255,255,255,0.9) 0 8%, transparent 18%),
         radial-gradient(circle at 78% 20%, rgba(254,240,138,0.85) 0 9%, transparent 22%),
@@ -639,20 +643,46 @@
       animation: whammyPop 0.5s cubic-bezier(0.16,1.2,0.3,1) both;
     }
     .whammy-title {
-      font-size: clamp(3.2rem, 12vw, 7rem);
-      line-height: 0.9;
+      width: 100%;
+      max-width: 100%;
+      font-size: clamp(3.1rem, 9vw, 7rem);
+      line-height: 0.92;
       letter-spacing: 0;
+      text-align: center;
+      white-space: nowrap;
+      overflow-wrap: normal;
       text-shadow: 0 4px 0 rgba(255,255,255,0.42), 0 10px 24px rgba(127,29,29,0.28);
+    }
+    #whammy-avatar .avatar-img-lg {
+      width: clamp(6.5rem, 12vw, 8.75rem);
+      height: clamp(6.5rem, 12vw, 8.75rem);
+      border-width: 4px;
+    }
+    #whammy-name {
+      font-size: clamp(2.35rem, 5vw, 4rem);
+      line-height: 1.02;
+    }
+    #whammy-copy {
+      font-size: clamp(1.25rem, 2.6vw, 1.85rem);
+      line-height: 1.18;
+    }
+    #whammy-scores {
+      max-height: min(34vh, 320px);
+      overflow-y: auto;
+      padding-right: 0.15rem;
+      -webkit-overflow-scrolling: touch;
     }
     .whammy-score-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.9rem;
-      padding: 0.55rem 0.75rem;
-      border-radius: 12px;
+      gap: 1.2rem;
+      padding: clamp(0.55rem, 1.2vw, 0.8rem) clamp(0.85rem, 1.7vw, 1.2rem);
+      border-radius: 14px;
       background: rgba(255,255,255,0.62);
       border: 1px solid rgba(24,18,10,0.12);
+      font-size: clamp(1rem, 1.9vw, 1.35rem);
+      line-height: 1.12;
       font-weight: 800;
     }
     .whammy-score-row.winner {
@@ -2419,14 +2449,14 @@
     <!-- WHAMMY Round Celebration -->
     <div id="whammy-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity">
       <div onclick="hideWhammyModal()" class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
-      <div class="whammy-card w-full max-w-lg p-6 sm:p-8 relative flex flex-col items-center text-center rounded-[28px]">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.24em] mb-2">Round <span id="whammy-round-label"></span></div>
-        <h3 class="whammy-title font-display mb-3">WHAMMY!</h3>
-        <div id="whammy-avatar" class="mb-3"></div>
-        <div id="whammy-name" class="font-display text-3xl sm:text-4xl leading-tight"></div>
-        <p id="whammy-copy" class="font-extrabold text-base sm:text-lg mt-1 mb-5"></p>
+      <div class="whammy-card relative flex flex-col items-center text-center rounded-[28px]">
+        <div class="text-sm sm:text-base font-extrabold uppercase tracking-[0.24em] mb-2">Round <span id="whammy-round-label"></span></div>
+        <h3 class="whammy-title font-display mb-4">WHAMMY!</h3>
+        <div id="whammy-avatar" class="mb-4"></div>
+        <div id="whammy-name" class="font-display"></div>
+        <p id="whammy-copy" class="font-extrabold mt-2 mb-5"></p>
         <div id="whammy-scores" class="w-full space-y-2 mb-5"></div>
-        <button onclick="hideWhammyModal()" class="w-full py-4 rounded-2xl font-display text-xl text-white transition-transform hover:scale-[1.02]" style="background:#18120a;box-shadow:0 12px 28px rgba(24,18,10,0.28);">Respect</button>
+        <button onclick="hideWhammyModal()" class="w-full py-4 sm:py-5 rounded-2xl font-display text-2xl text-white transition-transform hover:scale-[1.02]" style="background:#18120a;box-shadow:0 12px 28px rgba(24,18,10,0.28);">Respect</button>
       </div>
     </div>
 
