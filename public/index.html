@@ -627,6 +627,52 @@
     /* ════════ ANIMATIONS ════════ */
     .pop-in { animation: popIn 0.42s cubic-bezier(0.16,1,0.3,1) forwards; }
     @keyframes popIn { 0%{transform:scale(0.92);opacity:0} 100%{transform:scale(1);opacity:1} }
+    .whammy-card {
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.9) 0 8%, transparent 18%),
+        radial-gradient(circle at 78% 20%, rgba(254,240,138,0.85) 0 9%, transparent 22%),
+        radial-gradient(circle at 50% 120%, rgba(220,38,38,0.52), transparent 48%),
+        linear-gradient(135deg, #fef08a 0%, #fb923c 48%, #ef4444 100%);
+      color: #18120a;
+      border: 4px solid rgba(24,18,10,0.86);
+      box-shadow: 0 26px 80px rgba(127,29,29,0.36);
+      animation: whammyPop 0.5s cubic-bezier(0.16,1.2,0.3,1) both;
+    }
+    .whammy-title {
+      font-size: clamp(3.2rem, 12vw, 7rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+      text-shadow: 0 4px 0 rgba(255,255,255,0.42), 0 10px 24px rgba(127,29,29,0.28);
+    }
+    .whammy-score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(24,18,10,0.12);
+      font-weight: 800;
+    }
+    .whammy-score-row.winner {
+      background: rgba(255,255,255,0.9);
+      border-color: rgba(24,18,10,0.36);
+    }
+    body.whammy-pulse #game-screen {
+      animation: whammyScreenPulse 0.38s ease-in-out both;
+    }
+    @keyframes whammyPop {
+      0% { opacity: 0; transform: translateY(16px) scale(0.78) rotate(-3deg); }
+      58% { opacity: 1; transform: translateY(-4px) scale(1.04) rotate(1.5deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+    }
+    @keyframes whammyScreenPulse {
+      0%, 100% { transform: translateX(0); filter: none; }
+      24% { transform: translateX(-5px); filter: saturate(1.2); }
+      52% { transform: translateX(5px); filter: saturate(1.35); }
+      76% { transform: translateX(-2px); filter: saturate(1.15); }
+    }
     /* Fallback loser “confetti” if emoji shapes unavailable */
     @keyframes postgamePoopFall {
       from { top: -6%; opacity: 1; }
@@ -2370,6 +2416,20 @@
       </div>
     </div>
 
+    <!-- WHAMMY Round Celebration -->
+    <div id="whammy-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity">
+      <div onclick="hideWhammyModal()" class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
+      <div class="whammy-card w-full max-w-lg p-6 sm:p-8 relative flex flex-col items-center text-center rounded-[28px]">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.24em] mb-2">Round <span id="whammy-round-label"></span></div>
+        <h3 class="whammy-title font-display mb-3">WHAMMY!</h3>
+        <div id="whammy-avatar" class="mb-3"></div>
+        <div id="whammy-name" class="font-display text-3xl sm:text-4xl leading-tight"></div>
+        <p id="whammy-copy" class="font-extrabold text-base sm:text-lg mt-1 mb-5"></p>
+        <div id="whammy-scores" class="w-full space-y-2 mb-5"></div>
+        <button onclick="hideWhammyModal()" class="w-full py-4 rounded-2xl font-display text-xl text-white transition-transform hover:scale-[1.02]" style="background:#18120a;box-shadow:0 12px 28px rgba(24,18,10,0.28);">Respect</button>
+      </div>
+    </div>
+
     <!-- Victory -->
     <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
@@ -3208,6 +3268,88 @@
   }
   function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
   function closeWheel(){ closeModal('wheel-modal'); }
+
+  /* ═══ WHAMMY ROUND CELEBRATION ═══ */
+  let _whammyDismissTimer = null;
+  function whammyEscapeHtml(value){
+    return String(value).replace(/[&<>"']/g, ch=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  }
+  function detectRoundWhammy(game, submittedRoundData){
+    if(!game || !submittedRoundData || !submittedRoundData.scores) return null;
+    if(game.name === 'Rook'){
+      // TODO: Add Rook WHAMMY detection only after validating team-round edge cases.
+      return null;
+    }
+    const maxRounds = getMaxRoundsForGame(game);
+    if(maxRounds && maxRounds !== 999 && submittedRoundData.round >= maxRounds) return null;
+    const activePlayers = getActivePlayers(game).filter(p=>submittedRoundData.scores[p] !== undefined);
+    if(activePlayers.length < 2) return null;
+
+    const goodPlayers = activePlayers.filter(p=>{
+      const score = submittedRoundData.scores[p] || 0;
+      if(game.name === 'Wizard') return score > 0;
+      if(game.name === 'Five Crowns') return score === 0;
+      if(game.name === 'Flip 7 Vengeance') return score > 0;
+      return false;
+    });
+    if(goodPlayers.length !== 1) return null;
+
+    const winner = goodPlayers[0];
+    const everyoneElseBad = activePlayers.every(p=>{
+      const score = submittedRoundData.scores[p] || 0;
+      if(p === winner) return true;
+      if(game.name === 'Wizard') return score < 0;
+      if(game.name === 'Five Crowns') return score > 0;
+      if(game.name === 'Flip 7 Vengeance') return score === 0;
+      return false;
+    });
+    if(!everyoneElseBad) return null;
+
+    return {
+      game: game.name,
+      round: submittedRoundData.round,
+      winner,
+      scores: activePlayers.map(p=>({ player:p, score:submittedRoundData.scores[p] || 0 }))
+    };
+  }
+
+  function showWhammyModal(whammyData){
+    if(!whammyData) return;
+    const modal = document.getElementById('whammy-modal');
+    if(!modal) return;
+    clearTimeout(_whammyDismissTimer);
+    document.getElementById('whammy-round-label').textContent = whammyData.round;
+    document.getElementById('whammy-avatar').innerHTML = getAvatarImg(whammyData.winner, 'avatar-img-lg');
+    document.getElementById('whammy-name').textContent = whammyData.winner;
+    document.getElementById('whammy-copy').textContent = `${whammyData.winner} just WHAMMY'd everyone!`;
+    document.getElementById('whammy-scores').innerHTML = whammyData.scores.map(item=>{
+      const scoreText = item.score > 0 ? `+${item.score}` : `${item.score}`;
+      const isWinner = item.player === whammyData.winner;
+      return `<div class="whammy-score-row ${isWinner?'winner':''}">
+        <span>${isWinner?'WHAMMY · ':''}${whammyEscapeHtml(item.player)}</span>
+        <span class="font-mono-num">${scoreText}</span>
+      </div>`;
+    }).join('');
+    modal.classList.remove('hidden');
+    setTimeout(()=>modal.classList.remove('opacity-0'),10);
+    document.body.classList.remove('whammy-pulse');
+    void document.body.offsetWidth;
+    document.body.classList.add('whammy-pulse');
+    setTimeout(()=>document.body.classList.remove('whammy-pulse'),450);
+    try{
+      playTone(220,0.08,'square',0.1);
+      setTimeout(()=>playTone(165,0.1,'square',0.1),80);
+      setTimeout(()=>playTone(330,0.16,'triangle',0.12),175);
+    }catch(e){}
+    _whammyDismissTimer = setTimeout(hideWhammyModal, 5000);
+  }
+
+  function hideWhammyModal(){
+    clearTimeout(_whammyDismissTimer);
+    _whammyDismissTimer = null;
+    document.body.classList.remove('whammy-pulse');
+    closeModal('whammy-modal');
+  }
 
   // ── Actions Menu ──
   function toggleActionsMenu(ev){
@@ -6006,13 +6148,16 @@
         if(totalActual!==currentGame.currentRound&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${currentGame.currentRound}). Submit anyway?`)){isSubmitting=false;return;}
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
-        currentGame.rounds.push({round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals});
+        const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
+        currentGame.rounds.push(roundData);
+        const whammyData = detectRoundWhammy(currentGame, roundData);
         addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.wizardPhase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
         // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
         saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
         scheduleRender();
+        if(whammyData) setTimeout(()=>showWhammyModal(whammyData),0);
         setTimeout(()=>isSubmitting=false,500); return;
       }
     }
@@ -6021,7 +6166,9 @@
     const drafts=ensureCurrentScoreDrafts();
     gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
     if(allZero&&!confirm('Everyone scored 0? Submit?')){isSubmitting=false;return;}
-    currentGame.rounds.push({round:currentGame.currentRound,scores});
+    const roundData = {round:currentGame.currentRound,scores};
+    currentGame.rounds.push(roundData);
+    const whammyData = detectRoundWhammy(currentGame, roundData);
     addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
     currentGame.currentRound++;
     currentGame.currentScoreDrafts={};
@@ -6029,6 +6176,7 @@
     // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
     saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
     scheduleRender();
+    if(whammyData) setTimeout(()=>showWhammyModal(whammyData),0);
     setTimeout(()=>isSubmitting=false,500);
   }
 
