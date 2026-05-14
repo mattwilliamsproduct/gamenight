@@ -2788,6 +2788,8 @@
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
     }
+    const trackCurrentPerf = GN_PERF_TIMING && key === 'gn_current';
+    if(trackCurrentPerf) console.time('persistJsonIfChanged:gn_current');
     if(GN_PERF_TIMING && (key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current')){
       console.time('stringify:' + key);
     }
@@ -2795,10 +2797,16 @@
     if(GN_PERF_TIMING && (key === 'gn_history' || key === 'gn_profiles' || key === 'gn_current')){
       console.timeEnd('stringify:' + key);
     }
-    if(_lastPersistedState[key] === json) return;
+    if(_lastPersistedState[key] === json){
+      if(trackCurrentPerf) console.timeEnd('persistJsonIfChanged:gn_current');
+      return;
+    }
+    if(trackCurrentPerf) console.time('localStorage.setItem:gn_current');
     localStorage.setItem(key, json);
+    if(trackCurrentPerf) console.timeEnd('localStorage.setItem:gn_current');
     _lastPersistedState[key] = json;
     if(key === 'gn_history') _lastPersistedHistoryRev = _historyRevision;
+    if(trackCurrentPerf) console.timeEnd('persistJsonIfChanged:gn_current');
   }
   /** @param {{ fullPersist?: boolean, syncCold?: boolean, flushDeferred?: boolean }} [opts] */
   function _persistGamenightState(opts){
@@ -2859,9 +2867,11 @@
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
   function flushPendingSave(){
     if(_saveDebounceTimer === null) return;
+    if(GN_PERF_TIMING) console.time('flushPendingSave');
     clearTimeout(_saveDebounceTimer);
     _saveDebounceTimer = null;
     _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+    if(GN_PERF_TIMING) console.timeEnd('flushPendingSave');
   }
   /** @param {object} [options] If options.debounceMs > 0, coalesce rapid writes (numpad) instead of syncing entire history on every key. */
   function saveData(options){
@@ -5617,7 +5627,11 @@
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
   function renderGame(){
-    if(!currentGame)return;
+    if(GN_PERF_TIMING) console.time('renderGame');
+    if(!currentGame){
+      if(GN_PERF_TIMING) console.timeEnd('renderGame');
+      return;
+    }
     const rookPanel=document.getElementById('rook-round-panel');
     if(rookPanel){
       rookPanel.classList.add('hidden');
@@ -5626,7 +5640,9 @@
     if(currentGame.name==='Rook'){
       const sb=document.getElementById('submit-action-btn');
       if(sb)sb.style.display='none';
-      return renderRookGame();
+      const rookRenderResult = renderRookGame();
+      if(GN_PERF_TIMING) console.timeEnd('renderGame');
+      return rookRenderResult;
     }
     const cfg=configs[currentGame.name];
     const isWiz=currentGame.name==='Wizard', wPhase=isWiz?currentGame.wizardPhase:null;
@@ -5845,6 +5861,7 @@
 
     renderPortraitView();
     requestAnimationFrame(()=>requestAnimationFrame(scheduleScorecardColumnTrimAll));
+    if(GN_PERF_TIMING) console.timeEnd('renderGame');
   }
 
   /* ═══ PORTRAIT VIEW ═══ */
@@ -6449,21 +6466,25 @@
   }
 
   function openNumpad(player, roundIndex){
+    if(GN_PERF_TIMING) console.time('openNumpad');
     if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
+    const isCurrentRound = roundIndex === 'current';
+    const switchingCurrentScoreInput = activeInputContext?.roundIndex === 'current' && isCurrentRound;
     if(activeInputId)saveActiveInputToModel();
-    flushPendingSave();
+    if(!switchingCurrentScoreInput) flushPendingSave();
     activeInputContext={player,roundIndex};
-    activeInputId=roundIndex==='current'?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
+    activeInputId=isCurrentRound?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     const el=document.getElementById(activeInputId);
     if(el){
       el.classList.add('score-cell-active');
-      document.getElementById('numpad-label').textContent = roundIndex==='current' ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
+      document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
     }
     document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
     const np=document.getElementById('custom-numpad');
     np.classList.remove('hidden');
     setTimeout(()=>np.classList.remove('translate-y-full'),10);
+    if(GN_PERF_TIMING) console.timeEnd('openNumpad');
   }
 
   function numpadPress(v){
