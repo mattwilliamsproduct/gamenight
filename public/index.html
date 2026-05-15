@@ -6616,12 +6616,13 @@
     flushPendingSave();
     // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
     // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
-    const seatOrder = getActivePlayers(currentGame);
+    const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
     const ci = seatOrder.indexOf(activeInputContext.player);
-    const np = ci >= 0 ? seatOrder[ci + 1] : null;
     if(activeInputContext.roundIndex!=='current'){closeNumpad();return;}
-    if(np){openNumpad(np,'current');document.getElementById(`score-input-${np}`)?.scrollIntoView({behavior:'smooth',block:'center'});}
-    else closeNumpad();
+    if(!seatOrder.length){closeNumpad();return;}
+    const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
+    openNumpad(np,'current');
+    document.getElementById(`score-input-${np}`)?.scrollIntoView({behavior:'smooth',block:'center'});
   }
 
   function closeNumpad(options){
