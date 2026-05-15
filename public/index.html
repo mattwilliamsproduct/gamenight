@@ -2885,7 +2885,11 @@
 
   // ── Save + nav ──
   let _saveDebounceTimer = null;
+  let _saveIdleCallback = null;
+  let _pendingSaveExec = null;
   const SAVE_DEBOUNCE_MS = 220;
+  const DRAFT_SAVE_DEBOUNCE_MS = 1200;
+  const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
   function persistJsonIfChanged(key, value){
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
@@ -2978,12 +2982,17 @@
   }
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
   function flushPendingSave(){
-    if(_saveDebounceTimer === null) return;
+    if(_saveDebounceTimer === null && _saveIdleCallback === null && !_pendingSaveExec) return;
     const flushTimer = gnPerfStart('GN flushPendingSave');
     try{
-      clearTimeout(_saveDebounceTimer);
+      if(_saveDebounceTimer !== null) clearTimeout(_saveDebounceTimer);
       _saveDebounceTimer = null;
-      _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+      if(_saveIdleCallback !== null && typeof cancelIdleCallback === 'function') cancelIdleCallback(_saveIdleCallback);
+      _saveIdleCallback = null;
+      const pending = _pendingSaveExec;
+      _pendingSaveExec = null;
+      if(pending) pending();
+      else _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
     } finally {
       gnPerfEnd(flushTimer);
     }
@@ -2993,6 +3002,7 @@
     const saveTimer = gnPerfStart('GN saveData');
     const o = options || {};
     const ms = typeof o.debounceMs === 'number' ? o.debounceMs : 0;
+    const useIdle = o.idle === true;
     const fullPersist = o.fullPersist === true || !currentGame;
     const syncCold = o.syncCold === true || !currentGame;
     const exec = () => {
@@ -3005,15 +3015,31 @@
     };
     try{
       if(ms > 0){
-        clearTimeout(_saveDebounceTimer);
+        if(_saveDebounceTimer !== null) clearTimeout(_saveDebounceTimer);
+        if(_saveIdleCallback !== null && typeof cancelIdleCallback === 'function') cancelIdleCallback(_saveIdleCallback);
+        _saveIdleCallback = null;
+        _pendingSaveExec = exec;
         _saveDebounceTimer = setTimeout(() => {
           _saveDebounceTimer = null;
-          exec();
+          const runPendingSave = () => {
+            _saveIdleCallback = null;
+            const pending = _pendingSaveExec;
+            _pendingSaveExec = null;
+            if(pending) pending();
+          };
+          if(useIdle && typeof requestIdleCallback === 'function'){
+            _saveIdleCallback = requestIdleCallback(runPendingSave, { timeout: DRAFT_SAVE_IDLE_TIMEOUT_MS });
+          } else {
+            runPendingSave();
+          }
         }, ms);
         return;
       }
-      clearTimeout(_saveDebounceTimer);
+      if(_saveDebounceTimer !== null) clearTimeout(_saveDebounceTimer);
       _saveDebounceTimer = null;
+      if(_saveIdleCallback !== null && typeof cancelIdleCallback === 'function') cancelIdleCallback(_saveIdleCallback);
+      _saveIdleCallback = null;
+      _pendingSaveExec = null;
       exec();
     } finally {
       gnPerfEnd(saveTimer);
@@ -6711,10 +6737,10 @@
       saveData({ debounceMs: SAVE_DEBOUNCE_MS });
     } else if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='bidding'){
       if(!currentGame.currentBids)currentGame.currentBids={};
-      currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: SAVE_DEBOUNCE_MS });
+      currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
     } else if(activeInputContext.roundIndex==='current'){
       ensureCurrentScoreDrafts()[activeInputContext.player]=v;
-      saveData({ debounceMs: SAVE_DEBOUNCE_MS });
+      saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
     }
   }
 
