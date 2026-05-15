@@ -1954,7 +1954,7 @@
           </div>
 
           <div id="submit-section" class="p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
-            <button id="submit-action-btn" onclick="submitRound()" class="btn-accent tv-submit-round-btn w-full sm:w-auto shrink-0 px-12 py-4">Submit Round</button>
+            <button id="submit-action-btn" onclick="submitRoundFromButton(event)" class="btn-accent tv-submit-round-btn w-full sm:w-auto shrink-0 px-12 py-4">Submit Round</button>
           </div>
 
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
@@ -6052,6 +6052,22 @@
 
   /* ═══ SUBMIT ROUND ═══ */
   let isSubmitting=false;
+  let _numpadSubmitSuppressUntil=0;
+  const NUMPAD_SUBMIT_SUPPRESS_MS=800;
+
+  function suppressSubmitAfterNumpad(ms=NUMPAD_SUBMIT_SUPPRESS_MS){
+    _numpadSubmitSuppressUntil=Math.max(_numpadSubmitSuppressUntil,Date.now()+ms);
+  }
+
+  function submitRoundFromButton(ev){
+    if(ev){
+      ev.preventDefault?.();
+      ev.stopPropagation?.();
+    }
+    if(Date.now()<_numpadSubmitSuppressUntil)return;
+    submitRound();
+  }
+
   function submitRound(){
     if(!currentGame||isSubmitting)return;
     // Rook uses its own command center above the score list.
@@ -6490,6 +6506,20 @@
   let activeInputContext=null, activeInputId=null;
   let _numpadCloseTimer=null;
 
+  function containNumpadEvent(ev){
+    suppressSubmitAfterNumpad();
+    ev.stopPropagation?.();
+  }
+
+  function wireNumpadEventBoundary(){
+    const np=document.getElementById('custom-numpad');
+    if(!np||np.dataset.boundaryWired==='1')return;
+    np.dataset.boundaryWired='1';
+    ['pointerdown','pointerup','touchstart','touchend','mousedown','mouseup','click'].forEach(type=>{
+      np.addEventListener(type,containNumpadEvent,{passive:true});
+    });
+  }
+
   function ensureCurrentScoreDrafts(){
     if(!currentGame)return {};
     if(!currentGame.currentScoreDrafts)currentGame.currentScoreDrafts={};
@@ -6598,6 +6628,7 @@
     const shouldRender = !options || options.render !== false;
     const hadInput = !!activeInputContext;
     const shouldRefreshTotals = hadInput && activeInputContext.roundIndex !== 'current';
+    if(hadInput)suppressSubmitAfterNumpad();
     if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
     if(activeInputId)saveActiveInputToModel();
     flushPendingSave();
@@ -7372,6 +7403,7 @@
   /* ═══ BOOT ═══ */
   window.onload=function(){
     applyDarkMode();
+    wireNumpadEventBoundary();
     handleOrientation();
     updateNavButton();
     resetIdleTimer();
