@@ -6613,13 +6613,12 @@
     const el=document.getElementById(activeInputId);
     if(el&&(el.value===''||el.value==='-'))el.value='0';
     saveActiveInputToModel();
-    flushPendingSave();
     // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
     // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
     const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
     const ci = seatOrder.indexOf(activeInputContext.player);
     if(activeInputContext.roundIndex!=='current'){closeNumpad();return;}
-    if(!seatOrder.length){closeNumpad();return;}
+    if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
     const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
     openNumpad(np,'current');
     document.getElementById(`score-input-${np}`)?.scrollIntoView({behavior:'smooth',block:'center'});
