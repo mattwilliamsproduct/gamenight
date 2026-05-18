@@ -1954,6 +1954,7 @@
           </div>
 
           <div id="submit-section" class="p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
+            <button id="undo-wizard-bid-lock-btn" onclick="undoWizardBidLock(event)" class="btn-ghost hidden w-full sm:w-auto shrink-0 px-8 py-4">Undo Lock Bids</button>
             <button id="submit-action-btn" onclick="submitRoundFromButton(event)" class="btn-accent tv-submit-round-btn w-full sm:w-auto shrink-0 px-12 py-4">Submit Round</button>
           </div>
 
@@ -5706,6 +5707,8 @@
     if(currentGame.name==='Rook'){
       const sb=document.getElementById('submit-action-btn');
       if(sb)sb.style.display='none';
+      const undoWizardBtn=document.getElementById('undo-wizard-bid-lock-btn');
+      if(undoWizardBtn)undoWizardBtn.classList.add('hidden');
       return renderRookGame();
     }
     const cfg=configs[currentGame.name];
@@ -5925,6 +5928,11 @@
         sb.innerHTML=btnTxt;
         sb.style.display='';
       }
+      const undoWizardBtn=document.getElementById('undo-wizard-bid-lock-btn');
+      if(undoWizardBtn){
+        if(isWizardBidLockUndoAvailable()) undoWizardBtn.classList.remove('hidden');
+        else undoWizardBtn.classList.add('hidden');
+      }
       if(isWiz) updateWizardTrickCounter(); else { const w=document.getElementById('wizard-header-metrics'); if(w){ w.classList.add('hidden'); w.innerHTML=''; } }
     }
 
@@ -6066,6 +6074,40 @@
     }
     if(Date.now()<_numpadSubmitSuppressUntil)return;
     submitRound();
+  }
+
+  function isWizardBidLockUndoAvailable(){
+    if(!currentGame||currentGame.name!=='Wizard')return false;
+    if(currentGame.wizardPhase!=='scoring')return false;
+    const maxR=getMaxRoundsForGame(currentGame);
+    if(currentGame.currentRound>maxR)return false;
+    return !(currentGame.rounds||[]).some(r=>!r.hailMaryBonus&&r.round===currentGame.currentRound);
+  }
+
+  function undoWizardBidLock(ev){
+    if(ev){
+      ev.preventDefault?.();
+      ev.stopPropagation?.();
+    }
+    if(!isWizardBidLockUndoAvailable())return;
+
+    if(activeInputContext?.roundIndex==='current')saveActiveInputToModel();
+    const bids = currentGame.currentBids&&typeof currentGame.currentBids==='object'&&!Array.isArray(currentGame.currentBids)
+      ? currentGame.currentBids
+      : {};
+    const drafts = currentGame.currentScoreDrafts&&typeof currentGame.currentScoreDrafts==='object'&&!Array.isArray(currentGame.currentScoreDrafts)
+      ? currentGame.currentScoreDrafts
+      : {};
+
+    closeNumpad({render:false});
+    currentGame.currentBids=bids;
+    currentGame.currentScoreDrafts=drafts;
+    currentGame.wizardPhase='bidding';
+    addAuditEntry(`R${currentGame.currentRound} Bids unlocked`, 'Bids reopened for editing');
+    haptic([30,40,30]);
+    toast('Bids unlocked', 'warning');
+    saveData();
+    scheduleRender();
   }
 
   function submitRound(){
