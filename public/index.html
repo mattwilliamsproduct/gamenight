@@ -6617,7 +6617,6 @@
     // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
     const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
     const ci = seatOrder.indexOf(activeInputContext.player);
-    if(activeInputContext.roundIndex!=='current'){closeNumpad();return;}
     if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
     const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
     openNumpad(np,'current');
