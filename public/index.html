@@ -2541,6 +2541,23 @@
   const GN_PERF_TIMING = typeof location !== 'undefined' && /(?:^|[?&])gnperf=1(?:&|$)/.test(location.search || '');
   function gnPerfStart(label){ if(!GN_PERF_TIMING) return null; console.time(label); return label; }
   function gnPerfEnd(label){ if(label) console.timeEnd(label); }
+  let _gnNumpadHotPath = null;
+  function gnWarnNumpadHotPath(work){
+    if(GN_PERF_TIMING && _gnNumpadHotPath){
+      console.warn(`GN hot path warning: ${work} during ${_gnNumpadHotPath}`);
+    }
+  }
+  function gnRunNumpadHotPath(label, fn){
+    const prev=_gnNumpadHotPath;
+    _gnNumpadHotPath=label;
+    const timer=gnPerfStart(`GN ${label}`);
+    try{
+      return fn();
+    } finally {
+      gnPerfEnd(timer);
+      _gnNumpadHotPath=prev;
+    }
+  }
   function markHistoryChanged(){
     _historyRevision++;
     _hallOfFameCache = null;
@@ -2742,6 +2759,7 @@
   const DRAFT_SAVE_DEBOUNCE_MS = 1200;
   const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
   function persistJsonIfChanged(key, value){
+    if(key === 'gn_current') gnWarnNumpadHotPath("persistJsonIfChanged('gn_current')");
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
     }
@@ -2833,6 +2851,7 @@
   }
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
   function flushPendingSave(){
+    gnWarnNumpadHotPath('flushPendingSave');
     if(_saveDebounceTimer === null && _saveIdleCallback === null && !_pendingSaveExec) return;
     const flushTimer = gnPerfStart('GN flushPendingSave');
     try{
@@ -5590,34 +5609,39 @@
 
   /* ═══ WIZARD METRICS (bid/trick totals — inline in header; replaces old banner) ═══ */
   function updateWizardTrickCounter(){
-    const wrap=document.getElementById('wizard-header-metrics');
-    if(!wrap)return;
-    if(!currentGame||currentGame.name!=='Wizard'){
-      wrap.classList.add('hidden');
-      wrap.innerHTML='';
-      return;
+    const timer=gnPerfStart('GN wizard live update');
+    try{
+      const wrap=document.getElementById('wizard-header-metrics');
+      if(!wrap)return;
+      if(!currentGame||currentGame.name!=='Wizard'){
+        wrap.classList.add('hidden');
+        wrap.innerHTML='';
+        return;
+      }
+      const phase=currentGame.wizardPhase, round=currentGame.currentRound;
+      const gp=getActivePlayers(currentGame);
+      let total=0;
+      gp.forEach(p=>{
+        const source = phase==='bidding' ? currentGame.currentBids : currentGame.currentScoreDrafts;
+        const v=parseInt(source?.[p] ?? 0,10)||0;
+        total+=v;
+      });
+      const diff=total-round; let cls='',status='';
+      if(phase==='bidding'){
+        if(diff===0){cls='trick-counter-neutral';status='';}
+        else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} trick${Math.abs(diff)!==1?'s':''} under`;}
+        else{cls='trick-counter-ok';status=`${diff} trick${diff!==1?'s':''} over`;}
+      } else {
+        if(diff===0){cls='trick-counter-exact';status=`All ${round} accounted for`;}
+        else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} still unaccounted`;}
+        else{cls='trick-counter-over';status=`${diff} too many — recount`;}
+      }
+      wrap.className=`inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors ${cls}`;
+      wrap.innerHTML=`<span class="whm-frac font-mono-num">${total} / ${round}${status?` · ${status}`:''}</span>`;
+      wrap.classList.remove('hidden');
+    } finally {
+      gnPerfEnd(timer);
     }
-    const phase=currentGame.wizardPhase, round=currentGame.currentRound;
-    const gp=getActivePlayers(currentGame);
-    let total=0;
-    gp.forEach(p=>{
-      const source = phase==='bidding' ? currentGame.currentBids : currentGame.currentScoreDrafts;
-      const v=parseInt(source?.[p] ?? 0,10)||0;
-      total+=v;
-    });
-    const diff=total-round; let cls='',status='';
-    if(phase==='bidding'){
-      if(diff===0){cls='trick-counter-neutral';status='';}
-      else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} trick${Math.abs(diff)!==1?'s':''} under`;}
-      else{cls='trick-counter-ok';status=`${diff} trick${diff!==1?'s':''} over`;}
-    } else {
-      if(diff===0){cls='trick-counter-exact';status=`All ${round} accounted for`;}
-      else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} still unaccounted`;}
-      else{cls='trick-counter-over';status=`${diff} too many — recount`;}
-    }
-    wrap.className=`inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors ${cls}`;
-    wrap.innerHTML=`<span class="whm-frac font-mono-num">${total} / ${round}${status?` · ${status}`:''}</span>`;
-    wrap.classList.remove('hidden');
   }
 
   /* ═══ SCORECARD: hide oldest round columns when table overflows wrap (table-layout: auto + re-measure loop) ═══ */
@@ -5670,6 +5694,7 @@
     }
   }
   function scheduleScorecardColumnTrimAll(){
+    gnWarnNumpadHotPath('scheduleScorecardColumnTrimAll');
     if(_scorecardTrimRaf) return;
     _scorecardTrimRaf=requestAnimationFrame(()=>{
       const trimAllTimer = gnPerfStart('GN scorecard trim all');
@@ -5689,11 +5714,13 @@
   // PERF: Coalesce multiple renderGame() calls into a single repaint per frame.
   let _renderPending = false;
   function scheduleRender(){
+    gnWarnNumpadHotPath('scheduleRender');
     if(_renderPending) return;
     _renderPending = true;
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
   function renderGame(){
+    gnWarnNumpadHotPath('renderGame');
     const renderTimer = gnPerfStart('GN renderGame total');
     try{
     if(!currentGame){
@@ -6569,100 +6596,166 @@
   }
 
   function saveActiveInputToModel(){
-    if(!activeInputId||!activeInputContext)return;
-    const el=document.getElementById(activeInputId); if(!el)return;
-    let v=parseInt(el.value); if(isNaN(v))v=0;
-    if(activeInputContext.roundIndex!=='current'){
-      if(currentGame?.rounds[activeInputContext.roundIndex]) currentGame.rounds[activeInputContext.roundIndex].scores[activeInputContext.player]=v;
-      saveData({ debounceMs: SAVE_DEBOUNCE_MS });
-    } else if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='bidding'){
-      if(!currentGame.currentBids)currentGame.currentBids={};
-      currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
-    } else if(activeInputContext.roundIndex==='current'){
-      ensureCurrentScoreDrafts()[activeInputContext.player]=v;
-      saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
+    const timer=gnPerfStart('GN saveActiveInputToModel');
+    try{
+      if(!activeInputId||!activeInputContext)return;
+      const el=document.getElementById(activeInputId); if(!el)return;
+      let v=parseInt(el.value); if(isNaN(v))v=0;
+      if(activeInputContext.roundIndex!=='current'){
+        if(currentGame?.rounds[activeInputContext.roundIndex]) currentGame.rounds[activeInputContext.roundIndex].scores[activeInputContext.player]=v;
+        saveData({ debounceMs: SAVE_DEBOUNCE_MS });
+      } else if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='bidding'){
+        if(!currentGame.currentBids)currentGame.currentBids={};
+        currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
+      } else if(activeInputContext.roundIndex==='current'){
+        ensureCurrentScoreDrafts()[activeInputContext.player]=v;
+        saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
+      }
+    } finally {
+      gnPerfEnd(timer);
     }
   }
 
   function openNumpad(player, roundIndex){
-    if(GN_PERF_TIMING) console.time('openNumpad');
-    if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
-    const isCurrentRound = roundIndex === 'current';
-    const switchingCurrentScoreInput = activeInputContext?.roundIndex === 'current' && isCurrentRound;
-    if(activeInputId)saveActiveInputToModel();
-    if(!switchingCurrentScoreInput) flushPendingSave();
-    activeInputContext={player,roundIndex};
-    activeInputId=isCurrentRound?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
-    document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
-    const el=document.getElementById(activeInputId);
-    if(el){
-      el.classList.add('score-cell-active');
-      document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
+    const timer=gnPerfStart('GN openNumpad');
+    try{
+      if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
+      const isCurrentRound = roundIndex === 'current';
+      const switchingCurrentScoreInput = activeInputContext?.roundIndex === 'current' && isCurrentRound;
+      if(activeInputId)saveActiveInputToModel();
+      if(!switchingCurrentScoreInput) flushPendingSave();
+      activeInputContext={player,roundIndex};
+      activeInputId=isCurrentRound?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
+      document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
+      const el=document.getElementById(activeInputId);
+      if(el){
+        el.classList.add('score-cell-active');
+        document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
+      }
+      document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
+      const np=document.getElementById('custom-numpad');
+      np.classList.remove('hidden');
+      setTimeout(()=>np.classList.remove('translate-y-full'),10);
+    } finally {
+      gnPerfEnd(timer);
     }
-    document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
-    const np=document.getElementById('custom-numpad');
-    np.classList.remove('hidden');
-    setTimeout(()=>np.classList.remove('translate-y-full'),10);
-    if(GN_PERF_TIMING) console.timeEnd('openNumpad');
   }
 
   function numpadPress(v){
-    if(!activeInputId)return;
-    const el=document.getElementById(activeInputId); if(!el)return;
-    let c=el.value;
-    if(v==='backspace')el.value=c.slice(0,-1);
-    else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
-    else{ if(c==='0'&&v!=='0'&&v!=='00')el.value=v; else if(c.length<5)el.value+=v; }
-    if(activeInputContext?.roundIndex==='current'){
-      saveActiveInputToModel();
-      if(currentGame?.name==='Wizard'){
-        updateWizardTrickCounter();
-        if(currentGame.wizardPhase === 'scoring'){
-          updateBidDotFor(activeInputContext.player);
+    const run=()=>{
+      if(!activeInputId)return;
+      const el=document.getElementById(activeInputId); if(!el)return;
+      let c=el.value;
+      if(v==='backspace')el.value=c.slice(0,-1);
+      else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
+      else{ if(c==='0'&&v!=='0'&&v!=='00')el.value=v; else if(c.length<5)el.value+=v; }
+      if(activeInputContext?.roundIndex==='current'){
+        saveActiveInputToModel();
+        if(currentGame?.name==='Wizard'){
+          scheduleWizardLiveUpdate(activeInputContext.player);
         }
       }
-    }
+    };
+    if(activeInputContext?.roundIndex==='current') return gnRunNumpadHotPath('numpadPress', run);
+    const timer=gnPerfStart('GN numpadPress');
+    try{ return run(); } finally { gnPerfEnd(timer); }
   }
 
   // ── Update Wizard bid status without full re-render ──
+  let _wizardLiveUpdateRaf=null;
+  let _wizardLiveDotPlayers=new Set();
+  function scheduleWizardLiveUpdate(playerName){
+    if(!currentGame || currentGame.name !== 'Wizard') return;
+    if(currentGame.wizardPhase === 'scoring' && playerName) _wizardLiveDotPlayers.add(playerName);
+    if(_wizardLiveUpdateRaf)return;
+    _wizardLiveUpdateRaf=requestAnimationFrame(()=>{
+      _wizardLiveUpdateRaf=null;
+      updateWizardTrickCounter();
+      if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='scoring'){
+        const players=[..._wizardLiveDotPlayers];
+        _wizardLiveDotPlayers.clear();
+        players.forEach(updateBidDotFor);
+      } else {
+        _wizardLiveDotPlayers.clear();
+      }
+    });
+  }
+
   function updateBidDotFor(playerName){
-    if(!currentGame || currentGame.name !== 'Wizard' || currentGame.wizardPhase !== 'scoring') return;
-    const liveEl = document.getElementById(`score-input-${playerName}`);
-    if(!liveEl) return;
-    const safe=rookElementId(playerName);
-    const bidWrap=document.getElementById(`wizard-current-bid-${safe}`);
-    const valueEl=bidWrap?.querySelector('.wizard-current-bid-value');
-    if(!bidWrap || !valueEl) return;
-    const bid = currentGame.currentBids?.[playerName] !== undefined ? currentGame.currentBids[playerName] : 0;
-    const liveTricks = liveEl.value !== '' ? parseInt(liveEl.value) : null;
-    let dot = '', overUnderHtml = '';
-    if(liveTricks !== null && !isNaN(liveTricks)){
-      const diff=liveTricks-bid;
-      if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-exact">exact ✓</div>`; }
-      else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-over">${diff} over</div>`; }
-      else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close"></span>` : `<span class="bid-dot bid-dot-under" title="Under"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-under">${Math.abs(diff)} under</div>`; }
+    const timer=gnPerfStart('GN updateBidDotFor');
+    try{
+      if(!currentGame || currentGame.name !== 'Wizard' || currentGame.wizardPhase !== 'scoring') return;
+      const liveEl = document.getElementById(`score-input-${playerName}`);
+      if(!liveEl) return;
+      const safe=rookElementId(playerName);
+      const bidWrap=document.getElementById(`wizard-current-bid-${safe}`);
+      const valueEl=bidWrap?.querySelector('.wizard-current-bid-value');
+      if(!bidWrap || !valueEl) return;
+      const bid = currentGame.currentBids?.[playerName] !== undefined ? currentGame.currentBids[playerName] : 0;
+      const liveTricks = liveEl.value !== '' ? parseInt(liveEl.value) : null;
+      let dot = '', overUnderHtml = '';
+      if(liveTricks !== null && !isNaN(liveTricks)){
+        const diff=liveTricks-bid;
+        if(diff===0){ dot = `<span class="bid-dot bid-dot-exact" title="Exact bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-exact">exact ✓</div>`; }
+        else if(diff>0){ dot = `<span class="bid-dot bid-dot-busted" title="Over bid"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-over">${diff} over</div>`; }
+        else{ dot = (Math.abs(diff)<=1) ? `<span class="bid-dot bid-dot-close" title="Close"></span>` : `<span class="bid-dot bid-dot-under" title="Under"></span>`; overUnderHtml=`<div class="wizard-over-under font-bold wizard-bid-status-under">${Math.abs(diff)} under</div>`; }
+      }
+      valueEl.innerHTML = `${bid}${dot}`;
+      let ouEl = bidWrap.querySelector('.wizard-over-under');
+      if(overUnderHtml){
+        if(!ouEl){ ouEl=document.createElement('div'); valueEl.after(ouEl); }
+        ouEl.innerHTML=overUnderHtml;
+      } else if(ouEl){ ouEl.remove(); }
+    } finally {
+      gnPerfEnd(timer);
     }
-    valueEl.innerHTML = `${bid}${dot}`;
-    let ouEl = bidWrap.querySelector('.wizard-over-under');
-    if(overUnderHtml){
-      if(!ouEl){ ouEl=document.createElement('div'); valueEl.after(ouEl); }
-      ouEl.innerHTML=overUnderHtml;
-    } else if(ouEl){ ouEl.remove(); }
+  }
+
+  let _lastNumpadScrollAt=0;
+  let _numpadScrollRaf=null;
+  let _pendingNumpadScrollPlayer=null;
+  function maybeScrollNumpadTarget(playerName){
+    _pendingNumpadScrollPlayer=playerName;
+    if(_numpadScrollRaf)return;
+    _numpadScrollRaf=requestAnimationFrame(()=>{
+      _numpadScrollRaf=null;
+      const target=_pendingNumpadScrollPlayer;
+      _pendingNumpadScrollPlayer=null;
+      const timer=gnPerfStart('GN numpad scroll');
+      try{
+        const el=document.getElementById(`score-input-${target}`);
+        if(!el)return;
+        const now=Date.now();
+        if(now-_lastNumpadScrollAt<180)return;
+        const rect=el.getBoundingClientRect();
+        const pad=24;
+        if(rect.top>=pad && rect.bottom<=window.innerHeight-pad)return;
+        _lastNumpadScrollAt=now;
+        el.scrollIntoView({block:'nearest',inline:'nearest'});
+      } finally {
+        gnPerfEnd(timer);
+      }
+    });
   }
 
   function numpadNext(){
-    if(!activeInputId)return;
-    const el=document.getElementById(activeInputId);
-    if(el&&(el.value===''||el.value==='-'))el.value='0';
-    saveActiveInputToModel();
-    // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
-    // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
-    const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
-    const ci = seatOrder.indexOf(activeInputContext.player);
-    if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
-    const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
-    openNumpad(np,'current');
-    document.getElementById(`score-input-${np}`)?.scrollIntoView({behavior:'smooth',block:'center'});
+    const run=()=>{
+      if(!activeInputId)return;
+      const el=document.getElementById(activeInputId);
+      if(el&&(el.value===''||el.value==='-'))el.value='0';
+      saveActiveInputToModel();
+      // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
+      // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
+      const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
+      const ci = seatOrder.indexOf(activeInputContext.player);
+      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
+      const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
+      openNumpad(np,'current');
+      maybeScrollNumpadTarget(np);
+    };
+    if(activeInputContext?.roundIndex==='current') return gnRunNumpadHotPath('numpadNext', run);
+    const timer=gnPerfStart('GN numpadNext');
+    try{ return run(); } finally { gnPerfEnd(timer); }
   }
 
   function closeNumpad(options){
