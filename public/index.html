@@ -833,9 +833,9 @@
       --score-entry-avatar-col: 64px;
       --score-entry-total-col: 72px;
       --score-entry-context-col: 72px;
-      --score-entry-input-col: 108px;
-      --score-entry-row-gap: 0.62rem;
-      --score-entry-row-pad: 0.62rem;
+      --score-entry-input-col: 118px;
+      --score-entry-row-gap: 0.8rem;
+      --score-entry-row-pad: 0.58rem;
       --score-entry-scroll-pad: 0.25rem;
     }
     .score-entry-layout {
@@ -865,27 +865,17 @@
       flex-direction: column;
     }
     .score-entry-list::before {
-      content: "";
-      position: absolute;
-      top: 2.35rem;
-      right: calc(var(--score-entry-scroll-pad) + var(--score-entry-row-pad) - 0.24rem);
-      bottom: 0;
-      width: calc(var(--score-entry-input-col) + 0.48rem);
-      border: 2px solid var(--emerald-border);
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(16,185,129,0.18), rgba(16,185,129,0.07));
-      pointer-events: none;
-      z-index: 0;
+      display: none;
     }
     .score-entry-lane-label {
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: 1fr calc(var(--score-entry-input-col) + 0.48rem);
+      grid-template-columns: 1fr var(--score-entry-input-col);
       align-items: center;
       gap: var(--score-entry-row-gap);
       margin: 0 0 0.45rem;
-      padding-right: calc(var(--score-entry-scroll-pad) + var(--score-entry-row-pad) - 0.24rem);
+      padding-right: var(--score-entry-scroll-pad);
     }
     .score-entry-lane-title {
       justify-self: center;
@@ -907,26 +897,40 @@
     }
     .score-entry-row {
       display: grid;
-      grid-template-columns: var(--score-entry-avatar-col) minmax(8.5rem, 1fr) var(--score-entry-total-col) var(--score-entry-context-col) var(--score-entry-input-col);
+      grid-template-columns: minmax(0, 1fr) var(--score-entry-input-col);
       align-items: center;
       gap: var(--score-entry-row-gap);
-      padding: var(--score-entry-row-pad);
-      border: 2px solid var(--hairline);
-      border-radius: 20px;
-      background: var(--surface-2);
+      padding: 0 var(--score-entry-scroll-pad) 0 0;
+      border: 0;
+      border-radius: 22px;
+      background: transparent;
       cursor: pointer;
       transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
       width: 100%;
       text-align: left;
     }
-    .score-entry-row.no-context {
-      grid-template-columns: var(--score-entry-avatar-col) minmax(8.5rem, 1fr) var(--score-entry-total-col) var(--score-entry-input-col);
+    .score-entry-player-card {
+      display: grid;
+      grid-template-columns: var(--score-entry-avatar-col) minmax(8.5rem, 1fr) var(--score-entry-total-col) var(--score-entry-context-col);
+      align-items: center;
+      gap: 0.62rem;
+      min-width: 0;
+      padding: var(--score-entry-row-pad);
+      border: 2px solid var(--hairline);
+      border-radius: 20px;
+      background: var(--surface-2);
+      transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+    }
+    .score-entry-row.no-context .score-entry-player-card {
+      grid-template-columns: var(--score-entry-avatar-col) minmax(8.5rem, 1fr) var(--score-entry-total-col);
     }
     .score-entry-row.active {
-      border-color: var(--emerald);
-      background: var(--emerald-bg);
       transform: translateY(-1px);
-      box-shadow: 0 16px 30px -24px rgba(4,120,87,0.75);
+    }
+    .score-entry-row.active .score-entry-player-card {
+      border-color: rgba(4,120,87,0.38);
+      background: linear-gradient(180deg, var(--emerald-bg), var(--surface-2));
+      box-shadow: 0 14px 28px -24px rgba(4,120,87,0.65);
     }
     .score-entry-avatar {
       width: 58px;
@@ -958,8 +962,8 @@
     .score-entry-stat {
       min-width: 0;
       border-radius: 14px;
-      padding: 0.42rem 0.32rem;
-      background: rgba(255,255,255,0.24);
+      padding: 0.38rem 0.32rem;
+      background: rgba(255,255,255,0.18);
       text-align: center;
       border: 1px solid rgba(120,113,108,0.16);
       color: var(--ink-2);
@@ -988,12 +992,21 @@
       text-align: center;
       position: relative;
       z-index: 2;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 2.5px solid var(--emerald-border);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(209,250,229,0.9), rgba(255,255,255,0.95));
+      padding: 0.48rem 0.5rem 0.52rem;
+      box-shadow: 0 12px 24px -20px rgba(4,120,87,0.95);
     }
     .score-entry-value {
-      min-height: 3.7rem;
-      border-radius: 16px;
-      border: 2.5px solid var(--emerald-border);
-      background: linear-gradient(180deg, #fff, var(--surface));
+      min-height: 3.25rem;
+      border-radius: 14px;
+      border: 0;
+      background: #fff;
       color: var(--ink);
       display: flex;
       align-items: center;
@@ -1005,12 +1018,15 @@
       min-width: 0;
       overflow: hidden;
       padding: 0 0.45rem;
-      margin-top: 0.28rem;
-      box-shadow: inset 0 -2px 0 rgba(120,113,108,0.08), 0 10px 24px -18px rgba(4,120,87,0.9);
+      margin-top: 0.3rem;
+      box-shadow: inset 0 -2px 0 rgba(120,113,108,0.08);
+    }
+    .score-entry-row.active .score-entry-input-cell {
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 4px rgba(4,120,87,0.16), 0 18px 34px -22px rgba(4,120,87,1);
     }
     .score-entry-row.active .score-entry-value {
-      border-color: var(--emerald);
-      box-shadow: inset 0 0 0 2px rgba(4,120,87,0.14), 0 0 0 4px rgba(4,120,87,0.16);
+      box-shadow: inset 0 0 0 2px rgba(4,120,87,0.12);
     }
     .score-entry-side {
       align-self: stretch;
@@ -1103,15 +1119,17 @@
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
-        grid-template-columns: 56px minmax(0,1fr) 62px 78px;
+        grid-template-columns: minmax(0,1fr) 82px;
         gap: 0.65rem;
-        padding: 0.7rem;
+        padding: 0;
       }
-      .score-entry-row.no-context { grid-template-columns: 56px minmax(0,1fr) 62px 78px; }
+      .score-entry-player-card,
+      .score-entry-row.no-context .score-entry-player-card { grid-template-columns: 56px minmax(0,1fr) 62px; }
       .score-entry-avatar { width: 52px; height: 52px; border-radius: 14px; }
       .score-entry-row .score-entry-context { display: none; }
       .score-entry-stat { padding: 0.45rem 0.35rem; }
-      .score-entry-value { min-height: 3.1rem; font-size: clamp(1.55rem, 8vw, 2.2rem); }
+      .score-entry-input-cell { padding: 0.42rem; }
+      .score-entry-value { min-height: 3rem; font-size: clamp(1.55rem, 8vw, 2.2rem); }
       .score-entry-side { display: flex; }
       .score-entry-key { min-height: 3.8rem; }
     }
@@ -6597,13 +6615,15 @@
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
       return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''}">
-        ${getScoreEntryAvatarHtml(p)}
-        <div class="min-w-0 text-left">
-          <div class="score-entry-name truncate">${p}</div>
-          <div class="score-entry-order score-entry-meta-label">${idx+1} in table order</div>
+        <div class="score-entry-player-card">
+          ${getScoreEntryAvatarHtml(p)}
+          <div class="min-w-0 text-left">
+            <div class="score-entry-name truncate">${p}</div>
+            <div class="score-entry-order score-entry-meta-label">${idx+1} in table order</div>
+          </div>
+          <div class="score-entry-stat"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
+          ${context}
         </div>
-        <div class="score-entry-stat"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
-        ${context}
         <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div></div>
       </button>`;
     }).join('');
