@@ -824,7 +824,7 @@
 
     /* ════════ FOCUSED SCORE ENTRY MODAL ════════ */
     .score-entry-panel {
-      width: min(96vw, 1120px);
+      width: min(96vw, 1160px);
       max-height: min(92vh, 920px);
       border-radius: 24px;
       border: 2px solid var(--hairline);
@@ -833,15 +833,20 @@
     }
     .score-entry-row {
       display: grid;
-      grid-template-columns: 76px minmax(0, 1fr) minmax(4rem, 0.55fr) minmax(5rem, 0.65fr) minmax(6rem, 0.75fr);
+      grid-template-columns: 72px minmax(0, 1fr) minmax(5.25rem, 0.42fr) minmax(6rem, 0.48fr) minmax(7rem, 0.55fr);
       align-items: center;
-      gap: 1rem;
-      padding: 0.85rem 1rem;
+      gap: 0.85rem;
+      padding: 0.75rem 0.85rem;
       border: 2px solid var(--hairline);
       border-radius: 18px;
       background: var(--surface-2);
       cursor: pointer;
       transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+      width: 100%;
+      text-align: left;
+    }
+    .score-entry-row.no-context {
+      grid-template-columns: 72px minmax(0, 1fr) minmax(5.25rem, 0.42fr) minmax(7rem, 0.56fr);
     }
     .score-entry-row.active {
       border-color: var(--emerald);
@@ -858,26 +863,39 @@
       background: var(--bg-2);
     }
     .score-entry-name {
-      font-size: clamp(1.55rem, 3vw, 2.35rem);
-      line-height: 1.05;
+      font-size: clamp(1.35rem, 2.35vw, 1.95rem);
+      line-height: 1.08;
       font-weight: 800;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .score-entry-meta-label {
-      font-size: 0.66rem;
+      font-size: clamp(0.58rem, 1.1vw, 0.7rem);
       font-weight: 900;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--muted);
+      line-height: 1.1;
+      white-space: nowrap;
     }
     .score-entry-meta-value {
-      font-size: clamp(1.25rem, 2.5vw, 2rem);
+      font-size: clamp(1.12rem, 2.1vw, 1.65rem);
       font-weight: 900;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      margin-top: 0.25rem;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .score-entry-input-cell {
+      min-width: 0;
     }
     .score-entry-value {
-      min-height: 4.1rem;
+      min-height: 3.65rem;
       border-radius: 16px;
       border: 2px solid var(--hairline);
       background: var(--surface);
@@ -885,24 +903,66 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(2rem, 5vw, 3.65rem);
+      font-size: clamp(1.9rem, 4.2vw, 3.2rem);
       font-weight: 900;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      min-width: 0;
+      overflow: hidden;
+      padding: 0 0.35rem;
     }
     .score-entry-row.active .score-entry-value {
       border-color: var(--emerald);
       box-shadow: inset 0 0 0 2px rgba(4,120,87,0.08);
     }
+    .score-entry-side {
+      align-self: stretch;
+      min-height: 0;
+    }
+    .score-entry-selected-card {
+      border-radius: 20px;
+      border: 2px solid var(--emerald-border);
+      background: linear-gradient(180deg, var(--emerald-bg), var(--surface));
+    }
+    .score-entry-selected-name {
+      font-size: clamp(1.75rem, 3.3vw, 2.65rem);
+      line-height: 1.02;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .score-entry-selected-detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.65rem;
+    }
+    .score-entry-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 999px;
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+      padding: 0.42rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-2);
+      white-space: nowrap;
+    }
     .score-entry-keypad {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.65rem;
+      gap: 0.6rem;
     }
     .score-entry-key {
-      min-height: 4.4rem;
+      min-height: 4.15rem;
       border-radius: 18px;
-      font-size: clamp(1.55rem, 3vw, 2.45rem);
+      font-size: clamp(1.45rem, 2.7vw, 2.15rem);
       font-weight: 900;
       background: var(--ink);
       color: var(--bg);
@@ -911,13 +971,14 @@
     }
     .score-entry-key:active { transform: scale(0.97); }
     .score-entry-key.subtle { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--hairline); }
-    .score-entry-key.next { background: var(--emerald); color: #fff; grid-row: span 2; }
+    .score-entry-key.next { background: var(--emerald); color: #fff; grid-row: span 2; font-size: clamp(1.15rem, 2.1vw, 1.55rem); }
     @media (max-width: 760px) {
       .score-entry-row {
-        grid-template-columns: 56px minmax(0,1fr) minmax(4rem,0.45fr) minmax(5rem,0.55fr);
+        grid-template-columns: 56px minmax(0,1fr) minmax(4.5rem,0.42fr) minmax(5.25rem,0.52fr);
         gap: 0.65rem;
         padding: 0.7rem;
       }
+      .score-entry-row.no-context { grid-template-columns: 56px minmax(0,1fr) minmax(4.5rem,0.42fr) minmax(5.25rem,0.52fr); }
       .score-entry-avatar { width: 52px; height: 52px; border-radius: 14px; }
       .score-entry-row .score-entry-context { display: none; }
       .score-entry-value { min-height: 3.4rem; }
@@ -2437,13 +2498,13 @@
           <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost px-4 py-2 text-sm font-extrabold">Cancel</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 py-5 min-h-0 flex-1">
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-5 py-5 min-h-0 flex-1">
           <div id="score-entry-rows" class="space-y-2.5 overflow-y-auto pr-1 min-h-0"></div>
-          <div class="flex flex-col gap-3">
-            <div class="surface p-4">
+          <div class="score-entry-side flex flex-col gap-3">
+            <div class="score-entry-selected-card p-4">
               <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Selected</div>
-              <div id="score-entry-selected-name" class="font-display text-3xl leading-tight"></div>
-              <div id="score-entry-selected-detail" class="text-sm font-bold mt-1" style="color:var(--muted);"></div>
+              <div id="score-entry-selected-name" class="score-entry-selected-name"></div>
+              <div id="score-entry-selected-detail" class="score-entry-selected-detail"></div>
             </div>
             <div class="score-entry-keypad no-select">
               <button type="button" onclick="scoreEntryKey('7')" class="score-entry-key">7</button>
@@ -6358,10 +6419,11 @@
       const active=idx===scoreEntryModalState.activeIndex;
       const safe=rookElementId(p);
       const bid=currentGame.currentBids?.[p]??0;
-      const context=mode.kind==='wizard-tricks'
-        ? `<div class="score-entry-context"><div class="score-entry-meta-label">Locked Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
-        : `<div class="score-entry-context"><div class="score-entry-meta-label">${mode.valueLabel}</div><div class="score-entry-meta-value" style="color:var(--muted);">Current</div></div>`;
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${active?'active':''}">
+      const hasContext=mode.kind==='wizard-tricks';
+      const context=hasContext
+        ? `<div class="score-entry-context"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
+        : '';
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''}">
         <img src="${getAvatarSrc(p)}" data-fb="${getAvatarFallback(p)}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" class="score-entry-avatar" alt="">
         <div class="min-w-0 text-left">
           <div class="score-entry-name truncate">${p}</div>
@@ -6369,7 +6431,7 @@
         </div>
         <div><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
         ${context}
-        <div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:'—'}</div>
+        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
@@ -6381,8 +6443,8 @@
     const p=scoreEntryModalState.players[scoreEntryModalState.activeIndex];
     const mode=scoreEntryModalState.mode;
     document.getElementById('score-entry-selected-name').textContent=p||'';
-    const bid=mode.kind==='wizard-tricks'?` · bid ${currentGame.currentBids?.[p]??0}`:'';
-    document.getElementById('score-entry-selected-detail').textContent=`${mode.valueLabel}${bid}`;
+    const bid=mode.kind==='wizard-tricks'?`<span class="score-entry-chip">Bid ${currentGame.currentBids?.[p]??0}</span>`:'';
+    document.getElementById('score-entry-selected-detail').innerHTML=`${bid}<span class="score-entry-chip">${mode.valueLabel}</span>`;
   }
 
   function selectScoreEntryPlayer(idx){
@@ -6399,7 +6461,7 @@
     if(!scoreEntryModalState)return;
     const p=scoreEntryModalState.players[scoreEntryModalState.activeIndex];
     const el=document.getElementById(`score-entry-value-${rookElementId(p)}`);
-    if(el)el.textContent=scoreEntryModalState.values[p]!==''?scoreEntryModalState.values[p]:'—';
+    if(el)el.textContent=scoreEntryModalState.values[p]!==''?scoreEntryModalState.values[p]:'';
   }
 
   function scoreEntryKey(v){
