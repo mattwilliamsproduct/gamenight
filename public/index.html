@@ -834,7 +834,55 @@
     .score-entry-layout {
       grid-template-columns: minmax(0, 1fr) minmax(300px, 330px);
     }
+    .score-entry-progress {
+      margin-top: 0.45rem;
+      color: var(--emerald);
+      font-size: clamp(0.85rem, 1.45vw, 1rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .score-entry-list {
+      position: relative;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .score-entry-list::before {
+      content: "";
+      position: absolute;
+      top: 2.35rem;
+      right: 0;
+      bottom: 0;
+      width: 116px;
+      border: 2px solid var(--emerald-border);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(16,185,129,0.11), rgba(16,185,129,0.045));
+      pointer-events: none;
+      z-index: 0;
+    }
+    .score-entry-lane-label {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 116px;
+      align-items: center;
+      gap: 0.7rem;
+      margin: 0 0 0.45rem;
+      padding-right: 0.35rem;
+    }
+    .score-entry-lane-title {
+      justify-self: center;
+      color: var(--emerald);
+      font-size: 0.72rem;
+      font-weight: 950;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
     .score-entry-rows {
+      position: relative;
+      z-index: 1;
+      flex: 1;
       scrollbar-gutter: stable;
     }
     .score-entry-row {
@@ -890,8 +938,8 @@
     .score-entry-stat {
       min-width: 0;
       border-radius: 14px;
-      padding: 0.55rem 0.45rem;
-      background: rgba(255,255,255,0.46);
+      padding: 0.46rem 0.38rem;
+      background: rgba(255,255,255,0.34);
       text-align: center;
       border: 1px solid rgba(120,113,108,0.16);
     }
@@ -905,7 +953,7 @@
       white-space: nowrap;
     }
     .score-entry-meta-value {
-      font-size: clamp(1.18rem, 2.1vw, 1.6rem);
+      font-size: clamp(1.02rem, 1.85vw, 1.38rem);
       font-weight: 900;
       line-height: 1;
       font-variant-numeric: tabular-nums;
@@ -917,17 +965,19 @@
     .score-entry-input-cell {
       min-width: 0;
       text-align: center;
+      position: relative;
+      z-index: 2;
     }
     .score-entry-value {
-      min-height: 3.35rem;
+      min-height: 3.55rem;
       border-radius: 16px;
-      border: 2px solid var(--hairline);
+      border: 2px solid var(--emerald-border);
       background: linear-gradient(180deg, #fff, var(--surface));
       color: var(--ink);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(1.75rem, 3.4vw, 2.65rem);
+      font-size: clamp(1.95rem, 3.7vw, 2.95rem);
       font-weight: 900;
       line-height: 1;
       font-variant-numeric: tabular-nums;
@@ -935,7 +985,7 @@
       overflow: hidden;
       padding: 0 0.45rem;
       margin-top: 0.28rem;
-      box-shadow: inset 0 -2px 0 rgba(120,113,108,0.08);
+      box-shadow: inset 0 -2px 0 rgba(120,113,108,0.08), 0 8px 18px -18px rgba(4,120,87,0.7);
     }
     .score-entry-row.active .score-entry-value {
       border-color: var(--emerald);
@@ -1024,6 +1074,8 @@
       }
     }
     @media (max-width: 760px) {
+      .score-entry-list::before { display: none; }
+      .score-entry-lane-label { display: none; }
       .score-entry-row {
         grid-template-columns: 56px minmax(0,1fr) 62px 72px;
         gap: 0.65rem;
@@ -2547,12 +2599,18 @@
           <div class="min-w-0">
             <div id="score-entry-game" class="font-display text-4xl md:text-5xl leading-tight"></div>
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
+            <div id="score-entry-progress" class="score-entry-progress"></div>
           </div>
-          <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost px-4 py-2 text-sm font-extrabold">Cancel</button>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
-          <div id="score-entry-rows" class="score-entry-rows space-y-2.5 overflow-y-auto pr-1 min-h-0"></div>
+          <div class="score-entry-list">
+            <div class="score-entry-lane-label">
+              <span></span>
+              <span id="score-entry-lane-title" class="score-entry-lane-title">Score</span>
+            </div>
+            <div id="score-entry-rows" class="score-entry-rows space-y-2.5 overflow-y-auto pr-1 min-h-0"></div>
+          </div>
           <div class="score-entry-side flex flex-col gap-3">
             <div class="score-entry-selected-card p-4">
               <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-3" style="color:var(--muted);">Selected Player</div>
@@ -6431,6 +6489,33 @@
     return getAvatarImg(name, cls||'score-entry-avatar');
   }
 
+  function getScoreEntryDraftTotal(){
+    if(!scoreEntryModalState)return 0;
+    const {players,values}=scoreEntryModalState;
+    return players.reduce((sum,p)=>sum+(parseInt(values[p],10)||0),0);
+  }
+
+  function updateScoreEntryHeaderMeta(){
+    if(!scoreEntryModalState||!currentGame)return;
+    const {mode}=scoreEntryModalState;
+    document.getElementById('score-entry-context').textContent=getScoreEntryRoundContext(mode);
+    document.getElementById('score-entry-lane-title').textContent=mode.valueLabel;
+    updateScoreEntryProgress();
+  }
+
+  function updateScoreEntryProgress(){
+    if(!scoreEntryModalState||!currentGame)return;
+    const {mode}=scoreEntryModalState;
+    const progress=document.getElementById('score-entry-progress');
+    if(!progress)return;
+    if(currentGame.name==='Wizard'){
+      const label=mode.kind==='wizard-bids'?'Bids':'Tricks';
+      progress.textContent=`${label}: ${getScoreEntryDraftTotal()} / ${currentGame.currentRound}`;
+    } else {
+      progress.textContent='';
+    }
+  }
+
   function openScoreEntryModal(ev){
     if(ev){
       ev.preventDefault?.();
@@ -6475,8 +6560,8 @@
     if(!scoreEntryModalState||!currentGame)return;
     const {mode,players,values}=scoreEntryModalState;
     document.getElementById('score-entry-game').textContent=currentGame.name;
-    document.getElementById('score-entry-context').textContent=getScoreEntryRoundContext(mode);
     document.getElementById('score-entry-primary-btn').textContent=mode.primary;
+    updateScoreEntryHeaderMeta();
     const rows=players.map((p,idx)=>{
       const active=idx===scoreEntryModalState.activeIndex;
       const safe=rookElementId(p);
@@ -6508,10 +6593,8 @@
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const total=`<span class="score-entry-chip">Current total: ${currentGame.totals?.[p]??0}</span>`;
     const bid=mode.kind==='wizard-tricks'?`<span class="score-entry-chip">Bid: ${currentGame.currentBids?.[p]??0}</span>`:'';
-    const action=mode.kind==='wizard-bids'
-      ? `<span class="score-entry-chip">Round ${currentGame.currentRound} bid</span>`
-      : `<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
-    document.getElementById('score-entry-selected-detail').innerHTML=`${bid}${action}${total}`;
+    const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
+    document.getElementById('score-entry-selected-detail').innerHTML=`${action}${bid}${total}`;
   }
 
   function selectScoreEntryPlayer(idx){
@@ -6529,6 +6612,7 @@
     const p=scoreEntryModalState.players[scoreEntryModalState.activeIndex];
     const el=document.getElementById(`score-entry-value-${rookElementId(p)}`);
     if(el)el.textContent=scoreEntryModalState.values[p]!==''?scoreEntryModalState.values[p]:'';
+    updateScoreEntryProgress();
   }
 
   function scoreEntryKey(v){
