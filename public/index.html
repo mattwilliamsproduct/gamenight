@@ -943,7 +943,7 @@
       background: var(--bg-2);
     }
     .score-entry-name {
-      font-size: clamp(1.52rem, 2.65vw, 2.12rem);
+      font-size: clamp(1.62rem, 2.8vw, 2.25rem);
       line-height: 1.08;
       font-weight: 900;
       letter-spacing: -0.02em;
@@ -951,15 +951,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-    .score-entry-order {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      background: rgba(120,113,108,0.12);
-      padding: 0.22rem 0.5rem;
-      margin-top: 0.35rem;
-      max-width: 100%;
     }
     .score-entry-stat {
       min-width: 0;
@@ -6622,7 +6613,6 @@
           ${getScoreEntryAvatarHtml(p)}
           <div class="min-w-0 text-left">
             <div class="score-entry-name truncate">${p}</div>
-            <div class="score-entry-order score-entry-meta-label">${idx+1} in table order</div>
           </div>
           <div class="score-entry-stat"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
@@ -6640,10 +6630,8 @@
     const mode=scoreEntryModalState.mode;
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
-    const total=`<span class="score-entry-chip">Current total: ${currentGame.totals?.[p]??0}</span>`;
-    const bid=mode.kind==='wizard-tricks'?`<span class="score-entry-chip">Bid: ${currentGame.currentBids?.[p]??0}</span>`:'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
-    document.getElementById('score-entry-selected-detail').innerHTML=`${action}${bid}${total}`;
+    document.getElementById('score-entry-selected-detail').innerHTML=action;
   }
 
   function selectScoreEntryPlayer(idx){
