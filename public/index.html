@@ -843,19 +843,21 @@
       justify-content: center;
     }
     .score-entry-progress {
-      margin-top: 0.45rem;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       border: 1px solid var(--emerald-border);
-      border-radius: 14px;
+      border-radius: 16px;
       background: var(--emerald-bg);
       color: var(--emerald);
-      padding: 0.5rem 0.75rem;
-      font-size: clamp(0.92rem, 1.6vw, 1.15rem);
-      font-weight: 900;
+      padding: 0.65rem 0.95rem;
+      font-size: clamp(1rem, 1.9vw, 1.35rem);
+      font-weight: 950;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
     }
     .score-entry-progress:empty { display: none; }
     .score-entry-list {
@@ -1116,6 +1118,7 @@
       }
     }
     @media (max-width: 760px) {
+      .score-entry-progress { width: 100%; margin-top: 0.75rem; }
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
@@ -2639,12 +2642,12 @@
     <div id="score-entry-modal" class="hidden fixed inset-0 z-[155] items-center justify-center p-4 opacity-0 transition-opacity">
       <div onclick="cancelScoreEntryModal()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="score-entry-panel relative flex flex-col p-5 md:p-7">
-        <div class="flex items-start justify-between gap-4 pb-4 border-b hairline">
+        <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b hairline">
           <div class="min-w-0">
             <div id="score-entry-game" class="font-display text-4xl md:text-5xl leading-tight"></div>
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
-            <div id="score-entry-progress" class="score-entry-progress"></div>
           </div>
+          <div id="score-entry-progress" class="score-entry-progress"></div>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
