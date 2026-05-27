@@ -2104,6 +2104,7 @@
             <button onclick="adjustUI(1)" class="px-3 py-1.5 text-xs font-extrabold hover:opacity-70 transition-opacity" style="color:var(--ink-2);">A+</button>
           </div>
           <button onclick="toggleDarkMode()" id="dark-toggle" class="nav-btn" title="Dark Mode">☀️</button>
+          <button onclick="openPerfReport()" id="perf-report-btn" class="hidden nav-btn accent" title="Performance Report">Perf</button>
           <button onclick="openSettings()" class="nav-btn" title="Settings">⚙</button>
         </div>
       </div>
@@ -2746,6 +2747,7 @@
         <div class="border-t hairline pt-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Data Vault</div>
           <div class="space-y-3">
+            <button id="settings-perf-report-btn" onclick="openPerfReport()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">⚡ Performance Report</button>
             <button onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📥 Export Backup</button>
             <div>
               <p class="text-xs font-bold text-center mb-3" style="color:var(--muted);">Paste incoming JSON:</p>
@@ -2753,6 +2755,26 @@
               <button onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📋 Paste &amp; Merge</button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Report -->
+    <div id="perf-report-modal" class="hidden fixed inset-0 flex items-center justify-center z-[170] p-4 opacity-0 transition-opacity">
+      <div onclick="closePerfReport()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-5xl p-6 md:p-8 relative max-h-[90vh] flex flex-col">
+        <button onclick="closePerfReport()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <div class="mb-5 pr-10">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--emerald);">Diagnostics</div>
+          <h3 class="font-display text-3xl md:text-4xl">Performance Report</h3>
+          <p class="text-sm font-bold mt-1" style="color:var(--muted);">Collected locally only while <span class="font-mono">?gnperf=1</span> is enabled.</p>
+        </div>
+        <div id="perf-report-summary" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4"></div>
+        <pre id="perf-report-text" class="flex-1 min-h-[260px] overflow-auto rounded-2xl border hairline p-4 text-xs leading-relaxed whitespace-pre-wrap" style="background:var(--bg-2);color:var(--ink-2);"></pre>
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+          <button onclick="copyPerfReport()" class="btn-primary flex-1 py-3.5">Copy Report</button>
+          <button onclick="downloadPerfReport()" class="btn-ghost flex-1 py-3.5">Download Report</button>
+          <button onclick="clearPerfReport()" class="btn-ghost flex-1 py-3.5" style="color:var(--rose);">Clear Perf Report</button>
         </div>
       </div>
     </div>
@@ -2907,12 +2929,159 @@
   let _lastPersistedHistoryRev = -1;
   let _deferredColdPersistTimer = null;
   const GN_PERF_TIMING = typeof location !== 'undefined' && /(?:^|[?&])gnperf=1(?:&|$)/.test(location.search || '');
-  function gnPerfStart(label){ if(!GN_PERF_TIMING) return null; console.time(label); return label; }
-  function gnPerfEnd(label){ if(label) console.timeEnd(label); }
+  const GN_PERF_KEY = 'gn_perf_report';
+  const GN_PERF_WARN_MS = 250;
+  const GN_PERF_CRIT_MS = 1000;
+  const GN_PERF_SEVERE_PAUSE_MS = 3000;
+  let gnPerfReport = null;
+  let _gnPerfPersistTimer = null;
+  function gnPerfNewReport(){
+    return {
+      version:1,
+      sessionId:`${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+      startedAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+      events:[],
+      warnings:[],
+      actions:[],
+      maxByOp:{},
+      countByOp:{},
+      localStorageSize:{totalBytes:0,keys:{}}
+    };
+  }
+  function gnPerfLoadReport(){
+    if(!GN_PERF_TIMING) return null;
+    try{
+      const parsed=JSON.parse(localStorage.getItem(GN_PERF_KEY)||'null');
+      if(parsed&&parsed.version===1&&Array.isArray(parsed.events)&&Array.isArray(parsed.warnings)&&Array.isArray(parsed.actions)){
+        parsed.maxByOp=parsed.maxByOp||{};
+        parsed.countByOp=parsed.countByOp||{};
+        parsed.localStorageSize=parsed.localStorageSize||{totalBytes:0,keys:{}};
+        return parsed;
+      }
+    }catch(e){}
+    return gnPerfNewReport();
+  }
+  gnPerfReport = gnPerfLoadReport();
+  function gnPerfCurrentView(){
+    const ids=['home-screen','game-screen','history-screen','profiles-screen'];
+    return ids.find(id=>!document.getElementById(id)?.classList.contains('hidden'))||'unknown';
+  }
+  function gnPerfScoreEntryContext(){
+    if(!scoreEntryModalState)return null;
+    const p=scoreEntryModalState.players?.[scoreEntryModalState.activeIndex]||null;
+    return {mode:scoreEntryModalState.mode?.kind||null, player:p};
+  }
+  function gnPerfContext(){
+    return {
+      view:gnPerfCurrentView(),
+      game:currentGame?.name||null,
+      round:currentGame?.currentRound||null,
+      wizardPhase:currentGame?.wizardPhase||null,
+      scoreEntry:gnPerfScoreEntryContext(),
+      lastAction:gnPerfReport?.actions?.[gnPerfReport.actions.length-1]?.name||null
+    };
+  }
+  function gnPerfTrim(){
+    if(!gnPerfReport)return;
+    if(gnPerfReport.events.length>200)gnPerfReport.events=gnPerfReport.events.slice(-200);
+    if(gnPerfReport.warnings.length>50)gnPerfReport.warnings=gnPerfReport.warnings.slice(-50);
+    if(gnPerfReport.actions.length>200)gnPerfReport.actions=gnPerfReport.actions.slice(-200);
+  }
+  function gnPerfSchedulePersist(){
+    if(!GN_PERF_TIMING||!gnPerfReport)return;
+    gnPerfReport.updatedAt=new Date().toISOString();
+    if(_gnPerfPersistTimer)return;
+    _gnPerfPersistTimer=setTimeout(()=>{
+      _gnPerfPersistTimer=null;
+      try{localStorage.setItem(GN_PERF_KEY, JSON.stringify(gnPerfReport));}catch(e){}
+    },1000);
+  }
+  function gnPerfFlushPersist(){
+    if(!GN_PERF_TIMING||!gnPerfReport)return;
+    if(_gnPerfPersistTimer){clearTimeout(_gnPerfPersistTimer);_gnPerfPersistTimer=null;}
+    gnPerfReport.updatedAt=new Date().toISOString();
+    try{localStorage.setItem(GN_PERF_KEY, JSON.stringify(gnPerfReport));}catch(e){}
+  }
+  function gnPerfStorageSnapshot(){
+    if(!GN_PERF_TIMING||!gnPerfReport)return;
+    const keys={}, prefix=/^(gn_|gamenight)/;
+    let total=0;
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i);
+        if(!key||key===GN_PERF_KEY||!prefix.test(key))continue;
+        const v=localStorage.getItem(key)||'';
+        const bytes=key.length+v.length;
+        keys[key]=bytes;
+        total+=bytes;
+      }
+    }catch(e){}
+    gnPerfReport.localStorageSize={totalBytes:total,keys};
+  }
+  function gnPerfRecordEvent(kind, name, data){
+    if(!GN_PERF_TIMING||!gnPerfReport)return;
+    const event={ts:new Date().toISOString(),kind,name,...(data||{}),ctx:gnPerfContext()};
+    gnPerfReport.events.push(event);
+    if(kind==='warning'||kind==='critical'||kind==='long-pause'||kind==='severe-pause'||kind==='longtask')gnPerfReport.warnings.push(event);
+    gnPerfTrim();
+    gnPerfSchedulePersist();
+  }
+  function gnPerfAction(name, detail){
+    if(!GN_PERF_TIMING||!gnPerfReport)return;
+    const action={ts:new Date().toISOString(),name,detail:detail||null,ctx:gnPerfContext()};
+    gnPerfReport.actions.push(action);
+    gnPerfReport.events.push({ts:action.ts,kind:'action',name,detail:action.detail,ctx:action.ctx});
+    gnPerfTrim();
+    gnPerfSchedulePersist();
+  }
+  function gnPerfObserveDuration(name, duration){
+    if(!GN_PERF_TIMING||!gnPerfReport||!Number.isFinite(duration))return;
+    gnPerfReport.countByOp[name]=(gnPerfReport.countByOp[name]||0)+1;
+    gnPerfReport.maxByOp[name]=Math.max(gnPerfReport.maxByOp[name]||0, duration);
+    if(duration>=GN_PERF_CRIT_MS)gnPerfRecordEvent('critical',name,{durationMs:Math.round(duration)});
+    else if(duration>=GN_PERF_WARN_MS)gnPerfRecordEvent('warning',name,{durationMs:Math.round(duration)});
+    else gnPerfSchedulePersist();
+  }
+  function gnPerfStart(label){
+    if(!GN_PERF_TIMING) return null;
+    console.time(label);
+    return {label,start:performance.now()};
+  }
+  function gnPerfEnd(token){
+    if(!token) return;
+    const label=typeof token==='string'?token:token.label;
+    try{console.timeEnd(label);}catch(e){}
+    if(token&&typeof token==='object')gnPerfObserveDuration(label, performance.now()-token.start);
+  }
+  function gnPerfInit(){
+    if(!GN_PERF_TIMING)return;
+    gnPerfAction('perf enabled');
+    gnPerfStorageSnapshot();
+    document.getElementById('perf-report-btn')?.classList.remove('hidden');
+    document.getElementById('settings-perf-report-btn')?.classList.remove('hidden');
+    let last=performance.now();
+    setInterval(()=>{
+      const now=performance.now(), gap=now-last;
+      last=now;
+      if(gap>GN_PERF_CRIT_MS){
+        gnPerfRecordEvent(gap>GN_PERF_SEVERE_PAUSE_MS?'severe-pause':'long-pause','main thread pause',{durationMs:Math.round(gap)});
+      }
+    },1000);
+    if('PerformanceObserver' in window){
+      try{
+        const obs=new PerformanceObserver(list=>{
+          list.getEntries().forEach(e=>gnPerfRecordEvent('longtask','PerformanceObserver longtask',{durationMs:Math.round(e.duration||0)}));
+        });
+        obs.observe({entryTypes:['longtask']});
+      }catch(e){}
+    }
+  }
   let _gnNumpadHotPath = null;
   function gnWarnNumpadHotPath(work){
     if(GN_PERF_TIMING && _gnNumpadHotPath){
       console.warn(`GN hot path warning: ${work} during ${_gnNumpadHotPath}`);
+      gnPerfRecordEvent('warning','hot path work',{work,during:_gnNumpadHotPath});
     }
   }
   function gnRunNumpadHotPath(label, fn){
@@ -3009,7 +3178,7 @@
   // ── UI scale ──
   let currentUIBase = parseInt(localStorage.getItem('gn_ui_scale'))||16;
   document.documentElement.style.fontSize = currentUIBase+'px';
-  function adjustUI(d){ currentUIBase=Math.max(8,Math.min(24,currentUIBase+(d*2))); document.documentElement.style.fontSize=currentUIBase+'px'; localStorage.setItem('gn_ui_scale',currentUIBase); }
+  function adjustUI(d){ currentUIBase=Math.max(8,Math.min(24,currentUIBase+(d*2))); document.documentElement.style.fontSize=currentUIBase+'px'; const t=gnPerfStart('GN localStorage.setItem gn_ui_scale'); try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);} }
 
   // ── Dark mode ──
   let darkMode = localStorage.getItem('gn_dark')==='1';
@@ -3017,7 +3186,7 @@
     document.getElementById('html-root').classList.toggle('dark',darkMode);
     document.getElementById('dark-toggle').textContent = darkMode ? '🌙' : '☀️';
   }
-  function toggleDarkMode(){ darkMode=!darkMode; localStorage.setItem('gn_dark',darkMode?'1':'0'); applyDarkMode(); }
+  function toggleDarkMode(){ darkMode=!darkMode; const t=gnPerfStart('GN localStorage.setItem gn_dark'); try{localStorage.setItem('gn_dark',darkMode?'1':'0');}finally{gnPerfEnd(t);} applyDarkMode(); }
 
   // ── Animation/flow preferences (all default ON) ──
   function loadPref(key, defaultOn=true){
@@ -3030,7 +3199,7 @@
     statMontage:  loadPref('gn_pref_statmontage',  true),
     dealerRoll:   loadPref('gn_pref_dealerroll',   false), // off by default (optional extra step)
   };
-  function savePref(key, val){ localStorage.setItem(key, val ? '1' : '0'); }
+  function savePref(key, val){ const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(key, val ? '1' : '0');}finally{gnPerfEnd(t);} }
 
   // ── Wake Lock ──
   let wakeLock = null;
@@ -3142,13 +3311,14 @@
         gnPerfEnd(stringifyTimer);
       }
       if(_lastPersistedState[key] === json) return;
-      const setItemTimer = key === 'gn_current' ? gnPerfStart('GN localStorage gn_current') : null;
+      const setItemTimer = gnPerfStart('GN localStorage.setItem ' + key);
       try{
         gnWarnNumpadHotPath('localStorage.setItem');
         localStorage.setItem(key, json);
       } finally {
         gnPerfEnd(setItemTimer);
       }
+      if(key==='gn_current'||key==='gn_history')gnPerfStorageSnapshot();
       _lastPersistedState[key] = json;
       if(key === 'gn_history') _lastPersistedHistoryRev = _historyRevision;
     } finally {
@@ -3208,7 +3378,10 @@
       if(currentGame){
         persistJsonIfChanged('gn_current', currentGame);
       } else if(_lastPersistedState.gn_current !== null){
+        const removeTimer=gnPerfStart('GN localStorage.removeItem gn_current');
         localStorage.removeItem('gn_current');
+        gnPerfEnd(removeTimer);
+        gnPerfStorageSnapshot();
         _lastPersistedState.gn_current = null;
       }
     } finally {
@@ -3290,6 +3463,7 @@
       saveOpenScoreEntryModalDrafts();
       flushPendingSave();
       _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+      gnPerfFlushPersist();
     }
     else if(document.visibilityState === 'visible' && currentGame) await requestWakeLock();
   });
@@ -3297,6 +3471,7 @@
     saveOpenScoreEntryModalDrafts();
     flushPendingSave();
     _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+    gnPerfFlushPersist();
   });
   function updateNavButton(){
     const b=document.getElementById('nav-active-btn');
@@ -3319,6 +3494,7 @@
     }
   }
   function navigateTo(id){
+    gnPerfAction('navigate', id);
     cleanupActiveTouchDrags();
     ['home-screen','game-screen','history-screen','profiles-screen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
@@ -3326,17 +3502,18 @@
     closeNumpad();
     resetIdleTimer();
   }
-  function goHome(){ navigateTo('home-screen'); renderRoster(); }
+  function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
   function goActiveMatch(){ if(currentGame){navigateTo('game-screen');renderGame();}else{goHome();} }
-  function showHistory(){ navigateTo('history-screen'); renderHistoryList(); renderHallOfFame(); }
-  function showProfiles(){ navigateTo('profiles-screen'); renderProfilesGrid(); }
+  function showHistory(){ gnPerfAction('opened History'); navigateTo('history-screen'); let t=gnPerfStart('GN renderHistory'); try{renderHistoryList();}finally{gnPerfEnd(t);} t=gnPerfStart('GN renderHallOfFame'); try{renderHallOfFame();}finally{gnPerfEnd(t);} }
+  function showProfiles(){ gnPerfAction('opened Profiles'); navigateTo('profiles-screen'); const t=gnPerfStart('GN renderProfiles'); try{renderProfilesGrid();}finally{gnPerfEnd(t);} }
   function switchTab(id){
+    if(id==='records-view')gnPerfAction('opened Records');
     ['history-list-view','hall-of-fame-view','records-view'].forEach(t=>document.getElementById(t).classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
     document.getElementById('tab-history').className=`nav-btn ${id==='history-list-view'?'active':''}`;
     document.getElementById('tab-fame').className=`nav-btn ${id==='hall-of-fame-view'?'active':''}`;
     document.getElementById('tab-records').className=`nav-btn ${id==='records-view'?'active':''}`;
-    if(id==='records-view') renderRecordsPage();
+    if(id==='records-view'){ const t=gnPerfStart('GN renderRecords'); try{renderRecordsPage();}finally{gnPerfEnd(t);} }
   }
 
   // ── Avatar helpers ──
@@ -3539,6 +3716,7 @@
   function openModal(id){ const m=document.getElementById(id); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
   function closeModal(id){ const m=document.getElementById(id); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),280); }
   function openSettings(){
+    gnPerfAction('opened Settings');
     document.getElementById('pref-lineupintro').checked = prefs.lineupIntro;
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
@@ -3553,6 +3731,106 @@
     savePref('gn_pref_statmontage', prefs.statMontage);
     savePref('gn_pref_dealerroll',  prefs.dealerRoll);
   }
+  function gnPerfFormatBytes(n){
+    if(!Number.isFinite(n))return '0 B';
+    if(n<1024)return `${n} B`;
+    if(n<1024*1024)return `${(n/1024).toFixed(1)} KB`;
+    return `${(n/1024/1024).toFixed(2)} MB`;
+  }
+  function buildPerfReportText(){
+    if(!GN_PERF_TIMING||!gnPerfReport)return 'Performance timing is not enabled. Open the app with ?gnperf=1.';
+    gnPerfStorageSnapshot();
+    const ctx=gnPerfContext();
+    const storage=gnPerfReport.localStorageSize||{totalBytes:0,keys:{}};
+    const maxRows=Object.entries(gnPerfReport.maxByOp||{}).sort((a,b)=>b[1]-a[1]).slice(0,40)
+      .map(([name,max])=>`${name}: max ${Math.round(max)}ms · count ${gnPerfReport.countByOp?.[name]||0}`);
+    const warnings=(gnPerfReport.warnings||[]).slice(-50).map(e=>`${e.ts} [${e.kind}] ${e.name}${e.durationMs?` ${e.durationMs}ms`:''} · view=${e.ctx?.view||''} game=${e.ctx?.game||''} round=${e.ctx?.round||''} action=${e.ctx?.lastAction||''}`);
+    const pauses=(gnPerfReport.warnings||[]).filter(e=>e.kind==='long-pause'||e.kind==='severe-pause'||e.kind==='longtask').slice(-25)
+      .map(e=>`${e.ts} [${e.kind}] ${e.durationMs||''}ms · view=${e.ctx?.view||''} game=${e.ctx?.game||''} round=${e.ctx?.round||''} action=${e.ctx?.lastAction||''}`);
+    const actions=(gnPerfReport.actions||[]).slice(-80).map(a=>`${a.ts} ${a.name}${a.detail?` · ${a.detail}`:''} · view=${a.ctx?.view||''} game=${a.ctx?.game||''} round=${a.ctx?.round||''}`);
+    const keyRows=Object.entries(storage.keys||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}: ${gnPerfFormatBytes(v)}`);
+    return [
+      'Game Night Performance Report',
+      `Generated: ${new Date().toISOString()}`,
+      `Session started: ${gnPerfReport.startedAt}`,
+      `App URL: ${location.href}`,
+      `User agent: ${navigator.userAgent}`,
+      `Viewport: ${innerWidth}x${innerHeight}`,
+      `Current view: ${ctx.view}`,
+      `Current game: ${ctx.game||'-'}`,
+      `Current round: ${ctx.round||'-'}`,
+      `Score entry: ${ctx.scoreEntry?`${ctx.scoreEntry.mode||'-'} / ${ctx.scoreEntry.player||'-'}`:'-'}`,
+      '',
+      'LocalStorage Summary',
+      `Total app bytes: ${gnPerfFormatBytes(storage.totalBytes)}`,
+      ...keyRows,
+      '',
+      'Max Timings',
+      ...(maxRows.length?maxRows:['No timed operations recorded yet.']),
+      '',
+      'Long Pauses / Long Tasks',
+      ...(pauses.length?pauses:['No long pauses recorded.']),
+      '',
+      'Warnings / Critical Events',
+      ...(warnings.length?warnings:['No warnings recorded.']),
+      '',
+      'Recent Action Timeline',
+      ...(actions.length?actions:['No actions recorded.'])
+    ].join('\n');
+  }
+  function renderPerfReport(){
+    if(!GN_PERF_TIMING)return;
+    const text=buildPerfReportText();
+    const pre=document.getElementById('perf-report-text');
+    if(pre)pre.textContent=text;
+    const ctx=gnPerfContext(), storage=gnPerfReport.localStorageSize||{totalBytes:0};
+    const summary=document.getElementById('perf-report-summary');
+    if(summary){
+      const warnCount=(gnPerfReport.warnings||[]).length;
+      const opCount=Object.keys(gnPerfReport.countByOp||{}).length;
+      summary.innerHTML=[
+        ['Context',`${ctx.view}${ctx.game?` · ${ctx.game} R${ctx.round}`:''}`],
+        ['Warnings',`${warnCount} recent events`],
+        ['Storage',gnPerfFormatBytes(storage.totalBytes)],
+        ['Operations',`${opCount} timed names`],
+        ['Started',new Date(gnPerfReport.startedAt).toLocaleString()],
+        ['Updated',new Date(gnPerfReport.updatedAt).toLocaleString()]
+      ].map(([k,v])=>`<div class="surface p-4"><div class="text-[10px] font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);">${k}</div><div class="font-jakarta font-extrabold text-sm mt-1 break-words">${v}</div></div>`).join('');
+    }
+  }
+  function openPerfReport(){
+    if(!GN_PERF_TIMING){toast('Open with ?gnperf=1 to enable performance reports','warning');return;}
+    gnPerfAction('opened performance report');
+    renderPerfReport();
+    openModal('perf-report-modal');
+  }
+  function closePerfReport(){ closeModal('perf-report-modal'); }
+  async function copyPerfReport(){
+    const text=buildPerfReportText();
+    try{
+      await navigator.clipboard.writeText(text);
+      toast('Performance report copied');
+    }catch(e){
+      document.getElementById('perf-report-text')?.focus?.();
+      toast('Copy blocked. Use Download Report.', 'warning');
+    }
+  }
+  function downloadPerfReport(){
+    const blob=new Blob([buildPerfReportText()],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`gamenight-perf-${Date.now()}.txt`; a.click();
+    URL.revokeObjectURL(url);
+  }
+  function clearPerfReport(){
+    if(!GN_PERF_TIMING)return;
+    localStorage.removeItem(GN_PERF_KEY);
+    gnPerfReport=gnPerfNewReport();
+    gnPerfAction('cleared performance report');
+    renderPerfReport();
+  }
+  window.GN_PERF_EXPORT=buildPerfReportText;
+  window.GN_DEBUG_EXPORT=buildPerfReportText;
   function openRules(){ if(!currentGame)return; document.getElementById('rules-title').textContent=currentGame.name; document.getElementById('rules-content').innerHTML=gameRulesText[currentGame.name]||''; openModal('rules-modal'); }
   function closeRules(){ closeModal('rules-modal'); }
   function openAvatarPicker(){ if(!editingPlayerProfile)return; buildAvatarGrid(); openModal('avatar-modal'); }
@@ -6087,6 +6365,8 @@
   function scheduleRender(){
     gnWarnNumpadHotPath('scheduleRender');
     if(_renderPending) return;
+    const scheduleTimer=gnPerfStart('GN scheduleRender');
+    gnPerfEnd(scheduleTimer);
     _renderPending = true;
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
@@ -6470,6 +6750,7 @@
       ev.stopPropagation?.();
     }
     if(!isWizardBidLockUndoAvailable())return;
+    gnPerfAction('used Wizard Undo Lock Bids');
 
     if(activeInputContext?.roundIndex==='current')saveActiveInputToModel();
     const bids = currentGame.currentBids&&typeof currentGame.currentBids==='object'&&!Array.isArray(currentGame.currentBids)
@@ -6559,6 +6840,8 @@
   }
 
   function openScoreEntryModal(ev){
+    const timer=gnPerfStart('GN score modal open');
+    try{
     if(ev){
       ev.preventDefault?.();
       ev.stopPropagation?.();
@@ -6567,6 +6850,7 @@
     const mode=getScoreEntryMode();
     const maxR=getMaxRoundsForGame(currentGame);
     if(!mode||currentGame.currentRound>maxR)return;
+    gnPerfAction('opened score modal', mode.kind);
     if(activeInputId)closeNumpad({render:false});
 
     const players=getActivePlayers(currentGame);
@@ -6585,6 +6869,9 @@
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     requestAnimationFrame(()=>modal.classList.remove('opacity-0'));
+    } finally {
+      gnPerfEnd(timer);
+    }
   }
 
   function closeScoreEntryModalOnly(){
@@ -6659,6 +6946,7 @@
   function scoreEntryKey(v){
     return gnRunNumpadHotPath('modal digit press',()=>{
       if(!scoreEntryModalState)return;
+      gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.players[scoreEntryModalState.activeIndex];
       let c=scoreEntryModalState.values[p]||'';
       if(v==='backspace')c=c.slice(0,-1);
@@ -6673,6 +6961,7 @@
   function scoreEntryNext(){
     return gnRunNumpadHotPath('modal Next',()=>{
       if(!scoreEntryModalState||!scoreEntryModalState.players.length)return;
+      gnPerfAction('modal Next');
       selectScoreEntryPlayer((scoreEntryModalState.activeIndex+1)%scoreEntryModalState.players.length);
     });
   }
@@ -6696,11 +6985,17 @@
   }
 
   function doneScoreEntryModal(){
+    const timer=gnPerfStart('GN modal Done');
+    try{
     if(!scoreEntryModalState)return;
+    gnPerfAction('modal Done');
     saveOpenScoreEntryModalDrafts();
     saveData();
     closeScoreEntryModalOnly();
     scheduleRender();
+    } finally {
+      gnPerfEnd(timer);
+    }
   }
 
   function cancelScoreEntryModal(){
@@ -6725,14 +7020,21 @@
   }
 
   function submitScoreEntryModal(){
+    const timer=gnPerfStart('GN modal Submit');
+    try{
     if(!scoreEntryModalState||!validateScoreEntryModalSubmit())return;
+    gnPerfAction('modal Submit', scoreEntryModalState.mode?.kind||'');
     saveOpenScoreEntryModalDrafts();
     closeScoreEntryModalOnly();
     submitRound({skipConfirm:true});
+    } finally {
+      gnPerfEnd(timer);
+    }
   }
 
   function submitRound(options){
     if(!currentGame||isSubmitting)return;
+    gnPerfAction('submitted round', options?.skipConfirm?'modal':'button');
     // Rook uses its own command center above the score list.
     if(currentGame.name==='Rook'){isSubmitting=false;return;}
     isSubmitting=true;
@@ -6762,6 +7064,7 @@
         });
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
         currentGame.wizardPhase='scoring';
+        gnPerfAction('locked Wizard bids', `total ${totalBids}/${currentGame.currentRound}`);
         addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
@@ -7239,6 +7542,7 @@
   function numpadPress(v){
     const run=()=>{
       if(!activeInputId)return;
+      gnPerfAction('numpad press', v);
       const el=document.getElementById(activeInputId); if(!el)return;
       let c=el.value;
       if(v==='backspace')el.value=c.slice(0,-1);
@@ -7336,6 +7640,7 @@
   function numpadNext(){
     const run=()=>{
       if(!activeInputId)return;
+      gnPerfAction('numpad Next');
       const el=document.getElementById(activeInputId);
       if(el&&(el.value===''||el.value==='-'))el.value='0';
       saveActiveInputToModel();
@@ -7357,6 +7662,7 @@
     const shouldRender = !options || options.render !== false;
     const hadInput = !!activeInputContext;
     const shouldRefreshTotals = hadInput && activeInputContext.roundIndex !== 'current';
+    if(hadInput)gnPerfAction('numpad Done');
     if(hadInput)suppressSubmitAfterNumpad();
     if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
     if(activeInputId)saveActiveInputToModel();
@@ -8131,13 +8437,14 @@
 
   /* ═══ BOOT ═══ */
   window.onload=function(){
+    gnPerfInit();
     applyDarkMode();
     wireNumpadEventBoundary();
     handleOrientation();
     updateNavButton();
     resetIdleTimer();
     if(currentGame){goActiveMatch(); requestWakeLock();}
-    else{navigateTo('home-screen'); renderRoster();}
+    else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
   };
   </script>
   <canvas id="postgame-confetti-canvas" width="2" height="2" aria-hidden="true"></canvas>
