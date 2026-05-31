@@ -6799,9 +6799,14 @@
     return currentGame.currentScoreDrafts||{};
   }
 
-  function readScoreEntryDraftValue(source, player){
+  function readScoreEntryDraftValue(source, player, mode){
     const raw=source?.[player];
-    return raw===undefined||raw===null||raw===''?'':String(parseInt(raw,10)||0);
+    if(raw!==undefined&&raw!==null&&raw!=='')return String(parseInt(raw,10)||0);
+    if(mode?.kind==='wizard-tricks'&&currentGame?.name==='Wizard'){
+      const bid=currentGame.currentBids?.[player];
+      if(bid!==undefined&&bid!==null&&bid!=='')return String(parseInt(bid,10)||0);
+    }
+    return '';
   }
 
   function scoreEntryStateJson(){
@@ -6856,7 +6861,7 @@
     const players=getActivePlayers(currentGame);
     const source=getScoreEntryDraftSource(mode);
     const values={};
-    players.forEach(p=>{values[p]=readScoreEntryDraftValue(source,p);});
+    players.forEach(p=>{values[p]=readScoreEntryDraftValue(source,p,mode);});
     scoreEntryModalState={
       mode,
       players,
