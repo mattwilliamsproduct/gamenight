@@ -642,6 +642,22 @@
       box-shadow: 0 26px 80px rgba(127,29,29,0.36);
       animation: whammyPop 0.5s cubic-bezier(0.16,1.2,0.3,1) both;
     }
+    .whammy-card.celebration-nolie {
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255,255,255,0.9) 0 8%, transparent 18%),
+        radial-gradient(circle at 78% 18%, rgba(187,247,208,0.9) 0 10%, transparent 23%),
+        radial-gradient(circle at 50% 120%, rgba(4,120,87,0.5), transparent 48%),
+        linear-gradient(135deg, #d9f99d 0%, #34d399 52%, #059669 100%);
+      box-shadow: 0 26px 80px rgba(4,120,87,0.34);
+    }
+    .whammy-card.celebration-cami {
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.86) 0 8%, transparent 18%),
+        radial-gradient(circle at 78% 20%, rgba(254,202,202,0.82) 0 9%, transparent 22%),
+        radial-gradient(circle at 50% 120%, rgba(88,28,135,0.5), transparent 48%),
+        linear-gradient(135deg, #fecaca 0%, #fb7185 48%, #7c3aed 100%);
+      box-shadow: 0 26px 80px rgba(88,28,135,0.34);
+    }
     .whammy-title {
       width: 100%;
       max-width: 100%;
@@ -2802,7 +2818,7 @@
       <div onclick="hideWhammyModal()" class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
       <div class="whammy-card relative flex flex-col items-center text-center rounded-[28px]">
         <div class="text-sm sm:text-base font-extrabold uppercase tracking-[0.24em] mb-2">Round <span id="whammy-round-label"></span></div>
-        <h3 class="whammy-title font-display mb-4">WHAMMY!</h3>
+        <h3 id="whammy-title" class="whammy-title font-display mb-4">WHAMMY!</h3>
         <div id="whammy-avatar" class="mb-4"></div>
         <div id="whammy-name" class="font-display"></div>
         <p id="whammy-copy" class="font-extrabold mt-2 mb-5"></p>
@@ -3871,14 +3887,18 @@
   function whammyEscapeHtml(value){
     return String(value).replace(/[&<>"']/g, ch=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
   }
+  function shouldSuppressRoundCelebration(game, submittedRoundData){
+    if(!game || !submittedRoundData) return true;
+    const maxRounds = getMaxRoundsForGame(game);
+    return !!(maxRounds && maxRounds !== 999 && submittedRoundData.round >= maxRounds);
+  }
   function detectRoundWhammy(game, submittedRoundData){
     if(!game || !submittedRoundData || !submittedRoundData.scores) return null;
     if(game.name === 'Rook'){
       // TODO: Add Rook WHAMMY detection only after validating team-round edge cases.
       return null;
     }
-    const maxRounds = getMaxRoundsForGame(game);
-    if(maxRounds && maxRounds !== 999 && submittedRoundData.round >= maxRounds) return null;
+    if(shouldSuppressRoundCelebration(game, submittedRoundData)) return null;
     const activePlayers = getActivePlayers(game).filter(p=>submittedRoundData.scores[p] !== undefined);
     if(activePlayers.length < 2) return null;
 
@@ -3910,11 +3930,68 @@
     };
   }
 
+  function detectNolieForRound(game, submittedRoundData){
+    if(!game || !submittedRoundData || !submittedRoundData.scores) return null;
+    if(shouldSuppressRoundCelebration(game, submittedRoundData)) return null;
+    if(game.name!=='Wizard' && game.name!=='Flip 7 Vengeance') return null;
+    const activePlayers = getActivePlayers(game).filter(p=>submittedRoundData.scores[p] !== undefined);
+    if(activePlayers.length < 2) return null;
+    let isNolie=false;
+    if(game.name==='Wizard'){
+      if(!submittedRoundData.bids || !submittedRoundData.actuals) return null;
+      isNolie=activePlayers.every(p=>submittedRoundData.bids[p]!==undefined && submittedRoundData.actuals[p]!==undefined && (parseInt(submittedRoundData.bids[p],10)||0)===(parseInt(submittedRoundData.actuals[p],10)||0));
+    } else if(game.name==='Flip 7 Vengeance'){
+      isNolie=activePlayers.every(p=>(parseInt(submittedRoundData.scores[p],10)||0)>0);
+    }
+    if(!isNolie) return null;
+    return {
+      type:'nolie',
+      game:game.name,
+      round:submittedRoundData.round,
+      scores:activePlayers.map(p=>({ player:p, score:submittedRoundData.scores[p] || 0 }))
+    };
+  }
+
+  function detectCamiWhammiForRound(game, submittedRoundData){
+    if(!game || !submittedRoundData || !submittedRoundData.scores) return null;
+    if(shouldSuppressRoundCelebration(game, submittedRoundData)) return null;
+    if(game.name!=='Wizard' && game.name!=='Flip 7 Vengeance') return null;
+    const activePlayers = getActivePlayers(game).filter(p=>submittedRoundData.scores[p] !== undefined);
+    if(activePlayers.length < 2) return null;
+    let isCami=false;
+    if(game.name==='Wizard'){
+      if(!submittedRoundData.bids || !submittedRoundData.actuals) return null;
+      isCami=activePlayers.every(p=>submittedRoundData.bids[p]!==undefined && submittedRoundData.actuals[p]!==undefined && (parseInt(submittedRoundData.bids[p],10)||0)!==(parseInt(submittedRoundData.actuals[p],10)||0));
+    } else if(game.name==='Flip 7 Vengeance'){
+      isCami=activePlayers.every(p=>(parseInt(submittedRoundData.scores[p],10)||0)<=0);
+    }
+    if(!isCami) return null;
+    return {
+      type:'cami-whammi',
+      game:game.name,
+      round:submittedRoundData.round,
+      scores:activePlayers.map(p=>({ player:p, score:submittedRoundData.scores[p] || 0 }))
+    };
+  }
+
+  function detectRoundCelebration(game, submittedRoundData){
+    const whammyData = detectRoundWhammy(game, submittedRoundData);
+    if(whammyData) return {type:'whammy', data:whammyData};
+    const nolieData = detectNolieForRound(game, submittedRoundData);
+    if(nolieData) return {type:'nolie', data:nolieData};
+    const camiData = detectCamiWhammiForRound(game, submittedRoundData);
+    if(camiData) return {type:'cami-whammi', data:camiData};
+    return null;
+  }
+
   function showWhammyModal(whammyData){
     if(!whammyData) return;
     const modal = document.getElementById('whammy-modal');
     if(!modal) return;
+    const card = modal.querySelector('.whammy-card');
+    if(card) card.classList.remove('celebration-nolie','celebration-cami');
     clearTimeout(_whammyDismissTimer);
+    document.getElementById('whammy-title').textContent = 'WHAMMY!';
     document.getElementById('whammy-round-label').textContent = whammyData.round;
     document.getElementById('whammy-avatar').innerHTML = getAvatarImg(whammyData.winner, 'avatar-img-lg');
     document.getElementById('whammy-name').textContent = whammyData.winner;
@@ -3939,6 +4016,51 @@
       setTimeout(()=>playTone(330,0.16,'triangle',0.12),175);
     }catch(e){}
     _whammyDismissTimer = setTimeout(hideWhammyModal, 30000);
+  }
+
+  function showRoundTableCelebrationModal(data){
+    if(!data) return;
+    const modal = document.getElementById('whammy-modal');
+    if(!modal) return;
+    const isNolie=data.type==='nolie';
+    const card = modal.querySelector('.whammy-card');
+    if(card){
+      card.classList.remove('celebration-nolie','celebration-cami');
+      card.classList.add(isNolie?'celebration-nolie':'celebration-cami');
+    }
+    clearTimeout(_whammyDismissTimer);
+    document.getElementById('whammy-title').textContent = isNolie ? 'NOLIE!' : 'CAMI WHAMMI!';
+    document.getElementById('whammy-round-label').textContent = data.round;
+    document.getElementById('whammy-avatar').innerHTML = `<div class="text-7xl sm:text-8xl leading-none">${isNolie?'N':'C'}</div>`;
+    document.getElementById('whammy-name').textContent = isNolie ? 'Everybody nailed it.' : 'Nobody escaped this one.';
+    document.getElementById('whammy-copy').textContent = isNolie ? 'The whole table did well this round.' : 'The whole table got taken down this round.';
+    document.getElementById('whammy-scores').innerHTML = data.scores.map(item=>{
+      const scoreText = item.score > 0 ? `+${item.score}` : `${item.score}`;
+      return `<div class="whammy-score-row">
+        <span>${whammyEscapeHtml(item.player)}</span>
+        <span class="font-mono-num">${scoreText}</span>
+      </div>`;
+    }).join('');
+    modal.classList.remove('hidden');
+    setTimeout(()=>modal.classList.remove('opacity-0'),10);
+    document.body.classList.remove('whammy-pulse');
+    void document.body.offsetWidth;
+    document.body.classList.add('whammy-pulse');
+    setTimeout(()=>document.body.classList.remove('whammy-pulse'),450);
+    try{
+      playTone(isNolie?392:196,0.1,'triangle',0.1);
+      setTimeout(()=>playTone(isNolie?523:147,0.12,'triangle',0.1),110);
+    }catch(e){}
+    _whammyDismissTimer = setTimeout(hideWhammyModal, 30000);
+  }
+
+  function showNolieModal(nolieData){ showRoundTableCelebrationModal(nolieData); }
+  function showCamiWhammiModal(camiData){ showRoundTableCelebrationModal(camiData); }
+  function showRoundCelebration(celebration){
+    if(!celebration) return;
+    if(celebration.type==='whammy') showWhammyModal(celebration.data);
+    else if(celebration.type==='nolie') showNolieModal(celebration.data);
+    else if(celebration.type==='cami-whammi') showCamiWhammiModal(celebration.data);
   }
 
   function hideWhammyModal(){
@@ -7132,14 +7254,14 @@
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
         currentGame.rounds.push(roundData);
-        const whammyData = detectRoundWhammy(currentGame, roundData);
+        const celebration = detectRoundCelebration(currentGame, roundData);
         addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.wizardPhase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
         // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
         saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
         scheduleRender();
-        if(whammyData) setTimeout(()=>showWhammyModal(whammyData),0);
+        if(celebration) setTimeout(()=>showRoundCelebration(celebration),0);
         setTimeout(()=>isSubmitting=false,500); return;
       }
     }
@@ -7150,7 +7272,7 @@
     if(allZero&&!skipConfirm&&!confirm('Everyone scored 0? Submit?')){isSubmitting=false;return;}
     const roundData = {round:currentGame.currentRound,scores};
     currentGame.rounds.push(roundData);
-    const whammyData = detectRoundWhammy(currentGame, roundData);
+    const celebration = detectRoundCelebration(currentGame, roundData);
     addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
     currentGame.currentRound++;
     currentGame.currentScoreDrafts={};
@@ -7158,7 +7280,7 @@
     // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
     saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
     scheduleRender();
-    if(whammyData) setTimeout(()=>showWhammyModal(whammyData),0);
+    if(celebration) setTimeout(()=>showRoundCelebration(celebration),0);
     setTimeout(()=>isSubmitting=false,500);
   }
 
