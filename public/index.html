@@ -6837,6 +6837,15 @@
     });
   }
 
+  function getScoreEntryInitialActivePlayer(mode, tablePlayers, displayPlayers){
+    const fallback=tablePlayers?.[0]||displayPlayers?.[0]||null;
+    if(!currentGame||mode?.kind!=='wizard-bids'||currentGame.name!=='Wizard'||!Array.isArray(tablePlayers)||tablePlayers.length<=1)return fallback;
+    const offset=currentGame.dealerOffset||0;
+    const dealerIdx=(currentGame.currentRound-1+offset+tablePlayers.length)%tablePlayers.length;
+    if(dealerIdx<0||dealerIdx>=tablePlayers.length)return fallback;
+    return tablePlayers[(dealerIdx+1)%tablePlayers.length]||fallback;
+  }
+
   function scoreEntryStateJson(){
     return scoreEntryModalState?JSON.stringify(scoreEntryModalState.values):'';
   }
@@ -6897,7 +6906,7 @@
       players,
       tablePlayers,
       values,
-      activePlayer:tablePlayers[0]||players[0]||null,
+      activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
       initialJson:JSON.stringify(values)
     };
     renderScoreEntryModal();
