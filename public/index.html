@@ -4395,12 +4395,27 @@
       const arc=(s.weight/total)*(2*Math.PI);
       ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+arc);
       ctx.fillStyle=s.color; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#0f0f0e'; ctx.stroke();
-      ctx.save(); ctx.translate(cx,cy); ctx.rotate(a+arc/2); ctx.textAlign='right';
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(a+arc/2); ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillStyle='#fff';
-      const fs=Math.max(18,Math.min(32,arc*72));
-      ctx.font=`800 ${fs}px "Plus Jakarta Sans", sans-serif`;
       ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=7;
-      ctx.fillText(s.label,r-28,10); ctx.restore();
+      const labelRadius=r*0.66;
+      const parts=String(s.label).split(' ');
+      const valueText=parts[0]||'';
+      const detailText=parts.slice(1).join(' ');
+      const valueFs=Math.max(19,Math.min(36,arc*70,valueText.length>3?30:36));
+      if(arc<0.16){
+        ctx.font=`900 ${Math.max(14,Math.min(18,arc*220))}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(valueText||s.label,r*0.74,0);
+      } else if(detailText){
+        ctx.font=`900 ${valueFs}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(valueText,labelRadius,-8);
+        ctx.font=`800 ${Math.max(12,Math.min(17,valueFs*0.48))}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(detailText,labelRadius,18);
+      } else {
+        ctx.font=`900 ${valueFs}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(s.label,labelRadius,0);
+      }
+      ctx.restore();
       s._start=a; s._end=a+arc; a+=arc;
     });
     return slices;
