@@ -1892,6 +1892,10 @@
             <div id="detail-quick-stats" class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start"></div>
           </div>
         </div>
+        <div id="detail-special-rounds-section" class="hidden mb-7">
+          <h3 class="font-display text-2xl mb-3" style="color:var(--emerald);">Special Rounds</h3>
+          <div id="detail-special-rounds" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+        </div>
         <div class="w-full h-[300px] sm:h-[400px] relative"><canvas id="playerHistoryChart"></canvas></div>
         <p class="text-center text-[10px] font-extrabold mt-4 uppercase tracking-[0.2em]" style="color:var(--muted);">Historical Finishing Rank (Lower is Better)</p>
 
@@ -3520,6 +3524,124 @@
     });
   }
 
+  function getHistoryRoundParticipants(gameData, roundData){
+    if(!gameData||!roundData||!roundData.scores||roundData.hailMaryBonus)return [];
+    const ordered=(gameData.originalRoster||[]).filter(p=>p&&roundData.scores[p]!==undefined&&!roundData.joinBonus?.[p]);
+    Object.keys(roundData.scores).forEach(p=>{ if(p&&!ordered.includes(p)&&!roundData.joinBonus?.[p]) ordered.push(p); });
+    return ordered;
+  }
+
+  function isHistoryFinalRoundSuppressed(gameData, roundData){
+    if(!gameData||!roundData)return true;
+    const cfg=configs[gameData.game];
+    if(!cfg)return true;
+    const rosterSize=(gameData.originalRoster||Object.keys(gameData.totals||{})).filter(Boolean).length;
+    const maxRounds=typeof cfg.maxRounds==='function'?cfg.maxRounds(rosterSize):cfg.maxRounds;
+    return !!(maxRounds&&maxRounds!==999&&roundData.round>=maxRounds);
+  }
+
+  function detectHistoryWhammyForRound(gameData, roundData){
+    if(!gameData||!roundData||!roundData.scores||gameData.game==='Rook'||isHistoryFinalRoundSuppressed(gameData, roundData))return null;
+    const participants=getHistoryRoundParticipants(gameData, roundData);
+    if(participants.length<2)return null;
+    const goodPlayers=participants.filter(p=>{
+      const score=roundData.scores[p]||0;
+      if(gameData.game==='Wizard')return score>0;
+      if(gameData.game==='Five Crowns')return score===0;
+      if(gameData.game==='Flip 7 Vengeance')return score>0;
+      return false;
+    });
+    if(goodPlayers.length!==1)return null;
+    const winner=goodPlayers[0];
+    const everyoneElseBad=participants.every(p=>{
+      const score=roundData.scores[p]||0;
+      if(p===winner)return true;
+      if(gameData.game==='Wizard')return score<0;
+      if(gameData.game==='Five Crowns')return score>0;
+      if(gameData.game==='Flip 7 Vengeance')return score===0;
+      return false;
+    });
+    return everyoneElseBad?{type:'whammy',game:gameData.game,round:roundData.round,players:[winner]}:null;
+  }
+
+  function detectHistoryNolieForRound(gameData, roundData){
+    if(!gameData||!roundData||!roundData.scores||isHistoryFinalRoundSuppressed(gameData, roundData))return null;
+    if(gameData.game!=='Wizard'&&gameData.game!=='Flip 7 Vengeance')return null;
+    const participants=getHistoryRoundParticipants(gameData, roundData);
+    if(participants.length<2)return null;
+    let matched=false;
+    if(gameData.game==='Wizard'){
+      if(!roundData.bids||!roundData.actuals)return null;
+      matched=participants.every(p=>roundData.bids[p]!==undefined&&roundData.actuals[p]!==undefined&&(parseInt(roundData.bids[p],10)||0)===(parseInt(roundData.actuals[p],10)||0));
+    } else if(gameData.game==='Flip 7 Vengeance'){
+      matched=participants.every(p=>(parseInt(roundData.scores[p],10)||0)>0);
+    }
+    return matched?{type:'nolie',game:gameData.game,round:roundData.round,players:participants}:null;
+  }
+
+  function detectHistoryCamiWhammiForRound(gameData, roundData){
+    if(!gameData||!roundData||!roundData.scores||isHistoryFinalRoundSuppressed(gameData, roundData))return null;
+    if(gameData.game!=='Wizard'&&gameData.game!=='Flip 7 Vengeance')return null;
+    const participants=getHistoryRoundParticipants(gameData, roundData);
+    if(participants.length<2)return null;
+    let matched=false;
+    if(gameData.game==='Wizard'){
+      if(!roundData.bids||!roundData.actuals)return null;
+      matched=participants.every(p=>roundData.bids[p]!==undefined&&roundData.actuals[p]!==undefined&&(parseInt(roundData.bids[p],10)||0)!==(parseInt(roundData.actuals[p],10)||0));
+    } else if(gameData.game==='Flip 7 Vengeance'){
+      matched=participants.every(p=>(parseInt(roundData.scores[p],10)||0)<=0);
+    }
+    return matched?{type:'cami',game:gameData.game,round:roundData.round,players:participants}:null;
+  }
+
+  function getSpecialRoundStatsForPlayer(name){
+    const stats={
+      whammy:{label:'WHAMMY',total:0,byGame:{}},
+      nolie:{label:'Nolie',total:0,byGame:{}},
+      cami:{label:'Cami Whammi',total:0,byGame:{}}
+    };
+    const add=(key,event)=>{
+      if(!event||!event.players.includes(name))return;
+      stats[key].total++;
+      stats[key].byGame[event.game]=(stats[key].byGame[event.game]||0)+1;
+    };
+    history.forEach(h=>{
+      if(!configs[h.game]||!Array.isArray(h.rounds))return;
+      h.rounds.forEach(round=>{
+        const whammy=detectHistoryWhammyForRound(h, round);
+        if(whammy){ add('whammy', whammy); return; }
+        add('nolie', detectHistoryNolieForRound(h, round));
+        add('cami', detectHistoryCamiWhammiForRound(h, round));
+      });
+    });
+    return stats;
+  }
+
+  function renderSpecialRoundStats(name){
+    const section=document.getElementById('detail-special-rounds-section');
+    const container=document.getElementById('detail-special-rounds');
+    if(!section||!container)return;
+    const stats=getSpecialRoundStatsForPlayer(name);
+    const rows=Object.values(stats).filter(s=>s.total>0);
+    if(!rows.length){
+      section.classList.add('hidden');
+      container.innerHTML='';
+      return;
+    }
+    section.classList.remove('hidden');
+    container.innerHTML=rows.map(s=>{
+      const byGame=Object.entries(s.byGame)
+        .sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))
+        .map(([game,count])=>`${game.replace(' Vengeance','')}: ${count}`)
+        .join(' · ');
+      return `<div class="surface p-4">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">${s.label}</div>
+        <div class="font-jakarta font-extrabold text-4xl font-mono-num" style="color:var(--emerald);">${s.total}</div>
+        <div class="text-xs font-bold mt-2 leading-snug" style="color:var(--muted);">${byGame}</div>
+      </div>`;
+    }).join('');
+  }
+
   function openProfileDetail(name){
     editingPlayerProfile=name;
     document.getElementById('detail-name').textContent=name;
@@ -3540,6 +3662,7 @@
       <span class="chip">Matches <strong class="ml-1">${games}</strong></span>
       <span class="chip" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Wins ${wins} (${wr}%)</span>
       <span class="chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Last ${lasts}×</span>`;
+    renderSpecialRoundStats(name);
     document.getElementById('profile-detail-view').classList.remove('hidden');
     window.scrollTo({top:document.getElementById('profile-detail-view').offsetTop-100,behavior:'smooth'});
     const ctx=document.getElementById('playerHistoryChart').getContext('2d');
