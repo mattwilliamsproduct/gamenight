@@ -163,6 +163,80 @@
       font-size: clamp(1.35rem, 3.2vw, 2.45rem) !important;
       line-height: 1.2;
     }
+    .active-match-banner {
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(201,151,45,0.28);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.84)),
+        radial-gradient(circle at 7% 0%, rgba(6,78,59,0.12), transparent 19rem),
+        radial-gradient(circle at 92% 10%, rgba(201,151,45,0.14), transparent 20rem);
+      box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+    html.dark .active-match-banner {
+      background:
+        linear-gradient(180deg, rgba(28,28,25,0.98), rgba(28,28,25,0.9)),
+        radial-gradient(circle at 7% 0%, rgba(16,185,129,0.12), transparent 19rem),
+        radial-gradient(circle at 92% 10%, rgba(251,191,36,0.09), transparent 20rem);
+      border-color: rgba(251,191,36,0.24);
+      box-shadow: var(--shadow-md);
+    }
+    .active-match-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(201,151,45,0.18), transparent 12%, transparent 88%, rgba(201,151,45,0.18)),
+        linear-gradient(180deg, rgba(255,255,255,0.36), transparent 44%);
+      opacity: 0.6;
+    }
+    .active-match-banner > * { position: relative; z-index: 1; }
+    .round-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: max-content;
+      max-width: 100%;
+      padding: 0.16rem 0.72rem 0.24rem;
+      border-radius: 999px;
+      border: 1px solid rgba(201,151,45,0.34);
+      background: rgba(255,247,223,0.74);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    html.dark .round-banner { background: rgba(251,191,36,0.08); }
+    .leader-banner {
+      position: relative;
+      overflow: hidden;
+      border-width: 1.5px;
+      background:
+        linear-gradient(135deg, rgba(236,253,245,0.96), rgba(255,247,223,0.72)) !important;
+      border-color: rgba(6,78,59,0.2) !important;
+      box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.65);
+    }
+    html.dark .leader-banner {
+      background:
+        linear-gradient(135deg, rgba(2,44,34,0.9), rgba(31,22,4,0.62)) !important;
+      border-color: rgba(251,191,36,0.2) !important;
+    }
+    .leader-banner::before {
+      content: 'Champion Watch';
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      align-self: center;
+      padding: 0.5rem 0.78rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.68);
+      border: 1px solid rgba(201,151,45,0.34);
+      color: var(--emerald);
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    html.dark .leader-banner::before { background: rgba(255,255,255,0.06); color: var(--gold); }
     /* Wizard scoring: bid sum vs tricks — standalone pill on title row */
     .wizard-bid-tally-pill {
       display: inline-flex;
@@ -1347,10 +1421,14 @@
       text-align: left;
       background: var(--emerald-bg);
       border: 2px solid var(--emerald);
-      border-radius: 0.5rem;
-      padding: 0.15em 0.55em 0.2em;
+      border-radius: 0.85rem;
+      padding: 0.15em 0.22em 0.16em 0.55em;
       cursor: pointer;
       transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.18em;
+      min-width: 0;
     }
     button.dealer-name-indicator:hover {
       filter: brightness(1.05);
@@ -1368,6 +1446,12 @@
     }
     html.dark button.dealer-name-indicator.leader-text {
       background: var(--surface-2);
+    }
+    .dealer-player-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ════════ POST-GAME STAT MONTAGE (ceremony cards, then Next → winner) ════════ */
@@ -1499,13 +1583,35 @@
       width: 100%;
       max-width: 100%;
     }
+    .tournament-scoreboard {
+      border-radius: 24px;
+      border-color: rgba(201,151,45,0.28);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.82), rgba(251,250,246,0.96)),
+        radial-gradient(circle at top left, rgba(201,151,45,0.12), transparent 18rem);
+      box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+    html.dark .tournament-scoreboard {
+      background:
+        linear-gradient(180deg, rgba(28,28,25,0.98), rgba(20,20,18,0.98)),
+        radial-gradient(circle at top left, rgba(251,191,36,0.08), transparent 18rem);
+      border-color: rgba(251,191,36,0.2);
+    }
+    .tournament-scoreboard .scorecard-table-wrap {
+      background: linear-gradient(180deg, rgba(255,255,255,0.28), transparent);
+    }
     /* auto layout: Player column grows; round cols use 1px + nowrap shrink-to-fit; trim JS hides oldest rounds on overflow */
     .scorecard-table {
       table-layout: auto;
       width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
     }
-    .scorecard-table thead tr { background: var(--ink); }
-    .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#d4d4cc; white-space:nowrap; }
+    .scorecard-table thead tr {
+      background:
+        linear-gradient(180deg, #171713, var(--ink));
+    }
+    .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:#f1e8d1; white-space:nowrap; border-bottom: 1px solid rgba(201,151,45,0.32); }
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
@@ -1552,6 +1658,77 @@
       overflow: visible;
       text-overflow: clip;
     }
+    .scorecard-table tbody tr {
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .scorecard-table tbody td {
+      border-bottom: 1px solid rgba(226,218,203,0.72);
+    }
+    html.dark .scorecard-table tbody td { border-bottom-color: rgba(255,255,255,0.08); }
+    .scorecard-table tbody tr:last-child td { border-bottom: 0; }
+    .scoreboard-rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.72rem;
+      height: 1.72rem;
+      border-radius: 9px;
+      border: 1px solid rgba(201,151,45,0.32);
+      background: rgba(255,247,223,0.78);
+      color: #6b4a08;
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+    html.dark .scoreboard-rank-badge { background: rgba(251,191,36,0.08); color: var(--gold); }
+    .scoreboard-player-name {
+      letter-spacing: -0.03em;
+      line-height: 1.02;
+    }
+    .dealer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.35rem;
+      padding: 0.22rem 0.5rem;
+      border-radius: 999px;
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-border);
+      color: #6b4a08;
+      font-size: 0.62rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    html.dark .dealer-badge { color: var(--gold); background: rgba(251,191,36,0.08); }
+    .scorecard-total-cell {
+      background:
+        linear-gradient(180deg, rgba(255,247,223,0.48), rgba(255,255,255,0.22));
+      box-shadow: inset 1px 0 0 rgba(201,151,45,0.18), inset -1px 0 0 rgba(201,151,45,0.12);
+    }
+    html.dark .scorecard-total-cell {
+      background: rgba(251,191,36,0.05);
+      box-shadow: inset 1px 0 0 rgba(251,191,36,0.12), inset -1px 0 0 rgba(251,191,36,0.08);
+    }
+    .leader-row td {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -1px 0 rgba(6,78,59,0.12);
+    }
+    .leader-row .scoreboard-rank-badge {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      color: #fff;
+    }
+    .leader-row .scorecard-total-cell {
+      background:
+        linear-gradient(180deg, rgba(236,253,245,0.94), rgba(255,247,223,0.55));
+      box-shadow: inset 1px 0 0 rgba(6,78,59,0.16), inset -1px 0 0 rgba(201,151,45,0.18);
+    }
+    .tournament-footer {
+      background:
+        linear-gradient(180deg, rgba(251,250,246,0.88), rgba(255,247,223,0.64)) !important;
+    }
+    html.dark .tournament-footer { background: rgba(255,255,255,0.04) !important; }
 
     /* History modal: round values live on the <td> itself; match live scorecard round column type */
     td.scorecard-round-td.tv-round-cell-num {
@@ -1854,11 +2031,11 @@
 
     <!-- ═══ GAME SCREEN ═══ -->
     <div id="game-screen" class="hidden">
-      <div class="surface p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="surface active-match-banner p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div class="flex flex-col gap-1.5 min-w-0">
           <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
             <h2 id="game-title" class="font-display shrink-0"></h2>
-            <div id="round-intel" class="font-display min-w-0" style="color:var(--emerald);"></div>
+            <div id="round-intel" class="round-banner font-display min-w-0" style="color:var(--emerald);"></div>
             <div id="wizard-header-metrics" class="hidden inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors"></div>
             <div id="wizard-bid-status" class="hidden shrink-0"></div>
           </div>
@@ -1906,13 +2083,13 @@
 
       <!-- Landscape: Scorecard view -->
       <div class="landscape-only">
-        <div id="leader-banner" class="hidden mb-4 surface p-5 flex items-center gap-4" style="background:var(--emerald-bg);border-color:var(--emerald-border);">
+        <div id="leader-banner" class="leader-banner hidden mb-4 surface p-5 flex items-center gap-4" style="background:var(--emerald-bg);border-color:var(--emerald-border);">
           <div id="leader-text" class="font-jakarta font-extrabold leading-tight flex-1 min-w-0" style="color:var(--emerald);"></div>
         </div>
 
         <div id="rook-round-panel" class="hidden mb-4"></div>
 
-        <div id="scorecard-capture" class="surface-raised overflow-hidden mb-20">
+        <div id="scorecard-capture" class="surface-raised tournament-scoreboard overflow-hidden mb-20">
           <div id="scorecard-rounds-hint" class="scorecard-rounds-hint scorecard-hidden-rounds-hint hidden text-center py-1.5 px-2 text-[10px] font-extrabold tracking-wide select-none" style="color:var(--muted);background:var(--surface-2);"></div>
           <div class="scorecard-table-wrap">
             <table class="text-left scorecard-table">
@@ -1921,7 +2098,7 @@
             </table>
           </div>
 
-          <div id="submit-section" class="p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
+          <div id="submit-section" class="tournament-footer p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
             <button id="undo-wizard-bid-lock-btn" onclick="undoWizardBidLock(event)" class="btn-ghost hidden w-full sm:w-auto shrink-0 px-8 py-4">Undo Lock Bids</button>
             <button id="submit-action-btn" onclick="openScoreEntryModal(event)" class="btn-accent tv-submit-round-btn w-full sm:w-auto shrink-0 px-12 py-4">Log Scores</button>
           </div>
@@ -4938,13 +5115,13 @@
           <div class="flex items-center gap-2 min-w-0">
             ${getStreakAvatarHtml(p,'avatar-img-sc mx-1')}
             ${isDealer
-              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-bold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
-              : `<span class="font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
+              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge">Dealer</span></button>`
+              : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
         </td>
         <td data-sc-part="lead" class="scorecard-col-bid px-3 py-2 text-center align-middle">${bidCell}</td>
-        <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
         <td data-sc-part="lead" class="scorecard-col-target px-3 py-2 text-center">
           <span class="tv-target-pct font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
         </td>`;
@@ -6223,17 +6400,17 @@
           <div class="flex items-center gap-2 min-w-0">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               ${dragHandle}${arrows}
-              <span class="text-sm w-5 font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}" style="color:var(--muted);">${ri+1}.</span>
+              <span class="scoreboard-rank-badge font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}">${ri+1}</span>
               ${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}
               ${isDealer
-                ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change">${p}</button>`
-                : `<span class="font-jakarta font-bold text-3xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
+                ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge">Dealer</span></button>`
+                : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
               ${hailBtn}${retiredTag}
             </div>
             ${wizardCurrentBid}
           </div>
         </td>
-        <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
 
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
