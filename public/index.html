@@ -3,12 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="CardKnight is a modern game-night scorekeeper for card and tabletop games.">
+  <meta name="theme-color" content="#064e3b">
+  <meta name="application-name" content="CardKnight">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Game Night">
-  <link rel="apple-touch-icon" href="tv-icon.png">
-  <link rel="icon" href="tv-icon.png">
-  <title>Game Night Scorekeeper Pro</title>
+  <meta name="apple-mobile-web-app-title" content="CardKnight">
+  <meta property="og:title" content="CardKnight">
+  <meta property="og:description" content="Game Night Scorekeeper">
+  <meta property="og:image" content="/icon-512.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <title>CardKnight · Game Night Scorekeeper</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1591,7 +1600,7 @@
   <!-- Lineup Intro Overlay -->
   <div id="lineup-intro" class="hidden">
     <div class="intro-bg"></div>
-    <div class="intro-sub" id="intro-game-label">Game Night</div>
+    <div class="intro-sub" id="intro-game-label">CardKnight</div>
     <div class="intro-header" id="intro-header-text">Tonight's Lineup</div>
     <div class="intro-roster" id="intro-roster-list"></div>
     <div class="intro-skip" onclick="dismissLineupIntro()">Skip ›</div>
@@ -1645,12 +1654,12 @@
     <div id="top-nav" class="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 backdrop-blur-xl" style="background: var(--nav-bg); border-bottom: 1px solid var(--hairline);">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white border hairline" style="box-shadow:var(--shadow-sm);">
-            <span class="font-display text-xl text-rose-600 leading-none" style="color:#e11d48;">A<span class="text-base">♥</span></span>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white border hairline overflow-hidden" style="box-shadow:var(--shadow-sm);">
+            <img src="/icon-192.png" alt="CardKnight" class="w-full h-full object-cover">
           </div>
           <div>
-            <h1 class="font-display text-2xl leading-none tracking-tight">Game Night</h1>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.16em] mt-0.5" style="color:var(--muted);">Scorekeeper Pro</div>
+            <h1 class="font-display text-2xl leading-none tracking-tight">CardKnight</h1>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.16em] mt-0.5" style="color:var(--muted);">Game Night Scorekeeper</div>
           </div>
         </div>
         <div class="flex flex-wrap gap-1.5 items-center">
@@ -2461,7 +2470,7 @@
 
   <script>
   /* ══════════════════════════════════════════════════════════
-     Game Night Scorekeeper Pro — v5
+     CardKnight — Game Night Scorekeeper
      ══════════════════════════════════════════════════════════ */
 
   // ── Storage helpers ──
@@ -3144,7 +3153,7 @@
     const actions=(gnPerfReport.actions||[]).slice(-80).map(a=>`${a.ts} ${a.name}${a.detail?` · ${a.detail}`:''} · view=${a.ctx?.view||''} game=${a.ctx?.game||''} round=${a.ctx?.round||''}`);
     const keyRows=Object.entries(storage.keys||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}: ${gnPerfFormatBytes(v)}`);
     return [
-      'Game Night Performance Report',
+      'CardKnight Performance Report',
       `Generated: ${new Date().toISOString()}`,
       `Session started: ${gnPerfReport.startedAt}`,
       `App URL: ${location.href}`,

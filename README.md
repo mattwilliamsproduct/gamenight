@@ -1,2 +1,2 @@
 # gamenight
-Game Night Scorekeeper Pro
+CardKnight · Game Night Scorekeeper
