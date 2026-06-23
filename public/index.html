@@ -3960,11 +3960,27 @@
       const myRank=sorted.findIndex(p=>p===name)+1;
       labels.push(`${h.game.split(' ')[0]}`); data.push(myRank);
     });
+    const profileGameStats={};
+    history.forEach(h=>{
+      if(!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
+      const s=profileGameStats[h.game]||(profileGameStats[h.game]={games:0,wins:0});
+      s.games++;
+      if(h.winners?.includes(name))s.wins++;
+    });
+    const profileGameEntries=Object.entries(profileGameStats);
+    const favoriteGame=profileGameEntries.slice().sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0]))[0];
+    const strongestGame=profileGameEntries
+      .filter(([_,s])=>s.games>=3)
+      .sort((a,b)=>(b[1].wins/b[1].games)-(a[1].wins/a[1].games)||b[1].wins-a[1].wins)[0];
+    const favChip=favoriteGame?`<span class="chip">Favorite <strong class="ml-1">${favoriteGame[0].replace(' Vengeance','')}</strong></span>`:'';
+    const strongChip=strongestGame?`<span class="chip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Best Game ${strongestGame[0].replace(' Vengeance','')} · ${Math.round(strongestGame[1].wins/strongestGame[1].games*100)}%</span>`:'';
     const wr=games>0?Math.round(wins/games*100):0;
     document.getElementById('detail-quick-stats').innerHTML=`
       <span class="chip">Matches <strong class="ml-1">${games}</strong></span>
       <span class="chip" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Wins ${wins} (${wr}%)</span>
-      <span class="chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Last ${lasts}×</span>`;
+      <span class="chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Last ${lasts}×</span>
+      ${favChip}
+      ${strongChip}`;
     renderSpecialRoundStats(name);
     document.getElementById('profile-detail-view').classList.remove('hidden');
     window.scrollTo({top:document.getElementById('profile-detail-view').offsetTop-100,behavior:'smooth'});
@@ -7890,13 +7906,14 @@
     const games = {
       "Five Crowns": {
         bestGame:null,worstGame:null,bestRound:null,worstRound:null,mostPerfectRounds:null,
-        mostConsistent:null,closestMargin:null,mostLopsided:null
+        mostConsistent:null,cleanestGame:null,closestMargin:null,mostLopsided:null
       },
       "Wizard": {
         bestGame:null,bestGameByPlayerCount:Object.fromEntries(WIZARD_RECORD_PLAYER_COUNTS.map(n=>[n,null])),worstGame:null,bestRound:null,worstRound:null,bestExactBidPct:null,
-        mostExactSingleGame:null,biggestOverbid:null,biggestUnderbid:null,mostTricksRound:null
+        bestExactRateSingleGame:null,mostExactSingleGame:null,mostExactByPlayerCount:Object.fromEntries(WIZARD_RECORD_PLAYER_COUNTS.map(n=>[n,null])),
+        mostZeroBidsHit:null,biggestFinalRoundSwing:null,biggestOverbid:null,biggestUnderbid:null,mostTricksRound:null
       },
-      "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,closestMargin:null},
+      "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,mostZeroRounds:null,closestMargin:null},
       "Rook": {bestGame:null,worstGame:null,mostSuccessfulBids:null,highestBidMade:null,biggestSet:null}
     };
     const allTime = {
@@ -8050,7 +8067,9 @@
       }
 
       const perMatch = {};
-      sorted.forEach(p=>perMatch[p]={zeros:0,exacts:0,busted:0,roundScores:[],rookMade:0});
+      sorted.forEach(p=>perMatch[p]={zeros:0,exacts:0,busted:0,wizardBidTotal:0,zeroBidsHit:0,roundScores:[],rookMade:0});
+      const scoringRounds = h.rounds.filter(r=>!r.hailMaryBonus);
+      const finalScoringRound = scoringRounds[scoringRounds.length-1] || null;
       h.rounds.forEach(r=>{
         Object.entries(r.scores||{}).forEach(([p,score])=>{
           if(!perMatch[p] || r.joinBonus?.[p]) return;
@@ -8063,18 +8082,26 @@
           if(h.game==='Wizard'){
             update(games.Wizard,'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
             update(games.Wizard,'worstRound',entry(p,score,h,{round:r.round}),betterLow);
+            if(r===finalScoringRound){
+              update(games.Wizard,'biggestFinalRoundSwing',entry(p,score,h,{round:r.round,label:`${score >= 0 ? '+' : ''}${score} in final round`}),betterHigh);
+            }
             const bid = r.bids?.[p], actual = r.actuals?.[p];
             if(bid!==undefined && actual!==undefined){
               if(!wizardBidStats[p]) wizardBidStats[p]={exact:0,total:0,busted:0};
               wizardBidStats[p].total++;
+              perMatch[p].wizardBidTotal++;
               if(bid===actual){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
               else { wizardBidStats[p].busted++; perMatch[p].busted++; }
+              if(Number(bid)===0&&Number(actual)===0) perMatch[p].zeroBidsHit++;
               if(actual<bid) update(games.Wizard,'biggestOverbid',entry(p,bid-actual,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
               if(actual>bid) update(games.Wizard,'biggestUnderbid',entry(p,actual-bid,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
               update(games.Wizard,'mostTricksRound',entry(p,actual,h,{round:r.round,label:`${actual} tricks`}),betterHigh);
             }
           }
-          if(h.game==='Flip 7 Vengeance') update(games["Flip 7 Vengeance"],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
+          if(h.game==='Flip 7 Vengeance'){
+            update(games["Flip 7 Vengeance"],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
+            if(score===0) perMatch[p].zeros++;
+          }
         });
         if(h.game==='Rook' && r.rookBid!==undefined){
           const made = r.rookMade===true || r.rookMadeIt===true;
@@ -8094,8 +8121,25 @@
             const v = variance(m.roundScores);
             update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Variance ${v.toFixed(1)}`}),betterLow);
           }
+          if(m.roundScores.length){
+            const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
+            const avg=total/m.roundScores.length;
+            update(games["Five Crowns"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} avg · ${total} over ${m.roundScores.length} hands`}),betterLow);
+          }
         }
-        if(h.game==='Wizard') update(games.Wizard,'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
+        if(h.game==='Wizard'){
+          update(games.Wizard,'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
+          if(m.zeroBidsHit>0) update(games.Wizard,'mostZeroBidsHit',entry(p,m.zeroBidsHit,h,{label:`${m.zeroBidsHit} zero bids hit`}),betterHigh);
+          if(m.wizardBidTotal>0&&m.exacts>0){
+            const exactPct=Math.round(m.exacts/m.wizardBidTotal*100);
+            update(games.Wizard,'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts}/${m.wizardBidTotal} exact bids`}),betterHigh);
+          }
+          const playerCount=getWizardRecordPlayerCount(h);
+          if(playerCount&&m.exacts>0){
+            update(games.Wizard.mostExactByPlayerCount,playerCount,entry(p,m.exacts,h,{label:`${m.exacts} exact bids · ${playerCount}-player game`}),betterHigh);
+          }
+        }
+        if(h.game==='Flip 7 Vengeance'&&m.zeros>0) update(games["Flip 7 Vengeance"],'mostZeroRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero rounds`}),betterHigh);
         if(h.game==='Rook') update(games.Rook,'mostSuccessfulBids',entry(p,m.rookMade,h,{label:`${m.rookMade} made bids`}),betterHigh);
       });
     });
@@ -8205,6 +8249,9 @@
     const wizardBestGameCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
       recordCard(`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
     );
+    const wizardExactCountCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
+      recordCard(`Most Exact Bids · ${count}P`,data.games.Wizard.mostExactByPlayerCount[count],true)
+    );
     const perGameHtml = [
       gameSection('Five Crowns',[
         recordCard('Best Game Ever',data.games["Five Crowns"].bestGame,true),
@@ -8212,6 +8259,7 @@
         recordCard('Best Single Round Ever',data.games["Five Crowns"].bestRound,true),
         recordCard('Crash and Burn: Worst Round',data.games["Five Crowns"].worstRound,false),
         recordCard('Most Perfect Rounds In One Game',data.games["Five Crowns"].mostPerfectRounds,true),
+        recordCard('Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
         recordCard('Most Consistent Game',data.games["Five Crowns"].mostConsistent,true),
         recordCard('Closest Margin Of Victory',data.games["Five Crowns"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Five Crowns"].mostLopsided,true)
@@ -8221,8 +8269,12 @@
         recordCard('Worst Game Ever',data.games.Wizard.worstGame,false),
         recordCard('Best Single Round',data.games.Wizard.bestRound,true),
         recordCard('Worst Single Round',data.games.Wizard.worstRound,false),
-        recordCard('Best Exact Bid Percentage',data.games.Wizard.bestExactBidPct,true),
+        recordCard('Best Career Exact Bid Percentage',data.games.Wizard.bestExactBidPct,true),
+        recordCard('Best Single-Game Exact Rate',data.games.Wizard.bestExactRateSingleGame,true),
         recordCard('Most Exact Bids In One Game',data.games.Wizard.mostExactSingleGame,true),
+        ...wizardExactCountCards,
+        recordCard('Most Zero Bids Hit',data.games.Wizard.mostZeroBidsHit,true),
+        recordCard('Biggest Final-Round Swing',data.games.Wizard.biggestFinalRoundSwing,true),
         recordCard('Biggest Overbid Disaster',data.games.Wizard.biggestOverbid,false),
         recordCard('Biggest Underbid Surprise',data.games.Wizard.biggestUnderbid,true),
         recordCard('Most Tricks Won In One Round',data.games.Wizard.mostTricksRound,true)
@@ -8231,6 +8283,7 @@
         recordCard('Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
         recordCard('Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
         recordCard('Best Single Round',data.games["Flip 7 Vengeance"].bestRound,true),
+        recordCard('Most Zero Rounds In One Game',data.games["Flip 7 Vengeance"].mostZeroRounds,false),
         recordCard('Closest Margin Of Victory',data.games["Flip 7 Vengeance"].closestMargin,true)
       ]),
       gameSection('Rook',[
@@ -8295,6 +8348,7 @@
 
   function renderHallOfFame(){
     const r=getHallOfFame();
+    const deepRecords=getAllTimeRecords();
     const c=document.getElementById('hall-of-fame-view');
     if(!history.length){
       c.classList.remove('grid');
@@ -8312,7 +8366,8 @@
         <div id="shame-content" class="space-y-3"></div>
       </div>`;
     const fmt=(ttl,val,player,pos,sfx='')=>{
-      const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':val+sfx;
+      const cleanVal=Number.isFinite(val)&&!Number.isInteger(val)?val.toFixed(1):val;
+      const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':cleanVal+sfx;
       const col=pos?'var(--emerald)':'var(--rose)';
       return `<div class="surface p-5 flex justify-between items-center">
         <div>
@@ -8331,9 +8386,11 @@
       fmt('Best Win Rate (Min 3)',r.Overall.bestWinRate,r.Overall.bestWinRatePlayer,true,'%'),
       fmt('Five Crowns: Best Score',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
       fmt('Five Crowns: Perfect Hands',r['Five Crowns'].mostZeros,r['Five Crowns'].mostZerosPlayer,true),
+      fmt('Five Crowns: Cleanest Game',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
       ...wizardScoreRows,
       fmt('Wizard: Best Bid Round',r.Wizard.bestRound,r.Wizard.bestRoundPlayer,true),
       fmt('Wizard: The Clairvoyant',r.Wizard.mostExactBids,r.Wizard.mostExactBidsPlayer,true),
+      fmt('Wizard: Zero-Bid Specialist',deepRecords.games.Wizard.mostZeroBidsHit?.value??0,deepRecords.games.Wizard.mostZeroBidsHit?.player||'-',true),
       fmt('Flip 7: Best Score',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
       fmt('Flip 7: High Roller',r['Flip 7 Vengeance'].bestRound,r['Flip 7 Vengeance'].bestRoundPlayer,true),
       fmt('Rook: Best Score',r.Rook.bestScore,r.Rook.bestPlayer,true),
@@ -8347,6 +8404,7 @@
       fmt('Wizard: Worst Busted Bid',r.Wizard.worstRound,r.Wizard.worstRoundPlayer,false),
       fmt('Wizard: Blind Seer',r.Wizard.mostBustedBids,r.Wizard.mostBustedBidsPlayer,false),
       fmt('Flip 7: Bottom of Barrel',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
+      fmt('Flip 7: Most Zero Rounds',deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.value??0,deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.player||'-',false),
       fmt('Rook: Worst Score',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
     ].join('');
