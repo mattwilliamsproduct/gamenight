@@ -2991,6 +2991,27 @@
     const totals=gameData?.totals||{};
     return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
   }
+  const WIZARD_RECORD_PLAYER_COUNTS = [4,5,6,7,8];
+  function createWizardScoreBuckets(){
+    return Object.fromEntries(WIZARD_RECORD_PLAYER_COUNTS.map(n=>[n,{bestScore:-Infinity,bestPlayer:'-',date:'',id:null}]));
+  }
+  function getWizardRecordPlayerCount(gameData){
+    if(gameData?.game!=='Wizard')return null;
+    const count=getRecordedPlayers(gameData).length;
+    return WIZARD_RECORD_PLAYER_COUNTS.includes(count)?count:null;
+  }
+  function wizardScoreBucketToRecord(bucket,count){
+    if(!bucket||bucket.bestScore===-Infinity)return null;
+    return {
+      player:bucket.bestPlayer,
+      value:bucket.bestScore,
+      score:bucket.bestScore,
+      game:'Wizard',
+      date:bucket.date,
+      id:bucket.id,
+      label:`${count}-player game`
+    };
+  }
   try {
     currentGame = JSON.parse(localStorage.getItem('gn_current'));
     if (currentGame && (!currentGame.name || !Array.isArray(currentGame.originalRoster))) currentGame=null;
@@ -7314,8 +7335,12 @@
       const s=data.totals[p];
       if(data.game==='Five Crowns'&&r['Five Crowns']&&s<r['Five Crowns'].bestScore&&r['Five Crowns'].bestScore!==Infinity)
         msgs.push(`⭐ ${p} set new Lowest Five Crowns Score! (${s})`);
-      if(data.game==='Wizard'&&r['Wizard']&&s>r['Wizard'].bestScore&&r['Wizard'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest Wizard Score! (${s})`);
+      if(data.game==='Wizard'&&r['Wizard']){
+        const playerCount=getWizardRecordPlayerCount(data);
+        const bucket=playerCount?r.Wizard.bestScoreByPlayerCount?.[playerCount]:null;
+        if(bucket&&s>bucket.bestScore&&bucket.bestScore!==-Infinity)
+          msgs.push(`⭐ ${p} set new ${playerCount}-player Wizard high score! (${s})`);
+      }
       if(data.game==='Rook'&&r['Rook']&&s>r['Rook'].bestScore&&r['Rook'].bestScore!==-Infinity)
         msgs.push(`⭐ ${p} set new Highest Rook Score! (${s})`);
     });
@@ -7759,7 +7784,7 @@
     let r={
       "Overall":{mostGames:0,mostGamesPlayer:'-',bestWinRate:0,bestWinRatePlayer:'-',mostLastPlace:0,mostLastPlacePlayer:'-'},
       "Five Crowns":{bestScore:Infinity,bestPlayer:'-',worstScore:-Infinity,worstPlayer:'-',worstRound:-Infinity,worstRoundPlayer:'-',mostZeros:0,mostZerosPlayer:'-'},
-      "Wizard":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-',worstRound:Infinity,worstRoundPlayer:'-',mostExactBids:0,mostExactBidsPlayer:'-',mostBustedBids:0,mostBustedBidsPlayer:'-'},
+      "Wizard":{bestScore:-Infinity,bestPlayer:'-',bestScoreByPlayerCount:createWizardScoreBuckets(),worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-',worstRound:Infinity,worstRoundPlayer:'-',mostExactBids:0,mostExactBidsPlayer:'-',mostBustedBids:0,mostBustedBidsPlayer:'-'},
       "Flip 7 Vengeance":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-'},
       "Rook":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',mostBids:0,mostBidsPlayer:'-',mostSets:0,mostSetsPlayer:'-'}
     };
@@ -7787,6 +7812,16 @@
         if(h.game==='Wizard'||h.game==='Flip 7 Vengeance'||h.game==='Rook'){
           if(score>r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
           if(score<r[h.game].worstScore){r[h.game].worstScore=score;r[h.game].worstPlayer=p;}
+          if(h.game==='Wizard'){
+            const playerCount=getWizardRecordPlayerCount(h);
+            const bucket=playerCount?r.Wizard.bestScoreByPlayerCount[playerCount]:null;
+            if(bucket&&score>bucket.bestScore){
+              bucket.bestScore=score;
+              bucket.bestPlayer=p;
+              bucket.date=h.date||'';
+              bucket.id=h.id||null;
+            }
+          }
         }
         if(h.game==='Five Crowns'){
           if(score<r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
@@ -7858,7 +7893,7 @@
         mostConsistent:null,closestMargin:null,mostLopsided:null
       },
       "Wizard": {
-        bestGame:null,worstGame:null,bestRound:null,worstRound:null,bestExactBidPct:null,
+        bestGame:null,bestGameByPlayerCount:Object.fromEntries(WIZARD_RECORD_PLAYER_COUNTS.map(n=>[n,null])),worstGame:null,bestRound:null,worstRound:null,bestExactBidPct:null,
         mostExactSingleGame:null,biggestOverbid:null,biggestUnderbid:null,mostTricksRound:null
       },
       "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,closestMargin:null},
@@ -7996,6 +8031,12 @@
           } else {
             update(gameRecords,'bestGame',finalEntry,betterHigh);
             update(gameRecords,'worstGame',finalEntry,betterLow);
+            if(h.game==='Wizard'){
+              const playerCount=getWizardRecordPlayerCount(h);
+              if(playerCount){
+                update(gameRecords.bestGameByPlayerCount,playerCount,{...finalEntry,label:`${playerCount}-player game`},betterHigh);
+              }
+            }
           }
         });
         if(sorted.length>1 && gameRecords.closestMargin!==undefined){
@@ -8161,6 +8202,9 @@
       </div>
     </div>`;
 
+    const wizardBestGameCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
+      recordCard(`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
+    );
     const perGameHtml = [
       gameSection('Five Crowns',[
         recordCard('Best Game Ever',data.games["Five Crowns"].bestGame,true),
@@ -8173,7 +8217,7 @@
         recordCard('Most Lopsided Game Ever',data.games["Five Crowns"].mostLopsided,true)
       ]),
       gameSection('Wizard',[
-        recordCard('Best Game Ever',data.games.Wizard.bestGame,true),
+        ...wizardBestGameCards,
         recordCard('Worst Game Ever',data.games.Wizard.worstGame,false),
         recordCard('Best Single Round',data.games.Wizard.bestRound,true),
         recordCard('Worst Single Round',data.games.Wizard.worstRound,false),
@@ -8278,12 +8322,16 @@
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${col};">${dv}</div>
       </div>`;
     };
+    const wizardScoreRows = WIZARD_RECORD_PLAYER_COUNTS.map(count=>{
+      const bucket=r.Wizard.bestScoreByPlayerCount?.[count];
+      return fmt(`Wizard: ${count}P High Score`,bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
+    });
     document.getElementById('fame-content').innerHTML=[
       fmt('Most Matches',r.Overall.mostGames,r.Overall.mostGamesPlayer,true),
       fmt('Best Win Rate (Min 3)',r.Overall.bestWinRate,r.Overall.bestWinRatePlayer,true,'%'),
       fmt('Five Crowns: Best Score',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
       fmt('Five Crowns: Perfect Hands',r['Five Crowns'].mostZeros,r['Five Crowns'].mostZerosPlayer,true),
-      fmt('Wizard: Grand Magus',r.Wizard.bestScore,r.Wizard.bestPlayer,true),
+      ...wizardScoreRows,
       fmt('Wizard: Best Bid Round',r.Wizard.bestRound,r.Wizard.bestRoundPlayer,true),
       fmt('Wizard: The Clairvoyant',r.Wizard.mostExactBids,r.Wizard.mostExactBidsPlayer,true),
       fmt('Flip 7: Best Score',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
