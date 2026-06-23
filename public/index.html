@@ -102,7 +102,7 @@
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       background:
         radial-gradient(circle at 10% -10%, rgba(6,78,59,0.09), transparent 26rem),
-        radial-gradient(circle at 88% 0%, rgba(201,151,45,0.1), transparent 22rem),
+        radial-gradient(circle at 88% 0%, rgba(6,95,70,0.06), transparent 22rem),
         var(--bg);
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
@@ -165,20 +165,20 @@
     }
     .active-match-banner {
       position: relative;
-      overflow: hidden;
-      border-color: rgba(201,151,45,0.28);
+      overflow: visible;
+      border-color: rgba(6,78,59,0.18);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.84)),
         radial-gradient(circle at 7% 0%, rgba(6,78,59,0.12), transparent 19rem),
-        radial-gradient(circle at 92% 10%, rgba(201,151,45,0.14), transparent 20rem);
+        radial-gradient(circle at 92% 10%, rgba(6,95,70,0.08), transparent 20rem);
       box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.72);
     }
     html.dark .active-match-banner {
       background:
         linear-gradient(180deg, rgba(28,28,25,0.98), rgba(28,28,25,0.9)),
         radial-gradient(circle at 7% 0%, rgba(16,185,129,0.12), transparent 19rem),
-        radial-gradient(circle at 92% 10%, rgba(251,191,36,0.09), transparent 20rem);
-      border-color: rgba(251,191,36,0.24);
+        radial-gradient(circle at 92% 10%, rgba(16,185,129,0.07), transparent 20rem);
+      border-color: rgba(16,185,129,0.22);
       box-shadow: var(--shadow-md);
     }
     .active-match-banner::before {
@@ -187,7 +187,7 @@
       inset: 0;
       pointer-events: none;
       background:
-        linear-gradient(90deg, rgba(201,151,45,0.18), transparent 12%, transparent 88%, rgba(201,151,45,0.18)),
+        linear-gradient(90deg, rgba(6,78,59,0.1), transparent 12%, transparent 88%, rgba(6,78,59,0.1)),
         linear-gradient(180deg, rgba(255,255,255,0.36), transparent 44%);
       opacity: 0.6;
     }
@@ -200,24 +200,24 @@
       max-width: 100%;
       padding: 0.16rem 0.72rem 0.24rem;
       border-radius: 999px;
-      border: 1px solid rgba(201,151,45,0.34);
-      background: rgba(255,247,223,0.74);
+      border: 1px solid rgba(6,78,59,0.2);
+      background: rgba(236,253,245,0.74);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
     }
-    html.dark .round-banner { background: rgba(251,191,36,0.08); }
+    html.dark .round-banner { background: rgba(16,185,129,0.08); }
     .leader-banner {
       position: relative;
       overflow: hidden;
       border-width: 1.5px;
       background:
-        linear-gradient(135deg, rgba(236,253,245,0.96), rgba(255,247,223,0.72)) !important;
+        linear-gradient(135deg, rgba(236,253,245,0.96), rgba(247,244,237,0.72)) !important;
       border-color: rgba(6,78,59,0.2) !important;
       box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.65);
     }
     html.dark .leader-banner {
       background:
         linear-gradient(135deg, rgba(2,44,34,0.9), rgba(31,22,4,0.62)) !important;
-      border-color: rgba(251,191,36,0.2) !important;
+      border-color: rgba(16,185,129,0.2) !important;
     }
     .leader-banner::before {
       content: 'Champion Watch';
@@ -228,7 +228,7 @@
       padding: 0.5rem 0.78rem;
       border-radius: 999px;
       background: rgba(255,255,255,0.68);
-      border: 1px solid rgba(201,151,45,0.34);
+      border: 1px solid rgba(6,78,59,0.18);
       color: var(--emerald);
       font-size: 0.68rem;
       font-weight: 900;
@@ -236,7 +236,7 @@
       text-transform: uppercase;
       white-space: nowrap;
     }
-    html.dark .leader-banner::before { background: rgba(255,255,255,0.06); color: var(--gold); }
+    html.dark .leader-banner::before { background: rgba(255,255,255,0.06); color: #6ee7b7; }
     /* Wizard scoring: bid sum vs tricks — standalone pill on title row */
     .wizard-bid-tally-pill {
       display: inline-flex;
@@ -1585,17 +1585,17 @@
     }
     .tournament-scoreboard {
       border-radius: 24px;
-      border-color: rgba(201,151,45,0.28);
+      border-color: rgba(6,78,59,0.16);
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.82), rgba(251,250,246,0.96)),
-        radial-gradient(circle at top left, rgba(201,151,45,0.12), transparent 18rem);
+        linear-gradient(180deg, rgba(255,255,255,0.9), rgba(251,250,246,0.98)),
+        radial-gradient(circle at top left, rgba(6,78,59,0.07), transparent 18rem);
       box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.72);
     }
     html.dark .tournament-scoreboard {
       background:
         linear-gradient(180deg, rgba(28,28,25,0.98), rgba(20,20,18,0.98)),
-        radial-gradient(circle at top left, rgba(251,191,36,0.08), transparent 18rem);
-      border-color: rgba(251,191,36,0.2);
+        radial-gradient(circle at top left, rgba(16,185,129,0.06), transparent 18rem);
+      border-color: rgba(16,185,129,0.16);
     }
     .tournament-scoreboard .scorecard-table-wrap {
       background: linear-gradient(180deg, rgba(255,255,255,0.28), transparent);
@@ -1611,7 +1611,7 @@
       background:
         linear-gradient(180deg, #171713, var(--ink));
     }
-    .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:#f1e8d1; white-space:nowrap; border-bottom: 1px solid rgba(201,151,45,0.32); }
+    .scorecard-table thead th { font-size:clamp(0.62rem, 1.15vw, 0.8rem); font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:#e5f5ef; white-space:nowrap; border-bottom: 1px solid rgba(16,185,129,0.24); }
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
@@ -1673,13 +1673,13 @@
       width: 1.72rem;
       height: 1.72rem;
       border-radius: 9px;
-      border: 1px solid rgba(201,151,45,0.32);
-      background: rgba(255,247,223,0.78);
-      color: #6b4a08;
+      border: 1px solid rgba(6,78,59,0.16);
+      background: rgba(236,253,245,0.68);
+      color: var(--emerald);
       font-size: 0.78rem;
       font-weight: 900;
     }
-    html.dark .scoreboard-rank-badge { background: rgba(251,191,36,0.08); color: var(--gold); }
+    html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
     .scoreboard-player-name {
       letter-spacing: -0.03em;
       line-height: 1.02;
@@ -1691,9 +1691,9 @@
       margin-left: 0.35rem;
       padding: 0.22rem 0.5rem;
       border-radius: 999px;
-      background: var(--gold-bg);
-      border: 1px solid var(--gold-border);
-      color: #6b4a08;
+      background: var(--emerald-bg);
+      border: 1px solid var(--emerald-border);
+      color: var(--emerald);
       font-size: 0.62rem;
       font-weight: 900;
       letter-spacing: 0.1em;
@@ -1701,15 +1701,15 @@
       vertical-align: middle;
       white-space: nowrap;
     }
-    html.dark .dealer-badge { color: var(--gold); background: rgba(251,191,36,0.08); }
+    html.dark .dealer-badge { color: #6ee7b7; background: rgba(16,185,129,0.08); }
     .scorecard-total-cell {
       background:
-        linear-gradient(180deg, rgba(255,247,223,0.48), rgba(255,255,255,0.22));
-      box-shadow: inset 1px 0 0 rgba(201,151,45,0.18), inset -1px 0 0 rgba(201,151,45,0.12);
+        linear-gradient(180deg, rgba(236,253,245,0.42), rgba(255,255,255,0.2));
+      box-shadow: inset 1px 0 0 rgba(6,78,59,0.12), inset -1px 0 0 rgba(6,78,59,0.08);
     }
     html.dark .scorecard-total-cell {
-      background: rgba(251,191,36,0.05);
-      box-shadow: inset 1px 0 0 rgba(251,191,36,0.12), inset -1px 0 0 rgba(251,191,36,0.08);
+      background: rgba(16,185,129,0.05);
+      box-shadow: inset 1px 0 0 rgba(16,185,129,0.12), inset -1px 0 0 rgba(16,185,129,0.08);
     }
     .leader-row td {
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -1px 0 rgba(6,78,59,0.12);
@@ -1721,12 +1721,12 @@
     }
     .leader-row .scorecard-total-cell {
       background:
-        linear-gradient(180deg, rgba(236,253,245,0.94), rgba(255,247,223,0.55));
-      box-shadow: inset 1px 0 0 rgba(6,78,59,0.16), inset -1px 0 0 rgba(201,151,45,0.18);
+        linear-gradient(180deg, rgba(236,253,245,0.94), rgba(255,255,255,0.45));
+      box-shadow: inset 1px 0 0 rgba(6,78,59,0.16), inset -1px 0 0 rgba(6,78,59,0.12);
     }
     .tournament-footer {
       background:
-        linear-gradient(180deg, rgba(251,250,246,0.88), rgba(255,247,223,0.64)) !important;
+        linear-gradient(180deg, rgba(251,250,246,0.9), rgba(236,253,245,0.38)) !important;
     }
     html.dark .tournament-footer { background: rgba(255,255,255,0.04) !important; }
 
@@ -2045,7 +2045,7 @@
             <button onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
             </button>
-            <div id="actions-menu" class="hidden absolute right-0 top-full mt-2 w-60 z-[60] surface-raised py-2" style="background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--shadow-lg);">
+            <div id="actions-menu" class="hidden absolute right-0 top-full mt-2 w-60 z-[120] surface-raised py-2" style="background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--shadow-lg);">
               <button onclick="undoLastRound();closeActionsMenu();" id="actions-undo" class="w-full text-left px-4 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity flex items-center gap-2.5" style="color:var(--ink-2);">
                 <span class="text-base w-5 text-center">↶</span>
                 <span>Undo Last Round</span>
