@@ -345,18 +345,26 @@
     }
     html.dark .quest-badge { background: rgba(255,255,255,0.06); }
     .quest-emblem {
-      width: 4.2rem;
-      height: 4.2rem;
-      border-radius: 18px;
+      width: 4.75rem;
+      height: 4.75rem;
+      border-radius: 20px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border: 1px solid rgba(201,151,45,0.28);
-      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.42));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.5));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 12px 28px -18px rgba(6,78,59,0.65);
       flex-shrink: 0;
+      overflow: hidden;
     }
     html.dark .quest-emblem { background: rgba(255,255,255,0.06); }
+    .quest-emblem img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scale(1.08);
+    }
     .game-card::after {
       content: '';
       position: absolute; inset: 0;
@@ -1809,28 +1817,36 @@
               <div class="font-display text-3xl leading-tight">Five Crowns</div>
               <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
             </div>
-            <span class="quest-emblem font-display text-3xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--gold);">5C</span>
+            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
+              <img src="/game-icons/five-crowns.jpg" alt="Five Crowns icon">
+            </span>
           </button>
           <button onclick="startGame('Wizard')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(139,92,246,0.1) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Wizard</div>
               <div class="quest-badge mt-2">Bid wisely · exact tricks win</div>
             </div>
-            <span class="quest-emblem font-display text-4xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--blue);">W</span>
+            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
+              <img src="/game-icons/wizard.jpg" alt="Wizard icon">
+            </span>
           </button>
           <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(159,18,57,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
               <div class="quest-badge mt-2">Push your luck · survive the table</div>
             </div>
-            <span class="quest-emblem font-display text-4xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--rose);">7</span>
+            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
+              <img src="/game-icons/flip-7.jpg" alt="Flip 7 icon">
+            </span>
           </button>
           <button onclick="startGame('Rook')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(29,78,216,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Rook</div>
               <div class="quest-badge mt-2">Bid, trump, and conquer</div>
             </div>
-            <span class="quest-emblem font-display text-4xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--emerald);">R</span>
+            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
+              <img src="/game-icons/rook.jpg" alt="Rook icon">
+            </span>
           </button>
         </div>
       </div>
