@@ -28,27 +28,30 @@
 
     /* ════════ TOKENS ════════ */
     :root {
-      --bg: #f6f6f3;
-      --bg-2: #ecebe6;
+      --bg: #f7f4ed;
+      --bg-2: #eee8dc;
       --surface: #ffffff;
-      --surface-2: #fafaf7;
+      --surface-2: #fbfaf6;
       --ink: #0f0f0e;
       --ink-2: #2c2c29;
-      --muted: #78716c;
-      --hairline: #e4e2dc;
-      --emerald: #047857;
+      --muted: #756d60;
+      --hairline: #e2dacb;
+      --emerald: #064e3b;
       --emerald-bg: #ecfdf5;
       --emerald-border: #a7f3d0;
       --emerald-lift: #d1fae5;
-      --amber: #b45309;
-      --amber-bg: #fef3c7;
+      --gold: #c9972d;
+      --gold-bg: #fff7df;
+      --gold-border: #f4d98b;
+      --amber: #a16207;
+      --amber-bg: #fff7df;
       --rose: #9f1239;
       --rose-bg: #fff1f2;
       --rose-border: #fecaca;
       --blue: #1d4ed8;
       --blue-bg: #eff6ff;
       --blue-border: #bfdbfe;
-      --nav-bg: rgba(246,246,243,0.88);
+      --nav-bg: rgba(247,244,237,0.9);
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px -4px rgba(0,0,0,0.06);
       --shadow-md: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px -8px rgba(0,0,0,0.10);
       --shadow-lg: 0 2px 4px rgba(0,0,0,0.05), 0 20px 48px -12px rgba(0,0,0,0.15);
@@ -66,6 +69,9 @@
       --emerald-bg: #022c22;
       --emerald-border: #065f46;
       --emerald-lift: #065f46;
+      --gold: #fbbf24;
+      --gold-bg: #1f1604;
+      --gold-border: #92400e;
       --amber: #fbbf24;
       --amber-bg: #1c1200;
       --rose: #fb7185;
@@ -94,7 +100,10 @@
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 10% -10%, rgba(6,78,59,0.09), transparent 26rem),
+        radial-gradient(circle at 88% 0%, rgba(201,151,45,0.1), transparent 22rem),
+        var(--bg);
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
@@ -203,6 +212,18 @@
     /* ════════ SURFACE SYSTEM ════════ */
     .surface { background: var(--surface); border: 1px solid var(--hairline); border-radius: 20px; transition: background 0.3s, border-color 0.3s; }
     .surface-raised { background: var(--surface); border: 1px solid var(--hairline); border-radius: 20px; box-shadow: var(--shadow-md); transition: background 0.3s, border-color 0.3s; }
+    .brand-panel {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.82)),
+        radial-gradient(circle at top right, rgba(201,151,45,0.13), transparent 20rem);
+      border-color: rgba(201,151,45,0.28);
+    }
+    html.dark .brand-panel {
+      background:
+        linear-gradient(180deg, rgba(28,28,25,0.98), rgba(28,28,25,0.9)),
+        radial-gradient(circle at top right, rgba(251,191,36,0.1), transparent 20rem);
+      border-color: rgba(251,191,36,0.22);
+    }
     .hairline { border-color: var(--hairline); }
 
     .chip {
@@ -216,6 +237,13 @@
       background: var(--surface);
       color: var(--ink-2);
     }
+    .crest-chip {
+      border-color: var(--gold-border);
+      background: var(--gold-bg);
+      color: #6b4a08;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+    html.dark .crest-chip { color: var(--gold); }
 
     /* ════════ BUTTONS ════════ */
     .nav-btn {
@@ -233,9 +261,19 @@
     .nav-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
     .nav-btn.accent { background: var(--emerald-bg); color: var(--emerald); border-color: var(--emerald-border); }
     .nav-btn.accent:hover { background: var(--emerald-lift); }
+    .brand-mark {
+      border-color: rgba(201,151,45,0.55) !important;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.75) inset, 0 8px 22px -12px rgba(6,78,59,0.55) !important;
+    }
+    .brand-name {
+      color: var(--emerald);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    }
+    html.dark .brand-name { color: var(--ink); text-shadow: none; }
+    .brand-subtitle { color: var(--muted); }
 
     .btn-primary {
-      background: var(--ink);
+      background: linear-gradient(180deg, var(--ink), #181816);
       color: var(--bg);
       font-weight: 800;
       border-radius: 14px;
@@ -257,7 +295,7 @@
     .btn-ghost:hover { border-color: var(--muted); background: var(--surface-2); }
 
     .btn-accent {
-      background: var(--emerald);
+      background: linear-gradient(180deg, #0f766e, var(--emerald));
       color: #fff;
       font-weight: 800;
       border-radius: 14px;
@@ -272,7 +310,7 @@
     .game-card {
       background: var(--surface);
       border: 1px solid var(--hairline);
-      border-radius: 22px;
+      border-radius: 18px;
       padding: 1.5rem 1.75rem;
       transition: transform 0.25s cubic-bezier(0.33,1,0.68,1), box-shadow 0.25s cubic-bezier(0.33,1,0.68,1);
       position: relative;
@@ -285,6 +323,40 @@
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
     }
+    .game-card.quest-card {
+      border-color: rgba(201,151,45,0.25);
+      box-shadow: var(--shadow-sm);
+    }
+    .quest-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      width: max-content;
+      max-width: 100%;
+      padding: 0.36rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid var(--hairline);
+      background: rgba(255,255,255,0.65);
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    html.dark .quest-badge { background: rgba(255,255,255,0.06); }
+    .quest-emblem {
+      width: 4.2rem;
+      height: 4.2rem;
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(201,151,45,0.28);
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.42));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+      flex-shrink: 0;
+    }
+    html.dark .quest-emblem { background: rgba(255,255,255,0.06); }
     .game-card::after {
       content: '';
       position: absolute; inset: 0;
@@ -423,7 +495,7 @@
       align-items: center;
       cursor: pointer;
       transition: all 0.18s ease;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.55);
     }
     .roster-row-lineup:hover { background: var(--emerald-lift); transform: translateY(-1px); }
     html.dark .roster-row-lineup { color: #6ee7b7; }
@@ -455,6 +527,13 @@
       position: relative;
       z-index: 2;
       border-radius: 14px;
+    }
+    .roster-row-lineup,
+    .bench-row-content {
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
     }
     .bench-row-content.swiping { transition: none; }
     .bench-row-delete-bg {
@@ -1654,12 +1733,12 @@
     <div id="top-nav" class="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 backdrop-blur-xl" style="background: var(--nav-bg); border-bottom: 1px solid var(--hairline);">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white border hairline overflow-hidden" style="box-shadow:var(--shadow-sm);">
+          <div class="brand-mark w-11 h-11 rounded-2xl flex items-center justify-center bg-white border hairline overflow-hidden">
             <img src="/icon-192.png" alt="CardKnight" class="w-full h-full object-cover">
           </div>
           <div>
-            <h1 class="font-display text-2xl leading-none tracking-tight">CardKnight</h1>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.16em] mt-0.5" style="color:var(--muted);">Game Night Scorekeeper</div>
+            <h1 class="brand-name font-display text-2xl leading-none tracking-tight">CardKnight</h1>
+            <div class="brand-subtitle text-[10px] font-extrabold uppercase tracking-[0.16em] mt-0.5">Game Night Scorekeeper</div>
           </div>
         </div>
         <div class="flex flex-wrap gap-1.5 items-center">
@@ -1684,16 +1763,16 @@
     <div id="home-screen" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
       <!-- Roster -->
-      <div class="lg:col-span-3 surface-raised p-7">
+      <div class="lg:col-span-3 surface-raised brand-panel p-7">
         <div class="flex items-baseline justify-between mb-6">
           <div>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Lineup</div>
-            <h2 class="font-display text-4xl">Build Roster</h2>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
+            <h2 class="font-display text-4xl">Build the Party</h2>
           </div>
-          <div id="roster-count" class="chip"></div>
+          <div id="roster-count" class="chip crest-chip"></div>
         </div>
         <div class="flex gap-2 mb-6">
-          <input id="quick-add-player" type="text" placeholder="Add a new player…"
+          <input id="quick-add-player" type="text" placeholder="Add a player to the hall..."
             onkeypress="if(event.key==='Enter')addPlayerToAll()"
             class="flex-1 rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
             style="background:var(--bg-2);color:var(--ink);border:1.5px solid transparent;"
@@ -1704,14 +1783,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div class="flex items-center justify-between mb-3 px-1">
-              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">The Bench</h3>
+              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">Bench</h3>
               <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Drag to merge</span>
             </div>
             <div id="bench-list" class="space-y-2 min-h-[280px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
           </div>
           <div>
             <div class="mb-3 px-1">
-              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Lineup</h3>
+              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Party</h3>
             </div>
             <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
           </div>
@@ -1722,36 +1801,36 @@
       <div class="lg:col-span-2">
         <div class="mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
-          <h2 class="font-display text-4xl">Select Game</h2>
+          <h2 class="font-display text-4xl">Choose the Quest</h2>
         </div>
         <div class="space-y-4">
-          <button onclick="startGame('Five Crowns')" class="game-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(251,191,36,0.08) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Five Crowns')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(201,151,45,0.12) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Five Crowns</div>
-              <div class="text-xs font-bold mt-2 uppercase tracking-wider" style="color:var(--muted);">Lowest total wins · 11 rounds</div>
+              <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
             </div>
-            <span class="text-6xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200 ml-4">🎴</span>
+            <span class="quest-emblem font-display text-3xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--gold);">5C</span>
           </button>
-          <button onclick="startGame('Wizard')" class="game-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(139,92,246,0.08) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Wizard')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(139,92,246,0.1) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Wizard</div>
-              <div class="text-xs font-bold mt-2 uppercase tracking-wider" style="color:var(--muted);">Highest total wins · Bid &amp; score</div>
+              <div class="quest-badge mt-2">Bid wisely · exact tricks win</div>
             </div>
-            <span class="text-6xl group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200 ml-4">🧙‍♂️</span>
+            <span class="quest-emblem font-display text-4xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--blue);">W</span>
           </button>
-          <button onclick="startGame('Flip 7 Vengeance')" class="game-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(239,68,68,0.08) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(159,18,57,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
-              <div class="text-xs font-bold mt-2 uppercase tracking-wider" style="color:var(--muted);">Highest total wins · Push luck</div>
+              <div class="quest-badge mt-2">Push your luck · survive the table</div>
             </div>
-            <span class="text-6xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200 ml-4">🎰</span>
+            <span class="quest-emblem font-display text-4xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--rose);">7</span>
           </button>
-          <button onclick="startGame('Rook')" class="game-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(29,78,216,0.08) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Rook')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(29,78,216,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Rook</div>
-              <div class="text-xs font-bold mt-2 uppercase tracking-wider" style="color:var(--muted);">Highest total wins · Pick bid, trump &amp; score</div>
+              <div class="quest-badge mt-2">Bid, trump, and conquer</div>
             </div>
-            <span class="text-6xl group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200 ml-4">🐦</span>
+            <span class="quest-emblem font-display text-4xl group-hover:scale-105 transition-transform duration-200 ml-4" style="color:var(--emerald);">R</span>
           </button>
         </div>
       </div>
