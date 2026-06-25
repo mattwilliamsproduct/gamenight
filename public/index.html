@@ -2008,6 +2008,15 @@
               <img src="/game-icons/wizard.jpg" alt="Wizard icon">
             </span>
           </button>
+          <button onclick="startGame('818')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(16,185,129,0.1) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+            <div class="flex-1 min-w-0">
+              <div class="font-display text-3xl leading-tight">818</div>
+              <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
+            </div>
+            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
+              <img src="/icon-512.png" alt="818 icon">
+            </span>
+          </button>
           <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(159,18,57,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
@@ -2991,6 +3000,37 @@
     const totals=gameData?.totals||{};
     return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
   }
+  const EIGHT18_ROUND_TRICKS = [8,7,6,5,4,3,2,1,2,3,4,5,6,7,8];
+  function isEight18Game(game=currentGame){
+    const name=typeof game==='string'?game:game?.name||game?.game;
+    return name==='818';
+  }
+  function isBidTrickGame(game=currentGame){
+    const name=typeof game==='string'?game:game?.name||game?.game;
+    return name==='Wizard'||name==='818';
+  }
+  function getBidTrickPhase(game=currentGame){
+    if(!game)return null;
+    if(game.name==='Wizard'||game.game==='Wizard')return game.wizardPhase||'bidding';
+    if(isEight18Game(game))return game.eight18Phase||'bidding';
+    return null;
+  }
+  function getRoundTrickCount(game=currentGame, round=game?.currentRound){
+    if(!game)return 0;
+    if(isEight18Game(game))return EIGHT18_ROUND_TRICKS[(round||1)-1]||0;
+    return round||0;
+  }
+  function getCurrentDealerName(game=currentGame, tablePlayers=getActiveRoster(game)){
+    if(!game||!Array.isArray(tablePlayers)||!tablePlayers.length)return null;
+    const offset=game.dealerOffset||0;
+    const idx=((game.currentRound||1)-1+offset+tablePlayers.length)%tablePlayers.length;
+    return tablePlayers[idx]||null;
+  }
+  function calculate818Score(bid, actual){
+    const b=parseInt(bid,10)||0;
+    const a=parseInt(actual,10)||0;
+    return a+(a===b?10:0);
+  }
   const WIZARD_RECORD_PLAYER_COUNTS = [4,5,6,7,8];
   function createWizardScoreBuckets(){
     return Object.fromEntries(WIZARD_RECORD_PLAYER_COUNTS.map(n=>[n,{bestScore:-Infinity,bestPlayer:'-',date:'',id:null}]));
@@ -3028,6 +3068,7 @@
   const configs = {
     "Five Crowns":     { emoji:"🎴", winLow:true,  maxRounds:11 },
     "Wizard":          { emoji:"🧙‍♂️", winLow:false, maxRounds:(n)=>Math.floor(60/Math.max(n,1)) },
+    "818":             { emoji:"🛡️", winLow:false, maxRounds:EIGHT18_ROUND_TRICKS.length },
     "Flip 7 Vengeance":{ emoji:"🎰", winLow:false, maxRounds:999 },
     "Rook":            { emoji:"🐦", winLow:false, maxRounds:999 }
   };
@@ -3806,6 +3847,7 @@
   const gameRulesText = {
     "Five Crowns":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest score after 11 rounds.</li><li><strong>Deal:</strong> Round 1 = 3 cards, growing to 13.</li><li><strong>Wilds:</strong> Jokers always wild. Round's number is also wild.</li><li><strong>Going Out:</strong> Meld hand into Books (3+ same) or Runs (3+ consecutive same suit).</li><li><strong>Penalty:</strong> Unmelded = face value. Faces = 10. Wilds = 20. Jokers = 50.</li></ul>`,
     "Wizard":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score by accurately predicting tricks.</li><li><strong>Deal:</strong> Round 1 = 1 card, grows each round.</li><li><strong>Bidding:</strong> Bid exactly how many tricks you'll win.</li><li><strong>Play:</strong> Follow lead suit. Wizards always win. Jesters always lose.</li><li><strong>Score:</strong> Exact = 20 + 10/trick. Miss = −10 per trick off.</li></ul>`,
+    "818":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score after the 8-1-8 round sequence.</li><li><strong>Rounds:</strong> Play 8 cards, then 7, 6, 5, 4, 3, 2, 1, then back up to 8.</li><li><strong>Bidding:</strong> Bid how many tricks you'll take. The dealer cannot make the table's total bids equal the tricks available.</li><li><strong>Score:</strong> Take your actual tricks as points. Hit your bid exactly to add a 10-point bonus.</li><li><strong>Example:</strong> Bid 2 and take 3 = 3 points. Bid 0 and take 0 = 10 points.</li></ul>`,
     "Flip 7 Vengeance":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score without busting.</li><li><strong>Flip:</strong> Reveal cards to build your tableau.</li><li><strong>Bust:</strong> Duplicate number = 0 for the round.</li><li><strong>Bank:</strong> Secure your score anytime.</li><li><strong>Vengeance:</strong> Special cards attack others.</li></ul>`,
     "Rook":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins. This scorecard is tuned for call-your-partner Rook with rotating round partnerships.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and type the amount they won with (no in-app auction).</li><li><strong>Trump &amp; call:</strong> That player names trump and calls a partner card (for example "Rook", "Black 1", "Yellow 14").</li><li><strong>After the hand:</strong> Say who the bidder’s teammate was, then enter the bid team’s points; the other team’s points fill in to match your “points in a full hand” setting. If the bid team’s points are at least the bid, each of them scores that team total; otherwise each loses the bid. Everyone on the other team scores the other team’s points.</li><li><strong>House rules:</strong> Counter values (5s, 10s, 14, Rook, etc.) are up to your table—the app just needs the bid team’s total and derives the rest.</li></ul>`
   };
@@ -4595,6 +4637,7 @@
     currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+    if(name==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
     if(name==='Rook'){
       const rc=window._rookPendingConfig||{winTarget:300,minBid:70,totalCounters:200};
       window._rookPendingConfig=null;
@@ -5684,6 +5727,7 @@
     markHistoryChanged();
     currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[]};
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
+    if(g.game==='818'){currentGame.eight18Phase=g.eight18Phase||'bidding';currentGame.currentBids=g.currentBids||{};}
     currentGame.currentScoreDrafts = g.currentScoreDrafts || {};
     if(g.game==='Rook'){
       currentGame.rookConfig={winTarget:300,minBid:70,totalCounters:200,...(g.rookConfig||{})};
@@ -6158,10 +6202,10 @@
   function updateWizardBidStatus(){
     const el=document.getElementById('wizard-bid-status');
     if(!el)return;
-    if(!currentGame||currentGame.name!=='Wizard'||currentGame.wizardPhase!=='scoring'){
+    if(!currentGame||!isBidTrickGame(currentGame)||getBidTrickPhase(currentGame)!=='scoring'){
       el.classList.add('hidden'); el.innerHTML=''; return;
     }
-    const round=currentGame.currentRound;
+    const round=getRoundTrickCount(currentGame);
     const gp=getActivePlayers(currentGame);
     let totalBids=0;
     gp.forEach(p=>{ totalBids+=(currentGame.currentBids?.[p]||0); });
@@ -6175,12 +6219,12 @@
     try{
       const wrap=document.getElementById('wizard-header-metrics');
       if(!wrap)return;
-      if(!currentGame||currentGame.name!=='Wizard'){
+      if(!currentGame||!isBidTrickGame(currentGame)){
         wrap.classList.add('hidden');
         wrap.innerHTML='';
         return;
       }
-      const phase=currentGame.wizardPhase, round=currentGame.currentRound;
+      const phase=getBidTrickPhase(currentGame), round=getRoundTrickCount(currentGame);
       const gp=getActivePlayers(currentGame);
       let total=0;
       gp.forEach(p=>{
@@ -6303,10 +6347,12 @@
       return renderRookGame();
     }
     const cfg=configs[currentGame.name];
-    const isWiz=currentGame.name==='Wizard', wPhase=isWiz?currentGame.wizardPhase:null;
+    const isWiz=currentGame.name==='Wizard', is818=currentGame.name==='818';
+    const isBidTrick=isBidTrickGame(currentGame), bidTrickPhase=getBidTrickPhase(currentGame);
+    const wPhase=isWiz?currentGame.wizardPhase:null;
     document.getElementById('game-title').textContent=currentGame.name;
     const whm=document.getElementById('wizard-header-metrics');
-    if(whm&&!isWiz){ whm.classList.add('hidden'); whm.innerHTML=''; }
+    if(whm&&!isBidTrick){ whm.classList.add('hidden'); whm.innerHTML=''; }
     const maxR=getMaxRoundsForGame(currentGame);
     const over=currentGame.currentRound>maxR;
     const half=maxR===999?4:Math.ceil(maxR/2);
@@ -6318,15 +6364,17 @@
       if(!over) intel=`Hand of ${currentGame.currentRound+2} · ${wilds[currentGame.currentRound-1]}s Wild`;
     } else if(isWiz){
       intel=`R${currentGame.currentRound} / ${maxR} · ${wPhase==='bidding'?'Bidding':'Scoring'}`;
+    } else if(is818){
+      const tricks=getRoundTrickCount(currentGame);
+      intel=`R${currentGame.currentRound} / ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${bidTrickPhase==='bidding'?'Bidding':'Scoring'}`;
     }
     if(over)intel='Final Scores';
     document.getElementById('round-intel').textContent=intel;
 
     if(!currentGame.retired)currentGame.retired=[];
     const retired=currentGame.retired;
-    const offset=currentGame.dealerOffset||0;
     const activeRoster=getActiveRoster(currentGame);
-    const dealerName=activeRoster.length?activeRoster[(currentGame.currentRound-1+offset)%activeRoster.length]:null;
+    const dealerName=getCurrentDealerName(currentGame, activeRoster);
 
     recomputeGameTotals(currentGame);
 
@@ -6412,7 +6460,7 @@
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
-      const wizardCurrentBid = isWiz&&wPhase==='scoring'&&!over
+      const wizardCurrentBid = isBidTrick&&bidTrickPhase==='scoring'&&!over
         ? (() => {
           const bid=currentGame.currentBids?.[p]!==undefined?currentGame.currentBids[p]:0;
           const draftVal = currentGame.currentScoreDrafts?.[p];
@@ -6432,7 +6480,7 @@
         })()
         : '';
 
-      const playerCellPad = isWiz && wPhase === 'scoring' && !over ? 'pl-5 pr-2' : 'px-5';
+      const playerCellPad = isBidTrick && bidTrickPhase === 'scoring' && !over ? 'pl-5 pr-2' : 'px-5';
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -6454,8 +6502,8 @@
       currentGame.rounds.forEach((r,rIdx)=>{
         if(r.hailMaryBonus)return;
         let bidInfo='';
-        if(isWiz&&r.bids&&r.bids[p]!==undefined){
-          const rBid=r.bids[p], rAct=r.actuals?.[p], rTricks=r.round;
+        if(isBidTrickGame(currentGame)&&r.bids&&r.bids[p]!==undefined){
+          const rBid=r.bids[p], rAct=r.actuals?.[p], rTricks=getRoundTrickCount(currentGame, r.round);
           let overUnder='';
           if(rAct!==undefined){
             const diff=rAct-rBid;
@@ -6495,7 +6543,7 @@
       document.getElementById('submit-section').classList.remove('hidden');
       document.getElementById('game-over-section').classList.add('hidden');
       let btnTxt='Log Scores';
-      if(isWiz) btnTxt = wPhase==='bidding' ? 'Log Bids' : 'Log Tricks & Score';
+      if(isBidTrick) btnTxt = bidTrickPhase==='bidding' ? 'Log Bids' : 'Log Tricks & Score';
       const sb=document.getElementById('submit-action-btn');
       if(sb){
         sb.innerHTML=btnTxt;
@@ -6506,7 +6554,7 @@
         if(isWizardBidLockUndoAvailable()) undoWizardBtn.classList.remove('hidden');
         else undoWizardBtn.classList.add('hidden');
       }
-      if(isWiz) updateWizardTrickCounter(); else { const w=document.getElementById('wizard-header-metrics'); if(w){ w.classList.add('hidden'); w.innerHTML=''; } }
+      if(isBidTrick) updateWizardTrickCounter(); else { const w=document.getElementById('wizard-header-metrics'); if(w){ w.classList.add('hidden'); w.innerHTML=''; } }
     }
 
     updateWizardBidStatus();
@@ -6693,6 +6741,11 @@
       if(phase==='bidding')return {kind:'wizard-bids',title:'Log Bids',primary:'Lock Bids',valueLabel:'Bid'};
       return {kind:'wizard-tricks',title:'Log Tricks & Score',primary:'Submit Tricks & Score',valueLabel:'Tricks'};
     }
+    if(currentGame.name==='818'){
+      const phase=currentGame.eight18Phase||'bidding';
+      if(phase==='bidding')return {kind:'818-bids',title:'Log Bids',primary:'Lock Bids',valueLabel:'Bid'};
+      return {kind:'818-tricks',title:'Log Tricks & Score',primary:'Submit Tricks & Score',valueLabel:'Tricks'};
+    }
     if(currentGame.name==='Five Crowns')return {kind:'scores',title:'Log Scores',primary:'Submit Scores',valueLabel:'Score'};
     if(currentGame.name==='Flip 7 Vengeance')return {kind:'scores',title:'Log Scores',primary:'Submit Scores',valueLabel:'Score'};
     return null;
@@ -6702,20 +6755,32 @@
     if(!currentGame||!mode)return '';
     const maxR=getMaxRoundsForGame(currentGame);
     if(currentGame.name==='Wizard')return `Round ${currentGame.currentRound} of ${maxR} · ${mode.title}`;
+    if(currentGame.name==='818'){
+      const tricks=getRoundTrickCount(currentGame);
+      return `Round ${currentGame.currentRound} of ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${mode.title}`;
+    }
     if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${mode.title}`;
     return `Round ${currentGame.currentRound} · ${mode.title}`;
   }
 
+  function isScoreEntryBidMode(mode){
+    return mode?.kind==='wizard-bids'||mode?.kind==='818-bids';
+  }
+
+  function isScoreEntryTrickMode(mode){
+    return mode?.kind==='wizard-tricks'||mode?.kind==='818-tricks';
+  }
+
   function getScoreEntryDraftSource(mode){
     if(!currentGame||!mode)return {};
-    if(mode.kind==='wizard-bids')return currentGame.currentBids||{};
+    if(isScoreEntryBidMode(mode))return currentGame.currentBids||{};
     return currentGame.currentScoreDrafts||{};
   }
 
   function readScoreEntryDraftValue(source, player, mode){
     const raw=source?.[player];
     if(raw!==undefined&&raw!==null&&raw!=='')return String(parseInt(raw,10)||0);
-    if(mode?.kind==='wizard-tricks'&&currentGame?.name==='Wizard'){
+    if(isScoreEntryTrickMode(mode)&&isBidTrickGame(currentGame)){
       const bid=currentGame.currentBids?.[player];
       if(bid!==undefined&&bid!==null&&bid!=='')return String(parseInt(bid,10)||0);
     }
@@ -6737,11 +6802,27 @@
 
   function getScoreEntryInitialActivePlayer(mode, tablePlayers, displayPlayers){
     const fallback=tablePlayers?.[0]||displayPlayers?.[0]||null;
-    if(!currentGame||mode?.kind!=='wizard-bids'||currentGame.name!=='Wizard'||!Array.isArray(tablePlayers)||tablePlayers.length<=1)return fallback;
+    if(!currentGame||!isScoreEntryBidMode(mode)||!isBidTrickGame(currentGame)||!Array.isArray(tablePlayers)||tablePlayers.length<=1)return fallback;
     const offset=currentGame.dealerOffset||0;
     const dealerIdx=(currentGame.currentRound-1+offset+tablePlayers.length)%tablePlayers.length;
     if(dealerIdx<0||dealerIdx>=tablePlayers.length)return fallback;
     return tablePlayers[(dealerIdx+1)%tablePlayers.length]||fallback;
+  }
+
+  function get818DealerBidInfo(values=scoreEntryModalState?.values, tablePlayers=scoreEntryModalState?.tablePlayers){
+    if(!currentGame||currentGame.name!=='818'||!Array.isArray(tablePlayers)||!tablePlayers.length)return null;
+    const dealer=getCurrentDealerName(currentGame, tablePlayers);
+    if(!dealer||!tablePlayers.includes(dealer))return null;
+    const tricks=getRoundTrickCount(currentGame);
+    const totalWithoutDealer=tablePlayers.reduce((sum,p)=>p===dealer?sum:(sum+(parseInt(values?.[p],10)||0)),0);
+    const forbidden=tricks-totalWithoutDealer;
+    return {
+      dealer,
+      tricks,
+      totalWithoutDealer,
+      forbidden,
+      applies: forbidden>=0&&forbidden<=tricks
+    };
   }
 
   function scoreEntryStateJson(){
@@ -6772,9 +6853,9 @@
     const {mode}=scoreEntryModalState;
     const progress=document.getElementById('score-entry-progress');
     if(!progress)return;
-    if(currentGame.name==='Wizard'){
-      const label=mode.kind==='wizard-bids'?'Bids':'Tricks';
-      progress.textContent=`${label}: ${getScoreEntryDraftTotal()} / ${currentGame.currentRound}`;
+    if(isBidTrickGame(currentGame)){
+      const label=isScoreEntryBidMode(mode)?'Bids':'Tricks';
+      progress.textContent=`${label}: ${getScoreEntryDraftTotal()} / ${getRoundTrickCount(currentGame)}`;
     } else {
       progress.textContent='';
     }
@@ -6838,7 +6919,7 @@
       const active=p===scoreEntryModalState.activePlayer;
       const safe=rookElementId(p);
       const bid=currentGame.currentBids?.[p]??0;
-      const hasContext=mode.kind==='wizard-tricks';
+      const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
@@ -6865,7 +6946,11 @@
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
-    document.getElementById('score-entry-selected-detail').innerHTML=action;
+    const dealerInfo=mode.kind==='818-bids'?get818DealerBidInfo():null;
+    const dealerWarning=dealerInfo&&dealerInfo.dealer===p&&dealerInfo.applies
+      ? `<span class="score-entry-chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Dealer cannot bid ${dealerInfo.forbidden}</span>`
+      : '';
+    document.getElementById('score-entry-selected-detail').innerHTML=action+dealerWarning;
   }
 
   function selectScoreEntryPlayer(idx){
@@ -6885,6 +6970,7 @@
     const el=document.getElementById(`score-entry-value-${rookElementId(p)}`);
     if(el)el.textContent=scoreEntryModalState.values[p]!==''?scoreEntryModalState.values[p]:'';
     updateScoreEntryProgress();
+    updateScoreEntrySelectedSummary();
   }
 
   function scoreEntryKey(v){
@@ -6921,7 +7007,7 @@
     if(!scoreEntryModalState||!currentGame)return;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    if(mode.kind==='wizard-bids'){
+    if(isScoreEntryBidMode(mode)){
       if(!currentGame.currentBids)currentGame.currentBids={};
       players.forEach(p=>{currentGame.currentBids[p]=parseInt(values[p],10)||0;});
     } else {
@@ -6960,13 +7046,38 @@
     if(!scoreEntryModalState||!currentGame)return false;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    if(mode.kind==='wizard-bids'){
+    if(isScoreEntryBidMode(mode)){
+      if(currentGame.name==='818'){
+        const tricks=getRoundTrickCount(currentGame);
+        const invalid=players.find(p=>{
+          const v=parseInt(values[p],10)||0;
+          return v<0||v>tricks;
+        });
+        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
+        const dealerInfo=get818DealerBidInfo(values, players);
+        if(dealerInfo?.applies){
+          const dealerBid=parseInt(values[dealerInfo.dealer],10)||0;
+          if(dealerBid===dealerInfo.forbidden){
+            alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
+            return false;
+          }
+        }
+      }
       const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
       return !allZero||confirm('Lock in all 0 bids?');
     }
-    if(mode.kind==='wizard-tricks'){
+    if(isScoreEntryTrickMode(mode)){
+      if(currentGame.name==='818'){
+        const tricks=getRoundTrickCount(currentGame);
+        const invalid=players.find(p=>{
+          const v=parseInt(values[p],10)||0;
+          return v<0||v>tricks;
+        });
+        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
+      }
       const total=players.reduce((s,p)=>s+(parseInt(values[p],10)||0),0);
-      return total===currentGame.currentRound||confirm(`Total tricks (${total}) ≠ round tricks (${currentGame.currentRound}). Submit anyway?`);
+      const tricks=getRoundTrickCount(currentGame);
+      return total===tricks||confirm(`Total tricks (${total}) ≠ round tricks (${tricks}). Submit anyway?`);
     }
     const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
     return !allZero||confirm('Everyone scored 0? Submit?');
@@ -7042,6 +7153,50 @@
       }
     }
 
+    if(currentGame.name==='818'){
+      const tricks=getRoundTrickCount(currentGame);
+      if((currentGame.eight18Phase||'bidding')==='bidding'){
+        let totalBids=0,allZero=true;
+        if(!currentGame.currentBids)currentGame.currentBids={};
+        gp.forEach(p=>{
+          const el=document.getElementById(`score-input-${p}`);
+          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
+          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        });
+        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>tricks);
+        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
+        const dealerInfo=get818DealerBidInfo(currentGame.currentBids, gp);
+        if(dealerInfo?.applies&&currentGame.currentBids[dealerInfo.dealer]===dealerInfo.forbidden){
+          alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
+          isSubmitting=false;
+          return;
+        }
+        if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.eight18Phase='scoring';
+        gnPerfAction('locked 818 bids', `total ${totalBids}/${tricks}`);
+        addAuditEntry(`R${currentGame.currentRound} 818 bids locked`, `Total: ${totalBids}/${tricks}`);
+        haptic([30,60,30]); soundSubmit();
+        saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
+      } else {
+        let totalActual=0,actuals={};
+        const drafts=ensureCurrentScoreDrafts();
+        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
+        const invalid=gp.find(p=>actuals[p]<0||actuals[p]>tricks);
+        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
+        if(totalActual!==tricks&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${tricks}). Submit anyway?`)){isSubmitting=false;return;}
+        let scores={};
+        gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=calculate818Score(bid,act);});
+        const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
+        currentGame.rounds.push(roundData);
+        addAuditEntry(`R${currentGame.currentRound} 818 submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
+        currentGame.currentRound++; currentGame.eight18Phase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
+        haptic([20,40,20,40,60]); soundSubmit();
+        saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
+        scheduleRender();
+        setTimeout(()=>isSubmitting=false,500); return;
+      }
+    }
+
     let allZero=true,scores={};
     const drafts=ensureCurrentScoreDrafts();
     gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
@@ -7095,13 +7250,17 @@
     // Simplest behavior: full reset of hailMaryUsed on undo
     currentGame.hailMaryUsed = [];
 
-    currentGame.currentRound = last.round;
+      currentGame.currentRound = last.round;
 
-    // If Wizard, go back to bidding phase
-    if(currentGame.name === 'Wizard'){
-      currentGame.wizardPhase = 'bidding';
-      currentGame.currentBids = last.bids ? {...last.bids} : {};
-    }
+      // If Wizard, go back to bidding phase
+      if(currentGame.name === 'Wizard'){
+        currentGame.wizardPhase = 'bidding';
+        currentGame.currentBids = last.bids ? {...last.bids} : {};
+      }
+      if(currentGame.name === '818'){
+        currentGame.eight18Phase = 'bidding';
+        currentGame.currentBids = last.bids ? {...last.bids} : {};
+      }
 
     // If Rook, reset bidding state for that round
     if(currentGame.name === 'Rook'){
@@ -7122,11 +7281,11 @@
     const raw=prompt('New player name?'); if(!raw)return;
     const name=raw.trim(); if(!name){alert('Invalid name.');return;}
     if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
-    if(!players.includes(name))players.push(name);
-    if(!allPlayers.includes(name))allPlayers.push(name);
-    currentGame.originalRoster.push(name);
-    if(!currentGame.retired)currentGame.retired=[];
-    if(currentGame.name==='Wizard'){if(!currentGame.currentBids)currentGame.currentBids={};currentGame.currentBids[name]=0;}
+      if(!players.includes(name))players.push(name);
+      if(!allPlayers.includes(name))allPlayers.push(name);
+      currentGame.originalRoster.push(name);
+      if(!currentGame.retired)currentGame.retired=[];
+      if(isBidTrickGame(currentGame)){if(!currentGame.currentBids)currentGame.currentBids={};currentGame.currentBids[name]=0;}
 
     // Bottom-half average calculation
     const cfg=configs[currentGame.name];
@@ -7253,10 +7412,11 @@
     if(!keys.length){currentGame=null;saveData();goHome();return;}
     const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
     const topScore=currentGame.totals[sorted[0]];
-    const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
+      const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
 
-    const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[],...rookPersistedState(currentGame)};
-    if(currentGame.name==='Wizard'){data.wizardPhase=currentGame.wizardPhase;data.currentBids=currentGame.currentBids;data.currentScoreDrafts=currentGame.currentScoreDrafts||{};}
+      const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[],...rookPersistedState(currentGame)};
+      if(currentGame.name==='Wizard'){data.wizardPhase=currentGame.wizardPhase;data.currentBids=currentGame.currentBids;data.currentScoreDrafts=currentGame.currentScoreDrafts||{};}
+      if(currentGame.name==='818'){data.eight18Phase=currentGame.eight18Phase;data.currentBids=currentGame.currentBids;data.currentScoreDrafts=currentGame.currentScoreDrafts||{};}
     if(currentGame.name==='Rook'){data.rookConfig=currentGame.rookConfig;}
 
     if(!silent && tied.length>1 && !currentGame.suddenDeath){
@@ -7269,10 +7429,11 @@
   }
 
   function startSuddenDeath(){
-    document.getElementById('sudden-death-modal').classList.add('hidden');
-    pendingGameData=null;
-    currentGame.suddenDeath=true;
-    if(currentGame.name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+      document.getElementById('sudden-death-modal').classList.add('hidden');
+      pendingGameData=null;
+      currentGame.suddenDeath=true;
+      if(currentGame.name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+      if(currentGame.name==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
     // Bump round count so players can play one more tiebreaker
     currentGame.currentRound = (currentGame.currentRound||1); // currentRound is already past end, stays there
     // Actually we need to allow one more round. Let's instead replay the LAST round index:
@@ -7381,10 +7542,11 @@
     document.getElementById('victory-modal').classList.add('hidden');
     const lg=history[0]; if(!lg)return;
     const roster=lg.originalRoster||Object.keys(lg.totals);
-    players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
-    let t={}; roster.forEach(p=>t[p]=0);
-    currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
-    if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+      players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
+      let t={}; roster.forEach(p=>t[p]=0);
+      currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
+      if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+      if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
     if(lg.game==='Rook'){
       const prevCfg=lg.rookConfig||{winTarget:300,minBid:70,totalCounters:200};
       currentGame.rookConfig={...prevCfg};
@@ -7456,12 +7618,12 @@
       if(!activeInputId||!activeInputContext)return;
       const el=document.getElementById(activeInputId); if(!el)return;
       let v=parseInt(el.value); if(isNaN(v))v=0;
-      if(activeInputContext.roundIndex!=='current'){
-        if(currentGame?.rounds[activeInputContext.roundIndex]) currentGame.rounds[activeInputContext.roundIndex].scores[activeInputContext.player]=v;
-        saveData({ debounceMs: SAVE_DEBOUNCE_MS });
-      } else if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='bidding'){
-        if(!currentGame.currentBids)currentGame.currentBids={};
-        currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
+        if(activeInputContext.roundIndex!=='current'){
+          if(currentGame?.rounds[activeInputContext.roundIndex]) currentGame.rounds[activeInputContext.roundIndex].scores[activeInputContext.player]=v;
+          saveData({ debounceMs: SAVE_DEBOUNCE_MS });
+        } else if(isBidTrickGame(currentGame)&&getBidTrickPhase(currentGame)==='bidding'){
+          if(!currentGame.currentBids)currentGame.currentBids={};
+          currentGame.currentBids[activeInputContext.player]=v; saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
       } else if(activeInputContext.roundIndex==='current'){
         ensureCurrentScoreDrafts()[activeInputContext.player]=v;
         saveData({ debounceMs: DRAFT_SAVE_DEBOUNCE_MS, idle: true });
@@ -7504,43 +7666,43 @@
       let c=el.value;
       if(v==='backspace')el.value=c.slice(0,-1);
       else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
-      else{ if(c==='0'&&v!=='0'&&v!=='00')el.value=v; else if(c.length<5)el.value+=v; }
-      if(activeInputContext?.roundIndex==='current'){
-        saveActiveInputToModel();
-        if(currentGame?.name==='Wizard'){
-          scheduleWizardLiveUpdate(activeInputContext.player);
+        else{ if(c==='0'&&v!=='0'&&v!=='00')el.value=v; else if(c.length<5)el.value+=v; }
+        if(activeInputContext?.roundIndex==='current'){
+          saveActiveInputToModel();
+          if(isBidTrickGame(currentGame)){
+            scheduleWizardLiveUpdate(activeInputContext.player);
+          }
         }
-      }
-    };
+      };
     if(activeInputContext?.roundIndex==='current') return gnRunNumpadHotPath('numpadPress', run);
     const timer=gnPerfStart('GN numpadPress');
     try{ return run(); } finally { gnPerfEnd(timer); }
-  }
+    }
 
-  // ── Update Wizard bid status without full re-render ──
-  let _wizardLiveUpdateRaf=null;
-  let _wizardLiveDotPlayers=new Set();
-  function scheduleWizardLiveUpdate(playerName){
-    if(!currentGame || currentGame.name !== 'Wizard') return;
-    if(currentGame.wizardPhase === 'scoring' && playerName) _wizardLiveDotPlayers.add(playerName);
-    if(_wizardLiveUpdateRaf)return;
-    _wizardLiveUpdateRaf=requestAnimationFrame(()=>{
-      _wizardLiveUpdateRaf=null;
-      updateWizardTrickCounter();
-      if(currentGame?.name==='Wizard'&&currentGame.wizardPhase==='scoring'){
-        const players=[..._wizardLiveDotPlayers];
-        _wizardLiveDotPlayers.clear();
-        players.forEach(updateBidDotFor);
-      } else {
-        _wizardLiveDotPlayers.clear();
-      }
-    });
-  }
+    // ── Update Wizard bid status without full re-render ──
+    let _wizardLiveUpdateRaf=null;
+    let _wizardLiveDotPlayers=new Set();
+    function scheduleWizardLiveUpdate(playerName){
+      if(!currentGame || !isBidTrickGame(currentGame)) return;
+      if(getBidTrickPhase(currentGame) === 'scoring' && playerName) _wizardLiveDotPlayers.add(playerName);
+      if(_wizardLiveUpdateRaf)return;
+      _wizardLiveUpdateRaf=requestAnimationFrame(()=>{
+        _wizardLiveUpdateRaf=null;
+        updateWizardTrickCounter();
+        if(isBidTrickGame(currentGame)&&getBidTrickPhase(currentGame)==='scoring'){
+          const players=[..._wizardLiveDotPlayers];
+          _wizardLiveDotPlayers.clear();
+          players.forEach(updateBidDotFor);
+        } else {
+          _wizardLiveDotPlayers.clear();
+        }
+      });
+    }
 
-  function updateBidDotFor(playerName){
-    const timer=gnPerfStart('GN updateBidDotFor');
-    try{
-      if(!currentGame || currentGame.name !== 'Wizard' || currentGame.wizardPhase !== 'scoring') return;
+    function updateBidDotFor(playerName){
+      const timer=gnPerfStart('GN updateBidDotFor');
+      try{
+        if(!currentGame || !isBidTrickGame(currentGame) || getBidTrickPhase(currentGame) !== 'scoring') return;
       const liveEl = document.getElementById(`score-input-${playerName}`);
       if(!liveEl) return;
       const safe=rookElementId(playerName);
