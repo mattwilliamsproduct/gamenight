@@ -1024,6 +1024,44 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .score-entry-identity {
+      min-width: 0;
+      text-align: left;
+    }
+    .score-entry-name-line {
+      display: flex;
+      align-items: center;
+      gap: 0.48rem;
+      min-width: 0;
+    }
+    .score-entry-name-line .score-entry-name {
+      min-width: 0;
+    }
+    .score-entry-dealer-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--blue-border);
+      border-radius: 999px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      padding: 0.27rem 0.48rem;
+      font-size: 0.62rem;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .score-entry-row.is-dealer .score-entry-player-card {
+      border-color: var(--blue-border);
+      box-shadow: inset 4px 0 0 var(--blue);
+    }
+    .score-entry-row.is-dealer.active .score-entry-player-card {
+      border-color: rgba(4,120,87,0.48);
+      box-shadow: inset 4px 0 0 var(--blue), 0 14px 28px -24px rgba(4,120,87,0.65);
+    }
     .score-entry-stat {
       min-width: 0;
       border-radius: 14px;
@@ -1148,6 +1186,11 @@
       color: var(--ink-2);
       white-space: nowrap;
     }
+    .score-entry-chip.score-entry-dealer-badge {
+      border-color: var(--blue-border);
+      background: var(--blue-bg);
+      color: var(--blue);
+    }
     .score-entry-keypad {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1194,6 +1237,7 @@
       .score-entry-row.no-context .score-entry-player-card { grid-template-columns: 56px minmax(0,1fr) 62px; }
       .score-entry-avatar { width: 52px; height: 52px; border-radius: 14px; }
       .score-entry-row .score-entry-context { display: none; }
+      .score-entry-dealer-badge { font-size: 0.56rem; padding: 0.24rem 0.4rem; }
       .score-entry-stat { padding: 0.45rem 0.35rem; }
       .score-entry-input-cell { padding: 0.42rem; }
       .score-entry-value { min-height: 3rem; font-size: clamp(1.55rem, 8vw, 2.2rem); }
@@ -6885,6 +6929,7 @@
       players,
       tablePlayers,
       values,
+      dealer:currentGame.name==='818'?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
       initialJson:JSON.stringify(values)
     };
@@ -6911,7 +6956,7 @@
 
   function renderScoreEntryModal(){
     if(!scoreEntryModalState||!currentGame)return;
-    const {mode,players,values}=scoreEntryModalState;
+    const {mode,players,values,dealer}=scoreEntryModalState;
     document.getElementById('score-entry-game').textContent=currentGame.name;
     document.getElementById('score-entry-primary-btn').textContent=mode.primary;
     updateScoreEntryHeaderMeta();
@@ -6919,15 +6964,19 @@
       const active=p===scoreEntryModalState.activePlayer;
       const safe=rookElementId(p);
       const bid=currentGame.currentBids?.[p]??0;
+      const isDealer=p===dealer;
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''}">
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''}">
         <div class="score-entry-player-card">
           ${getScoreEntryAvatarHtml(p)}
-          <div class="min-w-0 text-left">
-            <div class="score-entry-name truncate">${p}</div>
+          <div class="score-entry-identity">
+            <div class="score-entry-name-line">
+              <div class="score-entry-name truncate">${p}</div>
+              ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
+            </div>
           </div>
           <div class="score-entry-stat"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
@@ -6946,11 +6995,14 @@
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
+    const dealerChip=p&&p===scoreEntryModalState.dealer
+      ? '<span class="score-entry-chip score-entry-dealer-badge">Dealer</span>'
+      : '';
     const dealerInfo=mode.kind==='818-bids'?get818DealerBidInfo():null;
     const dealerWarning=dealerInfo&&dealerInfo.dealer===p&&dealerInfo.applies
       ? `<span class="score-entry-chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Dealer cannot bid ${dealerInfo.forbidden}</span>`
       : '';
-    document.getElementById('score-entry-selected-detail').innerHTML=action+dealerWarning;
+    document.getElementById('score-entry-selected-detail').innerHTML=action+dealerChip+dealerWarning;
   }
 
   function selectScoreEntryPlayer(idx){
