@@ -1,12 +1,12 @@
 {
-  "name": "CardKnight",
-  "short_name": "CardKnight",
-  "description": "A modern game-night scorekeeper for card and tabletop games.",
+  "name": "Back Porch Games",
+  "short_name": "Porch Games",
+  "description": "A relaxed scorekeeper for card and tabletop game nights.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f6f6f3",
-  "theme_color": "#064e3b",
+  "background_color": "#edf5f2",
+  "theme_color": "#08766c",
   "icons": [
     {
       "src": "/icon-192.png",

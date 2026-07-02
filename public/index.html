@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="CardKnight is a modern game-night scorekeeper for card and tabletop games.">
-  <meta name="theme-color" content="#064e3b">
-  <meta name="application-name" content="CardKnight">
+  <meta name="description" content="Back Porch Games is a relaxed scorekeeper for card and tabletop game nights.">
+  <meta name="theme-color" content="#08766c">
+  <meta name="application-name" content="Back Porch Games">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="CardKnight">
-  <meta property="og:title" content="CardKnight">
-  <meta property="og:description" content="Game Night Scorekeeper">
+  <meta name="apple-mobile-web-app-title" content="Back Porch Games">
+  <meta property="og:title" content="Back Porch Games">
+  <meta property="og:description" content="Cards, scores, and good company.">
   <meta property="og:image" content="/icon-512.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-  <title>CardKnight · Game Night Scorekeeper</title>
+  <title>Back Porch Games</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -28,59 +28,71 @@
 
     /* ════════ TOKENS ════════ */
     :root {
-      --bg: #f7f4ed;
-      --bg-2: #eee8dc;
-      --surface: #ffffff;
-      --surface-2: #fbfaf6;
-      --ink: #0f0f0e;
-      --ink-2: #2c2c29;
-      --muted: #756d60;
-      --hairline: #e2dacb;
-      --emerald: #064e3b;
-      --emerald-bg: #ecfdf5;
-      --emerald-border: #a7f3d0;
-      --emerald-lift: #d1fae5;
-      --gold: #c9972d;
-      --gold-bg: #fff7df;
-      --gold-border: #f4d98b;
-      --amber: #a16207;
-      --amber-bg: #fff7df;
-      --rose: #9f1239;
-      --rose-bg: #fff1f2;
-      --rose-border: #fecaca;
-      --blue: #1d4ed8;
-      --blue-bg: #eff6ff;
-      --blue-border: #bfdbfe;
-      --nav-bg: rgba(247,244,237,0.9);
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px -4px rgba(0,0,0,0.06);
-      --shadow-md: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px -8px rgba(0,0,0,0.10);
-      --shadow-lg: 0 2px 4px rgba(0,0,0,0.05), 0 20px 48px -12px rgba(0,0,0,0.15);
+      --bg: #edf5f2;
+      --bg-2: #f3ebe3;
+      --surface: #fffdf9;
+      --surface-2: #f9f3ed;
+      --ink: #073f3b;
+      --ink-2: #285b57;
+      --muted: #746d67;
+      --hairline: #dfd3c7;
+      --emerald: #08766c;
+      --emerald-bg: #e4f5ef;
+      --emerald-border: #9bd7c8;
+      --emerald-lift: #d2eee5;
+      --gold: #d6784b;
+      --gold-bg: #fff0e7;
+      --gold-border: #efbea4;
+      --amber: #c65f35;
+      --amber-bg: #fff0e7;
+      --rose: #b84056;
+      --rose-bg: #fff0f2;
+      --rose-border: #efb7bf;
+      --blue: #287f9b;
+      --blue-bg: #e9f6f8;
+      --blue-border: #addbe2;
+      --bp-coral: #e76f51;
+      --bp-coral-soft: #ffe4d9;
+      --bp-sunset: #f19a6b;
+      --bp-sky: #73c5c8;
+      --bp-seafoam: #cbece2;
+      --bp-sand: #eadbcf;
+      --nav-bg: rgba(255,253,249,0.94);
+      --shadow-sm: 0 2px 8px rgba(7,63,59,0.06), 0 5px 14px -8px rgba(87,54,38,0.12);
+      --shadow-md: 0 3px 12px rgba(7,63,59,0.08), 0 14px 30px -18px rgba(87,54,38,0.22);
+      --shadow-lg: 0 5px 18px rgba(7,63,59,0.1), 0 28px 54px -28px rgba(87,54,38,0.3);
     }
     html.dark {
-      --bg: #0c0c0b;
-      --bg-2: #1a1a17;
-      --surface: #1c1c19;
-      --surface-2: #232320;
-      --ink: #f5f5f0;
-      --ink-2: #d4d4cc;
-      --muted: #8c8c82;
-      --hairline: #2e2e2a;
-      --emerald: #34d399;
-      --emerald-bg: #022c22;
-      --emerald-border: #065f46;
-      --emerald-lift: #065f46;
-      --gold: #fbbf24;
-      --gold-bg: #1f1604;
-      --gold-border: #92400e;
-      --amber: #fbbf24;
-      --amber-bg: #1c1200;
-      --rose: #fb7185;
-      --rose-bg: #1f0010;
-      --rose-border: #9f1239;
-      --blue: #60a5fa;
-      --blue-bg: #0c1a3a;
-      --blue-border: #1e3a8a;
-      --nav-bg: rgba(12,12,11,0.92);
+      --bg: #092d2b;
+      --bg-2: #123b38;
+      --surface: #123b37;
+      --surface-2: #184742;
+      --ink: #fff8ee;
+      --ink-2: #d8ece7;
+      --muted: #9dbbb5;
+      --hairline: #2d625b;
+      --emerald: #70d8c7;
+      --emerald-bg: #123f39;
+      --emerald-border: #2f7469;
+      --emerald-lift: #19544c;
+      --gold: #f3a478;
+      --gold-bg: #4b2b22;
+      --gold-border: #81503d;
+      --amber: #f3a478;
+      --amber-bg: #49261f;
+      --rose: #ff91a1;
+      --rose-bg: #481f2b;
+      --rose-border: #7c3b4a;
+      --blue: #7bcbd5;
+      --blue-bg: #123e49;
+      --blue-border: #286876;
+      --bp-coral: #f28b70;
+      --bp-coral-soft: #4b2c29;
+      --bp-sunset: #f3a478;
+      --bp-sky: #63bfc2;
+      --bp-seafoam: #255b53;
+      --bp-sand: #61483d;
+      --nav-bg: rgba(9,45,43,0.94);
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 4px 12px -4px rgba(0,0,0,0.4);
       --shadow-md: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.5);
       --shadow-lg: 0 2px 4px rgba(0,0,0,0.3), 0 20px 48px -12px rgba(0,0,0,0.6);
@@ -1901,6 +1913,368 @@
       box-shadow: 0 4px 12px -2px rgba(159,18,56,0.4);
     }
 
+    /* ════════ BACK PORCH GAMES THEME ════════ */
+    body {
+      background:
+        repeating-linear-gradient(135deg, rgba(8,118,108,0.018) 0, rgba(8,118,108,0.018) 1px, transparent 1px, transparent 26px),
+        linear-gradient(180deg, #dff2ef 0, #f8f2eb 34%, var(--bg) 100%);
+    }
+    html.dark body {
+      background:
+        repeating-linear-gradient(135deg, rgba(112,216,199,0.025) 0, rgba(112,216,199,0.025) 1px, transparent 1px, transparent 26px),
+        linear-gradient(180deg, #0b3431 0, var(--bg) 38%, #092725 100%);
+    }
+    .font-display {
+      font-family: Georgia, 'Times New Roman', serif;
+      letter-spacing: 0;
+      font-weight: 700;
+    }
+    .surface,
+    .surface-raised {
+      border-color: var(--hairline);
+      background:
+        repeating-linear-gradient(45deg, rgba(8,118,108,0.012) 0, rgba(8,118,108,0.012) 1px, transparent 1px, transparent 18px),
+        var(--surface);
+    }
+    .surface-raised {
+      box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+
+    /* Header branding is intentionally compact; no subtitle or floating decor. */
+    #top-nav {
+      background: var(--nav-bg) !important;
+      border-bottom-color: rgba(8,118,108,0.18) !important;
+      box-shadow: 0 8px 24px -22px rgba(7,63,59,0.65);
+    }
+    #top-nav::after {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      right: 1rem;
+      bottom: -1px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--bp-coral), var(--bp-sky), transparent);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .bp-brand-mark {
+      position: relative;
+      width: 3rem;
+      height: 3rem;
+      flex: 0 0 3rem;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.72) !important;
+      border-radius: 15px;
+      background:
+        linear-gradient(180deg, #f39a70 0 43%, #9edbd7 43% 62%, #08766c 62% 100%);
+      box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
+    }
+    .bp-brand-palm {
+      position: relative;
+      z-index: 2;
+      font-size: 1.55rem;
+      line-height: 1;
+      transform: translate(-0.18rem, 0.05rem);
+      filter: saturate(0.82);
+    }
+    .bp-brand-wave {
+      position: absolute;
+      right: 0.28rem;
+      bottom: 0.08rem;
+      z-index: 3;
+      color: #d8fff7;
+      font-family: Georgia, serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .brand-name {
+      color: var(--emerald);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 1.7rem !important;
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-shadow: none;
+      white-space: nowrap;
+    }
+    html.dark .brand-name { color: var(--ink); }
+    .nav-btn { color: var(--ink-2); }
+    .nav-btn:hover { background: var(--surface-2); border-color: var(--hairline); }
+    .nav-btn.active { background: var(--emerald); color: #fff; border-color: var(--emerald); }
+    .nav-btn.accent { background: var(--emerald-bg); color: var(--emerald); border-color: var(--emerald-border); }
+
+    .btn-primary,
+    .btn-accent {
+      background: linear-gradient(180deg, #0d8177, #08665e);
+      color: #fff;
+      box-shadow: 0 10px 22px -14px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .btn-primary:hover,
+    .btn-accent:hover { filter: brightness(1.06); opacity: 1; }
+    .btn-ghost {
+      background: rgba(255,253,249,0.9);
+      border-color: var(--hairline);
+      color: var(--ink-2);
+      box-shadow: 0 4px 14px -12px rgba(7,63,59,0.45);
+    }
+    html.dark .btn-ghost { background: var(--surface-2); }
+
+    /* Home: atmosphere stays inside panel boundaries and never covers roster content. */
+    .brand-panel,
+    .bp-roster-panel {
+      position: relative;
+      overflow: hidden;
+      background:
+        repeating-linear-gradient(45deg, rgba(8,118,108,0.018) 0, rgba(8,118,108,0.018) 1px, transparent 1px, transparent 16px),
+        linear-gradient(150deg, rgba(255,253,249,0.98), rgba(247,238,230,0.96));
+      border-color: rgba(231,111,81,0.22);
+    }
+    html.dark .brand-panel,
+    html.dark .bp-roster-panel {
+      background: linear-gradient(150deg, var(--surface), var(--surface-2));
+      border-color: var(--hairline);
+    }
+    #quick-add-player {
+      box-shadow: inset 0 1px 2px rgba(87,54,38,0.04);
+    }
+    #lineup-list {
+      background: rgba(203,236,226,0.34) !important;
+      border-color: var(--emerald-border) !important;
+    }
+    .roster-row-lineup {
+      background: linear-gradient(180deg, #ebfaf5, #dcf2ea);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+      box-shadow: 0 6px 16px -14px rgba(7,63,59,0.7), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    html.dark .roster-row-lineup { background: var(--emerald-bg); }
+    .roster-row-bench,
+    .bench-row-content {
+      background: rgba(255,253,249,0.94);
+      border-color: var(--hairline);
+    }
+    html.dark .roster-row-bench,
+    html.dark .bench-row-content { background: var(--surface); }
+
+    .bp-game-picker {
+      padding: 1.25rem;
+      border: 1px solid rgba(8,118,108,0.14);
+      border-radius: 22px;
+      background: rgba(255,253,249,0.72);
+      box-shadow: var(--shadow-sm);
+    }
+    html.dark .bp-game-picker { background: rgba(18,59,55,0.76); }
+    .game-card.quest-card.bp-game-card {
+      isolation: isolate;
+      border-color: rgba(7,63,59,0.13);
+      box-shadow: 0 8px 20px -16px rgba(7,63,59,0.65), inset 0 1px 0 rgba(255,255,255,0.52);
+    }
+    .bp-game-card::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 42%;
+      background:
+        repeating-linear-gradient(155deg, transparent 0 13px, rgba(255,255,255,0.2) 13px 15px, transparent 15px 28px);
+      opacity: 0.48;
+      pointer-events: none;
+    }
+    .bp-game-card > * { position: relative; z-index: 1; }
+    .bp-five-crowns { background: linear-gradient(115deg, #fff6ed 0 58%, #f7b18c 100%) !important; }
+    .bp-wizard { background: linear-gradient(115deg, #eefbf8 0 56%, #8fd3d0 100%) !important; }
+    .bp-eight18 { background: linear-gradient(115deg, #f5fbf7 0 56%, #addfc7 100%) !important; }
+    .bp-flip7 { background: linear-gradient(115deg, #fff2ef 0 56%, #f49a91 100%) !important; }
+    .bp-rook { background: linear-gradient(115deg, #fff9f1 0 54%, #9fd4d3 100%) !important; }
+    html.dark .bp-game-card { color: #073f3b; }
+    .quest-badge {
+      background: rgba(255,253,249,0.76);
+      border-color: rgba(7,63,59,0.14);
+      color: #285b57;
+      letter-spacing: 0.04em;
+    }
+    .quest-emblem {
+      border-color: rgba(255,255,255,0.78);
+      background: rgba(255,253,249,0.72);
+      box-shadow: 0 10px 22px -15px rgba(7,63,59,0.75), inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    /* Active match: tropical framing stays out of the score table itself. */
+    .active-match-banner {
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(255,253,249,0.98), rgba(237,248,244,0.96)) !important;
+      border-color: rgba(8,118,108,0.22);
+      box-shadow: var(--shadow-md), inset 0 3px 0 rgba(231,111,81,0.56);
+    }
+    html.dark .active-match-banner {
+      background: linear-gradient(90deg, var(--surface), var(--surface-2)) !important;
+      border-color: var(--hairline);
+    }
+    .active-match-banner::before {
+      background:
+        repeating-linear-gradient(135deg, transparent 0 16px, rgba(8,118,108,0.025) 16px 18px, transparent 18px 34px);
+      opacity: 1;
+    }
+    .round-banner {
+      background: rgba(228,245,239,0.9);
+      border-color: var(--emerald-border);
+      color: var(--emerald) !important;
+    }
+    .leader-banner {
+      background:
+        repeating-linear-gradient(145deg, transparent 0 18px, rgba(8,118,108,0.03) 18px 20px, transparent 20px 38px),
+        linear-gradient(90deg, #e8f7f2, #f5fbf8) !important;
+      border-color: var(--emerald-border) !important;
+    }
+    .leader-banner::before {
+      background: rgba(255,253,249,0.78);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+    }
+    .tournament-scoreboard {
+      background: var(--surface);
+      border-color: rgba(8,118,108,0.2);
+      box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.74);
+    }
+    html.dark .tournament-scoreboard { background: var(--surface); border-color: var(--hairline); }
+    .tournament-scoreboard .scorecard-table-wrap { background: var(--surface); }
+    .scorecard-table thead tr { background: linear-gradient(180deg, #0b554f, #073f3b); }
+    html.dark .scorecard-table thead tr { background: #082f2c; }
+    .scorecard-table thead th {
+      color: #edfffa;
+      border-bottom-color: rgba(155,215,200,0.42);
+      letter-spacing: 0.08em;
+    }
+    .scorecard-table tbody td { border-bottom-color: rgba(223,211,199,0.72); }
+    .scorecard-total-cell {
+      background: linear-gradient(180deg, rgba(228,245,239,0.7), rgba(255,253,249,0.42));
+      box-shadow: inset 1px 0 0 rgba(8,118,108,0.12), inset -1px 0 0 rgba(8,118,108,0.08);
+    }
+    .leader-row,
+    .leader-row td:first-child { background: #e1f4ed !important; }
+    html.dark .leader-row,
+    html.dark .leader-row td:first-child { background: #164a43 !important; }
+    .tournament-footer {
+      background: linear-gradient(180deg, #fbf6f0, #e9f6f1) !important;
+    }
+    .rook-command-center {
+      background: linear-gradient(120deg, var(--surface), var(--blue-bg));
+      border-color: var(--blue-border);
+    }
+
+    /* Focused score entry remains visually quiet and keeps its hot path untouched. */
+    .score-entry-panel {
+      background:
+        repeating-linear-gradient(45deg, rgba(8,118,108,0.012) 0, rgba(8,118,108,0.012) 1px, transparent 1px, transparent 18px),
+        var(--surface);
+      border-color: rgba(8,118,108,0.24);
+      box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.62);
+    }
+    .score-entry-progress {
+      background: var(--emerald-bg);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+    }
+    .score-entry-player-card {
+      background: #fbf7f2;
+      border-color: var(--hairline);
+    }
+    html.dark .score-entry-player-card { background: var(--surface-2); }
+    .score-entry-row.active .score-entry-player-card {
+      background: linear-gradient(180deg, #e8f7f2, #f8fbf9);
+      border-color: var(--emerald-border);
+    }
+    html.dark .score-entry-row.active .score-entry-player-card { background: var(--emerald-bg); }
+    .score-entry-input-cell {
+      border-color: var(--emerald-border);
+      background: linear-gradient(180deg, #ddf3eb, #f8fcfa);
+    }
+    .score-entry-row.active .score-entry-input-cell { border-color: var(--emerald); }
+    .score-entry-selected-card {
+      background: linear-gradient(180deg, #e4f5ef, #fffdf9);
+      border-color: var(--emerald-border);
+    }
+    html.dark .score-entry-selected-card { background: linear-gradient(180deg, var(--emerald-bg), var(--surface)); }
+    .score-entry-keypad {
+      background: #f6eee7;
+      border-color: var(--hairline);
+    }
+    html.dark .score-entry-keypad { background: var(--bg-2); }
+    .score-entry-key { background: #073f3b; color: #fffdf9; }
+    .score-entry-key.subtle { background: #fffdf9; color: var(--ink-2); border-color: var(--hairline); }
+    html.dark .score-entry-key.subtle { background: var(--surface-2); color: var(--ink); }
+    .score-entry-key.next { background: var(--emerald); color: #fff; }
+
+    /* Secondary views inherit the same visual language without new controls. */
+    #history-screen > .flex:first-child > div {
+      background: rgba(255,253,249,0.88) !important;
+      border-color: rgba(8,118,108,0.18) !important;
+      box-shadow: var(--shadow-sm);
+    }
+    #history-list-view .surface,
+    #hall-of-fame-view .surface,
+    #records-view .surface,
+    #profiles-screen .surface,
+    #profiles-screen .surface-raised {
+      border-color: rgba(8,118,108,0.15);
+      box-shadow: 0 8px 20px -20px rgba(7,63,59,0.75);
+    }
+    #profiles-screen > .mb-7 {
+      padding: 1.4rem 1.5rem;
+      border: 1px solid rgba(8,118,108,0.16);
+      border-radius: 18px;
+      background: rgba(255,253,249,0.82);
+      box-shadow: var(--shadow-sm);
+    }
+    html.dark #profiles-screen > .mb-7 { background: var(--surface); }
+    #records-view section > h2,
+    #hall-of-fame-view h2 { border-color: rgba(8,118,108,0.2); }
+    .audit-entry,
+    .rivalry-card { background: var(--surface-2); border-color: var(--hairline); }
+
+    /* All modal shells use the porch palette; celebration content keeps its identity. */
+    [id$='-modal'] > .absolute.inset-0 {
+      background: rgba(5,55,51,0.48) !important;
+    }
+    .dice-dialog,
+    #settings-modal .surface-raised,
+    #rules-modal .surface-raised,
+    #audit-modal .surface-raised,
+    #profile-detail-view,
+    #scorecard-modal .surface-raised {
+      background: var(--surface);
+      border-color: rgba(8,118,108,0.2);
+      box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.5);
+    }
+    #lineup-intro,
+    #stat-montage { background: #073f3b; }
+    .intro-bg {
+      background: linear-gradient(145deg, rgba(231,111,81,0.42), transparent 38%), linear-gradient(180deg, #0b6159, #052f2c);
+    }
+    .intro-sub,
+    .montage-label { color: #9ee6d8; }
+    .montage-bg {
+      background: linear-gradient(135deg, rgba(231,111,81,0.24), transparent 42%), linear-gradient(315deg, rgba(115,197,200,0.22), transparent 46%);
+    }
+    .whammy-card { border-color: rgba(7,63,59,0.82); }
+    .whammy-card button { background: #073f3b !important; }
+    .toast.record { background: linear-gradient(135deg, var(--bp-coral), var(--bp-sunset)); }
+
+    @media (max-width: 760px) {
+      .brand-name { font-size: 1.28rem !important; }
+      .bp-brand-mark { width: 2.6rem; height: 2.6rem; flex-basis: 2.6rem; }
+      #top-nav { padding-top: 0.6rem; padding-bottom: 0.6rem; }
+      .bp-game-picker { padding: 1rem; }
+      .bp-game-card { padding: 1.25rem !important; }
+      .quest-emblem { width: 4rem; height: 4rem; }
+    }
+
     /* ════════ DARK-MODE OVERRIDES ════════ */
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
@@ -1919,7 +2293,7 @@
   <!-- Lineup Intro Overlay -->
   <div id="lineup-intro" class="hidden">
     <div class="intro-bg"></div>
-    <div class="intro-sub" id="intro-game-label">CardKnight</div>
+    <div class="intro-sub" id="intro-game-label">Back Porch Games</div>
     <div class="intro-header" id="intro-header-text">Tonight's Lineup</div>
     <div class="intro-roster" id="intro-roster-list"></div>
     <div class="intro-skip" onclick="dismissLineupIntro()">Skip ›</div>
@@ -1973,12 +2347,12 @@
     <div id="top-nav" class="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 backdrop-blur-xl" style="background: var(--nav-bg); border-bottom: 1px solid var(--hairline);">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <div class="brand-mark w-11 h-11 rounded-2xl flex items-center justify-center bg-white border hairline overflow-hidden">
-            <img src="/icon-192.png" alt="CardKnight" class="w-full h-full object-cover">
+          <div class="brand-mark bp-brand-mark" aria-hidden="true">
+            <span class="bp-brand-palm">🌴</span>
+            <span class="bp-brand-wave">≈</span>
           </div>
           <div>
-            <h1 class="brand-name font-display text-2xl leading-none tracking-tight">CardKnight</h1>
-            <div class="brand-subtitle text-[10px] font-extrabold uppercase tracking-[0.16em] mt-0.5">Game Night Scorekeeper</div>
+            <h1 class="brand-name font-display text-2xl leading-none">Back Porch Games</h1>
           </div>
         </div>
         <div class="flex flex-wrap gap-1.5 items-center">
@@ -2003,21 +2377,21 @@
     <div id="home-screen" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
       <!-- Roster -->
-      <div class="lg:col-span-3 surface-raised brand-panel p-7">
+      <div class="lg:col-span-3 surface-raised brand-panel bp-roster-panel p-7">
         <div class="flex items-baseline justify-between mb-6">
           <div>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
-            <h2 class="font-display text-4xl">Build the Party</h2>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Lineup</div>
+            <h2 class="font-display text-4xl">Build Roster</h2>
           </div>
           <div id="roster-count" class="chip crest-chip"></div>
         </div>
         <div class="flex gap-2 mb-6">
-          <input id="quick-add-player" type="text" placeholder="Add a player to the hall..."
+          <input id="quick-add-player" type="text" placeholder="Add a new player..."
             onkeypress="if(event.key==='Enter')addPlayerToAll()"
             class="flex-1 rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
-            style="background:var(--bg-2);color:var(--ink);border:1.5px solid transparent;"
+            style="background:var(--bg-2);color:var(--ink);border:1.5px solid var(--hairline);"
             onfocus="this.style.borderColor='var(--emerald)';this.style.background='var(--surface)';"
-            onblur="this.style.borderColor='transparent';this.style.background='var(--bg-2)';">
+            onblur="this.style.borderColor='var(--hairline)';this.style.background='var(--bg-2)';">
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -2030,7 +2404,7 @@
           </div>
           <div>
             <div class="mb-3 px-1">
-              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Party</h3>
+              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Lineup</h3>
             </div>
             <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
           </div>
@@ -2038,13 +2412,13 @@
       </div>
 
       <!-- Games -->
-      <div class="lg:col-span-2">
+      <div class="lg:col-span-2 bp-game-picker">
         <div class="mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
-          <h2 class="font-display text-4xl">Choose the Quest</h2>
+          <h2 class="font-display text-4xl">Select Game</h2>
         </div>
         <div class="space-y-4">
-          <button onclick="startGame('Five Crowns')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(201,151,45,0.12) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Five Crowns</div>
               <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
@@ -2053,16 +2427,16 @@
               <img src="/game-icons/five-crowns.jpg" alt="Five Crowns icon">
             </span>
           </button>
-          <button onclick="startGame('Wizard')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(139,92,246,0.1) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Wizard</div>
-              <div class="quest-badge mt-2">Bid wisely · exact tricks win</div>
+              <div class="quest-badge mt-2">Highest total wins · bid &amp; score</div>
             </div>
             <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
               <img src="/game-icons/wizard.jpg" alt="Wizard icon">
             </span>
           </button>
-          <button onclick="startGame('818')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(16,185,129,0.1) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">818</div>
               <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
@@ -2071,19 +2445,19 @@
               <img src="/icon-512.png" alt="818 icon">
             </span>
           </button>
-          <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(159,18,57,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
-              <div class="quest-badge mt-2">Push your luck · survive the table</div>
+              <div class="quest-badge mt-2">Highest total wins · push luck</div>
             </div>
             <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
               <img src="/game-icons/flip-7.jpg" alt="Flip 7 icon">
             </span>
           </button>
-          <button onclick="startGame('Rook')" class="game-card quest-card group flex items-center justify-between" style="background:linear-gradient(135deg, var(--surface) 0%, rgba(29,78,216,0.09) 100%);padding:1.75rem 1.85rem;min-height:110px;">
+          <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Rook</div>
-              <div class="quest-badge mt-2">Bid, trump, and conquer</div>
+              <div class="quest-badge mt-2">Highest total wins · pick bid, trump &amp; score</div>
             </div>
             <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
               <img src="/game-icons/rook.jpg" alt="Rook icon">
@@ -2806,7 +3180,7 @@
 
   <script>
   /* ══════════════════════════════════════════════════════════
-     CardKnight — Game Night Scorekeeper
+     Back Porch Games
      ══════════════════════════════════════════════════════════ */
 
   // ── Storage helpers ──
@@ -3542,7 +3916,7 @@
     const actions=(gnPerfReport.actions||[]).slice(-80).map(a=>`${a.ts} ${a.name}${a.detail?` · ${a.detail}`:''} · view=${a.ctx?.view||''} game=${a.ctx?.game||''} round=${a.ctx?.round||''}`);
     const keyRows=Object.entries(storage.keys||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}: ${gnPerfFormatBytes(v)}`);
     return [
-      'CardKnight Performance Report',
+      'Back Porch Games Performance Report',
       `Generated: ${new Date().toISOString()}`,
       `Session started: ${gnPerfReport.startedAt}`,
       `App URL: ${location.href}`,
