@@ -14,9 +14,9 @@
   <meta property="og:description" content="Cards, scores, and good company.">
   <meta property="og:image" content="/bp-icon-512.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="/bp-apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/bp-favicon-32.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/bp-icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/bp-apple-touch-icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/bp-favicon-32.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="/bp-icon-192.png?v=2">
   <title>Back Porch Games</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -1971,10 +1971,9 @@
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.72) !important;
       border-radius: 15px;
-      background: #073f3b;
+      background: #073f3b url('/theme/back-porch-mark.jpg') center / cover no-repeat;
       box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
     }
-    .bp-brand-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .brand-name {
       color: var(--emerald);
       font-family: Georgia, 'Times New Roman', serif;
@@ -2470,7 +2469,7 @@
     <div id="top-nav" class="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 backdrop-blur-xl" style="background: var(--nav-bg); border-bottom: 1px solid var(--hairline);">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <div class="brand-mark bp-brand-mark" aria-hidden="true"><img src="/theme/back-porch-mark.jpg" alt=""></div>
+          <div class="brand-mark bp-brand-mark" aria-hidden="true"></div>
           <div>
             <h1 class="brand-name font-display text-2xl leading-none">Back Porch Games</h1>
           </div>
@@ -2543,45 +2542,30 @@
               <div class="font-display text-3xl leading-tight">Five Crowns</div>
               <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
             </div>
-            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
-              <img src="/game-icons/five-crowns.jpg" alt="Five Crowns icon">
-            </span>
           </button>
           <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Wizard</div>
               <div class="quest-badge mt-2">Highest total wins · bid &amp; score</div>
             </div>
-            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
-              <img src="/game-icons/wizard.jpg" alt="Wizard icon">
-            </span>
           </button>
           <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">818</div>
               <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
             </div>
-            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
-              <img src="/icon-512.png" alt="818 icon">
-            </span>
           </button>
           <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
               <div class="quest-badge mt-2">Highest total wins · push luck</div>
             </div>
-            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
-              <img src="/game-icons/flip-7.jpg" alt="Flip 7 icon">
-            </span>
           </button>
           <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Rook</div>
               <div class="quest-badge mt-2">Highest total wins · pick bid, trump &amp; score</div>
             </div>
-            <span class="quest-emblem group-hover:scale-105 transition-transform duration-200 ml-4">
-              <img src="/game-icons/rook.jpg" alt="Rook icon">
-            </span>
           </button>
         </div>
       </div>
