@@ -1916,6 +1916,8 @@
     /* ════════ BACK PORCH GAMES THEME ════════ */
     body {
       background:
+        linear-gradient(150deg, rgba(231,111,81,0.13) 0, transparent 28%),
+        linear-gradient(215deg, rgba(115,197,200,0.2) 0, transparent 34%),
         repeating-linear-gradient(135deg, rgba(8,118,108,0.018) 0, rgba(8,118,108,0.018) 1px, transparent 1px, transparent 26px),
         linear-gradient(180deg, #dff2ef 0, #f8f2eb 34%, var(--bg) 100%);
     }
@@ -1970,6 +1972,17 @@
       background:
         linear-gradient(180deg, #f39a70 0 43%, #9edbd7 43% 62%, #08766c 62% 100%);
       box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
+    }
+    .bp-brand-mark::before {
+      content: '';
+      position: absolute;
+      top: 0.42rem;
+      right: 0.48rem;
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 50%;
+      background: #ffe8b8;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.22);
     }
     .bp-brand-palm {
       position: relative;
@@ -2032,6 +2045,45 @@
         linear-gradient(150deg, rgba(255,253,249,0.98), rgba(247,238,230,0.96));
       border-color: rgba(231,111,81,0.22);
     }
+    .bp-panel-heading {
+      position: relative;
+      min-height: 4.2rem;
+      padding: 0 4.5rem 1rem 0;
+      border-bottom: 1px solid rgba(8,118,108,0.14);
+    }
+    .bp-panel-heading::after {
+      content: '≈  ≈';
+      position: absolute;
+      right: 0.25rem;
+      bottom: 0.65rem;
+      color: var(--bp-sky);
+      font-family: Georgia, serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0.72;
+      pointer-events: none;
+    }
+    .bp-game-heading::after { color: var(--bp-coral); }
+    .bp-column-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      letter-spacing: 0.08em !important;
+    }
+    .bp-column-title::before {
+      display: inline-grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 1px solid currentColor;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      line-height: 1;
+      opacity: 0.76;
+    }
+    .bp-bench-title::before { content: '◇'; }
+    .bp-lineup-title::before { content: '♣'; }
     html.dark .brand-panel,
     html.dark .bp-roster-panel {
       background: linear-gradient(150deg, var(--surface), var(--surface-2));
@@ -2070,6 +2122,7 @@
     .game-card.quest-card.bp-game-card {
       isolation: isolate;
       border-color: rgba(7,63,59,0.13);
+      border-bottom-width: 4px;
       box-shadow: 0 8px 20px -16px rgba(7,63,59,0.65), inset 0 1px 0 rgba(255,255,255,0.52);
     }
     .bp-game-card::before {
@@ -2091,6 +2144,30 @@
     .bp-eight18 { background: linear-gradient(115deg, #f5fbf7 0 56%, #addfc7 100%) !important; }
     .bp-flip7 { background: linear-gradient(115deg, #fff2ef 0 56%, #f49a91 100%) !important; }
     .bp-rook { background: linear-gradient(115deg, #fff9f1 0 54%, #9fd4d3 100%) !important; }
+    .bp-five-crowns { border-bottom-color: #df7f55 !important; }
+    .bp-wizard { border-bottom-color: #3b9c99 !important; }
+    .bp-eight18 { border-bottom-color: #5aa77e !important; }
+    .bp-flip7 { border-bottom-color: #d45f67 !important; }
+    .bp-rook { border-bottom-color: #4f9fa3 !important; }
+    .bp-game-card::after {
+      position: absolute;
+      inset: auto 6.4rem 0.38rem auto;
+      z-index: 0;
+      width: auto;
+      color: rgba(7,63,59,0.25);
+      background: none;
+      font-family: Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .bp-five-crowns::after { content: '♛  ♛  ♛'; }
+    .bp-wizard::after { content: '✦  ≈  ✦'; }
+    .bp-eight18::after { content: '8 · 1 · 8'; }
+    .bp-flip7::after { content: '7  ·  7  ·  7'; }
+    .bp-rook::after { content: '♠  ♣  ♦'; }
     html.dark .bp-game-card { color: #073f3b; }
     .quest-badge {
       background: rgba(255,253,249,0.76);
@@ -2099,10 +2176,14 @@
       letter-spacing: 0.04em;
     }
     .quest-emblem {
+      position: relative;
       border-color: rgba(255,255,255,0.78);
+      border-width: 3px;
       background: rgba(255,253,249,0.72);
-      box-shadow: 0 10px 22px -15px rgba(7,63,59,0.75), inset 0 1px 0 rgba(255,255,255,0.7);
+      transform: rotate(2deg);
+      box-shadow: -5px 5px 0 rgba(255,253,249,0.46), 0 12px 24px -16px rgba(7,63,59,0.78), inset 0 1px 0 rgba(255,255,255,0.7);
     }
+    .bp-game-card:nth-child(even) .quest-emblem { transform: rotate(-2deg); }
 
     /* Active match: tropical framing stays out of the score table itself. */
     .active-match-banner {
@@ -2122,6 +2203,26 @@
       border-radius: inherit;
       opacity: 1;
     }
+    .bp-live-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      width: max-content;
+      color: var(--bp-coral);
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .bp-live-kicker::before {
+      content: '';
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--bp-coral);
+      box-shadow: 0 0 0 3px var(--bp-coral-soft);
+    }
     .round-banner {
       background: rgba(228,245,239,0.9);
       border-color: var(--emerald-border);
@@ -2138,9 +2239,28 @@
       border-color: var(--emerald-border);
       color: var(--emerald);
     }
+    .leader-banner::after {
+      content: '≈  ≈  ≈';
+      display: none;
+      position: absolute;
+      right: 1.35rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--bp-sky);
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      opacity: 0.32;
+      pointer-events: none;
+    }
+    @media (min-width: 1024px) {
+      .leader-banner { padding-right: 8rem; }
+      .leader-banner::after { display: block; }
+    }
     .tournament-scoreboard {
       background: var(--surface);
       border-color: rgba(8,118,108,0.2);
+      border-top: 4px solid var(--bp-coral);
       box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.74);
     }
     html.dark .tournament-scoreboard { background: var(--surface); border-color: var(--hairline); }
@@ -2177,6 +2297,11 @@
       border-color: rgba(8,118,108,0.24);
       box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.62);
     }
+    #score-entry-game {
+      color: var(--emerald);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.72);
+    }
+    #score-entry-context { color: var(--bp-coral) !important; }
     .score-entry-progress {
       background: var(--emerald-bg);
       border-color: var(--emerald-border);
@@ -2218,6 +2343,23 @@
       border-color: rgba(8,118,108,0.18) !important;
       box-shadow: var(--shadow-sm);
     }
+    .bp-view-tabs {
+      position: relative;
+      padding-top: 0.7rem;
+    }
+    .bp-view-tabs::before {
+      content: 'Back Porch Archives';
+      position: absolute;
+      top: -1.05rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--bp-coral);
+      font-family: Georgia, serif;
+      font-size: 0.82rem;
+      font-style: italic;
+      font-weight: 700;
+      white-space: nowrap;
+    }
     #history-list-view .surface,
     #hall-of-fame-view .surface,
     #records-view .surface,
@@ -2232,6 +2374,24 @@
       border-radius: 18px;
       background: rgba(255,253,249,0.82);
       box-shadow: var(--shadow-sm);
+    }
+    .bp-view-heading {
+      position: relative;
+      overflow: hidden;
+      padding-right: 8rem !important;
+      border-color: rgba(8,118,108,0.16) !important;
+    }
+    .bp-view-heading::after {
+      content: '≈  ♣  ≈';
+      position: absolute;
+      right: 1.4rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--bp-sky);
+      font-family: Georgia, serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      opacity: 0.58;
     }
     html.dark #profiles-screen > .mb-7 { background: var(--surface); }
     #records-view section > h2,
@@ -2274,6 +2434,10 @@
       .bp-game-picker { padding: 1rem; }
       .bp-game-card { padding: 1.25rem !important; }
       .quest-emblem { width: 4rem; height: 4rem; }
+      .bp-panel-heading { padding-right: 3rem; }
+      .bp-game-card::after { display: none; }
+      .bp-view-heading { padding-right: 1.5rem !important; }
+      .bp-view-heading::after { display: none; }
     }
 
     /* ════════ DARK-MODE OVERRIDES ════════ */
@@ -2379,7 +2543,7 @@
 
       <!-- Roster -->
       <div class="lg:col-span-3 surface-raised brand-panel bp-roster-panel p-7">
-        <div class="flex items-baseline justify-between mb-6">
+        <div class="bp-panel-heading flex items-baseline justify-between mb-6">
           <div>
             <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Lineup</div>
             <h2 class="font-display text-4xl">Build Roster</h2>
@@ -2398,14 +2562,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div class="flex items-center justify-between mb-3 px-1">
-              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">Bench</h3>
+              <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">Bench</h3>
               <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Drag to merge</span>
             </div>
             <div id="bench-list" class="space-y-2 min-h-[280px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
           </div>
           <div>
             <div class="mb-3 px-1">
-              <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Lineup</h3>
+              <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Lineup</h3>
             </div>
             <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
           </div>
@@ -2414,7 +2578,7 @@
 
       <!-- Games -->
       <div class="lg:col-span-2 bp-game-picker">
-        <div class="mb-6">
+        <div class="bp-panel-heading bp-game-heading mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
           <h2 class="font-display text-4xl">Select Game</h2>
         </div>
@@ -2472,7 +2636,8 @@
     <div id="game-screen" class="hidden">
       <div class="surface active-match-banner p-5 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div class="flex flex-col gap-1.5 min-w-0">
-          <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+          <div class="bp-live-kicker">Live Table</div>
+          <div class="bp-game-header-row flex items-center gap-3 sm:gap-4 flex-wrap">
             <h2 id="game-title" class="font-display shrink-0"></h2>
             <div id="round-intel" class="round-banner font-display min-w-0" style="color:var(--emerald);"></div>
             <div id="wizard-header-metrics" class="hidden inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors"></div>
@@ -2566,7 +2731,7 @@
 
     <!-- ═══ HISTORY ═══ -->
     <div id="history-screen" class="hidden max-w-6xl mx-auto">
-      <div class="flex justify-center mb-8">
+      <div class="bp-view-tabs flex justify-center mb-8">
         <div class="border hairline p-1 rounded-full flex gap-1" style="background:var(--surface);">
           <button onclick="switchTab('history-list-view')" id="tab-history" class="nav-btn active">Timeline</button>
           <button onclick="switchTab('hall-of-fame-view')" id="tab-fame" class="nav-btn">Hall of Fame</button>
@@ -2589,7 +2754,7 @@
 
     <!-- ═══ PROFILES ═══ -->
     <div id="profiles-screen" class="hidden max-w-6xl mx-auto">
-      <div class="mb-7 border-b hairline pb-5">
+      <div class="bp-view-heading mb-7 border-b hairline pb-5">
         <h2 class="font-display text-4xl">Player Profiles</h2>
         <p class="text-sm font-bold mt-1.5" style="color:var(--muted);">Tap a player to view stats and assign an avatar.</p>
       </div>
