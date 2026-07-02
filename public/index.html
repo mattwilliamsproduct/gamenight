@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:wght@600;700;800&family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Nunito+Sans:wght@500;600;700;800;900&family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     /* ════════ TOKENS ════════ */
     :root {
@@ -111,7 +111,7 @@
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       background:
         radial-gradient(circle at 10% -10%, rgba(6,78,59,0.09), transparent 26rem),
         radial-gradient(circle at 88% 0%, rgba(6,95,70,0.06), transparent 22rem),
@@ -134,8 +134,8 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .font-display { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; letter-spacing: -0.025em; font-weight: 800; }
-    .font-jakarta { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .font-display { font-family: 'Bree Serif', Georgia, serif; letter-spacing: 0; font-weight: 400; }
+    .font-jakarta { font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif; }
     .font-mono-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
 
     /* ════════ TV / ACROSS-THE-ROOM READABILITY (e.g. ~8ft, 55") ════════ */
@@ -1932,9 +1932,9 @@
         linear-gradient(180deg, #0b3431 0, var(--bg) 38%, #092725 100%);
     }
     .font-display {
-      font-family: 'DM Serif Display', Georgia, serif;
+      font-family: 'Bree Serif', Georgia, serif;
       letter-spacing: 0;
-      font-weight: 700;
+      font-weight: 400;
     }
     .surface,
     .surface-raised {
@@ -2785,7 +2785,7 @@
     .scorecard-table tbody td.scorecard-col-player { background: rgba(255,252,247,0.98); }
     .scoreboard-player-name {
       color: #111b19;
-      font-family: 'DM Serif Display', Georgia, serif !important;
+      font-family: 'Bree Serif', Georgia, serif !important;
       font-size: clamp(1.75rem, 3.15vw, 2.55rem) !important;
       font-weight: 700 !important;
       letter-spacing: 0 !important;
@@ -2830,7 +2830,7 @@
       box-shadow: 0 14px 26px -18px rgba(6,77,72,0.95);
     }
     #undo-wizard-bid-lock-btn::before { content: '🔓'; margin-right: 0.55rem; }
-    #submit-action-btn::before { content: '🍹'; margin-right: 0.55rem; }
+    #submit-action-btn::before { content: ''; margin-right: 0.55rem; }
 
     /* Focused entry command center */
     #score-entry-modal > .absolute.inset-0 { background: rgba(3,45,42,0.64) !important; }
@@ -2869,7 +2869,7 @@
       background: #e5f6ef;
       box-shadow: inset 4px 0 0 var(--bp-teal), 0 13px 26px -22px rgba(6,77,72,0.75);
     }
-    .score-entry-name { font-family: 'DM Serif Display', Georgia, serif; letter-spacing: 0; }
+    .score-entry-name { font-family: 'Bree Serif', Georgia, serif; letter-spacing: 0; }
     .score-entry-stat { background: #f6eee5; border-color: rgba(196,130,92,0.18); }
     .score-entry-input-cell {
       border-color: #7bc8b6;
@@ -2886,7 +2886,7 @@
       border-color: #9bd8ca;
       background: linear-gradient(145deg, #e2f5ee, #f8fcfa);
     }
-    .score-entry-selected-name { font-family: 'DM Serif Display', Georgia, serif; letter-spacing: 0; }
+    .score-entry-selected-name { font-family: 'Bree Serif', Georgia, serif; letter-spacing: 0; }
     .score-entry-keypad {
       border-width: 1px;
       border-color: rgba(196,130,92,0.2);
@@ -2925,7 +2925,7 @@
     .roster-row-lineup .font-jakarta,
     .bench-row-content .font-jakarta,
     #history-list-view .font-jakarta {
-      font-family: 'DM Serif Display', Georgia, serif;
+      font-family: 'Bree Serif', Georgia, serif;
       font-weight: 400;
       letter-spacing: 0;
     }
@@ -2960,6 +2960,124 @@
       outline-offset: 3px;
     }
 
+    /* Final Back Porch type and illustration system. */
+    body,
+    button,
+    input,
+    select,
+    textarea,
+    .font-jakarta {
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    .font-display,
+    .bp-game-card .font-display,
+    .score-entry-name,
+    .score-entry-selected-name,
+    .scoreboard-player-name,
+    .intro-player-name,
+    #profiles-grid .font-jakarta,
+    .roster-row-lineup .font-jakarta,
+    .bench-row-content .font-jakarta,
+    #history-list-view .font-jakarta,
+    #records-view .font-jakarta:not(.font-mono-num),
+    #hall-of-fame-view .font-jakarta:not(.font-mono-num) {
+      font-family: 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
+    }
+    #top-nav .nav-btn,
+    .btn-primary,
+    .btn-accent,
+    .btn-ghost,
+    .quest-badge,
+    .chip {
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-weight: 800;
+    }
+    #game-title {
+      color: var(--bp-coral) !important;
+      font-family: 'Pacifico', 'Brush Script MT', cursive !important;
+      font-size: clamp(2rem, 3.7vw, 3.25rem);
+      font-weight: 400 !important;
+      line-height: 1.16;
+      padding: 0.12em 0.05em 0.18em;
+    }
+    .round-banner {
+      color: var(--bp-teal-dark) !important;
+      font-family: 'Bree Serif', Georgia, serif !important;
+      font-size: clamp(1.2rem, 2.25vw, 1.8rem) !important;
+      font-style: normal;
+      font-weight: 400 !important;
+      line-height: 1.18 !important;
+    }
+    #leader-text {
+      font-family: 'Bree Serif', Georgia, serif !important;
+      font-style: normal;
+      font-weight: 400 !important;
+      letter-spacing: 0;
+    }
+    .scoreboard-player-name {
+      font-family: 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
+      line-height: 1.16;
+    }
+    .bp-view-tabs::before,
+    .bp-game-heading > div:first-child {
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
+      font-style: normal;
+      font-weight: 400;
+    }
+    .leader-banner::before {
+      content: 'Champion Watch';
+      padding-left: 2.45rem;
+      background-color: rgba(255,250,241,0.9);
+      background-image: url('./theme/trophy-mark.svg');
+      background-position: 0.55rem center;
+      background-repeat: no-repeat;
+      background-size: 1.55rem 1.55rem;
+    }
+    .bp-illustrated-heading {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+    .bp-illustrated-heading::before {
+      content: '';
+      width: 2.25rem;
+      height: 2.25rem;
+      flex: 0 0 2.25rem;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+    .bp-heading-records::before { background-image: url('./theme/archive-mark.svg'); }
+    .bp-heading-fame::before { background-image: url('./theme/trophy-mark.svg'); }
+    .bp-heading-shame::before { background-image: url('./theme/shame-mark.svg'); }
+    .bp-heading-profiles::before { background-image: url('./theme/players-mark.svg'); }
+    #records-hall-of-shame > h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+    #records-hall-of-shame > h2::before {
+      content: '';
+      width: 2.1rem;
+      height: 2.1rem;
+      flex: 0 0 2.1rem;
+      background: url('./theme/shame-mark.svg') center / contain no-repeat;
+    }
+    #submit-action-btn::before {
+      content: '';
+      display: inline-block;
+      width: 1.35rem;
+      height: 1.35rem;
+      margin-right: 0.55rem;
+      vertical-align: -0.2rem;
+      background: url('./theme/palm-flourish.svg') center / contain no-repeat;
+      filter: brightness(0) invert(1);
+    }
+
     /* Evening mode keeps the same porch identity rather than reverting to the old skin. */
     html.dark body {
       background:
@@ -2980,11 +3098,11 @@
       color: #fff8ee;
     }
     html.dark .bp-panel-heading h2,
-    html.dark #game-title,
     html.dark #score-entry-game,
     html.dark .brand-name,
     html.dark #records-view section > h2,
     html.dark #hall-of-fame-view h2 { color: #fdf4e8; }
+    html.dark #game-title { color: #ff9a7f !important; }
     html.dark .bp-brand-main { color: #effbf7; }
     html.dark .scorecard-table thead tr,
     html.dark .scorecard-table thead th.scorecard-col-player { background: #123f3a !important; }
@@ -3063,7 +3181,13 @@
       .bp-active-game-art { display: none; }
       #game-title { font-size: 2.3rem; }
       .round-banner { font-size: 1.15rem; }
-      .leader-banner::before { content: '🏆'; }
+      .leader-banner::before {
+        content: '';
+        width: 2.5rem;
+        min-width: 2.5rem;
+        padding-left: 0;
+        background-position: center;
+      }
       .leader-banner::after { display: none; }
       .tournament-scoreboard { border-radius: 20px; }
       .score-entry-panel { border-radius: 22px; }
@@ -3355,11 +3479,11 @@
       <div id="history-list-view" class="space-y-4 max-w-4xl mx-auto"></div>
       <div id="hall-of-fame-view" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="space-y-5">
-          <h2 class="font-display text-3xl border-b-2 hairline pb-3" style="color:var(--emerald);">Hall of Fame 🏆</h2>
+          <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-fame" style="color:var(--emerald);">Hall of Fame</h2>
           <div id="fame-content" class="space-y-3"></div>
         </div>
         <div class="space-y-5">
-          <h2 class="font-display text-3xl border-b-2 hairline pb-3" style="color:var(--rose);">Hall of Shame 💔</h2>
+          <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-shame" style="color:var(--rose);">Hall of Shame</h2>
           <div id="shame-content" class="space-y-3"></div>
         </div>
       </div>
@@ -3369,7 +3493,7 @@
     <!-- ═══ PROFILES ═══ -->
     <div id="profiles-screen" class="hidden max-w-6xl mx-auto">
       <div class="bp-view-heading mb-7 border-b hairline pb-5">
-        <h2 class="font-display text-4xl">Player Profiles</h2>
+        <h2 class="font-display text-4xl bp-illustrated-heading bp-heading-profiles">Player Profiles</h2>
         <p class="text-sm font-bold mt-1.5" style="color:var(--muted);">Tap a player to view stats and assign an avatar.</p>
       </div>
       <div id="profiles-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
@@ -9715,7 +9839,7 @@
     c.innerHTML = `
       <div class="surface-raised p-6">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div><h1 class="font-display text-4xl" style="color:var(--emerald);">Records</h1><p class="text-sm font-bold mt-1" style="color:var(--muted);">Calculated from ${data.completed.length} completed matches already saved in history.</p></div>
+          <div><h1 class="font-display text-4xl bp-illustrated-heading bp-heading-records" style="color:var(--emerald);">Records</h1><p class="text-sm font-bold mt-1" style="color:var(--muted);">Calculated from ${data.completed.length} completed matches already saved in history.</p></div>
           <div class="flex flex-wrap gap-2 text-xs font-extrabold uppercase tracking-[0.12em]">${['All-Time','Per-Game','Player Cards','Rivalries','Hall of Shame'].map(t=>`<a href="#records-${t.toLowerCase().replaceAll(' ','-')}" class="btn-ghost px-3 py-2">${t}</a>`).join('')}</div>
         </div>
       </div>
@@ -9739,11 +9863,11 @@
     c.classList.add('grid');
     c.innerHTML=`
       <div class="space-y-5">
-        <h2 class="font-display text-3xl border-b-2 hairline pb-3" style="color:var(--emerald);">Hall of Fame 🏆</h2>
+        <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-fame" style="color:var(--emerald);">Hall of Fame</h2>
         <div id="fame-content" class="space-y-3"></div>
       </div>
       <div class="space-y-5">
-        <h2 class="font-display text-3xl border-b-2 hairline pb-3" style="color:var(--rose);">Hall of Shame 💔</h2>
+        <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-shame" style="color:var(--rose);">Hall of Shame</h2>
         <div id="shame-content" class="space-y-3"></div>
       </div>`;
     const fmt=(ttl,val,player,pos,sfx='')=>{
