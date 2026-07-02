@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Lobster+Two:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:wght@600;700;800&family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     /* ════════ TOKENS ════════ */
     :root {
@@ -2459,10 +2459,11 @@
       white-space: nowrap;
     }
     .bp-brand-main {
-      font-family: 'Lobster Two', Georgia, cursive;
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
       font-size: clamp(1.55rem, 2.6vw, 2.25rem);
-      font-style: italic;
-      font-weight: 700;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 1.08;
     }
     .bp-brand-games {
       margin-top: 0.08rem;
@@ -2481,6 +2482,9 @@
       min-height: 2.5rem;
       padding: 0.58rem 0.95rem;
       color: #263c38;
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
     }
     #top-nav .nav-btn.active,
     #top-nav .nav-btn.accent {
@@ -2536,15 +2540,19 @@
     }
     .bp-bench-title { color: #a95a43 !important; }
     .bp-column-title::before {
-      width: auto;
-      height: auto;
+      content: '';
+      width: 2rem;
+      height: 1.5rem;
+      flex: 0 0 2rem;
       border: 0;
       border-radius: 0;
-      font-size: 1.18rem;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
       opacity: 1;
     }
-    .bp-bench-title::before { content: '⛱'; }
-    .bp-lineup-title::before { content: '🌴'; }
+    .bp-bench-title::before { background-image: url('./theme/bench-mark.svg'); }
+    .bp-lineup-title::before { background-image: url('./theme/lineup-mark.svg'); }
     .bp-column-title::after {
       content: '';
       height: 2px;
@@ -2561,17 +2569,19 @@
     }
     .bp-roster-panel .bp-panel-heading > div > div:first-child::before,
     .bp-roster-panel .bp-panel-heading > div > div:first-child::after {
-      content: '🌴';
-      font-size: 1.15rem;
-      letter-spacing: 0;
+      content: '';
+      width: 1.4rem;
+      height: 1.4rem;
+      flex: 0 0 1.4rem;
+      background: url('./theme/palm-flourish.svg') center / contain no-repeat;
     }
     .bp-game-heading > div:first-child {
       display: flex;
       align-items: center;
       gap: 0.55rem;
-      font-family: 'Lobster Two', Georgia, cursive;
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
       font-size: 1.3rem !important;
-      font-weight: 700 !important;
+      font-weight: 400 !important;
       letter-spacing: 0 !important;
       line-height: 1;
       text-transform: none !important;
@@ -2584,9 +2594,11 @@
       font-style: normal;
     }
     #roster-count::before {
-      content: '👥';
-      font-size: 0.9rem;
-      line-height: 1;
+      content: '';
+      width: 1.15rem;
+      height: 1rem;
+      flex: 0 0 1.15rem;
+      background: url('./theme/players-mark.svg') center / contain no-repeat;
     }
     #bench-list,
     #lineup-list {
@@ -2693,8 +2705,8 @@
       line-height: 0.95;
     }
     .round-banner {
-      font-family: 'Lobster Two', Georgia, cursive;
-      font-weight: 700;
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
+      font-weight: 400;
       padding: 0;
       border: 0;
       border-radius: 0;
@@ -2743,9 +2755,9 @@
     }
     #leader-text {
       color: var(--bp-teal-dark) !important;
-      font-family: 'Lobster Two', Georgia, cursive;
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
       font-size: clamp(1.45rem, 2.6vw, 2rem);
-      font-style: italic;
+      font-style: normal;
     }
     .tournament-scoreboard {
       border: 1px solid rgba(255,255,255,0.72);
