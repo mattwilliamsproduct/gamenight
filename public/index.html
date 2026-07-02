@@ -12,11 +12,11 @@
   <meta name="apple-mobile-web-app-title" content="Back Porch Games">
   <meta property="og:title" content="Back Porch Games">
   <meta property="og:description" content="Cards, scores, and good company.">
-  <meta property="og:image" content="/bp-icon-512.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="/bp-apple-touch-icon.png?v=2">
-  <link rel="icon" type="image/png" sizes="32x32" href="/bp-favicon-32.png?v=2">
-  <link rel="icon" type="image/png" sizes="192x192" href="/bp-icon-192.png?v=2">
+  <meta property="og:image" content="./bp-icon-512.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./bp-apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="./bp-favicon-32.png?v=3">
+  <link rel="icon" type="image/png" sizes="192x192" href="./bp-icon-192.png?v=3">
   <title>Back Porch Games</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Lobster+Two:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     /* ════════ TOKENS ════════ */
     :root {
@@ -1917,13 +1917,13 @@
     body {
       background:
         linear-gradient(180deg, rgba(246,249,245,0.42), rgba(239,246,241,0.62)),
-        url('/theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
         var(--bg);
     }
     html.dark body {
       background:
         linear-gradient(180deg, rgba(5,29,27,0.68), rgba(7,37,34,0.82)),
-        url('/theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
         var(--bg);
     }
     html.dark body {
@@ -1932,7 +1932,7 @@
         linear-gradient(180deg, #0b3431 0, var(--bg) 38%, #092725 100%);
     }
     .font-display {
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: 'DM Serif Display', Georgia, serif;
       letter-spacing: 0;
       font-weight: 700;
     }
@@ -1971,7 +1971,7 @@
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.72) !important;
       border-radius: 15px;
-      background: #073f3b url('/theme/back-porch-mark.jpg') center / cover no-repeat;
+      background: #073f3b url('./theme/back-porch-mark.jpg') center / cover no-repeat;
       box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
     }
     .brand-name {
@@ -2113,19 +2113,19 @@
     .bp-game-card > * { position: relative; z-index: 1; }
     .bp-game-card > .flex-1 { max-width: 64%; }
     .bp-five-crowns {
-      background-image: linear-gradient(90deg, rgba(255,246,237,0.99) 0 45%, rgba(255,246,237,0.78) 62%, transparent 78%), url('/theme/five-crowns-card.jpg') !important;
+      background-image: linear-gradient(90deg, rgba(255,246,237,0.99) 0 45%, rgba(255,246,237,0.78) 62%, transparent 78%), url('./theme/five-crowns-card.jpg') !important;
     }
     .bp-wizard {
-      background-image: linear-gradient(90deg, rgba(238,251,248,0.99) 0 45%, rgba(238,251,248,0.78) 62%, transparent 78%), url('/theme/wizard-card.jpg') !important;
+      background-image: linear-gradient(90deg, rgba(238,251,248,0.99) 0 45%, rgba(238,251,248,0.78) 62%, transparent 78%), url('./theme/wizard-card.jpg') !important;
     }
     .bp-eight18 {
-      background-image: linear-gradient(90deg, rgba(245,251,247,0.99) 0 45%, rgba(245,251,247,0.78) 62%, transparent 78%), url('/theme/818-card.jpg') !important;
+      background-image: linear-gradient(90deg, rgba(245,251,247,0.99) 0 45%, rgba(245,251,247,0.78) 62%, transparent 78%), url('./theme/818-card.jpg') !important;
     }
     .bp-flip7 {
-      background-image: linear-gradient(90deg, rgba(255,242,239,0.99) 0 45%, rgba(255,242,239,0.76) 62%, transparent 78%), url('/theme/flip-7-card.jpg') !important;
+      background-image: linear-gradient(90deg, rgba(255,242,239,0.99) 0 45%, rgba(255,242,239,0.76) 62%, transparent 78%), url('./theme/flip-7-card.jpg') !important;
     }
     .bp-rook {
-      background-image: linear-gradient(90deg, rgba(255,249,241,0.99) 0 45%, rgba(255,249,241,0.78) 62%, transparent 78%), url('/theme/rook-card.jpg') !important;
+      background-image: linear-gradient(90deg, rgba(255,249,241,0.99) 0 45%, rgba(255,249,241,0.78) 62%, transparent 78%), url('./theme/rook-card.jpg') !important;
     }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
@@ -2413,7 +2413,7 @@
     body {
       background:
         linear-gradient(180deg, rgba(255,250,241,0.08), rgba(236,246,242,0.24)),
-        url('/theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
         #dcece8;
     }
     .bp-app-shell {
@@ -2451,19 +2451,22 @@
     .bp-brand-copy { min-width: 0; }
     .brand-name {
       display: flex;
-      align-items: baseline;
-      gap: 0.62rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
       margin: 0;
       color: var(--bp-teal-dark);
       white-space: nowrap;
     }
     .bp-brand-main {
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: 'Lobster Two', Georgia, cursive;
       font-size: clamp(1.55rem, 2.6vw, 2.25rem);
       font-style: italic;
       font-weight: 700;
     }
     .bp-brand-games {
+      margin-top: 0.08rem;
+      margin-left: 0.42rem;
       color: var(--bp-coral);
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 0.78rem;
@@ -2614,11 +2617,11 @@
       box-shadow: -5px 6px 0 rgba(231,115,88,0.16), 0 14px 30px -20px rgba(6,77,72,0.78);
       transform: rotate(-2deg);
     }
-    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-image: url('/theme/five-crowns-card.jpg'); }
-    #game-screen[data-game='Wizard'] .bp-active-game-art { background-image: url('/theme/wizard-card.jpg'); }
-    #game-screen[data-game='818'] .bp-active-game-art { background-image: url('/theme/818-card.jpg'); }
-    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-image: url('/theme/flip-7-card.jpg'); }
-    #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('/theme/rook-card.jpg'); }
+    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-image: url('./theme/five-crowns-card.jpg'); }
+    #game-screen[data-game='Wizard'] .bp-active-game-art { background-image: url('./theme/wizard-card.jpg'); }
+    #game-screen[data-game='818'] .bp-active-game-art { background-image: url('./theme/818-card.jpg'); }
+    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-image: url('./theme/flip-7-card.jpg'); }
+    #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('./theme/rook-card.jpg'); }
     .bp-live-kicker { color: var(--bp-coral); font-size: 0.7rem; }
     #game-title {
       color: #0b3935;
@@ -2626,6 +2629,8 @@
       line-height: 0.95;
     }
     .round-banner {
+      font-family: 'Lobster Two', Georgia, cursive;
+      font-weight: 700;
       padding: 0;
       border: 0;
       border-radius: 0;
@@ -2674,7 +2679,7 @@
     }
     #leader-text {
       color: var(--bp-teal-dark) !important;
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: 'Lobster Two', Georgia, cursive;
       font-size: clamp(1.45rem, 2.6vw, 2rem);
       font-style: italic;
     }
@@ -2704,7 +2709,7 @@
     .scorecard-table tbody td.scorecard-col-player { background: rgba(255,252,247,0.98); }
     .scoreboard-player-name {
       color: #111b19;
-      font-family: Georgia, 'Times New Roman', serif !important;
+      font-family: 'DM Serif Display', Georgia, serif !important;
       font-size: clamp(1.75rem, 3.15vw, 2.55rem) !important;
       font-weight: 700 !important;
       letter-spacing: 0 !important;
@@ -2786,7 +2791,7 @@
       background: #e5f6ef;
       box-shadow: inset 4px 0 0 var(--bp-teal), 0 13px 26px -22px rgba(6,77,72,0.75);
     }
-    .score-entry-name { font-family: Georgia, 'Times New Roman', serif; letter-spacing: 0; }
+    .score-entry-name { font-family: 'DM Serif Display', Georgia, serif; letter-spacing: 0; }
     .score-entry-stat { background: #f6eee5; border-color: rgba(196,130,92,0.18); }
     .score-entry-input-cell {
       border-color: #7bc8b6;
@@ -2803,7 +2808,7 @@
       border-color: #9bd8ca;
       background: linear-gradient(145deg, #e2f5ee, #f8fcfa);
     }
-    .score-entry-selected-name { font-family: Georgia, 'Times New Roman', serif; letter-spacing: 0; }
+    .score-entry-selected-name { font-family: 'DM Serif Display', Georgia, serif; letter-spacing: 0; }
     .score-entry-keypad {
       border-width: 1px;
       border-color: rgba(196,130,92,0.2);
@@ -2851,7 +2856,7 @@
       box-shadow: 0 30px 80px -36px rgba(0,36,33,0.8), inset 0 4px 0 rgba(231,115,88,0.58);
     }
     #lineup-intro {
-      background: #063f3a url('/theme/back-porch-sunset.jpg') center / cover no-repeat;
+      background: #063f3a url('./theme/back-porch-sunset.jpg') center / cover no-repeat;
     }
     .intro-bg { background: linear-gradient(180deg, rgba(3,50,47,0.5), rgba(2,34,32,0.86)); }
 
@@ -2881,9 +2886,9 @@
       .bp-app-shell { padding-left: 0.65rem !important; padding-right: 0.65rem !important; }
       #top-nav { top: 0.35rem; padding: 0.6rem 0.7rem !important; }
       .bp-brand-mark { width: 2.75rem; height: 2.75rem; flex-basis: 2.75rem; }
-      .brand-name { display: block; }
+      .brand-name { display: flex; }
       .bp-brand-main { font-size: 1.35rem; }
-      .bp-brand-games { display: block; margin-top: 0.15rem; font-size: 0.58rem; }
+      .bp-brand-games { margin-top: 0.1rem; font-size: 0.58rem; }
       .bp-roster-panel,
       .bp-game-picker,
       #history-screen,
@@ -4474,7 +4479,7 @@
   function getAvatarSrc(name){
     const f = playerProfiles[name]?.avatar || '';
     if(!f) return getAvatarFallback(name);
-    return `/avatars/${f}`;
+    return `./avatars/${f}`;
   }
   function getAvatarImg(name,cls){
     const fb=getAvatarFallback(name);
@@ -5139,7 +5144,7 @@
     const cur=playerProfiles[editingPlayerProfile]?.avatar||'';
     availableAvatars.forEach(f=>{
       const img=document.createElement('img');
-      img.src = `/avatars/${f}`;
+      img.src = `./avatars/${f}`;
       img.className=`avatar-picker-img ${cur===f?'selected':''}`;
       img.onclick=()=>selectAvatar(f);
       img.onerror=()=>img.style.display='none';
