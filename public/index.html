@@ -2106,7 +2106,7 @@
 
     /* Active match: tropical framing stays out of the score table itself. */
     .active-match-banner {
-      overflow: hidden;
+      overflow: visible;
       background:
         linear-gradient(90deg, rgba(255,253,249,0.98), rgba(237,248,244,0.96)) !important;
       border-color: rgba(8,118,108,0.22);
@@ -2119,6 +2119,7 @@
     .active-match-banner::before {
       background:
         repeating-linear-gradient(135deg, transparent 0 16px, rgba(8,118,108,0.025) 16px 18px, transparent 18px 34px);
+      border-radius: inherit;
       opacity: 1;
     }
     .round-banner {
