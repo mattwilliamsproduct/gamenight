@@ -12,11 +12,11 @@
   <meta name="apple-mobile-web-app-title" content="Back Porch Games">
   <meta property="og:title" content="Back Porch Games">
   <meta property="og:description" content="Cards, scores, and good company.">
-  <meta property="og:image" content="/icon-512.png">
+  <meta property="og:image" content="/bp-icon-512.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/bp-apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/bp-favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/bp-icon-192.png">
   <title>Back Porch Games</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -1916,10 +1916,15 @@
     /* ════════ BACK PORCH GAMES THEME ════════ */
     body {
       background:
-        linear-gradient(150deg, rgba(231,111,81,0.13) 0, transparent 28%),
-        linear-gradient(215deg, rgba(115,197,200,0.2) 0, transparent 34%),
-        repeating-linear-gradient(135deg, rgba(8,118,108,0.018) 0, rgba(8,118,108,0.018) 1px, transparent 1px, transparent 26px),
-        linear-gradient(180deg, #dff2ef 0, #f8f2eb 34%, var(--bg) 100%);
+        linear-gradient(180deg, rgba(246,249,245,0.42), rgba(239,246,241,0.62)),
+        url('/theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        var(--bg);
+    }
+    html.dark body {
+      background:
+        linear-gradient(180deg, rgba(5,29,27,0.68), rgba(7,37,34,0.82)),
+        url('/theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        var(--bg);
     }
     html.dark body {
       background:
@@ -1960,49 +1965,16 @@
       pointer-events: none;
     }
     .bp-brand-mark {
-      position: relative;
       width: 3rem;
       height: 3rem;
       flex: 0 0 3rem;
-      display: grid;
-      place-items: center;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.72) !important;
       border-radius: 15px;
-      background:
-        linear-gradient(180deg, #f39a70 0 43%, #9edbd7 43% 62%, #08766c 62% 100%);
+      background: #073f3b;
       box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
     }
-    .bp-brand-mark::before {
-      content: '';
-      position: absolute;
-      top: 0.42rem;
-      right: 0.48rem;
-      width: 0.72rem;
-      height: 0.72rem;
-      border-radius: 50%;
-      background: #ffe8b8;
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.22);
-    }
-    .bp-brand-palm {
-      position: relative;
-      z-index: 2;
-      font-size: 1.55rem;
-      line-height: 1;
-      transform: translate(-0.18rem, 0.05rem);
-      filter: saturate(0.82);
-    }
-    .bp-brand-wave {
-      position: absolute;
-      right: 0.28rem;
-      bottom: 0.08rem;
-      z-index: 3;
-      color: #d8fff7;
-      font-family: Georgia, serif;
-      font-size: 1.2rem;
-      font-weight: 700;
-      line-height: 1;
-    }
+    .bp-brand-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .brand-name {
       color: var(--emerald);
       font-family: Georgia, 'Times New Roman', serif;
@@ -2121,69 +2093,56 @@
     html.dark .bp-game-picker { background: rgba(18,59,55,0.76); }
     .game-card.quest-card.bp-game-card {
       isolation: isolate;
+      min-height: 128px !important;
+      overflow: hidden;
       border-color: rgba(7,63,59,0.13);
       border-bottom-width: 4px;
-      box-shadow: 0 8px 20px -16px rgba(7,63,59,0.65), inset 0 1px 0 rgba(255,255,255,0.52);
+      background-color: #f8f3eb;
+      background-position: center, center right !important;
+      background-repeat: no-repeat !important;
+      background-size: 100% 100%, cover !important;
+      box-shadow: 0 12px 26px -18px rgba(7,63,59,0.72), inset 0 1px 0 rgba(255,255,255,0.52);
     }
     .bp-game-card::before {
       content: '';
       position: absolute;
-      z-index: -1;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 42%;
-      background:
-        repeating-linear-gradient(155deg, transparent 0 13px, rgba(255,255,255,0.2) 13px 15px, transparent 15px 28px);
-      opacity: 0.48;
+      z-index: 0;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,253,249,0.22), transparent 64%);
       pointer-events: none;
     }
     .bp-game-card > * { position: relative; z-index: 1; }
-    .bp-five-crowns { background: linear-gradient(115deg, #fff6ed 0 58%, #f7b18c 100%) !important; }
-    .bp-wizard { background: linear-gradient(115deg, #eefbf8 0 56%, #8fd3d0 100%) !important; }
-    .bp-eight18 { background: linear-gradient(115deg, #f5fbf7 0 56%, #addfc7 100%) !important; }
-    .bp-flip7 { background: linear-gradient(115deg, #fff2ef 0 56%, #f49a91 100%) !important; }
-    .bp-rook { background: linear-gradient(115deg, #fff9f1 0 54%, #9fd4d3 100%) !important; }
+    .bp-game-card > .flex-1 { max-width: 64%; }
+    .bp-five-crowns {
+      background-image: linear-gradient(90deg, rgba(255,246,237,0.99) 0 45%, rgba(255,246,237,0.78) 62%, transparent 78%), url('/theme/five-crowns-card.jpg') !important;
+    }
+    .bp-wizard {
+      background-image: linear-gradient(90deg, rgba(238,251,248,0.99) 0 45%, rgba(238,251,248,0.78) 62%, transparent 78%), url('/theme/wizard-card.jpg') !important;
+    }
+    .bp-eight18 {
+      background-image: linear-gradient(90deg, rgba(245,251,247,0.99) 0 45%, rgba(245,251,247,0.78) 62%, transparent 78%), url('/theme/818-card.jpg') !important;
+    }
+    .bp-flip7 {
+      background-image: linear-gradient(90deg, rgba(255,242,239,0.99) 0 45%, rgba(255,242,239,0.76) 62%, transparent 78%), url('/theme/flip-7-card.jpg') !important;
+    }
+    .bp-rook {
+      background-image: linear-gradient(90deg, rgba(255,249,241,0.99) 0 45%, rgba(255,249,241,0.78) 62%, transparent 78%), url('/theme/rook-card.jpg') !important;
+    }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
     .bp-eight18 { border-bottom-color: #5aa77e !important; }
     .bp-flip7 { border-bottom-color: #d45f67 !important; }
     .bp-rook { border-bottom-color: #4f9fa3 !important; }
-    .bp-game-card::after {
-      position: absolute;
-      inset: auto 6.4rem 0.38rem auto;
-      z-index: 0;
-      width: auto;
-      color: rgba(7,63,59,0.25);
-      background: none;
-      font-family: Georgia, serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-      line-height: 1;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-    .bp-five-crowns::after { content: '♛  ♛  ♛'; }
-    .bp-wizard::after { content: '✦  ≈  ✦'; }
-    .bp-eight18::after { content: '8 · 1 · 8'; }
-    .bp-flip7::after { content: '7  ·  7  ·  7'; }
-    .bp-rook::after { content: '♠  ♣  ♦'; }
     html.dark .bp-game-card { color: #073f3b; }
     .quest-badge {
-      background: rgba(255,253,249,0.76);
+      background: rgba(255,253,249,0.9);
       border-color: rgba(7,63,59,0.14);
       color: #285b57;
       letter-spacing: 0.04em;
     }
     .quest-emblem {
-      position: relative;
-      border-color: rgba(255,255,255,0.78);
-      border-width: 3px;
-      background: rgba(255,253,249,0.72);
-      transform: rotate(2deg);
-      box-shadow: -5px 5px 0 rgba(255,253,249,0.46), 0 12px 24px -16px rgba(7,63,59,0.78), inset 0 1px 0 rgba(255,255,255,0.7);
+      display: none;
     }
-    .bp-game-card:nth-child(even) .quest-emblem { transform: rotate(-2deg); }
 
     /* Active match: tropical framing stays out of the score table itself. */
     .active-match-banner {
@@ -2432,10 +2391,9 @@
       .bp-brand-mark { width: 2.6rem; height: 2.6rem; flex-basis: 2.6rem; }
       #top-nav { padding-top: 0.6rem; padding-bottom: 0.6rem; }
       .bp-game-picker { padding: 1rem; }
-      .bp-game-card { padding: 1.25rem !important; }
-      .quest-emblem { width: 4rem; height: 4rem; }
+      .bp-game-card { min-height: 116px !important; padding: 1.25rem !important; }
+      .bp-game-card > .flex-1 { max-width: 70%; }
       .bp-panel-heading { padding-right: 3rem; }
-      .bp-game-card::after { display: none; }
       .bp-view-heading { padding-right: 1.5rem !important; }
       .bp-view-heading::after { display: none; }
     }
@@ -2512,10 +2470,7 @@
     <div id="top-nav" class="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 backdrop-blur-xl" style="background: var(--nav-bg); border-bottom: 1px solid var(--hairline);">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <div class="brand-mark bp-brand-mark" aria-hidden="true">
-            <span class="bp-brand-palm">🌴</span>
-            <span class="bp-brand-wave">≈</span>
-          </div>
+          <div class="brand-mark bp-brand-mark" aria-hidden="true"><img src="/theme/back-porch-mark.jpg" alt=""></div>
           <div>
             <h1 class="brand-name font-display text-2xl leading-none">Back Porch Games</h1>
           </div>
