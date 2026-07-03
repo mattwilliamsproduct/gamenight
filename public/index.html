@@ -2023,17 +2023,8 @@
       border-bottom: 1px solid rgba(8,118,108,0.14);
     }
     .bp-panel-heading::after {
-      content: '≈  ≈';
-      position: absolute;
-      right: 0.25rem;
-      bottom: 0.65rem;
-      color: var(--bp-sky);
-      font-family: Georgia, serif;
-      font-size: 1.45rem;
-      font-weight: 700;
-      line-height: 1;
-      opacity: 0.72;
-      pointer-events: none;
+      content: none;
+      display: none;
     }
     .bp-game-heading::after { color: var(--bp-coral); }
     .bp-column-title {
@@ -2514,10 +2505,8 @@
       border-bottom: 1px solid var(--bp-warm-line);
     }
     .bp-panel-heading::after {
-      content: '≈  ≈  ≈';
-      bottom: 0.8rem;
-      color: var(--bp-aqua);
-      font-size: 1.35rem;
+      content: none;
+      display: none;
     }
     .bp-panel-heading h2 {
       color: #123e39;
@@ -2541,9 +2530,9 @@
     .bp-bench-title { color: #a95a43 !important; }
     .bp-column-title::before {
       content: '';
-      width: 2rem;
-      height: 1.5rem;
-      flex: 0 0 2rem;
+      width: 2.45rem;
+      height: 2rem;
+      flex: 0 0 2.45rem;
       border: 0;
       border-radius: 0;
       background-position: center;
@@ -2570,11 +2559,12 @@
     .bp-roster-panel .bp-panel-heading > div > div:first-child::before,
     .bp-roster-panel .bp-panel-heading > div > div:first-child::after {
       content: '';
-      width: 1.4rem;
-      height: 1.4rem;
-      flex: 0 0 1.4rem;
+      width: 2.15rem;
+      height: 2.15rem;
+      flex: 0 0 2.15rem;
       background: url('./theme/palm-flourish.svg') center / contain no-repeat;
     }
+    .bp-roster-panel .bp-panel-heading > div > div:first-child::after { transform: scaleX(-1); }
     .bp-game-heading > div:first-child {
       display: flex;
       align-items: center;
@@ -2587,17 +2577,33 @@
       text-transform: none !important;
     }
     .bp-game-heading > div:first-child::after {
-      content: '≈  ≈';
-      color: var(--bp-aqua);
-      font-family: Georgia, serif;
-      font-size: 1.15rem;
-      font-style: normal;
+      content: '';
+      width: 4.35rem;
+      height: 1.35rem;
+      flex: 0 0 4.35rem;
+      background: url('./theme/wave-flourish.svg') center / contain no-repeat;
+    }
+    .bp-roster-panel .bp-panel-heading {
+      position: relative;
+      padding-right: 13rem;
+    }
+    #roster-count {
+      position: absolute;
+      top: 0.2rem;
+      right: 0;
+      margin-left: auto;
+      min-height: 2.55rem;
+      padding: 0.5rem 0.9rem;
+      border-color: rgba(223,111,82,0.28);
+      background: rgba(255,249,241,0.94);
+      box-shadow: 0 8px 18px -15px rgba(70,48,35,0.75), inset 0 1px 0 #fff;
+      font-size: 0.78rem;
     }
     #roster-count::before {
       content: '';
-      width: 1.15rem;
-      height: 1rem;
-      flex: 0 0 1.15rem;
+      width: 1.45rem;
+      height: 1.25rem;
+      flex: 0 0 1.45rem;
       background: url('./theme/players-mark.svg') center / contain no-repeat;
     }
     #bench-list,
@@ -3175,6 +3181,12 @@
       .bp-game-picker,
       #history-screen,
       #profiles-screen { border-radius: 22px; }
+      .bp-roster-panel .bp-panel-heading { padding-right: 0; }
+      #roster-count {
+        position: static;
+        min-height: 2.2rem;
+        padding: 0.4rem 0.7rem;
+      }
       .game-card.quest-card.bp-game-card { min-height: 118px !important; }
       .bp-game-card .font-display { font-size: 1.65rem !important; }
       .active-match-banner { border-radius: 22px; }
