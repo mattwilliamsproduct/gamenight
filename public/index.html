@@ -3088,6 +3088,56 @@
       background: url('./theme/palm-flourish.svg') center / contain no-repeat;
       filter: brightness(0) invert(1);
     }
+    .settings-appearance-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 4.4rem;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+      background: var(--surface-2);
+    }
+    .settings-segment {
+      display: inline-flex;
+      align-items: stretch;
+      flex: 0 0 auto;
+      overflow: hidden;
+      padding: 0.2rem;
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+    .settings-choice {
+      min-height: 2.45rem;
+      padding: 0.48rem 0.7rem;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: var(--ink-2);
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .settings-choice.active {
+      border-color: var(--emerald-border);
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
+    }
+    .settings-choice:disabled { cursor: not-allowed; opacity: 0.35; }
+    .settings-text-size { align-items: center; }
+    .settings-size-button { min-width: 2.8rem; font-size: 0.82rem; }
+    .settings-size-label {
+      min-width: 3.25rem;
+      padding: 0 0.35rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
 
     /* Evening mode keeps the same porch identity rather than reverting to the old skin. */
     html.dark body {
@@ -3186,6 +3236,10 @@
       .bp-game-picker,
       #history-screen,
       #profiles-screen { border-radius: 22px; }
+      .settings-appearance-row { align-items: flex-start; flex-direction: column; }
+      .settings-segment { width: 100%; }
+      .settings-choice { flex: 1 1 0; }
+      .settings-size-label { flex: 1 1 auto; }
       .bp-roster-panel .bp-panel-heading { padding-right: 0; }
       #roster-count {
         position: static;
@@ -3294,11 +3348,6 @@
           </button>
           <button onclick="showHistory()" class="nav-btn">Records</button>
           <button onclick="showProfiles()" class="nav-btn">Profiles</button>
-          <div class="flex items-center border hairline rounded-full overflow-hidden ml-1" style="background:var(--surface);">
-            <button onclick="adjustUI(-1)" class="px-3 py-1.5 text-xs font-extrabold border-r hairline hover:opacity-70 transition-opacity" style="color:var(--ink-2);">A−</button>
-            <button onclick="adjustUI(1)" class="px-3 py-1.5 text-xs font-extrabold hover:opacity-70 transition-opacity" style="color:var(--ink-2);">A+</button>
-          </div>
-          <button onclick="toggleDarkMode()" id="dark-toggle" class="nav-btn" title="Dark Mode">☀️</button>
           <button onclick="openPerfReport()" id="perf-report-btn" class="hidden nav-btn accent" title="Performance Report">Perf</button>
           <button onclick="openSettings()" class="nav-btn" title="Settings">⚙</button>
         </div>
@@ -3913,6 +3962,34 @@
           <h3 class="font-display text-3xl">Settings</h3>
         </div>
 
+        <!-- Appearance -->
+        <div class="mb-6">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Appearance</div>
+          <div class="space-y-2">
+            <div class="settings-appearance-row">
+              <div class="min-w-0">
+                <div class="font-bold text-sm">Theme</div>
+                <div class="text-[11px] font-semibold" style="color:var(--muted);">Choose the porch lighting</div>
+              </div>
+              <div class="settings-segment" aria-label="Color theme">
+                <button type="button" id="settings-theme-light" class="settings-choice" onclick="setDarkMode(false)" aria-pressed="false"><span aria-hidden="true">☀️</span> Light</button>
+                <button type="button" id="settings-theme-dark" class="settings-choice" onclick="setDarkMode(true)" aria-pressed="false"><span aria-hidden="true">🌙</span> Evening</button>
+              </div>
+            </div>
+            <div class="settings-appearance-row">
+              <div class="min-w-0">
+                <div class="font-bold text-sm">Text Size</div>
+                <div class="text-[11px] font-semibold" style="color:var(--muted);">Adjust for the iPad and TV</div>
+              </div>
+              <div class="settings-segment settings-text-size" aria-label="Text size">
+                <button type="button" id="settings-text-smaller" class="settings-choice settings-size-button" onclick="adjustUI(-1)" aria-label="Decrease text size">A−</button>
+                <output id="settings-text-size-label" class="settings-size-label" aria-live="polite">100%</output>
+                <button type="button" id="settings-text-larger" class="settings-choice settings-size-button" onclick="adjustUI(1)" aria-label="Increase text size">A+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Preferences -->
         <div class="mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Animations &amp; Flow</div>
@@ -4429,15 +4506,39 @@
   // ── UI scale ──
   let currentUIBase = parseInt(localStorage.getItem('gn_ui_scale'))||16;
   document.documentElement.style.fontSize = currentUIBase+'px';
-  function adjustUI(d){ currentUIBase=Math.max(8,Math.min(24,currentUIBase+(d*2))); document.documentElement.style.fontSize=currentUIBase+'px'; const t=gnPerfStart('GN localStorage.setItem gn_ui_scale'); try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);} }
+  function syncAppearanceControls(){
+    const lightBtn=document.getElementById('settings-theme-light');
+    const darkBtn=document.getElementById('settings-theme-dark');
+    if(lightBtn){lightBtn.classList.toggle('active',!darkMode);lightBtn.setAttribute('aria-pressed',String(!darkMode));}
+    if(darkBtn){darkBtn.classList.toggle('active',darkMode);darkBtn.setAttribute('aria-pressed',String(darkMode));}
+    const sizeLabel=document.getElementById('settings-text-size-label');
+    if(sizeLabel)sizeLabel.textContent=`${Math.round((currentUIBase/16)*100)}%`;
+    const smaller=document.getElementById('settings-text-smaller');
+    const larger=document.getElementById('settings-text-larger');
+    if(smaller)smaller.disabled=currentUIBase<=8;
+    if(larger)larger.disabled=currentUIBase>=24;
+  }
+  function adjustUI(d){
+    currentUIBase=Math.max(8,Math.min(24,currentUIBase+(d*2)));
+    document.documentElement.style.fontSize=currentUIBase+'px';
+    const t=gnPerfStart('GN localStorage.setItem gn_ui_scale');
+    try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);}
+    syncAppearanceControls();
+  }
 
   // ── Dark mode ──
   let darkMode = localStorage.getItem('gn_dark')==='1';
   function applyDarkMode(){
     document.getElementById('html-root').classList.toggle('dark',darkMode);
-    document.getElementById('dark-toggle').textContent = darkMode ? '🌙' : '☀️';
+    syncAppearanceControls();
   }
-  function toggleDarkMode(){ darkMode=!darkMode; const t=gnPerfStart('GN localStorage.setItem gn_dark'); try{localStorage.setItem('gn_dark',darkMode?'1':'0');}finally{gnPerfEnd(t);} applyDarkMode(); }
+  function setDarkMode(nextDark){
+    darkMode=Boolean(nextDark);
+    const t=gnPerfStart('GN localStorage.setItem gn_dark');
+    try{localStorage.setItem('gn_dark',darkMode?'1':'0');}finally{gnPerfEnd(t);}
+    applyDarkMode();
+  }
+  function toggleDarkMode(){setDarkMode(!darkMode);}
 
   // ── Animation/flow preferences (all default ON) ──
   function loadPref(key, defaultOn=true){
@@ -4805,6 +4906,7 @@
   function closeModal(id){ const m=document.getElementById(id); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),280); }
   function openSettings(){
     gnPerfAction('opened Settings');
+    syncAppearanceControls();
     document.getElementById('pref-lineupintro').checked = prefs.lineupIntro;
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
