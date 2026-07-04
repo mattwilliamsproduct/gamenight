@@ -2096,7 +2096,7 @@
     .bp-game-card::before {
       content: '';
       position: absolute;
-      z-index: 0;
+      z-index: 1;
       inset: 0;
       background: linear-gradient(90deg, rgba(255,253,249,0.36), rgba(255,253,249,0.12) 52%, transparent 72%);
       pointer-events: none;
@@ -2105,25 +2105,44 @@
       content: none;
       display: none;
     }
-    .bp-game-card > * { position: relative; z-index: 1; }
+    .bp-game-card-art {
+      position: absolute !important;
+      z-index: 0 !important;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: auto;
+      aspect-ratio: 742 / 293;
+      border-radius: inherit;
+      background-image: url('./theme/game-card-set-a.png');
+      background-repeat: no-repeat;
+      background-size: 207% 349%;
+      pointer-events: none;
+    }
+    .bp-game-card > *:not(.bp-game-card-art) { position: relative; z-index: 2; }
     .bp-game-card > .flex-1 { max-width: 64%; }
     .game-card.quest-card.bp-game-card.bp-five-crowns,
     .game-card.quest-card.bp-game-card.bp-wizard,
     .game-card.quest-card.bp-game-card.bp-eight18,
     .game-card.quest-card.bp-game-card.bp-flip7 {
-      background-image: url('./theme/game-card-set-a.png') !important;
-      background-repeat: no-repeat !important;
-      background-size: 207% 349% !important;
+      background-image: none !important;
     }
-    .game-card.quest-card.bp-game-card.bp-five-crowns { background-position: 2% 6.6% !important; }
-    .game-card.quest-card.bp-game-card.bp-wizard { background-position: 98% 6.6% !important; }
-    .game-card.quest-card.bp-game-card.bp-eight18 { background-position: 2% 53.4% !important; }
-    .game-card.quest-card.bp-game-card.bp-flip7 { background-position: 98% 53.4% !important; }
+    .game-card.quest-card.bp-game-card.bp-five-crowns { background-color: #fff5e9; }
+    .game-card.quest-card.bp-game-card.bp-wizard { background-color: #edf9f6; }
+    .game-card.quest-card.bp-game-card.bp-eight18 { background-color: #f2f8f3; }
+    .game-card.quest-card.bp-game-card.bp-flip7 { background-color: #fff0ed; }
+    .bp-five-crowns .bp-game-card-art { background-position: 2% 6.6%; }
+    .bp-wizard .bp-game-card-art { background-position: 98% 6.6%; }
+    .bp-eight18 .bp-game-card-art { background-position: 2% 53.4%; }
+    .bp-flip7 .bp-game-card-art { background-position: 98% 53.4%; }
     .game-card.quest-card.bp-game-card.bp-rook {
-      background-image: url('./theme/game-card-set-a.png') !important;
-      background-position: 50% 97.7% !important;
-      background-repeat: no-repeat !important;
-      background-size: 102% 367% !important;
+      background-image: none !important;
+      background-color: #f4f8f3;
+    }
+    .bp-rook .bp-game-card-art {
+      aspect-ratio: 1506 / 279;
+      background-position: 50% 97.7%;
+      background-size: 102% 367%;
     }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
@@ -3432,30 +3451,35 @@
         </div>
         <div class="space-y-4">
           <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <span class="bp-game-card-art" aria-hidden="true"></span>
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Five Crowns</div>
               <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
             </div>
           </button>
           <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <span class="bp-game-card-art" aria-hidden="true"></span>
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Wizard</div>
               <div class="quest-badge mt-2">Highest total wins · bid &amp; score</div>
             </div>
           </button>
           <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <span class="bp-game-card-art" aria-hidden="true"></span>
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">818</div>
               <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
             </div>
           </button>
           <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <span class="bp-game-card-art" aria-hidden="true"></span>
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
               <div class="quest-badge mt-2">Highest total wins · push luck</div>
             </div>
           </button>
           <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <span class="bp-game-card-art" aria-hidden="true"></span>
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Rook</div>
               <div class="quest-badge mt-2">Highest total wins · pick bid, trump &amp; score</div>
