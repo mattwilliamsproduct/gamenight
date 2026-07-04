@@ -2096,28 +2096,51 @@
     .bp-game-card::before {
       content: '';
       position: absolute;
-      z-index: 0;
+      z-index: 1;
       inset: 0;
-      background: linear-gradient(90deg, rgba(255,253,249,0.22), transparent 64%);
+      background: linear-gradient(90deg, rgba(255,253,249,0.36), rgba(255,253,249,0.12) 52%, transparent 72%);
       pointer-events: none;
     }
-    .bp-game-card > * { position: relative; z-index: 1; }
+    .bp-game-card::after {
+      content: '';
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      right: 0;
+      width: auto;
+      height: 100%;
+      aspect-ratio: 742 / 293;
+      border-radius: inherit;
+      background-image: url('./theme/game-card-set-a.png');
+      background-repeat: no-repeat;
+      background-size: 207% 349%;
+      pointer-events: none;
+    }
+    .bp-game-card > * { position: relative; z-index: 2; }
     .bp-game-card > .flex-1 { max-width: 64%; }
     .game-card.quest-card.bp-game-card.bp-five-crowns,
     .game-card.quest-card.bp-game-card.bp-wizard,
     .game-card.quest-card.bp-game-card.bp-eight18,
     .game-card.quest-card.bp-game-card.bp-flip7 {
-      background-image: url('./theme/game-card-set-a.png') !important;
-      background-size: 207% auto !important;
+      background-image: none !important;
     }
-    .game-card.quest-card.bp-game-card.bp-five-crowns { background-position: 0% 12% !important; }
-    .game-card.quest-card.bp-game-card.bp-wizard { background-position: 100% 12% !important; }
-    .game-card.quest-card.bp-game-card.bp-eight18 { background-position: 0% 53% !important; }
-    .game-card.quest-card.bp-game-card.bp-flip7 { background-position: 100% 53% !important; }
+    .game-card.quest-card.bp-game-card.bp-five-crowns { background-color: #fff5e9; }
+    .game-card.quest-card.bp-game-card.bp-wizard { background-color: #edf9f6; }
+    .game-card.quest-card.bp-game-card.bp-eight18 { background-color: #f2f8f3; }
+    .game-card.quest-card.bp-game-card.bp-flip7 { background-color: #fff0ed; }
+    .bp-five-crowns::after { background-position: 2% 6.6%; }
+    .bp-wizard::after { background-position: 98% 6.6%; }
+    .bp-eight18::after { background-position: 2% 53.4%; }
+    .bp-flip7::after { background-position: 98% 53.4%; }
     .game-card.quest-card.bp-game-card.bp-rook {
-      background-image: url('./theme/game-card-set-a.png') !important;
-      background-position: 100% 98% !important;
-      background-size: 135% auto !important;
+      background-image: none !important;
+      background-color: #f4f8f3;
+    }
+    .bp-rook::after {
+      width: 100%;
+      aspect-ratio: auto;
+      background-position: 100% 100%;
+      background-size: auto 367%;
     }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
