@@ -1917,13 +1917,13 @@
     body {
       background:
         linear-gradient(180deg, rgba(246,249,245,0.42), rgba(239,246,241,0.62)),
-        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-resort.png') center top / cover no-repeat,
         var(--bg);
     }
     html.dark body {
       background:
         linear-gradient(180deg, rgba(5,29,27,0.68), rgba(7,37,34,0.82)),
-        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-resort.png') center top / cover no-repeat,
         var(--bg);
     }
     html.dark body {
@@ -2103,20 +2103,21 @@
     }
     .bp-game-card > * { position: relative; z-index: 1; }
     .bp-game-card > .flex-1 { max-width: 64%; }
-    .bp-five-crowns {
-      background-image: linear-gradient(90deg, rgba(255,246,237,0.99) 0 45%, rgba(255,246,237,0.78) 62%, transparent 78%), url('./theme/five-crowns-card.jpg') !important;
+    .game-card.quest-card.bp-game-card.bp-five-crowns,
+    .game-card.quest-card.bp-game-card.bp-wizard,
+    .game-card.quest-card.bp-game-card.bp-eight18,
+    .game-card.quest-card.bp-game-card.bp-flip7 {
+      background-image: url('./theme/game-card-set-a.png') !important;
+      background-size: 207% auto !important;
     }
-    .bp-wizard {
-      background-image: linear-gradient(90deg, rgba(238,251,248,0.99) 0 45%, rgba(238,251,248,0.78) 62%, transparent 78%), url('./theme/wizard-card.jpg') !important;
-    }
-    .bp-eight18 {
-      background-image: linear-gradient(90deg, rgba(245,251,247,0.99) 0 45%, rgba(245,251,247,0.78) 62%, transparent 78%), url('./theme/818-card.jpg') !important;
-    }
-    .bp-flip7 {
-      background-image: linear-gradient(90deg, rgba(255,242,239,0.99) 0 45%, rgba(255,242,239,0.76) 62%, transparent 78%), url('./theme/flip-7-card.jpg') !important;
-    }
-    .bp-rook {
-      background-image: linear-gradient(90deg, rgba(255,249,241,0.99) 0 45%, rgba(255,249,241,0.78) 62%, transparent 78%), url('./theme/rook-card.jpg') !important;
+    .game-card.quest-card.bp-game-card.bp-five-crowns { background-position: 0% 12% !important; }
+    .game-card.quest-card.bp-game-card.bp-wizard { background-position: 100% 12% !important; }
+    .game-card.quest-card.bp-game-card.bp-eight18 { background-position: 0% 53% !important; }
+    .game-card.quest-card.bp-game-card.bp-flip7 { background-position: 100% 53% !important; }
+    .game-card.quest-card.bp-game-card.bp-rook {
+      background-image: url('./theme/game-card-set-a.png') !important;
+      background-position: 100% 98% !important;
+      background-size: 135% auto !important;
     }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
@@ -2404,7 +2405,7 @@
     body {
       background:
         linear-gradient(180deg, rgba(255,250,241,0.08), rgba(236,246,242,0.24)),
-        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-resort.png') center top / cover no-repeat,
         #dcece8;
     }
     .bp-app-shell {
@@ -2699,11 +2700,15 @@
       box-shadow: -5px 6px 0 rgba(231,115,88,0.16), 0 14px 30px -20px rgba(6,77,72,0.78);
       transform: rotate(-2deg);
     }
-    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-image: url('./theme/five-crowns-card.jpg'); }
-    #game-screen[data-game='Wizard'] .bp-active-game-art { background-image: url('./theme/wizard-card.jpg'); }
-    #game-screen[data-game='818'] .bp-active-game-art { background-image: url('./theme/818-card.jpg'); }
-    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-image: url('./theme/flip-7-card.jpg'); }
-    #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('./theme/rook-card.jpg'); }
+    #game-screen .bp-active-game-art {
+      background-image: url('./theme/game-card-set-a.png');
+      background-size: 600% auto;
+    }
+    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-position: 37% 8%; }
+    #game-screen[data-game='Wizard'] .bp-active-game-art { background-position: 88% 8%; }
+    #game-screen[data-game='818'] .bp-active-game-art { background-position: 37% 53%; }
+    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-position: 88% 53%; }
+    #game-screen[data-game='Rook'] .bp-active-game-art { background-position: 87% 97%; }
     .bp-live-kicker { display: none; }
     #game-title {
       color: #0b3935;
@@ -2951,7 +2956,7 @@
       box-shadow: 0 30px 80px -36px rgba(0,36,33,0.8), inset 0 4px 0 rgba(231,115,88,0.58);
     }
     #lineup-intro {
-      background: #063f3a url('./theme/back-porch-sunset.jpg') center / cover no-repeat;
+      background: #063f3a url('./theme/back-porch-resort.png') center / cover no-repeat;
     }
     .intro-bg { background: linear-gradient(180deg, rgba(3,50,47,0.5), rgba(2,34,32,0.86)); }
     .whammy-card,
@@ -3088,7 +3093,7 @@
     html.dark body {
       background:
         linear-gradient(180deg, rgba(3,32,30,0.46), rgba(4,38,35,0.72)),
-        url('./theme/back-porch-sunset.jpg') center top / cover no-repeat,
+        url('./theme/back-porch-resort.png') center top / cover no-repeat,
         #082f2c;
     }
     html.dark #top-nav,
