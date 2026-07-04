@@ -7870,6 +7870,32 @@
     _renderPending = true;
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
+
+  function isHailMaryEligible(game, player, activePlayers, {pastHalf=false, gameOver=false}={}){
+    if(!game||!player||gameOver||!Array.isArray(activePlayers)||!activePlayers.includes(player))return false;
+    const cfg=configs[game.name];
+    if(!cfg)return false;
+    const totals=activePlayers.map(p=>Number(game.totals?.[p])||0);
+    if(!totals.length)return false;
+    const playerTotal=Number(game.totals?.[player])||0;
+    const hi=Math.max(...totals), lo=Math.min(...totals), spread=hi-lo;
+    const completedRounds=(game.rounds||[]).filter(r=>!r.hailMaryBonus).length;
+
+    // High-scoring games need game-specific, genuinely desperate standings.
+    if(game.name==='818'){
+      return completedRounds>=10&&playerTotal===lo&&(hi-playerTotal)>=50;
+    }
+    if(game.name==='Flip 7 Vengeance'){
+      return completedRounds>=6&&hi>=100&&playerTotal===lo&&(hi-playerTotal)>=60;
+    }
+
+    // Preserve the established Wizard and Five Crowns eligibility behavior.
+    if(!pastHalf||spread<40)return false;
+    return cfg.winLow
+      ? playerTotal>=hi-(spread*0.25)
+      : playerTotal<=lo+(spread*0.25);
+  }
+
   function renderGame(){
     gnWarnNumpadHotPath('renderGame');
     const renderTimer = gnPerfStart('GN renderGame total');
@@ -7993,12 +8019,7 @@
       }
 
       // Hail Mary
-      let isDesperate=false;
-      if(pastHalf&&spread>=40&&!isRetired){
-        isDesperate = cfg.winLow
-          ? currentGame.totals[p] >= hi - (spread*0.25)
-          : currentGame.totals[p] <= lo + (spread*0.25);
-      }
+      const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{pastHalf,gameOver:over});
       let hailBtn='';
       if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button onclick="authorizeHailMary('${p}')" class="ml-2 text-2xl hover:scale-125 transition-transform" title="Hail Mary Unlocked">🛟</button>`;
       else if(currentGame.hailMaryUsed.includes(p)) hailBtn=`<span class="ml-2 text-lg opacity-25">🛟</span>`;
