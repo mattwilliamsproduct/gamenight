@@ -1225,6 +1225,27 @@
     .score-entry-key:active { transform: scale(0.97); }
     .score-entry-key.subtle { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--hairline); }
     .score-entry-key.next { background: var(--emerald); color: #fff; grid-row: span 2; font-size: clamp(1.25rem, 2.25vw, 1.7rem); }
+    @media (min-width: 1024px) and (max-height: 780px) {
+      .score-entry-panel {
+        max-height: calc(100vh - 1rem);
+        padding: 1rem !important;
+      }
+      .score-entry-panel > .border-b { padding-bottom: 0.65rem !important; }
+      .score-entry-layout { gap: 0.75rem; padding-block: 0.75rem !important; }
+      .score-entry-side { gap: 0.55rem; }
+      .score-entry-selected-card { padding: 0.7rem !important; }
+      .score-entry-selected-card > :first-child { margin-bottom: 0.45rem !important; }
+      .score-entry-selected-head { grid-template-columns: 58px minmax(0, 1fr); gap: 0.65rem; }
+      .score-entry-selected-avatar { width: 58px; height: 58px; border-radius: 15px; }
+      .score-entry-selected-name { font-size: 1.7rem; }
+      .score-entry-selected-detail { margin-top: 0.45rem; }
+      .score-entry-chip { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
+      .score-entry-keypad { gap: 0.4rem; padding: 0.4rem; }
+      .score-entry-key { min-height: 2.85rem; font-size: 1.5rem; border-radius: 13px; }
+      .score-entry-key.next { font-size: 1.15rem; }
+      .score-entry-panel > .border-t { gap: 0.5rem; padding-top: 0.65rem !important; }
+      .score-entry-panel > .border-t button { padding-top: 0.7rem !important; padding-bottom: 0.7rem !important; }
+    }
     @media (max-width: 1023px) {
       .score-entry-layout {
         grid-template-columns: 1fr;
