@@ -2154,17 +2154,25 @@
     .game-card.quest-card.bp-game-card.bp-five-crowns,
     .game-card.quest-card.bp-game-card.bp-wizard,
     .game-card.quest-card.bp-game-card.bp-eight18,
-    .game-card.quest-card.bp-game-card.bp-flip7 {
+    .game-card.quest-card.bp-game-card.bp-flip7,
+    .game-card.quest-card.bp-game-card.bp-beat-heat {
       background-image: none !important;
     }
     .game-card.quest-card.bp-game-card.bp-five-crowns { background-color: #fff5e9; }
     .game-card.quest-card.bp-game-card.bp-wizard { background-color: #edf9f6; }
     .game-card.quest-card.bp-game-card.bp-eight18 { background-color: #f2f8f3; }
     .game-card.quest-card.bp-game-card.bp-flip7 { background-color: #fff0ed; }
+    .game-card.quest-card.bp-game-card.bp-beat-heat { background-color: #fff3e8; }
     .bp-five-crowns .bp-game-card-art::before { background-position: 2% 6.6%; }
     .bp-wizard .bp-game-card-art::before { background-position: 98% 6.6%; }
     .bp-eight18 .bp-game-card-art::before { background-position: 2% 53.4%; }
     .bp-flip7 .bp-game-card-art::before { background-position: 98% 53.4%; }
+    .bp-beat-heat .bp-game-card-art::before {
+      aspect-ratio: 742 / 293;
+      background-image: url('./theme/beat-the-heat-card.svg');
+      background-position: center;
+      background-size: cover;
+    }
     .game-card.quest-card.bp-game-card.bp-rook {
       background-image: none !important;
       background-color: #f4f8f3;
@@ -2178,6 +2186,7 @@
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
     .bp-eight18 { border-bottom-color: #5aa77e !important; }
     .bp-flip7 { border-bottom-color: #d45f67 !important; }
+    .bp-beat-heat { border-bottom-color: #e66a49 !important; }
     .bp-rook { border-bottom-color: #4f9fa3 !important; }
     html.dark .bp-game-card { color: #073f3b; }
     .quest-badge {
@@ -2764,6 +2773,11 @@
     #game-screen[data-game='818'] .bp-active-game-art { background-position: 37% 53%; }
     #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-position: 88% 53%; }
     #game-screen[data-game='Rook'] .bp-active-game-art { background-position: 87% 97%; }
+    #game-screen[data-game='Beat the Heat'] .bp-active-game-art {
+      background-image: url('./theme/beat-the-heat-card.svg');
+      background-position: 72% center;
+      background-size: cover;
+    }
     .bp-live-kicker { display: none; }
     #game-title {
       color: #0b3935;
@@ -3511,6 +3525,13 @@
             <div class="flex-1 min-w-0">
               <div class="font-display text-3xl leading-tight">Flip 7</div>
               <div class="quest-badge mt-2">Highest total wins · push luck</div>
+            </div>
+          </button>
+          <button onclick="startGame('Beat the Heat')" class="game-card quest-card bp-game-card bp-beat-heat group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <span class="bp-game-card-art" aria-hidden="true"></span>
+            <div class="flex-1 min-w-0">
+              <div class="font-display text-3xl leading-tight">Beat the Heat</div>
+              <div class="quest-badge mt-2">Lowest heat wins · log peppers</div>
             </div>
           </button>
           <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
@@ -4588,6 +4609,7 @@
     "Wizard":          { emoji:"🧙‍♂️", winLow:false, maxRounds:(n)=>Math.floor(60/Math.max(n,1)) },
     "818":             { emoji:"🛡️", winLow:false, maxRounds:EIGHT18_ROUND_TRICKS.length },
     "Flip 7 Vengeance":{ emoji:"🎰", winLow:false, maxRounds:999 },
+    "Beat the Heat":   { emoji:"🌶️", winLow:true,  maxRounds:999 },
     "Rook":            { emoji:"🐦", winLow:false, maxRounds:999 }
   };
 
@@ -5392,6 +5414,7 @@
     "Wizard":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score by accurately predicting tricks.</li><li><strong>Deal:</strong> Round 1 = 1 card, grows each round.</li><li><strong>Bidding:</strong> Bid exactly how many tricks you'll win.</li><li><strong>Play:</strong> Follow lead suit. Wizards always win. Jesters always lose.</li><li><strong>Score:</strong> Exact = 20 + 10/trick. Miss = −10 per trick off.</li></ul>`,
     "818":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score after the 8-1-8 round sequence.</li><li><strong>Rounds:</strong> Play 8 cards, then 7, 6, 5, 4, 3, 2, 1, then back up to 8.</li><li><strong>Bidding:</strong> Bid how many tricks you'll take. The dealer cannot make the table's total bids equal the tricks available.</li><li><strong>Score:</strong> Take your actual tricks as points. Hit your bid exactly to add a 10-point bonus.</li><li><strong>Example:</strong> Bid 2 and take 3 = 3 points. Bid 0 and take 0 = 10 points.</li></ul>`,
     "Flip 7 Vengeance":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score without busting.</li><li><strong>Flip:</strong> Reveal cards to build your tableau.</li><li><strong>Bust:</strong> Duplicate number = 0 for the round.</li><li><strong>Bank:</strong> Secure your score anytime.</li><li><strong>Vengeance:</strong> Special cards attack others.</li></ul>`,
+    "Beat the Heat":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the four rows on the table.</li><li><strong>Heat:</strong> If you take a row, count the pepper/heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> Keep playing rounds until your table is ready to save and end the match.</li></ul>`,
     "Rook":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins. This scorecard is tuned for call-your-partner Rook with rotating round partnerships.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and type the amount they won with (no in-app auction).</li><li><strong>Trump &amp; call:</strong> That player names trump and calls a partner card (for example "Rook", "Black 1", "Yellow 14").</li><li><strong>After the hand:</strong> Say who the bidder’s teammate was, then enter the bid team’s points; the other team’s points fill in to match your “points in a full hand” setting. If the bid team’s points are at least the bid, each of them scores that team total; otherwise each loses the bid. Everyone on the other team scores the other team’s points.</li><li><strong>House rules:</strong> Counter values (5s, 10s, 14, Rook, etc.) are up to your table—the app just needs the bid team’s total and derives the rest.</li></ul>`
   };
 
@@ -7888,6 +7911,7 @@
     if(game.name==='Flip 7 Vengeance'){
       return completedRounds>=6&&hi>=100&&playerTotal===lo&&(hi-playerTotal)>=60;
     }
+    if(game.name!=='Wizard'&&game.name!=='Five Crowns')return false;
 
     // Preserve the established Wizard and Five Crowns eligibility behavior.
     if(!pastHalf||spread<40)return false;
@@ -7938,6 +7962,8 @@
     } else if(is818){
       const tricks=getRoundTrickCount(currentGame);
       intel=`Round ${currentGame.currentRound} / ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${bidTrickPhase==='bidding'?'Bidding':'Scoring'}`;
+    } else if(currentGame.name==='Beat the Heat'){
+      intel=`Round ${currentGame.currentRound} · Log Heat`;
     }
     if(over)intel='Final Scores';
     document.getElementById('round-intel').textContent=intel;
@@ -8110,6 +8136,7 @@
       document.getElementById('game-over-section').classList.add('hidden');
       let btnTxt='Log Scores';
       if(isBidTrick) btnTxt = bidTrickPhase==='bidding' ? 'Log Bids' : 'Log Tricks & Score';
+      else if(currentGame.name==='Beat the Heat') btnTxt = 'Log Heat';
       const sb=document.getElementById('submit-action-btn');
       if(sb){
         sb.innerHTML=btnTxt;
@@ -8230,6 +8257,7 @@
     if(currentGame.name==='Five Crowns')fh+=row('Best Score',recs['Five Crowns'].bestScore===Infinity?'—':recs['Five Crowns'].bestScore,recs['Five Crowns'].bestPlayer,'👑',true);
     if(currentGame.name==='Wizard')fh+=row('Grand Magus',recs.Wizard.bestScore===-Infinity?'—':recs.Wizard.bestScore,recs.Wizard.bestPlayer,'🪄',true);
     if(currentGame.name==='Flip 7 Vengeance')fh+=row('Best Score',recs['Flip 7 Vengeance'].bestScore===-Infinity?'—':recs['Flip 7 Vengeance'].bestScore,recs['Flip 7 Vengeance'].bestPlayer,'🔥',true);
+    if(currentGame.name==='Beat the Heat')fh+=row('Coolest Game',recs['Beat the Heat'].bestScore===Infinity?'—':recs['Beat the Heat'].bestScore,recs['Beat the Heat'].bestPlayer,'🌶️',true);
     if(currentGame.name==='Rook')fh+=row('Best Score',recs.Rook&&recs.Rook.bestScore===-Infinity?'—':recs.Rook?.bestScore,recs.Rook?.bestPlayer||'-','🐦',true);
     fh+=`</div>`;
     let sh=`<div class="surface p-5"><div class="flex items-center gap-2 mb-3 pb-3 border-b hairline"><span class="text-xl">💔</span><h3 class="font-display text-xl" style="color:var(--rose);">Hall of Shame</h3></div>`;
@@ -8237,6 +8265,7 @@
     if(currentGame.name==='Five Crowns')sh+=row('Worst Score',recs['Five Crowns'].worstScore===-Infinity?'—':recs['Five Crowns'].worstScore,recs['Five Crowns'].worstPlayer,'💀',false);
     if(currentGame.name==='Wizard')sh+=row('Catastrophe',recs.Wizard.worstScore===Infinity?'—':recs.Wizard.worstScore,recs.Wizard.worstPlayer,'💀',false);
     if(currentGame.name==='Flip 7 Vengeance')sh+=row('Worst Score',recs['Flip 7 Vengeance'].worstScore===Infinity?'—':recs['Flip 7 Vengeance'].worstScore,recs['Flip 7 Vengeance'].worstPlayer,'💀',false);
+    if(currentGame.name==='Beat the Heat')sh+=row('Hottest Game',recs['Beat the Heat'].worstScore===-Infinity?'—':recs['Beat the Heat'].worstScore,recs['Beat the Heat'].worstPlayer,'🔥',false);
     if(currentGame.name==='Rook')sh+=row('Worst Score',recs.Rook&&recs.Rook.worstScore===Infinity?'—':recs.Rook?.worstScore,recs.Rook?.worstPlayer||'-','💀',false);
     sh+=`</div>`;
     rc.innerHTML=fh+sh;
@@ -8314,6 +8343,7 @@
     }
     if(currentGame.name==='Five Crowns')return {kind:'scores',title:'Log Scores',primary:'Submit Scores',valueLabel:'Score'};
     if(currentGame.name==='Flip 7 Vengeance')return {kind:'scores',title:'Log Scores',primary:'Submit Scores',valueLabel:'Score'};
+    if(currentGame.name==='Beat the Heat')return {kind:'heat',title:'Log Heat',primary:'Submit Heat',valueLabel:'Heat'};
     return null;
   }
 
@@ -8326,6 +8356,7 @@
       return `Round ${currentGame.currentRound} of ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${mode.title}`;
     }
     if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${mode.title}`;
+    if(currentGame.name==='Beat the Heat')return `Round ${currentGame.currentRound} · ${mode.title}`;
     return `Round ${currentGame.currentRound} · ${mode.title}`;
   }
 
@@ -8654,7 +8685,8 @@
       return total===tricks||confirm(`Total tricks (${total}) ≠ round tricks (${tricks}). Submit anyway?`);
     }
     const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
-    return !allZero||confirm('Everyone scored 0? Submit?');
+    const label=currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?';
+    return !allZero||confirm(label);
   }
 
   function submitScoreEntryModal(){
@@ -9086,6 +9118,8 @@
       const s=data.totals[p];
       if(data.game==='Five Crowns'&&r['Five Crowns']&&s<r['Five Crowns'].bestScore&&r['Five Crowns'].bestScore!==Infinity)
         msgs.push(`⭐ ${p} set new Lowest Five Crowns Score! (${s})`);
+      if(data.game==='Beat the Heat'&&r['Beat the Heat']&&s<r['Beat the Heat'].bestScore&&r['Beat the Heat'].bestScore!==Infinity)
+        msgs.push(`⭐ ${p} set new Lowest Beat the Heat score! (${s} heat)`);
       if(data.game==='Wizard'&&r['Wizard']){
         const playerCount=getWizardRecordPlayerCount(data);
         const bucket=playerCount?r.Wizard.bestScoreByPlayerCount?.[playerCount]:null;
@@ -9538,6 +9572,7 @@
       "Five Crowns":{bestScore:Infinity,bestPlayer:'-',worstScore:-Infinity,worstPlayer:'-',worstRound:-Infinity,worstRoundPlayer:'-',mostZeros:0,mostZerosPlayer:'-'},
       "Wizard":{bestScore:-Infinity,bestPlayer:'-',bestScoreByPlayerCount:createWizardScoreBuckets(),worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-',worstRound:Infinity,worstRoundPlayer:'-',mostExactBids:0,mostExactBidsPlayer:'-',mostBustedBids:0,mostBustedBidsPlayer:'-'},
       "Flip 7 Vengeance":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-'},
+      "Beat the Heat":{bestScore:Infinity,bestPlayer:'-',worstScore:-Infinity,worstPlayer:'-',bestRound:Infinity,bestRoundPlayer:'-',worstRound:-Infinity,worstRoundPlayer:'-'},
       "Rook":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',mostBids:0,mostBidsPlayer:'-',mostSets:0,mostSetsPlayer:'-'}
     };
     let stats={};
@@ -9575,7 +9610,7 @@
             }
           }
         }
-        if(h.game==='Five Crowns'){
+        if(h.game==='Five Crowns'||h.game==='Beat the Heat'){
           if(score<r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
           if(score>r[h.game].worstScore){r[h.game].worstScore=score;r[h.game].worstPlayer=p;}
         }
@@ -9599,6 +9634,10 @@
             if(h.game==='Five Crowns'){
               if(score>r['Five Crowns'].worstRound){r['Five Crowns'].worstRound=score;r['Five Crowns'].worstRoundPlayer=p;}
               if(score===0)ms[p].zeros++;
+            }
+            if(h.game==='Beat the Heat'){
+              if(score<r['Beat the Heat'].bestRound){r['Beat the Heat'].bestRound=score;r['Beat the Heat'].bestRoundPlayer=p;}
+              if(score>r['Beat the Heat'].worstRound){r['Beat the Heat'].worstRound=score;r['Beat the Heat'].worstRoundPlayer=p;}
             }
             if(h.game==='Rook'){
               if((round.rookBidder===p||round.rookPartner===p)){
@@ -9650,6 +9689,7 @@
         mostZeroBidsHit:null,biggestFinalRoundSwing:null,biggestOverbid:null,biggestUnderbid:null,mostTricksRound:null
       },
       "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,mostZeroRounds:null,closestMargin:null},
+      "Beat the Heat": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,cleanestGame:null,closestMargin:null},
       "Rook": {bestGame:null,worstGame:null,mostSuccessfulBids:null,highestBidMade:null,biggestSet:null}
     };
     const allTime = {
@@ -9815,6 +9855,10 @@
             update(games["Five Crowns"],'worstRound',entry(p,score,h,{round:r.round}),betterHigh);
             if(score===0) perMatch[p].zeros++;
           }
+          if(h.game==='Beat the Heat'){
+            update(games["Beat the Heat"],'bestRound',entry(p,score,h,{round:r.round}),betterLow);
+            update(games["Beat the Heat"],'worstRound',entry(p,score,h,{round:r.round}),betterHigh);
+          }
           if(h.game==='Wizard'){
             update(games.Wizard,'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
             update(games.Wizard,'worstRound',entry(p,score,h,{round:r.round}),betterLow);
@@ -9862,6 +9906,11 @@
             const avg=total/m.roundScores.length;
             update(games["Five Crowns"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} avg · ${total} over ${m.roundScores.length} hands`}),betterLow);
           }
+        }
+        if(h.game==='Beat the Heat'&&m.roundScores.length){
+          const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
+          const avg=total/m.roundScores.length;
+          update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
         }
         if(h.game==='Wizard'){
           update(games.Wizard,'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
@@ -10022,6 +10071,14 @@
         recordCard('Most Zero Rounds In One Game',data.games["Flip 7 Vengeance"].mostZeroRounds,false),
         recordCard('Closest Margin Of Victory',data.games["Flip 7 Vengeance"].closestMargin,true)
       ]),
+      gameSection('Beat the Heat',[
+        recordCard('Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
+        recordCard('Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
+        recordCard('Coolest Single Round',data.games["Beat the Heat"].bestRound,true),
+        recordCard('Hottest Single Round',data.games["Beat the Heat"].worstRound,false),
+        recordCard('Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
+        recordCard('Closest Margin Of Victory',data.games["Beat the Heat"].closestMargin,true)
+      ]),
       gameSection('Rook',[
         recordCard('Best Game Ever',data.games.Rook.bestGame,true),
         recordCard('Worst Game Ever',data.games.Rook.worstGame,false),
@@ -10129,6 +10186,8 @@
       fmt('Wizard: Zero-Bid Specialist',deepRecords.games.Wizard.mostZeroBidsHit?.value??0,deepRecords.games.Wizard.mostZeroBidsHit?.player||'-',true),
       fmt('Flip 7: Best Score',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
       fmt('Flip 7: High Roller',r['Flip 7 Vengeance'].bestRound,r['Flip 7 Vengeance'].bestRoundPlayer,true),
+      fmt('Beat the Heat: Coolest Score',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
+      fmt('Beat the Heat: Cleanest Game',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
       fmt('Rook: Best Score',r.Rook.bestScore,r.Rook.bestPlayer,true),
       fmt('Rook: Most Bids Won',r.Rook.mostBids,r.Rook.mostBidsPlayer,true),
     ].join('');
@@ -10141,6 +10200,8 @@
       fmt('Wizard: Blind Seer',r.Wizard.mostBustedBids,r.Wizard.mostBustedBidsPlayer,false),
       fmt('Flip 7: Bottom of Barrel',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
       fmt('Flip 7: Most Zero Rounds',deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.value??0,deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.player||'-',false),
+      fmt('Beat the Heat: Hottest Score',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
+      fmt('Beat the Heat: Hottest Round',r['Beat the Heat'].worstRound,r['Beat the Heat'].worstRoundPlayer,false),
       fmt('Rook: Worst Score',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
     ].join('');
