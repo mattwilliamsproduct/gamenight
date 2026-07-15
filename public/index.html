@@ -3383,7 +3383,7 @@
   <div id="lineup-intro" class="hidden">
     <div class="intro-bg"></div>
     <div class="intro-sub" id="intro-game-label">Back Porch Games</div>
-    <div class="intro-header" id="intro-header-text">Tonight's Lineup</div>
+    <div class="intro-header" id="intro-header-text">Tonight's Table</div>
     <div class="intro-roster" id="intro-roster-list"></div>
     <div class="intro-skip" onclick="dismissLineupIntro()">Skip ›</div>
   </div>
@@ -3461,7 +3461,7 @@
       <div class="lg:col-span-3 surface-raised brand-panel bp-roster-panel p-7">
         <div class="bp-panel-heading flex items-baseline justify-between mb-6">
           <div>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Lineup</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
             <h2 class="font-display text-4xl">Build Roster</h2>
           </div>
           <div id="roster-count" class="chip crest-chip"></div>
@@ -3478,14 +3478,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div class="flex items-center justify-between mb-3 px-1">
-              <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">Bench</h3>
+              <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">On Deck</h3>
               <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Drag to merge</span>
             </div>
             <div id="bench-list" class="space-y-2 min-h-[280px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
           </div>
           <div>
             <div class="mb-3 px-1">
-              <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Starting Lineup</h3>
+              <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Tonight's Table</h3>
             </div>
             <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
           </div>
@@ -6012,10 +6012,10 @@
   function renderRoster(){
     const bench=allPlayers.filter(p=>!players.includes(p));
     const rc=document.getElementById('roster-count');
-    if(rc) rc.innerHTML=`<span class="font-mono-num">${players.length}</span><span style="opacity:0.6;margin:0 0.3rem;">·</span><span class="font-mono-num">${bench.length}</span> benched`;
+    if(rc) rc.innerHTML=`<span class="font-mono-num">${players.length}</span><span style="opacity:0.6;margin:0 0.3rem;">·</span><span class="font-mono-num">${bench.length}</span> on deck`;
 
     let lh='';
-    if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Lineup is empty — tap a benched player to play</div>`;
+    if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Tonight's Table is empty — tap an On Deck player to play</div>`;
     else players.forEach((p,i)=>{
       lh+=`<div onclick="moveToBench('${p}')" class="lineup-enter roster-row-lineup" style="animation-delay:${i*35}ms">
         <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="font-jakarta font-extrabold text-lg">${p}</span></div>
@@ -6025,7 +6025,7 @@
     document.getElementById('lineup-list').innerHTML=lh;
 
     let bh='';
-    if(!bench.length) bh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Bench is empty</div>`;
+    if(!bench.length) bh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">On Deck is empty</div>`;
     else bench.forEach(p=>{
       const safe = p.replace(/'/g,"\\'");
       bh+=`<div class="roster-row-bench group" draggable="true" ondragstart="dragStart(event,'${safe}')" ondragover="allowDrop(event)" ondrop="dropMerge(event,'${safe}')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
@@ -6997,7 +6997,7 @@
     gameLabel.textContent = `${cfg?.emoji || ''} ${gameName}`;
     intro.onclick=null;
     header.className='intro-header';
-    header.textContent="Tonight's Lineup";
+    header.textContent="Tonight's Table";
     list.className='intro-roster';
     list.innerHTML = players.map((p, i) => {
       const delay = 0.45 + i * 0.18;
