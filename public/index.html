@@ -4209,6 +4209,10 @@
         <div id="numpad-label" class="font-extrabold uppercase tracking-[0.15em] text-xs" style="color:#34d399;">Enter Score</div>
         <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Done</button>
       </div>
+      <div id="numpad-context" class="hidden mb-4 mx-2 rounded-2xl border px-3 py-2" style="border-color:rgba(52,211,153,0.28);background:rgba(52,211,153,0.08);">
+        <div id="numpad-context-bid" class="font-extrabold uppercase tracking-[0.14em] text-[11px]" style="color:#67e8f9;"></div>
+        <div id="numpad-context-result" class="mt-1 font-jakarta font-extrabold text-base" style="color:#f8fafc;"></div>
+      </div>
       <div class="grid grid-cols-4 gap-2 sm:gap-2.5 no-select">
         <button onclick="numpadPress('7')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold font-mono-num">7</button>
         <button onclick="numpadPress('8')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold font-mono-num">8</button>
@@ -8444,20 +8448,7 @@
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
         if(r.hailMaryBonus)return;
-        let bidInfo='';
-        if(isBidTrickGame(currentGame)&&r.bids&&r.bids[p]!==undefined){
-          const rBid=r.bids[p], rAct=r.actuals?.[p], rTricks=getRoundTrickCount(currentGame, r.round);
-          let overUnder='';
-          if(rAct!==undefined){
-            const diff=rAct-rBid;
-            if(diff===0) overUnder=`<span style="color:var(--emerald);">exact ✓</span>`;
-            else if(diff>0) overUnder=`<span style="color:var(--rose);">${diff} over</span>`;
-            else overUnder=`<span style="color:var(--rose);">${Math.abs(diff)} under</span>`;
-          }
-          bidInfo=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${rBid}/${rTricks}</div>${overUnder?`<div class="text-[8px] font-bold mb-0.5">${overUnder}</div>`:''}`;
-        }
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
-          ${bidInfo}
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select">
@@ -9572,6 +9563,43 @@
     return currentGame.currentScoreDrafts;
   }
 
+  function getNumpadBidContext(player, roundIndex){
+    if(!currentGame||!isBidTrickGame(currentGame))return null;
+    const isCurrentRound=roundIndex==='current';
+    const round=isCurrentRound?null:currentGame.rounds?.[roundIndex];
+    const bid=isCurrentRound?currentGame.currentBids?.[player]:round?.bids?.[player];
+    if(bid===undefined)return null;
+    const trickCount=isCurrentRound?getRoundTrickCount(currentGame,currentGame.currentRound):getRoundTrickCount(currentGame,round.round);
+    const actual=isCurrentRound?ensureCurrentScoreDrafts()[player]:round?.actuals?.[player];
+    let result='';
+    let tone='neutral';
+    if(actual!==undefined&&actual!==''&&!isNaN(parseInt(actual))){
+      const diff=parseInt(actual)-bid;
+      if(diff===0){ result='exact ✓'; tone='exact'; }
+      else if(diff>0){ result=`${diff} over`; tone='miss'; }
+      else { result=`${Math.abs(diff)} under`; tone='miss'; }
+    }
+    return { bid:`Bid ${bid}/${trickCount}`, result, tone };
+  }
+
+  function updateNumpadContext(player, roundIndex){
+    const box=document.getElementById('numpad-context');
+    const bidEl=document.getElementById('numpad-context-bid');
+    const resultEl=document.getElementById('numpad-context-result');
+    if(!box||!bidEl||!resultEl)return;
+    const context=getNumpadBidContext(player,roundIndex);
+    if(!context){
+      box.classList.add('hidden');
+      bidEl.textContent='';
+      resultEl.textContent='';
+      return;
+    }
+    bidEl.textContent=context.bid;
+    resultEl.textContent=context.result||'No tricks logged';
+    resultEl.style.color=context.tone==='exact'?'#86efac':context.tone==='miss'?'#fda4af':'#f8fafc';
+    box.classList.remove('hidden');
+  }
+
   function saveActiveInputToModel(){
     const timer=gnPerfStart('GN saveActiveInputToModel');
     try{
@@ -9609,6 +9637,7 @@
         el.classList.add('score-cell-active');
         document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
       }
+      updateNumpadContext(player,roundIndex);
       document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
       const np=document.getElementById('custom-numpad');
       np.classList.remove('hidden');
