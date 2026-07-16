@@ -6163,6 +6163,10 @@
   // Pending game name held while pre-game animations play
   let _pendingGameName = null;
 
+  function shouldShowDealerRollForGame(name){
+    return prefs.dealerRoll && name !== 'Beat the Heat';
+  }
+
   function startGame(name){
     if(!players.length){alert('Add players to the Lineup first!');return;}
     if(name==='Rook'&&players.length<4){alert('Rook needs at least 4 players for call-your-partner scoring. Add a few more players to the Lineup first.');return;}
@@ -6186,7 +6190,7 @@
       return;
     }
     // Animation chain: dealer roll (if enabled) → lineup intro (if enabled) → commit
-    if(prefs.dealerRoll){
+    if(shouldShowDealerRollForGame(name)){
       showDealerRoll();
     } else if(prefs.lineupIntro){
       showLineupIntro(name);
