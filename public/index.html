@@ -1805,6 +1805,38 @@
       max-width: 100%;
     }
     @media (min-width: 761px) {
+      body.home-view {
+        overflow-y: hidden;
+      }
+      body.home-view .bp-app-shell {
+        height: 100dvh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0.75rem;
+      }
+      body.home-view #top-nav {
+        flex: 0 0 auto;
+      }
+      body.home-view #home-screen {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        align-items: stretch;
+      }
+      body.home-view #home-screen.hidden {
+        display: none !important;
+      }
+      body.home-view #home-screen .bp-roster-panel,
+      body.home-view #home-screen .bp-home-side {
+        height: auto;
+        min-height: 0;
+      }
+      body.home-view #home-screen .bp-roster-panel,
+      body.home-view #home-screen .bp-home-side,
+      body.home-view #home-screen .bp-on-deck-panel {
+        overflow: hidden;
+      }
       body.active-match-view {
         overflow-y: hidden;
       }
@@ -5344,6 +5376,7 @@
     cleanupActiveTouchDrags();
     ['home-screen','game-screen','history-screen','profiles-screen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
+    document.body.classList.toggle('home-view', id==='home-screen');
     document.body.classList.toggle('active-match-view', id==='game-screen');
     window.scrollTo({top:0,behavior:'auto'});
     closeNumpad();
