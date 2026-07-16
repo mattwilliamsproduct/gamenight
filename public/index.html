@@ -2348,6 +2348,45 @@
       box-shadow: var(--shadow-sm);
     }
     html.dark .bp-game-picker { background: rgba(18,59,55,0.76); }
+    .bp-game-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .bp-game-heading-copy { min-width: 0; }
+    .bp-rules-picker {
+      position: relative;
+      flex: 0 0 auto;
+      min-width: 12.5rem;
+    }
+    .bp-rules-select {
+      width: 100%;
+      min-height: 2.8rem;
+      appearance: none;
+      border: 1px solid rgba(8,118,108,0.2);
+      border-radius: 999px;
+      background: rgba(255,253,249,0.9);
+      color: var(--emerald);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.72rem 2.5rem 0.72rem 1rem;
+      box-shadow: 0 8px 18px -16px rgba(7,63,59,0.7), inset 0 1px 0 rgba(255,255,255,0.82);
+      cursor: pointer;
+    }
+    .bp-rules-picker::after {
+      content: '▾';
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-52%);
+      color: var(--emerald);
+      font-size: 0.85rem;
+      font-weight: 900;
+      pointer-events: none;
+    }
     .game-card.quest-card.bp-game-card {
       isolation: isolate;
       min-height: 128px !important;
@@ -2395,7 +2434,12 @@
       display: none;
     }
     .bp-game-card > *:not(.bp-game-card-art) { position: relative; z-index: 2; }
-    .bp-game-card > .flex-1 { max-width: 58%; }
+    .bp-game-card > .flex-1 {
+      display: flex;
+      align-items: center;
+      max-width: 58%;
+      min-height: 100%;
+    }
     .game-card.quest-card.bp-game-card.bp-five-crowns,
     .game-card.quest-card.bp-game-card.bp-wizard,
     .game-card.quest-card.bp-game-card.bp-eight18,
@@ -2425,12 +2469,6 @@
     .bp-beat-heat { border-bottom-color: #e66a49 !important; }
     .bp-rook { border-bottom-color: #4f9fa3 !important; }
     html.dark .bp-game-card { color: #073f3b; }
-    .quest-badge {
-      background: rgba(255,253,249,0.9);
-      border-color: rgba(7,63,59,0.14);
-      color: #285b57;
-      letter-spacing: 0.04em;
-    }
     .quest-emblem {
       display: none;
     }
@@ -2682,6 +2720,8 @@
       .bp-brand-mark { width: 2.6rem; height: 2.6rem; flex-basis: 2.6rem; }
       #top-nav { padding-top: 0.6rem; padding-bottom: 0.6rem; }
       .bp-game-picker { padding: 1rem; }
+      .bp-game-heading { align-items: stretch; flex-direction: column; }
+      .bp-rules-picker { min-width: 0; width: 100%; }
       .bp-game-card { min-height: 116px !important; padding: 1.25rem !important; }
       .bp-game-card > .flex-1 { max-width: 70%; }
       .bp-panel-heading { padding-right: 3rem; }
@@ -2958,21 +2998,8 @@
     .bp-game-card > .flex-1 { max-width: 68%; }
     .bp-game-card .font-display {
       color: #0b3935;
-      font-size: clamp(1.75rem, 3vw, 2.35rem) !important;
+      font-size: clamp(2rem, 3.35vw, 2.65rem) !important;
       line-height: 1;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.85);
-    }
-    .quest-badge {
-      display: block;
-      width: fit-content;
-      padding: 0;
-      border: 0;
-      border-radius: 0;
-      background: transparent;
-      color: #274c47;
-      font-size: clamp(0.58rem, 1vw, 0.72rem);
-      line-height: 1.25;
-      letter-spacing: 0.08em;
       text-shadow: 0 1px 0 rgba(255,255,255,0.85);
     }
     .bp-game-grid {
@@ -3039,13 +3066,7 @@
         max-width: 56%;
       }
       .bp-game-card .font-display {
-        font-size: clamp(1.2rem, 1.58vw, 1.56rem) !important;
-      }
-      .quest-badge {
-        margin-top: 0.28rem !important;
-        max-width: 100%;
-        font-size: 0.48rem;
-        line-height: 1.14;
+        font-size: clamp(1.42rem, 1.78vw, 1.8rem) !important;
       }
       .bp-game-card-art {
         width: 39%;
@@ -3619,8 +3640,7 @@
         min-height: 108px !important;
         padding: 1.05rem 1.3rem !important;
       }
-      .bp-game-card .font-display { font-size: 1.72rem !important; }
-      .quest-badge { margin-top: 0.45rem !important; font-size: 0.58rem; }
+      .bp-game-card .font-display { font-size: 1.95rem !important; }
       .bp-roster-panel,
       .bp-game-picker { padding: 1.25rem !important; }
       .bp-panel-heading { padding-bottom: 0.75rem; margin-bottom: 0.9rem !important; }
@@ -3640,8 +3660,7 @@
         padding: 0.82rem 0.85rem 0.8rem 0.95rem !important;
         border-radius: 17px;
       }
-      .bp-game-card .font-display { font-size: 1.28rem !important; }
-      .quest-badge { margin-top: 0.26rem !important; font-size: 0.46rem; }
+      .bp-game-card .font-display { font-size: 1.5rem !important; }
       .roster-row-lineup,
       .roster-row-bench,
       .bench-row-content { min-height: 3.45rem; }
@@ -3837,50 +3856,57 @@
       <div class="lg:col-span-5 bp-home-side flex flex-col gap-4">
         <div class="bp-game-picker">
           <div class="bp-panel-heading bp-game-heading mb-6">
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
-            <h2 class="font-display text-4xl">Select Game</h2>
+            <div class="bp-game-heading-copy">
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
+              <h2 class="font-display text-4xl">Select Game</h2>
+            </div>
+            <label class="bp-rules-picker" aria-label="Game instructions">
+              <select class="bp-rules-select" onchange="openGameRulesFromSelect(this)">
+                <option value="">Game Instructions</option>
+                <option value="Five Crowns">Five Crowns</option>
+                <option value="Wizard">Wizard</option>
+                <option value="818">818</option>
+                <option value="Flip 7 Vengeance">Flip 7</option>
+                <option value="Beat the Heat">Beat the Heat</option>
+                <option value="Rook">Rook</option>
+              </select>
+            </label>
           </div>
           <div class="bp-game-grid">
             <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Five Crowns</div>
-                <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
               </div>
             </button>
             <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Wizard</div>
-                <div class="quest-badge mt-2">Highest total wins · bid &amp; score</div>
               </div>
             </button>
             <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">818</div>
-                <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
               </div>
             </button>
             <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Flip 7</div>
-                <div class="quest-badge mt-2">Highest total wins · push luck</div>
               </div>
             </button>
             <button onclick="startGame('Beat the Heat')" class="game-card quest-card bp-game-card bp-beat-heat group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Beat the Heat</div>
-                <div class="quest-badge mt-2">Lowest heat wins · log peppers</div>
               </div>
             </button>
             <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Rook</div>
-                <div class="quest-badge mt-2">Highest total wins · pick bid, trump &amp; score</div>
               </div>
             </button>
           </div>
@@ -5490,7 +5516,19 @@
   }
   window.GN_PERF_EXPORT=buildPerfReportText;
   window.GN_DEBUG_EXPORT=buildPerfReportText;
-  function openRules(){ if(!currentGame)return; document.getElementById('rules-title').textContent=currentGame.name; document.getElementById('rules-content').innerHTML=gameRulesText[currentGame.name]||''; openModal('rules-modal'); }
+  function openGameRules(name){
+    if(!name)return;
+    document.getElementById('rules-title').textContent=name==='Flip 7 Vengeance'?'Flip 7':name;
+    document.getElementById('rules-content').innerHTML=gameRulesText[name]||'';
+    openModal('rules-modal');
+  }
+  function openGameRulesFromSelect(select){
+    const name=select?.value||'';
+    if(!name)return;
+    openGameRules(name);
+    select.value='';
+  }
+  function openRules(){ if(!currentGame)return; openGameRules(currentGame.name); }
   function closeRules(){ closeModal('rules-modal'); }
   function openAvatarPicker(){ if(!editingPlayerProfile)return; buildAvatarGrid(); openModal('avatar-modal'); }
   function closeAvatarPicker(){ closeModal('avatar-modal'); }
@@ -5766,12 +5804,12 @@
 
   /* ═══ RULES TEXT ═══ */
   const gameRulesText = {
-    "Five Crowns":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest score after 11 rounds.</li><li><strong>Deal:</strong> Round 1 = 3 cards, growing to 13.</li><li><strong>Wilds:</strong> Jokers always wild. Round's number is also wild.</li><li><strong>Going Out:</strong> Meld hand into Books (3+ same) or Runs (3+ consecutive same suit).</li><li><strong>Penalty:</strong> Unmelded = face value. Faces = 10. Wilds = 20. Jokers = 50.</li></ul>`,
-    "Wizard":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score by accurately predicting tricks.</li><li><strong>Deal:</strong> Round 1 = 1 card, grows each round.</li><li><strong>Bidding:</strong> Bid exactly how many tricks you'll win.</li><li><strong>Play:</strong> Follow lead suit. Wizards always win. Jesters always lose.</li><li><strong>Score:</strong> Exact = 20 + 10/trick. Miss = −10 per trick off.</li></ul>`,
-    "818":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score after the 8-1-8 round sequence.</li><li><strong>Rounds:</strong> Play 8 cards, then 7, 6, 5, 4, 3, 2, 1, then back up to 8.</li><li><strong>Bidding:</strong> Bid how many tricks you'll take. The dealer cannot make the table's total bids equal the tricks available.</li><li><strong>Score:</strong> Take your actual tricks as points. Hit your bid exactly to add a 10-point bonus.</li><li><strong>Example:</strong> Bid 2 and take 3 = 3 points. Bid 0 and take 0 = 10 points.</li></ul>`,
-    "Flip 7 Vengeance":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score without busting.</li><li><strong>Flip:</strong> Reveal cards to build your tableau.</li><li><strong>Bust:</strong> Duplicate number = 0 for the round.</li><li><strong>Bank:</strong> Secure your score anytime.</li><li><strong>Vengeance:</strong> Special cards attack others.</li></ul>`,
-    "Beat the Heat":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the four rows on the table.</li><li><strong>Heat:</strong> If you take a row, count the pepper/heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> Keep playing rounds until your table is ready to save and end the match.</li></ul>`,
-    "Rook":`<ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins. This scorecard is tuned for call-your-partner Rook with rotating round partnerships.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and type the amount they won with (no in-app auction).</li><li><strong>Trump &amp; call:</strong> That player names trump and calls a partner card (for example "Rook", "Black 1", "Yellow 14").</li><li><strong>After the hand:</strong> Say who the bidder’s teammate was, then enter the bid team’s points; the other team’s points fill in to match your “points in a full hand” setting. If the bid team’s points are at least the bid, each of them scores that team total; otherwise each loses the bid. Everyone on the other team scores the other team’s points.</li><li><strong>House rules:</strong> Counter values (5s, 10s, 14, Rook, etc.) are up to your table—the app just needs the bid team’s total and derives the rest.</li></ul>`
+    "Five Crowns":`<div class="space-y-5"><p><strong>Quick idea:</strong> A rummy-style game where every hand gets a little bigger and the wild card changes each round.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest score after 11 hands.</li><li><strong>Deal:</strong> Start with 3 cards, then add one card each hand through 13.</li><li><strong>Wilds:</strong> Jokers are always wild. The current hand number is wild too.</li><li><strong>Going out:</strong> Make books of 3+ matching ranks or runs of 3+ consecutive cards in the same suit.</li><li><strong>Score:</strong> Only unmelded cards count against you: number cards face value, faces 10, wilds 20, jokers 50.</li></ul></div>`,
+    "Wizard":`<div class="space-y-5"><p><strong>Quick idea:</strong> Predict exactly how many tricks you will take, then try to land the plane.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score at the end of the deal sequence.</li><li><strong>Deal:</strong> Round 1 has 1 card, then each round grows by one card.</li><li><strong>Bidding:</strong> Each player bids how many tricks they expect to win.</li><li><strong>Play:</strong> Follow suit when possible. Wizards beat everything. Jesters lose unless everyone plays a Jester.</li><li><strong>Score:</strong> Exact bid = 20 plus 10 per trick bid. Miss = minus 10 for each trick away from the bid.</li></ul></div>`,
+    "818":`<div class="space-y-5"><p><strong>Quick idea:</strong> A tight trick-taking score race where exact bids get rewarded, but misses still score the tricks you actually took.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score after the 8-1-8 round sequence.</li><li><strong>Rounds:</strong> Play 8 cards, then 7, 6, 5, 4, 3, 2, 1, then climb back up to 8.</li><li><strong>Bidding:</strong> Bid how many tricks you will take. The dealer cannot make the table's total bids equal the tricks available.</li><li><strong>Score:</strong> Your score is actual tricks taken. If you hit your bid exactly, add a 10-point bonus.</li><li><strong>Examples:</strong> Bid 2 and take 3 = 3 points. Bid 0 and take 0 = 10 points.</li></ul></div>`,
+    "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
+    "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> Keep playing open-ended rounds until your table is ready to save and end the match.</li></ul></div>`,
+    "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
