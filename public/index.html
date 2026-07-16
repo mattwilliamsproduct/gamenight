@@ -2353,6 +2353,58 @@
     #quick-add-player {
       box-shadow: inset 0 1px 2px rgba(87,54,38,0.04);
     }
+    .player-suggest-wrap {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .player-suggest-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 0.45rem);
+      z-index: 35;
+      max-height: min(18rem, 42vh);
+      overflow-y: auto;
+      padding: 0.42rem;
+      border: 1px solid rgba(8,118,108,0.18);
+      border-radius: 18px;
+      background: rgba(255,253,249,0.98);
+      box-shadow: 0 18px 38px -24px rgba(7,63,59,0.76), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    .player-suggest-menu:empty,
+    .player-suggest-menu.hidden {
+      display: none;
+    }
+    .player-suggest-option {
+      width: 100%;
+      min-height: 3.55rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 14px;
+      color: var(--emerald);
+      font-weight: 900;
+      text-align: left;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+    .player-suggest-option:hover,
+    .player-suggest-option:focus-visible {
+      background: rgba(16,185,129,0.1);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .player-suggest-empty {
+      padding: 0.8rem 0.9rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    html.dark .player-suggest-menu {
+      background: #123b37;
+      border-color: rgba(255,255,255,0.12);
+    }
     #lineup-list {
       background: rgba(203,236,226,0.34) !important;
       border-color: var(--emerald-border) !important;
@@ -3873,12 +3925,17 @@
           <div id="roster-count" class="chip crest-chip"></div>
         </div>
         <div class="flex gap-2 mb-6">
-          <input id="quick-add-player" type="text" placeholder="Add a new player..."
-            onkeypress="if(event.key==='Enter')addPlayerToAll()"
-            class="flex-1 rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
-            style="background:var(--bg-2);color:var(--ink);border:1.5px solid var(--hairline);"
-            onfocus="this.style.borderColor='var(--emerald)';this.style.background='var(--surface)';"
-            onblur="this.style.borderColor='var(--hairline)';this.style.background='var(--bg-2)';">
+          <div class="player-suggest-wrap">
+            <input id="quick-add-player" type="text" placeholder="Add a new player..."
+              autocomplete="off"
+              oninput="updatePlayerSuggestions('home')"
+              onfocus="this.style.borderColor='var(--emerald)';this.style.background='var(--surface)';updatePlayerSuggestions('home');"
+              onblur="this.style.borderColor='var(--hairline)';this.style.background='var(--bg-2)';hidePlayerSuggestionsSoon('home');"
+              onkeydown="handlePlayerSuggestKey(event,'home')"
+              class="w-full rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
+              style="background:var(--bg-2);color:var(--ink);border:1.5px solid var(--hairline);">
+            <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
+          </div>
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
         <div class="bp-table-zone">
@@ -4464,6 +4521,33 @@
           <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Cancel</button>
           <button type="button" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Done</button>
           <button type="button" id="score-entry-primary-btn" onclick="submitScoreEntryModal()" class="btn-accent flex-[1.3] py-4 text-base font-extrabold">Submit Scores</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Player Mid-Game -->
+    <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+      <div onclick="closeAddPlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+        <button onclick="closeAddPlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <div class="text-center mb-5 pr-8">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Mid-Game Add</div>
+          <h3 class="font-display text-3xl">Add Player</h3>
+          <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Pick an On Deck player or type a new name.</p>
+        </div>
+        <div class="flex gap-2">
+          <div class="player-suggest-wrap">
+            <input id="midgame-add-player-input" type="text" placeholder="Start typing a name..."
+              autocomplete="off"
+              oninput="updatePlayerSuggestions('midgame')"
+              onfocus="updatePlayerSuggestions('midgame')"
+              onblur="hidePlayerSuggestionsSoon('midgame')"
+              onkeydown="handlePlayerSuggestKey(event,'midgame')"
+              class="w-full rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
+              style="background:var(--bg-2);color:var(--ink);border:1.5px solid var(--hairline);">
+            <div id="midgame-player-suggestions" class="player-suggest-menu hidden"></div>
+          </div>
+          <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-base">Add</button>
         </div>
       </div>
     </div>
@@ -6497,6 +6581,84 @@
   }
 
   /* ═══ ROSTER ═══ */
+  function escapeHtml(str){
+    return String(str??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  const playerSuggestHideTimers={};
+  function getKnownPlayerNames(){
+    const seen=new Set(), names=[];
+    [...allPlayers,Object.keys(playerProfiles||{})].forEach(raw=>{
+      const name=String(raw||'').trim();
+      if(!name)return;
+      const key=name.toLowerCase();
+      if(seen.has(key))return;
+      seen.add(key);
+      names.push(name);
+    });
+    return names.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+  }
+  function getPlayerSuggestEls(scope){
+    const isMid=scope==='midgame';
+    return {
+      input:document.getElementById(isMid?'midgame-add-player-input':'quick-add-player'),
+      menu:document.getElementById(isMid?'midgame-player-suggestions':'home-player-suggestions')
+    };
+  }
+  function getPlayerSuggestionMatches(scope){
+    const {input}=getPlayerSuggestEls(scope);
+    const q=(input?.value||'').trim().toLowerCase();
+    if(!q)return [];
+    const ineligible=new Set(scope==='midgame'
+      ? (currentGame?.originalRoster||[]).map(p=>p.toLowerCase())
+      : players.map(p=>p.toLowerCase()));
+    return getKnownPlayerNames()
+      .filter(name=>!ineligible.has(name.toLowerCase()))
+      .filter(name=>name.toLowerCase().startsWith(q))
+      .slice(0,8);
+  }
+  function updatePlayerSuggestions(scope){
+    const {input,menu}=getPlayerSuggestEls(scope);
+    if(!input||!menu)return;
+    clearTimeout(playerSuggestHideTimers[scope]);
+    const q=(input.value||'').trim();
+    const matches=getPlayerSuggestionMatches(scope);
+    if(!q){menu.innerHTML='';menu.classList.add('hidden');return;}
+    if(!matches.length){
+      menu.innerHTML=`<div class="player-suggest-empty">No saved player matches “${escapeHtml(q)}”</div>`;
+      menu.classList.remove('hidden');
+      return;
+    }
+    menu.innerHTML=matches.map(name=>`
+      <button type="button" class="player-suggest-option" data-player-name="${escapeHtml(name)}" onclick="selectSuggestedPlayer('${scope}',this)">
+        ${getStreakAvatarHtml(name,'avatar-img')}
+        <span class="font-jakarta">${escapeHtml(name)}</span>
+      </button>
+    `).join('');
+    menu.classList.remove('hidden');
+  }
+  function hidePlayerSuggestions(scope){
+    const {menu}=getPlayerSuggestEls(scope);
+    if(menu)menu.classList.add('hidden');
+  }
+  function hidePlayerSuggestionsSoon(scope){
+    clearTimeout(playerSuggestHideTimers[scope]);
+    playerSuggestHideTimers[scope]=setTimeout(()=>hidePlayerSuggestions(scope),140);
+  }
+  function selectSuggestedPlayer(scope,btn){
+    const name=btn?.dataset?.playerName||'';
+    if(!name)return;
+    if(scope==='midgame')submitAddPlayerMidGame(name);
+    else addPlayerToAll(name);
+  }
+  function handlePlayerSuggestKey(ev,scope){
+    if(ev.key==='Escape'){hidePlayerSuggestions(scope);return;}
+    if(ev.key==='Enter'){
+      ev.preventDefault();
+      if(scope==='midgame')submitAddPlayerMidGame();
+      else addPlayerToAll();
+    }
+  }
+
   function renderRoster(){
     const bench=allPlayers.filter(p=>!players.includes(p));
     const rc=document.getElementById('roster-count');
@@ -6535,11 +6697,13 @@
     document.getElementById('bench-list').innerHTML=bh;
   }
 
-  function addPlayerToAll(){
-    const name=document.getElementById('quick-add-player').value.trim(); if(!name)return;
+  function addPlayerToAll(selectedName){
+    const input=document.getElementById('quick-add-player');
+    const name=(selectedName||input.value).trim(); if(!name)return;
     if(!allPlayers.includes(name)) allPlayers.push(name);
     if(!players.includes(name)) players.push(name);
-    document.getElementById('quick-add-player').value='';
+    input.value='';
+    hidePlayerSuggestions('home');
     saveData({ fullPersist: true, syncCold: true }); renderRoster();
   }
   function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
@@ -9424,9 +9588,22 @@
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
   function addPlayerMidGame(){
-    const raw=prompt('New player name?'); if(!raw)return;
-    const name=raw.trim(); if(!name){alert('Invalid name.');return;}
+    const input=document.getElementById('midgame-add-player-input');
+    if(input)input.value='';
+    hidePlayerSuggestions('midgame');
+    openModal('add-player-modal');
+    setTimeout(()=>input?.focus(),80);
+  }
+  function closeAddPlayerModal(){
+    hidePlayerSuggestions('midgame');
+    closeModal('add-player-modal');
+  }
+  function submitAddPlayerMidGame(selectedName){
+    const input=document.getElementById('midgame-add-player-input');
+    const name=(selectedName||input?.value||'').trim();
+    if(!name){alert('Invalid name.');return;}
     if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
+    closeAddPlayerModal();
       if(!players.includes(name))players.push(name);
       if(!allPlayers.includes(name))allPlayers.push(name);
       currentGame.originalRoster.push(name);
