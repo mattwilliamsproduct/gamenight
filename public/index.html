@@ -3309,6 +3309,26 @@
         linear-gradient(145deg, rgba(255,251,243,0.985), rgba(255,246,238,0.96));
       box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
     }
+    .bp-roster-columns {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      flex: 1 1 auto;
+    }
+    .bp-roster-column {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .bp-on-deck-zone {
+      padding: 0.55rem;
+      border: 2px dashed rgba(231,115,88,0.26);
+      border-radius: 20px;
+      background:
+        repeating-linear-gradient(45deg, rgba(231,115,88,0.018) 0 1px, transparent 1px 15px),
+        rgba(255,250,245,0.56);
+    }
     .bp-table-zone {
       min-height: 0;
       display: flex;
@@ -3337,7 +3357,15 @@
         min-height: 0;
       }
       .bp-game-picker {
-        flex: 0 0 auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .bp-game-picker .bp-game-grid {
+        flex: 1 1 auto;
+        min-height: 0;
+        align-content: stretch;
       }
       .bp-on-deck-panel {
         flex: 1 1 auto;
@@ -3346,6 +3374,12 @@
         flex-direction: column;
       }
       #bench-list {
+        flex: 1 1 auto;
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      .bp-roster-column #bench-list,
+      .bp-roster-column #lineup-list {
         flex: 1 1 auto;
         max-height: none !important;
         min-height: 0 !important;
@@ -3959,6 +3993,8 @@
       .bench-row-content { min-height: 3.45rem; }
       #bench-list,
       #lineup-list { max-height: 340px; }
+      .bp-roster-column #bench-list,
+      .bp-roster-column #lineup-list { max-height: none !important; }
     }
     @media (max-width: 760px) {
       body { background-position: 62% top; }
@@ -3977,6 +4013,7 @@
       .settings-choice { flex: 1 1 0; }
       .settings-size-label { flex: 1 1 auto; }
       .bp-roster-panel .bp-panel-heading { padding-right: 0; }
+      .bp-roster-columns { grid-template-columns: 1fr; }
       #roster-count {
         position: static;
         min-height: 2.2rem;
@@ -4120,7 +4157,7 @@
     <div id="home-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
       <!-- Roster -->
-      <div class="lg:col-span-5 lg:order-2 surface-raised brand-panel bp-roster-panel p-7">
+      <div class="lg:col-span-7 lg:order-1 surface-raised brand-panel bp-roster-panel p-7">
         <div class="bp-panel-heading flex items-baseline justify-between mb-6">
           <div>
             <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
@@ -4142,16 +4179,25 @@
           </div>
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
-        <div class="bp-table-zone">
-          <div class="mb-3 px-1">
-            <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Tonight's Table</h3>
+        <div class="bp-roster-columns">
+          <div class="bp-roster-column bp-on-deck-zone">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">On Deck</h3>
+              <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Tap to play · Drag to merge</span>
+            </div>
+            <div id="bench-list" class="space-y-2 min-h-[160px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
           </div>
-          <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
+          <div class="bp-roster-column bp-table-zone">
+            <div class="mb-3 px-1">
+              <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Tonight's Table</h3>
+            </div>
+            <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Games and saved players -->
-      <div class="lg:col-span-7 lg:order-1 bp-home-side flex flex-col gap-4">
+      <!-- Games -->
+      <div class="lg:col-span-5 lg:order-2 bp-home-side flex flex-col gap-4">
         <div class="bp-game-picker">
           <div class="bp-panel-heading bp-game-heading mb-6">
             <div class="bp-game-heading-copy">
@@ -4207,13 +4253,6 @@
               </div>
             </button>
           </div>
-        </div>
-        <div class="bp-on-deck-panel surface-raised">
-          <div class="flex items-center justify-between mb-3 px-1">
-            <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">On Deck</h3>
-            <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Tap to play · Drag to merge</span>
-          </div>
-          <div id="bench-list" class="space-y-2 min-h-[160px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
         </div>
       </div>
     </div>
