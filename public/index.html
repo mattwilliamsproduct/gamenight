@@ -668,6 +668,10 @@
     }
     .score-cell-input:hover { border-color: var(--hairline); }
     .score-cell-active { background: var(--surface) !important; border-color: var(--emerald) !important; box-shadow: 0 0 0 3px rgba(4,120,87,0.18); }
+    .score-cell-input.score-cell-miss {
+      border-color: rgba(225,29,72,0.78);
+      box-shadow: 0 0 0 2px rgba(225,29,72,0.12);
+    }
     .score-current-input {
       background: var(--surface);
       border: 2px solid var(--hairline);
@@ -8448,10 +8452,18 @@
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
         if(r.hailMaryBonus)return;
+        let missClass='', missTitle='';
+        if(isBidTrickGame(currentGame)&&r.bids?.[p]!==undefined&&r.actuals?.[p]!==undefined){
+          const diff=r.actuals[p]-r.bids[p];
+          if(diff!==0){
+            missClass=' score-cell-miss';
+            missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
+          }
+        }
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${p}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
-            class="score-cell-input px-1 py-1.5 text-center cursor-pointer caret-transparent no-select">
+            class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
         </td>`;
       });
 
