@@ -2382,18 +2382,13 @@
       overflow: hidden;
       border-radius: 18px;
       pointer-events: none;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
     }
     .bp-game-card-art::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      height: 100%;
-      width: auto;
-      aspect-ratio: 742 / 293;
-      background-image: url('./theme/game-card-set-a.png');
-      background-repeat: no-repeat;
-      background-size: 207% 349%;
+      content: none;
+      display: none;
     }
     .bp-game-card > *:not(.bp-game-card-art) { position: relative; z-index: 2; }
     .bp-game-card > .flex-1 { max-width: 56%; }
@@ -2409,25 +2404,16 @@
     .game-card.quest-card.bp-game-card.bp-eight18 { background-color: #f2f8f3; }
     .game-card.quest-card.bp-game-card.bp-flip7 { background-color: #fff0ed; }
     .game-card.quest-card.bp-game-card.bp-beat-heat { background-color: #fff3e8; }
-    .bp-five-crowns .bp-game-card-art::before { background-position: 2% 6.6%; }
-    .bp-wizard .bp-game-card-art::before { background-position: 98% 6.6%; }
-    .bp-eight18 .bp-game-card-art::before { background-position: 2% 53.4%; }
-    .bp-flip7 .bp-game-card-art::before { background-position: 98% 53.4%; }
-    .bp-beat-heat .bp-game-card-art::before {
-      aspect-ratio: 742 / 293;
-      background-image: url('./theme/beat-the-heat-card.svg');
-      background-position: center;
-      background-size: cover;
-    }
+    .bp-five-crowns .bp-game-card-art { background-image: url('./theme/game-card-five-crowns-thumb.jpg'); }
+    .bp-wizard .bp-game-card-art { background-image: url('./theme/game-card-wizard-thumb.jpg'); }
+    .bp-eight18 .bp-game-card-art { background-image: url('./theme/game-card-818-thumb.jpg'); }
+    .bp-flip7 .bp-game-card-art { background-image: url('./theme/game-card-flip7-thumb.jpg'); }
+    .bp-beat-heat .bp-game-card-art { background-image: url('./theme/game-card-beat-heat-thumb.jpg'); }
     .game-card.quest-card.bp-game-card.bp-rook {
       background-image: none !important;
       background-color: #f4f8f3;
     }
-    .bp-rook .bp-game-card-art::before {
-      aspect-ratio: 1506 / 279;
-      background-position: 50% 97.7%;
-      background-size: 102% 367%;
-    }
+    .bp-rook .bp-game-card-art { background-image: url('./theme/game-card-rook-thumb.jpg'); }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
     .bp-eight18 { border-bottom-color: #5aa77e !important; }
