@@ -2382,9 +2382,10 @@
     html.dark .bp-game-picker { background: rgba(18,59,55,0.76); }
     .bp-game-heading {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      padding-right: 0 !important;
     }
     .bp-game-heading-copy { min-width: 0; }
     .bp-rules-picker {
@@ -2886,7 +2887,7 @@
       font-size: clamp(2rem, 3.25vw, 2.75rem) !important;
       line-height: 1;
     }
-    .bp-game-heading > div:first-child { color: var(--bp-coral) !important; }
+    .bp-game-heading-copy h2 { color: var(--bp-teal-dark) !important; }
     #quick-add-player {
       min-height: 3.35rem;
       border-color: rgba(196,130,92,0.24) !important;
@@ -2938,23 +2939,27 @@
       background: url('./theme/palm-flourish.svg') center / contain no-repeat;
     }
     .bp-roster-panel .bp-panel-heading > div > div:first-child::after { transform: scaleX(-1); }
-    .bp-game-heading > div:first-child {
+    .bp-game-heading-copy h2 {
       display: flex;
       align-items: center;
       gap: 0.55rem;
-      font-family: 'Pacifico', 'Brush Script MT', cursive;
-      font-size: 1.3rem !important;
-      font-weight: 400 !important;
-      letter-spacing: 0 !important;
-      line-height: 1;
-      text-transform: none !important;
+      margin: 0;
     }
-    .bp-game-heading > div:first-child::after {
+    .bp-game-heading-copy h2::after {
       content: '';
       width: 4.35rem;
       height: 1.35rem;
       flex: 0 0 4.35rem;
       background: url('./theme/wave-flourish.svg') center / contain no-repeat;
+    }
+    .bp-game-heading > div:first-child {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .bp-game-heading > div:first-child::after {
+      content: none;
+      display: none;
     }
     .bp-roster-panel .bp-panel-heading {
       position: relative;
@@ -3889,7 +3894,6 @@
         <div class="bp-game-picker">
           <div class="bp-panel-heading bp-game-heading mb-6">
             <div class="bp-game-heading-copy">
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
               <h2 class="font-display text-4xl">Select Game</h2>
             </div>
             <label class="bp-rules-picker" aria-label="Game instructions">
