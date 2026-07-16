@@ -4017,7 +4017,7 @@
         <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger slices are more common. Tiny slices = jackpots.</p>
         <div class="relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
           <div class="wheel-pointer"></div>
-          <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:var(--ink);box-shadow:var(--shadow-lg);"></canvas>
+          <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
         </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl">SPIN THE WHEEL</button>
       </div>
@@ -5969,36 +5969,45 @@
     if(currentGame.name==='818')return getEight18HailMarySlices();
     const winLow=configs[currentGame.name].winLow;
     const score=currentGame?.totals[wheelPlayer]||0;
+    const colors={
+      badStrong:"#991b1b",
+      badSoft:"#b91c1c",
+      goodStrong:"#10b981",
+      goodMid:"#34d399",
+      goodSoft:"#6ee7b7",
+      special:"#0d9488",
+      jackpot:"#08766c"
+    };
     if(winLow){
       return interleaveWheelSlicesByKind([
-        {label:"+15 ☠️",     color:"#7f1d1d", effect:()=>15,                 weight:18, _wheelBad:true},
-        {label:"+5 ☠️",      color:"#991b1b", effect:()=>5,                  weight:14, _wheelBad:true},
-        {label:"−5 Pts",     color:"#78716c", effect:()=>-5,                 weight:16, _wheelBad:false},
-        {label:"−15 Pts",    color:"#6ee7b7", effect:()=>-15,                weight:16, _wheelBad:false},
-        {label:"−25 Pts",    color:"#34d399", effect:()=>-25,                weight:12, _wheelBad:false},
-        {label:"Wipe Worst", color:"#7c3aed", effect:(p)=>{
+        {label:"+15 ☠️",     color:colors.badStrong,  effect:()=>15,                 weight:18, _wheelBad:true},
+        {label:"+5 ☠️",      color:colors.badSoft,    effect:()=>5,                  weight:14, _wheelBad:true},
+        {label:"−5 Pts",     color:colors.goodSoft,   effect:()=>-5,                 weight:16, _wheelBad:false},
+        {label:"−15 Pts",    color:colors.goodMid,    effect:()=>-15,                weight:16, _wheelBad:false},
+        {label:"−25 Pts",    color:colors.goodStrong, effect:()=>-25,                weight:12, _wheelBad:false},
+        {label:"Wipe Worst", color:colors.special,    effect:(p)=>{
           if(!currentGame.rounds.length)return 0;
           let w=-Infinity; currentGame.rounds.forEach(r=>{const s=r.scores[p]||0;if(s>w)w=s;}); return w>0?-w:0;
         }, weight:10, _wheelBad:false},
-        {label:"−50 Pts",    color:"#10b981", effect:()=>-50,                weight:8,  _wheelBad:false},
-        {label:"Half Score", color:"#2563eb", effect:(p)=>-Math.floor((currentGame.totals[p]||0)/2), weight:6, _wheelBad:false}
+        {label:"−50 Pts",    color:colors.goodStrong, effect:()=>-50,                weight:8,  _wheelBad:false},
+        {label:"Half Score", color:colors.jackpot,    effect:(p)=>-Math.floor((currentGame.totals[p]||0)/2), weight:6, _wheelBad:false}
       ]);
     } else {
       const canDouble=score>10;
       const jackpot=canDouble
-        ? {label:"×2 Score",color:"#2563eb",effect:(p)=>currentGame.totals[p]||0,weight:1, _wheelBad:false}
-        : {label:"+75 Pts", color:"#2563eb",effect:()=>75,                       weight:1, _wheelBad:false};
+        ? {label:"×2 Score",color:colors.jackpot,effect:(p)=>currentGame.totals[p]||0,weight:1, _wheelBad:false}
+        : {label:"+75 Pts", color:colors.jackpot,effect:()=>75,                       weight:1, _wheelBad:false};
       return interleaveWheelSlicesByKind([
-        {label:"−15 ☠️",     color:"#7f1d1d", effect:()=>-15, weight:18, _wheelBad:true},
-        {label:"−5 ☠️",      color:"#991b1b", effect:()=>-5,  weight:14, _wheelBad:true},
-        {label:"+5 Pts",     color:"#78716c", effect:()=>5,   weight:16, _wheelBad:false},
-        {label:"+15 Pts",    color:"#6ee7b7", effect:()=>15,  weight:16, _wheelBad:false},
-        {label:"+25 Pts",    color:"#34d399", effect:()=>25,  weight:12, _wheelBad:false},
-        {label:"Dbl Best",   color:"#7c3aed", effect:(p)=>{
+        {label:"−15 ☠️",     color:colors.badStrong,  effect:()=>-15, weight:18, _wheelBad:true},
+        {label:"−5 ☠️",      color:colors.badSoft,    effect:()=>-5,  weight:14, _wheelBad:true},
+        {label:"+5 Pts",     color:colors.goodSoft,   effect:()=>5,   weight:16, _wheelBad:false},
+        {label:"+15 Pts",    color:colors.goodMid,    effect:()=>15,  weight:16, _wheelBad:false},
+        {label:"+25 Pts",    color:colors.goodStrong, effect:()=>25,  weight:12, _wheelBad:false},
+        {label:"Dbl Best",   color:colors.special,    effect:(p)=>{
           if(!currentGame.rounds.length)return 0;
           let b=-Infinity; currentGame.rounds.forEach(r=>{const s=r.scores[p]||0;if(s>b)b=s;}); return b>0?b:0;
         }, weight:5, _wheelBad:false},
-        {label:"+50 Pts",    color:"#10b981", effect:()=>50,  weight:8,  _wheelBad:false},
+        {label:"+50 Pts",    color:colors.goodStrong, effect:()=>50,  weight:8,  _wheelBad:false},
         jackpot
       ]);
     }
@@ -6015,7 +6024,7 @@
     slices.forEach(s=>{
       const arc=(s.weight/total)*(2*Math.PI);
       ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+arc);
-      ctx.fillStyle=s.color; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#0f0f0e'; ctx.stroke();
+      ctx.fillStyle=s.color; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#073f3b'; ctx.stroke();
       const mid=a+arc/2;
       const labelRadius=arc<0.16?r*0.74:r*0.66;
       ctx.save(); ctx.translate(cx+Math.cos(mid)*labelRadius,cy+Math.sin(mid)*labelRadius);
