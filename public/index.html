@@ -814,6 +814,37 @@
     .caret-transparent { caret-color: transparent; }
 
     /* ════════ WHEEL ════════ */
+    .life-preserver-dialog {
+      border-color: #0a4f49 !important;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
+        var(--surface);
+      box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
+    }
+    .wheel-shell::before {
+      content: '';
+      position: absolute;
+      inset: -14px;
+      z-index: 0;
+      border-radius: 999px;
+      background: conic-gradient(
+        from -20deg,
+        #fffaf1 0deg 38deg,
+        #e76f51 38deg 58deg,
+        #fffaf1 58deg 128deg,
+        #e76f51 128deg 148deg,
+        #fffaf1 148deg 218deg,
+        #e76f51 218deg 238deg,
+        #fffaf1 238deg 308deg,
+        #e76f51 308deg 328deg,
+        #fffaf1 328deg 360deg
+      );
+      box-shadow: 0 18px 36px -28px rgba(0,45,42,0.9), inset 0 0 0 3px rgba(7,63,59,0.35);
+    }
+    .wheel-shell canvas {
+      position: relative;
+      z-index: 1;
+    }
     .wheel-spinner {
       position: absolute;
       inset: 0;
@@ -3523,7 +3554,7 @@
       <div class="mb-5">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Round History</div>
         <h3 class="font-display text-3xl">Audit Log</h3>
-        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Hail Mary, and retirement — for settling disputes.</p>
+        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Life Preserver, and retirement — for settling disputes.</p>
       </div>
       <div id="audit-list" class="flex-1 overflow-y-auto"></div>
     </div>
@@ -4051,15 +4082,15 @@
       </div>
     </div>
 
-    <!-- Hail Mary Wheel -->
+    <!-- Life Preserver Wheel -->
     <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity">
       <div onclick="closeWheel()" class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:var(--ink);">
+      <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--amber);" id="wheel-mode-label">🛟 Hail Mary Unlocked</div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
         <h3 id="wheel-player-name" class="font-display text-4xl md:text-5xl mb-1"></h3>
-        <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger slices are more common. Tiny slices = jackpots.</p>
-        <div class="relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
+        <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
+        <div class="wheel-shell relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
           <div id="wheel-spinner" class="wheel-spinner"></div>
           <div class="wheel-spinner-hub"></div>
@@ -6120,7 +6151,7 @@
     if(currentGame.hailMaryUsed?.includes(p))return;
     wheelPlayer=p;
     document.getElementById('wheel-player-name').textContent=p;
-    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Hail Mary Unlocked';
+    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
     document.getElementById('btn-spin').disabled=false;
     document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
     const spinner=document.getElementById('wheel-spinner');
@@ -6150,7 +6181,7 @@
       let win=slices.find(s=>pa>=s._start&&pa<=s._end);
       if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
       if(!win)win=slices[0];
-      alert(`🎡 The Wheel says:\n\n${win.label}`);
+      alert(`🛟 The Life Preserver says:\n\n${win.label}`);
       const adj=win.effect(wheelPlayer);
       if(currentGame.rounds.length>0){
         currentGame.rounds[currentGame.rounds.length-1].scores[wheelPlayer]=(currentGame.rounds[currentGame.rounds.length-1].scores[wheelPlayer]||0)+adj;
@@ -6159,7 +6190,7 @@
       }
       if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
       currentGame.hailMaryUsed.push(wheelPlayer);
-      addAuditEntry(`Hail Mary Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
+      addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
       saveData(); closeWheel(); scheduleRender();
     },6200);
@@ -7335,7 +7366,7 @@
         .filter(entry => playersToUse.includes(entry.player))
         .sort((a,b)=>Math.abs(b.score)-Math.abs(a.score))[0];
       if(bestHailMary){
-        pushAward(stats, 'Luckiest Hail Mary', `${bestHailMary.score >= 0 ? '+' : ''}${bestHailMary.score}`, `${bestHailMary.player} spun the chaos wheel and survived`);
+        pushAward(stats, 'Luckiest Life Preserver', `${bestHailMary.score >= 0 ? '+' : ''}${bestHailMary.score}`, `${bestHailMary.player} grabbed the life preserver and survived`);
       }
     }
 
@@ -8205,10 +8236,10 @@
           ondragend="rosterDragEnd(event)"`;
       }
 
-      // Hail Mary
+      // Life Preserver
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{pastHalf,gameOver:over});
       let hailBtn='';
-      if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button onclick="authorizeHailMary('${p}')" class="ml-2 text-2xl hover:scale-125 transition-transform" title="Hail Mary Unlocked">🛟</button>`;
+      if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button onclick="authorizeHailMary('${p}')" class="ml-2 text-2xl hover:scale-125 transition-transform" title="Life Preserver Unlocked">🛟</button>`;
       else if(currentGame.hailMaryUsed.includes(p)) hailBtn=`<span class="ml-2 text-lg opacity-25">🛟</span>`;
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
@@ -10188,7 +10219,7 @@
         ${recordCard('Longest Losing Streak Ever',data.allTime.longestLosingStreak,false)}
         ${recordCard('Most Consecutive Games Without Last',data.allTime.longestNoLastStreak,true)}
         ${recordCard('Biggest Single-Game Comeback',data.allTime.biggestComeback,true)}
-        ${recordCard('Most Hail Marys In One Game',data.allTime.mostHailMarys,true)}
+        ${recordCard('Most Life Preservers In One Game',data.allTime.mostHailMarys,true)}
         <div><div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--muted);">Games Decided In The Final Round</div><div class="space-y-2">${data.allTime.finalRoundDecisions.length?data.allTime.finalRoundDecisions.slice(0,8).map(playerLine).join(''):empty}</div></div>
       </div>
     </div>`;
