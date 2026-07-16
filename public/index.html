@@ -1848,6 +1848,7 @@
         height: var(--scorecard-row-height) !important;
         padding-top: var(--scorecard-row-pad-y) !important;
         padding-bottom: var(--scorecard-row-pad-y) !important;
+        overflow: hidden;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
         font-size: var(--scorecard-player-font) !important;
@@ -1869,6 +1870,11 @@
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .tv-round-cell-num {
         font-size: var(--scorecard-round-font) !important;
       }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .text-\[9px\],
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .text-\[8px\] {
+        font-size: var(--scorecard-round-detail-font) !important;
+        line-height: 1.05 !important;
+      }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
         width: var(--scorecard-rank-size) !important;
         height: var(--scorecard-rank-size) !important;
@@ -1880,6 +1886,10 @@
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.items-center {
         gap: var(--scorecard-cell-gap) !important;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell {
+        padding-left: var(--scorecard-total-pad-x) !important;
+        padding-right: var(--scorecard-total-pad-x) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .wizard-current-bid {
         transform: scale(var(--scorecard-bid-scale));
@@ -8158,7 +8168,8 @@
       const root=document.getElementById('scorecard-capture');
       if(!root)return;
       root.classList.remove('scorecard-fit-rows');
-      ['--scorecard-row-height','--scorecard-row-pad-y','--scorecard-player-font','--scorecard-avatar-size','--scorecard-total-font','--scorecard-input-height','--scorecard-input-pad-y','--scorecard-round-font','--scorecard-bid-scale','--scorecard-rank-size','--scorecard-rank-font','--scorecard-dealer-font','--scorecard-dealer-pad-y','--scorecard-dealer-pad-x','--scorecard-cell-gap'].forEach(p=>root.style.removeProperty(p));
+      const fitVars=['--scorecard-row-height','--scorecard-row-pad-y','--scorecard-player-font','--scorecard-avatar-size','--scorecard-total-font','--scorecard-input-height','--scorecard-input-pad-y','--scorecard-round-font','--scorecard-round-detail-font','--scorecard-bid-scale','--scorecard-rank-size','--scorecard-rank-font','--scorecard-dealer-font','--scorecard-dealer-pad-y','--scorecard-dealer-pad-x','--scorecard-cell-gap','--scorecard-total-pad-x'];
+      fitVars.forEach(p=>root.style.removeProperty(p));
       if(!document.body.classList.contains('active-match-view')||root.offsetParent===null)return;
       const wrap=root.querySelector('.scorecard-table-wrap');
       const table=root.querySelector('table.scorecard-table');
@@ -8170,24 +8181,36 @@
       const targetRow=Math.floor(availableRowsHeight/rows.length);
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow>=currentRow-1)return;
-      const scale=Math.max(0.62,Math.min(1,targetRow/currentRow));
-      const rowHeight=Math.max(32,targetRow);
-      root.style.setProperty('--scorecard-row-height',`${rowHeight}px`);
-      root.style.setProperty('--scorecard-row-pad-y',`${Math.max(2,Math.round(8*scale))}px`);
-      root.style.setProperty('--scorecard-player-font',`${Math.max(1.05,2.45*scale).toFixed(2)}rem`);
-      root.style.setProperty('--scorecard-avatar-size',`${Math.max(30,58*scale).toFixed(0)}px`);
-      root.style.setProperty('--scorecard-total-font',`${Math.max(1.32,3.0*scale).toFixed(2)}rem`);
-      root.style.setProperty('--scorecard-input-height',`${Math.max(24,38*scale).toFixed(0)}px`);
-      root.style.setProperty('--scorecard-input-pad-y',`${Math.max(2,6*scale).toFixed(0)}px`);
-      root.style.setProperty('--scorecard-round-font',`${Math.max(0.68,1.1*scale).toFixed(2)}rem`);
-      root.style.setProperty('--scorecard-bid-scale',`${Math.max(0.72,scale).toFixed(2)}`);
-      root.style.setProperty('--scorecard-rank-size',`${Math.max(22,28*scale).toFixed(0)}px`);
-      root.style.setProperty('--scorecard-rank-font',`${Math.max(0.62,0.78*scale).toFixed(2)}rem`);
-      root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.48,0.68*scale).toFixed(2)}rem`);
-      root.style.setProperty('--scorecard-dealer-pad-y',`${Math.max(2,4*scale).toFixed(0)}px`);
-      root.style.setProperty('--scorecard-dealer-pad-x',`${Math.max(5,9*scale).toFixed(0)}px`);
-      root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.18,0.5*scale).toFixed(2)}rem`);
       root.classList.add('scorecard-fit-rows');
+      let scale=Math.max(0.52,Math.min(1,targetRow/currentRow));
+      let rowHeight=Math.max(26,targetRow);
+      const applyFit=()=>{
+        root.style.setProperty('--scorecard-row-height',`${Math.max(24,Math.floor(rowHeight))}px`);
+        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.round(8*scale))}px`);
+        root.style.setProperty('--scorecard-player-font',`${Math.max(0.92,2.45*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-avatar-size',`${Math.max(24,58*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-total-font',`${Math.max(1.05,3.0*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-input-height',`${Math.max(20,38*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-round-font',`${Math.max(0.58,1.1*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-round-detail-font',`${Math.max(0.46,0.64*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-bid-scale',`${Math.max(0.58,scale).toFixed(2)}`);
+        root.style.setProperty('--scorecard-rank-size',`${Math.max(18,28*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.52,0.78*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.42,0.68*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-dealer-pad-y',`${Math.max(1,4*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-dealer-pad-x',`${Math.max(4,9*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-total-pad-x',`${Math.max(0.35,1.0*scale).toFixed(2)}rem`);
+      };
+      for(let i=0;i<5;i++){
+        applyFit();
+        const overflow=table.getBoundingClientRect().height-wrap.clientHeight;
+        if(overflow<=1)break;
+        const ratio=Math.max(0.8,(wrap.clientHeight-2)/Math.max(1,table.getBoundingClientRect().height));
+        scale=Math.max(0.44,scale*ratio*0.97);
+        rowHeight=Math.max(22,rowHeight*ratio*0.97);
+      }
     } finally {
       gnPerfEnd(fitTimer);
     }
