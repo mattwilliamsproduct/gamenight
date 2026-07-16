@@ -814,8 +814,52 @@
     .caret-transparent { caret-color: transparent; }
 
     /* ════════ WHEEL ════════ */
-    #wheel-canvas { transition: transform 6s cubic-bezier(0.17,0.67,0.14,1); }
-    .wheel-pointer { width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:44px solid var(--ink);position:absolute;top:-12px;left:50%;transform:translateX(-50%);z-index:10;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
+    .wheel-spinner {
+      position: absolute;
+      inset: 0;
+      z-index: 11;
+      pointer-events: none;
+      transform: rotate(0deg);
+      transition: transform 6s cubic-bezier(0.17,0.67,0.14,1);
+    }
+    .wheel-spinner::before {
+      content: '';
+      position: absolute;
+      left: calc(50% - 4px);
+      top: 12%;
+      width: 8px;
+      height: 38%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fffaf1, #0a4f49 30%, #073f3b);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.32);
+    }
+    .wheel-spinner::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 7%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 32px solid #fffaf1;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.34));
+    }
+    .wheel-spinner-hub {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 54px;
+      height: 54px;
+      transform: translate(-50%,-50%);
+      z-index: 12;
+      border-radius: 999px;
+      border: 4px solid #fffaf1;
+      background: radial-gradient(circle at 35% 30%, #6ee7b7, #0a4f49 70%);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.35);
+      pointer-events: none;
+    }
 
     /* ════════ AVATARS ════════ */
     .avatar-img { width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid var(--hairline);background:var(--bg-2);flex-shrink:0; }
@@ -4016,8 +4060,9 @@
         <h3 id="wheel-player-name" class="font-display text-4xl md:text-5xl mb-1"></h3>
         <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger slices are more common. Tiny slices = jackpots.</p>
         <div class="relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
-          <div class="wheel-pointer"></div>
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
+          <div id="wheel-spinner" class="wheel-spinner"></div>
+          <div class="wheel-spinner-hub"></div>
         </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl">SPIN THE WHEEL</button>
       </div>
@@ -6078,6 +6123,14 @@
     const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Hail Mary Unlocked';
     document.getElementById('btn-spin').disabled=false;
     document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+    const spinner=document.getElementById('wheel-spinner');
+    if(spinner){
+      spinner.style.transition='none';
+      currentWheelRotation=0;
+      spinner.style.transform='rotate(0deg)';
+      spinner.offsetHeight;
+      spinner.style.transition='';
+    }
     drawWheel();
     openModal('wheel-modal');
   }
@@ -6085,13 +6138,14 @@
   function spinWheel(){
     document.getElementById('btn-spin').disabled=true;
     document.getElementById('btn-spin').textContent='SPINNING…';
-    const c=document.getElementById('wheel-canvas'); const slices=drawWheel();
+    const spinner=document.getElementById('wheel-spinner');
+    const slices=drawWheel();
     const deg=Math.floor(Math.random()*360);
     currentWheelRotation += 360*7 + deg;
-    c.style.transform=`rotate(${currentWheelRotation}deg)`;
+    if(spinner)spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
     setTimeout(()=>{
       const rotRad=((currentWheelRotation%360)*Math.PI)/180;
-      let pa=-Math.PI/2-rotRad;
+      let pa=-Math.PI/2+rotRad;
       while(pa<-Math.PI)pa+=2*Math.PI; while(pa>Math.PI)pa-=2*Math.PI;
       let win=slices.find(s=>pa>=s._start&&pa<=s._end);
       if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
