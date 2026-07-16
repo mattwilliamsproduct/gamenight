@@ -5944,9 +5944,23 @@
     return out.map(({ _wheelBad, ...rest }) => rest);
   }
 
+  function getEight18HailMarySlices(){
+    return interleaveWheelSlicesByKind([
+      {label:"−5 Pts",  color:"#991b1b", effect:()=>-5, weight:5,  _wheelBad:true},
+      {label:"+10 Pts", color:"#10b981", effect:()=>10, weight:18, _wheelBad:false},
+      {label:"0 Pts",   color:"#78716c", effect:()=>0,  weight:12, _wheelBad:false},
+      {label:"+5 Pts",  color:"#34d399", effect:()=>5,  weight:16, _wheelBad:false},
+      {label:"+10 Pts", color:"#0d9488", effect:()=>10, weight:20, _wheelBad:false},
+      {label:"−5 Pts",  color:"#7f1d1d", effect:()=>-5, weight:3,  _wheelBad:true},
+      {label:"+5 Pts",  color:"#6ee7b7", effect:()=>5,  weight:16, _wheelBad:false},
+      {label:"0 Pts",   color:"#a8a29e", effect:()=>0,  weight:10, _wheelBad:false}
+    ]);
+  }
+
   function getWheelSlices(){
     const activePlayers=getActivePlayers(currentGame);
     if(!activePlayers.includes(wheelPlayer))return [];
+    if(currentGame.name==='818')return getEight18HailMarySlices();
     const winLow=configs[currentGame.name].winLow;
     const score=currentGame?.totals[wheelPlayer]||0;
     if(winLow){
