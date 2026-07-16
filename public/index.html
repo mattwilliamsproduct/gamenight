@@ -2985,6 +2985,90 @@
       letter-spacing: 0.08em;
       text-shadow: 0 1px 0 rgba(255,255,255,0.85);
     }
+    .bp-game-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.72rem;
+    }
+    .bp-on-deck-panel {
+      padding: 1rem;
+      border: 1px solid rgba(255,255,255,0.68);
+      border-radius: 24px;
+      background:
+        repeating-linear-gradient(45deg, rgba(231,115,88,0.018) 0 1px, transparent 1px 15px),
+        linear-gradient(145deg, rgba(255,251,243,0.985), rgba(255,246,238,0.96));
+      box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
+    }
+    .bp-table-zone {
+      min-height: 0;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+    }
+    @media (min-width: 1024px) {
+      #home-screen {
+        min-height: min(740px, calc(100dvh - 7.4rem));
+      }
+      .bp-roster-panel,
+      .bp-home-side {
+        min-height: 0;
+        height: min(740px, calc(100dvh - 7.4rem));
+      }
+      .bp-roster-panel {
+        display: flex;
+        flex-direction: column;
+      }
+      #lineup-list {
+        flex: 1 1 auto;
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      .bp-home-side {
+        min-height: 0;
+      }
+      .bp-game-picker {
+        flex: 0 0 auto;
+      }
+      .bp-on-deck-panel {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      #bench-list {
+        flex: 1 1 auto;
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      .game-card.quest-card.bp-game-card {
+        min-height: 86px !important;
+        padding: 0.85rem 0.95rem !important;
+        border-radius: 16px;
+      }
+      .bp-game-card > .flex-1 {
+        max-width: 68%;
+      }
+      .bp-game-card .font-display {
+        font-size: clamp(1.28rem, 1.72vw, 1.72rem) !important;
+      }
+      .quest-badge {
+        margin-top: 0.28rem !important;
+        font-size: 0.52rem;
+        line-height: 1.18;
+      }
+      .bp-game-card-art {
+        width: 44%;
+        border-radius: 14px;
+      }
+    }
+    @media (min-width: 1280px) {
+      .bp-game-grid {
+        gap: 0.82rem;
+      }
+      .game-card.quest-card.bp-game-card {
+        min-height: 94px !important;
+      }
+    }
 
     /* Active game identity and command bar */
     .active-match-banner {
@@ -3497,6 +3581,7 @@
     html.dark #top-nav,
     html.dark .bp-roster-panel,
     html.dark .bp-game-picker,
+    html.dark .bp-on-deck-panel,
     html.dark #history-screen,
     html.dark #profiles-screen,
     html.dark .active-match-banner,
@@ -3612,6 +3697,32 @@
       .score-entry-panel { border-radius: 22px; }
     }
 
+    @media (min-width: 1024px) {
+      #home-screen {
+        min-height: min(740px, calc(100dvh - 7.4rem));
+      }
+      #home-screen .bp-roster-panel,
+      #home-screen .bp-home-side {
+        height: min(740px, calc(100dvh - 7.4rem));
+      }
+      #home-screen #lineup-list,
+      #home-screen #bench-list {
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      #home-screen .bp-game-grid {
+        display: grid;
+      }
+    }
+    @media (max-width: 760px) {
+      .bp-game-grid {
+        grid-template-columns: 1fr;
+      }
+      .bp-home-side {
+        gap: 1rem;
+      }
+    }
+
     /* ════════ DARK-MODE OVERRIDES ════════ */
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
@@ -3703,14 +3814,14 @@
     </div>
 
     <!-- ═══ HOME ═══ -->
-    <div id="home-screen" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+    <div id="home-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
       <!-- Roster -->
-      <div class="lg:col-span-3 surface-raised brand-panel bp-roster-panel p-7">
+      <div class="lg:col-span-7 surface-raised brand-panel bp-roster-panel p-7">
         <div class="bp-panel-heading flex items-baseline justify-between mb-6">
           <div>
             <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
-            <h2 class="font-display text-4xl">Build Roster</h2>
+            <h2 class="font-display text-4xl">Game Night Setup</h2>
           </div>
           <div id="roster-count" class="chip crest-chip"></div>
         </div>
@@ -3723,72 +3834,72 @@
             onblur="this.style.borderColor='var(--hairline)';this.style.background='var(--bg-2)';">
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <div class="flex items-center justify-between mb-3 px-1">
-              <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">On Deck</h3>
-              <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Drag to merge</span>
-            </div>
-            <div id="bench-list" class="space-y-2 min-h-[280px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
+        <div class="bp-table-zone">
+          <div class="mb-3 px-1">
+            <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Tonight's Table</h3>
           </div>
-          <div>
-            <div class="mb-3 px-1">
-              <h3 class="bp-column-title bp-lineup-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--emerald);">Tonight's Table</h3>
-            </div>
-            <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
-          </div>
+          <div id="lineup-list" class="border-2 border-dashed rounded-2xl p-3 min-h-[280px] max-h-[420px] overflow-y-auto space-y-2" style="border-color:var(--emerald-border);background:rgba(16,185,129,0.04);"></div>
         </div>
       </div>
 
-      <!-- Games -->
-      <div class="lg:col-span-2 bp-game-picker">
-        <div class="bp-panel-heading bp-game-heading mb-6">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
-          <h2 class="font-display text-4xl">Select Game</h2>
+      <!-- Games and saved players -->
+      <div class="lg:col-span-5 bp-home-side flex flex-col gap-4">
+        <div class="bp-game-picker">
+          <div class="bp-panel-heading bp-game-heading mb-6">
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Ready to Play</div>
+            <h2 class="font-display text-4xl">Select Game</h2>
+          </div>
+          <div class="bp-game-grid">
+            <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">Five Crowns</div>
+                <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
+              </div>
+            </button>
+            <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">Wizard</div>
+                <div class="quest-badge mt-2">Highest total wins · bid &amp; score</div>
+              </div>
+            </button>
+            <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">818</div>
+                <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
+              </div>
+            </button>
+            <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">Flip 7</div>
+                <div class="quest-badge mt-2">Highest total wins · push luck</div>
+              </div>
+            </button>
+            <button onclick="startGame('Beat the Heat')" class="game-card quest-card bp-game-card bp-beat-heat group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">Beat the Heat</div>
+                <div class="quest-badge mt-2">Lowest heat wins · log peppers</div>
+              </div>
+            </button>
+            <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">Rook</div>
+                <div class="quest-badge mt-2">Highest total wins · pick bid, trump &amp; score</div>
+              </div>
+            </button>
+          </div>
         </div>
-        <div class="space-y-4">
-          <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
-            <span class="bp-game-card-art" aria-hidden="true"></span>
-            <div class="flex-1 min-w-0">
-              <div class="font-display text-3xl leading-tight">Five Crowns</div>
-              <div class="quest-badge mt-2">Lowest total wins · 11 rounds</div>
-            </div>
-          </button>
-          <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
-            <span class="bp-game-card-art" aria-hidden="true"></span>
-            <div class="flex-1 min-w-0">
-              <div class="font-display text-3xl leading-tight">Wizard</div>
-              <div class="quest-badge mt-2">Highest total wins · bid &amp; score</div>
-            </div>
-          </button>
-          <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
-            <span class="bp-game-card-art" aria-hidden="true"></span>
-            <div class="flex-1 min-w-0">
-              <div class="font-display text-3xl leading-tight">818</div>
-              <div class="quest-badge mt-2">Bid the table · 8 down to 1 and back</div>
-            </div>
-          </button>
-          <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
-            <span class="bp-game-card-art" aria-hidden="true"></span>
-            <div class="flex-1 min-w-0">
-              <div class="font-display text-3xl leading-tight">Flip 7</div>
-              <div class="quest-badge mt-2">Highest total wins · push luck</div>
-            </div>
-          </button>
-          <button onclick="startGame('Beat the Heat')" class="game-card quest-card bp-game-card bp-beat-heat group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
-            <span class="bp-game-card-art" aria-hidden="true"></span>
-            <div class="flex-1 min-w-0">
-              <div class="font-display text-3xl leading-tight">Beat the Heat</div>
-              <div class="quest-badge mt-2">Lowest heat wins · log peppers</div>
-            </div>
-          </button>
-          <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
-            <span class="bp-game-card-art" aria-hidden="true"></span>
-            <div class="flex-1 min-w-0">
-              <div class="font-display text-3xl leading-tight">Rook</div>
-              <div class="quest-badge mt-2">Highest total wins · pick bid, trump &amp; score</div>
-            </div>
-          </button>
+        <div class="bp-on-deck-panel surface-raised">
+          <div class="flex items-center justify-between mb-3 px-1">
+            <h3 class="bp-column-title bp-bench-title text-[10px] font-extrabold uppercase tracking-[0.2em]" style="color:var(--muted);">On Deck</h3>
+            <span class="text-[9px] font-bold px-2 py-1 rounded-md" style="background:var(--bg-2);color:var(--muted);">Tap to play · Drag to merge</span>
+          </div>
+          <div id="bench-list" class="space-y-2 min-h-[160px] max-h-[420px] overflow-y-auto pr-2 pb-2"></div>
         </div>
       </div>
     </div>
