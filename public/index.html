@@ -1864,7 +1864,7 @@
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
         font-size: var(--scorecard-player-font) !important;
-        line-height: 1.05;
+        line-height: 0.96;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
         width: var(--scorecard-avatar-size) !important;
@@ -8203,9 +8203,10 @@
       let scale=Math.max(0.52,Math.min(1,targetRow/currentRow));
       let rowHeight=Math.max(26,targetRow);
       const applyFit=()=>{
+        const playerFont=Math.max(0.96,Math.min(2.35,Math.max(2.45*scale,rowHeight/36)));
         root.style.setProperty('--scorecard-row-height',`${Math.max(24,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.round(8*scale))}px`);
-        root.style.setProperty('--scorecard-player-font',`${Math.max(0.92,2.45*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(2)}rem`);
         root.style.setProperty('--scorecard-avatar-size',`${Math.max(24,58*scale).toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${Math.max(1.05,3.0*scale).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-input-height',`${Math.max(20,38*scale).toFixed(0)}px`);
