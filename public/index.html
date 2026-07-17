@@ -2130,7 +2130,8 @@
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .dealer-badge {
         font-size: var(--scorecard-dealer-font) !important;
-        padding: var(--scorecard-dealer-pad-y) var(--scorecard-dealer-pad-x) !important;
+        width: var(--scorecard-dealer-size) !important;
+        height: var(--scorecard-dealer-size) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.items-center {
         gap: var(--scorecard-cell-gap) !important;
@@ -2251,22 +2252,36 @@
       margin-bottom: -0.18em;
     }
     button.dealer-name-indicator.scoreboard-player-name {
+      max-width: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.16em;
       padding-top: 0.08em;
       padding-bottom: 0.08em;
+    }
+    button.dealer-name-indicator .dealer-player-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .dealer-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
-      margin-left: 0.35rem;
-      padding: 0.22rem 0.5rem;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 1.45rem;
+      height: 1.45rem;
+      margin-left: 0.12rem;
+      padding: 0;
       border-radius: 999px;
       background: var(--emerald-bg);
       border: 1px solid var(--emerald-border);
       color: var(--emerald);
-      font-size: 0.62rem;
+      font-size: 0.74rem;
       font-weight: 900;
-      letter-spacing: 0.1em;
+      letter-spacing: 0;
+      line-height: 1;
       text-transform: uppercase;
       vertical-align: middle;
       white-space: nowrap;
@@ -7726,7 +7741,7 @@
           <div class="flex items-center gap-2 min-w-0">
             ${getStreakAvatarHtml(p,'avatar-img-sc mx-1')}
             ${isDealer
-              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge">Dealer</span></button>`
+              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
               : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
@@ -8835,7 +8850,7 @@
       const root=document.getElementById('scorecard-capture');
       if(!root)return;
       root.classList.remove('scorecard-fit-rows');
-      const fitVars=['--scorecard-row-height','--scorecard-row-pad-y','--scorecard-player-font','--scorecard-avatar-size','--scorecard-total-font','--scorecard-input-height','--scorecard-input-pad-y','--scorecard-round-font','--scorecard-round-detail-font','--scorecard-bid-scale','--scorecard-rank-size','--scorecard-rank-font','--scorecard-dealer-font','--scorecard-dealer-pad-y','--scorecard-dealer-pad-x','--scorecard-cell-gap','--scorecard-total-pad-x'];
+      const fitVars=['--scorecard-row-height','--scorecard-row-pad-y','--scorecard-player-font','--scorecard-avatar-size','--scorecard-total-font','--scorecard-input-height','--scorecard-input-pad-y','--scorecard-round-font','--scorecard-round-detail-font','--scorecard-bid-scale','--scorecard-rank-size','--scorecard-rank-font','--scorecard-dealer-font','--scorecard-dealer-size','--scorecard-cell-gap','--scorecard-total-pad-x'];
       fitVars.forEach(p=>root.style.removeProperty(p));
       if(!document.body.classList.contains('active-match-view')||root.offsetParent===null)return;
       const wrap=root.querySelector('.scorecard-table-wrap');
@@ -8865,9 +8880,8 @@
         root.style.setProperty('--scorecard-bid-scale',`${Math.max(0.58,scale).toFixed(2)}`);
         root.style.setProperty('--scorecard-rank-size',`${Math.max(18,28*scale).toFixed(0)}px`);
         root.style.setProperty('--scorecard-rank-font',`${Math.max(0.52,0.78*scale).toFixed(2)}rem`);
-        root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.42,0.68*scale).toFixed(2)}rem`);
-        root.style.setProperty('--scorecard-dealer-pad-y',`${Math.max(1,4*scale).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-dealer-pad-x',`${Math.max(4,9*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.46,0.72*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-dealer-size',`${Math.max(14,22*scale).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-total-pad-x',`${Math.max(0.35,1.0*scale).toFixed(2)}rem`);
       };
@@ -9097,7 +9111,7 @@
               <span class="scoreboard-rank-badge font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}">${ri+1}</span>
               ${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}
               ${isDealer
-                ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge">Dealer</span></button>`
+                ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
                 : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
               ${hailBtn}${retiredTag}
             </div>
