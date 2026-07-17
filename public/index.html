@@ -2177,14 +2177,14 @@
     html.dark .scorecard-table thead tr { background:#1c1c19; }
     html.dark .scorecard-table thead th { color: var(--muted); }
     .scorecard-col-player {
-      width: 1px;
-      max-width: 220px;
+      width: clamp(260px, 30vw, 420px);
+      max-width: clamp(260px, 30vw, 420px);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .scorecard-col-total {
-      width: 88px;
+      width: 74px;
       white-space: nowrap;
     }
     .scorecard-col-entry {
@@ -3618,12 +3618,46 @@
     }
     .scoreboard-rank-badge { border-radius: 10px; }
     .scorecard-total-cell {
-      min-width: 92px;
+      min-width: 74px;
       background: linear-gradient(180deg, rgba(226,246,239,0.7), rgba(249,253,250,0.72));
       color: #0b3935;
     }
     .scorecard-total-cell.tv-stat-num,
-    .scorecard-total-cell .tv-stat-num { font-size: clamp(2.2rem, 4vw, 3.15rem) !important; }
+    .scorecard-total-cell .tv-stat-num { font-size: clamp(2.05rem, 3.4vw, 2.85rem) !important; }
+    .scorecard-avatar-slot {
+      position: relative;
+      display: inline-flex;
+      flex: 0 0 auto;
+    }
+    .scorecard-life-preserver {
+      position: absolute;
+      right: -0.12rem;
+      bottom: -0.12rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.28rem;
+      height: 1.28rem;
+      border-radius: 999px;
+      background: rgba(255, 250, 241, 0.94);
+      border: 1px solid rgba(196, 130, 92, 0.38);
+      box-shadow: 0 2px 7px rgba(15, 23, 42, 0.18);
+      font-size: 0.9rem;
+      line-height: 1;
+      z-index: 2;
+    }
+    button.scorecard-life-preserver {
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+    button.scorecard-life-preserver:hover {
+      filter: brightness(1.04);
+      transform: scale(1.12);
+    }
+    .scorecard-life-preserver-used {
+      opacity: 0.48;
+      filter: grayscale(0.18);
+    }
     .leader-row,
     .leader-row td,
     .leader-row td:first-child { background: #dff5ed !important; }
@@ -7747,7 +7781,7 @@
           ${progressBar}
         </td>
         <td data-sc-part="lead" class="scorecard-col-bid px-3 py-2 text-center align-middle">${bidCell}</td>
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}${dist}</td>
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-3 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}</td>
         <td data-sc-part="lead" class="scorecard-col-target px-3 py-2 text-center">
           <span class="tv-target-pct font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
         </td>`;
@@ -9077,8 +9111,8 @@
       // Life Preserver
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{pastHalf,gameOver:over});
       let hailBtn='';
-      if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button onclick="authorizeHailMary('${p}')" class="ml-2 text-2xl hover:scale-125 transition-transform" title="Life Preserver Unlocked">🛟</button>`;
-      else if(currentGame.hailMaryUsed.includes(p)) hailBtn=`<span class="ml-2 text-lg opacity-25">🛟</span>`;
+      if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button type="button" onclick="authorizeHailMary('${p}')" class="scorecard-life-preserver" title="Life Preserver Unlocked" aria-label="Life Preserver available for ${escapeHtml(p)}">🛟</button>`;
+      else if(currentGame.hailMaryUsed.includes(p)) hailBtn=`<span class="scorecard-life-preserver scorecard-life-preserver-used" title="Life Preserver used" aria-label="Life Preserver used">🛟</span>`;
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -9109,16 +9143,16 @@
             <div class="flex items-center gap-2 min-w-0 flex-1">
               ${dragHandle}${arrows}
               <span class="scoreboard-rank-badge font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}">${ri+1}</span>
-              ${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}
+              <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}${hailBtn}</span>
               ${isDealer
                 ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
                 : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
-              ${hailBtn}${retiredTag}
+              ${retiredTag}
             </div>
             ${wizardCurrentBid}
           </div>
         </td>
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-4 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}${dist}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-3 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}</td>`;
 
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
