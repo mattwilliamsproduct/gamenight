@@ -3611,8 +3611,8 @@
       line-height: 1.14;
     }
     .avatar-img-sc {
-      width: clamp(3rem, 5.2vw, 3.7rem);
-      height: clamp(3rem, 5.2vw, 3.7rem);
+      width: clamp(3.35rem, 6vw, 4.35rem);
+      height: clamp(3.35rem, 6vw, 4.35rem);
       border-radius: 15px;
       border-width: 2px;
     }
@@ -4040,7 +4040,7 @@
       .bp-game-picker { padding: 1.25rem !important; }
       .bp-panel-heading { padding-bottom: 0.75rem; margin-bottom: 0.9rem !important; }
       .scorecard-table tbody td { height: 4.2rem; }
-      .avatar-img-sc { width: 3.05rem; height: 3.05rem; }
+      .avatar-img-sc { width: 3.35rem; height: 3.35rem; }
       .scoreboard-player-name { font-size: 2rem !important; }
     }
     @media (min-width: 1024px) and (max-height: 760px) {
@@ -8871,7 +8871,7 @@
         root.style.setProperty('--scorecard-row-height',`${Math.max(24,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.round(8*scale))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(2)}rem`);
-        root.style.setProperty('--scorecard-avatar-size',`${Math.max(24,58*scale).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-avatar-size',`${Math.max(28,Math.min(rowHeight-6,70*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${Math.max(1.05,3.0*scale).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-input-height',`${Math.max(20,38*scale).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
