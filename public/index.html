@@ -9587,6 +9587,10 @@
     return mode?.kind==='wizard-tricks'||mode?.kind==='818-tricks';
   }
 
+  function shouldShowScoreEntryDealer(game=currentGame){
+    return !!game&&['Wizard','818','Five Crowns','Flip 7 Vengeance'].includes(game.name);
+  }
+
   function getScoreEntryDraftSource(mode){
     if(!currentGame||!mode)return {};
     if(isScoreEntryBidMode(mode))return currentGame.currentBids||{};
@@ -9701,7 +9705,7 @@
       players,
       tablePlayers,
       values,
-      dealer:currentGame.name==='818'?getCurrentDealerName(currentGame, tablePlayers):null,
+      dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
       initialJson:JSON.stringify(values)
     };
