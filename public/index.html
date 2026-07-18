@@ -5759,16 +5759,6 @@
           <div class="space-y-2">
             <div class="settings-appearance-row">
               <div class="min-w-0">
-                <div class="font-bold text-sm">Theme</div>
-                <div class="text-[11px] font-semibold" style="color:var(--muted);">Choose the porch lighting</div>
-              </div>
-              <div class="settings-segment" aria-label="Color theme">
-                <button type="button" id="settings-theme-light" class="settings-choice" onclick="setDarkMode(false)" aria-pressed="false"><span aria-hidden="true">☀️</span> Light</button>
-                <button type="button" id="settings-theme-dark" class="settings-choice" onclick="setDarkMode(true)" aria-pressed="false"><span aria-hidden="true">🌙</span> Evening</button>
-              </div>
-            </div>
-            <div class="settings-appearance-row">
-              <div class="min-w-0">
                 <div class="font-bold text-sm">Text Size</div>
                 <div class="text-[11px] font-semibold" style="color:var(--muted);">Adjust for the iPad and TV</div>
               </div>
@@ -6299,10 +6289,6 @@
   let currentUIBase = parseInt(localStorage.getItem('gn_ui_scale'))||16;
   document.documentElement.style.fontSize = currentUIBase+'px';
   function syncAppearanceControls(){
-    const lightBtn=document.getElementById('settings-theme-light');
-    const darkBtn=document.getElementById('settings-theme-dark');
-    if(lightBtn){lightBtn.classList.toggle('active',!darkMode);lightBtn.setAttribute('aria-pressed',String(!darkMode));}
-    if(darkBtn){darkBtn.classList.toggle('active',darkMode);darkBtn.setAttribute('aria-pressed',String(darkMode));}
     const sizeLabel=document.getElementById('settings-text-size-label');
     if(sizeLabel)sizeLabel.textContent=`${Math.round((currentUIBase/16)*100)}%`;
     const smaller=document.getElementById('settings-text-smaller');
@@ -6317,20 +6303,6 @@
     try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);}
     syncAppearanceControls();
   }
-
-  // ── Dark mode ──
-  let darkMode = localStorage.getItem('gn_dark')==='1';
-  function applyDarkMode(){
-    document.getElementById('html-root').classList.toggle('dark',darkMode);
-    syncAppearanceControls();
-  }
-  function setDarkMode(nextDark){
-    darkMode=Boolean(nextDark);
-    const t=gnPerfStart('GN localStorage.setItem gn_dark');
-    try{localStorage.setItem('gn_dark',darkMode?'1':'0');}finally{gnPerfEnd(t);}
-    applyDarkMode();
-  }
-  function toggleDarkMode(){setDarkMode(!darkMode);}
 
   // ── Animation/flow preferences (all default ON) ──
   function loadPref(key, defaultOn=true){
@@ -11376,7 +11348,7 @@
     try{
       // Use higher scale, explicit dimensions, and a small padding buffer to prevent edge cropping
       const canvas=await html2canvas(el, {
-        backgroundColor: darkMode ? '#0c0c0b' : '#ffffff',
+        backgroundColor: '#ffffff',
         scale: 2.5,
         logging: false,
         useCORS: true,
@@ -12457,7 +12429,8 @@
   /* ═══ BOOT ═══ */
   window.onload=function(){
     gnPerfInit();
-    applyDarkMode();
+    document.getElementById('html-root')?.classList.remove('dark');
+    syncAppearanceControls();
     wireNumpadEventBoundary();
     handleOrientation();
     updateNavButton();
