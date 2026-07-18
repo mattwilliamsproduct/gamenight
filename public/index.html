@@ -18,14 +18,10 @@
   <link rel="icon" type="image/png" sizes="32x32" href="./bp-favicon-32.png?v=3">
   <link rel="icon" type="image/png" sizes="192x192" href="./bp-icon-192.png?v=3">
   <title>Back Porch Games</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="./assets/fonts.css">
+  <link rel="stylesheet" href="./assets/app-utilities.css">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Nunito+Sans:wght@500;600;700;800;900&family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
     /* ════════ TOKENS ════════ */
     html {
       -webkit-text-size-adjust: 100%;
@@ -4973,6 +4969,11 @@
   <!-- Toast notifications -->
   <div id="toast-container"></div>
 
+  <div id="pwa-update-notice" class="hidden fixed inset-x-4 bottom-5 z-[220] mx-auto max-w-md items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-xl sm:inset-x-auto sm:right-5" style="background:var(--surface);border-color:var(--emerald-border);color:var(--ink);">
+    <span class="text-sm font-extrabold">Fresh version ready</span>
+    <button type="button" onclick="applyPwaUpdate()" class="btn-primary px-4 py-2 text-sm">Refresh</button>
+  </div>
+
   <!-- Save indicator -->
   <div id="save-indicator">✓ Saved</div>
 
@@ -6366,6 +6367,66 @@
     setTimeout(()=>{ if(t.parentNode) t.remove(); }, 3700);
   }
 
+  /* ═══ LOCAL OPTIONAL ASSETS ═══ */
+  const optionalAssetUrls={
+    confetti:'./assets/vendor/canvas-confetti.js',
+    chart:'./assets/vendor/chart.js',
+    html2canvas:'./assets/vendor/html2canvas.js'
+  };
+  const optionalAssetLoads={};
+  function loadOptionalAsset(name){
+    const url=optionalAssetUrls[name];
+    if(!url)return Promise.reject(new Error(`Unknown optional asset: ${name}`));
+    if(name==='confetti'&&typeof window.confetti==='function')return Promise.resolve();
+    if(name==='chart'&&window.Chart)return Promise.resolve();
+    if(name==='html2canvas'&&typeof window.html2canvas==='function')return Promise.resolve();
+    if(optionalAssetLoads[name])return optionalAssetLoads[name];
+    optionalAssetLoads[name]=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src=url;
+      script.async=true;
+      script.dataset.backPorchAsset=name;
+      script.onload=()=>resolve();
+      script.onerror=()=>{delete optionalAssetLoads[name];reject(new Error(`Could not load ${name}`));};
+      document.head.appendChild(script);
+    });
+    return optionalAssetLoads[name];
+  }
+  function warmCelebrationAssets(){loadOptionalAsset('confetti').catch(()=>{});}
+
+  /* ═══ PWA UPDATE FLOW ═══ */
+  let pwaRegistration=null;
+  let pwaRefreshPending=false;
+  function showPwaUpdateNotice(){
+    document.getElementById('pwa-update-notice')?.classList.remove('hidden');
+    document.getElementById('pwa-update-notice')?.classList.add('flex');
+  }
+  function applyPwaUpdate(){
+    if(pwaRegistration?.waiting){
+      pwaRefreshPending=true;
+      pwaRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+      window.setTimeout(()=>{if(pwaRefreshPending)window.location.reload();},1200);
+      return;
+    }
+    window.location.reload();
+  }
+  function initPwaUpdates(){
+    if(!('serviceWorker' in navigator))return;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(pwaRefreshPending)window.location.reload();
+    });
+    navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(registration=>{
+      pwaRegistration=registration;
+      if(registration.waiting&&navigator.serviceWorker.controller)showPwaUpdateNotice();
+      registration.addEventListener('updatefound',()=>{
+        const worker=registration.installing;
+        worker?.addEventListener('statechange',()=>{
+          if(worker.state==='installed'&&navigator.serviceWorker.controller)showPwaUpdateNotice();
+        });
+      });
+    }).catch(error=>console.warn('PWA update checks unavailable.',error));
+  }
+
   // ── Save indicator flash ──
   function flashSaveIndicator(){
     const el = document.getElementById('save-indicator'); if(!el) return;
@@ -7363,7 +7424,7 @@
     }).join('');
   }
 
-  function openProfileDetail(name){
+  async function openProfileDetail(name){
     editingPlayerProfile=name;
     const summary=getProfileSummary(name);
     document.getElementById('detail-name').textContent=name;
@@ -7432,6 +7493,12 @@
     renderSpecialRoundStats(name);
     document.getElementById('profile-detail-view').classList.remove('hidden');
     window.scrollTo({top:document.getElementById('profile-detail-view').offsetTop-100,behavior:'smooth'});
+    try{
+      await loadOptionalAsset('chart');
+    }catch(error){
+      console.warn('Profile chart unavailable.',error);
+      return;
+    }
     const ctx=document.getElementById('playerHistoryChart').getContext('2d');
     if(chartInstance)chartInstance.destroy();
     if(!data.length){
@@ -8156,6 +8223,7 @@
 
   function startGame(name){
     if(!players.length){alert('Add players to the Lineup first!');return;}
+    warmCelebrationAssets();
     if(name==='Rook'&&players.length<4){alert('Rook needs at least 4 players for call-your-partner scoring. Add a few more players to the Lineup first.');return;}
     if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
     if(currentGame&&!confirm('Save current game and start new?'))return;
@@ -11271,7 +11339,7 @@
     } else {
       haptic([60, 40, 100]);
     }
-    fireWinnerConfettiLoop();
+    loadOptionalAsset('confetti').catch(error=>console.warn('Winner celebration unavailable.',error)).finally(fireWinnerConfettiLoop);
   }
 
   function analyzeRecords(data){
@@ -11346,6 +11414,7 @@
   async function shareReceipt(){
     const el=document.getElementById('scorecard-capture'); if(!el)return;
     try{
+      await loadOptionalAsset('html2canvas');
       // Use higher scale, explicit dimensions, and a small padding buffer to prevent edge cropping
       const canvas=await html2canvas(el, {
         backgroundColor: '#ffffff',
@@ -12432,6 +12501,7 @@
     document.getElementById('html-root')?.classList.remove('dark');
     syncAppearanceControls();
     wireNumpadEventBoundary();
+    initPwaUpdates();
     handleOrientation();
     updateNavButton();
     if(currentGame){goActiveMatch(); requestWakeLock();}

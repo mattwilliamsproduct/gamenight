@@ -1,0 +1,25 @@
+{
+  "name": "back-porch-games",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build:styles": "tailwindcss -c tailwind.config.cjs -i ./src/tailwind.css -o ./public/assets/app-utilities.css --minify",
+    "build:vendor": "node ./scripts/copy-vendor-assets.mjs",
+    "build": "npm run build:styles && npm run build:vendor",
+    "check:syntax": "perl -0ne 'while (m{<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>}sg) { print $1, \"\\n\" }' public/index.html > /tmp/cardknight-inline.js && node --check /tmp/cardknight-inline.js",
+    "check:production-assets": "node ./scripts/verify-production-assets.mjs",
+    "check": "npm run check:syntax && npm run check:production-assets && git diff --check"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  },
+  "dependencies": {
+    "@fontsource/bree-serif": "^5.1.1",
+    "@fontsource/nunito-sans": "^5.1.1",
+    "@fontsource/pacifico": "^5.1.1",
+    "@fontsource/plus-jakarta-sans": "^5.1.1",
+    "canvas-confetti": "1.9.3",
+    "chart.js": "4.4.7",
+    "html2canvas": "1.4.1"
+  }
+}
