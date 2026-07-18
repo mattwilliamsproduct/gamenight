@@ -10592,7 +10592,9 @@
     const rowArea=Math.max(0,rows.getBoundingClientRect().height);
     const tightWidth=(window.visualViewport?.width||window.innerWidth||0)<1180;
     const shortHeight=(window.visualViewport?.height||window.innerHeight||0)<820;
-    const rowGap=count>=8?3:count>=6?4:7;
+    // Smaller tables have room for a clearer visual lane between each player.
+    // Larger tables stay compact so every player still fits without scrolling.
+    const rowGap=count<=5?(shortHeight?12:14):count>=8?3:count>=6?5:7;
     const rowHeight=Math.max(42,Math.floor((rowArea-(rowGap*(count-1)))/count));
     const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
     const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
@@ -10604,7 +10606,7 @@
     const totalCol=Math.floor(clamp(50,rowHeight*0.9,72));
     const inputCol=Math.floor(clamp(tightWidth?78:90,rowHeight*1.45,tightWidth?96:116));
     const contextCol=Math.floor(clamp(50,rowHeight*0.88,70));
-    const colGap=Math.floor(clamp(6,rowHeight*0.12,12));
+    const colGap=Math.floor(clamp(tightWidth?12:14,rowHeight*0.16,tightWidth?16:18));
     panel.style.setProperty('--se-fit-row-gap',`${rowGap}px`);
     panel.style.setProperty('--se-fit-row-pad',`${rowPad}px`);
     panel.style.setProperty('--se-fit-row-height',`${rowHeight}px`);
