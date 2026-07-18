@@ -793,20 +793,99 @@
       52% { transform: translateX(5px); filter: saturate(1.35); }
       76% { transform: translateX(-2px); filter: saturate(1.15); }
     }
-    @keyframes postgameStormCloudFall {
-      0% { transform: translate3d(0, -14vh, 0) rotate(-5deg); opacity: 0; }
-      12% { opacity: 0.95; }
-      100% { transform: translate3d(var(--storm-drift, 0px), 112vh, 0) rotate(7deg); opacity: 0.86; }
+    @keyframes postgameStormCloudRoll {
+      0% { transform: translate3d(calc(-14vw + var(--storm-drift, 0px)), -2vh, 0) scale(var(--storm-scale, 1)); opacity: 0; }
+      12% { opacity: var(--storm-opacity, 0.86); }
+      100% { transform: translate3d(calc(14vw + var(--storm-drift, 0px)), 1.5vh, 0) scale(var(--storm-scale, 1)); opacity: var(--storm-opacity, 0.86); }
     }
     @keyframes postgameStormRainFall {
-      0% { transform: translate3d(0, -12vh, 0) rotate(10deg); opacity: 0; }
-      8% { opacity: 0.9; }
-      100% { transform: translate3d(-18px, 112vh, 0) rotate(10deg); opacity: 0.45; }
+      0% { transform: translate3d(10vw, -18vh, 0) rotate(13deg); opacity: 0; }
+      6% { opacity: var(--rain-opacity, 0.72); }
+      100% { transform: translate3d(-16vw, 118vh, 0) rotate(13deg); opacity: 0; }
     }
     @keyframes postgameStormFlash {
-      0%, 100% { opacity: 0; transform: scale(0.85) rotate(-8deg); }
-      12%, 28% { opacity: 1; transform: scale(1.08) rotate(3deg); }
-      42% { opacity: 0.22; }
+      0%, 100% { opacity: 0; }
+      8%, 18% { opacity: 0.62; }
+      24% { opacity: 0.14; }
+      31% { opacity: 0.48; }
+      42% { opacity: 0; }
+    }
+    @keyframes postgameLightningStrike {
+      0%, 100% { opacity: 0; transform: translateY(-8px) scaleY(0.92) rotate(var(--bolt-rotate, -8deg)); }
+      8%, 22% { opacity: 0.96; transform: translateY(0) scaleY(1) rotate(var(--bolt-rotate, -8deg)); }
+      29% { opacity: 0.18; }
+      38% { opacity: 0.78; }
+      54% { opacity: 0; }
+    }
+    .postgame-storm-shell {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(125, 211, 252, 0.14), transparent 24%),
+        linear-gradient(180deg, rgba(6, 15, 28, 0.66), rgba(15, 23, 42, 0.28) 48%, rgba(2, 6, 23, 0.22));
+      mix-blend-mode: normal;
+    }
+    .postgame-storm-cloud {
+      position: absolute;
+      left: var(--storm-left, 0%);
+      top: var(--storm-top, 0%);
+      width: var(--storm-width, 34vw);
+      height: var(--storm-height, 18vh);
+      border-radius: 999px;
+      opacity: 0;
+      background:
+        radial-gradient(circle at 17% 60%, rgba(15, 23, 42, 0.95) 0 29%, transparent 30%),
+        radial-gradient(circle at 36% 38%, rgba(30, 41, 59, 0.96) 0 35%, transparent 36%),
+        radial-gradient(circle at 58% 49%, rgba(15, 23, 42, 0.94) 0 37%, transparent 38%),
+        radial-gradient(circle at 78% 57%, rgba(51, 65, 85, 0.9) 0 28%, transparent 29%),
+        linear-gradient(180deg, rgba(71, 85, 105, 0.88), rgba(15, 23, 42, 0.96));
+      filter: blur(0.4px) drop-shadow(0 18px 18px rgba(2, 6, 23, 0.45));
+      animation: postgameStormCloudRoll var(--storm-duration, 4s) ease-in-out forwards;
+      animation-delay: var(--storm-delay, 0s);
+    }
+    .postgame-storm-cloud::after {
+      content: "";
+      position: absolute;
+      inset: 40% 5% 4%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(148, 163, 184, 0.24), rgba(2, 6, 23, 0.58));
+      filter: blur(7px);
+    }
+    .postgame-storm-rain {
+      position: absolute;
+      left: var(--rain-left, 0%);
+      top: -24vh;
+      width: var(--rain-width, 2px);
+      height: var(--rain-height, 17vh);
+      border-radius: 999px;
+      background: linear-gradient(180deg, transparent, rgba(186, 230, 253, 0.92), rgba(56, 189, 248, 0.16));
+      opacity: 0;
+      filter: drop-shadow(0 0 5px rgba(125, 211, 252, 0.62));
+      animation: postgameStormRainFall var(--rain-duration, 1.1s) linear forwards;
+      animation-delay: var(--rain-delay, 0s);
+    }
+    .postgame-storm-flash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--flash-x, 50%) var(--flash-y, 20%), rgba(219, 234, 254, 0.74), rgba(125, 211, 252, 0.18) 22%, transparent 48%);
+      opacity: 0;
+      animation: postgameStormFlash 0.86s ease-out forwards;
+      animation-delay: var(--flash-delay, 0s);
+    }
+    .postgame-lightning {
+      position: absolute;
+      left: var(--bolt-left, 50%);
+      top: var(--bolt-top, 10%);
+      width: var(--bolt-width, 42px);
+      height: var(--bolt-height, 190px);
+      opacity: 0;
+      background: linear-gradient(180deg, #f8fafc, #fde68a 42%, #38bdf8);
+      clip-path: polygon(43% 0, 82% 0, 60% 31%, 89% 31%, 35% 100%, 49% 48%, 22% 48%);
+      filter: drop-shadow(0 0 8px rgba(248, 250, 252, 0.95)) drop-shadow(0 0 24px rgba(56, 189, 248, 0.82));
+      animation: postgameLightningStrike 0.9s ease-out forwards;
+      animation-delay: var(--bolt-delay, 0s);
     }
     /*
       Post-game confetti: dedicated full-viewport canvas, last stacking layer on <body>.
@@ -10274,28 +10353,53 @@
     const gen = _confettiLoopGeneration;
     const shell = document.createElement('div');
     shell.setAttribute('aria-hidden','true');
-    shell.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:'+POSTGAME_CONFETTI_LAYER_Z+';overflow:hidden;background:linear-gradient(180deg, rgba(15,23,42,0.18), transparent 42%);';
+    shell.className = 'postgame-storm-shell';
+    shell.style.zIndex = POSTGAME_CONFETTI_LAYER_Z;
     _postgameStormShell = shell;
     document.body.appendChild(shell);
-    for(let i = 0; i < 18; i++){
+    for(let i = 0; i < 7; i++){
       const cloud = document.createElement('div');
-      cloud.textContent = i%4===0 ? '⛈️' : '🌧️';
-      const dur = 2.85 + Math.random() * 1.35;
-      const drift = Math.round((Math.random() * 90) - 45);
-      cloud.style.cssText = 'position:absolute;left:'+(Math.random()*96)+'%;top:-18vh;font-size:'+(42+Math.random()*34)+'px;line-height:1;filter:drop-shadow(0 10px 12px rgba(15,23,42,0.45));--storm-drift:'+drift+'px;animation:postgameStormCloudFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*0.45)+'s;';
+      cloud.className = 'postgame-storm-cloud';
+      const width = 24 + Math.random() * 28;
+      cloud.style.setProperty('--storm-left', `${-8 + Math.random() * 90}%`);
+      cloud.style.setProperty('--storm-top', `${-4 + Math.random() * 22}%`);
+      cloud.style.setProperty('--storm-width', `${width}vw`);
+      cloud.style.setProperty('--storm-height', `${12 + Math.random() * 11}vh`);
+      cloud.style.setProperty('--storm-scale', `${0.82 + Math.random() * 0.48}`);
+      cloud.style.setProperty('--storm-opacity', `${0.58 + Math.random() * 0.24}`);
+      cloud.style.setProperty('--storm-drift', `${Math.round((Math.random() * 80) - 40)}px`);
+      cloud.style.setProperty('--storm-duration', `${3.4 + Math.random() * 1.4}s`);
+      cloud.style.setProperty('--storm-delay', `${Math.random() * 0.28}s`);
       shell.appendChild(cloud);
     }
-    for(let i = 0; i < 74; i++){
+    for(let i = 0; i < 150; i++){
       const rain = document.createElement('div');
-      rain.textContent = '▾';
-      const dur = 1.65 + Math.random() * 0.85;
-      rain.style.cssText = 'position:absolute;left:'+(Math.random()*100)+'%;top:-14vh;font-size:'+(18+Math.random()*18)+'px;line-height:1;color:#7dd3fc;text-shadow:0 0 10px rgba(125,211,252,0.95);animation:postgameStormRainFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*1.05)+'s;';
+      rain.className = 'postgame-storm-rain';
+      rain.style.setProperty('--rain-left', `${Math.random() * 112}%`);
+      rain.style.setProperty('--rain-height', `${10 + Math.random() * 17}vh`);
+      rain.style.setProperty('--rain-width', `${1 + Math.random() * 1.8}px`);
+      rain.style.setProperty('--rain-opacity', `${0.46 + Math.random() * 0.38}`);
+      rain.style.setProperty('--rain-duration', `${0.82 + Math.random() * 0.62}s`);
+      rain.style.setProperty('--rain-delay', `${Math.random() * 2.4}s`);
       shell.appendChild(rain);
     }
-    for(let i = 0; i < 7; i++){
+    for(let i = 0; i < 5; i++){
+      const flash = document.createElement('div');
+      flash.className = 'postgame-storm-flash';
+      flash.style.setProperty('--flash-x', `${18 + Math.random() * 64}%`);
+      flash.style.setProperty('--flash-y', `${4 + Math.random() * 28}%`);
+      flash.style.setProperty('--flash-delay', `${0.15 + Math.random() * 2.25}s`);
+      shell.appendChild(flash);
+    }
+    for(let i = 0; i < 5; i++){
       const bolt = document.createElement('div');
-      bolt.textContent = '⚡';
-      bolt.style.cssText = 'position:absolute;left:'+(12+Math.random()*76)+'%;top:'+(8+Math.random()*38)+'%;font-size:'+(46+Math.random()*38)+'px;line-height:1;filter:drop-shadow(0 0 14px rgba(250,204,21,0.95));animation:postgameStormFlash 0.72s ease-in-out forwards;animation-delay:'+(0.25+Math.random()*1.85)+'s;';
+      bolt.className = 'postgame-lightning';
+      bolt.style.setProperty('--bolt-left', `${14 + Math.random() * 72}%`);
+      bolt.style.setProperty('--bolt-top', `${2 + Math.random() * 20}%`);
+      bolt.style.setProperty('--bolt-width', `${22 + Math.random() * 34}px`);
+      bolt.style.setProperty('--bolt-height', `${128 + Math.random() * 150}px`);
+      bolt.style.setProperty('--bolt-rotate', `${-18 + Math.random() * 32}deg`);
+      bolt.style.setProperty('--bolt-delay', `${0.22 + Math.random() * 2.35}s`);
       shell.appendChild(bolt);
     }
     setTimeout(()=>{
