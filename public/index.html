@@ -793,9 +793,20 @@
       52% { transform: translateX(5px); filter: saturate(1.35); }
       76% { transform: translateX(-2px); filter: saturate(1.15); }
     }
-    @keyframes postgameLowTideFall {
-      from { top: -6%; opacity: 1; }
-      to { top: 106%; opacity: 0.88; }
+    @keyframes postgameStormCloudFall {
+      0% { transform: translate3d(0, -14vh, 0) rotate(-5deg); opacity: 0; }
+      12% { opacity: 0.95; }
+      100% { transform: translate3d(var(--storm-drift, 0px), 112vh, 0) rotate(7deg); opacity: 0.86; }
+    }
+    @keyframes postgameStormRainFall {
+      0% { transform: translate3d(0, -12vh, 0) rotate(10deg); opacity: 0; }
+      8% { opacity: 0.9; }
+      100% { transform: translate3d(-18px, 112vh, 0) rotate(10deg); opacity: 0.45; }
+    }
+    @keyframes postgameStormFlash {
+      0%, 100% { opacity: 0; transform: scale(0.85) rotate(-8deg); }
+      12%, 28% { opacity: 1; transform: scale(1.08) rotate(3deg); }
+      42% { opacity: 0.22; }
     }
     /*
       Post-game confetti: dedicated full-viewport canvas, last stacking layer on <body>.
@@ -10196,6 +10207,7 @@
   /** Same numeric layer as #postgame-confetti-canvas for DOM fallback celebration pieces. */
   const POSTGAME_CONFETTI_LAYER_Z = 2147483647;
   let _postgameConfettiFire = null;
+  let _postgameStormShell = null;
   // PERF: Kill flag stops confetti rAF loops immediately when modals close,
   // instead of letting them spin for the full 3-second timeout.
   let _confettiLoopGeneration = 0;
@@ -10211,6 +10223,10 @@
     _confettiLoopGeneration++;
     if(_postgameConfettiFire && typeof _postgameConfettiFire.reset === 'function'){
       _postgameConfettiFire.reset();
+    }
+    if(_postgameStormShell){
+      _postgameStormShell.remove();
+      _postgameStormShell = null;
     }
   }
   const _cachedTextConfettiShapes = {};
@@ -10254,42 +10270,38 @@
     })();
   }
   function fireLoserConfettiLoop(){
-    const shapes = getTextConfettiShapes(['💧','☁️','🛟'], 2);
-    const colors = ['#287f9b','#73c5c8','#addbe2','#cbd5e1','#f6ecdf'];
-    const end = Date.now() + 3000;
-    const c = getPostgameConfetti();
-    // PERF: Capture generation so resetPostgameConfetti() kills this loop immediately.
     const gen = _confettiLoopGeneration;
-    if(shapes.length && c){
-      (function frame(){
-        if(gen !== _confettiLoopGeneration) return;
-        c({ particleCount: 5, angle: 68, spread: 52, origin: { x: 0.05, y: 0.05 }, shapes, colors, scalar: 1.55 });
-        c({ particleCount: 5, angle: 112, spread: 52, origin: { x: 0.95, y: 0.05 }, shapes, colors, scalar: 1.55 });
-        if(Date.now() < end) requestAnimationFrame(frame);
-      })();
-      return;
-    }
-    if(shapes.length && typeof confetti === 'function'){
-      (function frame(){
-        if(gen !== _confettiLoopGeneration) return;
-        confetti({ particleCount: 5, angle: 68, spread: 52, origin: { x: 0.05, y: 0.05 }, shapes, colors, scalar: 1.55, zIndex: POSTGAME_CONFETTI_LAYER_Z });
-        confetti({ particleCount: 5, angle: 112, spread: 52, origin: { x: 0.95, y: 0.05 }, shapes, colors, scalar: 1.55, zIndex: POSTGAME_CONFETTI_LAYER_Z });
-        if(Date.now() < end) requestAnimationFrame(frame);
-      })();
-      return;
-    }
     const shell = document.createElement('div');
     shell.setAttribute('aria-hidden','true');
-    shell.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:'+POSTGAME_CONFETTI_LAYER_Z+';overflow:hidden;';
+    shell.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:'+POSTGAME_CONFETTI_LAYER_Z+';overflow:hidden;background:linear-gradient(180deg, rgba(15,23,42,0.18), transparent 42%);';
+    _postgameStormShell = shell;
     document.body.appendChild(shell);
-    for(let i = 0; i < 46; i++){
-      const el = document.createElement('div');
-      el.textContent = ['💧','☁️','🛟'][i%3];
-      const dur = 2.4 + Math.random() * 1.15;
-      el.style.cssText = 'position:absolute;left:'+(Math.random()*100)+'%;top:-6%;font-size:'+(18+Math.random()*22)+'px;line-height:1;animation:postgameLowTideFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*0.35)+'s;';
-      shell.appendChild(el);
+    for(let i = 0; i < 18; i++){
+      const cloud = document.createElement('div');
+      cloud.textContent = i%4===0 ? '⛈️' : '🌧️';
+      const dur = 2.85 + Math.random() * 1.35;
+      const drift = Math.round((Math.random() * 90) - 45);
+      cloud.style.cssText = 'position:absolute;left:'+(Math.random()*96)+'%;top:-18vh;font-size:'+(42+Math.random()*34)+'px;line-height:1;filter:drop-shadow(0 10px 12px rgba(15,23,42,0.45));--storm-drift:'+drift+'px;animation:postgameStormCloudFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*0.45)+'s;';
+      shell.appendChild(cloud);
     }
-    setTimeout(()=>{ shell.remove(); }, 4500);
+    for(let i = 0; i < 74; i++){
+      const rain = document.createElement('div');
+      rain.textContent = '▾';
+      const dur = 1.65 + Math.random() * 0.85;
+      rain.style.cssText = 'position:absolute;left:'+(Math.random()*100)+'%;top:-14vh;font-size:'+(18+Math.random()*18)+'px;line-height:1;color:#7dd3fc;text-shadow:0 0 10px rgba(125,211,252,0.95);animation:postgameStormRainFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*1.05)+'s;';
+      shell.appendChild(rain);
+    }
+    for(let i = 0; i < 7; i++){
+      const bolt = document.createElement('div');
+      bolt.textContent = '⚡';
+      bolt.style.cssText = 'position:absolute;left:'+(12+Math.random()*76)+'%;top:'+(8+Math.random()*38)+'%;font-size:'+(46+Math.random()*38)+'px;line-height:1;filter:drop-shadow(0 0 14px rgba(250,204,21,0.95));animation:postgameStormFlash 0.72s ease-in-out forwards;animation-delay:'+(0.25+Math.random()*1.85)+'s;';
+      shell.appendChild(bolt);
+    }
+    setTimeout(()=>{
+      if(gen !== _confettiLoopGeneration) return;
+      shell.remove();
+      if(_postgameStormShell===shell)_postgameStormShell=null;
+    }, 4300);
   }
 
   function endGame(silent=false){
