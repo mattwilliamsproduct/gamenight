@@ -3816,31 +3816,28 @@
     .active-match-banner::before { display: none; }
     .bp-active-identity { flex: 1 1 auto; }
     .bp-active-game-art {
-      width: 66px;
-      height: 66px;
-      flex: 0 0 66px;
+      width: 112px;
+      height: 64px;
+      flex: 0 0 112px;
       border: 3px solid rgba(255,255,255,0.9);
       border-radius: 15px;
-      background-color: var(--bp-seafoam);
-      background-position: 82% center;
+      background-color: #fffaf1;
+      background-position: center;
       background-repeat: no-repeat;
-      background-size: cover;
+      background-size: contain;
       box-shadow: -5px 6px 0 rgba(231,115,88,0.16), 0 14px 30px -20px rgba(6,77,72,0.78);
       transform: rotate(-2deg);
     }
     #game-screen .bp-active-game-art {
-      background-image: url('./theme/game-card-set-a.png');
-      background-size: 600% auto;
+      background-image: url('./theme/game-card-five-crowns-thumb.jpg');
     }
-    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-position: 37% 8%; }
-    #game-screen[data-game='Wizard'] .bp-active-game-art { background-position: 88% 8%; }
-    #game-screen[data-game='818'] .bp-active-game-art { background-position: 37% 53%; }
-    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-position: 88% 53%; }
-    #game-screen[data-game='Rook'] .bp-active-game-art { background-position: 87% 97%; }
+    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-image: url('./theme/game-card-five-crowns-thumb.jpg'); }
+    #game-screen[data-game='Wizard'] .bp-active-game-art { background-image: url('./theme/game-card-wizard-thumb.jpg'); }
+    #game-screen[data-game='818'] .bp-active-game-art { background-image: url('./theme/game-card-818-thumb.jpg'); }
+    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-image: url('./theme/game-card-flip7-thumb.jpg'); }
+    #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('./theme/game-card-rook-thumb.jpg'); }
     #game-screen[data-game='Beat the Heat'] .bp-active-game-art {
-      background-image: url('./theme/beat-the-heat-card.svg');
-      background-position: 72% center;
-      background-size: cover;
+      background-image: url('./theme/game-card-beat-heat-thumb.jpg');
     }
     .bp-live-kicker { display: none; }
     #game-title {
@@ -4690,7 +4687,7 @@
       #top-nav { border-radius: 22px; }
       .bp-game-card > .flex-1 { max-width: 72%; }
       .active-match-banner { align-items: stretch !important; }
-      .bp-active-game-art { width: 74px; height: 74px; flex-basis: 74px; }
+      .bp-active-game-art { width: 104px; height: 60px; flex-basis: 104px; }
       .scoreboard-player-name { font-size: clamp(1.55rem, 3vw, 2.15rem) !important; }
       .profile-yearbook-heading { align-items: flex-start; flex-direction: column; }
       .profile-toolbar { grid-template-columns: 1fr 1fr; }
@@ -9871,17 +9868,17 @@
     const half=maxR===999?4:Math.ceil(maxR/2);
     const pastHalf=currentGame.currentRound>half&&!over;
 
-    let intel=`Round ${currentGame.currentRound}`;
+    let intel=`R${currentGame.currentRound}`;
     if(currentGame.name==='Five Crowns'){
       const wilds=['3','4','5','6','7','8','9','10','J','Q','K'];
       if(!over) intel=`Hand of ${currentGame.currentRound+2} · ${wilds[currentGame.currentRound-1]}s Wild`;
     } else if(isWiz){
-      intel=`Round ${currentGame.currentRound} / ${maxR} · ${wPhase==='bidding'?'Bidding':'Scoring'}`;
+      intel=`R${currentGame.currentRound} / ${maxR} · ${wPhase==='bidding'?'Bidding':'Scoring'}`;
     } else if(is818){
       const tricks=getRoundTrickCount(currentGame);
-      intel=`Round ${currentGame.currentRound} / ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${bidTrickPhase==='bidding'?'Bidding':'Scoring'}`;
+      intel=`R${currentGame.currentRound} / ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${bidTrickPhase==='bidding'?'Bidding':'Scoring'}`;
     } else if(currentGame.name==='Beat the Heat'){
-      intel=`Round ${currentGame.currentRound} · Log Heat`;
+      intel=`R${currentGame.currentRound} · Log Heat`;
     }
     if(over)intel='Final Scores';
     document.getElementById('round-intel').textContent=intel;
