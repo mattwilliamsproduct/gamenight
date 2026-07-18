@@ -706,6 +706,7 @@
       max-height: min(92vh, 900px);
       box-sizing: border-box;
       padding: clamp(1.25rem, 3vw, 2.35rem);
+      overflow: hidden;
       background:
         radial-gradient(circle at 20% 15%, rgba(255,255,255,0.9) 0 8%, transparent 18%),
         radial-gradient(circle at 78% 20%, rgba(254,240,138,0.85) 0 9%, transparent 22%),
@@ -735,7 +736,7 @@
     .whammy-title {
       width: 100%;
       max-width: 100%;
-      font-size: clamp(3.1rem, 9vw, 7rem);
+      font-size: clamp(2.9rem, 8.2vw, 6.3rem);
       line-height: 0.92;
       letter-spacing: 0;
       text-align: center;
@@ -753,12 +754,14 @@
       line-height: 1.02;
     }
     #whammy-copy {
-      font-size: clamp(1.25rem, 2.6vw, 1.85rem);
+      font-size: clamp(1.15rem, 2.35vw, 1.7rem);
       line-height: 1.18;
     }
     #whammy-scores {
-      max-height: min(34vh, 320px);
-      overflow-y: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      overflow: hidden;
       padding-right: 0.15rem;
       -webkit-overflow-scrolling: touch;
     }
@@ -774,6 +777,39 @@
       font-size: clamp(1rem, 1.9vw, 1.35rem);
       line-height: 1.12;
       font-weight: 800;
+    }
+    .whammy-card.celebration-nolie,
+    .whammy-card.celebration-cami {
+      height: min(92vh, 900px);
+    }
+    .whammy-card.celebration-nolie .whammy-title,
+    .whammy-card.celebration-cami .whammy-title {
+      margin-bottom: clamp(0.4rem, 1vh, 0.85rem) !important;
+    }
+    .whammy-card.celebration-nolie #whammy-avatar,
+    .whammy-card.celebration-cami #whammy-avatar {
+      display: none;
+    }
+    .whammy-card.celebration-nolie #whammy-name,
+    .whammy-card.celebration-cami #whammy-name {
+      font-size: clamp(1.95rem, 4.2vw, 3.15rem);
+    }
+    .whammy-card.celebration-nolie #whammy-scores,
+    .whammy-card.celebration-cami #whammy-scores {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(0.3rem, 0.85vh, 0.7rem);
+      margin-bottom: clamp(0.65rem, 1.3vh, 1.1rem) !important;
+    }
+    .whammy-card.celebration-nolie .whammy-score-row,
+    .whammy-card.celebration-cami .whammy-score-row {
+      flex: 1 1 0;
+      min-height: 0;
+      max-height: 4.8rem;
+      padding-top: clamp(0.26rem, 0.75vh, 0.6rem);
+      padding-bottom: clamp(0.26rem, 0.75vh, 0.6rem);
+      font-size: clamp(0.95rem, 1.7vw, 1.28rem);
     }
     .whammy-score-row.winner {
       background: rgba(255,255,255,0.9);
@@ -6833,7 +6869,7 @@
     clearTimeout(_whammyDismissTimer);
     document.getElementById('whammy-title').textContent = isNolie ? 'NOLIE!' : 'CAMI WHAMMI!';
     document.getElementById('whammy-round-label').textContent = data.round;
-    document.getElementById('whammy-avatar').innerHTML = `<div class="text-7xl sm:text-8xl leading-none">${isNolie?'N':'C'}</div>`;
+    document.getElementById('whammy-avatar').innerHTML = '';
     document.getElementById('whammy-name').textContent = isNolie ? 'Everybody nailed it.' : 'Nobody escaped this one.';
     document.getElementById('whammy-copy').textContent = isNolie ? 'The whole table did well this round.' : 'The whole table got taken down this round.';
     document.getElementById('whammy-scores').innerHTML = data.scores.map(item=>{
