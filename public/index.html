@@ -793,8 +793,7 @@
       52% { transform: translateX(5px); filter: saturate(1.35); }
       76% { transform: translateX(-2px); filter: saturate(1.15); }
     }
-    /* Fallback loser “confetti” if emoji shapes unavailable */
-    @keyframes postgamePoopFall {
+    @keyframes postgameLowTideFall {
       from { top: -6%; opacity: 1; }
       to { top: 106%; opacity: 0.88; }
     }
@@ -815,6 +814,46 @@
       pointer-events: none;
       z-index: 2147483647;
       background: transparent;
+    }
+    .postgame-card {
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .postgame-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+    .postgame-victory-card {
+      border-color: var(--bp-coral) !important;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(255,225,169,0.75), transparent 18rem),
+        linear-gradient(155deg, rgba(255,250,241,0.99), rgba(232,250,244,0.97));
+    }
+    .postgame-victory-card::before {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(241,154,107,0.18), transparent 13rem),
+        radial-gradient(circle at 18% 92%, rgba(115,197,200,0.18), transparent 11rem),
+        linear-gradient(180deg, rgba(255,255,255,0.4), transparent 52%);
+    }
+    .postgame-loser-card {
+      border-color: var(--blue-border) !important;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(173,219,226,0.62), transparent 18rem),
+        linear-gradient(155deg, rgba(255,250,241,0.99), rgba(235,244,245,0.98));
+    }
+    .postgame-loser-card::before {
+      background:
+        radial-gradient(circle at 22% 14%, rgba(40,127,155,0.12), transparent 10rem),
+        radial-gradient(circle at 82% 88%, rgba(231,115,88,0.1), transparent 11rem),
+        repeating-linear-gradient(135deg, rgba(8,118,108,0.035) 0 2px, transparent 2px 18px);
+    }
+    .postgame-hero-icon {
+      filter: drop-shadow(0 12px 18px rgba(7,63,59,0.18));
+      transform: translateZ(0);
     }
     .lineup-enter { animation: lineupSlide 0.32s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes lineupSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
@@ -5220,9 +5259,9 @@
     <!-- Victory -->
     <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:var(--emerald);">
-        <div class="text-7xl mb-4">🏆</div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Match Complete</div>
+      <div class="surface-raised postgame-card postgame-victory-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+        <div class="postgame-hero-icon text-7xl mb-4">🌅</div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Sunset Champion</div>
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
         <div id="victory-records" class="w-full space-y-2 mb-5"></div>
@@ -5237,11 +5276,11 @@
     <!-- Loser -->
     <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:var(--rose);">
-        <div class="text-7xl mb-4">💔</div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--rose);">Hall of Shame</div>
+      <div class="surface-raised postgame-card postgame-loser-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+        <div class="postgame-hero-icon text-7xl mb-4">🛟</div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--blue);">Low Tide</div>
         <h3 id="loser-names" class="font-display text-3xl sm:text-4xl mb-3 leading-tight"></h3>
-        <p class="text-base font-bold mb-6 italic" style="color:var(--muted);">I'm weawwy vewy sowwy. 😢</p>
+        <p class="text-base font-bold mb-6 italic" style="color:var(--muted);">The tide went out on this one.</p>
         <button onclick="closeLoserModal()" class="btn-primary w-full py-4 text-lg">Return Home</button>
       </div>
     </div>
@@ -10154,7 +10193,7 @@
 
   /* ═══ END GAME + SUDDEN DEATH ═══ */
   let currentLosers=[], pendingGameData=null;
-  /** Same numeric layer as #postgame-confetti-canvas for DOM fallback (💩 rain). */
+  /** Same numeric layer as #postgame-confetti-canvas for DOM fallback celebration pieces. */
   const POSTGAME_CONFETTI_LAYER_Z = 2147483647;
   let _postgameConfettiFire = null;
   // PERF: Kill flag stops confetti rAF loops immediately when modals close,
@@ -10174,61 +10213,67 @@
       _postgameConfettiFire.reset();
     }
   }
-  let _cachedPoopConfettiShape = null;
-  let _poopConfettiShapeResolved = false;
-  function getPoopConfettiShape(){
-    if(_poopConfettiShapeResolved) return _cachedPoopConfettiShape;
-    _poopConfettiShapeResolved = true;
+  const _cachedTextConfettiShapes = {};
+  function getTextConfettiShape(text, scalar=2){
+    const key = `${text}:${scalar}`;
+    if(Object.prototype.hasOwnProperty.call(_cachedTextConfettiShapes, key)) return _cachedTextConfettiShapes[key];
     if(typeof confetti !== 'function' || typeof confetti.shapeFromText !== 'function'){
-      _cachedPoopConfettiShape = null;
+      _cachedTextConfettiShapes[key] = null;
       return null;
     }
     try{
-      const scalar = 2;
-      _cachedPoopConfettiShape = confetti.shapeFromText({ text: '\u{1F4A9}', scalar });
+      _cachedTextConfettiShapes[key] = confetti.shapeFromText({ text, scalar });
     } catch(e){
-      _cachedPoopConfettiShape = null;
+      _cachedTextConfettiShapes[key] = null;
     }
-    return _cachedPoopConfettiShape;
+    return _cachedTextConfettiShapes[key];
+  }
+  function getTextConfettiShapes(texts, scalar=2){
+    return texts.map(text=>getTextConfettiShape(text, scalar)).filter(Boolean);
   }
   function fireWinnerConfettiLoop(){
-    const colors = ['#047857','#10b981','#fbbf24'];
+    const colors = ['#08766c','#73c5c8','#e76f51','#f19a6b','#ffd166','#fff7d6'];
+    const shapes = getTextConfettiShapes(['🌺','🌴','☀️'], 2);
     const end = Date.now() + 3000;
     const c = getPostgameConfetti();
     // PERF: Capture generation so resetPostgameConfetti() kills this loop immediately.
     const gen = _confettiLoopGeneration;
     (function frame(){
       if(gen !== _confettiLoopGeneration) return;
+      const shapeOpts = shapes.length ? { shapes, scalar: 1.7 } : {};
       if(c){
-        c({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
-        c({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
+        c({ particleCount: 5, angle: 60, spread: 58, origin: { x: 0 }, colors, ...shapeOpts });
+        c({ particleCount: 5, angle: 120, spread: 58, origin: { x: 1 }, colors, ...shapeOpts });
+        c({ particleCount: 2, angle: 90, spread: 80, origin: { x: 0.5, y: 0.12 }, colors });
       } else if(typeof confetti === 'function'){
-        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z });
-        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+        confetti({ particleCount: 5, angle: 60, spread: 58, origin: { x: 0 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z, ...shapeOpts });
+        confetti({ particleCount: 5, angle: 120, spread: 58, origin: { x: 1 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z, ...shapeOpts });
+        confetti({ particleCount: 2, angle: 90, spread: 80, origin: { x: 0.5, y: 0.12 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z });
       }
       if(Date.now() < end) requestAnimationFrame(frame);
     })();
   }
   function fireLoserConfettiLoop(){
-    const shape = getPoopConfettiShape();
+    const shapes = getTextConfettiShapes(['💧','☁️','🛟'], 2);
+    const colors = ['#287f9b','#73c5c8','#addbe2','#cbd5e1','#f6ecdf'];
     const end = Date.now() + 3000;
     const c = getPostgameConfetti();
     // PERF: Capture generation so resetPostgameConfetti() kills this loop immediately.
     const gen = _confettiLoopGeneration;
-    if(shape && c){
+    if(shapes.length && c){
       (function frame(){
         if(gen !== _confettiLoopGeneration) return;
-        c({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2 });
-        c({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2 });
+        c({ particleCount: 5, angle: 68, spread: 52, origin: { x: 0.05, y: 0.05 }, shapes, colors, scalar: 1.55 });
+        c({ particleCount: 5, angle: 112, spread: 52, origin: { x: 0.95, y: 0.05 }, shapes, colors, scalar: 1.55 });
         if(Date.now() < end) requestAnimationFrame(frame);
       })();
       return;
     }
-    if(shape && typeof confetti === 'function'){
+    if(shapes.length && typeof confetti === 'function'){
       (function frame(){
         if(gen !== _confettiLoopGeneration) return;
-        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_LAYER_Z });
-        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, shapes: [shape], scalar: 2, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+        confetti({ particleCount: 5, angle: 68, spread: 52, origin: { x: 0.05, y: 0.05 }, shapes, colors, scalar: 1.55, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+        confetti({ particleCount: 5, angle: 112, spread: 52, origin: { x: 0.95, y: 0.05 }, shapes, colors, scalar: 1.55, zIndex: POSTGAME_CONFETTI_LAYER_Z });
         if(Date.now() < end) requestAnimationFrame(frame);
       })();
       return;
@@ -10239,9 +10284,9 @@
     document.body.appendChild(shell);
     for(let i = 0; i < 46; i++){
       const el = document.createElement('div');
-      el.textContent = '\u{1F4A9}';
+      el.textContent = ['💧','☁️','🛟'][i%3];
       const dur = 2.4 + Math.random() * 1.15;
-      el.style.cssText = 'position:absolute;left:'+(Math.random()*100)+'%;top:-6%;font-size:'+(18+Math.random()*22)+'px;line-height:1;animation:postgamePoopFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*0.35)+'s;';
+      el.style.cssText = 'position:absolute;left:'+(Math.random()*100)+'%;top:-6%;font-size:'+(18+Math.random()*22)+'px;line-height:1;animation:postgameLowTideFall '+dur+'s linear forwards;animation-delay:'+(Math.random()*0.35)+'s;';
       shell.appendChild(el);
     }
     setTimeout(()=>{ shell.remove(); }, 4500);
