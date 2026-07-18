@@ -1914,6 +1914,125 @@
       }
     }
 
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel {
+      --se-fit-row-gap: 7px;
+      --se-fit-row-pad: 7px;
+      --se-fit-row-height: 76px;
+      --se-fit-avatar: 52px;
+      --se-fit-name: 32px;
+      --se-fit-total-col: 72px;
+      --se-fit-context-col: 72px;
+      --se-fit-input-col: 108px;
+      --se-fit-col-gap: 10px;
+      --se-fit-card-gap: 8px;
+      --se-fit-avatar-radius: 13px;
+      --se-fit-input-radius: 18px;
+      --se-fit-meta-label: 10px;
+      --se-fit-meta-value: 25px;
+      --se-fit-value-height: 44px;
+      --se-fit-value-font: 34px;
+      --se-fit-selected-pad: 14px;
+      --se-fit-selected-avatar: 70px;
+      --se-fit-selected-gap: 11px;
+      --se-fit-selected-radius: 17px;
+      --se-fit-selected-name: 32px;
+      --se-fit-chip-font: 11px;
+      --se-fit-key-gap: 8px;
+      --se-fit-key-pad: 8px;
+      --se-fit-key-font: 32px;
+      --se-fit-next-font: 23px;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+      display: flex;
+      flex-direction: column;
+      gap: var(--se-fit-row-gap) !important;
+      overflow: hidden !important;
+      padding-right: 0 !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-row,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+      flex: 1 1 0 !important;
+      min-height: 0 !important;
+      height: var(--se-fit-row-height);
+      gap: var(--se-fit-col-gap) !important;
+      grid-template-columns: minmax(0, 1fr) var(--se-fit-input-col) !important;
+      align-items: stretch;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-player-card,
+    #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-player-card {
+      min-height: 0 !important;
+      height: 100% !important;
+      padding: var(--se-fit-row-pad) !important;
+      gap: var(--se-fit-card-gap) !important;
+      grid-template-columns: var(--se-fit-avatar) minmax(0, 1fr) var(--se-fit-total-col) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card {
+      grid-template-columns: var(--se-fit-avatar) minmax(0, 1fr) var(--se-fit-total-col) var(--se-fit-context-col) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-avatar,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-avatar {
+      width: var(--se-fit-avatar) !important;
+      height: var(--se-fit-avatar) !important;
+      border-radius: var(--se-fit-avatar-radius) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-name,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-name {
+      font-size: var(--se-fit-name) !important;
+      line-height: 1 !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-meta-label {
+      font-size: var(--se-fit-meta-label) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-meta-value,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-meta-value {
+      font-size: var(--se-fit-meta-value) !important;
+      margin-top: 0.12rem !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-input-cell,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-input-cell {
+      min-height: 0 !important;
+      height: 100% !important;
+      padding: var(--se-fit-row-pad) !important;
+      border-radius: var(--se-fit-input-radius) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-value,
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-value {
+      min-height: var(--se-fit-value-height) !important;
+      font-size: var(--se-fit-value-font) !important;
+      margin-top: 0.08rem !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-selected-card {
+      padding: var(--se-fit-selected-pad) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-selected-head {
+      grid-template-columns: var(--se-fit-selected-avatar) minmax(0, 1fr) !important;
+      gap: var(--se-fit-selected-gap) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-selected-avatar {
+      width: var(--se-fit-selected-avatar) !important;
+      height: var(--se-fit-selected-avatar) !important;
+      border-radius: var(--se-fit-selected-radius) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-selected-name {
+      font-size: var(--se-fit-selected-name) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-chip {
+      font-size: var(--se-fit-chip-font) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+      gap: var(--se-fit-key-gap) !important;
+      padding: var(--se-fit-key-pad) !important;
+      overflow: hidden;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-key {
+      min-height: 0 !important;
+      font-size: var(--se-fit-key-font) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-key.next {
+      font-size: var(--se-fit-next-font) !important;
+    }
+
     /* ════════ DRAG & DROP (Round 1 reorder) ════════ */
     .drag-handle {
       display: inline-flex;
@@ -10275,6 +10394,7 @@
   }
 
   let scoreEntryModalState=null;
+  let scoreEntryFitRaf=0;
 
   function getScoreEntryMode(){
     if(!currentGame||currentGame.name==='Rook')return null;
@@ -10409,6 +10529,77 @@
     }
   }
 
+  function scheduleScoreEntryModalFit(){
+    if(scoreEntryFitRaf)cancelAnimationFrame(scoreEntryFitRaf);
+    scoreEntryFitRaf=requestAnimationFrame(()=>{
+      scoreEntryFitRaf=0;
+      fitScoreEntryModalLayout();
+    });
+  }
+
+  function fitScoreEntryModalLayout(){
+    if(!scoreEntryModalState)return;
+    const modal=document.getElementById('score-entry-modal');
+    if(!modal||modal.classList.contains('hidden'))return;
+    const panel=modal.querySelector('.score-entry-panel');
+    const rows=document.getElementById('score-entry-rows');
+    const keypad=modal.querySelector('.score-entry-keypad');
+    if(!panel||!rows||!keypad)return;
+    const players=scoreEntryModalState.players||[];
+    const count=Math.max(1,players.length);
+    modal.classList.add('score-entry-managed-fit');
+
+    const rowArea=Math.max(0,rows.getBoundingClientRect().height);
+    const tightWidth=(window.visualViewport?.width||window.innerWidth||0)<1180;
+    const shortHeight=(window.visualViewport?.height||window.innerHeight||0)<820;
+    const rowGap=count>=8?3:count>=6?4:7;
+    const rowHeight=Math.max(42,Math.floor((rowArea-(rowGap*(count-1)))/count));
+    const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
+    const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
+    const name=Math.floor(clamp(18,rowHeight*0.42,tightWidth?28:34));
+    const metaValue=Math.floor(clamp(17,rowHeight*0.34,tightWidth?22:26));
+    const valueHeight=Math.floor(clamp(28,rowHeight*0.56,48));
+    const valueFont=Math.floor(clamp(22,rowHeight*0.48,tightWidth?30:38));
+    const rowPad=Math.floor(clamp(4,rowHeight*0.09,8));
+    const totalCol=Math.floor(clamp(50,rowHeight*0.9,72));
+    const inputCol=Math.floor(clamp(tightWidth?78:90,rowHeight*1.45,tightWidth?96:116));
+    const contextCol=Math.floor(clamp(50,rowHeight*0.88,70));
+    const colGap=Math.floor(clamp(6,rowHeight*0.12,12));
+    panel.style.setProperty('--se-fit-row-gap',`${rowGap}px`);
+    panel.style.setProperty('--se-fit-row-pad',`${rowPad}px`);
+    panel.style.setProperty('--se-fit-row-height',`${rowHeight}px`);
+    panel.style.setProperty('--se-fit-avatar',`${avatar}px`);
+    panel.style.setProperty('--se-fit-name',`${name}px`);
+    panel.style.setProperty('--se-fit-total-col',`${totalCol}px`);
+    panel.style.setProperty('--se-fit-context-col',`${contextCol}px`);
+    panel.style.setProperty('--se-fit-input-col',`${inputCol}px`);
+    panel.style.setProperty('--se-fit-col-gap',`${colGap}px`);
+    panel.style.setProperty('--se-fit-card-gap',`${Math.floor(colGap*0.78)}px`);
+    panel.style.setProperty('--se-fit-avatar-radius',`${Math.floor(avatar*0.24)}px`);
+    panel.style.setProperty('--se-fit-input-radius',`${Math.floor(avatar*0.34)}px`);
+    panel.style.setProperty('--se-fit-meta-label',`${clamp(8,rowHeight*0.13,11).toFixed(0)}px`);
+    panel.style.setProperty('--se-fit-meta-value',`${metaValue}px`);
+    panel.style.setProperty('--se-fit-value-height',`${valueHeight}px`);
+    panel.style.setProperty('--se-fit-value-font',`${valueFont}px`);
+
+    const keyArea=Math.max(0,keypad.getBoundingClientRect().height);
+    const keyGap=Math.floor(clamp(4,keyArea*0.018,9));
+    const keyPad=Math.floor(clamp(5,keyArea*0.022,9));
+    const keyHeight=Math.max(34,(keyArea-(keyPad*2)-(keyGap*3))/4);
+    panel.style.setProperty('--se-fit-key-gap',`${keyGap}px`);
+    panel.style.setProperty('--se-fit-key-pad',`${keyPad}px`);
+    panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
+    panel.style.setProperty('--se-fit-next-font',`${Math.floor(clamp(18,keyHeight*0.34,25))}px`);
+
+    const selectedAvatar=Math.floor(clamp(48,keyHeight*0.95,76));
+    panel.style.setProperty('--se-fit-selected-pad',`${Math.floor(clamp(9,keyHeight*0.2,16))}px`);
+    panel.style.setProperty('--se-fit-selected-avatar',`${selectedAvatar}px`);
+    panel.style.setProperty('--se-fit-selected-gap',`${Math.floor(colGap*1.1)}px`);
+    panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
+    panel.style.setProperty('--se-fit-selected-name',`${Math.floor(clamp(24,keyHeight*0.52,36))}px`);
+    panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
+  }
+
   function openScoreEntryModal(ev){
     const timer=gnPerfStart('GN score modal open');
     try{
@@ -10440,9 +10631,13 @@
     renderScoreEntryModal();
     const modal=document.getElementById('score-entry-modal');
     modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', players.length>=6);
+    modal.classList.add('score-entry-managed-fit');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    requestAnimationFrame(()=>modal.classList.remove('opacity-0'));
+    requestAnimationFrame(()=>{
+      fitScoreEntryModalLayout();
+      modal.classList.remove('opacity-0');
+    });
     } finally {
       gnPerfEnd(timer);
     }
@@ -10455,9 +10650,13 @@
     setTimeout(()=>{
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      modal.classList.remove('score-entry-managed-fit');
     },160);
     scoreEntryModalState=null;
   }
+
+  window.addEventListener('resize',()=>{ if(scoreEntryModalState)scheduleScoreEntryModalFit(); },{passive:true});
+  window.visualViewport?.addEventListener('resize',()=>{ if(scoreEntryModalState)scheduleScoreEntryModalFit(); },{passive:true});
 
   function renderScoreEntryModal(){
     if(!scoreEntryModalState||!currentGame)return;
