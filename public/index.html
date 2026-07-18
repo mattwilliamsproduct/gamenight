@@ -8497,6 +8497,7 @@
   }
 
   let _montageOnDone = null;
+  let _postgameMontageData = null;
   function dismissStatMontage(){
     document.getElementById('stat-montage').classList.add('hidden');
     const done = _montageOnDone;
@@ -10379,14 +10380,8 @@
     if(silent){ goHome(); return; }
     showPostGameStage();
 
-    // Show stat montage first (if enabled and we have stats), then victory modal.
-    const showVictory=()=>_presentVictoryModal(data, alerts);
-    if(prefs.statMontage){
-      try{ showStatMontage(data, showVictory); }
-      catch(e){ console.warn('Stat montage failed; showing winner modal instead.', e); showVictory(); }
-    } else {
-      showVictory();
-    }
+    _postgameMontageData = prefs.statMontage ? data : null;
+    _presentVictoryModal(data, alerts);
   }
 
   function _presentVictoryModal(data, alerts){
@@ -10437,12 +10432,21 @@
   function closeLoserModal(){
     document.getElementById('loser-modal').classList.add('hidden');
     resetPostgameConfetti();
-    goHome();
+    const montageData = _postgameMontageData;
+    _postgameMontageData = null;
+    if(montageData){
+      try{ showStatMontage(montageData, goHome); }
+      catch(e){ console.warn('Stat montage failed; returning home instead.', e); goHome(); }
+    } else {
+      goHome();
+    }
   }
 
   /* ═══ RUN IT BACK ═══ */
   function runItBack(){
     document.getElementById('victory-modal').classList.add('hidden');
+    _postgameMontageData = null;
+    resetPostgameConfetti();
     const lg=history[0]; if(!lg)return;
     const roster=lg.originalRoster||Object.keys(lg.totals);
       players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
