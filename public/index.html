@@ -4216,6 +4216,10 @@
       min-width: 0;
       margin-bottom: 1rem;
     }
+    .profile-card-avatar-action {
+      position: relative;
+      flex-shrink: 0;
+    }
     .profile-passport-card .avatar-img-lg {
       width: 82px;
       height: 82px;
@@ -4223,6 +4227,29 @@
       border-color: var(--profile-accent, var(--emerald));
       box-shadow: 0 10px 22px -16px rgba(0,0,0,0.5);
       flex-shrink: 0;
+    }
+    .profile-avatar-quick-btn {
+      position: absolute;
+      left: 50%;
+      bottom: -9px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(8,118,108,0.24);
+      border-radius: 999px;
+      background: rgba(255,250,241,0.96);
+      color: var(--emerald);
+      box-shadow: 0 8px 18px -14px rgba(6,77,72,0.85);
+      font-size: 0.58rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      padding: 0.34rem 0.48rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: transform 0.12s ease, background 0.12s ease;
+    }
+    .profile-avatar-quick-btn:hover {
+      background: #fff;
+      transform: translateX(-50%) translateY(-1px);
     }
     .profile-passport-name {
       color: var(--bp-teal-dark);
@@ -7106,7 +7133,10 @@
       ].filter(Boolean).slice(0,4).join('');
       d.innerHTML=`
         <div class="profile-passport-top">
-          ${getStreakAvatarHtml(p,'avatar-img-lg')}
+          <div class="profile-card-avatar-action">
+            ${getStreakAvatarHtml(p,'avatar-img-lg')}
+            <button type="button" class="profile-avatar-quick-btn">Photo</button>
+          </div>
           <div class="min-w-0">
             <div class="profile-passport-name">${escapeHtml(p)}</div>
             <div class="profile-passport-sub">${escapeHtml(recent)}</div>
@@ -7120,6 +7150,7 @@
         <div class="profile-big-stat"><span>Favorite Game</span><strong>${escapeHtml(fav)}</strong></div>
         <div class="profile-big-stat"><span>Best Game</span><strong>${escapeHtml(best)}</strong></div>
         <div class="profile-badge-row">${badges||renderProfileBadge('New passport')}</div>`;
+      d.querySelector('.profile-avatar-quick-btn')?.addEventListener('click', event=>openAvatarPickerForProfile(p,event));
       c.appendChild(d);
     });
   }
@@ -7378,6 +7409,11 @@
   }
 
   function closeProfileDetail(){ document.getElementById('profile-detail-view').classList.add('hidden'); editingPlayerProfile=null; }
+  function openAvatarPickerForProfile(name,event){
+    event?.stopPropagation?.();
+    editingPlayerProfile=name;
+    openAvatarPicker();
+  }
 
   function buildAvatarGrid(){
     const g=document.getElementById('avatar-grid'); g.innerHTML='';
@@ -7396,9 +7432,14 @@
     rem.textContent='Remove'; rem.onclick=()=>selectAvatar(''); g.appendChild(rem);
   }
   function selectAvatar(f){
+    const editedName=editingPlayerProfile;
+    const detailWasOpen=!document.getElementById('profile-detail-view')?.classList.contains('hidden');
     if(!playerProfiles[editingPlayerProfile])playerProfiles[editingPlayerProfile]={};
     playerProfiles[editingPlayerProfile].avatar=f;
-    saveData({ fullPersist: true, syncCold: true }); closeAvatarPicker(); openProfileDetail(editingPlayerProfile); renderProfilesGrid();
+    saveData({ fullPersist: true, syncCold: true });
+    closeAvatarPicker();
+    renderProfilesGrid();
+    if(detailWasOpen&&editedName)openProfileDetail(editedName);
     if(currentGame)scheduleRender();
   }
 
