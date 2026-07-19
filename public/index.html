@@ -7002,7 +7002,7 @@
   function detectNolieForRound(game, submittedRoundData){
     if(!game || !submittedRoundData || !submittedRoundData.scores) return null;
     if(shouldSuppressRoundCelebration(game, submittedRoundData)) return null;
-    if(game.name!=='Wizard' && game.name!=='Flip 7 Vengeance') return null;
+    if(game.name!=='Wizard' && game.name!=='Flip 7 Vengeance' && game.name!=='Five Crowns') return null;
     const activePlayers = getActivePlayers(game).filter(p=>submittedRoundData.scores[p] !== undefined);
     if(activePlayers.length < 2) return null;
     let isNolie=false;
@@ -7011,6 +7011,8 @@
       isNolie=activePlayers.every(p=>submittedRoundData.bids[p]!==undefined && submittedRoundData.actuals[p]!==undefined && (parseInt(submittedRoundData.bids[p],10)||0)===(parseInt(submittedRoundData.actuals[p],10)||0));
     } else if(game.name==='Flip 7 Vengeance'){
       isNolie=activePlayers.every(p=>(parseInt(submittedRoundData.scores[p],10)||0)>0);
+    } else if(game.name==='Five Crowns'){
+      isNolie=activePlayers.every(p=>(parseInt(submittedRoundData.scores[p],10)||0)===0);
     }
     if(!isNolie) return null;
     return {
@@ -7423,7 +7425,7 @@
 
   function detectHistoryNolieForRound(gameData, roundData){
     if(!gameData||!roundData||!roundData.scores||isHistoryFinalRoundSuppressed(gameData, roundData))return null;
-    if(gameData.game!=='Wizard'&&gameData.game!=='Flip 7 Vengeance')return null;
+    if(gameData.game!=='Wizard'&&gameData.game!=='Flip 7 Vengeance'&&gameData.game!=='Five Crowns')return null;
     const participants=getHistoryRoundParticipants(gameData, roundData);
     if(participants.length<2)return null;
     let matched=false;
@@ -7432,6 +7434,8 @@
       matched=participants.every(p=>roundData.bids[p]!==undefined&&roundData.actuals[p]!==undefined&&(parseInt(roundData.bids[p],10)||0)===(parseInt(roundData.actuals[p],10)||0));
     } else if(gameData.game==='Flip 7 Vengeance'){
       matched=participants.every(p=>(parseInt(roundData.scores[p],10)||0)>0);
+    } else if(gameData.game==='Five Crowns'){
+      matched=participants.every(p=>(parseInt(roundData.scores[p],10)||0)===0);
     }
     return matched?{type:'nolie',game:gameData.game,round:roundData.round,players:participants}:null;
   }
