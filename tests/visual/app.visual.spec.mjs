@@ -52,6 +52,24 @@ async function expectScorecardUsesRowHeight(page){
   expect(sizes.avatar/rowBox.height,'avatars should use most of their row height').toBeGreaterThanOrEqual(0.72);
 }
 
+async function expectScorecardNamesFit(page){
+  const names=page.locator('#scorecard-body .scoreboard-player-name');
+  expect(await names.count(),'scorecard should contain player names').toBeGreaterThan(0);
+  for(let index=0;index<await names.count();index++){
+    const fit=await names.nth(index).evaluate(element=>{
+      const label=element.querySelector('.dealer-player-label')||element;
+      return {
+        name:(label.textContent||'').trim(),
+        clientWidth:label.clientWidth,
+        scrollWidth:label.scrollWidth
+      };
+    });
+    if(fit.name.length<=10){
+      expect(fit.scrollWidth,`${fit.name} should not be clipped`).toBeLessThanOrEqual(fit.clientWidth+1);
+    }
+  }
+}
+
 for(const view of cases){
   test(view.name,async({page})=>{
     const errors=[];
@@ -65,8 +83,42 @@ for(const view of cases){
 
     if(view.container)await expectInsideViewport(page.locator(view.container),page,view.container);
     if(view.rows)await expectRowsInsideContainer(page,view.rows,view.container);
-    if(view.assertScorecardScale)await expectScorecardUsesRowHeight(page);
+    if(view.assertScorecardScale){
+      await expectScorecardUsesRowHeight(page);
+      await expectScorecardNamesFit(page);
+    }
     expect(errors,'page should not emit runtime errors').toEqual([]);
     await expect(page).toHaveScreenshot(`${view.name}.png`);
   });
 }
+
+test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('gn_ui_scale','24'));
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('#scorecard-capture')).toHaveClass(/scorecard-fit-rows/);
+  await expectRowsInsideContainer(page,'#scorecard-body tr','#scorecard-capture .scorecard-table-wrap');
+  await expectScorecardNamesFit(page);
+
+  await page.evaluate(()=>adjustUI(-8));
+  await page.evaluate(()=>adjustUI(8));
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))));
+  const fitMetrics=await page.evaluate(()=>{
+    const root=document.querySelector('#scorecard-capture');
+    const wrap=document.querySelector('#scorecard-capture .scorecard-table-wrap');
+    const table=wrap?.querySelector('table.scorecard-table');
+    const rows=[...table?.querySelectorAll('tbody tr')||[]];
+    return {
+      rootClass:root?.className||'',
+      rootFont:getComputedStyle(document.documentElement).fontSize,
+      wrapHeight:wrap?.getBoundingClientRect().height||0,
+      tableHeight:table?.getBoundingClientRect().height||0,
+      rowHeights:rows.map(row=>row.getBoundingClientRect().height),
+      fittedRow:root?.style.getPropertyValue('--scorecard-row-height')||''
+    };
+  });
+  expect(fitMetrics.tableHeight,`scorecard fit metrics: ${JSON.stringify(fitMetrics)}`).toBeLessThanOrEqual(fitMetrics.wrapHeight+1);
+  await expect(page.locator('#scorecard-capture')).toHaveClass(/scorecard-fit-rows/);
+  await expectRowsInsideContainer(page,'#scorecard-body tr','#scorecard-capture .scorecard-table-wrap');
+  await expectScorecardNamesFit(page);
+});
