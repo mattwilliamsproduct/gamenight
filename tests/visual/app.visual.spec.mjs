@@ -1,0 +1,56 @@
+import {expect,test} from '@playwright/test';
+
+const cases=[
+  {name:'home-setup',scenario:'home-party',surface:'home',visible:'#home-screen:not(.hidden)'},
+  {name:'wizard-scorecard-10-players',scenario:'wizard-10',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr'},
+  {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr'},
+  {name:'wizard-bid-entry-10-players',scenario:'wizard-10',surface:'entry-bids',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
+  {name:'five-crowns-score-entry-8-players',scenario:'five-crowns-preservers',surface:'entry-scores',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
+  {name:'settings-over-active-match',scenario:'wizard-10',surface:'settings',visible:'#settings-modal:not(.hidden)',container:'#settings-modal .surface-raised'},
+  {name:'profiles-yearbook',scenario:'profile-yearbook',surface:'profiles',visible:'#profiles-screen:not(.hidden)'},
+  {name:'actions-menu',scenario:'wizard-10',surface:'actions',visible:'#actions-menu:not(.hidden)',container:'#actions-menu'},
+  {name:'whammy-8-players',scenario:'whammy-8',surface:'whammy',visible:'#whammy-modal:not(.hidden)',rows:'#whammy-scores .whammy-score-row',container:'#whammy-modal .whammy-card'},
+  {name:'nolie-8-players',scenario:'whammy-8',surface:'nolie',visible:'#whammy-modal:not(.hidden)',rows:'#whammy-scores .whammy-score-row',container:'#whammy-modal .whammy-card'}
+];
+
+async function expectInsideViewport(locator,page,label){
+  const box=await locator.boundingBox();
+  expect(box,`${label} should have a visible bounding box`).not.toBeNull();
+  const viewport=page.viewportSize();
+  expect(box.x,`${label} should not escape the left edge`).toBeGreaterThanOrEqual(-1);
+  expect(box.y,`${label} should not escape the top edge`).toBeGreaterThanOrEqual(-1);
+  expect(box.x+box.width,`${label} should not escape the right edge`).toBeLessThanOrEqual(viewport.width+1);
+  expect(box.y+box.height,`${label} should not escape the bottom edge`).toBeLessThanOrEqual(viewport.height+1);
+}
+
+async function expectRowsInsideContainer(page,rowSelector,containerSelector){
+  const rows=page.locator(rowSelector);
+  expect(await rows.count(),`${rowSelector} should contain rows`).toBeGreaterThan(0);
+  const container=containerSelector?page.locator(containerSelector):null;
+  const bounds=container?await container.boundingBox():{x:0,y:0,width:page.viewportSize().width,height:page.viewportSize().height};
+  expect(bounds,'row container should be visible').not.toBeNull();
+  for(let index=0;index<await rows.count();index++){
+    const box=await rows.nth(index).boundingBox();
+    expect(box,`row ${index+1} should be visible`).not.toBeNull();
+    expect(box.y,`row ${index+1} should stay inside its container`).toBeGreaterThanOrEqual(bounds.y-2);
+    expect(box.y+box.height,`row ${index+1} should stay inside its container`).toBeLessThanOrEqual(bounds.y+bounds.height+2);
+  }
+}
+
+for(const view of cases){
+  test(view.name,async({page})=>{
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
+
+    await page.goto(`/?gnqa=1&gallery=0&scenario=${encodeURIComponent(view.scenario)}&surface=${encodeURIComponent(view.surface)}`,{waitUntil:'networkidle'});
+    await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+    await expect(page.locator(view.visible)).toBeVisible();
+    await page.addStyleTag({content:'*{caret-color:transparent!important} #toast-container,#save-indicator,#pwa-update-notice{display:none!important}'});
+
+    if(view.container)await expectInsideViewport(page.locator(view.container),page,view.container);
+    if(view.rows)await expectRowsInsideContainer(page,view.rows,view.container);
+    expect(errors,'page should not emit runtime errors').toEqual([]);
+    await expect(page).toHaveScreenshot(`${view.name}.png`);
+  });
+}

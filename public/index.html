@@ -6108,6 +6108,9 @@
      Back Porch Games
      ══════════════════════════════════════════════════════════ */
 
+  const GN_QA_LOCAL_HOSTS = new Set(['localhost','127.0.0.1','::1']);
+  const GN_QA_MODE = GN_QA_LOCAL_HOSTS.has(location.hostname) && new URLSearchParams(location.search).has('gnqa');
+
   // ── Storage helpers ──
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
   function safeGetObject(k){try{const d=JSON.parse(localStorage.getItem(k));return(d&&typeof d==='object'&&!Array.isArray(d))?d:{};}catch(e){return{};}}
@@ -6555,6 +6558,7 @@
     window.location.reload();
   }
   function initPwaUpdates(){
+    if(GN_QA_MODE)return;
     if(!('serviceWorker' in navigator))return;
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(pwaRefreshPending)window.location.reload();
@@ -6789,6 +6793,7 @@
     else if(document.visibilityState === 'visible' && currentGame) await requestWakeLock();
   });
   window.addEventListener('pagehide', ()=>{
+    if(GN_QA_MODE)return;
     saveOpenScoreEntryModalDrafts();
     flushPendingSave();
     _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
@@ -12671,8 +12676,70 @@
   (om.addEventListener?om.addEventListener('change',handleOrientation):om.addListener?.(handleOrientation));
   window.addEventListener('resize',handleOrientation);
 
+  function createQaApi(){
+    if(!GN_QA_MODE)return null;
+    const clone=value=>value===null||value===undefined?value:JSON.parse(JSON.stringify(value));
+    const closeQaSurfaces=()=>{
+      scoreEntryModalState=null;
+      document.querySelectorAll('[id$="-modal"]').forEach(modal=>{
+        modal.classList.add('hidden','opacity-0');
+        modal.classList.remove('flex');
+      });
+      closeActionsMenu();
+      document.body.classList.remove('whammy-pulse');
+    };
+    return {
+      hydrate(data){
+        const fixture=clone(data)||{};
+        allPlayers=Array.isArray(fixture.allPlayers)?fixture.allPlayers:[];
+        players=Array.isArray(fixture.players)?fixture.players:[];
+        history=Array.isArray(fixture.history)?fixture.history:[];
+        playerProfiles=fixture.playerProfiles&&typeof fixture.playerProfiles==='object'?fixture.playerProfiles:{};
+        currentGame=fixture.currentGame||null;
+        markHistoryChanged();
+        closeQaSurfaces();
+        updateNavButton();
+      },
+      showSurface(surface,scenario){
+        closeQaSurfaces();
+        if(surface==='home'){
+          goHome();
+        }else if(surface==='profiles'){
+          showProfiles();
+        }else{
+          if(currentGame)goActiveMatch();
+          else goHome();
+          if(surface==='settings')openSettings();
+          else if(surface==='actions')toggleActionsMenu();
+          else if(surface==='entry-bids'){
+            if(currentGame?.name==='Wizard')currentGame.wizardPhase='bidding';
+            if(currentGame?.name==='818')currentGame.eight18Phase='bidding';
+            renderGame();
+            openScoreEntryModal();
+          }else if(surface==='entry-scores'){
+            if(currentGame?.name==='Wizard')currentGame.wizardPhase='scoring';
+            if(currentGame?.name==='818')currentGame.eight18Phase='scoring';
+            if(currentGame&&isBidTrickGame(currentGame)){
+              currentGame.currentBids=currentGame.currentBids||{};
+              getActivePlayers(currentGame).forEach((p,idx)=>{
+                if(currentGame.currentBids[p]===undefined)currentGame.currentBids[p]=idx%2;
+              });
+            }
+            renderGame();
+            openScoreEntryModal();
+          }else if(surface==='whammy'){
+            showWhammyModal(clone(scenario?.celebrations?.whammy));
+          }else if(surface==='nolie'){
+            showNolieModal(clone(scenario?.celebrations?.nolie));
+          }
+        }
+      },
+      setReady(){document.body.dataset.gnQaReady='true';}
+    };
+  }
+
   /* ═══ BOOT ═══ */
-  window.onload=function(){
+  window.onload=async function(){
     gnPerfInit();
     document.getElementById('html-root')?.classList.remove('dark');
     syncAppearanceControls();
@@ -12682,6 +12749,15 @@
     updateNavButton();
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+    if(GN_QA_MODE){
+      try{
+        const {bootQaGallery}=await import('./qa/gallery.mjs');
+        await bootQaGallery(createQaApi());
+      }catch(error){
+        console.error('QA gallery could not start.',error);
+        document.body.dataset.gnQaReady='error';
+      }
+    }
   };
   </script>
   <canvas id="postgame-confetti-canvas" width="2" height="2" aria-hidden="true"></canvas>

@@ -8,9 +8,13 @@
     "build": "npm run build:styles && npm run build:vendor",
     "check:syntax": "perl -0ne 'while (m{<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>}sg) { print $1, \"\\n\" }' public/index.html > /tmp/cardknight-inline.js && node --check /tmp/cardknight-inline.js",
     "check:production-assets": "node ./scripts/verify-production-assets.mjs",
-    "check": "npm run check:syntax && npm run check:production-assets && git diff --check"
+    "check": "npm run check:syntax && npm run check:production-assets && git diff --check",
+    "qa:gallery": "node scripts/serve-public.mjs",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "tailwindcss": "3.4.17"
   },
   "dependencies": {
