@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@fontsource/bree-serif": "^5.1.1",
+    "@fontsource/kaushan-script": "5.1.1",
     "@fontsource/nunito-sans": "^5.1.1",
     "@fontsource/pacifico": "^5.1.1",
     "@fontsource/plus-jakarta-sans": "^5.1.1",
