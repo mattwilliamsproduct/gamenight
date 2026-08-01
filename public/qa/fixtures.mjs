@@ -97,6 +97,8 @@ const crownsPlayers=NAMES.slice(0,8);
 const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsRounds(crownsPlayers,7),{
   hailMaryUsed:['Linda']
 });
+const compactCrownsPlayers=NAMES.slice(0,4);
+const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
 const celebrationPlayers=NAMES.slice(0,8);
 const celebrationGame=makeCurrentGame('Wizard',celebrationPlayers,wizardRounds(celebrationPlayers,3),{
   wizardPhase:'scoring',
@@ -134,6 +136,12 @@ export const QA_SCENARIOS = {
     description:'Eight players deep into the game with both available and used Life Preservers.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
+  },
+  'five-crowns-4':{
+    label:'Five Crowns · 4 Players',
+    description:'A short table that should use the full scoreboard height with large names, totals, and avatars.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...compactCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:compactCrownsGame}
   },
   'whammy-8':{
     label:'Celebrations · 8 Players',

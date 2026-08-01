@@ -2552,7 +2552,7 @@
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
         font-size: var(--scorecard-player-font) !important;
-        line-height: 0.9;
+        line-height: 0.86;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
         width: var(--scorecard-avatar-size) !important;
@@ -2561,6 +2561,7 @@
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell.tv-stat-num,
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell .tv-stat-num {
         font-size: var(--scorecard-total-font) !important;
+        line-height: 0.86;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-input {
         min-height: var(--scorecard-input-height) !important;
@@ -10120,12 +10121,13 @@
       let scale=Math.max(0.44,targetRow/currentRow);
       let rowHeight=targetRow;
       const applyFit=()=>{
-        const playerFont=Math.max(1.1,Math.min(4.75,Math.max(2.85*scale,rowHeight/31)));
+        const playerFont=Math.max(30,Math.min(116,rowHeight*0.66));
+        const totalFont=Math.max(28,Math.min(110,rowHeight*0.62));
         root.style.setProperty('--scorecard-row-height',`${Math.max(24,Math.floor(rowHeight))}px`);
-        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.round(6*scale))}px`);
-        root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(2)}rem`);
-        root.style.setProperty('--scorecard-avatar-size',`${Math.max(24,Math.min(rowHeight-8,110,70*scale)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-total-font',`${Math.max(1.05,Math.min(4.5,3.0*scale)).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
+        root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
+        root.style.setProperty('--scorecard-avatar-size',`${Math.max(28,Math.min(rowHeight-8,164)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-total-font',`${totalFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-input-height',`${Math.max(20,Math.min(64,38*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
         root.style.setProperty('--scorecard-round-font',`${Math.max(0.58,Math.min(1.65,1.1*scale)).toFixed(2)}rem`);

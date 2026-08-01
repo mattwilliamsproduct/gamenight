@@ -2,8 +2,9 @@ import {expect,test} from '@playwright/test';
 
 const cases=[
   {name:'home-setup',scenario:'home-party',surface:'home',visible:'#home-screen:not(.hidden)'},
-  {name:'wizard-scorecard-10-players',scenario:'wizard-10',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr'},
-  {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr'},
+  {name:'wizard-scorecard-10-players',scenario:'wizard-10',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',assertScorecardScale:true},
+  {name:'five-crowns-scorecard-4-players',scenario:'five-crowns-4',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',assertScorecardScale:true},
+  {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',assertScorecardScale:true},
   {name:'wizard-bid-entry-10-players',scenario:'wizard-10',surface:'entry-bids',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'five-crowns-score-entry-8-players',scenario:'five-crowns-preservers',surface:'entry-scores',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'settings-over-active-match',scenario:'wizard-10',surface:'settings',visible:'#settings-modal:not(.hidden)',container:'#settings-modal .surface-raised'},
@@ -37,6 +38,20 @@ async function expectRowsInsideContainer(page,rowSelector,containerSelector){
   }
 }
 
+async function expectScorecardUsesRowHeight(page){
+  const row=page.locator('#scorecard-body tr').first();
+  const rowBox=await row.boundingBox();
+  expect(rowBox,'scorecard row should be visible').not.toBeNull();
+  const sizes=await page.locator('#scorecard-body tr').first().evaluate(element=>({
+    name:Number.parseFloat(getComputedStyle(element.querySelector('.scoreboard-player-name')).fontSize),
+    total:Number.parseFloat(getComputedStyle(element.querySelector('.scorecard-total-cell')).fontSize),
+    avatar:element.querySelector('.avatar-img-sc')?.getBoundingClientRect().height||0
+  }));
+  expect(sizes.name/rowBox.height,'player names should use most of their row height').toBeGreaterThanOrEqual(0.58);
+  expect(sizes.total/rowBox.height,'totals should use most of their row height').toBeGreaterThanOrEqual(0.54);
+  expect(sizes.avatar/rowBox.height,'avatars should use most of their row height').toBeGreaterThanOrEqual(0.72);
+}
+
 for(const view of cases){
   test(view.name,async({page})=>{
     const errors=[];
@@ -50,6 +65,7 @@ for(const view of cases){
 
     if(view.container)await expectInsideViewport(page.locator(view.container),page,view.container);
     if(view.rows)await expectRowsInsideContainer(page,view.rows,view.container);
+    if(view.assertScorecardScale)await expectScorecardUsesRowHeight(page);
     expect(errors,'page should not emit runtime errors').toEqual([]);
     await expect(page).toHaveScreenshot(`${view.name}.png`);
   });
