@@ -16,7 +16,7 @@ for(const source of prohibitedSources){
 const requiredAssets = [
   'public/assets/app-utilities.css',
   'public/assets/fonts.css',
-  'public/assets/fonts/kaushan-script-400.woff2',
+  'public/assets/fonts/barlow-condensed-800.woff2',
   'public/assets/vendor/canvas-confetti.js',
   'public/assets/vendor/chart.js',
   'public/assets/vendor/html2canvas.js',
