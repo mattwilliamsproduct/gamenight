@@ -4792,13 +4792,57 @@
       font-variant-numeric: tabular-nums;
     }
     #top-nav .nav-btn,
+    #history-screen .nav-btn,
+    #profiles-screen .nav-btn,
     .btn-primary,
     .btn-accent,
     .btn-ghost,
+    .rook-setup-btn,
+    .settings-choice {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.035em;
+      text-transform: uppercase;
+    }
     .quest-badge,
     .chip {
       font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
       font-weight: 800;
+    }
+    .score-entry-key,
+    .numpad-btn {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+      letter-spacing: 0;
+    }
+    .score-entry-key.next,
+    .numpad-btn:not(.font-mono-num) {
+      text-transform: uppercase;
+    }
+    .bp-modal-kicker,
+    .score-entry-meta-label,
+    .score-entry-chip,
+    .whammy-round-label,
+    .montage-label,
+    #numpad-label,
+    #numpad-context-bid,
+    #score-entry-context,
+    [class~='text-[10px]'].font-extrabold.uppercase,
+    [class~='text-xs'].font-extrabold.uppercase {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .actions-menu-item,
+    .bp-rules-picker,
+    #rules-content,
+    input:not([type='number']),
+    select,
+    textarea {
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif !important;
     }
     #game-title {
       color: var(--bp-coral) !important;
@@ -4807,6 +4851,12 @@
       font-weight: 400 !important;
       line-height: 1.16;
       padding: 0.12em 0.05em 0.18em;
+    }
+    #score-entry-game {
+      font-family: 'Pacifico', 'Brush Script MT', cursive !important;
+      font-weight: 400 !important;
+      line-height: 1.18;
+      padding: 0.08em 0.04em 0.12em;
     }
     .round-banner {
       color: var(--bp-teal-dark) !important;
