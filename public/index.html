@@ -5096,6 +5096,33 @@
       }
     }
 
+    /* Keep page chrome readable when Text Size is adjusted for the scorecard. */
+    #top-nav .bp-brand-main {
+      font-size: clamp(25px, 2.6vw, 36px);
+    }
+    #top-nav .bp-brand-games {
+      font-size: 12.5px;
+    }
+    #top-nav .nav-btn {
+      font-size: 14.4px;
+    }
+    #game-screen #game-title {
+      font-size: clamp(32px, 3.7vw, 52px);
+    }
+    #game-screen #round-intel.round-banner {
+      font-size: clamp(19.2px, 2.25vw, 28.8px) !important;
+    }
+    #game-screen #actions-btn,
+    #game-screen .active-match-banner .btn-accent {
+      font-size: 14px;
+    }
+    @media (max-width: 760px) {
+      #top-nav .bp-brand-main { font-size: 21.6px; }
+      #top-nav .bp-brand-games { font-size: 9.3px; }
+      #game-screen #game-title { font-size: 36.8px; }
+      #game-screen #round-intel.round-banner { font-size: 18.4px !important; }
+    }
+
     /* ════════ DARK-MODE OVERRIDES ════════ */
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }

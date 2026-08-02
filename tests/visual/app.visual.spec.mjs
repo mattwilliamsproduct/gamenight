@@ -122,3 +122,29 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectRowsInsideContainer(page,'#scorecard-body tr','#scorecard-capture .scorecard-table-wrap');
   await expectScorecardNamesFit(page);
 });
+
+test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
+  const selectors={
+    brand:'#top-nav .bp-brand-main',
+    brandGames:'#top-nav .bp-brand-games',
+    nav:'#top-nav .nav-btn',
+    game:'#game-title',
+    round:'#round-intel',
+    actions:'#actions-btn',
+    save:'#game-screen .active-match-banner .btn-accent'
+  };
+  const readSizes=()=>page.evaluate(entries=>Object.fromEntries(Object.entries(entries).map(([key,selector])=>[
+    key,
+    Number.parseFloat(getComputedStyle(document.querySelector(selector)).fontSize)
+  ])),selectors);
+
+  await page.addInitScript(()=>localStorage.setItem('gn_ui_scale','16'));
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  const normal=await readSizes();
+
+  await page.evaluate(()=>adjustUI(-8));
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const reduced=await readSizes();
+  expect(reduced).toEqual(normal);
+});
