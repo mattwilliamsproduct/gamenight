@@ -10464,7 +10464,7 @@
       document.getElementById('submit-section').classList.remove('hidden');
       document.getElementById('game-over-section').classList.add('hidden');
       let btnTxt='Log Scores';
-      if(isBidTrick) btnTxt = bidTrickPhase==='bidding' ? 'Log Bids' : 'Log Tricks & Score';
+      if(isBidTrick) btnTxt = bidTrickPhase==='bidding' ? 'Log Bids' : 'Submit Scores';
       else if(currentGame.name==='Beat the Heat') btnTxt = 'Log Heat';
       const sb=document.getElementById('submit-action-btn');
       if(sb){
