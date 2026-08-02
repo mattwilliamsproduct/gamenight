@@ -148,3 +148,22 @@ test('navigation and match header ignore scorecard text-size zoom',async({page})
   const reduced=await readSizes();
   expect(reduced).toEqual(normal);
 });
+
+test('score-entry avatars stay ready when the connection drops',async({page,context})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.waitForFunction(()=>{
+    const avatars=[...document.querySelectorAll('#scorecard-body img')];
+    return avatars.length>0&&avatars.every(img=>img.complete&&img.naturalWidth>0);
+  });
+
+  await context.setOffline(true);
+  await page.locator('#submit-action-btn').click();
+  await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
+  const avatarState=await page.locator('#score-entry-modal img').evaluateAll(avatars=>({
+    count:avatars.length,
+    ready:avatars.every(img=>img.complete&&img.naturalWidth>0)
+  }));
+  expect(avatarState.count,'score-entry modal should contain player avatars').toBeGreaterThan(0);
+  expect(avatarState.ready,'cached player avatars should paint immediately').toBe(true);
+});

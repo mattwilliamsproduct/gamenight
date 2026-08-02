@@ -6917,6 +6917,22 @@
     return `<img src="${getAvatarSrc(name)}" class="${cls} ${ring}" data-fb="${fb}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
   }
 
+  let warmedActiveAvatarKey='';
+  let warmedActiveAvatarImages=[];
+  function warmActivePlayerAvatars(names){
+    const urls=[...new Set((names||[]).map(getAvatarSrc).filter(src=>src&&!src.startsWith('data:')))];
+    const key=urls.join('|');
+    if(key===warmedActiveAvatarKey)return;
+    warmedActiveAvatarKey=key;
+    warmedActiveAvatarImages=urls.map(src=>{
+      const img=new Image();
+      img.decoding='async';
+      img.src=src;
+      if(img.decode)img.decode().catch(()=>{});
+      return img;
+    });
+  }
+
   function getStreakAvatarHtml(name, cls){
     // Fire/ice effects removed. Color ring still supported.
     const fb=getAvatarFallback(name), src=getAvatarSrc(name);
@@ -10264,6 +10280,7 @@
     if(!currentGame){
       return;
     }
+    warmActivePlayerAvatars(getActivePlayers(currentGame));
     const gameScreen=document.getElementById('game-screen');
     if(gameScreen)gameScreen.dataset.game=currentGame.name;
     const rookPanel=document.getElementById('rook-round-panel');
@@ -10761,7 +10778,9 @@
   }
 
   function getScoreEntryAvatarHtml(name, cls){
-    return getAvatarImg(name, cls||'score-entry-avatar');
+    const fb=getAvatarFallback(name);
+    const ring=getColorRingClass(name);
+    return `<img src="${getAvatarSrc(name)}" class="${cls||'score-entry-avatar'} ${ring}" data-fb="${fb}" decoding="sync" fetchpriority="high" style="background:#e4e2dc url('${fb}') center/cover no-repeat;" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
   }
 
   function getScoreEntryDraftTotal(){
@@ -10880,6 +10899,7 @@
     if(activeInputId)closeNumpad({render:false});
 
     const tablePlayers=getActivePlayers(currentGame);
+    warmActivePlayerAvatars(tablePlayers);
     const players=getScoreEntryDisplayPlayers(tablePlayers);
     const source=getScoreEntryDraftSource(mode);
     const values={};

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'back-porch-shell-local-1785552394445';
+const CACHE_NAME = 'back-porch-shell-local-1785669856800';
 const APP_SHELL = [
   './',
   './index.html',
@@ -43,9 +43,27 @@ async function networkFirst(request, fallback) {
   }
 }
 
+async function cachedAvatarFirst(event) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(event.request);
+  const refresh = fetch(event.request).then(async response => {
+    if(response?.ok && response.type === 'basic') await cache.put(event.request, response.clone()).catch(() => {});
+    return response;
+  });
+  if(cached) {
+    event.waitUntil(refresh.catch(() => {}));
+    return cached;
+  }
+  return refresh;
+}
+
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
   if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js')) return;
+  if(request.destination === 'image' && url.pathname.includes('/avatars/')) {
+    event.respondWith(cachedAvatarFirst(event));
+    return;
+  }
   event.respondWith(networkFirst(request, request.mode === 'navigate' ? './index.html' : null));
 });
