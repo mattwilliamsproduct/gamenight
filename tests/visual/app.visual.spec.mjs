@@ -2,9 +2,10 @@ import {expect,test} from '@playwright/test';
 
 const cases=[
   {name:'home-setup',scenario:'home-party',surface:'home',visible:'#home-screen:not(.hidden)'},
-  {name:'wizard-scorecard-10-players',scenario:'wizard-10',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',assertScorecardScale:true},
-  {name:'five-crowns-scorecard-4-players',scenario:'five-crowns-4',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',assertScorecardScale:true},
-  {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',assertScorecardScale:true},
+  {name:'wizard-scorecard-10-players',scenario:'wizard-10',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
+  {name:'wizard-scorecard-scoring-8-players',scenario:'wizard-scoring-8',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
+  {name:'five-crowns-scorecard-4-players',scenario:'five-crowns-4',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
+  {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'wizard-bid-entry-10-players',scenario:'wizard-10',surface:'entry-bids',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'five-crowns-score-entry-8-players',scenario:'five-crowns-preservers',surface:'entry-scores',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'settings-over-active-match',scenario:'wizard-10',surface:'settings',visible:'#settings-modal:not(.hidden)',container:'#settings-modal .surface-raised'},
