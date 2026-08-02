@@ -4906,6 +4906,11 @@
       line-height: 1.05;
       text-transform: uppercase;
     }
+    .roster-row-lineup .player-name-label,
+    .bench-row-content .player-name-label {
+      font-size: clamp(1.5rem, 2.2vw, 2rem) !important;
+      line-height: 1;
+    }
     #round-intel,
     .scorecard-table thead th,
     .scorecard-table tbody td.scorecard-col-total,
@@ -8431,7 +8436,6 @@
           <div class="flex-1 flex items-center gap-3">
             ${getStreakAvatarHtml(p,'avatar-img')}
             <span class="player-name-label text-lg">${p}</span>
-            <span class="text-[10px] font-bold hidden sm:inline uppercase tracking-wider opacity-40">Tap to play · Swipe to delete</span>
           </div>
           <button onclick="event.stopPropagation();permanentlyDeletePlayer('${safe}')" class="text-2xl leading-none opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" style="color:var(--rose);">&times;</button>
         </div>
