@@ -4206,34 +4206,49 @@
       display: inline-flex;
       flex: 0 0 auto;
     }
-    .scorecard-life-preserver {
-      position: absolute;
-      right: -0.12rem;
-      bottom: -0.12rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 1.28rem;
-      height: 1.28rem;
-      border-radius: 999px;
-      background: rgba(255, 250, 241, 0.94);
-      border: 1px solid rgba(196, 130, 92, 0.38);
-      box-shadow: 0 2px 7px rgba(15, 23, 42, 0.18);
-      font-size: 0.9rem;
-      line-height: 1;
-      z-index: 2;
+    .scorecard-life-preserver-rank {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 999px !important;
+      border: 3px solid transparent !important;
+      background:
+        linear-gradient(#fffaf1, #fffaf1) padding-box,
+        conic-gradient(from 22.5deg,
+          #ef765b 0deg 45deg, #fffaf1 45deg 90deg,
+          #ef765b 90deg 135deg, #fffaf1 135deg 180deg,
+          #ef765b 180deg 225deg, #fffaf1 225deg 270deg,
+          #ef765b 270deg 315deg, #fffaf1 315deg 360deg) border-box !important;
+      color: #0b6f65 !important;
+      box-shadow: 0 0 0 2px rgba(239,118,91,0.2), 0 3px 9px rgba(80,45,31,0.2);
     }
-    button.scorecard-life-preserver {
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-life-preserver-rank {
+      width: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
+      height: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
+      font-size: clamp(0.68rem, calc(var(--scorecard-rank-font) * 1.08), 1rem) !important;
+    }
+    button.scorecard-life-preserver-rank {
+      padding: 0;
       cursor: pointer;
-      transition: transform 0.12s ease, filter 0.12s ease;
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
     }
-    button.scorecard-life-preserver:hover {
-      filter: brightness(1.04);
-      transform: scale(1.12);
+    button.scorecard-life-preserver-rank:hover,
+    button.scorecard-life-preserver-rank:focus-visible {
+      filter: brightness(1.03);
+      transform: scale(1.1);
+      box-shadow: 0 0 0 3px rgba(239,118,91,0.28), 0 4px 11px rgba(80,45,31,0.24);
+      outline: none;
     }
-    .scorecard-life-preserver-used {
-      opacity: 0.48;
-      filter: grayscale(0.18);
+    .scorecard-life-preserver-rank-used {
+      background:
+        linear-gradient(#f2f1ee, #f2f1ee) padding-box,
+        conic-gradient(from 22.5deg,
+          #9ca3a0 0deg 45deg, #f7f7f4 45deg 90deg,
+          #9ca3a0 90deg 135deg, #f7f7f4 135deg 180deg,
+          #9ca3a0 180deg 225deg, #f7f7f4 225deg 270deg,
+          #9ca3a0 270deg 315deg, #f7f7f4 315deg 360deg) border-box !important;
+      color: #747b78 !important;
+      box-shadow: 0 0 0 1px rgba(116,123,120,0.18);
+      opacity: 0.72;
     }
     .leader-row,
     .leader-row td,
@@ -10397,9 +10412,12 @@
 
       // Life Preserver
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{pastHalf,gameOver:over});
-      let hailBtn='';
-      if(isDesperate&&!currentGame.hailMaryUsed.includes(p)) hailBtn=`<button type="button" onclick="authorizeHailMary('${p}')" class="scorecard-life-preserver" title="Life Preserver Unlocked" aria-label="Life Preserver available for ${escapeHtml(p)}">🛟</button>`;
-      else if(currentGame.hailMaryUsed.includes(p)) hailBtn=`<span class="scorecard-life-preserver scorecard-life-preserver-used" title="Life Preserver used" aria-label="Life Preserver used">🛟</span>`;
+      const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
+      const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
+      const rankVisibility=currentGame.currentRound===1?' invisible':'';
+      const rankBadge=hasAvailablePreserver
+        ? `<button type="button" onclick="authorizeHailMary('${p}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0${rankVisibility}" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
+        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0${rankVisibility}"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`;
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -10429,8 +10447,8 @@
           <div class="flex items-center gap-2 min-w-0">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               ${dragHandle}${arrows}
-              <span class="scoreboard-rank-badge font-mono-num shrink-0 ${currentGame.currentRound===1?'invisible':''}">${ri+1}</span>
-              <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}${hailBtn}</span>
+              ${rankBadge}
+              <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}</span>
               ${isDealer
                 ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
                 : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl truncate ${isLeader?'leader-text':''}">${p}</span>`}

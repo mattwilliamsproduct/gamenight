@@ -87,6 +87,20 @@ for(const view of cases){
       await expectScorecardUsesRowHeight(page);
       await expectScorecardNamesFit(page);
     }
+    if(view.name==='five-crowns-life-preservers'){
+      const available=page.locator('button.scorecard-life-preserver-rank');
+      const used=page.locator('.scorecard-life-preserver-rank-used');
+      const availableCount=await available.count();
+      expect(availableCount,'scorecard should show available Life Preservers').toBeGreaterThan(0);
+      expect(await used.count(),'scorecard should show used Life Preservers').toBeGreaterThan(0);
+      const size=await available.nth(0).evaluate(element=>({
+        width:element.getBoundingClientRect().width,
+        height:element.getBoundingClientRect().height
+      }));
+      expect(size.width,'Life Preserver rank should remain noticeable').toBeGreaterThanOrEqual(24);
+      expect(size.height,'Life Preserver rank should remain noticeable').toBeGreaterThanOrEqual(24);
+      expect(await page.locator('.scorecard-avatar-slot .scorecard-life-preserver').count(),'Life Preserver should not cover the avatar').toBe(0);
+    }
     expect(errors,'page should not emit runtime errors').toEqual([]);
     await expect(page).toHaveScreenshot(`${view.name}.png`);
   });
