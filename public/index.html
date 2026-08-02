@@ -18,6 +18,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="./bp-favicon-32.png?v=3">
   <link rel="icon" type="image/png" sizes="192x192" href="./bp-icon-192.png?v=3">
   <title>Back Porch Games</title>
+  <link rel="preload" href="./assets/fonts/londrina-solid-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./assets/app-utilities.css">
 
@@ -4822,10 +4823,22 @@
       letter-spacing: 0;
     }
     .scoreboard-player-name {
-      font-family: 'Bree Serif', Georgia, serif !important;
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
       font-weight: 400 !important;
       letter-spacing: 0 !important;
-      line-height: 1.16;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+    .player-name-label,
+    .score-entry-name,
+    .score-entry-selected-name,
+    .intro-player-name,
+    .profile-passport-name {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
+      line-height: 1.05;
+      text-transform: uppercase;
     }
     .bp-view-tabs::before,
     .bp-game-heading > div:first-child {
@@ -5516,7 +5529,7 @@
           <div class="profile-passport-title">
             <div class="profile-script-label">Player Passport</div>
             <div class="flex items-center gap-2 justify-center sm:justify-start">
-              <h2 id="detail-name" class="font-display text-4xl">Name</h2>
+              <h2 id="detail-name" class="player-name-label text-4xl">Name</h2>
               <button onclick="openRenameModal()" class="text-xl opacity-50 hover:opacity-100 transition-opacity" title="Rename">✏️</button>
               <button onclick="openColorPicker()" class="text-xl opacity-50 hover:opacity-100 transition-opacity" title="Signature Color">🎨</button>
             </div>
@@ -5639,7 +5652,7 @@
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
         <div class="text-center mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--blue);">Trump &amp; partner</div>
-          <h3 class="font-display text-3xl" id="rook-call-bidder-name"></h3>
+          <h3 class="player-name-label text-3xl" id="rook-call-bidder-name"></h3>
           <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Bid: <span id="rook-call-bid-amount" class="font-extrabold" style="color:var(--ink);"></span></p>
         </div>
 
@@ -5690,7 +5703,7 @@
         <div class="px-6 pt-6 pb-4 border-b hairline flex-shrink-0">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Hand Complete — Score the Round</div>
           <div class="flex items-baseline gap-3">
-            <h3 class="font-display text-2xl" id="rook-results-bidder-header"></h3>
+            <h3 class="player-name-label text-2xl" id="rook-results-bidder-header"></h3>
             <span class="chip" style="background:var(--blue-bg);color:var(--blue);" id="rook-results-bid-chip"></span>
             <span class="chip" id="rook-results-trump-chip"></span>
           </div>
@@ -5775,7 +5788,7 @@
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--blue);">Fix Typo</div>
           <h3 class="font-display text-3xl">Rename Player</h3>
         </div>
-        <div class="mb-3 text-center text-sm font-bold" style="color:var(--muted);">Current name: <span id="rename-current" style="color:var(--ink);"></span></div>
+        <div class="mb-3 text-center text-sm font-bold" style="color:var(--muted);">Current name: <span id="rename-current" class="player-name-label" style="color:var(--ink);"></span></div>
         <input id="rename-input" type="text" placeholder="New name…"
           onkeypress="if(event.key==='Enter')doRenamePlayer()"
           class="w-full rounded-xl px-4 py-3 text-base font-bold outline-none border hairline mb-3"
@@ -5794,7 +5807,7 @@
       <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
-        <h3 id="wheel-player-name" class="font-display text-4xl md:text-5xl mb-1"></h3>
+        <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
         <div class="wheel-shell relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
@@ -7113,7 +7126,7 @@
         const btn=document.createElement('button');
         btn.className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80 font-jakarta font-extrabold';
         btn.style.cssText='background:var(--surface-2);border:1.5px solid var(--hairline);color:var(--ink);';
-        btn.innerHTML=`${getAvatarImg(p,'avatar-img')}<span class="text-lg">${p}</span>`;
+        btn.innerHTML=`${getAvatarImg(p,'avatar-img')}<span class="player-name-label text-lg">${p}</span>`;
         btn.onclick=()=>{ closeRetirePlayerModal(); tapOut(p); };
         list.appendChild(btn);
       });
@@ -7242,7 +7255,7 @@
       const scoreText = item.score > 0 ? `+${item.score}` : `${item.score}`;
       const isWinner = item.player === whammyData.winner;
       return `<div class="whammy-score-row ${isWinner?'winner':''}">
-        <span>${isWinner?'WHAMMY · ':''}${whammyEscapeHtml(item.player)}</span>
+        <span>${isWinner?'WHAMMY · ':''}<span class="player-name-label">${whammyEscapeHtml(item.player)}</span></span>
         <span class="font-mono-num">${scoreText}</span>
       </div>`;
     }).join('');
@@ -7281,7 +7294,7 @@
     document.getElementById('whammy-scores').innerHTML = data.scores.map(item=>{
       const scoreText = item.score > 0 ? `+${item.score}` : `${item.score}`;
       return `<div class="whammy-score-row">
-        <span>${whammyEscapeHtml(item.player)}</span>
+        <span class="player-name-label">${whammyEscapeHtml(item.player)}</span>
         <span class="font-mono-num">${scoreText}</span>
       </div>`;
     }).join('');
@@ -7794,7 +7807,7 @@
           <div class="flex items-center gap-3 flex-1 min-w-0">
             ${getAvatarImg(r.opponent, 'avatar-img')}
             <div class="min-w-0 flex-1">
-              <div class="font-jakarta font-extrabold text-base truncate">${r.opponent}</div>
+              <div class="player-name-label text-base truncate">${r.opponent}</div>
               <div class="text-[10px] font-bold" style="color:var(--muted);">${r.total} head-to-head matches</div>
             </div>
           </div>
@@ -8284,7 +8297,7 @@
     menu.innerHTML=matches.map(name=>`
       <button type="button" class="player-suggest-option" data-player-name="${escapeHtml(name)}" onclick="selectSuggestedPlayer('${scope}',this)">
         ${getStreakAvatarHtml(name,'avatar-img')}
-        <span class="font-jakarta">${escapeHtml(name)}</span>
+        <span class="player-name-label">${escapeHtml(name)}</span>
       </button>
     `).join('');
     menu.classList.remove('hidden');
@@ -8321,7 +8334,7 @@
     if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Tonight's Table is empty — tap an On Deck player to play</div>`;
     else players.forEach((p,i)=>{
       lh+=`<div onclick="moveToBench('${p}')" class="lineup-enter roster-row-lineup" style="animation-delay:${i*35}ms">
-        <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="font-jakarta font-extrabold text-lg">${p}</span></div>
+        <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="player-name-label text-lg">${p}</span></div>
         <span class="text-2xl leading-none opacity-50">&times;</span>
       </div>`;
     });
@@ -8340,7 +8353,7 @@
              onclick="benchRowClick(event,'${safe}')">
           <div class="flex-1 flex items-center gap-3">
             ${getStreakAvatarHtml(p,'avatar-img')}
-            <span class="font-jakarta font-bold text-lg">${p}</span>
+            <span class="player-name-label text-lg">${p}</span>
             <span class="text-[10px] font-bold hidden sm:inline uppercase tracking-wider opacity-40">Tap to play · Swipe to delete</span>
           </div>
           <button onclick="event.stopPropagation();permanentlyDeletePlayer('${safe}')" class="text-2xl leading-none opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" style="color:var(--rose);">&times;</button>
@@ -8750,7 +8763,7 @@
       const isSelected=_rookSelectedPartner===p;
       grid+=`<button class="rook-player-btn${isSelected?' rook-partner-active':''}" id="rook-partner-btn-${p.replace(/\W/g,'_')}" onclick="rookSelectPartner('${p.replace(/'/g,"\\'")}')">
         ${getAvatarImg(p,'avatar-img')}
-        <span class="text-sm">${p}</span>
+        <span class="player-name-label text-sm">${p}</span>
       </button>`;
     });
     document.getElementById('rook-partner-grid').innerHTML=grid;
@@ -9135,7 +9148,7 @@
         const safe=p.replace(/'/g,"\\'");
         rookUI+=`<button type="button" class="rook-player-btn${isSel?' rook-partner-active':''}" onclick="rookSelectBidWinner('${safe}')">
           ${getAvatarImg(p,'avatar-img')}
-          <span class="text-sm font-bold">${p}</span>
+          <span class="player-name-label text-sm">${p}</span>
         </button>`;
       });
       rookUI+=`</div>
@@ -9157,7 +9170,7 @@
           <div class="text-3xl">📣</div>
           <div>
             <div class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Round ${currentGame.currentRound}</div>
-            <div class="font-display text-xl">${currentGame.rookHighBidder} · <span style="color:var(--blue);">${currentGame.rookHighBid}</span></div>
+            <div class="font-display text-xl"><span class="player-name-label">${currentGame.rookHighBidder}</span> · <span style="color:var(--blue);">${currentGame.rookHighBid}</span></div>
           </div>
         </div>
         <div class="text-sm font-bold mb-4" style="color:var(--muted);">${currentGame.rookHighBidder} names trump and calls a partner card.</div>
@@ -9173,7 +9186,7 @@
           <div class="text-3xl">🃏</div>
           <div>
             <div class="text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Playing · Round ${currentGame.currentRound}</div>
-            <div class="font-display text-xl">${currentGame.rookHighBidder} · Bid ${currentGame.rookHighBid}</div>
+            <div class="font-display text-xl"><span class="player-name-label">${currentGame.rookHighBidder}</span> · Bid ${currentGame.rookHighBid}</div>
           </div>
         </div>
         <div class="flex gap-2 flex-wrap mb-4">
@@ -9187,13 +9200,13 @@
         rookUI+=`<div class="rounded-xl p-3 mb-3 border-2" style="border-color:var(--blue-border);background:var(--blue-bg);">
           <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--blue);">Bidder's Team — Target: ${currentGame.rookHighBid}+</div>
           <div class="flex gap-2 flex-wrap">
-            <div class="flex items-center gap-1.5">${getAvatarImg(currentGame.rookHighBidder,'avatar-img')}<span class="font-bold text-sm">${currentGame.rookHighBidder} <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Bidder</span></span></div>
-            <div class="flex items-center gap-1.5">${getAvatarImg(partnerName,'avatar-img')}<span class="font-bold text-sm">${partnerName} <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Partner</span></span></div>
+            <div class="flex items-center gap-1.5">${getAvatarImg(currentGame.rookHighBidder,'avatar-img')}<span class="player-name-label text-sm">${currentGame.rookHighBidder}</span><span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Bidder</span></div>
+            <div class="flex items-center gap-1.5">${getAvatarImg(partnerName,'avatar-img')}<span class="player-name-label text-sm">${partnerName}</span><span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Partner</span></div>
           </div>
         </div>
         <div class="rounded-xl p-3 mb-4 border hairline" style="background:var(--surface-2);">
           <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Opponents</div>
-          <div class="flex gap-2 flex-wrap">${opponents.map(p=>`<div class="flex items-center gap-1.5">${getAvatarImg(p,'avatar-img')}<span class="font-bold text-sm">${p}</span></div>`).join('')}</div>
+          <div class="flex gap-2 flex-wrap">${opponents.map(p=>`<div class="flex items-center gap-1.5">${getAvatarImg(p,'avatar-img')}<span class="player-name-label text-sm">${p}</span></div>`).join('')}</div>
         </div>`;
       }
 
@@ -9257,7 +9270,7 @@
       soundLeader();
       const chosenBox = document.getElementById('dealer-chosen-box');
       const chosenContent = document.getElementById('dealer-chosen-content');
-      chosenContent.innerHTML = `${getAvatarImg(dealer, 'avatar-img')}<div class="flex-1 text-left"><div class="text-[10px] font-extrabold uppercase tracking-[0.15em] opacity-70">First Dealer</div><div class="font-jakarta font-extrabold text-xl leading-tight">${dealer}</div></div><div class="text-3xl">🃏</div>`;
+      chosenContent.innerHTML = `${getAvatarImg(dealer, 'avatar-img')}<div class="flex-1 text-left"><div class="text-[10px] font-extrabold uppercase tracking-[0.15em] opacity-70">First Dealer</div><div class="player-name-label text-xl leading-tight">${dealer}</div></div><div class="text-3xl">🃏</div>`;
       chosenBox.classList.remove('hidden');
       document.getElementById('dealer-roll-result').textContent = `Rolled ${roll + 1} → ${dealer} deals first`;
       btn.disabled = false;
@@ -9642,7 +9655,7 @@
       const btn=document.createElement('button');
       btn.className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80 font-jakarta font-extrabold';
       btn.style.cssText='background:var(--surface-2);border:1.5px solid var(--hairline);color:var(--ink);';
-      btn.innerHTML=`${getAvatarImg(p,'avatar-img')}<span class="text-lg">${p}</span>`;
+      btn.innerHTML=`${getAvatarImg(p,'avatar-img')}<span class="player-name-label text-lg">${p}</span>`;
       btn.onclick=()=>setDealer(p);
       list.appendChild(btn);
     });
@@ -9806,7 +9819,7 @@
     const name = currentGame.originalRoster[idx];
     const ghost = document.createElement('div');
     ghost.className = 'drag-ghost';
-    ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span>${name}</span>`;
+    ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span class="player-name-label">${name}</span>`;
     document.body.appendChild(ghost);
     _rosterTouch.ghost = ghost;
     scheduleDragGhostMove(_rosterTouch,touch.clientX,touch.clientY);
@@ -9891,7 +9904,7 @@
         </div>
         <span class="text-sm w-6 font-mono-num shrink-0 text-center" style="color:var(--muted);">${i + 1}</span>
         ${getAvatarImg(p, 'avatar-img')}
-        <span class="font-jakarta font-extrabold text-base truncate min-w-0 flex-1">${p}</span>
+        <span class="player-name-label text-base truncate min-w-0 flex-1">${p}</span>
       </div>
     `).join('');
   }
@@ -10006,7 +10019,7 @@
     const name = _reorderPlayersWorking[idx];
     const ghost = document.createElement('div');
     ghost.className = 'drag-ghost';
-    ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span>${name}</span>`;
+    ghost.innerHTML = `${getAvatarImg(name, 'avatar-img')}<span class="player-name-label">${name}</span>`;
     document.body.appendChild(ghost);
     _reorderModalTouch.ghost = ghost;
     scheduleDragGhostMove(_reorderModalTouch,touch.clientX,touch.clientY);
@@ -10576,7 +10589,7 @@
       ph+=`<div class="flex flex-col items-center flex-1 max-w-[180px]">
         <div class="${i===0?'text-7xl':'text-5xl'} mb-2">${medals[i]}</div>
         ${getStreakAvatarHtml(p,'avatar-img-lg')}
-        <div class="mt-3 font-jakarta font-extrabold truncate w-full text-center text-lg">${p}</div>
+        <div class="player-name-label mt-3 truncate w-full text-center text-lg">${p}</div>
         <div class="font-jakarta font-extrabold tv-stat-num font-mono-num mb-2">${currentGame.totals[p]||0}</div>
         <div class="podium-bar w-full" style="height:${bh(p,i)}px;"></div>
       </div>`;
@@ -10589,7 +10602,7 @@
           <div class="flex items-center gap-3">
             <span class="font-mono-num font-bold w-6" style="color:var(--muted);">${i+4}.</span>
             ${getStreakAvatarHtml(p,'avatar-img')}
-            <span class="font-jakarta font-bold text-lg">${p}</span>
+            <span class="player-name-label text-lg">${p}</span>
           </div>
           <span class="font-jakarta font-extrabold text-2xl font-mono-num">${currentGame.totals[p]||0}</span>
         </div>`;
@@ -10609,7 +10622,7 @@
           <span class="text-lg">${icon}</span>
           <div>
             <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] leading-tight" style="color:var(--muted);">${ttl}</div>
-            <div class="font-jakarta font-extrabold text-sm leading-tight">${player}</div>
+            <div class="player-name-label text-sm leading-tight">${player}</div>
           </div>
         </div>
         <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:${col};">${dv}</div>
@@ -11595,8 +11608,8 @@
   }
 
   function _presentVictoryModal(data, alerts){
-    const wn=data.winners.length>1?`${data.winners.join(' & ')} Tie!`:`${data.winners[0]} Wins!`;
-    document.getElementById('victory-names').textContent=wn;
+    const winnerNames=data.winners.map(name=>`<span class="player-name-label">${escapeHtml(name)}</span>`).join(' &amp; ');
+    document.getElementById('victory-names').innerHTML=data.winners.length>1?`${winnerNames} Tie!`:`${winnerNames} Wins!`;
     const vs=document.getElementById('victory-subtitle');
     if(vs){ vs.textContent=''; vs.classList.add('hidden'); }
     document.getElementById('victory-records').innerHTML=alerts.map(a=>`<div class="px-4 py-2 rounded-xl font-bold text-sm mx-auto w-fit" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;">${a}</div>`).join('');
@@ -11635,7 +11648,8 @@
   function showLoserModal(){
     document.getElementById('victory-modal').classList.add('hidden');
     resetPostgameConfetti();
-    document.getElementById('loser-names').textContent=currentLosers.length>1?`${currentLosers.join(' & ')} lose.`:`${currentLosers[0]} loses.`;
+    const loserNames=currentLosers.map(name=>`<span class="player-name-label">${escapeHtml(name)}</span>`).join(' &amp; ');
+    document.getElementById('loser-names').innerHTML=currentLosers.length>1?`${loserNames} lose.`:`${loserNames} loses.`;
     document.getElementById('loser-modal').classList.remove('hidden');
     fireLoserConfettiLoop();
   }
@@ -11961,7 +11975,7 @@
       const cfg=configs[h.game]; if(!cfg)return '';
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const rows=sorted.map((p,i)=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${i+1}.</span>${getAvatarImg(p,'avatar-img')}<span class="font-jakarta font-extrabold ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${i+1}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
@@ -12009,7 +12023,7 @@
     sorted.forEach(p=>{
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
-        <td data-sc-part="lead" class="scorecard-col-player px-4 py-2 font-extrabold sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
@@ -12552,13 +12566,13 @@
     }
     const empty = '<div class="surface p-5 text-sm font-bold" style="color:var(--muted);">No qualifying history yet.</div>';
     const playerLine = (r,idx) => `<div class="surface p-4 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="font-jakarta font-extrabold truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+      <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
       <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
     </div>`;
     const recordCard = (title,r,pos=true) => {
       if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-bold mt-2" style="color:var(--muted);">No qualifying history</div></div>`;
       return `<div class="surface p-5 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-jakarta font-extrabold text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${Number.isFinite(r.value)?(Number.isInteger(r.value)?r.value:r.value.toFixed(1)):(r.value??'—')}</div>
       </div>`;
     };
@@ -12651,9 +12665,9 @@
 
     const rivalryCard = (r) => `<div class="surface p-5 space-y-3">
       <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2">${getAvatarImg(r.a,'avatar-img')}<span class="font-jakarta font-extrabold">${r.a}</span></div>
+        <div class="flex items-center gap-2">${getAvatarImg(r.a,'avatar-img')}<span class="player-name-label">${r.a}</span></div>
         <div class="text-xs font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);">vs</div>
-        <div class="flex items-center gap-2">${getAvatarImg(r.b,'avatar-img')}<span class="font-jakarta font-extrabold">${r.b}</span></div>
+        <div class="flex items-center gap-2">${getAvatarImg(r.b,'avatar-img')}<span class="player-name-label">${r.b}</span></div>
       </div>
       <div class="font-jakarta font-extrabold text-center text-xl">${r.aWins} - ${r.bWins}</div>
       <div class="text-sm font-bold text-center" style="color:var(--muted);">${r.together} meetings · Edge: ${r.edgePlayer} (${r.edgePct}%)</div>
@@ -12668,7 +12682,7 @@
       return `<div class="surface p-5 text-center space-y-3">
         <div class="text-4xl">${a.emoji}</div>
         <div><div class="font-display text-xl">${a.name}</div><div class="text-xs font-bold mt-1" style="color:var(--muted);">${r?a.stat(r):'No qualifying history'}</div></div>
-        ${r?`<div class="flex flex-col items-center gap-2">${getAvatarImg(r.player,'avatar-img')}<div class="font-jakarta font-extrabold">${r.player}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.date||'Career'}</div></div>`:''}
+        ${r?`<div class="flex flex-col items-center gap-2">${getAvatarImg(r.player,'avatar-img')}<div class="player-name-label">${r.player}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.date||'Career'}</div></div>`:''}
       </div>`;
     }).join('')}</div>`;
 
@@ -12713,7 +12727,7 @@
       return `<div class="surface p-5 flex justify-between items-center">
         <div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-1" style="color:var(--muted);">${ttl}</div>
-          <div class="font-jakarta font-extrabold text-xl">${player}</div>
+          <div class="player-name-label text-xl">${player}</div>
         </div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${col};">${dv}</div>
       </div>`;

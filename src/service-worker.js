@@ -5,6 +5,7 @@ const APP_SHELL = [
   './manifest.webmanifest',
   './assets/app-utilities.css',
   './assets/fonts.css',
+  './assets/fonts/londrina-solid-400.woff2',
   './bp-icon-192.png',
   './bp-icon-512.png',
   './bp-apple-touch-icon.png'
