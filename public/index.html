@@ -2524,9 +2524,9 @@
     .record-chase-row {
       display: flex;
       align-items: center;
-      gap: clamp(0.45rem, 0.8vw, 0.75rem);
+      gap: clamp(0.5rem, 0.8vw, 0.8rem);
       min-height: 0;
-      padding: 0.3rem clamp(0.55rem, 1vw, 1rem);
+      padding: 0.28rem clamp(0.55rem, 1vw, 1rem);
       border-bottom: 1px solid rgba(13,148,136,0.13);
       overflow: hidden;
     }
@@ -2546,53 +2546,58 @@
       background: var(--surface-2);
     }
     .record-chase-copy {
+      display: grid;
+      flex: 1 1 auto;
+      grid-template-columns: minmax(4.5rem, 0.72fr) minmax(0, 1.65fr) minmax(7.25rem, 1.22fr);
+      align-items: center;
+      gap: clamp(0.55rem, 0.9vw, 0.95rem);
       min-width: 0;
       line-height: 1;
     }
     .record-chase-name {
-      margin-bottom: 0.16rem;
       overflow: hidden;
       font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(0.64rem, 0.92vw, 0.82rem);
-      line-height: 0.95;
-      letter-spacing: 0.04em;
-      text-overflow: ellipsis;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--coral);
-    }
-    .record-chase-primary {
-      overflow: hidden;
-      font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(0.88rem, 1.4vw, 1.28rem);
+      font-size: clamp(1rem, 1.22vw, 1.3rem);
       line-height: 0.95;
       text-overflow: ellipsis;
       text-transform: uppercase;
       white-space: nowrap;
       color: var(--emerald);
     }
-    .record-chase-secondary {
-      margin-top: 0.22rem;
+    .record-chase-primary {
       overflow: hidden;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: clamp(0.58rem, 0.8vw, 0.72rem);
-      font-weight: 900;
+      font-family: 'Londrina Solid', sans-serif;
+      font-size: clamp(1rem, 1.28vw, 1.34rem);
       line-height: 1;
-      letter-spacing: 0.03em;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: var(--coral);
+    }
+    .record-chase-secondary {
+      overflow: hidden;
+      font-family: 'Londrina Solid', sans-serif;
+      font-size: clamp(0.82rem, 1vw, 1.02rem);
+      font-weight: 400;
+      line-height: 1;
+      text-align: right;
       text-overflow: ellipsis;
       text-transform: uppercase;
       white-space: nowrap;
       color: var(--muted);
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-avatar {
-      width: min(2.85rem, calc(var(--scorecard-row-height) * 0.5));
-      height: min(2.85rem, calc(var(--scorecard-row-height) * 0.5));
+      width: min(2.85rem, calc(var(--scorecard-row-height) * 0.56));
+      height: min(2.85rem, calc(var(--scorecard-row-height) * 0.56));
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-name {
+      font-size: min(1.3rem, calc(var(--scorecard-row-height) * 0.25));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-primary {
-      font-size: min(1.28rem, calc(var(--scorecard-row-height) * 0.2));
+      font-size: min(1.34rem, calc(var(--scorecard-row-height) * 0.27));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-secondary {
-      font-size: min(0.72rem, calc(var(--scorecard-row-height) * 0.105));
+      font-size: min(1.02rem, calc(var(--scorecard-row-height) * 0.19));
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: 57%;
@@ -2610,6 +2615,19 @@
       }
       .scorecard-live-main {
         flex-basis: 100%;
+      }
+    }
+    @media (min-width: 901px) and (max-width: 1250px) {
+      .record-chase-row {
+        gap: 0.42rem;
+        padding-inline: 0.5rem;
+      }
+      .record-chase-copy {
+        grid-template-columns: minmax(3.8rem, 0.65fr) minmax(0, 1.55fr) minmax(6.25rem, 1.15fr);
+        gap: 0.45rem;
+      }
+      .record-chase-secondary {
+        font-size: clamp(0.72rem, 1vw, 0.86rem);
       }
     }
     @media (min-width: 761px) {
