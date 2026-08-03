@@ -4,6 +4,7 @@ const cases=[
   {name:'home-setup',scenario:'home-party',surface:'home',visible:'#home-screen:not(.hidden)'},
   {name:'wizard-scorecard-10-players',scenario:'wizard-10',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'wizard-scorecard-scoring-8-players',scenario:'wizard-scoring-8',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
+  {name:'wizard-scorecard-early-8-players',scenario:'wizard-early-8',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true,assertIdentityTotalAdjacent:true},
   {name:'five-crowns-scorecard-4-players',scenario:'five-crowns-4',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'wizard-bid-entry-10-players',scenario:'wizard-10',surface:'entry-bids',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
@@ -87,6 +88,14 @@ for(const view of cases){
     if(view.assertScorecardScale){
       await expectScorecardUsesRowHeight(page);
       await expectScorecardNamesFit(page);
+    }
+    if(view.assertIdentityTotalAdjacent){
+      const gap=await page.locator('#scorecard-body tr').first().evaluate(row=>{
+        const player=row.querySelector('.scorecard-col-player')?.getBoundingClientRect();
+        const total=row.querySelector('.scorecard-col-total')?.getBoundingClientRect();
+        return player&&total?Math.abs(total.left-player.right):Infinity;
+      });
+      expect(gap,'Total should sit directly beside the player identity column').toBeLessThanOrEqual(2);
     }
     if(view.name==='five-crowns-life-preservers'){
       const available=page.locator('button.scorecard-life-preserver-rank');

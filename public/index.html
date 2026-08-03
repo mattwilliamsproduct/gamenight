@@ -2687,6 +2687,30 @@
       border-collapse: separate;
       border-spacing: 0;
     }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total {
+      table-layout: fixed;
+    }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+      width: clamp(22rem, 29vw, 31rem);
+      min-width: 0;
+      max-width: none;
+    }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+      width: clamp(5.75rem, 7.5vw, 7.75rem);
+    }
+    #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+      width: clamp(29rem, 40vw, 42rem);
+    }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-fill-col {
+      width: auto;
+    }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-fill-col {
+      padding: 0;
+      border-left: 0;
+      background: rgba(255,252,247,0.97);
+    }
     .scorecard-table thead tr {
       background:
         linear-gradient(180deg, #171713, var(--ink));
@@ -9091,6 +9115,7 @@
   // ── Rook: Main Render ──
   function renderRookGame(){
     if(!currentGame||currentGame.name!=='Rook')return;
+    document.querySelector('#scorecard-capture .scorecard-table')?.classList.remove('scorecard-table--identity-total');
     const cfg=currentGame.rookConfig||{winTarget:300,minBid:70,totalCounters:200};
     if(currentGame.rookPhase==='bidding')currentGame.rookPhase='bidSetup';
 
@@ -10301,6 +10326,7 @@
       const table=root.querySelector('table.scorecard-table');
       const rows=[...table?.querySelectorAll('tbody tr')||[]];
       const head=table?.querySelector('thead');
+      root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const availableRowsHeight=wrap.clientHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
@@ -10430,6 +10456,7 @@
       if(undoWizardBtn)undoWizardBtn.classList.add('hidden');
       return renderRookGame();
     }
+    document.querySelector('#scorecard-capture .scorecard-table')?.classList.add('scorecard-table--identity-total');
     const cfg=configs[currentGame.name];
     const isWiz=currentGame.name==='Wizard', is818=currentGame.name==='818';
     const isBidTrick=isBidTrickGame(currentGame), bidTrickPhase=getBidTrickPhase(currentGame);
@@ -10484,10 +10511,12 @@
     }
 
     // Head
+    const hasScorecardRounds=currentGame.rounds.some(r=>!r.hailMaryBonus);
     let head=`<tr>
       <th data-sc-part="lead" class="scorecard-col-player px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
       <th data-sc-part="lead" class="scorecard-col-total px-4 py-3">Total</th>`;
     currentGame.rounds.forEach((r,rIdx)=>{ if(!r.hailMaryBonus) head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
+    if(!hasScorecardRounds)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
     try{
@@ -10578,6 +10607,7 @@
           </div>
         </td>
         <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-3 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}</td>`;
+      if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{

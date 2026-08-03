@@ -111,6 +111,11 @@ const wizardScoringGame=makeCurrentGame('Wizard',wizardScoringPlayers,[],{
   currentBids:Object.fromEntries(wizardScoringPlayers.map((player,index)=>[player,index===1?1:0])),
   currentScoreDrafts:{}
 });
+const wizardEarlyGame=makeCurrentGame('Wizard',wizardScoringPlayers,wizardRounds(wizardScoringPlayers,2),{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{}
+});
 
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
@@ -142,6 +147,12 @@ export const QA_SCENARIOS = {
     description:'Eight-player Wizard immediately after bids lock, with bid pills visible and every row required to fit.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...wizardScoringPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardScoringGame}
+  },
+  'wizard-early-8':{
+    label:'Wizard · Early Game · 8 Players',
+    description:'Eight-player Wizard after two rounds, with identity and total required to remain visually adjacent.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...wizardScoringPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardEarlyGame}
   },
   'five-crowns-preservers':{
     label:'Five Crowns · Life Preservers',
