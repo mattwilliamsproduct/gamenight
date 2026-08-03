@@ -27,6 +27,26 @@ function wizardRounds(players,count){
   });
 }
 
+function wizardRoundsFromScores(players,scoreRows){
+  return scoreRows.map((scoreRow,roundIndex)=>{
+    const bids={},actuals={},scores={};
+    players.forEach((player,index)=>{
+      const score=Number(scoreRow[index])||0;
+      if(score>=20){
+        const bid=Math.max(0,Math.round((score-20)/10));
+        bids[player]=bid;
+        actuals[player]=bid;
+      } else {
+        const miss=Math.max(1,Math.round(Math.abs(score)/10));
+        bids[player]=miss;
+        actuals[player]=0;
+      }
+      scores[player]=score;
+    });
+    return {round:roundIndex+1,bids,actuals,scores};
+  });
+}
+
 function fiveCrownsRounds(players,count){
   return Array.from({length:count},(_,roundIndex)=>{
     const round=roundIndex+1;
@@ -116,6 +136,38 @@ const wizardEarlyGame=makeCurrentGame('Wizard',wizardScoringPlayers,wizardRounds
   currentBids:{},
   currentScoreDrafts:{}
 });
+const recordChasePlayers=NAMES.slice(0,8);
+const recordChaseGame=makeCurrentGame('Wizard',recordChasePlayers,wizardRoundsFromScores(recordChasePlayers,[
+  [30,20,20,40,30,20,-10,-20],
+  [40,30,20,-10,-10,-10,-10,-10]
+]),{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{}
+});
+const recordChaseHistoryPlayers=recordChasePlayers.filter(player=>player!=='Brick');
+const recordChaseHistoryScores=[
+  [[20,30,-10,-10,20,20,-10],[30,40,40,20,20,30,-10]],
+  [[30,20,20,-10,20,-10,-10],[30,40,30,30,30,-10,-10]],
+  [[20,40,20,-10,30,-10,-10],[20,40,20,-10,30,20,20]],
+  [[20,20,30,-10,20,-20,20],[30,30,30,20,30,20,20]]
+];
+const recordChaseHistory=recordChaseHistoryScores.map((scoreRows,index)=>{
+  const rounds=wizardRoundsFromScores(recordChaseHistoryPlayers,scoreRows);
+  const totals=totalRounds(recordChaseHistoryPlayers,rounds);
+  return {
+    id:1784390400000-((index+1)*604800000),
+    game:'Wizard',
+    date:`7/${10-index}/2026`,
+    totals,
+    winners:winnersFor('Wizard',totals),
+    rounds,
+    originalRoster:[...recordChaseHistoryPlayers],
+    currentRound:3,
+    hailMaryUsed:[],
+    retired:[]
+  };
+});
 
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
@@ -153,6 +205,12 @@ export const QA_SCENARIOS = {
     description:'Eight-player Wizard after two rounds, with identity and total required to remain visually adjacent.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...wizardScoringPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardEarlyGame}
+  },
+  'record-chase-preview':{
+    label:'Record Chase · Varied Paces',
+    description:'Eight-player Wizard with best-pace, usual-pace, and fresh-start stories for reviewing the compact scorecard concept.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...recordChasePlayers],history:recordChaseHistory,playerProfiles:profiles(),currentGame:recordChaseGame}
   },
   'five-crowns-preservers':{
     label:'Five Crowns · Life Preservers',
