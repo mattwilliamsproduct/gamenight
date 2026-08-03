@@ -147,6 +147,25 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectScorecardNamesFit(page);
 });
 
+test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+
+  await expect(page.locator('#record-chase-panel')).toBeVisible();
+  await expect(page.locator('#record-chase-restore')).toBeHidden();
+  expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
+
+  await page.locator('#record-chase-toggle').click();
+  await expect(page.locator('#record-chase-panel')).toBeHidden();
+  await expect(page.locator('#record-chase-restore')).toBeVisible();
+  expect(await page.locator('#scorecard-head [data-sc-round]').count(),'the traditional scorecard should restore every completed round').toBe(5);
+
+  await page.locator('#record-chase-restore').click();
+  await expect(page.locator('#record-chase-panel')).toBeVisible();
+  await expect(page.locator('#record-chase-restore')).toBeHidden();
+  expect(await page.locator('#scorecard-head [data-sc-round]').count(),'restoring Record Chase should return to the latest two rounds').toBe(2);
+});
+
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
   const selectors={
     brand:'#top-nav .bp-brand-main',

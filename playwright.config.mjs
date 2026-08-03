@@ -1,5 +1,7 @@
 import {defineConfig} from '@playwright/test';
 
+const baseURL=process.env.PLAYWRIGHT_BASE_URL||'http://127.0.0.1:4173';
+
 export default defineConfig({
   testDir:'./tests/visual',
   outputDir:'./test-results',
@@ -14,7 +16,7 @@ export default defineConfig({
     toHaveScreenshot:{animations:'disabled',caret:'hide',maxDiffPixelRatio:0.008,scale:'css'}
   },
   use:{
-    baseURL:'http://127.0.0.1:4173',
+    baseURL,
     locale:'en-US',
     timezoneId:'America/New_York',
     colorScheme:'light',
@@ -38,7 +40,7 @@ export default defineConfig({
   ],
   webServer:{
     command:'node scripts/serve-public.mjs',
-    url:'http://127.0.0.1:4173',
+    url:baseURL,
     reuseExistingServer:!process.env.CI,
     timeout:15000
   }

@@ -2460,18 +2460,19 @@
       display: flex;
       flex: 1 1 auto;
       min-height: 0;
+      position: relative;
       width: 100%;
     }
     .scorecard-live-main {
       display: flex;
-      flex: 0 0 62%;
+      flex: 0 0 58%;
       flex-direction: column;
       min-width: 0;
       min-height: 0;
     }
     .record-chase-panel {
       display: flex;
-      flex: 1 1 38%;
+      flex: 1 1 42%;
       flex-direction: column;
       min-width: 0;
       min-height: 0;
@@ -2500,20 +2501,47 @@
       color: var(--emerald);
       background: rgba(209,250,229,0.62);
     }
+    .record-chase-toggle {
+      display: inline-grid;
+      width: 2.35rem;
+      height: 2.35rem;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid rgba(13,148,136,0.28);
+      border-radius: 50%;
+      color: var(--emerald);
+      background: rgba(255,252,247,0.94);
+      box-shadow: 0 4px 12px rgba(15,118,110,0.12);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      transition: transform 150ms ease, background 150ms ease;
+    }
+    .record-chase-toggle:hover,
+    .record-chase-toggle:focus-visible {
+      transform: scale(1.06);
+      background: white;
+    }
+    .record-chase-restore {
+      position: absolute;
+      top: 50%;
+      right: 0.55rem;
+      z-index: 30;
+      transform: translateY(-50%);
+    }
+    .record-chase-restore.hidden {
+      display: none !important;
+    }
+    .record-chase-restore:hover,
+    .record-chase-restore:focus-visible {
+      transform: translateY(-50%) scale(1.06);
+    }
     .record-chase-title {
       font-family: 'Londrina Solid', sans-serif;
       font-size: clamp(1.05rem, 1.7vw, 1.55rem);
       line-height: 0.95;
       text-transform: uppercase;
-    }
-    .record-chase-kicker {
-      max-width: 11rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: clamp(0.58rem, 0.8vw, 0.72rem);
-      font-weight: 800;
-      line-height: 1.05;
-      text-align: right;
-      color: var(--muted);
     }
     .record-chase-list {
       display: grid;
@@ -2522,9 +2550,10 @@
       min-height: 0;
     }
     .record-chase-row {
-      display: flex;
+      display: grid;
       align-items: center;
-      gap: clamp(0.5rem, 0.8vw, 0.8rem);
+      grid-template-columns: minmax(4.7rem, 0.66fr) minmax(0, 1.45fr) minmax(7.5rem, 1.1fr) minmax(4.9rem, 0.58fr);
+      gap: clamp(0.55rem, 0.8vw, 0.9rem);
       min-height: 0;
       padding: 0.28rem clamp(0.55rem, 1vw, 1rem);
       border-bottom: 1px solid rgba(13,148,136,0.13);
@@ -2536,28 +2565,10 @@
     .record-chase-row.is-leader {
       background: rgba(167,243,208,0.32);
     }
-    .record-chase-avatar {
-      width: clamp(2rem, 3vw, 2.85rem);
-      height: clamp(2rem, 3vw, 2.85rem);
-      flex: 0 0 auto;
-      border-radius: 7px;
-      object-fit: cover;
-      border: 2px solid rgba(13,148,136,0.25);
-      background: var(--surface-2);
-    }
-    .record-chase-copy {
-      display: grid;
-      flex: 1 1 auto;
-      grid-template-columns: minmax(4.5rem, 0.72fr) minmax(0, 1.65fr) minmax(7.25rem, 1.22fr);
-      align-items: center;
-      gap: clamp(0.55rem, 0.9vw, 0.95rem);
-      min-width: 0;
-      line-height: 1;
-    }
     .record-chase-name {
       overflow: hidden;
       font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1rem, 1.22vw, 1.3rem);
+      font-size: clamp(1.2rem, 1.5vw, 1.6rem);
       line-height: 0.95;
       text-overflow: ellipsis;
       text-transform: uppercase;
@@ -2567,7 +2578,7 @@
     .record-chase-primary {
       overflow: hidden;
       font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1rem, 1.28vw, 1.34rem);
+      font-size: clamp(1.15rem, 1.45vw, 1.52rem);
       line-height: 1;
       text-overflow: ellipsis;
       text-transform: uppercase;
@@ -2577,30 +2588,59 @@
     .record-chase-secondary {
       overflow: hidden;
       font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(0.82rem, 1vw, 1.02rem);
+      font-size: clamp(1rem, 1.22vw, 1.24rem);
       font-weight: 400;
       line-height: 1;
-      text-align: right;
       text-overflow: ellipsis;
       text-transform: uppercase;
       white-space: nowrap;
       color: var(--muted);
     }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-avatar {
-      width: min(2.85rem, calc(var(--scorecard-row-height) * 0.56));
-      height: min(2.85rem, calc(var(--scorecard-row-height) * 0.56));
+    .record-chase-records {
+      display: grid;
+      gap: 0.08rem;
+      min-width: 0;
+      padding-left: clamp(0.4rem, 0.7vw, 0.7rem);
+      border-left: 1px solid rgba(13,148,136,0.2);
+    }
+    .record-chase-record {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: baseline;
+      gap: 0.38rem;
+      min-width: 0;
+      font-family: 'Londrina Solid', sans-serif;
+      line-height: 0.95;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .record-chase-record-label {
+      font-size: clamp(0.72rem, 0.9vw, 0.9rem);
+      color: var(--muted);
+    }
+    .record-chase-record-value {
+      overflow: hidden;
+      font-size: clamp(1rem, 1.2vw, 1.22rem);
+      text-overflow: ellipsis;
+      color: var(--emerald);
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-name {
-      font-size: min(1.3rem, calc(var(--scorecard-row-height) * 0.25));
+      font-size: min(1.6rem, calc(var(--scorecard-row-height) * 0.4));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-primary {
-      font-size: min(1.34rem, calc(var(--scorecard-row-height) * 0.27));
+      font-size: min(1.52rem, calc(var(--scorecard-row-height) * 0.36));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-secondary {
-      font-size: min(1.02rem, calc(var(--scorecard-row-height) * 0.19));
+      font-size: min(1.24rem, calc(var(--scorecard-row-height) * 0.29));
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-label {
+      font-size: min(0.9rem, calc(var(--scorecard-row-height) * 0.2));
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-value {
+      font-size: min(1.22rem, calc(var(--scorecard-row-height) * 0.29));
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 57%;
+      width: 52%;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
       width: 17%;
@@ -2619,15 +2659,15 @@
     }
     @media (min-width: 901px) and (max-width: 1250px) {
       .record-chase-row {
-        gap: 0.42rem;
+        grid-template-columns: minmax(4.2rem, 0.62fr) minmax(0, 1.3fr) minmax(6.4rem, 1fr) minmax(4.2rem, 0.56fr);
+        gap: 0.38rem;
         padding-inline: 0.5rem;
       }
-      .record-chase-copy {
-        grid-template-columns: minmax(3.8rem, 0.65fr) minmax(0, 1.55fr) minmax(6.25rem, 1.15fr);
-        gap: 0.45rem;
-      }
       .record-chase-secondary {
-        font-size: clamp(0.72rem, 1vw, 0.86rem);
+        font-size: clamp(0.86rem, 1.1vw, 1rem);
+      }
+      .record-chase-records {
+        padding-left: 0.35rem;
       }
     }
     @media (min-width: 761px) {
@@ -2713,12 +2753,12 @@
         min-height: 0;
       }
       body.active-match-view .tournament-scoreboard .scorecard-live-layout.record-chase-active > .scorecard-live-main {
-        flex: 0 0 62%;
-        width: 62%;
+        flex: 0 0 58%;
+        width: 58%;
       }
       body.active-match-view .tournament-scoreboard .scorecard-live-layout.record-chase-active > .record-chase-panel {
-        flex: 0 0 38%;
-        width: 38%;
+        flex: 0 0 42%;
+        width: 42%;
       }
       body.active-match-view .tournament-scoreboard .scorecard-table-wrap {
         flex: 1 1 auto;
@@ -5747,10 +5787,11 @@
             <aside id="record-chase-panel" class="record-chase-panel" aria-label="Record Chase player metrics">
               <div class="record-chase-head">
                 <div class="record-chase-title">Record Chase</div>
-                <div class="record-chase-kicker">Your pace. Your records.</div>
+                <button id="record-chase-toggle" type="button" class="record-chase-toggle" onclick="toggleRecordChasePanel(false)" title="Show all round columns" aria-label="Hide Record Chase and show all round columns">&rsaquo;</button>
               </div>
               <div id="record-chase-list" class="record-chase-list"></div>
             </aside>
+            <button id="record-chase-restore" type="button" class="record-chase-toggle record-chase-restore hidden" onclick="toggleRecordChasePanel(true)" title="Show Record Chase" aria-label="Show Record Chase">&lsaquo;</button>
           </div>
 
           <div id="submit-section" class="tournament-footer p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
@@ -6505,6 +6546,8 @@
   let playerProfiles = safeGetObject('gn_profiles');
 
   let currentGame = null;
+  let recordChaseVisible = true;
+  let recordChaseLayoutActive = false;
   let _historyRevision = 0;
   let _hallOfFameCache = null;
   let _allTimeRecordsCache = null;
@@ -10660,15 +10703,24 @@
   function setRecordChaseLayout(enabled){
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
-    if(layout)layout.classList.toggle('record-chase-active',!!enabled);
-    if(panel)panel.classList.toggle('hidden',!enabled);
+    const restore=document.getElementById('record-chase-restore');
+    const available=window.matchMedia('(min-width: 901px)').matches&&currentGame?.name!=='Rook';
+    recordChaseLayoutActive=!!enabled&&available;
+    if(layout)layout.classList.toggle('record-chase-active',recordChaseLayoutActive);
+    if(panel)panel.classList.toggle('hidden',!recordChaseLayoutActive);
+    if(restore)restore.classList.toggle('hidden',recordChaseLayoutActive||!available);
+  }
+
+  function toggleRecordChasePanel(visible){
+    recordChaseVisible=!!visible;
+    renderGame();
   }
 
   function getRecordChaseRoundEntries(gameData){
-    return (gameData?.rounds||[])
+    const entries=(gameData?.rounds||[])
       .map((round,index)=>({round,index}))
-      .filter(entry=>!entry.round.hailMaryBonus)
-      .slice(-2);
+      .filter(entry=>!entry.round.hailMaryBonus);
+    return recordChaseLayoutActive?entries.slice(-2):entries;
   }
 
   function getRecordChasePlayerRounds(gameData,player){
@@ -10753,9 +10805,20 @@
       const best=cfg.winLow?Math.min(...finalScores):Math.max(...finalScores);
       primary=`Fresh start · career best ${best}`;
     }
+    const finalScores=matches
+      .map(match=>Number(match.totals?.[player]))
+      .filter(score=>Number.isFinite(score));
+    const bestScore=finalScores.length
+      ? (cfg.winLow?Math.min(...finalScores):Math.max(...finalScores))
+      : null;
+    const worstScore=finalScores.length
+      ? (cfg.winLow?Math.max(...finalScores):Math.min(...finalScores))
+      : null;
     return {
       primary,
-      secondary:getRecordChaseSkill(player,gameName,matches)
+      secondary:getRecordChaseSkill(player,gameName,matches),
+      bestScore,
+      worstScore
     };
   }
 
@@ -10767,12 +10830,15 @@
     list.innerHTML=players.map(player=>{
       const metric=getRecordChaseMetric(player,cfg);
       const isLeader=currentGame.currentRound>1&&currentGame.totals[player]===leaderScore;
-      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(metric.primary)} · ${escapeHtml(metric.secondary)}">
-        ${getAvatarImg(player,'record-chase-avatar')}
-        <div class="record-chase-copy">
-          <div class="record-chase-name">${escapeHtml(player)}</div>
-          <div class="record-chase-primary">${escapeHtml(metric.primary)}</div>
-          <div class="record-chase-secondary">${escapeHtml(metric.secondary)}</div>
+      const best=metric.bestScore===null?'—':metric.bestScore;
+      const worst=metric.worstScore===null?'—':metric.worstScore;
+      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(metric.primary)} · ${escapeHtml(metric.secondary)} · Best ${best} · Worst ${worst}">
+        <div class="record-chase-name">${escapeHtml(player)}</div>
+        <div class="record-chase-primary">${escapeHtml(metric.primary)}</div>
+        <div class="record-chase-secondary">${escapeHtml(metric.secondary)}</div>
+        <div class="record-chase-records" aria-label="Best ${best}; worst ${worst}">
+          <div class="record-chase-record"><span class="record-chase-record-label">Best</span><span class="record-chase-record-value">${best}</span></div>
+          <div class="record-chase-record"><span class="record-chase-record-label">Worst</span><span class="record-chase-record-value">${worst}</span></div>
         </div>
       </div>`;
     }).join('');
@@ -10801,7 +10867,7 @@
       if(undoWizardBtn)undoWizardBtn.classList.add('hidden');
       return renderRookGame();
     }
-    setRecordChaseLayout(true);
+    setRecordChaseLayout(recordChaseVisible);
     document.querySelector('#scorecard-capture .scorecard-table')?.classList.add('scorecard-table--identity-total');
     const cfg=configs[currentGame.name];
     const isWiz=currentGame.name==='Wizard', is818=currentGame.name==='818';
