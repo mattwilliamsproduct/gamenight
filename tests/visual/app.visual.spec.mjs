@@ -154,6 +154,8 @@ test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
   await expect(page.locator('#record-chase-panel')).toBeVisible();
   await expect(page.locator('#record-chase-restore')).toBeHidden();
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
+  await expect(page.locator('#record-chase-list')).not.toContainText(/exact bids\s*[·]\s*\d+\/\d+/i);
+  await expect(page.locator('#record-chase-list')).not.toContainText(/make some history/i);
 
   await page.locator('#record-chase-toggle').click();
   await expect(page.locator('#record-chase-panel')).toBeHidden();

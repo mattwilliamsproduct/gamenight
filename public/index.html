@@ -2615,12 +2615,12 @@
       white-space: nowrap;
     }
     .record-chase-record-label {
-      font-size: clamp(0.72rem, 0.9vw, 0.9rem);
+      font-size: clamp(0.8rem, 1vw, 1rem);
       color: var(--muted);
     }
     .record-chase-record-value {
       overflow: hidden;
-      font-size: clamp(1rem, 1.2vw, 1.22rem);
+      font-size: clamp(1.08rem, 1.3vw, 1.32rem);
       text-overflow: ellipsis;
       color: var(--emerald);
     }
@@ -2634,10 +2634,10 @@
       font-size: min(1.24rem, calc(var(--scorecard-row-height) * 0.29));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-label {
-      font-size: min(0.9rem, calc(var(--scorecard-row-height) * 0.2));
+      font-size: min(1rem, calc(var(--scorecard-row-height) * 0.22));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-value {
-      font-size: min(1.22rem, calc(var(--scorecard-row-height) * 0.29));
+      font-size: min(1.32rem, calc(var(--scorecard-row-height) * 0.31));
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: 52%;
@@ -10756,7 +10756,7 @@
         total++;
         if((Number(round.bids[player])||0)===(Number(round.actuals[player])||0))exact++;
       });
-      return total?`${Math.round((exact/total)*100)}% exact bids · ${exact}/${total}`:'Exact-bid story starts tonight';
+      return total?`${Math.round((exact/total)*100)}% exact bids`:'Exact-bid story starts tonight';
     }
     const scores=rounds.map(round=>Number(round.scores?.[player])||0);
     if(!scores.length)return 'First stats arrive after this round';
@@ -10780,7 +10780,7 @@
         .map(match=>recordChaseScoreThrough(match,player,completed))
         .filter(score=>Number.isFinite(score))
       : [];
-    let primary='Fresh scorecard · make some history';
+    let primary='Fresh scorecard';
     if(comparable.length){
       const best=cfg.winLow?Math.min(...comparable):Math.max(...comparable);
       const usual=Math.round(comparable.reduce((sum,score)=>sum+score,0)/comparable.length);
