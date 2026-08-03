@@ -154,8 +154,11 @@ test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
   await expect(page.locator('#record-chase-panel')).toBeVisible();
   await expect(page.locator('#record-chase-restore')).toBeHidden();
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
-  await expect(page.locator('#record-chase-list')).not.toContainText(/exact bids\s*[·]\s*\d+\/\d+/i);
-  await expect(page.locator('#record-chase-list')).not.toContainText(/make some history/i);
+  expect(await page.locator('.record-chase-row').count(),'Record Chase should have one row per player').toBe(10);
+  expect(await page.locator('.record-chase-row .record-chase-avatar').count(),'each Record Chase row should use the player avatar').toBe(10);
+  expect(await page.locator('.record-chase-name').count(),'Record Chase should not duplicate player names').toBe(0);
+  expect(await page.locator('.record-chase-secondary').count(),'Record Chase should not include a supporting metric column').toBe(0);
+  await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
 
   await page.locator('#record-chase-toggle').click();
   await expect(page.locator('#record-chase-panel')).toBeHidden();

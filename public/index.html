@@ -2552,8 +2552,8 @@
     .record-chase-row {
       display: grid;
       align-items: center;
-      grid-template-columns: minmax(4.7rem, 0.66fr) minmax(0, 1.45fr) minmax(7.5rem, 1.1fr) minmax(4.9rem, 0.58fr);
-      gap: clamp(0.55rem, 0.8vw, 0.9rem);
+      grid-template-columns: clamp(2.2rem, 3.5vw, 3.35rem) minmax(0, 1fr) minmax(8.8rem, auto);
+      gap: clamp(0.65rem, 1vw, 1.1rem);
       min-height: 0;
       padding: 0.28rem clamp(0.55rem, 1vw, 1rem);
       border-bottom: 1px solid rgba(13,148,136,0.13);
@@ -2565,40 +2565,29 @@
     .record-chase-row.is-leader {
       background: rgba(167,243,208,0.32);
     }
-    .record-chase-name {
-      overflow: hidden;
-      font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1.2rem, 1.5vw, 1.6rem);
-      line-height: 0.95;
-      text-overflow: ellipsis;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--emerald);
+    .record-chase-avatar {
+      width: 100%;
+      max-width: 3.35rem;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 0.7rem;
+      justify-self: center;
     }
     .record-chase-primary {
       overflow: hidden;
       font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1.15rem, 1.45vw, 1.52rem);
+      font-size: clamp(1.35rem, 1.75vw, 1.82rem);
       line-height: 1;
       text-overflow: ellipsis;
       text-transform: uppercase;
       white-space: nowrap;
       color: var(--coral);
     }
-    .record-chase-secondary {
-      overflow: hidden;
-      font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1rem, 1.22vw, 1.24rem);
-      font-weight: 400;
-      line-height: 1;
-      text-overflow: ellipsis;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--muted);
-    }
     .record-chase-records {
       display: grid;
-      gap: 0.08rem;
+      grid-template-columns: repeat(2, minmax(0, auto));
+      align-items: center;
+      gap: clamp(0.65rem, 1vw, 1rem);
       min-width: 0;
       padding-left: clamp(0.4rem, 0.7vw, 0.7rem);
       border-left: 1px solid rgba(13,148,136,0.2);
@@ -2615,29 +2604,26 @@
       white-space: nowrap;
     }
     .record-chase-record-label {
-      font-size: clamp(0.8rem, 1vw, 1rem);
+      font-size: clamp(0.9rem, 1.08vw, 1.08rem);
       color: var(--muted);
     }
     .record-chase-record-value {
       overflow: hidden;
-      font-size: clamp(1.08rem, 1.3vw, 1.32rem);
+      font-size: clamp(1.22rem, 1.45vw, 1.48rem);
       text-overflow: ellipsis;
       color: var(--emerald);
     }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-name {
-      font-size: min(1.6rem, calc(var(--scorecard-row-height) * 0.4));
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-avatar {
+      max-width: min(3.35rem, calc(var(--scorecard-row-height) * 0.72));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-primary {
-      font-size: min(1.52rem, calc(var(--scorecard-row-height) * 0.36));
-    }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-secondary {
-      font-size: min(1.24rem, calc(var(--scorecard-row-height) * 0.29));
+      font-size: min(1.82rem, calc(var(--scorecard-row-height) * 0.42));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-label {
-      font-size: min(1rem, calc(var(--scorecard-row-height) * 0.22));
+      font-size: min(1.08rem, calc(var(--scorecard-row-height) * 0.24));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-value {
-      font-size: min(1.32rem, calc(var(--scorecard-row-height) * 0.31));
+      font-size: min(1.48rem, calc(var(--scorecard-row-height) * 0.34));
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: 52%;
@@ -2659,15 +2645,16 @@
     }
     @media (min-width: 901px) and (max-width: 1250px) {
       .record-chase-row {
-        grid-template-columns: minmax(4.2rem, 0.62fr) minmax(0, 1.3fr) minmax(6.4rem, 1fr) minmax(4.2rem, 0.56fr);
-        gap: 0.38rem;
+        grid-template-columns: clamp(2rem, 3.2vw, 2.7rem) minmax(0, 1fr) minmax(7.4rem, auto);
+        gap: 0.48rem;
         padding-inline: 0.5rem;
       }
-      .record-chase-secondary {
-        font-size: clamp(0.86rem, 1.1vw, 1rem);
+      .record-chase-avatar {
+        max-width: 2.7rem;
       }
       .record-chase-records {
         padding-left: 0.35rem;
+        gap: 0.45rem;
       }
     }
     @media (min-width: 761px) {
@@ -10746,28 +10733,6 @@
       .reduce((total,round)=>total+(Number(round.scores?.[player])||0),0);
   }
 
-  function getRecordChaseSkill(player,gameName,matches){
-    const games=[...matches,currentGame].filter(Boolean);
-    const rounds=games.flatMap(game=>getRecordChasePlayerRounds(game,player));
-    if(gameName==='Wizard'||gameName==='818'){
-      let exact=0,total=0;
-      rounds.forEach(round=>{
-        if(round.bids?.[player]===undefined||round.actuals?.[player]===undefined)return;
-        total++;
-        if((Number(round.bids[player])||0)===(Number(round.actuals[player])||0))exact++;
-      });
-      return total?`${Math.round((exact/total)*100)}% exact bids`:'Exact-bid story starts tonight';
-    }
-    const scores=rounds.map(round=>Number(round.scores?.[player])||0);
-    if(!scores.length)return 'First stats arrive after this round';
-    const average=Math.round(scores.reduce((sum,score)=>sum+score,0)/scores.length);
-    if(gameName==='Five Crowns')return `Best hand ${Math.min(...scores)} · ${average} avg`;
-    if(gameName==='Flip 7 Vengeance')return `Biggest round ${Math.max(...scores)} · ${average} avg`;
-    if(gameName==='Beat the Heat')return `Cleanest heat ${Math.min(...scores)} · ${average} avg`;
-    const wins=matches.filter(match=>(match.winners||[]).includes(player)).length;
-    return matches.length?`${Math.round((wins/matches.length)*100)}% career win rate`:'First career result in progress';
-  }
-
   function getRecordChaseMetric(player,cfg){
     const gameName=currentGame.name;
     const matches=getRecordChaseHistory(player,gameName);
@@ -10816,7 +10781,6 @@
       : null;
     return {
       primary,
-      secondary:getRecordChaseSkill(player,gameName,matches),
       bestScore,
       worstScore
     };
@@ -10832,10 +10796,9 @@
       const isLeader=currentGame.currentRound>1&&currentGame.totals[player]===leaderScore;
       const best=metric.bestScore===null?'—':metric.bestScore;
       const worst=metric.worstScore===null?'—':metric.worstScore;
-      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(metric.primary)} · ${escapeHtml(metric.secondary)} · Best ${best} · Worst ${worst}">
-        <div class="record-chase-name">${escapeHtml(player)}</div>
+      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(player)} · ${escapeHtml(metric.primary)} · Best ${best} · Worst ${worst}">
+        ${getAvatarImg(player,'record-chase-avatar')}
         <div class="record-chase-primary">${escapeHtml(metric.primary)}</div>
-        <div class="record-chase-secondary">${escapeHtml(metric.secondary)}</div>
         <div class="record-chase-records" aria-label="Best ${best}; worst ${worst}">
           <div class="record-chase-record"><span class="record-chase-record-label">Best</span><span class="record-chase-record-value">${best}</span></div>
           <div class="record-chase-record"><span class="record-chase-record-label">Worst</span><span class="record-chase-record-value">${worst}</span></div>
