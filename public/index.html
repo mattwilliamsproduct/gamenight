@@ -2491,10 +2491,11 @@
       flex-basis: 100%;
     }
     .record-chase-head {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) clamp(3.7rem, 5.5vw, 5rem) clamp(3.7rem, 5.5vw, 5rem) auto;
       flex: 0 0 auto;
       align-items: center;
-      justify-content: space-between;
+      gap: clamp(0.45rem, 0.8vw, 0.8rem);
       min-height: var(--record-chase-head-height, 3.7rem);
       padding: 0.55rem 1rem;
       border-bottom: 1px solid rgba(13,148,136,0.2);
@@ -2543,6 +2544,21 @@
       line-height: 0.95;
       text-transform: uppercase;
     }
+    .record-chase-heading {
+      display: flex;
+      min-width: 0;
+      align-items: baseline;
+      gap: 0.7rem;
+    }
+    .record-chase-head-label {
+      align-self: center;
+      font-family: 'Londrina Solid', sans-serif;
+      font-size: clamp(0.68rem, 0.85vw, 0.88rem);
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
     .record-chase-list {
       display: grid;
       flex: 1 1 auto;
@@ -2552,7 +2568,7 @@
     .record-chase-row {
       display: grid;
       align-items: center;
-      grid-template-columns: clamp(2.2rem, 3.5vw, 3.35rem) minmax(0, 1fr) minmax(8.8rem, auto);
+      grid-template-columns: clamp(2.2rem, 3.5vw, 3.35rem) minmax(0, 1fr) clamp(3.7rem, 5.5vw, 5rem) clamp(3.7rem, 5.5vw, 5rem);
       gap: clamp(0.65rem, 1vw, 1.1rem);
       min-height: 0;
       padding: 0.28rem clamp(0.55rem, 1vw, 1rem);
@@ -2573,57 +2589,91 @@
       border-radius: 0.7rem;
       justify-self: center;
     }
-    .record-chase-primary {
-      overflow: hidden;
-      font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1.35rem, 1.75vw, 1.82rem);
-      line-height: 1;
-      text-overflow: ellipsis;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--coral);
-    }
-    .record-chase-records {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, auto));
-      align-items: center;
-      gap: clamp(0.65rem, 1vw, 1rem);
+    .record-chase-pace {
+      display: flex;
       min-width: 0;
-      padding-left: clamp(0.4rem, 0.7vw, 0.7rem);
-      border-left: 1px solid rgba(13,148,136,0.2);
-    }
-    .record-chase-record {
-      display: grid;
-      grid-template-columns: auto 1fr;
       align-items: baseline;
-      gap: 0.38rem;
-      min-width: 0;
+      gap: clamp(0.35rem, 0.6vw, 0.65rem);
+      overflow: hidden;
       font-family: 'Londrina Solid', sans-serif;
       line-height: 0.95;
       text-transform: uppercase;
       white-space: nowrap;
     }
-    .record-chase-record-label {
-      font-size: clamp(0.9rem, 1.08vw, 1.08rem);
+    .record-chase-pace-label {
+      flex: 0 0 auto;
+      font-size: clamp(0.76rem, 0.95vw, 0.98rem);
       color: var(--muted);
     }
-    .record-chase-record-value {
+    .record-chase-pace-value {
       overflow: hidden;
-      font-size: clamp(1.22rem, 1.45vw, 1.48rem);
+      font-family: 'Londrina Solid', sans-serif;
+      font-size: clamp(1.35rem, 1.85vw, 1.9rem);
+      line-height: 1;
       text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
       color: var(--emerald);
+    }
+    .record-chase-pace[data-tone="positive"] .record-chase-pace-value {
+      color: var(--emerald);
+    }
+    .record-chase-pace[data-tone="behind"] .record-chase-pace-value {
+      color: var(--coral);
+    }
+    .record-chase-pace[data-tone="fresh"] .record-chase-pace-value {
+      color: var(--coral);
+    }
+    .record-chase-score {
+      display: flex;
+      min-width: 0;
+      align-items: baseline;
+      justify-content: center;
+      padding-left: clamp(0.35rem, 0.6vw, 0.65rem);
+      border-left: 1px solid rgba(13,148,136,0.2);
+      font-family: 'Londrina Solid', sans-serif;
+      font-size: clamp(1.35rem, 1.75vw, 1.82rem);
+      line-height: 0.95;
+      text-align: center;
+      color: var(--emerald);
+    }
+    .record-chase-score.is-missing {
+      color: var(--muted);
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-pace-label,
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-head-label {
+      font-size: min(0.98rem, calc(var(--scorecard-row-height) * 0.2));
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-pace-value,
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-score {
+      font-size: min(1.9rem, calc(var(--scorecard-row-height) * 0.38));
+    }
+    @media (min-width: 901px) and (max-width: 1250px) {
+      .record-chase-head {
+        grid-template-columns: minmax(0, 1fr) 3.7rem 3.7rem auto;
+        gap: 0.48rem;
+        padding-inline: 0.5rem;
+      }
+      .record-chase-row {
+        grid-template-columns: clamp(2rem, 3.2vw, 2.7rem) minmax(0, 1fr) 3.7rem 3.7rem;
+        gap: 0.48rem;
+        padding-inline: 0.5rem;
+      }
+      .record-chase-avatar {
+        max-width: 2.7rem;
+      }
+      .record-chase-score {
+        padding-left: 0.35rem;
+      }
+    }
+    /* The pace and score cells share one readable rhythm at every fitted row height. */
+    .record-chase-pace-value,
+    .record-chase-score {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-avatar {
       max-width: min(3.35rem, calc(var(--scorecard-row-height) * 0.72));
-    }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-primary {
-      font-size: min(1.82rem, calc(var(--scorecard-row-height) * 0.42));
-    }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-label {
-      font-size: min(1.08rem, calc(var(--scorecard-row-height) * 0.24));
-    }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-record-value {
-      font-size: min(1.48rem, calc(var(--scorecard-row-height) * 0.34));
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: 52%;
@@ -2641,20 +2691,6 @@
       }
       .scorecard-live-main {
         flex-basis: 100%;
-      }
-    }
-    @media (min-width: 901px) and (max-width: 1250px) {
-      .record-chase-row {
-        grid-template-columns: clamp(2rem, 3.2vw, 2.7rem) minmax(0, 1fr) minmax(7.4rem, auto);
-        gap: 0.48rem;
-        padding-inline: 0.5rem;
-      }
-      .record-chase-avatar {
-        max-width: 2.7rem;
-      }
-      .record-chase-records {
-        padding-left: 0.35rem;
-        gap: 0.45rem;
       }
     }
     @media (min-width: 761px) {
@@ -5794,7 +5830,12 @@
             </div>
             <aside id="record-chase-panel" class="record-chase-panel" aria-label="Record Chase player metrics">
               <div class="record-chase-head">
-                <div class="record-chase-title">Record Chase</div>
+                <div class="record-chase-heading">
+                  <div class="record-chase-title">Record Chase</div>
+                  <span class="record-chase-head-label">Pace</span>
+                </div>
+                <span class="record-chase-head-label">Best</span>
+                <span class="record-chase-head-label">Worst</span>
                 <button id="record-chase-toggle" type="button" class="record-chase-toggle" onclick="toggleRecordChasePanel(false)" title="Show all round columns" aria-label="Hide Record Chase and show all round columns">&rsaquo;</button>
               </div>
               <div id="record-chase-list" class="record-chase-list"></div>
@@ -10766,7 +10807,10 @@
         .map(match=>recordChaseScoreThrough(match,player,completed))
         .filter(score=>Number.isFinite(score))
       : [];
-    let primary='Fresh scorecard';
+    let paceCategory='NEW';
+    let paceDirection='neutral';
+    let paceDifference=null;
+    let ariaLabel='Fresh scorecard';
     if(comparable.length){
       const best=cfg.winLow?Math.min(...comparable):Math.max(...comparable);
       const usual=Math.round(comparable.reduce((sum,score)=>sum+score,0)/comparable.length);
@@ -10774,22 +10818,38 @@
       const usualAdvantage=cfg.winLow?usual-currentScore:currentScore-usual;
       const closeThreshold={Wizard:20,'818':6,'Five Crowns':12,'Flip 7 Vengeance':20,'Beat the Heat':8}[gameName]||12;
       if(bestAdvantage>0){
-        primary=`New best pace · ${Math.abs(bestAdvantage)} ahead`;
+        paceCategory='BEST';
+        paceDirection='ahead';
+        paceDifference=Math.abs(bestAdvantage);
+        ariaLabel=`New best pace, ${paceDifference} ahead`;
       } else if(bestAdvantage===0){
-        primary='Right on personal-best pace';
+        paceCategory='BEST';
+        paceDirection='even';
+        ariaLabel='Right on personal-best pace';
       } else if(Math.abs(bestAdvantage)<=closeThreshold){
-        primary=`Personal best · ${Math.abs(bestAdvantage)} back`;
+        paceCategory='TO PB';
+        paceDirection='back';
+        paceDifference=Math.abs(bestAdvantage);
+        ariaLabel=`Personal best, ${paceDifference} back`;
       } else if(Math.abs(usualAdvantage)<=2){
-        primary='Right on usual pace';
+        paceCategory='AVG';
+        paceDirection='even';
+        ariaLabel='Right on usual pace';
       } else if(usualAdvantage>0){
-        primary=`${Math.abs(usualAdvantage)} ahead of usual pace`;
+        paceCategory='AVG';
+        paceDirection='ahead';
+        paceDifference=Math.abs(usualAdvantage);
+        ariaLabel=`${paceDifference} ahead of usual pace`;
       } else {
-        primary=`${Math.abs(usualAdvantage)} off usual pace`;
+        paceCategory='AVG';
+        paceDirection='back';
+        paceDifference=Math.abs(usualAdvantage);
+        ariaLabel=`${paceDifference} off usual pace`;
       }
     } else if(matches.length){
       const finalScores=matches.map(match=>Number(match.totals[player])||0);
       const best=cfg.winLow?Math.min(...finalScores):Math.max(...finalScores);
-      primary=`Fresh start · career best ${best}`;
+      ariaLabel=`Fresh scorecard; career best ${best}`;
     }
     const finalScores=matches
       .map(match=>Number(match.totals?.[player]))
@@ -10801,9 +10861,12 @@
       ? (cfg.winLow?Math.max(...finalScores):Math.min(...finalScores))
       : null;
     return {
-      primary,
+      paceCategory,
+      paceDirection,
+      paceDifference,
       bestScore,
-      worstScore
+      worstScore,
+      ariaLabel
     };
   }
 
@@ -10817,13 +10880,18 @@
       const isLeader=currentGame.currentRound>1&&currentGame.totals[player]===leaderScore;
       const best=metric.bestScore===null?'—':metric.bestScore;
       const worst=metric.worstScore===null?'—':metric.worstScore;
-      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(player)} · ${escapeHtml(metric.primary)} · Best ${best} · Worst ${worst}">
+      const paceLabel=metric.paceCategory==='NEW'?'':metric.paceCategory;
+      const paceValue=metric.paceDifference===null
+        ? (metric.paceDirection==='even'?'Even':'New')
+        : metric.paceCategory==='TO PB'
+          ? `${metric.paceDifference}`
+          : `${metric.paceDirection==='ahead'?'▲':'▼'}${metric.paceDifference}`;
+      const paceTone=metric.paceDirection==='ahead'?'positive':metric.paceDirection==='back'?'behind':metric.paceCategory==='NEW'?'fresh':'neutral';
+      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(player)} · ${escapeHtml(metric.ariaLabel)} · Best ${best} · Worst ${worst}">
         ${getAvatarImg(player,'record-chase-avatar')}
-        <div class="record-chase-primary">${escapeHtml(metric.primary)}</div>
-        <div class="record-chase-records" aria-label="Best ${best}; worst ${worst}">
-          <div class="record-chase-record"><span class="record-chase-record-label">Best</span><span class="record-chase-record-value">${best}</span></div>
-          <div class="record-chase-record"><span class="record-chase-record-label">Worst</span><span class="record-chase-record-value">${worst}</span></div>
-        </div>
+        <div class="record-chase-pace" data-tone="${paceTone}" aria-label="${escapeHtml(metric.ariaLabel)}"><span class="record-chase-pace-label${paceLabel?'':' is-empty'}">${escapeHtml(paceLabel)}</span><span class="record-chase-pace-value">${escapeHtml(paceValue)}</span></div>
+        <div class="record-chase-score${metric.bestScore===null?' is-missing':''}" aria-label="Best ${best}">${best}</div>
+        <div class="record-chase-score${metric.worstScore===null?' is-missing':''}" aria-label="Worst ${worst}">${worst}</div>
       </div>`;
     }).join('');
   }
