@@ -171,6 +171,48 @@ test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'restoring Record Chase should return to the latest two rounds').toBe(2);
 });
 
+test('record-chase-preview keeps real player history and aligned metrics',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+
+  const rows=page.locator('.record-chase-row');
+  await expect(rows).toHaveCount(8);
+  await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
+
+  const avatars=await page.locator('.record-chase-avatar').evaluateAll(images=>images.map(image=>({
+    src:image.getAttribute('src')||'',
+    ready:image.complete&&image.naturalWidth>0
+  })));
+  expect(avatars.every(avatar=>avatar.ready),'Record Chase avatars should be loaded').toBe(true);
+  expect(avatars.every(avatar=>avatar.src.includes('/avatars/')),'Record Chase should use saved profile avatars').toBe(true);
+
+  const metrics=await rows.evaluateAll(elements=>elements.map(element=>({
+    title:element.getAttribute('title')||'',
+    pace:(element.querySelector('.record-chase-pace')?.textContent||'').trim().replace(/\s+/g,' '),
+    scores:[...element.querySelectorAll('.record-chase-score')].map(score=>(score.textContent||'').trim())
+  })));
+  expect(metrics.filter(metric=>metric.pace==='New'),'only the player without Wizard history should be new').toHaveLength(1);
+  expect(metrics.find(metric=>metric.pace==='New')?.title.startsWith('Brick ·'),'Brick should remain the intentional fresh scorecard').toBe(true);
+  expect(metrics.filter(metric=>metric.scores.includes('—')),'only Brick should lack best and worst records').toHaveLength(1);
+  expect(metrics.filter(metric=>metric.pace!=='New').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best and worst records').toBe(true);
+
+  const alignment=await page.evaluate(()=>{
+    const center=element=>{
+      const box=element?.getBoundingClientRect();
+      return box?box.left+(box.width/2):null;
+    };
+    const scores=document.querySelectorAll('.record-chase-row .record-chase-score');
+    return {
+      bestHead:center(document.querySelector('.record-chase-head-label--best')),
+      bestCell:center(scores[0]),
+      worstHead:center(document.querySelector('.record-chase-head-label--worst')),
+      worstCell:center(scores[1])
+    };
+  });
+  expect(Math.abs(alignment.bestHead-alignment.bestCell),'Best header should align with best values').toBeLessThanOrEqual(2);
+  expect(Math.abs(alignment.worstHead-alignment.worstCell),'Worst header should align with worst values').toBeLessThanOrEqual(2);
+});
+
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
   const selectors={
     brand:'#top-nav .bp-brand-main',

@@ -20,6 +20,12 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, must-revalidate" }
       ]
+    },
+    {
+      "source": "/qa/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
     }
   ]
 }

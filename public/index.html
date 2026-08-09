@@ -2471,6 +2471,11 @@
       min-height: 0;
     }
     .record-chase-panel {
+      --record-chase-avatar-col: clamp(2.2rem, 3.5vw, 3.35rem);
+      --record-chase-score-col: clamp(3.7rem, 5.5vw, 5rem);
+      --record-chase-tail-col: 2.35rem;
+      --record-chase-grid-gap: clamp(0.65rem, 1vw, 1.1rem);
+      --record-chase-pad-x: clamp(0.55rem, 1vw, 1rem);
       display: flex;
       flex: 1 1 42%;
       flex-direction: column;
@@ -2492,12 +2497,12 @@
     }
     .record-chase-head {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) clamp(3.7rem, 5.5vw, 5rem) clamp(3.7rem, 5.5vw, 5rem) auto;
+      grid-template-columns: var(--record-chase-avatar-col) minmax(0, 1fr) var(--record-chase-score-col) var(--record-chase-score-col) var(--record-chase-tail-col);
       flex: 0 0 auto;
       align-items: center;
-      gap: clamp(0.45rem, 0.8vw, 0.8rem);
+      gap: var(--record-chase-grid-gap);
       min-height: var(--record-chase-head-height, 3.7rem);
-      padding: 0.55rem 1rem;
+      padding: 0.55rem var(--record-chase-pad-x);
       border-bottom: 1px solid rgba(13,148,136,0.2);
       color: var(--emerald);
       background: rgba(209,250,229,0.62);
@@ -2538,17 +2543,20 @@
     .record-chase-restore:focus-visible {
       transform: translateY(-50%) scale(1.06);
     }
+    .record-chase-heading {
+      display: flex;
+      grid-column: 1 / 3;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      min-width: 0;
+    }
     .record-chase-title {
+      min-width: 0;
       font-family: 'Londrina Solid', sans-serif;
       font-size: clamp(1.05rem, 1.7vw, 1.55rem);
       line-height: 0.95;
       text-transform: uppercase;
-    }
-    .record-chase-heading {
-      display: flex;
-      min-width: 0;
-      align-items: baseline;
-      gap: 0.7rem;
     }
     .record-chase-head-label {
       align-self: center;
@@ -2559,6 +2567,9 @@
       text-transform: uppercase;
       color: var(--muted);
     }
+    .record-chase-head-label--best { grid-column: 3; }
+    .record-chase-head-label--worst { grid-column: 4; }
+    .record-chase-head .record-chase-toggle { grid-column: 5; }
     .record-chase-list {
       display: grid;
       flex: 1 1 auto;
@@ -2568,10 +2579,10 @@
     .record-chase-row {
       display: grid;
       align-items: center;
-      grid-template-columns: clamp(2.2rem, 3.5vw, 3.35rem) minmax(0, 1fr) clamp(3.7rem, 5.5vw, 5rem) clamp(3.7rem, 5.5vw, 5rem);
-      gap: clamp(0.65rem, 1vw, 1.1rem);
+      grid-template-columns: var(--record-chase-avatar-col) minmax(0, 1fr) var(--record-chase-score-col) var(--record-chase-score-col) var(--record-chase-tail-col);
+      gap: var(--record-chase-grid-gap);
       min-height: 0;
-      padding: 0.28rem clamp(0.55rem, 1vw, 1rem);
+      padding: 0.28rem var(--record-chase-pad-x);
       border-bottom: 1px solid rgba(13,148,136,0.13);
       overflow: hidden;
     }
@@ -2640,6 +2651,10 @@
     .record-chase-score.is-missing {
       color: var(--muted);
     }
+    .record-chase-row-tail {
+      width: var(--record-chase-tail-col);
+      height: 1px;
+    }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-pace-label,
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-head-label {
       font-size: min(0.98rem, calc(var(--scorecard-row-height) * 0.2));
@@ -2649,15 +2664,11 @@
       font-size: min(1.9rem, calc(var(--scorecard-row-height) * 0.38));
     }
     @media (min-width: 901px) and (max-width: 1250px) {
-      .record-chase-head {
-        grid-template-columns: minmax(0, 1fr) 3.7rem 3.7rem auto;
-        gap: 0.48rem;
-        padding-inline: 0.5rem;
-      }
-      .record-chase-row {
-        grid-template-columns: clamp(2rem, 3.2vw, 2.7rem) minmax(0, 1fr) 3.7rem 3.7rem;
-        gap: 0.48rem;
-        padding-inline: 0.5rem;
+      .record-chase-panel {
+        --record-chase-avatar-col: clamp(2rem, 3.2vw, 2.7rem);
+        --record-chase-score-col: 3.7rem;
+        --record-chase-grid-gap: 0.48rem;
+        --record-chase-pad-x: 0.5rem;
       }
       .record-chase-avatar {
         max-width: 2.7rem;
@@ -5832,10 +5843,10 @@
               <div class="record-chase-head">
                 <div class="record-chase-heading">
                   <div class="record-chase-title">Record Chase</div>
-                  <span class="record-chase-head-label">Pace</span>
+                  <span class="record-chase-head-label record-chase-head-label--pace">Pace</span>
                 </div>
-                <span class="record-chase-head-label">Best</span>
-                <span class="record-chase-head-label">Worst</span>
+                <span class="record-chase-head-label record-chase-head-label--best">Best</span>
+                <span class="record-chase-head-label record-chase-head-label--worst">Worst</span>
                 <button id="record-chase-toggle" type="button" class="record-chase-toggle" onclick="toggleRecordChasePanel(false)" title="Show all round columns" aria-label="Hide Record Chase and show all round columns">&rsaquo;</button>
               </div>
               <div id="record-chase-list" class="record-chase-list"></div>
@@ -10827,7 +10838,7 @@
         paceDirection='even';
         ariaLabel='Right on personal-best pace';
       } else if(Math.abs(bestAdvantage)<=closeThreshold){
-        paceCategory='TO PB';
+        paceCategory='TO BEST';
         paceDirection='back';
         paceDifference=Math.abs(bestAdvantage);
         ariaLabel=`Personal best, ${paceDifference} back`;
@@ -10883,7 +10894,7 @@
       const paceLabel=metric.paceCategory==='NEW'?'':metric.paceCategory;
       const paceValue=metric.paceDifference===null
         ? (metric.paceDirection==='even'?'Even':'New')
-        : metric.paceCategory==='TO PB'
+        : metric.paceCategory==='TO BEST'
           ? `${metric.paceDifference}`
           : `${metric.paceDirection==='ahead'?'▲':'▼'}${metric.paceDifference}`;
       const paceTone=metric.paceDirection==='ahead'?'positive':metric.paceDirection==='back'?'behind':metric.paceCategory==='NEW'?'fresh':'neutral';
@@ -10892,6 +10903,7 @@
         <div class="record-chase-pace" data-tone="${paceTone}" aria-label="${escapeHtml(metric.ariaLabel)}"><span class="record-chase-pace-label${paceLabel?'':' is-empty'}">${escapeHtml(paceLabel)}</span><span class="record-chase-pace-value">${escapeHtml(paceValue)}</span></div>
         <div class="record-chase-score${metric.bestScore===null?' is-missing':''}" aria-label="Best ${best}">${best}</div>
         <div class="record-chase-score${metric.worstScore===null?' is-missing':''}" aria-label="Worst ${worst}">${worst}</div>
+        <span class="record-chase-row-tail" aria-hidden="true"></span>
       </div>`;
     }).join('');
   }
@@ -13467,7 +13479,7 @@
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=record-chase-20260808');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);

@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=record-chase-20260808';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
@@ -50,6 +50,20 @@ async function waitForStableImages(){
   await nextFrame();
 }
 
+function assertRecordChasePreview(scenarioId,scenario){
+  if(scenarioId!=='record-chase-preview')return;
+  const {players=[],playerProfiles={},history=[]}=scenario.data||{};
+  const missingAvatars=players.filter(player=>!playerProfiles[player]?.avatar);
+  const wizardHistoryPlayers=new Set(history
+    .filter(match=>match?.game==='Wizard')
+    .flatMap(match=>Object.keys(match?.totals||{})));
+  const missingHistory=players.filter(player=>player!=='Brick'&&!wizardHistoryPlayers.has(player));
+  const unexpectedBrickHistory=wizardHistoryPlayers.has('Brick');
+  if(missingAvatars.length||missingHistory.length||unexpectedBrickHistory){
+    throw new Error(`Record Chase fixture mismatch: avatars=${missingAvatars.join(',')||'ok'} history=${missingHistory.join(',')||'ok'} brick=${unexpectedBrickHistory?'unexpected':'fresh'}`);
+  }
+}
+
 export async function bootQaGallery(api){
   if(!api)throw new Error('QA API is unavailable.');
   injectGalleryStyles();
@@ -67,6 +81,7 @@ export async function bootQaGallery(api){
 
   const render=async()=>{
     document.body.dataset.gnQaReady='loading';
+    assertRecordChasePreview(scenarioId,scenario);
     description.textContent=scenario.description;
     surfaceButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.surface===surface)));
     api.hydrate(scenario.data);
