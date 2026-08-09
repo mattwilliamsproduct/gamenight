@@ -147,6 +147,22 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectScorecardNamesFit(page);
 });
 
+test('five-crowns scorecard keeps Michelle fully visible',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-name-fit-6&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  const michelle=page.locator('#scorecard-body .scoreboard-player-name').filter({hasText:'Michelle'});
+  await expect(michelle).toHaveCount(1);
+  const fit=await michelle.evaluate(element=>({
+    text:(element.textContent||'').trim(),
+    clientWidth:element.clientWidth,
+    scrollWidth:element.scrollWidth,
+    fontSize:Number.parseFloat(getComputedStyle(element).fontSize)
+  }));
+  expect(fit.text).toBe('Michelle');
+  expect(fit.scrollWidth,'Michelle should not be truncated').toBeLessThanOrEqual(fit.clientWidth+1);
+  expect(fit.fontSize,'Michelle should remain readable').toBeGreaterThanOrEqual(14);
+});
+
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
   const selectors={
     brand:'#top-nav .bp-brand-main',

@@ -2788,6 +2788,12 @@
       font-size: clamp(1.95rem, 3.55vw, 2.7rem) !important;
       letter-spacing: -0.03em;
       line-height: 1.2;
+      min-width: 0;
+      max-width: 100%;
+      flex: 0 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     span.scoreboard-player-name {
       padding-bottom: 0.18em;
@@ -10378,6 +10384,40 @@
       gnPerfEnd(fitTimer);
     }
   }
+  function fitScorecardPlayerNames(root){
+    if(!root||root.offsetParent===null)return;
+    const names=[...root.querySelectorAll('.scoreboard-player-name')];
+    names.forEach(name=>name.style.removeProperty('font-size'));
+    names.forEach(name=>{
+      const lane=name.parentElement;
+      if(!lane||lane.clientWidth<=0)return;
+      const laneStyle=getComputedStyle(lane);
+      const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
+      const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
+      const siblings=visibleChildren.filter(node=>node!==name);
+      const available=lane.clientWidth
+        - siblings.reduce((sum,node)=>sum+node.getBoundingClientRect().width,0)
+        - gap*Math.max(0,visibleChildren.length-1);
+      if(available<=0)return;
+
+      const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
+      if(name.scrollWidth<=available+1)return;
+
+      const minimum=Math.min(14,maximum);
+      let low=minimum;
+      let high=maximum;
+      name.style.setProperty('font-size',`${minimum}px`,'important');
+      if(name.scrollWidth>available+1)return;
+
+      for(let i=0;i<9;i++){
+        const candidate=(low+high)/2;
+        name.style.setProperty('font-size',`${candidate}px`,'important');
+        if(name.scrollWidth<=available+1)low=candidate;
+        else high=candidate;
+      }
+      name.style.setProperty('font-size',`${Math.max(minimum,low-0.25).toFixed(1)}px`,'important');
+    });
+  }
   function scheduleScorecardColumnTrimAll(){
     gnWarnNumpadHotPath('scheduleScorecardColumnTrimAll');
     if(_scorecardTrimRaf) return;
@@ -10390,6 +10430,7 @@
         const block=document.getElementById('modal-scorecard-block');
         if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
         fitActiveScorecardRows();
+        fitScorecardPlayerNames(document.getElementById('scorecard-capture'));
       } finally {
         gnPerfEnd(trimAllTimer);
       }

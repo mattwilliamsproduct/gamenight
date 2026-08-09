@@ -99,6 +99,8 @@ const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsRounds(cr
 });
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
+const nameFitCrownsPlayers=['Megan','Linda','Vikki','Matt','Duke','Michelle'];
+const nameFitCrownsGame=makeCurrentGame('Five Crowns',nameFitCrownsPlayers,fiveCrownsRounds(nameFitCrownsPlayers,5));
 const celebrationPlayers=NAMES.slice(0,8);
 const celebrationGame=makeCurrentGame('Wizard',celebrationPlayers,wizardRounds(celebrationPlayers,3),{
   wizardPhase:'scoring',
@@ -165,6 +167,12 @@ export const QA_SCENARIOS = {
     description:'A short table that should use the full scoreboard height with large names, totals, and avatars.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...compactCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:compactCrownsGame}
+  },
+  'five-crowns-name-fit-6':{
+    label:'Five Crowns · Name Fit · 6 Players',
+    description:'Six-player scorecard regression case requiring Michelle to remain fully visible.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...nameFitCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:nameFitCrownsGame}
   },
   'whammy-8':{
     label:'Celebrations · 8 Players',
