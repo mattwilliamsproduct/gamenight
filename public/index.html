@@ -2281,7 +2281,7 @@
       margin: 0.5rem 0 1rem;
       animation: popIn 0.45s cubic-bezier(0.16,1,0.3,1);
     }
-    button.dealer-name-indicator {
+button.dealer-name-indicator {
       appearance: none;
       -webkit-appearance: none;
       margin: 0;
@@ -2296,11 +2296,15 @@
       padding: 0.15em 0.22em 0.16em 0.55em;
       cursor: pointer;
       transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.18em;
-      min-width: 0;
-    }
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18em;
+  min-width: 0;
+  width: auto;
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  overflow: hidden;
+}
     button.dealer-name-indicator:hover {
       filter: brightness(1.05);
       box-shadow: 0 2px 10px rgba(16, 185, 129, 0.22);
@@ -2318,11 +2322,11 @@
     html.dark button.dealer-name-indicator.leader-text {
       background: var(--surface-2);
     }
-    .dealer-player-label {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+.dealer-player-label {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
       padding-bottom: 0.18em;
       margin-bottom: -0.18em;
     }
@@ -2799,20 +2803,23 @@
       padding-bottom: 0.18em;
       margin-bottom: -0.18em;
     }
-    button.dealer-name-indicator.scoreboard-player-name {
-      max-width: 100%;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.16em;
-      padding-top: 0.08em;
-      padding-bottom: 0.08em;
-    }
-    button.dealer-name-indicator .dealer-player-label {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+button.dealer-name-indicator.scoreboard-player-name {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.16em;
+  width: auto;
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  padding-top: 0.08em;
+  padding-bottom: 0.08em;
+}
+button.dealer-name-indicator .dealer-player-label {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
     .dealer-badge {
       display: inline-flex;
       align-items: center;
@@ -4828,11 +4835,17 @@
     .score-entry-progress,
     .settings-size-label,
     #wizard-header-metrics,
-    #wizard-bid-status,
     #score-entry-context,
     input[type='number'],
     .die {
       font-family: 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+      letter-spacing: 0 !important;
+    }
+    #wizard-bid-status {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
       font-weight: 400 !important;
       font-variant-numeric: tabular-nums;
       font-feature-settings: 'tnum';
@@ -9214,8 +9227,8 @@
         <td data-sc-part="lead" class="scorecard-col-player px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
             ${getStreakAvatarHtml(p,'avatar-img-sc mx-1')}
-            ${isDealer
-              ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
+${isDealer
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
               : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
@@ -10639,9 +10652,9 @@
               ${dragHandle}${arrows}
               ${rankBadge}
               <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}</span>
-              ${isDealer
-                ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl truncate min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
-                : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl truncate ${isLeader?'leader-text':''}">${p}</span>`}
+${isDealer
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
+  : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}
               ${retiredTag}
             </div>
             ${wizardCurrentBid}
