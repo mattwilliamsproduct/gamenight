@@ -2293,14 +2293,14 @@ button.dealer-name-indicator {
       background: var(--emerald-bg);
       border: 2px solid var(--emerald);
       border-radius: 0.85rem;
-      padding: 0.15em 0.22em 0.16em 0.55em;
+      padding: 0;
       cursor: pointer;
       transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.18em;
+  gap: 0;
   min-width: 0;
-  width: auto;
+  width: max-content;
   flex: 0 1 auto;
   justify-content: flex-start;
   overflow: hidden;
@@ -2589,13 +2589,16 @@ button.dealer-name-indicator {
         height: var(--scorecard-rank-size) !important;
         font-size: var(--scorecard-rank-font) !important;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .dealer-badge {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-dealer-avatar-badge {
         font-size: var(--scorecard-dealer-font) !important;
         width: var(--scorecard-dealer-size) !important;
         height: var(--scorecard-dealer-size) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.items-center {
         gap: var(--scorecard-cell-gap) !important;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.items-center.scorecard-player-identity {
+        gap: min(0.25rem, var(--scorecard-cell-gap)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.flex-col > button {
         font-size: var(--scorecard-reorder-font) !important;
@@ -2796,8 +2799,8 @@ button.dealer-name-indicator {
       max-width: 100%;
       flex: 0 1 auto;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
     }
     span.scoreboard-player-name {
       padding-bottom: 0.18em;
@@ -2807,12 +2810,14 @@ button.dealer-name-indicator.scoreboard-player-name {
   max-width: 100%;
   display: inline-flex;
   align-items: center;
-  gap: 0.16em;
-  width: auto;
+  gap: 0;
+  width: max-content;
   flex: 0 1 auto;
   justify-content: flex-start;
   padding-top: 0.08em;
   padding-bottom: 0.08em;
+  padding-left: 0;
+  padding-right: 0;
 }
 button.dealer-name-indicator .dealer-player-label {
   min-width: 0;
@@ -2820,14 +2825,18 @@ button.dealer-name-indicator .dealer-player-label {
   text-overflow: clip;
   white-space: nowrap;
 }
-    .dealer-badge {
+    .scorecard-dealer-avatar-badge {
+      position: absolute;
+      right: -0.18rem;
+      bottom: -0.18rem;
+      z-index: 2;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex: 0 0 auto;
       width: 1.45rem;
       height: 1.45rem;
-      margin-left: 0.12rem;
+      margin: 0;
       padding: 0;
       border-radius: 999px;
       background: var(--emerald-bg);
@@ -2841,7 +2850,7 @@ button.dealer-name-indicator .dealer-player-label {
       vertical-align: middle;
       white-space: nowrap;
     }
-    html.dark .dealer-badge { color: #6ee7b7; background: rgba(16,185,129,0.08); }
+    html.dark .scorecard-dealer-avatar-badge { color: #6ee7b7; background: rgba(16,185,129,0.9); }
     .scorecard-total-cell {
       background:
         linear-gradient(180deg, rgba(236,253,245,0.42), rgba(255,255,255,0.2));
@@ -4266,6 +4275,13 @@ button.dealer-name-indicator .dealer-player-label {
       display: inline-flex;
       flex: 0 0 auto;
     }
+    .scorecard-avatar-reorder-handle {
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .scorecard-avatar-reorder-handle:active { cursor: grabbing; }
     .scorecard-life-preserver-rank {
       width: 2.1rem;
       height: 2.1rem;
@@ -9225,10 +9241,10 @@ button.dealer-name-indicator .dealer-player-label {
 
       body+=`<tr class="${rowCls}">
         <td data-sc-part="lead" class="scorecard-col-player px-5 py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
-          <div class="flex items-center gap-2 min-w-0">
-            ${getStreakAvatarHtml(p,'avatar-img-sc mx-1')}
+          <div class="scorecard-player-identity flex items-center gap-2 min-w-0">
+            <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}</span>
 ${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
               : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
@@ -9887,7 +9903,7 @@ ${isDealer
     ev.dataTransfer.effectAllowed = 'move';
     ev.dataTransfer.setData('text/plain', String(idx));
     // Visual feedback
-    ev.currentTarget.classList.add('dragging-row');
+    ev.currentTarget.closest('tr')?.classList.add('dragging-row');
   }
   function rosterDragOver(ev, idx){
     if(currentGame?.currentRound !== 1) return;
@@ -9934,7 +9950,7 @@ ${isDealer
   }
   function rosterDragTouchStart(ev, idx){
     if(currentGame?.currentRound !== 1) return;
-    // .drag-handle uses touch-action:none; avoid touchstart preventDefault (iOS can leave the page non-interactive if mis-combined with document listeners).
+    // The avatar handle uses touch-action:none; avoid touchstart preventDefault (iOS can leave the page non-interactive if mis-combined with document listeners).
     detachRosterDragDocumentTouchListeners();
     if(_rosterTouch){
       cleanupTouchDragState(_rosterTouch,'dragging-row');
@@ -10399,6 +10415,9 @@ ${isDealer
   }
   function fitScorecardPlayerNames(root){
     if(!root||root.offsetParent===null)return;
+    const canvas=fitScorecardPlayerNames.canvas||(fitScorecardPlayerNames.canvas=document.createElement('canvas'));
+    const context=canvas.getContext('2d');
+    if(!context)return;
     const names=[...root.querySelectorAll('.scoreboard-player-name')];
     names.forEach(name=>name.style.removeProperty('font-size'));
     names.forEach(name=>{
@@ -10414,21 +10433,21 @@ ${isDealer
       if(available<=0)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
-      if(name.scrollWidth<=available+1)return;
-
-      const minimum=Math.min(14,maximum);
-      let low=minimum;
-      let high=maximum;
-      name.style.setProperty('font-size',`${minimum}px`,'important');
-      if(name.scrollWidth>available+1)return;
-
-      for(let i=0;i<9;i++){
-        const candidate=(low+high)/2;
-        name.style.setProperty('font-size',`${candidate}px`,'important');
-        if(name.scrollWidth<=available+1)low=candidate;
-        else high=candidate;
-      }
-      name.style.setProperty('font-size',`${Math.max(minimum,low-0.25).toFixed(1)}px`,'important');
+      const label=name.querySelector('.dealer-player-label')||name;
+      const labelStyle=getComputedStyle(label);
+      const nameStyle=getComputedStyle(name);
+      const text=(label.textContent||'').trim();
+      const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
+        .reduce((sum,property)=>sum+(parseFloat(nameStyle[property])||0),0);
+      const letterSpacing=parseFloat(labelStyle.letterSpacing)||0;
+      const measureAt=size=>{
+        context.font=`${labelStyle.fontStyle} ${labelStyle.fontVariant} ${labelStyle.fontWeight} ${size}px ${labelStyle.fontFamily}`;
+        return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
+      };
+      const natural=measureAt(maximum);
+      if(natural<=available)return;
+      const fitted=Math.max(1,maximum*((available-1)/Math.max(1,natural))*0.98);
+      name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
     });
   }
   function scheduleScorecardColumnTrimAll(){
@@ -10594,33 +10613,28 @@ ${isDealer
         ? `<span class="tv-stat-delta font-mono-num ml-2" style="opacity:0.45;">${cfg.winLow?'+':'−'}${Math.abs(currentGame.totals[p]-leaderScore)}</span>`
         : '';
 
-      let arrows='';
-      let dragHandle='';
+      let avatarDragAttrs='';
       let rowDragAttrs='';
       if(currentGame.currentRound===1&&!isRetired){
-        arrows=`<div class="flex flex-col gap-0 mr-1">
-          <button onclick="movePlayerOrder(${ri},-1)" class="text-lg leading-none hover:opacity-70 transition-opacity ${ri===0?'invisible':''}" style="color:var(--muted);">▲</button>
-          <button onclick="movePlayerOrder(${ri},1)"  class="text-lg leading-none hover:opacity-70 transition-opacity ${ri===sortedP.length-1?'invisible':''}" style="color:var(--muted);">▼</button>
-        </div>`;
-        dragHandle=`<span class="drag-handle"
-          ontouchstart="rosterDragTouchStart(event, ${ri})"
-          title="Drag to reorder">⋮⋮</span>`;
-        rowDragAttrs = `data-roster-idx="${ri}" draggable="true"
+        avatarDragAttrs = `draggable="true"
           ondragstart="rosterDragStart(event, ${ri})"
+          ondragend="rosterDragEnd(event)"
+          ontouchstart="rosterDragTouchStart(event, ${ri})"
+          title="Drag ${escapeHtml(p)} to reorder"
+          aria-label="Drag ${escapeHtml(p)} to reorder"`;
+        rowDragAttrs = `data-roster-idx="${ri}"
           ondragover="rosterDragOver(event, ${ri})"
           ondragleave="rosterDragLeave(event)"
-          ondrop="rosterDragDrop(event, ${ri})"
-          ondragend="rosterDragEnd(event)"`;
+          ondrop="rosterDragDrop(event, ${ri})"`;
       }
 
       // Life Preserver
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{pastHalf,gameOver:over});
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
-      const rankVisibility=currentGame.currentRound===1?' invisible':'';
-      const rankBadge=hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${p}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0${rankVisibility}" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0${rankVisibility}"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`;
+      const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
+        ? `<button type="button" onclick="authorizeHailMary('${p}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
+        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -10648,12 +10662,11 @@ ${isDealer
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              ${dragHandle}${arrows}
+            <div class="scorecard-player-identity flex items-center gap-2 min-w-0 flex-1">
               ${rankBadge}
-              <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc mx-2')}</span>
+              <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}</span>
 ${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span><span class="dealer-badge" aria-hidden="true">D</span></button>`
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
   : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}
               ${retiredTag}
             </div>

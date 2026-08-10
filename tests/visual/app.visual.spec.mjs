@@ -147,8 +147,8 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectScorecardNamesFit(page);
 });
 
-test('five-crowns scorecard keeps Michelle fully visible',async({page})=>{
-  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-name-fit-6&surface=scorecard',{waitUntil:'networkidle'});
+test('five-crowns first round uses compact avatar-led player identities',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-name-fit-7&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   const michelle=page.locator('#scorecard-body .scoreboard-player-name').filter({hasText:'Michelle'});
   await expect(michelle).toHaveCount(1);
@@ -156,11 +156,56 @@ test('five-crowns scorecard keeps Michelle fully visible',async({page})=>{
     text:(element.textContent||'').trim(),
     clientWidth:element.clientWidth,
     scrollWidth:element.scrollWidth,
-    fontSize:Number.parseFloat(getComputedStyle(element).fontSize)
+    fontSize:Number.parseFloat(getComputedStyle(element).fontSize),
+    textOverflow:getComputedStyle(element).textOverflow
   }));
   expect(fit.text).toBe('Michelle');
   expect(fit.scrollWidth,'Michelle should not be truncated').toBeLessThanOrEqual(fit.clientWidth+1);
   expect(fit.fontSize,'Michelle should remain readable').toBeGreaterThanOrEqual(14);
+  expect(fit.textOverflow,'live player names should never use an ellipsis').toBe('clip');
+
+  const scorecard=page.locator('#scorecard-capture');
+  await expect(scorecard.locator('.drag-handle')).toHaveCount(0);
+  await expect(scorecard.getByText('▲',{exact:true})).toHaveCount(0);
+  await expect(scorecard.getByText('▼',{exact:true})).toHaveCount(0);
+
+  const firstRow=page.locator('#scorecard-body tr').first();
+  const avatar=firstRow.locator('.scorecard-avatar-slot');
+  expect(await avatar.getAttribute('draggable'),'the avatar should be the drag handle').toBe('true');
+  const identityGeometry=await firstRow.evaluate(row=>{
+    const cell=row.querySelector('.scorecard-col-player');
+    const avatar=row.querySelector('.scorecard-avatar-slot');
+    const name=row.querySelector('.scoreboard-player-name');
+    const cellRect=cell.getBoundingClientRect();
+    const avatarRect=avatar.getBoundingClientRect();
+    const nameRect=name.getBoundingClientRect();
+    return {
+      avatarInset:avatarRect.left-cellRect.left,
+      nameGap:nameRect.left-avatarRect.right
+    };
+  });
+  expect(identityGeometry.avatarInset,'avatar should align beneath the Player heading').toBeLessThanOrEqual(22);
+  expect(identityGeometry.nameGap,'name should sit immediately beside the avatar').toBeLessThanOrEqual(5);
+
+  const dealer=page.locator('#scorecard-body button.dealer-name-indicator');
+  await expect(dealer).toHaveCount(1);
+  expect((await dealer.innerText()).trim()).toBe('MEGAN');
+  const dealerGeometry=await dealer.evaluate(button=>{
+    const label=button.querySelector('.dealer-player-label');
+    const buttonRect=button.getBoundingClientRect();
+    const labelRect=label.getBoundingClientRect();
+    return {
+      leftInset:labelRect.left-buttonRect.left,
+      rightInset:buttonRect.right-labelRect.right,
+      paddingLeft:getComputedStyle(button).paddingLeft,
+      paddingRight:getComputedStyle(button).paddingRight
+    };
+  });
+  expect(dealerGeometry.paddingLeft).toBe('0px');
+  expect(dealerGeometry.paddingRight).toBe('0px');
+  expect(dealerGeometry.leftInset,'green dealer border should hug the M').toBeLessThanOrEqual(2.5);
+  expect(dealerGeometry.rightInset,'green dealer border should hug the name').toBeLessThanOrEqual(2.5);
+  await expect(firstRow.locator('.scorecard-avatar-slot .scorecard-dealer-avatar-badge')).toHaveCount(1);
 });
 
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
