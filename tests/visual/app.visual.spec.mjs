@@ -148,7 +148,7 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
 });
 
 test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
-  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
   await expect(page.locator('#record-chase-panel')).toBeVisible();
@@ -172,12 +172,13 @@ test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
 });
 
 test('record-chase-preview keeps real player history and aligned metrics',async({page})=>{
-  await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'networkidle'});
+  await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
   const rows=page.locator('.record-chase-row');
   await expect(rows).toHaveCount(8);
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
+  await expect(page.locator('.record-chase-head-label--pace')).toHaveText('Player Pace');
 
   const avatars=await page.locator('.record-chase-avatar').evaluateAll(images=>images.map(image=>({
     src:image.getAttribute('src')||'',
@@ -186,15 +187,41 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   expect(avatars.every(avatar=>avatar.ready),'Record Chase avatars should be loaded').toBe(true);
   expect(avatars.every(avatar=>avatar.src.includes('/avatars/')),'Record Chase should use saved profile avatars').toBe(true);
 
+  const avatarSizes=await page.evaluate(()=>{
+    const player=[...document.querySelectorAll('#scorecard-body .avatar-img-sc')].map(image=>image.getBoundingClientRect().width);
+    const chase=[...document.querySelectorAll('.record-chase-avatar')].map(image=>image.getBoundingClientRect().width);
+    return {player,chase};
+  });
+  expect(avatarSizes.chase).toHaveLength(avatarSizes.player.length);
+  avatarSizes.chase.forEach((size,index)=>{
+    expect(Math.abs(size-avatarSizes.player[index]),`Record Chase avatar ${index+1} should match its player avatar`).toBeLessThanOrEqual(1);
+  });
+
   const metrics=await rows.evaluateAll(elements=>elements.map(element=>({
     title:element.getAttribute('title')||'',
     pace:(element.querySelector('.record-chase-pace')?.textContent||'').trim().replace(/\s+/g,' '),
     scores:[...element.querySelectorAll('.record-chase-score')].map(score=>(score.textContent||'').trim())
   })));
-  expect(metrics.filter(metric=>metric.pace==='New'),'only the player without Wizard history should be new').toHaveLength(1);
-  expect(metrics.find(metric=>metric.pace==='New')?.title.startsWith('Brick ·'),'Brick should remain the intentional fresh scorecard').toBe(true);
+  expect(metrics.map(metric=>metric.pace)).toEqual([
+    '10 pts ahead of best',
+    '15 pts behind usual',
+    '20 pts behind best',
+    '10 pts ahead of best',
+    '30 pts behind usual',
+    'On usual pace',
+    'No past pace yet',
+    '33 pts behind usual'
+  ]);
+  expect(metrics.filter(metric=>metric.pace==='No past pace yet'),'only the player without Wizard history should have no past pace').toHaveLength(1);
+  expect(metrics.find(metric=>metric.pace==='No past pace yet')?.title.startsWith('Brick ·'),'Brick should remain the intentional fresh scorecard').toBe(true);
   expect(metrics.filter(metric=>metric.scores.includes('—')),'only Brick should lack best and worst records').toHaveLength(1);
-  expect(metrics.filter(metric=>metric.pace!=='New').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best and worst records').toBe(true);
+  expect(metrics.filter(metric=>metric.pace!=='No past pace yet').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best and worst records').toBe(true);
+  expect(metrics.every(metric=>!/[▲▼]/.test(metric.pace)),'pace messages should not rely on directional symbol shorthand').toBe(true);
+
+  const paceMessagesFit=await page.locator('.record-chase-pace').evaluateAll(elements=>elements.every(element=>
+    element.scrollWidth<=element.clientWidth+1
+  ));
+  expect(paceMessagesFit,'Player Pace messages should fit without clipping').toBe(true);
 
   const alignment=await page.evaluate(()=>{
     const center=element=>{
