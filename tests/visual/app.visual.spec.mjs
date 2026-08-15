@@ -181,6 +181,21 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   await expect(page.locator('.record-chase-title')).toHaveText('Player Pace');
   await expect(page.locator('.record-chase-head')).not.toContainText('Record Chase');
 
+  const headingLayout=await page.evaluate(()=>{
+    const title=document.querySelector('.record-chase-title')?.getBoundingClientRect();
+    const avatar=document.querySelector('.record-chase-avatar')?.getBoundingClientRect();
+    const pace=document.querySelector('.record-chase-pace');
+    const label=document.querySelector('.record-chase-head-label--best');
+    return {
+      titleLeft:title?.left??Infinity,
+      avatarLeft:avatar?.left??-Infinity,
+      paceFont:Number.parseFloat(getComputedStyle(pace).fontSize),
+      labelFont:Number.parseFloat(getComputedStyle(label).fontSize)
+    };
+  });
+  expect(Math.abs(headingLayout.titleLeft-headingLayout.avatarLeft),'Player Pace should align over the profile avatars').toBeLessThanOrEqual(1);
+  expect(headingLayout.paceFont/headingLayout.labelFont,'pace messages should remain substantially larger than the supporting labels').toBeGreaterThanOrEqual(1.35);
+
   const avatars=await page.locator('.record-chase-avatar').evaluateAll(images=>images.map(image=>({
     src:image.getAttribute('src')||'',
     ready:image.complete&&image.naturalWidth>0
