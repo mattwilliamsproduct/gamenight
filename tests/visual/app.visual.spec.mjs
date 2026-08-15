@@ -178,7 +178,8 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   const rows=page.locator('.record-chase-row');
   await expect(rows).toHaveCount(8);
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
-  await expect(page.locator('.record-chase-head-label--pace')).toHaveText('Player Pace');
+  await expect(page.locator('.record-chase-title')).toHaveText('Player Pace');
+  await expect(page.locator('.record-chase-head')).not.toContainText('Record Chase');
 
   const avatars=await page.locator('.record-chase-avatar').evaluateAll(images=>images.map(image=>({
     src:image.getAttribute('src')||'',
