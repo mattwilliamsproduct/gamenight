@@ -1298,6 +1298,38 @@
       background: linear-gradient(180deg, var(--emerald-bg), var(--surface-2));
       box-shadow: 0 14px 28px -24px rgba(4,120,87,0.65);
     }
+    .score-entry-row.is-complete .score-entry-player-card {
+      border-color: rgba(4,120,87,0.34);
+      background: linear-gradient(180deg, rgba(224,247,237,0.92), var(--surface-2));
+    }
+    .score-entry-row.is-empty .score-entry-player-card {
+      border-color: rgba(120,113,108,0.24);
+      background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.62));
+    }
+    .score-entry-row.is-empty .score-entry-input-cell {
+      border-style: dashed;
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,250,249,0.95));
+    }
+    .score-entry-row-status {
+      display: inline-flex;
+      width: 1.36rem;
+      height: 1.36rem;
+      flex: 0 0 1.36rem;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(120,113,108,0.34);
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 950;
+      line-height: 1;
+    }
+    .score-entry-row.is-complete .score-entry-row-status {
+      border-color: var(--emerald);
+      background: var(--emerald);
+      color: #fff;
+    }
+    .score-entry-row.is-empty .score-entry-row-status { border-style: dashed; }
     .score-entry-avatar {
       width: 52px;
       height: 52px;
@@ -2475,9 +2507,7 @@ button.dealer-name-indicator {
       min-height: 0;
     }
     .record-chase-panel {
-      --record-chase-avatar-col: var(--scorecard-avatar-size, clamp(3.35rem, 6vw, 4.35rem));
       --record-chase-score-col: clamp(4rem, 5.2vw, 4.8rem);
-      --record-chase-tail-col: 2.8rem;
       --record-chase-grid-gap: clamp(0.45rem, 0.75vw, 0.8rem);
       --record-chase-pad-x: clamp(0.55rem, 0.8vw, 0.8rem);
       display: flex;
@@ -2501,7 +2531,7 @@ button.dealer-name-indicator {
     }
     .record-chase-head {
       display: grid;
-      grid-template-columns: var(--record-chase-avatar-col) minmax(0, 1fr) var(--record-chase-score-col) var(--record-chase-score-col) var(--record-chase-tail-col);
+      grid-template-columns: minmax(0, 1fr) var(--record-chase-score-col) var(--record-chase-score-col);
       flex: 0 0 auto;
       align-items: center;
       gap: var(--record-chase-grid-gap);
@@ -2511,48 +2541,14 @@ button.dealer-name-indicator {
       color: var(--blue);
       background: linear-gradient(180deg, rgba(210,239,245,0.96), rgba(228,247,250,0.96));
     }
-    .record-chase-toggle {
-      display: inline-grid;
-      width: 2.8rem;
-      height: 2.8rem;
-      flex: 0 0 auto;
-      place-items: center;
-      border: 1px solid rgba(40,127,155,0.3);
-      border-radius: 50%;
-      color: var(--blue);
-      background: rgba(255,252,247,0.94);
-      box-shadow: 0 4px 12px rgba(40,127,155,0.15);
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 2.6rem;
-      font-weight: 900;
-      line-height: 1;
-      transition: transform 150ms ease, background 150ms ease;
-    }
-    .record-chase-toggle:hover,
-    .record-chase-toggle:focus-visible {
-      transform: scale(1.06);
-      background: white;
-    }
-    .record-chase-restore {
-      position: absolute;
-      top: 50%;
-      right: 0.55rem;
-      z-index: 30;
-      transform: translateY(-50%);
-    }
-    .record-chase-restore.hidden {
-      display: none !important;
-    }
-    .record-chase-restore:hover,
-    .record-chase-restore:focus-visible {
-      transform: translateY(-50%) scale(1.06);
-    }
     .record-chase-heading {
       display: flex;
-      grid-column: 1 / 3;
+      grid-column: 1;
       min-width: 0;
-      align-items: center;
+      flex-direction: column;
       justify-content: flex-start;
+      align-items: flex-start;
+      gap: 0.12rem;
     }
     .record-chase-title {
       min-width: 0;
@@ -2560,6 +2556,19 @@ button.dealer-name-indicator {
       font-size: clamp(1.55rem, 2vw, 2rem);
       line-height: 0.95;
       text-transform: uppercase;
+    }
+    .record-chase-subtitle {
+      overflow: hidden;
+      max-width: 100%;
+      color: rgba(40,127,155,0.72);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: clamp(0.58rem, 0.72vw, 0.72rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
     .record-chase-head-label {
       align-self: center;
@@ -2570,9 +2579,8 @@ button.dealer-name-indicator {
       text-transform: uppercase;
       color: var(--muted);
     }
-    .record-chase-head-label--best { grid-column: 3; }
-    .record-chase-head-label--worst { grid-column: 4; }
-    .record-chase-head .record-chase-toggle { grid-column: 5; }
+    .record-chase-head-label--best { grid-column: 2; }
+    .record-chase-head-label--worst { grid-column: 3; }
     .record-chase-list {
       display: grid;
       flex: 1 1 auto;
@@ -2582,27 +2590,27 @@ button.dealer-name-indicator {
     .record-chase-row {
       display: grid;
       align-items: center;
-      grid-template-columns: var(--record-chase-avatar-col) minmax(0, 1fr) var(--record-chase-score-col) var(--record-chase-score-col) var(--record-chase-tail-col);
+      grid-template-columns: minmax(0, 1fr) var(--record-chase-score-col) var(--record-chase-score-col);
       gap: var(--record-chase-grid-gap);
       min-height: 0;
       padding: 0.28rem var(--record-chase-pad-x);
       border-bottom: 1px solid rgba(40,127,155,0.16);
       overflow: hidden;
+      position: relative;
+    }
+    .record-chase-row::before {
+      content: '';
+      position: absolute;
+      inset: 22% auto 22% 0;
+      width: 0.25rem;
+      border-radius: 0 0.25rem 0.25rem 0;
+      background: rgba(40,127,155,0.18);
     }
     .record-chase-row:last-child {
       border-bottom: 0;
     }
     .record-chase-row.is-leader {
       background: rgba(173,219,226,0.38);
-    }
-    .record-chase-avatar {
-      width: var(--record-chase-avatar-col);
-      height: var(--record-chase-avatar-col);
-      max-width: none;
-      aspect-ratio: 1;
-      object-fit: cover;
-      border-radius: 15px;
-      justify-self: center;
     }
     .record-chase-pace {
       display: flex;
@@ -2611,18 +2619,24 @@ button.dealer-name-indicator {
       justify-content: flex-start;
       overflow: hidden;
       font-family: 'Nunito Sans', sans-serif;
-      font-size: clamp(1.25rem, 1.7vw, 2rem);
+      font-size: clamp(1.18rem, 1.62vw, 1.95rem);
       font-weight: 900;
       line-height: 1.08;
-      text-wrap: balance;
+      white-space: nowrap;
     }
     .record-chase-pace-message {
       overflow: hidden;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
+      display: block;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       color: var(--blue);
     }
+    .record-chase-pace.is-steady {
+      font-size: clamp(0.96rem, 1.15vw, 1.34rem);
+      letter-spacing: 0.01em;
+      opacity: 0.68;
+    }
+    .record-chase-pace.is-steady .record-chase-pace-message { color: var(--muted); }
     .record-chase-pace[data-tone="positive"] .record-chase-pace-message {
       color: var(--emerald);
     }
@@ -2648,15 +2662,14 @@ button.dealer-name-indicator {
     .record-chase-score.is-missing {
       color: var(--muted);
     }
-    .record-chase-row-tail {
-      width: var(--record-chase-tail-col);
-      height: 1px;
-    }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-head-label {
       font-size: min(1.25rem, calc(var(--scorecard-row-height) * 0.26));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-pace {
       font-size: min(2rem, calc(var(--scorecard-row-height) * 0.4));
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-pace.is-steady {
+      font-size: min(1.35rem, calc(var(--scorecard-row-height) * 0.28));
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-score {
       font-size: min(2.4rem, calc(var(--scorecard-row-height) * 0.48));
@@ -2675,11 +2688,6 @@ button.dealer-name-indicator {
     .record-chase-score {
       font-variant-numeric: tabular-nums;
       font-feature-settings: 'tnum';
-    }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-avatar {
-      width: var(--scorecard-avatar-size);
-      height: var(--scorecard-avatar-size);
-      max-width: var(--scorecard-avatar-size);
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: 65%;
@@ -4314,6 +4322,81 @@ button.dealer-name-indicator .dealer-player-label {
       background: rgba(255,250,241,0.965) !important;
       box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
     }
+    .scorecard-view-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.14rem;
+      padding: 0.18rem;
+      border: 1px solid rgba(8,118,108,0.22);
+      border-radius: 12px;
+      background: rgba(232,247,242,0.82);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .scorecard-view-switcher.hidden { display: none !important; }
+    .scorecard-view-label {
+      padding: 0.35rem 0.42rem 0.35rem 0.52rem;
+      color: var(--muted);
+      font-size: 0.66rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .scorecard-view-btn {
+      min-height: 2.2rem;
+      padding: 0.38rem 0.72rem;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: var(--bp-teal-dark);
+      font-size: 0.78rem;
+      font-weight: 900;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .scorecard-view-btn:hover,
+    .scorecard-view-btn:focus-visible { border-color: rgba(8,118,108,0.28); background: rgba(255,255,255,0.72); }
+    .scorecard-view-btn.active {
+      border-color: rgba(8,118,108,0.25);
+      background: #fffdf9;
+      color: var(--bp-teal-dark);
+      box-shadow: 0 3px 9px -7px rgba(6,77,72,0.7);
+    }
+    .match-end-btn {
+      color: #9a4f3f;
+      border-color: rgba(231,111,81,0.28);
+      background: rgba(255,249,244,0.78);
+      box-shadow: none;
+    }
+    .match-end-btn:hover,
+    .match-end-btn:focus-visible {
+      color: #7f3f32;
+      border-color: rgba(231,111,81,0.5);
+      background: #fff3ed;
+    }
+    @media (min-width: 761px) {
+      body.active-match-view #top-nav {
+        margin-bottom: 0.35rem !important;
+        padding-top: 0.42rem !important;
+        padding-bottom: 0.42rem !important;
+      }
+      body.active-match-view #top-nav .bp-brand-mark {
+        width: 2.8rem;
+        height: 2.8rem;
+        flex-basis: 2.8rem;
+      }
+      body.active-match-view .active-match-banner {
+        min-height: 76px;
+        margin-bottom: 0.4rem !important;
+        padding: 0.48rem 0.85rem !important;
+      }
+      body.active-match-view .bp-active-identity { gap: 0.72rem; }
+      body.active-match-view .bp-active-copy { gap: 0.22rem; }
+      body.active-match-view .bp-active-game-art {
+        width: 94px;
+        height: 52px;
+        flex-basis: 94px;
+      }
+    }
     .active-match-banner::before { display: none; }
     .bp-active-identity { flex: 1 1 auto; }
     .bp-active-game-art {
@@ -5584,7 +5667,8 @@ button.dealer-name-indicator .dealer-player-label {
       font-size: clamp(22.4px, 2.55vw, 34px) !important;
     }
     #game-screen #actions-btn,
-    #game-screen .active-match-banner .btn-accent {
+    #game-screen .active-match-banner .btn-accent,
+    #game-screen .active-match-banner .match-end-btn {
       font-size: 14px;
     }
     @media (max-width: 760px) {
@@ -5809,6 +5893,11 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
         <div class="flex flex-wrap gap-2 items-center relative">
+          <div id="scorecard-view-switcher" class="scorecard-view-switcher hidden" role="group" aria-label="Scorecard view">
+            <span class="scorecard-view-label">View</span>
+            <button id="scorecard-view-pace" type="button" class="scorecard-view-btn active" onclick="toggleRecordChasePanel(true)" aria-pressed="true">Pace</button>
+            <button id="scorecard-view-rounds" type="button" class="scorecard-view-btn" onclick="toggleRecordChasePanel(false)" aria-pressed="false">Rounds</button>
+          </div>
           <div class="relative">
             <button onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
@@ -5852,7 +5941,7 @@ button.dealer-name-indicator .dealer-player-label {
               </div>
             </div>
           </div>
-          <button onclick="endGame()" class="btn-accent px-5 py-2.5 text-sm">Save &amp; End</button>
+          <button onclick="endGame()" class="btn-ghost match-end-btn px-4 py-2.5 text-sm">Save &amp; End</button>
         </div>
       </div>
 
@@ -5875,18 +5964,17 @@ button.dealer-name-indicator .dealer-player-label {
                 </table>
               </div>
             </div>
-            <aside id="record-chase-panel" class="record-chase-panel" aria-label="Record Chase player metrics">
+            <aside id="record-chase-panel" class="record-chase-panel" aria-label="Player Pace metrics">
               <div class="record-chase-head">
                 <div class="record-chase-heading">
                   <div class="record-chase-title">Player Pace</div>
+                  <div class="record-chase-subtitle">Meaningful shifts stand out</div>
                 </div>
                 <span class="record-chase-head-label record-chase-head-label--best">Best</span>
                 <span class="record-chase-head-label record-chase-head-label--worst">Worst</span>
-                <button id="record-chase-toggle" type="button" class="record-chase-toggle" onclick="toggleRecordChasePanel(false)" title="Show all round columns" aria-label="Hide Record Chase and show all round columns">&rsaquo;</button>
               </div>
               <div id="record-chase-list" class="record-chase-list"></div>
             </aside>
-            <button id="record-chase-restore" type="button" class="record-chase-toggle record-chase-restore hidden" onclick="toggleRecordChasePanel(true)" title="Show Record Chase" aria-label="Show Record Chase">&lsaquo;</button>
           </div>
 
           <div id="submit-section" class="tournament-footer p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
@@ -6281,7 +6369,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="custom-numpad" class="hidden fixed bottom-0 md:bottom-6 right-0 md:right-6 w-full max-w-[350px] text-white p-4 md:p-5 z-[100] transform translate-y-full transition-transform duration-300 rounded-t-3xl md:rounded-3xl" style="background:#0f0f0e;border:1px solid #2c2c29;box-shadow:0 -8px 40px rgba(0,0,0,0.3);">
       <div class="flex justify-between items-center mb-4 px-2">
         <div id="numpad-label" class="font-extrabold uppercase tracking-[0.15em] text-xs" style="color:#34d399;">Enter Score</div>
-        <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Done</button>
+        <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
       </div>
       <div id="numpad-context" class="hidden mb-4 mx-2 rounded-2xl border px-3 py-2" style="border-color:rgba(52,211,153,0.28);background:rgba(52,211,153,0.08);">
         <div id="numpad-context-bid" class="font-extrabold uppercase tracking-[0.14em] text-[11px]" style="color:#67e8f9;"></div>
@@ -6357,7 +6445,7 @@ button.dealer-name-indicator .dealer-player-label {
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t hairline">
           <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Cancel</button>
-          <button type="button" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Done</button>
+          <button type="button" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Review Scores</button>
           <button type="button" id="score-entry-primary-btn" onclick="submitScoreEntryModal()" class="btn-accent flex-[1.3] py-4 text-base font-extrabold">Submit Scores</button>
         </div>
       </div>
@@ -10658,6 +10746,11 @@ ${isDealer
       if(!root)return;
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.classList.remove('scorecard-fit-rows');
+      const paceList=root.querySelector('#record-chase-list');
+      if(paceList){
+        paceList.style.removeProperty('height');
+        paceList.style.removeProperty('flex');
+      }
       const fitVars=['--scorecard-row-height','--scorecard-row-pad-y','--scorecard-player-font','--scorecard-avatar-size','--scorecard-total-font','--scorecard-input-height','--scorecard-input-pad-y','--scorecard-input-font','--scorecard-round-font','--scorecard-round-detail-font','--scorecard-bid-width','--scorecard-bid-pad-y','--scorecard-bid-pad-x','--scorecard-bid-label-font','--scorecard-bid-label-gap','--scorecard-bid-value-font','--scorecard-bid-status-font','--scorecard-bid-status-gap','--scorecard-bid-dot-size','--scorecard-rank-size','--scorecard-rank-font','--scorecard-dealer-font','--scorecard-dealer-size','--scorecard-cell-gap','--scorecard-reorder-font','--scorecard-total-pad-x','--record-chase-head-height'];
       fitVars.forEach(p=>root.style.removeProperty(p));
       if(!document.body.classList.contains('active-match-view')||root.offsetParent===null)return;
@@ -10666,7 +10759,7 @@ ${isDealer
       const rows=[...table?.querySelectorAll('tbody tr')||[]];
       const head=table?.querySelector('thead');
       if(head&&!document.getElementById('record-chase-panel')?.classList.contains('hidden')){
-        root.style.setProperty('--record-chase-head-height',`${Math.ceil(head.getBoundingClientRect().height)}px`);
+        root.style.setProperty('--record-chase-head-height',`${head.getBoundingClientRect().height.toFixed(3)}px`);
       }
       root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
@@ -10735,6 +10828,12 @@ ${isDealer
         }
         name.style.setProperty('font-size',`${Math.max(16,best*0.94).toFixed(1)}px`,'important');
       });
+      const recordPanel=document.getElementById('record-chase-panel');
+      const scoreBody=table.querySelector('tbody');
+      if(paceList&&recordPanel&&!recordPanel.classList.contains('hidden')&&scoreBody){
+        paceList.style.height=`${scoreBody.getBoundingClientRect().height.toFixed(3)}px`;
+        paceList.style.flex='0 0 auto';
+      }
     } finally {
       gnPerfEnd(fitTimer);
     }
@@ -10836,12 +10935,22 @@ ${isDealer
   function setRecordChaseLayout(enabled){
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
-    const restore=document.getElementById('record-chase-restore');
     const available=window.matchMedia('(min-width: 901px)').matches&&currentGame?.name!=='Rook';
     recordChaseLayoutActive=!!enabled&&available;
     if(layout)layout.classList.toggle('record-chase-active',recordChaseLayoutActive);
     if(panel)panel.classList.toggle('hidden',!recordChaseLayoutActive);
-    if(restore)restore.classList.toggle('hidden',recordChaseLayoutActive||!available);
+    const switcher=document.getElementById('scorecard-view-switcher');
+    const paceButton=document.getElementById('scorecard-view-pace');
+    const roundsButton=document.getElementById('scorecard-view-rounds');
+    if(switcher)switcher.classList.toggle('hidden',!available);
+    if(paceButton){
+      paceButton.classList.toggle('active',recordChaseLayoutActive);
+      paceButton.setAttribute('aria-pressed',String(recordChaseLayoutActive));
+    }
+    if(roundsButton){
+      roundsButton.classList.toggle('active',!recordChaseLayoutActive);
+      roundsButton.setAttribute('aria-pressed',String(!recordChaseLayoutActive));
+    }
   }
 
   function toggleRecordChasePanel(visible){
@@ -10965,21 +11074,21 @@ ${isDealer
       const best=metric.bestScore===null?'—':metric.bestScore;
       const worst=metric.worstScore===null?'—':metric.worstScore;
       const paceMessage=metric.paceCategory==='NEW'
-        ? (metric.bestScore===null?'No past pace yet':'No comparable pace yet')
+        ? (metric.bestScore===null?'No past pace yet':'No comparison yet')
         : metric.paceCategory==='BEST'
           ? (metric.paceDirection==='even'?'On personal-best pace':`${metric.paceDifference} pts ahead of best`)
           : metric.paceCategory==='TO BEST'
             ? `${metric.paceDifference} pts behind best`
             : metric.paceDirection==='even'
-              ? 'On usual pace'
+              ? 'Usual pace'
               : `${metric.paceDifference} pts ${metric.paceDirection==='ahead'?'ahead of':'behind'} usual`;
       const paceTone=metric.paceDirection==='ahead'?'positive':metric.paceDirection==='back'?'behind':metric.paceCategory==='NEW'?'fresh':'neutral';
-      return `<div class="record-chase-row${isLeader?' is-leader':''}" title="${escapeHtml(player)} · ${escapeHtml(metric.ariaLabel)} · Best ${best} · Worst ${worst}">
-        ${getAvatarImg(player,'record-chase-avatar')}
-        <div class="record-chase-pace" data-tone="${paceTone}" aria-label="${escapeHtml(paceMessage)}"><span class="record-chase-pace-message">${escapeHtml(paceMessage)}</span></div>
+      const isSteady=(metric.paceCategory==='AVG'&&metric.paceDirection==='even')||(metric.paceCategory==='NEW'&&metric.bestScore!==null);
+      const paceClass=isSteady?' is-steady':' is-meaningful';
+      return `<div class="record-chase-row${isLeader?' is-leader':''}" data-player="${escapeHtml(player)}" title="${escapeHtml(player)} · ${escapeHtml(metric.ariaLabel)} · Best ${best} · Worst ${worst}">
+        <div class="record-chase-pace${paceClass}" data-tone="${paceTone}" aria-label="${escapeHtml(paceMessage)}"><span class="record-chase-pace-message">${escapeHtml(paceMessage)}</span></div>
         <div class="record-chase-score${metric.bestScore===null?' is-missing':''}" aria-label="Best ${best}">${best}</div>
         <div class="record-chase-score${metric.worstScore===null?' is-missing':''}" aria-label="Worst ${worst}">${worst}</div>
-        <span class="record-chase-row-tail" aria-hidden="true"></span>
       </div>`;
     }).join('');
   }
@@ -11505,6 +11614,30 @@ ${isDealer
     return players.reduce((sum,p)=>sum+(parseInt(values[p],10)||0),0);
   }
 
+  function scoreEntryValueIsFilled(player){
+    if(!scoreEntryModalState)return false;
+    const value=scoreEntryModalState.values?.[player];
+    return value!==undefined&&value!==null&&value!=='';
+  }
+
+  function getScoreEntryEnteredCount(){
+    if(!scoreEntryModalState)return 0;
+    const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    return players.filter(scoreEntryValueIsFilled).length;
+  }
+
+  function updateScoreEntryRowState(player){
+    if(!scoreEntryModalState||!currentGame||!player)return;
+    const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
+    if(!row)return;
+    const filled=scoreEntryValueIsFilled(player);
+    row.classList.toggle('is-complete',filled);
+    row.classList.toggle('is-empty',!filled);
+    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${filled?'entered':'needed'}`);
+    const indicator=row.querySelector('.score-entry-row-status');
+    if(indicator)indicator.textContent=filled?'✓':'○';
+  }
+
   function updateScoreEntryHeaderMeta(){
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
@@ -11518,11 +11651,15 @@ ${isDealer
     const {mode}=scoreEntryModalState;
     const progress=document.getElementById('score-entry-progress');
     if(!progress)return;
+    const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    const entered=getScoreEntryEnteredCount();
+    const label=mode.valueLabel.toLowerCase();
+    const enteredText=`${entered} of ${players.length} ${label}s entered`;
     if(isBidTrickGame(currentGame)){
-      const label=isScoreEntryBidMode(mode)?'Bids':'Tricks';
-      progress.textContent=`${label}: ${getScoreEntryDraftTotal()} / ${getRoundTrickCount(currentGame)}`;
+      const totalLabel=isScoreEntryBidMode(mode)?'Bids':'Tricks';
+      progress.textContent=`${enteredText} · ${totalLabel}: ${getScoreEntryDraftTotal()} / ${getRoundTrickCount(currentGame)}`;
     } else {
-      progress.textContent='';
+      progress.textContent=enteredText;
     }
   }
 
@@ -11676,15 +11813,17 @@ ${isDealer
       const safe=rookElementId(p);
       const bid=currentGame.currentBids?.[p]??0;
       const isDealer=p===dealer;
+      const isComplete=scoreEntryValueIsFilled(p);
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''}">
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${isComplete?'is-complete':'is-empty'}" aria-label="${escapeHtml(`${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${isComplete?'entered':'needed'}`)}">
         <div class="score-entry-player-card">
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
+              <span class="score-entry-row-status" aria-hidden="true">${isComplete?'✓':'○'}</span>
               <div class="score-entry-name truncate">${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
             </div>
@@ -11723,6 +11862,8 @@ ${isDealer
     if(prev)document.getElementById(`score-entry-row-${rookElementId(prev)}`)?.classList.remove('active');
     scoreEntryModalState.activePlayer=next;
     document.getElementById(`score-entry-row-${rookElementId(next)}`)?.classList.add('active');
+    updateScoreEntryRowState(prev);
+    updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
   }
 
@@ -11732,6 +11873,7 @@ ${isDealer
     if(!p)return;
     const el=document.getElementById(`score-entry-value-${rookElementId(p)}`);
     if(el)el.textContent=scoreEntryModalState.values[p]!==''?scoreEntryModalState.values[p]:'';
+    updateScoreEntryRowState(p);
     updateScoreEntryProgress();
     updateScoreEntrySelectedSummary();
   }

@@ -147,27 +147,28 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectScorecardNamesFit(page);
 });
 
-test('record-chase-toggle-restores-the-full-round-scorecard',async({page})=>{
+test('scorecard-view-switcher-restores-the-full-round-scorecard',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
+  await expect(page.locator('#scorecard-view-switcher')).toBeVisible();
+  await expect(page.locator('#scorecard-view-pace')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#scorecard-view-rounds')).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('#record-chase-panel')).toBeVisible();
-  await expect(page.locator('#record-chase-restore')).toBeHidden();
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
   expect(await page.locator('.record-chase-row').count(),'Record Chase should have one row per player').toBe(10);
-  expect(await page.locator('.record-chase-row .record-chase-avatar').count(),'each Record Chase row should use the player avatar').toBe(10);
-  expect(await page.locator('.record-chase-name').count(),'Record Chase should not duplicate player names').toBe(0);
+  expect(await page.locator('.record-chase-row .record-chase-avatar').count(),'Player Pace should not duplicate the scorecard avatars').toBe(0);
   expect(await page.locator('.record-chase-secondary').count(),'Record Chase should not include a supporting metric column').toBe(0);
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
 
-  await page.locator('#record-chase-toggle').click();
+  await page.locator('#scorecard-view-rounds').click();
   await expect(page.locator('#record-chase-panel')).toBeHidden();
-  await expect(page.locator('#record-chase-restore')).toBeVisible();
+  await expect(page.locator('#scorecard-view-rounds')).toHaveAttribute('aria-pressed','true');
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'the traditional scorecard should restore every completed round').toBe(5);
 
-  await page.locator('#record-chase-restore').click();
+  await page.locator('#scorecard-view-pace').click();
   await expect(page.locator('#record-chase-panel')).toBeVisible();
-  await expect(page.locator('#record-chase-restore')).toBeHidden();
+  await expect(page.locator('#scorecard-view-pace')).toHaveAttribute('aria-pressed','true');
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'restoring Record Chase should return to the latest two rounds').toBe(2);
 });
 
@@ -183,35 +184,19 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
 
   const headingLayout=await page.evaluate(()=>{
     const title=document.querySelector('.record-chase-title')?.getBoundingClientRect();
-    const avatar=document.querySelector('.record-chase-avatar')?.getBoundingClientRect();
     const pace=document.querySelector('.record-chase-pace');
     const label=document.querySelector('.record-chase-head-label--best');
     return {
       titleLeft:title?.left??Infinity,
-      avatarLeft:avatar?.left??-Infinity,
+      paceLeft:pace?.getBoundingClientRect().left??-Infinity,
       paceFont:Number.parseFloat(getComputedStyle(pace).fontSize),
-      labelFont:Number.parseFloat(getComputedStyle(label).fontSize)
+      labelFont:Number.parseFloat(getComputedStyle(label).fontSize),
+      steadyFont:Number.parseFloat(getComputedStyle(document.querySelector('.record-chase-pace.is-steady')).fontSize)
     };
   });
-  expect(Math.abs(headingLayout.titleLeft-headingLayout.avatarLeft),'Player Pace should align over the profile avatars').toBeLessThanOrEqual(1);
+  expect(Math.abs(headingLayout.titleLeft-headingLayout.paceLeft),'Player Pace copy should align with the scorecard player rows').toBeLessThanOrEqual(1);
   expect(headingLayout.paceFont/headingLayout.labelFont,'pace messages should remain substantially larger than the supporting labels').toBeGreaterThanOrEqual(1.35);
-
-  const avatars=await page.locator('.record-chase-avatar').evaluateAll(images=>images.map(image=>({
-    src:image.getAttribute('src')||'',
-    ready:image.complete&&image.naturalWidth>0
-  })));
-  expect(avatars.every(avatar=>avatar.ready),'Record Chase avatars should be loaded').toBe(true);
-  expect(avatars.every(avatar=>avatar.src.includes('/avatars/')),'Record Chase should use saved profile avatars').toBe(true);
-
-  const avatarSizes=await page.evaluate(()=>{
-    const player=[...document.querySelectorAll('#scorecard-body .avatar-img-sc')].map(image=>image.getBoundingClientRect().width);
-    const chase=[...document.querySelectorAll('.record-chase-avatar')].map(image=>image.getBoundingClientRect().width);
-    return {player,chase};
-  });
-  expect(avatarSizes.chase).toHaveLength(avatarSizes.player.length);
-  avatarSizes.chase.forEach((size,index)=>{
-    expect(Math.abs(size-avatarSizes.player[index]),`Record Chase avatar ${index+1} should match its player avatar`).toBeLessThanOrEqual(1);
-  });
+  expect(headingLayout.steadyFont,'steady pace should be quieter than meaningful pace changes').toBeLessThan(headingLayout.paceFont);
 
   const metrics=await rows.evaluateAll(elements=>elements.map(element=>({
     title:element.getAttribute('title')||'',
@@ -224,7 +209,7 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
     '20 pts behind best',
     '10 pts ahead of best',
     '30 pts behind usual',
-    'On usual pace',
+    'Usual pace',
     'No past pace yet',
     '33 pts behind usual'
   ]);
@@ -233,6 +218,13 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   expect(metrics.filter(metric=>metric.scores.includes('—')),'only Brick should lack best and worst records').toHaveLength(1);
   expect(metrics.filter(metric=>metric.pace!=='No past pace yet').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best and worst records').toBe(true);
   expect(metrics.every(metric=>!/[▲▼]/.test(metric.pace)),'pace messages should not rely on directional symbol shorthand').toBe(true);
+
+  const rowAlignment=await page.evaluate(()=>{
+    const scoreRows=[...document.querySelectorAll('#scorecard-body tr')].map(row=>row.getBoundingClientRect().y);
+    const paceRows=[...document.querySelectorAll('.record-chase-row')].map(row=>row.getBoundingClientRect().y);
+    return scoreRows.map((y,index)=>Math.abs(y-(paceRows[index]??Infinity)));
+  });
+  expect(rowAlignment.every(gap=>gap<=2),'Player Pace rows should stay aligned with the corresponding player rows').toBe(true);
 
   const paceMessagesFit=await page.locator('.record-chase-pace').evaluateAll(elements=>elements.every(element=>
     element.scrollWidth<=element.clientWidth+1
@@ -325,7 +317,7 @@ test('navigation and match header ignore scorecard text-size zoom',async({page})
     game:'#game-title',
     round:'#round-intel',
     actions:'#actions-btn',
-    save:'#game-screen .active-match-banner .btn-accent'
+    save:'#game-screen .active-match-banner .match-end-btn'
   };
   const readSizes=()=>page.evaluate(entries=>Object.fromEntries(Object.entries(entries).map(([key,selector])=>[
     key,
@@ -360,4 +352,21 @@ test('score-entry avatars stay ready when the connection drops',async({page,cont
   }));
   expect(avatarState.count,'score-entry modal should contain player avatars').toBeGreaterThan(0);
   expect(avatarState.ready,'cached player avatars should paint immediately').toBe(true);
+});
+
+test('score-entry shows progress and live entered states',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=entry-scores',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
+  await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
+  await expect(page.locator('.score-entry-row.is-empty')).toHaveCount(8);
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(0);
+
+  await page.getByRole('button',{name:'7',exact:true}).click();
+  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 scores entered');
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(1);
+  await expect(page.locator('.score-entry-row.is-empty')).toHaveCount(7);
+  await expect(page.locator('.score-entry-row.is-complete .score-entry-row-status')).toHaveText('✓');
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveAttribute('aria-label',/score entered/);
+  await expect(page.getByRole('button',{name:'Review Scores',exact:true})).toBeVisible();
 });
