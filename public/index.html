@@ -1004,6 +1004,30 @@
         radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
         var(--surface);
       box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
+      overflow: hidden;
+    }
+    .life-preserver-help {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,250,241,0.99), rgba(247,238,228,0.99) 62%),
+        var(--surface);
+    }
+    .life-preserver-help h4 {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bp-coral);
+      margin: 1.1rem 0 0.45rem;
+    }
+    .life-preserver-help ul {
+      margin: 0;
+      padding-left: 1.15rem;
+      text-align: left;
+      color: var(--ink-2);
+    }
+    .life-preserver-help li {
+      margin: 0.35rem 0;
+      line-height: 1.35;
     }
     .wheel-shell::before {
       content: '';
@@ -6420,7 +6444,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeWheel()" class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
+        <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
@@ -6430,6 +6454,32 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="wheel-spinner-hub"></div>
         </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl">SPIN THE WHEEL</button>
+        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold">How Life Preserver works</button>
+        <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-30 flex flex-col p-6 md:p-7 text-left">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);">🛟 Life Preserver</div>
+          <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
+          <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
+          <div class="flex-1 min-h-0 overflow-y-auto pr-1 text-sm md:text-[15px] font-semibold">
+            <h4>Who can spin</h4>
+            <ul>
+              <li>You have to be in the bottom half of the table.</li>
+              <li>You have to be far enough behind the pack that catching up with normal play is unlikely.</li>
+              <li>A runaway leader does not unlock everyone clustered behind them.</li>
+              <li>One spin per player, per game.</li>
+              <li>Not used in Rook or Beat the Heat.</li>
+            </ul>
+            <h4>What the wheel does</h4>
+            <ul>
+              <li>The numbers are sized to this game, this table, and how far behind you are.</li>
+              <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
+              <li>The best result can pull you back toward the pack, but it cannot put you in 1st or 2nd.</li>
+              <li>At a bigger table, 4th is as high as it can land you.</li>
+              <li>Most slices help. Some do nothing. A few slightly hurt.</li>
+              <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
+            </ul>
+          </div>
+          <button type="button" onclick="hideLifePreserverHelp()" class="btn-primary w-full mt-4 py-4 font-display text-xl">Back to the wheel</button>
+        </div>
       </div>
     </div>
 
@@ -7744,8 +7794,17 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
   function closeWheel(){
+    hideLifePreserverHelp();
     lifePreserverOfferSnapshot=null;
     closeModal('wheel-modal');
+  }
+  function showLifePreserverHelp(){
+    const help=document.getElementById('life-preserver-help');
+    if(help)help.classList.remove('hidden');
+  }
+  function hideLifePreserverHelp(){
+    const help=document.getElementById('life-preserver-help');
+    if(help)help.classList.add('hidden');
   }
 
   /* ═══ WHAMMY ROUND CELEBRATION ═══ */
@@ -8775,6 +8834,7 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.offsetHeight;
       spinner.style.transition='';
     }
+    hideLifePreserverHelp();
     drawWheel();
     openModal('wheel-modal');
   }
