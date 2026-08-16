@@ -224,8 +224,7 @@ test('representative centered modal families use the shared viewport shell',asyn
     retire:['#retire-player-modal','#retire-player-modal .surface-raised','Retire-player modal'],
     reorder:['#reorder-players-modal','#reorder-players-modal .surface-raised','Reorder-players modal'],
     victory:['#victory-modal','#victory-modal .postgame-card','Victory modal'],
-    loser:['#loser-modal','#loser-modal .postgame-card','Loser modal'],
-    suddenDeath:['#sudden-death-modal','#sudden-death-modal .surface-raised','Sudden-death modal']
+    loser:['#loser-modal','#loser-modal .postgame-card','Loser modal']
   };
 
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=settings',{waitUntil:'networkidle'});
@@ -251,7 +250,7 @@ test('representative centered modal families use the shared viewport shell',asyn
     await page.evaluate(selector=>document.querySelector(selector)?.classList.add('hidden'),measure[name][0]);
   }
 
-  for(const [name,modalSelector] of [['victory','#victory-modal'],['loser','#loser-modal'],['suddenDeath','#sudden-death-modal']]){
+  for(const [name,modalSelector] of [['victory','#victory-modal'],['loser','#loser-modal']]){
     await page.evaluate(selector=>{
       const modal=document.querySelector(selector);
       modal?.classList.remove('hidden','opacity-0');
@@ -597,6 +596,21 @@ test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
   await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids entered/);
 });
 
+test('Wizard rejects bids outside the available trick range',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=entry-bids',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.getByRole('button',{name:'9',exact:true}).click();
+  let message='';
+  page.once('dialog',async dialog=>{
+    message=dialog.message();
+    await dialog.accept();
+  });
+  await page.getByRole('button',{name:'Lock Bids',exact:true}).click();
+  expect(message).toContain('Wizard bids must be from 0 to 6');
+  await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
+  await expect(page.locator('#round-intel')).toContainText('Bidding');
+});
+
 test('active scorecard columns and panels stay geometrically aligned',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
@@ -678,4 +692,156 @@ test('active scorecard columns and panels stay geometrically aligned',async({pag
   expect(variedTotals.totalHeaderCellAlignments.every(gap=>gap<=1),'every varied total should align with the TOTAL header').toBe(true);
   expect(variedTotals.navBannerGap,'record-chase active-match panels should keep the same separation').toBeGreaterThanOrEqual(10);
   expect(variedTotals.navBannerGap,'record-chase active-match panels should keep the same compact separation').toBeLessThanOrEqual(12.5);
+});
+
+test('ties finish normally without a tiebreaker prompt',async({page})=>{
+  await page.addInitScript(()=>{
+    const roster=['Alex','Blair'];
+    localStorage.setItem('gn_all_players',JSON.stringify(roster));
+    localStorage.setItem('gn_players_v2',JSON.stringify(roster));
+    localStorage.setItem('gn_history','[]');
+    localStorage.setItem('gn_profiles','{}');
+    localStorage.setItem('gn_pref_statmontage','0');
+    localStorage.setItem('gn_current',JSON.stringify({
+      name:'Five Crowns',originalRoster:roster,currentRound:2,
+      rounds:[{round:1,scores:{Alex:10,Blair:10}}],totals:{Alex:10,Blair:10},
+      hailMaryUsed:[],retired:[],currentScoreDrafts:{}
+    }));
+  });
+  await page.goto('/',{waitUntil:'networkidle'});
+  await expect(page.locator('#game-screen:not(.hidden)')).toBeVisible();
+  expect(await page.locator('#sudden-death-modal').count(),'the removed tiebreaker UI should not exist').toBe(0);
+
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'Save & End',exact:true}).click();
+  await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
+  await expect(page.locator('#victory-names')).toContainText('Alex');
+  await expect(page.locator('#victory-names')).toContainText('Blair');
+  await expect(page.locator('#victory-names')).toContainText('Tie!');
+});
+
+test('undo preserves already-used Life Preservers',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
+
+  await page.getByRole('button',{name:/Actions/}).click();
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
+
+  await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
+  await expect(page.locator('#round-intel')).toContainText('Hand of 9');
+});
+
+test('starting another game preserves and resumes Wizard and 818 entry state',async({page})=>{
+  await page.addInitScript(()=>{
+    localStorage.setItem('gn_pref_lineupintro','0');
+    localStorage.setItem('gn_pref_dealerroll','0');
+  });
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-scoring-8&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>{
+    Object.assign(ensureCurrentScoreDrafts(),{Megan:2,Matt:1});
+    saveData();
+  });
+  page.once('dialog',dialog=>dialog.accept());
+  await page.evaluate(()=>startGame('818'));
+
+  let history=await page.evaluate(()=>JSON.parse(localStorage.getItem('gn_history')||'[]'));
+  const wizard=history.find(match=>match.game==='Wizard'&&match.wizardPhase==='scoring'&&match.currentScoreDrafts?.Megan===2);
+  expect(wizard,'Wizard snapshot should persist its scoring phase, bids, and drafts').toBeTruthy();
+  expect(wizard.currentBids.Matt).toBe(1);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.evaluate(id=>resumeMatch(id),wizard.id);
+  let resumed=await page.evaluate(()=>JSON.parse(localStorage.getItem('gn_current')));
+  expect(resumed.wizardPhase).toBe('scoring');
+  expect(resumed.currentBids.Matt).toBe(1);
+  expect(resumed.currentScoreDrafts).toMatchObject({Megan:2,Matt:1});
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>startGame('818'));
+  await page.evaluate(()=>{
+    submitRound({skipConfirm:true});
+    Object.assign(ensureCurrentScoreDrafts(),{Megan:3,Matt:2});
+    saveData();
+  });
+  page.once('dialog',dialog=>dialog.accept());
+  await page.evaluate(()=>startGame('Five Crowns'));
+
+  history=await page.evaluate(()=>JSON.parse(localStorage.getItem('gn_history')||'[]'));
+  const eight18=history.find(match=>match.game==='818'&&match.eight18Phase==='scoring'&&match.currentScoreDrafts?.Megan===3);
+  expect(eight18,'818 snapshot should persist its scoring phase, bids, and drafts').toBeTruthy();
+  expect(eight18.currentBids).toBeTruthy();
+  page.once('dialog',dialog=>dialog.accept());
+  await page.evaluate(id=>resumeMatch(id),eight18.id);
+  resumed=await page.evaluate(()=>JSON.parse(localStorage.getItem('gn_current')));
+  expect(resumed.eight18Phase).toBe('scoring');
+  expect(resumed.currentScoreDrafts).toMatchObject({Megan:3,Matt:2});
+});
+
+test('player rename migrates drafts and Rook identity references',async({page})=>{
+  await page.addInitScript(()=>{
+    const roster=['Megan','Matt','Cat','Mike'];
+    const rookRound={round:1,scores:{Megan:90,Matt:90,Cat:110,Mike:110},rookBid:90,rookBidder:'Megan',rookPartner:'Matt'};
+    const saved={
+      id:101,game:'Rook',originalRoster:[...roster],currentRound:2,rounds:[structuredClone(rookRound)],
+      totals:{Megan:90,Matt:90,Cat:110,Mike:110},winners:['Cat','Mike'],hailMaryUsed:[],retired:[],
+      currentBids:{Megan:1},currentScoreDrafts:{Megan:7},rookHighBidder:'Megan',rookPartner:'Matt'
+    };
+    localStorage.setItem('gn_all_players',JSON.stringify(roster));
+    localStorage.setItem('gn_players_v2',JSON.stringify(roster));
+    localStorage.setItem('gn_profiles',JSON.stringify({Megan:{color:1}}));
+    localStorage.setItem('gn_history',JSON.stringify([saved]));
+    localStorage.setItem('gn_current',JSON.stringify({
+      name:'Rook',originalRoster:[...roster],currentRound:2,rounds:[rookRound],
+      totals:{Megan:90,Matt:90,Cat:110,Mike:110},hailMaryUsed:[],retired:[],currentBids:{Megan:2},
+      currentScoreDrafts:{Megan:8},rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+      rookPhase:'results',rookHighBid:90,rookHighBidder:'Megan',rookPartner:'Matt'
+    }));
+  });
+  await page.goto('/',{waitUntil:'networkidle'});
+  await page.evaluate(()=>renamePlayerEverywhere('Megan','Meg'));
+
+  const state=await page.evaluate(()=>({
+    current:JSON.parse(localStorage.getItem('gn_current')),
+    history:JSON.parse(localStorage.getItem('gn_history')),
+    players:JSON.parse(localStorage.getItem('gn_players_v2')),
+    profiles:JSON.parse(localStorage.getItem('gn_profiles'))
+  }));
+  expect(state.current.currentBids).toEqual({Meg:2});
+  expect(state.current.currentScoreDrafts).toEqual({Meg:8});
+  expect(state.current.rookHighBidder).toBe('Meg');
+  expect(state.current.rounds[0].rookBidder).toBe('Meg');
+  expect(state.history[0].currentBids).toEqual({Meg:1});
+  expect(state.history[0].currentScoreDrafts).toEqual({Meg:7});
+  expect(state.history[0].rookHighBidder).toBe('Meg');
+  expect(state.history[0].rounds[0].rookBidder).toBe('Meg');
+  expect(state.players).toContain('Meg');
+  expect(state.players).not.toContain('Megan');
+  expect(state.profiles.Meg).toEqual({color:1});
+});
+
+test('all six game types reach their first scoring surface',async({page})=>{
+  await page.addInitScript(()=>{
+    localStorage.setItem('gn_pref_lineupintro','0');
+    localStorage.setItem('gn_pref_dealerroll','0');
+  });
+  const games=[
+    {button:'Five Crowns',title:'Five Crowns',action:'Log Scores'},
+    {button:'Wizard',title:'Wizard',action:'Log Bids'},
+    {button:'818',title:'818',action:'Log Bids'},
+    {button:'Flip 7',title:'Flip 7 Vengeance',action:'Log Scores'},
+    {button:'Beat the Heat',title:'Beat the Heat',action:'Log Heat'},
+    {button:'Rook',title:'Rook',action:'Trump & partner card →',rook:true}
+  ];
+  for(const game of games){
+    await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
+    await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+    await page.getByRole('button',{name:game.button,exact:true}).click();
+    if(game.rook)await page.getByRole('button',{name:'Start Match →',exact:true}).click();
+    await expect(page.locator('#game-title')).toHaveText(game.title);
+    await expect(page.getByRole('button',{name:game.action,exact:true})).toBeVisible();
+  }
 });

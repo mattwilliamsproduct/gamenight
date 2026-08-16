@@ -6715,21 +6715,6 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
-    <!-- Sudden Death -->
-    <div id="sudden-death-modal" class="hidden fixed inset-0 flex items-center justify-center z-[205] p-4 bp-modal-viewport-shell">
-      <div class="absolute inset-0 bg-black/65 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:#f97316;">
-        <div class="text-6xl mb-3">⚡</div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:#f97316;">Tie Detected</div>
-        <h3 class="font-display text-4xl mb-2">Sudden Death!</h3>
-        <p class="text-sm font-bold mb-6" style="color:var(--muted);" id="sudden-death-players"></p>
-        <div class="flex flex-col gap-3 w-full">
-          <button onclick="startSuddenDeath()" class="py-4 text-lg font-extrabold rounded-2xl text-white transition-all hover:opacity-90" style="background:#f97316;box-shadow:0 10px 24px -8px rgba(249,115,22,0.5);">⚡ Play Tiebreaker Round</button>
-          <button onclick="acceptTie()" class="btn-ghost py-3.5 text-base">Accept the Tie 🤝</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Dealer Override -->
     <div id="dealer-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeDealerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
@@ -8587,6 +8572,8 @@ button.dealer-name-indicator .dealer-player-label {
             r.joinBonus[newName] = r.joinBonus[oldName];
             delete r.joinBonus[oldName];
           }
+          if(r.rookBidder === oldName) r.rookBidder = newName;
+          if(r.rookPartner === oldName) r.rookPartner = newName;
         });
       }
       if(Array.isArray(h.originalRoster)){
@@ -8598,6 +8585,16 @@ button.dealer-name-indicator .dealer-player-label {
       if(Array.isArray(h.hailMaryUsed)){
         h.hailMaryUsed = h.hailMaryUsed.map(p => p === oldName ? newName : p);
       }
+      if(h.currentBids && h.currentBids[oldName] !== undefined){
+        h.currentBids[newName] = h.currentBids[oldName];
+        delete h.currentBids[oldName];
+      }
+      if(h.currentScoreDrafts && h.currentScoreDrafts[oldName] !== undefined){
+        h.currentScoreDrafts[newName] = h.currentScoreDrafts[oldName];
+        delete h.currentScoreDrafts[oldName];
+      }
+      if(h.rookHighBidder === oldName) h.rookHighBidder = newName;
+      if(h.rookPartner === oldName) h.rookPartner = newName;
     });
     markHistoryChanged();
     // current game (if active)
@@ -8633,12 +8630,20 @@ button.dealer-name-indicator .dealer-player-label {
             r.joinBonus[newName] = r.joinBonus[oldName];
             delete r.joinBonus[oldName];
           }
+          if(r.rookBidder === oldName) r.rookBidder = newName;
+          if(r.rookPartner === oldName) r.rookPartner = newName;
         });
       }
       if(currentGame.currentBids && currentGame.currentBids[oldName] !== undefined){
         currentGame.currentBids[newName] = currentGame.currentBids[oldName];
         delete currentGame.currentBids[oldName];
       }
+      if(currentGame.currentScoreDrafts && currentGame.currentScoreDrafts[oldName] !== undefined){
+        currentGame.currentScoreDrafts[newName] = currentGame.currentScoreDrafts[oldName];
+        delete currentGame.currentScoreDrafts[oldName];
+      }
+      if(currentGame.rookHighBidder === oldName) currentGame.rookHighBidder = newName;
+      if(currentGame.rookPartner === oldName) currentGame.rookPartner = newName;
     }
     saveData({ fullPersist: true, syncCold: true });
     if(currentGame) scheduleRender();
@@ -9107,6 +9112,34 @@ button.dealer-name-indicator .dealer-player-label {
     return prefs.dealerRoll && name !== 'Beat the Heat';
   }
 
+  function createSavedMatchSnapshot(game, winners){
+    const data={
+      id:Date.now(),
+      game:game.name,
+      date:new Date().toLocaleDateString(),
+      totals:{...(game.totals||{})},
+      winners:[...(winners||[])],
+      rounds:game.rounds||[],
+      originalRoster:game.originalRoster||Object.keys(game.totals||{}),
+      currentRound:game.currentRound||((game.rounds||[]).length+1),
+      hailMaryUsed:game.hailMaryUsed||[],
+      retired:game.retired||[],
+      currentScoreDrafts:{...(game.currentScoreDrafts||{})},
+      dealerOffset:game.dealerOffset||0,
+      auditLog:game.auditLog||[]
+    };
+    if(game.name==='Wizard'){
+      data.wizardPhase=game.wizardPhase||'bidding';
+      data.currentBids={...(game.currentBids||{})};
+    }
+    if(game.name==='818'){
+      data.eight18Phase=game.eight18Phase||'bidding';
+      data.currentBids={...(game.currentBids||{})};
+    }
+    Object.assign(data,rookPersistedState(game));
+    return data;
+  }
+
   function startGame(name){
     if(!players.length){alert('Add players to the Lineup first!');return;}
     warmCelebrationAssets();
@@ -9118,10 +9151,10 @@ button.dealer-name-indicator .dealer-player-label {
       const keys=getRecordedPlayers(currentGame);
       if(keys.length){
         const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
-        const snapshot={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]),rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[]};
-        Object.assign(snapshot, rookPersistedState(currentGame));
+        const snapshot=createSavedMatchSnapshot(currentGame,sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]));
         history.unshift(snapshot);
         markHistoryChanged();
+        saveData({ fullPersist: true, syncCold: true });
       }
     }
     _pendingGameName = name;
@@ -10239,10 +10272,9 @@ ${isDealer
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[]};
+    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
     if(g.game==='818'){currentGame.eight18Phase=g.eight18Phase||'bidding';currentGame.currentBids=g.currentBids||{};}
-    currentGame.currentScoreDrafts = g.currentScoreDrafts || {};
     if(g.game==='Rook'){
       currentGame.rookConfig={winTarget:300,minBid:70,totalCounters:200,...(g.rookConfig||{})};
       let rp=g.rookPhase||'bidSetup';
@@ -12023,6 +12055,14 @@ ${isDealer
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     if(isScoreEntryBidMode(mode)){
+      if(currentGame.name==='Wizard'){
+        const tricks=getRoundTrickCount(currentGame);
+        const invalid=players.find(p=>{
+          const v=parseInt(values[p],10)||0;
+          return v<0||v>tricks;
+        });
+        if(invalid){alert(`Wizard bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
+      }
       if(currentGame.name==='818'){
         const tricks=getRoundTrickCount(currentGame);
         const invalid=players.find(p=>{
@@ -12103,6 +12143,8 @@ ${isDealer
           const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
           currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
         });
+        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>currentGame.currentRound);
+        if(invalid){alert(`Wizard bids must be from 0 to ${currentGame.currentRound}. Check ${invalid}.`);isSubmitting=false;return;}
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
         currentGame.wizardPhase='scoring';
         gnPerfAction('locked Wizard bids', `total ${totalBids}/${currentGame.currentRound}`);
@@ -12219,14 +12261,6 @@ ${isDealer
     // Also remove any hailMary bonuses that came after this round
     currentGame.rounds = currentGame.rounds.slice(0, lastIdx);
 
-    // Clean up hailMary usage — rebuild based on remaining rounds
-    // (Hail Mary bonuses are stored as separate rounds with hailMaryBonus flag; removing them is cleaner)
-    const remainingHailMarys = [];
-    // Actually simpler: just reset hailMaryUsed, players can trigger again in next round
-    // But better to preserve: scan what's still in rounds
-    // Simplest behavior: full reset of hailMaryUsed on undo
-    currentGame.hailMaryUsed = [];
-
       currentGame.currentRound = last.round;
 
       // If Wizard, go back to bidding phase
@@ -12243,9 +12277,6 @@ ${isDealer
     if(currentGame.name === 'Rook'){
       rookResetBidding();
     }
-
-    // Clear any extra state from sudden death if it was triggered
-    if(currentGame.suddenDeath) delete currentGame.suddenDeath;
 
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
@@ -12298,8 +12329,8 @@ ${isDealer
     saveData(); scheduleRender();
   }
 
-  /* ═══ END GAME + SUDDEN DEATH ═══ */
-  let currentLosers=[], pendingGameData=null;
+  /* ═══ END GAME ═══ */
+  let currentLosers=[];
   /** Same numeric layer as #postgame-confetti-canvas for DOM fallback celebration pieces. */
   const POSTGAME_CONFETTI_LAYER_Z = 2147483647;
   let _postgameConfettiFire = null;
@@ -12436,42 +12467,8 @@ ${isDealer
     const topScore=currentGame.totals[sorted[0]];
       const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
 
-      const data={id:Date.now(),game:currentGame.name,date:new Date().toLocaleDateString(),totals:{...currentGame.totals},winners:tied,rounds:currentGame.rounds,originalRoster:currentGame.originalRoster,currentRound:currentGame.currentRound,hailMaryUsed:currentGame.hailMaryUsed||[],retired:currentGame.retired||[],...rookPersistedState(currentGame)};
-      if(currentGame.name==='Wizard'){data.wizardPhase=currentGame.wizardPhase;data.currentBids=currentGame.currentBids;data.currentScoreDrafts=currentGame.currentScoreDrafts||{};}
-      if(currentGame.name==='818'){data.eight18Phase=currentGame.eight18Phase;data.currentBids=currentGame.currentBids;data.currentScoreDrafts=currentGame.currentScoreDrafts||{};}
-    if(currentGame.name==='Rook'){data.rookConfig=currentGame.rookConfig;}
-
-    if(!silent && tied.length>1 && !currentGame.suddenDeath){
-      pendingGameData=data;
-      document.getElementById('sudden-death-players').textContent=`${tied.join(' & ')} are tied with ${topScore} points.`;
-      document.getElementById('sudden-death-modal').classList.remove('hidden');
-      return;
-    }
+    const data=createSavedMatchSnapshot(currentGame,tied);
     finishMatch(data, silent);
-  }
-
-  function startSuddenDeath(){
-      document.getElementById('sudden-death-modal').classList.add('hidden');
-      pendingGameData=null;
-      currentGame.suddenDeath=true;
-      if(currentGame.name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
-      if(currentGame.name==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
-    // Bump round count so players can play one more tiebreaker
-    currentGame.currentRound = (currentGame.currentRound||1); // currentRound is already past end, stays there
-    // Actually we need to allow one more round. Let's instead replay the LAST round index:
-    // Since submitRound increments currentRound after each submit, and max is hit when currentRound > maxR,
-    // we can just reduce maxR override by setting a custom cap via a flag.
-    if(!currentGame.extraRoundsGranted) currentGame.extraRoundsGranted=0;
-    currentGame.extraRoundsGranted += 1;
-    // Redefine the cfg check: we'll extend config via a tiebreaker flag consumed in renderGame
-    // Easiest: override the config's maxRounds by bumping currentRound backwards
-    currentGame.currentRound -= 1;
-    saveData(); scheduleRender();
-  }
-
-  function acceptTie(){
-    document.getElementById('sudden-death-modal').classList.add('hidden');
-    if(pendingGameData) finishMatch(pendingGameData, false);
   }
 
 
@@ -12479,7 +12476,7 @@ ${isDealer
     // The match has been saved, so make the page underneath the ceremony match that state.
     navigateTo('home-screen');
     renderRoster();
-    ['sudden-death-modal','rook-results-modal','rook-call-modal','custom-numpad'].forEach(id=>{
+    ['rook-results-modal','rook-call-modal','custom-numpad'].forEach(id=>{
       const el=document.getElementById(id);
       if(el)el.classList.add('hidden');
     });
@@ -12494,7 +12491,7 @@ ${isDealer
     const alerts=silent?[]:analyzeRecords(data);
     history.unshift(data);
     markHistoryChanged();
-    currentGame=null; pendingGameData=null;
+    currentGame=null;
     releaseWakeLock(); saveData();
 
     if(silent){ goHome(); return; }
