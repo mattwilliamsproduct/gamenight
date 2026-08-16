@@ -114,7 +114,8 @@ function buriedFiveCrownsRounds(players){
     [3,3,4,5,7,8,22,24],
     [2,3,3,4,8,9,22,24],
     [3,4,4,5,8,10,23,25],
-    [3,3,4,4,8,12,24,27]
+    [3,3,4,4,8,12,24,27],
+    [22,0,0,0,0,0,0,0]
   ];
   return perRound.map((scores,index)=>({
     round:index+1,
@@ -232,7 +233,7 @@ export const QA_SCENARIOS = {
   },
   'five-crowns-preservers':{
     label:'Five Crowns · Life Preservers',
-    description:'Eight players deep into Five Crowns, with Brick still holding a Life Preserver and Linda already used.',
+    description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
   },

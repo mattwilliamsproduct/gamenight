@@ -33,7 +33,7 @@
       maxRounds: 11,
       increment: 5,
       rescueMin: 10,
-      rescueMax: 40,
+      rescueMax: 75,
       minScoringRounds: 4,
       fallback: 24
     },
@@ -197,21 +197,40 @@
     return Math.max(increment, raw);
   }
 
-  function buildSlices(maxHelpful, maxSetback, winLow, increment) {
+  function helpfulWeightFor(recoveryLoad) {
+    if (recoveryLoad >= 1) return 85;
+    if (recoveryLoad >= 0.55) return 75;
+    return 68;
+  }
+
+  function splitHelpfulWeights(helpfulWeight) {
+    const parts = [0.26, 0.22, 0.18, 0.21];
+    const weights = parts.map(part => Math.max(1, Math.round(helpfulWeight * part)));
+    weights.push(Math.max(1, helpfulWeight - weights.reduce((sum, weight) => sum + weight, 0)));
+    return weights;
+  }
+
+  function buildSlices(maxHelpful, maxSetback, winLow, increment, recoveryLoad) {
     const sign = helpfulSign(winLow);
     const helpful = [0.25, 0.5, 0.5, 0.75, 1].map(percent => percentMagnitude(maxHelpful, percent, increment));
     const setback = Math.max(increment, floorToIncrement(maxSetback, increment));
     const signedHelpful = helpful.map(magnitude => sign * magnitude);
     const signedSetback = -sign * setback;
+    const helpfulWeight = helpfulWeightFor(recoveryLoad);
+    const setbackWeight = recoveryLoad >= 1 ? 8 : 10;
+    const zeroWeight = Math.max(6, 100 - helpfulWeight - setbackWeight);
+    const zeroA = Math.ceil(zeroWeight / 2);
+    const zeroB = zeroWeight - zeroA;
+    const helpfulWeights = splitHelpfulWeights(helpfulWeight);
     const raw = [
-      { label: formatPointLabel(signedSetback), color: COLORS.badStrong, adjustment: signedSetback, weight: 10, _wheelBad: true },
-      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: 8, _wheelBad: false },
-      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: 7, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[0]), color: COLORS.goodSoft, adjustment: signedHelpful[0], weight: 20, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[1]), color: COLORS.goodMid, adjustment: signedHelpful[1], weight: 16, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[2]), color: COLORS.goodMid, adjustment: signedHelpful[2], weight: 14, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[3]), color: COLORS.goodStrong, adjustment: signedHelpful[3], weight: 16, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[4]), color: COLORS.goodStrong, adjustment: signedHelpful[4], weight: 9, _wheelBad: false }
+      { label: formatPointLabel(signedSetback), color: COLORS.badStrong, adjustment: signedSetback, weight: setbackWeight, _wheelBad: true },
+      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: zeroA, _wheelBad: false },
+      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: zeroB, _wheelBad: false },
+      { label: formatPointLabel(signedHelpful[0]), color: COLORS.goodSoft, adjustment: signedHelpful[0], weight: helpfulWeights[0], _wheelBad: false },
+      { label: formatPointLabel(signedHelpful[1]), color: COLORS.goodMid, adjustment: signedHelpful[1], weight: helpfulWeights[1], _wheelBad: false },
+      { label: formatPointLabel(signedHelpful[2]), color: COLORS.goodMid, adjustment: signedHelpful[2], weight: helpfulWeights[2], _wheelBad: false },
+      { label: formatPointLabel(signedHelpful[3]), color: COLORS.goodStrong, adjustment: signedHelpful[3], weight: helpfulWeights[3], _wheelBad: false },
+      { label: formatPointLabel(signedHelpful[4]), color: COLORS.goodStrong, adjustment: signedHelpful[4], weight: helpfulWeights[4], _wheelBad: false }
     ];
     return interleaveWheelSlicesByKind(raw);
   }
@@ -335,8 +354,18 @@
 
     const allowedRank = bestAllowedRankFor(players.length, rank);
     const rankCap = maxLegalHelpfulMagnitude(player, players, totals, cfg.winLow, cfg.increment, allowedRank);
-    const rescueCap = floorToIncrement(clamp(upcomingOpportunity, cfg.rescueMin, cfg.rescueMax), cfg.increment);
-    const maxSafeAdjustment = floorToIncrement(Math.min(rankCap, rescueCap), cfg.increment);
+    const oneStrongRound = Math.max(
+      cfg.increment,
+      floorToIncrement(clamp(upcomingOpportunity, cfg.rescueMin, cfg.rescueMax), cfg.increment)
+    );
+    const ordinaryRecoveryLimit = game.name === 'Flip 7 Vengeance'
+      ? comebackUnit * FLIP7_STRONG_ROUNDS
+      : Math.max(upcomingOpportunity, RECOVERY_LOAD_THRESHOLD * totalRemainingOpportunity);
+    const rescueNeeded = Math.max(0, packGap - ordinaryRecoveryLimit);
+    const maxSafeAdjustment = floorToIncrement(
+      Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
+      cfg.increment
+    );
     if (maxSafeAdjustment < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,
@@ -352,8 +381,8 @@
       });
     }
 
-    const maxSetback = Math.max(cfg.increment, floorToIncrement(rescueCap / 2, cfg.increment));
-    const slices = buildSlices(maxSafeAdjustment, maxSetback, cfg.winLow, cfg.increment);
+    const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
+    const slices = buildSlices(maxSafeAdjustment, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
 
     return {
       eligible: true,
@@ -365,6 +394,8 @@
       comebackUnit,
       upcomingOpportunity,
       totalRemainingOpportunity,
+      ordinaryRecoveryLimit,
+      rescueNeeded,
       estimatedRoundsToRecover: comebackUnit ? packGap / comebackUnit : null,
       recoveryLoad,
       bestAllowedRank: allowedRank,

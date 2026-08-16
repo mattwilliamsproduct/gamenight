@@ -143,7 +143,8 @@ test('Five Crowns treats score reductions as helpful', () => {
   const setbacks = result.slices.filter(slice => slice.adjustment > 0);
   assert.ok(helpful.length >= 4);
   assert.ok(setbacks.length >= 1);
-  assert.ok(result.maxSafeAdjustment <= 40);
+  assert.ok(result.maxSafeAdjustment <= 75);
+  assert.ok(result.maxSafeAdjustment > 20);
   assertNoPodium(result, EIGHT, totals);
 });
 
@@ -227,6 +228,26 @@ test('Rook and Beat the Heat stay ineligible', () => {
   const totals = { Ann: 100, Bea: 90, Cal: 20, Dee: 10 };
   assert.equal(offer('Rook', totals, { roundCount: 6, spread: 20, player: 'Dee' }).reason, 'unsupported-game');
   assert.equal(offer('Beat the Heat', totals, { roundCount: 6, spread: 8, player: 'Dee' }).reason, 'unsupported-game');
+});
+
+test('crushed Five Crowns Brick gets a real rescue without reaching the podium', () => {
+  const currentGame = QA_SCENARIOS['five-crowns-preservers'].data.currentGame;
+  const players = currentGame.originalRoster;
+  const result = LP.getLifePreserverOffer(currentGame, 'Brick', players);
+  const totals = currentGame.totals;
+  assert.equal(result.eligible, true);
+  assert.equal(totals.Brick, 150);
+  assert.equal(result.rank, 7);
+  assert.equal(result.packGap, 110);
+  assert.ok(result.maxSafeAdjustment > 20, `expected a rescue above 20, got ${result.maxSafeAdjustment}`);
+  assert.ok(result.maxSafeAdjustment >= 50, `expected Brick's jackpot around 50-75, got ${result.maxSafeAdjustment}`);
+  assert.ok(result.maxSafeAdjustment <= 75);
+  const helpfulWeights = result.slices.filter(slice => slice.adjustment < 0).reduce((sum, slice) => sum + slice.weight, 0);
+  const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(helpfulWeights / totalWeight >= 0.8);
+  assertNoPodium(result, players, totals);
+  const afterJackpot = totals.Brick - result.maxSafeAdjustment;
+  assert.ok(afterJackpot > totals.Mike, 'jackpot must not overtake third place');
 });
 
 test('Five Crowns QA fixture still has one available and one used Life Preserver', () => {

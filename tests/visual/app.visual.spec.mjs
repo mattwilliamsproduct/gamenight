@@ -730,7 +730,7 @@ test('undo preserves already-used Life Preservers',async({page})=>{
   await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
 
   await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
-  await expect(page.locator('#round-intel')).toContainText('Hand of 9');
+  await expect(page.locator('#round-intel')).toContainText('Hand of 10');
 });
 
 test('starting another game preserves and resumes Wizard and 818 entry state',async({page})=>{

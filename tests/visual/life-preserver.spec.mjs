@@ -24,8 +24,8 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   expect(snapshot.player).toBeTruthy();
   expect(snapshot.winLow).toBe(true);
   expect(snapshot.bestAllowedRank).toBe(4);
-  expect(snapshot.maxSafe).toBeGreaterThan(0);
-  expect(snapshot.maxSafe).toBeLessThanOrEqual(40);
+  expect(snapshot.maxSafe).toBeGreaterThan(20);
+  expect(snapshot.maxSafe).toBeLessThanOrEqual(75);
   expect(snapshot.labels.join(' ')).not.toMatch(/Half|Wipe|Double|×2|Dbl/i);
   expect(snapshot.adjustments.some(value => value < 0)).toBe(true);
 
@@ -49,6 +49,6 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
 
   expect(applied.adj).toBeLessThan(0);
   expect(applied.bonusRounds).toBe(1);
-  expect(applied.scoringRounds).toBe(7);
+  expect(applied.scoringRounds).toBe(8);
   expect(applied.used).toBe(true);
 });
