@@ -194,6 +194,17 @@ test('multiple genuinely stranded players can qualify', () => {
   assert.equal(hal.eligible, true);
 });
 
+test('818 last-round explanation names the one-round cap', () => {
+  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
+  const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  const explained = LP.explainLifePreserverOffer(result);
+  assert.equal(result.eligible, true);
+  assert.equal(result.bindingLimit, 'one-round');
+  assert.match(explained.summary, /8th of 8/);
+  assert.ok(explained.bullets.some(bullet => /one strong remaining round/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /\+15/.test(bullet)));
+});
+
 test('used and retired players cannot qualify', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 70 };
   const used = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal', hailMaryUsed: ['Hal'] });
@@ -248,6 +259,19 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assertNoPodium(result, players, totals);
   const afterJackpot = totals.Brick - result.maxSafeAdjustment;
   assert.ok(afterJackpot > totals.Mike, 'jackpot must not overtake third place');
+  const explained = LP.explainLifePreserverOffer(result);
+  assert.equal(result.packPlayer, 'Megan');
+  assert.equal(result.remainingRounds, 3);
+  assert.equal(result.bindingLimit, 'game-cap');
+  assert.match(explained.wheelLine, /Brick is 110 behind the pack/);
+  assert.match(explained.wheelLine, /−75/);
+  assert.match(explained.summary, /7th of 8/);
+  assert.match(explained.summary, /Megan/);
+  assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
 });
 
 test('Five Crowns QA fixture still has one available and one used Life Preserver', () => {

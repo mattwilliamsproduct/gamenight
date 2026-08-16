@@ -1029,6 +1029,21 @@
       margin: 0.35rem 0;
       line-height: 1.35;
     }
+    .life-preserver-why {
+      border: 1px solid rgba(231,115,88,0.32);
+      background: rgba(231,115,88,0.08);
+      border-radius: 1.15rem;
+      padding: 0.85rem 1rem 0.95rem;
+      margin: 0.85rem 0 0.35rem;
+    }
+    .life-preserver-why h4 {
+      margin-top: 0;
+    }
+    .life-preserver-why p {
+      margin: 0 0 0.45rem;
+      color: var(--ink);
+      font-weight: 800;
+    }
     .wheel-shell::before {
       content: '';
       position: absolute;
@@ -6447,7 +6462,8 @@ button.dealer-name-indicator .dealer-player-label {
         <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
-        <p class="text-xs font-bold mb-5 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
+        <p class="text-xs font-bold mb-2 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
+        <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
           <div id="wheel-spinner" class="wheel-spinner"></div>
@@ -6460,6 +6476,11 @@ button.dealer-name-indicator .dealer-player-label {
           <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
           <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
           <div class="flex-1 min-h-0 overflow-y-auto pr-1 text-sm md:text-[15px] font-semibold">
+            <div id="life-preserver-why" class="life-preserver-why hidden">
+              <h4>Why these numbers</h4>
+              <p id="life-preserver-why-lead"></p>
+              <ul id="life-preserver-why-list"></ul>
+            </div>
             <h4>Who can spin</h4>
             <ul>
               <li>You have to be in the bottom half of the table.</li>
@@ -7796,15 +7817,36 @@ button.dealer-name-indicator .dealer-player-label {
   function closeWheel(){
     hideLifePreserverHelp();
     lifePreserverOfferSnapshot=null;
+    renderLifePreserverExplanation();
     closeModal('wheel-modal');
   }
   function showLifePreserverHelp(){
+    renderLifePreserverExplanation();
     const help=document.getElementById('life-preserver-help');
     if(help)help.classList.remove('hidden');
   }
   function hideLifePreserverHelp(){
     const help=document.getElementById('life-preserver-help');
     if(help)help.classList.add('hidden');
+  }
+  function renderLifePreserverExplanation(){
+    const explained=(window.BPGLifePreserver&&typeof BPGLifePreserver.explainLifePreserverOffer==='function')
+      ? BPGLifePreserver.explainLifePreserverOffer(lifePreserverOfferSnapshot)
+      : {summary:'',wheelLine:'',bullets:[]};
+    const line=document.getElementById('wheel-why-line');
+    if(line){
+      line.textContent=explained.wheelLine||'';
+      line.classList.toggle('hidden', !explained.wheelLine);
+    }
+    const card=document.getElementById('life-preserver-why');
+    const lead=document.getElementById('life-preserver-why-lead');
+    const list=document.getElementById('life-preserver-why-list');
+    const hasWhy=!!(explained.summary||(explained.bullets&&explained.bullets.length));
+    if(card) card.classList.toggle('hidden', !hasWhy);
+    if(lead) lead.textContent=explained.summary||'';
+    if(list){
+      list.innerHTML=(explained.bullets||[]).map(bullet=>`<li>${escapeHtml(bullet)}</li>`).join('');
+    }
   }
 
   /* ═══ WHAMMY ROUND CELEBRATION ═══ */
@@ -8835,6 +8877,7 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.style.transition='';
     }
     hideLifePreserverHelp();
+    renderLifePreserverExplanation();
     drawWheel();
     openModal('wheel-modal');
   }

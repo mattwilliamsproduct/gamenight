@@ -11,11 +11,17 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
 
   await available.first().click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#wheel-why-line')).toContainText('behind the pack');
+  await expect(page.locator('#wheel-why-line')).toContainText('Best help');
   await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
   await page.getByRole('button', {name: 'How Life Preserver works'}).click();
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-help')).toContainText('Who can spin');
   await expect(page.locator('#life-preserver-help')).toContainText('cannot put you in 1st or 2nd');
+  await expect(page.locator('#life-preserver-why')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#life-preserver-why')).toContainText('Why these numbers');
+  await expect(page.locator('#life-preserver-why')).toContainText('110 points behind the pack');
+  await expect(page.locator('#life-preserver-why')).toContainText('−75');
   await page.getByRole('button', {name: 'Back to the wheel'}).click();
   await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);
 

@@ -151,6 +151,116 @@
     return `${sign}${Math.abs(adjustment)} Pts`;
   }
 
+  function formatSignedPoints(adjustment) {
+    return formatPointLabel(adjustment).replace(/ Pts$/, '');
+  }
+
+  function ordinal(value) {
+    const num = Number(value) || 0;
+    const mod100 = num % 100;
+    if (mod100 >= 11 && mod100 <= 13) return `${num}th`;
+    switch (num % 10) {
+      case 1: return `${num}st`;
+      case 2: return `${num}nd`;
+      case 3: return `${num}rd`;
+      default: return `${num}th`;
+    }
+  }
+
+  function displayGameName(name) {
+    if (name === 'Flip 7 Vengeance') return 'Flip 7';
+    return name || 'this game';
+  }
+
+  function roundNoun(gameName, count) {
+    if (gameName === 'Five Crowns') return count === 1 ? 'hand' : 'hands';
+    return count === 1 ? 'round' : 'rounds';
+  }
+
+  function joinEnglish(items) {
+    if (!items.length) return '';
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+    return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+  }
+
+  function resolveBindingLimit(offer) {
+    const desired = Math.max(Number(offer.oneStrongRound) || 0, Number(offer.rescueNeeded) || 0);
+    const maxSafe = Number(offer.maxSafeAdjustment) || 0;
+    const rankCap = Number(offer.rankCap);
+    const gameCap = Number(offer.gameSafetyCap);
+    if (Number.isFinite(rankCap) && maxSafe === rankCap && rankCap < desired && rankCap < gameCap) return 'rank';
+    if (Number.isFinite(gameCap) && maxSafe === gameCap && gameCap < desired) return 'game-cap';
+    if ((Number(offer.rescueNeeded) || 0) > (Number(offer.oneStrongRound) || 0)) return 'rescue';
+    return 'one-round';
+  }
+
+  function explainLifePreserverOffer(offer) {
+    if (!offer || !offer.eligible) {
+      return { summary: '', wheelLine: '', bullets: [], bindingLimit: null };
+    }
+    const player = String(offer.player || 'This player');
+    const gameName = displayGameName(offer.gameName);
+    const packGap = Math.round(Number(offer.packGap) || 0);
+    const winLow = !!offer.winLow;
+    const sign = helpfulSign(winLow);
+    const maxSafe = Number(offer.maxSafeAdjustment) || 0;
+    const bestShort = formatSignedPoints(sign * maxSafe);
+    const setbackShort = formatSignedPoints((-sign) * (Number(offer.maxSetback) || 0));
+    const remaining = offer.remainingRounds;
+    const allowed = offer.bestAllowedRank;
+    const binding = offer.bindingLimit || resolveBindingLimit(offer);
+    const place = (Number.isFinite(offer.rank) && Number.isFinite(offer.playerCount))
+      ? `${ordinal(offer.rank)} of ${offer.playerCount}`
+      : '';
+    const packBit = offer.packPlayer
+      ? `${packGap} points behind the pack (${offer.packPlayer})`
+      : `${packGap} points behind the pack`;
+    const summary = place
+      ? `${player} is ${place}, ${packBit}.`
+      : `${player} is ${packBit}.`;
+    const wheelLine = `${player} is ${packGap} behind the pack. Best help ${bestShort}.`;
+    const bullets = [];
+
+    if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points.`);
+    else bullets.push(`${gameName} scores high, so a good spin adds points.`);
+
+    if (offer.gameName === 'Flip 7 Vengeance') {
+      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${packGap}-point gap.`);
+    } else if (Number.isFinite(remaining) && remaining > 0) {
+      bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to close a ${packGap}-point gap.`);
+    } else {
+      bullets.push(`Ordinary play is unlikely to close a ${packGap}-point gap from here.`);
+    }
+
+    if (binding === 'rank') {
+      bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without landing 1st or 2nd. ${ordinal(allowed)} is the ceiling at this table.`);
+    } else if (binding === 'game-cap') {
+      const ceiling = allowed ? `; ${ordinal(allowed)} is the ceiling at this table` : '';
+      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot put ${player} in 1st or 2nd${ceiling}.`);
+    } else if (binding === 'rescue') {
+      bullets.push(`The biggest help is ${bestShort} — enough to get back toward the pack after counting on a strong stretch of ordinary play, without handing ${player} the win.`);
+    } else {
+      bullets.push(`The biggest help is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot put ${player} in 1st or 2nd.`);
+    }
+
+    const lesser = [...new Set((offer.slices || [])
+      .filter(slice => (Number(slice.adjustment) || 0) * sign > 0)
+      .map(slice => Math.abs(slice.adjustment))
+    )]
+      .sort((a, b) => a - b)
+      .filter(magnitude => magnitude !== maxSafe)
+      .map(magnitude => formatSignedPoints(sign * magnitude));
+    if (lesser.length) {
+      bullets.push(`The other helpful slices are smaller shares of that same number: ${joinEnglish(lesser)}.`);
+    }
+    if (offer.maxSetback) {
+      bullets.push(`The red slice is a modest setback of ${setbackShort}.`);
+    }
+
+    return { summary, wheelLine, bullets, bindingLimit: binding };
+  }
+
   function interleaveWheelSlicesByKind(slices) {
     const bad = slices.filter(slice => slice._wheelBad);
     const good = slices.filter(slice => !slice._wheelBad);
@@ -383,11 +493,14 @@
 
     const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
     const slices = buildSlices(maxSafeAdjustment, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
-
-    return {
+    const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
+    const offer = {
       eligible: true,
       reason: 'ok',
       player,
+      gameName: game.name,
+      playerCount: players.length,
+      packPlayer: sorted[packRank - 1],
       rank,
       leaderGap,
       packGap,
@@ -396,6 +509,10 @@
       totalRemainingOpportunity,
       ordinaryRecoveryLimit,
       rescueNeeded,
+      oneStrongRound,
+      rankCap,
+      gameSafetyCap: cfg.rescueMax,
+      remainingRounds,
       estimatedRoundsToRecover: comebackUnit ? packGap / comebackUnit : null,
       recoveryLoad,
       bestAllowedRank: allowedRank,
@@ -405,6 +522,8 @@
       winLow: cfg.winLow,
       slices
     };
+    offer.bindingLimit = resolveBindingLimit(offer);
+    return offer;
   }
 
   function capLifePreserverAdjustment(adjustment, offer) {
@@ -434,6 +553,7 @@
     ruleUnitForRound,
     getMaxRounds,
     getLifePreserverOffer,
+    explainLifePreserverOffer,
     capLifePreserverAdjustment,
     rankWithScore,
     bestAllowedRankFor,
