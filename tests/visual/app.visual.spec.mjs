@@ -293,16 +293,19 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectScorecardNamesFit(page);
 });
 
-test('view-pace-switch-controls-pace-and-rounds-with-accessible-runtime-state',async({page})=>{
+test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-runtime-state',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
   const toggle=page.locator('#scorecard-view-pace-toggle');
   await expect(page.locator('#scorecard-view-toggle-wrap')).toBeVisible();
   await expect(toggle).toHaveRole('switch',{name:'View Pace'});
+  await expect(toggle).toHaveAttribute('aria-label','View Pace');
   await expect(toggle).toHaveAttribute('aria-checked','true');
   await expect(toggle).toContainText('View Pace');
-  await expect(toggle).toContainText('ON');
+  await expect(toggle).not.toContainText('ON');
+  await expect(toggle).not.toContainText('OFF');
+  await expect(page.locator('#scorecard-view-toggle-state')).toHaveCount(0);
   await expect(page.locator('#record-chase-panel')).toBeVisible();
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
   expect(await page.locator('.record-chase-row').count(),'Record Chase should have one row per player').toBe(10);
@@ -323,6 +326,7 @@ test('view-pace-switch-controls-pace-and-rounds-with-accessible-runtime-state',a
     };
   });
   expect(toggleGeometry.width,'View Pace switch should have a painted width').toBeGreaterThan(0);
+  expect(toggleGeometry.width,'View Pace switch should be materially narrower without visible state text').toBeLessThanOrEqual(135);
   expect(toggleGeometry.height,'View Pace switch should have a painted height').toBeGreaterThan(0);
   expect(toggleGeometry.fitsViewport,'View Pace switch should remain inside each target viewport').toBe(true);
   expect(toggleGeometry.labelWhiteSpace,'View Pace label should remain on one line').toBe('nowrap');
@@ -332,14 +336,16 @@ test('view-pace-switch-controls-pace-and-rounds-with-accessible-runtime-state',a
   await page.keyboard.press('Space');
   await expect(page.locator('#record-chase-panel')).toBeHidden();
   await expect(toggle).toHaveAttribute('aria-checked','false');
-  await expect(toggle).toContainText('OFF');
+  await expect(toggle).not.toContainText('ON');
+  await expect(toggle).not.toContainText('OFF');
   await expect(page.locator('#scorecard-live-layout')).not.toHaveClass(/record-chase-active/);
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'the traditional scorecard should restore every completed round').toBe(5);
 
   await page.keyboard.press('Enter');
   await expect(page.locator('#record-chase-panel')).toBeVisible();
   await expect(toggle).toHaveAttribute('aria-checked','true');
-  await expect(toggle).toContainText('ON');
+  await expect(toggle).not.toContainText('ON');
+  await expect(toggle).not.toContainText('OFF');
   await expect(page.locator('#scorecard-live-layout')).toHaveClass(/record-chase-active/);
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'restoring Record Chase should return to the latest two rounds').toBe(2);
 });

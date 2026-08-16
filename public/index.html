@@ -4357,9 +4357,9 @@ button.dealer-name-indicator .dealer-player-label {
     .scorecard-view-toggle {
       display: inline-flex;
       align-items: center;
-      gap: 0.46rem;
+      gap: 0.3rem;
       min-height: 2.7rem;
-      padding: 0.34rem 0.5rem 0.34rem 0.68rem;
+      padding: 0.34rem 0.42rem 0.34rem 0.58rem;
       border: 1px solid rgba(8,118,108,0.24);
       border-radius: 999px;
       color: var(--bp-teal-dark);
@@ -4401,14 +4401,6 @@ button.dealer-name-indicator .dealer-player-label {
       transform: translateX(0);
       transition: transform 0.15s ease;
     }
-    .scorecard-view-toggle-state {
-      min-width: 1.55rem;
-      color: var(--muted);
-      font-size: 0.62rem;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-align: center;
-    }
     .scorecard-view-toggle[aria-checked="true"] {
       border-color: rgba(8,118,108,0.42);
       background: rgba(222,246,238,0.96);
@@ -4416,7 +4408,6 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-track { background: var(--emerald); }
     .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-thumb { transform: translateX(1rem); }
-    .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-state { color: var(--bp-teal-dark); }
     .scorecard-bid-header {
       display: inline-flex;
       flex-direction: column;
@@ -5973,7 +5964,6 @@ button.dealer-name-indicator .dealer-player-label {
             <button id="scorecard-view-pace-toggle" type="button" class="scorecard-view-toggle" role="switch" aria-checked="true" aria-label="View Pace" onclick="toggleRecordChasePanel()">
               <span class="scorecard-view-toggle-label">View Pace</span>
               <span class="scorecard-view-toggle-track" aria-hidden="true"><span class="scorecard-view-toggle-thumb"></span></span>
-              <span id="scorecard-view-toggle-state" class="scorecard-view-toggle-state" aria-hidden="true">ON</span>
             </button>
           </div>
           <div class="relative">
@@ -11010,10 +11000,8 @@ ${isDealer
     if(panel)panel.classList.toggle('hidden',!recordChaseLayoutActive);
     const toggleWrap=document.getElementById('scorecard-view-toggle-wrap');
     const paceToggle=document.getElementById('scorecard-view-pace-toggle');
-    const toggleState=document.getElementById('scorecard-view-toggle-state');
     if(toggleWrap)toggleWrap.classList.toggle('hidden',!available);
     if(paceToggle)paceToggle.setAttribute('aria-checked',String(recordChaseLayoutActive));
-    if(toggleState)toggleState.textContent=recordChaseLayoutActive?'ON':'OFF';
   }
 
   function toggleRecordChasePanel(){
