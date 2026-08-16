@@ -419,7 +419,7 @@ test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
   await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids entered/);
 });
 
-test('submitted bids use an aligned BID column and display font',async({page})=>{
+test('active scorecard columns and panels stay geometrically aligned',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await expect(page.locator('#scorecard-head th.scorecard-col-bid')).toHaveCount(0);
@@ -441,8 +441,11 @@ test('submitted bids use an aligned BID column and display font',async({page})=>
     const headerBid=document.querySelector('#scorecard-head th.scorecard-col-bid');
     const headerTotal=document.querySelector('#scorecard-head th.scorecard-col-total');
     const rowBid=document.querySelector('#scorecard-body tr .scorecard-col-bid');
+    const bidPills=[...document.querySelectorAll('#scorecard-body tr .wizard-current-bid')];
     const rowTotal=document.querySelector('#scorecard-body tr .scorecard-col-total');
     const value=document.querySelector('.wizard-current-bid-value');
+    const nav=document.querySelector('#top-nav');
+    const banner=document.querySelector('#game-screen .active-match-banner');
     const actions=[
       document.querySelector('#scorecard-view-switcher'),
       document.querySelector('#actions-btn'),
@@ -451,7 +454,10 @@ test('submitted bids use an aligned BID column and display font',async({page})=>
     return {
       headerBeforeTotal:(headerBid?.getBoundingClientRect().right||Infinity)<=(headerTotal?.getBoundingClientRect().left||-Infinity)+1,
       rowBeforeTotal:(rowBid?.getBoundingClientRect().right||Infinity)<=(rowTotal?.getBoundingClientRect().left||-Infinity)+1,
-      headerRowAlignment:Math.abs(center(headerBid)-center(rowBid)),
+      bidHeaderPillAlignments:bidPills.map(pill=>Math.abs(center(headerBid)-center(pill))),
+      totalHeaderCellAlignment:Math.abs(center(headerTotal)-center(rowTotal)),
+      firstTotalValue:(rowTotal?.textContent||'').trim(),
+      navBannerGap:(banner?.getBoundingClientRect().top||Infinity)-(nav?.getBoundingClientRect().bottom||-Infinity),
       bidFont:getComputedStyle(value).fontFamily,
       bidWhiteSpace:getComputedStyle(value).whiteSpace,
       bidFits:value?.scrollWidth<=value?.clientWidth+1,
@@ -461,10 +467,37 @@ test('submitted bids use an aligned BID column and display font',async({page})=>
   });
   expect(geometry.headerBeforeTotal,'BID header should be immediately left of Total').toBe(true);
   expect(geometry.rowBeforeTotal,'bid pills should stay immediately left of Total values').toBe(true);
-  expect(geometry.headerRowAlignment,'BID header should align with bid pills').toBeLessThanOrEqual(2);
+  expect(geometry.bidHeaderPillAlignments.every(gap=>gap<=1),'BID header should align with the geometric center of every bid pill').toBe(true);
+  expect(geometry.totalHeaderCellAlignment,'TOTAL header should align with each total value').toBeLessThanOrEqual(1);
+  expect(geometry.firstTotalValue,'the scorecard geometry fixture should include an explicit zero total').toBe('0');
+  expect(geometry.navBannerGap,'active-match nav and banner should have a visible 10–12px separation').toBeGreaterThanOrEqual(10);
+  expect(geometry.navBannerGap,'active-match nav and banner should keep the intended compact separation').toBeLessThanOrEqual(12.5);
   expect(geometry.bidFont,'large bid digits should use the display font').toContain('Londrina Solid');
   expect(geometry.bidWhiteSpace,'bid digits should stay on one line').toBe('nowrap');
   expect(geometry.bidFits,'bid digits should fit inside their pills').toBe(true);
   expect(Math.max(...geometry.actionYs)-Math.min(...geometry.actionYs),'scorecard actions should stay on one row').toBeLessThanOrEqual(1);
   expect(geometry.actionWidths.every(width=>width>0),'scorecard actions should remain visible').toBe(true);
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  const variedTotals=await page.evaluate(()=>{
+    const center=element=>{
+      const box=element?.getBoundingClientRect();
+      return box?box.left+(box.width/2):null;
+    };
+    const header=document.querySelector('#scorecard-head th.scorecard-col-total');
+    const cells=[...document.querySelectorAll('#scorecard-body tr .scorecard-col-total')];
+    const nav=document.querySelector('#top-nav');
+    const banner=document.querySelector('#game-screen .active-match-banner');
+    return {
+      values:cells.map(cell=>(cell.textContent||'').trim()),
+      totalHeaderCellAlignments:cells.map(cell=>Math.abs(center(header)-center(cell))),
+      navBannerGap:(banner?.getBoundingClientRect().top||Infinity)-(nav?.getBoundingClientRect().bottom||-Infinity)
+    };
+  });
+  expect(variedTotals.values,'varied-total fixture should include positive and negative values').toEqual(expect.arrayContaining(['70','-30']));
+  expect(variedTotals.values.some(value=>/^\d{2,}$/.test(value)),'varied-total fixture should include a multi-digit positive value').toBe(true);
+  expect(variedTotals.totalHeaderCellAlignments.every(gap=>gap<=1),'every varied total should align with the TOTAL header').toBe(true);
+  expect(variedTotals.navBannerGap,'record-chase active-match panels should keep the same separation').toBeGreaterThanOrEqual(10);
+  expect(variedTotals.navBannerGap,'record-chase active-match panels should keep the same compact separation').toBeLessThanOrEqual(12.5);
 });
