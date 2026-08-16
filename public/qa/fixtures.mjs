@@ -106,6 +106,22 @@ function historyFixture(){
   });
 }
 
+function buriedFiveCrownsRounds(players){
+  const perRound=[
+    [2,3,3,4,5,6,18,20],
+    [3,3,4,4,6,7,20,22],
+    [2,3,4,4,6,8,21,23],
+    [3,3,4,5,7,8,22,24],
+    [2,3,3,4,8,9,22,24],
+    [3,4,4,5,8,10,23,25],
+    [3,3,4,4,8,12,24,27]
+  ];
+  return perRound.map((scores,index)=>({
+    round:index+1,
+    scores:Object.fromEntries(players.map((player,playerIndex)=>[player,scores[playerIndex]]))
+  }));
+}
+
 const sharedHistory=historyFixture();
 const wizardPlayers=NAMES.slice(0,10);
 const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlayers,5),{
@@ -114,7 +130,7 @@ const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlaye
   currentScoreDrafts:{}
 });
 const crownsPlayers=NAMES.slice(0,8);
-const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsRounds(crownsPlayers,7),{
+const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers),{
   hailMaryUsed:['Linda']
 });
 const compactCrownsPlayers=NAMES.slice(0,4);
@@ -216,7 +232,7 @@ export const QA_SCENARIOS = {
   },
   'five-crowns-preservers':{
     label:'Five Crowns · Life Preservers',
-    description:'Eight players deep into the game with both available and used Life Preservers.',
+    description:'Eight players deep into Five Crowns, with Brick still holding a Life Preserver and Linda already used.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
   },

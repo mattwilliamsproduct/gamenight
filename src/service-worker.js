@@ -6,6 +6,7 @@ const APP_SHELL = [
   './assets/app-utilities.css',
   './assets/fonts.css',
   './assets/fonts/londrina-solid-400.woff2',
+  './assets/life-preserver-logic.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
   './bp-apple-touch-icon.png'

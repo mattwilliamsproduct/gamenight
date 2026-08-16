@@ -6,9 +6,10 @@
     "build:styles": "tailwindcss -c tailwind.config.cjs -i ./src/tailwind.css -o ./public/assets/app-utilities.css --minify",
     "build:vendor": "node ./scripts/copy-vendor-assets.mjs",
     "build": "npm run build:styles && npm run build:vendor",
-    "check:syntax": "perl -0ne 'while (m{<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>}sg) { print $1, \"\\n\" }' public/index.html > /tmp/cardknight-inline.js && node --check /tmp/cardknight-inline.js",
+    "check:syntax": "perl -0ne 'while (m{<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>}sg) { print $1, \"\\n\" }' public/index.html > /tmp/cardknight-inline.js && node --check /tmp/cardknight-inline.js && node --check public/assets/life-preserver-logic.js",
     "check:production-assets": "node ./scripts/verify-production-assets.mjs",
-    "check": "npm run check:syntax && npm run check:production-assets && git diff --check",
+    "test:life-preserver": "node --test scripts/test-life-preserver.mjs",
+    "check": "npm run check:syntax && npm run check:production-assets && npm run test:life-preserver && git diff --check",
     "qa:gallery": "node scripts/serve-public.mjs",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots"

@@ -6762,6 +6762,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div><!-- /max-w -->
 
 
+  <script src="./assets/life-preserver-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -7742,7 +7743,10 @@ button.dealer-name-indicator .dealer-player-label {
     openModal('retire-player-modal');
   }
   function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
-  function closeWheel(){ closeModal('wheel-modal'); }
+  function closeWheel(){
+    lifePreserverOfferSnapshot=null;
+    closeModal('wheel-modal');
+  }
 
   /* ═══ WHAMMY ROUND CELEBRATION ═══ */
   let _whammyDismissTimer = null;
@@ -8677,94 +8681,20 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   /* ═══ HAIL MARY WHEEL ═══ */
-  let wheelPlayer=null, currentWheelRotation=0;
+  let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
 
-  /** Mix "bad" and "good" slices around the wheel (weights unchanged). */
-  function interleaveWheelSlicesByKind(slices){
-    const bad = slices.filter(s => s._wheelBad);
-    const good = slices.filter(s => !s._wheelBad);
-    if(!bad.length || !good.length) return slices.map(({ _wheelBad, ...rest }) => rest);
-    const out = [];
-    let bi = 0, gi = 0;
-    const nb = bad.length, ng = good.length;
-    while(bi < nb || gi < ng){
-      const remB = nb - bi, remG = ng - gi;
-      if(remB === 0){ good.slice(gi).forEach(s => out.push(s)); break; }
-      if(remG === 0){ bad.slice(bi).forEach(s => out.push(s)); break; }
-      const ratioB = bi / nb, ratioG = gi / ng;
-      if(ratioB <= ratioG) out.push(bad[bi++]);
-      else out.push(good[gi++]);
-    }
-    return out.map(({ _wheelBad, ...rest }) => rest);
-  }
-
-  function getEight18HailMarySlices(){
-    const colors={
-      plus10:"#10b981",
-      plus5:"#6ee7b7",
-      zero:"#8a837e",
-      minus5:"#991b1b"
-    };
-    return interleaveWheelSlicesByKind([
-      {label:"−5 Pts",  color:colors.minus5, effect:()=>-5, weight:7,  _wheelBad:true},
-      {label:"+10 Pts", color:colors.plus10,  effect:()=>10, weight:18, _wheelBad:false},
-      {label:"0 Pts",   color:colors.zero,    effect:()=>0,  weight:11, _wheelBad:false},
-      {label:"+5 Pts",  color:colors.plus5,   effect:()=>5,  weight:14, _wheelBad:false},
-      {label:"+10 Pts", color:colors.plus10,  effect:()=>10, weight:18, _wheelBad:false},
-      {label:"−5 Pts",  color:colors.minus5,  effect:()=>-5, weight:7,  _wheelBad:true},
-      {label:"+5 Pts",  color:colors.plus5,   effect:()=>5,  weight:14, _wheelBad:false},
-      {label:"0 Pts",   color:colors.zero,    effect:()=>0,  weight:11, _wheelBad:false}
-    ]);
+  function getLifePreserverOfferForPlayer(player, activePlayers, extra){
+    if(!window.BPGLifePreserver)return {eligible:false,reason:'missing-engine',slices:[]};
+    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
   }
 
   function getWheelSlices(){
     const activePlayers=getActivePlayers(currentGame);
-    if(!activePlayers.includes(wheelPlayer))return [];
-    if(currentGame.name==='818')return getEight18HailMarySlices();
-    const winLow=configs[currentGame.name].winLow;
-    const score=currentGame?.totals[wheelPlayer]||0;
-    const colors={
-      badStrong:"#991b1b",
-      badSoft:"#b91c1c",
-      goodStrong:"#10b981",
-      goodMid:"#34d399",
-      goodSoft:"#6ee7b7",
-      special:"#0d9488",
-      jackpot:"#08766c"
-    };
-    if(winLow){
-      return interleaveWheelSlicesByKind([
-        {label:"+15 ☠️",     color:colors.badStrong,  effect:()=>15,                 weight:18, _wheelBad:true},
-        {label:"+5 ☠️",      color:colors.badSoft,    effect:()=>5,                  weight:14, _wheelBad:true},
-        {label:"−5 Pts",     color:colors.goodSoft,   effect:()=>-5,                 weight:16, _wheelBad:false},
-        {label:"−15 Pts",    color:colors.goodMid,    effect:()=>-15,                weight:16, _wheelBad:false},
-        {label:"−25 Pts",    color:colors.goodStrong, effect:()=>-25,                weight:12, _wheelBad:false},
-        {label:"Wipe Worst", color:colors.special,    effect:(p)=>{
-          if(!currentGame.rounds.length)return 0;
-          let w=-Infinity; currentGame.rounds.forEach(r=>{const s=r.scores[p]||0;if(s>w)w=s;}); return w>0?-w:0;
-        }, weight:10, _wheelBad:false},
-        {label:"−50 Pts",    color:colors.goodStrong, effect:()=>-50,                weight:8,  _wheelBad:false},
-        {label:"Half Score", color:colors.jackpot,    effect:(p)=>-Math.floor((currentGame.totals[p]||0)/2), weight:6, _wheelBad:false}
-      ]);
-    } else {
-      const canDouble=score>10;
-      const jackpot=canDouble
-        ? {label:"×2 Score",color:colors.jackpot,effect:(p)=>currentGame.totals[p]||0,weight:1, _wheelBad:false}
-        : {label:"+75 Pts", color:colors.jackpot,effect:()=>75,                       weight:1, _wheelBad:false};
-      return interleaveWheelSlicesByKind([
-        {label:"−15 ☠️",     color:colors.badStrong,  effect:()=>-15, weight:18, _wheelBad:true},
-        {label:"−5 ☠️",      color:colors.badSoft,    effect:()=>-5,  weight:14, _wheelBad:true},
-        {label:"+5 Pts",     color:colors.goodSoft,   effect:()=>5,   weight:16, _wheelBad:false},
-        {label:"+15 Pts",    color:colors.goodMid,    effect:()=>15,  weight:16, _wheelBad:false},
-        {label:"+25 Pts",    color:colors.goodStrong, effect:()=>25,  weight:12, _wheelBad:false},
-        {label:"Dbl Best",   color:colors.special,    effect:(p)=>{
-          if(!currentGame.rounds.length)return 0;
-          let b=-Infinity; currentGame.rounds.forEach(r=>{const s=r.scores[p]||0;if(s>b)b=s;}); return b>0?b:0;
-        }, weight:5, _wheelBad:false},
-        {label:"+50 Pts",    color:colors.goodStrong, effect:()=>50,  weight:8,  _wheelBad:false},
-        jackpot
-      ]);
+    if(!wheelPlayer||!activePlayers.includes(wheelPlayer))return [];
+    if(lifePreserverOfferSnapshot?.player===wheelPlayer&&Array.isArray(lifePreserverOfferSnapshot.slices)){
+      return lifePreserverOfferSnapshot.slices;
     }
+    return getLifePreserverOfferForPlayer(wheelPlayer, activePlayers).slices||[];
   }
 
   function drawWheel(){
@@ -8825,9 +8755,14 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function authorizeHailMary(p){
-    if(!getActivePlayers(currentGame).includes(p))return;
+    const activePlayers=getActivePlayers(currentGame);
+    if(!activePlayers.includes(p))return;
     if(currentGame.hailMaryUsed?.includes(p))return;
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const offer=getLifePreserverOfferForPlayer(p, activePlayers, {gameOver:over});
+    if(!offer.eligible||!offer.slices?.length)return;
     wheelPlayer=p;
+    lifePreserverOfferSnapshot=offer;
     document.getElementById('wheel-player-name').textContent=p;
     const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
     document.getElementById('btn-spin').disabled=false;
@@ -8842,6 +8777,24 @@ button.dealer-name-indicator .dealer-player-label {
     }
     drawWheel();
     openModal('wheel-modal');
+  }
+
+  function applyLifePreserverResult(player, proposedAdj, liveOffer){
+    let adj=BPGLifePreserver.capLifePreserverAdjustment(proposedAdj, liveOffer);
+    const activePlayers=getActivePlayers(currentGame);
+    const totals=currentGame.totals||{};
+    const winLow=!!liveOffer.winLow;
+    const increment=liveOffer.scoreIncrement||1;
+    const sign=winLow?-1:1;
+    const allowed=liveOffer.bestAllowedRank||3;
+    while(adj*sign>0){
+      const next=(Number(totals[player])||0)+adj;
+      const rank=BPGLifePreserver.rankWithScore(player, next, activePlayers, totals, winLow);
+      if(rank>=allowed&&rank>2)break;
+      adj+=-sign*increment;
+    }
+    if(adj*sign<0) adj=-sign*Math.min(Math.abs(adj), liveOffer.maxSetback||0);
+    return adj;
   }
 
   function spinWheel(){
@@ -8859,15 +8812,28 @@ button.dealer-name-indicator .dealer-player-label {
       let win=slices.find(s=>pa>=s._start&&pa<=s._end);
       if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
       if(!win)win=slices[0];
-      alert(`🛟 The Life Preserver says:\n\n${win.label}`);
-      const adj=win.effect(wheelPlayer);
-      if(currentGame.rounds.length>0){
-        currentGame.rounds[currentGame.rounds.length-1].scores[wheelPlayer]=(currentGame.rounds[currentGame.rounds.length-1].scores[wheelPlayer]||0)+adj;
-      } else {
-        currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
+      const activePlayers=getActivePlayers(currentGame);
+      const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+      const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
+      const proposed=Number(win?.adjustment)||0;
+      if(!live.eligible){
+        toast('Life Preserver is no longer available', 'warning');
+        document.getElementById('btn-spin').disabled=false;
+        document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+        closeWheel();
+        return;
       }
+      const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
+      if(proposed!==0&&adj===0){
+        toast('Life Preserver cannot be applied safely now', 'warning');
+        closeWheel();
+        return;
+      }
+      alert(`🛟 The Life Preserver says:\n\n${win.label}`);
+      currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
       if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
       currentGame.hailMaryUsed.push(wheelPlayer);
+      recomputeGameTotals(currentGame);
       addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
       saveData(); closeWheel(); scheduleRender();
@@ -10997,30 +10963,9 @@ ${isDealer
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
 
-  function isHailMaryEligible(game, player, activePlayers, {pastHalf=false, gameOver=false}={}){
-    if(!game||!player||gameOver||!Array.isArray(activePlayers)||!activePlayers.includes(player))return false;
-    const cfg=configs[game.name];
-    if(!cfg)return false;
-    const totals=activePlayers.map(p=>Number(game.totals?.[p])||0);
-    if(!totals.length)return false;
-    const playerTotal=Number(game.totals?.[player])||0;
-    const hi=Math.max(...totals), lo=Math.min(...totals), spread=hi-lo;
-    const completedRounds=(game.rounds||[]).filter(r=>!r.hailMaryBonus).length;
-
-    // High-scoring games need game-specific, genuinely desperate standings.
-    if(game.name==='818'){
-      return completedRounds>=10&&playerTotal===lo&&(hi-playerTotal)>=50;
-    }
-    if(game.name==='Flip 7 Vengeance'){
-      return completedRounds>=6&&hi>=100&&playerTotal===lo&&(hi-playerTotal)>=60;
-    }
-    if(game.name!=='Wizard'&&game.name!=='Five Crowns')return false;
-
-    // Preserve the established Wizard and Five Crowns eligibility behavior.
-    if(!pastHalf||spread<40)return false;
-    return cfg.winLow
-      ? playerTotal>=hi-(spread*0.25)
-      : playerTotal<=lo+(spread*0.25);
+  function isHailMaryEligible(game, player, activePlayers, {gameOver=false}={}){
+    if(!window.BPGLifePreserver)return false;
+    return !!BPGLifePreserver.getLifePreserverOffer(game, player, activePlayers, {gameOver}).eligible;
   }
 
   function setRecordChaseLayout(enabled){
