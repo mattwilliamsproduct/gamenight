@@ -293,13 +293,16 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await expectScorecardNamesFit(page);
 });
 
-test('scorecard-view-switcher-restores-the-full-round-scorecard',async({page})=>{
+test('view-pace-switch-controls-pace-and-rounds-with-accessible-runtime-state',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
-  await expect(page.locator('#scorecard-view-switcher')).toBeVisible();
-  await expect(page.locator('#scorecard-view-pace')).toHaveAttribute('aria-pressed','true');
-  await expect(page.locator('#scorecard-view-rounds')).toHaveAttribute('aria-pressed','false');
+  const toggle=page.locator('#scorecard-view-pace-toggle');
+  await expect(page.locator('#scorecard-view-toggle-wrap')).toBeVisible();
+  await expect(toggle).toHaveRole('switch',{name:'View Pace'});
+  await expect(toggle).toHaveAttribute('aria-checked','true');
+  await expect(toggle).toContainText('View Pace');
+  await expect(toggle).toContainText('ON');
   await expect(page.locator('#record-chase-panel')).toBeVisible();
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
   expect(await page.locator('.record-chase-row').count(),'Record Chase should have one row per player').toBe(10);
@@ -307,14 +310,37 @@ test('scorecard-view-switcher-restores-the-full-round-scorecard',async({page})=>
   expect(await page.locator('.record-chase-secondary').count(),'Record Chase should not include a supporting metric column').toBe(0);
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
 
-  await page.locator('#scorecard-view-rounds').click();
+  const toggleGeometry=await page.evaluate(()=>{
+    const toggle=document.querySelector('#scorecard-view-pace-toggle');
+    const label=document.querySelector('.scorecard-view-toggle-label');
+    const box=toggle?.getBoundingClientRect();
+    const viewport={width:window.innerWidth,height:window.innerHeight};
+    return {
+      width:box?.width||0,
+      height:box?.height||0,
+      fitsViewport:!!box&&box.left>=0&&box.top>=0&&box.right<=viewport.width+1&&box.bottom<=viewport.height+1,
+      labelWhiteSpace:label?getComputedStyle(label).whiteSpace:''
+    };
+  });
+  expect(toggleGeometry.width,'View Pace switch should have a painted width').toBeGreaterThan(0);
+  expect(toggleGeometry.height,'View Pace switch should have a painted height').toBeGreaterThan(0);
+  expect(toggleGeometry.fitsViewport,'View Pace switch should remain inside each target viewport').toBe(true);
+  expect(toggleGeometry.labelWhiteSpace,'View Pace label should remain on one line').toBe('nowrap');
+
+  await toggle.focus();
+  expect(await toggle.evaluate(element=>document.activeElement===element),'View Pace switch should be keyboard focusable').toBe(true);
+  await page.keyboard.press('Space');
   await expect(page.locator('#record-chase-panel')).toBeHidden();
-  await expect(page.locator('#scorecard-view-rounds')).toHaveAttribute('aria-pressed','true');
+  await expect(toggle).toHaveAttribute('aria-checked','false');
+  await expect(toggle).toContainText('OFF');
+  await expect(page.locator('#scorecard-live-layout')).not.toHaveClass(/record-chase-active/);
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'the traditional scorecard should restore every completed round').toBe(5);
 
-  await page.locator('#scorecard-view-pace').click();
+  await page.keyboard.press('Enter');
   await expect(page.locator('#record-chase-panel')).toBeVisible();
-  await expect(page.locator('#scorecard-view-pace')).toHaveAttribute('aria-pressed','true');
+  await expect(toggle).toHaveAttribute('aria-checked','true');
+  await expect(toggle).toContainText('ON');
+  await expect(page.locator('#scorecard-live-layout')).toHaveClass(/record-chase-active/);
   expect(await page.locator('#scorecard-head [data-sc-round]').count(),'restoring Record Chase should return to the latest two rounds').toBe(2);
 });
 
@@ -593,7 +619,7 @@ test('active scorecard columns and panels stay geometrically aligned',async({pag
     const nav=document.querySelector('#top-nav');
     const banner=document.querySelector('#game-screen .active-match-banner');
     const actions=[
-      document.querySelector('#scorecard-view-switcher'),
+      document.querySelector('#scorecard-view-toggle-wrap'),
       document.querySelector('#actions-btn'),
       document.querySelector('.match-end-btn')
     ].map(element=>element?.getBoundingClientRect());

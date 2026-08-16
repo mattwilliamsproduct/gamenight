@@ -4348,45 +4348,75 @@ button.dealer-name-indicator .dealer-player-label {
       background: rgba(255,250,241,0.965) !important;
       box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
     }
-    .scorecard-view-switcher {
+    .scorecard-view-toggle-wrap {
       display: inline-flex;
       align-items: center;
-      gap: 0.14rem;
-      padding: 0.18rem;
-      border: 1px solid rgba(8,118,108,0.22);
-      border-radius: 12px;
-      background: rgba(232,247,242,0.82);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      flex-shrink: 0;
     }
-    .scorecard-view-switcher.hidden { display: none !important; }
-    .scorecard-view-label {
-      padding: 0.35rem 0.42rem 0.35rem 0.52rem;
-      color: var(--muted);
-      font-size: 0.66rem;
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-    .scorecard-view-btn {
-      min-height: 2.2rem;
-      padding: 0.38rem 0.72rem;
-      border: 1px solid transparent;
-      border-radius: 9px;
+    .scorecard-view-toggle-wrap.hidden { display: none !important; }
+    .scorecard-view-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.46rem;
+      min-height: 2.7rem;
+      padding: 0.34rem 0.5rem 0.34rem 0.68rem;
+      border: 1px solid rgba(8,118,108,0.24);
+      border-radius: 999px;
       color: var(--bp-teal-dark);
-      font-size: 0.78rem;
+      background: rgba(232,247,242,0.82);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+      font-size: 0.76rem;
       font-weight: 900;
       line-height: 1;
+      white-space: nowrap;
       cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .scorecard-view-btn:hover,
-    .scorecard-view-btn:focus-visible { border-color: rgba(8,118,108,0.28); background: rgba(255,255,255,0.72); }
-    .scorecard-view-btn.active {
-      border-color: rgba(8,118,108,0.25);
+    .scorecard-view-toggle:hover { border-color: rgba(8,118,108,0.42); background: rgba(255,255,255,0.9); }
+    .scorecard-view-toggle:focus-visible {
+      outline: 3px solid rgba(40,127,155,0.48);
+      outline-offset: 3px;
+    }
+    .scorecard-view-toggle-label { white-space: nowrap; }
+    .scorecard-view-toggle-track {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      width: 2.18rem;
+      height: 1.18rem;
+      padding: 0.12rem;
+      border-radius: 999px;
+      background: rgba(83,96,107,0.42);
+      box-shadow: inset 0 1px 2px rgba(20,39,52,0.2);
+      transition: background 0.15s ease;
+    }
+    .scorecard-view-toggle-thumb {
+      display: block;
+      width: 0.94rem;
+      height: 0.94rem;
+      border-radius: 50%;
       background: #fffdf9;
-      color: var(--bp-teal-dark);
-      box-shadow: 0 3px 9px -7px rgba(6,77,72,0.7);
+      box-shadow: 0 1px 3px rgba(20,39,52,0.28);
+      transform: translateX(0);
+      transition: transform 0.15s ease;
     }
+    .scorecard-view-toggle-state {
+      min-width: 1.55rem;
+      color: var(--muted);
+      font-size: 0.62rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+    .scorecard-view-toggle[aria-checked="true"] {
+      border-color: rgba(8,118,108,0.42);
+      background: rgba(222,246,238,0.96);
+      box-shadow: 0 3px 10px -8px rgba(6,77,72,0.72), inset 0 1px 0 rgba(255,255,255,0.82);
+    }
+    .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-track { background: var(--emerald); }
+    .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-thumb { transform: translateX(1rem); }
+    .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-state { color: var(--bp-teal-dark); }
     .scorecard-bid-header {
       display: inline-flex;
       flex-direction: column;
@@ -5939,10 +5969,12 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
         <div class="active-match-actions flex flex-wrap gap-2 items-center relative">
-          <div id="scorecard-view-switcher" class="scorecard-view-switcher hidden" role="group" aria-label="Scorecard view">
-            <span class="scorecard-view-label">View</span>
-            <button id="scorecard-view-pace" type="button" class="scorecard-view-btn active" onclick="toggleRecordChasePanel(true)" aria-pressed="true">Pace</button>
-            <button id="scorecard-view-rounds" type="button" class="scorecard-view-btn" onclick="toggleRecordChasePanel(false)" aria-pressed="false">Rounds</button>
+          <div id="scorecard-view-toggle-wrap" class="scorecard-view-toggle-wrap hidden">
+            <button id="scorecard-view-pace-toggle" type="button" class="scorecard-view-toggle" role="switch" aria-checked="true" aria-label="View Pace" onclick="toggleRecordChasePanel()">
+              <span class="scorecard-view-toggle-label">View Pace</span>
+              <span class="scorecard-view-toggle-track" aria-hidden="true"><span class="scorecard-view-toggle-thumb"></span></span>
+              <span id="scorecard-view-toggle-state" class="scorecard-view-toggle-state" aria-hidden="true">ON</span>
+            </button>
           </div>
           <div class="relative">
             <button onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5">
@@ -6777,6 +6809,11 @@ button.dealer-name-indicator .dealer-player-label {
   let currentGame = null;
   let recordChaseVisible = true;
   let recordChaseLayoutActive = false;
+
+  function resetRecordChaseView(){
+    recordChaseVisible = true;
+    recordChaseLayoutActive = false;
+  }
   let _historyRevision = 0;
   let _hallOfFameCache = null;
   let _allTimeRecordsCache = null;
@@ -9117,6 +9154,7 @@ button.dealer-name-indicator .dealer-player-label {
     const name = _pendingGameName;
     if(!name){ return; }
     _pendingGameName = null;
+    resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
     currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
@@ -10210,6 +10248,7 @@ ${isDealer
     const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
+    resetRecordChaseView();
     currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[]};
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
     if(g.game==='818'){currentGame.eight18Phase=g.eight18Phase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -10969,22 +11008,16 @@ ${isDealer
     recordChaseLayoutActive=!!enabled&&available;
     if(layout)layout.classList.toggle('record-chase-active',recordChaseLayoutActive);
     if(panel)panel.classList.toggle('hidden',!recordChaseLayoutActive);
-    const switcher=document.getElementById('scorecard-view-switcher');
-    const paceButton=document.getElementById('scorecard-view-pace');
-    const roundsButton=document.getElementById('scorecard-view-rounds');
-    if(switcher)switcher.classList.toggle('hidden',!available);
-    if(paceButton){
-      paceButton.classList.toggle('active',recordChaseLayoutActive);
-      paceButton.setAttribute('aria-pressed',String(recordChaseLayoutActive));
-    }
-    if(roundsButton){
-      roundsButton.classList.toggle('active',!recordChaseLayoutActive);
-      roundsButton.setAttribute('aria-pressed',String(!recordChaseLayoutActive));
-    }
+    const toggleWrap=document.getElementById('scorecard-view-toggle-wrap');
+    const paceToggle=document.getElementById('scorecard-view-pace-toggle');
+    const toggleState=document.getElementById('scorecard-view-toggle-state');
+    if(toggleWrap)toggleWrap.classList.toggle('hidden',!available);
+    if(paceToggle)paceToggle.setAttribute('aria-checked',String(recordChaseLayoutActive));
+    if(toggleState)toggleState.textContent=recordChaseLayoutActive?'ON':'OFF';
   }
 
-  function toggleRecordChasePanel(visible){
-    recordChaseVisible=!!visible;
+  function toggleRecordChasePanel(){
+    recordChaseVisible=!recordChaseVisible;
     renderGame();
   }
 
@@ -12551,6 +12584,7 @@ ${isDealer
     const roster=lg.originalRoster||Object.keys(lg.totals);
       players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
       let t={}; roster.forEach(p=>t[p]=0);
+      resetRecordChaseView();
       currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
       if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
       if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -13685,6 +13719,7 @@ ${isDealer
         players=Array.isArray(fixture.players)?fixture.players:[];
         history=Array.isArray(fixture.history)?fixture.history:[];
         playerProfiles=fixture.playerProfiles&&typeof fixture.playerProfiles==='object'?fixture.playerProfiles:{};
+        resetRecordChaseView();
         currentGame=fixture.currentGame||null;
         markHistoryChanged();
         closeQaSurfaces();
