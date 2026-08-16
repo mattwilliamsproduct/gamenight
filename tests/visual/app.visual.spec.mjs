@@ -370,3 +370,101 @@ test('score-entry shows progress and live entered states',async({page})=>{
   await expect(page.locator('.score-entry-row.is-complete')).toHaveAttribute('aria-label',/score entered/);
   await expect(page.getByRole('button',{name:'Review Scores',exact:true})).toBeVisible();
 });
+
+test('score-entry acknowledgement handles explicit zero and blank Next',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=entry-scores',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
+
+  await page.getByRole('button',{name:'0',exact:true}).click();
+  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 scores entered');
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(1);
+  const explicitZero=page.locator('.score-entry-row.is-complete').first();
+  await expect(explicitZero.locator('.score-entry-value')).toHaveText('0');
+
+  await page.reload({waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
+  const firstRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
+  const firstRow=page.locator(`#${firstRowId}`);
+  await page.getByRole('button',{name:'Next',exact:true}).click();
+  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 scores entered');
+  await expect(firstRow).toHaveClass(/is-complete/);
+  await expect(firstRow.locator('.score-entry-value')).toHaveText('0');
+  await firstRow.click();
+  await expect(firstRow).toHaveClass(/is-complete/);
+});
+
+test('score-entry Next acknowledges prefilled values without changing them',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-scoring-8&surface=entry-scores',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(0);
+
+  const prefilledRow=page.locator('#score-entry-row-Matt');
+  await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
+  await prefilledRow.click();
+  await page.getByRole('button',{name:'Next',exact:true}).click();
+  await expect(prefilledRow).toHaveClass(/is-complete/);
+  await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
+  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 tricks entered · Tricks: 1 / 1');
+});
+
+test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=entry-bids',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(0);
+  const activeRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
+  await page.getByRole('button',{name:'0',exact:true}).click();
+  await expect(page.locator(`#${activeRowId}`)).toHaveClass(/is-complete/);
+  await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids entered/);
+});
+
+test('submitted bids use an aligned BID column and display font',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('#scorecard-head th.scorecard-col-bid')).toHaveCount(0);
+  await expect(page.locator('.wizard-current-bid')).toHaveCount(0);
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-scoring-8&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  const bidHeader=page.locator('#scorecard-head th.scorecard-col-bid');
+  await expect(bidHeader).toHaveCount(1);
+  await expect(bidHeader).toContainText('BID');
+  await expect(bidHeader).toHaveText(/BID\s*1\/1/);
+  await expect(page.locator('#scorecard-body .wizard-current-bid')).toHaveCount(8);
+
+  const geometry=await page.evaluate(()=>{
+    const center=element=>{
+      const box=element?.getBoundingClientRect();
+      return box?box.left+box.width/2:null;
+    };
+    const headerBid=document.querySelector('#scorecard-head th.scorecard-col-bid');
+    const headerTotal=document.querySelector('#scorecard-head th.scorecard-col-total');
+    const rowBid=document.querySelector('#scorecard-body tr .scorecard-col-bid');
+    const rowTotal=document.querySelector('#scorecard-body tr .scorecard-col-total');
+    const value=document.querySelector('.wizard-current-bid-value');
+    const actions=[
+      document.querySelector('#scorecard-view-switcher'),
+      document.querySelector('#actions-btn'),
+      document.querySelector('.match-end-btn')
+    ].map(element=>element?.getBoundingClientRect());
+    return {
+      headerBeforeTotal:(headerBid?.getBoundingClientRect().right||Infinity)<=(headerTotal?.getBoundingClientRect().left||-Infinity)+1,
+      rowBeforeTotal:(rowBid?.getBoundingClientRect().right||Infinity)<=(rowTotal?.getBoundingClientRect().left||-Infinity)+1,
+      headerRowAlignment:Math.abs(center(headerBid)-center(rowBid)),
+      bidFont:getComputedStyle(value).fontFamily,
+      bidWhiteSpace:getComputedStyle(value).whiteSpace,
+      bidFits:value?.scrollWidth<=value?.clientWidth+1,
+      actionYs:actions.map(box=>box?.top||null),
+      actionWidths:actions.map(box=>box?.width||0)
+    };
+  });
+  expect(geometry.headerBeforeTotal,'BID header should be immediately left of Total').toBe(true);
+  expect(geometry.rowBeforeTotal,'bid pills should stay immediately left of Total values').toBe(true);
+  expect(geometry.headerRowAlignment,'BID header should align with bid pills').toBeLessThanOrEqual(2);
+  expect(geometry.bidFont,'large bid digits should use the display font').toContain('Londrina Solid');
+  expect(geometry.bidWhiteSpace,'bid digits should stay on one line').toBe('nowrap');
+  expect(geometry.bidFits,'bid digits should fit inside their pills').toBe(true);
+  expect(Math.max(...geometry.actionYs)-Math.min(...geometry.actionYs),'scorecard actions should stay on one row').toBeLessThanOrEqual(1);
+  expect(geometry.actionWidths.every(width=>width>0),'scorecard actions should remain visible').toBe(true);
+});

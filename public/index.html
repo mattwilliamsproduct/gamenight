@@ -251,23 +251,6 @@
       white-space: nowrap;
     }
     html.dark .leader-banner::before { background: rgba(255,255,255,0.06); color: #6ee7b7; }
-    /* Wizard scoring: bid sum vs tricks — standalone pill on title row */
-    .wizard-bid-tally-pill {
-      display: inline-flex;
-      align-items: center;
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      font-size: clamp(1.5rem, 3.25vw, 2.15rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-      padding: 0.42rem 0.95rem;
-      border-radius: 9999px;
-      border: 1px solid var(--hairline);
-      background: var(--surface-2);
-      color: var(--ink);
-      line-height: 1;
-      white-space: nowrap;
-    }
     /* Wizard — bids/tricks summary (inline in game header; matches #round-intel size) */
     #game-screen #wizard-header-metrics {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -1158,6 +1141,7 @@
       font-size: clamp(1.85rem, 4.25vw, 3rem);
       line-height: 1;
       letter-spacing: -0.04em;
+      white-space: nowrap;
       color: #fff !important;
       text-shadow: 0 1px 2px rgba(0,0,0,0.22);
     }
@@ -3007,6 +2991,11 @@ button.dealer-name-indicator {
       width: 74px;
       white-space: nowrap;
     }
+    .scorecard-col-bid--wizard {
+      width: clamp(5.25rem, 8vw, 7.25rem);
+      min-width: clamp(5.25rem, 8vw, 7.25rem);
+      white-space: nowrap;
+    }
     .scorecard-col-entry {
       width: 80px;
       white-space: nowrap;
@@ -4361,6 +4350,32 @@ button.dealer-name-indicator .dealer-player-label {
       color: var(--bp-teal-dark);
       box-shadow: 0 3px 9px -7px rgba(6,77,72,0.7);
     }
+    .scorecard-bid-header {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.08rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .scorecard-bid-header-label {
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: clamp(0.55rem, 0.88vw, 0.72rem);
+      font-weight: 900;
+      letter-spacing: 0.14em;
+    }
+    .scorecard-bid-header-fraction {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
+      font-size: clamp(1.05rem, 1.75vw, 1.6rem);
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 0.95;
+    }
+    .active-match-actions { flex-shrink: 0; }
+    @media (min-width: 761px) {
+      .active-match-actions { flex-wrap: nowrap !important; }
+    }
     .match-end-btn {
       color: #9a4f3f;
       border-color: rgba(231,111,81,0.28);
@@ -5206,13 +5221,6 @@ button.dealer-name-indicator .dealer-player-label {
       font-feature-settings: 'tnum';
       letter-spacing: 0 !important;
     }
-    #wizard-bid-status {
-      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
-      font-weight: 400 !important;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: 'tnum';
-      letter-spacing: 0 !important;
-    }
     .score-entry-key:not(.next) {
       font-family: 'Bree Serif', Georgia, serif;
       font-weight: 400;
@@ -5336,6 +5344,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #round-intel,
     #wizard-header-metrics,
+    .wizard-current-bid-value,
     .scorecard-table thead th,
     .scorecard-table tbody td.scorecard-col-total,
     .scorecard-table .score-cell-input,
@@ -5346,7 +5355,8 @@ button.dealer-name-indicator .dealer-player-label {
       font-variant-numeric: tabular-nums;
       font-feature-settings: 'tnum';
     }
-    #scorecard-capture .record-chase-active .scorecard-table thead th.scorecard-col-total {
+    #scorecard-capture .record-chase-active .scorecard-table thead th.scorecard-col-total,
+    #scorecard-capture .record-chase-active .scorecard-table thead th.scorecard-col-bid--wizard {
       background: linear-gradient(180deg, #d4f0e8, #c8e9df) !important;
       color: #075e56;
       box-shadow:
@@ -5888,11 +5898,10 @@ button.dealer-name-indicator .dealer-player-label {
               <h2 id="game-title" class="font-display shrink-0"></h2>
               <div id="round-intel" class="round-banner font-display min-w-0" style="color:var(--emerald);"></div>
               <div id="wizard-header-metrics" class="hidden inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors"></div>
-              <div id="wizard-bid-status" class="hidden shrink-0"></div>
             </div>
           </div>
         </div>
-        <div class="flex flex-wrap gap-2 items-center relative">
+        <div class="active-match-actions flex flex-wrap gap-2 items-center relative">
           <div id="scorecard-view-switcher" class="scorecard-view-switcher hidden" role="group" aria-label="Scorecard view">
             <span class="scorecard-view-label">View</span>
             <button id="scorecard-view-pace" type="button" class="scorecard-view-btn active" onclick="toggleRecordChasePanel(true)" aria-pressed="true">Pace</button>
@@ -9546,7 +9555,6 @@ button.dealer-name-indicator .dealer-player-label {
     if(currentGame.rookPhase==='bidding')currentGame.rookPhase='bidSetup';
 
     document.getElementById('game-title').textContent='Rook';
-    document.getElementById('wizard-bid-status').classList.add('hidden');
     const whm=document.getElementById('wizard-header-metrics');
     if(whm){ whm.classList.add('hidden'); whm.innerHTML=''; }
 
@@ -10638,21 +10646,6 @@ ${isDealer
     toast('Deal order updated', 'success');
   }
 
-  /* ═══ WIZARD BID STATUS (header badge) ═══ */
-  function updateWizardBidStatus(){
-    const el=document.getElementById('wizard-bid-status');
-    if(!el)return;
-    if(!currentGame||!isBidTrickGame(currentGame)||getBidTrickPhase(currentGame)!=='scoring'){
-      el.classList.add('hidden'); el.innerHTML=''; return;
-    }
-    const round=getRoundTrickCount(currentGame);
-    const gp=getActivePlayers(currentGame);
-    let totalBids=0;
-    gp.forEach(p=>{ totalBids+=(currentGame.currentBids?.[p]||0); });
-    el.innerHTML=`<span class="wizard-bid-tally-pill font-mono-num" title="Bid tricks placed vs tricks this round">${totalBids}/${round}</span>`;
-    el.classList.remove('hidden');
-  }
-
   /* ═══ WIZARD METRICS (bid/trick totals — inline in header; replaces old banner) ═══ */
   function updateWizardTrickCounter(){
     const timer=gnPerfStart('GN wizard live update');
@@ -11174,8 +11167,16 @@ ${isDealer
     // Head
     const visibleScorecardRounds=getRecordChaseRoundEntries(currentGame);
     const hasScorecardRounds=visibleScorecardRounds.length>0;
+    const showSubmittedBids=isBidTrick&&bidTrickPhase==='scoring'&&!over;
+    const submittedBidTotal=showSubmittedBids
+      ? getActivePlayers(currentGame).reduce((sum,player)=>sum+(parseInt(currentGame.currentBids?.[player],10)||0),0)
+      : 0;
+    const submittedBidRound=showSubmittedBids?getRoundTrickCount(currentGame):0;
     let head=`<tr>
       <th data-sc-part="lead" class="scorecard-col-player px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
+      ${showSubmittedBids?`<th data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard px-2 py-3 text-center" aria-label="BID ${submittedBidTotal} of ${submittedBidRound}">
+        <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">BID</span><span class="scorecard-bid-header-fraction">${submittedBidTotal}/${submittedBidRound}</span></span>
+      </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-4 py-3">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
     if(!hasScorecardRounds)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
@@ -11227,7 +11228,7 @@ ${isDealer
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
-      const wizardCurrentBid = isBidTrick&&bidTrickPhase==='scoring'&&!over
+      const wizardCurrentBid = showSubmittedBids
         ? (() => {
           const bid=currentGame.currentBids?.[p]!==undefined?currentGame.currentBids[p]:0;
           const draftVal = currentGame.currentScoreDrafts?.[p];
@@ -11247,7 +11248,7 @@ ${isDealer
         })()
         : '';
 
-      const playerCellPad = isBidTrick && bidTrickPhase === 'scoring' && !over ? 'pl-5 pr-2' : 'px-5';
+      const playerCellPad = 'px-5';
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -11259,9 +11260,9 @@ ${isDealer
   : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}
               ${retiredTag}
             </div>
-            ${wizardCurrentBid}
           </div>
         </td>
+        ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
         <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-3 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}</td>`;
       if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
@@ -11319,8 +11320,6 @@ ${isDealer
       }
       if(isBidTrick) updateWizardTrickCounter(); else { const w=document.getElementById('wizard-header-metrics'); if(w){ w.classList.add('hidden'); w.innerHTML=''; } }
     }
-
-    updateWizardBidStatus();
 
     // Show/hide "Retire Player" action based on whether there are active retirable players
     const retireBtn=document.getElementById('actions-retire-btn');
@@ -11614,28 +11613,26 @@ ${isDealer
     return players.reduce((sum,p)=>sum+(parseInt(values[p],10)||0),0);
   }
 
-  function scoreEntryValueIsFilled(player){
-    if(!scoreEntryModalState)return false;
-    const value=scoreEntryModalState.values?.[player];
-    return value!==undefined&&value!==null&&value!=='';
+  function scoreEntryPlayerIsAcknowledged(player){
+    return !!scoreEntryModalState?.acknowledged?.[player];
   }
 
   function getScoreEntryEnteredCount(){
     if(!scoreEntryModalState)return 0;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    return players.filter(scoreEntryValueIsFilled).length;
+    return players.filter(scoreEntryPlayerIsAcknowledged).length;
   }
 
   function updateScoreEntryRowState(player){
     if(!scoreEntryModalState||!currentGame||!player)return;
     const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
     if(!row)return;
-    const filled=scoreEntryValueIsFilled(player);
-    row.classList.toggle('is-complete',filled);
-    row.classList.toggle('is-empty',!filled);
-    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${filled?'entered':'needed'}`);
+    const acknowledged=scoreEntryPlayerIsAcknowledged(player);
+    row.classList.toggle('is-complete',acknowledged);
+    row.classList.toggle('is-empty',!acknowledged);
+    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${acknowledged?'entered':'needed'}`);
     const indicator=row.querySelector('.score-entry-row-status');
-    if(indicator)indicator.textContent=filled?'✓':'○';
+    if(indicator)indicator.textContent=acknowledged?'✓':'○';
   }
 
   function updateScoreEntryHeaderMeta(){
@@ -11654,7 +11651,7 @@ ${isDealer
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     const entered=getScoreEntryEnteredCount();
     const label=mode.valueLabel.toLowerCase();
-    const enteredText=`${entered} of ${players.length} ${label}s entered`;
+    const enteredText=`${entered} of ${players.length} ${label.endsWith('s')?label:`${label}s`} entered`;
     if(isBidTrickGame(currentGame)){
       const totalLabel=isScoreEntryBidMode(mode)?'Bids':'Tricks';
       progress.textContent=`${enteredText} · ${totalLabel}: ${getScoreEntryDraftTotal()} / ${getRoundTrickCount(currentGame)}`;
@@ -11761,6 +11758,7 @@ ${isDealer
       players,
       tablePlayers,
       values,
+      acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,false])),
       dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
       initialJson:JSON.stringify(values)
@@ -11813,7 +11811,7 @@ ${isDealer
       const safe=rookElementId(p);
       const bid=currentGame.currentBids?.[p]??0;
       const isDealer=p===dealer;
-      const isComplete=scoreEntryValueIsFilled(p);
+      const isComplete=scoreEntryPlayerIsAcknowledged(p);
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
@@ -11878,6 +11876,18 @@ ${isDealer
     updateScoreEntrySelectedSummary();
   }
 
+  function markScoreEntryPlayerComplete(player, fillBlank){
+    if(!scoreEntryModalState||!player)return;
+    const currentValue=scoreEntryModalState.values?.[player];
+    if(fillBlank&&(currentValue===undefined||currentValue===null||currentValue===''||currentValue==='-')){
+      scoreEntryModalState.values[player]='0';
+      const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
+      if(valueEl)valueEl.textContent='0';
+    }
+    scoreEntryModalState.acknowledged[player]=true;
+    updateScoreEntryRowState(player);
+  }
+
   function scoreEntryKey(v){
     return gnRunNumpadHotPath('modal digit press',()=>{
       if(!scoreEntryModalState)return;
@@ -11890,6 +11900,7 @@ ${isDealer
       else if(c==='0'&&v!=='0'&&v!=='00')c=v;
       else if(c.length<5)c+=v;
       scoreEntryModalState.values[p]=c;
+      if(/^\d+$/.test(v))scoreEntryModalState.acknowledged[p]=true;
       updateScoreEntryActiveValue();
     });
   }
@@ -11901,6 +11912,8 @@ ${isDealer
       const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
       if(!order.length)return;
       const current=scoreEntryModalState.activePlayer||order[0];
+      markScoreEntryPlayerComplete(current,true);
+      updateScoreEntryProgress();
       const currentIdx=order.indexOf(current);
       const next=order[((currentIdx>=0?currentIdx:0)+1)%order.length];
       const displayIdx=scoreEntryModalState.players.indexOf(next);
