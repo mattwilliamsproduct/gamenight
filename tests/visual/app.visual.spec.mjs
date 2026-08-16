@@ -26,6 +26,60 @@ async function expectInsideViewport(locator,page,label){
   expect(box.y+box.height,`${label} should not escape the bottom edge`).toBeLessThanOrEqual(viewport.height+1);
 }
 
+async function expectCenteredInVisualViewport(page,{modalSelector,cardSelector,label,gutter=16}){
+  const geometry=await page.evaluate(({modalSelector,cardSelector,gutter})=>{
+    const modal=document.querySelector(modalSelector);
+    const card=document.querySelector(cardSelector);
+    if(!modal||!card)return null;
+    const visual=window.visualViewport;
+    const viewport={
+      left:visual?.offsetLeft||0,
+      top:visual?.offsetTop||0,
+      width:visual?.width||window.innerWidth,
+      height:visual?.height||window.innerHeight
+    };
+    const rect=element=>{
+      const box=element.getBoundingClientRect();
+      return {left:box.left,top:box.top,right:box.right,bottom:box.bottom,width:box.width,height:box.height};
+    };
+    const modalBox=rect(modal);
+    const cardBox=rect(card);
+    const center=box=>({x:box.left+(box.width/2),y:box.top+(box.height/2)});
+    const viewportCenter={x:viewport.left+(viewport.width/2),y:viewport.top+(viewport.height/2)};
+    const cardCenter=center(cardBox);
+    const modalCenter=center(modalBox);
+    return {
+      modalBox,
+      cardBox,
+      viewport,
+      modalCenterDeltaX:Math.abs(modalCenter.x-viewportCenter.x),
+      modalCenterDeltaY:Math.abs(modalCenter.y-viewportCenter.y),
+      cardCenterDeltaX:Math.abs(cardCenter.x-viewportCenter.x),
+      cardCenterDeltaY:Math.abs(cardCenter.y-viewportCenter.y),
+      cardGutter:Math.min(
+        cardBox.left-viewport.left,
+        viewport.left+viewport.width-cardBox.right,
+        cardBox.top-viewport.top,
+        viewport.top+viewport.height-cardBox.bottom
+      ),
+      cardFits:cardBox.left>=viewport.left+gutter-1&&
+        cardBox.right<=viewport.left+viewport.width-gutter+1&&
+        cardBox.top>=viewport.top+gutter-1&&
+        cardBox.bottom<=viewport.top+viewport.height-gutter+1,
+      modalPosition:getComputedStyle(modal).position
+    };
+  },{modalSelector,cardSelector,gutter});
+
+  expect(geometry,`${label} should have painted modal and card boxes`).not.toBeNull();
+  expect(geometry.modalPosition,`${label} shell should be fixed to the viewport`).toBe('fixed');
+  expect(geometry.modalCenterDeltaX,`${label} shell should be horizontally centered`).toBeLessThanOrEqual(2);
+  expect(geometry.modalCenterDeltaY,`${label} shell should be vertically centered`).toBeLessThanOrEqual(2);
+  expect(geometry.cardCenterDeltaX,`${label} card should be horizontally centered`).toBeLessThanOrEqual(2);
+  expect(geometry.cardCenterDeltaY,`${label} card should be vertically centered`).toBeLessThanOrEqual(2);
+  expect(geometry.cardGutter,`${label} card should keep a ${gutter}px visual-viewport gutter`).toBeGreaterThanOrEqual(gutter-0.5);
+  expect(geometry.cardFits,`${label} card should remain inside the visual viewport`).toBe(true);
+}
+
 async function expectRowsInsideContainer(page,rowSelector,containerSelector){
   const rows=page.locator(rowSelector);
   expect(await rows.count(),`${rowSelector} should contain rows`).toBeGreaterThan(0);
@@ -115,6 +169,98 @@ for(const view of cases){
     await expect(page).toHaveScreenshot(`${view.name}.png`);
   });
 }
+
+test('viewport-centered celebrations use painted visual-viewport geometry',async({page})=>{
+  const celebrationRoute='/?gnqa=1&gallery=0&scenario=whammy-8&surface=';
+  const waitForModal=async selector=>{
+    await expect(page.locator(selector)).toBeVisible();
+    await page.waitForTimeout(600);
+  };
+
+  await page.goto(`${celebrationRoute}whammy`,{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await waitForModal('#whammy-modal:not(.hidden)');
+  await expect(page.locator('#whammy-title')).toHaveText('WHAMMY!');
+  await expectCenteredInVisualViewport(page,{
+    modalSelector:'#whammy-modal',
+    cardSelector:'#whammy-modal .whammy-card',
+    label:'WHAMMY celebration'
+  });
+
+  await page.goto(`${celebrationRoute}nolie`,{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await waitForModal('#whammy-modal:not(.hidden)');
+  await expect(page.locator('#whammy-title')).toHaveText('NOLIE!');
+  await expectCenteredInVisualViewport(page,{
+    modalSelector:'#whammy-modal',
+    cardSelector:'#whammy-modal .whammy-card',
+    label:'NOLIE celebration'
+  });
+
+  await page.goto(`${celebrationRoute}scorecard`,{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>showCamiWhammiModal({type:'cami-whammi',round:4,scores:[
+    {player:'Megan',score:-20},{player:'Matt',score:-30},{player:'Mike',score:-40},{player:'Cat',score:-20},
+    {player:'Vikki',score:-30},{player:'Duke',score:-40},{player:'Brick',score:-20},{player:'Linda',score:-30}
+  ]}));
+  await waitForModal('#whammy-modal:not(.hidden)');
+  await expect(page.locator('#whammy-title')).toHaveText('CAMI WHAMMI!');
+  await expectCenteredInVisualViewport(page,{
+    modalSelector:'#whammy-modal',
+    cardSelector:'#whammy-modal .whammy-card',
+    label:'CAMI WHAMMI celebration'
+  });
+});
+
+test('representative centered modal families use the shared viewport shell',async({page})=>{
+  const waitForModal=async selector=>{
+    await expect(page.locator(selector)).toBeVisible();
+    await page.waitForTimeout(450);
+  };
+  const measure={
+    settings:['#settings-modal','#settings-modal .surface-raised','Settings modal'],
+    rules:['#rules-modal','#rules-modal .surface-raised','Rules modal'],
+    dealer:['#dealer-modal','#dealer-modal .surface-raised','Dealer modal'],
+    retire:['#retire-player-modal','#retire-player-modal .surface-raised','Retire-player modal'],
+    reorder:['#reorder-players-modal','#reorder-players-modal .surface-raised','Reorder-players modal'],
+    victory:['#victory-modal','#victory-modal .postgame-card','Victory modal'],
+    loser:['#loser-modal','#loser-modal .postgame-card','Loser modal'],
+    suddenDeath:['#sudden-death-modal','#sudden-death-modal .surface-raised','Sudden-death modal']
+  };
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=settings',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await waitForModal('#settings-modal:not(.hidden)');
+  await expectCenteredInVisualViewport(page,{modalSelector:measure.settings[0],cardSelector:measure.settings[1],label:measure.settings[2]});
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=entry-scores',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await waitForModal('#score-entry-modal:not(.hidden)');
+  await expectCenteredInVisualViewport(page,{
+    modalSelector:'#score-entry-modal',
+    cardSelector:'#score-entry-modal .score-entry-panel',
+    label:'Score-entry modal'
+  });
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal']]){
+    await page.evaluate(fnName=>window[fnName](),fn);
+    await waitForModal(`${measure[name][0]}:not(.hidden)`);
+    await expectCenteredInVisualViewport(page,{modalSelector:measure[name][0],cardSelector:measure[name][1],label:measure[name][2]});
+    await page.evaluate(selector=>document.querySelector(selector)?.classList.add('hidden'),measure[name][0]);
+  }
+
+  for(const [name,modalSelector] of [['victory','#victory-modal'],['loser','#loser-modal'],['suddenDeath','#sudden-death-modal']]){
+    await page.evaluate(selector=>{
+      const modal=document.querySelector(selector);
+      modal?.classList.remove('hidden','opacity-0');
+    },modalSelector);
+    await waitForModal(`${modalSelector}:not(.hidden)`);
+    await expectCenteredInVisualViewport(page,{modalSelector:measure[name][0],cardSelector:measure[name][1],label:measure[name][2]});
+    await page.evaluate(selector=>document.querySelector(selector)?.classList.add('hidden'),modalSelector);
+  }
+});
 
 test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
   await page.addInitScript(()=>localStorage.setItem('gn_ui_scale','24'));

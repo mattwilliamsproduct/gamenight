@@ -698,6 +698,13 @@
       box-shadow: 0 26px 80px rgba(127,29,29,0.36);
       animation: whammyPop 0.5s cubic-bezier(0.16,1.2,0.3,1) both;
     }
+    @supports (width: 1dvw) {
+      .whammy-card {
+        width: min(90dvw, 850px, calc(100dvw - 32px));
+        height: min(92dvh, 900px, calc(100dvh - 32px));
+        max-height: min(92dvh, 900px, calc(100dvh - 32px));
+      }
+    }
     .whammy-header {
       width: 100%;
       display: grid;
@@ -3886,6 +3893,32 @@ button.dealer-name-indicator .dealer-player-label {
       max-width: 1560px !important;
       padding-bottom: 2rem;
     }
+    /* Keep every centered modal anchored to the visual viewport, even when a
+       QA surface resets the utility flex class or an active match constrains
+       the app shell. The Rook results modal intentionally remains a mobile
+       bottom sheet and does not opt into this shell. */
+    .bp-modal-viewport-shell {
+      position: fixed !important;
+      inset: 0 !important;
+      box-sizing: border-box !important;
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 16px !important;
+    }
+    .bp-modal-viewport-shell:not(.hidden) {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #dealer-modal > .surface-raised,
+    #retire-player-modal > .surface-raised,
+    #reorder-players-modal > .surface-raised {
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+    }
     .font-display { letter-spacing: 0; }
     .surface,
     .surface-raised {
@@ -5722,7 +5755,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div>
 
   <!-- Dealer Dice Roll Modal -->
-  <div id="dealer-roll-modal" class="hidden">
+  <div id="dealer-roll-modal" class="hidden bp-modal-viewport-shell">
     <div class="dice-dialog">
       <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Pre-Game</div>
       <h3 class="font-display text-3xl">Roll for First Dealer</h3>
@@ -5750,7 +5783,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div>
 
   <!-- Audit Log Modal -->
-  <div id="audit-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+  <div id="audit-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
     <div onclick="closeAuditLog()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
     <div class="surface-raised w-full max-w-lg p-7 relative max-h-[85vh] flex flex-col pop-in">
       <button onclick="closeAuditLog()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6125,7 +6158,7 @@ button.dealer-name-indicator .dealer-player-label {
 
     <!-- ═══ MODALS ═══ -->
     <!-- Avatar -->
-    <div id="avatar-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity">
+    <div id="avatar-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAvatarPicker()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-2xl p-7 relative flex flex-col items-center text-center pop-in">
         <button onclick="closeAvatarPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
@@ -6137,7 +6170,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Color Picker -->
-    <div id="color-modal" class="hidden fixed inset-0 flex items-center justify-center z-[125] p-4 opacity-0 transition-opacity">
+    <div id="color-modal" class="hidden fixed inset-0 flex items-center justify-center z-[125] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeColorPicker()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
         <button onclick="closeColorPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6161,7 +6194,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ ROOK: Setup Modal ═══ -->
-    <div id="rook-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity">
+    <div id="rook-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
         <div class="text-center mb-6">
@@ -6207,7 +6240,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ ROOK: Trump & Partner Call Modal ═══ -->
-    <div id="rook-call-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity">
+    <div id="rook-call-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
         <div class="text-center mb-6">
@@ -6340,7 +6373,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Rename Player -->
-    <div id="rename-modal" class="hidden fixed inset-0 flex items-center justify-center z-[130] p-4 opacity-0 transition-opacity">
+    <div id="rename-modal" class="hidden fixed inset-0 flex items-center justify-center z-[130] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRenameModal()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
         <button onclick="closeRenameModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6362,7 +6395,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Life Preserver Wheel -->
-    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity">
+    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeWheel()" class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
@@ -6407,7 +6440,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Focused Score Entry Modal -->
-    <div id="score-entry-modal" class="hidden fixed inset-0 z-[155] items-center justify-center p-4 opacity-0 transition-opacity">
+    <div id="score-entry-modal" class="hidden fixed inset-0 z-[155] items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelScoreEntryModal()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="score-entry-panel relative flex flex-col p-5 md:p-7">
         <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b hairline">
@@ -6465,7 +6498,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Add Player Mid-Game -->
-    <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+    <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAddPlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
         <button onclick="closeAddPlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6492,7 +6525,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Rules -->
-    <div id="rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity">
+    <div id="rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-5xl p-8 md:p-12 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
         <button onclick="closeRules()" class="absolute top-6 right-8 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
@@ -6505,7 +6538,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Settings -->
-    <div id="settings-modal" class="hidden fixed inset-0 flex items-center justify-center z-[180] p-4 opacity-0 transition-opacity">
+    <div id="settings-modal" class="hidden fixed inset-0 flex items-center justify-center z-[180] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeSettings()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-8 relative max-h-[90vh] overflow-y-auto">
         <button onclick="closeSettings()" class="absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6577,7 +6610,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Performance Report -->
-    <div id="perf-report-modal" class="hidden fixed inset-0 flex items-center justify-center z-[170] p-4 opacity-0 transition-opacity">
+    <div id="perf-report-modal" class="hidden fixed inset-0 flex items-center justify-center z-[170] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closePerfReport()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-5xl p-6 md:p-8 relative max-h-[90vh] flex flex-col">
         <button onclick="closePerfReport()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
@@ -6597,7 +6630,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Scorecard Modal -->
-    <div id="scorecard-modal" class="hidden fixed inset-0 flex items-center justify-center z-[80] p-4 opacity-0 transition-opacity">
+    <div id="scorecard-modal" class="hidden fixed inset-0 flex items-center justify-center z-[80] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeScorecard()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-5xl p-6 relative flex flex-col max-h-[90vh]">
         <button onclick="closeScorecard()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
@@ -6615,7 +6648,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- WHAMMY Round Celebration -->
-    <div id="whammy-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity">
+    <div id="whammy-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="hideWhammyModal()" class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
       <div class="whammy-card relative flex flex-col items-center text-center rounded-[28px]">
         <div class="whammy-header">
@@ -6632,7 +6665,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Victory -->
-    <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4">
+    <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-victory-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🌅</div>
@@ -6649,7 +6682,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Loser -->
-    <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4">
+    <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-loser-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🛟</div>
@@ -6661,7 +6694,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Sudden Death -->
-    <div id="sudden-death-modal" class="hidden fixed inset-0 flex items-center justify-center z-[205] p-4">
+    <div id="sudden-death-modal" class="hidden fixed inset-0 flex items-center justify-center z-[205] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/65 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;border-color:#f97316;">
         <div class="text-6xl mb-3">⚡</div>
@@ -6676,7 +6709,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Dealer Override -->
-    <div id="dealer-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+    <div id="dealer-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeDealerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-sm p-7 relative pop-in">
         <button onclick="closeDealerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6689,7 +6722,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Leave Match Modal -->
-    <div id="retire-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+    <div id="retire-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRetirePlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-sm p-7 relative pop-in">
         <button onclick="closeRetirePlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
@@ -6703,7 +6736,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Reorder Players (mid-game seating / deal order) -->
-    <div id="reorder-players-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity">
+    <div id="reorder-players-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeReorderPlayersModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in flex flex-col max-h-[90vh]">
         <button onclick="closeReorderPlayersModal()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
