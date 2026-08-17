@@ -356,45 +356,32 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   const rows=page.locator('.record-chase-row');
   await expect(rows).toHaveCount(8);
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
-  await expect(page.locator('.record-chase-title')).toHaveText('Player Pace');
+  await expect(page.locator('#record-chase-panel')).toHaveAttribute('aria-label','Player Pace metrics');
+  await expect(page.locator('.record-chase-head-label')).toHaveText(['Best','Avg','Worst']);
+  await expect(page.locator('.record-chase-head-now')).toHaveText(['now','now','now']);
   await expect(page.locator('.record-chase-head')).not.toContainText('Record Chase');
-
-  const headingLayout=await page.evaluate(()=>{
-    const title=document.querySelector('.record-chase-title')?.getBoundingClientRect();
-    const pace=document.querySelector('.record-chase-pace');
-    const label=document.querySelector('.record-chase-head-label--best');
-    return {
-      titleLeft:title?.left??Infinity,
-      paceLeft:pace?.getBoundingClientRect().left??-Infinity,
-      paceFont:Number.parseFloat(getComputedStyle(pace).fontSize),
-      labelFont:Number.parseFloat(getComputedStyle(label).fontSize),
-      steadyFont:Number.parseFloat(getComputedStyle(document.querySelector('.record-chase-pace.is-steady')).fontSize)
-    };
-  });
-  expect(Math.abs(headingLayout.titleLeft-headingLayout.paceLeft),'Player Pace copy should align with the scorecard player rows').toBeLessThanOrEqual(1);
-  expect(headingLayout.paceFont/headingLayout.labelFont,'pace messages should remain substantially larger than the supporting labels').toBeGreaterThanOrEqual(1.35);
-  expect(headingLayout.steadyFont,'steady pace should be quieter than meaningful pace changes').toBeLessThan(headingLayout.paceFont);
+  await expect(page.locator('.record-chase-head')).not.toContainText('ahead of');
+  await expect(page.locator('.record-chase-pace')).toHaveCount(0);
 
   const metrics=await rows.evaluateAll(elements=>elements.map(element=>({
+    player:element.getAttribute('data-player')||'',
     title:element.getAttribute('title')||'',
-    pace:(element.querySelector('.record-chase-pace')?.textContent||'').trim().replace(/\s+/g,' '),
     scores:[...element.querySelectorAll('.record-chase-score')].map(score=>(score.textContent||'').trim())
   })));
-  expect(metrics.map(metric=>metric.pace)).toEqual([
-    '10 pts ahead of best pace',
-    '15 pts behind usual',
-    '20 pts behind best pace',
-    '10 pts ahead of best pace',
-    '30 pts behind usual',
-    'Usual pace',
-    'No past pace yet',
-    '33 pts behind usual'
-  ]);
-  expect(metrics.filter(metric=>metric.pace==='No past pace yet'),'only the player without Wizard history should have no past pace').toHaveLength(1);
-  expect(metrics.find(metric=>metric.pace==='No past pace yet')?.title.startsWith('Brick ·'),'Brick should remain the intentional fresh scorecard').toBe(true);
-  expect(metrics.filter(metric=>metric.scores.includes('—')),'only Brick should lack best and worst records').toHaveLength(1);
-  expect(metrics.filter(metric=>metric.pace!=='No past pace yet').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best and worst records').toBe(true);
-  expect(metrics.every(metric=>!/[▲▼]/.test(metric.pace)),'pace messages should not rely on directional symbol shorthand').toBe(true);
+  expect(metrics.map(metric=>metric.player)).toEqual(['Megan','Matt','Cat','Mike','Vikki','Duke','Brick','Linda']);
+  expect(metrics.find(metric=>metric.player==='Brick')?.scores).toEqual(['—','—','—','—','—','—']);
+  expect(metrics.find(metric=>metric.player==='Brick')?.title.startsWith('Brick ·'),'Brick should remain the intentional fresh scorecard').toBe(true);
+  expect(Object.fromEntries(metrics.map(metric=>[metric.player,metric.scores]))).toEqual({
+    Megan:['60','60','50','50','40','40'],
+    Matt:['80','80','65','65','50','50'],
+    Cat:['60','60','45','45','30','30'],
+    Mike:['20','20','5','5','-20','-20'],
+    Vikki:['60','60','50','50','40','40'],
+    Duke:['50','50','10','10','-20','-20'],
+    Brick:['—','—','—','—','—','—'],
+    Linda:['40','40','3','3','-20','-20']
+  });
+  expect(metrics.filter(metric=>metric.player!=='Brick').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best, average, and worst pairs').toBe(true);
 
   const rowAlignment=await page.evaluate(()=>{
     const scoreRows=[...document.querySelectorAll('#scorecard-body tr')].map(row=>row.getBoundingClientRect().y);
@@ -403,28 +390,28 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   });
   expect(rowAlignment.every(gap=>gap<=2),'Player Pace rows should stay aligned with the corresponding player rows').toBe(true);
 
-  const paceMessagesFit=await page.locator('.record-chase-pace').evaluateAll(elements=>elements.every(element=>
+  const pairNumbersFit=await page.locator('.record-chase-score').evaluateAll(elements=>elements.every(element=>
     element.scrollWidth<=element.clientWidth+1
   ));
-  expect(paceMessagesFit,'Player Pace messages should fit without clipping').toBe(true);
+  expect(pairNumbersFit,'Player Pace pair numbers should fit without clipping').toBe(true);
 
   const alignment=await page.evaluate(()=>{
     const center=element=>{
       const box=element?.getBoundingClientRect();
       return box?box.left+(box.width/2):null;
     };
-    const scores=document.querySelectorAll('.record-chase-row .record-chase-score');
-    return {
-      bestHead:center(document.querySelector('.record-chase-head-label--best')),
-      bestCell:center(scores[0]),
-      worstHead:center(document.querySelector('.record-chase-head-label--worst')),
-      worstCell:center(scores[1])
-    };
+    const headCells=[...document.querySelectorAll('.record-chase-pair-head > *')];
+    const firstRow=[...document.querySelectorAll('.record-chase-row')[0].querySelectorAll('.record-chase-score')];
+    return headCells.map((head,index)=>({
+      label:(head.textContent||'').trim(),
+      gap:Math.abs(center(head)-center(firstRow[index]))
+    }));
   });
-  expect(Math.abs(alignment.bestHead-alignment.bestCell),'Best header should align with best values').toBeLessThanOrEqual(2);
-  expect(Math.abs(alignment.worstHead-alignment.worstCell),'Worst header should align with worst values').toBeLessThanOrEqual(2);
+  expect(alignment.map(item=>item.label)).toEqual(['Best','now','Avg','now','Worst','now']);
+  expect(alignment.every(item=>item.gap<=2),'each pair header should align with its numbers').toBe(true);
 
   const bestButton=page.locator('.record-chase-row[data-player="Megan"] button.record-chase-score').first();
+  await expect(bestButton).toHaveAttribute('aria-label',/Best 60/);
   await expect(bestButton).toBeVisible();
   await bestButton.click();
   await expect(page.locator('#scorecard-modal:not(.hidden)')).toBeVisible();
@@ -437,16 +424,17 @@ test('beat-the-heat pace compares this point in the best finished game',async({p
   await page.goto('/?gnqa=1&gallery=0&scenario=beat-the-heat-pace&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
-  await expect(page.locator('.record-chase-subtitle')).toHaveText('Vs this point in past games');
+  await expect(page.locator('.record-chase-head-label')).toHaveText(['Best','Avg','Worst']);
+  await expect(page.locator('.record-chase-pace')).toHaveCount(0);
   const linda=page.locator('.record-chase-row[data-player="Linda"]');
   await expect(linda).toHaveCount(1);
-  await expect(linda.locator('.record-chase-pace')).toHaveText('Usual pace');
-  await expect(linda.locator('.record-chase-pace')).not.toContainText('behind best');
   const lindaScores=await linda.locator('.record-chase-score').evaluateAll(elements=>elements.map(element=>(element.textContent||'').trim()));
-  expect(lindaScores[0],'Linda career best remains the 5-point finish').toBe('5');
+  expect(lindaScores,'Linda Best/Avg/Worst pairs should keep the 5-point finish and snapshot that same game').toEqual(['5','—','45','38','62','42']);
+  expect(await linda.locator('.record-chase-pair').nth(1).locator('button').count(),'Average should stay non-clickable').toBe(0);
   const lindaTotal=await page.locator('#scorecard-body tr').filter({hasText:'Linda'}).locator('.scorecard-total-value').innerText();
   expect(lindaTotal.trim()).toBe('36');
   await expect(linda.locator('button.record-chase-score').first()).toHaveAttribute('aria-label',/Best 5/);
+  await expect(linda.locator('.record-chase-score--now').first()).toHaveAttribute('aria-label',/Best at this point —/);
   await linda.locator('button.record-chase-score').first().click();
   await expect(page.locator('#scorecard-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#modal-scorecard-body')).toContainText('Linda');

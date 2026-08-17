@@ -18,8 +18,14 @@ test('blowout Five Crowns gives Linda and Vikki Comeback chips',async({page},tes
   await expect(page.locator('#round-intel')).toHaveText('Hand of 9 · 9s Wild');
   const chips=page.locator('button.scorecard-comeback-chip');
   await expect(chips).toHaveCount(2);
-  await expect(page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip')).toContainText('Comeback');
-  await expect(page.locator('#scorecard-body tr',{hasText:'Vikki'}).locator('button.scorecard-comeback-chip')).toContainText('Comeback');
+  const linda=page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip');
+  const vikki=page.locator('#scorecard-body tr',{hasText:'Vikki'}).locator('button.scorecard-comeback-chip');
+  await expect(linda).toHaveAttribute('aria-label',/Comeback/);
+  await expect(vikki).toHaveAttribute('aria-label',/Comeback/);
+  await expect(linda).toHaveText(/−\d+/);
+  await expect(vikki).toHaveText(/−\d+/);
+  await expect(linda).not.toHaveText('Comeback');
+  await expect(vikki).not.toHaveText('Comeback');
   const totals=await page.evaluate(()=>({linda:currentGame.totals.Linda,vikki:currentGame.totals.Vikki}));
   expect(totals.linda).toBe(108);
   expect(totals.vikki).toBe(140);
@@ -62,7 +68,7 @@ test('Comeback extra sits inside the round score box next to the base score',asy
   expect(geometry.extraInside,'0 and −15 should share one score box').toBe(true);
   expect(geometry.extraBelowBox,'extra should not float under the box').toBe(false);
   expect(geometry.stackedInBox,'−15 should sit under the 0 inside the box').toBe(true);
-  expect(geometry.extraFont,'extra should be readable, not a tiny caption').toBeGreaterThanOrEqual(12);
+  expect(geometry.extraFont,'extra should be readable, not a tiny caption').toBeGreaterThanOrEqual(14);
   expect(fontStack(geometry.extraFamily)).toContain('londrina');
   expect(fontStack(geometry.inputFamily)).toContain('londrina');
 });
