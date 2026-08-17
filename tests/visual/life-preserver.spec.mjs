@@ -160,3 +160,92 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   expect(stash.cloneText).toMatch(/Brick|Megan|Total/i);
   expect(stash.liveParentHidden).toBe(true);
 });
+
+test('apostrophe names can still open Life Preserver', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.evaluate(() => {
+    const name = "O'Brien";
+    currentGame.originalRoster.push(name);
+    currentGame.totals[name] = currentGame.totals.Brick;
+    currentGame.rounds.forEach(round => {
+      round.scores[name] = round.scores.Brick;
+    });
+    renderGame();
+  });
+  await page.getByRole('button', {name: "Life Preserver available for O'Brien — tap to spin"}).click();
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#wheel-player-name')).toHaveText("O'Brien");
+});
+
+test('mid-game join after a Life Preserver writes catch-up to the last scoring round', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  const result = await page.evaluate(() => {
+    currentGame.rounds.push({round: 0, hailMaryBonus: true, scores: {Brick: -75}});
+    submitAddPlayerMidGame('Alexis');
+    const last = currentGame.rounds[currentGame.rounds.length - 1];
+    const scoring = [...currentGame.rounds].reverse().find(round => !round.hailMaryBonus);
+    return {
+      lastIsBonus: !!last.hailMaryBonus,
+      bonusScore: last.scores.Alexis,
+      scoringScore: scoring.scores.Alexis,
+      usedFlag: !!scoring.joinBonus?.Alexis
+    };
+  });
+  expect(result.lastIsBonus).toBe(true);
+  expect(result.bonusScore).toBe(0);
+  expect(result.scoringScore).toBeGreaterThan(0);
+  expect(result.usedFlag).toBe(true);
+});
+
+test('skipping a dealer roll does not steal the next game\'s Roll Die button', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.evaluate(() => {
+    const orig = continueAfterDealerRoll;
+    continueAfterDealerRoll = () => {};
+    players = ['Ann', 'Bea', 'Cal', 'Dee'];
+    showDealerRoll();
+    rollForDealer();
+    skipDealerRoll();
+    continueAfterDealerRoll = orig;
+  });
+  await page.waitForTimeout(1600);
+  const label = await page.evaluate(() => {
+    showDealerRoll();
+    return document.getElementById('dealer-roll-btn').textContent;
+  });
+  expect(label).toContain('Roll Die');
+  await page.locator('#dealer-roll-btn').click();
+  await expect(page.locator('#dealer-roll-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#dealer-roll-btn')).toBeDisabled();
+});
+
+test('View Pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.setViewportSize({width: 1440, height: 900});
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.evaluate(() => {
+    recordChaseVisible = true;
+    renderGame();
+  });
+  const wide = await page.evaluate(() => ({
+    active: recordChaseLayoutActive,
+    cols: document.querySelectorAll('#scorecard-head .scorecard-round-th').length
+  }));
+  expect(wide.active).toBe(true);
+  expect(wide.cols).toBe(2);
+  await page.setViewportSize({width: 800, height: 900});
+  await page.evaluate(() => syncRecordChaseLayoutForViewport());
+  const narrow = await page.evaluate(() => ({
+    active: recordChaseLayoutActive,
+    cols: document.querySelectorAll('#scorecard-head .scorecard-round-th').length
+  }));
+  expect(narrow.active).toBe(false);
+  expect(narrow.cols).toBe(8);
+});

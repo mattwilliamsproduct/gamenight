@@ -7096,9 +7096,11 @@ button.dealer-name-indicator .dealer-player-label {
     return getActivePlayers(game).length;
   }
   function getMaxRoundsForGame(game=currentGame){
+    if(Number.isFinite(game?.maxRounds)&&game.maxRounds>0)return game.maxRounds;
     const cfg=configs[game?.name];
     if(!cfg)return 0;
-    return typeof cfg.maxRounds==='function'?cfg.maxRounds(getActivePlayerCount(game)):cfg.maxRounds;
+    const n=(game?.originalRoster||[]).filter(Boolean).length||getActivePlayerCount(game);
+    return typeof cfg.maxRounds==='function'?cfg.maxRounds(Math.max(n,1)):cfg.maxRounds;
   }
   function getRecordedPlayers(gameData){
     const retired=gameData?.retired||[];
@@ -7178,6 +7180,18 @@ button.dealer-name-indicator .dealer-player-label {
     "Beat the Heat":   { emoji:"🌶️", winLow:true,  maxRounds:999 },
     "Rook":            { emoji:"🐦", winLow:false, maxRounds:999 }
   };
+
+  function snapshotGameMaxRounds(game, playerCount){
+    if(!game)return 0;
+    const n=playerCount!=null?playerCount:(game.originalRoster||[]).filter(Boolean).length;
+    const cfg=configs[game.name];
+    if(!cfg)return 0;
+    game.maxRounds=typeof cfg.maxRounds==='function'?cfg.maxRounds(Math.max(n,1)):cfg.maxRounds;
+    return game.maxRounds;
+  }
+  if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)){
+    snapshotGameMaxRounds(currentGame);
+  }
 
   const availableAvatars = ["mickey.png","mando.png","yoda.png","spiderman.png","ironman.png","hulk.png","wolverine.png","velociraptor.png","raptor-muzzle.jpg","mario.png","peach.png","omniman.png","darthvader.png","luigi.png","beetlejuice.png","frankenstein.png","meg.png","mikew.png","neo.png","daenerys.png","jasmine.png","leia.png","toothless.png","ace.png","anchorman.png","belle.png","bluesteele.png","doctorevil.png","emmet.png","et.png","flash.png","genie.png","goofy.png","harry.png","hermione.png","homealone.png","indiana.png","john.png","marty.png","mulan.png","rapunzel.png","russell.png","scarface.png","terminator.png","ursula.png","waterboy.png","madmax.png","supergirl.png","leslie.png","ww.png","prada.png","bw.png","ellewoods.png","bridesmaids.png","michael-bandana.png","dwight-wig.png","barbie-beach.png","donkey.png","ron-swanson.png","gambit.png","joker-cards.png","patrick-vacation.png","superman-flight.png","minion.png","godfather.png","bride-sword.png","bond.png","chuck-norris.png","sarah-connor.png","lara-croft.png","sandy.png","scarlet-witch.png","lady-deadpool.png"];
 
@@ -8116,7 +8130,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   /* ═══ EXPORT / IMPORT ═══ */
   function exportData(){
-    const d={allPlayers,players,history,playerProfiles};
+    const d={allPlayers,players,history,playerProfiles,currentGame};
     const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=url; a.download=`gamenight-${Date.now()}.json`; a.click();
@@ -8132,6 +8146,8 @@ button.dealer-name-indicator .dealer-player-label {
       if(d.history) d.history.forEach(h=>{if(!history.find(x=>x.id===h.id)){history.push(h);importedHistory=true;}});
       if(importedHistory) markHistoryChanged();
       if(d.playerProfiles) Object.assign(playerProfiles,d.playerProfiles);
+      if(Object.prototype.hasOwnProperty.call(d,'currentGame')) currentGame=d.currentGame||null;
+      if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
       saveData({ fullPersist: true, syncCold: true }); alert('Merged successfully.'); closeSettings(); goHome();
     }catch(e){alert('Invalid JSON.');}
   }
@@ -8985,6 +9001,9 @@ button.dealer-name-indicator .dealer-player-label {
   function escapeHtml(str){
     return String(str??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   }
+  function escapeJsString(str){
+    return String(str??'').replace(/\\/g,'\\\\').replace(/'/g,'\\\'');
+  }
   const playerSuggestHideTimers={};
   function getKnownPlayerNames(){
     const seen=new Set(), names=[];
@@ -9068,8 +9087,8 @@ button.dealer-name-indicator .dealer-player-label {
     let lh='';
     if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Tonight's Table is empty — tap an On Deck player to play</div>`;
     else players.forEach((p,i)=>{
-      lh+=`<div onclick="moveToBench('${p}')" class="lineup-enter roster-row-lineup" style="animation-delay:${i*35}ms">
-        <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="player-name-label text-lg">${p}</span></div>
+      lh+=`<div onclick="moveToBench('${escapeJsString(p)}')" class="lineup-enter roster-row-lineup" style="animation-delay:${i*35}ms">
+        <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(p)}</span></div>
         <span class="text-2xl leading-none opacity-50">&times;</span>
       </div>`;
     });
@@ -9078,7 +9097,7 @@ button.dealer-name-indicator .dealer-player-label {
     let bh='';
     if(!bench.length) bh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">On Deck is empty</div>`;
     else bench.forEach(p=>{
-      const safe = p.replace(/'/g,"\\'");
+      const safe = escapeJsString(p);
       bh+=`<div class="roster-row-bench group" draggable="true" ondragstart="dragStart(event,'${safe}')" ondragover="allowDrop(event)" ondrop="dropMerge(event,'${safe}')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
         <div class="bench-row-delete-bg">🗑 Release to delete</div>
         <div class="bench-row-content"
@@ -9229,6 +9248,7 @@ button.dealer-name-indicator .dealer-player-label {
       rounds:game.rounds||[],
       originalRoster:game.originalRoster||Object.keys(game.totals||{}),
       currentRound:game.currentRound||((game.rounds||[]).length+1),
+      maxRounds:Number.isFinite(game.maxRounds)&&game.maxRounds>0?game.maxRounds:getMaxRoundsForGame(game),
       hailMaryUsed:game.hailMaryUsed||[],
       retired:game.retired||[],
       currentScoreDrafts:{...(game.currentScoreDrafts||{})},
@@ -9287,6 +9307,7 @@ button.dealer-name-indicator .dealer-player-label {
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
     currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
+    snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
     if(name==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -9524,7 +9545,7 @@ button.dealer-name-indicator .dealer-player-label {
     let grid='';
     activePlayers.forEach(p=>{
       const isSelected=_rookSelectedPartner===p;
-      grid+=`<button class="rook-player-btn${isSelected?' rook-partner-active':''}" id="rook-partner-btn-${p.replace(/\W/g,'_')}" onclick="rookSelectPartner('${p.replace(/'/g,"\\'")}')">
+      grid+=`<button class="rook-player-btn${isSelected?' rook-partner-active':''}" id="rook-partner-btn-${p.replace(/\W/g,'_')}" onclick="rookSelectPartner('${escapeJsString(p)}')">
         ${getAvatarImg(p,'avatar-img')}
         <span class="player-name-label text-sm">${p}</span>
       </button>`;
@@ -9908,7 +9929,7 @@ ${isDealer
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">`;
       activePlayers.forEach(p=>{
         const isSel=picked===p;
-        const safe=p.replace(/'/g,"\\'");
+        const safe=escapeJsString(p);
         rookUI+=`<button type="button" class="rook-player-btn${isSel?' rook-partner-active':''}" onclick="rookSelectBidWinner('${safe}')">
           ${getAvatarImg(p,'avatar-img')}
           <span class="player-name-label text-sm">${p}</span>
@@ -9937,7 +9958,7 @@ ${isDealer
           </div>
         </div>
         <div class="text-sm font-bold mb-4" style="color:var(--muted);">${currentGame.rookHighBidder} names trump and calls a partner card.</div>
-        <button type="button" onclick="openRookCallModal('${(currentGame.rookHighBidder||'').replace(/'/g,"\\'")}',${currentGame.rookHighBid})" class="btn-primary w-full py-4 font-display text-lg">📣 Name trump &amp; partner card →</button>
+        <button type="button" onclick="openRookCallModal('${escapeJsString(currentGame.rookHighBidder||'')}',${currentGame.rookHighBid})" class="btn-primary w-full py-4 font-display text-lg">📣 Name trump &amp; partner card →</button>
         <button type="button" onclick="rookEditBidFromCalling()" class="btn-ghost w-full py-3 mt-2 text-sm font-bold">← Change bid winner or amount</button>
       </div>`;
 
@@ -9992,20 +10013,36 @@ ${isDealer
 
   // ── Pre-game: Dealer Dice Roll ──
   let _chosenDealerIdx = null;
+  let _dealerRollTimer = null;
+  let _dealerFlickerTimer = null;
+
+  function clearDealerRollTimers(){
+    if(_dealerRollTimer!==null){ clearTimeout(_dealerRollTimer); _dealerRollTimer=null; }
+    if(_dealerFlickerTimer!==null){ clearInterval(_dealerFlickerTimer); _dealerFlickerTimer=null; }
+  }
+  function resetDealerRollButton(){
+    const btn=document.getElementById('dealer-roll-btn');
+    if(!btn)return;
+    btn.disabled=false;
+    btn.textContent='🎲 Roll Die';
+    btn.onclick=null;
+    btn.setAttribute('onclick','rollForDealer()');
+  }
 
   function showDealerRoll(){
+    clearDealerRollTimers();
     _chosenDealerIdx = null;
+    resetDealerRollButton();
     document.getElementById('dealer-die').textContent = '?';
     document.getElementById('dealer-die').classList.remove('rolling');
     document.getElementById('dealer-chosen-box').classList.add('hidden');
     document.getElementById('dealer-chosen-content').innerHTML = '';
     document.getElementById('dealer-roll-result').textContent = `Roll a die to pick who deals first (${players.length} players)`;
-    document.getElementById('dealer-roll-btn').textContent = '🎲 Roll Die';
-    document.getElementById('dealer-roll-btn').disabled = false;
     document.getElementById('dealer-roll-modal').classList.remove('hidden');
   }
 
   function rollForDealer(){
+    clearDealerRollTimers();
     const die = document.getElementById('dealer-die');
     const btn = document.getElementById('dealer-roll-btn');
     btn.disabled = true;
@@ -10016,14 +10053,18 @@ ${isDealer
     haptic([40, 30, 40, 30, 40]);
     // Quick flicker during animation
     let flicker = 0;
-    const flickerInterval = setInterval(() => {
+    _dealerFlickerTimer = setInterval(() => {
       die.textContent = (Math.floor(Math.random() * 9) + 1);
       flicker++;
-      if(flicker > 12) clearInterval(flickerInterval);
+      if(flicker > 12 && _dealerFlickerTimer!==null){
+        clearInterval(_dealerFlickerTimer);
+        _dealerFlickerTimer=null;
+      }
     }, 100);
     // Settle on the actual result after animation
-    setTimeout(() => {
-      clearInterval(flickerInterval);
+    _dealerRollTimer = setTimeout(() => {
+      _dealerRollTimer = null;
+      if(_dealerFlickerTimer!==null){ clearInterval(_dealerFlickerTimer); _dealerFlickerTimer=null; }
       const n = players.length;
       const roll = Math.floor(Math.random() * n); // 0..n-1
       _chosenDealerIdx = roll;
@@ -10040,20 +10081,17 @@ ${isDealer
       btn.textContent = 'Continue →';
       btn.onclick = () => {
         document.getElementById('dealer-roll-modal').classList.add('hidden');
-        // Restore handler for next time
-        btn.onclick = null;
-        btn.setAttribute('onclick', 'rollForDealer()');
+        resetDealerRollButton();
         continueAfterDealerRoll();
       };
     }, 1400);
   }
 
   function skipDealerRoll(){
+    clearDealerRollTimers();
     _chosenDealerIdx = null;
     document.getElementById('dealer-roll-modal').classList.add('hidden');
-    const btn = document.getElementById('dealer-roll-btn');
-    btn.onclick = null;
-    btn.setAttribute('onclick', 'rollForDealer()');
+    resetDealerRollButton();
     continueAfterDealerRoll();
   }
 
@@ -10380,6 +10418,8 @@ ${isDealer
     markHistoryChanged();
     resetRecordChaseView();
     currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
+    else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
     if(g.game==='818'){currentGame.eight18Phase=g.eight18Phase||'bidding';currentGame.currentBids=g.currentBids||{};}
     if(g.game==='Rook'){
@@ -11122,6 +11162,13 @@ ${isDealer
     if(paceToggle)paceToggle.setAttribute('aria-checked',String(recordChaseLayoutActive));
   }
 
+  function syncRecordChaseLayoutForViewport(){
+    if(!currentGame)return;
+    const before=recordChaseLayoutActive;
+    setRecordChaseLayout(recordChaseVisible);
+    if(before!==recordChaseLayoutActive) scheduleRender();
+  }
+
   function toggleRecordChasePanel(){
     recordChaseVisible=!recordChaseVisible;
     renderGame();
@@ -11399,7 +11446,7 @@ ${isDealer
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${p}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
         : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
@@ -11454,7 +11501,7 @@ ${isDealer
         }
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
-            onclick="openNumpad('${p}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
+            onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
         </td>`;
       });
@@ -11969,11 +12016,13 @@ ${isDealer
   window.addEventListener('resize',()=>{
     if(scoreEntryModalState)scheduleScoreEntryModalFit();
     fitWhammyModalLayout();
+    syncRecordChaseLayoutForViewport();
   },{passive:true});
   window.visualViewport?.addEventListener('resize',()=>{
     if(scoreEntryModalState)scheduleScoreEntryModalFit();
     fitWhammyModalLayout();
     scheduleScorecardColumnTrimAll();
+    syncRecordChaseLayoutForViewport();
   },{passive:true});
 
   function renderScoreEntryModal(){
@@ -12408,14 +12457,19 @@ ${isDealer
     const avg=worstHalf.length?Math.round(worstHalf.reduce((s,p)=>s+(currentGame.totals[p]||0),0)/worstHalf.length):0;
 
     if(currentGame.rounds.length>0){
+      let lastScoringIdx=-1;
+      for(let i=currentGame.rounds.length-1;i>=0;i--){
+        if(!currentGame.rounds[i].hailMaryBonus){ lastScoringIdx=i; break; }
+      }
       currentGame.rounds.forEach((r,idx)=>{
-        r.scores[name] = idx===currentGame.rounds.length-1 ? avg : 0;
+        r.scores[name] = idx===lastScoringIdx ? avg : 0;
         if(!r.joinBonus)r.joinBonus={};
         r.joinBonus[name]=true; // ALL rounds flagged so records exclude them
       });
     } else {
       currentGame.totals[name]=0;
     }
+    recomputeGameTotals(currentGame);
     saveData(); scheduleRender();
   }
 
@@ -12665,6 +12719,7 @@ ${isDealer
       let t={}; roster.forEach(p=>t[p]=0);
       resetRecordChaseView();
       currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
+      snapshotGameMaxRounds(currentGame, roster.length);
       if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
       if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
     if(lg.game==='Rook'){
@@ -13317,8 +13372,11 @@ ${isDealer
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
       const winners = (h.winners||[]).filter(p=>sorted.includes(p));
-      const hailMaryCount = Array.isArray(h.hailMaryUsed) ? h.hailMaryUsed.length : 0;
-      update(allTime,'mostHailMarys',entry(winners[0]||sorted[0],hailMaryCount,h,{label:`${hailMaryCount} used`}),betterHigh);
+      const hailMaryUsers=[...new Set((h.hailMaryUsed||[]).filter(Boolean))];
+      const hailMaryCount=hailMaryUsers.length;
+      if(hailMaryCount){
+        update(allTime,'mostHailMarys',entry(hailMaryUsers.join(' & '),hailMaryCount,h,{label:`${hailMaryCount} used`}),betterHigh);
+      }
 
       sorted.forEach((p,idx)=>{
         const ps = ensurePlayer(p);

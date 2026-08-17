@@ -304,3 +304,16 @@ test('undo only frees Life Preservers whose bonus rounds were removed', () => {
   ]);
   assert.deepEqual(released, ['Linda']);
 });
+
+test('Wizard max rounds stay frozen when the active table shrinks', () => {
+  const totals = { Ann: 80, Bea: 78, Cal: 76, Dee: 74, Eve: 40, Fay: 38, Gus: 20, Hal: 10 };
+  const g = game({ name: 'Wizard', players: EIGHT, totals, roundCount: 6, spread: 80, currentRound: 7 });
+  assert.equal(LP.getMaxRounds(g, EIGHT), 7);
+  g.maxRounds = 7;
+  g.retired = ['Ann'];
+  const seven = EIGHT.filter(player => player !== 'Ann');
+  assert.equal(LP.getMaxRounds(g, seven), 7);
+  delete g.maxRounds;
+  g.originalRoster = [...EIGHT];
+  assert.equal(LP.getMaxRounds(g, seven), 7);
+});

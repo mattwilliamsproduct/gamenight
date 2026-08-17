@@ -76,8 +76,13 @@
   }
 
   function getMaxRounds(game, activePlayers) {
+    if (Number.isFinite(game?.maxRounds) && game.maxRounds > 0) return game.maxRounds;
     const name = game?.name;
-    if (name === 'Wizard') return Math.floor(60 / Math.max(activePlayers.length, 1));
+    if (name === 'Wizard') {
+      const roster = (game?.originalRoster || []).filter(Boolean);
+      const n = Math.max(roster.length || (activePlayers || []).length, 1);
+      return Math.floor(60 / n);
+    }
     return GAME_CONFIG[name]?.maxRounds || 0;
   }
 
