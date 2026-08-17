@@ -129,13 +129,37 @@ test('close 818 player with many rounds left does not qualify', () => {
   assert.equal(result.packGap, 25);
 });
 
-test('818 12-point gap on the final 8-trick round does not qualify', () => {
+test('tight late 818 table unlocks at about a made-bid deficit', () => {
+  const six = { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 83 };
+  const late = offer('818', six, { roundCount: 13, spread: 16, currentRound: 14, player: 'Fay' });
+  assert.equal(late.rank, 6);
+  assert.equal(late.packGap, 11);
+  assert.equal(late.leaderGap, 17);
+  assert.equal(late.eligible, true, '11 behind a tight 818 pack with two rounds left should get a Life Preserver');
+  assert.ok(late.upcomingOpportunity <= 12, `818 catch-up should be a made bid, got ${late.upcomingOpportunity}`);
+
+  const lastRound = offer('818', six, { roundCount: 14, spread: 17, currentRound: 15, player: 'Fay' });
+  assert.equal(lastRound.eligible, true);
+
+  const stillEarly = offer('818', six, { roundCount: 8, spread: 12, currentRound: 9, player: 'Fay' });
+  assert.equal(stillEarly.eligible, false);
+  assert.equal(stillEarly.reason, 'recovery-load');
+});
+
+test('818 12-point gap on the final 8-trick round qualifies', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(result.eligible, true);
+  assert.equal(result.packGap, 12);
+  assert.ok(result.upcomingOpportunity <= 12);
+});
+
+test('818 8-point last-round gap stays in ordinary range', () => {
+  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 89 };
+  const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(result.packGap, 8);
   assert.equal(result.eligible, false);
   assert.equal(result.reason, 'pack-gap');
-  assert.equal(result.packGap, 12);
-  assert.ok(result.upcomingOpportunity > 12);
 });
 
 test('818 20-point gap with 1-2 rounds left can qualify with a conservative wheel', () => {
@@ -151,6 +175,18 @@ test('818 20-point gap with 1-2 rounds left can qualify with a conservative whee
   assert.ok(twoLeft.maxSafeAdjustment <= 15);
 });
 
+test('818 18-point hole with a few rounds left needs a Life Preserver; Wizard does not', () => {
+  const totals = { Ann: 100, Bea: 98, Cal: 96, Dee: 93, Eve: 91, Fay: 88, Gus: 85, Hal: 75 };
+  const eight18 = offer('818', totals, { roundCount: 11, spread: 14, currentRound: 12, player: 'Hal' });
+  assert.equal(eight18.packGap, 18);
+  assert.equal(eight18.eligible, true);
+
+  const wizardTotals = { Ann: 200, Bea: 190, Cal: 180, Dee: 170, Eve: 160, Fay: 150, Gus: 140, Hal: 120 };
+  const wizard = offer('Wizard', wizardTotals, { roundCount: 3, spread: 50, currentRound: 4, player: 'Hal' });
+  assert.equal(wizard.packGap, 50);
+  assert.equal(wizard.eligible, false);
+});
+
 test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   const totals = { Ann: 200, Bea: 198, Cal: 196, Dee: 194, Eve: 190, Fay: 188, Gus: 180, Hal: 174 };
   const eight18 = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
@@ -159,6 +195,15 @@ test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   assert.equal(wizard.packGap, 20);
   assert.equal(eight18.eligible, true);
   assert.equal(wizard.eligible, false);
+});
+
+test('Wizard 50-point last-round hole is still ordinary play', () => {
+  const totals = { Ann: 250, Bea: 240, Cal: 230, Dee: 220, Eve: 210, Fay: 200, Gus: 190, Hal: 170 };
+  const result = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
+  assert.equal(result.packGap, 50);
+  assert.equal(result.eligible, false);
+  assert.equal(result.reason, 'pack-gap');
+  assert.ok(result.upcomingOpportunity >= 50);
 });
 
 test('Wizard upcoming opportunity grows in later rounds', () => {

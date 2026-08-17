@@ -4,6 +4,7 @@
   const SUPPORTED_GAMES = Object.freeze(['818', 'Wizard', 'Five Crowns', 'Flip 7 Vengeance']);
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
+  const EIGHT18_BID_BONUS = 10;
   const FLIP7_STRONG_ROUNDS = 2.5;
   const VOLATILITY_MIN_ROUNDS = 3;
   const VOLATILITY_WINDOW = 4;
@@ -18,7 +19,9 @@
       rescueMin: 8,
       rescueMax: 15,
       minScoringRounds: 4,
-      fallback: 22
+      fallback: 22,
+      // Made bids are +10; trick points are shared, so 18–20 behind is already desperate.
+      recoveryLoad: 0.28
     },
     Wizard: {
       winLow: false,
@@ -26,7 +29,9 @@
       rescueMin: 25,
       rescueMax: 60,
       minScoringRounds: null,
-      fallback: 40
+      fallback: 40,
+      // A made round can be 50–90, so 20–50 down is still ordinary.
+      recoveryLoad: 0.4
     },
     'Five Crowns': {
       winLow: true,
@@ -35,7 +40,8 @@
       rescueMin: 10,
       rescueMax: 75,
       minScoringRounds: 4,
-      fallback: 24
+      fallback: 24,
+      recoveryLoad: 0.4
     },
     'Flip 7 Vengeance': {
       winLow: false,
@@ -44,7 +50,8 @@
       rescueMin: 15,
       rescueMax: 40,
       minScoringRounds: 4,
-      fallback: 22
+      fallback: 22,
+      recoveryLoad: null
     }
   };
 
@@ -116,6 +123,19 @@
 
   function unitForRound(game, activePlayers, roundNumber, factor) {
     return ruleUnitForRound(game.name, roundNumber) * factor;
+  }
+
+  // How far you can realistically gain on the pack in one round of ordinary play.
+  // 818 trick points are shared; the swing that actually separates people is making
+  // the bid. Wizard/Five Crowns keep their full round units because those games really
+  // do move by that much.
+  function catchUpUnitForRound(game, activePlayers, roundNumber, factor) {
+    if (game.name === '818') {
+      const tricks = EIGHT18_ROUND_TRICKS[roundNumber - 1] || 0;
+      const extra = Math.max(0, Math.round(tricks / Math.max(activePlayers.length, 2)) - 1);
+      return (EIGHT18_BID_BONUS + extra) * factor;
+    }
+    return unitForRound(game, activePlayers, roundNumber, factor);
   }
 
   function remainingRoundNumbers(completedCount, maxRounds) {
@@ -499,14 +519,14 @@
       totalRemainingOpportunity = comebackUnit * FLIP7_STRONG_ROUNDS;
     } else {
       if (!remaining.length) return ineligible('game-over', { rank, winLow: cfg.winLow, scoreIncrement: cfg.increment });
-      upcomingOpportunity = unitForRound(game, players, upcomingRound, factor);
+      upcomingOpportunity = catchUpUnitForRound(game, players, upcomingRound, factor);
       totalRemainingOpportunity = remaining.reduce((sum, roundNumber) => (
-        sum + unitForRound(game, players, roundNumber, factor)
+        sum + catchUpUnitForRound(game, players, roundNumber, factor)
       ), 0);
       comebackUnit = upcomingOpportunity;
     }
 
-    if (!(packGap > upcomingOpportunity)) {
+    if (!(packGap >= upcomingOpportunity)) {
       return ineligible('pack-gap', {
         rank,
         leaderGap,
@@ -520,9 +540,10 @@
     }
 
     const recoveryLoad = totalRemainingOpportunity > 0 ? packGap / totalRemainingOpportunity : Infinity;
+    const recoveryThreshold = Number.isFinite(cfg.recoveryLoad) ? cfg.recoveryLoad : RECOVERY_LOAD_THRESHOLD;
     const loadOk = game.name === 'Flip 7 Vengeance'
       ? packGap / comebackUnit >= FLIP7_STRONG_ROUNDS
-      : recoveryLoad >= RECOVERY_LOAD_THRESHOLD;
+      : recoveryLoad >= recoveryThreshold;
     if (!loadOk) {
       return ineligible('recovery-load', {
         rank,
@@ -539,13 +560,16 @@
 
     const allowedRank = bestAllowedRankFor(players.length, rank);
     const rankCap = maxLegalHelpfulMagnitude(player, players, totals, cfg.winLow, cfg.increment, allowedRank);
+    const payoutRound = game.name === 'Flip 7 Vengeance'
+      ? upcomingOpportunity
+      : unitForRound(game, players, upcomingRound, factor);
     const oneStrongRound = Math.max(
       cfg.increment,
-      floorToIncrement(clamp(upcomingOpportunity, cfg.rescueMin, cfg.rescueMax), cfg.increment)
+      floorToIncrement(clamp(payoutRound, cfg.rescueMin, cfg.rescueMax), cfg.increment)
     );
     const ordinaryRecoveryLimit = game.name === 'Flip 7 Vengeance'
       ? comebackUnit * FLIP7_STRONG_ROUNDS
-      : Math.max(upcomingOpportunity, RECOVERY_LOAD_THRESHOLD * totalRemainingOpportunity);
+      : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
     const rescueNeeded = Math.max(0, packGap - ordinaryRecoveryLimit);
     const maxSafeAdjustment = floorToIncrement(
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
@@ -634,6 +658,7 @@
   const api = {
     SUPPORTED_GAMES,
     EIGHT18_ROUND_TRICKS,
+    EIGHT18_BID_BONUS,
     RECOVERY_LOAD_THRESHOLD,
     FLIP7_STRONG_ROUNDS,
     GAME_CONFIG,
