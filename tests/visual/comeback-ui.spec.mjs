@@ -52,22 +52,22 @@ test('Comeback extra sits inside the round score box next to the base score',asy
       inputFont:Number.parseFloat(inputStyle.fontSize),
       extraFamily:extraStyle.fontFamily,
       inputFamily:inputStyle.fontFamily,
-      sameRow:Math.abs(extraBox.top-inputBox.top)<=12
+      stackedInBox:extraBox.top>=inputBox.bottom-2&&extraBox.bottom<=stackBox.bottom+1
     };
   });
 
   expect(geometry,'Vikki\'s R6 cell should show a Comeback extra').not.toBeNull();
   expect(geometry.inputValue).toBe('0');
   expect(geometry.extraText).toBe('−15');
-  expect(geometry.extraInside,'extra should stay inside the score box').toBe(true);
+  expect(geometry.extraInside,'0 and −15 should share one score box').toBe(true);
   expect(geometry.extraBelowBox,'extra should not float under the box').toBe(false);
-  expect(geometry.sameRow,'0 and −15 should share the score box').toBe(true);
+  expect(geometry.stackedInBox,'−15 should sit under the 0 inside the box').toBe(true);
   expect(geometry.extraFont,'extra should be readable, not a tiny caption').toBeGreaterThanOrEqual(12);
-  expect(fontStack(geometry.extraFamily)).toContain('bree serif');
-  expect(fontStack(geometry.inputFamily)).toContain('bree serif');
+  expect(fontStack(geometry.extraFamily)).toContain('londrina');
+  expect(fontStack(geometry.inputFamily)).toContain('londrina');
 });
 
-test('Best and Worst use the same number font as round scores',async({page},testInfo)=>{
+test('Best and Worst use the same number font as totals and round scores',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='laptop-chromium','Run the type check once on laptop Chromium');
   await page.goto(blowoutUrl,{waitUntil:'networkidle'});
   await ready(page);
@@ -80,17 +80,18 @@ test('Best and Worst use the same number font as round scores',async({page},test
     const best=document.querySelector('.record-chase-score');
     const round=document.querySelector('.score-cell-input');
     const total=document.querySelector('.scorecard-total-value');
+    const family=el=>el?getComputedStyle(el).fontFamily:'';
     return {
-      best:best?getComputedStyle(best).fontFamily:'',
-      round:round?getComputedStyle(round).fontFamily:'',
-      total:total?getComputedStyle(total).fontFamily:'',
+      best:family(best),
+      round:family(round),
+      total:family(total),
       bestSize:best?Number.parseFloat(getComputedStyle(best).fontSize):0
     };
   });
 
-  expect(fontStack(fonts.best)).toContain('bree serif');
-  expect(fontStack(fonts.round)).toContain('bree serif');
-  expect(fontStack(fonts.best)).not.toContain('londrina');
+  expect(fontStack(fonts.best)).toContain('londrina');
+  expect(fontStack(fonts.round)).toContain('londrina');
+  expect(fontStack(fonts.total)).toContain('londrina');
   expect(fonts.bestSize,'Best/Worst sizing should stay large').toBeGreaterThanOrEqual(20);
 });
 
