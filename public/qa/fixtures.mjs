@@ -187,6 +187,71 @@ const recordChaseHistory=recordChaseHistoryScores.map((scoreRows,index)=>{
     retired:[]
   };
 });
+const heatPacePlayers=['Vikki','Matt','Linda','Michelle','Megan'];
+function heatRoundsFromScores(players,scoreRows){
+  return scoreRows.map((scoreRow,roundIndex)=>({
+    round:roundIndex+1,
+    scores:Object.fromEntries(players.map((player,index)=>[player,Number(scoreRow[index])||0]))
+  }));
+}
+function heatMatch(idOffset,date,scoreRows){
+  const rounds=heatRoundsFromScores(heatPacePlayers,scoreRows);
+  const totals=totalRounds(heatPacePlayers,rounds);
+  return {
+    id:1784390400000-idOffset,
+    game:'Beat the Heat',
+    date,
+    totals,
+    winners:winnersFor('Beat the Heat',totals),
+    rounds,
+    originalRoster:[...heatPacePlayers],
+    currentRound:rounds.length+1,
+    hailMaryUsed:[],
+    retired:[]
+  };
+}
+const heatPaceGame=makeCurrentGame('Beat the Heat',heatPacePlayers,heatRoundsFromScores(heatPacePlayers,[
+  [6,12,14,4,15],
+  [9,5,12,18,9],
+  [14,14,10,6,10]
+]));
+const heatPaceHistory=[
+  heatMatch(86400000,'8/10/2026',[
+    [10,8,2,12,9],
+    [12,9,3,10,11]
+  ]),
+  heatMatch(172800000,'8/3/2026',[
+    [8,10,10,9,8],
+    [9,8,10,11,10],
+    [10,9,9,10,9],
+    [18,20,20,16,18]
+  ]),
+  heatMatch(259200000,'7/27/2026',[
+    [12,11,14,8,10],
+    [14,12,14,10,12],
+    [14,12,14,10,12],
+    [20,18,20,18,20]
+  ]),
+  heatMatch(345600000,'7/20/2026',[
+    [11,9,13,7,9],
+    [13,11,13,9,11],
+    [16,14,16,12,14],
+    [20,18,20,18,20]
+  ])
+];
+const lateCrownsPlayers=['Linda','Michelle','Cat','Megan','Brick'];
+const lateCrownsGame=makeCurrentGame('Five Crowns',lateCrownsPlayers,heatRoundsFromScores(lateCrownsPlayers,[
+  [12,10,8,15,14],
+  [12,10,8,15,14],
+  [12,10,8,15,14],
+  [12,10,8,15,13],
+  [12,10,8,15,13],
+  [12,10,8,15,13],
+  [12,10,0,15,13],
+  [12,10,8,15,13],
+  [12,10,8,15,14],
+  [15,4,8,18,14]
+]));
 
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
@@ -230,6 +295,18 @@ export const QA_SCENARIOS = {
     description:'Eight-player Wizard with best-pace, usual-pace, and fresh-start stories for reviewing the compact scorecard concept.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...recordChasePlayers],history:recordChaseHistory,playerProfiles:profiles(),currentGame:recordChaseGame}
+  },
+  'beat-the-heat-pace':{
+    label:'Beat the Heat · Pace Audit',
+    description:'Linda sits on 36 with a 5-point two-round career best, so pace must compare this point in past games instead of those final totals.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...heatPacePlayers],history:heatPaceHistory,playerProfiles:profiles(),currentGame:heatPaceGame}
+  },
+  'five-crowns-late':{
+    label:'Five Crowns · Late Totals',
+    description:'Five players through Hand of 13, with three-digit totals and Michelle on the card for name-fit and centering checks.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...lateCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrownsGame}
   },
   'five-crowns-preservers':{
     label:'Five Crowns · Life Preservers',

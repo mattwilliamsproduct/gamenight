@@ -2587,7 +2587,7 @@ button.dealer-name-indicator {
       min-height: 0;
     }
     .record-chase-panel {
-      --record-chase-score-col: clamp(4rem, 5.2vw, 4.8rem);
+      --record-chase-score-col: clamp(4.7rem, 6.2vw, 5.8rem);
       --record-chase-grid-gap: clamp(0.45rem, 0.75vw, 0.8rem);
       --record-chase-pad-x: clamp(0.55rem, 0.8vw, 0.8rem);
       display: flex;
@@ -2729,15 +2729,41 @@ button.dealer-name-indicator {
     .record-chase-score {
       display: flex;
       min-width: 0;
-      align-items: baseline;
+      align-items: center;
       justify-content: center;
-      padding-left: clamp(0.35rem, 0.6vw, 0.65rem);
+      padding-left: clamp(0.2rem, 0.4vw, 0.45rem);
+      padding-right: 0.1rem;
       border-left: 1px solid rgba(40,127,155,0.22);
       font-family: 'Londrina Solid', sans-serif;
-      font-size: clamp(1.75rem, 2.2vw, 2.4rem);
+      font-size: clamp(1.55rem, 2.05vw, 2.2rem);
       line-height: 0.95;
       text-align: center;
       color: var(--blue);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    button.record-chase-score {
+      appearance: none;
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-right: 0.1rem;
+      background: transparent;
+      border-top: 0;
+      border-right: 0;
+      border-bottom: 0;
+      cursor: pointer;
+      color: inherit;
+      font: inherit;
+    }
+    button.record-chase-score:hover,
+    button.record-chase-score:focus-visible {
+      text-decoration: underline;
+      text-underline-offset: 0.12em;
+    }
+    button.record-chase-score:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
     }
     .record-chase-score.is-missing {
       color: var(--muted);
@@ -2756,12 +2782,13 @@ button.dealer-name-indicator {
     }
     @media (min-width: 901px) and (max-width: 1250px) {
       .record-chase-panel {
-        --record-chase-score-col: 3.8rem;
+        --record-chase-score-col: 4.55rem;
         --record-chase-grid-gap: 0.4rem;
         --record-chase-pad-x: 0.45rem;
       }
       .record-chase-score {
-        padding-left: 0.35rem;
+        padding-left: 0.2rem;
+        font-size: clamp(1.4rem, 1.9vw, 1.85rem);
       }
     }
     /* The pace and score cells share one readable rhythm at every fitted row height. */
@@ -2770,10 +2797,11 @@ button.dealer-name-indicator {
       font-feature-settings: 'tnum';
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 65%;
+      width: 62%;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: 15%;
+      width: 18%;
+      min-width: 6.75rem;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
@@ -2783,11 +2811,12 @@ button.dealer-name-indicator {
       width: 68%;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: 14%;
+      width: 16%;
+      min-width: 7.25rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
-      width: 9%;
+      width: 8%;
     }
     @media (max-width: 900px) {
       .record-chase-panel {
@@ -2906,6 +2935,14 @@ button.dealer-name-indicator {
         vertical-align: middle;
         overflow: hidden;
       }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td.scorecard-total-cell {
+        overflow: visible;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player > .flex,
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-player-identity {
+        max-width: 100%;
+        min-width: 0;
+      }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
         font-size: var(--scorecard-player-font) !important;
         line-height: 0.86;
@@ -2915,7 +2952,8 @@ button.dealer-name-indicator {
         height: var(--scorecard-avatar-size) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell.tv-stat-num,
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell .tv-stat-num {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell .tv-stat-num,
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-value {
         font-size: var(--scorecard-total-font) !important;
         line-height: 0.86;
       }
@@ -3050,11 +3088,12 @@ button.dealer-name-indicator {
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: clamp(22rem, 29vw, 31rem);
-      min-width: 0;
+      min-width: 16.5rem;
       max-width: none;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: clamp(5.75rem, 7.5vw, 7.75rem);
+      width: clamp(7.25rem, 9.5vw, 9.5rem);
+      min-width: 7.25rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: clamp(29rem, 40vw, 42rem);
@@ -3081,13 +3120,33 @@ button.dealer-name-indicator {
       max-width: clamp(260px, 30vw, 420px);
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-overflow: clip;
+    }
+    .scorecard-col-player > .flex,
+    .scorecard-col-player .scorecard-player-identity {
+      max-width: 100%;
+      min-width: 0;
     }
     .scorecard-col-total {
-      width: 74px;
+      width: 7.5rem;
+      min-width: 7.25rem;
       white-space: nowrap;
+      overflow: visible;
+      box-sizing: border-box;
     }
     .scorecard-table .scorecard-col-total {
+      text-align: center;
+    }
+    .scorecard-total-value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-width: 0;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+      line-height: 1;
       text-align: center;
     }
     .scorecard-col-bid--wizard {
@@ -3154,9 +3213,9 @@ button.dealer-name-indicator {
       font-size: clamp(1.95rem, 3.55vw, 2.7rem) !important;
       letter-spacing: -0.03em;
       line-height: 1.2;
-      min-width: 0;
-      max-width: 100%;
-      flex: 0 1 auto;
+      min-width: auto;
+      max-width: none;
+      flex: 0 0 auto;
       white-space: nowrap;
       overflow: visible;
       text-overflow: clip;
@@ -3166,12 +3225,12 @@ button.dealer-name-indicator {
       margin-bottom: -0.18em;
     }
 button.dealer-name-indicator.scoreboard-player-name {
-  max-width: 100%;
+  max-width: none;
   display: inline-flex;
   align-items: center;
   gap: 0;
   width: max-content;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   justify-content: flex-start;
   padding-top: 0.08em;
   padding-bottom: 0.08em;
@@ -4771,12 +4830,13 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .scoreboard-rank-badge { border-radius: 10px; }
     .scorecard-total-cell {
-      min-width: 74px;
+      min-width: 7.25rem;
       background: linear-gradient(180deg, rgba(226,246,239,0.7), rgba(249,253,250,0.72));
       color: #0b3935;
     }
     .scorecard-total-cell.tv-stat-num,
-    .scorecard-total-cell .tv-stat-num { font-size: clamp(2.05rem, 3.4vw, 2.85rem) !important; }
+    .scorecard-total-cell .tv-stat-num,
+    .scorecard-total-value { font-size: clamp(2.05rem, 3.4vw, 2.85rem) !important; }
     .scorecard-avatar-slot {
       position: relative;
       display: inline-flex;
@@ -5494,7 +5554,8 @@ button.dealer-name-indicator .dealer-player-label {
     .scorecard-table thead th,
     .scorecard-table tbody td.scorecard-col-total,
     .scorecard-table .score-cell-input,
-    .scorecard-table .tv-round-cell-num {
+    .scorecard-table .tv-round-cell-num,
+    .scorecard-total-value {
       font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
       font-weight: 400 !important;
       letter-spacing: 0 !important;
@@ -6128,7 +6189,7 @@ button.dealer-name-indicator .dealer-player-label {
               <div class="record-chase-head">
                 <div class="record-chase-heading">
                   <div class="record-chase-title">Player Pace</div>
-                  <div class="record-chase-subtitle">Meaningful shifts stand out</div>
+                  <div class="record-chase-subtitle">Vs this point in past games</div>
                 </div>
                 <span class="record-chase-head-label record-chase-head-label--best">Best</span>
                 <span class="record-chase-head-label record-chase-head-label--worst">Worst</span>
@@ -9970,7 +10031,7 @@ button.dealer-name-indicator .dealer-player-label {
       <th data-sc-part="lead" class="scorecard-col-bid px-3 py-3 text-center">
         <span class="text-[10px] font-extrabold uppercase tracking-[0.12em]" style="color:#34d399;">Hand bid</span>
       </th>
-      <th data-sc-part="lead" class="scorecard-col-total px-4 py-3 text-left">Total</th>
+      <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>
       <th data-sc-part="lead" class="scorecard-col-target px-3 py-3 text-center" style="color:#6ee7b7;">Target: ${winTarget}</th>`;
     currentGame.rounds.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
@@ -10022,7 +10083,7 @@ ${isDealer
           ${progressBar}
         </td>
         <td data-sc-part="lead" class="scorecard-col-bid px-3 py-2 text-center align-middle">${bidCell}</td>
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-3 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${total}</td>
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${total}</span></td>
         <td data-sc-part="lead" class="scorecard-col-target px-3 py-2 text-center">
           <span class="tv-target-pct font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
         </td>`;
@@ -11077,7 +11138,7 @@ ${isDealer
 
   /* ═══ SCORECARD: hide oldest round columns when table overflows wrap (table-layout: auto + re-measure loop) ═══ */
   let _scorecardTrimRaf = null;
-  function updateScorecardColumnTrim(root){
+  function updateScorecardColumnTrim(root,options){
     const trimTimer = gnPerfStart('GN scorecard trim');
     try{
       if(!root) return;
@@ -11106,6 +11167,12 @@ ${isDealer
       while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
         hidden++;
         applyHidden(hidden);
+      }
+      if(options?.hideUntilLeadFits){
+        while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
+          hidden++;
+          applyHidden(hidden);
+        }
       }
       if(hint){
         if(hidden>0){
@@ -11184,7 +11251,7 @@ ${isDealer
         root.style.setProperty('--scorecard-dealer-size',`${Math.max(11,Math.min(30,22*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-reorder-font',`${Math.max(0.4,Math.min(1.125,1.125*scale)).toFixed(2)}rem`);
-        root.style.setProperty('--scorecard-total-pad-x',`${Math.max(0.2,1.0*scale).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-total-pad-x',`${Math.max(0.12,0.28*scale).toFixed(2)}rem`);
       };
       for(let i=0;i<8;i++){
         applyFit();
@@ -11194,25 +11261,8 @@ ${isDealer
         scale=Math.max(0.3,scale*ratio*0.97);
         rowHeight=Math.max(20,rowHeight*ratio*0.97);
       }
-      root.querySelectorAll('.scoreboard-player-name').forEach(name=>{
-        const fitTarget=name.querySelector('.dealer-player-label')||name;
-        if(fitTarget.clientWidth<=0||fitTarget.scrollWidth<=fitTarget.clientWidth+1)return;
-        const base=parseFloat(getComputedStyle(name).fontSize)||16;
-        let low=16;
-        let high=base;
-        let best=16;
-        for(let i=0;i<8;i++){
-          const size=(low+high)/2;
-          name.style.setProperty('font-size',`${size.toFixed(1)}px`,'important');
-          if(fitTarget.scrollWidth<=fitTarget.clientWidth+1){
-            best=size;
-            low=size;
-          } else {
-            high=size;
-          }
-        }
-        name.style.setProperty('font-size',`${Math.max(16,best*0.94).toFixed(1)}px`,'important');
-      });
+      root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
+      root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
       const recordPanel=document.getElementById('record-chase-panel');
       const scoreBody=table.querySelector('tbody');
       if(paceList&&recordPanel&&!recordPanel.classList.contains('hidden')&&scoreBody){
@@ -11223,6 +11273,20 @@ ${isDealer
       gnPerfEnd(fitTimer);
     }
   }
+  function scorecardNameAvailableWidth(name){
+    const cell=name.closest('td.scorecard-col-player');
+    const lane=name.closest('.scorecard-player-identity')||name.parentElement;
+    if(!cell||!lane)return 0;
+    const cellStyle=getComputedStyle(cell);
+    const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+    const laneStyle=getComputedStyle(lane);
+    const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
+    const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
+    const siblings=visibleChildren.filter(node=>node!==name);
+    return cellInner
+      - siblings.reduce((sum,node)=>sum+node.getBoundingClientRect().width,0)
+      - gap*Math.max(0,visibleChildren.length-1);
+  }
   function fitScorecardPlayerNames(root){
     if(!root||root.offsetParent===null)return;
     const canvas=fitScorecardPlayerNames.canvas||(fitScorecardPlayerNames.canvas=document.createElement('canvas'));
@@ -11231,15 +11295,12 @@ ${isDealer
     const names=[...root.querySelectorAll('.scoreboard-player-name')];
     names.forEach(name=>name.style.removeProperty('font-size'));
     names.forEach(name=>{
-      const lane=name.parentElement;
-      if(!lane||lane.clientWidth<=0)return;
-      const laneStyle=getComputedStyle(lane);
-      const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
-      const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
-      const siblings=visibleChildren.filter(node=>node!==name);
-      const available=lane.clientWidth
-        - siblings.reduce((sum,node)=>sum+node.getBoundingClientRect().width,0)
-        - gap*Math.max(0,visibleChildren.length-1);
+      const cell=name.closest('td.scorecard-col-player');
+      if(!cell)return;
+      const nameBox=name.getBoundingClientRect();
+      const cellBox=cell.getBoundingClientRect();
+      if(nameBox.right<=cellBox.right+2)return;
+      const available=scorecardNameAvailableWidth(name);
       if(available<=0)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
@@ -11256,8 +11317,52 @@ ${isDealer
       };
       const natural=measureAt(maximum);
       if(natural<=available)return;
-      const fitted=Math.max(1,maximum*((available-1)/Math.max(1,natural))*0.98);
+      const fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
       name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+    });
+  }
+  function fitScorecardTotals(root){
+    if(!root||root.offsetParent===null)return;
+    const canvas=fitScorecardTotals.canvas||(fitScorecardTotals.canvas=document.createElement('canvas'));
+    const context=canvas.getContext('2d');
+    if(!context)return;
+    const values=[...root.querySelectorAll('.scorecard-total-value')];
+    values.forEach(value=>value.style.removeProperty('font-size'));
+    values.forEach(value=>{
+      const cell=value.closest('.scorecard-col-total');
+      if(!cell||cell.clientWidth<=0)return;
+      const valueBox=value.getBoundingClientRect();
+      const cellBox=cell.getBoundingClientRect();
+      if(valueBox.width<=cellBox.width+1&&valueBox.right<=cellBox.right+1&&valueBox.left>=cellBox.left-1)return;
+      const cellStyle=getComputedStyle(cell);
+      const available=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+      if(available<=0)return;
+      const maximum=parseFloat(getComputedStyle(value).fontSize)||16;
+      const valueStyle=getComputedStyle(value);
+      const text=(value.textContent||'').trim();
+      context.font=`${valueStyle.fontStyle} ${valueStyle.fontWeight} ${maximum}px ${valueStyle.fontFamily}`;
+      const natural=context.measureText(text).width;
+      if(natural<=available)return;
+      const fitted=Math.max(16,maximum*((available-1)/Math.max(1,natural))*0.96);
+      value.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+    });
+  }
+  function scorecardLeadStillOverflows(table){
+    if(!table)return false;
+    return [...table.querySelectorAll('tbody tr')].some(row=>{
+      const playerCell=row.querySelector('.scorecard-col-player');
+      const name=row.querySelector('.scoreboard-player-name');
+      const totalCell=row.querySelector('.scorecard-col-total');
+      const totalValue=row.querySelector('.scorecard-total-value')||totalCell;
+      if(!playerCell||!name||!totalCell||!totalValue)return false;
+      const playerBox=playerCell.getBoundingClientRect();
+      const nameBox=name.getBoundingClientRect();
+      const totalBox=totalCell.getBoundingClientRect();
+      const valueBox=totalValue.getBoundingClientRect();
+      return nameBox.right>playerBox.right+1.5||
+        valueBox.width>totalBox.width+1||
+        valueBox.right>totalBox.right+1.5||
+        valueBox.left<totalBox.left-1.5;
     });
   }
   function scheduleScorecardColumnTrimAll(){
@@ -11267,12 +11372,21 @@ ${isDealer
       const trimAllTimer = gnPerfStart('GN scorecard trim all');
       try{
         _scorecardTrimRaf=null;
-        updateScorecardColumnTrim(document.getElementById('scorecard-capture'));
+        const capture=document.getElementById('scorecard-capture');
+        updateScorecardColumnTrim(capture);
         const modal=document.getElementById('scorecard-modal');
         const block=document.getElementById('modal-scorecard-block');
         if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
         fitActiveScorecardRows();
-        fitScorecardPlayerNames(document.getElementById('scorecard-capture'));
+        fitScorecardPlayerNames(capture);
+        fitScorecardTotals(capture);
+        const table=capture?.querySelector('table.scorecard-table');
+        if(table&&scorecardLeadStillOverflows(table)){
+          updateScorecardColumnTrim(capture,{hideUntilLeadFits:true});
+          fitActiveScorecardRows();
+          fitScorecardPlayerNames(capture);
+          fitScorecardTotals(capture);
+        }
       } finally {
         gnPerfEnd(trimAllTimer);
       }
@@ -11351,77 +11465,94 @@ ${isDealer
       .reduce((total,round)=>total+(Number(round.scores?.[player])||0),0);
   }
 
+  function pickRecordChaseFinal(matches,player,cfg,wantBest){
+    return matches.reduce((picked,match)=>{
+      const score=Number(match.totals?.[player]);
+      if(!Number.isFinite(score))return picked;
+      const entry={match,score};
+      if(!picked)return entry;
+      const better=wantBest
+        ? (cfg.winLow?score<picked.score:score>picked.score)
+        : (cfg.winLow?score>picked.score:score<picked.score);
+      if(better)return entry;
+      if(score===picked.score&&(match.id||0)>(picked.match.id||0))return entry;
+      return picked;
+    },null);
+  }
+
   function getRecordChaseMetric(player,cfg){
     const gameName=currentGame.name;
     const matches=getRecordChaseHistory(player,gameName);
     const currentRounds=getRecordChasePlayerRounds(currentGame,player);
     const completed=currentRounds.length;
     const currentScore=recordChaseScoreThrough(currentGame,player,completed);
+    const bestEntry=pickRecordChaseFinal(matches,player,cfg,true);
+    const worstEntry=pickRecordChaseFinal(matches,player,cfg,false);
     const comparable=completed
       ? matches
         .filter(match=>getRecordChasePlayerRounds(match,player).length>=completed)
-        .map(match=>recordChaseScoreThrough(match,player,completed))
-        .filter(score=>Number.isFinite(score))
+        .map(match=>({match,score:recordChaseScoreThrough(match,player,completed)}))
+        .filter(entry=>Number.isFinite(entry.score))
       : [];
+    const bestPaceScore=(bestEntry&&getRecordChasePlayerRounds(bestEntry.match,player).length>=completed)
+      ? recordChaseScoreThrough(bestEntry.match,player,completed)
+      : null;
     let paceCategory='NEW';
     let paceDirection='neutral';
     let paceDifference=null;
     let ariaLabel='Fresh scorecard';
+    const roundLabel=completed?` after ${completed} round${completed===1?'':'s'}`:'';
     if(comparable.length){
-      const best=cfg.winLow?Math.min(...comparable):Math.max(...comparable);
-      const usual=Math.round(comparable.reduce((sum,score)=>sum+score,0)/comparable.length);
-      const bestAdvantage=cfg.winLow?best-currentScore:currentScore-best;
+      const usual=Math.round(comparable.reduce((sum,entry)=>sum+entry.score,0)/comparable.length);
       const usualAdvantage=cfg.winLow?usual-currentScore:currentScore-usual;
       const closeThreshold={Wizard:20,'818':6,'Five Crowns':12,'Flip 7 Vengeance':20,'Beat the Heat':8}[gameName]||12;
-      if(bestAdvantage>0){
-        paceCategory='BEST';
-        paceDirection='ahead';
-        paceDifference=Math.abs(bestAdvantage);
-        ariaLabel=`New best pace, ${paceDifference} ahead`;
-      } else if(bestAdvantage===0){
-        paceCategory='BEST';
-        paceDirection='even';
-        ariaLabel='Right on personal-best pace';
-      } else if(Math.abs(bestAdvantage)<=closeThreshold){
-        paceCategory='TO BEST';
-        paceDirection='back';
-        paceDifference=Math.abs(bestAdvantage);
-        ariaLabel=`Personal best, ${paceDifference} back`;
-      } else if(Math.abs(usualAdvantage)<=2){
-        paceCategory='AVG';
-        paceDirection='even';
-        ariaLabel='Right on usual pace';
-      } else if(usualAdvantage>0){
-        paceCategory='AVG';
-        paceDirection='ahead';
-        paceDifference=Math.abs(usualAdvantage);
-        ariaLabel=`${paceDifference} ahead of usual pace`;
-      } else {
-        paceCategory='AVG';
-        paceDirection='back';
-        paceDifference=Math.abs(usualAdvantage);
-        ariaLabel=`${paceDifference} off usual pace`;
+      if(bestPaceScore!==null){
+        const bestAdvantage=cfg.winLow?bestPaceScore-currentScore:currentScore-bestPaceScore;
+        if(bestAdvantage>0){
+          paceCategory='BEST';
+          paceDirection='ahead';
+          paceDifference=Math.abs(bestAdvantage);
+          ariaLabel=`${paceDifference} pts ahead of best pace${roundLabel}; ${currentScore} now vs ${bestPaceScore} in the best finished game`;
+        } else if(bestAdvantage===0){
+          paceCategory='BEST';
+          paceDirection='even';
+          ariaLabel=`On best pace${roundLabel}`;
+        } else if(Math.abs(bestAdvantage)<=closeThreshold){
+          paceCategory='TO BEST';
+          paceDirection='back';
+          paceDifference=Math.abs(bestAdvantage);
+          ariaLabel=`${paceDifference} pts behind best pace${roundLabel}; ${currentScore} now vs ${bestPaceScore} in the best finished game`;
+        }
+      }
+      if(paceCategory==='NEW'){
+        if(Math.abs(usualAdvantage)<=2){
+          paceCategory='AVG';
+          paceDirection='even';
+          ariaLabel=`Usual pace${roundLabel}`;
+        } else if(usualAdvantage>0){
+          paceCategory='AVG';
+          paceDirection='ahead';
+          paceDifference=Math.abs(usualAdvantage);
+          ariaLabel=`${paceDifference} pts ahead of usual pace${roundLabel}`;
+        } else {
+          paceCategory='AVG';
+          paceDirection='back';
+          paceDifference=Math.abs(usualAdvantage);
+          ariaLabel=`${paceDifference} pts behind usual pace${roundLabel}`;
+        }
       }
     } else if(matches.length){
-      const finalScores=matches.map(match=>Number(match.totals[player])||0);
-      const best=cfg.winLow?Math.min(...finalScores):Math.max(...finalScores);
-      ariaLabel=`Fresh scorecard; career best ${best}`;
+      ariaLabel=`No comparison yet${bestEntry?`; career best finish ${bestEntry.score}`:''}`;
     }
-    const finalScores=matches
-      .map(match=>Number(match.totals?.[player]))
-      .filter(score=>Number.isFinite(score));
-    const bestScore=finalScores.length
-      ? (cfg.winLow?Math.min(...finalScores):Math.max(...finalScores))
-      : null;
-    const worstScore=finalScores.length
-      ? (cfg.winLow?Math.max(...finalScores):Math.min(...finalScores))
-      : null;
     return {
       paceCategory,
       paceDirection,
       paceDifference,
-      bestScore,
-      worstScore,
+      completedRounds:completed,
+      bestScore:bestEntry?bestEntry.score:null,
+      worstScore:worstEntry?worstEntry.score:null,
+      bestMatchId:Number.isFinite(bestEntry?.match?.id)?bestEntry.match.id:null,
+      worstMatchId:Number.isFinite(worstEntry?.match?.id)?worstEntry.match.id:null,
       ariaLabel
     };
   }
@@ -11439,19 +11570,27 @@ ${isDealer
       const paceMessage=metric.paceCategory==='NEW'
         ? (metric.bestScore===null?'No past pace yet':'No comparison yet')
         : metric.paceCategory==='BEST'
-          ? (metric.paceDirection==='even'?'On personal-best pace':`${metric.paceDifference} pts ahead of best`)
+          ? (metric.paceDirection==='even'?'On best pace':`${metric.paceDifference} pts ahead of best pace`)
           : metric.paceCategory==='TO BEST'
-            ? `${metric.paceDifference} pts behind best`
+            ? `${metric.paceDifference} pts behind best pace`
             : metric.paceDirection==='even'
               ? 'Usual pace'
               : `${metric.paceDifference} pts ${metric.paceDirection==='ahead'?'ahead of':'behind'} usual`;
       const paceTone=metric.paceDirection==='ahead'?'positive':metric.paceDirection==='back'?'behind':metric.paceCategory==='NEW'?'fresh':'neutral';
       const isSteady=(metric.paceCategory==='AVG'&&metric.paceDirection==='even')||(metric.paceCategory==='NEW'&&metric.bestScore!==null);
       const paceClass=isSteady?' is-steady':' is-meaningful';
+      const recordScoreCell=(kind,score,matchId)=>{
+        const missing=score==='—';
+        const label=`${kind} ${score}`;
+        if(missing||matchId==null){
+          return `<div class="record-chase-score${missing?' is-missing':''}" aria-label="${escapeHtml(label)}">${score}</div>`;
+        }
+        return `<button type="button" class="record-chase-score" data-record-kind="${kind.toLowerCase()}" onclick="openScorecard(${matchId})" aria-label="${escapeHtml(label)}, view that scorecard" title="Open the ${kind.toLowerCase()} scorecard">${score}</button>`;
+      };
       return `<div class="record-chase-row${isLeader?' is-leader':''}" data-player="${escapeHtml(player)}" title="${escapeHtml(player)} · ${escapeHtml(metric.ariaLabel)} · Best ${best} · Worst ${worst}">
         <div class="record-chase-pace${paceClass}" data-tone="${paceTone}" aria-label="${escapeHtml(paceMessage)}"><span class="record-chase-pace-message">${escapeHtml(paceMessage)}</span></div>
-        <div class="record-chase-score${metric.bestScore===null?' is-missing':''}" aria-label="Best ${best}">${best}</div>
-        <div class="record-chase-score${metric.worstScore===null?' is-missing':''}" aria-label="Worst ${worst}">${worst}</div>
+        ${recordScoreCell('Best',best,metric.bestMatchId)}
+        ${recordScoreCell('Worst',worst,metric.worstMatchId)}
       </div>`;
     }).join('');
   }
@@ -11547,7 +11686,7 @@ ${isDealer
       ${showSubmittedBids?`<th data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard px-2 py-3 text-center" aria-label="BID ${submittedBidTotal} of ${submittedBidRound}">
         <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">BID</span><span class="scorecard-bid-header-fraction">${submittedBidTotal}/${submittedBidRound}</span></span>
       </th>`:''}
-      <th data-sc-part="lead" class="scorecard-col-total px-4 py-3">Total</th>`;
+      <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
     if(!hasScorecardRounds)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
     head+=`</tr>`;
@@ -11633,7 +11772,7 @@ ${isDealer
           </div>
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-3 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${currentGame.totals[p]}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span></td>`;
       if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       // Past rounds
@@ -13224,7 +13363,7 @@ ${isDealer
     document.getElementById('modal-game-date').textContent=g.date;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
-    let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-4 py-3">Total</th>`;
+    let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
       head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}</th>`;
@@ -13236,7 +13375,7 @@ ${isDealer
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
         <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
-        <td data-sc-part="lead" class="scorecard-col-total px-4 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}">${g.totals[p]}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span></td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${r.scores[p]!==undefined?r.scores[p]:''}</td>`;
