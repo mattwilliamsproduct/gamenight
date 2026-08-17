@@ -4,6 +4,7 @@
   const SUPPORTED_GAMES = Object.freeze(['818', 'Wizard', 'Five Crowns', 'Flip 7 Vengeance']);
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
+  const EIGHT18_BID_BONUS = 10;
   const FLIP7_STRONG_ROUNDS = 2.5;
   const VOLATILITY_MIN_ROUNDS = 3;
   const VOLATILITY_WINDOW = 4;
@@ -18,7 +19,9 @@
       rescueMin: 8,
       rescueMax: 15,
       minScoringRounds: 4,
-      fallback: 22
+      fallback: 22,
+      // Made bids are +10; trick points are shared, so 18–20 behind is already desperate.
+      recoveryLoad: 0.28
     },
     Wizard: {
       winLow: false,
@@ -26,7 +29,9 @@
       rescueMin: 25,
       rescueMax: 60,
       minScoringRounds: null,
-      fallback: 40
+      fallback: 40,
+      // A made round can be 50–90, so 20–50 down is still ordinary.
+      recoveryLoad: 0.4
     },
     'Five Crowns': {
       winLow: true,
@@ -35,7 +40,8 @@
       rescueMin: 10,
       rescueMax: 75,
       minScoringRounds: 4,
-      fallback: 24
+      fallback: 24,
+      recoveryLoad: 0.4
     },
     'Flip 7 Vengeance': {
       winLow: false,
@@ -44,12 +50,14 @@
       rescueMin: 15,
       rescueMax: 40,
       minScoringRounds: 4,
-      fallback: 22
+      fallback: 22,
+      recoveryLoad: null
     }
   };
 
   const COLORS = {
     badStrong: '#991b1b',
+    badSoft: '#dc2626',
     goodStrong: '#10b981',
     goodMid: '#34d399',
     goodSoft: '#6ee7b7',
@@ -115,6 +123,19 @@
 
   function unitForRound(game, activePlayers, roundNumber, factor) {
     return ruleUnitForRound(game.name, roundNumber) * factor;
+  }
+
+  // How far you can realistically gain on the pack in one round of ordinary play.
+  // 818 trick points are shared; the swing that actually separates people is making
+  // the bid. Wizard/Five Crowns keep their full round units because those games really
+  // do move by that much.
+  function catchUpUnitForRound(game, activePlayers, roundNumber, factor) {
+    if (game.name === '818') {
+      const tricks = EIGHT18_ROUND_TRICKS[roundNumber - 1] || 0;
+      const extra = Math.max(0, Math.round(tricks / Math.max(activePlayers.length, 2)) - 1);
+      return (EIGHT18_BID_BONUS + extra) * factor;
+    }
+    return unitForRound(game, activePlayers, roundNumber, factor);
   }
 
   function remainingRoundNumbers(completedCount, maxRounds) {
@@ -259,33 +280,216 @@
     if (lesser.length) {
       bullets.push(`The other helpful slices are smaller shares of that same number: ${joinEnglish(lesser)}.`);
     }
-    if (offer.maxSetback) {
+    const setbacks = [...new Set((offer.slices || [])
+      .filter(slice => (Number(slice.adjustment) || 0) * sign < 0)
+      .map(slice => Math.abs(slice.adjustment))
+    )]
+      .sort((a, b) => a - b)
+      .map(magnitude => formatSignedPoints((-sign) * magnitude));
+    if (setbacks.length === 1) {
+      bullets.push(`The red slice is a modest setback of ${setbacks[0]}.`);
+    } else if (setbacks.length > 1) {
+      bullets.push(`The red slices are modest setbacks of ${joinEnglish(setbacks)}.`);
+    } else if (offer.maxSetback) {
       bullets.push(`The red slice is a modest setback of ${setbackShort}.`);
     }
 
     return { summary, wheelLine, bullets, bindingLimit: binding };
   }
 
-  function interleaveWheelSlicesByKind(slices) {
-    const bad = slices.filter(slice => slice._wheelBad);
-    const good = slices.filter(slice => !slice._wheelBad);
-    if (!bad.length || !good.length) return slices.map(({ _wheelBad, ...rest }) => rest);
-    const out = [];
-    let bi = 0;
-    let gi = 0;
-    while (bi < bad.length || gi < good.length) {
-      if (bi >= bad.length) {
-        good.slice(gi).forEach(slice => out.push(slice));
-        break;
-      }
-      if (gi >= good.length) {
-        bad.slice(bi).forEach(slice => out.push(slice));
-        break;
-      }
-      if (bi / bad.length <= gi / good.length) out.push(bad[bi++]);
-      else out.push(good[gi++]);
+  function minScoringRoundsFor(game, players) {
+    const cfg = GAME_CONFIG[game?.name];
+    if (!cfg) return null;
+    if (game.name === 'Wizard') {
+      return Math.max(3, Math.ceil(0.25 * getMaxRounds(game, players || [])));
     }
-    return out.map(({ _wheelBad, ...rest }) => rest);
+    return cfg.minScoringRounds;
+  }
+
+  function explainLifePreserverRules(gameName) {
+    const display = displayGameName(gameName);
+    if (!SUPPORTED_GAMES.includes(gameName)) {
+      return {
+        supported: false,
+        gameName: display,
+        lead: `${display} does not use Life Preservers.`,
+        how: ['Keep playing this one without a rescue spin.'],
+        wheel: []
+      };
+    }
+    const unit = roundNoun(gameName, 2);
+    let timing = `Once 4 ${unit} are scored.`;
+    let gap = 'You are far enough behind the middle of the table that normal play is unlikely to catch you up.';
+    const wheel = [
+      'Most slices help. Some do nothing. A few hurt a little.',
+      'The best result can pull you back toward the pack. It cannot put you in 1st or 2nd.'
+    ];
+
+    if (gameName === '818') {
+      timing = 'Once 4 rounds are scored.';
+      gap = 'You are about 10 or more points behind the middle of the table — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind is a big hole. 8 behind is still a race.';
+    } else if (gameName === 'Wizard') {
+      timing = 'Once the first few rounds are scored (about a quarter of the game).';
+      gap = 'You are further behind the middle than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+    } else if (gameName === 'Five Crowns') {
+      timing = 'Once 4 hands are scored.';
+      gap = 'Low score wins, so the bottom half is the high scores. You are far enough behind the middle that a couple of clean hands probably will not catch the pack.';
+      wheel.unshift('A good spin subtracts points.');
+    } else if (gameName === 'Flip 7 Vengeance') {
+      timing = 'Once 4 rounds are scored.';
+      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind the middle of the table.';
+    }
+
+    const how = [
+      'Four or more players at the table.',
+      timing,
+      'You are in the bottom half of the scoreboard — the worse half, not just behind the leader.',
+      gap,
+      'You have not used yours yet. One spin per player, per game.',
+      'A runaway leader does not unlock everyone bunched behind them.'
+    ];
+    return {
+      supported: true,
+      gameName: display,
+      lead: `A one-time rescue if you are truly out of the hunt in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      how,
+      wheel
+    };
+  }
+
+  function statusLabelForReason(reason) {
+    if (reason === 'used') return 'already used';
+    if (reason === 'retired') return 'headed back to shore';
+    if (reason === 'too-early') return 'too early';
+    if (reason === 'not-bottom-half') return 'still in the top half';
+    if (reason === 'pack-gap') return 'behind, but still close to the pack';
+    if (reason === 'recovery-load') return 'behind, but enough rounds left to catch up';
+    if (reason === 'too-few-players') return 'need 4 players';
+    if (reason === 'game-over') return 'game over';
+    if (reason === 'no-legal-help') return 'no safe rescue right now';
+    return 'not yet';
+  }
+
+  function summarizeLifePreserverTable(game, activePlayers, options) {
+    const rules = explainLifePreserverRules(game?.name);
+    if (!game || !rules.supported) {
+      return { rules, live: null };
+    }
+    const opts = options || {};
+    const players = (activePlayers || []).filter(name => name && !(game.retired || []).includes(name));
+    const cfg = GAME_CONFIG[game.name];
+    const completed = scoringRounds(game).length;
+    const maxRounds = getMaxRounds(game, players);
+    const minRounds = minScoringRoundsFor(game, players);
+    const unit = roundNoun(game.name, minRounds || 2);
+    const totals = {};
+    players.forEach(name => { totals[name] = Number(game.totals?.[name]) || 0; });
+    const sorted = sortPlayers(players, totals, cfg.winLow);
+    const packRank = Math.max(1, Math.ceil(players.length / 2));
+    const packPlayer = sorted[packRank - 1] || null;
+    const packScore = packPlayer != null ? totals[packPlayer] : 0;
+    const factor = volatilityFactor(game, players);
+    const remaining = remainingRoundNumbers(completed, maxRounds);
+    let catchUp = 0;
+    if (game.name === 'Flip 7 Vengeance') {
+      catchUp = clamp(22 * factor, 10, 40) * FLIP7_STRONG_ROUNDS;
+    } else if (remaining[0]) {
+      catchUp = catchUpUnitForRound(game, players, remaining[0], factor);
+    }
+    const statuses = players.map(player => {
+      const offer = getLifePreserverOffer(game, player, activePlayers, opts);
+      const rank = sorted.indexOf(player) + 1;
+      const packGap = packGapFor(totals[player], packScore, cfg.winLow);
+      return {
+        player,
+        eligible: !!offer.eligible,
+        reason: offer.reason || 'not-yet',
+        rank: offer.rank || rank,
+        packGap: Number.isFinite(offer.packGap) ? offer.packGap : packGap,
+        label: offer.eligible ? 'ready to spin' : statusLabelForReason(offer.reason)
+      };
+    });
+    const ready = statuses.filter(entry => entry.eligible).map(entry => entry.player);
+    const used = statuses.filter(entry => entry.reason === 'used').map(entry => entry.player);
+    const notYet = statuses.filter(entry => !entry.eligible && entry.reason !== 'used' && entry.reason !== 'retired');
+    const roundLine = game.name === 'Flip 7 Vengeance'
+      ? `${completed} ${roundNoun(game.name, completed)} scored`
+      : `${completed} of ${maxRounds} ${roundNoun(game.name, maxRounds)} scored`;
+    return {
+      rules,
+      live: {
+        playerCount: players.length,
+        completed,
+        maxRounds: game.name === 'Flip 7 Vengeance' ? null : maxRounds,
+        minRounds,
+        unit,
+        timingOpen: completed >= minRounds,
+        roundLine,
+        packRank,
+        packPlayer,
+        packScore,
+        catchUp: Math.round(catchUp),
+        remainingRounds: game.name === 'Flip 7 Vengeance' ? null : remaining.length,
+        ready,
+        used,
+        notYet
+      }
+    };
+  }
+
+  function wheelSliceKind(slice) {
+    if (slice._wheelKind) return slice._wheelKind;
+    if (!slice.adjustment) return 'zero';
+    return slice._wheelBad ? 'bad' : 'good';
+  }
+
+  function stripWheelMeta(slice) {
+    const { _wheelBad, _wheelKind, ...rest } = slice;
+    return rest;
+  }
+
+  function alternateMagnitudes(slices) {
+    const sorted = [...slices].sort((a, b) => (
+      Math.abs(a.adjustment) - Math.abs(b.adjustment) || a.weight - b.weight
+    ));
+    const out = [];
+    let low = 0;
+    let high = sorted.length - 1;
+    while (low <= high) {
+      out.push(sorted[low++]);
+      if (low <= high) out.push(sorted[high--]);
+    }
+    return out;
+  }
+
+  // Spread red/gray spacers around the wheel so helpful greens do not form one
+  // Pac-Man wedge. With more greens than spacers, one pair of greens may touch.
+  function arrangeWheelSlices(slices) {
+    const groups = { bad: [], zero: [], good: [] };
+    slices.forEach(slice => {
+      groups[wheelSliceKind(slice)].push(slice);
+    });
+    groups.good = alternateMagnitudes(groups.good);
+    groups.bad = alternateMagnitudes(groups.bad);
+
+    const spacers = [];
+    const spacerTurns = Math.max(groups.bad.length, groups.zero.length);
+    for (let i = 0; i < spacerTurns; i++) {
+      if (i < groups.bad.length) spacers.push(groups.bad[i]);
+      if (i < groups.zero.length) spacers.push(groups.zero[i]);
+    }
+    if (!spacers.length) return groups.good.map(stripWheelMeta);
+
+    const n = slices.length;
+    const placed = new Array(n).fill(null);
+    for (let i = 0; i < spacers.length; i++) {
+      placed[Math.floor((i * n) / spacers.length)] = spacers[i];
+    }
+    let gi = 0;
+    for (let i = 0; i < n; i++) {
+      if (!placed[i]) placed[i] = groups.good[gi++];
+    }
+    return placed.map(stripWheelMeta);
   }
 
   function bestAllowedRankFor(playerCount, currentRank) {
@@ -325,29 +529,55 @@
     return weights;
   }
 
+  function splitWeight(totalWeight) {
+    if (totalWeight <= 1) return [Math.max(0, totalWeight)];
+    const first = Math.ceil(totalWeight / 2);
+    return [first, totalWeight - first];
+  }
+
   function buildSlices(maxHelpful, maxSetback, winLow, increment, recoveryLoad) {
     const sign = helpfulSign(winLow);
     const helpful = [0.25, 0.5, 0.5, 0.75, 1].map(percent => percentMagnitude(maxHelpful, percent, increment));
     const setback = Math.max(increment, floorToIncrement(maxSetback, increment));
+    const smallSetback = Math.max(increment, floorToIncrement(setback / 2, increment));
     const signedHelpful = helpful.map(magnitude => sign * magnitude);
-    const signedSetback = -sign * setback;
     const helpfulWeight = helpfulWeightFor(recoveryLoad);
     const setbackWeight = recoveryLoad >= 1 ? 8 : 10;
     const zeroWeight = Math.max(6, 100 - helpfulWeight - setbackWeight);
-    const zeroA = Math.ceil(zeroWeight / 2);
-    const zeroB = zeroWeight - zeroA;
     const helpfulWeights = splitHelpfulWeights(helpfulWeight);
-    const raw = [
-      { label: formatPointLabel(signedSetback), color: COLORS.badStrong, adjustment: signedSetback, weight: setbackWeight, _wheelBad: true },
-      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: zeroA, _wheelBad: false },
-      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: zeroB, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[0]), color: COLORS.goodSoft, adjustment: signedHelpful[0], weight: helpfulWeights[0], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[1]), color: COLORS.goodMid, adjustment: signedHelpful[1], weight: helpfulWeights[1], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[2]), color: COLORS.goodMid, adjustment: signedHelpful[2], weight: helpfulWeights[2], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[3]), color: COLORS.goodStrong, adjustment: signedHelpful[3], weight: helpfulWeights[3], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[4]), color: COLORS.goodStrong, adjustment: signedHelpful[4], weight: helpfulWeights[4], _wheelBad: false }
-    ];
-    return interleaveWheelSlicesByKind(raw);
+    const raw = [];
+
+    splitWeight(setbackWeight).forEach((weight, index) => {
+      const magnitude = index === 0 && smallSetback !== setback ? smallSetback : setback;
+      const adjustment = -sign * magnitude;
+      raw.push({
+        label: formatPointLabel(adjustment),
+        color: index === 0 && smallSetback !== setback ? COLORS.badSoft : COLORS.badStrong,
+        adjustment,
+        weight,
+        _wheelKind: 'bad'
+      });
+    });
+    splitWeight(zeroWeight).forEach(weight => {
+      raw.push({
+        label: '0 Pts',
+        color: COLORS.zero,
+        adjustment: 0,
+        weight,
+        _wheelKind: 'zero'
+      });
+    });
+    const helpfulColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodMid, COLORS.goodStrong, COLORS.goodStrong];
+    signedHelpful.forEach((adjustment, index) => {
+      raw.push({
+        label: formatPointLabel(adjustment),
+        color: helpfulColors[index],
+        adjustment,
+        weight: helpfulWeights[index],
+        _wheelKind: 'good'
+      });
+    });
+    return arrangeWheelSlices(raw);
   }
 
   function ineligible(reason, extras) {
@@ -429,14 +659,14 @@
       totalRemainingOpportunity = comebackUnit * FLIP7_STRONG_ROUNDS;
     } else {
       if (!remaining.length) return ineligible('game-over', { rank, winLow: cfg.winLow, scoreIncrement: cfg.increment });
-      upcomingOpportunity = unitForRound(game, players, upcomingRound, factor);
+      upcomingOpportunity = catchUpUnitForRound(game, players, upcomingRound, factor);
       totalRemainingOpportunity = remaining.reduce((sum, roundNumber) => (
-        sum + unitForRound(game, players, roundNumber, factor)
+        sum + catchUpUnitForRound(game, players, roundNumber, factor)
       ), 0);
       comebackUnit = upcomingOpportunity;
     }
 
-    if (!(packGap > upcomingOpportunity)) {
+    if (!(packGap >= upcomingOpportunity)) {
       return ineligible('pack-gap', {
         rank,
         leaderGap,
@@ -450,9 +680,10 @@
     }
 
     const recoveryLoad = totalRemainingOpportunity > 0 ? packGap / totalRemainingOpportunity : Infinity;
+    const recoveryThreshold = Number.isFinite(cfg.recoveryLoad) ? cfg.recoveryLoad : RECOVERY_LOAD_THRESHOLD;
     const loadOk = game.name === 'Flip 7 Vengeance'
       ? packGap / comebackUnit >= FLIP7_STRONG_ROUNDS
-      : recoveryLoad >= RECOVERY_LOAD_THRESHOLD;
+      : recoveryLoad >= recoveryThreshold;
     if (!loadOk) {
       return ineligible('recovery-load', {
         rank,
@@ -469,13 +700,16 @@
 
     const allowedRank = bestAllowedRankFor(players.length, rank);
     const rankCap = maxLegalHelpfulMagnitude(player, players, totals, cfg.winLow, cfg.increment, allowedRank);
+    const payoutRound = game.name === 'Flip 7 Vengeance'
+      ? upcomingOpportunity
+      : unitForRound(game, players, upcomingRound, factor);
     const oneStrongRound = Math.max(
       cfg.increment,
-      floorToIncrement(clamp(upcomingOpportunity, cfg.rescueMin, cfg.rescueMax), cfg.increment)
+      floorToIncrement(clamp(payoutRound, cfg.rescueMin, cfg.rescueMax), cfg.increment)
     );
     const ordinaryRecoveryLimit = game.name === 'Flip 7 Vengeance'
       ? comebackUnit * FLIP7_STRONG_ROUNDS
-      : Math.max(upcomingOpportunity, RECOVERY_LOAD_THRESHOLD * totalRemainingOpportunity);
+      : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
     const rescueNeeded = Math.max(0, packGap - ordinaryRecoveryLimit);
     const maxSafeAdjustment = floorToIncrement(
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
@@ -564,6 +798,7 @@
   const api = {
     SUPPORTED_GAMES,
     EIGHT18_ROUND_TRICKS,
+    EIGHT18_BID_BONUS,
     RECOVERY_LOAD_THRESHOLD,
     FLIP7_STRONG_ROUNDS,
     GAME_CONFIG,
@@ -571,6 +806,8 @@
     getMaxRounds,
     getLifePreserverOffer,
     explainLifePreserverOffer,
+    explainLifePreserverRules,
+    summarizeLifePreserverTable,
     releaseRemovedLifePreservers,
     capLifePreserverAdjustment,
     rankWithScore,

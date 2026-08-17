@@ -67,6 +67,52 @@ function assertNoPodium(result, players, totals) {
   }
 }
 
+function sliceKind(slice, winLow) {
+  const helpful = (Number(slice.adjustment) || 0) * (winLow ? -1 : 1);
+  if (helpful > 0) return 'good';
+  if (helpful < 0) return 'bad';
+  return 'zero';
+}
+
+function circularRuns(kinds) {
+  const n = kinds.length;
+  if (!n) return [];
+  if (kinds.every(kind => kind === kinds[0])) return [{ kind: kinds[0], length: n }];
+  let start = 0;
+  while (start < n && kinds[start] === kinds[(start - 1 + n) % n]) start++;
+  const runs = [];
+  let index = start;
+  do {
+    const kind = kinds[index];
+    let length = 1;
+    index = (index + 1) % n;
+    while (index !== start && kinds[index] === kind) {
+      length++;
+      index = (index + 1) % n;
+    }
+    runs.push({ kind, length });
+  } while (index !== start);
+  return runs;
+}
+
+function assertMixedWheel(result, label) {
+  assert.ok(result.slices.length >= 8, `${label}: expected a full wheel`);
+  const kinds = result.slices.map(slice => sliceKind(slice, result.winLow));
+  const runs = circularRuns(kinds);
+  const sequence = kinds.join(',');
+  const maxGood = Math.max(0, ...runs.filter(run => run.kind === 'good').map(run => run.length));
+  assert.ok(maxGood <= 2, `${label}: helpful slices still clustered (${sequence})`);
+  assert.ok(runs.filter(run => run.kind === 'bad').every(run => run.length === 1), `${label}: setbacks clustered (${sequence})`);
+  assert.ok(runs.filter(run => run.kind === 'zero').every(run => run.length === 1), `${label}: zeros clustered (${sequence})`);
+  assert.ok(kinds.filter(kind => kind === 'bad').length >= 2, `${label}: expected split setbacks`);
+  assert.ok(kinds.filter(kind => kind === 'zero').length >= 2, `${label}: expected split zeros`);
+  const helpfulWeights = result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === 'good')
+    .reduce((sum, slice) => sum + slice.weight, 0);
+  const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(helpfulWeights / totalWeight >= 0.65, `${label}: helpful odds should stay in the majority`);
+}
+
 test('818 remaining opportunity uses each upcoming trick count', () => {
   assert.equal(remaining818(4), 155);
   assert.equal(remaining818(14), 18);
@@ -83,13 +129,37 @@ test('close 818 player with many rounds left does not qualify', () => {
   assert.equal(result.packGap, 25);
 });
 
-test('818 12-point gap on the final 8-trick round does not qualify', () => {
+test('tight late 818 table unlocks at about a made-bid deficit', () => {
+  const six = { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 83 };
+  const late = offer('818', six, { roundCount: 13, spread: 16, currentRound: 14, player: 'Fay' });
+  assert.equal(late.rank, 6);
+  assert.equal(late.packGap, 11);
+  assert.equal(late.leaderGap, 17);
+  assert.equal(late.eligible, true, '11 behind a tight 818 pack with two rounds left should get a Life Preserver');
+  assert.ok(late.upcomingOpportunity <= 12, `818 catch-up should be a made bid, got ${late.upcomingOpportunity}`);
+
+  const lastRound = offer('818', six, { roundCount: 14, spread: 17, currentRound: 15, player: 'Fay' });
+  assert.equal(lastRound.eligible, true);
+
+  const stillEarly = offer('818', six, { roundCount: 8, spread: 12, currentRound: 9, player: 'Fay' });
+  assert.equal(stillEarly.eligible, false);
+  assert.equal(stillEarly.reason, 'recovery-load');
+});
+
+test('818 12-point gap on the final 8-trick round qualifies', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(result.eligible, true);
+  assert.equal(result.packGap, 12);
+  assert.ok(result.upcomingOpportunity <= 12);
+});
+
+test('818 8-point last-round gap stays in ordinary range', () => {
+  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 89 };
+  const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(result.packGap, 8);
   assert.equal(result.eligible, false);
   assert.equal(result.reason, 'pack-gap');
-  assert.equal(result.packGap, 12);
-  assert.ok(result.upcomingOpportunity > 12);
 });
 
 test('818 20-point gap with 1-2 rounds left can qualify with a conservative wheel', () => {
@@ -105,6 +175,18 @@ test('818 20-point gap with 1-2 rounds left can qualify with a conservative whee
   assert.ok(twoLeft.maxSafeAdjustment <= 15);
 });
 
+test('818 18-point hole with a few rounds left needs a Life Preserver; Wizard does not', () => {
+  const totals = { Ann: 100, Bea: 98, Cal: 96, Dee: 93, Eve: 91, Fay: 88, Gus: 85, Hal: 75 };
+  const eight18 = offer('818', totals, { roundCount: 11, spread: 14, currentRound: 12, player: 'Hal' });
+  assert.equal(eight18.packGap, 18);
+  assert.equal(eight18.eligible, true);
+
+  const wizardTotals = { Ann: 200, Bea: 190, Cal: 180, Dee: 170, Eve: 160, Fay: 150, Gus: 140, Hal: 120 };
+  const wizard = offer('Wizard', wizardTotals, { roundCount: 3, spread: 50, currentRound: 4, player: 'Hal' });
+  assert.equal(wizard.packGap, 50);
+  assert.equal(wizard.eligible, false);
+});
+
 test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   const totals = { Ann: 200, Bea: 198, Cal: 196, Dee: 194, Eve: 190, Fay: 188, Gus: 180, Hal: 174 };
   const eight18 = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
@@ -113,6 +195,15 @@ test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   assert.equal(wizard.packGap, 20);
   assert.equal(eight18.eligible, true);
   assert.equal(wizard.eligible, false);
+});
+
+test('Wizard 50-point last-round hole is still ordinary play', () => {
+  const totals = { Ann: 250, Bea: 240, Cal: 230, Dee: 220, Eve: 210, Fay: 200, Gus: 190, Hal: 170 };
+  const result = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
+  assert.equal(result.packGap, 50);
+  assert.equal(result.eligible, false);
+  assert.equal(result.reason, 'pack-gap');
+  assert.ok(result.upcomingOpportunity >= 50);
 });
 
 test('Wizard upcoming opportunity grows in later rounds', () => {
@@ -142,7 +233,7 @@ test('Five Crowns treats score reductions as helpful', () => {
   const helpful = result.slices.filter(slice => slice.adjustment < 0);
   const setbacks = result.slices.filter(slice => slice.adjustment > 0);
   assert.ok(helpful.length >= 4);
-  assert.ok(setbacks.length >= 1);
+  assert.ok(setbacks.length >= 2);
   assert.ok(result.maxSafeAdjustment <= 75);
   assert.ok(result.maxSafeAdjustment > 20);
   assertNoPodium(result, EIGHT, totals);
@@ -271,6 +362,7 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
 });
 
@@ -316,4 +408,66 @@ test('Wizard max rounds stay frozen when the active table shrinks', () => {
   delete g.maxRounds;
   g.originalRoster = [...EIGHT];
   assert.equal(LP.getMaxRounds(g, seven), 7);
+});
+
+test('Life Preserver slices mix greens with reds and zeros instead of clustering', () => {
+  const lastRoundTotals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
+  const lastRound = offer('818', lastRoundTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assertMixedWheel(lastRound, '818 last round');
+
+  const wizardTotals = { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 };
+  const wizard = offer('Wizard', wizardTotals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
+  assertMixedWheel(wizard, 'Wizard');
+
+  const fiveCrowns = LP.getLifePreserverOffer(
+    QA_SCENARIOS['five-crowns-preservers'].data.currentGame,
+    'Brick',
+    QA_SCENARIOS['five-crowns-preservers'].data.currentGame.originalRoster
+  );
+  assertMixedWheel(fiveCrowns, 'Five Crowns Brick');
+
+  const adjacentSameValue = fiveCrowns.slices.some((slice, index) => {
+    const next = fiveCrowns.slices[(index + 1) % fiveCrowns.slices.length];
+    return slice.adjustment === next.adjustment && slice.color === next.color;
+  });
+  assert.equal(adjacentSameValue, false, `identical slices should not sit next to each other: ${fiveCrowns.slices.map(slice => slice.label).join(' | ')}`);
+});
+
+test('Life Preserver rules copy is plain language and game-specific', () => {
+  const eight18 = LP.explainLifePreserverRules('818');
+  assert.equal(eight18.supported, true);
+  assert.match(eight18.lead, /818/);
+  assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
+  assert.ok(eight18.how.some(line => /bottom half/.test(line)));
+  assert.ok(eight18.how.some(line => /made bid/.test(line)));
+  assert.ok(eight18.how.some(line => /20 behind/.test(line)));
+
+  const wizard = LP.explainLifePreserverRules('Wizard');
+  assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
+  assert.ok(wizard.how.some(line => /20 or even 50 down/.test(line)));
+
+  const crowns = LP.explainLifePreserverRules('Five Crowns');
+  assert.ok(crowns.how.some(line => /4 hands/.test(line)));
+  assert.ok(crowns.how.some(line => /Low score wins/.test(line)));
+  assert.ok(crowns.wheel.some(line => /subtracts/.test(line)));
+
+  const flip7 = LP.explainLifePreserverRules('Flip 7 Vengeance');
+  assert.match(flip7.lead, /Flip 7/);
+  assert.ok(flip7.how.some(line => /two and a half strong banks/.test(line)));
+
+  const rook = LP.explainLifePreserverRules('Rook');
+  assert.equal(rook.supported, false);
+  assert.match(rook.lead, /does not use Life Preservers/);
+});
+
+test('Life Preserver table summary names who is ready, used, or not there yet', () => {
+  const currentGame = QA_SCENARIOS['five-crowns-preservers'].data.currentGame;
+  const summary = LP.summarizeLifePreserverTable(currentGame, currentGame.originalRoster);
+  assert.equal(summary.rules.supported, true);
+  assert.equal(summary.live.timingOpen, true);
+  assert.ok(summary.live.ready.includes('Brick'));
+  assert.ok(summary.live.used.includes('Linda'));
+  assert.match(summary.live.roundLine, /scored/);
+  assert.ok(summary.live.catchUp > 0);
+  assert.equal(summary.live.packPlayer, 'Megan');
 });

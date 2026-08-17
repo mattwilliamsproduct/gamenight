@@ -1036,6 +1036,46 @@
       padding: 0.85rem 1rem 0.95rem;
       margin: 0.85rem 0 0.35rem;
     }
+    .life-preserver-rules-card {
+      max-width: 36rem;
+    }
+    .life-preserver-rules-body {
+      text-align: left;
+      color: var(--ink-2);
+    }
+    .life-preserver-rules-body h4 {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bp-coral);
+      margin: 1.05rem 0 0.4rem;
+    }
+    .life-preserver-rules-body h4:first-child {
+      margin-top: 0;
+    }
+    .life-preserver-rules-body p,
+    .life-preserver-rules-body li {
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .life-preserver-rules-body ul {
+      margin: 0;
+      padding-left: 1.15rem;
+    }
+    .life-preserver-rules-body li {
+      margin: 0.32rem 0;
+    }
+    .life-preserver-rules-live {
+      border: 1px solid rgba(231,115,88,0.32);
+      background: rgba(231,115,88,0.08);
+      border-radius: 1.15rem;
+      padding: 0.85rem 1rem 0.95rem;
+      margin: 0.35rem 0 0.15rem;
+    }
+    .life-preserver-rules-live h4 {
+      margin-top: 0;
+    }
     .life-preserver-why h4 {
       margin-top: 0;
     }
@@ -6033,6 +6073,10 @@ button.dealer-name-indicator .dealer-player-label {
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H2"></path><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3h7"></path></svg></span>
                   <span>Rules</span>
                 </button>
+                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverRules();closeActionsMenu();" class="actions-menu-item">
+                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.25"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg></span>
+                  <span>Life Preserver</span>
+                </button>
               </div>
               <div class="actions-menu-section">
                 <span class="actions-menu-label">Table tools</span>
@@ -6493,7 +6537,7 @@ button.dealer-name-indicator .dealer-player-label {
             <h4>Who can spin</h4>
             <ul>
               <li>You have to be in the bottom half of the table.</li>
-              <li>You have to be far enough behind the pack that catching up with normal play is unlikely.</li>
+              <li>You have to be far enough behind the pack that catching up with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
               <li>A runaway leader does not unlock everyone clustered behind them.</li>
               <li>One spin per player, per game.</li>
               <li>Not used in Rook or Beat the Heat.</li>
@@ -6636,6 +6680,19 @@ button.dealer-name-indicator .dealer-player-label {
           <h3 class="font-display text-4xl md:text-5xl" id="rules-title"></h3>
         </div>
         <div id="rules-content" class="overflow-y-auto pr-3 text-base md:text-lg font-medium leading-relaxed p-6 md:p-8 rounded-2xl border hairline" style="background:var(--bg-2);color:var(--ink-2);"></div>
+      </div>
+    </div>
+
+    <!-- Life Preserver rules -->
+    <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeLifePreserverRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised life-preserver-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
+        <button type="button" onclick="closeLifePreserverRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <div class="text-center mb-5 pr-8">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">🛟 Life Preserver</div>
+          <h3 class="font-display text-4xl md:text-5xl leading-tight" id="life-preserver-rules-title">How you get one</h3>
+        </div>
+        <div id="life-preserver-rules-content" class="life-preserver-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
       </div>
     </div>
 
@@ -7807,6 +7864,96 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function openRules(){ if(!currentGame)return; openGameRules(currentGame.name); }
   function closeRules(){ closeModal('rules-modal'); }
+  function lifePreserverRulesList(items){
+    return `<ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul>`;
+  }
+  function renderLifePreserverRulesLive(live){
+    if(!live)return '';
+    const lines=[];
+    if(live.timingOpen){
+      lines.push(`${escapeHtml(live.roundLine)}. That gate is open.`);
+    } else {
+      lines.push(`${escapeHtml(live.roundLine)}. Opens after ${live.minRounds} ${escapeHtml(live.unit)}.`);
+    }
+    if(live.playerCount>=4){
+      const lastRank=live.playerCount;
+      lines.push(`Bottom half is ${ordinalLive(live.packRank)} through ${ordinalLive(lastRank)}.`);
+    }
+    if(live.packPlayer){
+      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind that, with too few ${escapeHtml(live.unit)} left to catch up the normal way.`: '';
+      lines.push(`Middle of the table is ${ordinalLive(live.packRank)}: ${escapeHtml(live.packPlayer)} at ${live.packScore}.${catchBit}`);
+    }
+    if(live.ready.length){
+      lines.push(`Ready to spin: ${escapeHtml(joinLiveNames(live.ready))}.`);
+    }
+    if(live.used.length){
+      lines.push(`Already used: ${escapeHtml(joinLiveNames(live.used))}.`);
+    }
+    const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
+    const others=live.notYet.filter(entry=>entry.reason!=='too-early');
+    if(!live.timingOpen && tooEarly.length && !others.length){
+      lines.push('Nobody has one yet — the game is still too early.');
+    } else {
+      const groups=[];
+      others.forEach(entry=>{
+        let group=groups.find(item=>item.label===entry.label);
+        if(!group){
+          group={label:entry.label, entries:[]};
+          groups.push(group);
+        }
+        group.entries.push(entry);
+      });
+      groups.forEach(group=>{
+        const names=group.entries.map(entry=>{
+          const showGap=Number.isFinite(entry.packGap)&&entry.packGap>0&&(entry.reason==='pack-gap'||entry.reason==='recovery-load');
+          return showGap ? `${entry.player} (${Math.round(entry.packGap)} behind)` : entry.player;
+        });
+        lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
+      });
+    }
+    return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
+  }
+  function ordinalLive(value){
+    const n=Number(value)||0;
+    const mod100=n%100;
+    if(mod100>=11&&mod100<=13)return `${n}th`;
+    if(n%10===1)return `${n}st`;
+    if(n%10===2)return `${n}nd`;
+    if(n%10===3)return `${n}rd`;
+    return `${n}th`;
+  }
+  function joinLiveNames(names){
+    if(!names.length)return '';
+    if(names.length===1)return names[0];
+    if(names.length===2)return `${names[0]} and ${names[1]}`;
+    return `${names.slice(0,-1).join(', ')}, and ${names[names.length-1]}`;
+  }
+  function openLifePreserverRules(){
+    if(!currentGame)return;
+    const players=getActivePlayers(currentGame);
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const summary=(window.BPGLifePreserver&&typeof BPGLifePreserver.summarizeLifePreserverTable==='function')
+      ? BPGLifePreserver.summarizeLifePreserverTable(currentGame, players, {gameOver:over})
+      : {rules:{supported:false,gameName:currentGame.name,lead:'Life Preserver details are unavailable.',how:[],wheel:[]},live:null};
+    const rules=summary.rules||{};
+    const title=document.getElementById('life-preserver-rules-title');
+    if(title) title.textContent=rules.supported?`How you get one in ${rules.gameName}`:`Life Preserver`;
+    const parts=[];
+    if(rules.lead) parts.push(`<p>${escapeHtml(rules.lead)}</p>`);
+    if(rules.how?.length){
+      parts.push('<h4>You get one when</h4>');
+      parts.push(lifePreserverRulesList(rules.how.map(item=>escapeHtml(item))));
+    }
+    parts.push(renderLifePreserverRulesLive(summary.live));
+    if(rules.wheel?.length){
+      parts.push('<h4>What the wheel does</h4>');
+      parts.push(lifePreserverRulesList(rules.wheel.map(item=>escapeHtml(item))));
+    }
+    const content=document.getElementById('life-preserver-rules-content');
+    if(content) content.innerHTML=parts.join('');
+    openModal('life-preserver-rules-modal');
+  }
+  function closeLifePreserverRules(){ closeModal('life-preserver-rules-modal'); }
   function openAvatarPicker(){ if(!editingPlayerProfile)return; buildAvatarGrid(); openModal('avatar-modal'); }
   function closeAvatarPicker(){ closeModal('avatar-modal'); }
   function closeScorecard(){ closeModal('scorecard-modal'); }
@@ -11550,6 +11697,11 @@ ${isDealer
       const activeCount=getActivePlayerCount(currentGame);
       if(over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
+    }
+    const lifePreserverRulesBtn=document.getElementById('actions-life-preserver-btn');
+    if(lifePreserverRulesBtn){
+      const supported=!!(window.BPGLifePreserver&&Array.isArray(BPGLifePreserver.SUPPORTED_GAMES)&&BPGLifePreserver.SUPPORTED_GAMES.includes(currentGame.name));
+      lifePreserverRulesBtn.classList.toggle('hidden', !supported);
     }
 
     const portraitTimer = gnPerfStart('GN renderGame renderPortraitView');
