@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=record-chase-20260808';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=beat-the-heat-end-20260817';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 

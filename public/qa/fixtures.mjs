@@ -138,6 +138,21 @@ const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
 const nameFitCrownsPlayers=['Megan','Vikki','Matt','Duke','Linda','Mike','Michelle'];
 const nameFitCrownsGame=makeCurrentGame('Five Crowns',nameFitCrownsPlayers,[],{dealerOffset:0});
+const heatPlayers=NAMES.slice(0,4);
+const heatCloseRounds=[
+  [15,8,5,3],
+  [20,10,4,2],
+  [20,12,6,1]
+].map((scores,index)=>({
+  round:index+1,
+  scores:Object.fromEntries(heatPlayers.map((player,playerIndex)=>[player,scores[playerIndex]]))
+}));
+const heatCloseGame=makeCurrentGame('Beat the Heat',heatPlayers,heatCloseRounds);
+const heatOverRounds=heatCloseRounds.concat([{
+  round:4,
+  scores:Object.fromEntries(heatPlayers.map((player,playerIndex)=>[player,[12,5,3,1][playerIndex]]))
+}]);
+const heatOverGame=makeCurrentGame('Beat the Heat',heatPlayers,heatOverRounds);
 const celebrationPlayers=NAMES.slice(0,8);
 const celebrationGame=makeCurrentGame('Wizard',celebrationPlayers,wizardRounds(celebrationPlayers,3),{
   wizardPhase:'scoring',
@@ -248,6 +263,18 @@ export const QA_SCENARIOS = {
     description:'Seven-player first-round iPad regression case for avatar reordering, dealer styling, and full player names.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...nameFitCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:nameFitCrownsGame}
+  },
+  'beat-the-heat-close':{
+    label:'Beat the Heat · Close to 66',
+    description:'Four players with Megan at 55 heat, one round away from the 66-heat finish line.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...heatPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:heatCloseGame}
+  },
+  'beat-the-heat-over':{
+    label:'Beat the Heat · Match Complete',
+    description:'Four players after Megan reaches 67 heat, so the scorecard should already show Match Complete.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...heatPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:heatOverGame}
   },
   'whammy-8':{
     label:'Celebrations · 8 Players',
