@@ -6205,7 +6205,7 @@ button.dealer-name-indicator .dealer-player-label {
 
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
             <h3 class="font-display text-3xl" style="color:var(--emerald);">Match Complete!</h3>
-            <p class="font-bold" style="color:var(--emerald);">You've reached the final round.</p>
+            <p id="game-over-copy" class="font-bold" style="color:var(--emerald);">You've reached the final round.</p>
             <button onclick="endGame()" class="btn-primary px-12 py-4 text-xl">End Match &amp; See Winner</button>
           </div>
         </div>
@@ -7220,6 +7220,31 @@ button.dealer-name-indicator .dealer-player-label {
     const n=(game?.originalRoster||[]).filter(Boolean).length||getActivePlayerCount(game);
     return typeof cfg.maxRounds==='function'?cfg.maxRounds(Math.max(n,1)):cfg.maxRounds;
   }
+  function getEndScoreForGame(game=currentGame){
+    return Number(configs[game?.name]?.endScore)||0;
+  }
+  function hasReachedEndScore(game=currentGame){
+    const endScore=getEndScoreForGame(game);
+    if(!endScore||!game)return false;
+    const retired=game.retired||[];
+    const totals=game.totals||{};
+    const players=(game.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p));
+    return players.some(p=>(Number(totals[p])||0)>=endScore);
+  }
+  function isMatchOver(game=currentGame){
+    if(!game)return false;
+    const maxR=getMaxRoundsForGame(game);
+    if(maxR&&(Number(game.currentRound)||0)>maxR)return true;
+    return hasReachedEndScore(game);
+  }
+  function getMatchOverCopy(game=currentGame){
+    const endScore=getEndScoreForGame(game);
+    if(endScore&&hasReachedEndScore(game)){
+      if(game?.name==='Beat the Heat')return `Someone reached ${endScore} heat. The match is over.`;
+      return `Someone reached ${endScore} points. The match is over.`;
+    }
+    return "You've reached the final round.";
+  }
   function getRecordedPlayers(gameData){
     const retired=gameData?.retired||[];
     const totals=gameData?.totals||{};
@@ -7295,7 +7320,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Wizard":          { emoji:"🧙‍♂️", winLow:false, maxRounds:(n)=>Math.floor(60/Math.max(n,1)) },
     "818":             { emoji:"🛡️", winLow:false, maxRounds:EIGHT18_ROUND_TRICKS.length },
     "Flip 7 Vengeance":{ emoji:"🎰", winLow:false, maxRounds:999 },
-    "Beat the Heat":   { emoji:"🌶️", winLow:true,  maxRounds:999 },
+    "Beat the Heat":   { emoji:"🌶️", winLow:true,  maxRounds:999, endScore:66 },
     "Rook":            { emoji:"🐦", winLow:false, maxRounds:999 }
   };
 
@@ -8366,7 +8391,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Wizard":`<div class="space-y-5"><p><strong>Quick idea:</strong> Predict exactly how many tricks you will take, then try to land the plane.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score at the end of the deal sequence.</li><li><strong>Deal:</strong> Round 1 has 1 card, then each round grows by one card.</li><li><strong>Bidding:</strong> Each player bids how many tricks they expect to win.</li><li><strong>Play:</strong> Follow suit when possible. Wizards beat everything. Jesters lose unless everyone plays a Jester.</li><li><strong>Score:</strong> Exact bid = 20 plus 10 per trick bid. Miss = minus 10 for each trick away from the bid.</li></ul></div>`,
     "818":`<div class="space-y-5"><p><strong>Quick idea:</strong> A tight trick-taking score race where exact bids get rewarded, but misses still score the tricks you actually took.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score after the 8-1-8 round sequence.</li><li><strong>Rounds:</strong> Play 8 cards, then 7, 6, 5, 4, 3, 2, 1, then climb back up to 8.</li><li><strong>Bidding:</strong> Bid how many tricks you will take. The dealer cannot make the table's total bids equal the tricks available.</li><li><strong>Score:</strong> Your score is actual tricks taken. If you hit your bid exactly, add a 10-point bonus.</li><li><strong>Examples:</strong> Bid 2 and take 3 = 3 points. Bid 0 and take 0 = 10 points.</li></ul></div>`,
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
-    "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> Keep playing open-ended rounds until your table is ready to save and end the match.</li></ul></div>`,
+    "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
     "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`
   };
 
@@ -9114,7 +9139,7 @@ button.dealer-name-indicator .dealer-player-label {
     const activePlayers=getActivePlayers(currentGame);
     if(!activePlayers.includes(p))return;
     if(currentGame.hailMaryUsed?.includes(p))return;
-    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const over=isMatchOver(currentGame);
     const offer=getLifePreserverOfferForPlayer(p, activePlayers, {gameOver:over});
     if(!offer.eligible||!offer.slices?.length)return;
     wheelPlayer=p;
@@ -9177,7 +9202,7 @@ button.dealer-name-indicator .dealer-player-label {
       if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
       if(!win)win=slices[0];
       const activePlayers=getActivePlayers(currentGame);
-      const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+      const over=isMatchOver(currentGame);
       const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
       const proposed=Number(win?.adjustment)||0;
       if(!live.eligible){
@@ -11628,7 +11653,8 @@ ${isDealer
     const whm=document.getElementById('wizard-header-metrics');
     if(whm&&!isBidTrick){ whm.classList.add('hidden'); whm.innerHTML=''; }
     const maxR=getMaxRoundsForGame(currentGame);
-    const over=currentGame.currentRound>maxR;
+    recomputeGameTotals(currentGame);
+    const over=isMatchOver(currentGame);
     const half=maxR===999?4:Math.ceil(maxR/2);
     const pastHalf=currentGame.currentRound>half&&!over;
 
@@ -11642,7 +11668,8 @@ ${isDealer
       const tricks=getRoundTrickCount(currentGame);
       intel=`R${currentGame.currentRound} / ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${bidTrickPhase==='bidding'?'Bidding':'Scoring'}`;
     } else if(currentGame.name==='Beat the Heat'){
-      intel=`R${currentGame.currentRound} · Log Heat`;
+      const endScore=getEndScoreForGame(currentGame);
+      intel=endScore?`R${currentGame.currentRound} · First to ${endScore}`:`R${currentGame.currentRound} · Log Heat`;
     }
     if(over)intel='Final Scores';
     document.getElementById('round-intel').textContent=intel;
@@ -11651,8 +11678,6 @@ ${isDealer
     const retired=currentGame.retired;
     const activeRoster=getActiveRoster(currentGame);
     const dealerName=getCurrentDealerName(currentGame, activeRoster);
-
-    recomputeGameTotals(currentGame);
 
     let gamePlayers=[...getActivePlayers(currentGame)];
     getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
@@ -11809,6 +11834,8 @@ ${isDealer
     if(over){
       document.getElementById('submit-section').classList.add('hidden');
       document.getElementById('game-over-section').classList.remove('hidden');
+      const overCopy=document.getElementById('game-over-copy');
+      if(overCopy)overCopy.textContent=getMatchOverCopy(currentGame);
       const whm=document.getElementById('wizard-header-metrics');
       if(whm){ whm.classList.add('hidden'); whm.innerHTML=''; }
     } else {
@@ -12040,7 +12067,10 @@ ${isDealer
       return `Round ${currentGame.currentRound} of ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${mode.title}`;
     }
     if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${mode.title}`;
-    if(currentGame.name==='Beat the Heat')return `Round ${currentGame.currentRound} · ${mode.title}`;
+    if(currentGame.name==='Beat the Heat'){
+      const endScore=getEndScoreForGame(currentGame);
+      return endScore?`Round ${currentGame.currentRound} · First to ${endScore} · ${mode.title}`:`Round ${currentGame.currentRound} · ${mode.title}`;
+    }
     return `Round ${currentGame.currentRound} · ${mode.title}`;
   }
 
@@ -12256,8 +12286,7 @@ ${isDealer
     }
     if(!currentGame||currentGame.name==='Rook')return;
     const mode=getScoreEntryMode();
-    const maxR=getMaxRoundsForGame(currentGame);
-    if(!mode||currentGame.currentRound>maxR)return;
+    if(!mode||isMatchOver(currentGame))return;
     gnPerfAction('opened score modal', mode.kind);
     if(activeInputId)closeNumpad({render:false});
 
@@ -12544,6 +12573,7 @@ ${isDealer
     gnPerfAction('submitted round', options?.skipConfirm?'modal':'button');
     // Rook uses its own command center above the score list.
     if(currentGame.name==='Rook'){isSubmitting=false;return;}
+    if(isMatchOver(currentGame)){isSubmitting=false;return;}
     isSubmitting=true;
     const skipConfirm=options?.skipConfirm===true;
     if(activeInputId)saveActiveInputToModel();
@@ -14220,7 +14250,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=record-chase-20260808');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=beat-the-heat-end-20260817');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);
