@@ -997,53 +997,10 @@
     .no-select { -webkit-user-select: none; user-select: none; }
     .caret-transparent { caret-color: transparent; }
 
-    /* ════════ WHEEL ════════ */
-    .life-preserver-dialog {
-      border-color: #0a4f49 !important;
-      background:
-        radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
-        var(--surface);
-      box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
-      overflow: hidden;
-    }
-    .life-preserver-help {
-      background:
-        radial-gradient(circle at 50% 0%, rgba(255,250,241,0.99), rgba(247,238,228,0.99) 62%),
-        var(--surface);
-    }
-    .life-preserver-help h4 {
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--bp-coral);
-      margin: 1.1rem 0 0.45rem;
-    }
-    .life-preserver-help ul {
-      margin: 0;
-      padding-left: 1.15rem;
-      text-align: left;
-      color: var(--ink-2);
-    }
-    .life-preserver-help li {
-      margin: 0.35rem 0;
-      line-height: 1.35;
-    }
-    .life-preserver-why {
-      border: 1px solid rgba(231,115,88,0.32);
-      background: rgba(231,115,88,0.08);
-      border-radius: 1.15rem;
-      padding: 0.85rem 1rem 0.95rem;
-      margin: 0.85rem 0 0.35rem;
-    }
-    .life-preserver-rules-card {
-      max-width: 36rem;
-    }
-    .life-preserver-rules-body {
-      text-align: left;
-      color: var(--ink-2);
-    }
-    .life-preserver-rules-body h4 {
+    /* ════════ COMEBACK ════════ */
+    .comeback-rules-card { max-width: 36rem; }
+    .comeback-rules-body { text-align: left; color: var(--ink-2); }
+    .comeback-rules-body h4 {
       font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: 0.14em;
@@ -1051,38 +1008,54 @@
       color: var(--bp-coral);
       margin: 1.05rem 0 0.4rem;
     }
-    .life-preserver-rules-body h4:first-child {
-      margin-top: 0;
-    }
-    .life-preserver-rules-body p,
-    .life-preserver-rules-body li {
-      font-weight: 700;
-      line-height: 1.4;
-    }
-    .life-preserver-rules-body ul {
-      margin: 0;
-      padding-left: 1.15rem;
-    }
-    .life-preserver-rules-body li {
-      margin: 0.32rem 0;
-    }
-    .life-preserver-rules-live {
+    .comeback-rules-body h4:first-child { margin-top: 0; }
+    .comeback-rules-body p,
+    .comeback-rules-body li { font-weight: 700; line-height: 1.4; }
+    .comeback-rules-body ul { margin: 0; padding-left: 1.15rem; }
+    .comeback-rules-body li { margin: 0.32rem 0; }
+    .comeback-rules-live {
       border: 1px solid rgba(231,115,88,0.32);
       background: rgba(231,115,88,0.08);
       border-radius: 1.15rem;
       padding: 0.85rem 1rem 0.95rem;
       margin: 0.35rem 0 0.15rem;
     }
-    .life-preserver-rules-live h4 {
-      margin-top: 0;
-    }
-    .life-preserver-why h4 {
-      margin-top: 0;
-    }
-    .life-preserver-why p {
-      margin: 0 0 0.45rem;
-      color: var(--ink);
+    .comeback-rules-live h4 { margin-top: 0; }
+    .scorecard-comeback-chip,
+    .portrait-comeback-chip,
+    .score-entry-comeback-chip {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-left: 0.35rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1.5px solid rgba(231,115,88,0.45);
+      background: rgba(231,115,88,0.12);
+      color: #9a3412;
+      font-size: 0.68rem;
       font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    button.scorecard-comeback-chip,
+    button.portrait-comeback-chip {
+      cursor: pointer;
+    }
+    button.scorecard-comeback-chip:focus-visible,
+    button.portrait-comeback-chip:focus-visible {
+      outline: 2px solid #ef765b;
+      outline-offset: 2px;
+    }
+    .score-cell-stack { position: relative; }
+    .score-cell-comeback {
+      display: block;
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: #c2410c;
+      line-height: 1;
+      margin-top: -0.15rem;
     }
     .scorecard-receipt-stash {
       position: fixed;
@@ -1093,77 +1066,6 @@
       pointer-events: none;
       z-index: -1;
     }
-    .wheel-shell::before {
-      content: '';
-      position: absolute;
-      inset: -14px;
-      z-index: 0;
-      border-radius: 999px;
-      background: conic-gradient(
-        from -20deg,
-        #fffaf1 0deg 38deg,
-        #e76f51 38deg 58deg,
-        #fffaf1 58deg 128deg,
-        #e76f51 128deg 148deg,
-        #fffaf1 148deg 218deg,
-        #e76f51 218deg 238deg,
-        #fffaf1 238deg 308deg,
-        #e76f51 308deg 328deg,
-        #fffaf1 328deg 360deg
-      );
-      box-shadow: 0 18px 36px -28px rgba(0,45,42,0.9), inset 0 0 0 3px rgba(7,63,59,0.35);
-    }
-    .wheel-shell canvas {
-      position: relative;
-      z-index: 1;
-    }
-    .wheel-spinner {
-      position: absolute;
-      inset: 0;
-      z-index: 11;
-      pointer-events: none;
-      transform: rotate(0deg);
-      transition: transform 6s cubic-bezier(0.17,0.67,0.14,1);
-    }
-    .wheel-spinner::before {
-      content: '';
-      position: absolute;
-      left: calc(50% - 4px);
-      top: 12%;
-      width: 8px;
-      height: 38%;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #fffaf1, #0a4f49 30%, #073f3b);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.32);
-    }
-    .wheel-spinner::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 7%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-bottom: 32px solid #fffaf1;
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.34));
-    }
-    .wheel-spinner-hub {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 54px;
-      height: 54px;
-      transform: translate(-50%,-50%);
-      z-index: 12;
-      border-radius: 999px;
-      border: 4px solid #fffaf1;
-      background: radial-gradient(circle at 35% 30%, #6ee7b7, #0a4f49 70%);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.35);
-      pointer-events: none;
-    }
-
     /* ════════ AVATARS ════════ */
     .avatar-img { width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid var(--hairline);background:var(--bg-2);flex-shrink:0; }
     .avatar-img-sc { width:60px;height:60px;border-radius:16px;object-fit:cover;border:2px solid var(--hairline);background:var(--bg-2);flex-shrink:0; }
@@ -4849,50 +4751,1003 @@ button.dealer-name-indicator .dealer-player-label {
       -webkit-user-select: none;
     }
     .scorecard-avatar-reorder-handle:active { cursor: grabbing; }
-    .scorecard-life-preserver-rank {
-      width: 2.1rem;
-      height: 2.1rem;
-      border-radius: 999px !important;
-      border: 3px solid transparent !important;
+    .leader-row,
+    .leader-row td:first-child { background: #e1f4ed !important; }
+    html.dark .leader-row,
+    html.dark .leader-row td:first-child { background: #164a43 !important; }
+    .tournament-footer {
+      background: linear-gradient(180deg, #fbf6f0, #e9f6f1) !important;
+    }
+    .rook-command-center {
+      background: linear-gradient(120deg, var(--surface), var(--blue-bg));
+      border-color: var(--blue-border);
+    }
+
+    /* Focused score entry remains visually quiet and keeps its hot path untouched. */
+    .score-entry-panel {
       background:
-        linear-gradient(#fffaf1, #fffaf1) padding-box,
-        conic-gradient(from 22.5deg,
-          #ef765b 0deg 45deg, #fffaf1 45deg 90deg,
-          #ef765b 90deg 135deg, #fffaf1 135deg 180deg,
-          #ef765b 180deg 225deg, #fffaf1 225deg 270deg,
-          #ef765b 270deg 315deg, #fffaf1 315deg 360deg) border-box !important;
-      color: #0b6f65 !important;
-      box-shadow: 0 0 0 2px rgba(239,118,91,0.2), 0 3px 9px rgba(80,45,31,0.2);
+        repeating-linear-gradient(45deg, rgba(8,118,108,0.012) 0, rgba(8,118,108,0.012) 1px, transparent 1px, transparent 18px),
+        var(--surface);
+      border-color: rgba(8,118,108,0.24);
+      box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.62);
     }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-life-preserver-rank {
-      width: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
-      height: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
-      font-size: clamp(0.68rem, calc(var(--scorecard-rank-font) * 1.08), 1rem) !important;
+    #score-entry-game {
+      color: var(--emerald);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.72);
     }
-    button.scorecard-life-preserver-rank {
-      padding: 0;
+    #score-entry-context { color: var(--bp-coral) !important; }
+    .score-entry-progress {
+      background: var(--emerald-bg);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+    }
+    .score-entry-player-card {
+      background: #fbf7f2;
+      border-color: var(--hairline);
+    }
+    html.dark .score-entry-player-card { background: var(--surface-2); }
+    .score-entry-row.active .score-entry-player-card {
+      background: linear-gradient(180deg, #e8f7f2, #f8fbf9);
+      border-color: var(--emerald-border);
+    }
+    html.dark .score-entry-row.active .score-entry-player-card { background: var(--emerald-bg); }
+    .score-entry-input-cell {
+      border-color: var(--emerald-border);
+      background: linear-gradient(180deg, #ddf3eb, #f8fcfa);
+    }
+    .score-entry-row.active .score-entry-input-cell { border-color: var(--emerald); }
+    .score-entry-selected-card {
+      background: linear-gradient(180deg, #e4f5ef, #fffdf9);
+      border-color: var(--emerald-border);
+    }
+    html.dark .score-entry-selected-card { background: linear-gradient(180deg, var(--emerald-bg), var(--surface)); }
+    .score-entry-keypad {
+      background: #f6eee7;
+      border-color: var(--hairline);
+    }
+    html.dark .score-entry-keypad { background: var(--bg-2); }
+    .score-entry-key { background: #073f3b; color: #fffdf9; }
+    .score-entry-key.subtle { background: #fffdf9; color: var(--ink-2); border-color: var(--hairline); }
+    html.dark .score-entry-key.subtle { background: var(--surface-2); color: var(--ink); }
+    .score-entry-key.next { background: var(--emerald); color: #fff; }
+
+    /* Secondary views inherit the same visual language without new controls. */
+    #history-screen > .flex:first-child > div {
+      background: rgba(255,253,249,0.88) !important;
+      border-color: rgba(8,118,108,0.18) !important;
+      box-shadow: var(--shadow-sm);
+    }
+    .bp-view-tabs {
+      position: relative;
+      padding-top: 0.7rem;
+    }
+    .bp-view-tabs::before {
+      content: 'Back Porch Archives';
+      position: absolute;
+      top: -1.05rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--bp-coral);
+      font-family: Georgia, serif;
+      font-size: 0.82rem;
+      font-style: italic;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    #history-list-view .surface,
+    #hall-of-fame-view .surface,
+    #records-view .surface,
+    #profiles-screen .surface,
+    #profiles-screen .surface-raised {
+      border-color: rgba(8,118,108,0.15);
+      box-shadow: 0 8px 20px -20px rgba(7,63,59,0.75);
+    }
+    #profiles-screen > .mb-7 {
+      padding: 1.4rem 1.5rem;
+      border: 1px solid rgba(8,118,108,0.16);
+      border-radius: 18px;
+      background: rgba(255,253,249,0.82);
+      box-shadow: var(--shadow-sm);
+    }
+    .bp-view-heading {
+      position: relative;
+      overflow: hidden;
+      padding-right: 8rem !important;
+      border-color: rgba(8,118,108,0.16) !important;
+    }
+    .bp-view-heading::after {
+      content: '≈  ♣  ≈';
+      position: absolute;
+      right: 1.4rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--bp-sky);
+      font-family: Georgia, serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      opacity: 0.58;
+    }
+    html.dark #profiles-screen > .mb-7 { background: var(--surface); }
+    #records-view section > h2,
+    #hall-of-fame-view h2 { border-color: rgba(8,118,108,0.2); }
+    .audit-entry,
+    .rivalry-card { background: var(--surface-2); border-color: var(--hairline); }
+
+    /* All modal shells use the porch palette; celebration content keeps its identity. */
+    [id$='-modal'] > .absolute.inset-0 {
+      background: rgba(5,55,51,0.48) !important;
+    }
+    .dice-dialog,
+    #settings-modal .surface-raised,
+    #rules-modal .surface-raised,
+    #audit-modal .surface-raised,
+    #profile-detail-view,
+    #scorecard-modal .surface-raised {
+      background: var(--surface);
+      border-color: rgba(8,118,108,0.2);
+      box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.5);
+    }
+    #lineup-intro,
+    #stat-montage { background: #073f3b; }
+    .intro-bg {
+      background: linear-gradient(145deg, rgba(231,111,81,0.42), transparent 38%), linear-gradient(180deg, #0b6159, #052f2c);
+    }
+    .intro-sub,
+    .montage-label { color: #9ee6d8; }
+    .montage-bg {
+      background: linear-gradient(135deg, rgba(231,111,81,0.24), transparent 42%), linear-gradient(315deg, rgba(115,197,200,0.22), transparent 46%);
+    }
+    .whammy-card { border-color: rgba(7,63,59,0.82); }
+    .whammy-card button { background: #073f3b !important; }
+    .toast.record { background: linear-gradient(135deg, var(--bp-coral), var(--bp-sunset)); }
+
+    @media (max-width: 760px) {
+      .brand-name { font-size: 1.28rem !important; }
+      .bp-brand-mark { width: 2.6rem; height: 2.6rem; flex-basis: 2.6rem; }
+      #top-nav { padding-top: 0.6rem; padding-bottom: 0.6rem; }
+      .bp-game-picker { padding: 1rem; }
+      .bp-game-heading { align-items: stretch; flex-direction: column; }
+      .bp-rules-picker { min-width: 0; width: 100%; }
+      .bp-game-card { min-height: 116px !important; padding: 1.25rem !important; }
+      .bp-game-card > .flex-1 { max-width: 70%; }
+      .bp-panel-heading { padding-right: 3rem; }
+      .bp-view-heading { padding-right: 1.5rem !important; }
+      .bp-view-heading::after { display: none; }
+    }
+
+    /* ════════ BACK PORCH GAMES: COHESIVE MOCKUP PASS ════════ */
+    :root {
+      --bp-ivory: #fffaf1;
+      --bp-ivory-soft: #f8efe4;
+      --bp-teal: #08766c;
+      --bp-teal-dark: #064d48;
+      --bp-coral: #e87358;
+      --bp-seafoam: #dff3ec;
+      --bp-aqua: #9dd8d6;
+      --bp-line: rgba(8,118,108,0.18);
+      --bp-warm-line: rgba(196,130,92,0.24);
+      --bp-panel-shadow: 0 24px 60px -34px rgba(37,54,49,0.58), 0 2px 8px rgba(42,67,61,0.08);
+    }
+    body {
+      background:
+        linear-gradient(180deg, rgba(255,250,241,0.08), rgba(236,246,242,0.24)),
+        url('./theme/back-porch-retro-sunrise.jpg') center center / cover no-repeat,
+        #dcece8;
+    }
+    .bp-app-shell {
+      width: min(100%, 1560px);
+      max-width: 1560px !important;
+      padding-bottom: 2rem;
+    }
+    /* Keep every centered modal anchored to the visual viewport, even when a
+       QA surface resets the utility flex class or an active match constrains
+       the app shell. The Rook results modal intentionally remains a mobile
+       bottom sheet and does not opt into this shell. */
+    .bp-modal-viewport-shell {
+      position: fixed !important;
+      inset: 0 !important;
+      box-sizing: border-box !important;
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 16px !important;
+    }
+    .bp-modal-viewport-shell:not(.hidden) {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #dealer-modal > .surface-raised,
+    #retire-player-modal > .surface-raised,
+    #reorder-players-modal > .surface-raised {
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+    }
+    .font-display { letter-spacing: 0; }
+    .surface,
+    .surface-raised {
+      background: rgba(255,250,241,0.96);
+      border-color: var(--bp-warm-line);
+      box-shadow: var(--bp-panel-shadow);
+    }
+
+    /* Branded navigation bar */
+    #top-nav {
+      top: 0.65rem;
+      margin: 0 0 1rem !important;
+      padding: 0.75rem 1.05rem !important;
+      border: 1px solid rgba(255,255,255,0.7) !important;
+      border-radius: 28px;
+      background: rgba(255,250,241,0.96) !important;
+      box-shadow: 0 18px 42px -30px rgba(26,63,57,0.72), inset 0 1px 0 #fff;
+    }
+    #top-nav::after { display: none; }
+    .bp-brand-mark {
+      width: 3.65rem;
+      height: 3.65rem;
+      flex-basis: 3.65rem;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.9) !important;
+      box-shadow: 0 10px 22px -14px rgba(6,77,72,0.78) !important;
+    }
+    .bp-brand-copy { min-width: 0; }
+    .brand-name {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      margin: 0;
+      color: var(--bp-teal-dark);
+      white-space: nowrap;
+    }
+    .bp-brand-main {
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
+      font-size: clamp(1.55rem, 2.6vw, 2.25rem);
+      font-style: normal;
+      font-weight: 400;
+      line-height: 1.08;
+    }
+    .bp-brand-games {
+      margin-top: 0.08rem;
+      margin-left: 0.42rem;
+      color: var(--bp-coral);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.78rem;
+      font-style: normal;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .bp-brand-games::before { content: '≈ '; color: var(--bp-aqua); }
+    .bp-brand-games::after { content: ' ≈'; color: var(--bp-aqua); }
+    #top-nav .nav-btn {
+      min-height: 2.5rem;
+      padding: 0.58rem 0.95rem;
+      color: #263c38;
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+    #top-nav .nav-btn.active,
+    #top-nav .nav-btn.accent {
+      background: #e9f8f2;
+      border-color: #a9ded0;
+      color: var(--bp-teal-dark);
+    }
+
+    /* Home composition */
+    #home-screen { gap: 1rem; }
+    .bp-roster-panel,
+    .bp-game-picker {
+      border: 1px solid rgba(255,255,255,0.68);
+      border-radius: 30px;
+      background:
+        repeating-linear-gradient(45deg, rgba(8,118,108,0.018) 0 1px, transparent 1px 15px),
+        linear-gradient(145deg, rgba(255,251,243,0.985), rgba(255,248,238,0.96)),
+        rgba(255,250,241,0.98);
+      box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
+    }
+    .bp-roster-panel { padding: clamp(1.3rem, 2.25vw, 2rem) !important; }
+    .bp-game-picker { padding: clamp(1.2rem, 2vw, 1.75rem); }
+    .bp-panel-heading {
+      min-height: 0;
+      margin-bottom: 1.15rem !important;
+      padding: 0 4rem 1rem 0;
+      border-bottom: 1px solid var(--bp-warm-line);
+    }
+    .bp-panel-heading::after {
+      content: none;
+      display: none;
+    }
+    .bp-panel-heading h2 {
+      color: #123e39;
+      font-size: clamp(2rem, 3.25vw, 2.75rem) !important;
+      line-height: 1;
+    }
+    .bp-game-heading-copy h2 { color: var(--bp-teal-dark) !important; }
+    #quick-add-player {
+      min-height: 3.35rem;
+      border-color: rgba(196,130,92,0.24) !important;
+      background: #f6ecdf !important;
+      box-shadow: inset 0 2px 7px rgba(80,58,41,0.05);
+    }
+    .bp-roster-panel .btn-primary { min-height: 3.35rem; }
+    .bp-column-title {
+      color: var(--bp-teal) !important;
+      font-size: 0.72rem !important;
+      font-weight: 900 !important;
+      flex: 1 1 auto;
+    }
+    .bp-bench-title { color: #a95a43 !important; }
+    .bp-column-title::before {
+      content: '';
+      width: 2.45rem;
+      height: 2rem;
+      flex: 0 0 2.45rem;
+      border: 0;
+      border-radius: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 1;
+    }
+    .bp-bench-title::before { background-image: url('./theme/bench-mark.svg'); }
+    .bp-lineup-title::before { background-image: url('./theme/lineup-mark.svg'); }
+    .bp-column-title::after {
+      content: '';
+      height: 2px;
+      min-width: 1.5rem;
+      flex: 1 1 auto;
+      margin-left: 0.25rem;
+      background: repeating-linear-gradient(90deg, currentColor 0 3px, transparent 3px 7px);
+      opacity: 0.28;
+    }
+    .bp-roster-panel .bp-panel-heading > div > div:first-child {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .bp-roster-panel .bp-panel-heading > div > div:first-child::before,
+    .bp-roster-panel .bp-panel-heading > div > div:first-child::after {
+      content: '';
+      width: 2.15rem;
+      height: 2.15rem;
+      flex: 0 0 2.15rem;
+      background: url('./theme/palm-flourish.svg') center / contain no-repeat;
+    }
+    .bp-roster-panel .bp-panel-heading > div > div:first-child::after { transform: scaleX(-1); }
+    .bp-game-heading-copy h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0;
+    }
+    .bp-game-heading-copy h2::after {
+      content: '';
+      width: 4.35rem;
+      height: 1.35rem;
+      flex: 0 0 4.35rem;
+      background: url('./theme/wave-flourish.svg') center / contain no-repeat;
+    }
+    .bp-game-heading > div:first-child {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .bp-game-heading > div:first-child::after {
+      content: none;
+      display: none;
+    }
+    .bp-roster-panel .bp-panel-heading {
+      position: relative;
+      padding-right: 13rem;
+    }
+    #roster-count {
+      position: absolute;
+      top: 0.2rem;
+      right: 0;
+      margin-left: auto;
+      min-height: 2.55rem;
+      padding: 0.5rem 0.9rem;
+      border-color: rgba(223,111,82,0.28);
+      background: rgba(255,249,241,0.94);
+      box-shadow: 0 8px 18px -15px rgba(70,48,35,0.75), inset 0 1px 0 #fff;
+      font-size: 0.78rem;
+    }
+    #roster-count::before {
+      content: '';
+      width: 1.45rem;
+      height: 1.25rem;
+      flex: 0 0 1.45rem;
+      background: url('./theme/players-mark.svg') center / contain no-repeat;
+    }
+    #bench-list,
+    #lineup-list {
+      max-height: 465px;
+      scrollbar-color: rgba(8,118,108,0.25) transparent;
+    }
+    #lineup-list {
+      padding: 0.55rem !important;
+      border-color: rgba(8,118,108,0.32) !important;
+      border-radius: 20px;
+      background: rgba(220,244,235,0.34) !important;
+    }
+    .roster-row-lineup,
+    .roster-row-bench,
+    .bench-row-content {
+      min-height: 4.15rem;
+      border-radius: 16px;
+    }
+    .roster-row-lineup {
+      border-width: 1px;
+      background:
+        linear-gradient(90deg, rgba(234,250,244,0.98), rgba(217,241,232,0.92));
+      box-shadow: 0 8px 18px -16px rgba(6,77,72,0.75), inset 0 1px 0 #fff;
+    }
+    .roster-row-bench,
+    .bench-row-content {
+      background: #fffaf5;
+      border-color: rgba(196,130,92,0.24);
+    }
+    .bench-row-content { background: #fffaf5 !important; }
+    .bench-row-content .text-\[10px\] {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .roster-row-lineup .avatar-img,
+    .roster-row-bench .avatar-img { border-radius: 14px; }
+
+    /* Illustrated game banners */
+    .game-card.quest-card.bp-game-card {
+      min-height: 132px !important;
+      border: 1px solid rgba(255,255,255,0.78);
+      border-bottom-width: 4px;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px -24px rgba(35,55,50,0.78), inset 0 1px 0 rgba(255,255,255,0.68);
+      transform: translateZ(0);
+    }
+    .bp-game-card:hover { transform: translateY(-2px); }
+    .bp-game-card > .flex-1 { max-width: 68%; }
+    .bp-game-card .font-display {
+      color: #0b3935;
+      font-size: clamp(2rem, 3.35vw, 2.65rem) !important;
+      line-height: 1;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.85);
+    }
+    .bp-game-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.72rem;
+    }
+    .bp-game-picker .game-card.quest-card.bp-game-card {
+      display: block !important;
+      min-height: 150px !important;
+      padding: 0.58rem !important;
+      background:
+        linear-gradient(145deg, rgba(255,252,246,0.98), rgba(244,253,248,0.94)) !important;
+    }
+    .bp-game-picker .bp-game-card::before {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.18), transparent 44%),
+        linear-gradient(90deg, rgba(255,250,241,0.3), transparent 36%);
+    }
+    .bp-game-picker .bp-game-card-art {
+      inset: 0.58rem;
+      width: auto;
+      height: auto;
+      border-radius: 16px;
+      background-color: rgba(255,250,241,0.86);
+      background-size: contain;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.82),
+        0 10px 22px -18px rgba(7,63,59,0.74);
+    }
+    .bp-game-picker .bp-game-card > .flex-1 {
+      position: absolute;
+      z-index: 3;
+      top: 0.85rem;
+      left: 0.85rem;
+      display: block;
+      min-height: 0;
+      max-width: calc(100% - 1.7rem);
+      padding: 0.34rem 0.62rem 0.4rem;
+      border: 1px solid rgba(255,255,255,0.78);
+      border-radius: 999px;
+      background: rgba(255,250,241,0.92);
+      box-shadow: 0 10px 20px -16px rgba(7,63,59,0.72), inset 0 1px 0 rgba(255,255,255,0.75);
+    }
+    .bp-game-picker .bp-game-card .font-display {
+      font-size: clamp(1.02rem, 1.8vw, 1.34rem) !important;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .bp-on-deck-panel {
+      padding: 1rem;
+      border: 1px solid rgba(255,255,255,0.68);
+      border-radius: 24px;
+      background:
+        repeating-linear-gradient(45deg, rgba(231,115,88,0.018) 0 1px, transparent 1px 15px),
+        linear-gradient(145deg, rgba(255,251,243,0.985), rgba(255,246,238,0.96));
+      box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
+    }
+    .bp-roster-columns {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      flex: 1 1 auto;
+    }
+    .bp-roster-column {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .bp-on-deck-zone {
+      padding: 0.55rem;
+      border: 2px dashed rgba(231,115,88,0.26);
+      border-radius: 20px;
+      background:
+        repeating-linear-gradient(45deg, rgba(231,115,88,0.018) 0 1px, transparent 1px 15px),
+        rgba(255,250,245,0.56);
+    }
+    .bp-table-zone {
+      min-height: 0;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+    }
+    @media (min-width: 1024px) {
+      #home-screen {
+        min-height: min(740px, calc(100dvh - 7.4rem));
+      }
+      .bp-roster-panel,
+      .bp-home-side {
+        min-height: 0;
+        height: min(740px, calc(100dvh - 7.4rem));
+      }
+      .bp-roster-panel {
+        display: flex;
+        flex-direction: column;
+      }
+      #lineup-list {
+        flex: 1 1 auto;
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      .bp-home-side {
+        min-height: 0;
+      }
+      .bp-game-picker {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .bp-game-picker .bp-game-grid {
+        flex: 1 1 auto;
+        min-height: 0;
+        align-content: stretch;
+      }
+      .bp-on-deck-panel {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      #bench-list {
+        flex: 1 1 auto;
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      .bp-roster-column #bench-list,
+      .bp-roster-column #lineup-list {
+        flex: 1 1 auto;
+        max-height: none !important;
+        min-height: 0 !important;
+      }
+      .game-card.quest-card.bp-game-card {
+        min-height: 96px !important;
+        padding: 0.92rem 0.9rem 0.9rem 1rem !important;
+        border-radius: 18px;
+      }
+      .bp-game-picker .game-card.quest-card.bp-game-card {
+        min-height: 150px !important;
+        padding: 0.52rem !important;
+      }
+      .bp-game-card > .flex-1 {
+        max-width: 56%;
+      }
+      .bp-game-card .font-display {
+        font-size: clamp(1.42rem, 1.78vw, 1.8rem) !important;
+      }
+      .bp-game-card-art {
+        width: 39%;
+        border-radius: 15px;
+      }
+      .bp-game-picker .bp-game-card-art {
+        inset: 0.52rem;
+        width: auto;
+        border-radius: 15px;
+      }
+    }
+    @media (min-width: 1280px) {
+      .bp-game-grid {
+        gap: 0.82rem;
+      }
+      .game-card.quest-card.bp-game-card {
+        min-height: 94px !important;
+      }
+      .bp-game-picker .game-card.quest-card.bp-game-card { min-height: 152px !important; }
+    }
+
+    /* Active game identity and command bar */
+    .active-match-banner {
+      min-height: 94px;
+      padding: 0.72rem 1rem !important;
+      margin-bottom: 0.65rem !important;
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 22px;
+      background: rgba(255,250,241,0.965) !important;
+      box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
+    }
+    .scorecard-view-toggle-wrap {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .scorecard-view-toggle-wrap.hidden { display: none !important; }
+    .scorecard-view-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-height: 2.7rem;
+      padding: 0.34rem 0.42rem 0.34rem 0.58rem;
+      border: 1px solid rgba(8,118,108,0.24);
+      border-radius: 999px;
+      color: var(--bp-teal-dark);
+      background: rgba(232,247,242,0.82);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+      font-size: 0.76rem;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
       cursor: pointer;
-      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    button.scorecard-life-preserver-rank:hover,
-    button.scorecard-life-preserver-rank:focus-visible {
-      filter: brightness(1.03);
-      transform: scale(1.1);
-      box-shadow: 0 0 0 3px rgba(239,118,91,0.28), 0 4px 11px rgba(80,45,31,0.24);
+    .scorecard-view-toggle:hover { border-color: rgba(8,118,108,0.42); background: rgba(255,255,255,0.9); }
+    .scorecard-view-toggle:focus-visible {
+      outline: 3px solid rgba(40,127,155,0.48);
+      outline-offset: 3px;
+    }
+    .scorecard-view-toggle-label { white-space: nowrap; }
+    .scorecard-view-toggle-track {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      width: 2.18rem;
+      height: 1.18rem;
+      padding: 0.12rem;
+      border-radius: 999px;
+      background: rgba(83,96,107,0.42);
+      box-shadow: inset 0 1px 2px rgba(20,39,52,0.2);
+      transition: background 0.15s ease;
+    }
+    .scorecard-view-toggle-thumb {
+      display: block;
+      width: 0.94rem;
+      height: 0.94rem;
+      border-radius: 50%;
+      background: #fffdf9;
+      box-shadow: 0 1px 3px rgba(20,39,52,0.28);
+      transform: translateX(0);
+      transition: transform 0.15s ease;
+    }
+    .scorecard-view-toggle[aria-checked="true"] {
+      border-color: rgba(8,118,108,0.42);
+      background: rgba(222,246,238,0.96);
+      box-shadow: 0 3px 10px -8px rgba(6,77,72,0.72), inset 0 1px 0 rgba(255,255,255,0.82);
+    }
+    .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-track { background: var(--emerald); }
+    .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-thumb { transform: translateX(1rem); }
+    .scorecard-bid-header {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.08rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .scorecard-bid-header-label {
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: clamp(0.55rem, 0.88vw, 0.72rem);
+      font-weight: 900;
+      letter-spacing: 0.14em;
+    }
+    .scorecard-bid-header-fraction {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
+      font-size: clamp(1.05rem, 1.75vw, 1.6rem);
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 0.95;
+    }
+    .active-match-actions { flex-shrink: 0; }
+    @media (min-width: 761px) {
+      .active-match-actions { flex-wrap: nowrap !important; }
+    }
+    .match-end-btn {
+      color: #9a4f3f;
+      border-color: rgba(231,111,81,0.28);
+      background: rgba(255,249,244,0.78);
+      box-shadow: none;
+    }
+    .match-end-btn:hover,
+    .match-end-btn:focus-visible {
+      color: #7f3f32;
+      border-color: rgba(231,111,81,0.5);
+      background: #fff3ed;
+    }
+    @media (min-width: 761px) {
+      body.active-match-view #top-nav {
+        margin-bottom: 1.35rem !important;
+        padding-top: 0.42rem !important;
+        padding-bottom: 0.42rem !important;
+      }
+      body.active-match-view #top-nav .bp-brand-mark {
+        width: 2.8rem;
+        height: 2.8rem;
+        flex-basis: 2.8rem;
+      }
+      body.active-match-view .active-match-banner {
+        min-height: 76px;
+        margin-bottom: 0.4rem !important;
+        padding: 0.48rem 0.85rem !important;
+      }
+      body.active-match-view .bp-active-identity { gap: 0.72rem; }
+      body.active-match-view .bp-active-copy { gap: 0.22rem; }
+      body.active-match-view .bp-active-game-art {
+        width: 94px;
+        height: 52px;
+        flex-basis: 94px;
+      }
+    }
+    .active-match-banner::before { display: none; }
+    .bp-active-identity { flex: 1 1 auto; }
+    .bp-active-game-art {
+      width: 112px;
+      height: 64px;
+      flex: 0 0 112px;
+      border: 3px solid rgba(255,255,255,0.9);
+      border-radius: 15px;
+      background-color: #fffaf1;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      box-shadow: -5px 6px 0 rgba(231,115,88,0.16), 0 14px 30px -20px rgba(6,77,72,0.78);
+      transform: rotate(-2deg);
+    }
+    #game-screen .bp-active-game-art {
+      background-image: url('./theme/game-card-five-crowns-thumb.jpg');
+    }
+    #game-screen[data-game='Five Crowns'] .bp-active-game-art { background-image: url('./theme/game-card-five-crowns-thumb.jpg'); }
+    #game-screen[data-game='Wizard'] .bp-active-game-art { background-image: url('./theme/game-card-wizard-thumb.jpg'); }
+    #game-screen[data-game='818'] .bp-active-game-art { background-image: url('./theme/game-card-818-thumb.jpg'); }
+    #game-screen[data-game='Flip 7 Vengeance'] .bp-active-game-art { background-image: url('./theme/game-card-flip7-thumb.jpg'); }
+    #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('./theme/game-card-rook-thumb.jpg'); }
+    #game-screen[data-game='Beat the Heat'] .bp-active-game-art {
+      background-image: url('./theme/game-card-beat-heat-thumb.jpg');
+    }
+    .bp-live-kicker { display: none; }
+    #game-title {
+      color: #0b3935;
+      font-size: clamp(1.75rem, 3.15vw, 2.65rem);
+      line-height: 0.95;
+    }
+    .round-banner {
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
+      font-weight: 400;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: var(--bp-coral) !important;
+      font-size: clamp(1.02rem, 1.8vw, 1.45rem);
+      font-style: italic;
+    }
+    #game-screen #wizard-header-metrics {
+      min-height: 2.35rem;
+      border-width: 1px;
+      border-radius: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    #game-screen .btn-ghost,
+    #game-screen .btn-accent {
+      min-height: 2.7rem;
+      border-radius: 13px;
+    }
+    #actions-menu {
+      z-index: 500 !important;
+      width: min(21rem, calc(100vw - 2rem));
+      overflow: hidden;
+      border: 1px solid rgba(6, 77, 72, 0.16) !important;
+      border-radius: 20px;
+      background: rgba(255, 252, 247, 0.985) !important;
+      box-shadow: 0 24px 52px -24px rgba(4, 59, 55, 0.5), 0 8px 20px -16px rgba(4, 59, 55, 0.32) !important;
+    }
+    .actions-menu-section {
+      padding: 0.58rem;
+    }
+    .actions-menu-section + .actions-menu-section {
+      border-top: 1px solid rgba(6, 77, 72, 0.12);
+    }
+    .actions-menu-label {
+      display: block;
+      padding: 0.18rem 0.64rem 0.42rem;
+      color: rgba(6, 77, 72, 0.58);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .actions-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+      min-height: 3.15rem;
+      padding: 0.5rem 0.64rem;
+      border-radius: 13px;
+      color: var(--ink-2);
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.94rem;
+      font-weight: 800;
+      line-height: 1.15;
+      text-align: left;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .actions-menu-item:hover,
+    .actions-menu-item:focus-visible {
+      background: rgba(222, 246, 239, 0.8);
       outline: none;
     }
-    .scorecard-life-preserver-rank-used {
-      background:
-        linear-gradient(#f2f1ee, #f2f1ee) padding-box,
-        conic-gradient(from 22.5deg,
-          #9ca3a0 0deg 45deg, #f7f7f4 45deg 90deg,
-          #9ca3a0 90deg 135deg, #f7f7f4 135deg 180deg,
-          #9ca3a0 180deg 225deg, #f7f7f4 225deg 270deg,
-          #9ca3a0 270deg 315deg, #f7f7f4 315deg 360deg) border-box !important;
-      color: #747b78 !important;
-      box-shadow: 0 0 0 1px rgba(116,123,120,0.18);
-      opacity: 0.72;
+    .actions-menu-item:active { transform: scale(0.985); }
+    .actions-menu-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.2rem;
+      height: 2.2rem;
+      flex: 0 0 2.2rem;
+      border: 1px solid rgba(6, 77, 72, 0.13);
+      border-radius: 10px;
+      background: #e7f7f1;
+      color: #087d74;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.82);
     }
+    .actions-menu-icon svg {
+      width: 1.12rem;
+      height: 1.12rem;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .actions-menu-icon--coral {
+      background: #fff0e8;
+      color: #ce694c;
+      border-color: rgba(206, 105, 76, 0.16);
+    }
+    .actions-menu-item--danger { color: #bf4057; }
+    .actions-menu-item--danger .actions-menu-icon {
+      background: #fff0f2;
+      color: #c2475d;
+      border-color: rgba(194, 71, 93, 0.18);
+    }
+    .actions-menu-item--danger:hover,
+    .actions-menu-item--danger:focus-visible { background: #fff3f4; }
+    @media (max-width: 640px) {
+      #actions-menu { width: min(20rem, calc(100vw - 1.5rem)); }
+      .actions-menu-item { min-height: 3.35rem; font-size: 1rem; }
+    }
+
+    /* Leader strip and scoreboard */
+    .leader-banner {
+      display: none !important;
+      min-height: 4.4rem;
+      padding: 0.7rem 1rem !important;
+      border-radius: 18px;
+      background:
+        linear-gradient(90deg, rgba(225,247,239,0.98), rgba(241,249,245,0.94)),
+        var(--bp-seafoam) !important;
+      box-shadow: 0 10px 24px -20px rgba(6,77,72,0.68), inset 0 1px 0 #fff;
+    }
+    .leader-banner::before {
+      content: '🏆  Champion Watch';
+      background: rgba(255,250,241,0.88);
+      font-size: 0.68rem;
+    }
+    .leader-banner::after {
+      content: '≈  ≈  ≈  ≈';
+      color: var(--bp-aqua);
+      opacity: 0.42;
+    }
+    #leader-text {
+      color: var(--bp-teal-dark) !important;
+      font-family: 'Pacifico', 'Brush Script MT', cursive;
+      font-size: clamp(1.45rem, 2.6vw, 2rem);
+      font-style: normal;
+    }
+    .tournament-scoreboard {
+      border: 1px solid rgba(255,255,255,0.72);
+      border-top: 0;
+      border-radius: 28px;
+      background: rgba(255,250,241,0.97);
+      box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
+    }
+    .tournament-scoreboard .scorecard-table-wrap { background: rgba(255,252,247,0.96); }
+    .scorecard-table thead tr { background: #f7eadc; }
+    .scorecard-table thead th {
+      height: 3.6rem;
+      color: var(--bp-teal-dark);
+      border-bottom: 1px solid rgba(196,130,92,0.24);
+      font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+      font-weight: 900;
+      letter-spacing: 0.06em !important;
+    }
+    .scorecard-table thead th.scorecard-round-th {
+      font-size: clamp(1.25rem, 2.1vw, 1.7rem) !important;
+      letter-spacing: 0.06em !important;
+    }
+    .scorecard-table thead th.scorecard-col-player { background: #f7eadc !important; }
+    .scorecard-table tbody tr { background: rgba(255,252,247,0.97); }
+    .scorecard-table tbody td {
+      height: clamp(4.15rem, 6vw, 4.8rem);
+      border-bottom-color: rgba(196,130,92,0.18);
+    }
+    .scorecard-table tbody td.scorecard-col-player { background: rgba(255,252,247,0.98); }
+    .scoreboard-player-name {
+      color: #111b19;
+      font-family: 'Bree Serif', Georgia, serif !important;
+      font-size: clamp(1.75rem, 3.15vw, 2.55rem) !important;
+      font-weight: 700 !important;
+      letter-spacing: 0 !important;
+      line-height: 1.14;
+    }
+    .avatar-img-sc {
+      width: clamp(3.35rem, 6vw, 4.35rem);
+      height: clamp(3.35rem, 6vw, 4.35rem);
+      border-radius: 15px;
+      border-width: 2px;
+    }
+    .scoreboard-rank-badge { border-radius: 10px; }
+    .scorecard-total-cell {
+      min-width: 7.25rem;
+      background: linear-gradient(180deg, rgba(226,246,239,0.7), rgba(249,253,250,0.72));
+      color: #0b3935;
+    }
+    .scorecard-total-cell.tv-stat-num,
+    .scorecard-total-cell .tv-stat-num,
+    .scorecard-total-value { font-size: clamp(2.05rem, 3.4vw, 2.85rem) !important; }
+    .scorecard-avatar-slot {
+      position: relative;
+      display: inline-flex;
+      flex: 0 0 auto;
+    }
+    .scorecard-avatar-reorder-handle {
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .scorecard-avatar-reorder-handle:active { cursor: grabbing; }
     .leader-row,
     .leader-row td,
     .leader-row td:first-child { background: #dff5ed !important; }
@@ -5960,7 +6815,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="mb-5">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Round History</div>
         <h3 class="font-display text-3xl">Audit Log</h3>
-        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Life Preserver, and retirement — for settling disputes.</p>
+        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Comeback extra, and retirement — for settling disputes.</p>
       </div>
       <div id="audit-list" class="flex-1 overflow-y-auto"></div>
     </div>
@@ -6134,9 +6989,9 @@ button.dealer-name-indicator .dealer-player-label {
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H2"></path><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3h7"></path></svg></span>
                   <span>Rules</span>
                 </button>
-                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverRules();closeActionsMenu();" class="actions-menu-item">
-                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.25"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg></span>
-                  <span>Life Preserver</span>
+                <button type="button" id="actions-comeback-btn" onclick="openComebackRules();closeActionsMenu();" class="actions-menu-item">
+                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h10"></path><path d="m10 6 6 6-6 6"></path><path d="M20 5v14"></path></svg></span>
+                  <span>Comeback</span>
                 </button>
               </div>
               <div class="actions-menu-section">
@@ -6569,55 +7424,6 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
-    <!-- Life Preserver Wheel -->
-    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
-      <div onclick="closeWheel()" class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
-        <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
-        <p class="text-xs font-bold mb-2 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
-        <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
-        <div class="wheel-shell relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
-          <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
-          <div id="wheel-spinner" class="wheel-spinner"></div>
-          <div class="wheel-spinner-hub"></div>
-        </div>
-        <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl">SPIN THE WHEEL</button>
-        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold">How Life Preserver works</button>
-        <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-30 flex flex-col p-6 md:p-7 text-left">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);">🛟 Life Preserver</div>
-          <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
-          <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
-          <div class="flex-1 min-h-0 overflow-y-auto pr-1 text-sm md:text-[15px] font-semibold">
-            <div id="life-preserver-why" class="life-preserver-why hidden">
-              <h4>Why these numbers</h4>
-              <p id="life-preserver-why-lead"></p>
-              <ul id="life-preserver-why-list"></ul>
-            </div>
-            <h4>Who can spin</h4>
-            <ul>
-              <li>You have to be in the bottom half of the table.</li>
-              <li>You have to be far enough behind the pack that catching up with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
-              <li>A runaway leader does not unlock everyone clustered behind them.</li>
-              <li>One spin per player, per game.</li>
-              <li>Not used in Rook or Beat the Heat.</li>
-            </ul>
-            <h4>What the wheel does</h4>
-            <ul>
-              <li>The numbers are sized to this game, this table, and how far behind you are.</li>
-              <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
-              <li>The best result can pull you back toward the pack, but it cannot put you in 1st or 2nd.</li>
-              <li>At a bigger table, 4th is as high as it can land you.</li>
-              <li>Most slices help. Some do nothing. A few slightly hurt.</li>
-              <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
-            </ul>
-          </div>
-          <button type="button" onclick="hideLifePreserverHelp()" class="btn-primary w-full mt-4 py-4 font-display text-xl">Back to the wheel</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Numpad -->
     <div id="custom-numpad" class="hidden fixed bottom-0 md:bottom-6 right-0 md:right-6 w-full max-w-[350px] text-white p-4 md:p-5 z-[100] transform translate-y-full transition-transform duration-300 rounded-t-3xl md:rounded-3xl" style="background:#0f0f0e;border:1px solid #2c2c29;box-shadow:0 -8px 40px rgba(0,0,0,0.3);">
       <div class="flex justify-between items-center mb-4 px-2">
@@ -6744,16 +7550,28 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
-    <!-- Life Preserver rules -->
-    <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
-      <div onclick="closeLifePreserverRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised life-preserver-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
-        <button type="button" onclick="closeLifePreserverRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+    <!-- Comeback rules -->
+    <div id="comeback-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeComebackRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised comeback-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
+        <button type="button" onclick="closeComebackRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5 pr-8">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">🛟 Life Preserver</div>
-          <h3 class="font-display text-4xl md:text-5xl leading-tight" id="life-preserver-rules-title">How you get one</h3>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Comeback</div>
+          <h3 class="font-display text-4xl md:text-5xl leading-tight" id="comeback-rules-title">How it works</h3>
         </div>
-        <div id="life-preserver-rules-content" class="life-preserver-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
+        <div id="comeback-rules-content" class="comeback-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
+      </div>
+    </div>
+
+    <!-- Comeback explain -->
+    <div id="comeback-explain-modal" class="hidden fixed inset-0 flex items-center justify-center z-[95] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeComebackExplain()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised comeback-rules-card w-full max-w-md p-7 relative flex flex-col">
+        <button type="button" onclick="closeComebackExplain()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Comeback</div>
+        <h3 class="font-display text-3xl mb-3 pr-8" id="comeback-explain-title">Why this extra</h3>
+        <p id="comeback-explain-lead" class="text-sm font-extrabold mb-3" style="color:var(--ink);"></p>
+        <ul id="comeback-explain-list" class="comeback-rules-body text-sm"></ul>
       </div>
     </div>
 
@@ -6906,7 +7724,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-loser-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <div class="postgame-hero-icon text-7xl mb-4">🛟</div>
+        <div class="postgame-hero-icon text-7xl mb-4">🌊</div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--blue);">Low Tide</div>
         <h3 id="loser-names" class="font-display text-3xl sm:text-4xl mb-3 leading-tight"></h3>
         <p class="text-base font-bold mb-6 italic" style="color:var(--muted);">The tide went out on this one.</p>
@@ -6961,7 +7779,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div><!-- /max-w -->
 
 
-  <script src="./assets/life-preserver-logic.js"></script>
+  <script src="./assets/comeback-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -7199,6 +8017,10 @@ button.dealer-name-indicator .dealer-player-label {
       Object.keys(r.scores||{}).forEach(p=>{
         if(game.totals[p]===undefined)game.totals[p]=0;
         game.totals[p]+=(r.scores[p]||0);
+      });
+      Object.entries(r.comeback||{}).forEach(([p,extra])=>{
+        if(game.totals[p]===undefined)game.totals[p]=0;
+        game.totals[p]+=Number(extra)||0;
       });
     });
     return game.totals;
@@ -7950,10 +8772,10 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function openRules(){ if(!currentGame)return; openGameRules(currentGame.name); }
   function closeRules(){ closeModal('rules-modal'); }
-  function lifePreserverRulesList(items){
+  function comebackRulesList(items){
     return `<ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul>`;
   }
-  function renderLifePreserverRulesLive(live){
+  function renderComebackRulesLive(live){
     if(!live)return '';
     const lines=[];
     if(live.timingOpen){
@@ -7970,15 +8792,15 @@ button.dealer-name-indicator .dealer-player-label {
       lines.push(`Middle of the table is ${ordinalLive(live.packRank)}: ${escapeHtml(live.packPlayer)} at ${live.packScore}.${catchBit}`);
     }
     if(live.ready.length){
-      lines.push(`Ready to spin: ${escapeHtml(joinLiveNames(live.ready))}.`);
-    }
-    if(live.used.length){
-      lines.push(`Already used: ${escapeHtml(joinLiveNames(live.used))}.`);
+      const readyBits=(live.statuses||[]).filter(entry=>entry.eligible).map(entry=>{
+        return entry.chipLabel ? `${entry.player} (${entry.chipLabel})` : entry.player;
+      });
+      lines.push(`Comeback is on for ${escapeHtml(joinLiveNames(readyBits.length?readyBits:live.ready))}.`);
     }
     const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
     const others=live.notYet.filter(entry=>entry.reason!=='too-early');
     if(!live.timingOpen && tooEarly.length && !others.length){
-      lines.push('Nobody has one yet — the game is still too early.');
+      lines.push('Nobody has Comeback yet — the game is still too early.');
     } else {
       const groups=[];
       others.forEach(entry=>{
@@ -7997,7 +8819,7 @@ button.dealer-name-indicator .dealer-player-label {
         lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
       });
     }
-    return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
+    return `<div class="comeback-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
   }
   function ordinalLive(value){
     const n=Number(value)||0;
@@ -8014,32 +8836,91 @@ button.dealer-name-indicator .dealer-player-label {
     if(names.length===2)return `${names[0]} and ${names[1]}`;
     return `${names.slice(0,-1).join(', ')}, and ${names[names.length-1]}`;
   }
-  function openLifePreserverRules(){
+  function openComebackRules(){
     if(!currentGame)return;
     const players=getActivePlayers(currentGame);
     const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
-    const summary=(window.BPGLifePreserver&&typeof BPGLifePreserver.summarizeLifePreserverTable==='function')
-      ? BPGLifePreserver.summarizeLifePreserverTable(currentGame, players, {gameOver:over})
-      : {rules:{supported:false,gameName:currentGame.name,lead:'Life Preserver details are unavailable.',how:[],wheel:[]},live:null};
+    const summary=(window.BPGComeback&&typeof BPGComeback.summarizeComebackTable==='function')
+      ? BPGComeback.summarizeComebackTable(currentGame, players, {gameOver:over})
+      : {rules:{supported:false,gameName:currentGame.name,lead:'Comeback details are unavailable.',how:[],extra:[]},live:null};
     const rules=summary.rules||{};
-    const title=document.getElementById('life-preserver-rules-title');
-    if(title) title.textContent=rules.supported?`How you get one in ${rules.gameName}`:`Life Preserver`;
+    const title=document.getElementById('comeback-rules-title');
+    if(title) title.textContent=rules.supported?`How Comeback works in ${rules.gameName}`:`Comeback`;
     const parts=[];
     if(rules.lead) parts.push(`<p>${escapeHtml(rules.lead)}</p>`);
     if(rules.how?.length){
-      parts.push('<h4>You get one when</h4>');
-      parts.push(lifePreserverRulesList(rules.how.map(item=>escapeHtml(item))));
+      parts.push('<h4>It turns on when</h4>');
+      parts.push(comebackRulesList(rules.how.map(item=>escapeHtml(item))));
     }
-    parts.push(renderLifePreserverRulesLive(summary.live));
-    if(rules.wheel?.length){
-      parts.push('<h4>What the wheel does</h4>');
-      parts.push(lifePreserverRulesList(rules.wheel.map(item=>escapeHtml(item))));
+    parts.push(renderComebackRulesLive(summary.live));
+    if(rules.extra?.length){
+      parts.push('<h4>How the extra works</h4>');
+      parts.push(comebackRulesList(rules.extra.map(item=>escapeHtml(item))));
     }
-    const content=document.getElementById('life-preserver-rules-content');
+    const content=document.getElementById('comeback-rules-content');
     if(content) content.innerHTML=parts.join('');
-    openModal('life-preserver-rules-modal');
+    openModal('comeback-rules-modal');
   }
-  function closeLifePreserverRules(){ closeModal('life-preserver-rules-modal'); }
+  function closeComebackRules(){ closeModal('comeback-rules-modal'); }
+  function getComebackOfferForPlayer(player, activePlayers, extra){
+    if(!window.BPGComeback)return {eligible:false,reason:'missing-engine'};
+    return BPGComeback.getComebackOffer(currentGame, player, activePlayers, extra||{});
+  }
+  function openComebackExplain(player){
+    if(!currentGame||!player)return;
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const offer=getComebackOfferForPlayer(player, getActivePlayers(currentGame), {gameOver:over});
+    const explained=(window.BPGComeback&&typeof BPGComeback.explainComebackOffer==='function')
+      ? BPGComeback.explainComebackOffer(offer)
+      : {summary:'',bullets:[]};
+    const title=document.getElementById('comeback-explain-title');
+    if(title) title.textContent=offer.chipLabel||'Comeback';
+    const lead=document.getElementById('comeback-explain-lead');
+    if(lead) lead.textContent=explained.summary||'';
+    const list=document.getElementById('comeback-explain-list');
+    if(list) list.innerHTML=(explained.bullets||[]).map(bullet=>`<li>${escapeHtml(bullet)}</li>`).join('');
+    openModal('comeback-explain-modal');
+  }
+  function closeComebackExplain(){ closeModal('comeback-explain-modal'); }
+  function applyComebackAndNotify(roundData, players){
+    if(!window.BPGComeback||typeof BPGComeback.applyComebackToRound!=='function') return [];
+    const applied=BPGComeback.applyComebackToRound(currentGame, roundData, players)||[];
+    applied.forEach(item=>{
+      if(!item.applied) return;
+      const signed=BPGComeback.formatSignedPoints(item.applied);
+      const stopped=item.clamped?` (stopped at ${ordinalLive(item.packRank)})`:'';
+      addAuditEntry(`R${roundData.round} Comeback`, `${item.player} ${signed}${stopped}`);
+    });
+    const clipped=applied.filter(item=>item.clamped&&item.applied);
+    if(clipped.length===1) toast(`Comeback stopped at ${ordinalLive(clipped[0].packRank)}.`, 'warning');
+    else if(clipped.length>1) toast('Comeback extras stopped at the pack.', 'warning');
+    return applied;
+  }
+  function previewComebackForEntry(player, rawValue){
+    if(!currentGame||!window.BPGComeback||!player) return '';
+    if(scoreEntryModalState?.mode && isScoreEntryBidMode(scoreEntryModalState.mode)) return '';
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const offer=getComebackOfferForPlayer(player, getActivePlayers(currentGame), {gameOver:over});
+    if(!offer.eligible) return '';
+    const mode=scoreEntryModalState?.mode;
+    const draft={scores:{},bids:{...(currentGame.currentBids||{})},actuals:{}};
+    if(mode&&isScoreEntryTrickMode(mode)){
+      const actual=rawValue===''?NaN:parseInt(rawValue,10);
+      if(!Number.isFinite(actual)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
+      draft.actuals[player]=actual;
+      draft.scores[player]=currentGame.name==='818'
+        ? calculate818Score(draft.bids[player], actual)
+        : ((parseInt(draft.bids[player],10)||0)===actual ? 20+(10*actual) : -10*Math.abs((parseInt(draft.bids[player],10)||0)-actual));
+    } else {
+      const score=rawValue===''?NaN:parseInt(rawValue,10);
+      if(!Number.isFinite(score)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
+      draft.scores[player]=score;
+    }
+    if(!BPGComeback.isComebackSuccess(currentGame, draft, player)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
+    const shown=BPGComeback.formatRoundScore(draft.scores[player], offer.bonus);
+    return `<span class="score-entry-comeback-chip">${escapeHtml(shown)}</span>`;
+  }
+
   function openAvatarPicker(){ if(!editingPlayerProfile)return; buildAvatarGrid(); openModal('avatar-modal'); }
   function closeAvatarPicker(){ closeModal('avatar-modal'); }
   function closeScorecard(){ closeModal('scorecard-modal'); }
@@ -8071,58 +8952,6 @@ button.dealer-name-indicator .dealer-player-label {
     openModal('retire-player-modal');
   }
   function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
-  function cancelLifePreserverSpin(options){
-    const notify=options?.notify===true;
-    const wasSpinning=_lifePreserverSpinTimer!==null;
-    if(_lifePreserverSpinTimer!==null){
-      clearTimeout(_lifePreserverSpinTimer);
-      _lifePreserverSpinTimer=null;
-    }
-    _lifePreserverSpinToken++;
-    const btn=document.getElementById('btn-spin');
-    if(btn){
-      btn.disabled=false;
-      btn.textContent='SPIN THE WHEEL';
-    }
-    if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
-    return wasSpinning;
-  }
-  function closeWheel(){
-    cancelLifePreserverSpin({notify:true});
-    hideLifePreserverHelp();
-    lifePreserverOfferSnapshot=null;
-    renderLifePreserverExplanation();
-    closeModal('wheel-modal');
-  }
-  function showLifePreserverHelp(){
-    renderLifePreserverExplanation();
-    const help=document.getElementById('life-preserver-help');
-    if(help)help.classList.remove('hidden');
-  }
-  function hideLifePreserverHelp(){
-    const help=document.getElementById('life-preserver-help');
-    if(help)help.classList.add('hidden');
-  }
-  function renderLifePreserverExplanation(){
-    const explained=(window.BPGLifePreserver&&typeof BPGLifePreserver.explainLifePreserverOffer==='function')
-      ? BPGLifePreserver.explainLifePreserverOffer(lifePreserverOfferSnapshot)
-      : {summary:'',wheelLine:'',bullets:[]};
-    const line=document.getElementById('wheel-why-line');
-    if(line){
-      line.textContent=explained.wheelLine||'';
-      line.classList.toggle('hidden', !explained.wheelLine);
-    }
-    const card=document.getElementById('life-preserver-why');
-    const lead=document.getElementById('life-preserver-why-lead');
-    const list=document.getElementById('life-preserver-why-list');
-    const hasWhy=!!(explained.summary||(explained.bullets&&explained.bullets.length));
-    if(card) card.classList.toggle('hidden', !hasWhy);
-    if(lead) lead.textContent=explained.summary||'';
-    if(list){
-      list.innerHTML=(explained.bullets||[]).map(bullet=>`<li>${escapeHtml(bullet)}</li>`).join('');
-    }
-  }
-
   /* ═══ WHAMMY ROUND CELEBRATION ═══ */
   let _whammyDismissTimer = null;
   function whammyEscapeHtml(value){
@@ -8416,7 +9245,7 @@ button.dealer-name-indicator .dealer-player-label {
   function getProfileSummary(name){
     const summary={
       name,games:0,wins:0,lasts:0,winRate:0,recent:null,currentStreak:'New',
-      favoriteGame:null,bestGame:null,gameStats:{},lifePreservers:0,specialTotals:{whammy:0,nolie:0,cami:0},
+      favoriteGame:null,bestGame:null,gameStats:{},specialTotals:{whammy:0,nolie:0,cami:0},
       needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0
     };
     const matches=history
@@ -8433,7 +9262,6 @@ button.dealer-name-indicator .dealer-player-label {
       summary.games++;
       summary.wins += won?1:0;
       summary.lasts += h.totals[name]===lastScore?1:0;
-      summary.lifePreservers += Array.isArray(h.hailMaryUsed) && h.hailMaryUsed.includes(name) ? 1 : 0;
       summary.recent={game:h.game,date:h.date,score:h.totals[name],rank,won};
       summary.lastGameId=h.id||summary.lastGameId;
       summary.recentRank=rank;
@@ -8527,7 +9355,6 @@ button.dealer-name-indicator .dealer-player-label {
       const recent=s.recent?`${profileGameLabel(s.recent.game)} · ${s.recent.won?'Won':'Played'} ${s.recent.date||''}`:'Ready for first match';
       const badges=[
         s.currentStreak!=='New'?renderProfileBadge(s.currentStreak.startsWith('W')?'🔥':'🌧', s.currentStreak, s.currentStreak.startsWith('W')?'hot':'storm'):'',
-        s.lifePreservers?renderProfileBadge('🛟', s.lifePreservers, 'good'):'',
         s.specialTotals.whammy?renderProfileBadge('WHAMMY', s.specialTotals.whammy, 'hot'):'',
         s.specialTotals.nolie?renderProfileBadge('Nolie', s.specialTotals.nolie, 'good'):'',
         s.specialTotals.cami?renderProfileBadge('Cami', s.specialTotals.cami, 'storm'):'',
@@ -9055,179 +9882,6 @@ button.dealer-name-indicator .dealer-player-label {
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
-  }
-
-  /* ═══ HAIL MARY WHEEL ═══ */
-  let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
-  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
-  function lifePreserverSpinDuration(){
-    return GN_QA_MODE ? 80 : 6200;
-  }
-
-  function getLifePreserverOfferForPlayer(player, activePlayers, extra){
-    if(!window.BPGLifePreserver)return {eligible:false,reason:'missing-engine',slices:[]};
-    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
-  }
-
-  function getWheelSlices(){
-    const activePlayers=getActivePlayers(currentGame);
-    if(!wheelPlayer||!activePlayers.includes(wheelPlayer))return [];
-    if(lifePreserverOfferSnapshot?.player===wheelPlayer&&Array.isArray(lifePreserverOfferSnapshot.slices)){
-      return lifePreserverOfferSnapshot.slices;
-    }
-    return getLifePreserverOfferForPlayer(wheelPlayer, activePlayers).slices||[];
-  }
-
-  function drawWheel(){
-    const c=document.getElementById('wheel-canvas'); const ctx=c.getContext('2d');
-    const slices=getWheelSlices();
-    if(!slices.length)return slices;
-    const total=slices.reduce((s,x)=>s+x.weight,0);
-    const cx=c.width/2, cy=c.height/2, r=cx;
-    ctx.clearRect(0,0,c.width,c.height);
-    let a=-Math.PI/2;
-    slices.forEach(s=>{
-      const arc=(s.weight/total)*(2*Math.PI);
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+arc);
-      ctx.fillStyle=s.color; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#073f3b'; ctx.stroke();
-      const mid=a+arc/2;
-      const labelRadius=arc<0.16?r*0.74:r*0.66;
-      ctx.save(); ctx.translate(cx+Math.cos(mid)*labelRadius,cy+Math.sin(mid)*labelRadius);
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillStyle='#fff';
-      ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=7;
-      const parts=String(s.label).split(' ');
-      const valueText=parts[0]||'';
-      const detailText=parts.slice(1).join(' ');
-      const valueFs=Math.max(19,Math.min(36,arc*70,valueText.length>3?30:36));
-      const badgeW=Math.max(54,Math.min(96,valueText.length*17+28));
-      const badgeH=detailText?54:40;
-      const badgeX=-(badgeW/2);
-      const badgeY=-(badgeH/2);
-      if(arc>=0.16){
-        ctx.shadowBlur=0;
-        ctx.fillStyle='rgba(255,250,241,0.9)';
-        ctx.beginPath();
-        ctx.roundRect(badgeX,badgeY,badgeW,badgeH,15);
-        ctx.fill();
-        ctx.lineWidth=2;
-        ctx.strokeStyle='rgba(255,255,255,0.72)';
-        ctx.stroke();
-        ctx.fillStyle='#0b3935';
-        ctx.shadowColor='rgba(255,255,255,0.45)';
-        ctx.shadowBlur=3;
-      }
-      if(arc<0.16){
-        ctx.font=`900 ${Math.max(14,Math.min(18,arc*220))}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillText(valueText||s.label,0,0);
-      } else if(detailText){
-        ctx.font=`900 ${valueFs}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillText(valueText,0,-8);
-        ctx.font=`800 ${Math.max(12,Math.min(17,valueFs*0.48))}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillText(detailText,0,18);
-      } else {
-        ctx.font=`900 ${valueFs}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillText(s.label,0,0);
-      }
-      ctx.restore();
-      s._start=a; s._end=a+arc; a+=arc;
-    });
-    return slices;
-  }
-
-  function authorizeHailMary(p){
-    const activePlayers=getActivePlayers(currentGame);
-    if(!activePlayers.includes(p))return;
-    if(currentGame.hailMaryUsed?.includes(p))return;
-    const over=isMatchOver(currentGame);
-    const offer=getLifePreserverOfferForPlayer(p, activePlayers, {gameOver:over});
-    if(!offer.eligible||!offer.slices?.length)return;
-    wheelPlayer=p;
-    lifePreserverOfferSnapshot=offer;
-    document.getElementById('wheel-player-name').textContent=p;
-    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
-    document.getElementById('btn-spin').disabled=false;
-    document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
-    const spinner=document.getElementById('wheel-spinner');
-    if(spinner){
-      spinner.style.transition='none';
-      currentWheelRotation=0;
-      spinner.style.transform='rotate(0deg)';
-      spinner.offsetHeight;
-      spinner.style.transition='';
-    }
-    hideLifePreserverHelp();
-    cancelLifePreserverSpin();
-    renderLifePreserverExplanation();
-    drawWheel();
-    openModal('wheel-modal');
-  }
-
-  function applyLifePreserverResult(player, proposedAdj, liveOffer){
-    let adj=BPGLifePreserver.capLifePreserverAdjustment(proposedAdj, liveOffer);
-    const activePlayers=getActivePlayers(currentGame);
-    const totals=currentGame.totals||{};
-    const winLow=!!liveOffer.winLow;
-    const increment=liveOffer.scoreIncrement||1;
-    const sign=winLow?-1:1;
-    const allowed=liveOffer.bestAllowedRank||3;
-    while(adj*sign>0){
-      const next=(Number(totals[player])||0)+adj;
-      const rank=BPGLifePreserver.rankWithScore(player, next, activePlayers, totals, winLow);
-      if(rank>=allowed&&rank>2)break;
-      adj+=-sign*increment;
-    }
-    if(adj*sign<0) adj=-sign*Math.min(Math.abs(adj), liveOffer.maxSetback||0);
-    return adj;
-  }
-
-  function spinWheel(){
-    cancelLifePreserverSpin();
-    const spinToken=_lifePreserverSpinToken;
-    document.getElementById('btn-spin').disabled=true;
-    document.getElementById('btn-spin').textContent='SPINNING…';
-    const spinner=document.getElementById('wheel-spinner');
-    const slices=drawWheel();
-    const deg=Math.floor(Math.random()*360);
-    currentWheelRotation += 360*7 + deg;
-    if(spinner)spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
-    _lifePreserverSpinTimer=setTimeout(()=>{
-      _lifePreserverSpinTimer=null;
-      if(spinToken!==_lifePreserverSpinToken)return;
-      if(!currentGame||!wheelPlayer)return;
-      const rotRad=((currentWheelRotation%360)*Math.PI)/180;
-      let pa=-Math.PI/2+rotRad;
-      while(pa<-Math.PI)pa+=2*Math.PI; while(pa>Math.PI)pa-=2*Math.PI;
-      let win=slices.find(s=>pa>=s._start&&pa<=s._end);
-      if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
-      if(!win)win=slices[0];
-      const activePlayers=getActivePlayers(currentGame);
-      const over=isMatchOver(currentGame);
-      const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
-      const proposed=Number(win?.adjustment)||0;
-      if(!live.eligible){
-        toast('Life Preserver is no longer available', 'warning');
-        document.getElementById('btn-spin').disabled=false;
-        document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
-        closeWheel();
-        return;
-      }
-      const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
-      if(proposed!==0&&adj===0){
-        toast('Life Preserver cannot be applied safely now', 'warning');
-        closeWheel();
-        return;
-      }
-      alert(`🛟 The Life Preserver says:\n\n${win.label}`);
-      if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
-      currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
-      if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
-      currentGame.hailMaryUsed.push(wheelPlayer);
-      recomputeGameTotals(currentGame);
-      addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
-      haptic([60, 80, 60, 80, 120]);
-      saveData(); closeWheel(); scheduleRender();
-    },lifePreserverSpinDuration());
   }
 
   /* ═══ ROSTER ═══ */
@@ -10523,18 +11177,6 @@ ${isDealer
       }
     }
 
-    // Hail Mary / late drama.
-    const hailMaryRounds = gameData.rounds.filter(r => r.hailMaryBonus);
-    if(hailMaryRounds.length){
-      const bestHailMary = hailMaryRounds
-        .flatMap(r => Object.entries(r.scores || {}).map(([player, score]) => ({ player, score: Number(score) || 0 })))
-        .filter(entry => playersToUse.includes(entry.player))
-        .sort((a,b)=>Math.abs(b.score)-Math.abs(a.score))[0];
-      if(bestHailMary){
-        pushAward(stats, 'Luckiest Life Preserver', `${bestHailMary.score >= 0 ? '+' : ''}${bestHailMary.score}`, `${bestHailMary.player} grabbed the life preserver and survived`);
-      }
-    }
-
     // Rare round callouts.
     const allZeroRound = scoringRounds.find(r => {
       const values = playersToUse.filter(p => !r.joinBonus?.[p]).map(p => Number(r.scores?.[p]) || 0);
@@ -11430,9 +12072,9 @@ ${isDealer
     requestAnimationFrame(() => { _renderPending = false; renderGame(); });
   }
 
-  function isHailMaryEligible(game, player, activePlayers, {gameOver=false}={}){
-    if(!window.BPGLifePreserver)return false;
-    return !!BPGLifePreserver.getLifePreserverOffer(game, player, activePlayers, {gameOver}).eligible;
+  function isComebackEligible(game, player, activePlayers, {gameOver=false}={}){
+    if(!window.BPGComeback)return false;
+    return !!BPGComeback.getComebackOffer(game, player, activePlayers, {gameOver}).eligible;
   }
 
   function setRecordChaseLayout(enabled){
@@ -11752,13 +12394,13 @@ ${isDealer
           ondrop="rosterDragDrop(event, ${ri})"`;
       }
 
-      // Life Preserver
-      const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{pastHalf,gameOver:over});
-      const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
-      const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
-      const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);
+      const comebackOffer=(!isRetired&&currentGame.currentRound>1)
+        ? getComebackOfferForPlayer(p, sortedP, {gameOver:over})
+        : {eligible:false};
+      const rankBadge=currentGame.currentRound===1?'':`<span class="scoreboard-rank-badge font-mono-num shrink-0">${ri+1}</span>`;
+      const comebackChip=comebackOffer.eligible
+        ? `<button type="button" class="scorecard-comeback-chip" onclick="openComebackExplain('${escapeJsString(p)}')" title="${escapeHtml(comebackOffer.chipLabel)}" aria-label="${escapeHtml(comebackOffer.chipLabel+' for '+p)}">${escapeHtml(comebackOffer.chipLabel)}</button>`
+        : '';
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -11793,6 +12435,7 @@ ${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
   : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}
               ${retiredTag}
+              ${comebackChip}
             </div>
           </div>
         </td>
@@ -11810,10 +12453,15 @@ ${isDealer
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
         }
+        const extra=Number(r.comeback?.[p])||0;
+        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${escapeHtml(BPGComeback.formatSignedPoints(extra))}</span>`:'';
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
+          <div class="score-cell-stack">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
+          ${extraMark}
+          </div>
         </td>`;
       });
 
@@ -11864,10 +12512,10 @@ ${isDealer
       if(over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
-    const lifePreserverRulesBtn=document.getElementById('actions-life-preserver-btn');
-    if(lifePreserverRulesBtn){
-      const supported=!!(window.BPGLifePreserver&&Array.isArray(BPGLifePreserver.SUPPORTED_GAMES)&&BPGLifePreserver.SUPPORTED_GAMES.includes(currentGame.name));
-      lifePreserverRulesBtn.classList.toggle('hidden', !supported);
+    const comebackRulesBtn=document.getElementById('actions-comeback-btn');
+    if(comebackRulesBtn){
+      const supported=!!(window.BPGComeback&&Array.isArray(BPGComeback.SUPPORTED_GAMES)&&BPGComeback.SUPPORTED_GAMES.includes(currentGame.name));
+      comebackRulesBtn.classList.toggle('hidden', !supported);
     }
 
     const portraitTimer = gnPerfStart('GN renderGame renderPortraitView');
@@ -11885,6 +12533,14 @@ ${isDealer
     } finally {
       gnPerfEnd(renderTimer);
     }
+  }
+
+  function portraitComebackChip(player, roster){
+    if(!currentGame||currentGame.currentRound<=1) return '';
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const offer=getComebackOfferForPlayer(player, roster, {gameOver:over});
+    if(!offer.eligible) return '';
+    return `<button type="button" class="portrait-comeback-chip" onclick="openComebackExplain('${escapeJsString(player)}')">${escapeHtml(offer.chipLabel)}</button>`;
   }
 
   /* ═══ PORTRAIT VIEW ═══ */
@@ -11936,6 +12592,7 @@ ${isDealer
             <span class="font-mono-num font-bold w-6" style="color:var(--muted);">${i+4}.</span>
             ${getStreakAvatarHtml(p,'avatar-img')}
             <span class="player-name-label text-lg">${p}</span>
+            ${portraitComebackChip(p, sorted)}
           </div>
           <span class="font-jakarta font-extrabold text-2xl font-mono-num">${currentGame.totals[p]||0}</span>
         </div>`;
@@ -12177,6 +12834,8 @@ ${isDealer
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${acknowledged?'entered':'needed'}`);
     const indicator=row.querySelector('.score-entry-row-status');
     if(indicator)indicator.textContent=acknowledged?'✓':'○';
+    const slot=row.querySelector('.score-entry-comeback-slot');
+    if(slot) slot.innerHTML=previewComebackForEntry(player, scoreEntryModalState.values[player]);
   }
 
   function updateScoreEntryHeaderMeta(){
@@ -12369,6 +13028,7 @@ ${isDealer
               <span class="score-entry-row-status" aria-hidden="true">${isComplete?'✓':'○'}</span>
               <div class="score-entry-name truncate">${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
+              <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
             </div>
           </div>
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
@@ -12395,7 +13055,8 @@ ${isDealer
     const dealerWarning=dealerInfo&&dealerInfo.dealer===p&&dealerInfo.applies
       ? `<span class="score-entry-chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Dealer cannot bid ${dealerInfo.forbidden}</span>`
       : '';
-    document.getElementById('score-entry-selected-detail').innerHTML=action+dealerChip+dealerWarning;
+    const comebackChip=p?previewComebackForEntry(p, scoreEntryModalState.values[p]):'';
+    document.getElementById('score-entry-selected-detail').innerHTML=action+dealerChip+dealerWarning+comebackChip;
   }
 
   function selectScoreEntryPlayer(idx){
@@ -12615,8 +13276,9 @@ ${isDealer
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
-        currentGame.rounds.push(roundData);
         const celebration = detectRoundCelebration(currentGame, roundData);
+        applyComebackAndNotify(roundData, gp);
+        currentGame.rounds.push(roundData);
         addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.wizardPhase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
@@ -12662,6 +13324,7 @@ ${isDealer
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=calculate818Score(bid,act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
+        applyComebackAndNotify(roundData, gp);
         currentGame.rounds.push(roundData);
         addAuditEntry(`R${currentGame.currentRound} 818 submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.eight18Phase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
@@ -12677,8 +13340,9 @@ ${isDealer
     gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
     if(allZero&&!skipConfirm&&!confirm('Everyone scored 0? Submit?')){isSubmitting=false;return;}
     const roundData = {round:currentGame.currentRound,scores};
-    currentGame.rounds.push(roundData);
     const celebration = detectRoundCelebration(currentGame, roundData);
+    applyComebackAndNotify(roundData, gp);
+    currentGame.rounds.push(roundData);
     addAuditEntry(`R${currentGame.currentRound} Submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
     currentGame.currentRound++;
     currentGame.currentScoreDrafts={};
@@ -12716,10 +13380,6 @@ ${isDealer
 
     const removedRounds=currentGame.rounds.slice(lastIdx);
     currentGame.rounds = currentGame.rounds.slice(0, lastIdx);
-    if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
-      currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
-    }
-
       currentGame.currentRound = last.round;
 
       // If Wizard, go back to bidding phase
@@ -13169,7 +13829,12 @@ ${isDealer
       const el=document.getElementById(activeInputId); if(!el)return;
       let v=parseInt(el.value); if(isNaN(v))v=0;
         if(activeInputContext.roundIndex!=='current'){
-          if(currentGame?.rounds[activeInputContext.roundIndex]) currentGame.rounds[activeInputContext.roundIndex].scores[activeInputContext.player]=v;
+          const round=currentGame?.rounds[activeInputContext.roundIndex];
+          if(round){
+            round.scores[activeInputContext.player]=v;
+            if(window.BPGComeback) BPGComeback.syncComebackAfterScoreEdit(currentGame, round, activeInputContext.player);
+            recomputeGameTotals(currentGame);
+          }
           saveData({ debounceMs: SAVE_DEBOUNCE_MS });
         } else if(isBidTrickGame(currentGame)&&getBidTrickPhase(currentGame)==='bidding'){
           if(!currentGame.currentBids)currentGame.currentBids={};
@@ -13638,7 +14303,7 @@ ${isDealer
     const allTime = {
       mostWins:[],bestWinRate:[],mostGames:[],mostLasts:[],
       longestWinningStreak:null,longestLosingStreak:null,longestNoLastStreak:null,
-      biggestComeback:null,finalRoundDecisions:[],mostHailMarys:null
+      biggestComeback:null,finalRoundDecisions:[]
     };
 
     const ensurePlayer = (p) => {
@@ -13693,12 +14358,6 @@ ${isDealer
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
       const winners = (h.winners||[]).filter(p=>sorted.includes(p));
-      const hailMaryUsers=[...new Set((h.hailMaryUsed||[]).filter(Boolean))];
-      const hailMaryCount=hailMaryUsers.length;
-      if(hailMaryCount){
-        update(allTime,'mostHailMarys',entry(hailMaryUsers.join(' & '),hailMaryCount,h,{label:`${hailMaryCount} used`}),betterHigh);
-      }
-
       sorted.forEach((p,idx)=>{
         const ps = ensurePlayer(p);
         const won = winners.includes(p), last = lastPlayers.includes(p), pos = idx+1;
@@ -13972,7 +14631,6 @@ ${isDealer
         ${recordCard('Longest Losing Streak Ever',data.allTime.longestLosingStreak,false)}
         ${recordCard('Most Consecutive Games Without Last',data.allTime.longestNoLastStreak,true)}
         ${recordCard('Biggest Single-Game Comeback',data.allTime.biggestComeback,true)}
-        ${recordCard('Most Life Preservers In One Game',data.allTime.mostHailMarys,true)}
         <div><div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--muted);">Games Decided In The Final Round</div><div class="space-y-2">${data.allTime.finalRoundDecisions.length?data.allTime.finalRoundDecisions.slice(0,8).map(playerLine).join(''):empty}</div></div>
       </div>
     </div>`;

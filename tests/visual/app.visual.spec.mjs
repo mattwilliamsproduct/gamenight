@@ -6,9 +6,9 @@ const cases=[
   {name:'wizard-scorecard-scoring-8-players',scenario:'wizard-scoring-8',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'wizard-scorecard-early-8-players',scenario:'wizard-early-8',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true,assertIdentityTotalAdjacent:true},
   {name:'five-crowns-scorecard-4-players',scenario:'five-crowns-4',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
-  {name:'five-crowns-life-preservers',scenario:'five-crowns-preservers',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
+  {name:'five-crowns-comeback',scenario:'five-crowns-comeback',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'wizard-bid-entry-10-players',scenario:'wizard-10',surface:'entry-bids',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
-  {name:'five-crowns-score-entry-8-players',scenario:'five-crowns-preservers',surface:'entry-scores',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
+  {name:'five-crowns-score-entry-8-players',scenario:'five-crowns-comeback',surface:'entry-scores',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'settings-over-active-match',scenario:'wizard-10',surface:'settings',visible:'#settings-modal:not(.hidden)',container:'#settings-modal .surface-raised'},
   {name:'profiles-yearbook',scenario:'profile-yearbook',surface:'profiles',visible:'#profiles-screen:not(.hidden)'},
   {name:'actions-menu',scenario:'wizard-10',surface:'actions',visible:'#actions-menu:not(.hidden)',container:'#actions-menu'},
@@ -151,19 +151,10 @@ for(const view of cases){
       });
       expect(gap,'Total should sit directly beside the player identity column').toBeLessThanOrEqual(2);
     }
-    if(view.name==='five-crowns-life-preservers'){
-      const available=page.locator('button.scorecard-life-preserver-rank');
-      const used=page.locator('.scorecard-life-preserver-rank-used');
-      const availableCount=await available.count();
-      expect(availableCount,'scorecard should show available Life Preservers').toBeGreaterThan(0);
-      expect(await used.count(),'scorecard should show used Life Preservers').toBeGreaterThan(0);
-      const size=await available.nth(0).evaluate(element=>({
-        width:element.getBoundingClientRect().width,
-        height:element.getBoundingClientRect().height
-      }));
-      expect(size.width,'Life Preserver rank should remain noticeable').toBeGreaterThanOrEqual(24);
-      expect(size.height,'Life Preserver rank should remain noticeable').toBeGreaterThanOrEqual(24);
-      expect(await page.locator('.scorecard-avatar-slot .scorecard-life-preserver').count(),'Life Preserver should not cover the avatar').toBe(0);
+    if(view.name==='five-crowns-comeback'){
+      const chips=page.locator('button.scorecard-comeback-chip');
+      expect(await chips.count(),'scorecard should show Comeback chips').toBeGreaterThan(0);
+      expect(await page.locator('button.scorecard-life-preserver-rank').count(),'rank should not be a spin control').toBe(0);
     }
     expect(errors,'page should not emit runtime errors').toEqual([]);
     await expect(page).toHaveScreenshot(`${view.name}.png`);
@@ -223,7 +214,7 @@ test('representative centered modal families use the shared viewport shell',asyn
     dealer:['#dealer-modal','#dealer-modal .surface-raised','Dealer modal'],
     retire:['#retire-player-modal','#retire-player-modal .surface-raised','Retire-player modal'],
     reorder:['#reorder-players-modal','#reorder-players-modal .surface-raised','Reorder-players modal'],
-    lifePreserverRules:['#life-preserver-rules-modal','#life-preserver-rules-modal .life-preserver-rules-card','Life Preserver rules modal'],
+    comebackRules:['#comeback-rules-modal','#comeback-rules-modal .comeback-rules-card','Comeback rules modal'],
     victory:['#victory-modal','#victory-modal .postgame-card','Victory modal'],
     loser:['#loser-modal','#loser-modal .postgame-card','Loser modal']
   };
@@ -244,7 +235,7 @@ test('representative centered modal families use the shared viewport shell',asyn
 
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal'],['lifePreserverRules','openLifePreserverRules']]){
+  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal'],['comebackRules','openComebackRules']]){
     await page.evaluate(fnName=>window[fnName](),fn);
     await waitForModal(`${measure[name][0]}:not(.hidden)`);
     await expectCenteredInVisualViewport(page,{modalSelector:measure[name][0],cardSelector:measure[name][1],label:measure[name][2]});
@@ -621,7 +612,7 @@ test('score-entry avatars stay ready when the connection drops',async({page,cont
 });
 
 test('score-entry shows progress and live entered states',async({page})=>{
-  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=entry-scores',{waitUntil:'networkidle'});
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=entry-scores',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
@@ -638,7 +629,7 @@ test('score-entry shows progress and live entered states',async({page})=>{
 });
 
 test('score-entry acknowledgement handles explicit zero and blank Next',async({page})=>{
-  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=entry-scores',{waitUntil:'networkidle'});
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=entry-scores',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
 
@@ -809,16 +800,16 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   await expect(page.locator('#victory-names')).toContainText('Tie!');
 });
 
-test('undo preserves already-used Life Preservers',async({page})=>{
-  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard',{waitUntil:'networkidle'});
+test('undo last Five Crowns hand keeps Comeback chips on stranded players',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
+  await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
 
   await page.getByRole('button',{name:/Actions/}).click();
   page.once('dialog',dialog=>dialog.accept());
   await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
 
-  await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
+  await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
 });
 
