@@ -487,6 +487,7 @@ test('late five-crowns totals stay centered and names stay whole',async({page})=
 
   await page.locator('#scorecard-view-pace-toggle').click();
   await expect(page.locator('#record-chase-panel')).toBeHidden();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))));
   const namesAfter=await page.evaluate(()=>[...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map(name=>{
     const label=name.querySelector('.dealer-player-label')||name;
     const playerCell=name.closest('.scorecard-col-player');

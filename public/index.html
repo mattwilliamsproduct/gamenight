@@ -2436,7 +2436,7 @@ button.dealer-name-indicator {
     }
 .dealer-player-label {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: clip;
   white-space: nowrap;
       padding-bottom: 0.18em;
@@ -2797,26 +2797,26 @@ button.dealer-name-indicator {
       font-feature-settings: 'tnum';
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 58%;
+      width: 62%;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: 22%;
-      min-width: 7.25rem;
+      width: 18%;
+      min-width: 6.75rem;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
       width: 10%;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 60%;
+      width: 68%;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: 22%;
-      min-width: 7.5rem;
+      width: 16%;
+      min-width: 7.25rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
-      width: 9%;
+      width: 8%;
     }
     @media (max-width: 900px) {
       .record-chase-panel {
@@ -3213,11 +3213,11 @@ button.dealer-name-indicator {
       font-size: clamp(1.95rem, 3.55vw, 2.7rem) !important;
       letter-spacing: -0.03em;
       line-height: 1.2;
-      min-width: 0;
-      max-width: 100%;
-      flex: 0 1 auto;
+      min-width: auto;
+      max-width: none;
+      flex: 0 0 auto;
       white-space: nowrap;
-      overflow: hidden;
+      overflow: visible;
       text-overflow: clip;
     }
     span.scoreboard-player-name {
@@ -3225,12 +3225,12 @@ button.dealer-name-indicator {
       margin-bottom: -0.18em;
     }
 button.dealer-name-indicator.scoreboard-player-name {
-  max-width: 100%;
+  max-width: none;
   display: inline-flex;
   align-items: center;
   gap: 0;
   width: max-content;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   justify-content: flex-start;
   padding-top: 0.08em;
   padding-bottom: 0.08em;
@@ -3239,7 +3239,7 @@ button.dealer-name-indicator.scoreboard-player-name {
 }
 button.dealer-name-indicator .dealer-player-label {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: clip;
   white-space: nowrap;
 }
@@ -11295,6 +11295,11 @@ ${isDealer
     const names=[...root.querySelectorAll('.scoreboard-player-name')];
     names.forEach(name=>name.style.removeProperty('font-size'));
     names.forEach(name=>{
+      const cell=name.closest('td.scorecard-col-player');
+      if(!cell)return;
+      const nameBox=name.getBoundingClientRect();
+      const cellBox=cell.getBoundingClientRect();
+      if(nameBox.right<=cellBox.right+2)return;
       const available=scorecardNameAvailableWidth(name);
       if(available<=0)return;
 
@@ -11326,6 +11331,9 @@ ${isDealer
     values.forEach(value=>{
       const cell=value.closest('.scorecard-col-total');
       if(!cell||cell.clientWidth<=0)return;
+      const valueBox=value.getBoundingClientRect();
+      const cellBox=cell.getBoundingClientRect();
+      if(valueBox.width<=cellBox.width+1&&valueBox.right<=cellBox.right+1&&valueBox.left>=cellBox.left-1)return;
       const cellStyle=getComputedStyle(cell);
       const available=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
       if(available<=0)return;
