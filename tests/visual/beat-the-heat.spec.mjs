@@ -12,7 +12,7 @@ test('Beat the Heat stays open below 66 heat',async({page},testInfo)=>{
   await page.goto(closeUrl,{waitUntil:'networkidle'});
   await ready(page);
 
-  await expect(page.locator('#round-intel')).toHaveText('R4 · First to 66');
+  await expect(page.locator('#round-intel')).toHaveText('R4 · Ends at 66');
   await expect(page.locator('#submit-action-btn')).toBeVisible();
   await expect(page.locator('#game-over-section')).toBeHidden();
 
@@ -21,7 +21,7 @@ test('Beat the Heat stays open below 66 heat',async({page},testInfo)=>{
     submitRound({skipConfirm:true});
   });
 
-  await expect(page.locator('#round-intel')).toHaveText('R5 · First to 66');
+  await expect(page.locator('#round-intel')).toHaveText('R5 · Ends at 66');
   await expect(page.locator('#submit-section')).toBeVisible();
   await expect(page.locator('#game-over-section')).toBeHidden();
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(65);
@@ -49,7 +49,7 @@ test('Beat the Heat auto-ends at 66 and continues through winner, loser, and met
 
   await page.locator('#submit-action-btn').click();
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
-  await expect(page.locator('#score-entry-context')).toContainText('First to 66');
+  await expect(page.locator('#score-entry-context')).toContainText('Ends at 66 heat');
   await expect(page.locator('#score-entry-primary-btn')).toHaveText('Submit Heat');
 
   await page.locator('#score-entry-row-Megan').click();

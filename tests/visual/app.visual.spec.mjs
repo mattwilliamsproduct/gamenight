@@ -7,6 +7,7 @@ const cases=[
   {name:'wizard-scorecard-early-8-players',scenario:'wizard-early-8',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true,assertIdentityTotalAdjacent:true},
   {name:'five-crowns-scorecard-4-players',scenario:'five-crowns-4',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'five-crowns-comeback',scenario:'five-crowns-comeback',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
+  {name:'five-crowns-blowout',scenario:'five-crowns-blowout',surface:'scorecard',visible:'#game-screen:not(.hidden)',rows:'#scorecard-body tr',container:'#scorecard-capture .scorecard-table-wrap',assertScorecardScale:true},
   {name:'wizard-bid-entry-10-players',scenario:'wizard-10',surface:'entry-bids',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'five-crowns-score-entry-8-players',scenario:'five-crowns-comeback',surface:'entry-scores',visible:'#score-entry-modal:not(.hidden)',rows:'#score-entry-rows .score-entry-row',container:'#score-entry-modal .score-entry-panel'},
   {name:'settings-over-active-match',scenario:'wizard-10',surface:'settings',visible:'#settings-modal:not(.hidden)',container:'#settings-modal .surface-raised'},
@@ -151,10 +152,17 @@ for(const view of cases){
       });
       expect(gap,'Total should sit directly beside the player identity column').toBeLessThanOrEqual(2);
     }
-    if(view.name==='five-crowns-comeback'){
+    if(view.name==='five-crowns-comeback'||view.name==='five-crowns-blowout'){
       const chips=page.locator('button.scorecard-comeback-chip');
       expect(await chips.count(),'scorecard should show Comeback chips').toBeGreaterThan(0);
       expect(await page.locator('button.scorecard-life-preserver-rank').count(),'rank should not be a spin control').toBe(0);
+    }
+    if(view.name==='five-crowns-blowout'){
+      await expect(page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip')).toHaveCount(1);
+      await expect(page.locator('#scorecard-body tr',{hasText:'Vikki'}).locator('button.scorecard-comeback-chip')).toHaveCount(1);
+      const extra=page.locator('.score-cell-stack.has-comeback .score-cell-comeback');
+      await expect(extra).toHaveCount(1);
+      await expect(extra).toHaveText('−15');
     }
     expect(errors,'page should not emit runtime errors').toEqual([]);
     await expect(page).toHaveScreenshot(`${view.name}.png`);

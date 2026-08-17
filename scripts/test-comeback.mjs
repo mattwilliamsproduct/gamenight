@@ -180,7 +180,7 @@ test('Five Crowns extra subtracts only on a 0', () => {
   assert.equal(result.eligible, true);
   assert.equal(result.winLow, true);
   assert.ok(result.bonus < 0);
-  assert.ok(Math.abs(result.bonus) <= 15);
+  assert.ok(Math.abs(result.bonus) <= 30);
 
   const g = game({ name: 'Five Crowns', players: EIGHT, totals, roundCount: 7, spread: 22, currentRound: 8 });
   const round = { round: 8, scores: { Gus: 0, Hal: 8 } };
@@ -224,6 +224,10 @@ test('Flip 7 uses a 2.5-bank hole and only pays a bank', () => {
   CB.applyComebackToRound(g, bank, players);
   assert.equal(bank.comeback.Hal, stranded.bonus);
   assert.equal(bank.comeback.Gus, undefined);
+
+  const tiny = { round: 5, scores: { Hal: 1 } };
+  CB.applyComebackToRound(g, tiny, players);
+  assert.equal(tiny.comeback, undefined);
 });
 
 test('runaway leader with a tight pack does not unlock the pack', () => {
@@ -326,7 +330,7 @@ test('Five Crowns QA fixture gives Brick a Comeback extra', () => {
   assert.equal(result.rank, 7);
   assert.equal(result.packGap, 110);
   assert.ok(result.bonus < 0);
-  assert.ok(Math.abs(result.bonus) <= 15);
+  assert.ok(Math.abs(result.bonus) <= 30);
   const explained = CB.explainComebackOffer(result);
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /110 behind the pack/);
@@ -380,6 +384,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
   const flip7 = CB.explainComebackRules('Flip 7 Vengeance');
   assert.match(flip7.lead, /Flip 7/);
   assert.ok(flip7.how.some(line => /two and a half strong banks/.test(line)));
+  assert.ok(flip7.how.some(line => /at least 10 points/.test(line)));
 
   const rook = CB.explainComebackRules('Rook');
   assert.equal(rook.supported, false);
@@ -395,4 +400,82 @@ test('Comeback table summary names who has extra and who is still in it', () => 
   assert.equal(summary.live.used, undefined);
   assert.match(summary.live.roundLine, /scored/);
   assert.equal(summary.live.packPlayer, 'Megan');
+});
+
+test('Five Crowns blowout gives both stragglers Comeback and a bigger extra than 15', () => {
+  const currentGame = QA_SCENARIOS['five-crowns-blowout'].data.currentGame;
+  const players = currentGame.originalRoster;
+  const linda = CB.getComebackOffer(currentGame, 'Linda', players);
+  const vikki = CB.getComebackOffer(currentGame, 'Vikki', players);
+  assert.equal(currentGame.currentRound, 7);
+  assert.equal(currentGame.totals.Linda, 108);
+  assert.equal(currentGame.totals.Vikki, 140);
+  assert.equal(linda.eligible, true, '108 behind a pack of zeros should still get Comeback');
+  assert.equal(vikki.eligible, true);
+  assert.equal(linda.reason, 'ok');
+  assert.ok(Math.abs(linda.bonus) > 15, `blowout extra should be more than 15, got ${linda.bonus}`);
+  assert.ok(Math.abs(vikki.bonus) > 15, `blowout extra should be more than 15, got ${vikki.bonus}`);
+  assert.ok(Math.abs(linda.bonus) <= 30);
+  assert.ok(Math.abs(vikki.bonus) <= 30);
+  assert.equal(currentGame.rounds[5].comeback.Vikki, -15);
+  assert.equal(CB.formatRoundScore(0, -15), '0 −15');
+});
+
+test('wide Five Crowns spreads do not hide a 108-point hole behind inflated remaining opportunity', () => {
+  const players = EIGHT;
+  const totals = { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: 108, Hal: 140 };
+  const wide = Array.from({ length: 6 }, (_, index) => ({
+    round: index + 1,
+    scores: Object.fromEntries(players.map((player, playerIndex) => [player, playerIndex >= 6 ? 40 : 0]))
+  }));
+  const g = game({
+    name: 'Five Crowns',
+    players,
+    totals,
+    roundCount: 0,
+    extraRounds: wide,
+    currentRound: 7
+  });
+  const gus = CB.getComebackOffer(g, 'Gus', players);
+  const hal = CB.getComebackOffer(g, 'Hal', players);
+  assert.equal(gus.eligible, true, `Gus 108 down should qualify even after wild spreads, got ${gus.reason}`);
+  assert.equal(hal.eligible, true);
+});
+
+test('score-entry preview uses the clamped extra, not the uncapped offer', () => {
+  const totals = { Ann: 80, Bea: 79, Cal: 40, Dee: 61 };
+  const g = game({ name: '818', players: FOUR, totals, roundCount: 14, spread: 17, currentRound: 15 });
+  const offer = CB.getComebackOffer(g, 'Dee', FOUR);
+  assert.equal(offer.eligible, true);
+  const draft = { scores: { Dee: 18 }, bids: { Dee: 8 }, actuals: { Dee: 8 } };
+  const preview = CB.previewComebackApply(g, 'Dee', draft, FOUR);
+  const clamped = CB.clampComebackBonus({
+    player: 'Dee',
+    bonus: offer.bonus,
+    baseRoundScores: draft.scores,
+    preRoundTotals: totals,
+    players: FOUR,
+    winLow: false,
+    packRank: 2,
+    increment: 1
+  });
+  assert.equal(preview.extra, clamped);
+  assert.ok(preview.clamped);
+  assert.notEqual(preview.extra, offer.bonus);
+  assert.equal(preview.label, CB.formatRoundScore(18, clamped));
+});
+
+test('Wizard extra drops when the points cell is edited off a make', () => {
+  const totals = { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 };
+  const g = game({ name: 'Wizard', players: EIGHT, totals, roundCount: 6, spread: 80, currentRound: 7 });
+  const round = { round: 7, scores: { Hal: 50 }, bids: { Hal: 3 }, actuals: { Hal: 3 }, comeback: { Hal: 20 } };
+  assert.equal(CB.isComebackSuccess(g, round, 'Hal'), true);
+  assert.equal(CB.syncComebackAfterScoreEdit(g, round, 'Hal'), false);
+  round.scores.Hal = -10;
+  assert.equal(CB.isComebackSuccess(g, round, 'Hal'), false);
+  assert.equal(CB.syncComebackAfterScoreEdit(g, round, 'Hal'), true);
+  assert.equal(round.comeback, undefined);
+  round.scores.Hal = 50;
+  assert.equal(CB.syncComebackAfterScoreEdit(g, round, 'Hal'), false);
+  assert.equal(round.comeback, undefined);
 });

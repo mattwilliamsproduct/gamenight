@@ -1049,13 +1049,65 @@
       outline-offset: 2px;
     }
     .score-cell-stack { position: relative; }
+    .score-cell-stack.has-comeback {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      width: clamp(3rem, 4vw, 4rem);
+      max-width: 100%;
+      min-height: 2.4rem;
+      margin: 0 auto;
+      padding: 0.12rem 0.15rem 0.16rem;
+      background: var(--bg-2);
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .score-cell-stack.has-comeback:has(.score-cell-miss) {
+      border-color: rgba(225,29,72,0.78);
+      box-shadow: 0 0 0 2px rgba(225,29,72,0.12);
+    }
+    .score-cell-stack.has-comeback:has(.score-cell-active) {
+      background: var(--surface);
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(4,120,87,0.18);
+    }
+    .score-cell-stack.has-comeback .score-cell-input {
+      display: block !important;
+      background: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+    }
+    .score-cell-stack.has-comeback .score-cell-input.score-cell-miss,
+    .score-cell-stack.has-comeback .score-cell-input.score-cell-active {
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .score-cell-stack.has-comeback .score-cell-base {
+      display: block;
+      line-height: 1;
+    }
     .score-cell-comeback {
       display: block;
-      font-size: 0.62rem;
-      font-weight: 800;
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
+      font-size: 0.82em;
+      font-weight: 400;
       color: #c2410c;
       line-height: 1;
-      margin-top: -0.15rem;
+      margin: 0;
+      padding: 0;
+      white-space: nowrap;
     }
     .scorecard-receipt-stash {
       position: fixed;
@@ -2636,7 +2688,8 @@ button.dealer-name-indicator {
       padding-left: clamp(0.2rem, 0.4vw, 0.45rem);
       padding-right: 0.1rem;
       border-left: 1px solid rgba(40,127,155,0.22);
-      font-family: 'Londrina Solid', sans-serif;
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
+      font-weight: 400;
       font-size: clamp(1.55rem, 2.05vw, 2.2rem);
       line-height: 0.95;
       text-align: center;
@@ -2866,6 +2919,24 @@ button.dealer-name-indicator {
         padding-bottom: var(--scorecard-input-pad-y) !important;
         font-size: var(--scorecard-input-font) !important;
         line-height: 1 !important;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack.has-comeback {
+        width: clamp(3rem, 4vw, 4rem);
+        min-height: var(--scorecard-input-height);
+        height: var(--scorecard-input-height);
+        padding-top: 0.08rem;
+        padding-bottom: 0.08rem;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack.has-comeback .score-cell-input {
+        height: auto !important;
+        min-height: 0 !important;
+        width: 100% !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        font-size: max(12px, calc(var(--scorecard-input-font) * 0.88)) !important;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback {
+        font-size: max(12px, calc(var(--scorecard-input-font) * 0.8)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .tv-round-cell-num {
         font-size: var(--scorecard-round-font) !important;
@@ -6409,8 +6480,11 @@ button.dealer-name-indicator .dealer-player-label {
     .scorecard-table thead th,
     .scorecard-table tbody td.scorecard-col-total,
     .scorecard-table .score-cell-input,
+    .scorecard-table .score-cell-comeback,
+    .scorecard-table .score-cell-base,
     .scorecard-table .tv-round-cell-num,
-    .scorecard-total-value {
+    .scorecard-total-value,
+    .record-chase-score {
       font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
       font-weight: 400 !important;
       letter-spacing: 0 !important;
@@ -8917,7 +8991,10 @@ button.dealer-name-indicator .dealer-player-label {
       draft.scores[player]=score;
     }
     if(!BPGComeback.isComebackSuccess(currentGame, draft, player)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
-    const shown=BPGComeback.formatRoundScore(draft.scores[player], offer.bonus);
+    const preview=typeof BPGComeback.previewComebackApply==='function'
+      ? BPGComeback.previewComebackApply(currentGame, player, draft, getActivePlayers(currentGame))
+      : null;
+    const shown=preview?.label || BPGComeback.formatRoundScore(draft.scores[player], offer.bonus);
     return `<span class="score-entry-comeback-chip">${escapeHtml(shown)}</span>`;
   }
 
@@ -9742,6 +9819,22 @@ button.dealer-name-indicator .dealer-player-label {
     toast(`✓ Renamed to "${newName}"`, 'success');
   }
 
+  function transferPlayerKey(map, oldName, newName, merge=false){
+    if(!map || oldName===newName || map[oldName]===undefined) return;
+    if(merge && map[newName]!==undefined && typeof map[oldName]==='number' && typeof map[newName]==='number'){
+      map[newName]+=map[oldName];
+    } else if(map[newName]===undefined){
+      map[newName]=map[oldName];
+    }
+    delete map[oldName];
+  }
+  function transferRoundPlayerKeys(round, oldName, newName, merge=false){
+    if(!round) return;
+    ['scores','bids','actuals','joinBonus','comeback'].forEach(key=>transferPlayerKey(round[key], oldName, newName, merge));
+    if(round.rookBidder===oldName) round.rookBidder=newName;
+    if(round.rookPartner===oldName) round.rookPartner=newName;
+  }
+
   // Helper: rename a player across ALL stored data structures
   function renamePlayerEverywhere(oldName, newName){
     // allPlayers array
@@ -9764,24 +9857,7 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(Array.isArray(h.rounds)){
         h.rounds.forEach(r => {
-          if(r.scores && r.scores[oldName] !== undefined){
-            r.scores[newName] = r.scores[oldName];
-            delete r.scores[oldName];
-          }
-          if(r.bids && r.bids[oldName] !== undefined){
-            r.bids[newName] = r.bids[oldName];
-            delete r.bids[oldName];
-          }
-          if(r.actuals && r.actuals[oldName] !== undefined){
-            r.actuals[newName] = r.actuals[oldName];
-            delete r.actuals[oldName];
-          }
-          if(r.joinBonus && r.joinBonus[oldName]){
-            r.joinBonus[newName] = r.joinBonus[oldName];
-            delete r.joinBonus[oldName];
-          }
-          if(r.rookBidder === oldName) r.rookBidder = newName;
-          if(r.rookPartner === oldName) r.rookPartner = newName;
+          transferRoundPlayerKeys(r, oldName, newName);
         });
       }
       if(Array.isArray(h.originalRoster)){
@@ -9822,24 +9898,7 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(Array.isArray(currentGame.rounds)){
         currentGame.rounds.forEach(r => {
-          if(r.scores && r.scores[oldName] !== undefined){
-            r.scores[newName] = r.scores[oldName];
-            delete r.scores[oldName];
-          }
-          if(r.bids && r.bids[oldName] !== undefined){
-            r.bids[newName] = r.bids[oldName];
-            delete r.bids[oldName];
-          }
-          if(r.actuals && r.actuals[oldName] !== undefined){
-            r.actuals[newName] = r.actuals[oldName];
-            delete r.actuals[oldName];
-          }
-          if(r.joinBonus && r.joinBonus[oldName]){
-            r.joinBonus[newName] = r.joinBonus[oldName];
-            delete r.joinBonus[oldName];
-          }
-          if(r.rookBidder === oldName) r.rookBidder = newName;
-          if(r.rookPartner === oldName) r.rookPartner = newName;
+          transferRoundPlayerKeys(r, oldName, newName);
         });
       }
       if(currentGame.currentBids && currentGame.currentBids[oldName] !== undefined){
@@ -9870,10 +9929,7 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(Array.isArray(h.rounds)){
         h.rounds.forEach(r => {
-          if(r.scores && r.scores[src] !== undefined){
-            r.scores[target] = (r.scores[target] || 0) + r.scores[src];
-            delete r.scores[src];
-          }
+          transferRoundPlayerKeys(r, src, target, true);
         });
       }
     });
@@ -12311,7 +12367,7 @@ ${isDealer
       intel=`R${currentGame.currentRound} / ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${bidTrickPhase==='bidding'?'Bidding':'Scoring'}`;
     } else if(currentGame.name==='Beat the Heat'){
       const endScore=getEndScoreForGame(currentGame);
-      intel=endScore?`R${currentGame.currentRound} · First to ${endScore}`:`R${currentGame.currentRound} · Log Heat`;
+      intel=endScore?`R${currentGame.currentRound} · Ends at ${endScore}`:`R${currentGame.currentRound} · Log Heat`;
     }
     if(over)intel='Final Scores';
     document.getElementById('round-intel').textContent=intel;
@@ -12456,7 +12512,7 @@ ${isDealer
         const extra=Number(r.comeback?.[p])||0;
         const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${escapeHtml(BPGComeback.formatSignedPoints(extra))}</span>`:'';
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
-          <div class="score-cell-stack">
+          <div class="score-cell-stack${extra?' has-comeback':''}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
@@ -12726,7 +12782,7 @@ ${isDealer
     if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${mode.title}`;
     if(currentGame.name==='Beat the Heat'){
       const endScore=getEndScoreForGame(currentGame);
-      return endScore?`Round ${currentGame.currentRound} · First to ${endScore} · ${mode.title}`:`Round ${currentGame.currentRound} · ${mode.title}`;
+      return endScore?`Round ${currentGame.currentRound} · Ends at ${endScore} heat · ${mode.title}`:`Round ${currentGame.currentRound} · ${mode.title}`;
     }
     return `Round ${currentGame.currentRound} · ${mode.title}`;
   }
@@ -14073,7 +14129,10 @@ ${isDealer
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span></td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${r.scores[p]!==undefined?r.scores[p]:''}</td>`;
+        const extra=Number(r.comeback?.[p])||0;
+        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${escapeHtml(BPGComeback.formatSignedPoints(extra))}</span>`:'';
+        const shown=r.scores[p]!==undefined?r.scores[p]:'';
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
     });
@@ -14908,7 +14967,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=beat-the-heat-end-20260817');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=comeback-ui-20260817');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);
