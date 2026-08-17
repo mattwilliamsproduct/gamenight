@@ -293,3 +293,14 @@ test('capping a result cannot place the player first or second after standings c
   assert.ok(rank > 2);
   assert.ok(rank >= live.bestAllowedRank);
 });
+
+test('undo only frees Life Preservers whose bonus rounds were removed', () => {
+  const used = ['Linda', 'Brick'];
+  const kept = LP.releaseRemovedLifePreservers(used, [{ round: 8, scores: { Megan: 22 } }]);
+  assert.deepEqual(kept, ['Linda', 'Brick']);
+  const released = LP.releaseRemovedLifePreservers(used, [
+    { round: 8, scores: { Megan: 22 } },
+    { round: 0, hailMaryBonus: true, scores: { Brick: -75 } }
+  ]);
+  assert.deepEqual(released, ['Linda']);
+});

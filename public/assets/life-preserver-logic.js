@@ -526,6 +526,18 @@
     return offer;
   }
 
+  function releaseRemovedLifePreservers(used, removedRounds) {
+    const removedPlayers = new Set();
+    (removedRounds || []).forEach(round => {
+      if (!round?.hailMaryBonus) return;
+      Object.keys(round.scores || {}).forEach(player => {
+        if (player) removedPlayers.add(player);
+      });
+    });
+    if (!removedPlayers.size) return Array.isArray(used) ? used.slice() : [];
+    return (used || []).filter(player => !removedPlayers.has(player));
+  }
+
   function capLifePreserverAdjustment(adjustment, offer) {
     if (!offer) return 0;
     const increment = offer.scoreIncrement || 1;
@@ -554,6 +566,7 @@
     getMaxRounds,
     getLifePreserverOffer,
     explainLifePreserverOffer,
+    releaseRemovedLifePreservers,
     capLifePreserverAdjustment,
     rankWithScore,
     bestAllowedRankFor,

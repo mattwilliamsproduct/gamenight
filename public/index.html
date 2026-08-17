@@ -1044,6 +1044,15 @@
       color: var(--ink);
       font-weight: 800;
     }
+    .scorecard-receipt-stash {
+      position: fixed;
+      left: -16000px;
+      top: 0;
+      width: 1100px;
+      background: #ffffff;
+      pointer-events: none;
+      z-index: -1;
+    }
     .wheel-shell::before {
       content: '';
       position: absolute;
@@ -6773,6 +6782,7 @@ button.dealer-name-indicator .dealer-player-label {
         <button onclick="showLoserModal()" class="btn-primary w-full py-4 text-lg">Next →</button>
       </div>
     </div>
+    <div id="scorecard-receipt-stash" class="scorecard-receipt-stash" aria-hidden="true"></div>
 
     <!-- Loser -->
     <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4 bp-modal-viewport-shell">
@@ -7814,7 +7824,24 @@ button.dealer-name-indicator .dealer-player-label {
     openModal('retire-player-modal');
   }
   function closeRetirePlayerModal(){ closeModal('retire-player-modal'); }
+  function cancelLifePreserverSpin(options){
+    const notify=options?.notify===true;
+    const wasSpinning=_lifePreserverSpinTimer!==null;
+    if(_lifePreserverSpinTimer!==null){
+      clearTimeout(_lifePreserverSpinTimer);
+      _lifePreserverSpinTimer=null;
+    }
+    _lifePreserverSpinToken++;
+    const btn=document.getElementById('btn-spin');
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='SPIN THE WHEEL';
+    }
+    if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
+    return wasSpinning;
+  }
   function closeWheel(){
+    cancelLifePreserverSpin({notify:true});
     hideLifePreserverHelp();
     lifePreserverOfferSnapshot=null;
     renderLifePreserverExplanation();
@@ -8783,6 +8810,10 @@ button.dealer-name-indicator .dealer-player-label {
 
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
+  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
+  function lifePreserverSpinDuration(){
+    return GN_QA_MODE ? 80 : 6200;
+  }
 
   function getLifePreserverOfferForPlayer(player, activePlayers, extra){
     if(!window.BPGLifePreserver)return {eligible:false,reason:'missing-engine',slices:[]};
@@ -8877,6 +8908,7 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.style.transition='';
     }
     hideLifePreserverHelp();
+    cancelLifePreserverSpin();
     renderLifePreserverExplanation();
     drawWheel();
     openModal('wheel-modal');
@@ -8901,6 +8933,8 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function spinWheel(){
+    cancelLifePreserverSpin();
+    const spinToken=_lifePreserverSpinToken;
     document.getElementById('btn-spin').disabled=true;
     document.getElementById('btn-spin').textContent='SPINNING…';
     const spinner=document.getElementById('wheel-spinner');
@@ -8908,7 +8942,10 @@ button.dealer-name-indicator .dealer-player-label {
     const deg=Math.floor(Math.random()*360);
     currentWheelRotation += 360*7 + deg;
     if(spinner)spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
-    setTimeout(()=>{
+    _lifePreserverSpinTimer=setTimeout(()=>{
+      _lifePreserverSpinTimer=null;
+      if(spinToken!==_lifePreserverSpinToken)return;
+      if(!currentGame||!wheelPlayer)return;
       const rotRad=((currentWheelRotation%360)*Math.PI)/180;
       let pa=-Math.PI/2+rotRad;
       while(pa<-Math.PI)pa+=2*Math.PI; while(pa>Math.PI)pa-=2*Math.PI;
@@ -8933,6 +8970,7 @@ button.dealer-name-indicator .dealer-player-label {
         return;
       }
       alert(`🛟 The Life Preserver says:\n\n${win.label}`);
+      if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
       currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
       if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
       currentGame.hailMaryUsed.push(wheelPlayer);
@@ -8940,7 +8978,7 @@ button.dealer-name-indicator .dealer-player-label {
       addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
       saveData(); closeWheel(); scheduleRender();
-    },6200);
+    },lifePreserverSpinDuration());
   }
 
   /* ═══ ROSTER ═══ */
@@ -12306,8 +12344,11 @@ ${isDealer
     const last = currentGame.rounds[lastIdx];
     if(!confirm(`Undo Round ${last.round}? Scores for this round will be erased and the round will reopen.`)) return;
 
-    // Also remove any hailMary bonuses that came after this round
+    const removedRounds=currentGame.rounds.slice(lastIdx);
     currentGame.rounds = currentGame.rounds.slice(0, lastIdx);
+    if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
+      currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
+    }
 
       currentGame.currentRound = last.round;
 
@@ -12329,6 +12370,7 @@ ${isDealer
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
+    recomputeGameTotals(currentGame);
     saveData(); scheduleRender();
   }
 
@@ -12539,6 +12581,8 @@ ${isDealer
     const alerts=silent?[]:analyzeRecords(data);
     history.unshift(data);
     markHistoryChanged();
+    if(!silent) stashScorecardReceipt();
+    else clearScorecardReceiptStash();
     currentGame=null;
     releaseWakeLock(); saveData();
 
@@ -12598,6 +12642,7 @@ ${isDealer
   function closeLoserModal(){
     document.getElementById('loser-modal').classList.add('hidden');
     resetPostgameConfetti();
+    clearScorecardReceiptStash();
     const montageData = _postgameMontageData;
     _postgameMontageData = null;
     if(montageData){
@@ -12613,6 +12658,7 @@ ${isDealer
     document.getElementById('victory-modal').classList.add('hidden');
     _postgameMontageData = null;
     resetPostgameConfetti();
+    clearScorecardReceiptStash();
     const lg=history[0]; if(!lg)return;
     const roster=lg.originalRoster||Object.keys(lg.totals);
       players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
@@ -12638,11 +12684,26 @@ ${isDealer
   }
 
   /* ═══ SHARE RECEIPT ═══ */
+  function clearScorecardReceiptStash(){
+    const stash=document.getElementById('scorecard-receipt-stash');
+    if(stash)stash.replaceChildren();
+  }
+  function stashScorecardReceipt(){
+    const src=document.getElementById('scorecard-capture');
+    const stash=document.getElementById('scorecard-receipt-stash');
+    if(!src||!stash)return;
+    stash.replaceChildren();
+    const clone=src.cloneNode(true);
+    clone.id='scorecard-receipt-capture';
+    const width=Math.max(src.scrollWidth||0, src.offsetWidth||0, 800);
+    stash.style.width=`${width}px`;
+    stash.appendChild(clone);
+  }
   async function shareReceipt(){
-    const el=document.getElementById('scorecard-capture'); if(!el)return;
+    const el=document.getElementById('scorecard-receipt-capture')||document.getElementById('scorecard-capture');
+    if(!el)return;
     try{
       await loadOptionalAsset('html2canvas');
-      // Use higher scale, explicit dimensions, and a small padding buffer to prevent edge cropping
       const canvas=await html2canvas(el, {
         backgroundColor: '#ffffff',
         scale: 2.5,
@@ -12656,6 +12717,7 @@ ${isDealer
         scrollY: 0
       });
       canvas.toBlob(blob=>{
+        if(!blob){ alert('Screenshot failed. Try taking a manual screenshot.'); return; }
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a'); a.href=url; a.download=`gamenight-receipt-${Date.now()}.png`; a.click();
         URL.revokeObjectURL(url);
