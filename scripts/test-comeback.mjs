@@ -479,3 +479,10 @@ test('Wizard extra drops when the points cell is edited off a make', () => {
   assert.equal(CB.syncComebackAfterScoreEdit(g, round, 'Hal'), false);
   assert.equal(round.comeback, undefined);
 });
+
+test('Comeback chip copy stays short on the scorecard and full in the formatter', () => {
+  assert.equal(CB.formatComebackChip(-30), 'Comeback −30');
+  assert.equal(CB.formatComebackChipShort(-30), '−30');
+  assert.equal(CB.formatComebackChipShort(-5), '−5');
+  assert.equal(CB.formatComebackChipShort(20), '+20');
+});

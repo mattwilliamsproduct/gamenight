@@ -140,6 +140,10 @@
     return `Comeback ${formatSignedPoints(bonus)}`;
   }
 
+  function formatComebackChipShort(bonus) {
+    return formatSignedPoints(bonus);
+  }
+
   function formatRoundScore(base, extra) {
     const baseScore = Number(base);
     const shown = Number.isFinite(baseScore) ? baseScore : '';
@@ -691,6 +695,7 @@
     syncComebackAfterScoreEdit,
     roundScoreForPlayer,
     formatComebackChip,
+    formatComebackChipShort,
     formatRoundScore,
     formatSignedPoints,
     rankWithScore,

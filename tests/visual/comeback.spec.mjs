@@ -8,7 +8,9 @@ test('Comeback chips explain the extra and do not offer a refuse button', async 
   const chips = page.locator('button.scorecard-comeback-chip');
   await expect(chips).not.toHaveCount(0);
   await expect(page.locator('#wheel-modal')).toHaveCount(0);
-  await expect(chips.first()).toContainText('Comeback');
+  await expect(chips.first()).toHaveText(/−\d+/);
+  await expect(chips.first()).not.toHaveText('Comeback');
+  await expect(chips.first()).toHaveAttribute('aria-label', /Comeback/);
   await chips.first().click();
   await expect(page.locator('#comeback-explain-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#comeback-explain-lead')).toContainText('behind the pack');
