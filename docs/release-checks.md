@@ -9,3 +9,12 @@ Run these after UI-affecting work and before a production push:
 5. On an installed iPad PWA, refresh once after deployment. A later deployment should show the in-app “Fresh version ready” prompt; choose Refresh and confirm the newest version is visible.
 
 The score-entry checks are specifically meant to catch clipped player rows, keypad overlap, hidden menus, and any regression caused by display zoom.
+
+Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
+
+- both bottom-half blowout players get chips
+- extras sit inside the round-score box, not floating under it
+- Best/Worst use the same Bree Serif number font as round scores
+- history scorecards include extras so rows still add up
+- rename keeps extras on the new name
+- score-entry preview matches the clamped extra that will actually apply

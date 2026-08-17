@@ -7,7 +7,10 @@ function profiles(names=NAMES){
 
 function totalRounds(players,rounds){
   const totals=Object.fromEntries(players.map(player=>[player,0]));
-  rounds.forEach(round=>Object.entries(round.scores||{}).forEach(([player,score])=>{totals[player]=(totals[player]||0)+score;}));
+  rounds.forEach(round=>{
+    Object.entries(round.scores||{}).forEach(([player,score])=>{totals[player]=(totals[player]||0)+score;});
+    Object.entries(round.comeback||{}).forEach(([player,extra])=>{totals[player]=(totals[player]||0)+Number(extra||0);});
+  });
   return totals;
 }
 
@@ -123,6 +126,26 @@ function buriedFiveCrownsRounds(players){
   }));
 }
 
+function fiveCrownsBlowoutRounds(players){
+  // Hand of 9 table: six players still at 0, Linda 108, Vikki 140 after a 0 with a past Comeback extra.
+  const perRound=[
+    [0,0,0,0,40,0,0,22],
+    [0,0,0,0,40,0,0,22],
+    [0,0,0,0,40,0,0,20],
+    [0,0,0,0,24,0,0,0],
+    [0,0,0,0,11,0,0,0],
+    [0,0,0,0,0,0,0,44]
+  ];
+  return perRound.map((scores,index)=>{
+    const round={
+      round:index+1,
+      scores:Object.fromEntries(players.map((player,playerIndex)=>[player,scores[playerIndex]]))
+    };
+    if(index===5) round.comeback={[players[4]]:-15};
+    return round;
+  });
+}
+
 const sharedHistory=historyFixture();
 const wizardPlayers=NAMES.slice(0,10);
 const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlayers,5),{
@@ -132,6 +155,7 @@ const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlaye
 });
 const crownsPlayers=NAMES.slice(0,8);
 const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers));
+const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
 const nameFitCrownsPlayers=['Megan','Vikki','Matt','Duke','Linda','Mike','Michelle'];
@@ -326,6 +350,12 @@ export const QA_SCENARIOS = {
     description:'Eight players on Hand of 11, with Brick and Linda stranded in the bottom and Comeback extras on.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
+  },
+  'five-crowns-blowout':{
+    label:'Five Crowns · Blowout Comeback',
+    description:'Hand of 9 with six players at 0, Linda at 108, and Vikki at 140 after a 0 with Comeback extra in the R6 cell.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:blowoutCrownsGame}
   },
   'five-crowns-4':{
     label:'Five Crowns · 4 Players',

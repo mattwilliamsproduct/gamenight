@@ -6,11 +6,8 @@
   const RECOVERY_LOAD_THRESHOLD = 0.4;
   const EIGHT18_BID_BONUS = 10;
   const FLIP7_STRONG_ROUNDS = 2.5;
+  const FLIP7_MIN_BANK = 10;
   const JOINER_MIN_ROUNDS = 4;
-  const VOLATILITY_MIN_ROUNDS = 3;
-  const VOLATILITY_WINDOW = 4;
-  const FACTOR_MIN = 0.5;
-  const FACTOR_MAX = 1.5;
 
   const GAME_CONFIG = {
     '818': {
@@ -32,7 +29,7 @@
       winLow: true,
       maxRounds: 11,
       increment: 5,
-      bonusMax: 15,
+      bonusMax: 30,
       minScoringRounds: 4,
       recoveryLoad: 0.4
     },
@@ -45,10 +42,6 @@
       recoveryLoad: null
     }
   };
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
 
   function isLegacyBonusRound(round) {
     return !!(round && round.hailMaryBonus);
@@ -66,13 +59,6 @@
     return scoringRounds(game).filter(round => (
       round.scores && round.scores[player] !== undefined && !round.joinBonus?.[player]
     )).length;
-  }
-
-  function median(values) {
-    if (!values.length) return 0;
-    const sorted = [...values].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
   function getMaxRounds(game, activePlayers) {
@@ -94,36 +80,13 @@
     return 0;
   }
 
-  function roundSpread(round, activePlayers) {
-    const scores = activePlayers
-      .map(player => Number(round?.scores?.[player]))
-      .filter(score => Number.isFinite(score));
-    if (scores.length < 2) return 0;
-    return Math.max(...scores) - Math.min(...scores);
-  }
-
-  function volatilityFactor(game, activePlayers) {
-    const completed = scoringRounds(game);
-    if (completed.length < VOLATILITY_MIN_ROUNDS) return 1;
-    const recent = completed.slice(-VOLATILITY_WINDOW);
-    const recentMedian = median(recent.map(round => roundSpread(round, activePlayers)));
-    const lastRoundNumber = completed[completed.length - 1]?.round || completed.length;
-    const baseline = ruleUnitForRound(game.name, lastRoundNumber);
-    if (!baseline) return 1;
-    return clamp(recentMedian / baseline, FACTOR_MIN, FACTOR_MAX);
-  }
-
-  function unitForRound(game, activePlayers, roundNumber, factor) {
-    return ruleUnitForRound(game.name, roundNumber) * factor;
-  }
-
-  function catchUpUnitForRound(game, activePlayers, roundNumber, factor) {
+  function catchUpUnitForRound(game, activePlayers, roundNumber) {
     if (game.name === '818') {
       const tricks = EIGHT18_ROUND_TRICKS[roundNumber - 1] || 0;
       const extra = Math.max(0, Math.round(tricks / Math.max(activePlayers.length, 2)) - 1);
-      return (EIGHT18_BID_BONUS + extra) * factor;
+      return EIGHT18_BID_BONUS + extra;
     }
-    return unitForRound(game, activePlayers, roundNumber, factor);
+    return ruleUnitForRound(game.name, roundNumber);
   }
 
   function remainingRoundNumbers(completedCount, maxRounds) {
@@ -182,7 +145,7 @@
     const shown = Number.isFinite(baseScore) ? baseScore : '';
     const extraScore = Number(extra) || 0;
     if (!extraScore) return String(shown);
-    return `${shown}${formatSignedPoints(extraScore)}`;
+    return `${shown} ${formatSignedPoints(extraScore)}`;
   }
 
   function ordinal(value) {
@@ -252,17 +215,29 @@
     return magnitude;
   }
 
+  function madeBidScore(gameName, bid, actual) {
+    const b = parseInt(bid, 10);
+    const a = parseInt(actual, 10);
+    if (!Number.isFinite(b) || !Number.isFinite(a) || b !== a) return null;
+    if (gameName === '818') return a + 10;
+    if (gameName === 'Wizard') return 20 + (10 * a);
+    return null;
+  }
+
   function isComebackSuccess(game, round, player) {
     if (!game || !round || !player) return false;
     const name = game.name;
     if (name === '818' || name === 'Wizard') {
       if (round.bids?.[player] === undefined || round.actuals?.[player] === undefined) return false;
-      return (parseInt(round.bids[player], 10) || 0) === (parseInt(round.actuals[player], 10) || 0);
+      const made = madeBidScore(name, round.bids[player], round.actuals[player]);
+      if (made == null) return false;
+      if (round.scores?.[player] !== undefined && Number(round.scores[player]) !== made) return false;
+      return true;
     }
     const score = Number(round.scores?.[player]);
     if (!Number.isFinite(score)) return false;
     if (name === 'Five Crowns') return score === 0;
-    if (name === 'Flip 7 Vengeance') return score > 0;
+    if (name === 'Flip 7 Vengeance') return score >= FLIP7_MIN_BANK;
     return false;
   }
 
@@ -339,7 +314,6 @@
     const leaderScore = totals[sorted[0]];
     const packGap = packGapFor(playerScore, packScore, cfg.winLow);
     const leaderGap = packGapFor(playerScore, leaderScore, cfg.winLow);
-    const factor = volatilityFactor(game, players);
     const remaining = remainingRoundNumbers(completedCount, maxRounds);
     const upcomingRound = remaining[0];
     let upcomingOpportunity = 0;
@@ -347,14 +321,14 @@
     let comebackUnit = 0;
 
     if (game.name === 'Flip 7 Vengeance') {
-      comebackUnit = clamp(22 * factor, 10, 40);
+      comebackUnit = 22;
       upcomingOpportunity = comebackUnit;
       totalRemainingOpportunity = comebackUnit * FLIP7_STRONG_ROUNDS;
     } else {
       if (!remaining.length) return ineligible('game-over', { rank, winLow: cfg.winLow, scoreIncrement: cfg.increment });
-      upcomingOpportunity = catchUpUnitForRound(game, players, upcomingRound, factor);
+      upcomingOpportunity = catchUpUnitForRound(game, players, upcomingRound);
       totalRemainingOpportunity = remaining.reduce((sum, roundNumber) => (
-        sum + catchUpUnitForRound(game, players, roundNumber, factor)
+        sum + catchUpUnitForRound(game, players, roundNumber)
       ), 0);
       comebackUnit = upcomingOpportunity;
     }
@@ -452,6 +426,33 @@
       magnitude -= increment;
     }
     return 0;
+  }
+
+  function previewComebackApply(game, player, roundDraft, activePlayers) {
+    const players = (activePlayers || []).filter(name => name && !(game?.retired || []).includes(name));
+    const offer = getComebackOffer(game, player, activePlayers);
+    if (!offer.eligible) {
+      return { offer, extra: 0, success: false, clamped: false, label: '' };
+    }
+    if (!isComebackSuccess(game, roundDraft, player)) {
+      return { offer, extra: 0, success: false, clamped: false, label: offer.successHint };
+    }
+    const extra = clampComebackBonus({
+      player,
+      bonus: offer.bonus,
+      baseRoundScores: roundDraft?.scores || {},
+      preRoundTotals: game?.totals || {},
+      players,
+      winLow: offer.winLow,
+      packRank: offer.packRank,
+      increment: offer.scoreIncrement
+    });
+    const clamped = extra !== offer.bonus;
+    const score = roundDraft?.scores?.[player];
+    const label = extra
+      ? formatRoundScore(score, extra)
+      : 'Would catch the pack';
+    return { offer, extra, success: true, clamped, label };
   }
 
   function applyComebackToRound(game, roundData, activePlayers) {
@@ -569,7 +570,7 @@
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
       gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind the middle of the table.';
-      success = 'Extra is added only when you bank (score more than 0).';
+      success = 'Extra is added only when you bank at least 10 points.';
     }
 
     const how = [
@@ -620,13 +621,12 @@
     const packRank = packRankFor(players.length);
     const packPlayer = sorted[packRank - 1] || null;
     const packScore = packPlayer != null ? totals[packPlayer] : 0;
-    const factor = volatilityFactor(game, players);
     const remaining = remainingRoundNumbers(completed, maxRounds);
     let catchUp = 0;
     if (game.name === 'Flip 7 Vengeance') {
-      catchUp = clamp(22 * factor, 10, 40) * FLIP7_STRONG_ROUNDS;
+      catchUp = 22 * FLIP7_STRONG_ROUNDS;
     } else if (remaining[0]) {
-      catchUp = catchUpUnitForRound(game, players, remaining[0], factor);
+      catchUp = catchUpUnitForRound(game, players, remaining[0]);
     }
     const statuses = players.map(player => {
       const offer = getComebackOffer(game, player, activePlayers, opts);
@@ -676,6 +676,7 @@
     EIGHT18_BID_BONUS,
     RECOVERY_LOAD_THRESHOLD,
     FLIP7_STRONG_ROUNDS,
+    FLIP7_MIN_BANK,
     GAME_CONFIG,
     ruleUnitForRound,
     getMaxRounds,
@@ -685,6 +686,7 @@
     summarizeComebackTable,
     isComebackSuccess,
     clampComebackBonus,
+    previewComebackApply,
     applyComebackToRound,
     syncComebackAfterScoreEdit,
     roundScoreForPlayer,
