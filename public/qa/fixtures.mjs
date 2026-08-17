@@ -100,7 +100,7 @@ function historyFixture(){
       rounds,
       originalRoster:roster,
       currentRound:rounds.length+1,
-      hailMaryUsed:index%3===0?[roster[roster.length-1]]:[],
+      hailMaryUsed:[],
       retired:[]
     };
   });
@@ -131,9 +131,7 @@ const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlaye
   currentScoreDrafts:{}
 });
 const crownsPlayers=NAMES.slice(0,8);
-const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers),{
-  hailMaryUsed:['Linda']
-});
+const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
 const nameFitCrownsPlayers=['Megan','Vikki','Matt','Duke','Linda','Mike','Michelle'];
@@ -308,9 +306,9 @@ export const QA_SCENARIOS = {
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...lateCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrownsGame}
   },
-  'five-crowns-preservers':{
-    label:'Five Crowns · Life Preservers',
-    description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
+  'five-crowns-comeback':{
+    label:'Five Crowns · Comeback',
+    description:'Eight players on Hand of 11, with Brick and Linda stranded in the bottom and Comeback extras on.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
   },
