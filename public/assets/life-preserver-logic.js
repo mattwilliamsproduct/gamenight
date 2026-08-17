@@ -50,6 +50,7 @@
 
   const COLORS = {
     badStrong: '#991b1b',
+    badSoft: '#dc2626',
     goodStrong: '#10b981',
     goodMid: '#34d399',
     goodSoft: '#6ee7b7',
@@ -259,33 +260,76 @@
     if (lesser.length) {
       bullets.push(`The other helpful slices are smaller shares of that same number: ${joinEnglish(lesser)}.`);
     }
-    if (offer.maxSetback) {
+    const setbacks = [...new Set((offer.slices || [])
+      .filter(slice => (Number(slice.adjustment) || 0) * sign < 0)
+      .map(slice => Math.abs(slice.adjustment))
+    )]
+      .sort((a, b) => a - b)
+      .map(magnitude => formatSignedPoints((-sign) * magnitude));
+    if (setbacks.length === 1) {
+      bullets.push(`The red slice is a modest setback of ${setbacks[0]}.`);
+    } else if (setbacks.length > 1) {
+      bullets.push(`The red slices are modest setbacks of ${joinEnglish(setbacks)}.`);
+    } else if (offer.maxSetback) {
       bullets.push(`The red slice is a modest setback of ${setbackShort}.`);
     }
 
     return { summary, wheelLine, bullets, bindingLimit: binding };
   }
 
-  function interleaveWheelSlicesByKind(slices) {
-    const bad = slices.filter(slice => slice._wheelBad);
-    const good = slices.filter(slice => !slice._wheelBad);
-    if (!bad.length || !good.length) return slices.map(({ _wheelBad, ...rest }) => rest);
+  function wheelSliceKind(slice) {
+    if (slice._wheelKind) return slice._wheelKind;
+    if (!slice.adjustment) return 'zero';
+    return slice._wheelBad ? 'bad' : 'good';
+  }
+
+  function stripWheelMeta(slice) {
+    const { _wheelBad, _wheelKind, ...rest } = slice;
+    return rest;
+  }
+
+  function alternateMagnitudes(slices) {
+    const sorted = [...slices].sort((a, b) => (
+      Math.abs(a.adjustment) - Math.abs(b.adjustment) || a.weight - b.weight
+    ));
     const out = [];
-    let bi = 0;
-    let gi = 0;
-    while (bi < bad.length || gi < good.length) {
-      if (bi >= bad.length) {
-        good.slice(gi).forEach(slice => out.push(slice));
-        break;
-      }
-      if (gi >= good.length) {
-        bad.slice(bi).forEach(slice => out.push(slice));
-        break;
-      }
-      if (bi / bad.length <= gi / good.length) out.push(bad[bi++]);
-      else out.push(good[gi++]);
+    let low = 0;
+    let high = sorted.length - 1;
+    while (low <= high) {
+      out.push(sorted[low++]);
+      if (low <= high) out.push(sorted[high--]);
     }
-    return out.map(({ _wheelBad, ...rest }) => rest);
+    return out;
+  }
+
+  // Spread red/gray spacers around the wheel so helpful greens do not form one
+  // Pac-Man wedge. With more greens than spacers, one pair of greens may touch.
+  function arrangeWheelSlices(slices) {
+    const groups = { bad: [], zero: [], good: [] };
+    slices.forEach(slice => {
+      groups[wheelSliceKind(slice)].push(slice);
+    });
+    groups.good = alternateMagnitudes(groups.good);
+    groups.bad = alternateMagnitudes(groups.bad);
+
+    const spacers = [];
+    const spacerTurns = Math.max(groups.bad.length, groups.zero.length);
+    for (let i = 0; i < spacerTurns; i++) {
+      if (i < groups.bad.length) spacers.push(groups.bad[i]);
+      if (i < groups.zero.length) spacers.push(groups.zero[i]);
+    }
+    if (!spacers.length) return groups.good.map(stripWheelMeta);
+
+    const n = slices.length;
+    const placed = new Array(n).fill(null);
+    for (let i = 0; i < spacers.length; i++) {
+      placed[Math.floor((i * n) / spacers.length)] = spacers[i];
+    }
+    let gi = 0;
+    for (let i = 0; i < n; i++) {
+      if (!placed[i]) placed[i] = groups.good[gi++];
+    }
+    return placed.map(stripWheelMeta);
   }
 
   function bestAllowedRankFor(playerCount, currentRank) {
@@ -325,29 +369,55 @@
     return weights;
   }
 
+  function splitWeight(totalWeight) {
+    if (totalWeight <= 1) return [Math.max(0, totalWeight)];
+    const first = Math.ceil(totalWeight / 2);
+    return [first, totalWeight - first];
+  }
+
   function buildSlices(maxHelpful, maxSetback, winLow, increment, recoveryLoad) {
     const sign = helpfulSign(winLow);
     const helpful = [0.25, 0.5, 0.5, 0.75, 1].map(percent => percentMagnitude(maxHelpful, percent, increment));
     const setback = Math.max(increment, floorToIncrement(maxSetback, increment));
+    const smallSetback = Math.max(increment, floorToIncrement(setback / 2, increment));
     const signedHelpful = helpful.map(magnitude => sign * magnitude);
-    const signedSetback = -sign * setback;
     const helpfulWeight = helpfulWeightFor(recoveryLoad);
     const setbackWeight = recoveryLoad >= 1 ? 8 : 10;
     const zeroWeight = Math.max(6, 100 - helpfulWeight - setbackWeight);
-    const zeroA = Math.ceil(zeroWeight / 2);
-    const zeroB = zeroWeight - zeroA;
     const helpfulWeights = splitHelpfulWeights(helpfulWeight);
-    const raw = [
-      { label: formatPointLabel(signedSetback), color: COLORS.badStrong, adjustment: signedSetback, weight: setbackWeight, _wheelBad: true },
-      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: zeroA, _wheelBad: false },
-      { label: '0 Pts', color: COLORS.zero, adjustment: 0, weight: zeroB, _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[0]), color: COLORS.goodSoft, adjustment: signedHelpful[0], weight: helpfulWeights[0], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[1]), color: COLORS.goodMid, adjustment: signedHelpful[1], weight: helpfulWeights[1], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[2]), color: COLORS.goodMid, adjustment: signedHelpful[2], weight: helpfulWeights[2], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[3]), color: COLORS.goodStrong, adjustment: signedHelpful[3], weight: helpfulWeights[3], _wheelBad: false },
-      { label: formatPointLabel(signedHelpful[4]), color: COLORS.goodStrong, adjustment: signedHelpful[4], weight: helpfulWeights[4], _wheelBad: false }
-    ];
-    return interleaveWheelSlicesByKind(raw);
+    const raw = [];
+
+    splitWeight(setbackWeight).forEach((weight, index) => {
+      const magnitude = index === 0 && smallSetback !== setback ? smallSetback : setback;
+      const adjustment = -sign * magnitude;
+      raw.push({
+        label: formatPointLabel(adjustment),
+        color: index === 0 && smallSetback !== setback ? COLORS.badSoft : COLORS.badStrong,
+        adjustment,
+        weight,
+        _wheelKind: 'bad'
+      });
+    });
+    splitWeight(zeroWeight).forEach(weight => {
+      raw.push({
+        label: '0 Pts',
+        color: COLORS.zero,
+        adjustment: 0,
+        weight,
+        _wheelKind: 'zero'
+      });
+    });
+    const helpfulColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodMid, COLORS.goodStrong, COLORS.goodStrong];
+    signedHelpful.forEach((adjustment, index) => {
+      raw.push({
+        label: formatPointLabel(adjustment),
+        color: helpfulColors[index],
+        adjustment,
+        weight: helpfulWeights[index],
+        _wheelKind: 'good'
+      });
+    });
+    return arrangeWheelSlices(raw);
   }
 
   function ineligible(reason, extras) {

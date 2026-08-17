@@ -67,6 +67,52 @@ function assertNoPodium(result, players, totals) {
   }
 }
 
+function sliceKind(slice, winLow) {
+  const helpful = (Number(slice.adjustment) || 0) * (winLow ? -1 : 1);
+  if (helpful > 0) return 'good';
+  if (helpful < 0) return 'bad';
+  return 'zero';
+}
+
+function circularRuns(kinds) {
+  const n = kinds.length;
+  if (!n) return [];
+  if (kinds.every(kind => kind === kinds[0])) return [{ kind: kinds[0], length: n }];
+  let start = 0;
+  while (start < n && kinds[start] === kinds[(start - 1 + n) % n]) start++;
+  const runs = [];
+  let index = start;
+  do {
+    const kind = kinds[index];
+    let length = 1;
+    index = (index + 1) % n;
+    while (index !== start && kinds[index] === kind) {
+      length++;
+      index = (index + 1) % n;
+    }
+    runs.push({ kind, length });
+  } while (index !== start);
+  return runs;
+}
+
+function assertMixedWheel(result, label) {
+  assert.ok(result.slices.length >= 8, `${label}: expected a full wheel`);
+  const kinds = result.slices.map(slice => sliceKind(slice, result.winLow));
+  const runs = circularRuns(kinds);
+  const sequence = kinds.join(',');
+  const maxGood = Math.max(0, ...runs.filter(run => run.kind === 'good').map(run => run.length));
+  assert.ok(maxGood <= 2, `${label}: helpful slices still clustered (${sequence})`);
+  assert.ok(runs.filter(run => run.kind === 'bad').every(run => run.length === 1), `${label}: setbacks clustered (${sequence})`);
+  assert.ok(runs.filter(run => run.kind === 'zero').every(run => run.length === 1), `${label}: zeros clustered (${sequence})`);
+  assert.ok(kinds.filter(kind => kind === 'bad').length >= 2, `${label}: expected split setbacks`);
+  assert.ok(kinds.filter(kind => kind === 'zero').length >= 2, `${label}: expected split zeros`);
+  const helpfulWeights = result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === 'good')
+    .reduce((sum, slice) => sum + slice.weight, 0);
+  const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(helpfulWeights / totalWeight >= 0.65, `${label}: helpful odds should stay in the majority`);
+}
+
 test('818 remaining opportunity uses each upcoming trick count', () => {
   assert.equal(remaining818(4), 155);
   assert.equal(remaining818(14), 18);
@@ -142,7 +188,7 @@ test('Five Crowns treats score reductions as helpful', () => {
   const helpful = result.slices.filter(slice => slice.adjustment < 0);
   const setbacks = result.slices.filter(slice => slice.adjustment > 0);
   assert.ok(helpful.length >= 4);
-  assert.ok(setbacks.length >= 1);
+  assert.ok(setbacks.length >= 2);
   assert.ok(result.maxSafeAdjustment <= 75);
   assert.ok(result.maxSafeAdjustment > 20);
   assertNoPodium(result, EIGHT, totals);
@@ -271,6 +317,7 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
 });
 
@@ -316,4 +363,27 @@ test('Wizard max rounds stay frozen when the active table shrinks', () => {
   delete g.maxRounds;
   g.originalRoster = [...EIGHT];
   assert.equal(LP.getMaxRounds(g, seven), 7);
+});
+
+test('Life Preserver slices mix greens with reds and zeros instead of clustering', () => {
+  const lastRoundTotals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
+  const lastRound = offer('818', lastRoundTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assertMixedWheel(lastRound, '818 last round');
+
+  const wizardTotals = { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 };
+  const wizard = offer('Wizard', wizardTotals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
+  assertMixedWheel(wizard, 'Wizard');
+
+  const fiveCrowns = LP.getLifePreserverOffer(
+    QA_SCENARIOS['five-crowns-preservers'].data.currentGame,
+    'Brick',
+    QA_SCENARIOS['five-crowns-preservers'].data.currentGame.originalRoster
+  );
+  assertMixedWheel(fiveCrowns, 'Five Crowns Brick');
+
+  const adjacentSameValue = fiveCrowns.slices.some((slice, index) => {
+    const next = fiveCrowns.slices[(index + 1) % fiveCrowns.slices.length];
+    return slice.adjustment === next.adjustment && slice.color === next.color;
+  });
+  assert.equal(adjacentSameValue, false, `identical slices should not sit next to each other: ${fiveCrowns.slices.map(slice => slice.label).join(' | ')}`);
 });
