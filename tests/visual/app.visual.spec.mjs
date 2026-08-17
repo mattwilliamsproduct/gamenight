@@ -382,10 +382,10 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
     scores:[...element.querySelectorAll('.record-chase-score')].map(score=>(score.textContent||'').trim())
   })));
   expect(metrics.map(metric=>metric.pace)).toEqual([
-    '10 pts ahead of best',
+    '10 pts ahead of best pace',
     '15 pts behind usual',
-    '20 pts behind best',
-    '10 pts ahead of best',
+    '20 pts behind best pace',
+    '10 pts ahead of best pace',
     '30 pts behind usual',
     'Usual pace',
     'No past pace yet',
@@ -424,6 +424,93 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   });
   expect(Math.abs(alignment.bestHead-alignment.bestCell),'Best header should align with best values').toBeLessThanOrEqual(2);
   expect(Math.abs(alignment.worstHead-alignment.worstCell),'Worst header should align with worst values').toBeLessThanOrEqual(2);
+
+  const bestButton=page.locator('.record-chase-row[data-player="Megan"] button.record-chase-score').first();
+  await expect(bestButton).toBeVisible();
+  await bestButton.click();
+  await expect(page.locator('#scorecard-modal:not(.hidden)')).toBeVisible();
+  await expect(page.locator('#modal-game-name')).toContainText('Wizard');
+  await page.locator('#scorecard-modal button').first().click();
+  await expect(page.locator('#scorecard-modal')).toBeHidden();
+});
+
+test('beat-the-heat pace compares this point in the best finished game',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=beat-the-heat-pace&surface=scorecard',{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+
+  await expect(page.locator('.record-chase-subtitle')).toHaveText('Vs this point in past games');
+  const linda=page.locator('.record-chase-row[data-player="Linda"]');
+  await expect(linda).toHaveCount(1);
+  await expect(linda.locator('.record-chase-pace')).toHaveText('Usual pace');
+  await expect(linda.locator('.record-chase-pace')).not.toContainText('behind best');
+  const lindaScores=await linda.locator('.record-chase-score').evaluateAll(elements=>elements.map(element=>(element.textContent||'').trim()));
+  expect(lindaScores[0],'Linda career best remains the 5-point finish').toBe('5');
+  const lindaTotal=await page.locator('#scorecard-body tr').filter({hasText:'Linda'}).locator('.scorecard-total-value').innerText();
+  expect(lindaTotal.trim()).toBe('36');
+  await expect(linda.locator('button.record-chase-score').first()).toHaveAttribute('aria-label',/Best 5/);
+  await linda.locator('button.record-chase-score').first().click();
+  await expect(page.locator('#scorecard-modal:not(.hidden)')).toBeVisible();
+  await expect(page.locator('#modal-scorecard-body')).toContainText('Linda');
+  const lindaHistoryTotal=await page.locator('#modal-scorecard-body tr').filter({hasText:'Linda'}).locator('.scorecard-total-value').innerText();
+  expect(lindaHistoryTotal.trim(),'Best should open the 5-point scorecard').toBe('5');
+});
+
+test('late five-crowns totals stay centered and names stay whole',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-late&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+
+  const totals=await page.evaluate(()=>{
+    const center=element=>{
+      const box=element.getBoundingClientRect();
+      return box.left+box.width/2;
+    };
+    return [...document.querySelectorAll('#scorecard-body tr')].map(row=>{
+      const cell=row.querySelector('.scorecard-col-total');
+      const value=row.querySelector('.scorecard-total-value');
+      const name=row.querySelector('.scoreboard-player-name');
+      const playerCell=row.querySelector('.scorecard-col-player');
+      const nameBox=name.getBoundingClientRect();
+      const playerBox=playerCell.getBoundingClientRect();
+      return {
+        name:(name?.textContent||'').trim(),
+        total:(value?.textContent||'').trim(),
+        totalFits:value.scrollWidth<=cell.clientWidth+1,
+        totalCenterGap:Math.abs(center(cell)-center(value)),
+        nameFits:nameBox.right<=playerBox.right+1
+      };
+    });
+  });
+  expect(totals.map(row=>row.total),'late Five Crowns should include three-digit totals').toEqual(expect.arrayContaining(['123','135']));
+  expect(totals.every(row=>row.totalFits),'three-digit totals should stay inside the Total column').toBe(true);
+  expect(totals.every(row=>row.totalCenterGap<=2),'three-digit totals should stay centered in the Total column').toBe(true);
+  expect(totals.find(row=>row.name==='Michelle')?.nameFits,'Michelle should not be clipped').toBe(true);
+
+  await page.locator('#scorecard-view-pace-toggle').click();
+  await expect(page.locator('#record-chase-panel')).toBeHidden();
+  const namesAfter=await page.evaluate(()=>[...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map(name=>{
+    const label=name.querySelector('.dealer-player-label')||name;
+    const playerCell=name.closest('.scorecard-col-player');
+    return {
+      text:(label.textContent||'').trim(),
+      fits:label.getBoundingClientRect().right<=playerCell.getBoundingClientRect().right+1,
+      overflow:getComputedStyle(label).textOverflow
+    };
+  }));
+  expect(namesAfter.find(name=>name.text==='Michelle')?.fits,'Michelle should stay whole with every round visible or trimmed').toBe(true);
+  expect(namesAfter.every(name=>name.overflow==='clip'),'live player names should never use an ellipsis').toBe(true);
+  const totalsOff=await page.evaluate(()=>[...document.querySelectorAll('#scorecard-body .scorecard-total-value')].map(value=>{
+    const cell=value.closest('.scorecard-col-total');
+    const center=element=>{
+      const box=element.getBoundingClientRect();
+      return box.left+box.width/2;
+    };
+    return {
+      total:(value.textContent||'').trim(),
+      fits:value.scrollWidth<=cell.clientWidth+1,
+      centerGap:Math.abs(center(cell)-center(value))
+    };
+  }));
+  expect(totalsOff.filter(row=>row.total.length>=3).every(row=>row.fits&&row.centerGap<=2),'three-digit totals should stay centered after hiding Player Pace').toBe(true);
 });
 
 test('five-crowns first round uses compact avatar-led player identities',async({page})=>{
