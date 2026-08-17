@@ -132,6 +132,25 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
 });
 
+test('Actions menu explains how this game awards a Life Preserver', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+
+  await page.getByRole('button', {name: /Actions/}).click();
+  await page.getByRole('button', {name: 'Life Preserver', exact: true}).click();
+  await expect(page.locator('#life-preserver-rules-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#life-preserver-rules-title')).toHaveText('How you get one in Five Crowns');
+  const body = page.locator('#life-preserver-rules-content');
+  await expect(body).toContainText('bottom half');
+  await expect(body).toContainText('4 hands');
+  await expect(body).toContainText('Low score wins');
+  await expect(body).toContainText('On this table');
+  await expect(body).toContainText('Brick');
+  await expect(body).toContainText('Linda');
+  await expect(body).toContainText('cannot put you in 1st or 2nd');
+});
+
 test('ending a match stashes a visible scorecard copy for Share Receipt', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});

@@ -223,6 +223,7 @@ test('representative centered modal families use the shared viewport shell',asyn
     dealer:['#dealer-modal','#dealer-modal .surface-raised','Dealer modal'],
     retire:['#retire-player-modal','#retire-player-modal .surface-raised','Retire-player modal'],
     reorder:['#reorder-players-modal','#reorder-players-modal .surface-raised','Reorder-players modal'],
+    lifePreserverRules:['#life-preserver-rules-modal','#life-preserver-rules-modal .life-preserver-rules-card','Life Preserver rules modal'],
     victory:['#victory-modal','#victory-modal .postgame-card','Victory modal'],
     loser:['#loser-modal','#loser-modal .postgame-card','Loser modal']
   };
@@ -243,7 +244,7 @@ test('representative centered modal families use the shared viewport shell',asyn
 
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal']]){
+  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal'],['lifePreserverRules','openLifePreserverRules']]){
     await page.evaluate(fnName=>window[fnName](),fn);
     await waitForModal(`${measure[name][0]}:not(.hidden)`);
     await expectCenteredInVisualViewport(page,{modalSelector:measure[name][0],cardSelector:measure[name][1],label:measure[name][2]});

@@ -432,3 +432,42 @@ test('Life Preserver slices mix greens with reds and zeros instead of clustering
   });
   assert.equal(adjacentSameValue, false, `identical slices should not sit next to each other: ${fiveCrowns.slices.map(slice => slice.label).join(' | ')}`);
 });
+
+test('Life Preserver rules copy is plain language and game-specific', () => {
+  const eight18 = LP.explainLifePreserverRules('818');
+  assert.equal(eight18.supported, true);
+  assert.match(eight18.lead, /818/);
+  assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
+  assert.ok(eight18.how.some(line => /bottom half/.test(line)));
+  assert.ok(eight18.how.some(line => /made bid/.test(line)));
+  assert.ok(eight18.how.some(line => /20 behind/.test(line)));
+
+  const wizard = LP.explainLifePreserverRules('Wizard');
+  assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
+  assert.ok(wizard.how.some(line => /20 or even 50 down/.test(line)));
+
+  const crowns = LP.explainLifePreserverRules('Five Crowns');
+  assert.ok(crowns.how.some(line => /4 hands/.test(line)));
+  assert.ok(crowns.how.some(line => /Low score wins/.test(line)));
+  assert.ok(crowns.wheel.some(line => /subtracts/.test(line)));
+
+  const flip7 = LP.explainLifePreserverRules('Flip 7 Vengeance');
+  assert.match(flip7.lead, /Flip 7/);
+  assert.ok(flip7.how.some(line => /two and a half strong banks/.test(line)));
+
+  const rook = LP.explainLifePreserverRules('Rook');
+  assert.equal(rook.supported, false);
+  assert.match(rook.lead, /does not use Life Preservers/);
+});
+
+test('Life Preserver table summary names who is ready, used, or not there yet', () => {
+  const currentGame = QA_SCENARIOS['five-crowns-preservers'].data.currentGame;
+  const summary = LP.summarizeLifePreserverTable(currentGame, currentGame.originalRoster);
+  assert.equal(summary.rules.supported, true);
+  assert.equal(summary.live.timingOpen, true);
+  assert.ok(summary.live.ready.includes('Brick'));
+  assert.ok(summary.live.used.includes('Linda'));
+  assert.match(summary.live.roundLine, /scored/);
+  assert.ok(summary.live.catchUp > 0);
+  assert.equal(summary.live.packPlayer, 'Megan');
+});

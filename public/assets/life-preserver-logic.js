@@ -297,6 +297,146 @@
     return { summary, wheelLine, bullets, bindingLimit: binding };
   }
 
+  function minScoringRoundsFor(game, players) {
+    const cfg = GAME_CONFIG[game?.name];
+    if (!cfg) return null;
+    if (game.name === 'Wizard') {
+      return Math.max(3, Math.ceil(0.25 * getMaxRounds(game, players || [])));
+    }
+    return cfg.minScoringRounds;
+  }
+
+  function explainLifePreserverRules(gameName) {
+    const display = displayGameName(gameName);
+    if (!SUPPORTED_GAMES.includes(gameName)) {
+      return {
+        supported: false,
+        gameName: display,
+        lead: `${display} does not use Life Preservers.`,
+        how: ['Keep playing this one without a rescue spin.'],
+        wheel: []
+      };
+    }
+    const unit = roundNoun(gameName, 2);
+    let timing = `Once 4 ${unit} are scored.`;
+    let gap = 'You are far enough behind the middle of the table that normal play is unlikely to catch you up.';
+    const wheel = [
+      'Most slices help. Some do nothing. A few hurt a little.',
+      'The best result can pull you back toward the pack. It cannot put you in 1st or 2nd.'
+    ];
+
+    if (gameName === '818') {
+      timing = 'Once 4 rounds are scored.';
+      gap = 'You are about 10 or more points behind the middle of the table — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind is a big hole. 8 behind is still a race.';
+    } else if (gameName === 'Wizard') {
+      timing = 'Once the first few rounds are scored (about a quarter of the game).';
+      gap = 'You are further behind the middle than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+    } else if (gameName === 'Five Crowns') {
+      timing = 'Once 4 hands are scored.';
+      gap = 'Low score wins, so the bottom half is the high scores. You are far enough behind the middle that a couple of clean hands probably will not catch the pack.';
+      wheel.unshift('A good spin subtracts points.');
+    } else if (gameName === 'Flip 7 Vengeance') {
+      timing = 'Once 4 rounds are scored.';
+      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind the middle of the table.';
+    }
+
+    const how = [
+      'Four or more players at the table.',
+      timing,
+      'You are in the bottom half of the scoreboard — the worse half, not just behind the leader.',
+      gap,
+      'You have not used yours yet. One spin per player, per game.',
+      'A runaway leader does not unlock everyone bunched behind them.'
+    ];
+    return {
+      supported: true,
+      gameName: display,
+      lead: `A one-time rescue if you are truly out of the hunt in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      how,
+      wheel
+    };
+  }
+
+  function statusLabelForReason(reason) {
+    if (reason === 'used') return 'already used';
+    if (reason === 'retired') return 'headed back to shore';
+    if (reason === 'too-early') return 'too early';
+    if (reason === 'not-bottom-half') return 'still in the top half';
+    if (reason === 'pack-gap') return 'behind, but still close to the pack';
+    if (reason === 'recovery-load') return 'behind, but enough rounds left to catch up';
+    if (reason === 'too-few-players') return 'need 4 players';
+    if (reason === 'game-over') return 'game over';
+    if (reason === 'no-legal-help') return 'no safe rescue right now';
+    return 'not yet';
+  }
+
+  function summarizeLifePreserverTable(game, activePlayers, options) {
+    const rules = explainLifePreserverRules(game?.name);
+    if (!game || !rules.supported) {
+      return { rules, live: null };
+    }
+    const opts = options || {};
+    const players = (activePlayers || []).filter(name => name && !(game.retired || []).includes(name));
+    const cfg = GAME_CONFIG[game.name];
+    const completed = scoringRounds(game).length;
+    const maxRounds = getMaxRounds(game, players);
+    const minRounds = minScoringRoundsFor(game, players);
+    const unit = roundNoun(game.name, minRounds || 2);
+    const totals = {};
+    players.forEach(name => { totals[name] = Number(game.totals?.[name]) || 0; });
+    const sorted = sortPlayers(players, totals, cfg.winLow);
+    const packRank = Math.max(1, Math.ceil(players.length / 2));
+    const packPlayer = sorted[packRank - 1] || null;
+    const packScore = packPlayer != null ? totals[packPlayer] : 0;
+    const factor = volatilityFactor(game, players);
+    const remaining = remainingRoundNumbers(completed, maxRounds);
+    let catchUp = 0;
+    if (game.name === 'Flip 7 Vengeance') {
+      catchUp = clamp(22 * factor, 10, 40) * FLIP7_STRONG_ROUNDS;
+    } else if (remaining[0]) {
+      catchUp = catchUpUnitForRound(game, players, remaining[0], factor);
+    }
+    const statuses = players.map(player => {
+      const offer = getLifePreserverOffer(game, player, activePlayers, opts);
+      const rank = sorted.indexOf(player) + 1;
+      const packGap = packGapFor(totals[player], packScore, cfg.winLow);
+      return {
+        player,
+        eligible: !!offer.eligible,
+        reason: offer.reason || 'not-yet',
+        rank: offer.rank || rank,
+        packGap: Number.isFinite(offer.packGap) ? offer.packGap : packGap,
+        label: offer.eligible ? 'ready to spin' : statusLabelForReason(offer.reason)
+      };
+    });
+    const ready = statuses.filter(entry => entry.eligible).map(entry => entry.player);
+    const used = statuses.filter(entry => entry.reason === 'used').map(entry => entry.player);
+    const notYet = statuses.filter(entry => !entry.eligible && entry.reason !== 'used' && entry.reason !== 'retired');
+    const roundLine = game.name === 'Flip 7 Vengeance'
+      ? `${completed} ${roundNoun(game.name, completed)} scored`
+      : `${completed} of ${maxRounds} ${roundNoun(game.name, maxRounds)} scored`;
+    return {
+      rules,
+      live: {
+        playerCount: players.length,
+        completed,
+        maxRounds: game.name === 'Flip 7 Vengeance' ? null : maxRounds,
+        minRounds,
+        unit,
+        timingOpen: completed >= minRounds,
+        roundLine,
+        packRank,
+        packPlayer,
+        packScore,
+        catchUp: Math.round(catchUp),
+        remainingRounds: game.name === 'Flip 7 Vengeance' ? null : remaining.length,
+        ready,
+        used,
+        notYet
+      }
+    };
+  }
+
   function wheelSliceKind(slice) {
     if (slice._wheelKind) return slice._wheelKind;
     if (!slice.adjustment) return 'zero';
@@ -666,6 +806,8 @@
     getMaxRounds,
     getLifePreserverOffer,
     explainLifePreserverOffer,
+    explainLifePreserverRules,
+    summarizeLifePreserverTable,
     releaseRemovedLifePreservers,
     capLifePreserverAdjustment,
     rankWithScore,
