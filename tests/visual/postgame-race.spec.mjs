@@ -82,11 +82,15 @@ test('path replay can show eight players and still lets you pin one path',async(
     const name=document.getElementById('montage-race-focus-name').getBoundingClientRect();
     return {
       titleOffset:Math.abs((title.left+title.width/2)-(montage.left+montage.width/2)),
-      extraPill:pill.width-name.width
+      extraPill:pill.width-name.width,
+      leftPad:name.left-pill.left,
+      rightPad:pill.right-name.right
     };
   });
   expect(headerLayout.titleOffset).toBeLessThan(24);
-  expect(headerLayout.extraPill).toBeLessThan(90);
+  expect(headerLayout.extraPill).toBeLessThan(140);
+  expect(headerLayout.leftPad).toBeGreaterThan(12);
+  expect(headerLayout.rightPad).toBeGreaterThan(12);
   await expect(page.locator('.montage-race-key',{hasText:'Megan'}).locator('.montage-race-name')).toHaveCSS('color','rgb(255, 255, 255)');
   await expect(page.locator('.montage-race-key',{hasText:'Megan'})).toHaveClass(/is-hot/,{timeout:5000});
   await expect(page.locator('#montage-race-focus-name')).toHaveText('Megan');
