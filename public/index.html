@@ -11085,10 +11085,26 @@ ${isDealer
     });
   }
 
+  function standingScoreFromRound(round, player){
+    if(!round || round.joinBonus?.[player] || round.scores?.[player]===undefined) return 0;
+    if(window.BPGComeback && typeof BPGComeback.roundScoreForPlayer==='function'){
+      const scored=BPGComeback.roundScoreForPlayer(round, player);
+      return Number.isFinite(scored)?scored:0;
+    }
+    return (Number(round.scores[player])||0)+(Number(round.comeback?.[player])||0);
+  }
+
+  function addRoundToStandings(totals, round){
+    if(!round || !totals) return;
+    Object.keys(totals).forEach(player=>{
+      totals[player]=(Number(totals[player])||0)+standingScoreFromRound(round, player);
+    });
+  }
+
   function roundScoresForPlayer(rounds, player){
     return rounds
       .filter(r => !r.hailMaryBonus && !r.joinBonus?.[player] && r.scores && r.scores[player] !== undefined)
-      .map(r => ({ round: r.round, score: Number(r.scores[player]) || 0, data: r }));
+      .map(r => ({ round: r.round, score: standingScoreFromRound(r, player), data: r }));
   }
 
   function awardLeaderChanges(rounds, playersToUse, cfg){
@@ -11096,10 +11112,7 @@ ${isDealer
     const totals = Object.fromEntries(playersToUse.map(p => [p, 0]));
     rounds.forEach(r => {
       if(r.hailMaryBonus) return;
-      playersToUse.forEach(p => {
-        if(r.joinBonus?.[p]) return;
-        totals[p] = (totals[p] || 0) + (Number(r.scores?.[p]) || 0);
-      });
+      addRoundToStandings(totals, r);
       const sorted = sortPlayersByTotal(playersToUse, totals, cfg);
       if(sorted.length) leaders.push(sorted[0]);
     });
@@ -11151,12 +11164,7 @@ ${isDealer
     if(scoringRounds.length >= 4 && winnerNames.length){
       const halfIdx = Math.floor(scoringRounds.length / 2);
       const halfTotals = Object.fromEntries(playersToUse.map(p => [p, 0]));
-      scoringRounds.slice(0, halfIdx).forEach(r => {
-        Object.entries(r.scores || {}).forEach(([p, s]) => {
-          if(halfTotals[p] === undefined || r.joinBonus?.[p]) return;
-          halfTotals[p] += Number(s) || 0;
-        });
-      });
+      scoringRounds.slice(0, halfIdx).forEach(r => addRoundToStandings(halfTotals, r));
       const sortedAtHalf = sortPlayersByTotal(playersToUse, halfTotals, cfg);
       const leaderAtHalf = sortedAtHalf[0];
       let comeback = null;
@@ -11175,8 +11183,8 @@ ${isDealer
       const halfIdx = Math.floor(scoringRounds.length / 2);
       let mostImproved = null;
       playersToUse.forEach(p => {
-        const first = scoringRounds.slice(0, halfIdx).reduce((sum, r) => sum + (r.joinBonus?.[p] ? 0 : (Number(r.scores?.[p]) || 0)), 0);
-        const second = scoringRounds.slice(halfIdx).reduce((sum, r) => sum + (r.joinBonus?.[p] ? 0 : (Number(r.scores?.[p]) || 0)), 0);
+        const first = scoringRounds.slice(0, halfIdx).reduce((sum, r) => sum + standingScoreFromRound(r, p), 0);
+        const second = scoringRounds.slice(halfIdx).reduce((sum, r) => sum + standingScoreFromRound(r, p), 0);
         const swing = cfg.winLow ? first - second : second - first;
         if(swing > 0 && (!mostImproved || swing > mostImproved.swing)) mostImproved = { player: p, swing };
       });
@@ -13662,27 +13670,45 @@ ${isDealer
     loadOptionalAsset('confetti').catch(error=>console.warn('Winner celebration unavailable.',error)).finally(fireWinnerConfettiLoop);
   }
 
+  function matchRecordSetters(data, winLow){
+    const players=getRecordedPlayers(data).filter(p=>Number.isFinite(data.totals?.[p]));
+    if(!players.length) return [];
+    const best=players.reduce((top,p)=>{
+      const score=data.totals[p];
+      if(top==null) return score;
+      return winLow?Math.min(top,score):Math.max(top,score);
+    }, null);
+    return players.filter(p=>data.totals[p]===best);
+  }
   function analyzeRecords(data){
     const r=getHallOfFame(); const msgs=[];
-    getRecordedPlayers(data).forEach(p=>{
-      const s=data.totals[p];
-      if(data.game==='Five Crowns'&&r['Five Crowns']&&s<r['Five Crowns'].bestScore&&r['Five Crowns'].bestScore!==Infinity)
-        msgs.push(`⭐ ${p} set new Lowest Five Crowns Score! (${s})`);
-      if(data.game==='Beat the Heat'&&r['Beat the Heat']&&s<r['Beat the Heat'].bestScore&&r['Beat the Heat'].bestScore!==Infinity)
-        msgs.push(`⭐ ${p} set new Lowest Beat the Heat score! (${s} heat)`);
-      if(data.game==='Wizard'&&r['Wizard']){
-        const playerCount=getWizardRecordPlayerCount(data);
-        const bucket=playerCount?r.Wizard.bestScoreByPlayerCount?.[playerCount]:null;
-        if(bucket&&s>bucket.bestScore&&bucket.bestScore!==-Infinity)
-          msgs.push(`⭐ ${p} set new ${playerCount}-player Wizard high score! (${s})`);
+    const players=getRecordedPlayers(data);
+    const toastBest=(standing, winLow, messageFor)=>{
+      if(!Number.isFinite(standing)){
+        matchRecordSetters(data, winLow).forEach(p=>msgs.push(messageFor(p, data.totals[p])));
+        return;
       }
-      if(data.game==='818'&&r['818']&&s>r['818'].bestScore&&r['818'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest 818 Score! (${s})`);
-      if(data.game==='Flip 7 Vengeance'&&r['Flip 7 Vengeance']&&s>r['Flip 7 Vengeance'].bestScore&&r['Flip 7 Vengeance'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest Flip 7 Score! (${s})`);
-      if(data.game==='Rook'&&r['Rook']&&s>r['Rook'].bestScore&&r['Rook'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest Rook Score! (${s})`);
-    });
+      players.forEach(p=>{
+        const s=data.totals[p];
+        if(!Number.isFinite(s)) return;
+        if(winLow?s<standing:s>standing) msgs.push(messageFor(p, s));
+      });
+    };
+    if(data.game==='Five Crowns'&&r['Five Crowns'])
+      toastBest(r['Five Crowns'].bestScore, true, (p,s)=>`⭐ ${p} set new Lowest Five Crowns Score! (${s})`);
+    if(data.game==='Beat the Heat'&&r['Beat the Heat'])
+      toastBest(r['Beat the Heat'].bestScore, true, (p,s)=>`⭐ ${p} set new Lowest Beat the Heat score! (${s} heat)`);
+    if(data.game==='Wizard'&&r['Wizard']){
+      const playerCount=getWizardRecordPlayerCount(data);
+      const bucket=playerCount?r.Wizard.bestScoreByPlayerCount?.[playerCount]:null;
+      if(bucket) toastBest(bucket.bestScore, false, (p,s)=>`⭐ ${p} set new ${playerCount}-player Wizard high score! (${s})`);
+    }
+    if(data.game==='818'&&r['818'])
+      toastBest(r['818'].bestScore, false, (p,s)=>`⭐ ${p} set new Highest 818 Score! (${s})`);
+    if(data.game==='Flip 7 Vengeance'&&r['Flip 7 Vengeance'])
+      toastBest(r['Flip 7 Vengeance'].bestScore, false, (p,s)=>`⭐ ${p} set new Highest Flip 7 Score! (${s})`);
+    if(data.game==='Rook'&&r['Rook'])
+      toastBest(r['Rook'].bestScore, false, (p,s)=>`⭐ ${p} set new Highest Rook Score! (${s})`);
     return msgs;
   }
 
@@ -14386,9 +14412,7 @@ ${isDealer
       const cfg = configs[h.game], totals = {};
       const roster = getRecordedPlayers(h);
       roster.forEach(p=>totals[p]=0);
-      h.rounds.slice(0,roundCount).forEach(r=>{
-        Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; });
-      });
+      h.rounds.slice(0,roundCount).forEach(r=>addRoundToStandings(totals, r));
       const sorted = sortPlayersByTotal(roster.filter(p=>totals[p]!==undefined), totals, cfg);
       return sorted[0] || null;
     };
@@ -14445,7 +14469,7 @@ ${isDealer
         const halfwaySorted = (() => {
           const totals = {};
           sorted.forEach(p=>totals[p]=0);
-          h.rounds.slice(0,half).forEach(r=>Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; }));
+          h.rounds.slice(0,half).forEach(r=>addRoundToStandings(totals, r));
           return sortPlayersByTotal(sorted, totals, cfg).map(p=>({p,score:totals[p]}));
         })();
         const halfwayLastScore = halfwaySorted.length ? halfwaySorted[halfwaySorted.length-1].score : null;
