@@ -2430,7 +2430,58 @@ button.dealer-name-indicator {
       z-index: 1;
       gap: 0.7rem;
     }
-    .montage-race-head { text-align: center; flex-shrink: 0; }
+    .montage-race-head {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem 1.15rem;
+      flex-shrink: 0;
+      min-height: clamp(4.6rem, 14vw, 7.4rem);
+    }
+    .montage-race-focus {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      min-width: 0;
+      flex: 1 1 58%;
+      max-width: 64%;
+      padding: 0.45rem 1.35rem 0.5rem 0.9rem;
+      border-radius: 999px;
+      border: 3px solid rgba(255,255,255,0.88);
+      background: #000;
+      color: #fff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    }
+    .montage-race-focus.is-all { border-color: rgba(255,255,255,0.55); }
+    .montage-race-focus-swatch {
+      width: clamp(1.15rem, 2.8vw, 1.7rem);
+      height: clamp(1.15rem, 2.8vw, 1.7rem);
+      border-radius: 999px;
+      background: var(--race-color, #fff);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.55);
+      flex-shrink: 0;
+    }
+    .montage-race-focus.is-all .montage-race-focus-swatch { display: none; }
+    .montage-race-focus-name {
+      min-width: 0;
+      flex: 1;
+      color: #fff !important;
+      -webkit-text-fill-color: #fff;
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(2.5rem, 9.2vw, 6.1rem);
+      letter-spacing: 0.01em;
+      line-height: 0.88;
+      text-transform: uppercase;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .montage-race-head-copy {
+      flex: 1 1 38%;
+      min-width: 0;
+      text-align: left;
+    }
     .montage-label {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: clamp(0.68rem, 1.35vw, 0.88rem);
@@ -2438,20 +2489,20 @@ button.dealer-name-indicator {
       letter-spacing: 0.24em;
       text-transform: uppercase;
       color: #34d399;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.2rem;
     }
     .montage-race-title {
       font-family: 'Bree Serif', Georgia, serif;
       color: #fff;
-      font-size: clamp(1.45rem, 4.2vw, 2.1rem);
+      font-size: clamp(1.15rem, 3.2vw, 1.85rem);
       line-height: 1.1;
       margin: 0;
     }
     .montage-race-hint {
-      margin: 0.35rem auto 0;
-      max-width: 42ch;
+      margin: 0.28rem 0 0;
+      max-width: 36ch;
       color: rgba(255,255,255,0.62);
-      font-size: clamp(0.78rem, 1.6vw, 0.92rem);
+      font-size: clamp(0.74rem, 1.5vw, 0.88rem);
       font-weight: 600;
     }
     .montage-race-chart-wrap {
@@ -6870,9 +6921,15 @@ button.dealer-name-indicator .dealer-player-label {
     <div class="montage-bg"></div>
     <div class="montage-race-shell">
       <div class="montage-race-head">
-        <div class="montage-label">How it played out</div>
-        <h2 id="montage-race-title" class="montage-race-title">Place by round</h2>
-        <p class="montage-race-hint">Names cycle every 3 seconds. Tap one to hold it.</p>
+        <div id="montage-race-focus" class="montage-race-focus is-all" aria-live="polite">
+          <span class="montage-race-focus-swatch" aria-hidden="true"></span>
+          <span id="montage-race-focus-name" class="montage-race-focus-name">Everyone</span>
+        </div>
+        <div class="montage-race-head-copy">
+          <div class="montage-label">How it played out</div>
+          <h2 id="montage-race-title" class="montage-race-title">Place by round</h2>
+          <p class="montage-race-hint">Names cycle every 3 seconds. Tap one to hold it.</p>
+        </div>
       </div>
       <div class="montage-race-chart-wrap">
         <canvas id="montage-race-chart"></canvas>
@@ -11334,6 +11391,17 @@ ${isDealer
     applyRaceFocus();
   }
 
+  function renderRaceFocus(){
+    const pill=document.getElementById('montage-race-focus');
+    const nameEl=document.getElementById('montage-race-focus-name');
+    if(!pill || !nameEl) return;
+    const hot=raceHotName();
+    nameEl.textContent=hot||'Everyone';
+    const color=hot && _racePath ? _racePath.colors[hot] : '#fff';
+    pill.style.setProperty('--race-color', color);
+    pill.classList.toggle('is-all', !hot);
+  }
+
   function renderRaceLegend(path){
     const legend=document.getElementById('montage-race-legend');
     if(!legend) return;
@@ -11401,9 +11469,9 @@ ${isDealer
             data:path.ranks[name],
             borderColor:path.colors[name],
             backgroundColor:path.colors[name],
-            borderWidth:3,
-            pointRadius:3,
-            pointHoverRadius:6,
+            borderWidth:5,
+            pointRadius:4,
+            pointHoverRadius:7,
             tension:0.12,
             spanGaps:true,
             order:1
@@ -11465,8 +11533,8 @@ ${isDealer
         const alpha=anyHot?(hot?1:0.22):0.78;
         dataset.borderColor=hexToRgba(_racePath.colors[dataset.label], alpha);
         dataset.pointBackgroundColor=_racePath.colors[dataset.label];
-        dataset.borderWidth=hot?5:3;
-        dataset.pointRadius=hot?5:3;
+        dataset.borderWidth=hot?8:5;
+        dataset.pointRadius=hot?7:4;
         dataset.order=hot?0:1;
       });
     }
@@ -11497,6 +11565,7 @@ ${isDealer
       _raceChart.update('none');
     }
     renderRaceLegend(_racePath);
+    renderRaceFocus();
   }
 
   function showStatMontage(gameData, onDone){
@@ -11509,6 +11578,7 @@ ${isDealer
     const title=document.getElementById('montage-race-title');
     if(title) title.textContent=`${matchPathGameLabel(gameData.game)} · place by round`;
     renderRaceLegend(path);
+    renderRaceFocus();
     _raceNotes=matchBookNotes(gameData, path);
     _raceNoteIndex=0;
     renderRaceNotes();
