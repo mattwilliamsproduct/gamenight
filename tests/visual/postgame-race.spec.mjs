@@ -102,3 +102,13 @@ test('path replay can show eight players and still lets you pin one path',async(
   await expect(page.locator('.montage-race-key',{hasText:'Brick'})).toHaveClass(/is-hot/);
   await expect(page.locator('#montage-race-focus-name')).toHaveText('Brick');
 });
+
+test('path replay hides the record line when nobody set a book note',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='laptop-chromium','Run the path replay check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=postgame-race-8-plain&surface=race',{waitUntil:'networkidle'});
+  await ready(page);
+  await expect(page.locator('#stat-montage')).toBeVisible();
+  await expect(page.locator('.montage-race-key')).toHaveCount(8);
+  await expect(page.locator('#montage-race-records')).toBeHidden();
+  await expect(page.locator('#montage-race-focus-name')).toHaveText('Everyone');
+});

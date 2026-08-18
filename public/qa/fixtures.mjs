@@ -482,6 +482,12 @@ export const QA_SCENARIOS = {
     description:'Eight-player Five Crowns path replay for color, type size, and auto-highlight cycling.',
     defaultSurface:'race',
     data:{allPlayers:[...NAMES],players:[...race8Players],history:race8History,playerProfiles:profiles(),currentGame:null}
+  },
+  'postgame-race-8-plain':{
+    label:'Post-Game · Path Replay · 8 Players · No Records',
+    description:'Same eight-player Five Crowns path replay with no personal-best or worst notes under the chart.',
+    defaultSurface:'race',
+    data:{allPlayers:[...NAMES],players:[...race8Players],history:[race8Match],playerProfiles:profiles(),currentGame:null}
   }
 };
 

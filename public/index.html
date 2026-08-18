@@ -15350,7 +15350,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=path-replay-cycle-20260818');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=path-replay-plain-20260818');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);
