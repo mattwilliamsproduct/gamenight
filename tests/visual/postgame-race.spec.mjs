@@ -75,6 +75,18 @@ test('path replay can show eight players and still lets you pin one path',async(
   await expect(page.locator('.montage-race-key')).toHaveCount(8);
   await expect(page.locator('.montage-race-key.is-hot')).toHaveCount(0);
   await expect(page.locator('#montage-race-focus-name')).toHaveText('Everyone');
+  const headerLayout=await page.evaluate(()=>{
+    const montage=document.getElementById('stat-montage').getBoundingClientRect();
+    const title=document.getElementById('montage-race-title').getBoundingClientRect();
+    const pill=document.getElementById('montage-race-focus').getBoundingClientRect();
+    const name=document.getElementById('montage-race-focus-name').getBoundingClientRect();
+    return {
+      titleOffset:Math.abs((title.left+title.width/2)-(montage.left+montage.width/2)),
+      extraPill:pill.width-name.width
+    };
+  });
+  expect(headerLayout.titleOffset).toBeLessThan(24);
+  expect(headerLayout.extraPill).toBeLessThan(90);
   await expect(page.locator('.montage-race-key',{hasText:'Megan'}).locator('.montage-race-name')).toHaveCSS('color','rgb(255, 255, 255)');
   await expect(page.locator('.montage-race-key',{hasText:'Megan'})).toHaveClass(/is-hot/,{timeout:5000});
   await expect(page.locator('#montage-race-focus-name')).toHaveText('Megan');
