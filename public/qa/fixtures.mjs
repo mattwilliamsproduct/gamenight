@@ -231,6 +231,40 @@ function heatRoundsFromScores(players,scoreRows){
     scores:Object.fromEntries(players.map((player,index)=>[player,Number(scoreRow[index])||0]))
   }));
 }
+const racePlayers=['Megan','Matt','Cat','Mike'];
+const raceRounds=heatRoundsFromScores(racePlayers,[
+  [20,0,5,8],
+  [0,20,5,8],
+  [0,20,15,0],
+  [0,5,5,20],
+  [0,5,5,5]
+]);
+const raceTotals=totalRounds(racePlayers,raceRounds);
+const raceMatch={
+  id:909200,
+  game:'Five Crowns',
+  date:'8/18/2026',
+  totals:raceTotals,
+  winners:winnersFor('Five Crowns',raceTotals),
+  rounds:raceRounds,
+  originalRoster:[...racePlayers],
+  currentRound:raceRounds.length+1,
+  hailMaryUsed:[],
+  retired:[]
+};
+const racePriorMegan={
+  id:909100,
+  game:'Five Crowns',
+  date:'8/10/2026',
+  totals:{Megan:40,Matt:22,Cat:28,Mike:31},
+  winners:['Matt'],
+  rounds:heatRoundsFromScores(racePlayers,[[10,4,8,7],[15,8,10,12],[15,10,10,12]]),
+  originalRoster:[...racePlayers],
+  currentRound:4,
+  hailMaryUsed:[],
+  retired:[]
+};
+const raceHistory=[raceMatch,racePriorMegan];
 function heatMatch(idOffset,date,scoreRows){
   const rounds=heatRoundsFromScores(heatPacePlayers,scoreRows);
   const totals=totalRounds(heatPacePlayers,rounds);
@@ -299,7 +333,8 @@ export const QA_SURFACES = [
   {id:'settings',label:'Settings'},
   {id:'profiles',label:'Profiles'},
   {id:'whammy',label:'WHAMMY'},
-  {id:'nolie',label:'Nolie'}
+  {id:'nolie',label:'Nolie'},
+  {id:'race',label:'Path replay'}
 ];
 
 export const QA_SCENARIOS = {
@@ -396,6 +431,12 @@ export const QA_SCENARIOS = {
     description:'Twelve profiles with enough history to fill filters, stats, and badges.',
     defaultSurface:'profiles',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
+  },
+  'postgame-race':{
+    label:'Post-Game · Path Replay',
+    description:'Finished Five Crowns with a first-to-last collapse, plus a prior game so Megan’s new personal best can show under the chart.',
+    defaultSurface:'race',
+    data:{allPlayers:[...NAMES],players:[...racePlayers],history:raceHistory,playerProfiles:profiles(),currentGame:null}
   }
 };
 
