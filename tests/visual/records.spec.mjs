@@ -18,6 +18,7 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   await expect(fame).toContainText('818: Exact Bids');
   await expect(fame).toContainText('Beat the Heat: Coolest Score');
   await expect(fame).toContainText('Beat the Heat: Ice Rounds');
+  await expect(fame).not.toContainText('Closest To 66');
   await expect(fame).toContainText('Comeback Extra: Most In One Game');
   await expect(shame).toContainText('818: Worst Score');
   await expect(shame).toContainText('818: Most Missed Bids');
@@ -27,7 +28,8 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   const records=page.locator('#records-view');
   await expect(records).toContainText('818');
   await expect(records).toContainText('Most Exact Bids In One Game');
-  await expect(records).toContainText('Closest Finish To 66');
+  await expect(records).not.toContainText('Closest Finish To 66');
+  await expect(records).not.toContainText('Closest To 66');
   await expect(records).toContainText('The 818 Brick');
   await expect(records).toContainText('The Meltdown');
 });

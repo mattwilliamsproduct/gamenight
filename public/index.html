@@ -14347,7 +14347,7 @@ ${isDealer
         bestExactRateSingleGame:null,mostMissedSingleGame:null,biggestMiss:null,mostTricksRound:null,closestMargin:null
       },
       "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,mostZeroRounds:null,closestMargin:null},
-      "Beat the Heat": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,cleanestGame:null,closestMargin:null,mostIceRounds:null,closestFinish:null,mostLopsided:null,longestMatch:null},
+      "Beat the Heat": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,cleanestGame:null,closestMargin:null,mostIceRounds:null,mostLopsided:null,longestMatch:null},
       "Rook": {bestGame:null,worstGame:null,mostSuccessfulBids:null,highestBidMade:null,biggestSet:null,closestMargin:null}
     };
     const allTime = {
@@ -14504,19 +14504,6 @@ ${isDealer
           if(scoringCount){
             update(gameRecords,'longestMatch',entry(sorted[0],scoringCount,h,{label:`${scoringCount} rounds`}),betterHigh);
           }
-          const line=cfg.endScore||66;
-          winners.forEach(w=>{
-            const heat=Number(h.totals[w])||0;
-            const next=entry(w,heat,h,{label:`${heat} heat · line ${line}`});
-            const betterClosest=(candidate,cur)=>{
-              if(!cur) return true;
-              const nextDist=Math.abs(candidate.value-line);
-              const curDist=Math.abs(cur.value-line);
-              if(nextDist!==curDist) return nextDist<curDist;
-              return candidate.value<cur.value;
-            };
-            update(gameRecords,'closestFinish',next,betterClosest);
-          });
         }
       }
 
@@ -14802,7 +14789,6 @@ ${isDealer
         recordCard('Hottest Single Round',data.games["Beat the Heat"].worstRound,false),
         recordCard('Most Ice-Cold Rounds',data.games["Beat the Heat"].mostIceRounds,true),
         recordCard('Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
-        recordCard('Closest Finish To 66',data.games["Beat the Heat"].closestFinish,true),
         recordCard('Closest Margin Of Victory',data.games["Beat the Heat"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Beat the Heat"].mostLopsided,false),
         recordCard('Longest Match',data.games["Beat the Heat"].longestMatch,true)
@@ -14921,7 +14907,6 @@ ${isDealer
       fmt('Beat the Heat: Coolest Score',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
       fmt('Beat the Heat: Ice Rounds',r['Beat the Heat'].mostZeros,r['Beat the Heat'].mostZerosPlayer,true),
       fmt('Beat the Heat: Cleanest Game',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
-      fmt('Beat the Heat: Closest To 66',deepRecords.games['Beat the Heat'].closestFinish?.value??Infinity,deepRecords.games['Beat the Heat'].closestFinish?.player||'-',true),
       fmt('Comeback Extra: Most In One Game',r.Overall.mostComebackExtras,r.Overall.mostComebackExtrasPlayer,true),
       fmt('Comeback Extra: Biggest Help',r.Overall.biggestComebackExtra,r.Overall.biggestComebackExtraPlayer,true),
       fmt('Rook: Best Score',r.Rook.bestScore,r.Rook.bestPlayer,true),
