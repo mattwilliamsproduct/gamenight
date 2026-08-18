@@ -231,6 +231,79 @@ function heatRoundsFromScores(players,scoreRows){
     scores:Object.fromEntries(players.map((player,index)=>[player,Number(scoreRow[index])||0]))
   }));
 }
+const racePlayers=['Megan','Matt','Cat','Mike'];
+const raceRounds=heatRoundsFromScores(racePlayers,[
+  [20,0,5,8],
+  [0,20,5,8],
+  [0,20,15,0],
+  [0,5,5,20],
+  [0,5,5,5]
+]);
+const raceTotals=totalRounds(racePlayers,raceRounds);
+const raceMatch={
+  id:909200,
+  game:'Five Crowns',
+  date:'8/18/2026',
+  totals:raceTotals,
+  winners:winnersFor('Five Crowns',raceTotals),
+  rounds:raceRounds,
+  originalRoster:[...racePlayers],
+  currentRound:raceRounds.length+1,
+  hailMaryUsed:[],
+  retired:[]
+};
+const racePriorMegan={
+  id:909100,
+  game:'Five Crowns',
+  date:'8/10/2026',
+  totals:{Megan:40,Matt:22,Cat:28,Mike:31},
+  winners:['Matt'],
+  rounds:heatRoundsFromScores(racePlayers,[[10,4,8,7],[15,8,10,12],[15,10,10,12]]),
+  originalRoster:[...racePlayers],
+  currentRound:4,
+  hailMaryUsed:[],
+  retired:[]
+};
+const raceHistory=[raceMatch,racePriorMegan];
+const race8Players=NAMES.slice(0,8);
+const race8Rounds=heatRoundsFromScores(race8Players,[
+  [0,12,8,15,6,20,4,10],
+  [18,0,10,8,12,6,15,5],
+  [6,15,0,12,8,10,20,4],
+  [10,8,14,0,20,5,6,12],
+  [4,20,8,10,0,12,8,15],
+  [8,6,12,5,15,0,10,20]
+]);
+const race8Totals=totalRounds(race8Players,race8Rounds);
+const race8Match={
+  id:909300,
+  game:'Five Crowns',
+  date:'8/18/2026',
+  totals:race8Totals,
+  winners:winnersFor('Five Crowns',race8Totals),
+  rounds:race8Rounds,
+  originalRoster:[...race8Players],
+  currentRound:race8Rounds.length+1,
+  hailMaryUsed:[],
+  retired:[]
+};
+const race8Prior={
+  id:909250,
+  game:'Five Crowns',
+  date:'8/11/2026',
+  totals:Object.fromEntries(race8Players.map((player,index)=>[player,30+index*4])),
+  winners:['Megan'],
+  rounds:heatRoundsFromScores(race8Players,[
+    [8,10,12,14,16,18,20,22],
+    [10,12,14,16,18,20,22,24],
+    [12,14,16,18,20,22,24,26]
+  ]),
+  originalRoster:[...race8Players],
+  currentRound:4,
+  hailMaryUsed:[],
+  retired:[]
+};
+const race8History=[race8Match,race8Prior];
 function heatMatch(idOffset,date,scoreRows){
   const rounds=heatRoundsFromScores(heatPacePlayers,scoreRows);
   const totals=totalRounds(heatPacePlayers,rounds);
@@ -299,7 +372,8 @@ export const QA_SURFACES = [
   {id:'settings',label:'Settings'},
   {id:'profiles',label:'Profiles'},
   {id:'whammy',label:'WHAMMY'},
-  {id:'nolie',label:'Nolie'}
+  {id:'nolie',label:'Nolie'},
+  {id:'race',label:'Path replay'}
 ];
 
 export const QA_SCENARIOS = {
@@ -396,6 +470,24 @@ export const QA_SCENARIOS = {
     description:'Twelve profiles with enough history to fill filters, stats, and badges.',
     defaultSurface:'profiles',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
+  },
+  'postgame-race':{
+    label:'Post-Game · Path Replay',
+    description:'Finished Five Crowns with a first-to-last collapse, plus a prior game so Megan’s new personal best can show under the chart.',
+    defaultSurface:'race',
+    data:{allPlayers:[...NAMES],players:[...racePlayers],history:raceHistory,playerProfiles:profiles(),currentGame:null}
+  },
+  'postgame-race-8':{
+    label:'Post-Game · Path Replay · 8 Players',
+    description:'Eight-player Five Crowns path replay for color, type size, and auto-highlight cycling.',
+    defaultSurface:'race',
+    data:{allPlayers:[...NAMES],players:[...race8Players],history:race8History,playerProfiles:profiles(),currentGame:null}
+  },
+  'postgame-race-8-plain':{
+    label:'Post-Game · Path Replay · 8 Players · No Records',
+    description:'Same eight-player Five Crowns path replay with no personal-best or worst notes under the chart.',
+    defaultSurface:'race',
+    data:{allPlayers:[...NAMES],players:[...race8Players],history:[race8Match],playerProfiles:profiles(),currentGame:null}
   }
 };
 

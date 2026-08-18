@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=pace-pairs-20260817';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=path-replay-plain-20260818';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
@@ -87,6 +87,7 @@ export async function bootQaGallery(api){
     api.hydrate(scenario.data);
     api.showSurface(surface,scenario);
     if(surface==='whammy'||surface==='nolie')await new Promise(resolve=>setTimeout(resolve,550));
+    if(surface==='race')await new Promise(resolve=>setTimeout(resolve,800));
     await waitForStableImages();
     api.setReady();
   };
