@@ -2468,35 +2468,56 @@ button.dealer-name-indicator {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 0.4rem;
+      gap: 0.65rem;
       flex-shrink: 0;
-      max-height: 22vh;
+      max-height: 32vh;
       overflow-y: auto;
+      padding: 0.2rem 0.2rem 0.4rem;
     }
-    .montage-race-key {
+    .montage-race-key,
+    #stat-montage .montage-race-key {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.28rem 0.62rem 0.28rem 0.38rem;
+      gap: 0.65rem;
+      padding: 0.88rem 1.4rem 0.88rem 1rem;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      font-weight: 800;
-      font-size: 0.78rem;
+      border: 2px solid rgba(255,255,255,0.42);
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff !important;
+      -webkit-text-fill-color: #fff;
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(1.35rem, 3.6vw, 2rem);
+      letter-spacing: 0.01em;
+      line-height: 1;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.85);
     }
-    .montage-race-key.is-dim { opacity: 0.38; }
-    .montage-race-key.is-hot { opacity: 1; box-shadow: 0 0 0 1px rgba(255,255,255,0.28); }
+    .montage-race-key .montage-race-name,
+    #stat-montage .montage-race-key .montage-race-name {
+      color: #fff !important;
+      -webkit-text-fill-color: #fff;
+    }
+    .montage-race-key.is-dim { opacity: 0.58; }
+    .montage-race-key.is-hot {
+      opacity: 1;
+      background: rgba(255,255,255,0.2);
+      border-color: #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.28);
+    }
     .montage-race-swatch {
-      width: 0.7rem; height: 0.7rem; border-radius: 999px; background: currentColor; flex-shrink: 0;
+      width: 1.2rem;
+      height: 1.2rem;
+      border-radius: 999px;
+      background: var(--race-color, #7CFFB2);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.55);
+      flex-shrink: 0;
     }
     .montage-race-records {
       flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      width: min(92vw, 640px);
+      width: min(92vw, 720px);
       margin: 0 auto;
+      min-height: 2.7rem;
     }
     .montage-race-note {
       text-align: center;
@@ -2504,9 +2525,9 @@ button.dealer-name-indicator {
       background: rgba(16,185,129,0.16);
       border: 1px solid rgba(52,211,153,0.35);
       border-radius: 0.85rem;
-      padding: 0.55rem 0.8rem;
+      padding: 0.55rem 0.9rem;
       font-weight: 800;
-      font-size: clamp(0.82rem, 1.7vw, 0.98rem);
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
     }
     .montage-footer {
       flex-shrink: 0;
@@ -6851,7 +6872,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="montage-race-head">
         <div class="montage-label">How it played out</div>
         <h2 id="montage-race-title" class="montage-race-title">Place by round</h2>
-        <p class="montage-race-hint">Winner and last stay lit. Tap a name to follow their path.</p>
+        <p class="montage-race-hint">Names cycle every 3 seconds. Tap one to hold it.</p>
       </div>
       <div class="montage-race-chart-wrap">
         <canvas id="montage-race-chart"></canvas>
@@ -11089,11 +11110,18 @@ ${isDealer
 
   // ── Post-game: path replay ──
   const MATCH_PATH_MIN_ROUNDS = 3;
+  const RACE_CYCLE_MS = 3000;
+  const RACE_LINE_COLORS = ['#7CFFB2','#FFD166','#5CE1FF','#FF7AB6','#FF8A4C','#C5A3FF','#F4F1A4','#8AB4FF'];
   let _montageOnDone = null;
   let _postgameMontageData = null;
   let _raceChart = null;
   let _racePath = null;
-  let _raceFocus = null;
+  let _raceManual = null;
+  let _raceAutoIndex = -1;
+  let _raceNotes = [];
+  let _raceNoteIndex = 0;
+  let _racePlayerTimer = null;
+  let _raceNoteTimer = null;
 
   function sortPlayersByTotal(playersToSort, totals, cfg){
     return [...playersToSort].sort((a,b)=>{
@@ -11112,9 +11140,7 @@ ${isDealer
   }
 
   function raceLineColor(name, index){
-    const assigned=getPlayerColor(name);
-    if(assigned>0) return PROFILE_ACCENT_COLORS[assigned] || PROFILE_ACCENT_COLORS[assigned % PROFILE_ACCENT_COLORS.length] || PROFILE_ACCENT_COLORS[0];
-    return PROFILE_ACCENT_COLORS[(index % (PROFILE_ACCENT_COLORS.length-1))+1];
+    return RACE_LINE_COLORS[index % RACE_LINE_COLORS.length];
   }
 
   function playerPlayedMatch(match, name){
@@ -11244,41 +11270,99 @@ ${isDealer
       .map(note=>note.text);
   }
 
-  function racePlayerIsHot(path, name, focus){
-    if(focus) return focus===name;
-    return path.winners.includes(name) || path.losers.includes(name);
+  function raceHotName(){
+    if(_raceManual) return _raceManual;
+    if(!_racePath || _raceAutoIndex<0) return null;
+    return _racePath.players[_raceAutoIndex] || null;
+  }
+
+  function racePlayerIsHot(path, name){
+    const hot=raceHotName();
+    return !!hot && hot===name;
+  }
+
+  function stopRacePlayerCycle(){
+    if(_racePlayerTimer){ clearInterval(_racePlayerTimer); _racePlayerTimer=null; }
+  }
+
+  function stopRaceNoteCycle(){
+    if(_raceNoteTimer){ clearInterval(_raceNoteTimer); _raceNoteTimer=null; }
+  }
+
+  function stopRaceCycles(){
+    stopRacePlayerCycle();
+    stopRaceNoteCycle();
+  }
+
+  function startRacePlayerCycle(){
+    stopRacePlayerCycle();
+    if(!_racePath || _raceManual) return;
+    _raceAutoIndex=-1;
+    applyRaceFocus();
+    _racePlayerTimer=setInterval(()=>{
+      if(!_racePath || _raceManual) return;
+      _raceAutoIndex=_raceAutoIndex+1;
+      if(_raceAutoIndex>=_racePath.players.length) _raceAutoIndex=-1;
+      applyRaceFocus();
+    }, RACE_CYCLE_MS);
+  }
+
+  function startRaceNoteCycle(){
+    stopRaceNoteCycle();
+    if(_raceNotes.length<=1) return;
+    _raceNoteTimer=setInterval(()=>{
+      if(!_raceNotes.length) return;
+      _raceNoteIndex=(_raceNoteIndex+1)%_raceNotes.length;
+      renderRaceNotes();
+    }, RACE_CYCLE_MS);
+  }
+
+  function startRaceCycles(){
+    startRacePlayerCycle();
+    startRaceNoteCycle();
+  }
+
+  function selectRacePlayer(name){
+    if(!name || !_racePath) return;
+    if(_raceManual===name){
+      _raceManual=null;
+      startRacePlayerCycle();
+      return;
+    }
+    _raceManual=name;
+    stopRacePlayerCycle();
+    applyRaceFocus();
   }
 
   function renderRaceLegend(path){
     const legend=document.getElementById('montage-race-legend');
     if(!legend) return;
+    const anyHot=!!raceHotName();
     legend.innerHTML=path.players.map(name=>{
-      const hot=racePlayerIsHot(path, name, _raceFocus);
+      const hot=racePlayerIsHot(path, name);
       const color=path.colors[name];
-      return `<button type="button" class="montage-race-key ${hot?'is-hot':'is-dim'}" data-race-player="${escapeHtml(name)}" style="color:${color}">
-        <span class="montage-race-swatch"></span>
-        <span class="player-name-label">${escapeHtml(name)}</span>
+      const state=hot?'is-hot':(anyHot?'is-dim':'');
+      return `<button type="button" class="montage-race-key ${state}" data-race-player="${escapeHtml(name)}" aria-pressed="${hot?'true':'false'}" style="--race-color:${color}">
+        <span class="montage-race-swatch" aria-hidden="true"></span>
+        <span class="montage-race-name">${escapeHtml(name)}</span>
       </button>`;
     }).join('');
     legend.querySelectorAll('[data-race-player]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const name=btn.getAttribute('data-race-player');
-        _raceFocus=_raceFocus===name?null:name;
-        applyRaceFocus();
-      });
+      btn.addEventListener('click',()=>selectRacePlayer(btn.getAttribute('data-race-player')));
     });
   }
 
-  function renderRaceNotes(notes){
+  function renderRaceNotes(){
     const box=document.getElementById('montage-race-records');
     if(!box) return;
-    if(!notes.length){
+    if(!_raceNotes.length){
       box.hidden=true;
       box.innerHTML='';
       return;
     }
+    const text=_raceNotes[_raceNoteIndex]||_raceNotes[0];
     box.hidden=false;
-    box.innerHTML=notes.map(text=>`<div class="montage-race-note">${escapeHtml(text)}</div>`).join('');
+    box.innerHTML=`<div class="montage-race-note">${escapeHtml(text)}</div>`;
   }
 
   function destroyRaceChart(){
@@ -11286,8 +11370,16 @@ ${isDealer
       _raceChart.destroy();
       _raceChart=null;
     }
+  }
+
+  function resetRaceSession(){
+    stopRaceCycles();
+    destroyRaceChart();
     _racePath=null;
-    _raceFocus=null;
+    _raceManual=null;
+    _raceAutoIndex=-1;
+    _raceNotes=[];
+    _raceNoteIndex=0;
   }
 
   function drawMatchPlaceChart(path){
@@ -11295,7 +11387,8 @@ ${isDealer
     if(!canvas || !window.Chart) return false;
     destroyRaceChart();
     _racePath=path;
-    _raceFocus=null;
+    _raceManual=null;
+    _raceAutoIndex=-1;
     const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     const ctx=canvas.getContext('2d');
     _raceChart=new Chart(ctx,{
@@ -11303,18 +11396,17 @@ ${isDealer
       data:{
         labels:path.labels,
         datasets:path.players.map(name=>{
-          const hot=racePlayerIsHot(path, name, null);
           return {
             label:name,
             data:path.ranks[name],
             borderColor:path.colors[name],
             backgroundColor:path.colors[name],
-            borderWidth:hot?4:2,
-            pointRadius:hot?4:2,
-            pointHoverRadius:5,
+            borderWidth:3,
+            pointRadius:3,
+            pointHoverRadius:6,
             tension:0.12,
             spanGaps:true,
-            order:hot?0:1
+            order:1
           };
         })
       },
@@ -11360,31 +11452,30 @@ ${isDealer
     });
     const originalOpacity=[];
     path.players.forEach((name,index)=>{
-      originalOpacity[index]=racePlayerIsHot(path, name, null)?1:0.28;
+      originalOpacity[index]=0.72;
     });
     _raceChart.data.datasets.forEach((dataset,index)=>{
       dataset.borderColor=hexToRgba(path.colors[dataset.label], originalOpacity[index]);
     });
     function paintOpacity(){
       if(!_raceChart || !_racePath) return;
+      const anyHot=!!raceHotName();
       _raceChart.data.datasets.forEach(dataset=>{
-        const hot=racePlayerIsHot(_racePath, dataset.label, _raceFocus);
-        dataset.borderColor=hexToRgba(_racePath.colors[dataset.label], hot?1:0.28);
+        const hot=racePlayerIsHot(_racePath, dataset.label);
+        const alpha=anyHot?(hot?1:0.22):0.78;
+        dataset.borderColor=hexToRgba(_racePath.colors[dataset.label], alpha);
         dataset.pointBackgroundColor=_racePath.colors[dataset.label];
-        dataset.borderWidth=hot?4:2;
-        dataset.pointRadius=hot?4:2;
+        dataset.borderWidth=hot?5:3;
+        dataset.pointRadius=hot?5:3;
+        dataset.order=hot?0:1;
       });
     }
     paintOpacity();
     _raceChart.update(reduce?'none':undefined);
     canvas.onclick=evt=>{
       const hits=_raceChart.getElementsAtEventForMode(evt,'nearest',{intersect:false},true);
-      if(!hits.length){ _raceFocus=null; paintOpacity(); _raceChart.update('none'); renderRaceLegend(path); return; }
-      const name=_raceChart.data.datasets[hits[0].datasetIndex].label;
-      _raceFocus=_raceFocus===name?null:name;
-      paintOpacity();
-      _raceChart.update('none');
-      renderRaceLegend(path);
+      if(!hits.length){ selectRacePlayer(_raceManual); return; }
+      selectRacePlayer(_raceChart.data.datasets[hits[0].datasetIndex].label);
     };
     _raceChart._paintOpacity=paintOpacity;
     return true;
@@ -11400,9 +11491,11 @@ ${isDealer
   }
 
   function applyRaceFocus(){
-    if(!_raceChart || !_racePath) return;
-    if(typeof _raceChart._paintOpacity==='function') _raceChart._paintOpacity();
-    _raceChart.update('none');
+    if(!_racePath) return;
+    if(_raceChart && typeof _raceChart._paintOpacity==='function'){
+      _raceChart._paintOpacity();
+      _raceChart.update('none');
+    }
     renderRaceLegend(_racePath);
   }
 
@@ -11410,14 +11503,20 @@ ${isDealer
     const path=buildMatchPlacePath(gameData);
     if(!path){ onDone?.(); return; }
     _montageOnDone=onDone;
+    _racePath=path;
+    _raceManual=null;
+    _raceAutoIndex=-1;
     const title=document.getElementById('montage-race-title');
     if(title) title.textContent=`${matchPathGameLabel(gameData.game)} · place by round`;
     renderRaceLegend(path);
-    renderRaceNotes(matchBookNotes(gameData, path));
+    _raceNotes=matchBookNotes(gameData, path);
+    _raceNoteIndex=0;
+    renderRaceNotes();
     document.getElementById('stat-montage').classList.remove('hidden');
     haptic(25);
     loadOptionalAsset('chart').then(()=>{
       if(!drawMatchPlaceChart(path)) throw new Error('chart missing');
+      startRaceCycles();
     }).catch(error=>{
       console.warn('Path replay unavailable.', error);
       dismissStatMontage();
@@ -11426,7 +11525,7 @@ ${isDealer
 
   function dismissStatMontage(){
     document.getElementById('stat-montage').classList.add('hidden');
-    destroyRaceChart();
+    resetRaceSession();
     const done=_montageOnDone;
     _montageOnDone=null;
     if(done) done();
@@ -15101,7 +15200,7 @@ ${isDealer
       });
       closeActionsMenu();
       document.body.classList.remove('whammy-pulse');
-      destroyRaceChart();
+      resetRaceSession();
       _montageOnDone=null;
       document.getElementById('stat-montage')?.classList.add('hidden');
     };
@@ -15173,7 +15272,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=path-replay-20260818');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=path-replay-cycle-20260818');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);

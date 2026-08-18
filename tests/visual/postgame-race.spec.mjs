@@ -15,10 +15,12 @@ test('path replay shows place-over-time with winner and last lit',async({page},t
   await expect(page.locator('#montage-race-chart')).toBeVisible();
   const keys=page.locator('.montage-race-key');
   await expect(keys).toHaveCount(4);
-  await expect(page.locator('.montage-race-key',{hasText:'Megan'})).toHaveClass(/is-hot/);
-  await expect(page.locator('.montage-race-key',{hasText:'Matt'})).toHaveClass(/is-hot/);
-  await expect(page.locator('.montage-race-key',{hasText:'Cat'})).toHaveClass(/is-dim/);
+  await expect(page.locator('.montage-race-key.is-hot')).toHaveCount(0);
+  await expect(page.locator('.montage-race-key.is-dim')).toHaveCount(0);
   await expect(page.locator('#montage-race-records')).toContainText('Megan set a new Five Crowns best');
+  await expect(page.locator('.montage-race-key',{hasText:'Megan'}).locator('.montage-race-name')).toHaveCSS('color','rgb(255, 255, 255)');
+  const nameSize=await page.locator('.montage-race-key').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  expect(nameSize).toBeGreaterThanOrEqual(20);
 
   const path=await page.evaluate(()=>buildMatchPlacePath(history[0]));
   expect(path.winners).toEqual(['Megan']);
@@ -27,9 +29,17 @@ test('path replay shows place-over-time with winner and last lit',async({page},t
   expect(path.ranks.Matt.at(-1)).toBe(4);
   expect(path.ranks.Matt[0]).toBe(1);
 
+  const firstNote=await page.locator('#montage-race-records').innerText();
+  await expect(page.locator('.montage-race-key',{hasText:'Megan'})).toHaveClass(/is-hot/,{timeout:5000});
+  await expect(page.locator('.montage-race-key.is-hot')).toHaveCount(1);
+  await expect(page.locator('#montage-race-records')).not.toHaveText(firstNote,{timeout:5000});
+
   await page.locator('.montage-race-key',{hasText:'Cat'}).click();
   await expect(page.locator('.montage-race-key',{hasText:'Cat'})).toHaveClass(/is-hot/);
   await expect(page.locator('.montage-race-key',{hasText:'Megan'})).toHaveClass(/is-dim/);
+  await page.waitForTimeout(3500);
+  await expect(page.locator('.montage-race-key',{hasText:'Cat'})).toHaveClass(/is-hot/);
+  await expect(page.locator('.montage-race-key.is-hot')).toHaveCount(1);
 });
 
 test('path replay skips matches with fewer than three scoring rounds',async({page},testInfo)=>{
@@ -51,4 +61,20 @@ test('path replay skips matches with fewer than three scoring rounds',async({pag
     return buildMatchPlacePath(short);
   });
   expect(skipped).toBeNull();
+});
+
+test('path replay can show eight players and still lets you pin one path',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='laptop-chromium','Run the path replay check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=postgame-race-8&surface=race',{waitUntil:'networkidle'});
+  await ready(page);
+  await expect(page.locator('#stat-montage')).toBeVisible();
+  await expect(page.locator('.montage-race-key')).toHaveCount(8);
+  await expect(page.locator('.montage-race-key.is-hot')).toHaveCount(0);
+  await expect(page.locator('.montage-race-key',{hasText:'Megan'}).locator('.montage-race-name')).toHaveCSS('color','rgb(255, 255, 255)');
+  await expect(page.locator('.montage-race-key',{hasText:'Megan'})).toHaveClass(/is-hot/,{timeout:5000});
+  await page.locator('.montage-race-key',{hasText:'Brick'}).click();
+  await expect(page.locator('.montage-race-key',{hasText:'Brick'})).toHaveClass(/is-hot/);
+  await expect(page.locator('.montage-race-key.is-hot')).toHaveCount(1);
+  await page.waitForTimeout(3500);
+  await expect(page.locator('.montage-race-key',{hasText:'Brick'})).toHaveClass(/is-hot/);
 });
