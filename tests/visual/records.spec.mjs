@@ -18,6 +18,7 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   await expect(fame).toContainText('818: Exact Bids');
   await expect(fame).toContainText('Beat the Heat: Coolest Score');
   await expect(fame).toContainText('Beat the Heat: Ice Rounds');
+  await expect(fame).not.toContainText('Closest To 66');
   await expect(fame).toContainText('Comeback Extra: Most In One Game');
   await expect(shame).toContainText('818: Worst Score');
   await expect(shame).toContainText('818: Most Missed Bids');
@@ -27,7 +28,8 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   const records=page.locator('#records-view');
   await expect(records).toContainText('818');
   await expect(records).toContainText('Most Exact Bids In One Game');
-  await expect(records).toContainText('Closest Finish To 66');
+  await expect(records).not.toContainText('Closest Finish To 66');
+  await expect(records).not.toContainText('Closest To 66');
   await expect(records).toContainText('The 818 Brick');
   await expect(records).toContainText('The Meltdown');
 });
@@ -74,4 +76,78 @@ test('818 Hall of Fame uses that game\'s exact-bid scoring',async({page},testInf
   expect(metric.bestRound).toBe(15);
   expect(metric.recordsBest).toBe(40);
   expect(metric.recordsExacts).toBe(3);
+});
+
+test('first 818 game toasts only the new high score, not every player',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='laptop-chromium','Run the records check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  const alerts=await page.evaluate(()=>{
+    history=[];
+    markHistoryChanged();
+    const first={
+      id:909091,
+      game:'818',
+      date:'8/18/2026',
+      totals:{Megan:40,Matt:1},
+      winners:['Megan'],
+      originalRoster:['Megan','Matt'],
+      rounds:[
+        {round:1,bids:{Megan:2,Matt:1},actuals:{Megan:2,Matt:0},scores:{Megan:12,Matt:0}},
+        {round:2,bids:{Megan:3,Matt:1},actuals:{Megan:3,Matt:1},scores:{Megan:13,Matt:11}},
+        {round:3,bids:{Megan:5,Matt:2},actuals:{Megan:5,Matt:0},scores:{Megan:15,Matt:0}}
+      ]
+    };
+    const inaugural=analyzeRecords(first);
+    history=[first];
+    markHistoryChanged();
+    const tied=analyzeRecords({
+      ...first,
+      id:909092,
+      totals:{Megan:30,Matt:40},
+      winners:['Matt']
+    });
+    const beaten=analyzeRecords({
+      ...first,
+      id:909093,
+      totals:{Megan:30,Matt:50},
+      winners:['Matt']
+    });
+    return {inaugural,tied,beaten};
+  });
+  expect(alerts.inaugural).toEqual(['⭐ Megan set new Highest 818 Score! (40)']);
+  expect(alerts.tied).toEqual([]);
+  expect(alerts.beaten).toEqual(['⭐ Matt set new Highest 818 Score! (50)']);
+});
+
+test('halftime Comeback records count extras in the running total',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='laptop-chromium','Run the records check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  const metric=await page.evaluate(()=>{
+    history=[{
+      id:909094,
+      game:'818',
+      date:'8/18/2026',
+      totals:{Megan:50,Matt:45},
+      winners:['Megan'],
+      originalRoster:['Megan','Matt'],
+      rounds:[
+        {round:1,scores:{Megan:20,Matt:10}},
+        {round:2,scores:{Megan:20,Matt:10},comeback:{Matt:25}},
+        {round:3,scores:{Megan:5,Matt:0}},
+        {round:4,scores:{Megan:5,Matt:0}}
+      ]
+    }];
+    markHistoryChanged();
+    const records=calculateAllTimeRecords();
+    return {
+      kid:records.shameAwards.find(award=>award.name==='The Comeback Kid'),
+      biggest:records.allTime.biggestComeback
+    };
+  });
+  expect(metric.kid?.record?.player).toBe('Megan');
+  expect(metric.kid?.record?.value).toBe(1);
+  expect(metric.biggest?.player).toBe('Megan');
+  expect(metric.biggest?.value).toBe(5);
 });
