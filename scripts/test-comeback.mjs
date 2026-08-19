@@ -85,17 +85,18 @@ test('818 12-point gap on the final 8-trick round qualifies', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   assert.equal(result.eligible, true);
-  assert.equal(result.packGap, 12);
+  assert.equal(result.leaderGap, 15);
   assert.ok(result.upcomingOpportunity <= 12);
-  assert.equal(result.bonus, 10);
+  assert.ok(result.bonus > 0);
+  assert.ok(result.bonus <= 10);
 });
 
 test('818 8-point last-round gap stays in ordinary range', () => {
-  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 89 };
+  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 93, Hal: 92 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
-  assert.equal(result.packGap, 8);
+  assert.equal(result.leaderGap, 8);
   assert.equal(result.eligible, false);
-  assert.equal(result.reason, 'pack-gap');
+  assert.equal(result.reason, 'leader-gap');
 });
 
 test('818 23-down mid-game sizes about +6 and a miss gets nothing', () => {
@@ -122,22 +123,22 @@ test('818 23-down mid-game sizes about +6 and a miss gets nothing', () => {
 test('818 18-point hole with a few rounds left needs Comeback; Wizard does not', () => {
   const totals = { Ann: 100, Bea: 98, Cal: 96, Dee: 93, Eve: 91, Fay: 88, Gus: 85, Hal: 75 };
   const eight18 = offer('818', totals, { roundCount: 11, spread: 14, currentRound: 12, player: 'Hal' });
-  assert.equal(eight18.packGap, 18);
+  assert.equal(eight18.leaderGap, 25);
   assert.equal(eight18.eligible, true);
 
   const wizardTotals = { Ann: 200, Bea: 190, Cal: 180, Dee: 170, Eve: 160, Fay: 150, Gus: 140, Hal: 120 };
   const wizard = offer('Wizard', wizardTotals, { roundCount: 3, spread: 50, currentRound: 4, player: 'Hal' });
-  assert.equal(wizard.packGap, 50);
+  assert.equal(wizard.leaderGap, 80);
   assert.equal(wizard.eligible, false);
-  assert.equal(wizard.reason, 'pack-gap');
+  assert.equal(wizard.reason, 'recovery-load');
 });
 
 test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   const totals = { Ann: 200, Bea: 198, Cal: 196, Dee: 194, Eve: 190, Fay: 188, Gus: 180, Hal: 174 };
   const eight18 = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const wizard = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
-  assert.equal(eight18.packGap, 20);
-  assert.equal(wizard.packGap, 20);
+  assert.equal(eight18.leaderGap, 26);
+  assert.equal(wizard.leaderGap, 26);
   assert.equal(eight18.eligible, true);
   assert.equal(wizard.eligible, false);
 });
@@ -145,10 +146,10 @@ test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
 test('Wizard 50-point last-round hole is still ordinary play', () => {
   const totals = { Ann: 250, Bea: 240, Cal: 230, Dee: 220, Eve: 210, Fay: 200, Gus: 190, Hal: 170 };
   const result = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
-  assert.equal(result.packGap, 50);
+  assert.equal(result.leaderGap, 80);
   assert.equal(result.eligible, false);
-  assert.equal(result.reason, 'pack-gap');
-  assert.ok(result.upcomingOpportunity >= 50);
+  assert.equal(result.reason, 'leader-gap');
+  assert.ok(result.upcomingOpportunity >= 80);
 });
 
 test('Wizard extra is capped and a huge make cannot take 1st', () => {
@@ -171,7 +172,6 @@ test('Wizard extra is capped and a huge make cannot take 1st', () => {
     EIGHT.map(player => [player, totals[player] + (scores[player] || 0)])
   ), false);
   assert.ok(rank > 1);
-  assert.ok(rank >= 4);
 });
 
 test('Five Crowns extra subtracts only on a 0', () => {
@@ -201,7 +201,7 @@ test('Flip 7 uses a 2.5-bank hole and only pays a bank', () => {
   const close = CB.getComebackOffer(game({
     name: 'Flip 7 Vengeance',
     players,
-    totals: { ...totals, Hal: 80 },
+    totals: { ...totals, Hal: 100 },
     roundCount: 0,
     spread: 22,
     extraRounds: rounds
@@ -230,17 +230,22 @@ test('Flip 7 uses a 2.5-bank hole and only pays a bank', () => {
   assert.equal(tiny.comeback, undefined);
 });
 
-test('runaway leader with a tight pack does not unlock the pack', () => {
+test('runaway leader unlocks everyone who cannot catch first', () => {
   const totals = { Ann: 200, Bea: 50, Cal: 49, Dee: 48, Eve: 47, Fay: 46, Gus: 45, Hal: 44 };
-  const result = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Hal' });
-  assert.equal(result.eligible, false);
-  assert.equal(result.packGap, 4);
+  const bea = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Bea' });
+  const hal = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Hal' });
+  const ann = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Ann' });
+  assert.equal(ann.eligible, false);
+  assert.equal(ann.reason, 'leading');
+  assert.equal(bea.eligible, true, 'second place should get extra when first has run away');
+  assert.equal(hal.eligible, true);
+  assert.ok(Math.abs(hal.bonus) >= Math.abs(bea.bonus));
 });
 
-test('4-player extra may reach 2nd but never 1st; 8-player extra may reach 4th', () => {
+test('4-player extra may reach 2nd but never 1st; 8-player extra may also reach 2nd', () => {
   const eightTotals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 40, Fay: 30, Gus: 20, Hal: 10 };
   const eight = offer('818', eightTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
-  assert.equal(eight.bestAllowedRank, 4);
+  assert.equal(eight.bestAllowedRank, 2);
 
   const fourTotals = { Ann: 80, Bea: 78, Cal: 40, Dee: 20 };
   const four = offer('818', fourTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Dee' });
@@ -275,7 +280,7 @@ test('4-player extra may reach 2nd but never 1st; 8-player extra may reach 4th',
   assert.ok(first < 80);
 });
 
-test('catching the pack turns Comeback off; falling behind turns it back on', () => {
+test('catching the lead turns Comeback off; falling behind turns it back on', () => {
   const stranded = { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 88, Gus: 70, Hal: 55 };
   const caught = { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 88, Gus: 93, Hal: 55 };
   assert.equal(offer('818', stranded, { roundCount: 10, spread: 14, currentRound: 11, player: 'Gus' }).eligible, true);
@@ -333,7 +338,7 @@ test('Five Crowns QA fixture gives Brick a Comeback extra', () => {
   assert.ok(Math.abs(result.bonus) <= 30);
   const explained = CB.explainComebackOffer(result);
   assert.match(explained.summary, /7th of 8/);
-  assert.match(explained.summary, /110 behind the pack/);
+  assert.match(explained.summary, /behind the lead/);
   assert.ok(explained.bullets.some(bullet => /Cannot take 1st/.test(bullet)));
   assert.equal(result.slices, undefined);
 });
@@ -369,7 +374,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
   assert.equal(eight18.supported, true);
   assert.match(eight18.lead, /818/);
   assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
-  assert.ok(eight18.how.some(line => /bottom half/.test(line)));
+  assert.ok(eight18.how.some(line => /First place never/.test(line)));
   assert.ok(eight18.how.some(line => /made bid/.test(line)));
   assert.ok(eight18.extra.some(line => /automatic/.test(line)));
 
@@ -379,6 +384,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
   const crowns = CB.explainComebackRules('Five Crowns');
   assert.ok(crowns.how.some(line => /4 hands/.test(line)));
   assert.ok(crowns.how.some(line => /Low score wins/.test(line)));
+  assert.ok(crowns.how.some(line => /third place/.test(line)));
   assert.ok(crowns.how.some(line => /go out with 0/.test(line)));
 
   const flip7 = CB.explainComebackRules('Flip 7 Vengeance');
@@ -399,6 +405,7 @@ test('Comeback table summary names who has extra and who is still in it', () => 
   assert.ok(summary.live.ready.includes('Brick'));
   assert.equal(summary.live.used, undefined);
   assert.match(summary.live.roundLine, /scored/);
+  assert.equal(summary.live.leaderPlayer, 'Matt');
   assert.equal(summary.live.packPlayer, 'Megan');
 });
 
@@ -485,4 +492,35 @@ test('Comeback chip copy stays short on the scorecard and full in the formatter'
   assert.equal(CB.formatComebackChipShort(-30), '−30');
   assert.equal(CB.formatComebackChipShort(-5), '−5');
   assert.equal(CB.formatComebackChipShort(20), '+20');
+});
+
+test('Five Crowns last-hand runaway pair gives 3rd through last a scaled extra', () => {
+  const players = ['Matt', 'Cat', 'Megan', 'Michelle', 'Mike', 'Vikki', 'Linda', 'Duke'];
+  const totals = { Matt: 31, Cat: 34, Megan: 92, Michelle: 94, Mike: 94, Vikki: 159, Linda: 172, Duke: 182 };
+  const rounds = Array.from({ length: 10 }, (_, index) => ({
+    round: index + 1,
+    scores: Object.fromEntries(players.map(player => [player, 0]))
+  }));
+  const g = game({
+    name: 'Five Crowns',
+    players,
+    totals,
+    roundCount: 0,
+    extraRounds: rounds,
+    currentRound: 11
+  });
+  const offers = Object.fromEntries(players.map(player => [player, CB.getComebackOffer(g, player, players)]));
+  assert.equal(offers.Matt.eligible, false);
+  assert.equal(offers.Matt.reason, 'leading');
+  assert.equal(offers.Cat.eligible, false, 'Cat is only 3 behind Matt, so she is still in it');
+  assert.equal(offers.Megan.eligible, true, 'third place is out of reach of first on the last hand');
+  assert.equal(offers.Michelle.eligible, true);
+  assert.equal(offers.Mike.eligible, true);
+  assert.equal(offers.Vikki.eligible, true);
+  assert.equal(offers.Linda.eligible, true);
+  assert.equal(offers.Duke.eligible, true);
+  assert.ok(Math.abs(offers.Megan.bonus) < Math.abs(offers.Duke.bonus), `Megan ${offers.Megan.bonus} should be smaller than Duke ${offers.Duke.bonus}`);
+  assert.ok(Math.abs(offers.Megan.bonus) >= 5);
+  assert.ok(Math.abs(offers.Duke.bonus) <= 30);
+  assert.ok(Math.abs(offers.Duke.bonus) >= 20);
 });
