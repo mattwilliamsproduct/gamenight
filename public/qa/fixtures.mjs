@@ -362,6 +362,22 @@ const lateCrownsGame=makeCurrentGame('Five Crowns',lateCrownsPlayers,heatRoundsF
   [12,10,8,15,14],
   [15,4,8,18,14]
 ]));
+const lateCrowns8Players=['Matt','Cat','Michelle','Mike','Megan','Linda','Vikki','Duke'];
+const lateCrowns8Rounds=heatRoundsFromScores(lateCrowns8Players,[
+  [0,0,8,12,10,18,15,20],
+  [0,4,10,8,12,16,18,22],
+  [8,0,12,10,8,14,16,18],
+  [0,8,10,6,12,20,14,24],
+  [5,0,8,10,6,18,12,20],
+  [0,6,12,8,10,16,18,22],
+  [8,0,10,12,8,20,14,18],
+  [0,8,6,10,12,16,20,24],
+  [10,0,8,12,6,18,14,20],
+  [0,8,10,6,8,16,18,24]
+]);
+lateCrowns8Rounds[8].comeback={Duke:-15};
+lateCrowns8Rounds[9].comeback={Duke:-15};
+const lateCrowns8Game=makeCurrentGame('Five Crowns',lateCrowns8Players,lateCrowns8Rounds);
 
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
@@ -418,6 +434,12 @@ export const QA_SCENARIOS = {
     description:'Five players through Hand of 13, with three-digit totals and Michelle on the card for name-fit and centering checks.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...lateCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrownsGame}
+  },
+  'five-crowns-late-8':{
+    label:'Five Crowns · Late · 8 Players',
+    description:'Eight players on Hand of 13 with View Pace on, so Best/Avg/Worst sit beside the latest five rounds.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...lateCrowns8Players],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrowns8Game}
   },
   'five-crowns-comeback':{
     label:'Five Crowns · Comeback',

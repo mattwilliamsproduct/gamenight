@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=path-replay-plain-20260818';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=pace-best-avg-worst-20260819';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
