@@ -13,7 +13,7 @@ test('Comeback chips explain the extra and do not offer a refuse button', async 
   await expect(chips.first()).toHaveAttribute('aria-label', /Comeback/);
   await chips.first().click();
   await expect(page.locator('#comeback-explain-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#comeback-explain-lead')).toContainText('behind the pack');
+  await expect(page.locator('#comeback-explain-lead')).toContainText('behind the lead');
   await expect(page.locator('#comeback-explain-list')).toContainText('Cannot take 1st');
   await expect(page.getByRole('button', {name: /no thanks/i})).toHaveCount(0);
   await page.locator('#comeback-explain-modal button').first().click();
@@ -29,7 +29,7 @@ test('Actions menu explains how Comeback works in this game', async ({page}, tes
   await expect(page.locator('#comeback-rules-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#comeback-rules-title')).toHaveText('How Comeback works in Five Crowns');
   const body = page.locator('#comeback-rules-content');
-  await expect(body).toContainText('bottom half');
+  await expect(body).toContainText('First place never');
   await expect(body).toContainText('4 hands');
   await expect(body).toContainText('Low score wins');
   await expect(body).toContainText('On this table');

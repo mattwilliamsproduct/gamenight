@@ -443,7 +443,7 @@ export const QA_SCENARIOS = {
   },
   'five-crowns-comeback':{
     label:'Five Crowns · Comeback',
-    description:'Eight players on Hand of 11, with Brick and Linda stranded in the bottom and Comeback extras on.',
+    description:'Eight players on Hand of 11, with Brick and Linda out of reach of first and Comeback extras on.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
   },

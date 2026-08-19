@@ -12,7 +12,7 @@ The score-entry checks are specifically meant to catch clipped player rows, keyp
 
 Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
 
-- both bottom-half blowout players get chips
+- both blowout players who cannot catch first get chips
 - extras sit inside the round-score box, not floating under it
 - Best/Worst use the same Bree Serif number font as round scores
 - history scorecards include extras so rows still add up

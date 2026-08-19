@@ -8908,13 +8908,9 @@ button.dealer-name-indicator .dealer-player-label {
     } else {
       lines.push(`${escapeHtml(live.roundLine)}. Opens after ${live.minRounds} ${escapeHtml(live.unit)}.`);
     }
-    if(live.playerCount>=4){
-      const lastRank=live.playerCount;
-      lines.push(`Bottom half is ${ordinalLive(live.packRank)} through ${ordinalLive(lastRank)}.`);
-    }
-    if(live.packPlayer){
-      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind that, with too few ${escapeHtml(live.unit)} left to catch up the normal way.`: '';
-      lines.push(`Middle of the table is ${ordinalLive(live.packRank)}: ${escapeHtml(live.packPlayer)} at ${live.packScore}.${catchBit}`);
+    if(live.leaderPlayer){
+      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind first, with too few ${escapeHtml(live.unit)} left to catch them the normal way.`: '';
+      lines.push(`First place is ${escapeHtml(live.leaderPlayer)} at ${live.leaderScore}.${catchBit}`);
     }
     if(live.ready.length){
       const readyBits=(live.statuses||[]).filter(entry=>entry.eligible).map(entry=>{
@@ -8938,8 +8934,9 @@ button.dealer-name-indicator .dealer-player-label {
       });
       groups.forEach(group=>{
         const names=group.entries.map(entry=>{
-          const showGap=Number.isFinite(entry.packGap)&&entry.packGap>0&&(entry.reason==='pack-gap'||entry.reason==='recovery-load');
-          return showGap ? `${entry.player} (${Math.round(entry.packGap)} behind)` : entry.player;
+          const gap=Number.isFinite(entry.leaderGap)?entry.leaderGap:entry.packGap;
+          const showGap=Number.isFinite(gap)&&gap>0&&(entry.reason==='leader-gap'||entry.reason==='pack-gap'||entry.reason==='recovery-load');
+          return showGap ? `${entry.player} (${Math.round(gap)} behind)` : entry.player;
         });
         lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
       });
@@ -9013,12 +9010,11 @@ button.dealer-name-indicator .dealer-player-label {
     applied.forEach(item=>{
       if(!item.applied) return;
       const signed=BPGComeback.formatSignedPoints(item.applied);
-      const stopped=item.clamped?` (stopped at ${ordinalLive(item.packRank)})`:'';
+      const stopped=item.clamped?' (stopped so they cannot take 1st)':'';
       addAuditEntry(`R${roundData.round} Comeback`, `${item.player} ${signed}${stopped}`);
     });
     const clipped=applied.filter(item=>item.clamped&&item.applied);
-    if(clipped.length===1) toast(`Comeback stopped at ${ordinalLive(clipped[0].packRank)}.`, 'warning');
-    else if(clipped.length>1) toast('Comeback extras stopped at the pack.', 'warning');
+    if(clipped.length) toast('Comeback extras stopped so they cannot take 1st.', 'warning');
     return applied;
   }
   function previewComebackForEntry(player, rawValue){

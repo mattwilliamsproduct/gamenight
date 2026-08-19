@@ -126,8 +126,8 @@
     return Math.max(1, Math.ceil(playerCount / 2));
   }
 
-  function bestAllowedRankFor(playerCount) {
-    return Math.max(2, packRankFor(playerCount));
+  function bestAllowedRankFor(_playerCount) {
+    return 2;
   }
 
   function formatSignedPoints(adjustment) {
@@ -210,9 +210,9 @@
     return Math.max(1, Math.round((Number(remainingRounds) || 0) / 2));
   }
 
-  function sizeComebackBonus(packGap, expectedTurns, increment, bonusMax) {
+  function sizeComebackBonus(gap, expectedTurns, increment, bonusMax) {
     const turns = Math.max(expectedTurns || 1, 0.5);
-    const raw = Number(packGap) / turns;
+    const raw = Number(gap) / turns;
     let magnitude = roundToIncrement(raw, increment);
     if (magnitude < increment) magnitude = increment;
     if (magnitude > bonusMax) magnitude = bonusMax;
@@ -304,20 +304,24 @@
     const sorted = sortPlayers(players, totals, cfg.winLow);
     const rank = sorted.indexOf(player) + 1;
     const packRank = packRankFor(players.length);
-    if (rank <= packRank) {
-      return ineligible('not-bottom-half', {
+    const playerScore = totals[player];
+    const packScore = totals[sorted[packRank - 1]];
+    const leaderPlayer = sorted[0];
+    const leaderScore = totals[leaderPlayer];
+    const packGap = packGapFor(playerScore, packScore, cfg.winLow);
+    const leaderGap = packGapFor(playerScore, leaderScore, cfg.winLow);
+    if (rank === 1) {
+      return ineligible('leading', {
         rank,
         packRank,
+        packPlayer: sorted[packRank - 1],
+        leaderPlayer,
+        leaderGap: 0,
+        packGap,
         winLow: cfg.winLow,
         scoreIncrement: cfg.increment
       });
     }
-
-    const playerScore = totals[player];
-    const packScore = totals[sorted[packRank - 1]];
-    const leaderScore = totals[sorted[0]];
-    const packGap = packGapFor(playerScore, packScore, cfg.winLow);
-    const leaderGap = packGapFor(playerScore, leaderScore, cfg.winLow);
     const remaining = remainingRoundNumbers(completedCount, maxRounds);
     const upcomingRound = remaining[0];
     let upcomingOpportunity = 0;
@@ -337,31 +341,33 @@
       comebackUnit = upcomingOpportunity;
     }
 
-    if (!(packGap >= upcomingOpportunity)) {
-      return ineligible('pack-gap', {
+    if (game.name !== 'Flip 7 Vengeance' && !(leaderGap >= upcomingOpportunity)) {
+      return ineligible('leader-gap', {
         rank,
         packRank,
         packPlayer: sorted[packRank - 1],
+        leaderPlayer,
         leaderGap,
         packGap,
         upcomingOpportunity,
         totalRemainingOpportunity,
-        remainingRounds: game.name === 'Flip 7 Vengeance' ? null : remaining.length,
+        remainingRounds: remaining.length,
         winLow: cfg.winLow,
         scoreIncrement: cfg.increment
       });
     }
 
-    const recoveryLoad = totalRemainingOpportunity > 0 ? packGap / totalRemainingOpportunity : Infinity;
+    const recoveryLoad = totalRemainingOpportunity > 0 ? leaderGap / totalRemainingOpportunity : Infinity;
     const recoveryThreshold = Number.isFinite(cfg.recoveryLoad) ? cfg.recoveryLoad : RECOVERY_LOAD_THRESHOLD;
     const loadOk = game.name === 'Flip 7 Vengeance'
-      ? packGap / comebackUnit >= FLIP7_STRONG_ROUNDS
+      ? leaderGap / comebackUnit >= FLIP7_STRONG_ROUNDS
       : recoveryLoad >= recoveryThreshold;
     if (!loadOk) {
       return ineligible('recovery-load', {
         rank,
         packRank,
         packPlayer: sorted[packRank - 1],
+        leaderPlayer,
         leaderGap,
         packGap,
         upcomingOpportunity,
@@ -375,7 +381,11 @@
 
     const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
     const expectedTurns = expectedGoodTurns(game.name, remainingRounds);
-    const magnitude = sizeComebackBonus(packGap, expectedTurns, cfg.increment, cfg.bonusMax);
+    const contentionLine = game.name === 'Flip 7 Vengeance'
+      ? comebackUnit * FLIP7_STRONG_ROUNDS
+      : upcomingOpportunity;
+    const shortfall = Math.max(0, leaderGap - contentionLine);
+    const magnitude = sizeComebackBonus(shortfall, expectedTurns, cfg.increment, cfg.bonusMax);
     const bonus = helpfulSign(cfg.winLow) * magnitude;
     const allowedRank = bestAllowedRankFor(players.length);
 
@@ -387,6 +397,8 @@
       playerCount: players.length,
       packPlayer: sorted[packRank - 1],
       packScore,
+      leaderPlayer,
+      leaderScore,
       rank,
       packRank,
       leaderGap,
@@ -412,7 +424,6 @@
     const players = opts.players || [];
     const increment = opts.increment || 1;
     const winLow = !!opts.winLow;
-    const packRank = Math.max(2, Number(opts.packRank) || bestAllowedRankFor(players.length));
     const sign = helpfulSign(winLow);
     const intended = Number(opts.bonus) || 0;
     let magnitude = Math.abs(intended);
@@ -426,7 +437,7 @@
     while (magnitude >= increment) {
       const nextScore = totals[player] + (sign * magnitude);
       const rank = rankWithScore(player, nextScore, players, totals, winLow);
-      if (rank > 1 && rank >= packRank) return sign * magnitude;
+      if (rank > 1) return sign * magnitude;
       magnitude -= increment;
     }
     return 0;
@@ -455,7 +466,7 @@
     const score = roundDraft?.scores?.[player];
     const label = extra
       ? formatRoundScore(score, extra)
-      : 'Would catch the pack';
+      : 'Would take 1st';
     return { offer, extra, success: true, clamped, label };
   }
 
@@ -512,26 +523,25 @@
     }
     const player = String(offer.player || 'This player');
     const gameName = displayGameName(offer.gameName);
-    const packGap = Math.round(Number(offer.packGap) || 0);
-    const packPlace = ordinal(offer.packRank);
+    const leadGap = Math.round(Number(offer.leaderGap) || offer.packGap || 0);
     const extra = formatSignedPoints(offer.bonus);
     const place = (Number.isFinite(offer.rank) && Number.isFinite(offer.playerCount))
       ? `${ordinal(offer.rank)} of ${offer.playerCount}`
       : '';
-    const packBit = offer.packPlayer
-      ? `${packGap} behind the pack (${offer.packPlayer}, ${packPlace})`
-      : `${packGap} behind the pack (${packPlace})`;
-    const summary = place ? `${player} is ${place}, ${packBit}.` : `${player} is ${packBit}.`;
+    const leadBit = offer.leaderPlayer
+      ? `${leadGap} behind the lead (${offer.leaderPlayer})`
+      : `${leadGap} behind the lead`;
+    const summary = place ? `${player} is ${place}, ${leadBit}.` : `${player} is ${leadBit}.`;
     const bullets = [];
     const remaining = offer.remainingRounds;
     const chances = offer.expectedGoodTurns;
     if (offer.gameName === 'Flip 7 Vengeance') {
-      bullets.push(`Flip 7 has no set finish line, so this extra is sized so about ${FLIP7_STRONG_ROUNDS} banks can close a ${packGap}-point hole.`);
+      bullets.push(`Flip 7 has no set finish line, so this extra is sized so about ${FLIP7_STRONG_ROUNDS} banks can close a ${leadGap}-point hole.`);
     } else if (Number.isFinite(remaining) && remaining > 0) {
       bullets.push(`About ${chances} good ${roundNoun(offer.gameName, chances)} left out of ${remaining} remaining.`);
     }
     bullets.push(`${extra} extra when ${player} ${successVerb(offer.gameName)}.`);
-    bullets.push(`Stops when ${player} is back around ${packPlace}. Cannot take 1st.`);
+    bullets.push(`A worse hole gets a bigger extra. Cannot take 1st.`);
     if (offer.gameName === 'Five Crowns') {
       bullets.push(`${gameName} scores low, so the extra subtracts points — and only on a 0.`);
     }
@@ -549,46 +559,44 @@
         extra: []
       };
     }
-    const unit = roundNoun(gameName, 2);
-    let timing = `Once 4 ${unit} are scored.`;
-    let gap = 'You are far enough behind the middle of the table that normal play is unlikely to catch you up.';
+    let timing = `Once 4 ${roundNoun(gameName, 2)} are scored.`;
+    let gap = 'You are far enough behind first place that normal play is unlikely to catch them.';
     let success = 'Extra applies only on a good turn.';
     const extra = [
       'The extra is automatic. Nobody at the table chooses it.',
       'Misses get nothing extra.',
-      'Help stops when you catch the pack. It cannot put you in 1st.'
+      'A worse hole gets a bigger extra. It cannot put you in 1st.'
     ];
 
     if (gameName === '818') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'You are about 10 or more points behind the middle of the table — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind is a big hole. 8 behind is still a race.';
+      gap = 'You are about 10 or more points behind first place — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind first is a big hole. 8 behind first is still a race.';
       success = 'Extra is added only when you make your bid.';
     } else if (gameName === 'Wizard') {
       timing = 'Once the first few rounds are scored (about a quarter of the game).';
-      gap = 'You are further behind the middle than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+      gap = 'You are further behind first than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
       success = 'Extra is added only when you make your bid.';
     } else if (gameName === 'Five Crowns') {
       timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins, so the bottom half is the high scores. You are far enough behind the middle that a couple of clean hands probably will not catch the pack.';
+      gap = 'Low score wins. You are far enough behind first that a couple of clean hands probably will not catch them — third place counts if that hole is real.';
       success = 'Extra subtracts points, and only if you go out with 0.';
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind the middle of the table.';
+      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind first place.';
       success = 'Extra is added only when you bank at least 10 points.';
     }
 
     const how = [
       'Four or more players at the table.',
       timing,
-      'You are in the bottom half of the scoreboard — the worse half, not just behind the leader.',
+      'First place never gets extra. Second place only gets it if they are also out of reach of first.',
       gap,
-      success,
-      'A runaway leader does not unlock everyone bunched behind them.'
+      success
     ];
     return {
       supported: true,
       gameName: display,
-      lead: `Automatic extra on good turns if you are truly out of the hunt in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      lead: `Automatic extra on good turns if you are truly out of reach of first in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
       how,
       extra
     };
@@ -598,8 +606,9 @@
     if (reason === 'retired') return 'headed back to shore';
     if (reason === 'too-early') return 'too early';
     if (reason === 'joined-late') return 'still settling in';
-    if (reason === 'not-bottom-half') return 'still in the top half';
-    if (reason === 'pack-gap') return 'behind, but still close to the pack';
+    if (reason === 'leading') return 'in the lead';
+    if (reason === 'not-bottom-half') return 'still in the hunt';
+    if (reason === 'leader-gap' || reason === 'pack-gap') return 'behind, but still able to catch the lead';
     if (reason === 'recovery-load') return 'behind, but enough rounds left to catch up';
     if (reason === 'too-few-players') return 'need 4 players';
     if (reason === 'game-over') return 'game over';
@@ -625,6 +634,8 @@
     const packRank = packRankFor(players.length);
     const packPlayer = sorted[packRank - 1] || null;
     const packScore = packPlayer != null ? totals[packPlayer] : 0;
+    const leaderPlayer = sorted[0] || null;
+    const leaderScore = leaderPlayer != null ? totals[leaderPlayer] : 0;
     const remaining = remainingRoundNumbers(completed, maxRounds);
     let catchUp = 0;
     if (game.name === 'Flip 7 Vengeance') {
@@ -636,12 +647,14 @@
       const offer = getComebackOffer(game, player, activePlayers, opts);
       const rank = sorted.indexOf(player) + 1;
       const packGap = packGapFor(totals[player], packScore, cfg.winLow);
+      const leaderGap = packGapFor(totals[player], leaderScore, cfg.winLow);
       return {
         player,
         eligible: !!offer.eligible,
         reason: offer.reason || 'not-yet',
         rank: offer.rank || rank,
         packGap: Number.isFinite(offer.packGap) ? offer.packGap : packGap,
+        leaderGap: Number.isFinite(offer.leaderGap) ? offer.leaderGap : leaderGap,
         bonus: offer.eligible ? offer.bonus : 0,
         chipLabel: offer.eligible ? offer.chipLabel : '',
         label: offer.eligible ? (offer.chipLabel || 'Comeback') : statusLabelForReason(offer.reason)
@@ -665,6 +678,8 @@
         packRank,
         packPlayer,
         packScore,
+        leaderPlayer,
+        leaderScore,
         catchUp: Math.round(catchUp),
         remainingRounds: game.name === 'Flip 7 Vengeance' ? null : remaining.length,
         ready,
