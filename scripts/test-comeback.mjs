@@ -120,7 +120,7 @@ test('818 23-down mid-game sizes about +6 and a miss gets nothing', () => {
   assert.ok(!applied.some(item => item.player === 'Hal' && item.applied));
 });
 
-test('818 18-point hole with a few rounds left needs Comeback; Wizard does not', () => {
+test('818 18-point hole with a few rounds left needs Comeback; Wizard 80 down mid-game now does too', () => {
   const totals = { Ann: 100, Bea: 98, Cal: 96, Dee: 93, Eve: 91, Fay: 88, Gus: 85, Hal: 75 };
   const eight18 = offer('818', totals, { roundCount: 11, spread: 14, currentRound: 12, player: 'Hal' });
   assert.equal(eight18.leaderGap, 25);
@@ -129,8 +129,8 @@ test('818 18-point hole with a few rounds left needs Comeback; Wizard does not',
   const wizardTotals = { Ann: 200, Bea: 190, Cal: 180, Dee: 170, Eve: 160, Fay: 150, Gus: 140, Hal: 120 };
   const wizard = offer('Wizard', wizardTotals, { roundCount: 3, spread: 50, currentRound: 4, player: 'Hal' });
   assert.equal(wizard.leaderGap, 80);
-  assert.equal(wizard.eligible, false);
-  assert.equal(wizard.reason, 'recovery-load');
+  assert.equal(wizard.eligible, true);
+  assert.ok(wizard.bonus >= 10);
 });
 
 test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
@@ -143,13 +143,13 @@ test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   assert.equal(wizard.eligible, false);
 });
 
-test('Wizard 50-point last-round hole is still ordinary play', () => {
+test('Wizard 50-point last-round hole now unlocks a turbo', () => {
   const totals = { Ann: 250, Bea: 240, Cal: 230, Dee: 220, Eve: 210, Fay: 200, Gus: 190, Hal: 170 };
   const result = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
   assert.equal(result.leaderGap, 80);
-  assert.equal(result.eligible, false);
-  assert.equal(result.reason, 'leader-gap');
-  assert.ok(result.upcomingOpportunity >= 80);
+  assert.equal(result.eligible, true);
+  assert.equal(result.bonus, 20);
+  assert.equal(result.upcomingOpportunity, 40);
 });
 
 test('Wizard extra is capped and a huge make cannot take 1st', () => {
@@ -380,7 +380,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
   assert.ok(eight18.apply.some(line => /automatic/.test(line)));
 
   const wizard = CB.explainComebackRules('Wizard');
-  assert.ok(wizard.when.some(line => /50 to 90/.test(line)));
+  assert.ok(wizard.when.some(line => /40 or more/.test(line)));
   assert.ok(wizard.scale.some(line => /\+5, \+10, \+15, or \+20/.test(line)));
 
   const crowns = CB.explainComebackRules('Five Crowns');
@@ -536,6 +536,28 @@ test('Five Crowns last-hand runaway pair gives 3rd through last a scaled extra',
   assert.equal(offers.Vikki.bonus, -30);
   assert.equal(offers.Linda.bonus, -30);
   assert.equal(offers.Duke.bonus, -30);
+});
+
+test('Wizard late 7-player table gives the trailing pack turbos and Linda +20', () => {
+  const players = ['Matt', 'Brick', 'Vikki', 'Mike', 'Megan', 'Cat', 'Linda'];
+  const totals = { Matt: 160, Brick: 120, Vikki: 100, Mike: 100, Megan: 100, Cat: 100, Linda: 90 };
+  const g = game({
+    name: 'Wizard',
+    players,
+    totals,
+    roundCount: 6,
+    spread: 40,
+    currentRound: 7
+  });
+  const offers = Object.fromEntries(players.map(player => [player, CB.getComebackOffer(g, player, players)]));
+  assert.equal(CB.getMaxRounds(g, players), 8);
+  assert.equal(offers.Matt.eligible, false);
+  assert.equal(offers.Brick.eligible, false, '40 behind is still one made 2 from first');
+  assert.equal(offers.Linda.eligible, true);
+  assert.equal(offers.Linda.bonus, 20);
+  assert.equal(offers.Vikki.eligible, true);
+  assert.ok(offers.Vikki.bonus >= 15);
+  assert.equal(offers.Megan.bonus, offers.Vikki.bonus);
 });
 
 test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
