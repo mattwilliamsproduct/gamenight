@@ -137,7 +137,7 @@
   }
 
   function formatComebackChip(bonus) {
-    return `Comeback ${formatSignedPoints(bonus)}`;
+    return `Turbo ${formatSignedPoints(bonus)}`;
   }
 
   function formatComebackChipShort(bonus) {
@@ -571,51 +571,90 @@
       return {
         supported: false,
         gameName: display,
-        lead: `${display} does not use Comeback.`,
+        lead: `${display} does not use Turbos.`,
         how: ['Keep playing this one without extra help.'],
-        extra: []
+        extra: [],
+        what: [],
+        when: [],
+        scale: [],
+        notWhen: [],
+        apply: []
       };
     }
     let timing = `Once 4 ${roundNoun(gameName, 2)} are scored.`;
     let gap = 'You are far enough behind first place that normal play is unlikely to catch them.';
-    let success = 'Extra applies only on a good turn.';
-    const extra = [
-      'The extra is automatic. Nobody at the table chooses it.',
-      'Misses get nothing extra.',
-      'A worse hole gets a bigger extra. It cannot put you in 1st.'
-    ];
+    let success = 'The extra applies only on a good turn.';
+    let scale = ['A worse hole gets a bigger turbo. Close to first gets nothing.'];
 
     if (gameName === '818') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'You are about 10 or more points behind first place — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind first is a big hole. 8 behind first is still a race.';
-      success = 'Extra is added only when you make your bid.';
+      gap = 'You are about 10 or more points behind first — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind first is a big hole. 8 behind first is still a race.';
+      success = 'The extra is added only when you make your bid.';
+      scale = [
+        '818 turbos are +1 through +10.',
+        'Just barely out of reach of first might be +1 to +3. A real hole steps up toward +10.',
+        'The top turbo is about one extra made bid. It cannot steal the win.'
+      ];
     } else if (gameName === 'Wizard') {
       timing = 'Once the first few rounds are scored (about a quarter of the game).';
       gap = 'You are further behind first than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
-      success = 'Extra is added only when you make your bid.';
+      success = 'The extra is added only when you make your bid.';
+      scale = [
+        'Wizard turbos are +5, +10, +15, or +20.',
+        'Close to first gets nothing. A small slide is +5. A blowout can reach +20.',
+        'Wizard already swings hard, so the top turbo stays smaller than a normal made bid.'
+      ];
     } else if (gameName === 'Five Crowns') {
       timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins. You are far enough behind first that a normal hand cannot catch them. Close to first gets nothing. A small slide is −5, and it steps up to −30 if you are getting blown out.';
-      success = 'Extra subtracts points, and only if you go out with 0.';
+      gap = 'Low score wins. You are far enough behind first that a normal hand cannot catch them. Close to first gets nothing.';
+      success = 'The extra subtracts points, and only if you go out with 0.';
+      scale = [
+        'Five Crowns turbos are −5, −10, −15, −20, −25, or −30.',
+        'A small slide is −5. Each bigger hole steps up by 5, up to −30.',
+        'Low score wins, so the extra takes points off — it never adds them.'
+      ];
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
       gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind first place.';
-      success = 'Extra is added only when you bank at least 10 points.';
+      success = 'The extra is added only when you bank at least 10 points.';
+      scale = [
+        'Flip 7 turbos are +5, +10, or +15.',
+        'Close to first gets nothing. A small slide is +5. A blowout can reach +15.'
+      ];
     }
 
-    const how = [
+    const what = [
+      `A turbo is an automatic extra on a good turn when you are far enough behind first that ${display} is getting away from you.`,
+      'It is there so people who are getting whooped still have something to play for. It cannot hand anyone the win.'
+    ];
+    const when = [
       'Four or more players at the table.',
       timing,
-      'First place never gets extra. Second place only gets it if they are also out of reach of first.',
-      gap,
-      success
+      gap
+    ];
+    const notWhen = [
+      'First place never gets a turbo.',
+      'Second place only gets one if they are also out of reach of first.',
+      'If you are still close enough that a normal good turn can catch first, you get nothing.',
+      'Too early in the game: no turbos yet.'
+    ];
+    const apply = [
+      'The extra is automatic. Nobody at the table chooses it or turns it down.',
+      success,
+      'Misses get nothing extra.',
+      'A worse hole gets a bigger turbo. It cannot put you in 1st.'
     ];
     return {
       supported: true,
       gameName: display,
-      lead: `Automatic extra on good turns if you are truly out of reach of first in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
-      how,
-      extra
+      lead: `Turbos are automatic extras on good turns if you are truly out of reach of first in ${display} — not just having a bad ${roundNoun(gameName, 1)}. They cannot hand you the win.`,
+      what,
+      when,
+      scale,
+      notWhen,
+      apply,
+      how: [...when, 'First place never gets extra. Second place only gets it if they are also out of reach of first.', ...scale, success],
+      extra: apply
     };
   }
 
@@ -726,6 +765,7 @@
     applyComebackToRound,
     syncComebackAfterScoreEdit,
     roundScoreForPlayer,
+    sizeComebackBonus,
     formatComebackChip,
     formatComebackChipShort,
     formatRoundScore,

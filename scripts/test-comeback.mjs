@@ -373,28 +373,31 @@ test('Comeback rules copy is plain language and game-specific', () => {
   const eight18 = CB.explainComebackRules('818');
   assert.equal(eight18.supported, true);
   assert.match(eight18.lead, /818/);
-  assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
-  assert.ok(eight18.how.some(line => /First place never/.test(line)));
-  assert.ok(eight18.how.some(line => /made bid/.test(line)));
-  assert.ok(eight18.extra.some(line => /automatic/.test(line)));
+  assert.ok(eight18.when.some(line => /4 rounds/.test(line)));
+  assert.ok(eight18.notWhen.some(line => /First place never/.test(line)));
+  assert.ok(eight18.scale.some(line => /\+1 through \+10/.test(line)));
+  assert.ok(eight18.apply.some(line => /make your bid/.test(line)));
+  assert.ok(eight18.apply.some(line => /automatic/.test(line)));
 
   const wizard = CB.explainComebackRules('Wizard');
-  assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
+  assert.ok(wizard.when.some(line => /50 to 90/.test(line)));
+  assert.ok(wizard.scale.some(line => /\+5, \+10, \+15, or \+20/.test(line)));
 
   const crowns = CB.explainComebackRules('Five Crowns');
-  assert.ok(crowns.how.some(line => /4 hands/.test(line)));
-  assert.ok(crowns.how.some(line => /Low score wins/.test(line)));
-  assert.ok(crowns.how.some(line => /small slide/.test(line)));
-  assert.ok(crowns.how.some(line => /go out with 0/.test(line)));
+  assert.ok(crowns.when.some(line => /4 hands/.test(line)));
+  assert.ok(crowns.when.some(line => /Low score wins/.test(line)));
+  assert.ok(crowns.scale.some(line => /−5/.test(line) || /-5/.test(line) || /5,/.test(line)));
+  assert.ok(crowns.apply.some(line => /go out with 0/.test(line)));
 
   const flip7 = CB.explainComebackRules('Flip 7 Vengeance');
   assert.match(flip7.lead, /Flip 7/);
-  assert.ok(flip7.how.some(line => /two and a half strong banks/.test(line)));
-  assert.ok(flip7.how.some(line => /at least 10 points/.test(line)));
+  assert.ok(flip7.when.some(line => /two and a half strong banks/.test(line)));
+  assert.ok(flip7.scale.some(line => /\+5, \+10, or \+15/.test(line)));
+  assert.ok(flip7.apply.some(line => /at least 10 points/.test(line)));
 
   const rook = CB.explainComebackRules('Rook');
   assert.equal(rook.supported, false);
-  assert.match(rook.lead, /does not use Comeback/);
+  assert.match(rook.lead, /does not use Turbos/);
 });
 
 test('Comeback table summary names who has extra and who is still in it', () => {
@@ -488,10 +491,23 @@ test('Wizard extra drops when the points cell is edited off a make', () => {
 });
 
 test('Comeback chip copy stays short on the scorecard and full in the formatter', () => {
-  assert.equal(CB.formatComebackChip(-30), 'Comeback −30');
+  assert.equal(CB.formatComebackChip(-30), 'Turbo −30');
   assert.equal(CB.formatComebackChipShort(-30), '−30');
   assert.equal(CB.formatComebackChipShort(-5), '−5');
   assert.equal(CB.formatComebackChipShort(20), '+20');
+});
+
+test('818, Wizard, and Flip 7 use the same sliding turbo scale', () => {
+  assert.equal(CB.sizeComebackBonus(3, 1, 1, 10), 3);
+  assert.equal(CB.sizeComebackBonus(7, 1, 1, 10), 7);
+  assert.equal(CB.sizeComebackBonus(16, 1, 1, 10), 10);
+  assert.equal(CB.sizeComebackBonus(6, 1, 5, 20), 5);
+  assert.equal(CB.sizeComebackBonus(12, 1, 5, 20), 10);
+  assert.equal(CB.sizeComebackBonus(22, 1, 5, 20), 20);
+  assert.equal(CB.sizeComebackBonus(8, 1, 5, 15), 5);
+  assert.equal(CB.sizeComebackBonus(14, 1, 5, 15), 10);
+  assert.equal(CB.sizeComebackBonus(40, 1, 5, 15), 15);
+  assert.equal(CB.sizeComebackBonus(4, 1, 5, 30), 0);
 });
 
 test('Five Crowns last-hand runaway pair gives 3rd through last a scaled extra', () => {
