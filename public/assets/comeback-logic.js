@@ -31,7 +31,7 @@
       increment: 5,
       bonusMax: 30,
       minScoringRounds: 4,
-      recoveryLoad: 0.4
+      recoveryLoad: 0.2
     },
     'Flip 7 Vengeance': {
       winLow: false,
@@ -213,8 +213,8 @@
   function sizeComebackBonus(gap, expectedTurns, increment, bonusMax) {
     const turns = Math.max(expectedTurns || 1, 0.5);
     const raw = Number(gap) / turns;
-    let magnitude = roundToIncrement(raw, increment);
-    if (magnitude < increment) magnitude = increment;
+    if (!(raw >= increment)) return 0;
+    let magnitude = Math.floor(raw / increment) * increment;
     if (magnitude > bonusMax) magnitude = bonusMax;
     return magnitude;
   }
@@ -386,6 +386,23 @@
       : upcomingOpportunity;
     const shortfall = Math.max(0, leaderGap - contentionLine);
     const magnitude = sizeComebackBonus(shortfall, expectedTurns, cfg.increment, cfg.bonusMax);
+    if (magnitude < cfg.increment) {
+      return ineligible('leader-gap', {
+        rank,
+        packRank,
+        packPlayer: sorted[packRank - 1],
+        leaderPlayer,
+        leaderGap,
+        packGap,
+        upcomingOpportunity,
+        totalRemainingOpportunity,
+        remainingRounds,
+        expectedGoodTurns: expectedTurns,
+        recoveryLoad,
+        winLow: cfg.winLow,
+        scoreIncrement: cfg.increment
+      });
+    }
     const bonus = helpfulSign(cfg.winLow) * magnitude;
     const allowedRank = bestAllowedRankFor(players.length);
 
@@ -578,7 +595,7 @@
       success = 'Extra is added only when you make your bid.';
     } else if (gameName === 'Five Crowns') {
       timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins. You are far enough behind first that a couple of clean hands probably will not catch them — third place counts if that hole is real.';
+      gap = 'Low score wins. You are far enough behind first that a normal hand cannot catch them. Close to first gets nothing. A small slide is −5, and it steps up to −30 if you are getting blown out.';
       success = 'Extra subtracts points, and only if you go out with 0.';
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
