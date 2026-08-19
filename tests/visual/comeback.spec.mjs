@@ -157,7 +157,7 @@ test('View Pace restores full round columns after the viewport shrinks', async (
     cols: document.querySelectorAll('#scorecard-head .scorecard-round-th').length
   }));
   expect(wide.active).toBe(true);
-  expect(wide.cols).toBe(2);
+  expect(wide.cols).toBe(5);
   await page.setViewportSize({width: 800, height: 900});
   await page.evaluate(() => syncRecordChaseLayoutForViewport());
   const narrow = await page.evaluate(() => ({

@@ -2637,7 +2637,7 @@ button.dealer-name-indicator {
     }
     .scorecard-live-main {
       display: flex;
-      flex: 0 0 54%;
+      flex: 1 1 auto;
       flex-direction: column;
       min-width: 0;
       min-height: 0;
@@ -2647,8 +2647,9 @@ button.dealer-name-indicator {
       --record-chase-grid-gap: clamp(0.45rem, 0.75vw, 0.8rem);
       --record-chase-pad-x: clamp(0.55rem, 0.8vw, 0.8rem);
       display: flex;
-      flex: 1 1 46%;
+      flex: 0 0 auto;
       flex-direction: column;
+      width: calc((3 * var(--record-chase-score-col)) + (2 * var(--record-chase-grid-gap)) + (2 * var(--record-chase-pad-x)) + 2px);
       min-width: 0;
       min-height: 0;
       border-left: 2px solid rgba(40,127,155,0.26);
@@ -2683,18 +2684,9 @@ button.dealer-name-indicator {
       color: var(--blue);
       background: linear-gradient(180deg, rgba(210,239,245,0.96), rgba(228,247,250,0.96));
     }
-    .record-chase-pair-head,
-    .record-chase-pair {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      align-items: center;
-      min-width: 0;
-      min-height: 0;
-    }
-    .record-chase-pair-head:not(:first-child),
-    .record-chase-pair:not(:first-child) {
+    .record-chase-head > :not(:first-child),
+    .record-chase-row > :not(:first-child) {
       border-left: 1px solid rgba(40,127,155,0.22);
-      padding-left: 0.2rem;
     }
     .record-chase-head-label {
       font-family: 'Londrina Solid', sans-serif;
@@ -2703,16 +2695,6 @@ button.dealer-name-indicator {
       text-align: center;
       text-transform: uppercase;
       color: var(--blue);
-    }
-    .record-chase-head-now {
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: clamp(0.52rem, 0.68vw, 0.68rem);
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      line-height: 1;
-      text-align: center;
-      text-transform: uppercase;
-      color: rgba(40,127,155,0.62);
     }
     .record-chase-list {
       display: grid;
@@ -2755,10 +2737,6 @@ button.dealer-name-indicator {
       white-space: nowrap;
       overflow: hidden;
     }
-    .record-chase-score--now {
-      color: rgba(40,127,155,0.78);
-      font-size: 0.86em;
-    }
     button.record-chase-score {
       appearance: none;
       margin: 0;
@@ -2783,9 +2761,6 @@ button.dealer-name-indicator {
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-head-label {
       font-size: min(1.15rem, calc(var(--scorecard-row-height) * 0.24));
     }
-    body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-head-now {
-      font-size: min(0.68rem, calc(var(--scorecard-row-height) * 0.14));
-    }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .record-chase-score {
       font-size: min(1.85rem, calc(var(--scorecard-row-height) * 0.38));
     }
@@ -2806,26 +2781,26 @@ button.dealer-name-indicator {
       font-feature-settings: 'tnum';
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 62%;
+      width: 38%;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: 18%;
+      width: 14%;
       min-width: 6.75rem;
     }
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
-      width: 10%;
+      width: 9.6%;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 68%;
+      width: 42%;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: 16%;
+      width: 13%;
       min-width: 7.25rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
-      width: 8%;
+      width: 9%;
     }
     @media (max-width: 900px) {
       .record-chase-panel {
@@ -2918,12 +2893,12 @@ button.dealer-name-indicator {
         min-height: 0;
       }
       body.active-match-view .tournament-scoreboard .scorecard-live-layout.record-chase-active > .scorecard-live-main {
-        flex: 0 0 54%;
-        width: 54%;
+        flex: 1 1 auto;
+        width: auto;
       }
       body.active-match-view .tournament-scoreboard .scorecard-live-layout.record-chase-active > .record-chase-panel {
-        flex: 0 0 46%;
-        width: 46%;
+        flex: 0 0 auto;
+        width: calc((3 * var(--record-chase-score-col)) + (2 * var(--record-chase-grid-gap)) + (2 * var(--record-chase-pad-x)) + 2px);
       }
       body.active-match-view .tournament-scoreboard .scorecard-table-wrap {
         flex: 1 1 auto;
@@ -7185,18 +7160,9 @@ button.dealer-name-indicator .dealer-player-label {
             </div>
             <aside id="record-chase-panel" class="record-chase-panel" aria-label="Player Pace metrics">
               <div class="record-chase-head">
-                <div class="record-chase-pair-head">
-                  <span class="record-chase-head-label">Best</span>
-                  <span class="record-chase-head-now">now</span>
-                </div>
-                <div class="record-chase-pair-head">
-                  <span class="record-chase-head-label">Avg</span>
-                  <span class="record-chase-head-now">now</span>
-                </div>
-                <div class="record-chase-pair-head">
-                  <span class="record-chase-head-label">Worst</span>
-                  <span class="record-chase-head-now">now</span>
-                </div>
+                <span class="record-chase-head-label">Best</span>
+                <span class="record-chase-head-label">Avg</span>
+                <span class="record-chase-head-label">Worst</span>
               </div>
               <div id="record-chase-list" class="record-chase-list"></div>
             </aside>
@@ -12435,7 +12401,7 @@ ${isDealer
     const entries=(gameData?.rounds||[])
       .map((round,index)=>({round,index}))
       .filter(entry=>!entry.round.hailMaryBonus);
-    return recordChaseLayoutActive?entries.slice(-2):entries;
+    return recordChaseLayoutActive?entries.slice(-5):entries;
   }
 
   function getRecordChasePlayerRounds(gameData,player){
@@ -12453,18 +12419,6 @@ ${isDealer
       match.totals?.[player]!==undefined&&
       getRecordChasePlayerRounds(match,player).length>0
     );
-  }
-
-  function recordChaseScoreThrough(gameData,player,roundCount){
-    const rounds=getRecordChasePlayerRounds(gameData,player);
-    if(!roundCount||rounds.length<roundCount)return null;
-    return rounds.slice(0,roundCount).reduce((total,round)=>{
-      if(window.BPGComeback){
-        const scored=BPGComeback.roundScoreForPlayer(round,player);
-        return total+(Number.isFinite(scored)?scored:0);
-      }
-      return total+(Number(round.scores?.[player])||0)+(Number(round.comeback?.[player])||0);
-    },0);
   }
 
   function pickRecordChaseFinal(matches,player,cfg,wantBest){
@@ -12485,11 +12439,8 @@ ${isDealer
   function getRecordChaseMetric(player,cfg){
     const empty={
       bestScore:null,
-      bestThen:null,
       avgFinal:null,
-      avgThen:null,
       worstScore:null,
-      worstThen:null,
       bestMatchId:null,
       worstMatchId:null,
       ariaLabel:'No past games yet'
@@ -12497,29 +12448,15 @@ ${isDealer
     const gameName=currentGame.name;
     const matches=getRecordChaseHistory(player,gameName);
     if(!matches.length)return empty;
-    const completed=getRecordChasePlayerRounds(currentGame,player).length;
     const bestEntry=pickRecordChaseFinal(matches,player,cfg,true);
     const worstEntry=pickRecordChaseFinal(matches,player,cfg,false);
-    const thenSamples=completed
-      ? matches
-        .map(match=>recordChaseScoreThrough(match,player,completed))
-        .filter(score=>score!=null&&Number.isFinite(score))
-      : [];
     const avgFinal=Math.round(matches.reduce((sum,match)=>sum+(Number(match.totals?.[player])||0),0)/matches.length);
-    const avgThen=thenSamples.length
-      ? Math.round(thenSamples.reduce((sum,score)=>sum+score,0)/thenSamples.length)
-      : null;
-    const bestThen=bestEntry?recordChaseScoreThrough(bestEntry.match,player,completed):null;
-    const worstThen=worstEntry?recordChaseScoreThrough(worstEntry.match,player,completed):null;
     const dash=value=>value==null?'—':String(value);
-    const ariaLabel=`Best ${dash(bestEntry?.score)} now ${dash(bestThen)}, average ${dash(avgFinal)} now ${dash(avgThen)}, worst ${dash(worstEntry?.score)} now ${dash(worstThen)}`;
+    const ariaLabel=`Best ${dash(bestEntry?.score)}, average ${dash(avgFinal)}, worst ${dash(worstEntry?.score)}`;
     return {
       bestScore:bestEntry?bestEntry.score:null,
-      bestThen,
       avgFinal,
-      avgThen,
       worstScore:worstEntry?worstEntry.score:null,
-      worstThen,
       bestMatchId:Number.isFinite(bestEntry?.match?.id)?bestEntry.match.id:null,
       worstMatchId:Number.isFinite(worstEntry?.match?.id)?worstEntry.match.id:null,
       ariaLabel
@@ -12532,40 +12469,28 @@ ${isDealer
     if(!panel||!list)return;
     panel.style.setProperty('--record-chase-row-count',String(Math.max(1,players.length)));
     const dash=value=>value==null?'—':String(value);
-    const pairScore=(kind,score,matchId,isNow)=>{
+    const pairScore=(kind,score,matchId)=>{
       const label=dash(score);
       const missing=score==null;
-      const nowClass=isNow?' record-chase-score--now':'';
       const missingClass=missing?' is-missing':'';
-      const pointLabel=isNow?`${kind} at this point ${label}`:`${kind} ${label}`;
+      const pointLabel=`${kind} ${label}`;
       if(missing||matchId==null){
-        return `<div class="record-chase-score${nowClass}${missingClass}" aria-label="${escapeHtml(pointLabel)}">${escapeHtml(label)}</div>`;
+        return `<div class="record-chase-score${missingClass}" aria-label="${escapeHtml(pointLabel)}">${escapeHtml(label)}</div>`;
       }
-      return `<button type="button" class="record-chase-score${nowClass}" data-record-kind="${kind.toLowerCase()}" onclick="openScorecard(${matchId})" aria-label="${escapeHtml(pointLabel)}, view that scorecard" title="Open the ${kind.toLowerCase()} scorecard">${escapeHtml(label)}</button>`;
+      return `<button type="button" class="record-chase-score" data-record-kind="${kind.toLowerCase()}" onclick="openScorecard(${matchId})" aria-label="${escapeHtml(pointLabel)}, view that scorecard" title="Open the ${kind.toLowerCase()} scorecard">${escapeHtml(label)}</button>`;
     };
-    const avgScore=(kind,score,isNow)=>{
+    const avgScore=score=>{
       const label=dash(score);
-      const nowClass=isNow?' record-chase-score--now':'';
       const missingClass=score==null?' is-missing':'';
-      const pointLabel=isNow?`Average at this point ${label}`:`Average finish ${label}`;
-      return `<div class="record-chase-score${nowClass}${missingClass}" aria-label="${escapeHtml(pointLabel)}">${escapeHtml(label)}</div>`;
+      return `<div class="record-chase-score${missingClass}" aria-label="${escapeHtml('Average finish '+label)}">${escapeHtml(label)}</div>`;
     };
     list.innerHTML=players.map(player=>{
       const metric=getRecordChaseMetric(player,cfg);
       const isLeader=currentGame.currentRound>1&&currentGame.totals[player]===leaderScore;
       return `<div class="record-chase-row${isLeader?' is-leader':''}" data-player="${escapeHtml(player)}" title="${escapeHtml(player)} · ${escapeHtml(metric.ariaLabel)}">
-        <div class="record-chase-pair">
-          ${pairScore('Best',metric.bestScore,metric.bestMatchId,false)}
-          ${pairScore('Best',metric.bestThen,metric.bestMatchId,true)}
-        </div>
-        <div class="record-chase-pair">
-          ${avgScore('Avg',metric.avgFinal,false)}
-          ${avgScore('Avg',metric.avgThen,true)}
-        </div>
-        <div class="record-chase-pair">
-          ${pairScore('Worst',metric.worstScore,metric.worstMatchId,false)}
-          ${pairScore('Worst',metric.worstThen,metric.worstMatchId,true)}
-        </div>
+        ${pairScore('Best',metric.bestScore,metric.bestMatchId)}
+        ${avgScore(metric.avgFinal)}
+        ${pairScore('Worst',metric.worstScore,metric.worstMatchId)}
       </div>`;
     }).join('');
   }
@@ -15350,7 +15275,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=path-replay-plain-20260818');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=pace-best-avg-worst-20260819');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);

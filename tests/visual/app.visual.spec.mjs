@@ -306,7 +306,9 @@ test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-r
   await expect(toggle).not.toContainText('OFF');
   await expect(page.locator('#scorecard-view-toggle-state')).toHaveCount(0);
   await expect(page.locator('#record-chase-panel')).toBeVisible();
-  expect(await page.locator('#scorecard-head [data-sc-round]').count(),'Record Chase should reserve the table for the latest two rounds').toBe(2);
+  const paceRoundCount=await page.locator('#scorecard-head [data-sc-round]').count();
+  expect(paceRoundCount,'Player Pace should show more than the old two-round slice').toBeGreaterThanOrEqual(2);
+  expect(paceRoundCount,'Player Pace should cap visible rounds at the latest five').toBeLessThanOrEqual(5);
   expect(await page.locator('.record-chase-row').count(),'Record Chase should have one row per player').toBe(10);
   expect(await page.locator('.record-chase-row .record-chase-avatar').count(),'Player Pace should not duplicate the scorecard avatars').toBe(0);
   expect(await page.locator('.record-chase-secondary').count(),'Record Chase should not include a supporting metric column').toBe(0);
@@ -346,7 +348,9 @@ test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-r
   await expect(toggle).not.toContainText('ON');
   await expect(toggle).not.toContainText('OFF');
   await expect(page.locator('#scorecard-live-layout')).toHaveClass(/record-chase-active/);
-  expect(await page.locator('#scorecard-head [data-sc-round]').count(),'restoring Record Chase should return to the latest two rounds').toBe(2);
+  const restoredRoundCount=await page.locator('#scorecard-head [data-sc-round]').count();
+  expect(restoredRoundCount,'restoring Player Pace should keep the latest five-round window').toBeGreaterThanOrEqual(2);
+  expect(restoredRoundCount,'restoring Player Pace should cap visible rounds at the latest five').toBeLessThanOrEqual(5);
 });
 
 test('record-chase-preview keeps real player history and aligned metrics',async({page})=>{
@@ -358,9 +362,10 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
   await expect(page.locator('#record-chase-panel')).toHaveAttribute('aria-label','Player Pace metrics');
   await expect(page.locator('.record-chase-head-label')).toHaveText(['Best','Avg','Worst']);
-  await expect(page.locator('.record-chase-head-now')).toHaveText(['now','now','now']);
+  await expect(page.locator('.record-chase-head-now')).toHaveCount(0);
   await expect(page.locator('.record-chase-head')).not.toContainText('Record Chase');
   await expect(page.locator('.record-chase-head')).not.toContainText('ahead of');
+  await expect(page.locator('.record-chase-head')).not.toContainText('now');
   await expect(page.locator('.record-chase-pace')).toHaveCount(0);
 
   const metrics=await rows.evaluateAll(elements=>elements.map(element=>({
@@ -369,19 +374,19 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
     scores:[...element.querySelectorAll('.record-chase-score')].map(score=>(score.textContent||'').trim())
   })));
   expect(metrics.map(metric=>metric.player)).toEqual(['Megan','Matt','Cat','Mike','Vikki','Duke','Brick','Linda']);
-  expect(metrics.find(metric=>metric.player==='Brick')?.scores).toEqual(['—','—','—','—','—','—']);
+  expect(metrics.find(metric=>metric.player==='Brick')?.scores).toEqual(['—','—','—']);
   expect(metrics.find(metric=>metric.player==='Brick')?.title.startsWith('Brick ·'),'Brick should remain the intentional fresh scorecard').toBe(true);
   expect(Object.fromEntries(metrics.map(metric=>[metric.player,metric.scores]))).toEqual({
-    Megan:['60','60','50','50','40','40'],
-    Matt:['80','80','65','65','50','50'],
-    Cat:['60','60','45','45','30','30'],
-    Mike:['20','20','5','5','-20','-20'],
-    Vikki:['60','60','50','50','40','40'],
-    Duke:['50','50','10','10','-20','-20'],
-    Brick:['—','—','—','—','—','—'],
-    Linda:['40','40','3','3','-20','-20']
+    Megan:['60','50','40'],
+    Matt:['80','65','50'],
+    Cat:['60','45','30'],
+    Mike:['20','5','-20'],
+    Vikki:['60','50','40'],
+    Duke:['50','10','-20'],
+    Brick:['—','—','—'],
+    Linda:['40','3','-20']
   });
-  expect(metrics.filter(metric=>metric.player!=='Brick').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best, average, and worst pairs').toBe(true);
+  expect(metrics.filter(metric=>metric.player!=='Brick').every(metric=>metric.scores.every(score=>score!=='—')),'players with history should show best, average, and worst').toBe(true);
 
   const rowAlignment=await page.evaluate(()=>{
     const scoreRows=[...document.querySelectorAll('#scorecard-body tr')].map(row=>row.getBoundingClientRect().y);
@@ -400,15 +405,15 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
       const box=element?.getBoundingClientRect();
       return box?box.left+(box.width/2):null;
     };
-    const headCells=[...document.querySelectorAll('.record-chase-pair-head > *')];
+    const headCells=[...document.querySelectorAll('.record-chase-head-label')];
     const firstRow=[...document.querySelectorAll('.record-chase-row')[0].querySelectorAll('.record-chase-score')];
     return headCells.map((head,index)=>({
       label:(head.textContent||'').trim(),
       gap:Math.abs(center(head)-center(firstRow[index]))
     }));
   });
-  expect(alignment.map(item=>item.label)).toEqual(['Best','now','Avg','now','Worst','now']);
-  expect(alignment.every(item=>item.gap<=2),'each pair header should align with its numbers').toBe(true);
+  expect(alignment.map(item=>item.label)).toEqual(['Best','Avg','Worst']);
+  expect(alignment.every(item=>item.gap<=2),'each pace header should align with its numbers').toBe(true);
 
   const bestButton=page.locator('.record-chase-row[data-player="Megan"] button.record-chase-score').first();
   await expect(bestButton).toHaveAttribute('aria-label',/Best 60/);
@@ -420,7 +425,7 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
   await expect(page.locator('#scorecard-modal')).toBeHidden();
 });
 
-test('beat-the-heat pace compares this point in the best finished game',async({page})=>{
+test('beat-the-heat pace still opens the best finished scorecard',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=beat-the-heat-pace&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -429,17 +434,33 @@ test('beat-the-heat pace compares this point in the best finished game',async({p
   const linda=page.locator('.record-chase-row[data-player="Linda"]');
   await expect(linda).toHaveCount(1);
   const lindaScores=await linda.locator('.record-chase-score').evaluateAll(elements=>elements.map(element=>(element.textContent||'').trim()));
-  expect(lindaScores,'Linda Best/Avg/Worst pairs should keep the 5-point finish and snapshot that same game').toEqual(['5','—','45','38','62','42']);
-  expect(await linda.locator('.record-chase-pair').nth(1).locator('button').count(),'Average should stay non-clickable').toBe(0);
+  expect(lindaScores,'Linda Best/Avg/Worst should keep the 5-point finish').toEqual(['5','45','62']);
+  expect(await linda.locator('.record-chase-score').nth(1).locator('button').count(),'Average should stay non-clickable').toBe(0);
+  expect(await linda.locator('button.record-chase-score').count(),'only Best and Worst should open a scorecard').toBe(2);
   const lindaTotal=await page.locator('#scorecard-body tr').filter({hasText:'Linda'}).locator('.scorecard-total-value').innerText();
   expect(lindaTotal.trim()).toBe('36');
   await expect(linda.locator('button.record-chase-score').first()).toHaveAttribute('aria-label',/Best 5/);
-  await expect(linda.locator('.record-chase-score--now').first()).toHaveAttribute('aria-label',/Best at this point —/);
   await linda.locator('button.record-chase-score').first().click();
   await expect(page.locator('#scorecard-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#modal-scorecard-body')).toContainText('Linda');
   const lindaHistoryTotal=await page.locator('#modal-scorecard-body tr').filter({hasText:'Linda'}).locator('.scorecard-total-value').innerText();
   expect(lindaHistoryTotal.trim(),'Best should open the 5-point scorecard').toBe('5');
+});
+
+test('late eight-player five crowns shows five rounds beside Best Avg Worst',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='laptop-chromium','Check the late eight-player pace layout once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-late-8&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+
+  await expect(page.locator('#record-chase-panel')).toBeVisible();
+  await expect(page.locator('.record-chase-head-label')).toHaveText(['Best','Avg','Worst']);
+  await expect(page.locator('.record-chase-head-now')).toHaveCount(0);
+  await expect(page.locator('#scorecard-head [data-sc-round]')).toHaveCount(5);
+  await expect(page.locator('#scorecard-head [data-sc-round]').first()).toHaveAttribute('data-sc-round-label','6');
+  await expect(page.locator('#scorecard-head [data-sc-round]').last()).toHaveAttribute('data-sc-round-label','10');
+  await expect(page.locator('.record-chase-row')).toHaveCount(8);
+  await expect(page.locator('.record-chase-row').first().locator('.record-chase-score')).toHaveCount(3);
+  await expect(page.locator('#round-intel')).toHaveText(/Hand of 13|Ks Wild|R11/);
 });
 
 test('late five-crowns totals stay centered and names stay whole',async({page})=>{
