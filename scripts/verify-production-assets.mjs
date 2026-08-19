@@ -21,7 +21,12 @@ const requiredAssets = [
   'public/assets/vendor/chart.js',
   'public/assets/vendor/html2canvas.js',
   'public/assets/comeback-logic.js',
-  'public/sw.js'
+  'public/sw.js',
+  'public/apple-touch-icon.png',
+  'public/bp-apple-touch-icon.png',
+  'public/bp-icon-192.png',
+  'public/bp-icon-512.png',
+  'public/manifest.webmanifest'
 ];
 
 await Promise.all(requiredAssets.map(asset => access(join(rootDir, asset))));
@@ -33,5 +38,13 @@ if(!index.includes("navigator.serviceWorker.register('./sw.js'")){
 if(!index.includes("src=\"./assets/comeback-logic.js\"")){
   throw new Error('Comeback logic is missing from the app shell.');
 }
+
+if(!index.includes('name="apple-mobile-web-app-title" content="Back Porch"')){
+  throw new Error('iPad home-screen title should be the short Back Porch name.');
+}
+
+const manifest=JSON.parse(await readFile(join(rootDir,'public','manifest.webmanifest'),'utf8'));
+if(manifest.name!=='Back Porch Games') throw new Error('Manifest name should stay Back Porch Games.');
+if(manifest.short_name!=='Back Porch') throw new Error('Manifest short_name should be Back Porch for the home screen.');
 
 console.log('Production assets verified.');
