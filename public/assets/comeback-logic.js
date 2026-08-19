@@ -23,7 +23,7 @@
       increment: 5,
       bonusMax: 20,
       minScoringRounds: null,
-      recoveryLoad: 0.4
+      recoveryLoad: 0.2
     },
     'Five Crowns': {
       winLow: true,
@@ -85,6 +85,10 @@
       const tricks = EIGHT18_ROUND_TRICKS[roundNumber - 1] || 0;
       const extra = Math.max(0, Math.round(tricks / Math.max(activePlayers.length, 2)) - 1);
       return EIGHT18_BID_BONUS + extra;
+    }
+    if (game.name === 'Wizard') {
+      // A solid made bid of 2, not sweeping every trick in a late hand.
+      return 40;
     }
     return ruleUnitForRound(game.name, roundNumber);
   }
@@ -597,12 +601,12 @@
       ];
     } else if (gameName === 'Wizard') {
       timing = 'Once the first few rounds are scored (about a quarter of the game).';
-      gap = 'You are further behind first than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+      gap = 'You are about 40 or more points behind first — that is one made bid of 2. Close enough to still catch with ordinary makes gets nothing.';
       success = 'The extra is added only when you make your bid.';
       scale = [
         'Wizard turbos are +5, +10, +15, or +20.',
-        'Close to first gets nothing. A small slide is +5. A blowout can reach +20.',
-        'Wizard already swings hard, so the top turbo stays smaller than a normal made bid.'
+        'About 40 behind first is a small turbo. 60 to 70 behind late is +20.',
+        'The extra only applies if you make your bid. It cannot put you in 1st.'
       ];
     } else if (gameName === 'Five Crowns') {
       timing = 'Once 4 hands are scored.';
