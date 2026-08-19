@@ -9,7 +9,8 @@ const APP_SHELL = [
   './assets/comeback-logic.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
-  './bp-apple-touch-icon.png'
+  './bp-apple-touch-icon.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
