@@ -384,7 +384,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
   const crowns = CB.explainComebackRules('Five Crowns');
   assert.ok(crowns.how.some(line => /4 hands/.test(line)));
   assert.ok(crowns.how.some(line => /Low score wins/.test(line)));
-  assert.ok(crowns.how.some(line => /third place/.test(line)));
+  assert.ok(crowns.how.some(line => /small slide/.test(line)));
   assert.ok(crowns.how.some(line => /go out with 0/.test(line)));
 
   const flip7 = CB.explainComebackRules('Flip 7 Vengeance');
@@ -514,13 +514,34 @@ test('Five Crowns last-hand runaway pair gives 3rd through last a scaled extra',
   assert.equal(offers.Matt.reason, 'leading');
   assert.equal(offers.Cat.eligible, false, 'Cat is only 3 behind Matt, so she is still in it');
   assert.equal(offers.Megan.eligible, true, 'third place is out of reach of first on the last hand');
-  assert.equal(offers.Michelle.eligible, true);
-  assert.equal(offers.Mike.eligible, true);
-  assert.equal(offers.Vikki.eligible, true);
-  assert.equal(offers.Linda.eligible, true);
-  assert.equal(offers.Duke.eligible, true);
-  assert.ok(Math.abs(offers.Megan.bonus) < Math.abs(offers.Duke.bonus), `Megan ${offers.Megan.bonus} should be smaller than Duke ${offers.Duke.bonus}`);
-  assert.ok(Math.abs(offers.Megan.bonus) >= 5);
-  assert.ok(Math.abs(offers.Duke.bonus) <= 30);
-  assert.ok(Math.abs(offers.Duke.bonus) >= 20);
+  assert.equal(offers.Megan.bonus, -5, 'just past a catchable last hand should only be −5');
+  assert.equal(offers.Michelle.bonus, -10);
+  assert.equal(offers.Mike.bonus, -10);
+  assert.equal(offers.Vikki.bonus, -30);
+  assert.equal(offers.Linda.bonus, -30);
+  assert.equal(offers.Duke.bonus, -30);
+});
+
+test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
+  const currentGame = QA_SCENARIOS['five-crowns-turbo-ladder'].data.currentGame;
+  const players = currentGame.originalRoster;
+  const expected = {
+    Matt: 0,
+    Cat: 0,
+    Megan: -5,
+    Michelle: -10,
+    Mike: -15,
+    Vikki: -20,
+    Linda: -25,
+    Duke: -30
+  };
+  for (const [player, bonus] of Object.entries(expected)) {
+    const result = CB.getComebackOffer(currentGame, player, players);
+    if (!bonus) {
+      assert.equal(result.eligible, false, `${player} should not have a turbo`);
+    } else {
+      assert.equal(result.eligible, true, `${player} should have a turbo`);
+      assert.equal(result.bonus, bonus, `${player} should be ${bonus}`);
+    }
+  }
 });

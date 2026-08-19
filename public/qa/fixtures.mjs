@@ -378,6 +378,16 @@ const lateCrowns8Rounds=heatRoundsFromScores(lateCrowns8Players,[
 lateCrowns8Rounds[8].comeback={Duke:-15};
 lateCrowns8Rounds[9].comeback={Duke:-15};
 const lateCrowns8Game=makeCurrentGame('Five Crowns',lateCrowns8Players,lateCrowns8Rounds);
+const turboLadderPlayers=['Matt','Cat','Megan','Michelle','Mike','Vikki','Linda','Duke'];
+const turboLadderTotals={Matt:30,Cat:38,Megan:88,Michelle:94,Mike:100,Vikki:106,Linda:110,Duke:130};
+const turboLadderRounds=[
+  ...Array.from({length:9},(_,index)=>({
+    round:index+1,
+    scores:Object.fromEntries(turboLadderPlayers.map(player=>[player,0]))
+  })),
+  {round:10,scores:{...turboLadderTotals}}
+];
+const turboLadderGame=makeCurrentGame('Five Crowns',turboLadderPlayers,turboLadderRounds);
 
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
@@ -446,6 +456,12 @@ export const QA_SCENARIOS = {
     description:'Eight players on Hand of 11, with Brick and Linda out of reach of first and Comeback extras on.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
+  },
+  'five-crowns-turbo-ladder':{
+    label:'Five Crowns · Turbo Ladder',
+    description:'Hand of 13 ladder: Matt and Cat have no extra, then Megan −5 through Duke −30, so every turbo size is on one scorecard.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:turboLadderGame}
   },
   'five-crowns-blowout':{
     label:'Five Crowns · Blowout Comeback',
