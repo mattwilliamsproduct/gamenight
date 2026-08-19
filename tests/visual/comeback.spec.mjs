@@ -10,7 +10,7 @@ test('Comeback chips explain the extra and do not offer a refuse button', async 
   await expect(page.locator('#wheel-modal')).toHaveCount(0);
   await expect(chips.first()).toHaveText(/−\d+/);
   await expect(chips.first()).not.toHaveText('Comeback');
-  await expect(chips.first()).toHaveAttribute('aria-label', /Comeback/);
+  await expect(chips.first()).toHaveAttribute('aria-label', /Turbo|Comeback/);
   await chips.first().click();
   await expect(page.locator('#comeback-explain-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#comeback-explain-lead')).toContainText('behind the lead');
@@ -24,11 +24,13 @@ test('Actions menu explains how Comeback works in this game', async ({page}, tes
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
-  await page.getByRole('button', {name: /Actions/}).click();
-  await page.getByRole('button', {name: 'Comeback', exact: true}).click();
+  await page.getByRole('button', {name: 'Turbo Instructions'}).click();
   await expect(page.locator('#comeback-rules-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#comeback-rules-title')).toHaveText('How Comeback works in Five Crowns');
+  await expect(page.locator('#comeback-rules-title')).toHaveText('How Turbos work in Five Crowns');
   const body = page.locator('#comeback-rules-content');
+  await expect(body).toContainText('What a turbo is');
+  await expect(body).toContainText('When you get one');
+  await expect(body).toContainText('How big it is');
   await expect(body).toContainText('First place never');
   await expect(body).toContainText('4 hands');
   await expect(body).toContainText('Low score wins');
@@ -78,7 +80,7 @@ test('apostrophe names can still open the Comeback explanation', async ({page}, 
     });
     renderGame();
   });
-  await page.getByRole('button', {name: /Comeback .*O'Brien/}).click();
+  await page.getByRole('button', {name: /Turbo .*O'Brien/}).click();
   await expect(page.locator('#comeback-explain-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#comeback-explain-lead')).toContainText("O'Brien");
 });

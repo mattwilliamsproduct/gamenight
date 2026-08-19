@@ -20,8 +20,8 @@ test('blowout Five Crowns gives Linda and Vikki Comeback chips',async({page},tes
   await expect(chips).toHaveCount(2);
   const linda=page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip');
   const vikki=page.locator('#scorecard-body tr',{hasText:'Vikki'}).locator('button.scorecard-comeback-chip');
-  await expect(linda).toHaveAttribute('aria-label',/Comeback/);
-  await expect(vikki).toHaveAttribute('aria-label',/Comeback/);
+  await expect(linda).toHaveAttribute('aria-label',/Turbo|Comeback/);
+  await expect(vikki).toHaveAttribute('aria-label',/Turbo|Comeback/);
   await expect(linda).toHaveText(/−\d+/);
   await expect(vikki).toHaveText(/−\d+/);
   await expect(linda).not.toHaveText('Comeback');

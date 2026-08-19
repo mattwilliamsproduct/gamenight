@@ -6843,6 +6843,7 @@ button.dealer-name-indicator .dealer-player-label {
       font-size: clamp(22.4px, 2.55vw, 34px) !important;
     }
     #game-screen #actions-btn,
+    #game-screen #turbo-instructions-btn,
     #game-screen .active-match-banner .btn-accent,
     #game-screen .active-match-banner .match-end-btn {
       font-size: 14px;
@@ -7089,6 +7090,7 @@ button.dealer-name-indicator .dealer-player-label {
               <span class="scorecard-view-toggle-track" aria-hidden="true"><span class="scorecard-view-toggle-thumb"></span></span>
             </button>
           </div>
+          <button type="button" id="turbo-instructions-btn" onclick="openComebackRules()" class="btn-ghost px-4 py-2.5 text-sm hidden">Turbo Instructions</button>
           <div class="relative">
             <button onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
@@ -7110,7 +7112,7 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
                 <button type="button" id="actions-comeback-btn" onclick="openComebackRules();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h10"></path><path d="m10 6 6 6-6 6"></path><path d="M20 5v14"></path></svg></span>
-                  <span>Comeback</span>
+                  <span>Turbo Instructions</span>
                 </button>
               </div>
               <div class="actions-menu-section">
@@ -7672,8 +7674,8 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="surface-raised comeback-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
         <button type="button" onclick="closeComebackRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5 pr-8">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Comeback</div>
-          <h3 class="font-display text-4xl md:text-5xl leading-tight" id="comeback-rules-title">How it works</h3>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Turbo</div>
+          <h3 class="font-display text-4xl md:text-5xl leading-tight" id="comeback-rules-title">How Turbos work</h3>
         </div>
         <div id="comeback-rules-content" class="comeback-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
       </div>
@@ -7684,7 +7686,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div onclick="closeComebackExplain()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised comeback-rules-card w-full max-w-md p-7 relative flex flex-col">
         <button type="button" onclick="closeComebackExplain()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Comeback</div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Turbo</div>
         <h3 class="font-display text-3xl mb-3 pr-8" id="comeback-explain-title">Why this extra</h3>
         <p id="comeback-explain-lead" class="text-sm font-extrabold mb-3" style="color:var(--ink);"></p>
         <ul id="comeback-explain-list" class="comeback-rules-body text-sm"></ul>
@@ -8916,12 +8918,12 @@ button.dealer-name-indicator .dealer-player-label {
       const readyBits=(live.statuses||[]).filter(entry=>entry.eligible).map(entry=>{
         return entry.chipLabel ? `${entry.player} (${entry.chipLabel})` : entry.player;
       });
-      lines.push(`Comeback is on for ${escapeHtml(joinLiveNames(readyBits.length?readyBits:live.ready))}.`);
+      lines.push(`Turbos are on for ${escapeHtml(joinLiveNames(readyBits.length?readyBits:live.ready))}.`);
     }
     const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
     const others=live.notYet.filter(entry=>entry.reason!=='too-early');
     if(!live.timingOpen && tooEarly.length && !others.length){
-      lines.push('Nobody has Comeback yet — the game is still too early.');
+      lines.push('Nobody has a turbo yet — the game is still too early.');
     } else {
       const groups=[];
       others.forEach(entry=>{
@@ -8967,17 +8969,31 @@ button.dealer-name-indicator .dealer-player-label {
       : {rules:{supported:false,gameName:currentGame.name,lead:'Comeback details are unavailable.',how:[],extra:[]},live:null};
     const rules=summary.rules||{};
     const title=document.getElementById('comeback-rules-title');
-    if(title) title.textContent=rules.supported?`How Comeback works in ${rules.gameName}`:`Comeback`;
+    if(title) title.textContent=rules.supported?`How Turbos work in ${rules.gameName}`:`Turbos`;
     const parts=[];
     if(rules.lead) parts.push(`<p>${escapeHtml(rules.lead)}</p>`);
-    if(rules.how?.length){
+    const sections=[
+      ['What a turbo is', rules.what],
+      ['When you get one', rules.when],
+      ['How big it is', rules.scale],
+      ['When you do not get one', rules.notWhen]
+    ];
+    const hasStructured=sections.some(([,items])=>items&&items.length);
+    if(hasStructured){
+      sections.forEach(([heading,items])=>{
+        if(!items||!items.length) return;
+        parts.push(`<h4>${heading}</h4>`);
+        parts.push(comebackRulesList(items.map(item=>escapeHtml(item))));
+      });
+    } else if(rules.how?.length){
       parts.push('<h4>It turns on when</h4>');
       parts.push(comebackRulesList(rules.how.map(item=>escapeHtml(item))));
     }
     parts.push(renderComebackRulesLive(summary.live));
-    if(rules.extra?.length){
-      parts.push('<h4>How the extra works</h4>');
-      parts.push(comebackRulesList(rules.extra.map(item=>escapeHtml(item))));
+    const applyItems=rules.apply?.length?rules.apply:rules.extra;
+    if(applyItems?.length){
+      parts.push('<h4>How the extra is applied</h4>');
+      parts.push(comebackRulesList(applyItems.map(item=>escapeHtml(item))));
     }
     const content=document.getElementById('comeback-rules-content');
     if(content) content.innerHTML=parts.join('');
@@ -12740,11 +12756,11 @@ ${isDealer
       if(over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
+    const comebackSupported=!!(window.BPGComeback&&Array.isArray(BPGComeback.SUPPORTED_GAMES)&&BPGComeback.SUPPORTED_GAMES.includes(currentGame.name));
     const comebackRulesBtn=document.getElementById('actions-comeback-btn');
-    if(comebackRulesBtn){
-      const supported=!!(window.BPGComeback&&Array.isArray(BPGComeback.SUPPORTED_GAMES)&&BPGComeback.SUPPORTED_GAMES.includes(currentGame.name));
-      comebackRulesBtn.classList.toggle('hidden', !supported);
-    }
+    if(comebackRulesBtn) comebackRulesBtn.classList.toggle('hidden', !comebackSupported);
+    const turboInstructionsBtn=document.getElementById('turbo-instructions-btn');
+    if(turboInstructionsBtn) turboInstructionsBtn.classList.toggle('hidden', !comebackSupported);
 
     const portraitTimer = gnPerfStart('GN renderGame renderPortraitView');
     try{
