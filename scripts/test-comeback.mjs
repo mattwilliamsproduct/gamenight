@@ -596,10 +596,24 @@ test('Wizard 6-player mid-late table gives Matt +20 and Mike a turbo', () => {
   assert.equal(lateOffers.Megan.eligible, true);
 });
 
-test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
-  const currentGame = QA_SCENARIOS['five-crowns-turbo-ladder'].data.currentGame;
+function assertTurboLadder(scenarioId, expected) {
+  const currentGame = QA_SCENARIOS[scenarioId].data.currentGame;
   const players = currentGame.originalRoster;
-  const expected = {
+  for (const [player, bonus] of Object.entries(expected)) {
+    const result = CB.getComebackOffer(currentGame, player, players);
+    if (!bonus) {
+      assert.equal(result.eligible, false, `${scenarioId} ${player} should not have a turbo`);
+    } else {
+      assert.equal(result.eligible, true, `${scenarioId} ${player} should have a turbo`);
+      assert.equal(result.bonus, bonus, `${scenarioId} ${player} should be ${bonus}`);
+    }
+  }
+}
+
+test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
+  const game = QA_SCENARIOS['five-crowns-turbo-ladder'].data.currentGame;
+  assert.equal(game.currentRound, 9);
+  assertTurboLadder('five-crowns-turbo-ladder', {
     Matt: 0,
     Cat: 0,
     Megan: -5,
@@ -608,14 +622,45 @@ test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
     Vikki: -20,
     Linda: -25,
     Duke: -30
-  };
-  for (const [player, bonus] of Object.entries(expected)) {
-    const result = CB.getComebackOffer(currentGame, player, players);
-    if (!bonus) {
-      assert.equal(result.eligible, false, `${player} should not have a turbo`);
-    } else {
-      assert.equal(result.eligible, true, `${player} should have a turbo`);
-      assert.equal(result.bonus, bonus, `${player} should be ${bonus}`);
-    }
-  }
+  });
+});
+
+test('Wizard, 818, and Flip 7 turbo ladder fixtures show each game\'s scale', () => {
+  const wizard = QA_SCENARIOS['wizard-turbo-ladder'].data.currentGame;
+  assert.equal(wizard.currentRound, 6);
+  assert.equal(CB.getMaxRounds(wizard, wizard.originalRoster), 7);
+  assertTurboLadder('wizard-turbo-ladder', {
+    Matt: 0,
+    Cat: 0,
+    Megan: 5,
+    Michelle: 10,
+    Mike: 15,
+    Vikki: 20,
+    Linda: 20,
+    Duke: 20
+  });
+
+  const eight18 = QA_SCENARIOS['eight18-turbo-ladder'].data.currentGame;
+  assert.equal(eight18.currentRound, 12);
+  assertTurboLadder('eight18-turbo-ladder', {
+    Matt: 0,
+    Cat: 0,
+    Megan: 5,
+    Michelle: 6,
+    Mike: 7,
+    Vikki: 8,
+    Linda: 9,
+    Duke: 10
+  });
+
+  assertTurboLadder('flip7-turbo-ladder', {
+    Matt: 0,
+    Cat: 0,
+    Megan: 5,
+    Michelle: 10,
+    Mike: 15,
+    Vikki: 15,
+    Linda: 15,
+    Duke: 15
+  });
 });

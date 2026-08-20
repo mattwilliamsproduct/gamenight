@@ -379,15 +379,80 @@ lateCrowns8Rounds[8].comeback={Duke:-15};
 lateCrowns8Rounds[9].comeback={Duke:-15};
 const lateCrowns8Game=makeCurrentGame('Five Crowns',lateCrowns8Players,lateCrowns8Rounds);
 const turboLadderPlayers=['Matt','Cat','Megan','Michelle','Mike','Vikki','Linda','Duke'];
-const turboLadderTotals={Matt:30,Cat:38,Megan:88,Michelle:94,Mike:100,Vikki:106,Linda:110,Duke:130};
-const turboLadderRounds=[
-  ...Array.from({length:9},(_,index)=>({
-    round:index+1,
-    scores:Object.fromEntries(turboLadderPlayers.map(player=>[player,0]))
-  })),
-  {round:10,scores:{...turboLadderTotals}}
-];
-const turboLadderGame=makeCurrentGame('Five Crowns',turboLadderPlayers,turboLadderRounds);
+function roundsFromPlayerRows(players,scoreRows,decorate){
+  return scoreRows.map((scoreRow,roundIndex)=>{
+    const round={
+      round:roundIndex+1,
+      scores:Object.fromEntries(players.map((player,index)=>[player,Number(scoreRow[index])||0]))
+    };
+    if(typeof decorate==='function') decorate(round,roundIndex);
+    return round;
+  });
+}
+function eight18Decorate(round){
+  const tricks=[8,7,6,5,4,3,2,1,2,3,4,5,6,7,8][round.round-1]||0;
+  const bids={};
+  const actuals={};
+  Object.entries(round.scores).forEach(([player,score])=>{
+    const value=Number(score)||0;
+    if(value>=10){
+      const made=Math.max(0,Math.min(tricks,value-10));
+      bids[player]=made;
+      actuals[player]=made;
+    }else{
+      bids[player]=Math.min(tricks,Math.max(1,Math.round(tricks/3)));
+      actuals[player]=Math.max(0,value);
+    }
+  });
+  round.bids=bids;
+  round.actuals=actuals;
+}
+
+const fiveCrownsLadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
+  [4,6,10,12,13,14,15,16],
+  [3,7,11,12,13,14,16,17],
+  [5,6,10,11,13,15,15,18],
+  [4,8,12,13,14,14,16,16],
+  [3,5,9,12,13,15,16,18],
+  [4,6,11,11,13,14,15,16],
+  [4,6,11,12,13,14,16,17],
+  [3,6,10,11,12,14,15,16]
+]);
+const fiveCrownsLadderGame=makeCurrentGame('Five Crowns',turboLadderPlayers,fiveCrownsLadderRounds);
+
+const wizardLadderRounds=wizardRoundsFromScores(turboLadderPlayers,[
+  [30,20,20,20,20,20,20,20],
+  [30,30,30,20,20,20,20,20],
+  [20,20,20,20,20,20,20,20],
+  [40,20,20,20,20,20,15,10],
+  [20,20,15,20,15,10,10,10]
+]);
+const wizardLadderGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardLadderRounds);
+
+const eight18LadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
+  [12,12,10,10,10,10,10,10],
+  [11,11,10,10,10,10,10,10],
+  [11,11,10,10,10,10,10,8],
+  [12,10,10,10,10,10,8,8],
+  [11,10,10,10,8,8,8,8],
+  [11,10,8,8,8,8,8,8],
+  [10,10,8,8,8,8,8,8],
+  [10,8,8,8,8,8,8,8],
+  [11,10,8,8,8,8,8,6],
+  [11,10,8,8,8,6,6,6],
+  [10,10,10,8,8,8,8,8]
+],eight18Decorate);
+const eight18LadderGame=makeCurrentGame('818',turboLadderPlayers,eight18LadderRounds);
+
+const flip7LadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
+  [28,22,16,14,12,10,8,6],
+  [24,20,16,14,12,10,8,6],
+  [22,18,14,12,12,10,8,6],
+  [22,18,14,12,10,8,8,4],
+  [22,16,14,12,10,10,8,4],
+  [22,16,12,12,10,8,6,4]
+]);
+const flip7LadderGame=makeCurrentGame('Flip 7 Vengeance',turboLadderPlayers,flip7LadderRounds);
 
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
@@ -459,9 +524,27 @@ export const QA_SCENARIOS = {
   },
   'five-crowns-turbo-ladder':{
     label:'Five Crowns · Turbo Ladder',
-    description:'Hand of 13 ladder: Matt and Cat have no extra, then Megan −5 through Duke −30, so every turbo size is on one scorecard.',
+    description:'Eight-player Five Crowns after 8 of 11: Matt and Cat have no extra, then Megan −5 through Duke −30.',
     defaultSurface:'scorecard',
-    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:turboLadderGame}
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:fiveCrownsLadderGame}
+  },
+  'wizard-turbo-ladder':{
+    label:'Wizard · Turbo Ladder',
+    description:'Eight-player Wizard after 5 of 7: Matt and Cat have no extra, then Megan +5 through Duke +20 (Wizard caps at +20).',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardLadderGame}
+  },
+  'eight18-turbo-ladder':{
+    label:'818 · Turbo Ladder',
+    description:'Eight-player 818 after 11 of 15: Matt and Cat have no extra, then Megan +5 through Duke +10 (818 caps at +10).',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:eight18LadderGame}
+  },
+  'flip7-turbo-ladder':{
+    label:'Flip 7 · Turbo Ladder',
+    description:'Eight-player Flip 7 mid-session: Matt and Cat have no extra, then Megan +5, Michelle +10, and Mike through Duke +15 (Flip 7 caps at +15).',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:flip7LadderGame}
   },
   'five-crowns-blowout':{
     label:'Five Crowns · Blowout Comeback',

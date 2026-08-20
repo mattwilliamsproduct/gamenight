@@ -15373,7 +15373,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=turbo-ladder-20260819');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=turbo-ladder-20260820');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);
