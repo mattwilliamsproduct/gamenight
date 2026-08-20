@@ -7837,13 +7837,18 @@ button.dealer-name-indicator .dealer-player-label {
         <div class="border-t hairline pt-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Data Vault</div>
           <div class="space-y-3">
+            <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
+            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Export from the copy that still has your nights, then import that file here.</p>
             <button id="settings-perf-report-btn" onclick="openPerfReport()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">⚡ Performance Report</button>
-            <button onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📥 Export Backup</button>
-            <div>
-              <p class="text-xs font-bold text-center mb-3" style="color:var(--muted);">Paste incoming JSON:</p>
+            <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📥 Export Backup File</button>
+            <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📤 Import Backup File</button>
+            <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
+            <details class="rounded-2xl border hairline p-3" style="background:var(--surface-2);">
+              <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
+              <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
               <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--bg-2);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
-              <button onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📋 Paste &amp; Merge</button>
-            </div>
+              <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📋 Paste &amp; Merge</button>
+            </details>
           </div>
         </div>
       </div>
@@ -7981,6 +7986,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div><!-- /max-w -->
 
 
+  <script src="./assets/backup.js"></script>
   <script src="./assets/comeback-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
@@ -8852,12 +8858,21 @@ button.dealer-name-indicator .dealer-player-label {
   /* ═══ MODAL HELPERS ═══ */
   function openModal(id){ const m=document.getElementById(id); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
   function closeModal(id){ const m=document.getElementById(id); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),280); }
+  function refreshBackupSummary(){
+    const summary=document.getElementById('backup-device-summary');
+    const hint=document.getElementById('backup-empty-hint');
+    if(!summary||!window.BPGBackup)return;
+    const snap=BPGBackup.summarizeHistory(history);
+    summary.textContent=snap.line;
+    if(hint) hint.classList.toggle('hidden', snap.total>0);
+  }
   function openSettings(){
     gnPerfAction('opened Settings');
     syncAppearanceControls();
     document.getElementById('pref-lineupintro').checked = prefs.lineupIntro;
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
+    refreshBackupSummary();
     openModal('settings-modal');
   }
   function closeSettings(){ closeModal('settings-modal'); }
@@ -9415,27 +9430,74 @@ button.dealer-name-indicator .dealer-player-label {
   });
 
   /* ═══ EXPORT / IMPORT ═══ */
+  function currentBackupState(){
+    return {allPlayers,players,history,playerProfiles,currentGame,prefs,uiScale:currentUIBase};
+  }
+  function applyMergedBackup(next, added){
+    allPlayers=next.allPlayers;
+    players=next.players;
+    history=next.history;
+    playerProfiles=next.playerProfiles;
+    currentGame=next.currentGame||null;
+    if(next.prefs&&typeof next.prefs==='object'){
+      if(typeof next.prefs.lineupIntro==='boolean') prefs.lineupIntro=next.prefs.lineupIntro;
+      if(typeof next.prefs.statMontage==='boolean') prefs.statMontage=next.prefs.statMontage;
+      if(typeof next.prefs.dealerRoll==='boolean') prefs.dealerRoll=next.prefs.dealerRoll;
+      savePref('gn_pref_lineupintro', prefs.lineupIntro);
+      savePref('gn_pref_statmontage', prefs.statMontage);
+      savePref('gn_pref_dealerroll', prefs.dealerRoll);
+    }
+    if(Number.isFinite(Number(next.uiScale))){
+      currentUIBase=Math.max(8,Math.min(24,Number(next.uiScale)));
+      document.documentElement.style.fontSize=currentUIBase+'px';
+      try{localStorage.setItem('gn_ui_scale',currentUIBase);}catch(e){}
+      syncAppearanceControls();
+    }
+    if(added.games) markHistoryChanged();
+    if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
+    saveData({ fullPersist: true, syncCold: true });
+    const incoming=added.incoming?.line || 'No finished games.';
+    const now=added.device?.line || BPGBackup.summarizeHistory(history).line;
+    alert(`Merged ${added.games} new game${added.games===1?'':'s'}.\n\nIn that file: ${incoming}\nNow on this copy: ${now}`);
+    refreshBackupSummary();
+    closeSettings();
+    goHome();
+  }
   function exportData(){
-    const d={allPlayers,players,history,playerProfiles,currentGame};
+    if(!window.BPGBackup)return alert('Backup is not ready.');
+    const d=BPGBackup.buildBackup(currentBackupState());
     const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=url; a.download=`gamenight-${Date.now()}.json`; a.click();
-    URL.revokeObjectURL(url); closeSettings();
+    URL.revokeObjectURL(url);
+    const snap=BPGBackup.summarizeHistory(d.history);
+    alert(`Saved backup file.\n\n${snap.line}`);
+    closeSettings();
+  }
+  function importBackupText(text){
+    if(!window.BPGBackup) throw new Error('invalid-backup');
+    const incoming=BPGBackup.parseBackup(text);
+    const {next,added}=BPGBackup.mergeBackup(currentBackupState(), incoming);
+    applyMergedBackup(next, added);
   }
   function importDataFromText(){
     const text=document.getElementById('import-text').value.trim(); if(!text)return alert('Paste your JSON first.');
     try{
-      const d=JSON.parse(text);
-      if(d.allPlayers) d.allPlayers.forEach(p=>{if(p&&!allPlayers.includes(p))allPlayers.push(p);});
-      if(d.players) d.players.forEach(p=>{if(p&&!players.includes(p))players.push(p);});
-      let importedHistory=false;
-      if(d.history) d.history.forEach(h=>{if(!history.find(x=>x.id===h.id)){history.push(h);importedHistory=true;}});
-      if(importedHistory) markHistoryChanged();
-      if(d.playerProfiles) Object.assign(playerProfiles,d.playerProfiles);
-      if(Object.prototype.hasOwnProperty.call(d,'currentGame')) currentGame=d.currentGame||null;
-      if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
-      saveData({ fullPersist: true, syncCold: true }); alert('Merged successfully.'); closeSettings(); goHome();
+      importBackupText(text);
     }catch(e){alert('Invalid JSON.');}
+  }
+  function importDataFromFile(ev){
+    const file=ev?.target?.files?.[0];
+    if(ev?.target) ev.target.value='';
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onerror=()=>alert('Could not read that file.');
+    reader.onload=()=>{
+      try{
+        importBackupText(String(reader.result||''));
+      }catch(e){alert('That file is not a valid backup.');}
+    };
+    reader.readAsText(file);
   }
 
   /* ═══ RULES TEXT ═══ */
