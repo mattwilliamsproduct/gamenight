@@ -5,7 +5,7 @@
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
   const EIGHT18_BID_BONUS = 10;
-  const FLIP7_STRONG_ROUNDS = 2.5;
+  const FLIP7_STRONG_ROUNDS = 2;
   const FLIP7_MIN_BANK = 10;
   const JOINER_MIN_ROUNDS = 4;
 
@@ -23,7 +23,7 @@
       increment: 5,
       bonusMax: 20,
       minScoringRounds: null,
-      recoveryLoad: 0.2
+      recoveryLoad: 0.15
     },
     'Five Crowns': {
       winLow: true,
@@ -31,7 +31,7 @@
       increment: 5,
       bonusMax: 30,
       minScoringRounds: 4,
-      recoveryLoad: 0.2
+      recoveryLoad: 0.15
     },
     'Flip 7 Vengeance': {
       winLow: false,
@@ -87,8 +87,8 @@
       return EIGHT18_BID_BONUS + extra;
     }
     if (game.name === 'Wizard') {
-      // A solid made bid of 2, not sweeping every trick in a late hand.
-      return 40;
+      // A made bid of 1 (20 + 10). A made 2 is already a climb, not the floor.
+      return 30;
     }
     return ruleUnitForRound(game.name, roundNumber);
   }
@@ -211,7 +211,9 @@
 
   function expectedGoodTurns(gameName, remainingRounds) {
     if (gameName === 'Flip 7 Vengeance') return FLIP7_STRONG_ROUNDS;
-    return Math.max(1, Math.round((Number(remainingRounds) || 0) / 2));
+    const left = Number(remainingRounds) || 0;
+    if (gameName === 'Wizard') return Math.max(1, Math.floor(left / 2));
+    return Math.max(1, Math.round(left / 2));
   }
 
   function sizeComebackBonus(gap, expectedTurns, increment, bonusMax) {
@@ -601,11 +603,11 @@
       ];
     } else if (gameName === 'Wizard') {
       timing = 'Once the first few rounds are scored (about a quarter of the game).';
-      gap = 'You are about 40 or more points behind first — that is one made bid of 2. Close enough to still catch with ordinary makes gets nothing.';
+      gap = 'You are about 30 or more points behind first — that is one made bid of 1. Close enough to still catch with ordinary makes gets nothing.';
       success = 'The extra is added only when you make your bid.';
       scale = [
         'Wizard turbos are +5, +10, +15, or +20.',
-        'About 40 behind first is a small turbo. 60 to 70 behind late is +20.',
+        'About 30 behind first is a small turbo. 60 to 90 behind with a few rounds left is +15 or +20.',
         'The extra only applies if you make your bid. It cannot put you in 1st.'
       ];
     } else if (gameName === 'Five Crowns') {
@@ -619,7 +621,7 @@
       ];
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind first place.';
+      gap = 'Flip 7 has no set finish line. You need to be about two strong banks behind first place.';
       success = 'The extra is added only when you bank at least 10 points.';
       scale = [
         'Flip 7 turbos are +5, +10, or +15.',
