@@ -5,7 +5,7 @@
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
   const EIGHT18_BID_BONUS = 10;
-  const FLIP7_STRONG_ROUNDS = 2;
+  const FLIP7_STRONG_ROUNDS = 1.5;
   const FLIP7_MIN_BANK = 10;
   const JOINER_MIN_ROUNDS = 4;
 
@@ -29,15 +29,15 @@
       winLow: true,
       maxRounds: 11,
       increment: 5,
-      bonusMax: 30,
+      bonusMax: 40,
       minScoringRounds: 4,
-      recoveryLoad: 0.15
+      recoveryLoad: 0.12
     },
     'Flip 7 Vengeance': {
       winLow: false,
       maxRounds: 999,
       increment: 5,
-      bonusMax: 15,
+      bonusMax: 20,
       minScoringRounds: 4,
       recoveryLoad: null
     }
@@ -88,6 +88,10 @@
     }
     if (game.name === 'Wizard') {
       // A made bid of 1 (20 + 10). A made 2 is already a climb, not the floor.
+      return 30;
+    }
+    if (game.name === 'Five Crowns') {
+      // A strong go-out versus a normal dump, not a max leftover pile.
       return 30;
     }
     return ruleUnitForRound(game.name, roundNumber);
@@ -213,6 +217,8 @@
     if (gameName === 'Flip 7 Vengeance') return FLIP7_STRONG_ROUNDS;
     const left = Number(remainingRounds) || 0;
     if (gameName === 'Wizard') return Math.max(1, Math.floor(left / 2));
+    // Late 818: 20 behind with 4 rounds left should land near +8, not +5.
+    if (gameName === '818') return Math.max(0.8, left / 3.2);
     return Math.max(1, Math.round(left / 2));
   }
 
@@ -612,20 +618,20 @@
       ];
     } else if (gameName === 'Five Crowns') {
       timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins. You are far enough behind first that a normal hand cannot catch them. Close to first gets nothing.';
+      gap = 'Low score wins. About 40 behind first is the first turbo. 20 behind is still a race.';
       success = 'The extra subtracts points, and only if you go out with 0.';
       scale = [
-        'Five Crowns turbos are −5, −10, −15, −20, −25, or −30.',
-        'A small slide is −5. Each bigger hole steps up by 5, up to −30.',
+        'Five Crowns turbos are −5 through −40.',
+        'About 40 behind first is −5. About 54 behind is −10. A blowout can reach −40.',
         'Low score wins, so the extra takes points off — it never adds them.'
       ];
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'Flip 7 has no set finish line. You need to be about two strong banks behind first place.';
+      gap = 'Flip 7 has no set finish line. You need to be about one and a half strong banks behind first place.';
       success = 'The extra is added only when you bank at least 10 points.';
       scale = [
-        'Flip 7 turbos are +5, +10, or +15.',
-        'Close to first gets nothing. A small slide is +5. A blowout can reach +15.'
+        'Flip 7 turbos are +5, +10, +15, or +20.',
+        'Close to first gets nothing. A small slide is +5. A blowout can reach +20.'
       ];
     }
 

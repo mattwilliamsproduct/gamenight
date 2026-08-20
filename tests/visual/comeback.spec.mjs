@@ -24,6 +24,7 @@ test('Actions menu explains how Comeback works in this game', async ({page}, tes
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
+  await page.getByRole('button', {name: 'Actions'}).click();
   await page.getByRole('button', {name: 'Turbo Instructions'}).click();
   await expect(page.locator('#comeback-rules-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#comeback-rules-title')).toHaveText('How Turbos work in Five Crowns');

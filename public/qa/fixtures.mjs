@@ -524,7 +524,7 @@ export const QA_SCENARIOS = {
   },
   'five-crowns-turbo-ladder':{
     label:'Five Crowns · Turbo Ladder',
-    description:'Eight-player Five Crowns after 8 of 11: Matt and Cat have no extra, then Megan −5 through Duke −30.',
+    description:'Eight-player Five Crowns after 8 of 11: Matt and Cat have no extra, then Megan −10 through Duke −35.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:fiveCrownsLadderGame}
   },
@@ -536,13 +536,13 @@ export const QA_SCENARIOS = {
   },
   'eight18-turbo-ladder':{
     label:'818 · Turbo Ladder',
-    description:'Eight-player 818 after 11 of 15: Matt and Cat have no extra, then Megan +5 through Duke +10 (818 caps at +10).',
+    description:'Eight-player 818 after 11 of 15: Matt and Cat have no extra, then Megan +8, Michelle +9, and Mike through Duke +10.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:eight18LadderGame}
   },
   'flip7-turbo-ladder':{
     label:'Flip 7 · Turbo Ladder',
-    description:'Eight-player Flip 7 mid-session: Matt and Cat have no extra, then Megan +5, Michelle +10, and Mike through Duke +15 (Flip 7 caps at +15).',
+    description:'Eight-player Flip 7 mid-session: Matt and Cat have no extra, then Megan +10 and Michelle through Duke +20.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:flip7LadderGame}
   },

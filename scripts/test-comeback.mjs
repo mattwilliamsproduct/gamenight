@@ -108,7 +108,7 @@ test('818 23-down mid-game sizes about +6 and a miss gets nothing', () => {
   assert.equal(gus.packGap, 23);
   assert.equal(hal.packGap, 38);
   assert.ok(gus.bonus >= 4 && gus.bonus <= 10, `Gus bonus ${gus.bonus}`);
-  assert.ok(hal.bonus > gus.bonus, 'the deeper hole should get more extra');
+  assert.ok(hal.bonus >= gus.bonus, 'the deeper hole should get at least as much extra');
   assert.ok(hal.bonus <= 10);
 
   const g = game({ name: '818', players: EIGHT, totals, roundCount: 10, spread: 14, currentRound: 11 });
@@ -180,7 +180,7 @@ test('Five Crowns extra subtracts only on a 0', () => {
   assert.equal(result.eligible, true);
   assert.equal(result.winLow, true);
   assert.ok(result.bonus < 0);
-  assert.ok(Math.abs(result.bonus) <= 30);
+  assert.ok(Math.abs(result.bonus) <= 40);
 
   const g = game({ name: 'Five Crowns', players: EIGHT, totals, roundCount: 7, spread: 22, currentRound: 8 });
   const round = { round: 8, scores: { Gus: 0, Hal: 8 } };
@@ -189,7 +189,7 @@ test('Five Crowns extra subtracts only on a 0', () => {
   assert.equal(round.comeback.Hal, undefined);
 });
 
-test('Flip 7 uses a 2-bank hole and only pays a bank', () => {
+test('Flip 7 uses a 1.5-bank hole and only pays a bank', () => {
   const players = EIGHT;
   const totals = { Ann: 140, Bea: 130, Cal: 128, Dee: 126, Eve: 80, Fay: 70, Gus: 40, Hal: 20 };
   const rounds = [
@@ -201,7 +201,7 @@ test('Flip 7 uses a 2-bank hole and only pays a bank', () => {
   const close = CB.getComebackOffer(game({
     name: 'Flip 7 Vengeance',
     players,
-    totals: { ...totals, Hal: 100 },
+    totals: { ...totals, Hal: 110 },
     roundCount: 0,
     spread: 22,
     extraRounds: rounds
@@ -216,8 +216,8 @@ test('Flip 7 uses a 2-bank hole and only pays a bank', () => {
   }), 'Hal', players);
   assert.equal(close.eligible, false);
   assert.equal(stranded.eligible, true);
-  assert.equal(stranded.expectedGoodTurns, 2);
-  assert.ok(stranded.bonus <= 15);
+  assert.equal(stranded.expectedGoodTurns, 1.5);
+  assert.ok(stranded.bonus <= 20);
 
   const g = game({ name: 'Flip 7 Vengeance', players, totals, roundCount: 0, extraRounds: rounds });
   const bank = { round: 5, scores: { Hal: 12, Gus: 0 } };
@@ -335,7 +335,7 @@ test('Five Crowns QA fixture gives Brick a Comeback extra', () => {
   assert.equal(result.rank, 7);
   assert.equal(result.packGap, 110);
   assert.ok(result.bonus < 0);
-  assert.ok(Math.abs(result.bonus) <= 30);
+  assert.ok(Math.abs(result.bonus) <= 40);
   const explained = CB.explainComebackOffer(result);
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /behind the lead/);
@@ -391,8 +391,8 @@ test('Comeback rules copy is plain language and game-specific', () => {
 
   const flip7 = CB.explainComebackRules('Flip 7 Vengeance');
   assert.match(flip7.lead, /Flip 7/);
-  assert.ok(flip7.when.some(line => /two strong banks/.test(line)));
-  assert.ok(flip7.scale.some(line => /\+5, \+10, or \+15/.test(line)));
+  assert.ok(flip7.when.some(line => /one and a half strong banks/.test(line)));
+  assert.ok(flip7.scale.some(line => /\+5, \+10, \+15, or \+20/.test(line)));
   assert.ok(flip7.apply.some(line => /at least 10 points/.test(line)));
 
   const rook = CB.explainComebackRules('Rook');
@@ -425,8 +425,8 @@ test('Five Crowns blowout gives both stragglers Comeback and a bigger extra than
   assert.equal(linda.reason, 'ok');
   assert.ok(Math.abs(linda.bonus) > 15, `blowout extra should be more than 15, got ${linda.bonus}`);
   assert.ok(Math.abs(vikki.bonus) > 15, `blowout extra should be more than 15, got ${vikki.bonus}`);
-  assert.ok(Math.abs(linda.bonus) <= 30);
-  assert.ok(Math.abs(vikki.bonus) <= 30);
+  assert.ok(Math.abs(linda.bonus) <= 40);
+  assert.ok(Math.abs(vikki.bonus) <= 40);
   assert.equal(currentGame.rounds[5].comeback.Vikki, -15);
   assert.equal(CB.formatRoundScore(0, -15), '0 −15');
 });
@@ -512,7 +512,7 @@ test('818, Wizard, and Flip 7 use the same sliding turbo scale', () => {
 
 test('Five Crowns last-hand runaway pair gives 3rd through last a scaled extra', () => {
   const players = ['Matt', 'Cat', 'Megan', 'Michelle', 'Mike', 'Vikki', 'Linda', 'Duke'];
-  const totals = { Matt: 31, Cat: 34, Megan: 92, Michelle: 94, Mike: 94, Vikki: 159, Linda: 172, Duke: 182 };
+  const totals = { Matt: 31, Cat: 34, Megan: 66, Michelle: 72, Mike: 72, Vikki: 110, Linda: 125, Duke: 140 };
   const rounds = Array.from({ length: 10 }, (_, index) => ({
     round: index + 1,
     scores: Object.fromEntries(players.map(player => [player, 0]))
@@ -533,9 +533,9 @@ test('Five Crowns last-hand runaway pair gives 3rd through last a scaled extra',
   assert.equal(offers.Megan.bonus, -5, 'just past a catchable last hand should only be −5');
   assert.equal(offers.Michelle.bonus, -10);
   assert.equal(offers.Mike.bonus, -10);
-  assert.equal(offers.Vikki.bonus, -30);
-  assert.equal(offers.Linda.bonus, -30);
-  assert.equal(offers.Duke.bonus, -30);
+  assert.equal(offers.Vikki.bonus, -40);
+  assert.equal(offers.Linda.bonus, -40);
+  assert.equal(offers.Duke.bonus, -40);
 });
 
 test('Wizard late 7-player table gives the trailing pack turbos and Linda +20', () => {
@@ -610,18 +610,18 @@ function assertTurboLadder(scenarioId, expected) {
   }
 }
 
-test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
+test('Five Crowns turbo ladder fixture shows −10 through −35', () => {
   const game = QA_SCENARIOS['five-crowns-turbo-ladder'].data.currentGame;
   assert.equal(game.currentRound, 9);
   assertTurboLadder('five-crowns-turbo-ladder', {
     Matt: 0,
     Cat: 0,
-    Megan: -5,
-    Michelle: -10,
-    Mike: -15,
-    Vikki: -20,
-    Linda: -25,
-    Duke: -30
+    Megan: -10,
+    Michelle: -15,
+    Mike: -20,
+    Vikki: -25,
+    Linda: -30,
+    Duke: -35
   });
 });
 
@@ -645,22 +645,22 @@ test('Wizard, 818, and Flip 7 turbo ladder fixtures show each game\'s scale', ()
   assertTurboLadder('eight18-turbo-ladder', {
     Matt: 0,
     Cat: 0,
-    Megan: 5,
-    Michelle: 6,
-    Mike: 7,
-    Vikki: 8,
-    Linda: 9,
+    Megan: 8,
+    Michelle: 9,
+    Mike: 10,
+    Vikki: 10,
+    Linda: 10,
     Duke: 10
   });
 
   assertTurboLadder('flip7-turbo-ladder', {
     Matt: 0,
     Cat: 0,
-    Megan: 5,
-    Michelle: 10,
-    Mike: 15,
-    Vikki: 15,
-    Linda: 15,
-    Duke: 15
+    Megan: 10,
+    Michelle: 20,
+    Mike: 20,
+    Vikki: 20,
+    Linda: 20,
+    Duke: 20
   });
 });

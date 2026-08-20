@@ -1041,9 +1041,9 @@
       margin-left: 0.28rem;
       padding: 0.18rem 0.58rem 0.18rem 0.46rem;
       border-radius: 999px;
-      border: 1.5px solid rgba(231,115,88,0.45);
-      background: rgba(231,115,88,0.12);
-      color: #9a3412;
+      border: 1.5px solid rgba(40,127,155,0.5);
+      background: rgba(40,127,155,0.14);
+      color: #0c4a6e;
       font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: 0;
@@ -1068,7 +1068,7 @@
       height: 0.42rem;
       flex: 0 0 0.42rem;
       border-radius: 50%;
-      background: #c2410c;
+      background: #287f9b;
     }
     button.scorecard-comeback-chip,
     button.portrait-comeback-chip {
@@ -1076,7 +1076,7 @@
     }
     button.scorecard-comeback-chip:focus-visible,
     button.portrait-comeback-chip:focus-visible {
-      outline: 2px solid #ef765b;
+      outline: 2px solid #287f9b;
       outline-offset: 2px;
     }
     .score-cell-stack { position: relative; }
@@ -1134,7 +1134,7 @@
       font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
       font-size: 0.82em;
       font-weight: 400;
-      color: #c2410c;
+      color: #0c4a6e;
       line-height: 1;
       margin: 0;
       padding: 0;
@@ -2400,7 +2400,7 @@ button.dealer-name-indicator {
   width: max-content;
   flex: 0 1 auto;
   justify-content: flex-start;
-  overflow: hidden;
+  overflow: visible;
 }
     button.dealer-name-indicator:hover {
       filter: brightness(1.05);
@@ -2886,6 +2886,27 @@ button.dealer-name-indicator {
       body.active-match-view #rook-round-panel {
         flex: 0 0 auto;
       }
+      body.active-match-view .active-match-banner {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0.7rem 1.05rem !important;
+        margin-bottom: 0.55rem !important;
+        gap: 0.75rem;
+      }
+      body.active-match-view .active-match-banner .bp-live-kicker {
+        display: none;
+      }
+      body.active-match-view .active-match-banner .bp-game-header-row {
+        flex-wrap: nowrap;
+      }
+      body.active-match-view .active-match-banner #round-intel,
+      body.active-match-view .active-match-banner #wizard-header-metrics {
+        white-space: nowrap;
+      }
+      body.active-match-view .active-match-actions {
+        flex-wrap: nowrap;
+      }
       body.active-match-view #game-screen {
         flex: 1 1 auto;
         min-height: 0;
@@ -3153,9 +3174,27 @@ button.dealer-name-indicator {
       max-width: 100%;
       min-width: 0;
     }
-    .scorecard-player-identity .scoreboard-player-name {
-      flex: 1 1 auto;
+    .scorecard-player-identity > .scoreboard-player-name,
+    .scorecard-player-name-slot .scoreboard-player-name {
+      flex: 0 1 auto;
       min-width: 0;
+    }
+    .scorecard-player-name-slot {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    .scorecard-turbo-slot {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex: 0 0 3.35rem;
+      width: 3.35rem;
+      min-width: 3.35rem;
+    }
+    .scorecard-turbo-slot .scorecard-comeback-chip {
+      margin-left: 0;
     }
     .scorecard-col-total {
       width: 7.5rem;
@@ -3273,7 +3312,7 @@ button.dealer-name-indicator {
       margin-bottom: -0.18em;
     }
 button.dealer-name-indicator.scoreboard-player-name {
-  max-width: none;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 0;
@@ -3282,8 +3321,10 @@ button.dealer-name-indicator.scoreboard-player-name {
   justify-content: flex-start;
   padding-top: 0.08em;
   padding-bottom: 0.08em;
-  padding-left: 0;
-  padding-right: 0;
+  padding-left: 0.12em;
+  padding-right: 0.12em;
+  border: 0;
+  box-shadow: inset 0 0 0 2px var(--emerald);
 }
 button.dealer-name-indicator .dealer-player-label {
   min-width: 0;
@@ -6888,7 +6929,6 @@ button.dealer-name-indicator .dealer-player-label {
       font-size: clamp(22.4px, 2.55vw, 34px) !important;
     }
     #game-screen #actions-btn,
-    #game-screen #turbo-instructions-btn,
     #game-screen .active-match-banner .btn-accent,
     #game-screen .active-match-banner .match-end-btn {
       font-size: 14px;
@@ -7121,21 +7161,20 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="bp-active-game-art" aria-hidden="true"></div>
           <div class="bp-active-copy flex flex-col gap-1.5 min-w-0">
             <div class="bp-live-kicker">Live Table</div>
-            <div class="bp-game-header-row flex items-center gap-3 sm:gap-4 flex-wrap">
+            <div class="bp-game-header-row flex items-center gap-3 sm:gap-4 flex-nowrap min-w-0">
               <h2 id="game-title" class="font-display shrink-0"></h2>
               <div id="round-intel" class="round-banner font-display min-w-0" style="color:var(--emerald);"></div>
               <div id="wizard-header-metrics" class="hidden inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors"></div>
             </div>
           </div>
         </div>
-        <div class="active-match-actions flex flex-wrap gap-2 items-center relative">
+        <div class="active-match-actions flex flex-nowrap gap-2 items-center relative shrink-0">
           <div id="scorecard-view-toggle-wrap" class="scorecard-view-toggle-wrap hidden">
             <button id="scorecard-view-pace-toggle" type="button" class="scorecard-view-toggle" role="switch" aria-checked="true" aria-label="View Pace" onclick="toggleRecordChasePanel()">
               <span class="scorecard-view-toggle-label">View Pace</span>
               <span class="scorecard-view-toggle-track" aria-hidden="true"><span class="scorecard-view-toggle-thumb"></span></span>
             </button>
           </div>
-          <button type="button" id="turbo-instructions-btn" onclick="openComebackRules()" class="btn-ghost px-4 py-2.5 text-sm hidden">Turbo Instructions</button>
           <div class="relative">
             <button onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
@@ -12247,16 +12286,16 @@ ${isDealer
       let scale=Math.max(0.3,targetRow/currentRow);
       let rowHeight=targetRow;
       const applyFit=()=>{
-        const playerFont=Math.max(16,Math.min(116,rowHeight*0.66));
-        const totalFont=Math.max(16,Math.min(110,rowHeight*0.62));
-        root.style.setProperty('--scorecard-row-height',`${Math.max(20,Math.floor(rowHeight))}px`);
+        const playerFont=Math.max(22,Math.min(116,rowHeight*0.66));
+        const totalFont=Math.max(20,Math.min(110,rowHeight*0.62));
+        root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
-        root.style.setProperty('--scorecard-avatar-size',`${Math.max(18,Math.min(rowHeight-6,164)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-avatar-size',`${Math.max(22,Math.min(rowHeight-6,164)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${totalFont.toFixed(1)}px`);
-        root.style.setProperty('--scorecard-input-height',`${Math.max(18,Math.min(64,rowHeight-8)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-input-height',`${Math.max(24,Math.min(64,rowHeight-8)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-input-font',`${Math.max(16,Math.min(42,rowHeight*0.56)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-input-font',`${Math.max(18,Math.min(42,rowHeight*0.56)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-round-font',`${Math.max(0.5,Math.min(1.65,1.1*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-round-detail-font',`${Math.max(0.38,0.64*scale).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-bid-width',`${Math.max(40,Math.min(100,rowHeight*0.9)).toFixed(0)}px`);
@@ -12281,14 +12320,20 @@ ${isDealer
         const overflow=table.getBoundingClientRect().height-wrap.clientHeight;
         if(overflow<=1)break;
         const ratio=Math.max(0.8,(wrap.clientHeight-2)/Math.max(1,table.getBoundingClientRect().height));
-        scale=Math.max(0.3,scale*ratio*0.97);
-        rowHeight=Math.max(20,rowHeight*ratio*0.97);
+        scale=Math.max(0.42,scale*ratio*0.97);
+        rowHeight=Math.max(36,rowHeight*ratio*0.97);
       }
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
       const recordPanel=document.getElementById('record-chase-panel');
       const scoreBody=table.querySelector('tbody');
+      const paceRows=[...root.querySelectorAll('.record-chase-row')];
       if(paceList&&recordPanel&&!recordPanel.classList.contains('hidden')&&scoreBody){
+        const bodyRows=[...scoreBody.querySelectorAll('tr')];
+        paceRows.forEach((paceRow,index)=>{
+          const match=bodyRows[index];
+          paceRow.style.height=match?`${match.getBoundingClientRect().height.toFixed(3)}px`:'';
+        });
         paceList.style.height=`${scoreBody.getBoundingClientRect().height.toFixed(3)}px`;
         paceList.style.flex='0 0 auto';
       }
@@ -12300,12 +12345,13 @@ ${isDealer
     const cell=name.closest('td.scorecard-col-player');
     const lane=name.closest('.scorecard-player-identity')||name.parentElement;
     if(!cell||!lane)return 0;
+    const nameBox=name.closest('.scorecard-player-name-slot')||name;
     const cellStyle=getComputedStyle(cell);
     const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
     const laneStyle=getComputedStyle(lane);
     const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
     const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
-    const siblings=visibleChildren.filter(node=>node!==name);
+    const siblings=visibleChildren.filter(node=>node!==nameBox);
     return cellInner
       - siblings.reduce((sum,node)=>sum+node.getBoundingClientRect().width,0)
       - gap*Math.max(0,visibleChildren.length-1);
@@ -12755,11 +12801,10 @@ ${isDealer
             <div class="scorecard-player-identity flex items-center gap-2 min-w-0 flex-1">
               ${rankBadge}
               <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}</span>
-${isDealer
+              <span class="scorecard-player-name-slot">${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl min-w-0 ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
-  : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}
-              ${retiredTag}
-              ${comebackChip}
+  : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}${retiredTag}</span>
+              <span class="scorecard-turbo-slot">${comebackChip}</span>
             </div>
           </div>
         </td>
@@ -12839,8 +12884,6 @@ ${isDealer
     const comebackSupported=!!(window.BPGComeback&&Array.isArray(BPGComeback.SUPPORTED_GAMES)&&BPGComeback.SUPPORTED_GAMES.includes(currentGame.name));
     const comebackRulesBtn=document.getElementById('actions-comeback-btn');
     if(comebackRulesBtn) comebackRulesBtn.classList.toggle('hidden', !comebackSupported);
-    const turboInstructionsBtn=document.getElementById('turbo-instructions-btn');
-    if(turboInstructionsBtn) turboInstructionsBtn.classList.toggle('hidden', !comebackSupported);
 
     const portraitTimer = gnPerfStart('GN renderGame renderPortraitView');
     try{
@@ -15373,7 +15416,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=turbo-ladder-20260820');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=turbo-react-20260820');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);
