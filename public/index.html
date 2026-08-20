@@ -641,6 +641,7 @@
       border-radius: 10px;
       transition: all 0.15s ease;
       font-variant-numeric: tabular-nums;
+      font-family: 'Score Sign', 'Londrina Solid', 'Bree Serif', Georgia, serif;
       color: var(--ink);
       line-height: 1.4;
       padding-top: 0.5rem;
@@ -648,15 +649,22 @@
       height: auto;
       min-height: 2.4rem;
       width: 100%;
-      max-width: 2rem;
+      max-width: 2.75rem;
       margin-left: auto;
       margin-right: auto;
+      overflow: visible;
+      box-sizing: border-box;
     }
     .score-cell-input:hover { border-color: var(--hairline); }
     .score-cell-active { background: var(--surface) !important; border-color: var(--emerald) !important; box-shadow: 0 0 0 3px rgba(4,120,87,0.18); }
     .score-cell-input.score-cell-miss {
       border-color: rgba(225,29,72,0.78);
       box-shadow: 0 0 0 2px rgba(225,29,72,0.12);
+      min-width: 3.85rem;
+      max-width: none;
+      padding-left: 0.28rem;
+      padding-right: 0.28rem;
+      overflow: visible;
     }
     .score-current-input {
       background: var(--surface);
@@ -1027,10 +1035,11 @@
     .score-entry-comeback-chip {
       display: inline-flex;
       align-items: center;
+      flex: 0 0 auto;
       flex-shrink: 0;
       gap: 0.28rem;
       margin-left: 0.28rem;
-      padding: 0.12rem 0.42rem 0.12rem 0.32rem;
+      padding: 0.18rem 0.58rem 0.18rem 0.46rem;
       border-radius: 999px;
       border: 1.5px solid rgba(231,115,88,0.45);
       background: rgba(231,115,88,0.12);
@@ -1040,6 +1049,19 @@
       letter-spacing: 0;
       line-height: 1.1;
       white-space: nowrap;
+      overflow: visible;
+      min-width: 2.65rem;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .score-sign {
+      display: inline-block;
+      font-family: 'Score Sign', 'Nunito Sans', system-ui, sans-serif;
+      font-weight: 800;
+      transform: scaleX(0.62);
+      transform-origin: center;
+      margin-inline: -0.14em 0.01em;
+      letter-spacing: 0;
     }
     .scorecard-comeback-mark {
       width: 0.42rem;
@@ -2920,7 +2942,8 @@ button.dealer-name-indicator {
         vertical-align: middle;
         overflow: hidden;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td.scorecard-total-cell {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td.scorecard-total-cell,
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td.scorecard-round-td {
         overflow: visible;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player > .flex,
@@ -2947,7 +2970,7 @@ button.dealer-name-indicator {
         min-height: var(--scorecard-input-height) !important;
         padding-top: var(--scorecard-input-pad-y) !important;
         padding-bottom: var(--scorecard-input-pad-y) !important;
-        font-size: var(--scorecard-input-font) !important;
+        font-size: var(--scorecard-col-input-font, var(--scorecard-input-font)) !important;
         line-height: 1 !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack.has-comeback {
@@ -3130,6 +3153,10 @@ button.dealer-name-indicator {
       max-width: 100%;
       min-width: 0;
     }
+    .scorecard-player-identity .scoreboard-player-name {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
     .scorecard-col-total {
       width: 7.5rem;
       min-width: 7.25rem;
@@ -3163,25 +3190,31 @@ button.dealer-name-indicator {
     }
     .scorecard-round-th,
     .scorecard-round-td {
-      width: 1px;
+      width: var(--scorecard-round-col, 1px);
+      min-width: 0;
       white-space: nowrap;
       box-sizing: border-box;
-      padding-left: 0.25rem;
-      padding-right: 0.25rem;
+      padding-left: var(--scorecard-round-th-pad-x, 0.25rem);
+      padding-right: var(--scorecard-round-th-pad-x, 0.25rem);
       vertical-align: middle;
       overflow: visible;
     }
     .scorecard-round-th { font-size: clamp(0.55rem, 1vw, 0.72rem) !important; letter-spacing: 0.06em; }
     .scorecard-round--hidden { display: none !important; }
     td.score-cell.scorecard-round-td .score-cell-input {
-      width: clamp(3rem, 4vw, 4rem);
-      min-width: 3rem;
-      max-width: 4.25rem;
-      padding-left: 0.4rem;
-      padding-right: 0.4rem;
+      width: var(--scorecard-round-input, clamp(3.25rem, 4.2vw, 4.4rem));
+      min-width: var(--scorecard-round-input-min, 3.25rem);
+      max-width: var(--scorecard-round-input-max, 4.6rem);
+      padding-left: var(--scorecard-round-input-pad-x, 0.28rem);
+      padding-right: var(--scorecard-round-input-pad-x, 0.28rem);
       margin-left: auto;
       margin-right: auto;
       display: block;
+      overflow: visible;
+    }
+    td.score-cell.scorecard-round-td .score-cell-input.score-cell-miss {
+      min-width: var(--scorecard-round-input-min-miss, 3.85rem);
+      max-width: var(--scorecard-round-input-max, none);
     }
     .scorecard-round-td .tv-round-cell-num {
       font-size: clamp(0.8rem, 2.1vw, 1.125rem) !important;
@@ -3190,6 +3223,18 @@ button.dealer-name-indicator {
       overflow: visible;
       text-overflow: clip;
     }
+    #scorecard-capture.scorecard-fit-cols .scorecard-round-th,
+    #scorecard-capture.scorecard-fit-cols .scorecard-round-td {
+      width: var(--scorecard-round-col);
+      max-width: var(--scorecard-round-col);
+    }
+    #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
+      width: var(--scorecard-round-input);
+      min-width: 0;
+      max-width: 100%;
+      font-size: var(--scorecard-col-input-font, inherit);
+    }
+
     .scorecard-table tbody tr {
       transition: background 0.2s ease, box-shadow 0.2s ease;
     }
@@ -6515,7 +6560,7 @@ button.dealer-name-indicator .dealer-player-label {
     .scorecard-table .tv-round-cell-num,
     .scorecard-total-value,
     .record-chase-score {
-      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
+      font-family: 'Score Sign', 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
       font-weight: 400 !important;
       letter-spacing: 0 !important;
       font-variant-numeric: tabular-nums;
@@ -12139,14 +12184,17 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
-      while(wrap.scrollWidth>wrap.clientWidth+fudge&&hidden<roundIdxs.length){
+      fitActiveScorecardColumns(root);
+      while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<roundIdxs.length){
         hidden++;
         applyHidden(hidden);
+        fitActiveScorecardColumns(root);
       }
       if(options?.hideUntilLeadFits){
         while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
           hidden++;
           applyHidden(hidden);
+          fitActiveScorecardColumns(root);
         }
       }
       if(hint){
@@ -12339,6 +12387,38 @@ ${isDealer
         valueBox.right>totalBox.right+1.5||
         valueBox.left<totalBox.left-1.5;
     });
+  }
+  function scorecardRoundColsTooTight(root){
+    const raw=parseFloat(root?.style.getPropertyValue('--scorecard-round-col')||'');
+    return Number.isFinite(raw)&&raw<32;
+  }
+  function fitActiveScorecardColumns(root){
+    const host=root||document.getElementById('scorecard-capture');
+    if(!host)return;
+    const colVars=['--scorecard-round-col','--scorecard-round-input','--scorecard-round-input-min','--scorecard-round-input-min-miss','--scorecard-round-input-max','--scorecard-round-input-pad-x','--scorecard-round-th-pad-x','--scorecard-col-input-font'];
+    colVars.forEach(p=>host.style.removeProperty(p));
+    host.classList.remove('scorecard-fit-cols');
+    const wrap=host.querySelector('.scorecard-table-wrap');
+    const table=host.querySelector('table.scorecard-table');
+    if(!wrap||!table||wrap.clientWidth<40)return;
+    const visible=[...table.querySelectorAll('thead th.scorecard-round-th')].filter(th=>!th.classList.contains('scorecard-round--hidden'));
+    if(!visible.length)return;
+    const leadW=[...table.querySelectorAll('thead th[data-sc-part="lead"]')]
+      .reduce((sum,th)=>sum+th.getBoundingClientRect().width,0);
+    const available=Math.max(0,wrap.clientWidth-leadW-6);
+    const col=Math.max(28,Math.min(72,available/visible.length));
+    const pad=col<42?2:col<56?3:5;
+    const input=Math.max(26,col-(pad*2));
+    const font=Math.max(13,Math.min(28,col*0.4));
+    host.classList.add('scorecard-fit-cols');
+    host.style.setProperty('--scorecard-round-col',`${Math.floor(col)}px`);
+    host.style.setProperty('--scorecard-round-input',`${Math.floor(input)}px`);
+    host.style.setProperty('--scorecard-round-input-min',`${Math.floor(Math.min(input,36))}px`);
+    host.style.setProperty('--scorecard-round-input-min-miss',`${Math.floor(Math.max(32,Math.min(input,42)))}px`);
+    host.style.setProperty('--scorecard-round-input-max',`${Math.floor(input)}px`);
+    host.style.setProperty('--scorecard-round-input-pad-x',`${pad}px`);
+    host.style.setProperty('--scorecard-round-th-pad-x',`${pad}px`);
+    host.style.setProperty('--scorecard-col-input-font',`${font.toFixed(1)}px`);
   }
   function scheduleScorecardColumnTrimAll(){
     gnWarnNumpadHotPath('scheduleScorecardColumnTrimAll');
@@ -12698,7 +12778,7 @@ ${isDealer
           }
         }
         const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${escapeHtml(BPGComeback.formatSignedPoints(extra))}</span>`:'';
+        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra?' has-comeback':''}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
@@ -12779,11 +12859,16 @@ ${isDealer
     }
   }
 
+  function signedPointsMarkup(adjustment){
+    const n=Number(adjustment);
+    if(!n) return '0';
+    const sign=n>0?'+':'−';
+    return `<span class="score-sign">${sign}</span>${Math.abs(n)}`;
+  }
   function comebackChipMarkup(player, offer, className){
     if(!offer?.eligible) return '';
-    const short=window.BPGComeback?BPGComeback.formatComebackChipShort(offer.bonus):String(offer.bonus||'');
     const full=offer.chipLabel||(window.BPGComeback?BPGComeback.formatComebackChip(offer.bonus):'Comeback');
-    return `<button type="button" class="${className}" onclick="openComebackExplain('${escapeJsString(player)}')" title="${escapeHtml(full)}" aria-label="${escapeHtml(full+' for '+player)}"><span class="scorecard-comeback-mark" aria-hidden="true"></span>${escapeHtml(short)}</button>`;
+    return `<button type="button" class="${className}" onclick="openComebackExplain('${escapeJsString(player)}')" title="${escapeHtml(full)}" aria-label="${escapeHtml(full+' for '+player)}"><span class="scorecard-comeback-mark" aria-hidden="true"></span>${signedPointsMarkup(offer.bonus)}</button>`;
   }
 
   function portraitComebackChip(player, roster){
@@ -14330,7 +14415,7 @@ ${isDealer
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${escapeHtml(BPGComeback.formatSignedPoints(extra))}</span>`:'';
+        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
         const shown=r.scores[p]!==undefined?r.scores[p]:'';
         body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
       });

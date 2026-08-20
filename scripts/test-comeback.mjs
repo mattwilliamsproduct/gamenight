@@ -149,7 +149,7 @@ test('Wizard 50-point last-round hole now unlocks a turbo', () => {
   assert.equal(result.leaderGap, 80);
   assert.equal(result.eligible, true);
   assert.equal(result.bonus, 20);
-  assert.equal(result.upcomingOpportunity, 40);
+  assert.equal(result.upcomingOpportunity, 30);
 });
 
 test('Wizard extra is capped and a huge make cannot take 1st', () => {
@@ -189,7 +189,7 @@ test('Five Crowns extra subtracts only on a 0', () => {
   assert.equal(round.comeback.Hal, undefined);
 });
 
-test('Flip 7 uses a 2.5-bank hole and only pays a bank', () => {
+test('Flip 7 uses a 2-bank hole and only pays a bank', () => {
   const players = EIGHT;
   const totals = { Ann: 140, Bea: 130, Cal: 128, Dee: 126, Eve: 80, Fay: 70, Gus: 40, Hal: 20 };
   const rounds = [
@@ -216,7 +216,7 @@ test('Flip 7 uses a 2.5-bank hole and only pays a bank', () => {
   }), 'Hal', players);
   assert.equal(close.eligible, false);
   assert.equal(stranded.eligible, true);
-  assert.equal(stranded.expectedGoodTurns, 2.5);
+  assert.equal(stranded.expectedGoodTurns, 2);
   assert.ok(stranded.bonus <= 15);
 
   const g = game({ name: 'Flip 7 Vengeance', players, totals, roundCount: 0, extraRounds: rounds });
@@ -380,7 +380,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
   assert.ok(eight18.apply.some(line => /automatic/.test(line)));
 
   const wizard = CB.explainComebackRules('Wizard');
-  assert.ok(wizard.when.some(line => /40 or more/.test(line)));
+  assert.ok(wizard.when.some(line => /30 or more/.test(line)));
   assert.ok(wizard.scale.some(line => /\+5, \+10, \+15, or \+20/.test(line)));
 
   const crowns = CB.explainComebackRules('Five Crowns');
@@ -391,7 +391,7 @@ test('Comeback rules copy is plain language and game-specific', () => {
 
   const flip7 = CB.explainComebackRules('Flip 7 Vengeance');
   assert.match(flip7.lead, /Flip 7/);
-  assert.ok(flip7.when.some(line => /two and a half strong banks/.test(line)));
+  assert.ok(flip7.when.some(line => /two strong banks/.test(line)));
   assert.ok(flip7.scale.some(line => /\+5, \+10, or \+15/.test(line)));
   assert.ok(flip7.apply.some(line => /at least 10 points/.test(line)));
 
@@ -552,12 +552,48 @@ test('Wizard late 7-player table gives the trailing pack turbos and Linda +20', 
   const offers = Object.fromEntries(players.map(player => [player, CB.getComebackOffer(g, player, players)]));
   assert.equal(CB.getMaxRounds(g, players), 8);
   assert.equal(offers.Matt.eligible, false);
-  assert.equal(offers.Brick.eligible, false, '40 behind is still one made 2 from first');
+  assert.equal(offers.Brick.eligible, true, '40 behind is past a made 1 and gets a small turbo');
+  assert.ok(offers.Brick.bonus >= 5);
   assert.equal(offers.Linda.eligible, true);
   assert.equal(offers.Linda.bonus, 20);
   assert.equal(offers.Vikki.eligible, true);
   assert.ok(offers.Vikki.bonus >= 15);
   assert.equal(offers.Megan.bonus, offers.Vikki.bonus);
+});
+
+test('Wizard 6-player mid-late table gives Matt +20 and Mike a turbo', () => {
+  const players = ['Vikki', 'Brick', 'Cat', 'Megan', 'Mike', 'Matt'];
+  const mid = game({
+    name: 'Wizard',
+    players,
+    totals: { Vikki: 160, Brick: 140, Cat: 140, Megan: 100, Mike: 90, Matt: 70 },
+    roundCount: 6,
+    spread: 40,
+    currentRound: 7
+  });
+  assert.equal(CB.getMaxRounds(mid, players), 10);
+  const midOffers = Object.fromEntries(players.map(player => [player, CB.getComebackOffer(mid, player, players)]));
+  assert.equal(midOffers.Vikki.eligible, false);
+  assert.equal(midOffers.Matt.eligible, true);
+  assert.equal(midOffers.Matt.bonus, 20);
+  assert.equal(midOffers.Mike.eligible, true);
+  assert.ok(midOffers.Mike.bonus >= 10);
+  assert.equal(midOffers.Megan.eligible, true);
+
+  const late = game({
+    name: 'Wizard',
+    players,
+    totals: { Brick: 180, Cat: 180, Vikki: 180, Megan: 140, Mike: 120, Matt: 90 },
+    roundCount: 7,
+    spread: 40,
+    currentRound: 8
+  });
+  const lateOffers = Object.fromEntries(players.map(player => [player, CB.getComebackOffer(late, player, players)]));
+  assert.equal(lateOffers.Matt.eligible, true);
+  assert.equal(lateOffers.Matt.bonus, 20);
+  assert.equal(lateOffers.Mike.eligible, true);
+  assert.ok(lateOffers.Mike.bonus >= 10);
+  assert.equal(lateOffers.Megan.eligible, true);
 });
 
 test('Five Crowns turbo ladder fixture shows −5 through −30', () => {
