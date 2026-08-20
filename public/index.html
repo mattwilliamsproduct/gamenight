@@ -7838,7 +7838,14 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Data Vault</div>
           <div class="space-y-3">
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
-            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Export from the copy that still has your nights, then import that file here.</p>
+            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad unless Porch Cloud is connected. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
+            <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Porch Cloud</div>
+              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">One scorebook for the live website. Safari and the home-screen app then share the same nights, even if you delete the icon.</p>
+              <p id="porch-cloud-status" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);"></p>
+              <input id="porch-cloud-key" type="password" autocomplete="off" class="w-full rounded-xl p-3 text-sm font-bold outline-none border hairline" style="background:var(--bg-2);color:var(--ink);" placeholder="Porch password">
+              <button type="button" onclick="savePorchPassword()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Save &amp; Sync</button>
+            </div>
             <button id="settings-perf-report-btn" onclick="openPerfReport()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">⚡ Performance Report</button>
             <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📥 Export Backup File</button>
             <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📤 Import Backup File</button>
@@ -8705,6 +8712,7 @@ button.dealer-name-indicator .dealer-player-label {
       const execTimer = gnPerfStart('GN saveData exec');
       try{
         _persistGamenightState({ fullPersist, syncCold });
+        if(!_porchApplying) schedulePorchPush();
       } finally {
         gnPerfEnd(execTimer);
       }
@@ -8873,6 +8881,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
     refreshBackupSummary();
+    refreshPorchCloudSettings();
     openModal('settings-modal');
   }
   function closeSettings(){ closeModal('settings-modal'); }
@@ -9498,6 +9507,130 @@ button.dealer-name-indicator .dealer-player-label {
       }catch(e){alert('That file is not a valid backup.');}
     };
     reader.readAsText(file);
+  }
+
+  const GN_PORCH_KEY='gn_porch_key';
+  let _porchPushTimer=null;
+  let _porchBusy=false;
+  let _porchApplying=false;
+  function canPorchCloud(){
+    return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
+  }
+  function getPorchKey(){
+    try{return localStorage.getItem(GN_PORCH_KEY)||'';}catch(e){return '';}
+  }
+  function setPorchKey(value){
+    try{
+      if(value) localStorage.setItem(GN_PORCH_KEY,value);
+      else localStorage.removeItem(GN_PORCH_KEY);
+    }catch(e){}
+  }
+  function setPorchStatus(text){
+    const el=document.getElementById('porch-cloud-status');
+    if(el) el.textContent=text||'';
+  }
+  function refreshPorchCloudSettings(){
+    const input=document.getElementById('porch-cloud-key');
+    if(input && !input.value) input.value=getPorchKey();
+    if(!canPorchCloud()){
+      setPorchStatus('Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
+      return;
+    }
+    if(!getPorchKey()){
+      setPorchStatus('Enter the porch password once. After that, this copy stays in sync.');
+      return;
+    }
+    setPorchStatus('Password saved on this copy. Tap Save & Sync if the status is stale.');
+  }
+  async function porchRequest(method,body){
+    const key=getPorchKey();
+    if(!canPorchCloud()||!key) throw Object.assign(new Error('no-cloud'),{status:0});
+    const res=await fetch('/api/sync',{
+      method,
+      headers:{
+        'Content-Type':'application/json',
+        'x-porch-key':key
+      },
+      body:method==='PUT'?JSON.stringify(body):undefined
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw Object.assign(new Error(data.error||'cloud-failed'),{status:res.status,data});
+    return data;
+  }
+  async function pullPorchCloud(){
+    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return null;
+    if(_porchBusy) return null;
+    _porchBusy=true;
+    try{
+      setPorchStatus('Checking the porch cloud…');
+      const data=await porchRequest('GET');
+      if(!data.backup){
+        setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
+        return {empty:true};
+      }
+      const {next,added}=BPGBackup.mergeCloud(currentBackupState(),data.backup);
+      if(added.games||added.players){
+        _porchApplying=true;
+        allPlayers=next.allPlayers;
+        players=next.players;
+        history=next.history;
+        playerProfiles=next.playerProfiles;
+        if(!currentGame && next.currentGame) currentGame=next.currentGame;
+        if(added.games) markHistoryChanged();
+        saveData({fullPersist:true,syncCold:true});
+        _porchApplying=false;
+      }
+      const snap=BPGBackup.summarizeHistory(history);
+      setPorchStatus(`Cloud is connected. ${snap.line}`);
+      refreshBackupSummary();
+      return {added,empty:false};
+    }catch(error){
+      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
+      else if(error.status===401) setPorchStatus('That porch password did not match.');
+      else setPorchStatus('Could not reach the porch cloud.');
+      return null;
+    }finally{
+      _porchApplying=false;
+      _porchBusy=false;
+    }
+  }
+  async function pushPorchCloud(){
+    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
+    if(_porchBusy) return;
+    _porchBusy=true;
+    try{
+      const payload=BPGBackup.buildBackup(currentBackupState());
+      await porchRequest('PUT',payload);
+      const snap=BPGBackup.summarizeHistory(payload.history);
+      setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
+    }catch(error){
+      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
+      else if(error.status===401) setPorchStatus('That porch password did not match.');
+      else setPorchStatus('Could not save to the porch cloud.');
+    }finally{
+      _porchBusy=false;
+    }
+  }
+  function schedulePorchPush(){
+    if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
+    if(_porchPushTimer) clearTimeout(_porchPushTimer);
+    _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
+  }
+  async function savePorchPassword(){
+    const input=document.getElementById('porch-cloud-key');
+    const key=(input&&input.value||'').trim();
+    if(!key){alert('Enter a porch password first.');return;}
+    if(!canPorchCloud()){
+      setPorchKey(key);
+      setPorchStatus('Password saved here, but cloud save only runs on the live site.');
+      return;
+    }
+    setPorchKey(key);
+    const pulled=await pullPorchCloud();
+    if(pulled&&pulled.empty) await pushPorchCloud();
+    else if(pulled) await pushPorchCloud();
+    if(currentGame) goActiveMatch();
+    else goHome();
   }
 
   /* ═══ RULES TEXT ═══ */
@@ -15474,6 +15607,9 @@ ${isDealer
     initPwaUpdates();
     handleOrientation();
     updateNavButton();
+    if(canPorchCloud()&&getPorchKey()){
+      await pullPorchCloud();
+    }
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){

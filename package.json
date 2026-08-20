@@ -6,7 +6,7 @@
     "build:styles": "tailwindcss -c tailwind.config.cjs -i ./src/tailwind.css -o ./public/assets/app-utilities.css --minify",
     "build:vendor": "node ./scripts/copy-vendor-assets.mjs",
     "build": "npm run build:styles && npm run build:vendor",
-    "check:syntax": "perl -0ne 'while (m{<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>}sg) { print $1, \"\\n\" }' public/index.html > /tmp/cardknight-inline.js && node --check /tmp/cardknight-inline.js && node --check public/assets/comeback-logic.js && node --check public/assets/backup.js",
+    "check:syntax": "perl -0ne 'while (m{<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>}sg) { print $1, \"\\n\" }' public/index.html > /tmp/cardknight-inline.js && node --check /tmp/cardknight-inline.js && node --check public/assets/comeback-logic.js && node --check public/assets/backup.js && node --check api/sync.js",
     "check:production-assets": "node ./scripts/verify-production-assets.mjs",
     "test:comeback": "node --test scripts/test-comeback.mjs",
     "test:backup": "node --test scripts/test-backup.mjs",

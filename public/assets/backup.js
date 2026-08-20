@@ -130,6 +130,17 @@
     return { next, added };
   }
 
+  function mergeCloud(local, remote) {
+    if (!remote || typeof remote !== 'object') {
+      return mergeBackup(local || {}, {});
+    }
+    const incoming = Object.assign({}, remote);
+    if (local?.currentGame && local.currentGame.name) {
+      delete incoming.currentGame;
+    }
+    return mergeBackup(local || {}, incoming);
+  }
+
   const api = {
     KNOWN_GAMES,
     gameCounts,
@@ -137,7 +148,8 @@
     summarizeHistory,
     buildBackup,
     parseBackup,
-    mergeBackup
+    mergeBackup,
+    mergeCloud
   };
 
   root.BPGBackup = api;

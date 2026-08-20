@@ -52,6 +52,28 @@ test('old backups without version still import every history row', () => {
   assert.equal(added.incoming.counts['Beat the Heat'], 1);
 });
 
+test('cloud merge keeps a live local match and unions Beat the Heat history', () => {
+  const local = {
+    allPlayers: ['Matt'],
+    players: ['Matt'],
+    history: [{ id: 1, game: 'Wizard', totals: { Matt: 80 } }],
+    playerProfiles: {},
+    currentGame: { name: '818', originalRoster: ['Matt'] }
+  };
+  const remote = {
+    allPlayers: ['Matt', 'Cat'],
+    history: [
+      { id: 1, game: 'Wizard', totals: { Matt: 80 } },
+      { id: 4, game: 'Beat the Heat', totals: { Matt: 20, Cat: 33 } }
+    ],
+    currentGame: null
+  };
+  const { next, added } = Backup.mergeCloud(local, remote);
+  assert.equal(next.currentGame.name, '818');
+  assert.equal(added.games, 1);
+  assert.equal(next.history.some(match => match.game === 'Beat the Heat'), true);
+});
+
 test('parseBackup rejects junk and accepts a v1 paste payload', () => {
   assert.throws(() => Backup.parseBackup('{"hello":true}'));
   const parsed = Backup.parseBackup(JSON.stringify({
