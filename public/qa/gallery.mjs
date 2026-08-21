@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=turbo-react-20260820';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=life-preserver-return-20260821';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
