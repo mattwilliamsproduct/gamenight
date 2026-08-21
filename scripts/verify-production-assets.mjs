@@ -21,6 +21,7 @@ const requiredAssets = [
   'public/assets/vendor/chart.js',
   'public/assets/vendor/html2canvas.js',
   'public/assets/comeback-logic.js',
+  'public/assets/life-preserver-logic.js',
   'public/assets/backup.js',
   'public/sw.js',
   'public/apple-touch-icon.png',
@@ -38,6 +39,10 @@ if(!index.includes("navigator.serviceWorker.register('./sw.js'")){
 
 if(!index.includes("src=\"./assets/comeback-logic.js\"")){
   throw new Error('Comeback logic is missing from the app shell.');
+}
+
+if(!index.includes("src=\"./assets/life-preserver-logic.js\"")){
+  throw new Error('Life Preserver logic is missing from the app shell.');
 }
 
 if(!index.includes("src=\"./assets/backup.js\"")){

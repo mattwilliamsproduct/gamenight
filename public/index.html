@@ -3296,6 +3296,208 @@ button.dealer-name-indicator {
       font-weight: 900;
     }
     html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
+
+    .life-preserver-dialog {
+      border-color: #0a4f49 !important;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
+        var(--surface);
+      box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
+      overflow: hidden;
+    }
+    .life-preserver-help {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,250,241,0.99), rgba(247,238,228,0.99) 62%),
+        var(--surface);
+    }
+    .life-preserver-help h4 {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bp-coral);
+      margin: 1.1rem 0 0.45rem;
+    }
+    .life-preserver-help ul {
+      margin: 0;
+      padding-left: 1.15rem;
+      text-align: left;
+      color: var(--ink-2);
+    }
+    .life-preserver-help li {
+      margin: 0.35rem 0;
+      line-height: 1.35;
+    }
+    .life-preserver-why {
+      border: 1px solid rgba(231,115,88,0.32);
+      background: rgba(231,115,88,0.08);
+      border-radius: 1.15rem;
+      padding: 0.85rem 1rem 0.95rem;
+      margin: 0.85rem 0 0.35rem;
+    }
+    .life-preserver-rules-card {
+      max-width: 36rem;
+    }
+    .life-preserver-rules-body {
+      text-align: left;
+      color: var(--ink-2);
+    }
+    .life-preserver-rules-body h4 {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bp-coral);
+      margin: 1.05rem 0 0.4rem;
+    }
+    .life-preserver-rules-body h4:first-child {
+      margin-top: 0;
+    }
+    .life-preserver-rules-body p,
+    .life-preserver-rules-body li {
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .life-preserver-rules-body ul {
+      margin: 0;
+      padding-left: 1.15rem;
+    }
+    .life-preserver-rules-body li {
+      margin: 0.32rem 0;
+    }
+    .life-preserver-rules-live {
+      border: 1px solid rgba(231,115,88,0.32);
+      background: rgba(231,115,88,0.08);
+      border-radius: 1.15rem;
+      padding: 0.85rem 1rem 0.95rem;
+      margin: 0.35rem 0 0.15rem;
+    }
+    .life-preserver-rules-live h4 {
+      margin-top: 0;
+    }
+    .life-preserver-why h4 {
+      margin-top: 0;
+    }
+    .life-preserver-why p {
+      margin: 0 0 0.45rem;
+      color: var(--ink);
+      font-weight: 800;
+    }
+    .wheel-shell { position: relative; }
+    .wheel-shell::before {
+      content: '';
+      position: absolute;
+      inset: -14px;
+      z-index: 0;
+      border-radius: 999px;
+      background: conic-gradient(
+        from -20deg,
+        #fffaf1 0deg 38deg,
+        #e76f51 38deg 58deg,
+        #fffaf1 58deg 128deg,
+        #e76f51 128deg 148deg,
+        #fffaf1 148deg 218deg,
+        #e76f51 218deg 238deg,
+        #fffaf1 238deg 308deg,
+        #e76f51 308deg 328deg,
+        #fffaf1 328deg 360deg
+      );
+      box-shadow: 0 18px 36px -28px rgba(0,45,42,0.9), inset 0 0 0 3px rgba(7,63,59,0.35);
+    }
+    .wheel-shell canvas {
+      position: relative;
+      z-index: 1;
+    }
+    .wheel-spinner {
+      position: absolute;
+      inset: 0;
+      z-index: 11;
+      pointer-events: none;
+      transform: rotate(0deg);
+      transition: transform 6s cubic-bezier(0.17,0.67,0.14,1);
+    }
+    .wheel-spinner::before {
+      content: '';
+      position: absolute;
+      left: calc(50% - 4px);
+      top: 12%;
+      width: 8px;
+      height: 38%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fffaf1, #0a4f49 30%, #073f3b);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.32);
+    }
+    .wheel-spinner::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 7%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 32px solid #fffaf1;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.34));
+    }
+    .wheel-spinner-hub {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 54px;
+      height: 54px;
+      transform: translate(-50%,-50%);
+      z-index: 12;
+      border-radius: 999px;
+      border: 4px solid #fffaf1;
+      background: radial-gradient(circle at 35% 30%, #6ee7b7, #0a4f49 70%);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.35);
+      pointer-events: none;
+    }
+    .scorecard-life-preserver-rank {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 999px !important;
+      border: 3px solid transparent !important;
+      background:
+        linear-gradient(#fffaf1, #fffaf1) padding-box,
+        conic-gradient(from 22.5deg,
+          #ef765b 0deg 45deg, #fffaf1 45deg 90deg,
+          #ef765b 90deg 135deg, #fffaf1 135deg 180deg,
+          #ef765b 180deg 225deg, #fffaf1 225deg 270deg,
+          #ef765b 270deg 315deg, #fffaf1 315deg 360deg) border-box !important;
+      color: #0b6f65 !important;
+      box-shadow: 0 0 0 2px rgba(239,118,91,0.2), 0 3px 9px rgba(80,45,31,0.2);
+    }
+    body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-life-preserver-rank {
+      width: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
+      height: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
+      font-size: clamp(0.68rem, calc(var(--scorecard-rank-font) * 1.08), 1rem) !important;
+    }
+    button.scorecard-life-preserver-rank {
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+    }
+    button.scorecard-life-preserver-rank:hover,
+    button.scorecard-life-preserver-rank:focus-visible {
+      filter: brightness(1.03);
+      transform: scale(1.1);
+      box-shadow: 0 0 0 3px rgba(239,118,91,0.28), 0 4px 11px rgba(80,45,31,0.24);
+      outline: none;
+    }
+    .scorecard-life-preserver-rank-used {
+      background:
+        linear-gradient(#f2f1ee, #f2f1ee) padding-box,
+        conic-gradient(from 22.5deg,
+          #9ca3a0 0deg 45deg, #f7f7f4 45deg 90deg,
+          #9ca3a0 90deg 135deg, #f7f7f4 135deg 180deg,
+          #9ca3a0 180deg 225deg, #f7f7f4 225deg 270deg,
+          #9ca3a0 270deg 315deg, #f7f7f4 315deg 360deg) border-box !important;
+      color: #747b78 !important;
+      box-shadow: 0 0 0 1px rgba(116,123,120,0.18);
+      opacity: 0.72;
+    }
     .scoreboard-player-name {
       font-size: clamp(1.95rem, 3.55vw, 2.7rem) !important;
       letter-spacing: -0.03em;
@@ -7194,9 +7396,9 @@ button.dealer-name-indicator .dealer-player-label {
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H2"></path><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3h7"></path></svg></span>
                   <span>Rules</span>
                 </button>
-                <button type="button" id="actions-comeback-btn" onclick="openComebackRules();closeActionsMenu();" class="actions-menu-item">
-                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h10"></path><path d="m10 6 6 6-6 6"></path><path d="M20 5v14"></path></svg></span>
-                  <span>Turbo Instructions</span>
+                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverRules();closeActionsMenu();" class="actions-menu-item">
+                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.25"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg></span>
+                  <span>Life Preserver</span>
                 </button>
               </div>
               <div class="actions-menu-section">
@@ -7739,6 +7941,56 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
+
+    <!-- Life Preserver Wheel -->
+    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeWheel()" class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+      <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+        <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
+        <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
+        <p class="text-xs font-bold mb-2 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
+        <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
+        <div class="wheel-shell relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
+          <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
+          <div id="wheel-spinner" class="wheel-spinner"></div>
+          <div class="wheel-spinner-hub"></div>
+        </div>
+        <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl">SPIN THE WHEEL</button>
+        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold">How Life Preserver works</button>
+        <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-30 flex flex-col p-6 md:p-7 text-left">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);">🛟 Life Preserver</div>
+          <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
+          <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
+          <div class="flex-1 min-h-0 overflow-y-auto pr-1 text-sm md:text-[15px] font-semibold">
+            <div id="life-preserver-why" class="life-preserver-why hidden">
+              <h4>Why these numbers</h4>
+              <p id="life-preserver-why-lead"></p>
+              <ul id="life-preserver-why-list"></ul>
+            </div>
+            <h4>Who can spin</h4>
+            <ul>
+              <li>You have to be in the bottom half of the table.</li>
+              <li>You have to be far enough behind the pack that catching up with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
+              <li>A runaway leader does not unlock everyone clustered behind them.</li>
+              <li>One spin per player, per game.</li>
+              <li>Not used in Rook or Beat the Heat.</li>
+            </ul>
+            <h4>What the wheel does</h4>
+            <ul>
+              <li>The numbers are sized to this game, this table, and how far behind you are.</li>
+              <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
+              <li>The best result can pull you back toward the pack, but it cannot put you in 1st or 2nd.</li>
+              <li>3rd is as high as it can land you — just behind second place.</li>
+              <li>Most slices help. Some do nothing. A few slightly hurt.</li>
+              <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
+            </ul>
+          </div>
+          <button type="button" onclick="hideLifePreserverHelp()" class="btn-primary w-full mt-4 py-4 font-display text-xl">Back to the wheel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Rules -->
     <div id="rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
@@ -7749,6 +8001,20 @@ button.dealer-name-indicator .dealer-player-label {
           <h3 class="font-display text-4xl md:text-5xl" id="rules-title"></h3>
         </div>
         <div id="rules-content" class="overflow-y-auto pr-3 text-base md:text-lg font-medium leading-relaxed p-6 md:p-8 rounded-2xl border hairline" style="background:var(--bg-2);color:var(--ink-2);"></div>
+      </div>
+    </div>
+
+
+    <!-- Life Preserver rules -->
+    <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeLifePreserverRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised life-preserver-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
+        <button type="button" onclick="closeLifePreserverRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <div class="text-center mb-5 pr-8">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">🛟 Life Preserver</div>
+          <h3 class="font-display text-4xl md:text-5xl leading-tight" id="life-preserver-rules-title">How you get one</h3>
+        </div>
+        <div id="life-preserver-rules-content" class="life-preserver-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
       </div>
     </div>
 
@@ -7995,6 +8261,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   <script src="./assets/backup.js"></script>
   <script src="./assets/comeback-logic.js"></script>
+  <script src="./assets/life-preserver-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -9128,7 +9395,135 @@ button.dealer-name-indicator .dealer-player-label {
     openModal('comeback-explain-modal');
   }
   function closeComebackExplain(){ closeModal('comeback-explain-modal'); }
+
+  function lifePreserverRulesList(items){
+    return `<ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul>`;
+  }
+  function renderLifePreserverRulesLive(live){
+    if(!live)return '';
+    const lines=[];
+    if(live.timingOpen){
+      lines.push(`${escapeHtml(live.roundLine)}. That gate is open.`);
+    } else {
+      lines.push(`${escapeHtml(live.roundLine)}. Opens after ${live.minRounds} ${escapeHtml(live.unit)}.`);
+    }
+    if(live.playerCount>=4){
+      const lastRank=live.playerCount;
+      lines.push(`Bottom half is ${ordinalLive(live.packRank)} through ${ordinalLive(lastRank)}.`);
+    }
+    if(live.packPlayer){
+      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind that, with too few ${escapeHtml(live.unit)} left to catch up the normal way.`: '';
+      lines.push(`Middle of the table is ${ordinalLive(live.packRank)}: ${escapeHtml(live.packPlayer)} at ${live.packScore}.${catchBit}`);
+    }
+    if(live.ready.length){
+      lines.push(`Ready to spin: ${escapeHtml(joinLiveNames(live.ready))}.`);
+    }
+    if(live.used.length){
+      lines.push(`Already used: ${escapeHtml(joinLiveNames(live.used))}.`);
+    }
+    const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
+    const others=live.notYet.filter(entry=>entry.reason!=='too-early');
+    if(!live.timingOpen && tooEarly.length && !others.length){
+      lines.push('Nobody has one yet — the game is still too early.');
+    } else {
+      const groups=[];
+      others.forEach(entry=>{
+        let group=groups.find(item=>item.label===entry.label);
+        if(!group){
+          group={label:entry.label, entries:[]};
+          groups.push(group);
+        }
+        group.entries.push(entry);
+      });
+      groups.forEach(group=>{
+        const names=group.entries.map(entry=>{
+          const showGap=Number.isFinite(entry.packGap)&&entry.packGap>0&&(entry.reason==='pack-gap'||entry.reason==='recovery-load');
+          return showGap ? `${entry.player} (${Math.round(entry.packGap)} behind)` : entry.player;
+        });
+        lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
+      });
+    }
+    return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
+  }
+  function openLifePreserverRules(){
+    if(!currentGame)return;
+    const players=getActivePlayers(currentGame);
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const summary=(window.BPGLifePreserver&&typeof BPGLifePreserver.summarizeLifePreserverTable==='function')
+      ? BPGLifePreserver.summarizeLifePreserverTable(currentGame, players, {gameOver:over})
+      : {rules:{supported:false,gameName:currentGame.name,lead:'Life Preserver details are unavailable.',how:[],wheel:[]},live:null};
+    const rules=summary.rules||{};
+    const title=document.getElementById('life-preserver-rules-title');
+    if(title) title.textContent=rules.supported?`How you get one in ${rules.gameName}`:`Life Preserver`;
+    const parts=[];
+    if(rules.lead) parts.push(`<p>${escapeHtml(rules.lead)}</p>`);
+    if(rules.how?.length){
+      parts.push('<h4>You get one when</h4>');
+      parts.push(lifePreserverRulesList(rules.how.map(item=>escapeHtml(item))));
+    }
+    parts.push(renderLifePreserverRulesLive(summary.live));
+    if(rules.wheel?.length){
+      parts.push('<h4>What the wheel does</h4>');
+      parts.push(lifePreserverRulesList(rules.wheel.map(item=>escapeHtml(item))));
+    }
+    const content=document.getElementById('life-preserver-rules-content');
+    if(content) content.innerHTML=parts.join('');
+    openModal('life-preserver-rules-modal');
+  }
+  function closeLifePreserverRules(){ closeModal('life-preserver-rules-modal'); }
+  function cancelLifePreserverSpin(options){
+    const notify=options?.notify===true;
+    const wasSpinning=_lifePreserverSpinTimer!==null;
+    if(_lifePreserverSpinTimer!==null){
+      clearTimeout(_lifePreserverSpinTimer);
+      _lifePreserverSpinTimer=null;
+    }
+    _lifePreserverSpinToken++;
+    const btn=document.getElementById('btn-spin');
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='SPIN THE WHEEL';
+    }
+    if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
+    return wasSpinning;
+  }
+  function closeWheel(){
+    cancelLifePreserverSpin({notify:true});
+    hideLifePreserverHelp();
+    lifePreserverOfferSnapshot=null;
+    renderLifePreserverExplanation();
+    closeModal('wheel-modal');
+  }
+  function showLifePreserverHelp(){
+    renderLifePreserverExplanation();
+    const help=document.getElementById('life-preserver-help');
+    if(help)help.classList.remove('hidden');
+  }
+  function hideLifePreserverHelp(){
+    const help=document.getElementById('life-preserver-help');
+    if(help)help.classList.add('hidden');
+  }
+  function renderLifePreserverExplanation(){
+    const explained=(window.BPGLifePreserver&&typeof BPGLifePreserver.explainLifePreserverOffer==='function')
+      ? BPGLifePreserver.explainLifePreserverOffer(lifePreserverOfferSnapshot)
+      : {summary:'',wheelLine:'',bullets:[]};
+    const line=document.getElementById('wheel-why-line');
+    if(line){
+      line.textContent=explained.wheelLine||'';
+      line.classList.toggle('hidden', !explained.wheelLine);
+    }
+    const card=document.getElementById('life-preserver-why');
+    const lead=document.getElementById('life-preserver-why-lead');
+    const list=document.getElementById('life-preserver-why-list');
+    const hasWhy=!!(explained.summary||(explained.bullets&&explained.bullets.length));
+    if(card) card.classList.toggle('hidden', !hasWhy);
+    if(lead) lead.textContent=explained.summary||'';
+    if(list){
+      list.innerHTML=(explained.bullets||[]).map(bullet=>`<li>${escapeHtml(bullet)}</li>`).join('');
+    }
+  }
   function applyComebackAndNotify(roundData, players){
+    return []; // this branch evaluates Life Preserver, not Turbos
     if(!window.BPGComeback||typeof BPGComeback.applyComebackToRound!=='function') return [];
     const applied=BPGComeback.applyComebackToRound(currentGame, roundData, players)||[];
     applied.forEach(item=>{
@@ -9142,6 +9537,7 @@ button.dealer-name-indicator .dealer-player-label {
     return applied;
   }
   function previewComebackForEntry(player, rawValue){
+    return ''; // LIFE_PRESERVER_HIDE_TURBO
     if(!currentGame||!window.BPGComeback||!player) return '';
     if(scoreEntryModalState?.mode && isScoreEntryBidMode(scoreEntryModalState.mode)) return '';
     const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
@@ -10280,6 +10676,183 @@ button.dealer-name-indicator .dealer-player-label {
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
+  }
+
+
+  /* ═══ HAIL MARY WHEEL ═══ */
+  let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
+  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
+  function lifePreserverSpinDuration(){
+    return GN_QA_MODE ? 80 : 6200;
+  }
+
+  function getLifePreserverOfferForPlayer(player, activePlayers, extra){
+    if(!window.BPGLifePreserver)return {eligible:false,reason:'missing-engine',slices:[]};
+    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
+  }
+
+  function getWheelSlices(){
+    const activePlayers=getActivePlayers(currentGame);
+    if(!wheelPlayer||!activePlayers.includes(wheelPlayer))return [];
+    if(lifePreserverOfferSnapshot?.player===wheelPlayer&&Array.isArray(lifePreserverOfferSnapshot.slices)){
+      return lifePreserverOfferSnapshot.slices;
+    }
+    return getLifePreserverOfferForPlayer(wheelPlayer, activePlayers).slices||[];
+  }
+
+  function drawWheel(){
+    const c=document.getElementById('wheel-canvas'); const ctx=c.getContext('2d');
+    const slices=getWheelSlices();
+    if(!slices.length)return slices;
+    const total=slices.reduce((s,x)=>s+x.weight,0);
+    const cx=c.width/2, cy=c.height/2, r=cx;
+    ctx.clearRect(0,0,c.width,c.height);
+    let a=-Math.PI/2;
+    slices.forEach(s=>{
+      const arc=(s.weight/total)*(2*Math.PI);
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+arc);
+      ctx.fillStyle=s.color; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#073f3b'; ctx.stroke();
+      const mid=a+arc/2;
+      const labelRadius=arc<0.16?r*0.74:r*0.66;
+      ctx.save(); ctx.translate(cx+Math.cos(mid)*labelRadius,cy+Math.sin(mid)*labelRadius);
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle='#fff';
+      ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=7;
+      const parts=String(s.label).split(' ');
+      const valueText=parts[0]||'';
+      const detailText=parts.slice(1).join(' ');
+      const valueFs=Math.max(19,Math.min(36,arc*70,valueText.length>3?30:36));
+      const badgeW=Math.max(54,Math.min(96,valueText.length*17+28));
+      const badgeH=detailText?54:40;
+      const badgeX=-(badgeW/2);
+      const badgeY=-(badgeH/2);
+      if(arc>=0.16){
+        ctx.shadowBlur=0;
+        ctx.fillStyle='rgba(255,250,241,0.9)';
+        ctx.beginPath();
+        ctx.roundRect(badgeX,badgeY,badgeW,badgeH,15);
+        ctx.fill();
+        ctx.lineWidth=2;
+        ctx.strokeStyle='rgba(255,255,255,0.72)';
+        ctx.stroke();
+        ctx.fillStyle='#0b3935';
+        ctx.shadowColor='rgba(255,255,255,0.45)';
+        ctx.shadowBlur=3;
+      }
+      if(arc<0.16){
+        ctx.font=`900 ${Math.max(14,Math.min(18,arc*220))}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(valueText||s.label,0,0);
+      } else if(detailText){
+        ctx.font=`900 ${valueFs}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(valueText,0,-8);
+        ctx.font=`800 ${Math.max(12,Math.min(17,valueFs*0.48))}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(detailText,0,18);
+      } else {
+        ctx.font=`900 ${valueFs}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillText(s.label,0,0);
+      }
+      ctx.restore();
+      s._start=a; s._end=a+arc; a+=arc;
+    });
+    return slices;
+  }
+
+  function authorizeHailMary(p){
+    const activePlayers=getActivePlayers(currentGame);
+    if(!activePlayers.includes(p))return;
+    if(currentGame.hailMaryUsed?.includes(p))return;
+    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const offer=getLifePreserverOfferForPlayer(p, activePlayers, {gameOver:over});
+    if(!offer.eligible||!offer.slices?.length)return;
+    wheelPlayer=p;
+    lifePreserverOfferSnapshot=offer;
+    document.getElementById('wheel-player-name').textContent=p;
+    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
+    document.getElementById('btn-spin').disabled=false;
+    document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+    const spinner=document.getElementById('wheel-spinner');
+    if(spinner){
+      spinner.style.transition='none';
+      currentWheelRotation=0;
+      spinner.style.transform='rotate(0deg)';
+      spinner.offsetHeight;
+      spinner.style.transition='';
+    }
+    hideLifePreserverHelp();
+    cancelLifePreserverSpin();
+    renderLifePreserverExplanation();
+    drawWheel();
+    openModal('wheel-modal');
+  }
+
+  function applyLifePreserverResult(player, proposedAdj, liveOffer){
+    let adj=BPGLifePreserver.capLifePreserverAdjustment(proposedAdj, liveOffer);
+    const activePlayers=getActivePlayers(currentGame);
+    const totals=currentGame.totals||{};
+    const winLow=!!liveOffer.winLow;
+    const increment=liveOffer.scoreIncrement||1;
+    const sign=winLow?-1:1;
+    const allowed=liveOffer.bestAllowedRank||3;
+    const sorted=[...activePlayers].sort((a,b)=>winLow?(Number(totals[a])||0)-(Number(totals[b])||0):(Number(totals[b])||0)-(Number(totals[a])||0));
+    const secondScore=sorted.length>1?(Number(totals[sorted[1]])||0):null;
+    while(adj*sign>0){
+      const next=(Number(totals[player])||0)+adj;
+      const rank=BPGLifePreserver.rankWithScore(player, next, activePlayers, totals, winLow);
+      const behindSecond=secondScore==null?false:(winLow?next>secondScore:next<secondScore);
+      if(rank>=allowed&&rank>2&&behindSecond)break;
+      adj+=-sign*increment;
+    }
+    if(adj*sign<0) adj=-sign*Math.min(Math.abs(adj), liveOffer.maxSetback||0);
+    return adj;
+  }
+
+  function spinWheel(){
+    cancelLifePreserverSpin();
+    const spinToken=_lifePreserverSpinToken;
+    document.getElementById('btn-spin').disabled=true;
+    document.getElementById('btn-spin').textContent='SPINNING…';
+    const spinner=document.getElementById('wheel-spinner');
+    const slices=drawWheel();
+    const deg=Math.floor(Math.random()*360);
+    currentWheelRotation += 360*7 + deg;
+    if(spinner)spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+    _lifePreserverSpinTimer=setTimeout(()=>{
+      _lifePreserverSpinTimer=null;
+      if(spinToken!==_lifePreserverSpinToken)return;
+      if(!currentGame||!wheelPlayer)return;
+      const rotRad=((currentWheelRotation%360)*Math.PI)/180;
+      let pa=-Math.PI/2+rotRad;
+      while(pa<-Math.PI)pa+=2*Math.PI; while(pa>Math.PI)pa-=2*Math.PI;
+      let win=slices.find(s=>pa>=s._start&&pa<=s._end);
+      if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
+      if(!win)win=slices[0];
+      const activePlayers=getActivePlayers(currentGame);
+      const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+      const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
+      const proposed=Number(win?.adjustment)||0;
+      if(!live.eligible){
+        toast('Life Preserver is no longer available', 'warning');
+        document.getElementById('btn-spin').disabled=false;
+        document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+        closeWheel();
+        return;
+      }
+      const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
+      if(proposed!==0&&adj===0){
+        toast('Life Preserver cannot be applied safely now', 'warning');
+        closeWheel();
+        return;
+      }
+      alert(`🛟 The Life Preserver says:\n\n${win.label}`);
+      if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
+      currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
+      if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
+      currentGame.hailMaryUsed.push(wheelPlayer);
+      recomputeGameTotals(currentGame);
+      addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
+      haptic([60, 80, 60, 80, 120]);
+      saveData(); closeWheel(); scheduleRender();
+    },lifePreserverSpinDuration());
   }
 
   /* ═══ ROSTER ═══ */
@@ -12706,6 +13279,11 @@ ${isDealer
     return !!BPGComeback.getComebackOffer(game, player, activePlayers, {gameOver}).eligible;
   }
 
+  function isHailMaryEligible(game, player, activePlayers, {gameOver=false}={}){
+    if(!window.BPGLifePreserver)return false;
+    return !!BPGLifePreserver.getLifePreserverOffer(game, player, activePlayers, {gameOver}).eligible;
+  }
+
   function setRecordChaseLayout(enabled){
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
@@ -12961,11 +13539,13 @@ ${isDealer
           ondrop="rosterDragDrop(event, ${ri})"`;
       }
 
-      const comebackOffer=(!isRetired&&currentGame.currentRound>1)
-        ? getComebackOfferForPlayer(p, sortedP, {gameOver:over})
-        : {eligible:false};
-      const rankBadge=currentGame.currentRound===1?'':`<span class="scoreboard-rank-badge font-mono-num shrink-0">${ri+1}</span>`;
-      const comebackChip=comebackChipMarkup(p, comebackOffer, 'scorecard-comeback-chip');
+      const comebackChip='';
+      const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{gameOver:over});
+      const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
+      const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
+      const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
+        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -13076,9 +13656,11 @@ ${isDealer
       if(over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
-    const comebackSupported=!!(window.BPGComeback&&Array.isArray(BPGComeback.SUPPORTED_GAMES)&&BPGComeback.SUPPORTED_GAMES.includes(currentGame.name));
-    const comebackRulesBtn=document.getElementById('actions-comeback-btn');
-    if(comebackRulesBtn) comebackRulesBtn.classList.toggle('hidden', !comebackSupported);
+    const lifePreserverRulesBtn=document.getElementById('actions-life-preserver-btn');
+    if(lifePreserverRulesBtn){
+      const supported=!!(window.BPGLifePreserver&&Array.isArray(BPGLifePreserver.SUPPORTED_GAMES)&&BPGLifePreserver.SUPPORTED_GAMES.includes(currentGame.name));
+      lifePreserverRulesBtn.classList.toggle('hidden', !supported);
+    }
 
     const portraitTimer = gnPerfStart('GN renderGame renderPortraitView');
     try{
@@ -13110,10 +13692,7 @@ ${isDealer
   }
 
   function portraitComebackChip(player, roster){
-    if(!currentGame||currentGame.currentRound<=1) return '';
-    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
-    const offer=getComebackOfferForPlayer(player, roster, {gameOver:over});
-    return comebackChipMarkup(player, offer, 'portrait-comeback-chip');
+    return '';
   }
 
   /* ═══ PORTRAIT VIEW ═══ */
@@ -13972,6 +14551,9 @@ ${isDealer
       rookResetBidding();
     }
 
+    if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
+      currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
+    }
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
@@ -15614,7 +16196,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=turbo-react-20260820');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-return-20260821');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);

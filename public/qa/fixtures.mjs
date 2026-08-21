@@ -155,6 +155,9 @@ const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlaye
 });
 const crownsPlayers=NAMES.slice(0,8);
 const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers));
+const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers),{
+  hailMaryUsed:['Linda']
+});
 const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
@@ -454,6 +457,28 @@ const flip7LadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
 ]);
 const flip7LadderGame=makeCurrentGame('Flip 7 Vengeance',turboLadderPlayers,flip7LadderRounds);
 
+function roundsFromTotals(players, totals, count, decorate){
+  const rows=Array.from({length:count},(_,index)=>players.map(player=>{
+    const total=Number(totals[player])||0;
+    const base=Math.trunc(total/count);
+    return index<count-1?base:total-base*(count-1);
+  }));
+  return roundsFromPlayerRows(players, rows, decorate);
+}
+
+const eight18ThresholdTotals={Matt:140,Cat:136,Megan:132,Michelle:128,Mike:127,Vikki:126,Linda:125,Duke:123};
+const wizardThresholdTotals={Matt:230,Cat:220,Megan:210,Michelle:200,Mike:195,Vikki:190,Linda:185,Duke:160};
+const fiveCrownsThresholdTotals={Matt:24,Cat:28,Megan:32,Michelle:36,Mike:48,Vikki:54,Linda:60,Duke:65};
+const flip7ThresholdTotals={Matt:140,Cat:130,Megan:120,Michelle:110,Mike:108,Vikki:106,Linda:104,Duke:80};
+
+const eight18ThresholdGame=makeCurrentGame('818',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,eight18ThresholdTotals,12,eight18Decorate));
+const wizardThresholdGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardRoundsFromScores(
+  turboLadderPlayers,
+  roundsFromTotals(turboLadderPlayers,wizardThresholdTotals,5).map(round=>turboLadderPlayers.map(player=>round.scores[player]))
+));
+const fiveCrownsThresholdGame=makeCurrentGame('Five Crowns',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,fiveCrownsThresholdTotals,8));
+const flip7ThresholdGame=makeCurrentGame('Flip 7 Vengeance',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,flip7ThresholdTotals,5));
+
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
   {id:'scorecard',label:'Scorecard'},
@@ -522,6 +547,12 @@ export const QA_SCENARIOS = {
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
   },
+  'five-crowns-preservers':{
+    label:'Five Crowns · Life Preservers',
+    description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverGame}
+  },
   'five-crowns-turbo-ladder':{
     label:'Five Crowns · Turbo Ladder',
     description:'Eight-player Five Crowns after 8 of 11: Matt and Cat have no extra, then Megan −10 through Duke −35.',
@@ -545,6 +576,30 @@ export const QA_SCENARIOS = {
     description:'Eight-player Flip 7 mid-session: Matt and Cat have no extra, then Megan +10 and Michelle through Duke +20.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:flip7LadderGame}
+  },
+  'eight18-life-preserver-threshold':{
+    label:'818 · Life Preserver Threshold',
+    description:'Eight-player 818 after 12 of 15. Duke is 5 behind the pack — the closest hole that still unlocks a Life Preserver. Nobody else has one.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:eight18ThresholdGame}
+  },
+  'wizard-life-preserver-threshold':{
+    label:'Wizard · Life Preserver Threshold',
+    description:'Eight-player Wizard after 5 of 7. Duke is 40 behind the pack — the closest hole that still unlocks a Life Preserver. Nobody else has one.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardThresholdGame}
+  },
+  'five-crowns-life-preserver-threshold':{
+    label:'Five Crowns · Life Preserver Threshold',
+    description:'Eight-player Five Crowns after 8 of 11. Duke is 29 behind the pack — the closest hole that still unlocks a Life Preserver. Nobody else has one.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:fiveCrownsThresholdGame}
+  },
+  'flip7-life-preserver-threshold':{
+    label:'Flip 7 · Life Preserver Threshold',
+    description:'Eight-player Flip 7 after 5 banks. Duke is 30 behind the pack — the closest hole that still unlocks a Life Preserver. Nobody else has one.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:flip7ThresholdGame}
   },
   'five-crowns-blowout':{
     label:'Five Crowns · Blowout Comeback',
