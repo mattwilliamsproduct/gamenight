@@ -583,6 +583,64 @@ test('five-crowns first round uses compact avatar-led player identities',async({
   await expect(firstRow.locator('.scorecard-avatar-slot .scorecard-dealer-avatar-badge')).toHaveCount(1);
 });
 
+test('five-crowns name chips hug long and short names the same way',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-name-chip-7&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await expect(page.locator('#round-intel')).toHaveText(/Hand of 7|7s Wild/);
+
+  const chips=await page.evaluate(()=>{
+    const textBox=node=>{
+      const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);
+      const range=document.createRange();
+      let first=null;
+      let last=null;
+      while(walker.nextNode()){
+        const current=walker.currentNode;
+        if(!(current.textContent||'').trim())continue;
+        if(!first)first=current;
+        last=current;
+      }
+      if(!first||!last)return node.getBoundingClientRect();
+      range.setStart(first,0);
+      range.setEnd(last,last.textContent.length);
+      return range.getBoundingClientRect();
+    };
+    return [...document.querySelectorAll('#scorecard-body tr')].map(row=>{
+      const name=row.querySelector('.scoreboard-player-name');
+      const chip=name.querySelector('.dealer-player-label')||name;
+      const total=row.querySelector('.scorecard-col-total');
+      const chipBox=chip.getBoundingClientRect();
+      const glyphs=textBox(chip);
+      return {
+        text:(chip.textContent||'').trim(),
+        dealer:name.matches('button.dealer-name-indicator'),
+        leader:row.classList.contains('leader-row'),
+        fontSize:Number.parseFloat(getComputedStyle(name).fontSize),
+        leftPad:glyphs.left-chipBox.left,
+        rightPad:chipBox.right-glyphs.right,
+        chipWidth:chipBox.width,
+        gapToTotal:total.getBoundingClientRect().left-chipBox.right
+      };
+    });
+  });
+
+  expect(chips.map(chip=>chip.text)).toEqual(expect.arrayContaining(['Michelle','Cat','Megan','Matt','Brick']));
+  const michelle=chips.find(chip=>chip.text==='Michelle');
+  const cat=chips.find(chip=>chip.text==='Cat');
+  expect(michelle?.dealer,'Michelle should be the dealer chip').toBe(true);
+  expect(michelle?.leader,'Michelle should be the highlighted leader row').toBe(true);
+  expect(Math.abs(michelle.leftPad-michelle.rightPad),'Michelle chip should not stretch past the glyphs').toBeLessThanOrEqual(4);
+  chips.filter(chip=>chip.dealer).forEach(chip=>{
+    expect(Math.abs(chip.leftPad-chip.rightPad),`${chip.text} dealer chip should hug both sides`).toBeLessThanOrEqual(4);
+  });
+  expect(michelle.leftPad,'Michelle left padding should stay tight').toBeLessThanOrEqual(12);
+  expect(michelle.rightPad,'Michelle right padding should match the left').toBeLessThanOrEqual(12);
+  expect(michelle.fontSize,'Michelle should stay as large as the shorter names allow').toBeGreaterThanOrEqual(14);
+  expect(michelle.gapToTotal,'Michelle chip should not overlap Total').toBeGreaterThanOrEqual(-2);
+  expect(michelle.chipWidth,'Michelle chip should only grow by the extra letters').toBeGreaterThan(cat.chipWidth);
+  expect(michelle.chipWidth/cat.chipWidth,'Michelle chip should stay proportional to CAT, not fill the column').toBeLessThan(3.4);
+});
+
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
   const selectors={
     brand:'#top-nav .bp-brand-main',

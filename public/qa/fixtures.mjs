@@ -160,6 +160,14 @@ const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
 const nameFitCrownsPlayers=['Megan','Vikki','Matt','Duke','Linda','Mike','Michelle'];
 const nameFitCrownsGame=makeCurrentGame('Five Crowns',nameFitCrownsPlayers,[],{dealerOffset:0});
+const nameChipPlayers=['Michelle','Cat','Megan','Matt','Brick'];
+const nameChipRounds=heatRoundsFromScores(nameChipPlayers,[
+  [0,0,8,10,11],
+  [0,0,7,8,8],
+  [0,0,8,7,6],
+  [0,0,7,6,6]
+]);
+const nameChipCrownsGame=makeCurrentGame('Five Crowns',nameChipPlayers,nameChipRounds,{dealerOffset:1});
 const heatPlayers=NAMES.slice(0,4);
 const heatCloseRounds=[
   [15,8,5,3],
@@ -563,6 +571,12 @@ export const QA_SCENARIOS = {
     description:'Seven-player first-round iPad regression case for avatar reordering, dealer styling, and full player names.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...nameFitCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:nameFitCrownsGame}
+  },
+  'five-crowns-name-chip-7':{
+    label:'Five Crowns · Name Chip · Hand of 7',
+    description:'Five-player Hand of 7 with Michelle leading and dealing, for name-chip hug checks against shorter names.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...nameChipPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:nameChipCrownsGame}
   },
   'beat-the-heat-close':{
     label:'Beat the Heat · Close to 66',
