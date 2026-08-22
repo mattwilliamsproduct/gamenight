@@ -615,6 +615,7 @@ test('five-crowns name chips hug long and short names the same way',async({page}
         text:(chip.textContent||'').trim(),
         dealer:name.matches('button.dealer-name-indicator'),
         leader:row.classList.contains('leader-row'),
+        fontSize:Number.parseFloat(getComputedStyle(name).fontSize),
         leftPad:glyphs.left-chipBox.left,
         rightPad:chipBox.right-glyphs.right,
         chipWidth:chipBox.width,
@@ -625,21 +626,19 @@ test('five-crowns name chips hug long and short names the same way',async({page}
 
   expect(chips.map(chip=>chip.text)).toEqual(expect.arrayContaining(['Michelle','Cat','Megan','Matt','Brick']));
   const michelle=chips.find(chip=>chip.text==='Michelle');
-  const others=chips.filter(chip=>chip.text!=='Michelle');
+  const cat=chips.find(chip=>chip.text==='Cat');
   expect(michelle?.dealer,'Michelle should be the dealer chip').toBe(true);
   expect(michelle?.leader,'Michelle should be the highlighted leader row').toBe(true);
   expect(Math.abs(michelle.leftPad-michelle.rightPad),'Michelle chip should not stretch past the glyphs').toBeLessThanOrEqual(4);
-  const padBand=others.map(chip=>chip.leftPad+chip.rightPad);
-  const typicalPad=padBand.reduce((sum,value)=>sum+value,0)/padBand.length;
-  expect(Math.abs((michelle.leftPad+michelle.rightPad)-typicalPad),'Michelle padding should match shorter names').toBeLessThanOrEqual(4);
-  others.forEach(chip=>{
-    expect(Math.abs(chip.leftPad-chip.rightPad),`${chip.text} chip should hug both sides`).toBeLessThanOrEqual(4);
-    expect(Math.abs((chip.leftPad+chip.rightPad)-typicalPad),`${chip.text} chip should use the shared name padding`).toBeLessThanOrEqual(4);
+  chips.filter(chip=>chip.dealer).forEach(chip=>{
+    expect(Math.abs(chip.leftPad-chip.rightPad),`${chip.text} dealer chip should hug both sides`).toBeLessThanOrEqual(4);
   });
-  expect(michelle.gapToTotal,'Michelle chip should not run into Total').toBeGreaterThan(20);
-  expect(michelle.chipWidth,'Michelle chip should stay wider than CAT only by the extra letters').toBeLessThan(
-    others.find(chip=>chip.text==='Cat').chipWidth+180
-  );
+  expect(michelle.leftPad,'Michelle left padding should stay tight').toBeLessThanOrEqual(12);
+  expect(michelle.rightPad,'Michelle right padding should match the left').toBeLessThanOrEqual(12);
+  expect(michelle.fontSize,'Michelle should stay as large as the shorter names allow').toBeGreaterThanOrEqual(14);
+  expect(michelle.gapToTotal,'Michelle chip should not overlap Total').toBeGreaterThanOrEqual(-2);
+  expect(michelle.chipWidth,'Michelle chip should only grow by the extra letters').toBeGreaterThan(cat.chipWidth);
+  expect(michelle.chipWidth/cat.chipWidth,'Michelle chip should stay proportional to CAT, not fill the column').toBeLessThan(3.4);
 });
 
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{

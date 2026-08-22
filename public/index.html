@@ -2400,7 +2400,6 @@ button.dealer-name-indicator {
       min-width: max-content;
       max-width: none;
       flex: 0 0 auto;
-      align-self: flex-start;
       overflow: visible;
 }
     button.dealer-name-indicator:hover {
@@ -3192,8 +3191,12 @@ button.dealer-name-indicator {
     }
     .scorecard-player-identity > .scoreboard-player-name,
     .scorecard-player-name-slot .scoreboard-player-name {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+    .scorecard-player-identity > button.dealer-name-indicator,
+    .scorecard-player-name-slot button.dealer-name-indicator {
       flex: 0 0 auto;
-      align-self: flex-start;
       width: max-content;
       min-width: max-content;
       max-width: none;
@@ -3319,21 +3322,17 @@ button.dealer-name-indicator {
       font-size: clamp(1.95rem, 3.55vw, 2.7rem) !important;
       letter-spacing: -0.03em;
       line-height: 1.2;
-      width: max-content;
-      min-width: max-content;
+      min-width: auto;
       max-width: none;
       flex: 0 0 auto;
-      align-self: flex-start;
       white-space: nowrap;
       overflow: visible;
       text-overflow: clip;
     }
     span.scoreboard-player-name {
       display: inline-block;
-      padding: 0.08em 0.16em 0.1em;
-      margin: 0;
-      background: var(--surface);
-      border-radius: 0.85rem;
+      padding-bottom: 0.18em;
+      margin-bottom: -0.18em;
     }
 button.dealer-name-indicator.scoreboard-player-name {
   max-width: none;
@@ -6790,7 +6789,6 @@ button.dealer-name-indicator .dealer-player-label {
     html.dark .scorecard-table tbody tr,
     html.dark .scorecard-table tbody td.scorecard-col-player { background: #123b37; }
     html.dark .scoreboard-player-name { color: #fff8ee; }
-    html.dark span.scoreboard-player-name { background: var(--surface-2); }
     html.dark .scorecard-total-cell { background: #174740; color: #fff8ee; }
     html.dark .leader-row,
     html.dark .leader-row td,
@@ -12599,20 +12597,21 @@ ${isDealer
     names.forEach(name=>{
       const cell=name.closest('td.scorecard-col-player');
       if(!cell)return;
+      const chip=scorecardNameChipEl(name);
+      const cellBox=cell.getBoundingClientRect();
+      const chipBox=chip.getBoundingClientRect();
+      if(chipBox.right<=cellBox.right+2)return;
       const available=scorecardNameAvailableWidth(name);
       if(available<=0)return;
-      const chip=scorecardNameChipEl(name);
-      if(scorecardNameChipWidth(name)<=available+1&&chip.scrollWidth<=chip.clientWidth+1)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
-      const labelStyle=getComputedStyle(chip);
       const chipStyle=getComputedStyle(chip);
       const text=scorecardNameDisplayText(name);
       const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
         .reduce((sum,property)=>sum+(parseFloat(chipStyle[property])||0),0);
-      const letterSpacing=parseFloat(labelStyle.letterSpacing)||0;
+      const letterSpacing=parseFloat(chipStyle.letterSpacing)||0;
       const measureAt=size=>{
-        context.font=`${labelStyle.fontStyle} ${labelStyle.fontVariant} ${labelStyle.fontWeight} ${size}px ${labelStyle.fontFamily}`;
+        context.font=`${chipStyle.fontStyle} ${chipStyle.fontVariant} ${chipStyle.fontWeight} ${size}px ${chipStyle.fontFamily}`;
         return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
       };
       let fitted=maximum;
