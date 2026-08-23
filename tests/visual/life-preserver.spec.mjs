@@ -240,6 +240,39 @@ test('threshold tables unlock only Duke and never show Turbo chips', async ({pag
   }
 });
 
+test('iPad wheel keeps Spin and Help tappable and ignores backdrop taps', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'ipad-landscape-webkit', 'This is the porch iPad size');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+
+  const geometry = await page.evaluate(() => {
+    const canvas = document.getElementById('wheel-canvas').getBoundingClientRect();
+    const spin = document.getElementById('btn-spin').getBoundingClientRect();
+    const help = document.getElementById('btn-life-preserver-help').getBoundingClientRect();
+    const hits = (a, b) => !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right);
+    return {
+      spinVisible: spin.height > 20 && spin.bottom <= window.innerHeight - 4,
+      helpVisible: help.height > 20 && help.bottom <= window.innerHeight - 4,
+      canvasHitsSpin: hits(canvas, spin),
+      canvasHitsHelp: hits(canvas, help)
+    };
+  });
+  expect(geometry.canvasHitsSpin, 'wheel should not cover Spin').toBe(false);
+  expect(geometry.canvasHitsHelp, 'wheel should not cover How it works').toBe(false);
+  expect(geometry.spinVisible, 'Spin should stay on screen').toBe(true);
+  expect(geometry.helpVisible, 'How it works should stay on screen').toBe(true);
+
+  await page.locator('#wheel-modal > .absolute.inset-0').click({position: {x: 12, y: 12}});
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+
+  await page.getByRole('button', {name: 'How Life Preserver works'}).click();
+  await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
+  await page.getByRole('button', {name: 'Back to the wheel'}).click();
+  await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);
+});
+
 test('skipping a dealer roll does not steal the next game\'s Roll Die button', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home', {waitUntil: 'networkidle'});

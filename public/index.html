@@ -3303,9 +3303,12 @@ button.dealer-name-indicator {
         radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
         var(--surface);
       box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
+      max-height: calc(100dvh - 32px);
       overflow: hidden;
     }
     .life-preserver-help {
+      z-index: 50;
+      pointer-events: auto;
       background:
         radial-gradient(circle at 50% 0%, rgba(255,250,241,0.99), rgba(247,238,228,0.99) 62%),
         var(--surface);
@@ -3383,12 +3386,19 @@ button.dealer-name-indicator {
       color: var(--ink);
       font-weight: 800;
     }
-    .wheel-shell { position: relative; }
+    .wheel-shell {
+      position: relative;
+      width: min(26rem, 72vw, calc(100dvh - 22rem));
+      height: min(26rem, 72vw, calc(100dvh - 22rem));
+      flex: 0 1 auto;
+      margin-bottom: 1.25rem;
+    }
     .wheel-shell::before {
       content: '';
       position: absolute;
       inset: -14px;
       z-index: 0;
+      pointer-events: none;
       border-radius: 999px;
       background: conic-gradient(
         from -20deg,
@@ -3470,9 +3480,9 @@ button.dealer-name-indicator {
       box-shadow: 0 0 0 2px rgba(239,118,91,0.2), 0 3px 9px rgba(80,45,31,0.2);
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-life-preserver-rank {
-      width: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
-      height: clamp(24px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
-      font-size: clamp(0.68rem, calc(var(--scorecard-rank-font) * 1.08), 1rem) !important;
+      width: clamp(32px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
+      height: clamp(32px, calc(var(--scorecard-rank-size) * 1.28), 44px) !important;
+      font-size: clamp(0.72rem, calc(var(--scorecard-rank-font) * 1.08), 1rem) !important;
     }
     button.scorecard-life-preserver-rank {
       padding: 0;
@@ -7944,21 +7954,21 @@ button.dealer-name-indicator .dealer-player-label {
 
     <!-- Life Preserver Wheel -->
     <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
-      <div onclick="closeWheel()" class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <button onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p class="text-xs font-bold mb-2 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
         <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
-        <div class="wheel-shell relative w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] mb-6">
+        <div class="wheel-shell">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
           <div id="wheel-spinner" class="wheel-spinner"></div>
           <div class="wheel-spinner-hub"></div>
         </div>
-        <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl">SPIN THE WHEEL</button>
-        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold">How Life Preserver works</button>
-        <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-30 flex flex-col p-6 md:p-7 text-left">
+        <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl shrink-0">SPIN THE WHEEL</button>
+        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold shrink-0">How Life Preserver works</button>
+        <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-50 flex flex-col p-6 md:p-7 text-left">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);">🛟 Life Preserver</div>
           <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
           <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
@@ -9445,7 +9455,7 @@ button.dealer-name-indicator .dealer-player-label {
   function openLifePreserverRules(){
     if(!currentGame)return;
     const players=getActivePlayers(currentGame);
-    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const over=isMatchOver(currentGame);
     const summary=(window.BPGLifePreserver&&typeof BPGLifePreserver.summarizeLifePreserverTable==='function')
       ? BPGLifePreserver.summarizeLifePreserverTable(currentGame, players, {gameOver:over})
       : {rules:{supported:false,gameName:currentGame.name,lead:'Life Preserver details are unavailable.',how:[],wheel:[]},live:null};
@@ -10728,7 +10738,7 @@ button.dealer-name-indicator .dealer-player-label {
     const activePlayers=getActivePlayers(currentGame);
     if(!activePlayers.includes(p))return;
     if(currentGame.hailMaryUsed?.includes(p))return;
-    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+    const over=isMatchOver(currentGame);
     const offer=getLifePreserverOfferForPlayer(p, activePlayers, {gameOver:over});
     if(!offer.eligible||!offer.slices?.length)return;
     wheelPlayer=p;
@@ -10794,7 +10804,7 @@ button.dealer-name-indicator .dealer-player-label {
       if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
       if(!win)win=slices[0];
       const activePlayers=getActivePlayers(currentGame);
-      const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
+      const over=isMatchOver(currentGame);
       const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
       const proposed=Number(win?.adjustment)||0;
       if(!live.eligible){
