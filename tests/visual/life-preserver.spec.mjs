@@ -217,6 +217,15 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.evaluate(() => {
+    const player='Brick';
+    const live=getLifePreserverOfferForPlayer(player,getActivePlayers(currentGame));
+    const adjustment=applyLifePreserverResult(player,-live.maxSafeAdjustment,live);
+    currentGame.rounds.push({round:0,scores:{[player]:adjustment},hailMaryBonus:true});
+    currentGame.hailMaryUsed.push(player);
+    recomputeGameTotals(currentGame);
+    renderGame();
+  });
 
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', {name: 'Save & End', exact: true}).click();
