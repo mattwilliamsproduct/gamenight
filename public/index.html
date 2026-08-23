@@ -8298,12 +8298,7 @@ button.dealer-name-indicator .dealer-player-label {
     game.originalRoster=[...new Set(game.originalRoster.filter(name=>typeof name==='string'&&name.trim()))];
     game.rounds=Array.isArray(game.rounds)?game.rounds.filter(round=>round&&typeof round==='object'):[];
     game.totals=game.totals&&typeof game.totals==='object'&&!Array.isArray(game.totals)?game.totals:{};
-    game.hailMaryUsed=Array.isArray(game.hailMaryUsed)
-      ?[...new Set(game.hailMaryUsed.filter(name=>typeof name==='string'&&name))]
-      :(typeof game.hailMaryUsed==='string'&&game.hailMaryUsed.trim()?[game.hailMaryUsed.trim()]:[]);
-    if(typeof window!=='undefined'&&window.BPGLifePreserver&&typeof BPGLifePreserver.reconcileLifePreserverUsed==='function'){
-      BPGLifePreserver.reconcileLifePreserverUsed(game);
-    }
+    game.hailMaryUsed=Array.isArray(game.hailMaryUsed)?[...new Set(game.hailMaryUsed.filter(Boolean))]:[];
     game.lifePreserverHeld=Array.isArray(game.lifePreserverHeld)?[...new Set(game.lifePreserverHeld.filter(Boolean))]:[];
     game.retired=Array.isArray(game.retired)?[...new Set(game.retired.filter(Boolean))]:[];
     game.auditLog=Array.isArray(game.auditLog)?game.auditLog:[];
@@ -10816,11 +10811,7 @@ button.dealer-name-indicator .dealer-player-label {
   function authorizeHailMary(p){
     const activePlayers=getActivePlayers(currentGame);
     if(!activePlayers.includes(p))return;
-    if(window.BPGLifePreserver&&typeof BPGLifePreserver.hasUsedLifePreserver==='function'){
-      if(BPGLifePreserver.hasUsedLifePreserver(currentGame,p))return;
-    }else if(Array.isArray(currentGame.hailMaryUsed)&&currentGame.hailMaryUsed.includes(p)){
-      return;
-    }
+    if(currentGame.hailMaryUsed?.includes(p))return;
     const over=isMatchOver(currentGame);
     const offer=getLifePreserverOfferForPlayer(p, activePlayers, {gameOver:over});
     if(!offer.eligible||!offer.slices?.length)return;
@@ -13634,11 +13625,7 @@ ${isDealer
 
     // Body
     const buildHtmlTimer = gnPerfStart('GN renderGame build html');
-    if(window.BPGLifePreserver&&typeof BPGLifePreserver.reconcileLifePreserverUsed==='function'){
-      BPGLifePreserver.reconcileLifePreserverUsed(currentGame);
-    }else if(!Array.isArray(currentGame.hailMaryUsed)){
-      currentGame.hailMaryUsed=[];
-    }
+    if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
     let body='';
     try{
     sortedP.forEach((p,ri)=>{
@@ -13668,10 +13655,8 @@ ${isDealer
 
       const comebackChip='';
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{gameOver:over});
-      const hasUsedPreserver=window.BPGLifePreserver&&typeof BPGLifePreserver.hasUsedLifePreserver==='function'
-        ?BPGLifePreserver.hasUsedLifePreserver(currentGame,p)
-        :Array.isArray(currentGame.hailMaryUsed)&&currentGame.hailMaryUsed.includes(p);
-      const hasAvailablePreserver=isDesperate&&!hasUsedPreserver;
+      const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
+      const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
         ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
         : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);

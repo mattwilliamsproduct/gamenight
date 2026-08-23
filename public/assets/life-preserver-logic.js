@@ -635,41 +635,6 @@
     }, extras);
   }
 
-  function normalizeUsedList(value) {
-    if (Array.isArray(value)) return [...new Set(value.filter(name => typeof name === 'string' && name))];
-    if (typeof value === 'string' && value.trim()) return [value.trim()];
-    return [];
-  }
-
-  function lifePreserverSpinnersFromRound(round) {
-    if (!round?.hailMaryBonus) return [];
-    const candidates = Object.keys(round.scores || {}).filter(player => player && !round.joinBonus?.[player]);
-    const nonzero = candidates.filter(player => (Number(round.scores[player]) || 0) !== 0);
-    if (nonzero.length) return nonzero;
-    return candidates.length === 1 ? candidates : [];
-  }
-
-  function lifePreserverBonusPlayers(game) {
-    const names = [];
-    (game?.rounds || []).forEach(round => {
-      lifePreserverSpinnersFromRound(round).forEach(player => {
-        if (!names.includes(player)) names.push(player);
-      });
-    });
-    return names;
-  }
-
-  function reconcileLifePreserverUsed(game) {
-    if (!game || typeof game !== 'object') return [];
-    game.hailMaryUsed = lifePreserverBonusPlayers(game);
-    return game.hailMaryUsed;
-  }
-
-  function hasUsedLifePreserver(game, player) {
-    if (!game || !player) return false;
-    return reconcileLifePreserverUsed(game).includes(player);
-  }
-
   function isHeldForCurrentRound(game, player) {
     if (!game || !player) return false;
     const round = Number(game.currentRound) || 0;
@@ -689,8 +654,7 @@
       game.lifePreserverHeldRound = round;
       return [];
     }
-    reconcileLifePreserverUsed(game);
-    const used = new Set(normalizeUsedList(game.hailMaryUsed));
+    const used = new Set(game.hailMaryUsed || []);
     const retired = new Set(game.retired || []);
     const sameRound = !opts.reset
       && (Number(game.lifePreserverHeldRound) || 0) === round
@@ -732,7 +696,7 @@
     if (opts.gameOver) return ineligible('game-over');
     if (!SUPPORTED_GAMES.includes(game.name)) return ineligible('unsupported-game');
     if ((game.retired || []).includes(player)) return ineligible('retired');
-    if (hasUsedLifePreserver(game, player)) return ineligible('used');
+    if ((game.hailMaryUsed || []).includes(player)) return ineligible('used');
 
     const cfg = GAME_CONFIG[game.name];
     const players = activePlayers.filter(name => name && !(game.retired || []).includes(name));
@@ -970,8 +934,6 @@
     isHeldForCurrentRound,
     syncLifePreserverHolds,
     markLifePreserverUsed,
-    reconcileLifePreserverUsed,
-    hasUsedLifePreserver,
     lifePreserverPlayersFromRound,
     explainLifePreserverOffer,
     explainLifePreserverRules,

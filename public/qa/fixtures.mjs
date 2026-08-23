@@ -155,12 +155,8 @@ const wizardGame=makeCurrentGame('Wizard',wizardPlayers,wizardRounds(wizardPlaye
 });
 const crownsPlayers=NAMES.slice(0,8);
 const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers));
-const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,[
-  ...buriedFiveCrownsRounds(crownsPlayers),
-  {round:0,hailMaryBonus:true,scores:{Linda:0}}
-],{
-  hailMaryUsed:['Linda'],
-  currentRound:9
+const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers),{
+  hailMaryUsed:['Linda']
 });
 const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);

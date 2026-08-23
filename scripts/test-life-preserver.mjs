@@ -348,14 +348,7 @@ test('818 last-round explanation names the leftover when the hole is close', () 
 
 test('used and retired players cannot qualify', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 70 };
-  const used = offer('818', totals, {
-    roundCount: 14,
-    spread: 17,
-    currentRound: 15,
-    player: 'Hal',
-    hailMaryUsed: ['Hal'],
-    extraRounds: [{ hailMaryBonus: true, scores: { Hal: 10 } }]
-  });
+  const used = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal', hailMaryUsed: ['Hal'] });
   const retired = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal', retired: ['Hal'] });
   assert.equal(used.reason, 'used');
   assert.equal(retired.reason, 'retired');
@@ -474,7 +467,7 @@ test('Five Crowns QA fixture still has one available and one used Life Preserver
   const currentGame = QA_SCENARIOS['five-crowns-preservers'].data.currentGame;
   const players = currentGame.originalRoster.filter(player => !(currentGame.retired || []).includes(player));
   const available = players.filter(player => LP.getLifePreserverOffer(currentGame, player, players).eligible);
-  const used = players.filter(player => LP.hasUsedLifePreserver(currentGame, player));
+  const used = players.filter(player => (currentGame.hailMaryUsed || []).includes(player));
   assert.ok(available.length >= 1, `expected an available Life Preserver, got ${available.join(',') || 'none'}`);
   assert.ok(used.length >= 1, 'expected a used Life Preserver');
   assert.ok(!available.includes('Linda'));
@@ -619,7 +612,6 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   const firstHold = LP.syncLifePreserverHolds(g, EIGHT);
   assert.deepEqual([...firstHold].sort(), ['Gus', 'Hal']);
 
-  g.rounds.push({ hailMaryBonus: true, scores: { Hal: 0 } });
   LP.markLifePreserverUsed(g, 'Hal');
   g.totals.Gus = 125;
   const stillHeld = LP.syncLifePreserverHolds(g, EIGHT);
@@ -650,49 +642,6 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
-});
-
-test('a stale used flag without a bonus round does not grey out an unlocked player', () => {
-  const players = ['Matt', 'Megan', 'Michelle', 'Vikki', 'Brick', 'Duke', 'Linda', 'Mike', 'Cat'];
-  const rounds = [
-    { round: 1, scores: { Matt: 0, Megan: 0, Michelle: 17, Vikki: 0, Brick: 0, Duke: 16, Linda: 19, Mike: 0, Cat: 14 } },
-    { round: 2, scores: { Matt: 3, Megan: 0, Michelle: 0, Vikki: 28, Brick: 6, Duke: 0, Linda: 7, Mike: 7, Cat: 27 } },
-    { round: 3, scores: { Matt: 0, Megan: 4, Michelle: 4, Vikki: 4, Brick: 17, Duke: 8, Linda: 6, Mike: 0, Cat: 7 } },
-    { round: 4, scores: { Matt: 7, Megan: 0, Michelle: 13, Vikki: 14, Brick: 10, Duke: 0, Linda: 15, Mike: 23, Cat: 39 } },
-    { round: 5, scores: { Matt: 0, Megan: 4, Michelle: 0, Vikki: 3, Brick: 18, Duke: 7, Linda: 25, Mike: 54, Cat: 0 } },
-    { round: 6, scores: { Matt: 14, Megan: 3, Michelle: 4, Vikki: 0, Brick: 5, Duke: 12, Linda: 9, Mike: 0, Cat: 58 } },
-    { round: 7, scores: { Matt: 0, Megan: 14, Michelle: 0, Vikki: 0, Brick: 0, Duke: 29, Linda: 0, Mike: 3, Cat: 0 } }
-  ];
-  const totals = Object.fromEntries(players.map(player => [
-    player,
-    rounds.reduce((sum, round) => sum + (Number(round.scores[player]) || 0), 0)
-  ]));
-  const g = {
-    name: 'Five Crowns',
-    originalRoster: players,
-    totals,
-    rounds,
-    currentRound: 8,
-    hailMaryUsed: 'Cat',
-    lifePreserverHeld: [],
-    retired: []
-  };
-  assert.equal(LP.hasUsedLifePreserver(g, 'Cat'), false);
-  const cat = LP.getLifePreserverOffer(g, 'Cat', players);
-  assert.equal(cat.eligible, true);
-  assert.deepEqual(g.hailMaryUsed, []);
-  g.hailMaryUsed = ['Cat'];
-  assert.equal(LP.hasUsedLifePreserver(g, 'Cat'), false);
-  assert.equal(LP.getLifePreserverOffer(g, 'Cat', players).eligible, true);
-  assert.deepEqual(g.hailMaryUsed, []);
-  assert.equal(LP.getLifePreserverOffer(g, 'Linda', players).eligible, false);
-  assert.equal(LP.getLifePreserverOffer(g, 'Mike', players).eligible, false);
-
-  g.rounds.push({ round: 0, scores: { Cat: -50 }, hailMaryBonus: true });
-  g.totals.Cat -= 50;
-  LP.markLifePreserverUsed(g, 'Cat');
-  assert.equal(LP.hasUsedLifePreserver(g, 'Cat'), true);
-  assert.equal(LP.getLifePreserverOffer(g, 'Cat', players).reason, 'used');
 });
 
 test('a held Life Preserver disappears when no helpful result can stay behind first', () => {
