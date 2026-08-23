@@ -21,7 +21,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(page.locator('#life-preserver-why')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-why')).toContainText('Why these numbers');
   await expect(page.locator('#life-preserver-why')).toContainText('behind 1st');
-  await expect(page.locator('#life-preserver-why')).toContainText('−75');
+  await expect(page.locator('#life-preserver-why')).toContainText('−60');
   await page.evaluate(() => hideLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);
 
@@ -38,7 +38,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   expect(snapshot.winLow).toBe(true);
   expect(snapshot.bestAllowedRank).toBe(2);
   expect(snapshot.maxSafe).toBeGreaterThan(20);
-  expect(snapshot.maxSafe).toBeLessThanOrEqual(75);
+  expect(snapshot.maxSafe).toBeLessThanOrEqual(60);
   expect(snapshot.labels.join(' ')).not.toMatch(/Half|Wipe|Double|×2|Dbl/i);
   expect(snapshot.adjustments.some(value => value < 0)).toBe(true);
 

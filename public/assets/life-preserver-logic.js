@@ -38,7 +38,8 @@
       maxRounds: 11,
       increment: 5,
       rescueMin: 10,
-      rescueMax: 75,
+      // One wrecked 13-card leftover is plenty. A second wrecked hand is ordinary play.
+      rescueMax: 60,
       minScoringRounds: 4,
       fallback: 24,
       recoveryLoad: 0.4
@@ -215,8 +216,10 @@
     const maxSafe = Number(offer.maxSafeAdjustment) || 0;
     const rankCap = Number(offer.rankCap);
     const gameCap = Number(offer.gameSafetyCap);
+    const holeCap = Number(offer.holeCap);
     if (Number.isFinite(rankCap) && maxSafe === rankCap && rankCap < desired && rankCap < gameCap) return 'rank';
     if (Number.isFinite(gameCap) && maxSafe === gameCap && gameCap < desired) return 'game-cap';
+    if (Number.isFinite(holeCap) && maxSafe === holeCap && holeCap < desired) return 'hole';
     if ((Number(offer.rescueNeeded) || 0) > (Number(offer.oneStrongRound) || 0)) return 'rescue';
     return 'one-round';
   }
@@ -262,6 +265,11 @@
       bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
       bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot match or pass 1st.`);
+    } else if (binding === 'hole') {
+      const left = Number.isFinite(remaining) && remaining > 0
+        ? `the remaining ${remaining} ${roundNoun(offer.gameName, remaining)} still ${remaining === 1 ? 'has' : 'have'} to do some of the work`
+        : 'ordinary play still has to do some of the work';
+      bullets.push(`The biggest help is ${bestShort} — it gets ${player} closer, but ${left}. It cannot match or pass 1st.`);
     } else if (binding === 'rescue') {
       bullets.push(`The biggest help is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
@@ -789,8 +797,15 @@
       ? comebackUnit * FLIP7_STRONG_ROUNDS
       : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
     const rescueNeeded = Math.max(0, leaderGap - ordinaryRecoveryLimit);
+    // Leave about 40% of the next ordinary swing unclosed so the best spin
+    // cannot win the hole by itself. In last-hand Five Crowns that is a modest leftover.
+    const stillNeed = Math.max(
+      cfg.increment,
+      floorToIncrement(upcomingOpportunity * 0.4, cfg.increment)
+    );
+    const holeCap = floorToIncrement(Math.max(0, leaderGap - stillNeed), cfg.increment);
     const maxSafeAdjustment = floorToIncrement(
-      Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
+      Math.min(rankCap, cfg.rescueMax, holeCap, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment
     );
     if (maxSafeAdjustment < cfg.increment) {
@@ -844,6 +859,8 @@
       ordinaryRecoveryLimit,
       rescueNeeded,
       oneStrongRound,
+      stillNeed,
+      holeCap,
       rankCap,
       gameSafetyCap: cfg.rescueMax,
       remainingRounds,

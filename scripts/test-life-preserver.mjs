@@ -245,7 +245,7 @@ test('Five Crowns treats score reductions as helpful', () => {
   const setbacks = result.slices.filter(slice => slice.adjustment > 0);
   assert.ok(helpful.length >= 4);
   assert.ok(setbacks.length >= 2);
-  assert.ok(result.maxSafeAdjustment <= 75);
+  assert.ok(result.maxSafeAdjustment <= 60);
   assert.ok(result.maxSafeAdjustment > 20);
   assertNoPodium(result, EIGHT, totals);
 });
@@ -365,6 +365,39 @@ test('a huge helpful extra stops at least one step behind first', () => {
   assertNoPodium(result, FOUR, totals);
 });
 
+test('last-hand Five Crowns sizes Megan under a leftover, and caps Duke at 60', () => {
+  const totals = { Matt: 0, Cat: 0, Michelle: 0, Mike: 0, Linda: 18, Vikki: 20, Megan: 49, Duke: 102 };
+  const players = Object.keys(totals);
+  const g = game({
+    name: 'Five Crowns',
+    players,
+    totals,
+    roundCount: 10,
+    spread: 37,
+    currentRound: 11,
+    lifePreserverHeld: ['Megan', 'Duke'],
+    lifePreserverHeldRound: 11
+  });
+  const megan = LP.getLifePreserverOffer(g, 'Megan', players);
+  const duke = LP.getLifePreserverOffer(g, 'Duke', players);
+  assert.equal(megan.eligible, true);
+  assert.equal(megan.leaderGap, 49);
+  assert.equal(megan.remainingRounds, 1);
+  assert.equal(megan.bindingLimit, 'hole');
+  assert.equal(megan.maxSafeAdjustment, 30);
+  assert.ok(49 - megan.maxSafeAdjustment > 10, 'a 10-point leftover by 1st should not hand Megan the win');
+  assert.equal(duke.eligible, true);
+  assert.equal(duke.leaderGap, 102);
+  assert.equal(duke.maxSafeAdjustment, 60);
+  assert.equal(duke.gameSafetyCap, 60);
+  assert.equal(duke.bindingLimit, 'game-cap');
+  assertNoPodium(megan, players, totals);
+  assertNoPodium(duke, players, totals);
+  const explained = LP.explainLifePreserverOffer(megan);
+  assert.match(explained.wheelLine, /Best help −30/);
+  assert.ok(explained.bullets.some(bullet => /remaining 1 hand still has to do some of the work/.test(bullet)));
+});
+
 test('Rook and Beat the Heat stay ineligible', () => {
   const totals = { Ann: 100, Bea: 90, Cal: 20, Dee: 10 };
   assert.equal(offer('Rook', totals, { roundCount: 6, spread: 20, player: 'Dee' }).reason, 'unsupported-game');
@@ -381,8 +414,8 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.rank, 7);
   assert.ok(result.leaderGap >= 100);
   assert.ok(result.maxSafeAdjustment > 20, `expected a rescue above 20, got ${result.maxSafeAdjustment}`);
-  assert.ok(result.maxSafeAdjustment >= 50, `expected Brick's jackpot around 50-75, got ${result.maxSafeAdjustment}`);
-  assert.ok(result.maxSafeAdjustment <= 75);
+  assert.ok(result.maxSafeAdjustment >= 50, `expected Brick's jackpot around 50-60, got ${result.maxSafeAdjustment}`);
+  assert.ok(result.maxSafeAdjustment <= 60);
   const helpfulWeights = result.slices.filter(slice => slice.adjustment < 0).reduce((sum, slice) => sum + slice.weight, 0);
   const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
   assert.ok(helpfulWeights / totalWeight >= 0.8);
@@ -394,13 +427,13 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
   assert.match(explained.wheelLine, /behind 1st/);
-  assert.match(explained.wheelLine, /−75/);
+  assert.match(explained.wheelLine, /−60/);
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
   assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−30/.test(bullet) && /−45/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
 });
