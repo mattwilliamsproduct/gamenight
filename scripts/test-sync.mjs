@@ -44,11 +44,18 @@ test('cloud sync rejects a stale writer and accepts the current revision', async
         json: async () => ({ result: stored })
       };
     }
-    if (command[0] === 'SET') {
-      stored = command[2];
+    if (command[0] === 'EVAL') {
+      const currentRevision = stored ? String(JSON.parse(stored).savedAt || '') : '';
+      if (stored && currentRevision !== command[4]) {
+        return {
+          ok: true,
+          json: async () => ({ result: 0 })
+        };
+      }
+      stored = command[5];
       return {
         ok: true,
-        json: async () => ({ result: 'OK' })
+        json: async () => ({ result: 1 })
       };
     }
     throw new Error(`Unexpected Redis command: ${command[0]}`);
