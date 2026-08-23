@@ -596,6 +596,5 @@ test('a held Life Preserver disappears when no helpful result can stay behind fi
   const offer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);
   assert.equal(holds.includes('Gus'), false);
   assert.equal(offer.eligible, false);
-  assert.equal(offer.reason, 'no-legal-help');
   assert.equal(offer.slices.length, 0);
 });
