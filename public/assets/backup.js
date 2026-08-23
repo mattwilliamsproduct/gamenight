@@ -85,15 +85,19 @@
     return data;
   }
 
-  function mergeBackup(current, incoming) {
+  function mergeBackup(current, incoming, options) {
+    const opts = options || {};
+    const localGame = current?.currentGame || null;
+    const incomingHasGame = Object.prototype.hasOwnProperty.call(incoming || {}, 'currentGame');
+    const shouldReplaceGame = opts.replaceCurrentGame === true || !localGame;
     const next = {
       allPlayers: [...(current?.allPlayers || [])],
       players: [...(current?.players || [])],
       history: [...(current?.history || [])],
       playerProfiles: Object.assign({}, current?.playerProfiles || {}),
-      currentGame: Object.prototype.hasOwnProperty.call(incoming || {}, 'currentGame')
+      currentGame: incomingHasGame && shouldReplaceGame
         ? (incoming.currentGame || null)
-        : (current?.currentGame || null),
+        : localGame,
       prefs: incoming?.prefs && typeof incoming.prefs === 'object' ? incoming.prefs : current?.prefs || null,
       uiScale: incoming?.uiScale != null ? incoming.uiScale : current?.uiScale
     };
@@ -130,15 +134,53 @@
     return { next, added };
   }
 
+  function activeGameKey(game) {
+    if (!game || typeof game !== 'object') return '';
+    if (game.syncId) return String(game.syncId);
+    const roster = Array.isArray(game.originalRoster) ? game.originalRoster.join('\u001f') : '';
+    return `legacy:${game.name || ''}:${roster}`;
+  }
+
+  function activeGameUpdatedAt(game) {
+    const value = Number(game?.updatedAt);
+    return Number.isFinite(value) ? value : 0;
+  }
+
   function mergeCloud(local, remote) {
     if (!remote || typeof remote !== 'object') {
       return mergeBackup(local || {}, {});
     }
     const incoming = Object.assign({}, remote);
-    if (local?.currentGame && local.currentGame.name) {
-      delete incoming.currentGame;
+    const localGame = local?.currentGame && local.currentGame.name ? local.currentGame : null;
+    const remoteGame = remote?.currentGame && remote.currentGame.name ? remote.currentGame : null;
+    let currentGameConflict = false;
+    let replaceCurrentGame = !localGame;
+    if (localGame && remoteGame) {
+      const sameGame = activeGameKey(localGame) === activeGameKey(remoteGame);
+      if (!sameGame) {
+        currentGameConflict = true;
+        delete incoming.currentGame;
+      } else if (activeGameUpdatedAt(remoteGame) <= activeGameUpdatedAt(localGame)) {
+        delete incoming.currentGame;
+      } else {
+        replaceCurrentGame = true;
+      }
+    } else if (localGame) {
+      const finishedRemotely = (remote.history || []).some(match => (
+        match?.syncId && activeGameKey(match) === activeGameKey(localGame)
+      ));
+      if (finishedRemotely) {
+        incoming.currentGame = null;
+        replaceCurrentGame = true;
+      } else {
+        delete incoming.currentGame;
+      }
     }
-    return mergeBackup(local || {}, incoming);
+    const merged = mergeBackup(local || {}, incoming, {
+      replaceCurrentGame
+    });
+    merged.currentGameConflict = currentGameConflict;
+    return merged;
   }
 
   const api = {
@@ -149,7 +191,8 @@
     buildBackup,
     parseBackup,
     mergeBackup,
-    mergeCloud
+    mergeCloud,
+    activeGameKey
   };
 
   root.BPGBackup = api;

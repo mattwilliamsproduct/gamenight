@@ -646,9 +646,12 @@
     const sameRound = !opts.reset
       && (Number(game.lifePreserverHeldRound) || 0) === round
       && Array.isArray(game.lifePreserverHeld);
-    const kept = sameRound
+    const heldCandidates = sameRound
       ? game.lifePreserverHeld.filter(name => name && !used.has(name) && !retired.has(name))
       : [];
+    const kept = heldCandidates.filter(player => getLifePreserverOffer(game, player, players, {
+      gameOver: opts.gameOver
+    }).eligible);
     const held = new Set(kept);
     (players || []).forEach(player => {
       if (!player || used.has(player) || retired.has(player)) return;
@@ -790,7 +793,7 @@
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment
     );
-    if (maxSafeAdjustment < cfg.increment && !held) {
+    if (maxSafeAdjustment < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,
         leaderGap,
@@ -806,7 +809,7 @@
     }
 
     const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
-    const wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
+    const wheelHelp = maxSafeAdjustment;
     if (wheelHelp < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,

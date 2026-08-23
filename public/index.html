@@ -3536,8 +3536,8 @@ button.dealer-name-indicator.scoreboard-player-name {
   justify-content: flex-start;
   padding-top: 0.08em;
   padding-bottom: 0.08em;
-  padding-left: 0.12em;
-  padding-right: 0.12em;
+  padding-left: 0;
+  padding-right: 0;
   border: 0;
   box-shadow: inset 0 0 0 2px var(--emerald);
 }
@@ -8288,6 +8288,32 @@ button.dealer-name-indicator .dealer-player-label {
   // ── Storage helpers ──
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
   function safeGetObject(k){try{const d=JSON.parse(localStorage.getItem(k));return(d&&typeof d==='object'&&!Array.isArray(d))?d:{};}catch(e){return{};}}
+  function createGameSyncId(){
+    if(globalThis.crypto&&typeof globalThis.crypto.randomUUID==='function')return globalThis.crypto.randomUUID();
+    return `game-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+  }
+  function normalizeCurrentGameState(value){
+    if(!value||typeof value!=='object'||Array.isArray(value)||!value.name||!Array.isArray(value.originalRoster))return null;
+    const game={...value};
+    game.originalRoster=[...new Set(game.originalRoster.filter(name=>typeof name==='string'&&name.trim()))];
+    game.rounds=Array.isArray(game.rounds)?game.rounds.filter(round=>round&&typeof round==='object'):[];
+    game.totals=game.totals&&typeof game.totals==='object'&&!Array.isArray(game.totals)?game.totals:{};
+    game.hailMaryUsed=Array.isArray(game.hailMaryUsed)?[...new Set(game.hailMaryUsed.filter(Boolean))]:[];
+    game.lifePreserverHeld=Array.isArray(game.lifePreserverHeld)?[...new Set(game.lifePreserverHeld.filter(Boolean))]:[];
+    game.retired=Array.isArray(game.retired)?[...new Set(game.retired.filter(Boolean))]:[];
+    game.auditLog=Array.isArray(game.auditLog)?game.auditLog:[];
+    game.currentScoreDrafts=game.currentScoreDrafts&&typeof game.currentScoreDrafts==='object'&&!Array.isArray(game.currentScoreDrafts)?game.currentScoreDrafts:{};
+    if(game.currentBids!==undefined&&(typeof game.currentBids!=='object'||Array.isArray(game.currentBids)||!game.currentBids))game.currentBids={};
+    const scoringCount=game.rounds.filter(round=>!round.hailMaryBonus).length;
+    game.currentRound=Number.isFinite(Number(game.currentRound))&&Number(game.currentRound)>0
+      ?Math.floor(Number(game.currentRound))
+      :scoringCount+1;
+    if(game.lifePreserverHeld.length&&game.lifePreserverHeldRound==null)game.lifePreserverHeldRound=game.currentRound;
+    else if(game.lifePreserverHeldRound!=null)game.lifePreserverHeldRound=Number(game.lifePreserverHeldRound)||game.currentRound;
+    if(game.syncId!=null)game.syncId=String(game.syncId);
+    if(game.updatedAt!=null)game.updatedAt=Number(game.updatedAt)||0;
+    return game;
+  }
 
   // ── Core state ──
   let allPlayers = safeGetArray('gn_all_players').filter(p=>p&&typeof p==='string'&&p.trim());
@@ -8630,8 +8656,7 @@ button.dealer-name-indicator .dealer-player-label {
     };
   }
   try {
-    currentGame = JSON.parse(localStorage.getItem('gn_current'));
-    if (currentGame && (!currentGame.name || !Array.isArray(currentGame.originalRoster))) currentGame=null;
+    currentGame = normalizeCurrentGameState(JSON.parse(localStorage.getItem('gn_current')));
     if (currentGame?.name==='Rook' && currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
   } catch(e){ currentGame=null; }
 
@@ -8992,6 +9017,18 @@ button.dealer-name-indicator .dealer-player-label {
     const exec = () => {
       const execTimer = gnPerfStart('GN saveData exec');
       try{
+        if(currentGame&&!_porchApplying){
+          let changed=true;
+          try{
+            const prior=JSON.parse(_lastPersistedState.gn_current||'null');
+            const currentComparable={...currentGame};
+            const priorComparable=prior&&typeof prior==='object'?{...prior}:null;
+            delete currentComparable.updatedAt;
+            if(priorComparable)delete priorComparable.updatedAt;
+            changed=JSON.stringify(currentComparable)!==JSON.stringify(priorComparable);
+          }catch(error){}
+          if(changed)currentGame.updatedAt=Date.now();
+        }
         _persistGamenightState({ fullPersist, syncCold });
         if(!_porchApplying) schedulePorchPush();
       } finally {
@@ -9037,6 +9074,7 @@ button.dealer-name-indicator .dealer-player-label {
       flushPendingSave();
       _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
       gnPerfFlushPersist();
+      flushPorchCloudOnHide();
     }
     else if(document.visibilityState === 'visible' && currentGame){
       await requestWakeLock();
@@ -9049,6 +9087,7 @@ button.dealer-name-indicator .dealer-player-label {
     flushPendingSave();
     _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
     gnPerfFlushPersist();
+    flushPorchCloudOnHide();
   });
   function updateNavButton(){
     const b=document.getElementById('nav-active-btn');
@@ -9818,7 +9857,7 @@ button.dealer-name-indicator .dealer-player-label {
     players=next.players;
     history=next.history;
     playerProfiles=next.playerProfiles;
-    currentGame=next.currentGame||null;
+    currentGame=normalizeCurrentGameState(next.currentGame);
     if(next.prefs&&typeof next.prefs==='object'){
       if(typeof next.prefs.lineupIntro==='boolean') prefs.lineupIntro=next.prefs.lineupIntro;
       if(typeof next.prefs.statMontage==='boolean') prefs.statMontage=next.prefs.statMontage;
@@ -9884,6 +9923,8 @@ button.dealer-name-indicator .dealer-player-label {
   let _porchPushTimer=null;
   let _porchBusy=false;
   let _porchApplying=false;
+  let _porchRevision='';
+  let _porchConflict=false;
   function canPorchCloud(){
     return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
   }
@@ -9913,16 +9954,19 @@ button.dealer-name-indicator .dealer-player-label {
     }
     setPorchStatus('Password saved on this copy. Tap Save & Sync if the status is stale.');
   }
-  async function porchRequest(method,body){
+  async function porchRequest(method,body,options){
     const key=getPorchKey();
     if(!canPorchCloud()||!key) throw Object.assign(new Error('no-cloud'),{status:0});
+    const headers={
+      'Content-Type':'application/json',
+      'x-porch-key':key
+    };
+    if(method==='PUT')headers['If-Match']=_porchRevision;
     const res=await fetch('/api/sync',{
       method,
-      headers:{
-        'Content-Type':'application/json',
-        'x-porch-key':key
-      },
-      body:method==='PUT'?JSON.stringify(body):undefined
+      headers,
+      body:method==='PUT'?JSON.stringify(body):undefined,
+      keepalive:options?.keepalive===true
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok) throw Object.assign(new Error(data.error||'cloud-failed'),{status:res.status,data});
@@ -9936,25 +9980,32 @@ button.dealer-name-indicator .dealer-player-label {
       setPorchStatus('Checking the porch cloud…');
       const data=await porchRequest('GET');
       if(!data.backup){
+        _porchRevision='';
+        _porchConflict=false;
         setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
         return {empty:true};
       }
-      const {next,added}=BPGBackup.mergeCloud(currentBackupState(),data.backup);
-      if(added.games||added.players){
-        _porchApplying=true;
+      _porchRevision=String(data.backup.savedAt||'');
+      const {next,added,currentGameConflict}=BPGBackup.mergeCloud(currentBackupState(),data.backup);
+      _porchConflict=!!currentGameConflict;
+      _porchApplying=true;
+      try{
         allPlayers=next.allPlayers;
         players=next.players;
         history=next.history;
         playerProfiles=next.playerProfiles;
-        if(!currentGame && next.currentGame) currentGame=next.currentGame;
+        currentGame=normalizeCurrentGameState(next.currentGame);
         if(added.games) markHistoryChanged();
         saveData({fullPersist:true,syncCold:true});
+      }finally{
         _porchApplying=false;
       }
       const snap=BPGBackup.summarizeHistory(history);
-      setPorchStatus(`Cloud is connected. ${snap.line}`);
+      setPorchStatus(_porchConflict
+        ?'Two different active matches exist. Finish or scratch this copy, then Save & Sync again; neither match was overwritten.'
+        :`Cloud is connected. ${snap.line}`);
       refreshBackupSummary();
-      return {added,empty:false};
+      return {added,empty:false,conflict:_porchConflict};
     }catch(error){
       if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
       else if(error.status===401) setPorchStatus('That porch password did not match.');
@@ -9965,18 +10016,24 @@ button.dealer-name-indicator .dealer-player-label {
       _porchBusy=false;
     }
   }
-  async function pushPorchCloud(){
+  async function pushPorchCloud(options){
     if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
+    if(_porchConflict){
+      setPorchStatus('Cloud save paused because another active match exists. Finish or scratch this copy, then Save & Sync again.');
+      return;
+    }
     if(_porchBusy) return;
     _porchBusy=true;
     try{
       const payload=BPGBackup.buildBackup(currentBackupState());
-      await porchRequest('PUT',payload);
+      const result=await porchRequest('PUT',payload,options);
+      _porchRevision=String(result.savedAt||_porchRevision);
       const snap=BPGBackup.summarizeHistory(payload.history);
       setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
     }catch(error){
       if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
       else if(error.status===401) setPorchStatus('That porch password did not match.');
+      else if(error.status===409) setPorchStatus('Cloud changed on another copy, so this save was paused. Tap Save & Sync to merge first.');
       else setPorchStatus('Could not save to the porch cloud.');
     }finally{
       _porchBusy=false;
@@ -9986,6 +10043,12 @@ button.dealer-name-indicator .dealer-player-label {
     if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
     if(_porchPushTimer) clearTimeout(_porchPushTimer);
     _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
+  }
+  function flushPorchCloudOnHide(){
+    if(!_porchPushTimer)return;
+    clearTimeout(_porchPushTimer);
+    _porchPushTimer=null;
+    pushPorchCloud({keepalive:true});
   }
   async function savePorchPassword(){
     const input=document.getElementById('porch-cloud-key');
@@ -9999,7 +10062,7 @@ button.dealer-name-indicator .dealer-player-label {
     setPorchKey(key);
     const pulled=await pullPorchCloud();
     if(pulled&&pulled.empty) await pushPorchCloud();
-    else if(pulled) await pushPorchCloud();
+    else if(pulled&&!pulled.conflict) await pushPorchCloud();
     if(currentGame) goActiveMatch();
     else goHome();
   }
@@ -10636,27 +10699,34 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   // Helper: merge oldName's data into newName, then delete oldName.
-  // For merges, we ADD totals (in history) and unify rosters.
-  function mergePlayerRecords(src, target){
-    history.forEach(h => {
-      if(h.totals[src] !== undefined){
-        h.totals[target] = (h.totals[target] || 0) + h.totals[src];
-        delete h.totals[src];
-      }
-      if(Array.isArray(h.winners) && h.winners.includes(src)){
-        h.winners = [...new Set(h.winners.map(w => w === src ? target : w))];
-      }
-      if(Array.isArray(h.rounds)){
-        h.rounds.forEach(r => {
-          transferRoundPlayerKeys(r, src, target, true);
-        });
-      }
+  // For merges, we ADD totals and remap every identity-bearing game field.
+  function mergePlayerInGame(game,src,target){
+    if(!game||src===target)return;
+    if(game.totals&&game.totals[src]!==undefined){
+      game.totals[target]=(Number(game.totals[target])||0)+(Number(game.totals[src])||0);
+      delete game.totals[src];
+    }
+    ['originalRoster','retired','hailMaryUsed','lifePreserverHeld','winners'].forEach(key=>{
+      if(Array.isArray(game[key]))game[key]=[...new Set(game[key].map(name=>name===src?target:name))];
     });
+    if(Array.isArray(game.lifePreserverHeld)&&Array.isArray(game.hailMaryUsed)){
+      game.lifePreserverHeld=game.lifePreserverHeld.filter(name=>!game.hailMaryUsed.includes(name));
+    }
+    if(Array.isArray(game.rounds))game.rounds.forEach(round=>transferRoundPlayerKeys(round,src,target,true));
+    transferPlayerKey(game.currentBids,src,target,true);
+    transferPlayerKey(game.currentScoreDrafts,src,target,true);
+    if(game.rookHighBidder===src)game.rookHighBidder=target;
+    if(game.rookPartner===src)game.rookPartner=target;
+  }
+  function mergePlayerRecords(src, target){
+    history.forEach(game=>mergePlayerInGame(game,src,target));
+    mergePlayerInGame(currentGame,src,target);
     allPlayers = allPlayers.filter(p => p !== src);
     players = players.filter(p => p !== src);
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
+    if(currentGame)scheduleRender();
   }
 
 
@@ -11063,14 +11133,9 @@ button.dealer-name-indicator .dealer-player-label {
     ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
     const src=ev.dataTransfer.getData('text/plain');
     if(src&&src!==target&&confirm(`⚠️ MERGE RECORDS: Combine all history from "${src}" into "${target}"?\n\n"${src}" will be deleted.`)){
-      history.forEach(h=>{
-        if(h.totals[src]!==undefined){h.totals[target]=(h.totals[target]||0)+h.totals[src];delete h.totals[src];}
-        if(h.winners?.includes(src)){h.winners=h.winners.map(w=>w===src?target:w);h.winners=[...new Set(h.winners)];}
-        if(h.rounds)h.rounds.forEach(r=>{if(r.scores[src]!==undefined){r.scores[target]=(r.scores[target]||0)+r.scores[src];delete r.scores[src];}});
-      });
-      allPlayers=allPlayers.filter(p=>p!==src); players=players.filter(p=>p!==src);
-      markHistoryChanged();
-      saveData({ fullPersist: true, syncCold: true }); renderRoster(); alert(`Merged "${src}" → "${target}".`);
+      mergePlayerRecords(src,target);
+      renderRoster();
+      alert(`Merged "${src}" → "${target}".`);
     }
   }
 
@@ -11099,7 +11164,9 @@ button.dealer-name-indicator .dealer-player-label {
       retired:game.retired||[],
       currentScoreDrafts:{...(game.currentScoreDrafts||{})},
       dealerOffset:game.dealerOffset||0,
-      auditLog:game.auditLog||[]
+      auditLog:game.auditLog||[],
+      syncId:game.syncId||null,
+      updatedAt:Number(game.updatedAt)||Date.now()
     };
     if(game.name==='Wizard'){
       data.wizardPhase=game.wizardPhase||'bidding';
@@ -11152,7 +11219,7 @@ button.dealer-name-indicator .dealer-player-label {
     _pendingGameName = null;
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
-    currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
+    currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{},syncId:createGameSyncId(),updatedAt:Date.now()};
     snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -12015,7 +12082,7 @@ ${isDealer
   }
 
   function roundStandingPoints(round, player){
-    if(!round || round.joinBonus?.[player] || round.scores?.[player]===undefined) return 0;
+    if(!round || round.scores?.[player]===undefined) return 0;
     return (Number(round.scores[player])||0)+(Number(round.comeback?.[player])||0);
   }
 
@@ -12452,7 +12519,7 @@ ${isDealer
     resetRecordChaseView();
     const resumeRounds=g.rounds||[];
     const resumeScoringCount=resumeRounds.filter(round=>!round.hailMaryBonus).length;
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(resumeScoringCount+1),rounds:resumeRounds,totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame=normalizeCurrentGameState({name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(resumeScoringCount+1),rounds:resumeRounds,totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound??null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[],syncId:g.syncId||createGameSyncId(),updatedAt:Date.now()});
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -13134,14 +13201,18 @@ ${isDealer
     names.forEach(name=>{
       const cell=name.closest('td.scorecard-col-player');
       if(!cell)return;
+      const label=name.querySelector('.dealer-player-label')||name;
       const nameBox=name.getBoundingClientRect();
       const cellBox=cell.getBoundingClientRect();
-      if(nameBox.right<=cellBox.right+2)return;
-      const available=scorecardNameAvailableWidth(name);
+      if(nameBox.right<=cellBox.right+2&&label.scrollWidth<=label.clientWidth+1)return;
+      const slot=name.closest('.scorecard-player-name-slot');
+      const available=Math.min(
+        scorecardNameAvailableWidth(name),
+        slot&&slot.clientWidth>0?slot.clientWidth:Infinity
+      );
       if(available<=0)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
-      const label=name.querySelector('.dealer-player-label')||name;
       const labelStyle=getComputedStyle(label);
       const nameStyle=getComputedStyle(name);
       const text=(label.textContent||'').trim();
@@ -13245,7 +13316,12 @@ ${isDealer
         updateScorecardColumnTrim(capture);
         const modal=document.getElementById('scorecard-modal');
         const block=document.getElementById('modal-scorecard-block');
-        if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
+        if(modal&&block&&!modal.classList.contains('hidden')){
+          updateScorecardColumnTrim(block);
+          if(modal._historyGameData&&modal._historySortedPlayers){
+            syncHistoryLifePreserverFallback(modal._historyGameData,modal._historySortedPlayers);
+          }
+        }
         fitActiveScorecardRows();
         fitScorecardPlayerNames(capture);
         fitScorecardTotals(capture);
@@ -13316,8 +13392,8 @@ ${isDealer
 
   function scorecardExtraMarks(comebackExtra, lifePreserverExtra){
     const marks=[];
-    if(comebackExtra) marks.push(`<span class="score-cell-comeback" title="Comeback extra">${signedPointsMarkup(comebackExtra)}</span>`);
-    if(lifePreserverExtra) marks.push(`<span class="score-cell-life-preserver" title="Life Preserver">${signedPointsMarkup(lifePreserverExtra)}</span>`);
+    if(comebackExtra) marks.push(`<span class="score-cell-comeback" title="Comeback extra" aria-label="Comeback extra ${comebackExtra>0?'plus':'minus'} ${Math.abs(comebackExtra)} points">${signedPointsMarkup(comebackExtra)}</span>`);
+    if(lifePreserverExtra) marks.push(`<span class="score-cell-life-preserver" title="Life Preserver" aria-label="Life Preserver ${lifePreserverExtra>0?'plus':'minus'} ${Math.abs(lifePreserverExtra)} points">${signedPointsMarkup(lifePreserverExtra)}</span>`);
     return marks.join('');
   }
 
@@ -14950,7 +15026,7 @@ ${isDealer
       players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
       let t={}; roster.forEach(p=>t[p]=0);
       resetRecordChaseView();
-      currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
+      currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{},syncId:createGameSyncId(),updatedAt:Date.now()};
       snapshotGameMaxRounds(currentGame, roster.length);
       if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
       if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -14976,15 +15052,35 @@ ${isDealer
     if(stash)stash.replaceChildren();
   }
   function stashScorecardReceipt(){
+    const previousPaceVisible=recordChaseVisible;
+    const previousPaceActive=recordChaseLayoutActive;
+    if(currentGame){
+      recordChaseVisible=false;
+      recordChaseLayoutActive=false;
+      renderGame();
+    }
     const src=document.getElementById('scorecard-capture');
     const stash=document.getElementById('scorecard-receipt-stash');
-    if(!src||!stash)return;
+    if(!src||!stash){
+      recordChaseVisible=previousPaceVisible;
+      recordChaseLayoutActive=previousPaceActive;
+      return;
+    }
     stash.replaceChildren();
     const clone=src.cloneNode(true);
     clone.id='scorecard-receipt-capture';
+    ['#record-chase-panel','#submit-section','#scorecard-view-toggle-wrap'].forEach(selector=>clone.querySelector(selector)?.remove());
+    clone.querySelectorAll('button').forEach(button=>{
+      const span=document.createElement('span');
+      span.className=button.className;
+      span.innerHTML=button.innerHTML;
+      button.replaceWith(span);
+    });
     const width=Math.max(src.scrollWidth||0, src.offsetWidth||0, 800);
     stash.style.width=`${width}px`;
     stash.appendChild(clone);
+    recordChaseVisible=previousPaceVisible;
+    recordChaseLayoutActive=previousPaceActive;
   }
   async function shareReceipt(){
     const el=document.getElementById('scorecard-receipt-capture')||document.getElementById('scorecard-capture');
@@ -15303,6 +15399,19 @@ ${isDealer
     renderHallOfFame();
   }
 
+  function syncHistoryLifePreserverFallback(gameData, sortedPlayers){
+    const body=document.getElementById('modal-scorecard-body');
+    if(!body)return;
+    [...body.querySelectorAll('tr[data-history-player-index]')].forEach(row=>{
+      const player=sortedPlayers[Number(row.dataset.historyPlayerIndex)];
+      const fallback=row.querySelector('.history-life-preserver-total');
+      if(!player||!fallback)return;
+      const visibleMark=[...row.querySelectorAll('td.scorecard-round-td:not(.scorecard-round--hidden) .score-cell-life-preserver')]
+        .some(mark=>getComputedStyle(mark.closest('td')).display!=='none');
+      fallback.classList.toggle('hidden',visibleMark||!lifePreserverAdjustmentForPlayer(gameData,player));
+    });
+  }
+
   function openScorecard(id){
     const g=history.find(h=>h.id===id); if(!g)return;
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${g.game}`;
@@ -15317,11 +15426,15 @@ ${isDealer
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
     let body='';
-    sorted.forEach(p=>{
+    sorted.forEach((p,playerIndex)=>{
       const w=g.winners?.includes(p);
-      body+=`<tr class="${w?'leader-row':''}">
+      const totalLifePreserver=lifePreserverAdjustmentForPlayer(g,p);
+      const totalLifePreserverMark=totalLifePreserver
+        ?`<span class="history-life-preserver-total hidden">${scorecardExtraMarks(0,totalLifePreserver)}</span>`
+        :'';
+      body+=`<tr data-history-player-index="${playerIndex}" class="${w?'leader-row':''}">
         <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
-        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span></td>`;
+        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span>${totalLifePreserverMark}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=Number(r.comeback?.[p])||0;
@@ -15333,6 +15446,9 @@ ${isDealer
       body+=`</tr>`;
     });
     document.getElementById('modal-scorecard-body').innerHTML=body;
+    const modal=document.getElementById('scorecard-modal');
+    modal._historyGameData=g;
+    modal._historySortedPlayers=sorted;
     openModal('scorecard-modal');
     setTimeout(()=>scheduleScorecardColumnTrimAll(),60);
   }
@@ -15615,6 +15731,16 @@ ${isDealer
       return sorted.filter(p=>h.totals[p]===lastScore);
     };
     const scoringRoundsOf = (h) => (h.rounds||[]).filter(r=>!r.hailMaryBonus);
+    const hasLegitScoringParticipation = (h,player,limit=Infinity) => {
+      let counted=0;
+      for(const round of h.rounds||[]){
+        if(round.hailMaryBonus)continue;
+        if(counted>=limit)break;
+        counted++;
+        if(round.scores?.[player]!==undefined&&!round.joinBonus?.[player])return true;
+      }
+      return false;
+    };
     const addScoringTotals = (h, totals, limit) => {
       let counted = 0;
       (h.rounds||[]).forEach(r=>{
@@ -15629,7 +15755,7 @@ ${isDealer
       const roster = getRecordedPlayers(h);
       roster.forEach(p=>totals[p]=0);
       addScoringTotals(h, totals, roundCount);
-      const sorted = sortPlayersByTotal(roster.filter(p=>totals[p]!==undefined), totals, cfg);
+      const sorted = sortPlayersByTotal(roster.filter(p=>totals[p]!==undefined&&hasLegitScoringParticipation(h,p,roundCount)), totals, cfg);
       return sorted[0] || null;
     };
     const addPair = (a,b,h,winner) => {
@@ -15685,13 +15811,14 @@ ${isDealer
         const halfwayLeader = leaderBeforeRound(h, half);
         const halfwaySorted = (() => {
           const totals = {};
-          sorted.forEach(p=>totals[p]=0);
+          const halfwayPlayers=sorted.filter(p=>hasLegitScoringParticipation(h,p,half));
+          halfwayPlayers.forEach(p=>totals[p]=0);
           addScoringTotals(h, totals, half);
-          return sortPlayersByTotal(sorted, totals, cfg).map(p=>({p,score:totals[p]}));
+          return sortPlayersByTotal(halfwayPlayers, totals, cfg).map(p=>({p,score:totals[p]}));
         })();
         const halfwayLastScore = halfwaySorted.length ? halfwaySorted[halfwaySorted.length-1].score : null;
         const halfwayLeaderScore = halfwaySorted.length ? halfwaySorted[0].score : null;
-        winners.forEach(w=>{
+        winners.filter(w=>hasLegitScoringParticipation(h,w,half)).forEach(w=>{
           const wasLast = halfwaySorted.some(x=>x.p===w&&x.score===halfwayLastScore);
           const wasBehind = halfwayLeader && halfwayLeader !== w;
           const winnerHalfScore = halfwaySorted.find(x=>x.p===w)?.score ?? halfwayLeaderScore ?? 0;

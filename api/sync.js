@@ -80,6 +80,16 @@ module.exports = async function handler(req, res) {
       if (!looksLikeBackup(backup)) {
         return res.status(400).json({ ok: false, error: 'invalid-backup' });
       }
+      const stored = parseStored((await redisCommand(['GET', BACKUP_KEY]))?.result);
+      const expectedRevision = String(req.headers['if-match'] || '');
+      const storedRevision = String(stored?.savedAt || '');
+      if (stored && expectedRevision !== storedRevision) {
+        return res.status(409).json({
+          ok: false,
+          error: 'cloud-conflict',
+          savedAt: storedRevision
+        });
+      }
       const savedAt = new Date().toISOString();
       const payload = Object.assign({}, backup, { savedAt });
       await redisCommand(['SET', BACKUP_KEY, JSON.stringify(payload)]);
