@@ -132,6 +132,67 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
   await expect(page.locator('#round-intel')).toContainText('Hand of 11');
 });
 
+test('Life Preserver extra sits on the hand it followed so rows still add up', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+
+  const liveCard = await page.evaluate(() => {
+    const player = 'Brick';
+    const live = getLifePreserverOfferForPlayer(player, getActivePlayers(currentGame), {
+      gameOver: currentGame.currentRound > getMaxRoundsForGame(currentGame)
+    });
+    const adj = applyLifePreserverResult(player, -live.maxSafeAdjustment, live);
+    currentGame.rounds.push({round: 0, scores: {[player]: adj}, hailMaryBonus: true});
+    currentGame.hailMaryUsed.push(player);
+    recomputeGameTotals(currentGame);
+    renderGame();
+    const row = [...document.querySelectorAll('#scorecard-body tr')].find(entry => entry.textContent.includes('Brick'));
+    const lastCell = [...(row?.querySelectorAll('.scorecard-round-td') || [])].at(-1);
+    const scoringSum = currentGame.rounds
+      .filter(round => !round.hailMaryBonus)
+      .reduce((sum, round) => sum + (Number(round.scores.Brick) || 0), 0);
+    const path = buildMatchPlacePath({
+      ...currentGame,
+      game: currentGame.name,
+      totals: currentGame.totals,
+      winners: []
+    });
+    return {
+      adj,
+      total: Number(row?.querySelector('.scorecard-total-value')?.textContent),
+      scoringSum,
+      extraText: (lastCell?.textContent || '').replace(/\s+/g, ' ').trim(),
+      marks: lastCell?.querySelectorAll('.score-cell-life-preserver').length || 0,
+      pathPlayers: path?.players || []
+    };
+  });
+  expect(liveCard.marks).toBe(1);
+  expect(liveCard.extraText).toMatch(/−\d+/);
+  expect(liveCard.total).toBe(liveCard.scoringSum + liveCard.adj);
+  expect(liveCard.pathPlayers).toContain('Brick');
+
+  const historyCard = await page.evaluate(() => {
+    const match = JSON.parse(JSON.stringify(currentGame));
+    match.id = 424243;
+    match.game = match.name;
+    match.date = '8/23/2026';
+    match.winners = ['Megan'];
+    history.unshift(match);
+    openScorecard(match.id);
+    const row = [...document.querySelectorAll('#modal-scorecard-body tr')].find(entry => entry.textContent.includes('Brick'));
+    const lastCell = [...(row?.querySelectorAll('.scorecard-round-td') || [])].at(-1);
+    return {
+      total: Number(row?.querySelector('.scorecard-total-value')?.textContent),
+      extraText: (lastCell?.textContent || '').replace(/\s+/g, ' ').trim(),
+      marks: lastCell?.querySelectorAll('.score-cell-life-preserver').length || 0
+    };
+  });
+  expect(historyCard.marks).toBe(1);
+  expect(historyCard.extraText).toMatch(/−\d+/);
+  expect(historyCard.total).toBe(liveCard.total);
+});
+
 test('Actions menu explains how this game awards a Life Preserver', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});

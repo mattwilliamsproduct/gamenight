@@ -56,4 +56,12 @@ const manifest=JSON.parse(await readFile(join(rootDir,'public','manifest.webmani
 if(manifest.name!=='Back Porch Games') throw new Error('Manifest name should stay Back Porch Games.');
 if(manifest.short_name!=='Back Porch') throw new Error('Manifest short_name should be Back Porch for the home screen.');
 
+const workerTemplate=await readFile(join(rootDir,'src/service-worker.js'),'utf8');
+if(workerTemplate.includes('comeback-logic.js')){
+  throw new Error('Service worker template should not precache Comeback / turbo logic.');
+}
+if(!workerTemplate.includes('life-preserver-logic.js')){
+  throw new Error('Service worker template must precache Life Preserver logic.');
+}
+
 console.log('Production assets verified.');

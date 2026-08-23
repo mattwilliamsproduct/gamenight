@@ -1,5 +1,8 @@
 import {expect,test} from '@playwright/test';
 
+// Turbos are unloaded from the production shell. Default `npm run test:visual`
+// ignores this file via playwright.config.mjs.
+
 const blowoutUrl='/?gnqa=1&gallery=0&scenario=five-crowns-blowout&surface=scorecard';
 
 async function ready(page){

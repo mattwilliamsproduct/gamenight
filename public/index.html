@@ -1129,7 +1129,8 @@
       display: block;
       line-height: 1;
     }
-    .score-cell-comeback {
+    .score-cell-comeback,
+    .score-cell-life-preserver {
       display: block;
       font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
       font-size: 0.82em;
@@ -1140,6 +1141,7 @@
       padding: 0;
       white-space: nowrap;
     }
+    .score-cell-life-preserver { color: #0f766e; }
     .scorecard-receipt-stash {
       position: fixed;
       left: -16000px;
@@ -3009,7 +3011,8 @@ button.dealer-name-indicator {
         padding-bottom: 0 !important;
         font-size: max(16px, calc(var(--scorecard-input-font) * 0.78)) !important;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback,
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-life-preserver {
         font-size: max(14px, calc(var(--scorecard-input-font) * 0.66)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .tv-round-cell-num {
@@ -6809,6 +6812,7 @@ button.dealer-name-indicator .dealer-player-label {
     .scorecard-table tbody td.scorecard-col-total,
     .scorecard-table .score-cell-input,
     .scorecard-table .score-cell-comeback,
+    .scorecard-table .score-cell-life-preserver,
     .scorecard-table .score-cell-base,
     .scorecard-table .tv-round-cell-num,
     .scorecard-total-value,
@@ -12031,14 +12035,24 @@ ${isDealer
     const cfg=configs[gameData?.game];
     if(!cfg || !Array.isArray(gameData.rounds)) return null;
     const players=getRecordedPlayers(gameData);
-    const rounds=gameData.rounds.filter(round=>!round.hailMaryBonus);
-    if(players.length<2 || rounds.length<MATCH_PATH_MIN_ROUNDS) return null;
+    const steps=[];
+    gameData.rounds.forEach(round=>{
+      if(round.hailMaryBonus){
+        if(steps.length) steps[steps.length-1].bonuses.push(round);
+        return;
+      }
+      steps.push({round, bonuses:[]});
+    });
+    if(players.length<2 || steps.length<MATCH_PATH_MIN_ROUNDS) return null;
     const totals=Object.fromEntries(players.map(p=>[p,0]));
     const ranks={};
     players.forEach(p=>{ ranks[p]=[]; });
     const labels=[];
-    rounds.forEach(round=>{
-      players.forEach(p=>{ totals[p]=(Number(totals[p])||0)+roundStandingPoints(round, p); });
+    steps.forEach(({round, bonuses})=>{
+      players.forEach(p=>{
+        totals[p]=(Number(totals[p])||0)+roundStandingPoints(round, p);
+        bonuses.forEach(bonus=>{ totals[p]+=roundStandingPoints(bonus, p); });
+      });
       const sorted=sortPlayersByTotal(players, totals, cfg);
       const place={};
       let cursor=0;
@@ -13277,6 +13291,36 @@ ${isDealer
     BPGLifePreserver.syncLifePreserverHolds(currentGame, players, Object.assign({gameOver:over}, extra||{}));
   }
 
+  function lifePreserverAdjustmentForPlayer(game, player){
+    let sum=0;
+    (game?.rounds||[]).forEach(round=>{
+      if(!round?.hailMaryBonus || round.joinBonus?.[player] || round.scores?.[player]===undefined) return;
+      sum+=Number(round.scores[player])||0;
+    });
+    return sum;
+  }
+
+  function lifePreserverAdjustmentAfterScoringRound(game, player, scoringRound){
+    const rounds=game?.rounds||[];
+    const start=rounds.indexOf(scoringRound);
+    if(start<0) return 0;
+    let sum=0;
+    for(let i=start+1;i<rounds.length;i++){
+      const round=rounds[i];
+      if(!round?.hailMaryBonus) break;
+      if(round.joinBonus?.[player] || round.scores?.[player]===undefined) continue;
+      sum+=Number(round.scores[player])||0;
+    }
+    return sum;
+  }
+
+  function scorecardExtraMarks(comebackExtra, lifePreserverExtra){
+    const marks=[];
+    if(comebackExtra) marks.push(`<span class="score-cell-comeback" title="Comeback extra">${signedPointsMarkup(comebackExtra)}</span>`);
+    if(lifePreserverExtra) marks.push(`<span class="score-cell-life-preserver" title="Life Preserver">${signedPointsMarkup(lifePreserverExtra)}</span>`);
+    return marks.join('');
+  }
+
   function setRecordChaseLayout(enabled){
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
@@ -13577,8 +13621,12 @@ ${isDealer
             </div>
           </div>
         </td>
-        ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span></td>`;
+        ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}`;
+        const visibleLifePreserver=visibleScorecardRounds.some(({round})=>lifePreserverAdjustmentAfterScoringRound(currentGame,p,round));
+        const totalLifePreserver=lifePreserverAdjustmentForPlayer(currentGame,p);
+        const totalLifePreserverMark=!visibleLifePreserver&&totalLifePreserver
+          ?`<span class="score-cell-life-preserver" title="Life Preserver">${signedPointsMarkup(totalLifePreserver)}</span>`:'';
+        body+=`<td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}">${totalLifePreserverMark?`<div class="score-cell-stack has-comeback"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${totalLifePreserverMark}</div>`:`<span class="scorecard-total-value">${currentGame.totals[p]}</span>`}</td>`;
       if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       // Past rounds
@@ -13592,9 +13640,10 @@ ${isDealer
           }
         }
         const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const lifePreserverExtra=lifePreserverAdjustmentAfterScoringRound(currentGame,p,r);
+        const extraMark=scorecardExtraMarks(extra, lifePreserverExtra);
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
-          <div class="score-cell-stack${extra?' has-comeback':''}">
+          <div class="score-cell-stack${extraMark?' has-comeback':''}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
@@ -15276,9 +15325,10 @@ ${isDealer
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const lifePreserverExtra=lifePreserverAdjustmentAfterScoringRound(g,p,r);
+        const extraMark=scorecardExtraMarks(extra, lifePreserverExtra);
         const shown=r.scores[p]!==undefined?r.scores[p]:'';
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extraMark?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
     });

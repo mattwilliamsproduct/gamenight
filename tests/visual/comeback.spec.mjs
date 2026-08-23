@@ -1,5 +1,8 @@
 import {expect,test} from '@playwright/test';
 
+// Turbos are unloaded from the production shell. Default `npm run test:visual`
+// ignores this file via playwright.config.mjs.
+
 test('Comeback chips explain the extra and do not offer a refuse button', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
