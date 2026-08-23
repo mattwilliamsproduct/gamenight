@@ -67,6 +67,26 @@ test('path replay skips matches with fewer than three scoring rounds',async({pag
   expect(skipped).toBeNull();
 });
 
+test('path replay includes a mid-game joiner catch-up score',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='laptop-chromium','Run the joined-player path check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
+  await ready(page);
+  const path=await page.evaluate(()=>buildMatchPlacePath({
+    id:1,
+    game:'Wizard',
+    originalRoster:['Ann','Bea','Cal','Joiner'],
+    totals:{Ann:90,Bea:75,Cal:60,Joiner:105},
+    winners:['Joiner'],
+    rounds:[
+      {round:1,scores:{Ann:30,Bea:20,Cal:10,Joiner:0},joinBonus:{Joiner:true}},
+      {round:2,scores:{Ann:30,Bea:30,Cal:20,Joiner:100},joinBonus:{Joiner:true}},
+      {round:3,scores:{Ann:30,Bea:25,Cal:30,Joiner:5}}
+    ]
+  }));
+  expect(path.winners).toEqual(['Joiner']);
+  expect(path.ranks.Joiner.at(-1)).toBe(1);
+});
+
 test('path replay can show eight players and still lets you pin one path',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='laptop-chromium','Run the path replay check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=postgame-race-8&surface=race',{waitUntil:'networkidle'});

@@ -21,7 +21,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(page.locator('#life-preserver-why')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-why')).toContainText('Why these numbers');
   await expect(page.locator('#life-preserver-why')).toContainText('behind 1st');
-  await expect(page.locator('#life-preserver-why')).toContainText('−75');
+  await expect(page.locator('#life-preserver-why')).toContainText('−60');
   await page.evaluate(() => hideLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);
 
@@ -38,7 +38,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   expect(snapshot.winLow).toBe(true);
   expect(snapshot.bestAllowedRank).toBe(2);
   expect(snapshot.maxSafe).toBeGreaterThan(20);
-  expect(snapshot.maxSafe).toBeLessThanOrEqual(75);
+  expect(snapshot.maxSafe).toBeLessThanOrEqual(60);
   expect(snapshot.labels.join(' ')).not.toMatch(/Half|Wipe|Double|×2|Dbl/i);
   expect(snapshot.adjustments.some(value => value < 0)).toBe(true);
 
@@ -125,11 +125,72 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
   }));
   expect(after.used).toEqual(['Linda']);
   expect(after.bonusRounds).toBe(0);
-  expect(after.scoringRounds).toBe(7);
+  expect(after.scoringRounds).toBe(8);
   expect(after.brickTotal).toBeGreaterThan(applied.brickTotal);
   await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
   await expect(page.locator('button.scorecard-life-preserver-rank')).not.toHaveCount(0);
-  await expect(page.locator('#round-intel')).toContainText('Hand of 10');
+  await expect(page.locator('#round-intel')).toContainText('Hand of 11');
+});
+
+test('Life Preserver extra sits on the hand it followed so rows still add up', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+
+  const liveCard = await page.evaluate(() => {
+    const player = 'Brick';
+    const live = getLifePreserverOfferForPlayer(player, getActivePlayers(currentGame), {
+      gameOver: currentGame.currentRound > getMaxRoundsForGame(currentGame)
+    });
+    const adj = applyLifePreserverResult(player, -live.maxSafeAdjustment, live);
+    currentGame.rounds.push({round: 0, scores: {[player]: adj}, hailMaryBonus: true});
+    currentGame.hailMaryUsed.push(player);
+    recomputeGameTotals(currentGame);
+    renderGame();
+    const row = [...document.querySelectorAll('#scorecard-body tr')].find(entry => entry.textContent.includes('Brick'));
+    const lastCell = [...(row?.querySelectorAll('.scorecard-round-td') || [])].at(-1);
+    const scoringSum = currentGame.rounds
+      .filter(round => !round.hailMaryBonus)
+      .reduce((sum, round) => sum + (Number(round.scores.Brick) || 0), 0);
+    const path = buildMatchPlacePath({
+      ...currentGame,
+      game: currentGame.name,
+      totals: currentGame.totals,
+      winners: []
+    });
+    return {
+      adj,
+      total: Number(row?.querySelector('.scorecard-total-value')?.textContent),
+      scoringSum,
+      extraText: (lastCell?.textContent || '').replace(/\s+/g, ' ').trim(),
+      marks: lastCell?.querySelectorAll('.score-cell-life-preserver').length || 0,
+      pathPlayers: path?.players || []
+    };
+  });
+  expect(liveCard.marks).toBe(1);
+  expect(liveCard.extraText).toMatch(/−\d+/);
+  expect(liveCard.total).toBe(liveCard.scoringSum + liveCard.adj);
+  expect(liveCard.pathPlayers).toContain('Brick');
+
+  const historyCard = await page.evaluate(() => {
+    const match = JSON.parse(JSON.stringify(currentGame));
+    match.id = 424243;
+    match.game = match.name;
+    match.date = '8/23/2026';
+    match.winners = ['Megan'];
+    history.unshift(match);
+    openScorecard(match.id);
+    const row = [...document.querySelectorAll('#modal-scorecard-body tr')].find(entry => entry.textContent.includes('Brick'));
+    const lastCell = [...(row?.querySelectorAll('.scorecard-round-td') || [])].at(-1);
+    return {
+      total: Number(row?.querySelector('.scorecard-total-value')?.textContent),
+      extraText: (lastCell?.textContent || '').replace(/\s+/g, ' ').trim(),
+      marks: lastCell?.querySelectorAll('.score-cell-life-preserver').length || 0
+    };
+  });
+  expect(historyCard.marks).toBe(1);
+  expect(historyCard.extraText).toMatch(/−\d+/);
+  expect(historyCard.total).toBe(liveCard.total);
 });
 
 test('Actions menu explains how this game awards a Life Preserver', async ({page}, testInfo) => {
@@ -156,6 +217,15 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.evaluate(() => {
+    const player='Brick';
+    const live=getLifePreserverOfferForPlayer(player,getActivePlayers(currentGame));
+    const adjustment=applyLifePreserverResult(player,-live.maxSafeAdjustment,live);
+    currentGame.rounds.push({round:0,scores:{[player]:adjustment},hailMaryBonus:true});
+    currentGame.hailMaryUsed.push(player);
+    recomputeGameTotals(currentGame);
+    renderGame();
+  });
 
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', {name: 'Save & End', exact: true}).click();
@@ -170,6 +240,10 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
       cloneWidth: el?.scrollWidth || 0,
       cloneHeight: el?.scrollHeight || 0,
       cloneText: (el?.innerText || '').replace(/\s+/g, ' '),
+      roundHeaders: [...(el?.querySelectorAll('th.scorecard-round-th') || [])].map(header => header.textContent.trim()),
+      lifePreserverMarks: el?.querySelectorAll('.score-cell-life-preserver').length || 0,
+      hasPacePanel: !!el?.querySelector('#record-chase-panel'),
+      hasSubmitSection: !!el?.querySelector('#submit-section'),
       liveWidth: live?.scrollWidth || 0,
       liveParentHidden: !!live?.closest('#game-screen.hidden')
     };
@@ -178,6 +252,10 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   expect(stash.cloneWidth).toBeGreaterThan(200);
   expect(stash.cloneHeight).toBeGreaterThan(100);
   expect(stash.cloneText).toMatch(/Brick|Megan|Total/i);
+  expect(stash.roundHeaders).toEqual(['R1','R2','R3','R4','R5','R6','R7','R8']);
+  expect(stash.lifePreserverMarks).toBeGreaterThan(0);
+  expect(stash.hasPacePanel).toBe(false);
+  expect(stash.hasSubmitSection).toBe(false);
   expect(stash.liveParentHidden).toBe(true);
 });
 
@@ -210,13 +288,13 @@ test('mid-game join after a Life Preserver writes catch-up to the last scoring r
     const scoring = [...currentGame.rounds].reverse().find(round => !round.hailMaryBonus);
     return {
       lastIsBonus: !!last.hailMaryBonus,
-      bonusScore: last.scores.Alexis,
+      bonusHasJoiner: Object.prototype.hasOwnProperty.call(last.scores, 'Alexis'),
       scoringScore: scoring.scores.Alexis,
       usedFlag: !!scoring.joinBonus?.Alexis
     };
   });
   expect(result.lastIsBonus).toBe(true);
-  expect(result.bonusScore).toBe(0);
+  expect(result.bonusHasJoiner).toBe(false);
   expect(result.scoringScore).toBeGreaterThan(0);
   expect(result.usedFlag).toBe(true);
 });
@@ -311,7 +389,7 @@ test('View Pace restores full round columns after the viewport shrinks', async (
     cols: document.querySelectorAll('#scorecard-head .scorecard-round-th').length
   }));
   expect(wide.active).toBe(true);
-  expect(wide.cols).toBe(2);
+  expect(wide.cols).toBe(5);
   await page.setViewportSize({width: 800, height: 900});
   await page.evaluate(() => syncRecordChaseLayoutForViewport());
   const narrow = await page.evaluate(() => ({

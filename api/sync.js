@@ -80,9 +80,34 @@ module.exports = async function handler(req, res) {
       if (!looksLikeBackup(backup)) {
         return res.status(400).json({ ok: false, error: 'invalid-backup' });
       }
+      const expectedRevision = String(req.headers['if-match'] || '');
       const savedAt = new Date().toISOString();
       const payload = Object.assign({}, backup, { savedAt });
-      await redisCommand(['SET', BACKUP_KEY, JSON.stringify(payload)]);
+      const compareAndSet = `
+        local current = redis.call('GET', KEYS[1])
+        if current then
+          local ok, decoded = pcall(cjson.decode, current)
+          local revision = ''
+          if ok and decoded and decoded.savedAt then revision = tostring(decoded.savedAt) end
+          if revision ~= ARGV[1] then return 0 end
+        end
+        redis.call('SET', KEYS[1], ARGV[2])
+        return 1
+      `;
+      const result = await redisCommand([
+        'EVAL',
+        compareAndSet,
+        '1',
+        BACKUP_KEY,
+        expectedRevision,
+        JSON.stringify(payload)
+      ]);
+      if (Number(result?.result) !== 1) {
+        return res.status(409).json({
+          ok: false,
+          error: 'cloud-conflict'
+        });
+      }
       return res.status(200).json({ ok: true, savedAt });
     }
   } catch (error) {

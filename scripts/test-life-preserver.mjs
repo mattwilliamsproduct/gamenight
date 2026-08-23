@@ -173,6 +173,31 @@ test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
   assert.ok(result.reason === 'leader-gap' || result.reason === 'recovery-load');
 });
 
+test('late 818 close holes leave a made bid unclosed and still cap at 15', () => {
+  const close = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 };
+  const fifteen = offer('818', close, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(fifteen.leaderGap, 15);
+  assert.equal(fifteen.eligible, true);
+  assert.equal(fifteen.maxSafeAdjustment, 5);
+  assert.equal(fifteen.bindingLimit, 'hole');
+  assert.ok(15 - fifteen.maxSafeAdjustment >= 10, 'a made bid should still have to do some work');
+
+  const sixteen = offer('818', { ...close, Hal: 84 }, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(sixteen.leaderGap, 16);
+  assert.equal(sixteen.maxSafeAdjustment, 6);
+
+  const twoLeft = offer('818', { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 83, Gus: 82, Hal: 80 }, {
+    roundCount: 13, spread: 16, currentRound: 14, player: 'Fay'
+  });
+  assert.equal(twoLeft.leaderGap, 17);
+  assert.equal(twoLeft.maxSafeAdjustment, 7);
+
+  const cooked = offer('818', { ...close, Hal: 77 }, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(cooked.leaderGap, 23);
+  assert.ok(cooked.maxSafeAdjustment <= 15);
+  assert.ok(cooked.maxSafeAdjustment >= 10);
+});
+
 test('818 20-point gap with 1-2 rounds left can qualify with a conservative wheel', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const lastRound = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
@@ -245,7 +270,7 @@ test('Five Crowns treats score reductions as helpful', () => {
   const setbacks = result.slices.filter(slice => slice.adjustment > 0);
   assert.ok(helpful.length >= 4);
   assert.ok(setbacks.length >= 2);
-  assert.ok(result.maxSafeAdjustment <= 75);
+  assert.ok(result.maxSafeAdjustment <= 60);
   assert.ok(result.maxSafeAdjustment > 20);
   assertNoPodium(result, EIGHT, totals);
 });
@@ -310,15 +335,15 @@ test('multiple genuinely stranded players can qualify', () => {
   assert.equal(hal.eligible, true);
 });
 
-test('818 last-round explanation names the one-round cap', () => {
+test('818 last-round explanation names the leftover when the hole is close', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const explained = LP.explainLifePreserverOffer(result);
   assert.equal(result.eligible, true);
-  assert.equal(result.bindingLimit, 'one-round');
+  assert.equal(result.bindingLimit, 'hole');
   assert.match(explained.summary, /8th of 8/);
-  assert.ok(explained.bullets.some(bullet => /one strong remaining round/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /\+15/.test(bullet)));
+  assert.match(explained.wheelLine, /Best help \+13/);
+  assert.ok(explained.bullets.some(bullet => /remaining 1 round still has to do some of the work/.test(bullet)));
 });
 
 test('used and retired players cannot qualify', () => {
@@ -365,6 +390,39 @@ test('a huge helpful extra stops at least one step behind first', () => {
   assertNoPodium(result, FOUR, totals);
 });
 
+test('last-hand Five Crowns sizes Megan under a leftover, and caps Duke at 60', () => {
+  const totals = { Matt: 0, Cat: 0, Michelle: 0, Mike: 0, Linda: 18, Vikki: 20, Megan: 49, Duke: 102 };
+  const players = Object.keys(totals);
+  const g = game({
+    name: 'Five Crowns',
+    players,
+    totals,
+    roundCount: 10,
+    spread: 37,
+    currentRound: 11,
+    lifePreserverHeld: ['Megan', 'Duke'],
+    lifePreserverHeldRound: 11
+  });
+  const megan = LP.getLifePreserverOffer(g, 'Megan', players);
+  const duke = LP.getLifePreserverOffer(g, 'Duke', players);
+  assert.equal(megan.eligible, true);
+  assert.equal(megan.leaderGap, 49);
+  assert.equal(megan.remainingRounds, 1);
+  assert.equal(megan.bindingLimit, 'hole');
+  assert.equal(megan.maxSafeAdjustment, 30);
+  assert.ok(49 - megan.maxSafeAdjustment > 10, 'a 10-point leftover by 1st should not hand Megan the win');
+  assert.equal(duke.eligible, true);
+  assert.equal(duke.leaderGap, 102);
+  assert.equal(duke.maxSafeAdjustment, 60);
+  assert.equal(duke.gameSafetyCap, 60);
+  assert.equal(duke.bindingLimit, 'game-cap');
+  assertNoPodium(megan, players, totals);
+  assertNoPodium(duke, players, totals);
+  const explained = LP.explainLifePreserverOffer(megan);
+  assert.match(explained.wheelLine, /Best help −30/);
+  assert.ok(explained.bullets.some(bullet => /remaining 1 hand still has to do some of the work/.test(bullet)));
+});
+
 test('Rook and Beat the Heat stay ineligible', () => {
   const totals = { Ann: 100, Bea: 90, Cal: 20, Dee: 10 };
   assert.equal(offer('Rook', totals, { roundCount: 6, spread: 20, player: 'Dee' }).reason, 'unsupported-game');
@@ -381,8 +439,8 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.rank, 7);
   assert.ok(result.leaderGap >= 100);
   assert.ok(result.maxSafeAdjustment > 20, `expected a rescue above 20, got ${result.maxSafeAdjustment}`);
-  assert.ok(result.maxSafeAdjustment >= 50, `expected Brick's jackpot around 50-75, got ${result.maxSafeAdjustment}`);
-  assert.ok(result.maxSafeAdjustment <= 75);
+  assert.ok(result.maxSafeAdjustment >= 50, `expected Brick's jackpot around 50-60, got ${result.maxSafeAdjustment}`);
+  assert.ok(result.maxSafeAdjustment <= 60);
   const helpfulWeights = result.slices.filter(slice => slice.adjustment < 0).reduce((sum, slice) => sum + slice.weight, 0);
   const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
   assert.ok(helpfulWeights / totalWeight >= 0.8);
@@ -394,13 +452,13 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
   assert.match(explained.wheelLine, /behind 1st/);
-  assert.match(explained.wheelLine, /−75/);
+  assert.match(explained.wheelLine, /−60/);
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
   assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−30/.test(bullet) && /−45/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
 });
@@ -435,6 +493,24 @@ test('undo only frees Life Preservers whose bonus rounds were removed', () => {
     { round: 0, hailMaryBonus: true, scores: { Brick: -75 } }
   ]);
   assert.deepEqual(released, ['Linda']);
+});
+
+test('a mid-game joiner on a bonus round is not treated as the spinner', () => {
+  const used = ['Brick'];
+  const bonus = {
+    round: 0,
+    hailMaryBonus: true,
+    scores: { Brick: -75, Alexis: 0 },
+    joinBonus: { Alexis: true }
+  };
+  assert.deepEqual(LP.lifePreserverPlayersFromRound(bonus, used), ['Brick']);
+  assert.deepEqual(LP.releaseRemovedLifePreservers(['Linda', 'Brick'], [bonus]), ['Linda']);
+  const leftover = {
+    round: 0,
+    hailMaryBonus: true,
+    scores: { Brick: -75, Alexis: 0 }
+  };
+  assert.deepEqual(LP.lifePreserverPlayersFromRound(leftover, used), ['Brick']);
 });
 
 test('Wizard max rounds stay frozen when the active table shrinks', () => {
@@ -537,7 +613,7 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.deepEqual([...firstHold].sort(), ['Gus', 'Hal']);
 
   LP.markLifePreserverUsed(g, 'Hal');
-  g.totals.Gus = 139;
+  g.totals.Gus = 125;
   const stillHeld = LP.syncLifePreserverHolds(g, EIGHT);
   assert.deepEqual([...stillHeld].sort(), ['Gus']);
   const heldOffer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);
@@ -548,8 +624,9 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
 
   g.rounds.push({
     round: 13,
-    scores: { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: 28, Hal: 0 }
+    scores: { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: 9, Hal: 0 }
   });
+  g.totals.Gus = 139;
   g.currentRound = 14;
   const afterScores = LP.syncLifePreserverHolds(g, EIGHT, { reset: true });
   assert.equal(afterScores.includes('Gus'), false);
@@ -565,4 +642,17 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
+});
+
+test('a held Life Preserver disappears when no helpful result can stay behind first', () => {
+  const totals = { Ann: 140, Bea: 138, Cal: 137, Dee: 136, Eve: 135, Fay: 134, Gus: 111, Hal: 100 };
+  const g = game({ name: '818', players: EIGHT, totals, roundCount: 12, spread: 17, currentRound: 13 });
+  assert.ok(LP.syncLifePreserverHolds(g, EIGHT).includes('Gus'));
+
+  g.totals.Gus = 139;
+  const holds = LP.syncLifePreserverHolds(g, EIGHT);
+  const offer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);
+  assert.equal(holds.includes('Gus'), false);
+  assert.equal(offer.eligible, false);
+  assert.equal(offer.slices.length, 0);
 });

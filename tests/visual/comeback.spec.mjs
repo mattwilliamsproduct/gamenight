@@ -1,5 +1,8 @@
 import {expect,test} from '@playwright/test';
 
+// Turbos are unloaded from the production shell. Default `npm run test:visual`
+// ignores this file via playwright.config.mjs.
+
 test('Comeback chips explain the extra and do not offer a refuse button', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
@@ -97,13 +100,13 @@ test('mid-game join after a legacy bonus round writes catch-up to the last scori
     const scoring = [...currentGame.rounds].reverse().find(round => !round.hailMaryBonus);
     return {
       lastIsBonus: !!last.hailMaryBonus,
-      bonusScore: last.scores.Alexis,
+      bonusHasJoiner: Object.prototype.hasOwnProperty.call(last.scores, 'Alexis'),
       scoringScore: scoring.scores.Alexis,
       usedFlag: !!scoring.joinBonus?.Alexis
     };
   });
   expect(result.lastIsBonus).toBe(true);
-  expect(result.bonusScore).toBe(0);
+  expect(result.bonusHasJoiner).toBe(false);
   expect(result.scoringScore).toBeGreaterThan(0);
   expect(result.usedFlag).toBe(true);
 });

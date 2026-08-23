@@ -10,11 +10,12 @@ Run these after UI-affecting work and before a production push:
 
 The score-entry checks are specifically meant to catch clipped player rows, keypad overlap, hidden menus, and any regression caused by display zoom.
 
-Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
+Life Preserver checks (in `tests/visual/life-preserver.spec.mjs`) also assert:
 
-- both blowout players who cannot catch first get chips
-- extras sit inside the round-score box, not floating under it
-- Best/Worst use the same Bree Serif number font as round scores
-- history scorecards include extras so rows still add up
-- rename keeps extras on the new name
-- score-entry preview matches the clamped extra that will actually apply
+- only the intended player unlocks at the threshold tables
+- a spin stores a hidden bonus round and the used ring
+- undo after a spin removes only that bonus
+- the Life Preserver extra sits on the hand it followed so rows still add up
+- the iPad wheel keeps Spin and Help tappable
+
+Turbo / Comeback visual specs are unloaded from `npm run test:visual` because that engine is not in the production shell.

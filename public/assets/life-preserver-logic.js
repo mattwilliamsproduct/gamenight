@@ -21,7 +21,9 @@
       minScoringRounds: 4,
       fallback: 22,
       // Made bids are +10. About two made bids behind first with a few rounds left is cooked.
-      recoveryLoad: 0.55
+      recoveryLoad: 0.55,
+      // Leave a full made bid unclosed so +10 still has to do some work.
+      holeLeave: 1
     },
     Wizard: {
       winLow: false,
@@ -31,17 +33,20 @@
       minScoringRounds: null,
       fallback: 40,
       // A made round can be 50–90, so 20–50 down is still ordinary.
-      recoveryLoad: 0.4
+      recoveryLoad: 0.4,
+      holeLeave: 0.4
     },
     'Five Crowns': {
       winLow: true,
       maxRounds: 11,
       increment: 5,
       rescueMin: 10,
-      rescueMax: 75,
+      // One wrecked 13-card leftover is plenty. A second wrecked hand is ordinary play.
+      rescueMax: 60,
       minScoringRounds: 4,
       fallback: 24,
-      recoveryLoad: 0.4
+      recoveryLoad: 0.4,
+      holeLeave: 0.4
     },
     'Flip 7 Vengeance': {
       winLow: false,
@@ -51,7 +56,8 @@
       rescueMax: 40,
       minScoringRounds: 4,
       fallback: 22,
-      recoveryLoad: null
+      recoveryLoad: null,
+      holeLeave: 0.4
     }
   };
 
@@ -215,8 +221,10 @@
     const maxSafe = Number(offer.maxSafeAdjustment) || 0;
     const rankCap = Number(offer.rankCap);
     const gameCap = Number(offer.gameSafetyCap);
+    const holeCap = Number(offer.holeCap);
     if (Number.isFinite(rankCap) && maxSafe === rankCap && rankCap < desired && rankCap < gameCap) return 'rank';
     if (Number.isFinite(gameCap) && maxSafe === gameCap && gameCap < desired) return 'game-cap';
+    if (Number.isFinite(holeCap) && maxSafe === holeCap && holeCap < desired) return 'hole';
     if ((Number(offer.rescueNeeded) || 0) > (Number(offer.oneStrongRound) || 0)) return 'rescue';
     return 'one-round';
   }
@@ -262,6 +270,11 @@
       bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
       bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot match or pass 1st.`);
+    } else if (binding === 'hole') {
+      const left = Number.isFinite(remaining) && remaining > 0
+        ? `the remaining ${remaining} ${roundNoun(offer.gameName, remaining)} still ${remaining === 1 ? 'has' : 'have'} to do some of the work`
+        : 'ordinary play still has to do some of the work';
+      bullets.push(`The biggest help is ${bestShort} — it gets ${player} closer, but ${left}. It cannot match or pass 1st.`);
     } else if (binding === 'rescue') {
       bullets.push(`The biggest help is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
@@ -646,9 +659,12 @@
     const sameRound = !opts.reset
       && (Number(game.lifePreserverHeldRound) || 0) === round
       && Array.isArray(game.lifePreserverHeld);
-    const kept = sameRound
+    const heldCandidates = sameRound
       ? game.lifePreserverHeld.filter(name => name && !used.has(name) && !retired.has(name))
       : [];
+    const kept = heldCandidates.filter(player => getLifePreserverOffer(game, player, players, {
+      gameOver: opts.gameOver
+    }).eligible);
     const held = new Set(kept);
     (players || []).forEach(player => {
       if (!player || used.has(player) || retired.has(player)) return;
@@ -786,11 +802,19 @@
       ? comebackUnit * FLIP7_STRONG_ROUNDS
       : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
     const rescueNeeded = Math.max(0, leaderGap - ordinaryRecoveryLimit);
+    // Leave some of the next ordinary swing unclosed so the best spin cannot
+    // win the hole by itself. 818 leaves a full made bid; other games leave ~40%.
+    const holeLeave = Number.isFinite(cfg.holeLeave) ? cfg.holeLeave : 0.4;
+    const stillNeed = Math.max(
+      cfg.increment,
+      floorToIncrement(upcomingOpportunity * holeLeave, cfg.increment)
+    );
+    const holeCap = floorToIncrement(Math.max(0, leaderGap - stillNeed), cfg.increment);
     const maxSafeAdjustment = floorToIncrement(
-      Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
+      Math.min(rankCap, cfg.rescueMax, holeCap, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment
     );
-    if (maxSafeAdjustment < cfg.increment && !held) {
+    if (maxSafeAdjustment < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,
         leaderGap,
@@ -806,7 +830,7 @@
     }
 
     const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
-    const wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
+    const wheelHelp = maxSafeAdjustment;
     if (wheelHelp < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,
@@ -841,6 +865,8 @@
       ordinaryRecoveryLimit,
       rescueNeeded,
       oneStrongRound,
+      stillNeed,
+      holeCap,
       rankCap,
       gameSafetyCap: cfg.rescueMax,
       remainingRounds,
@@ -857,13 +883,21 @@
     return offer;
   }
 
+  function lifePreserverPlayersFromRound(round, used) {
+    if (!round?.hailMaryBonus) return [];
+    const names = Object.keys(round.scores || {}).filter(player => player && !round.joinBonus?.[player]);
+    const usedList = Array.isArray(used) ? used : [];
+    if (usedList.length) {
+      const spun = names.filter(name => usedList.includes(name));
+      if (spun.length) return spun;
+    }
+    return names;
+  }
+
   function releaseRemovedLifePreservers(used, removedRounds) {
     const removedPlayers = new Set();
     (removedRounds || []).forEach(round => {
-      if (!round?.hailMaryBonus) return;
-      Object.keys(round.scores || {}).forEach(player => {
-        if (player) removedPlayers.add(player);
-      });
+      lifePreserverPlayersFromRound(round, used).forEach(player => removedPlayers.add(player));
     });
     if (!removedPlayers.size) return Array.isArray(used) ? used.slice() : [];
     return (used || []).filter(player => !removedPlayers.has(player));
@@ -900,6 +934,7 @@
     isHeldForCurrentRound,
     syncLifePreserverHolds,
     markLifePreserverUsed,
+    lifePreserverPlayersFromRound,
     explainLifePreserverOffer,
     explainLifePreserverRules,
     summarizeLifePreserverTable,

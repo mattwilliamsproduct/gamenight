@@ -7,7 +7,7 @@ const APP_SHELL = [
   './assets/fonts.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
-  './assets/comeback-logic.js',
+  './assets/life-preserver-logic.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
   './bp-apple-touch-icon.png',
@@ -64,7 +64,7 @@ async function cachedAvatarFirst(event) {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
-  if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js')) return;
+  if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js') || url.pathname.startsWith('/api/')) return;
   if(request.destination === 'image' && url.pathname.includes('/avatars/')) {
     event.respondWith(cachedAvatarFirst(event));
     return;
