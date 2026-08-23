@@ -125,11 +125,11 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
   }));
   expect(after.used).toEqual(['Linda']);
   expect(after.bonusRounds).toBe(0);
-  expect(after.scoringRounds).toBe(7);
+  expect(after.scoringRounds).toBe(8);
   expect(after.brickTotal).toBeGreaterThan(applied.brickTotal);
   await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
   await expect(page.locator('button.scorecard-life-preserver-rank')).not.toHaveCount(0);
-  await expect(page.locator('#round-intel')).toContainText('Hand of 10');
+  await expect(page.locator('#round-intel')).toContainText('Hand of 11');
 });
 
 test('Actions menu explains how this game awards a Life Preserver', async ({page}, testInfo) => {
@@ -210,13 +210,13 @@ test('mid-game join after a Life Preserver writes catch-up to the last scoring r
     const scoring = [...currentGame.rounds].reverse().find(round => !round.hailMaryBonus);
     return {
       lastIsBonus: !!last.hailMaryBonus,
-      bonusScore: last.scores.Alexis,
+      bonusHasJoiner: Object.prototype.hasOwnProperty.call(last.scores, 'Alexis'),
       scoringScore: scoring.scores.Alexis,
       usedFlag: !!scoring.joinBonus?.Alexis
     };
   });
   expect(result.lastIsBonus).toBe(true);
-  expect(result.bonusScore).toBe(0);
+  expect(result.bonusHasJoiner).toBe(false);
   expect(result.scoringScore).toBeGreaterThan(0);
   expect(result.usedFlag).toBe(true);
 });

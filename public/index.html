@@ -12436,7 +12436,9 @@ ${isDealer
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    const resumeRounds=g.rounds||[];
+    const resumeScoringCount=resumeRounds.filter(round=>!round.hailMaryBonus).length;
+    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(resumeScoringCount+1),rounds:resumeRounds,totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -14517,9 +14519,52 @@ ${isDealer
   }
 
   // ── Undo last submitted round ──
+  function lifePreserverPlayersFromRound(round, used){
+    if(window.BPGLifePreserver&&typeof BPGLifePreserver.lifePreserverPlayersFromRound==='function'){
+      return BPGLifePreserver.lifePreserverPlayersFromRound(round, used);
+    }
+    if(!round?.hailMaryBonus) return [];
+    return Object.keys(round.scores||{}).filter(player=>player&&!round.joinBonus?.[player]);
+  }
+  function restoreLifePreserverHoldsAfterUndo(removedRounds){
+    const used=currentGame.hailMaryUsed;
+    const released=[];
+    (removedRounds||[]).forEach(round=>{
+      lifePreserverPlayersFromRound(round, used).forEach(player=>released.push(player));
+    });
+    if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
+      currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
+    }
+    if(!released.length)return;
+    if(!Array.isArray(currentGame.lifePreserverHeld)) currentGame.lifePreserverHeld=[];
+    const round=Number(currentGame.currentRound)||0;
+    if((Number(currentGame.lifePreserverHeldRound)||0)!==round){
+      currentGame.lifePreserverHeld=[];
+      currentGame.lifePreserverHeldRound=round;
+    }
+    released.forEach(player=>{
+      if(!currentGame.lifePreserverHeld.includes(player)) currentGame.lifePreserverHeld.push(player);
+    });
+  }
+
   function undoLastRound(){
     if(!currentGame || !currentGame.rounds || !currentGame.rounds.length) return;
-    // Find last non-hailMary round
+    const trailing=currentGame.rounds[currentGame.rounds.length-1];
+    if(trailing?.hailMaryBonus){
+      const player=lifePreserverPlayersFromRound(trailing, currentGame.hailMaryUsed)[0]||'this player';
+      if(!confirm(`Undo ${player}'s Life Preserver? Their spin will be removed.`)) return;
+      const removedRounds=currentGame.rounds.slice(-1);
+      currentGame.rounds=currentGame.rounds.slice(0,-1);
+      restoreLifePreserverHoldsAfterUndo(removedRounds);
+      addAuditEntry('Life Preserver Undone', `${player} spin removed`);
+      haptic([80, 40, 40]);
+      toast(`↶ ${player}'s Life Preserver undone`, 'warning');
+      recomputeGameTotals(currentGame);
+      syncCurrentLifePreserverHolds();
+      saveData(); scheduleRender();
+      return;
+    }
+
     let lastIdx = -1;
     for(let i = currentGame.rounds.length - 1; i >= 0; i--){
       if(!currentGame.rounds[i].hailMaryBonus){ lastIdx = i; break; }
@@ -14547,9 +14592,7 @@ ${isDealer
       rookResetBidding();
     }
 
-    if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
-      currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
-    }
+    restoreLifePreserverHoldsAfterUndo(removedRounds);
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
@@ -14597,9 +14640,10 @@ ${isDealer
         if(!currentGame.rounds[i].hailMaryBonus){ lastScoringIdx=i; break; }
       }
       currentGame.rounds.forEach((r,idx)=>{
+        if(r.hailMaryBonus) return;
         r.scores[name] = idx===lastScoringIdx ? avg : 0;
         if(!r.joinBonus)r.joinBonus={};
-        r.joinBonus[name]=true; // ALL rounds flagged so records exclude them
+        r.joinBonus[name]=true; // ALL scoring rounds flagged so records exclude them
       });
     } else {
       currentGame.totals[name]=0;
@@ -15303,7 +15347,7 @@ ${isDealer
     const bests = {};
     history.forEach(h => {
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
-      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]));
+      const hasLegit = h.rounds?.some(round => !round.hailMaryBonus && round.scores[name] !== undefined && !(round.joinBonus?.[name]));
       if(!hasLegit && h.rounds) return;
       const s = h.totals[name];
       if(!bests[h.game]){
@@ -15364,7 +15408,7 @@ ${isDealer
       // Per-match totals: only if player has at least one LEGIT (non-joinBonus) round
       playersInMatch.forEach(p=>{
         const score=h.totals[p];
-        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]));
+        const hasLegit = h.rounds?.some(round => !round.hailMaryBonus && round.scores[p]!==undefined && !(round.joinBonus?.[p]));
         if(!hasLegit) return;
         if(isHighScoreGame(h.game)){
           if(score>r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
@@ -15390,7 +15434,7 @@ ${isDealer
         let ms={};
         playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0});
         h.rounds.forEach(round=>{
-          if(!round.scores)return;
+          if(round.hailMaryBonus||!round.scores)return;
           Object.entries(round.scores).forEach(([p,score])=>{
             if(!playersInMatch.includes(p))return;
             if(round.joinBonus?.[p])return; // exclude join-bonus scores
@@ -15520,13 +15564,21 @@ ${isDealer
       const lastScore = h.totals[sorted[sorted.length-1]];
       return sorted.filter(p=>h.totals[p]===lastScore);
     };
+    const scoringRoundsOf = (h) => (h.rounds||[]).filter(r=>!r.hailMaryBonus);
+    const addScoringTotals = (h, totals, limit) => {
+      let counted = 0;
+      (h.rounds||[]).forEach(r=>{
+        if(r.hailMaryBonus) return;
+        if(counted >= limit) return;
+        counted++;
+        Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; });
+      });
+    };
     const leaderBeforeRound = (h,roundCount) => {
       const cfg = configs[h.game], totals = {};
       const roster = getRecordedPlayers(h);
       roster.forEach(p=>totals[p]=0);
-      h.rounds.slice(0,roundCount).forEach(r=>{
-        Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; });
-      });
+      addScoringTotals(h, totals, roundCount);
       const sorted = sortPlayersByTotal(roster.filter(p=>totals[p]!==undefined), totals, cfg);
       return sorted[0] || null;
     };
@@ -15578,12 +15630,13 @@ ${isDealer
       }
 
       if(winners.length){
-        const half = Math.max(1, Math.floor(h.rounds.length/2));
+        const scoringCount = scoringRoundsOf(h).length;
+        const half = Math.max(1, Math.floor(scoringCount/2));
         const halfwayLeader = leaderBeforeRound(h, half);
         const halfwaySorted = (() => {
           const totals = {};
           sorted.forEach(p=>totals[p]=0);
-          h.rounds.slice(0,half).forEach(r=>Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; }));
+          addScoringTotals(h, totals, half);
           return sortPlayersByTotal(sorted, totals, cfg).map(p=>({p,score:totals[p]}));
         })();
         const halfwayLastScore = halfwaySorted.length ? halfwaySorted[halfwaySorted.length-1].score : null;
@@ -15598,8 +15651,8 @@ ${isDealer
         });
       }
 
-      if(h.rounds.length>1){
-        const prevLeader = leaderBeforeRound(h, h.rounds.length-1);
+      if(scoringRoundsOf(h).length>1){
+        const prevLeader = leaderBeforeRound(h, scoringRoundsOf(h).length-1);
         if(prevLeader && winners.length && !winners.includes(prevLeader)){
           allTime.finalRoundDecisions.push({player:winners[0],value:1,date:h.date,game:h.game,label:`${winners.join(' & ')} passed ${prevLeader}`});
         }
@@ -15608,7 +15661,7 @@ ${isDealer
       const gameRecords = games[h.game];
       if(gameRecords){
         sorted.forEach(p=>{
-          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p]);
+          const hasLegit = h.rounds.some(r=>!r.hailMaryBonus && r.scores?.[p]!==undefined && !r.joinBonus?.[p]);
           if(!hasLegit) return;
           const finalEntry = entry(p,h.totals[p],h);
           if(cfg.winLow){
@@ -15663,6 +15716,7 @@ ${isDealer
       const scoringRounds = h.rounds.filter(r=>!r.hailMaryBonus);
       const finalScoringRound = scoringRounds[scoringRounds.length-1] || null;
       h.rounds.forEach(r=>{
+        if(r.hailMaryBonus) return;
         Object.entries(r.scores||{}).forEach(([p,score])=>{
           if(!perMatch[p] || r.joinBonus?.[p]) return;
           perMatch[p].roundScores.push(score);

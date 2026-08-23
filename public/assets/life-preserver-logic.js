@@ -857,13 +857,21 @@
     return offer;
   }
 
+  function lifePreserverPlayersFromRound(round, used) {
+    if (!round?.hailMaryBonus) return [];
+    const names = Object.keys(round.scores || {}).filter(player => player && !round.joinBonus?.[player]);
+    const usedList = Array.isArray(used) ? used : [];
+    if (usedList.length) {
+      const spun = names.filter(name => usedList.includes(name));
+      if (spun.length) return spun;
+    }
+    return names;
+  }
+
   function releaseRemovedLifePreservers(used, removedRounds) {
     const removedPlayers = new Set();
     (removedRounds || []).forEach(round => {
-      if (!round?.hailMaryBonus) return;
-      Object.keys(round.scores || {}).forEach(player => {
-        if (player) removedPlayers.add(player);
-      });
+      lifePreserverPlayersFromRound(round, used).forEach(player => removedPlayers.add(player));
     });
     if (!removedPlayers.size) return Array.isArray(used) ? used.slice() : [];
     return (used || []).filter(player => !removedPlayers.has(player));
@@ -900,6 +908,7 @@
     isHeldForCurrentRound,
     syncLifePreserverHolds,
     markLifePreserverUsed,
+    lifePreserverPlayersFromRound,
     explainLifePreserverOffer,
     explainLifePreserverRules,
     summarizeLifePreserverTable,

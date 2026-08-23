@@ -437,6 +437,24 @@ test('undo only frees Life Preservers whose bonus rounds were removed', () => {
   assert.deepEqual(released, ['Linda']);
 });
 
+test('a mid-game joiner on a bonus round is not treated as the spinner', () => {
+  const used = ['Brick'];
+  const bonus = {
+    round: 0,
+    hailMaryBonus: true,
+    scores: { Brick: -75, Alexis: 0 },
+    joinBonus: { Alexis: true }
+  };
+  assert.deepEqual(LP.lifePreserverPlayersFromRound(bonus, used), ['Brick']);
+  assert.deepEqual(LP.releaseRemovedLifePreservers(['Linda', 'Brick'], [bonus]), ['Linda']);
+  const leftover = {
+    round: 0,
+    hailMaryBonus: true,
+    scores: { Brick: -75, Alexis: 0 }
+  };
+  assert.deepEqual(LP.lifePreserverPlayersFromRound(leftover, used), ['Brick']);
+});
+
 test('Wizard max rounds stay frozen when the active table shrinks', () => {
   const totals = { Ann: 80, Bea: 78, Cal: 76, Dee: 74, Eve: 40, Fay: 38, Gus: 20, Hal: 10 };
   const g = game({ name: 'Wizard', players: EIGHT, totals, roundCount: 6, spread: 80, currentRound: 7 });
