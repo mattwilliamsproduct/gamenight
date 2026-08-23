@@ -173,6 +173,31 @@ test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
   assert.ok(result.reason === 'leader-gap' || result.reason === 'recovery-load');
 });
 
+test('late 818 close holes leave a made bid unclosed and still cap at 15', () => {
+  const close = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 };
+  const fifteen = offer('818', close, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(fifteen.leaderGap, 15);
+  assert.equal(fifteen.eligible, true);
+  assert.equal(fifteen.maxSafeAdjustment, 5);
+  assert.equal(fifteen.bindingLimit, 'hole');
+  assert.ok(15 - fifteen.maxSafeAdjustment >= 10, 'a made bid should still have to do some work');
+
+  const sixteen = offer('818', { ...close, Hal: 84 }, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(sixteen.leaderGap, 16);
+  assert.equal(sixteen.maxSafeAdjustment, 6);
+
+  const twoLeft = offer('818', { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 83, Gus: 82, Hal: 80 }, {
+    roundCount: 13, spread: 16, currentRound: 14, player: 'Fay'
+  });
+  assert.equal(twoLeft.leaderGap, 17);
+  assert.equal(twoLeft.maxSafeAdjustment, 7);
+
+  const cooked = offer('818', { ...close, Hal: 77 }, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(cooked.leaderGap, 23);
+  assert.ok(cooked.maxSafeAdjustment <= 15);
+  assert.ok(cooked.maxSafeAdjustment >= 10);
+});
+
 test('818 20-point gap with 1-2 rounds left can qualify with a conservative wheel', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const lastRound = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
@@ -310,15 +335,15 @@ test('multiple genuinely stranded players can qualify', () => {
   assert.equal(hal.eligible, true);
 });
 
-test('818 last-round explanation names the one-round cap', () => {
+test('818 last-round explanation names the leftover when the hole is close', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const explained = LP.explainLifePreserverOffer(result);
   assert.equal(result.eligible, true);
-  assert.equal(result.bindingLimit, 'one-round');
+  assert.equal(result.bindingLimit, 'hole');
   assert.match(explained.summary, /8th of 8/);
-  assert.ok(explained.bullets.some(bullet => /one strong remaining round/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /\+15/.test(bullet)));
+  assert.match(explained.wheelLine, /Best help \+13/);
+  assert.ok(explained.bullets.some(bullet => /remaining 1 round still has to do some of the work/.test(bullet)));
 });
 
 test('used and retired players cannot qualify', () => {
@@ -588,7 +613,7 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.deepEqual([...firstHold].sort(), ['Gus', 'Hal']);
 
   LP.markLifePreserverUsed(g, 'Hal');
-  g.totals.Gus = 130;
+  g.totals.Gus = 125;
   const stillHeld = LP.syncLifePreserverHolds(g, EIGHT);
   assert.deepEqual([...stillHeld].sort(), ['Gus']);
   const heldOffer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);

@@ -21,7 +21,9 @@
       minScoringRounds: 4,
       fallback: 22,
       // Made bids are +10. About two made bids behind first with a few rounds left is cooked.
-      recoveryLoad: 0.55
+      recoveryLoad: 0.55,
+      // Leave a full made bid unclosed so +10 still has to do some work.
+      holeLeave: 1
     },
     Wizard: {
       winLow: false,
@@ -31,7 +33,8 @@
       minScoringRounds: null,
       fallback: 40,
       // A made round can be 50–90, so 20–50 down is still ordinary.
-      recoveryLoad: 0.4
+      recoveryLoad: 0.4,
+      holeLeave: 0.4
     },
     'Five Crowns': {
       winLow: true,
@@ -42,7 +45,8 @@
       rescueMax: 60,
       minScoringRounds: 4,
       fallback: 24,
-      recoveryLoad: 0.4
+      recoveryLoad: 0.4,
+      holeLeave: 0.4
     },
     'Flip 7 Vengeance': {
       winLow: false,
@@ -52,7 +56,8 @@
       rescueMax: 40,
       minScoringRounds: 4,
       fallback: 22,
-      recoveryLoad: null
+      recoveryLoad: null,
+      holeLeave: 0.4
     }
   };
 
@@ -797,11 +802,12 @@
       ? comebackUnit * FLIP7_STRONG_ROUNDS
       : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
     const rescueNeeded = Math.max(0, leaderGap - ordinaryRecoveryLimit);
-    // Leave about 40% of the next ordinary swing unclosed so the best spin
-    // cannot win the hole by itself. In last-hand Five Crowns that is a modest leftover.
+    // Leave some of the next ordinary swing unclosed so the best spin cannot
+    // win the hole by itself. 818 leaves a full made bid; other games leave ~40%.
+    const holeLeave = Number.isFinite(cfg.holeLeave) ? cfg.holeLeave : 0.4;
     const stillNeed = Math.max(
       cfg.increment,
-      floorToIncrement(upcomingOpportunity * 0.4, cfg.increment)
+      floorToIncrement(upcomingOpportunity * holeLeave, cfg.increment)
     );
     const holeCap = floorToIncrement(Math.max(0, leaderGap - stillNeed), cfg.increment);
     const maxSafeAdjustment = floorToIncrement(
