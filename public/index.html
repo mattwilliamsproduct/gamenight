@@ -7970,9 +7970,9 @@ button.dealer-name-indicator .dealer-player-label {
             </div>
             <h4>Who can spin</h4>
             <ul>
-              <li>You have to be in the bottom half of the table.</li>
-              <li>You have to be far enough behind the pack that catching up with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
-              <li>A runaway leader does not unlock everyone clustered behind them.</li>
+              <li>You are not in 1st. 2nd can get one too if they are also too far back to catch the lead.</li>
+              <li>You have to be far enough behind 1st that catching them with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
+              <li>If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.</li>
               <li>One spin per player, per game.</li>
               <li>Not used in Rook or Beat the Heat.</li>
             </ul>
@@ -7980,8 +7980,8 @@ button.dealer-name-indicator .dealer-player-label {
             <ul>
               <li>The numbers are sized to this game, this table, and how far behind you are.</li>
               <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
-              <li>The best result can pull you back toward the pack, but it cannot put you in 1st or 2nd.</li>
-              <li>3rd is as high as it can land you — just behind second place.</li>
+              <li>The best result can pull you back toward the lead, but it cannot match or pass 1st.</li>
+              <li>You always finish at least one point behind 1st.</li>
               <li>Most slices help. Some do nothing. A few slightly hurt.</li>
               <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
             </ul>
@@ -9407,13 +9407,9 @@ button.dealer-name-indicator .dealer-player-label {
     } else {
       lines.push(`${escapeHtml(live.roundLine)}. Opens after ${live.minRounds} ${escapeHtml(live.unit)}.`);
     }
-    if(live.playerCount>=4){
-      const lastRank=live.playerCount;
-      lines.push(`Bottom half is ${ordinalLive(live.packRank)} through ${ordinalLive(lastRank)}.`);
-    }
-    if(live.packPlayer){
-      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind that, with too few ${escapeHtml(live.unit)} left to catch up the normal way.`: '';
-      lines.push(`Middle of the table is ${ordinalLive(live.packRank)}: ${escapeHtml(live.packPlayer)} at ${live.packScore}.${catchBit}`);
+    if(live.leaderPlayer){
+      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind them, with too few ${escapeHtml(live.unit)} left to catch them the normal way.`: '';
+      lines.push(`First place is ${escapeHtml(live.leaderPlayer)} at ${live.leaderScore}.${catchBit}`);
     }
     if(live.ready.length){
       lines.push(`Ready to spin: ${escapeHtml(joinLiveNames(live.ready))}.`);
@@ -9437,8 +9433,9 @@ button.dealer-name-indicator .dealer-player-label {
       });
       groups.forEach(group=>{
         const names=group.entries.map(entry=>{
-          const showGap=Number.isFinite(entry.packGap)&&entry.packGap>0&&(entry.reason==='pack-gap'||entry.reason==='recovery-load');
-          return showGap ? `${entry.player} (${Math.round(entry.packGap)} behind)` : entry.player;
+          const gap=Number.isFinite(entry.leaderGap)?entry.leaderGap:entry.packGap;
+          const showGap=Number.isFinite(gap)&&gap>0&&(entry.reason==='leader-gap'||entry.reason==='pack-gap'||entry.reason==='recovery-load');
+          return showGap ? `${entry.player} (${Math.round(gap)} behind 1st)` : entry.player;
         });
         lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
       });
@@ -10792,14 +10789,14 @@ button.dealer-name-indicator .dealer-player-label {
     const winLow=!!liveOffer.winLow;
     const increment=liveOffer.scoreIncrement||1;
     const sign=winLow?-1:1;
-    const allowed=liveOffer.bestAllowedRank||3;
+    const allowed=liveOffer.bestAllowedRank||2;
     const sorted=[...activePlayers].sort((a,b)=>winLow?(Number(totals[a])||0)-(Number(totals[b])||0):(Number(totals[b])||0)-(Number(totals[a])||0));
-    const secondScore=sorted.length>1?(Number(totals[sorted[1]])||0):null;
+    const firstScore=sorted.length?(Number(totals[sorted[0]])||0):null;
     while(adj*sign>0){
       const next=(Number(totals[player])||0)+adj;
       const rank=BPGLifePreserver.rankWithScore(player, next, activePlayers, totals, winLow);
-      const behindSecond=secondScore==null?false:(winLow?next>secondScore:next<secondScore);
-      if(rank>=allowed&&rank>2&&behindSecond)break;
+      const behindFirst=firstScore==null?false:(winLow?next>firstScore:next<firstScore);
+      if(rank>=allowed&&rank>1&&behindFirst)break;
       adj+=-sign*increment;
     }
     if(adj*sign<0) adj=-sign*Math.min(Math.abs(adj), liveOffer.maxSetback||0);
@@ -16196,7 +16193,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-return-20260821');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-leader-20260823');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);

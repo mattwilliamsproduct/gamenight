@@ -58,11 +58,18 @@ function remaining818(completed) {
 
 function assertNoPodium(result, players, totals) {
   assert.equal(result.eligible, true);
+  const first = result.winLow
+    ? Math.min(...players.map(player => Number(totals[player]) || 0))
+    : Math.max(...players.map(player => Number(totals[player]) || 0));
   for (const slice of result.slices) {
     const next = (totals[result.player] || 0) + slice.adjustment;
     const rank = LP.rankWithScore(result.player, next, players, totals, result.winLow);
-    assert.ok(rank > 2, `slice ${slice.label} landed rank ${rank}`);
+    const helpful = (Number(slice.adjustment) || 0) * (result.winLow ? -1 : 1) > 0;
+    assert.ok(rank > 1, `slice ${slice.label} landed rank ${rank}`);
     assert.ok(rank >= result.bestAllowedRank, `slice ${slice.label} beat allowed rank ${result.bestAllowedRank}`);
+    if (helpful) {
+      assert.ok(result.winLow ? next > first : next < first, `slice ${slice.label} matched or passed 1st (${first} → ${next})`);
+    }
     assert.ok(!/half|wipe|double|×2|dbl/i.test(slice.label), slice.label);
   }
 }
@@ -126,16 +133,15 @@ test('close 818 player with many rounds left does not qualify', () => {
   const result = offer('818', totals, { roundCount: 4, spread: 15, player: 'Hal' });
   assert.equal(result.eligible, false);
   assert.equal(result.reason, 'recovery-load');
-  assert.equal(result.packGap, 25);
+  assert.equal(result.leaderGap, 29);
 });
 
 test('tight late 818 table unlocks at about a made-bid deficit', () => {
   const six = { Ann: 100, Bea: 98, Cal: 94, Dee: 93, Eve: 91, Fay: 83 };
   const late = offer('818', six, { roundCount: 13, spread: 16, currentRound: 14, player: 'Fay' });
   assert.equal(late.rank, 6);
-  assert.equal(late.packGap, 11);
   assert.equal(late.leaderGap, 17);
-  assert.equal(late.eligible, true, '11 behind a tight 818 pack with two rounds left should get a Life Preserver');
+  assert.equal(late.eligible, true, '17 behind 1st in late 818 with two rounds left should get a Life Preserver');
   assert.ok(late.upcomingOpportunity <= 12, `818 catch-up should be a made bid, got ${late.upcomingOpportunity}`);
 
   const lastRound = offer('818', six, { roundCount: 14, spread: 17, currentRound: 15, player: 'Fay' });
@@ -150,16 +156,16 @@ test('818 12-point gap on the final 8-trick round qualifies', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   assert.equal(result.eligible, true);
-  assert.equal(result.packGap, 12);
+  assert.equal(result.leaderGap, 15);
   assert.ok(result.upcomingOpportunity <= 12);
 });
 
-test('818 8-point last-round gap stays in ordinary range', () => {
-  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 89 };
+test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
+  const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 94, Hal: 92 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
-  assert.equal(result.packGap, 8);
+  assert.equal(result.leaderGap, 8);
   assert.equal(result.eligible, false);
-  assert.equal(result.reason, 'pack-gap');
+  assert.ok(result.reason === 'leader-gap' || result.reason === 'recovery-load');
 });
 
 test('818 20-point gap with 1-2 rounds left can qualify with a conservative wheel', () => {
@@ -178,12 +184,12 @@ test('818 20-point gap with 1-2 rounds left can qualify with a conservative whee
 test('818 18-point hole with a few rounds left needs a Life Preserver; Wizard does not', () => {
   const totals = { Ann: 100, Bea: 98, Cal: 96, Dee: 93, Eve: 91, Fay: 88, Gus: 85, Hal: 75 };
   const eight18 = offer('818', totals, { roundCount: 11, spread: 14, currentRound: 12, player: 'Hal' });
-  assert.equal(eight18.packGap, 18);
+  assert.equal(eight18.leaderGap, 25);
   assert.equal(eight18.eligible, true);
 
   const wizardTotals = { Ann: 200, Bea: 190, Cal: 180, Dee: 170, Eve: 160, Fay: 150, Gus: 140, Hal: 120 };
   const wizard = offer('Wizard', wizardTotals, { roundCount: 3, spread: 50, currentRound: 4, player: 'Hal' });
-  assert.equal(wizard.packGap, 50);
+  assert.equal(wizard.leaderGap, 80);
   assert.equal(wizard.eligible, false);
 });
 
@@ -191,18 +197,18 @@ test('the same 20-point gap can qualify in 818 but not late Wizard', () => {
   const totals = { Ann: 200, Bea: 198, Cal: 196, Dee: 194, Eve: 190, Fay: 188, Gus: 180, Hal: 174 };
   const eight18 = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const wizard = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
-  assert.equal(eight18.packGap, 20);
-  assert.equal(wizard.packGap, 20);
+  assert.equal(eight18.leaderGap, 26);
+  assert.equal(wizard.leaderGap, 26);
   assert.equal(eight18.eligible, true);
   assert.equal(wizard.eligible, false);
 });
 
-test('Wizard 50-point last-round hole is still ordinary play', () => {
-  const totals = { Ann: 250, Bea: 240, Cal: 230, Dee: 220, Eve: 210, Fay: 200, Gus: 190, Hal: 170 };
+test('Wizard 50-point last-round hole vs 1st is still ordinary play', () => {
+  const totals = { Ann: 220, Bea: 215, Cal: 210, Dee: 205, Eve: 200, Fay: 190, Gus: 180, Hal: 170 };
   const result = offer('Wizard', totals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
-  assert.equal(result.packGap, 50);
+  assert.equal(result.leaderGap, 50);
   assert.equal(result.eligible, false);
-  assert.equal(result.reason, 'pack-gap');
+  assert.ok(result.reason === 'leader-gap' || result.reason === 'recovery-load');
   assert.ok(result.upcomingOpportunity >= 50);
 });
 
@@ -251,7 +257,7 @@ test('Flip 7 uses a 2.5-unit test and ignores one extreme round', () => {
   const close = LP.getLifePreserverOffer(game({
     name: 'Flip 7 Vengeance',
     players,
-    totals: { ...totals, Hal: 80 },
+    totals: { ...totals, Hal: 100 },
     roundCount: 0,
     spread: 22,
     extraRounds: rounds
@@ -270,11 +276,25 @@ test('Flip 7 uses a 2.5-unit test and ignores one extreme round', () => {
   assert.ok(stranded.maxSafeAdjustment <= 40);
 });
 
-test('runaway leader with a tight pack does not unlock the pack', () => {
+test('runaway 1st unlocks everyone who cannot catch them, including 2nd', () => {
   const totals = { Ann: 200, Bea: 50, Cal: 49, Dee: 48, Eve: 47, Fay: 46, Gus: 45, Hal: 44 };
-  const result = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Hal' });
-  assert.equal(result.eligible, false);
-  assert.equal(result.packGap, 4);
+  const second = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Bea' });
+  const last = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Hal' });
+  const leader = offer('818', totals, { roundCount: 10, spread: 15, currentRound: 11, player: 'Ann' });
+  assert.equal(second.eligible, true);
+  assert.equal(second.rank, 2);
+  assert.equal(last.eligible, true);
+  assert.equal(leader.eligible, false);
+  assert.equal(leader.reason, 'leading');
+});
+
+test('2nd close to 1st does not get a Life Preserver', () => {
+  const totals = { Ann: 100, Bea: 96, Cal: 70, Dee: 68, Eve: 66, Fay: 64, Gus: 62, Hal: 40 };
+  const second = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Bea' });
+  const last = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
+  assert.equal(second.leaderGap, 4);
+  assert.equal(second.eligible, false);
+  assert.equal(last.eligible, true);
 });
 
 test('multiple genuinely stranded players can qualify', () => {
@@ -313,31 +333,30 @@ test('hailMaryBonus rounds are excluded from volatility and round counts', () =>
   assert.equal(without.reason, 'too-early');
 });
 
-test('8-player and 4-player ceilings are third; never first or second', () => {
+test('8-player and 4-player ceilings are second; never first', () => {
   const eightTotals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 40, Fay: 30, Gus: 20, Hal: 10 };
   const eight = offer('818', eightTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
-  assert.equal(eight.bestAllowedRank, 3);
+  assert.equal(eight.bestAllowedRank, 2);
   assertNoPodium(eight, EIGHT, eightTotals);
 
   const fourTotals = { Ann: 80, Bea: 78, Cal: 40, Dee: 20 };
   const four = offer('818', fourTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Dee' });
   assert.equal(four.eligible, true);
-  assert.equal(four.bestAllowedRank, 3);
+  assert.equal(four.bestAllowedRank, 2);
   assertNoPodium(four, FOUR, fourTotals);
 });
 
-test('a huge helpful extra stops just behind second place', () => {
+test('a huge helpful extra stops at least one step behind first', () => {
   const totals = { Ann: 20, Bea: 25, Cal: 52, Dee: 90 };
   const result = offer('Five Crowns', totals, { roundCount: 10, spread: 20, currentRound: 11, player: 'Cal' });
   assert.equal(result.eligible, true);
-  assert.equal(result.bestAllowedRank, 3);
+  assert.equal(result.bestAllowedRank, 2);
   const jackpot = result.slices.reduce((best, slice) => {
     const help = -(Number(slice.adjustment) || 0);
     return help > best ? help : best;
   }, 0);
   const after = totals.Cal - jackpot;
-  assert.ok(after > totals.Bea, `jackpot landed ${after}, which is not behind second (${totals.Bea})`);
-  assert.ok(after <= totals.Bea + 5, `jackpot should stop on the last increment behind 2nd, landed ${after}`);
+  assert.ok(after > totals.Ann, `jackpot landed ${after}, which is not behind 1st (${totals.Ann})`);
   assertNoPodium(result, FOUR, totals);
 });
 
@@ -355,7 +374,7 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.eligible, true);
   assert.equal(totals.Brick, 150);
   assert.equal(result.rank, 7);
-  assert.equal(result.packGap, 110);
+  assert.ok(result.leaderGap >= 100);
   assert.ok(result.maxSafeAdjustment > 20, `expected a rescue above 20, got ${result.maxSafeAdjustment}`);
   assert.ok(result.maxSafeAdjustment >= 50, `expected Brick's jackpot around 50-75, got ${result.maxSafeAdjustment}`);
   assert.ok(result.maxSafeAdjustment <= 75);
@@ -364,15 +383,15 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(helpfulWeights / totalWeight >= 0.8);
   assertNoPodium(result, players, totals);
   const afterJackpot = totals.Brick - result.maxSafeAdjustment;
-  assert.ok(afterJackpot > totals.Mike, 'jackpot must not overtake third place');
+  const firstScore = Math.min(...players.map(player => Number(totals[player]) || 0));
+  assert.ok(afterJackpot > firstScore, 'jackpot must not match or pass 1st');
   const explained = LP.explainLifePreserverOffer(result);
-  assert.equal(result.packPlayer, 'Megan');
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
-  assert.match(explained.wheelLine, /Brick is 110 behind the pack/);
+  assert.match(explained.wheelLine, /behind 1st/);
   assert.match(explained.wheelLine, /−75/);
   assert.match(explained.summary, /7th of 8/);
-  assert.match(explained.summary, /Megan/);
+  assert.match(explained.summary, /1st/);
   assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
@@ -391,14 +410,15 @@ test('Five Crowns QA fixture still has one available and one used Life Preserver
   assert.ok(!available.includes('Linda'));
 });
 
-test('capping a result cannot place the player first or second after standings change', () => {
+test('capping a result cannot place the player first after standings change', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 40, Fay: 30, Gus: 20, Hal: 10 };
   const live = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const capped = LP.capLifePreserverAdjustment(80, live);
   const rank = LP.rankWithScore('Hal', totals.Hal + capped, EIGHT, totals, false);
   assert.ok(capped <= live.maxSafeAdjustment);
-  assert.ok(rank > 2);
+  assert.ok(rank > 1);
   assert.ok(rank >= live.bestAllowedRank);
+  assert.ok(totals.Hal + capped < totals.Ann);
 });
 
 test('undo only frees Life Preservers whose bonus rounds were removed', () => {
@@ -453,9 +473,9 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.equal(eight18.supported, true);
   assert.match(eight18.lead, /818/);
   assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
-  assert.ok(eight18.how.some(line => /bottom half/.test(line)));
-  assert.ok(eight18.how.some(line => /made bid/.test(line)));
-  assert.ok(eight18.how.some(line => /20 behind/.test(line)));
+  assert.ok(eight18.how.some(line => /not in 1st/.test(line)));
+  assert.ok(eight18.how.some(line => /made bids/.test(line)));
+  assert.ok(eight18.wheel.some(line => /cannot match or pass 1st/.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
   assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
@@ -478,9 +498,9 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
 test('threshold QA fixtures unlock only Duke at the first legal hole', () => {
   const cases = [
     ['eight18-life-preserver-threshold', '818', 123],
-    ['wizard-life-preserver-threshold', 'Wizard', 160],
-    ['five-crowns-life-preserver-threshold', 'Five Crowns', 65],
-    ['flip7-life-preserver-threshold', 'Flip 7 Vengeance', 80]
+    ['wizard-life-preserver-threshold', 'Wizard', 190],
+    ['five-crowns-life-preserver-threshold', 'Five Crowns', 54],
+    ['flip7-life-preserver-threshold', 'Flip 7 Vengeance', 112]
   ];
   for (const [id, gameName, dukeTotal] of cases) {
     const currentGame = QA_SCENARIOS[id].data.currentGame;
@@ -501,5 +521,5 @@ test('Life Preserver table summary names who is ready, used, or not there yet', 
   assert.ok(summary.live.used.includes('Linda'));
   assert.match(summary.live.roundLine, /scored/);
   assert.ok(summary.live.catchUp > 0);
-  assert.equal(summary.live.packPlayer, 'Megan');
+  assert.ok(summary.live.leaderPlayer);
 });

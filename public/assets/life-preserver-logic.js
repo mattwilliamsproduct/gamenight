@@ -20,8 +20,8 @@
       rescueMax: 15,
       minScoringRounds: 4,
       fallback: 22,
-      // Made bids are +10; trick points are shared, so 18–20 behind is already desperate.
-      recoveryLoad: 0.28
+      // Made bids are +10. About two made bids behind first with a few rounds left is cooked.
+      recoveryLoad: 0.55
     },
     Wizard: {
       winLow: false,
@@ -227,47 +227,45 @@
     }
     const player = String(offer.player || 'This player');
     const gameName = displayGameName(offer.gameName);
-    const packGap = Math.round(Number(offer.packGap) || 0);
+    const leaderGap = Math.round(Number(offer.leaderGap) || 0);
     const winLow = !!offer.winLow;
     const sign = helpfulSign(winLow);
     const maxSafe = Number(offer.maxSafeAdjustment) || 0;
     const bestShort = formatSignedPoints(sign * maxSafe);
     const setbackShort = formatSignedPoints((-sign) * (Number(offer.maxSetback) || 0));
     const remaining = offer.remainingRounds;
-    const allowed = offer.bestAllowedRank;
     const binding = offer.bindingLimit || resolveBindingLimit(offer);
     const place = (Number.isFinite(offer.rank) && Number.isFinite(offer.playerCount))
       ? `${ordinal(offer.rank)} of ${offer.playerCount}`
       : '';
-    const packBit = offer.packPlayer
-      ? `${packGap} points behind the pack (${offer.packPlayer})`
-      : `${packGap} points behind the pack`;
+    const leaderBit = offer.leaderPlayer
+      ? `${leaderGap} points behind 1st (${offer.leaderPlayer})`
+      : `${leaderGap} points behind 1st`;
     const summary = place
-      ? `${player} is ${place}, ${packBit}.`
-      : `${player} is ${packBit}.`;
-    const wheelLine = `${player} is ${packGap} behind the pack. Best help ${bestShort}.`;
+      ? `${player} is ${place}, ${leaderBit}.`
+      : `${player} is ${leaderBit}.`;
+    const wheelLine = `${player} is ${leaderGap} behind 1st. Best help ${bestShort}.`;
     const bullets = [];
 
     if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points.`);
     else bullets.push(`${gameName} scores high, so a good spin adds points.`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
-      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${packGap}-point gap.`);
+      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
     } else if (Number.isFinite(remaining) && remaining > 0) {
-      bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to close a ${packGap}-point gap.`);
+      bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to catch 1st from ${leaderGap} back.`);
     } else {
-      bullets.push(`Ordinary play is unlikely to close a ${packGap}-point gap from here.`);
+      bullets.push(`Ordinary play is unlikely to catch 1st from ${leaderGap} back.`);
     }
 
     if (binding === 'rank') {
-      bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without landing 1st or 2nd. ${ordinal(allowed)} is the ceiling at this table.`);
+      bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
-      const ceiling = allowed ? `; ${ordinal(allowed)} is the ceiling at this table` : '';
-      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot put ${player} in 1st or 2nd${ceiling}.`);
+      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot match or pass 1st.`);
     } else if (binding === 'rescue') {
-      bullets.push(`The biggest help is ${bestShort} — enough to get back toward the pack after counting on a strong stretch of ordinary play, without handing ${player} the win.`);
+      bullets.push(`The biggest help is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
-      bullets.push(`The biggest help is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot put ${player} in 1st or 2nd.`);
+      bullets.push(`The biggest help is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
     }
 
     const lesser = [...new Set((offer.slices || [])
@@ -319,34 +317,34 @@
     }
     const unit = roundNoun(gameName, 2);
     let timing = `Once 4 ${unit} are scored.`;
-    let gap = 'You are far enough behind the middle of the table that normal play is unlikely to catch you up.';
+    let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
       'Most slices help. Some do nothing. A few hurt a little.',
-      'The best result can pull you back toward the pack. It cannot put you in 1st or 2nd — 3rd, just behind second place, is as high as it can land you.'
+      'The best result can pull you back toward the lead. It cannot match or pass 1st — you always stay at least one point behind.'
     ];
 
     if (gameName === '818') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'You are about 10 or more points behind the middle of the table — that is one made bid — and there are not enough rounds left to close it the normal way. In 818, 20 behind is a big hole. 8 behind is still a race.';
+      gap = 'You are far enough behind 1st that the remaining rounds cannot close it the normal way. In 818, about two made bids back with only a few rounds left is a big hole. 8 behind first is still a race.';
     } else if (gameName === 'Wizard') {
       timing = 'Once the first few rounds are scored (about a quarter of the game).';
-      gap = 'You are further behind the middle than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+      gap = 'You are further behind 1st than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
     } else if (gameName === 'Five Crowns') {
       timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins, so the bottom half is the high scores. You are far enough behind the middle that a couple of clean hands probably will not catch the pack.';
+      gap = 'Low score wins. You are far enough behind 1st that a couple of clean hands probably will not catch them.';
       wheel.unshift('A good spin subtracts points.');
     } else if (gameName === 'Flip 7 Vengeance') {
       timing = 'Once 4 rounds are scored.';
-      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind the middle of the table.';
+      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind 1st.';
     }
 
     const how = [
       'Four or more players at the table.',
       timing,
-      'You are in the bottom half of the scoreboard — the worse half, not just behind the leader.',
+      'You are not in 1st. 2nd can get one too, but only if they are also too far back to catch the lead.',
       gap,
       'You have not used yours yet. One spin per player, per game.',
-      'A runaway leader does not unlock everyone bunched behind them.'
+      'If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.'
     ];
     return {
       supported: true,
@@ -361,9 +359,10 @@
     if (reason === 'used') return 'already used';
     if (reason === 'retired') return 'headed back to shore';
     if (reason === 'too-early') return 'too early';
-    if (reason === 'not-bottom-half') return 'still in the top half';
-    if (reason === 'pack-gap') return 'behind, but still close to the pack';
-    if (reason === 'recovery-load') return 'behind, but enough rounds left to catch up';
+    if (reason === 'leading') return 'already in 1st';
+    if (reason === 'not-bottom-half') return 'still close enough to catch 1st';
+    if (reason === 'leader-gap' || reason === 'pack-gap') return 'behind, but still close enough to catch 1st';
+    if (reason === 'recovery-load') return 'behind, but enough rounds left to catch 1st';
     if (reason === 'too-few-players') return 'need 4 players';
     if (reason === 'game-over') return 'game over';
     if (reason === 'no-legal-help') return 'no safe rescue right now';
@@ -385,6 +384,8 @@
     const totals = {};
     players.forEach(name => { totals[name] = Number(game.totals?.[name]) || 0; });
     const sorted = sortPlayers(players, totals, cfg.winLow);
+    const leaderPlayer = sorted[0] || null;
+    const leaderScore = leaderPlayer != null ? totals[leaderPlayer] : 0;
     const packRank = Math.max(1, Math.ceil(players.length / 2));
     const packPlayer = sorted[packRank - 1] || null;
     const packScore = packPlayer != null ? totals[packPlayer] : 0;
@@ -400,12 +401,14 @@
       const offer = getLifePreserverOffer(game, player, activePlayers, opts);
       const rank = sorted.indexOf(player) + 1;
       const packGap = packGapFor(totals[player], packScore, cfg.winLow);
+      const leaderGap = packGapFor(totals[player], leaderScore, cfg.winLow);
       return {
         player,
         eligible: !!offer.eligible,
         reason: offer.reason || 'not-yet',
         rank: offer.rank || rank,
         packGap: Number.isFinite(offer.packGap) ? offer.packGap : packGap,
+        leaderGap: Number.isFinite(offer.leaderGap) ? offer.leaderGap : leaderGap,
         label: offer.eligible ? 'ready to spin' : statusLabelForReason(offer.reason)
       };
     });
@@ -428,6 +431,8 @@
         packRank,
         packPlayer,
         packScore,
+        leaderPlayer,
+        leaderScore,
         catchUp: Math.round(catchUp),
         remainingRounds: game.name === 'Flip 7 Vengeance' ? null : remaining.length,
         ready,
@@ -493,21 +498,20 @@
   }
 
   function bestAllowedRankFor(_playerCount, _currentRank) {
-    // A spin can pull someone back into the hunt, but never into 1st or 2nd.
-    // 3rd — just behind second place — is the ceiling at every table size.
-    return 3;
+    // A spin can put you in 2nd. It cannot match or pass 1st.
+    return 2;
   }
 
-  function secondPlaceScore(players, totals, winLow) {
+  function firstPlaceScore(players, totals, winLow) {
     const sorted = sortPlayers(players, totals, winLow);
-    if (sorted.length < 2) return null;
-    return Number(totals[sorted[1]]) || 0;
+    if (!sorted.length) return null;
+    return Number(totals[sorted[0]]) || 0;
   }
 
-  function staysBehindSecond(player, nextScore, players, totals, winLow) {
-    const second = secondPlaceScore(players, totals, winLow);
-    if (!Number.isFinite(second)) return false;
-    return winLow ? nextScore > second : nextScore < second;
+  function staysBehindFirst(player, nextScore, players, totals, winLow) {
+    const first = firstPlaceScore(players, totals, winLow);
+    if (!Number.isFinite(first)) return false;
+    return winLow ? nextScore > first : nextScore < first;
   }
 
   function maxLegalHelpfulMagnitude(player, players, totals, winLow, increment, allowedRank) {
@@ -517,7 +521,7 @@
     for (let magnitude = increment; magnitude <= 800; magnitude += increment) {
       const nextScore = current + (sign * magnitude);
       const rank = rankWithScore(player, nextScore, players, totals, winLow);
-      if (rank >= allowedRank && rank > 2 && staysBehindSecond(player, nextScore, players, totals, winLow)) {
+      if (rank >= allowedRank && rank > 1 && staysBehindFirst(player, nextScore, players, totals, winLow)) {
         best = magnitude;
       } else {
         break;
@@ -649,8 +653,8 @@
     const sorted = sortPlayers(players, totals, cfg.winLow);
     const rank = sorted.indexOf(player) + 1;
     const packRank = Math.ceil(players.length / 2);
-    if (rank <= packRank) {
-      return ineligible('not-bottom-half', {
+    if (rank === 1) {
+      return ineligible('leading', {
         rank,
         winLow: cfg.winLow,
         scoreIncrement: cfg.increment
@@ -682,8 +686,8 @@
       comebackUnit = upcomingOpportunity;
     }
 
-    if (!(packGap >= upcomingOpportunity)) {
-      return ineligible('pack-gap', {
+    if (!(leaderGap >= upcomingOpportunity)) {
+      return ineligible('leader-gap', {
         rank,
         leaderGap,
         packGap,
@@ -695,10 +699,10 @@
       });
     }
 
-    const recoveryLoad = totalRemainingOpportunity > 0 ? packGap / totalRemainingOpportunity : Infinity;
+    const recoveryLoad = totalRemainingOpportunity > 0 ? leaderGap / totalRemainingOpportunity : Infinity;
     const recoveryThreshold = Number.isFinite(cfg.recoveryLoad) ? cfg.recoveryLoad : RECOVERY_LOAD_THRESHOLD;
     const loadOk = game.name === 'Flip 7 Vengeance'
-      ? packGap / comebackUnit >= FLIP7_STRONG_ROUNDS
+      ? leaderGap / comebackUnit >= FLIP7_STRONG_ROUNDS
       : recoveryLoad >= recoveryThreshold;
     if (!loadOk) {
       return ineligible('recovery-load', {
@@ -726,7 +730,7 @@
     const ordinaryRecoveryLimit = game.name === 'Flip 7 Vengeance'
       ? comebackUnit * FLIP7_STRONG_ROUNDS
       : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
-    const rescueNeeded = Math.max(0, packGap - ordinaryRecoveryLimit);
+    const rescueNeeded = Math.max(0, leaderGap - ordinaryRecoveryLimit);
     const maxSafeAdjustment = floorToIncrement(
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment
@@ -756,6 +760,7 @@
       gameName: game.name,
       playerCount: players.length,
       packPlayer: sorted[packRank - 1],
+      leaderPlayer: sorted[0],
       rank,
       leaderGap,
       packGap,
@@ -768,7 +773,7 @@
       rankCap,
       gameSafetyCap: cfg.rescueMax,
       remainingRounds,
-      estimatedRoundsToRecover: comebackUnit ? packGap / comebackUnit : null,
+      estimatedRoundsToRecover: comebackUnit ? leaderGap / comebackUnit : null,
       recoveryLoad,
       bestAllowedRank: allowedRank,
       maxSafeAdjustment,
