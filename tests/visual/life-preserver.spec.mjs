@@ -231,6 +231,10 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
       cloneWidth: el?.scrollWidth || 0,
       cloneHeight: el?.scrollHeight || 0,
       cloneText: (el?.innerText || '').replace(/\s+/g, ' '),
+      roundHeaders: [...(el?.querySelectorAll('th.scorecard-round-th') || [])].map(header => header.textContent.trim()),
+      lifePreserverMarks: el?.querySelectorAll('.score-cell-life-preserver').length || 0,
+      hasPacePanel: !!el?.querySelector('#record-chase-panel'),
+      hasSubmitSection: !!el?.querySelector('#submit-section'),
       liveWidth: live?.scrollWidth || 0,
       liveParentHidden: !!live?.closest('#game-screen.hidden')
     };
@@ -239,6 +243,10 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   expect(stash.cloneWidth).toBeGreaterThan(200);
   expect(stash.cloneHeight).toBeGreaterThan(100);
   expect(stash.cloneText).toMatch(/Brick|Megan|Total/i);
+  expect(stash.roundHeaders).toEqual(['R1','R2','R3','R4','R5','R6','R7','R8']);
+  expect(stash.lifePreserverMarks).toBeGreaterThan(0);
+  expect(stash.hasPacePanel).toBe(false);
+  expect(stash.hasSubmitSection).toBe(false);
   expect(stash.liveParentHidden).toBe(true);
 });
 

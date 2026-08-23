@@ -52,6 +52,31 @@ test('old backups without version still import every history row', () => {
   assert.equal(added.incoming.counts['Beat the Heat'], 1);
 });
 
+test('manual backup merge never erases a live local match', () => {
+  const active = {
+    name: '818',
+    syncId: 'live-818',
+    originalRoster: ['Matt', 'Cat'],
+    currentRound: 7
+  };
+  const current = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: active
+  };
+  const incoming = Backup.buildBackup({
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: null
+  });
+  const { next } = Backup.mergeBackup(current, incoming);
+  assert.equal(next.currentGame, active);
+});
+
 test('cloud merge keeps a live local match and unions Beat the Heat history', () => {
   const local = {
     allPlayers: ['Matt'],
@@ -72,6 +97,119 @@ test('cloud merge keeps a live local match and unions Beat the Heat history', ()
   assert.equal(next.currentGame.name, '818');
   assert.equal(added.games, 1);
   assert.equal(next.history.some(match => match.game === 'Beat the Heat'), true);
+});
+
+test('cloud merge adopts a remote active match when this copy has none', () => {
+  const remoteGame = {
+    name: 'Five Crowns',
+    syncId: 'remote-five-crowns',
+    updatedAt: 20,
+    originalRoster: ['Matt', 'Cat']
+  };
+  const local = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {}
+  };
+  const remote = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: remoteGame
+  };
+  const { next, added } = Backup.mergeCloud(local, remote);
+  assert.equal(added.games, 0);
+  assert.equal(added.players, 0);
+  assert.equal(next.currentGame, remoteGame);
+});
+
+test('cloud merge takes newer progress for the same active match', () => {
+  const common = {
+    name: 'Wizard',
+    syncId: 'shared-wizard',
+    originalRoster: ['Matt', 'Cat']
+  };
+  const local = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: { ...common, updatedAt: 10, currentRound: 3 }
+  };
+  const remote = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: { ...common, updatedAt: 20, currentRound: 4 }
+  };
+  const { next, currentGameConflict } = Backup.mergeCloud(local, remote);
+  assert.equal(currentGameConflict, false);
+  assert.equal(next.currentGame.currentRound, 4);
+});
+
+test('cloud merge flags different active matches instead of overwriting either one', () => {
+  const localGame = {
+    name: '818',
+    syncId: 'local-game',
+    updatedAt: 30,
+    originalRoster: ['Matt', 'Cat']
+  };
+  const local = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: localGame
+  };
+  const remote = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: {
+      name: 'Five Crowns',
+      syncId: 'remote-game',
+      updatedAt: 40,
+      originalRoster: ['Matt', 'Cat']
+    }
+  };
+  const { next, currentGameConflict } = Backup.mergeCloud(local, remote);
+  assert.equal(currentGameConflict, true);
+  assert.equal(next.currentGame, localGame);
+});
+
+test('cloud merge drops a stale local match that was already finished remotely', () => {
+  const localGame = {
+    name: '818',
+    syncId: 'finished-818',
+    updatedAt: 30,
+    originalRoster: ['Matt', 'Cat']
+  };
+  const local = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    playerProfiles: {},
+    currentGame: localGame
+  };
+  const remote = {
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [{
+      id: 50,
+      game: '818',
+      syncId: 'finished-818',
+      totals: { Matt: 80, Cat: 70 }
+    }],
+    playerProfiles: {},
+    currentGame: null
+  };
+  const { next, currentGameConflict } = Backup.mergeCloud(local, remote);
+  assert.equal(currentGameConflict, false);
+  assert.equal(next.currentGame, null);
 });
 
 test('parseBackup rejects junk and accepts a v1 paste payload', () => {

@@ -555,7 +555,7 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.deepEqual([...firstHold].sort(), ['Gus', 'Hal']);
 
   LP.markLifePreserverUsed(g, 'Hal');
-  g.totals.Gus = 139;
+  g.totals.Gus = 130;
   const stillHeld = LP.syncLifePreserverHolds(g, EIGHT);
   assert.deepEqual([...stillHeld].sort(), ['Gus']);
   const heldOffer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);
@@ -566,8 +566,9 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
 
   g.rounds.push({
     round: 13,
-    scores: { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: 28, Hal: 0 }
+    scores: { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: 9, Hal: 0 }
   });
+  g.totals.Gus = 139;
   g.currentRound = 14;
   const afterScores = LP.syncLifePreserverHolds(g, EIGHT, { reset: true });
   assert.equal(afterScores.includes('Gus'), false);
@@ -583,4 +584,18 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
+});
+
+test('a held Life Preserver disappears when no helpful result can stay behind first', () => {
+  const totals = { Ann: 140, Bea: 138, Cal: 137, Dee: 136, Eve: 135, Fay: 134, Gus: 111, Hal: 100 };
+  const g = game({ name: '818', players: EIGHT, totals, roundCount: 12, spread: 17, currentRound: 13 });
+  assert.ok(LP.syncLifePreserverHolds(g, EIGHT).includes('Gus'));
+
+  g.totals.Gus = 139;
+  const holds = LP.syncLifePreserverHolds(g, EIGHT);
+  const offer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);
+  assert.equal(holds.includes('Gus'), false);
+  assert.equal(offer.eligible, false);
+  assert.equal(offer.reason, 'no-legal-help');
+  assert.equal(offer.slices.length, 0);
 });

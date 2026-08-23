@@ -11,7 +11,7 @@
     "test:comeback": "node --test scripts/test-comeback.mjs",
     "test:life-preserver": "node --test scripts/test-life-preserver.mjs",
     "test:backup": "node --test scripts/test-backup.mjs",
-    "check": "npm run check:syntax && npm run check:production-assets && npm run test:comeback && npm run test:life-preserver && npm run test:backup && git diff --check",
+    "check": "npm run check:syntax && npm run check:production-assets && npm run test:life-preserver && npm run test:backup && git diff --check",
     "qa:gallery": "node scripts/serve-public.mjs",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots"

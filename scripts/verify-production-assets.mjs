@@ -57,11 +57,22 @@ if(manifest.name!=='Back Porch Games') throw new Error('Manifest name should sta
 if(manifest.short_name!=='Back Porch') throw new Error('Manifest short_name should be Back Porch for the home screen.');
 
 const workerTemplate=await readFile(join(rootDir,'src/service-worker.js'),'utf8');
+const builtWorker=await readFile(join(rootDir,'public/sw.js'),'utf8');
 if(workerTemplate.includes('comeback-logic.js')){
   throw new Error('Service worker template should not precache Comeback / turbo logic.');
 }
 if(!workerTemplate.includes('life-preserver-logic.js')){
   throw new Error('Service worker template must precache Life Preserver logic.');
+}
+if(!workerTemplate.includes("url.pathname.startsWith('/api/')")){
+  throw new Error('Service worker template must leave cloud API requests uncached.');
+}
+const normalizedWorker=builtWorker.replace(
+  /const CACHE_NAME = 'back-porch-shell-[^']+';/,
+  "const CACHE_NAME = 'back-porch-shell-__BACK_PORCH_RELEASE__';"
+);
+if(normalizedWorker!==workerTemplate){
+  throw new Error('Committed public/sw.js has drifted from the service worker template.');
 }
 
 console.log('Production assets verified.');
