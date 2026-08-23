@@ -26,10 +26,12 @@ function game({
   currentRound,
   hailMaryUsed = [],
   retired = [],
-  extraRounds = []
+  extraRounds = [],
+  lifePreserverHeld,
+  lifePreserverHeldRound
 }) {
   const lastRound = (currentRound || roundCount + 1) - 1;
-  return {
+  const data = {
     name,
     originalRoster: [...players],
     totals: { ...totals },
@@ -38,6 +40,9 @@ function game({
     hailMaryUsed: [...hailMaryUsed],
     retired: [...retired]
   };
+  if (lifePreserverHeld) data.lifePreserverHeld = [...lifePreserverHeld];
+  if (lifePreserverHeldRound != null) data.lifePreserverHeldRound = lifePreserverHeldRound;
+  return data;
 }
 
 function offer(name, totals, options = {}) {
@@ -475,6 +480,7 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
   assert.ok(eight18.how.some(line => /not in 1st/.test(line)));
   assert.ok(eight18.how.some(line => /made bids/.test(line)));
+  assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
   assert.ok(eight18.wheel.some(line => /cannot match or pass 1st/.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
@@ -522,4 +528,41 @@ test('Life Preserver table summary names who is ready, used, or not there yet', 
   assert.match(summary.live.roundLine, /scored/);
   assert.ok(summary.live.catchUp > 0);
   assert.ok(summary.live.leaderPlayer);
+});
+
+test('unused Life Preserver holds stay after someone else takes theirs, then re-evaluate next scoring period', () => {
+  const totals = { Ann: 140, Bea: 138, Cal: 137, Dee: 136, Eve: 135, Fay: 134, Gus: 111, Hal: 100 };
+  const g = game({ name: '818', players: EIGHT, totals, roundCount: 12, spread: 17, currentRound: 13 });
+  const firstHold = LP.syncLifePreserverHolds(g, EIGHT);
+  assert.deepEqual([...firstHold].sort(), ['Gus', 'Hal']);
+
+  LP.markLifePreserverUsed(g, 'Hal');
+  g.totals.Gus = 139;
+  const stillHeld = LP.syncLifePreserverHolds(g, EIGHT);
+  assert.deepEqual([...stillHeld].sort(), ['Gus']);
+  const heldOffer = LP.getLifePreserverOffer(g, 'Gus', EIGHT);
+  assert.equal(heldOffer.eligible, true);
+  assert.equal(heldOffer.held, true);
+  assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT, { honorHold: false }).eligible, false);
+  assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
+
+  g.rounds.push({
+    round: 13,
+    scores: { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: 28, Hal: 0 }
+  });
+  g.currentRound = 14;
+  const afterScores = LP.syncLifePreserverHolds(g, EIGHT, { reset: true });
+  assert.equal(afterScores.includes('Gus'), false);
+  assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, false);
+
+  g.totals.Gus = 100;
+  g.rounds.push({
+    round: 14,
+    scores: { Ann: 0, Bea: 0, Cal: 0, Dee: 0, Eve: 0, Fay: 0, Gus: -39, Hal: 0 }
+  });
+  g.currentRound = 15;
+  const later = LP.syncLifePreserverHolds(g, EIGHT, { reset: true });
+  assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
+  assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
+  assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
 });

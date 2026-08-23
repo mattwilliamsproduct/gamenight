@@ -344,6 +344,7 @@
       'You are not in 1st. 2nd can get one too, but only if they are also too far back to catch the lead.',
       gap,
       'You have not used yours yet. One spin per player, per game.',
+      'Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.',
       'If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.'
     ];
     return {
@@ -621,6 +622,56 @@
     }, extras);
   }
 
+  function isHeldForCurrentRound(game, player) {
+    if (!game || !player) return false;
+    const round = Number(game.currentRound) || 0;
+    if ((Number(game.lifePreserverHeldRound) || 0) !== round) return false;
+    return Array.isArray(game.lifePreserverHeld) && game.lifePreserverHeld.includes(player);
+  }
+
+  // Once a Life Preserver unlocks, it stays for the current scoring period even if
+  // someone else takes theirs first. A new submitted scoring round rebuilds the list.
+  // Unused holds can drop or come back on later rounds until that player actually spins.
+  function syncLifePreserverHolds(game, players, options) {
+    const opts = options || {};
+    if (!game) return [];
+    const round = Number(game.currentRound) || 0;
+    if (!SUPPORTED_GAMES.includes(game.name)) {
+      game.lifePreserverHeld = [];
+      game.lifePreserverHeldRound = round;
+      return [];
+    }
+    const used = new Set(game.hailMaryUsed || []);
+    const retired = new Set(game.retired || []);
+    const sameRound = !opts.reset
+      && (Number(game.lifePreserverHeldRound) || 0) === round
+      && Array.isArray(game.lifePreserverHeld);
+    const kept = sameRound
+      ? game.lifePreserverHeld.filter(name => name && !used.has(name) && !retired.has(name))
+      : [];
+    const held = new Set(kept);
+    (players || []).forEach(player => {
+      if (!player || used.has(player) || retired.has(player)) return;
+      const offer = getLifePreserverOffer(game, player, players, {
+        gameOver: opts.gameOver,
+        honorHold: false
+      });
+      if (offer.eligible) held.add(player);
+    });
+    game.lifePreserverHeld = [...held];
+    game.lifePreserverHeldRound = round;
+    return game.lifePreserverHeld;
+  }
+
+  function markLifePreserverUsed(game, player) {
+    if (!game || !player) return;
+    if (!Array.isArray(game.hailMaryUsed)) game.hailMaryUsed = [];
+    if (!game.hailMaryUsed.includes(player)) game.hailMaryUsed.push(player);
+    if (Array.isArray(game.lifePreserverHeld)) {
+      game.lifePreserverHeld = game.lifePreserverHeld.filter(name => name !== player);
+    }
+  }
+
   function getLifePreserverOffer(game, player, activePlayers, options) {
     const opts = options || {};
     if (!game || !player || !Array.isArray(activePlayers) || !activePlayers.includes(player)) {
@@ -686,36 +737,40 @@
       comebackUnit = upcomingOpportunity;
     }
 
-    if (!(leaderGap >= upcomingOpportunity)) {
-      return ineligible('leader-gap', {
-        rank,
-        leaderGap,
-        packGap,
-        comebackUnit,
-        upcomingOpportunity,
-        totalRemainingOpportunity,
-        winLow: cfg.winLow,
-        scoreIncrement: cfg.increment
-      });
-    }
-
+    const honorHold = opts.honorHold !== false;
+    const held = honorHold && isHeldForCurrentRound(game, player);
     const recoveryLoad = totalRemainingOpportunity > 0 ? leaderGap / totalRemainingOpportunity : Infinity;
     const recoveryThreshold = Number.isFinite(cfg.recoveryLoad) ? cfg.recoveryLoad : RECOVERY_LOAD_THRESHOLD;
     const loadOk = game.name === 'Flip 7 Vengeance'
       ? leaderGap / comebackUnit >= FLIP7_STRONG_ROUNDS
       : recoveryLoad >= recoveryThreshold;
-    if (!loadOk) {
-      return ineligible('recovery-load', {
-        rank,
-        leaderGap,
-        packGap,
-        comebackUnit,
-        upcomingOpportunity,
-        totalRemainingOpportunity,
-        recoveryLoad,
-        winLow: cfg.winLow,
-        scoreIncrement: cfg.increment
-      });
+
+    if (!held) {
+      if (!(leaderGap >= upcomingOpportunity)) {
+        return ineligible('leader-gap', {
+          rank,
+          leaderGap,
+          packGap,
+          comebackUnit,
+          upcomingOpportunity,
+          totalRemainingOpportunity,
+          winLow: cfg.winLow,
+          scoreIncrement: cfg.increment
+        });
+      }
+      if (!loadOk) {
+        return ineligible('recovery-load', {
+          rank,
+          leaderGap,
+          packGap,
+          comebackUnit,
+          upcomingOpportunity,
+          totalRemainingOpportunity,
+          recoveryLoad,
+          winLow: cfg.winLow,
+          scoreIncrement: cfg.increment
+        });
+      }
     }
 
     const allowedRank = bestAllowedRankFor(players.length, rank);
@@ -735,7 +790,7 @@
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment
     );
-    if (maxSafeAdjustment < cfg.increment) {
+    if (maxSafeAdjustment < cfg.increment && !held) {
       return ineligible('no-legal-help', {
         rank,
         leaderGap,
@@ -751,11 +806,27 @@
     }
 
     const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
-    const slices = buildSlices(maxSafeAdjustment, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
+    const wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
+    if (wheelHelp < cfg.increment) {
+      return ineligible('no-legal-help', {
+        rank,
+        leaderGap,
+        packGap,
+        comebackUnit,
+        upcomingOpportunity,
+        totalRemainingOpportunity,
+        recoveryLoad,
+        bestAllowedRank: allowedRank,
+        winLow: cfg.winLow,
+        scoreIncrement: cfg.increment
+      });
+    }
+    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
     const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
     const offer = {
       eligible: true,
       reason: 'ok',
+      held: !!held,
       player,
       gameName: game.name,
       playerCount: players.length,
@@ -826,6 +897,9 @@
     ruleUnitForRound,
     getMaxRounds,
     getLifePreserverOffer,
+    isHeldForCurrentRound,
+    syncLifePreserverHolds,
+    markLifePreserverUsed,
     explainLifePreserverOffer,
     explainLifePreserverRules,
     summarizeLifePreserverTable,

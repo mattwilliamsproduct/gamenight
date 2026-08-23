@@ -7974,6 +7974,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>You have to be far enough behind 1st that catching them with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
               <li>If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.</li>
               <li>One spin per player, per game.</li>
+              <li>Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.</li>
               <li>Not used in Rook or Beat the Heat.</li>
             </ul>
             <h4>What the wheel does</h4>
@@ -10604,6 +10605,9 @@ button.dealer-name-indicator .dealer-player-label {
       if(Array.isArray(h.hailMaryUsed)){
         h.hailMaryUsed = h.hailMaryUsed.map(p => p === oldName ? newName : p);
       }
+      if(Array.isArray(h.lifePreserverHeld)){
+        h.lifePreserverHeld = h.lifePreserverHeld.map(p => p === oldName ? newName : p);
+      }
       if(h.currentBids && h.currentBids[oldName] !== undefined){
         h.currentBids[newName] = h.currentBids[oldName];
         delete h.currentBids[oldName];
@@ -10630,6 +10634,9 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(Array.isArray(currentGame.hailMaryUsed)){
         currentGame.hailMaryUsed = currentGame.hailMaryUsed.map(p => p === oldName ? newName : p);
+      }
+      if(Array.isArray(currentGame.lifePreserverHeld)){
+        currentGame.lifePreserverHeld = currentGame.lifePreserverHeld.map(p => p === oldName ? newName : p);
       }
       if(Array.isArray(currentGame.rounds)){
         currentGame.rounds.forEach(r => {
@@ -10843,9 +10850,14 @@ button.dealer-name-indicator .dealer-player-label {
       alert(`🛟 The Life Preserver says:\n\n${win.label}`);
       if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
       currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
-      if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
-      currentGame.hailMaryUsed.push(wheelPlayer);
+      if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
+        BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
+      } else {
+        if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
+        currentGame.hailMaryUsed.push(wheelPlayer);
+      }
       recomputeGameTotals(currentGame);
+      syncCurrentLifePreserverHolds({gameOver:over});
       addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
       saveData(); closeWheel(); scheduleRender();
@@ -11105,6 +11117,8 @@ button.dealer-name-indicator .dealer-player-label {
       currentRound:game.currentRound||((game.rounds||[]).length+1),
       maxRounds:Number.isFinite(game.maxRounds)&&game.maxRounds>0?game.maxRounds:getMaxRoundsForGame(game),
       hailMaryUsed:game.hailMaryUsed||[],
+      lifePreserverHeld:game.lifePreserverHeld||[],
+      lifePreserverHeldRound:game.lifePreserverHeldRound||null,
       retired:game.retired||[],
       currentScoreDrafts:{...(game.currentScoreDrafts||{})},
       dealerOffset:game.dealerOffset||0,
@@ -11161,7 +11175,7 @@ button.dealer-name-indicator .dealer-player-label {
     _pendingGameName = null;
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
-    currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
+    currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
     snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -12449,7 +12463,7 @@ ${isDealer
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -13281,6 +13295,13 @@ ${isDealer
     return !!BPGLifePreserver.getLifePreserverOffer(game, player, activePlayers, {gameOver}).eligible;
   }
 
+  function syncCurrentLifePreserverHolds(extra){
+    if(!currentGame||!window.BPGLifePreserver||typeof BPGLifePreserver.syncLifePreserverHolds!=='function')return;
+    const players=getActivePlayers(currentGame);
+    const over=extra&&extra.gameOver!=null?extra.gameOver:isMatchOver(currentGame);
+    BPGLifePreserver.syncLifePreserverHolds(currentGame, players, Object.assign({gameOver:over}, extra||{}));
+  }
+
   function setRecordChaseLayout(enabled){
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
@@ -13465,6 +13486,7 @@ ${isDealer
 
     let gamePlayers=[...getActivePlayers(currentGame)];
     getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
+    syncCurrentLifePreserverHolds({gameOver:over});
 
     let sortedP = currentGame.currentRound===1
       ? [...gamePlayers]
@@ -14434,7 +14456,9 @@ ${isDealer
         currentGame.currentRound++; currentGame.wizardPhase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
         // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
-        saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
+        recomputeGameTotals(currentGame);
+        syncCurrentLifePreserverHolds({reset:true});
+        saveData(); checkLeaderChange(prevLeader);
         scheduleRender();
         if(celebration) setTimeout(()=>showRoundCelebration(celebration),0);
         setTimeout(()=>isSubmitting=false,500); return;
@@ -14480,7 +14504,9 @@ ${isDealer
         addAuditEntry(`R${currentGame.currentRound} 818 submitted`, `${Object.entries(scores).map(([p,s])=>`${p}: ${s>=0?'+':''}${s}`).join(', ')}`);
         currentGame.currentRound++; currentGame.eight18Phase='bidding'; currentGame.currentBids={}; currentGame.currentScoreDrafts={};
         haptic([20,40,20,40,60]); soundSubmit();
-        saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
+        recomputeGameTotals(currentGame);
+        syncCurrentLifePreserverHolds({reset:true});
+        saveData(); checkLeaderChange(prevLeader);
         scheduleRender();
         setTimeout(()=>isSubmitting=false,500); return;
       }
@@ -14499,7 +14525,9 @@ ${isDealer
     currentGame.currentScoreDrafts={};
     haptic([20,40,20,40,60]); soundSubmit();
     // PERF: Recompute totals eagerly for immediate leader check; defer DOM render.
-    saveData(); recomputeGameTotals(currentGame); checkLeaderChange(prevLeader);
+    recomputeGameTotals(currentGame);
+    syncCurrentLifePreserverHolds({reset:true});
+    saveData(); checkLeaderChange(prevLeader);
     scheduleRender();
     if(celebration) setTimeout(()=>showRoundCelebration(celebration),0);
     setTimeout(()=>isSubmitting=false,500);
@@ -14555,6 +14583,7 @@ ${isDealer
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
     recomputeGameTotals(currentGame);
+    syncCurrentLifePreserverHolds({reset:true});
     saveData(); scheduleRender();
   }
 
@@ -14857,7 +14886,7 @@ ${isDealer
       players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
       let t={}; roster.forEach(p=>t[p]=0);
       resetRecordChaseView();
-      currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],retired:[],currentScoreDrafts:{}};
+      currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
       snapshotGameMaxRounds(currentGame, roster.length);
       if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
       if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -16193,7 +16222,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-leader-20260823');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-hold-20260823');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);

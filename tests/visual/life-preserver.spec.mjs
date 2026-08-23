@@ -149,6 +149,7 @@ test('Actions menu explains how this game awards a Life Preserver', async ({page
   await expect(body).toContainText('Brick');
   await expect(body).toContainText('Linda');
   await expect(body).toContainText('cannot match or pass 1st');
+  await expect(body).toContainText('stays for this scoring period');
 });
 
 test('ending a match stashes a visible scorecard copy for Share Receipt', async ({page}, testInfo) => {
