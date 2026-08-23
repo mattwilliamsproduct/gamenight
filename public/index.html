@@ -13223,7 +13223,7 @@ ${isDealer
         context.font=`${labelStyle.fontStyle} ${labelStyle.fontVariant} ${labelStyle.fontWeight} ${size}px ${labelStyle.fontFamily}`;
         return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
       };
-      const natural=measureAt(maximum);
+      const natural=Math.max(measureAt(maximum),label.scrollWidth);
       if(natural<=available)return;
       const fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
       name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');

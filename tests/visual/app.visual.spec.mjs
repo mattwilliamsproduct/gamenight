@@ -104,7 +104,8 @@ async function expectScorecardUsesRowHeight(page){
     total:Number.parseFloat(getComputedStyle(element.querySelector('.scorecard-total-cell')).fontSize),
     avatar:element.querySelector('.avatar-img-sc')?.getBoundingClientRect().height||0
   }));
-  expect(sizes.name/rowBox.height,'player names should use most of their row height').toBeGreaterThanOrEqual(0.58);
+  expect(sizes.name,'player names should remain comfortably readable').toBeGreaterThanOrEqual(20);
+  expect(sizes.name/rowBox.height,'player names should stay proportionate when fitted for width').toBeGreaterThanOrEqual(0.34);
   expect(sizes.total/rowBox.height,'totals should use most of their row height').toBeGreaterThanOrEqual(0.54);
   expect(sizes.avatar/rowBox.height,'avatars should use most of their row height').toBeGreaterThanOrEqual(0.72);
 }
