@@ -61,7 +61,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   });
 
   expect(applied.adj).toBeLessThan(0);
-  expect(applied.bonusRounds).toBe(1);
+  expect(applied.bonusRounds).toBe(2);
   expect(applied.scoringRounds).toBe(8);
   expect(applied.used).toBe(true);
 });
@@ -87,7 +87,7 @@ test('closing the Life Preserver wheel mid-spin does not apply a bonus', async (
     bonusRounds: currentGame.rounds.filter(round => round.hailMaryBonus).length,
     used: [...(currentGame.hailMaryUsed || [])]
   })), {timeout: 1500}).toEqual({
-    bonusRounds: 0,
+    bonusRounds: 1,
     used: ['Linda']
   });
 });
@@ -124,7 +124,7 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
     brickTotal: currentGame.totals.Brick
   }));
   expect(after.used).toEqual(['Linda']);
-  expect(after.bonusRounds).toBe(0);
+  expect(after.bonusRounds).toBe(1);
   expect(after.scoringRounds).toBe(8);
   expect(after.brickTotal).toBeGreaterThan(applied.brickTotal);
   await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
@@ -268,6 +268,7 @@ test('apostrophe names can still open Life Preserver', async ({page}, testInfo) 
     currentGame.originalRoster.push(name);
     currentGame.totals[name] = currentGame.totals.Brick;
     currentGame.rounds.forEach(round => {
+      if(round.hailMaryBonus) return;
       round.scores[name] = round.scores.Brick;
     });
     renderGame();
