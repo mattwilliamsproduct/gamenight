@@ -20,7 +20,6 @@ const requiredAssets = [
   'public/assets/vendor/canvas-confetti.js',
   'public/assets/vendor/chart.js',
   'public/assets/vendor/html2canvas.js',
-  'public/assets/comeback-logic.js',
   'public/assets/life-preserver-logic.js',
   'public/assets/backup.js',
   'public/sw.js',
@@ -37,8 +36,8 @@ if(!index.includes("navigator.serviceWorker.register('./sw.js'")){
   throw new Error('PWA registration is missing from the app shell.');
 }
 
-if(!index.includes("src=\"./assets/comeback-logic.js\"")){
-  throw new Error('Comeback logic is missing from the app shell.');
+if(index.includes("src=\"./assets/comeback-logic.js\"")){
+  throw new Error('Comeback / turbo logic should not be loaded in the production app shell.');
 }
 
 if(!index.includes("src=\"./assets/life-preserver-logic.js\"")){

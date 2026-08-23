@@ -153,16 +153,7 @@ for(const view of cases){
       expect(gap,'Total should sit directly beside the player identity column').toBeLessThanOrEqual(2);
     }
     if(view.name==='five-crowns-comeback'||view.name==='five-crowns-blowout'){
-      const chips=page.locator('button.scorecard-comeback-chip');
-      expect(await chips.count(),'scorecard should show Comeback chips').toBeGreaterThan(0);
-      expect(await page.locator('button.scorecard-life-preserver-rank').count(),'rank should not be a spin control').toBe(0);
-    }
-    if(view.name==='five-crowns-blowout'){
-      await expect(page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip')).toHaveCount(1);
-      await expect(page.locator('#scorecard-body tr',{hasText:'Vikki'}).locator('button.scorecard-comeback-chip')).toHaveCount(1);
-      const extra=page.locator('.score-cell-stack.has-comeback .score-cell-comeback');
-      await expect(extra).toHaveCount(1);
-      await expect(extra).toHaveText('−15');
+      expect(await page.locator('button.scorecard-comeback-chip').count(),'scorecard should not show Turbo chips').toBe(0);
     }
     expect(errors,'page should not emit runtime errors').toEqual([]);
     await expect(page).toHaveScreenshot(`${view.name}.png`);

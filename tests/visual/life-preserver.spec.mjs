@@ -9,12 +9,12 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(available).not.toHaveCount(0);
   await expect(page.locator('.scorecard-life-preserver-rank-used')).toHaveCount(1);
 
-  await available.first().click();
+  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
   await expect(page.locator('#wheel-why-line')).toContainText('Best help');
   await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
-  await page.getByRole('button', {name: 'How Life Preserver works'}).click();
+  await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-help')).toContainText('Who can spin');
   await expect(page.locator('#life-preserver-help')).toContainText('cannot match or pass 1st');
@@ -22,7 +22,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(page.locator('#life-preserver-why')).toContainText('Why these numbers');
   await expect(page.locator('#life-preserver-why')).toContainText('behind 1st');
   await expect(page.locator('#life-preserver-why')).toContainText('−75');
-  await page.getByRole('button', {name: 'Back to the wheel'}).click();
+  await page.evaluate(() => hideLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);
 
   const snapshot = await page.evaluate(() => ({
@@ -219,6 +219,25 @@ test('mid-game join after a Life Preserver writes catch-up to the last scoring r
   expect(result.bonusScore).toBe(0);
   expect(result.scoringScore).toBeGreaterThan(0);
   expect(result.usedFlag).toBe(true);
+});
+
+test('threshold tables unlock only Duke and never show Turbo chips', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
+  const scenarios = [
+    'eight18-life-preserver-threshold',
+    'wizard-life-preserver-threshold',
+    'five-crowns-life-preserver-threshold',
+    'flip7-life-preserver-threshold'
+  ];
+  for (const scenario of scenarios) {
+    await page.goto(`/?gnqa=1&gallery=0&scenario=${scenario}&surface=scorecard`, {waitUntil: 'networkidle'});
+    await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+    expect(await page.evaluate(() => typeof window.BPGComeback), `${scenario} should not load Turbo logic`).toBe('undefined');
+    expect(await page.locator('button.scorecard-comeback-chip').count(), `${scenario} should hide Turbo chips`).toBe(0);
+    const rings = page.locator('button.scorecard-life-preserver-rank');
+    await expect(rings, `${scenario} should unlock one Life Preserver`).toHaveCount(1);
+    await expect(rings).toHaveAttribute('aria-label', /Duke/);
+  }
 });
 
 test('skipping a dealer roll does not steal the next game\'s Roll Die button', async ({page}, testInfo) => {

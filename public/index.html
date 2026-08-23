@@ -7222,7 +7222,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="mb-5">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Round History</div>
         <h3 class="font-display text-3xl">Audit Log</h3>
-        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Comeback extra, and retirement — for settling disputes.</p>
+        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Life Preserver, and retirement — for settling disputes.</p>
       </div>
       <div id="audit-list" class="flex-1 overflow-y-auto"></div>
     </div>
@@ -8261,7 +8261,6 @@ button.dealer-name-indicator .dealer-player-label {
 
 
   <script src="./assets/backup.js"></script>
-  <script src="./assets/comeback-logic.js"></script>
   <script src="./assets/life-preserver-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
@@ -9520,47 +9519,11 @@ button.dealer-name-indicator .dealer-player-label {
       list.innerHTML=(explained.bullets||[]).map(bullet=>`<li>${escapeHtml(bullet)}</li>`).join('');
     }
   }
-  function applyComebackAndNotify(roundData, players){
-    return []; // this branch evaluates Life Preserver, not Turbos
-    if(!window.BPGComeback||typeof BPGComeback.applyComebackToRound!=='function') return [];
-    const applied=BPGComeback.applyComebackToRound(currentGame, roundData, players)||[];
-    applied.forEach(item=>{
-      if(!item.applied) return;
-      const signed=BPGComeback.formatSignedPoints(item.applied);
-      const stopped=item.clamped?' (stopped so they cannot take 1st)':'';
-      addAuditEntry(`R${roundData.round} Comeback`, `${item.player} ${signed}${stopped}`);
-    });
-    const clipped=applied.filter(item=>item.clamped&&item.applied);
-    if(clipped.length) toast('Comeback extras stopped so they cannot take 1st.', 'warning');
-    return applied;
+  function applyComebackAndNotify(_roundData, _players){
+    return [];
   }
-  function previewComebackForEntry(player, rawValue){
-    return ''; // LIFE_PRESERVER_HIDE_TURBO
-    if(!currentGame||!window.BPGComeback||!player) return '';
-    if(scoreEntryModalState?.mode && isScoreEntryBidMode(scoreEntryModalState.mode)) return '';
-    const over=currentGame.currentRound>getMaxRoundsForGame(currentGame);
-    const offer=getComebackOfferForPlayer(player, getActivePlayers(currentGame), {gameOver:over});
-    if(!offer.eligible) return '';
-    const mode=scoreEntryModalState?.mode;
-    const draft={scores:{},bids:{...(currentGame.currentBids||{})},actuals:{}};
-    if(mode&&isScoreEntryTrickMode(mode)){
-      const actual=rawValue===''?NaN:parseInt(rawValue,10);
-      if(!Number.isFinite(actual)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
-      draft.actuals[player]=actual;
-      draft.scores[player]=currentGame.name==='818'
-        ? calculate818Score(draft.bids[player], actual)
-        : ((parseInt(draft.bids[player],10)||0)===actual ? 20+(10*actual) : -10*Math.abs((parseInt(draft.bids[player],10)||0)-actual));
-    } else {
-      const score=rawValue===''?NaN:parseInt(rawValue,10);
-      if(!Number.isFinite(score)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
-      draft.scores[player]=score;
-    }
-    if(!BPGComeback.isComebackSuccess(currentGame, draft, player)) return `<span class="score-entry-comeback-chip">${escapeHtml(offer.successHint)}</span>`;
-    const preview=typeof BPGComeback.previewComebackApply==='function'
-      ? BPGComeback.previewComebackApply(currentGame, player, draft, getActivePlayers(currentGame))
-      : null;
-    const shown=preview?.label || BPGComeback.formatRoundScore(draft.scores[player], offer.bonus);
-    return `<span class="score-entry-comeback-chip">${escapeHtml(shown)}</span>`;
+  function previewComebackForEntry(_player, _rawValue){
+    return '';
   }
 
   function openAvatarPicker(){ if(!editingPlayerProfile)return; buildAvatarGrid(); openModal('avatar-modal'); }
@@ -13617,7 +13580,7 @@ ${isDealer
           }
         }
         const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra?' has-comeback':''}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
@@ -13704,10 +13667,8 @@ ${isDealer
     const sign=n>0?'+':'−';
     return `<span class="score-sign">${sign}</span>${Math.abs(n)}`;
   }
-  function comebackChipMarkup(player, offer, className){
-    if(!offer?.eligible) return '';
-    const full=offer.chipLabel||(window.BPGComeback?BPGComeback.formatComebackChip(offer.bonus):'Comeback');
-    return `<button type="button" class="${className}" onclick="openComebackExplain('${escapeJsString(player)}')" title="${escapeHtml(full)}" aria-label="${escapeHtml(full+' for '+player)}"><span class="scorecard-comeback-mark" aria-hidden="true"></span>${signedPointsMarkup(offer.bonus)}</button>`;
+  function comebackChipMarkup(_player, _offer, _className){
+    return '';
   }
 
   function portraitComebackChip(player, roster){
@@ -15261,7 +15222,7 @@ ${isDealer
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra&&window.BPGComeback?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
         const shown=r.scores[p]!==undefined?r.scores[p]:'';
         body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
       });
