@@ -560,17 +560,25 @@ test('five-crowns first round uses compact avatar-led player identities',async({
     const label=button.querySelector('.dealer-player-label');
     const buttonRect=button.getBoundingClientRect();
     const labelRect=label.getBoundingClientRect();
+    const style=getComputedStyle(label);
     return {
       leftInset:labelRect.left-buttonRect.left,
       rightInset:buttonRect.right-labelRect.right,
       paddingLeft:getComputedStyle(button).paddingLeft,
-      paddingRight:getComputedStyle(button).paddingRight
+      paddingRight:getComputedStyle(button).paddingRight,
+      labelPadLeft:Number.parseFloat(style.paddingLeft)||0,
+      labelPadRight:Number.parseFloat(style.paddingRight)||0,
+      labelWidth:labelRect.width,
+      text:label.textContent.trim()
     };
   });
   expect(dealerGeometry.paddingLeft).toBe('0px');
   expect(dealerGeometry.paddingRight).toBe('0px');
-  expect(dealerGeometry.leftInset,'green dealer border should hug the M').toBeLessThanOrEqual(2.5);
-  expect(dealerGeometry.rightInset,'green dealer border should hug the name').toBeLessThanOrEqual(2.5);
+  expect(dealerGeometry.leftInset,'green dealer chip should fill the button').toBeLessThanOrEqual(2.5);
+  expect(dealerGeometry.rightInset,'green dealer chip should fill the button').toBeLessThanOrEqual(2.5);
+  expect(dealerGeometry.labelPadLeft,'dealer chip needs side padding so letters are not clipped').toBeGreaterThanOrEqual(4);
+  expect(dealerGeometry.labelPadRight,'dealer chip needs side padding so letters are not clipped').toBeGreaterThanOrEqual(4);
+  expect(dealerGeometry.labelWidth,'dealer chip should size to the name').toBeGreaterThan(dealerGeometry.text.length*8);
   await expect(firstRow.locator('.scorecard-avatar-slot .scorecard-dealer-avatar-badge')).toHaveCount(1);
 });
 
@@ -598,6 +606,92 @@ test('navigation and match header ignore scorecard text-size zoom',async({page})
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const reduced=await readSizes();
   expect(reduced).toEqual(normal);
+
+  const bannerFit=await page.evaluate(()=>{
+    const banner=document.querySelector('.active-match-banner');
+    const actions=document.querySelector('.active-match-actions');
+    const title=document.getElementById('game-title');
+    const metrics=document.getElementById('wizard-header-metrics');
+    const bannerBox=banner.getBoundingClientRect();
+    const actionsBox=actions.getBoundingClientRect();
+    const titleBox=title.getBoundingClientRect();
+    const metricsBox=metrics.getBoundingClientRect();
+    return {
+      actionsInside:actionsBox.right<=bannerBox.right+1,
+      titleInside:titleBox.right<=actionsBox.left+1,
+      metricsInside:!metrics||metrics.classList.contains('hidden')||metricsBox.right<=actionsBox.left+1,
+      bannerOverflowX:banner.scrollWidth<=banner.clientWidth+1
+    };
+  });
+  expect(bannerFit.actionsInside,'Save/Actions should stay inside the match banner').toBe(true);
+  expect(bannerFit.titleInside,'Wizard title should not collide with actions').toBe(true);
+  expect(bannerFit.metricsInside,'Wizard metrics should not spill into actions').toBe(true);
+  expect(bannerFit.bannerOverflowX,'match banner should not overflow horizontally').toBe(true);
+});
+
+test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='ipad-landscape-webkit','tablet banner stress case is checked on iPad landscape');
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-late-5&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))));
+
+  const layout=await page.evaluate(()=>{
+    const banner=document.querySelector('.active-match-banner');
+    const actions=document.querySelector('.active-match-actions');
+    const title=document.getElementById('game-title');
+    const round=document.getElementById('round-intel');
+    const metrics=document.getElementById('wizard-header-metrics');
+    const michelle=document.querySelector('#scorecard-body .scoreboard-player-name');
+    const rows=[...document.querySelectorAll('#scorecard-body tr')].map(row=>{
+      const name=row.querySelector('.scoreboard-player-name');
+      const chip=name.querySelector('.dealer-player-label')||name;
+      const cell=row.querySelector('.scorecard-col-player');
+      const nameBox=chip.getBoundingClientRect();
+      const cellBox=cell.getBoundingClientRect();
+      return {
+        text:(chip.textContent||'').trim(),
+        fits:nameBox.right<=cellBox.right+1,
+        fullText:(chip.textContent||'').trim().toUpperCase(),
+        dealer:name.tagName==='BUTTON',
+        padLeft:name.tagName==='BUTTON'?Number.parseFloat(getComputedStyle(chip).paddingLeft)||0:null,
+        padRight:name.tagName==='BUTTON'?Number.parseFloat(getComputedStyle(chip).paddingRight)||0:null,
+        chipWidth:name.tagName==='BUTTON'?nameBox.width:null
+      };
+    });
+    const bannerBox=banner.getBoundingClientRect();
+    const actionsBox=actions.getBoundingClientRect();
+    const titleBox=title.getBoundingClientRect();
+    const roundBox=round.getBoundingClientRect();
+    const metricsBox=metrics.getBoundingClientRect();
+    return {
+      rows,
+      banner:{
+        actionsInside:actionsBox.right<=bannerBox.right+1,
+        titleClearOfActions:titleBox.right<=actionsBox.left-2,
+        roundClearOfMetrics:!metrics.classList.contains('hidden')?roundBox.right<=metricsBox.left-1:true,
+        metricsClearOfActions:!metrics.classList.contains('hidden')?metricsBox.right<=actionsBox.left-2:true,
+        noChildOverlap:[title,round,metrics].filter(el=>el&&!el.classList.contains('hidden')).every((el,i,arr)=>{
+          if(i===arr.length-1)return true;
+          return el.getBoundingClientRect().right<=arr[i+1].getBoundingClientRect().left-1;
+        }),
+        overflowX:banner.scrollWidth<=banner.clientWidth+1
+      }
+    };
+  });
+
+  expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fits,'Michelle must stay fully inside the player cell').toBe(true);
+  expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fullText).toBe('MICHELLE');
+  const brick=layout.rows.find(row=>row.fullText==='BRICK');
+  expect(brick?.dealer,'Brick should be dealer').toBe(true);
+  expect(brick?.padLeft,'dealer chip needs horizontal padding').toBeGreaterThanOrEqual(6);
+  expect(brick?.padRight,'dealer chip needs horizontal padding').toBeGreaterThanOrEqual(6);
+  expect(brick?.chipWidth,'dealer chip should be wider than the bare name glyphs').toBeGreaterThan(70);
+  expect(layout.banner.actionsInside).toBe(true);
+  expect(layout.banner.titleClearOfActions).toBe(true);
+  expect(layout.banner.roundClearOfMetrics).toBe(true);
+  expect(layout.banner.metricsClearOfActions).toBe(true);
+  expect(layout.banner.noChildOverlap,'Wizard / round / metrics must not overlap').toBe(true);
+  expect(layout.banner.overflowX).toBe(true);
 });
 
 test('score-entry avatars stay ready when the connection drops',async({page,context})=>{

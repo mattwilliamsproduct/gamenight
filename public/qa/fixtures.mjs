@@ -365,6 +365,23 @@ const lateCrownsGame=makeCurrentGame('Five Crowns',lateCrownsPlayers,heatRoundsF
   [12,10,8,15,14],
   [15,4,8,18,14]
 ]));
+const wizardLate5Players=['Matt','Cat','Michelle','Megan','Brick'];
+const wizardLate5Rounds=wizardRoundsFromScores(wizardLate5Players,[
+  [40,20,30,20,-10],
+  [50,30,20,20,20],
+  [20,20,40,20,-10],
+  [30,20,20,-10,40],
+  [40,20,-10,30,20],
+  [20,20,30,20,-20],
+  [20,-10,20,20,40],
+  [0,10,-20,-5,0]
+]);
+const wizardLate5Game=makeCurrentGame('Wizard',wizardLate5Players,wizardLate5Rounds,{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  dealerOffset:1
+});
 const lateCrowns8Players=['Matt','Cat','Michelle','Mike','Megan','Linda','Vikki','Duke'];
 const lateCrowns8Rounds=heatRoundsFromScores(lateCrowns8Players,[
   [0,0,8,12,10,18,15,20],
@@ -534,6 +551,12 @@ export const QA_SCENARIOS = {
     description:'Five players through Hand of 13, with three-digit totals and Michelle on the card for name-fit and centering checks.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...lateCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrownsGame}
+  },
+  'wizard-late-5':{
+    label:'Wizard · Late · 5 Players',
+    description:'Matt/Cat/Michelle/Megan/Brick on Round 9 of 12 with View Pace chrome and Brick as dealer — tablet banner and Michelle name-fit stress case.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...wizardLate5Players],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardLate5Game}
   },
   'five-crowns-late-8':{
     label:'Five Crowns · Late · 8 Players',
