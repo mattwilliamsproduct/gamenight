@@ -2429,7 +2429,7 @@ button.dealer-name-indicator {
       overflow: visible;
       text-overflow: clip;
       white-space: nowrap;
-      padding: 0.1em 0.28em 0.12em;
+      padding: 0.12em 0.38em 0.14em;
       margin: 0;
       background: var(--emerald-bg);
       border-radius: 0.85rem;
@@ -7245,7 +7245,7 @@ button.dealer-name-indicator .dealer-player-label {
     #game-screen .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-thumb {
       transform: translateX(0.85rem);
     }
-    @media (min-width: 761px) and (max-width: 1180px) {
+    @media (min-width: 761px) and (max-width: 1366px) {
       body.active-match-view .active-match-banner .bp-active-game-art {
         width: 72px;
         height: 42px;
@@ -7258,13 +7258,13 @@ button.dealer-name-indicator .dealer-player-label {
         gap: 0.35rem;
       }
       #game-screen #game-title {
-        font-size: clamp(24px, 2.6vw, 34px);
+        font-size: clamp(22px, 2.4vw, 34px);
       }
       #game-screen #round-intel.round-banner {
-        font-size: clamp(16px, 1.8vw, 22px) !important;
+        font-size: clamp(15px, 1.7vw, 22px) !important;
       }
       #game-screen #wizard-header-metrics {
-        font-size: clamp(0.82rem, 1.35vw, 1.05rem);
+        font-size: clamp(0.78rem, 1.25vw, 1.05rem);
         padding-left: 0.42rem;
         padding-right: 0.42rem;
       }
@@ -7509,13 +7509,13 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="bp-active-copy flex flex-col gap-1.5 min-w-0">
             <div class="bp-live-kicker">Live Table</div>
             <div class="bp-game-header-row flex items-center gap-3 sm:gap-4 flex-nowrap min-w-0">
-              <h2 id="game-title" class="font-display shrink-0"></h2>
+              <h2 id="game-title" class="font-display min-w-0"></h2>
               <div id="round-intel" class="round-banner font-display min-w-0" style="color:var(--emerald);"></div>
-              <div id="wizard-header-metrics" class="hidden inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors"></div>
+              <div id="wizard-header-metrics" class="hidden inline-flex flex-row flex-nowrap items-center min-w-0 rounded-xl border-2 px-4 py-2 transition-colors"></div>
             </div>
           </div>
         </div>
-        <div class="active-match-actions flex flex-nowrap gap-2 items-center relative shrink-0">
+        <div class="active-match-actions flex flex-nowrap gap-2 items-center relative min-w-0">
           <div id="scorecard-view-toggle-wrap" class="scorecard-view-toggle-wrap hidden">
             <button id="scorecard-view-pace-toggle" type="button" class="scorecard-view-toggle" role="switch" aria-checked="true" aria-label="View Pace" onclick="toggleRecordChasePanel()">
               <span class="scorecard-view-toggle-label">View Pace</span>
@@ -13074,7 +13074,7 @@ ${isDealer
         else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} still unaccounted`;}
         else{cls='trick-counter-over';status=`${diff} too many — recount`;}
       }
-      wrap.className=`inline-flex flex-row flex-nowrap items-center shrink-0 rounded-xl border-2 px-4 py-2 transition-colors ${cls}`;
+      wrap.className=`inline-flex flex-row flex-nowrap items-center min-w-0 rounded-xl border-2 px-4 py-2 transition-colors ${cls}`;
       wrap.innerHTML=`<span class="whm-frac font-mono-num">${total} / ${round}${status?` · ${status}`:''}</span>`;
       wrap.classList.remove('hidden');
     } finally {
@@ -13381,6 +13381,56 @@ ${isDealer
     host.style.setProperty('--scorecard-round-th-pad-x',`${pad}px`);
     host.style.setProperty('--scorecard-col-input-font',`${font.toFixed(1)}px`);
   }
+  function fitActiveMatchBanner(){
+    const banner=document.querySelector('#game-screen .active-match-banner');
+    if(!banner||banner.offsetParent===null||!document.body.classList.contains('active-match-view'))return;
+    const title=document.getElementById('game-title');
+    const round=document.getElementById('round-intel');
+    const metrics=document.getElementById('wizard-header-metrics');
+    const row=banner.querySelector('.bp-game-header-row');
+    const identity=banner.querySelector('.bp-active-identity');
+    const actions=banner.querySelector('.active-match-actions');
+    const art=banner.querySelector('.bp-active-game-art');
+    const targets=[title,round,metrics].filter(el=>el&&!el.classList.contains('hidden')&&el.offsetParent!==null);
+    targets.forEach(el=>{
+      el.style.removeProperty('font-size');
+      el.style.removeProperty('padding-left');
+      el.style.removeProperty('padding-right');
+    });
+    if(art)art.style.removeProperty('display');
+    if(!row||!identity||!actions)return;
+    const overlaps=()=>{
+      const bannerBox=banner.getBoundingClientRect();
+      const identityBox=identity.getBoundingClientRect();
+      const actionsBox=actions.getBoundingClientRect();
+      const rowBox=row.getBoundingClientRect();
+      if(actionsBox.right>bannerBox.right+1)return true;
+      if(identityBox.right>actionsBox.left-4)return true;
+      if(row.scrollWidth>row.clientWidth+1)return true;
+      const kids=[...row.children].filter(el=>!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none');
+      for(let i=0;i<kids.length-1;i++){
+        if(kids[i].getBoundingClientRect().right>kids[i+1].getBoundingClientRect().left-1)return true;
+      }
+      return rowBox.right>identityBox.right+1;
+    };
+    if(!overlaps())return;
+    if(art&&art.offsetParent!==null){
+      art.style.display='none';
+      if(!overlaps())return;
+    }
+    for(let step=0;step<10&&overlaps();step++){
+      targets.forEach(el=>{
+        const current=parseFloat(getComputedStyle(el).fontSize)||16;
+        const next=Math.max(el===title?18:12,current*0.9);
+        el.style.setProperty('font-size',`${next.toFixed(1)}px`,'important');
+        if(el===metrics){
+          const pad=Math.max(4,parseFloat(getComputedStyle(el).paddingLeft||'8')*0.85);
+          el.style.paddingLeft=`${pad.toFixed(1)}px`;
+          el.style.paddingRight=`${pad.toFixed(1)}px`;
+        }
+      });
+    }
+  }
   function scheduleScorecardColumnTrimAll(){
     gnWarnNumpadHotPath('scheduleScorecardColumnTrimAll');
     if(_scorecardTrimRaf) return;
@@ -13403,6 +13453,7 @@ ${isDealer
           fitScorecardPlayerNames(capture);
           fitScorecardTotals(capture);
         }
+        fitActiveMatchBanner();
       } finally {
         gnPerfEnd(trimAllTimer);
       }

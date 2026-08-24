@@ -629,6 +629,71 @@ test('navigation and match header ignore scorecard text-size zoom',async({page})
   expect(bannerFit.bannerOverflowX,'match banner should not overflow horizontally').toBe(true);
 });
 
+test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='ipad-landscape-webkit','tablet banner stress case is checked on iPad landscape');
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-late-5&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))));
+
+  const layout=await page.evaluate(()=>{
+    const banner=document.querySelector('.active-match-banner');
+    const actions=document.querySelector('.active-match-actions');
+    const title=document.getElementById('game-title');
+    const round=document.getElementById('round-intel');
+    const metrics=document.getElementById('wizard-header-metrics');
+    const michelle=document.querySelector('#scorecard-body .scoreboard-player-name');
+    const rows=[...document.querySelectorAll('#scorecard-body tr')].map(row=>{
+      const name=row.querySelector('.scoreboard-player-name');
+      const chip=name.querySelector('.dealer-player-label')||name;
+      const cell=row.querySelector('.scorecard-col-player');
+      const nameBox=chip.getBoundingClientRect();
+      const cellBox=cell.getBoundingClientRect();
+      return {
+        text:(chip.textContent||'').trim(),
+        fits:nameBox.right<=cellBox.right+1,
+        fullText:(chip.textContent||'').trim().toUpperCase(),
+        dealer:name.tagName==='BUTTON',
+        padLeft:name.tagName==='BUTTON'?Number.parseFloat(getComputedStyle(chip).paddingLeft)||0:null,
+        padRight:name.tagName==='BUTTON'?Number.parseFloat(getComputedStyle(chip).paddingRight)||0:null,
+        chipWidth:name.tagName==='BUTTON'?nameBox.width:null
+      };
+    });
+    const bannerBox=banner.getBoundingClientRect();
+    const actionsBox=actions.getBoundingClientRect();
+    const titleBox=title.getBoundingClientRect();
+    const roundBox=round.getBoundingClientRect();
+    const metricsBox=metrics.getBoundingClientRect();
+    return {
+      rows,
+      banner:{
+        actionsInside:actionsBox.right<=bannerBox.right+1,
+        titleClearOfActions:titleBox.right<=actionsBox.left-2,
+        roundClearOfMetrics:!metrics.classList.contains('hidden')?roundBox.right<=metricsBox.left-1:true,
+        metricsClearOfActions:!metrics.classList.contains('hidden')?metricsBox.right<=actionsBox.left-2:true,
+        noChildOverlap:[title,round,metrics].filter(el=>el&&!el.classList.contains('hidden')).every((el,i,arr)=>{
+          if(i===arr.length-1)return true;
+          return el.getBoundingClientRect().right<=arr[i+1].getBoundingClientRect().left-1;
+        }),
+        overflowX:banner.scrollWidth<=banner.clientWidth+1
+      }
+    };
+  });
+
+  expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fits,'Michelle must stay fully inside the player cell').toBe(true);
+  expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fullText).toBe('MICHELLE');
+  const brick=layout.rows.find(row=>row.fullText==='BRICK');
+  expect(brick?.dealer,'Brick should be dealer').toBe(true);
+  expect(brick?.padLeft,'dealer chip needs horizontal padding').toBeGreaterThanOrEqual(6);
+  expect(brick?.padRight,'dealer chip needs horizontal padding').toBeGreaterThanOrEqual(6);
+  expect(brick?.chipWidth,'dealer chip should be wider than the bare name glyphs').toBeGreaterThan(70);
+  expect(layout.banner.actionsInside).toBe(true);
+  expect(layout.banner.titleClearOfActions).toBe(true);
+  expect(layout.banner.roundClearOfMetrics).toBe(true);
+  expect(layout.banner.metricsClearOfActions).toBe(true);
+  expect(layout.banner.noChildOverlap,'Wizard / round / metrics must not overlap').toBe(true);
+  expect(layout.banner.overflowX).toBe(true);
+});
+
 test('score-entry avatars stay ready when the connection drops',async({page,context})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
