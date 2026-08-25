@@ -2956,6 +2956,14 @@ button.dealer-name-indicator {
         gap: 0.35rem;
         overflow: hidden;
       }
+      /* Keep title/metrics clipped, but let the Actions list escape the banner. */
+      body.active-match-view .active-match-banner.actions-menu-open,
+      body.active-match-view .active-match-banner.actions-menu-open .active-match-actions {
+        overflow: visible;
+      }
+      body.active-match-view .active-match-banner.actions-menu-open {
+        z-index: 80;
+      }
       body.active-match-view #game-screen {
         flex: 1 1 auto;
         min-height: 0;
@@ -7523,10 +7531,10 @@ button.dealer-name-indicator .dealer-player-label {
             </button>
           </div>
           <div class="relative">
-            <button onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5">
+            <button type="button" onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5" aria-haspopup="menu" aria-expanded="false" aria-controls="actions-menu">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
             </button>
-            <div id="actions-menu" class="hidden absolute right-0 top-full mt-2 z-[120] surface-raised" style="background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--shadow-lg);">
+            <div id="actions-menu" class="hidden absolute right-0 top-full mt-2 z-[120] surface-raised" role="menu" style="background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--shadow-lg);">
               <div class="actions-menu-section">
                 <span class="actions-menu-label">Round tools</span>
                 <button onclick="undoLastRound();closeActionsMenu();" id="actions-undo" class="actions-menu-item">
@@ -9912,23 +9920,37 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   // ── Actions Menu ──
+  function actionsMenuBanner(){
+    return document.querySelector('#game-screen .active-match-banner');
+  }
   function toggleActionsMenu(ev){
     if(ev) ev.stopPropagation();
     const m = document.getElementById('actions-menu');
-    const caret = document.getElementById('actions-caret');
+    if(!m) return;
     const isOpen = !m.classList.contains('hidden');
-    if(isOpen){
-      closeActionsMenu();
-    } else {
-      m.classList.remove('hidden');
-      if(caret) caret.textContent = '▴';
-    }
+    if(isOpen) closeActionsMenu();
+    else openActionsMenu();
+  }
+  function openActionsMenu(){
+    const m = document.getElementById('actions-menu');
+    const caret = document.getElementById('actions-caret');
+    const btn = document.getElementById('actions-btn');
+    const banner = actionsMenuBanner();
+    if(!m) return;
+    m.classList.remove('hidden');
+    if(caret) caret.textContent = '▴';
+    if(btn) btn.setAttribute('aria-expanded','true');
+    if(banner) banner.classList.add('actions-menu-open');
   }
   function closeActionsMenu(){
     const m = document.getElementById('actions-menu');
     const caret = document.getElementById('actions-caret');
+    const btn = document.getElementById('actions-btn');
+    const banner = actionsMenuBanner();
     if(m) m.classList.add('hidden');
     if(caret) caret.textContent = '▾';
+    if(btn) btn.setAttribute('aria-expanded','false');
+    if(banner) banner.classList.remove('actions-menu-open');
   }
   // Click-outside dismissal
   document.addEventListener('click', (e) => {
