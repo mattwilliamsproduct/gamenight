@@ -195,6 +195,13 @@ const wizardEarlyGame=makeCurrentGame('Wizard',wizardScoringPlayers,wizardRounds
   currentBids:{},
   currentScoreDrafts:{}
 });
+const wizardSixPlayers=NAMES.slice(0,6);
+const wizardSixMidGame=makeCurrentGame('Wizard',wizardSixPlayers,wizardRounds(wizardSixPlayers,2),{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  maxRounds:10
+});
 const recordChasePlayers=NAMES.slice(0,8);
 const recordChaseGame=makeCurrentGame('Wizard',recordChasePlayers,wizardRoundsFromScores(recordChasePlayers,[
   [30,20,20,40,30,20,-10,-20],
@@ -533,6 +540,12 @@ export const QA_SCENARIOS = {
     description:'Eight-player Wizard after two rounds, with identity and total required to remain visually adjacent.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...wizardScoringPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardEarlyGame}
+  },
+  'wizard-6-mid':{
+    label:'Wizard · Mid · 6 Players',
+    description:'Six-player Wizard after two rounds (R3 of 10). Add a seventh to confirm the match shortens to 8 rounds.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...wizardSixPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardSixMidGame}
   },
   'record-chase-preview':{
     label:'Record Chase · Varied Paces',
