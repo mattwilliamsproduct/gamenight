@@ -17,10 +17,11 @@
       maxRounds: 15,
       increment: 1,
       rescueMin: 8,
-      rescueMax: 15,
+      rescueMax: 20,
       minScoringRounds: 4,
       fallback: 22,
-      // Made bids are +10. About two made bids behind first with a few rounds left is cooked.
+      // Made bids are +10. Two made bids (+20) is a real lift. Closing all the way
+      // to 1st-minus-1 is too much — they still have to play their way in.
       recoveryLoad: 0.55
     },
     Wizard: {
@@ -785,7 +786,10 @@
     const ordinaryRecoveryLimit = game.name === 'Flip 7 Vengeance'
       ? comebackUnit * FLIP7_STRONG_ROUNDS
       : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
-    const rescueNeeded = Math.max(0, leaderGap - ordinaryRecoveryLimit);
+    const twoMadeBids = 2 * EIGHT18_BID_BONUS;
+    const rescueNeeded = game.name === '818'
+      ? twoMadeBids
+      : Math.max(0, leaderGap - ordinaryRecoveryLimit);
     const maxSafeAdjustment = floorToIncrement(
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment

@@ -489,6 +489,14 @@ const fiveCrownsThresholdTotals={Matt:24,Cat:28,Megan:30,Michelle:32,Mike:34,Vik
 const flip7ThresholdTotals={Matt:140,Cat:136,Megan:132,Michelle:130,Mike:128,Vikki:126,Linda:124,Duke:112};
 
 const eight18ThresholdGame=makeCurrentGame('818',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,eight18ThresholdTotals,12,eight18Decorate));
+const porch818Players=['Duke','Mike','Megan','Brick','Cat','Vikki'];
+const porch818Totals={Duke:97,Mike:95,Megan:78,Brick:67,Cat:58,Vikki:54};
+const porch818Game=makeCurrentGame('818',porch818Players,roundsFromTotals(porch818Players,porch818Totals,9,eight18Decorate),{
+  eight18Phase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  maxRounds:15
+});
 const wizardThresholdGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardRoundsFromScores(
   turboLadderPlayers,
   roundsFromTotals(turboLadderPlayers,wizardThresholdTotals,5).map(round=>turboLadderPlayers.map(player=>round.scores[player]))
@@ -605,6 +613,12 @@ export const QA_SCENARIOS = {
     description:'Eight-player 818 after 12 of 15. Duke is 17 behind 1st — about two made bids back, with three rounds left. Nobody else has one.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:eight18ThresholdGame}
+  },
+  'eight18-porch-lp':{
+    label:'818 · Porch Life Preserver',
+    description:'Six-player 818 on R10 of 15. Cat is 39 behind Duke — the wheel should give about +20 (two made bids), not +11 and not a ticket to 1st.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...porch818Players],history:sharedHistory,playerProfiles:profiles(),currentGame:porch818Game}
   },
   'wizard-life-preserver-threshold':{
     label:'Wizard · Life Preserver Threshold',

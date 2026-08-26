@@ -163,6 +163,10 @@ test('818 12-point gap on the final 8-trick round qualifies', () => {
   assert.equal(result.eligible, true);
   assert.equal(result.leaderGap, 15);
   assert.ok(result.upcomingOpportunity <= 12);
+  assert.equal(result.rankCap, 14);
+  assert.equal(result.maxSafeAdjustment, 14, 'a 15-point hole must stop short of 1st, not get the full +20');
+  assert.ok(result.slices.every(slice => slice.adjustment <= 14));
+  assertNoPodium(result, EIGHT, totals);
 });
 
 test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
@@ -173,17 +177,19 @@ test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
   assert.ok(result.reason === 'leader-gap' || result.reason === 'recovery-load');
 });
 
-test('818 20-point gap with 1-2 rounds left can qualify with a conservative wheel', () => {
+test('818 20-point gap with 1-2 rounds left can qualify with a two-bid rescue', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const lastRound = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   assert.equal(lastRound.eligible, true);
-  assert.ok(lastRound.maxSafeAdjustment <= 15);
-  assert.ok(lastRound.slices.every(slice => slice.adjustment <= 15));
+  assert.equal(lastRound.leaderGap, 23);
+  assert.equal(lastRound.maxSafeAdjustment, 20);
+  assert.ok(lastRound.maxSafeAdjustment < lastRound.rankCap, 'should not park them one point behind 1st');
+  assert.ok(lastRound.slices.every(slice => slice.adjustment <= 20));
   assertNoPodium(lastRound, EIGHT, totals);
 
   const twoLeft = offer('818', totals, { roundCount: 13, spread: 16, currentRound: 14, player: 'Hal' });
   assert.equal(twoLeft.eligible, true);
-  assert.ok(twoLeft.maxSafeAdjustment <= 15);
+  assert.equal(twoLeft.maxSafeAdjustment, 20);
 });
 
 test('818 18-point hole with a few rounds left needs a Life Preserver; Wizard does not', () => {
@@ -310,15 +316,47 @@ test('multiple genuinely stranded players can qualify', () => {
   assert.equal(hal.eligible, true);
 });
 
-test('818 last-round explanation names the one-round cap', () => {
+test('818 last-round explanation names the two-bid cap', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const explained = LP.explainLifePreserverOffer(result);
   assert.equal(result.eligible, true);
-  assert.equal(result.bindingLimit, 'one-round');
+  assert.ok(result.bindingLimit === 'game-cap' || result.bindingLimit === 'rescue');
   assert.match(explained.summary, /8th of 8/);
-  assert.ok(explained.bullets.some(bullet => /one strong remaining round/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /\+15/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /\+20/.test(bullet)));
+  assert.ok(!explained.bullets.some(bullet => /\+22/.test(bullet)));
+});
+
+test('porch 818 table gives Cat about +20, not a ticket to 1st', () => {
+  const currentGame = QA_SCENARIOS['eight18-porch-lp'].data.currentGame;
+  const players = currentGame.originalRoster;
+  const offers = Object.fromEntries(players.map(player => [player, LP.getLifePreserverOffer(currentGame, player, players)]));
+  const cat = offers.Cat;
+  const vikki = offers.Vikki;
+  const megan = offers.Megan;
+  const brick = offers.Brick;
+  assert.equal(offers.Duke.eligible, false);
+  assert.equal(offers.Duke.reason, 'leading');
+  assert.equal(offers.Mike.eligible, false);
+  assert.equal(cat.eligible, true);
+  assert.equal(cat.leaderGap, 39);
+  assert.equal(cat.rankCap, 38);
+  assert.equal(cat.maxSafeAdjustment, 20, `expected two made bids, got ${cat.maxSafeAdjustment}`);
+  assert.ok(cat.slices.some(slice => slice.adjustment === 20));
+  assert.ok(!cat.slices.some(slice => slice.adjustment >= 38));
+  assert.equal(vikki.eligible, true);
+  assert.equal(vikki.maxSafeAdjustment, 20);
+  assert.equal(brick.eligible, true);
+  assert.equal(brick.maxSafeAdjustment, 20);
+  assert.equal(megan.eligible, true);
+  assert.ok(megan.maxSafeAdjustment <= 20);
+  assert.ok(megan.maxSafeAdjustment <= megan.rankCap);
+  assert.equal(LP.capLifePreserverAdjustment(80, cat), 20);
+  assert.equal(currentGame.totals.Cat + 20, 78);
+  assert.ok(currentGame.totals.Cat + 20 < currentGame.totals.Duke);
+  assertNoPodium(cat, players, currentGame.totals);
+  assertNoPodium(vikki, players, currentGame.totals);
+  assertNoPodium(brick, players, currentGame.totals);
 });
 
 test('used and retired players cannot qualify', () => {
