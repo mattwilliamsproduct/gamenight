@@ -242,6 +242,22 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   expect(snapshot.maxSafe).toBe(20);
   expect(snapshot.adjustments).toContain(20);
   expect(Math.max(...snapshot.adjustments)).toBe(20);
+
+  const table = await page.evaluate(() => {
+    const players = getActivePlayers(currentGame);
+    return Object.fromEntries(players.map(player => {
+      const offer = getLifePreserverOfferForPlayer(player, players);
+      return [player, {
+        eligible: !!offer.eligible,
+        maxSafe: offer.maxSafeAdjustment || 0,
+        reason: offer.reason || null
+      }];
+    }));
+  });
+  expect(table.Duke.eligible).toBe(false);
+  expect(table.Vikki.eligible).toBe(true);
+  expect(table.Vikki.maxSafe).toBe(20);
+  expect(table.Brick.maxSafe).toBe(20);
 });
 
 test('threshold tables unlock only Duke and never show Turbo chips', async ({page}, testInfo) => {

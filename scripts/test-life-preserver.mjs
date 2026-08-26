@@ -163,6 +163,10 @@ test('818 12-point gap on the final 8-trick round qualifies', () => {
   assert.equal(result.eligible, true);
   assert.equal(result.leaderGap, 15);
   assert.ok(result.upcomingOpportunity <= 12);
+  assert.equal(result.rankCap, 14);
+  assert.equal(result.maxSafeAdjustment, 14, 'a 15-point hole must stop short of 1st, not get the full +20');
+  assert.ok(result.slices.every(slice => slice.adjustment <= 14));
+  assertNoPodium(result, EIGHT, totals);
 });
 
 test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
@@ -326,9 +330,14 @@ test('818 last-round explanation names the two-bid cap', () => {
 test('porch 818 table gives Cat about +20, not a ticket to 1st', () => {
   const currentGame = QA_SCENARIOS['eight18-porch-lp'].data.currentGame;
   const players = currentGame.originalRoster;
-  const cat = LP.getLifePreserverOffer(currentGame, 'Cat', players);
-  const vikki = LP.getLifePreserverOffer(currentGame, 'Vikki', players);
-  const megan = LP.getLifePreserverOffer(currentGame, 'Megan', players);
+  const offers = Object.fromEntries(players.map(player => [player, LP.getLifePreserverOffer(currentGame, player, players)]));
+  const cat = offers.Cat;
+  const vikki = offers.Vikki;
+  const megan = offers.Megan;
+  const brick = offers.Brick;
+  assert.equal(offers.Duke.eligible, false);
+  assert.equal(offers.Duke.reason, 'leading');
+  assert.equal(offers.Mike.eligible, false);
   assert.equal(cat.eligible, true);
   assert.equal(cat.leaderGap, 39);
   assert.equal(cat.rankCap, 38);
@@ -337,11 +346,17 @@ test('porch 818 table gives Cat about +20, not a ticket to 1st', () => {
   assert.ok(!cat.slices.some(slice => slice.adjustment >= 38));
   assert.equal(vikki.eligible, true);
   assert.equal(vikki.maxSafeAdjustment, 20);
+  assert.equal(brick.eligible, true);
+  assert.equal(brick.maxSafeAdjustment, 20);
   assert.equal(megan.eligible, true);
   assert.ok(megan.maxSafeAdjustment <= 20);
   assert.ok(megan.maxSafeAdjustment <= megan.rankCap);
+  assert.equal(LP.capLifePreserverAdjustment(80, cat), 20);
+  assert.equal(currentGame.totals.Cat + 20, 78);
+  assert.ok(currentGame.totals.Cat + 20 < currentGame.totals.Duke);
   assertNoPodium(cat, players, currentGame.totals);
   assertNoPodium(vikki, players, currentGame.totals);
+  assertNoPodium(brick, players, currentGame.totals);
 });
 
 test('used and retired players cannot qualify', () => {
