@@ -616,7 +616,7 @@ export const QA_SCENARIOS = {
   },
   'eight18-porch-lp':{
     label:'818 · Porch Life Preserver',
-    description:'Six-player 818 on R10 of 15. Cat is 39 behind Duke — the wheel must be able to give about +38, not one leftover made bid.',
+    description:'Six-player 818 on R10 of 15. Cat is 39 behind Duke — the wheel should give about +20 (two made bids), not +11 and not a ticket to 1st.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...porch818Players],history:sharedHistory,playerProfiles:profiles(),currentGame:porch818Game}
   },

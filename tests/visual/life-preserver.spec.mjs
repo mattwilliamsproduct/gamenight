@@ -221,7 +221,7 @@ test('mid-game join after a Life Preserver writes catch-up to the last scoring r
   expect(result.usedFlag).toBe(true);
 });
 
-test('porch 818 Life Preserver offers Cat +38, not one leftover made bid', async ({page}, testInfo) => {
+test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=eight18-porch-lp&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -229,7 +229,7 @@ test('porch 818 Life Preserver offers Cat +38, not one leftover made bid', async
   await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
-  await expect(page.locator('#wheel-why-line')).toContainText('+38');
+  await expect(page.locator('#wheel-why-line')).toContainText('+20');
 
   const snapshot = await page.evaluate(() => ({
     player: lifePreserverOfferSnapshot?.player,
@@ -239,9 +239,9 @@ test('porch 818 Life Preserver offers Cat +38, not one leftover made bid', async
   }));
   expect(snapshot.player).toBe('Cat');
   expect(snapshot.leaderGap).toBe(39);
-  expect(snapshot.maxSafe).toBe(38);
-  expect(snapshot.adjustments).toContain(38);
-  expect(Math.max(...snapshot.adjustments)).toBe(38);
+  expect(snapshot.maxSafe).toBe(20);
+  expect(snapshot.adjustments).toContain(20);
+  expect(Math.max(...snapshot.adjustments)).toBe(20);
 });
 
 test('threshold tables unlock only Duke and never show Turbo chips', async ({page}, testInfo) => {

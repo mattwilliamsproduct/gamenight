@@ -173,20 +173,19 @@ test('818 8-point last-round gap vs 1st stays in ordinary range', () => {
   assert.ok(result.reason === 'leader-gap' || result.reason === 'recovery-load');
 });
 
-test('818 20-point gap with 1-2 rounds left can qualify with a real rescue that stays behind 1st', () => {
+test('818 20-point gap with 1-2 rounds left can qualify with a two-bid rescue', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const lastRound = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   assert.equal(lastRound.eligible, true);
   assert.equal(lastRound.leaderGap, 23);
-  assert.ok(lastRound.maxSafeAdjustment >= 20, `expected a hole-sized rescue, got ${lastRound.maxSafeAdjustment}`);
-  assert.ok(lastRound.maxSafeAdjustment <= lastRound.rankCap);
-  assert.ok(lastRound.slices.every(slice => slice.adjustment <= lastRound.maxSafeAdjustment));
+  assert.equal(lastRound.maxSafeAdjustment, 20);
+  assert.ok(lastRound.maxSafeAdjustment < lastRound.rankCap, 'should not park them one point behind 1st');
+  assert.ok(lastRound.slices.every(slice => slice.adjustment <= 20));
   assertNoPodium(lastRound, EIGHT, totals);
 
   const twoLeft = offer('818', totals, { roundCount: 13, spread: 16, currentRound: 14, player: 'Hal' });
   assert.equal(twoLeft.eligible, true);
-  assert.ok(twoLeft.maxSafeAdjustment >= 20);
-  assert.ok(twoLeft.maxSafeAdjustment <= twoLeft.rankCap);
+  assert.equal(twoLeft.maxSafeAdjustment, 20);
 });
 
 test('818 18-point hole with a few rounds left needs a Life Preserver; Wizard does not', () => {
@@ -313,18 +312,18 @@ test('multiple genuinely stranded players can qualify', () => {
   assert.equal(hal.eligible, true);
 });
 
-test('818 last-round explanation names the stay-behind-1st cap', () => {
+test('818 last-round explanation names the two-bid cap', () => {
   const totals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const result = offer('818', totals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
   const explained = LP.explainLifePreserverOffer(result);
   assert.equal(result.eligible, true);
-  assert.equal(result.bindingLimit, 'rank');
+  assert.ok(result.bindingLimit === 'game-cap' || result.bindingLimit === 'rescue');
   assert.match(explained.summary, /8th of 8/);
-  assert.ok(explained.bullets.some(bullet => /without matching 1st/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /\+22/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /\+20/.test(bullet)));
+  assert.ok(!explained.bullets.some(bullet => /\+22/.test(bullet)));
 });
 
-test('porch 818 table gives Cat a hole-sized rescue instead of one made bid', () => {
+test('porch 818 table gives Cat about +20, not a ticket to 1st', () => {
   const currentGame = QA_SCENARIOS['eight18-porch-lp'].data.currentGame;
   const players = currentGame.originalRoster;
   const cat = LP.getLifePreserverOffer(currentGame, 'Cat', players);
@@ -333,14 +332,13 @@ test('porch 818 table gives Cat a hole-sized rescue instead of one made bid', ()
   assert.equal(cat.eligible, true);
   assert.equal(cat.leaderGap, 39);
   assert.equal(cat.rankCap, 38);
-  assert.equal(cat.maxSafeAdjustment, 38, `Cat needed ~38 to stay behind 1st, got ${cat.maxSafeAdjustment}`);
-  assert.ok(cat.slices.some(slice => slice.adjustment === 38));
+  assert.equal(cat.maxSafeAdjustment, 20, `expected two made bids, got ${cat.maxSafeAdjustment}`);
+  assert.ok(cat.slices.some(slice => slice.adjustment === 20));
+  assert.ok(!cat.slices.some(slice => slice.adjustment >= 38));
   assert.equal(vikki.eligible, true);
-  assert.equal(vikki.leaderGap, 43);
-  assert.ok(vikki.maxSafeAdjustment >= 38);
-  assert.ok(vikki.maxSafeAdjustment <= 40);
+  assert.equal(vikki.maxSafeAdjustment, 20);
   assert.equal(megan.eligible, true);
-  assert.ok(megan.maxSafeAdjustment >= 15);
+  assert.ok(megan.maxSafeAdjustment <= 20);
   assert.ok(megan.maxSafeAdjustment <= megan.rankCap);
   assertNoPodium(cat, players, currentGame.totals);
   assertNoPodium(vikki, players, currentGame.totals);

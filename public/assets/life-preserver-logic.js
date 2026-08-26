@@ -17,11 +17,11 @@
       maxRounds: 15,
       increment: 1,
       rescueMin: 8,
-      rescueMax: 40,
+      rescueMax: 20,
       minScoringRounds: 4,
       fallback: 22,
-      // Made bids are +10. About two made bids behind first with a few rounds left is cooked.
-      // The spin itself has to close a real hole — one leftover made bid (+10/+15) felt useless.
+      // Made bids are +10. Two made bids (+20) is a real lift. Closing all the way
+      // to 1st-minus-1 is too much — they still have to play their way in.
       recoveryLoad: 0.55
     },
     Wizard: {
@@ -216,7 +216,7 @@
     const maxSafe = Number(offer.maxSafeAdjustment) || 0;
     const rankCap = Number(offer.rankCap);
     const gameCap = Number(offer.gameSafetyCap);
-    if (Number.isFinite(rankCap) && maxSafe === rankCap && rankCap < gameCap) return 'rank';
+    if (Number.isFinite(rankCap) && maxSafe === rankCap && rankCap < desired && rankCap < gameCap) return 'rank';
     if (Number.isFinite(gameCap) && maxSafe === gameCap && gameCap < desired) return 'game-cap';
     if ((Number(offer.rescueNeeded) || 0) > (Number(offer.oneStrongRound) || 0)) return 'rescue';
     return 'one-round';
@@ -785,10 +785,11 @@
     );
     const ordinaryRecoveryLimit = game.name === 'Flip 7 Vengeance'
       ? comebackUnit * FLIP7_STRONG_ROUNDS
-      : upcomingOpportunity;
-    // Eligibility already decided they cannot catch 1st the ordinary way.
-    // Size the jackpot off the hole (stay behind 1st), not one leftover made bid.
-    const rescueNeeded = Math.max(0, rankCap);
+      : Math.max(upcomingOpportunity, recoveryThreshold * totalRemainingOpportunity);
+    const twoMadeBids = 2 * EIGHT18_BID_BONUS;
+    const rescueNeeded = game.name === '818'
+      ? twoMadeBids
+      : Math.max(0, leaderGap - ordinaryRecoveryLimit);
     const maxSafeAdjustment = floorToIncrement(
       Math.min(rankCap, cfg.rescueMax, Math.max(oneStrongRound, rescueNeeded)),
       cfg.increment
