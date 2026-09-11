@@ -3851,7 +3851,7 @@ button.dealer-name-indicator .dealer-player-label {
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.72) !important;
       border-radius: 15px;
-      background: #073f3b url('./theme/back-porch-mark.jpg') center / cover no-repeat;
+      background: #073f3b url('./theme/back-porch-mark-v2.jpg') center / cover no-repeat;
       box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
     }
     .brand-name {
@@ -4411,9 +4411,9 @@ button.dealer-name-indicator .dealer-player-label {
     }
     body {
       background:
-        linear-gradient(180deg, rgba(255,250,241,0.08), rgba(236,246,242,0.24)),
-        url('./theme/back-porch-retro-sunrise.jpg') center center / cover no-repeat,
-        #dcece8;
+        linear-gradient(180deg, rgba(255,250,241,0.34) 0%, rgba(255,246,232,0.18) 46%, rgba(8,118,108,0.16) 100%),
+        url('./theme/back-porch-dusk.jpg') center 42% / cover no-repeat,
+        #d9c6ae;
     }
     .bp-app-shell {
       width: min(100%, 1560px);
@@ -4492,7 +4492,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .bp-brand-games {
       margin-top: 0.08rem;
-      margin-left: 0.42rem;
+      margin-left: 0.08rem;
       color: var(--bp-coral);
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 0.78rem;
@@ -4501,8 +4501,8 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
-    .bp-brand-games::before { content: '≈ '; color: var(--bp-aqua); }
-    .bp-brand-games::after { content: ' ≈'; color: var(--bp-aqua); }
+    .bp-brand-games::before,
+    .bp-brand-games::after { content: none; }
     #top-nav .nav-btn {
       min-height: 2.5rem;
       padding: 0.58rem 0.95rem;
@@ -4525,7 +4525,6 @@ button.dealer-name-indicator .dealer-player-label {
       border: 1px solid rgba(255,255,255,0.68);
       border-radius: 30px;
       background:
-        repeating-linear-gradient(45deg, rgba(8,118,108,0.018) 0 1px, transparent 1px 15px),
         linear-gradient(145deg, rgba(255,251,243,0.985), rgba(255,248,238,0.96)),
         rgba(255,250,241,0.98);
       box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
@@ -5412,9 +5411,9 @@ button.dealer-name-indicator .dealer-player-label {
     }
     body {
       background:
-        linear-gradient(180deg, rgba(255,250,241,0.08), rgba(236,246,242,0.24)),
-        url('./theme/back-porch-retro-sunrise.jpg') center center / cover no-repeat,
-        #dcece8;
+        linear-gradient(180deg, rgba(255,250,241,0.34) 0%, rgba(255,246,232,0.18) 46%, rgba(8,118,108,0.16) 100%),
+        url('./theme/back-porch-dusk.jpg') center 42% / cover no-repeat,
+        #d9c6ae;
     }
     .bp-app-shell {
       width: min(100%, 1560px);
@@ -5493,7 +5492,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .bp-brand-games {
       margin-top: 0.08rem;
-      margin-left: 0.42rem;
+      margin-left: 0.08rem;
       color: var(--bp-coral);
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 0.78rem;
@@ -5502,8 +5501,8 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
-    .bp-brand-games::before { content: '≈ '; color: var(--bp-aqua); }
-    .bp-brand-games::after { content: ' ≈'; color: var(--bp-aqua); }
+    .bp-brand-games::before,
+    .bp-brand-games::after { content: none; }
     #top-nav .nav-btn {
       min-height: 2.5rem;
       padding: 0.58rem 0.95rem;
@@ -5526,7 +5525,6 @@ button.dealer-name-indicator .dealer-player-label {
       border: 1px solid rgba(255,255,255,0.68);
       border-radius: 30px;
       background:
-        repeating-linear-gradient(45deg, rgba(8,118,108,0.018) 0 1px, transparent 1px 15px),
         linear-gradient(145deg, rgba(255,251,243,0.985), rgba(255,248,238,0.96)),
         rgba(255,250,241,0.98);
       box-shadow: var(--bp-panel-shadow), inset 0 1px 0 #fff;
@@ -6708,7 +6706,7 @@ button.dealer-name-indicator .dealer-player-label {
       box-shadow: 0 30px 80px -36px rgba(0,36,33,0.8), inset 0 4px 0 rgba(231,115,88,0.58);
     }
     #lineup-intro {
-      background: #063f3a url('./theme/back-porch-resort.png') center / cover no-repeat;
+      background: #063f3a url('./theme/back-porch-dusk.jpg') center 42% / cover no-repeat;
     }
     .intro-bg { background: linear-gradient(180deg, rgba(3,50,47,0.5), rgba(2,34,32,0.86)); }
     .whammy-card,
@@ -7300,6 +7298,55 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen #round-intel.round-banner { font-size: 21px !important; }
     }
 
+    /* ════════ PREMIUM PORCH CHROME ════════ */
+    #top-nav {
+      background: rgba(255,250,241,0.86) !important;
+      backdrop-filter: blur(18px) saturate(1.12);
+      -webkit-backdrop-filter: blur(18px) saturate(1.12);
+    }
+    #top-nav .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .bp-nav-icon,
+    .bp-pref-icon {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex: 0 0 1.05rem;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .bp-pref-icon { stroke: var(--bp-teal); width: 1.15rem; height: 1.15rem; flex-basis: 1.15rem; }
+    .bp-setting-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    body.active-match-view #top-nav .nav-btn .bp-nav-icon { display: none; }
+    body.active-match-view #top-nav .nav-btn[aria-label="Settings"] .bp-nav-icon { display: block; }
+    .postgame-hero-mark {
+      width: 4.6rem;
+      height: 4.6rem;
+      margin-bottom: 1rem;
+      border-radius: 50%;
+      box-shadow: 0 14px 28px -16px rgba(6,77,72,0.55);
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 58%;
+    }
+    .postgame-hero-sunset {
+      background-color: #f4d7b6;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Ccircle cx='24' cy='20' r='8' fill='%23e87358'/%3E%3Cpath d='M6 32c4-4 10-6 18-6s14 2 18 6' stroke='%23087a70' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M8 37c4-3 9-4.5 16-4.5S36 34 40 37' stroke='%23087a70' stroke-width='2' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E");
+    }
+    .postgame-hero-tide {
+      background-color: #d7eef0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M6 28c5 4 9 4 14 0s9-4 14 0 9 4 14 0' stroke='%23287f9b' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M6 34c5 4 9 4 14 0s9-4 14 0 9 4 14 0' stroke='%23087a70' stroke-width='2' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M16 16c2-5 6-8 8-8s6 3 8 8' stroke='%23e87358' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    }
+
     /* ════════ DARK-MODE OVERRIDES ════════ */
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
@@ -7341,7 +7388,7 @@ button.dealer-name-indicator .dealer-player-label {
       <p id="dealer-roll-result" class="text-sm font-bold min-h-[1.5rem] mb-2" style="color:var(--muted);">Tap "Roll Die" to pick a starting dealer</p>
       <div class="flex gap-2 w-full mt-3">
         <button onclick="skipDealerRoll()" class="btn-ghost flex-1 py-3 text-sm">Skip</button>
-        <button id="dealer-roll-btn" onclick="rollForDealer()" class="btn-primary flex-1 py-3 text-sm">🎲 Roll Die</button>
+        <button id="dealer-roll-btn" onclick="rollForDealer()" class="btn-primary flex-1 py-3 text-sm">Roll Die</button>
       </div>
     </div>
   </div>
@@ -7398,14 +7445,25 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
         <div class="flex flex-wrap gap-1.5 items-center">
-          <button onclick="goHome()" class="nav-btn">Home</button>
+          <button onclick="goHome()" class="nav-btn">
+            <svg class="bp-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5"/><path d="M7 10.8V20h10v-9.2"/></svg>
+            Home
+          </button>
           <button id="nav-active-btn" onclick="goActiveMatch()" class="hidden nav-btn accent">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1.5 animate-pulse"></span>Active Match
           </button>
-          <button onclick="showHistory()" class="nav-btn">Records</button>
-          <button onclick="showProfiles()" class="nav-btn">Profiles</button>
+          <button onclick="showHistory()" class="nav-btn">
+            <svg class="bp-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7.5h12v12H6z"/><path d="M9 4.5h6v3H9z"/><path d="M9 12h6M9 15.5h4"/></svg>
+            Records
+          </button>
+          <button onclick="showProfiles()" class="nav-btn">
+            <svg class="bp-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.2" r="3.1"/><path d="M5.4 19c1.3-3.3 3.5-4.8 6.6-4.8s5.3 1.5 6.6 4.8"/></svg>
+            Profiles
+          </button>
           <button onclick="openPerfReport()" id="perf-report-btn" class="hidden nav-btn accent" title="Performance Report">Perf</button>
-          <button onclick="openSettings()" class="nav-btn" title="Settings">⚙</button>
+          <button onclick="openSettings()" class="nav-btn" title="Settings" aria-label="Settings">
+            <svg class="bp-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.15"/><circle cx="15" cy="16" r="2.15"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -8236,21 +8294,21 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="space-y-2">
             <label class="flex items-center justify-between py-2.5 px-4 rounded-xl border hairline cursor-pointer" style="background:var(--surface-2);">
               <div>
-                <div class="font-bold text-sm">🎬 Lineup Intro</div>
+                <div class="font-bold text-sm bp-setting-label"><svg class="bp-pref-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><circle cx="16" cy="8" r="2.2"/><path d="M4.8 18c.9-2.6 2.5-3.8 4.7-3.8s3.8 1.2 4.7 3.8M14.2 14.4c.7-.2 1.5-.3 2.3-.3 2.2 0 3.8 1.2 4.7 3.9"/></svg>Lineup Intro</div>
                 <div class="text-[11px] font-semibold" style="color:var(--muted);">Reveal players when match starts</div>
               </div>
               <input type="checkbox" id="pref-lineupintro" onchange="savePrefsFromUI()" class="w-5 h-5 accent-emerald-600 cursor-pointer">
             </label>
             <label class="flex items-center justify-between py-2.5 px-4 rounded-xl border hairline cursor-pointer" style="background:var(--surface-2);">
               <div>
-                <div class="font-bold text-sm">🏁 Post-Game Path Replay</div>
+                <div class="font-bold text-sm bp-setting-label"><svg class="bp-pref-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5 9 11l3.5 3.5L20 7"/><path d="M14.5 7H20v5.5"/></svg>Post-Game Path Replay</div>
                 <div class="text-[11px] font-semibold" style="color:var(--muted);">Watch place-over-time after a match</div>
               </div>
               <input type="checkbox" id="pref-statmontage" onchange="savePrefsFromUI()" class="w-5 h-5 accent-emerald-600 cursor-pointer">
             </label>
             <label class="flex items-center justify-between py-2.5 px-4 rounded-xl border hairline cursor-pointer" style="background:var(--surface-2);">
               <div>
-                <div class="font-bold text-sm">🎲 Roll for Dealer</div>
+                <div class="font-bold text-sm bp-setting-label"><svg class="bp-pref-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="3"/><circle cx="9" cy="9" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/></svg>Roll for Dealer</div>
                 <div class="text-[11px] font-semibold" style="color:var(--muted);">Dice roll before match starts</div>
               </div>
               <input type="checkbox" id="pref-dealerroll" onchange="savePrefsFromUI()" class="w-5 h-5 accent-emerald-600 cursor-pointer">
@@ -8345,7 +8403,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-victory-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <div class="postgame-hero-icon text-7xl mb-4">🌅</div>
+        <div class="postgame-hero-mark postgame-hero-sunset" aria-hidden="true"></div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Sunset Champion</div>
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
@@ -8363,7 +8421,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-loser-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <div class="postgame-hero-icon text-7xl mb-4">🌊</div>
+        <div class="postgame-hero-mark postgame-hero-tide" aria-hidden="true"></div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--blue);">Low Tide</div>
         <h3 id="loser-names" class="font-display text-3xl sm:text-4xl mb-3 leading-tight"></h3>
         <p class="text-base font-bold mb-6 italic" style="color:var(--muted);">The tide went out on this one.</p>
@@ -12037,7 +12095,7 @@ ${isDealer
     const btn=document.getElementById('dealer-roll-btn');
     if(!btn)return;
     btn.disabled=false;
-    btn.textContent='🎲 Roll Die';
+    btn.textContent='Roll Die';
     btn.onclick=null;
     btn.setAttribute('onclick','rollForDealer()');
   }
