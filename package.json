@@ -13,6 +13,7 @@
     "test:backup": "node --test scripts/test-backup.mjs",
     "check": "npm run check:syntax && npm run check:production-assets && npm run test:comeback && npm run test:life-preserver && npm run test:backup && git diff --check",
     "qa:gallery": "node scripts/serve-public.mjs",
+    "test:functional": "playwright test --config=playwright.functional.config.mjs",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots"
   },
