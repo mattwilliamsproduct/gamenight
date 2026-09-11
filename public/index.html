@@ -8803,6 +8803,15 @@ button.dealer-name-indicator .dealer-player-label {
     game.maxRounds=typeof cfg.maxRounds==='function'?cfg.maxRounds(Math.max(n,1)):cfg.maxRounds;
     return game.maxRounds;
   }
+  function resyncGameMaxRounds(game){
+    if(!game)return { previous:0, next:0, computed:0, changed:false };
+    const previous=Number.isFinite(game.maxRounds)&&game.maxRounds>0?game.maxRounds:getMaxRoundsForGame(game);
+    const computed=snapshotGameMaxRounds(game, getActivePlayerCount(game));
+    const floor=Math.max(1, Number(game.currentRound)||1);
+    if(computed!==999 && computed<floor) game.maxRounds=floor;
+    const next=game.maxRounds;
+    return { previous, next, computed, changed:previous!==next };
+  }
   if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)){
     snapshotGameMaxRounds(currentGame);
   }
@@ -14846,6 +14855,13 @@ ${isDealer
       currentGame.totals[name]=0;
     }
     recomputeGameTotals(currentGame);
+    const lengthChange=resyncGameMaxRounds(currentGame);
+    if(lengthChange.changed){
+      addAuditEntry('Player joined', `${name} · match now ${lengthChange.next} rounds`);
+      toast(`Match is now ${lengthChange.next} rounds`);
+    } else {
+      addAuditEntry('Player joined', name);
+    }
     saveData(); scheduleRender();
   }
 
