@@ -3236,6 +3236,11 @@ button.dealer-name-indicator {
       flex: 0 1 auto;
       min-width: 0;
     }
+    .scorecard-player-name-slot > span.scoreboard-player-name {
+      flex: 0 0 auto;
+      min-width: max-content;
+      max-width: none;
+    }
     .scorecard-player-identity > button.dealer-name-indicator,
     .scorecard-player-name-slot button.dealer-name-indicator {
       flex: 0 0 auto;
@@ -3595,8 +3600,8 @@ button.dealer-name-indicator {
       display: inline-block;
       padding-bottom: 0.18em;
       margin-bottom: -0.18em;
-      max-width: 100%;
-      min-width: 0;
+      max-width: none;
+      min-width: max-content;
     }
 button.dealer-name-indicator.scoreboard-player-name {
   max-width: none;

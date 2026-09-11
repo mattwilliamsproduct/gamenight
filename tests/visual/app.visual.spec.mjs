@@ -678,6 +678,23 @@ test('Actions dropdown opens a visible list below the button',async({page})=>{
   await expect(button).toHaveAttribute('aria-expanded','false');
 });
 
+test('late five-player Wizard keeps Michelle letters unclipped',async({page})=>{
+  await page.goto('/?gnqa=1&gallery=0&scenario=wizard-late-5&surface=scorecard',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))));
+  const michelle=await page.evaluate(()=>{
+    const row=[...document.querySelectorAll('#scorecard-body tr')].find(candidate=>{
+      const label=candidate.querySelector('.dealer-player-label')||candidate.querySelector('.scoreboard-player-name');
+      return (label?.textContent||'').trim().toUpperCase()==='MICHELLE';
+    });
+    const chip=row?.querySelector('.dealer-player-label')||row?.querySelector('.scoreboard-player-name');
+    return chip?{text:(chip.textContent||'').trim(),scrollWidth:chip.scrollWidth,clientWidth:chip.clientWidth}:null;
+  });
+  expect(michelle,'Michelle should be on the late-5 scorecard').not.toBeNull();
+  expect(michelle.text.toUpperCase()).toBe('MICHELLE');
+  expect(michelle.scrollWidth,'Michelle glyphs should fit their name box').toBeLessThanOrEqual(michelle.clientWidth+1);
+});
+
 test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='ipad-landscape-webkit','tablet banner stress case is checked on iPad landscape');
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-late-5&surface=scorecard',{waitUntil:'networkidle'});
@@ -700,6 +717,7 @@ test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',
       return {
         text:(chip.textContent||'').trim(),
         fits:nameBox.right<=cellBox.right+1,
+        glyphsFit:chip.scrollWidth<=chip.clientWidth+1,
         fullText:(chip.textContent||'').trim().toUpperCase(),
         dealer:name.tagName==='BUTTON',
         padLeft:name.tagName==='BUTTON'?Number.parseFloat(getComputedStyle(chip).paddingLeft)||0:null,
@@ -729,6 +747,7 @@ test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',
   });
 
   expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fits,'Michelle must stay fully inside the player cell').toBe(true);
+  expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.glyphsFit,'Michelle letters must not clip inside the name').toBe(true);
   expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fullText).toBe('MICHELLE');
   const brick=layout.rows.find(row=>row.fullText==='BRICK');
   expect(brick?.dealer,'Brick should be dealer').toBe(true);
