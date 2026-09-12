@@ -7451,6 +7451,7 @@ button.dealer-name-indicator .dealer-player-label {
       font-weight: 800 !important;
       letter-spacing: 0.2em !important;
     }
+    #top-nav .nav-btn.hidden { display: none !important; }
     #top-nav .nav-btn {
       display: inline-flex;
       align-items: center;
@@ -7699,10 +7700,13 @@ button.dealer-name-indicator .dealer-player-label {
       border-color: var(--pc-line) !important;
       font-family: 'Fraunces', Georgia, serif !important;
     }
-    #wizard-header-metrics {
+    #wizard-header-metrics,
+    #game-screen #wizard-header-metrics {
+      background: rgba(248, 241, 228, 0.08) !important;
       border-color: var(--pc-line) !important;
       color: var(--pc-cream) !important;
     }
+    #wizard-header-metrics .whm-frac { color: var(--pc-cream) !important; }
     .tournament-scoreboard,
     #scorecard-capture,
     .tournament-scoreboard .scorecard-table-wrap {
@@ -7813,6 +7817,94 @@ button.dealer-name-indicator .dealer-player-label {
         linear-gradient(165deg, #f8f1e3, var(--pc-paper)) !important;
       color: var(--pc-ink) !important;
       border-color: rgba(44, 34, 24, 0.1) !important;
+    }
+
+    /* Kill leftover beach-club ornaments and forced full-viewport cards. */
+    .bp-roster-panel .bp-panel-heading > div > div:first-child::before,
+    .bp-roster-panel .bp-panel-heading > div > div:first-child::after,
+    .bp-game-heading-copy h2::after,
+    .bp-column-title::before,
+    .bp-column-title::after,
+    .bp-bench-title::before,
+    .bp-lineup-title::before,
+    #roster-count::before,
+    .bp-view-tabs::before {
+      content: none !important;
+      display: none !important;
+      background: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      flex: 0 0 0 !important;
+    }
+    .bp-roster-panel .bp-panel-heading {
+      padding-right: 0 !important;
+    }
+    #roster-count {
+      position: static !important;
+      top: auto !important;
+      right: auto !important;
+    }
+    @media (min-width: 1024px) {
+      #home-screen {
+        min-height: 0 !important;
+        align-items: start !important;
+      }
+      #home-screen .bp-roster-panel,
+      #home-screen .bp-home-side {
+        height: auto !important;
+        min-height: 0 !important;
+      }
+    }
+    body,
+    html.dark body {
+      background:
+        linear-gradient(180deg, rgba(8, 6, 4, 0.22) 0%, rgba(10, 8, 6, 0.52) 42%, rgba(8, 6, 4, 0.78) 100%),
+        url('./theme/porch-club-night.jpg') center 42% / cover no-repeat,
+        #0b0907 !important;
+    }
+    .bp-brand-mark {
+      background-color: #f3ead8 !important;
+      background-size: 92% !important;
+      border: 1.5px solid #d4a25a !important;
+      box-shadow: 0 0 0 3px rgba(12, 10, 8, 0.55), 0 10px 22px -12px rgba(0, 0, 0, 0.9) !important;
+    }
+    .leader-row,
+    .leader-row td,
+    .leader-row td:first-child,
+    html.dark .leader-row,
+    html.dark .leader-row td,
+    html.dark .leader-row td:first-child {
+      background: rgba(232, 210, 150, 0.34) !important;
+    }
+    #wizard-header-metrics.hidden,
+    #wizard-header-metrics:empty,
+    #wizard-header-metrics:not(:has(*)) { display: none !important; }
+    #scorecard-capture .scorecard-table tbody tr.leader-row,
+    #scorecard-capture .scorecard-table tbody tr.leader-row td,
+    #scorecard-capture .scorecard-table tbody tr.leader-row td:first-child {
+      background: #f0e2b8 !important;
+    }
+    .whammy-card button,
+    .whammy-card .btn-primary {
+      background: linear-gradient(180deg, #d7ab63, #b8863a) !important;
+      color: #1b140d !important;
+      border-color: rgba(80, 54, 22, 0.25) !important;
+    }
+    #settings-modal,
+    #audit-modal,
+    #rules-modal {
+      --emerald: #b8863a;
+      --emerald-bg: #f3e6c8;
+      --emerald-border: #e0c88a;
+      --emerald-lift: #ead7a8;
+      --blue: #4d3f32;
+      --blue-bg: #efe6d2;
+      --blue-border: #d8c9a8;
+      --ink: #2c2218;
+      --ink-2: #4d3f32;
+      --muted: #7d6b57;
+      --surface-2: #efe6d2;
+      --bg-2: #efe6d2;
     }
 
     /* ════════ DARK-MODE OVERRIDES ════════ */
