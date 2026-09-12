@@ -10031,6 +10031,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!menu || menu.classList.contains('hidden')) return;
     if(menu.contains(e.target)) return;
     if(btn && btn.contains(e.target)) return;
+    if(e.target.closest?.('#gn-qa-gallery')) return;
     closeActionsMenu();
   });
 
@@ -16464,7 +16465,7 @@ ${isDealer
           if(currentGame)goActiveMatch();
           else goHome();
           if(surface==='settings')openSettings();
-          else if(surface==='actions')toggleActionsMenu();
+          else if(surface==='actions')openActionsMenu();
           else if(surface==='entry-bids'){
             if(currentGame?.name==='Wizard')currentGame.wizardPhase='bidding';
             if(currentGame?.name==='818')currentGame.eight18Phase='bidding';

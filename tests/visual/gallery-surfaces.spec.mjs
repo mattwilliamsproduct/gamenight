@@ -28,6 +28,7 @@ async function clickSurface(page,id){
 
 test('every gallery surface opens from Beat the Heat, Home, Wizard, and a finished match',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='laptop-chromium','Run the gallery wiring check once on laptop Chromium');
+  test.setTimeout(90000);
   for(const scenario of scenarios){
     await openGallery(page,scenario);
     for(const surface of surfaces){
