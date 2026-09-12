@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="Back Porch Games is a relaxed scorekeeper for card and tabletop game nights.">
-  <meta name="theme-color" content="#08766c">
+  <meta name="theme-color" content="#14110e">
   <meta name="application-name" content="Back Porch Games">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -20,6 +20,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./bp-icon-192.png?v=4">
   <title>Back Porch Games</title>
   <link rel="preload" href="./assets/fonts/londrina-solid-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/fraunces-400-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/fraunces-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./assets/app-utilities.css">
 
@@ -3851,7 +3853,7 @@ button.dealer-name-indicator .dealer-player-label {
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.72) !important;
       border-radius: 15px;
-      background: #073f3b url('./theme/back-porch-mark-v2.jpg') center / cover no-repeat;
+      background: #0c0a08 url('./theme/porch-club-mark.jpg') center / cover no-repeat;
       box-shadow: 0 8px 20px -13px rgba(7,63,59,0.8), inset 0 1px 0 rgba(255,255,255,0.65) !important;
     }
     .brand-name {
@@ -4412,7 +4414,7 @@ button.dealer-name-indicator .dealer-player-label {
     body {
       background:
         linear-gradient(180deg, rgba(255,250,241,0.34) 0%, rgba(255,246,232,0.18) 46%, rgba(8,118,108,0.16) 100%),
-        url('./theme/back-porch-dusk.jpg') center 42% / cover no-repeat,
+        url('./theme/porch-club-night.jpg') center 38% / cover no-repeat,
         #d9c6ae;
     }
     .bp-app-shell {
@@ -5412,7 +5414,7 @@ button.dealer-name-indicator .dealer-player-label {
     body {
       background:
         linear-gradient(180deg, rgba(255,250,241,0.34) 0%, rgba(255,246,232,0.18) 46%, rgba(8,118,108,0.16) 100%),
-        url('./theme/back-porch-dusk.jpg') center 42% / cover no-repeat,
+        url('./theme/porch-club-night.jpg') center 38% / cover no-repeat,
         #d9c6ae;
     }
     .bp-app-shell {
@@ -6706,7 +6708,7 @@ button.dealer-name-indicator .dealer-player-label {
       box-shadow: 0 30px 80px -36px rgba(0,36,33,0.8), inset 0 4px 0 rgba(231,115,88,0.58);
     }
     #lineup-intro {
-      background: #063f3a url('./theme/back-porch-dusk.jpg') center 42% / cover no-repeat;
+      background: #0c0a08 url('./theme/porch-club-night.jpg') center 38% / cover no-repeat;
     }
     .intro-bg { background: linear-gradient(180deg, rgba(3,50,47,0.5), rgba(2,34,32,0.86)); }
     .whammy-card,
@@ -7298,16 +7300,177 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen #round-intel.round-banner { font-size: 21px !important; }
     }
 
-    /* ════════ PREMIUM PORCH CHROME ════════ */
+    /* ════════ PORCH CLUB ════════
+       Night porch world, cream paper, editorial type.
+       Last-wins overrides — earlier beach-club layers stay unused. */
+    html {
+      --pc-night: #0b0907;
+      --pc-dusk: #14110e;
+      --pc-ink: #2c2218;
+      --pc-ink-2: #4d3f32;
+      --pc-muted: #7d6b57;
+      --pc-paper: #f3ead8;
+      --pc-paper-2: #e8dcc6;
+      --pc-cream: #f8f1e4;
+      --pc-amber: #d4a25a;
+      --pc-amber-deep: #b8863a;
+      --pc-ember: #c46a4a;
+      --pc-glass: rgba(12, 10, 8, 0.78);
+      --pc-line: rgba(212, 162, 90, 0.28);
+      --pc-paper-shadow: 0 22px 56px -30px rgba(0, 0, 0, 0.78), 0 2px 10px rgba(0, 0, 0, 0.22);
+      --pc-grain: repeating-linear-gradient(135deg, rgba(44, 34, 24, 0.025) 0 1px, transparent 1px 17px);
+    }
+    body,
+    html.dark body {
+      background:
+        linear-gradient(180deg, rgba(8, 6, 4, 0.58) 0%, rgba(10, 8, 6, 0.76) 48%, rgba(8, 6, 4, 0.9) 100%),
+        url('./theme/porch-club-night.jpg') center 42% / cover no-repeat,
+        #0b0907 !important;
+      color: var(--pc-cream);
+    }
+    #lineup-intro {
+      background: #0b0907 url('./theme/porch-club-night.jpg') center 38% / cover no-repeat !important;
+    }
+    .intro-bg {
+      background: linear-gradient(180deg, rgba(8, 6, 4, 0.28), rgba(8, 6, 4, 0.82)) !important;
+    }
+    .intro-sub,
+    .intro-header,
+    .intro-skip {
+      color: var(--pc-cream) !important;
+    }
+    .intro-header {
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-weight: 700 !important;
+    }
+
+    .font-display,
+    #home-screen h2.font-display,
+    #game-screen #game-title,
+    #score-entry-game,
+    .bp-panel-heading h2,
+    .bp-game-heading-copy h2,
+    #settings-modal h3,
+    #audit-modal h3,
+    #rules-modal h3,
+    #perf-report-modal h3,
+    .dice-dialog h3,
+    #montage-race-title,
+    #records-view section > h2,
+    #hall-of-fame-view h2,
+    #history-screen h2,
+    #profiles-screen h2 {
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-weight: 700 !important;
+      font-style: normal !important;
+      letter-spacing: -0.02em !important;
+      text-transform: none !important;
+    }
+    .scoreboard-player-name,
+    .player-name-label,
+    .score-entry-name,
+    .score-entry-selected-name,
+    .intro-player-name,
+    .profile-passport-name {
+      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
+      text-transform: uppercase !important;
+    }
+
+    #top-nav .nav-btn,
+    #history-screen .nav-btn,
+    #profiles-screen .nav-btn,
+    .btn-primary,
+    .btn-accent,
+    .btn-ghost,
+    .rook-setup-btn,
+    .settings-choice,
+    .match-end-btn,
+    #actions-btn {
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.01em !important;
+      text-transform: none !important;
+    }
+    .bp-kicker,
+    .bp-live-kicker,
+    .bp-column-title,
+    .bp-modal-kicker,
+    [class~='text-[10px]'].font-extrabold.uppercase {
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.18em !important;
+      text-transform: uppercase !important;
+    }
+    .bp-kicker,
+    #home-screen .bp-kicker { color: var(--pc-amber) !important; }
+
     #top-nav {
-      background: rgba(255,250,241,0.86) !important;
-      backdrop-filter: blur(18px) saturate(1.12);
-      -webkit-backdrop-filter: blur(18px) saturate(1.12);
+      top: 0 !important;
+      margin: 0 -1rem 1.35rem !important;
+      padding: 0.85rem 1.05rem !important;
+      border: 0 !important;
+      border-bottom: 1px solid var(--pc-line) !important;
+      border-radius: 0 !important;
+      background: var(--pc-glass) !important;
+      backdrop-filter: blur(22px) saturate(1.15);
+      -webkit-backdrop-filter: blur(22px) saturate(1.15);
+      box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.85) !important;
+    }
+    @media (min-width: 768px) {
+      #top-nav { margin-left: -1.5rem !important; margin-right: -1.5rem !important; padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+    }
+    #top-nav::after { display: none !important; }
+    .bp-brand-mark {
+      width: 3.15rem !important;
+      height: 3.15rem !important;
+      flex-basis: 3.15rem !important;
+      border-radius: 14px !important;
+      border: 1px solid rgba(212, 162, 90, 0.55) !important;
+      box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.85) !important;
+      background: #0c0a08 url('./theme/porch-club-mark.jpg') center / cover no-repeat !important;
+    }
+    .brand-name,
+    html.dark .brand-name {
+      color: var(--pc-cream) !important;
+    }
+    .bp-brand-main,
+    #top-nav .bp-brand-main,
+    html.dark .bp-brand-main {
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-style: italic !important;
+      font-weight: 400 !important;
+      color: #f6efe3 !important;
+      text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4);
+    }
+    .bp-brand-games,
+    #top-nav .bp-brand-games {
+      color: var(--pc-amber) !important;
+      font-family: 'Nunito Sans', 'Plus Jakarta Sans', system-ui, sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.2em !important;
     }
     #top-nav .nav-btn {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
+      min-height: 2.45rem;
+      padding: 0.5rem 0.9rem;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent !important;
+      color: var(--pc-cream) !important;
+    }
+    #top-nav .nav-btn:hover {
+      background: rgba(248, 241, 228, 0.08) !important;
+      border-color: rgba(248, 241, 228, 0.12) !important;
+    }
+    #top-nav .nav-btn.active,
+    #top-nav .nav-btn.accent {
+      background: rgba(212, 162, 90, 0.16) !important;
+      border-color: var(--pc-line) !important;
+      color: var(--pc-amber) !important;
     }
     .bp-nav-icon,
     .bp-pref-icon {
@@ -7320,37 +7483,342 @@ button.dealer-name-indicator .dealer-player-label {
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-    .bp-pref-icon { stroke: var(--bp-teal); width: 1.15rem; height: 1.15rem; flex-basis: 1.15rem; }
-    .bp-setting-label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    .bp-pref-icon { stroke: var(--pc-amber-deep); width: 1.15rem; height: 1.15rem; flex-basis: 1.15rem; }
+    .bp-setting-label { display: flex; align-items: center; gap: 0.5rem; }
     body.active-match-view #top-nav .nav-btn .bp-nav-icon { display: none; }
     body.active-match-view #top-nav .nav-btn[aria-label="Settings"] .bp-nav-icon { display: block; }
+
+    .surface:not(.active-match-banner):not(.leader-banner),
+    .surface-raised,
+    .brand-panel,
+    .bp-roster-panel,
+    html.dark .brand-panel,
+    html.dark .bp-roster-panel,
+    html.dark .surface,
+    html.dark .surface-raised {
+      color: var(--pc-ink) !important;
+      border: 1px solid rgba(44, 34, 24, 0.1) !important;
+      border-radius: 22px !important;
+      background:
+        var(--pc-grain),
+        linear-gradient(165deg, #f7f0e1 0%, var(--pc-paper) 48%, #efe4cf 100%) !important;
+      box-shadow: var(--pc-paper-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+    }
+    .bp-game-picker,
+    html.dark .bp-game-picker {
+      padding: 1.15rem 1.15rem 1.2rem !important;
+      border: 1px solid var(--pc-line) !important;
+      border-radius: 22px !important;
+      background: rgba(12, 10, 8, 0.58) !important;
+      box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(248, 241, 228, 0.08) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .bp-panel-heading {
+      min-height: 0 !important;
+      padding: 0 0 0.95rem !important;
+      border-bottom: 1px solid rgba(44, 34, 24, 0.1) !important;
+    }
+    .bp-game-heading {
+      border-bottom-color: rgba(248, 241, 228, 0.1) !important;
+      padding-right: 0 !important;
+    }
+    .bp-panel-heading h2,
+    .bp-game-heading-copy h2,
+    html.dark .bp-panel-heading h2 {
+      color: var(--pc-ink) !important;
+    }
+    .bp-game-heading-copy h2 { color: var(--pc-cream) !important; }
+    .bp-game-heading .bp-kicker { color: var(--pc-amber) !important; }
+    .bp-column-title,
+    .bp-lineup-title { color: var(--pc-amber-deep) !important; }
+    .bp-bench-title { color: var(--pc-muted) !important; }
+    .bp-column-title::before {
+      border-color: currentColor !important;
+      background: transparent !important;
+    }
+
+    .btn-primary,
+    .btn-accent,
+    html.dark .btn-primary,
+    html.dark .btn-accent {
+      background: linear-gradient(180deg, #d7ab63, #b8863a) !important;
+      color: #1b140d !important;
+      border: 1px solid rgba(80, 54, 22, 0.25) !important;
+      box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 245, 220, 0.45) !important;
+    }
+    .btn-ghost,
+    html.dark .btn-ghost {
+      background: rgba(248, 241, 228, 0.9) !important;
+      color: var(--pc-ink) !important;
+      border: 1px solid rgba(44, 34, 24, 0.14) !important;
+      box-shadow: 0 6px 16px -14px rgba(0, 0, 0, 0.45) !important;
+    }
+    #top-nav .btn-ghost,
+    .active-match-banner .btn-ghost {
+      background: rgba(248, 241, 228, 0.08) !important;
+      color: var(--pc-cream) !important;
+      border-color: rgba(248, 241, 228, 0.16) !important;
+    }
+
+    #quick-add-player {
+      background: #efe6d2 !important;
+      color: var(--pc-ink) !important;
+      border-color: rgba(44, 34, 24, 0.12) !important;
+      box-shadow: inset 0 1px 2px rgba(44, 34, 24, 0.06) !important;
+    }
+    .player-suggest-menu {
+      background: var(--pc-cream) !important;
+      border-color: rgba(44, 34, 24, 0.12) !important;
+    }
+    .player-suggest-option { color: var(--pc-ink) !important; }
+    #lineup-list {
+      background: rgba(212, 162, 90, 0.1) !important;
+      border-color: rgba(184, 134, 58, 0.28) !important;
+    }
+    .roster-row-lineup {
+      background: linear-gradient(180deg, #f8f1e3, #efe3cc) !important;
+      border-color: rgba(184, 134, 58, 0.28) !important;
+      color: var(--pc-ink) !important;
+      box-shadow: 0 6px 16px -14px rgba(44, 34, 24, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+    }
+    .roster-row-bench,
+    .bench-row-content {
+      background: rgba(255, 250, 241, 0.72) !important;
+      border-color: rgba(44, 34, 24, 0.1) !important;
+    }
+
+    .bp-rules-select {
+      border: 1px solid var(--pc-line) !important;
+      background: rgba(248, 241, 228, 0.08) !important;
+      color: var(--pc-cream) !important;
+      box-shadow: none !important;
+    }
+    .bp-rules-picker::after { color: var(--pc-amber) !important; }
+
+    .game-card.quest-card.bp-game-card,
+    .bp-game-picker .game-card.quest-card.bp-game-card {
+      isolation: isolate;
+      display: block !important;
+      min-height: 168px !important;
+      padding: 0 !important;
+      overflow: hidden;
+      border: 1px solid rgba(248, 241, 228, 0.1) !important;
+      border-radius: 16px !important;
+      background: #16120e !important;
+      box-shadow: 0 16px 34px -22px rgba(0, 0, 0, 0.8) !important;
+    }
+    .bp-game-card::before,
+    .bp-game-picker .bp-game-card::before {
+      content: '' !important;
+      display: block !important;
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(12, 10, 8, 0.05) 28%, rgba(12, 10, 8, 0.82) 100%) !important;
+      pointer-events: none;
+    }
+    .bp-game-card-art,
+    .bp-game-picker .bp-game-card-art {
+      inset: 0 !important;
+      width: auto !important;
+      height: auto !important;
+      border-radius: 0 !important;
+      background-color: #16120e !important;
+      background-size: cover !important;
+      background-position: center !important;
+      box-shadow: none !important;
+    }
+    .bp-game-card > .flex-1,
+    .bp-game-picker .bp-game-card > .flex-1 {
+      position: absolute !important;
+      z-index: 2 !important;
+      top: auto !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      display: flex !important;
+      align-items: flex-end !important;
+      max-width: 100% !important;
+      min-height: 0 !important;
+      padding: 1.15rem 1.1rem 1rem !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .bp-game-card .font-display,
+    .bp-game-picker .bp-game-card .font-display {
+      color: var(--pc-cream) !important;
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-size: clamp(1.28rem, 2vw, 1.7rem) !important;
+      font-weight: 700 !important;
+      line-height: 1.05 !important;
+      white-space: normal !important;
+      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+    }
+    .game-card.quest-card.bp-game-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(212, 162, 90, 0.45) !important;
+    }
+    @media (max-width: 760px) {
+      .game-card.quest-card.bp-game-card,
+      .bp-game-picker .game-card.quest-card.bp-game-card { min-height: 132px !important; }
+    }
+
+    .active-match-banner,
+    html.dark .active-match-banner,
+    body.active-match-view .active-match-banner {
+      overflow: visible;
+      background: var(--pc-glass) !important;
+      border: 1px solid var(--pc-line) !important;
+      box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.8) !important;
+      color: var(--pc-cream) !important;
+    }
+    .active-match-banner::before { display: none !important; }
+    .bp-live-kicker {
+      display: inline-flex !important;
+      color: var(--pc-amber) !important;
+    }
+    .bp-live-kicker::before {
+      background: var(--pc-amber) !important;
+      box-shadow: 0 0 0 3px rgba(212, 162, 90, 0.22) !important;
+    }
+    #game-screen #game-title,
+    html.dark #game-title {
+      color: var(--pc-cream) !important;
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-style: normal !important;
+      font-weight: 700 !important;
+      padding: 0 !important;
+    }
+    #round-intel.round-banner,
+    .round-banner {
+      background: rgba(212, 162, 90, 0.12) !important;
+      color: var(--pc-amber) !important;
+      border-color: var(--pc-line) !important;
+      font-family: 'Fraunces', Georgia, serif !important;
+    }
+    #wizard-header-metrics {
+      border-color: var(--pc-line) !important;
+      color: var(--pc-cream) !important;
+    }
+    .tournament-scoreboard,
+    #scorecard-capture,
+    .tournament-scoreboard .scorecard-table-wrap {
+      background:
+        var(--pc-grain),
+        linear-gradient(180deg, #f7f0e1, var(--pc-paper)) !important;
+      color: var(--pc-ink) !important;
+    }
+    #scorecard-capture .record-chase-active .scorecard-table thead th.scorecard-col-total,
+    #scorecard-capture .record-chase-active .scorecard-table thead th.scorecard-col-bid--wizard {
+      background: linear-gradient(180deg, #ead7a8, #e0c88a) !important;
+      color: #3a2c18 !important;
+      box-shadow: inset 2px 0 0 rgba(184, 134, 58, 0.28), inset -2px 0 0 rgba(184, 134, 58, 0.28) !important;
+    }
+    #scorecard-capture .record-chase-active .scorecard-table tbody td.scorecard-total-cell {
+      background: linear-gradient(180deg, rgba(247, 236, 205, 0.96), rgba(243, 234, 216, 0.92)) !important;
+      color: #3a2c18 !important;
+      box-shadow: inset 2px 0 0 rgba(184, 134, 58, 0.2), inset -2px 0 0 rgba(184, 134, 58, 0.2) !important;
+      text-shadow: none !important;
+    }
+    .leader-banner {
+      background: rgba(12, 10, 8, 0.7) !important;
+      border-color: var(--pc-line) !important;
+      color: var(--pc-cream) !important;
+    }
+    #leader-text { color: var(--pc-amber) !important; font-family: 'Fraunces', Georgia, serif !important; }
+
+    #settings-modal .surface-raised,
+    #rules-modal .surface-raised,
+    #audit-modal .surface-raised,
+    #scorecard-modal .surface-raised,
+    #perf-report-modal .surface-raised,
+    #victory-modal .surface-raised,
+    #loser-modal .surface-raised,
+    .dice-dialog,
+    .whammy-card {
+      border: 1px solid rgba(44, 34, 24, 0.1) !important;
+      border-radius: 24px !important;
+      background:
+        var(--pc-grain),
+        linear-gradient(165deg, #f8f1e3, var(--pc-paper)) !important;
+      box-shadow: 0 30px 80px -36px rgba(0, 0, 0, 0.82), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+      color: var(--pc-ink) !important;
+    }
+    #settings-modal h3,
+    #audit-modal h3,
+    .dice-dialog h3 { color: var(--pc-ink) !important; }
+    #actions-menu {
+      background: var(--pc-paper) !important;
+      border-color: rgba(44, 34, 24, 0.12) !important;
+      color: var(--pc-ink) !important;
+    }
+
+    html.dark #top-nav,
+    html.dark .bp-game-picker,
+    html.dark .active-match-banner {
+      background: var(--pc-glass) !important;
+      border-color: var(--pc-line) !important;
+      color: var(--pc-cream) !important;
+    }
+    html.dark .bp-roster-panel,
+    html.dark #history-screen,
+    html.dark #profiles-screen,
+    html.dark .tournament-scoreboard,
+    html.dark .score-entry-panel {
+      background:
+        var(--pc-grain),
+        linear-gradient(165deg, #f7f0e1, var(--pc-paper)) !important;
+      border-color: rgba(44, 34, 24, 0.1) !important;
+      color: var(--pc-ink) !important;
+    }
+    html.dark .scoreboard-player-name { color: var(--pc-ink) !important; }
+
+    .chip,
+    .crest-chip {
+      background: rgba(212, 162, 90, 0.14) !important;
+      color: var(--pc-amber-deep) !important;
+      border-color: rgba(184, 134, 58, 0.28) !important;
+    }
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(212, 162, 90, 0.5) !important;
+    }
+
     .postgame-hero-mark {
       width: 4.6rem;
       height: 4.6rem;
       margin-bottom: 1rem;
       border-radius: 50%;
-      box-shadow: 0 14px 28px -16px rgba(6,77,72,0.55);
+      box-shadow: 0 14px 28px -16px rgba(0, 0, 0, 0.55);
       background-position: center;
       background-repeat: no-repeat;
       background-size: 58%;
     }
     .postgame-hero-sunset {
-      background-color: #f4d7b6;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Ccircle cx='24' cy='20' r='8' fill='%23e87358'/%3E%3Cpath d='M6 32c4-4 10-6 18-6s14 2 18 6' stroke='%23087a70' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M8 37c4-3 9-4.5 16-4.5S36 34 40 37' stroke='%23087a70' stroke-width='2' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E");
+      background-color: #ead3a8;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Ccircle cx='24' cy='20' r='8' fill='%23d4a25a'/%3E%3Cpath d='M6 32c4-4 10-6 18-6s14 2 18 6' stroke='%232c2218' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M8 37c4-3 9-4.5 16-4.5S36 34 40 37' stroke='%232c2218' stroke-width='2' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E");
     }
     .postgame-hero-tide {
-      background-color: #d7eef0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M6 28c5 4 9 4 14 0s9-4 14 0 9 4 14 0' stroke='%23287f9b' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M6 34c5 4 9 4 14 0s9-4 14 0 9 4 14 0' stroke='%23087a70' stroke-width='2' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M16 16c2-5 6-8 8-8s6 3 8 8' stroke='%23e87358' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-color: #d8c9a8;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M6 28c5 4 9 4 14 0s9-4 14 0 9 4 14 0' stroke='%234d3f32' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M6 34c5 4 9 4 14 0s9-4 14 0 9 4 14 0' stroke='%232c2218' stroke-width='2' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M16 16c2-5 6-8 8-8s6 3 8 8' stroke='%23d4a25a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    }
+
+    .score-entry-panel,
+    html.dark .score-entry-panel {
+      background:
+        var(--pc-grain),
+        linear-gradient(165deg, #f8f1e3, var(--pc-paper)) !important;
+      color: var(--pc-ink) !important;
+      border-color: rgba(44, 34, 24, 0.1) !important;
     }
 
     /* ════════ DARK-MODE OVERRIDES ════════ */
-    html.dark .btn-ghost:hover { background: var(--bg-2); }
-    html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
-    html.dark .audit-entry { background: var(--bg-2); }
+    html.dark .btn-ghost:hover { background: rgba(248, 241, 228, 0.14); }
+    html.dark #custom-numpad { background:#14110e; border-color:#3a3228; }
+    html.dark .audit-entry { background: var(--pc-paper-2); }
   </style>
 </head>
 
@@ -7475,8 +7943,8 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="lg:col-span-7 lg:order-1 surface-raised brand-panel bp-roster-panel p-7">
         <div class="bp-panel-heading flex items-baseline justify-between mb-6">
           <div>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
-            <h2 class="font-display text-4xl">Game Night Setup</h2>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2 bp-kicker">The table</div>
+            <h2 class="font-display text-4xl">Tonight</h2>
           </div>
           <div id="roster-count" class="chip crest-chip"></div>
         </div>
@@ -7516,7 +7984,8 @@ button.dealer-name-indicator .dealer-player-label {
         <div class="bp-game-picker">
           <div class="bp-panel-heading bp-game-heading mb-6">
             <div class="bp-game-heading-copy">
-              <h2 class="font-display text-4xl">Select Game</h2>
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2 bp-kicker">Pick a night</div>
+              <h2 class="font-display text-4xl">The Shelf</h2>
             </div>
             <label class="bp-rules-picker" aria-label="Game instructions">
               <select class="bp-rules-select" onchange="openGameRulesFromSelect(this)">
@@ -7531,37 +8000,37 @@ button.dealer-name-indicator .dealer-player-label {
             </label>
           </div>
           <div class="bp-game-grid">
-            <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <button onclick="startGame('Five Crowns')" class="game-card quest-card bp-game-card bp-five-crowns group flex items-center justify-between">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Five Crowns</div>
               </div>
             </button>
-            <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <button onclick="startGame('Wizard')" class="game-card quest-card bp-game-card bp-wizard group flex items-center justify-between">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Wizard</div>
               </div>
             </button>
-            <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <button onclick="startGame('818')" class="game-card quest-card bp-game-card bp-eight18 group flex items-center justify-between">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">818</div>
               </div>
             </button>
-            <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <button onclick="startGame('Flip 7 Vengeance')" class="game-card quest-card bp-game-card bp-flip7 group flex items-center justify-between">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Flip 7</div>
               </div>
             </button>
-            <button onclick="startGame('Beat the Heat')" class="game-card quest-card bp-game-card bp-beat-heat group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <button onclick="startGame('Beat the Heat')" class="game-card quest-card bp-game-card bp-beat-heat group flex items-center justify-between">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Beat the Heat</div>
               </div>
             </button>
-            <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+            <button onclick="startGame('Rook')" class="game-card quest-card bp-game-card bp-rook group flex items-center justify-between">
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Rook</div>
@@ -7578,7 +8047,7 @@ button.dealer-name-indicator .dealer-player-label {
         <div class="bp-active-identity flex items-center gap-4 min-w-0">
           <div class="bp-active-game-art" aria-hidden="true"></div>
           <div class="bp-active-copy flex flex-col gap-1.5 min-w-0">
-            <div class="bp-live-kicker">Live Table</div>
+            <div class="bp-live-kicker">In play</div>
             <div class="bp-game-header-row flex items-center gap-3 sm:gap-4 flex-nowrap min-w-0">
               <h2 id="game-title" class="font-display min-w-0"></h2>
               <div id="round-intel" class="round-banner font-display min-w-0" style="color:var(--emerald);"></div>
@@ -8266,7 +8735,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="surface-raised w-full max-w-md p-8 relative max-h-[90vh] overflow-y-auto">
         <button onclick="closeSettings()" class="absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-6">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--muted);">App Management</div>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5 bp-kicker">House rules</div>
           <h3 class="font-display text-3xl">Settings</h3>
         </div>
 
