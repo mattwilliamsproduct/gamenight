@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=life-preserver-hold-20260823';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario,scenarioForSurface} from './fixtures.mjs?v=gallery-surfaces-20260912';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
@@ -6,6 +6,7 @@ function injectGalleryStyles(){
   const style=document.createElement('style');
   style.textContent=`
     #gn-qa-gallery{position:fixed;left:14px;bottom:14px;z-index:9999;width:min(340px,calc(100vw - 28px));font-family:"Plus Jakarta Sans",sans-serif;color:#073f3b;background:rgba(255,252,246,.98);border:2px solid #08766c;border-radius:8px;box-shadow:0 18px 45px rgba(4,45,42,.28);padding:14px}
+    #gn-qa-gallery.gn-qa-behind-modal{z-index:40}
     #gn-qa-gallery[hidden]{display:none}
     .gn-qa-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
     .gn-qa-title{font-weight:900;font-size:15px}.gn-qa-kicker{font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#ef765d}
@@ -84,8 +85,11 @@ export async function bootQaGallery(api){
     assertRecordChasePreview(scenarioId,scenario);
     description.textContent=scenario.description;
     surfaceButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.surface===surface)));
-    api.hydrate(scenario.data);
-    api.showSurface(surface,scenario);
+    const live=scenarioForSurface(scenario,surface);
+    const modalSurfaces=new Set(['whammy','nolie','settings','entry-bids','entry-scores','actions','race']);
+    panel.classList.toggle('gn-qa-behind-modal',modalSurfaces.has(surface));
+    api.hydrate(live.data);
+    api.showSurface(surface,live);
     if(surface==='whammy'||surface==='nolie')await new Promise(resolve=>setTimeout(resolve,550));
     if(surface==='race')await new Promise(resolve=>setTimeout(resolve,800));
     await waitForStableImages();
