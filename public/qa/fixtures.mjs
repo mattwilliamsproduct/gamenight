@@ -158,6 +158,9 @@ const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRou
 const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers),{
   hailMaryUsed:['Linda']
 });
+const crownsPreserverAppliedGame=JSON.parse(JSON.stringify(crownsPreserverGame));
+crownsPreserverAppliedGame.rounds.push({round:0, hailMaryBonus:true, scores:{Linda:-40}});
+crownsPreserverAppliedGame.totals=totalRounds(crownsPlayers, crownsPreserverAppliedGame.rounds);
 const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
@@ -616,6 +619,12 @@ export const QA_SCENARIOS = {
     description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverGame}
+  },
+  'five-crowns-preserver-applied':{
+    label:'Five Crowns · Life Preserver Applied',
+    description:'Same buried table after Linda’s Life Preserver lands −40 on her last scoring cell.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverAppliedGame}
   },
   'five-crowns-turbo-ladder':{
     label:'Five Crowns · Turbo Ladder',
