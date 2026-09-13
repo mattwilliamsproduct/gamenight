@@ -867,6 +867,19 @@
     return offer;
   }
 
+  function lifePreserverExtraForScoringRound(rounds, scoringIndex, player) {
+    const list = Array.isArray(rounds) ? rounds : [];
+    const scoring = list[scoringIndex];
+    if (!scoring || scoring.hailMaryBonus || !player) return 0;
+    let extra = 0;
+    for (let index = scoringIndex + 1; index < list.length; index++) {
+      const round = list[index];
+      if (!round?.hailMaryBonus) break;
+      extra += Number(round.scores?.[player]) || 0;
+    }
+    return extra;
+  }
+
   function releaseRemovedLifePreservers(used, removedRounds) {
     const removedPlayers = new Set();
     (removedRounds || []).forEach(round => {
@@ -913,6 +926,7 @@
     explainLifePreserverOffer,
     explainLifePreserverRules,
     summarizeLifePreserverTable,
+    lifePreserverExtraForScoringRound,
     releaseRemovedLifePreservers,
     capLifePreserverAdjustment,
     rankWithScore,

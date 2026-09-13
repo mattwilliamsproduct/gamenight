@@ -1140,6 +1140,7 @@
       padding: 0;
       white-space: nowrap;
     }
+    .score-cell-life-preserver { color: #047857; }
     .scorecard-receipt-stash {
       position: fixed;
       left: -16000px;
@@ -13851,10 +13852,10 @@ ${isDealer
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
         }
-        const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const extras=scoreCellExtraMarks(r,p,rIdx,currentGame);
+        const extraMark=extras.extraMark;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
-          <div class="score-cell-stack${extra?' has-comeback':''}">
+          <div class="score-cell-stack${extras.hasExtra?' has-comeback':''}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
@@ -13938,6 +13939,16 @@ ${isDealer
     if(!n) return '0';
     const sign=n>0?'+':'−';
     return `<span class="score-sign">${sign}</span>${Math.abs(n)}`;
+  }
+  function scoreCellExtraMarks(round, player, scoringIndex, game){
+    const turbo=Number(round?.comeback?.[player])||0;
+    const rescue=window.BPGLifePreserver&&typeof BPGLifePreserver.lifePreserverExtraForScoringRound==='function'
+      ? (Number(BPGLifePreserver.lifePreserverExtraForScoringRound(game?.rounds||[], scoringIndex, player))||0)
+      : 0;
+    const marks=[];
+    if(turbo) marks.push(`<span class="score-cell-comeback" title="Turbo">${signedPointsMarkup(turbo)}</span>`);
+    if(rescue) marks.push(`<span class="score-cell-comeback score-cell-life-preserver" title="Life Preserver">${signedPointsMarkup(rescue)}</span>`);
+    return {hasExtra:marks.length>0, extraMark:marks.join('')};
   }
   function comebackChipMarkup(_player, _offer, _className){
     return '';
@@ -15501,10 +15512,10 @@ ${isDealer
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span></td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
-        const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const extras=scoreCellExtraMarks(r,p,rIdx,g);
+        const extraMark=extras.extraMark;
         const shown=r.scores[p]!==undefined?r.scores[p]:'';
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extras.hasExtra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
     });

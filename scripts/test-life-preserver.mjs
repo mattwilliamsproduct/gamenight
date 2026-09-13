@@ -617,6 +617,21 @@ test('tied totals share a competition place', () => {
   assert.equal(LP.rankWithScore('Mike', 110, players, totals, false), 6);
 });
 
+test('Life Preserver extras attach to the last scoring cell before the bonus round', () => {
+  const rounds = [
+    {round: 1, scores: {Ann: 20, Hal: 0}},
+    {round: 2, scores: {Ann: 20, Hal: 0}},
+    {round: 0, hailMaryBonus: true, scores: {Hal: -40}},
+    {round: 3, scores: {Ann: 20, Hal: 8}},
+    {round: 0, hailMaryBonus: true, scores: {Dee: 15}}
+  ];
+  assert.equal(LP.lifePreserverExtraForScoringRound(rounds, 1, 'Hal'), -40);
+  assert.equal(LP.lifePreserverExtraForScoringRound(rounds, 0, 'Hal'), 0);
+  assert.equal(LP.lifePreserverExtraForScoringRound(rounds, 3, 'Dee'), 15);
+  assert.equal(LP.lifePreserverExtraForScoringRound(rounds, 3, 'Hal'), 0);
+  assert.equal(LP.lifePreserverExtraForScoringRound(rounds, 2, 'Hal'), 0);
+});
+
 test('tied low-score games share a competition place', () => {
   const players = ['Ann', 'Bea', 'Cal', 'Dee'];
   const totals = { Ann: 10, Bea: 20, Cal: 40, Dee: 40 };
