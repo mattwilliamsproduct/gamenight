@@ -66,6 +66,31 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   expect(applied.used).toBe(true);
 });
 
+test('Life Preserver extra shows on the last scoring cell', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the display check once on laptop Chromium');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+
+  const applied = await page.evaluate(() => {
+    const player = 'Brick';
+    const live = getLifePreserverOfferForPlayer(player, getActivePlayers(currentGame), {
+      gameOver: currentGame.currentRound > getMaxRoundsForGame(currentGame)
+    });
+    const adj = applyLifePreserverResult(player, -live.maxSafeAdjustment, live);
+    currentGame.rounds.push({round: 0, scores: {[player]: adj}, hailMaryBonus: true});
+    currentGame.hailMaryUsed.push(player);
+    recomputeGameTotals(currentGame);
+    renderGame();
+    return adj;
+  });
+  expect(applied).toBeLessThan(0);
+
+  const extra = page.locator('#scorecard-body tr', {hasText: 'Brick'}).locator('.score-cell-life-preserver');
+  await expect(extra).toHaveCount(1);
+  await expect(extra).toHaveAttribute('title', 'Life Preserver');
+  await expect(extra).toContainText(String(Math.abs(applied)));
+});
+
 test('closing the Life Preserver wheel mid-spin does not apply a bonus', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});

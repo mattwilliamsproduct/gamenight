@@ -161,7 +161,13 @@
 
   function rankWithScore(player, newScore, players, totals, winLow) {
     const hypothetical = Object.assign({}, totals, { [player]: newScore });
-    return sortPlayers(players, hypothetical, winLow).indexOf(player) + 1;
+    const score = Number(hypothetical[player]) || 0;
+    let better = 0;
+    (players || []).forEach(name => {
+      const other = Number(hypothetical[name]) || 0;
+      if (winLow ? other < score : other > score) better++;
+    });
+    return better + 1;
   }
 
   function packGapFor(playerScore, packScore, winLow) {
@@ -401,7 +407,7 @@
     }
     const statuses = players.map(player => {
       const offer = getLifePreserverOffer(game, player, activePlayers, opts);
-      const rank = sorted.indexOf(player) + 1;
+      const rank = rankWithScore(player, totals[player], players, totals, cfg.winLow);
       const packGap = packGapFor(totals[player], packScore, cfg.winLow);
       const leaderGap = packGapFor(totals[player], leaderScore, cfg.winLow);
       return {
@@ -703,7 +709,7 @@
     }
 
     const sorted = sortPlayers(players, totals, cfg.winLow);
-    const rank = sorted.indexOf(player) + 1;
+    const rank = rankWithScore(player, totals[player], players, totals, cfg.winLow);
     const packRank = Math.ceil(players.length / 2);
     if (rank === 1) {
       return ineligible('leading', {
@@ -861,6 +867,19 @@
     return offer;
   }
 
+  function lifePreserverExtraForScoringRound(rounds, scoringIndex, player) {
+    const list = Array.isArray(rounds) ? rounds : [];
+    const scoring = list[scoringIndex];
+    if (!scoring || scoring.hailMaryBonus || !player) return 0;
+    let extra = 0;
+    for (let index = scoringIndex + 1; index < list.length; index++) {
+      const round = list[index];
+      if (!round?.hailMaryBonus) break;
+      extra += Number(round.scores?.[player]) || 0;
+    }
+    return extra;
+  }
+
   function releaseRemovedLifePreservers(used, removedRounds) {
     const removedPlayers = new Set();
     (removedRounds || []).forEach(round => {
@@ -907,6 +926,7 @@
     explainLifePreserverOffer,
     explainLifePreserverRules,
     summarizeLifePreserverTable,
+    lifePreserverExtraForScoringRound,
     releaseRemovedLifePreservers,
     capLifePreserverAdjustment,
     rankWithScore,

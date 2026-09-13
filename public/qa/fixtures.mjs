@@ -158,6 +158,9 @@ const crownsGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRou
 const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFiveCrownsRounds(crownsPlayers),{
   hailMaryUsed:['Linda']
 });
+const crownsPreserverAppliedGame=JSON.parse(JSON.stringify(crownsPreserverGame));
+crownsPreserverAppliedGame.rounds.push({round:0, hailMaryBonus:true, scores:{Linda:-40}});
+crownsPreserverAppliedGame.totals=totalRounds(crownsPlayers, crownsPreserverAppliedGame.rounds);
 const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
@@ -194,6 +197,20 @@ const wizardEarlyGame=makeCurrentGame('Wizard',wizardScoringPlayers,wizardRounds
   wizardPhase:'bidding',
   currentBids:{},
   currentScoreDrafts:{}
+});
+const wizardTiedPlayers=['Brick','Michelle','Vikki','Matt','Megan','Linda','Mike'];
+const wizardTiedGame=makeCurrentGame('Wizard',wizardTiedPlayers,wizardRoundsFromScores(wizardTiedPlayers,[
+  [20,20,20,20,20,-10,30],
+  [20,20,-10,20,-10,20,20],
+  [20,20,40,20,30,20,20],
+  [30,20,40,30,20,20,-10],
+  [50,30,20,-10,30,-10,20],
+  [30,40,30,50,40,70,30]
+]),{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  maxRounds:8
 });
 const wizardSixPlayers=NAMES.slice(0,6);
 const wizardSixMidGame=makeCurrentGame('Wizard',wizardSixPlayers,wizardRounds(wizardSixPlayers,2),{
@@ -549,6 +566,12 @@ export const QA_SCENARIOS = {
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...wizardScoringPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardEarlyGame}
   },
+  'wizard-tied-places':{
+    label:'Wizard · Tied Places',
+    description:'Seven-player Wizard on R7 with Matt/Megan tied for 4th and Linda/Mike tied for 6th.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...wizardTiedPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardTiedGame}
+  },
   'wizard-6-mid':{
     label:'Wizard · Mid · 6 Players',
     description:'Six-player Wizard after two rounds (R3 of 10). Add a seventh to confirm the match shortens to 8 rounds.',
@@ -596,6 +619,12 @@ export const QA_SCENARIOS = {
     description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverGame}
+  },
+  'five-crowns-preserver-applied':{
+    label:'Five Crowns · Life Preserver Applied',
+    description:'Same buried table after Linda’s Life Preserver lands −40 on her last scoring cell.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverAppliedGame}
   },
   'five-crowns-turbo-ladder':{
     label:'Five Crowns · Turbo Ladder',

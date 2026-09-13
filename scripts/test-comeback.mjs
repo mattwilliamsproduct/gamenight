@@ -453,7 +453,7 @@ test('wide Five Crowns spreads do not hide a 108-point hole behind inflated rema
 });
 
 test('score-entry preview uses the clamped extra, not the uncapped offer', () => {
-  const totals = { Ann: 80, Bea: 79, Cal: 40, Dee: 61 };
+  const totals = { Ann: 85, Bea: 79, Cal: 40, Dee: 61 };
   const g = game({ name: '818', players: FOUR, totals, roundCount: 14, spread: 17, currentRound: 15 });
   const offer = CB.getComebackOffer(g, 'Dee', FOUR);
   assert.equal(offer.eligible, true);
@@ -663,4 +663,16 @@ test('Wizard, 818, and Flip 7 turbo ladder fixtures show each game\'s scale', ()
     Linda: 20,
     Duke: 20
   });
+});
+
+test('tied totals share a competition place', () => {
+  const players = ['Brick', 'Michelle', 'Vikki', 'Matt', 'Megan', 'Linda', 'Mike'];
+  const totals = { Brick: 170, Michelle: 150, Vikki: 140, Matt: 130, Megan: 130, Linda: 110, Mike: 110 };
+  assert.equal(CB.rankWithScore('Brick', 170, players, totals, false), 1);
+  assert.equal(CB.rankWithScore('Michelle', 150, players, totals, false), 2);
+  assert.equal(CB.rankWithScore('Vikki', 140, players, totals, false), 3);
+  assert.equal(CB.rankWithScore('Matt', 130, players, totals, false), 4);
+  assert.equal(CB.rankWithScore('Megan', 130, players, totals, false), 4);
+  assert.equal(CB.rankWithScore('Linda', 110, players, totals, false), 6);
+  assert.equal(CB.rankWithScore('Mike', 110, players, totals, false), 6);
 });
