@@ -195,6 +195,20 @@ const wizardEarlyGame=makeCurrentGame('Wizard',wizardScoringPlayers,wizardRounds
   currentBids:{},
   currentScoreDrafts:{}
 });
+const wizardTiedPlayers=['Brick','Michelle','Vikki','Matt','Megan','Linda','Mike'];
+const wizardTiedGame=makeCurrentGame('Wizard',wizardTiedPlayers,wizardRoundsFromScores(wizardTiedPlayers,[
+  [20,20,20,20,20,-10,30],
+  [20,20,-10,20,-10,20,20],
+  [20,20,40,20,30,20,20],
+  [30,20,40,30,20,20,-10],
+  [50,30,20,-10,30,-10,20],
+  [30,40,30,50,40,70,30]
+]),{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  maxRounds:8
+});
 const wizardSixPlayers=NAMES.slice(0,6);
 const wizardSixMidGame=makeCurrentGame('Wizard',wizardSixPlayers,wizardRounds(wizardSixPlayers,2),{
   wizardPhase:'bidding',
@@ -548,6 +562,12 @@ export const QA_SCENARIOS = {
     description:'Eight-player Wizard after two rounds, with identity and total required to remain visually adjacent.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...wizardScoringPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardEarlyGame}
+  },
+  'wizard-tied-places':{
+    label:'Wizard · Tied Places',
+    description:'Seven-player Wizard on R7 with Matt/Megan tied for 4th and Linda/Mike tied for 6th.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...wizardTiedPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardTiedGame}
   },
   'wizard-6-mid':{
     label:'Wizard · Mid · 6 Players',
