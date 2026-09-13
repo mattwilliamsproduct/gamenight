@@ -10212,7 +10212,7 @@ button.dealer-name-indicator .dealer-player-label {
     matches.forEach(h=>{
       const cfg=configs[h.game];
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const rank=sorted.findIndex(p=>p===name)+1;
+      const rank=placeOfPlayer(sorted, h.totals, name);
       const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
       const won=!!h.winners?.includes(name);
       const s=summary.gameStats[h.game]||(summary.gameStats[h.game]={games:0,wins:0,lasts:0,posSum:0,best:null,worst:null,lastScore:null});
@@ -10249,7 +10249,7 @@ button.dealer-name-indicator .dealer-player-label {
       const ranks=matches.map(h=>{
         const cfg=configs[h.game];
         const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-        return sorted.findIndex(p=>p===name)+1;
+        return placeOfPlayer(sorted, h.totals, name);
       }).filter(Boolean);
       summary.avgRank=ranks.length?ranks.reduce((sum,n)=>sum+n,0)/ranks.length:null;
     }
@@ -10480,7 +10480,7 @@ button.dealer-name-indicator .dealer-player-label {
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(h.totals[name]===h.totals[sorted[sorted.length-1]])lasts++;
-      const myRank=sorted.findIndex(p=>p===name)+1;
+      const myRank=placeOfPlayer(sorted, h.totals, name);
       labels.push(`${h.game.split(' ')[0]}`); data.push(myRank);
     });
     const favoriteGame=summary.favoriteGame;
@@ -12181,6 +12181,25 @@ ${isDealer
     });
   }
 
+  function placesByTotal(sortedPlayers, totals){
+    const places={};
+    let cursor=0;
+    while(cursor<sortedPlayers.length){
+      const score=Number(totals[sortedPlayers[cursor]])||0;
+      let end=cursor+1;
+      while(end<sortedPlayers.length && (Number(totals[sortedPlayers[end]])||0)===score) end++;
+      const rank=cursor+1;
+      for(let i=cursor;i<end;i++) places[sortedPlayers[i]]=rank;
+      cursor=end;
+    }
+    return places;
+  }
+
+  function placeOfPlayer(sortedPlayers, totals, name){
+    if(!name || !sortedPlayers.includes(name)) return 0;
+    return placesByTotal(sortedPlayers, totals)[name]||0;
+  }
+
   function roundStandingPoints(round, player){
     if(!round || round.joinBonus?.[player] || round.scores?.[player]===undefined) return 0;
     return (Number(round.scores[player])||0)+(Number(round.comeback?.[player])||0);
@@ -12211,16 +12230,7 @@ ${isDealer
     rounds.forEach(round=>{
       players.forEach(p=>{ totals[p]=(Number(totals[p])||0)+roundStandingPoints(round, p); });
       const sorted=sortPlayersByTotal(players, totals, cfg);
-      const place={};
-      let cursor=0;
-      while(cursor<sorted.length){
-        const score=totals[sorted[cursor]];
-        let end=cursor+1;
-        while(end<sorted.length && totals[sorted[end]]===score) end++;
-        const rank=cursor+1;
-        for(let i=cursor;i<end;i++) place[sorted[i]]=rank;
-        cursor=end;
-      }
+      const place=placesByTotal(sorted, totals);
       players.forEach(p=>ranks[p].push(place[p]||sorted.length));
       labels.push(`R${round.round}`);
     });
@@ -13714,6 +13724,7 @@ ${isDealer
     let sortedP = currentGame.currentRound===1
       ? [...gamePlayers]
       : [...gamePlayers].sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
+    const scoreboardPlaces = currentGame.currentRound===1 ? {} : placesByTotal(sortedP, currentGame.totals);
 
     const leaderScore = sortedP.length ? currentGame.totals[sortedP[0]] : (cfg.winLow?Infinity:-Infinity);
     let hi=-Infinity,lo=Infinity;
@@ -13785,9 +13796,10 @@ ${isDealer
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{gameOver:over});
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
+      const place=scoreboardPlaces[p]||(ri+1);
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${place}</button>`
+        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${place}</span>`);
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -15435,8 +15447,9 @@ ${isDealer
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const rows=sorted.map((p,i)=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${i+1}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+      const places=placesByTotal(sorted, h.totals);
+      const rows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">

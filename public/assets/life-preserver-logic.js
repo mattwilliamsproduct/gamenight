@@ -161,7 +161,13 @@
 
   function rankWithScore(player, newScore, players, totals, winLow) {
     const hypothetical = Object.assign({}, totals, { [player]: newScore });
-    return sortPlayers(players, hypothetical, winLow).indexOf(player) + 1;
+    const score = Number(hypothetical[player]) || 0;
+    let better = 0;
+    (players || []).forEach(name => {
+      const other = Number(hypothetical[name]) || 0;
+      if (winLow ? other < score : other > score) better++;
+    });
+    return better + 1;
   }
 
   function packGapFor(playerScore, packScore, winLow) {
@@ -401,7 +407,7 @@
     }
     const statuses = players.map(player => {
       const offer = getLifePreserverOffer(game, player, activePlayers, opts);
-      const rank = sorted.indexOf(player) + 1;
+      const rank = rankWithScore(player, totals[player], players, totals, cfg.winLow);
       const packGap = packGapFor(totals[player], packScore, cfg.winLow);
       const leaderGap = packGapFor(totals[player], leaderScore, cfg.winLow);
       return {
@@ -703,7 +709,7 @@
     }
 
     const sorted = sortPlayers(players, totals, cfg.winLow);
-    const rank = sorted.indexOf(player) + 1;
+    const rank = rankWithScore(player, totals[player], players, totals, cfg.winLow);
     const packRank = Math.ceil(players.length / 2);
     if (rank === 1) {
       return ineligible('leading', {

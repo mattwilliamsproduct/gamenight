@@ -604,3 +604,24 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
 });
+
+test('tied totals share a competition place', () => {
+  const players = ['Brick', 'Michelle', 'Vikki', 'Matt', 'Megan', 'Linda', 'Mike'];
+  const totals = { Brick: 170, Michelle: 150, Vikki: 140, Matt: 130, Megan: 130, Linda: 110, Mike: 110 };
+  assert.equal(LP.rankWithScore('Brick', 170, players, totals, false), 1);
+  assert.equal(LP.rankWithScore('Michelle', 150, players, totals, false), 2);
+  assert.equal(LP.rankWithScore('Vikki', 140, players, totals, false), 3);
+  assert.equal(LP.rankWithScore('Matt', 130, players, totals, false), 4);
+  assert.equal(LP.rankWithScore('Megan', 130, players, totals, false), 4);
+  assert.equal(LP.rankWithScore('Linda', 110, players, totals, false), 6);
+  assert.equal(LP.rankWithScore('Mike', 110, players, totals, false), 6);
+});
+
+test('tied low-score games share a competition place', () => {
+  const players = ['Ann', 'Bea', 'Cal', 'Dee'];
+  const totals = { Ann: 10, Bea: 20, Cal: 40, Dee: 40 };
+  assert.equal(LP.rankWithScore('Ann', 10, players, totals, true), 1);
+  assert.equal(LP.rankWithScore('Bea', 20, players, totals, true), 2);
+  assert.equal(LP.rankWithScore('Cal', 40, players, totals, true), 3);
+  assert.equal(LP.rankWithScore('Dee', 40, players, totals, true), 3);
+});
