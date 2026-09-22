@@ -6,14 +6,14 @@ Production name on the home screen is **Back Porch**. The Vercel host is still `
 
 ## Product bar
 
-A game night on the iPad (landscape) or the TV succeeds when:
+A game night on the iPad (landscape) or the TV succeeds when these are true. The ids are the contract in [tech-spec.md](tech-spec.md). A change is done when the invariant holds and a test locks it.
 
-1. A name fits its cell. Michelle stays whole, and the dealer chip hugs the letters.
-2. A logged round changes the total by exactly the number that was entered, and the row still adds up after an edit, an undo, or a mid-game join.
-3. A Life Preserver changes the total and the scorecard shows where those points came from.
-4. Tied scores share a place. The next distinct score skips ahead.
-5. The table can finish, undo, and reopen a dispute from the audit log without a laptop.
-6. Tonight's match survives a refresh. Finished games survive a second iPad through the porch cloud, without one live match erasing another.
+1. **NAME-FIT.** A name fits its cell. Michelle stays whole, and the dealer chip hugs the letters.
+2. **ROW-ADDS.** A logged round changes the total by exactly the number that was entered, and the row still adds up after an edit, an undo, or a mid-game join.
+3. **LP-VISIBLE.** A Life Preserver changes the total and the scorecard shows where those points came from. The spin is not a hand.
+4. **SHARED-PLACE.** Tied scores share a place. The next distinct score skips ahead. The same rule is used on the live card, history, profiles, and the path replay.
+5. **DISPUTE.** The table can finish, undo, and reopen a dispute from the audit log without a laptop.
+6. **PORCH-MEMORY.** Tonight's match survives a refresh. Finished games survive a second iPad through the porch cloud, without one live match erasing another.
 
 Portrait is a podium, not the scoring surface. Rotate back for the card.
 
@@ -43,7 +43,7 @@ House notes already in the rules cards (`gameRulesText`):
 
 1. Home: On Deck → Tonight's Table → a game card.
 2. Optional dealer roll and lineup intro (Settings; dealer roll defaults off).
-3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Undo Lock Bids exists only before the tricks are submitted.
+3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
 6. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`).

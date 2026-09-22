@@ -1,161 +1,175 @@
 # J-137 — Grok 4.7 smarter-now rethink
 
-Back Porch Games (`gamenight`) is a human scorekeeper. People play Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Rook. The app keeps the card, the Life Preserver wheel, and the porch memory. It does not play.
-
-Read with [product-spec.md](product-spec.md). No app behavior was changed for this pass.
+Back Porch Games is a human scorekeeper. People play. The app tracks the card. Specs: [product-spec.md](product-spec.md), [tech-spec.md](tech-spec.md). This note is the code sweep against those bars. No app behavior was changed.
 
 ## Rec
 
-1. **Fix the service worker before the next production deploy.** `npm run build` rewrites `public/sw.js` from `src/service-worker.js`. The template still precaches `comeback-logic.js` and leaves out `life-preserver-logic.js`. The worker committed on `main` is the right shell. Vercel runs that build (`vercel.json`), so the file in git is not the file that ships. Online play still fetches Life Preserver, which is why this has been quiet. A cold offline shell can boot without the wheel engine, and the precache keeps teaching the next agent that Turbos are live.
-2. **Close draft PR #35. Do not restyle Michelle again.** The wide dealer chip and the clipped name were fixed on `main` in #38 (`54eb926`) and #40. `tests/visual/app.visual.spec.mjs` already asserts the chip fills the button and that Michelle’s glyphs fit. Spot-check Hand of 7 on the iPad once, then close the draft.
-3. **Show the Life Preserver on the scorecard.** The spin is inside the total and invisible on the grid. Store format stays a `hailMaryBonus` round so it is not a fake hand. Paint the adjustment on the hand it followed.
-4. **Share place numbers when totals match.** The live badge is the row index. The post-game path already does competition ranking (`4` and `4`, then `6` and `6`). Use that rule on the live card. Cherry-pick that idea from draft PR #45. Leave its “a tie for first counts as taking first” wheel change until Matt says so.
-5. **Stop merging the open PR pile.** #22, #35, and #37 are from the Turbo / early-Life-Preserver weeks and will fight current `main`. #44 is an unsigned visual redesign. #43 (functional CI, no snapshot matrix) is the one process PR worth rebasing and landing.
+1. **PORCH-MEMORY.** Make `npm run build` emit the worker that is already committed. `src/service-worker.js` still precaches Turbo and drops Life Preserver. Vercel builds from that template.
+2. **LP-VISIBLE.** The spin is inside the total and absent from the grid, including history. Paint it on the hand it followed. Do not load Turbos to do that.
+3. **SHARED-PLACE.** The path replay already shares places. The live card, history list, and profiles number ties by row. Use the path’s loop.
+4. **ROW-ADDS.** One merge helper. Bench drag, rename-merge, and a unique rename currently rewrite different fields, so a merged name can keep the points and lose the bids.
+5. **Do not merge the open PR pile.** #35 is already fixed on `main`. #22 and #37 are older than the wheel’s return. #44 is an unsigned theme. #43 is the CI worth rebasing.
 
 ## Was
 
-Assumptions a Grok 4.6-era pass, or a pass that only read open PRs and filenames, would still be carrying:
+A prior pass that read filenames and open PRs would still believe:
 
-- **PR #35 is the live Michelle bug.** It is a draft from 22 Aug 2026, before the chip-width and name-fit merges. The button is already `max-content` and the green box sits on `.dealer-player-label`. Merging #35 now risks a CSS fight with rules that already pass.
-- **Hail Mary and Life Preserver are two products, or Turbos replaced the wheel.** There is one rescue. The UI says Life Preserver. The save format says `hailMaryBonus`, `hailMaryUsed`, and `authorizeHailMary()`. Turbos shipped, then PR #34 took them off the table. `applyComebackAndNotify` is an empty stub. `scripts/verify-production-assets.mjs` fails the build if `index.html` loads `comeback-logic.js`.
-- **Comeback tests passing means Turbos are the product.** `npm run check` still runs `scripts/test-comeback.mjs` (about 660 lines) and the visual Turbo specs. That protects old `round.comeback` rows. It does not mean the wheel should go away again.
-- **The open PRs are a backlog you can merge.** #22 and #37 predate the Life Preserver return and the later wheel calibration (#42) and layout fixes (#38–#41). #44 says do not merge. #45 mixes a real rank bug with a scorecard display change and a rules change about tying for first.
-- **`public/sw.js` is what production serves.** `scripts/copy-vendor-assets.mjs` overwrites it on every `npm run build` from `src/service-worker.js`. `npm run check` never builds, and it never diffs the template against the script tags. Reading the committed worker and calling the shell healthy is the miss.
-- **The live scorecard and the path replay share a place rule.** Only `buildMatchPlacePath` shares places. `renderGame` prints `ri + 1` after a sort that breaks ties by name.
-- **Closest Finish To 66 was already removed.** It is still calculated and still a Records card. Draft #22 tried to drop it and should not be merged to do that.
-- **The next architecture move is splitting the 16k-line `index.html`.** The debt that causes wrong fixes is the second score engine and the two stacked theme passes. A file split does not help Thursday’s table.
-- **The README is the spec.** It was one line, “CardKnight · Game Night Scorekeeper.” The product name on the device is Back Porch.
+- Draft #35 is the live Michelle bug. NAME-FIT is already implemented and tested (`54eb926`, PR #40, dealer-chip assertions in `tests/visual/app.visual.spec.mjs`).
+- Hail Mary and Life Preserver are two features, or Turbos are current because `test:comeback` runs. The page stubs Turbo (`applyComebackAndNotify` at `public/index.html` 9689–9691) and `scripts/verify-production-assets.mjs` 39–41 forbids loading `comeback-logic.js`.
+- `public/sw.js` is what production serves. `scripts/copy-vendor-assets.mjs` 54–56 overwrites it on every build from `src/service-worker.js`.
+- The live card and the path replay share a rank function. They do not.
+- Splitting the 16,464-line `index.html` is the first move. The first move is one implementation per invariant below.
 
-## Now
+## Now — code sweep
 
-What is actually true on `main` (`a18a52e` and the open PR list as of 22 Sep 2026).
+Measured against [tech-spec.md](tech-spec.md) on `main` (`a18a52e`).
 
-### The table is in good shape
+### LP-VISIBLE — the total moves and the row does not show why
 
-Six games, a focused score-entry modal, mid-game join with Wizard length resync, Beat the Heat auto-end at 66, Rook target confirm, audit log, file backup, and a single porch cloud. Life Preserver eligibility, hold-for-this-scoring-period, and the 818 +20 cap have unit tests. Visual coverage exists for iPad, laptop, and 1080p, and it is intentionally local because the snapshot matrix flakes.
+The wheel writes a real round and then every scorecard throws that round away.
 
-There are no GitHub issues. The backlog is open PRs plus porch memory.
+- `spinWheel` pushes `{ round: 0, hailMaryBonus: true, scores: { [player]: adj } }` at `public/index.html` 10996.
+- `recomputeGameTotals` (8656–8664) adds `round.scores` and legacy `round.comeback`, so the Total is right.
+- Live columns come from `getRecordChaseRoundEntries` (13554–13557), which drops `hailMaryBonus`. History does the same in `openScorecard` (15477–15490). Rook’s own table does it again (11841–11843).
+- The only extra painted on a cell is `r.comeback` (13842–13849 and 15491–15494). New games never set `comeback`, because `applyComebackAndNotify` (9689–9691) returns `[]` and is still called from all three submit paths (14674, 14723, 14742).
+- `buildMatchPlacePath` (12205) also skips the bonus, then picks winners from full totals (12227–12229). The chart’s last dot can disagree with the standing the spin just created.
 
-### Real bugs
+This was written this way because Turbo extras lived on the scoring round (`round.comeback`) and the wheel was stored as a fake round so it would fall out of hand counts. When the wheel came back, the cell painter was left on the Turbo field and the filter that hides bonus rounds was left in place. Both halves are locally reasonable. Together they hide the only adjustment the porch argues about.
 
-**1. Build emits the Turbo service worker.**
+`renderGame` also pays for eligibility twice. Line 13712 calls `syncCurrentLifePreserverHolds`, which offers every player. The row builder then calls `isHailMaryEligible` again per player (13785), which offers them a second time. The badge was added beside the hold list instead of reading the hold list.
 
-| File | What it says |
+### SHARED-PLACE — three rankers, one of them correct
+
+The spec is competition ranking: equal totals share a place, the next total skips.
+
+- `buildMatchPlacePath` (12214–12222) does that. It is the only place that does.
+- The live card sorts with a bare subtraction and no tie rule (`renderGame` 13714–13716), then prints `ri + 1` (13788–13790). Two players on the same score become 6 and 7.
+- `sortPlayersByTotal` (12177–12181) breaks ties with `localeCompare`, so history and profiles order ties alphabetically and still number them 1, 2, 3 via `findIndex` (`getProfileSummary` 10215, history rows 15438–15439).
+- Portrait sorts a third way (13945) and shows a podium, which is fine, but it is another copy of “who is ahead.”
+
+This was written less carefully than it could be because each screen grew its own `sort` inside the HTML template. The path replay needed shared places to draw lines, so it got a real loop. The scorecard only needed a row index, so it never learned the rule.
+
+### ROW-ADDS — formulas and merges were copied instead of called
+
+What works: `recomputeGameTotals` is the total. Undo (14770–14808) removes the last scoring round plus any spins after it and gives those spins back through `releaseRemovedLifePreservers`. Mid-game join writes the catch-up on the last scoring round and flags `joinBonus` (14844–14852). 818’s formula is a function, `calculate818Score` (8741–8745), and the dealer-bid block is shared by the modal and by `submitRound`.
+
+What does not:
+
+- Wizard’s formula is inlined once, at 14671 (`20 + 10 × actual` or `−10 ×` the miss). There is no `calculateWizardScore`. A second editor cannot reuse it.
+- Editing a past cell writes `round.scores[player]` directly (15249) and, if Turbo were loaded, would resync `comeback` (15250). It does not touch `bids` / `actuals`. The miss styling (13834–13840) still comes from bid versus actual. A corrected Wizard cell can show a miss dot on a number the table typed on purpose. ROW-ADDS holds for the total. The cell’s explanation does not.
+- Rook’s made/set math lives only inside `submitRookRound`. The loop at 11762–11766 walks the table, checks the target, and does nothing. The real confirm is 11771–11777, after recompute. The empty loop is what you get from patching a function in place.
+- Names are merged three different ways.
+  - Unique rename, `renamePlayerEverywhere` (10719), moves roster, rounds, `hailMaryUsed`, and holds.
+  - Rename onto an existing person, `mergePlayerRecords` (10807–10826), adds totals and moves `scores` / `bids` / `actuals` / `comeback`. It leaves `hailMaryUsed`, holds, `originalRoster`, `retired`, and the live match on the deleted name.
+  - Bench drag, `dropMerge` (11229–11240), only adds totals, winners, and `r.scores`. Bids and actuals stay behind, so an 818 or Wizard exact-rate record lies after a drag-merge. The comment at 10685 says this is the same flow as `mergePlayerRecords`. It is not.
+
+This was written less efficiently than it could be because each call site hand-listed the keys it remembered that week. Life Preserver fields were added to rename and not to either merge.
+
+### PORCH-MEMORY — the build ships a different app than git shows
+
+- Committed `public/sw.js` 8–13 precaches `life-preserver-logic.js`.
+- `src/service-worker.js` 8–14 precaches `comeback-logic.js` and also `apple-touch-icon.png`, and omits Life Preserver.
+- `scripts/copy-vendor-assets.mjs` 54–56 is what `npm run build` runs. `vercel.json` sets that as `buildCommand`.
+- `verify-production-assets.mjs` checks the script tag and never reads the template. `comeback-logic.js` is still on disk, so `cache.addAll` succeeds. The bad shell does not fail the install.
+
+Online, the page requests Life Preserver and the network-first worker caches it after the first fetch. A cold cache, or the next agent reading the template, still has the Turbo shell.
+
+Cloud memory is one Redis string (`api/sync.js` 3 and 85, `SET` with no revision). `schedulePorchPush` (10152–10155) writes the entire backup 2.5 seconds after a save. `mergeCloud` (`public/assets/backup.js` 133–141) throws away the remote live match whenever this device has one, and the following PUT publishes that choice. Two iPads scoring at once violate PORCH-MEMORY. One iPad is fine.
+
+Match ids are `Date.now()` (`createSavedMatchSnapshot` 11254). Merge dedupes on that id (`backup.js` 117–121). Two saves in the same millisecond collapse into one history row.
+
+History’s subtitle uses `h.rounds.length` (15446). That count includes Life Preserver rounds, so a finished 11-hand Five Crowns with a spin reads as 12 rounds. LP-VISIBLE says the spin is not a hand. The list treats it as one.
+
+### NAME-FIT — met, and expensive because the CSS is two themes
+
+The dealer chip hugs the label (`button.dealer-name-indicator` and `.dealer-player-label`, 2381–2436 and again 3606–3625). `fitScorecardPlayerNames` (13296–13329) measures uppercase text and shrinks only a name that overflows the cell. Tests cover Michelle. Draft PR #35 should be closed, not merged.
+
+The fitter exists because the theme was pasted twice. A block labeled `BACK PORCH GAMES: COHESIVE MOCKUP PASS` starts at line 4399 and again at 5400. The following thousand lines differ in about 160 places. Later rules win. A chip fix in the first copy is not the rule the browser uses. That is why name layout became a canvas measurement on every scorecard paint (`scheduleScorecardColumnTrimAll` 13470, called from `renderGame` 13915) instead of one CSS rule.
+
+### Hot path — the scorecard is rebuilt as a string, and Player Pace scans history per row
+
+`renderGame` (13651) recomputes totals, syncs holds, sorts, and assigns `innerHTML` for the whole head and body (13749, 13861). Then it paints portrait (13909) and schedules a column trim that reads layout. For eight players this is acceptable. It was written this way because the page never grew a scorecard model, so every feature appends to the string.
+
+Player Pace is the part that will not stay acceptable. `renderRecordChasePanel` (13640–13641) calls `getRecordChaseMetric` per player. Each call runs `getRecordChaseHistory` (13569–13574), which filters all of `gn_history`, then scans that list twice for best and worst (13604–13605). Eight players means eight full history walks on every scorecard paint, including after every round. This was written less efficiently than it could be because the Best / Avg / Worst cells were dropped into the row template as if they were labels. They are queries. One pass over history per paint, keyed by player, is the same data.
+
+`persistJsonIfChanged` (9023–9047) already avoids rewriting an unchanged JSON string, and history is deferred two seconds during a live match (9092–9098). That part is doing the right work. The cloud push is not: it still ships the whole backup on the same cadence.
+
+`computeHeadToHead` (15505–15532) is an active-player × opponent walk over every match, cached only while a match is open. Profiles with no live match recompute it on every open. Fine at porch size. Same pattern as Player Pace: a statistic living inside a renderer.
+
+### Wrong abstractions
+
+- **Two score engines.** `life-preserver-logic.js` is the live pure module. `comeback-logic.js` is a parallel copy (same `SUPPORTED_GAMES`, its own 818 ladder, its own recovery math) that the page must not load. `EIGHT18_ROUND_TRICKS` is declared in `index.html` 8715, `life-preserver-logic.js` 5, and `comeback-logic.js` 5. Wizard’s `floor(60 / n)` length is likewise copied in `getMaxRounds` inside the Life Preserver file (87–94) and `snapshotGameMaxRounds` (8798–8804). They match today. They will drift the first time someone edits one.
+- **Turbo vocabulary left on the live path.** CSS classes `scorecard-turbo-slot`, `has-comeback`, and `score-cell-comeback`, plus the rules modal at 8180–8202, still describe a feature the shell rejects. `comebackChip` is hardcoded to `''` (13784). The slot is still emitted (13824). The next “just show the extra” patch will wire the stub back up, which reopens the bet PR #34 closed.
+- **Rook is a second app inside `renderGame`.** `renderGame` returns early into `renderRookGame` (13666–13672). Place, columns, and round submit do not share the other games’ helpers. That is why `detectRoundWhammy` bails out for Rook with a TODO (9739–9741) and why Rook’s target check got an empty loop beside the real one.
+- **Render mutates the match.** `renderGame` calls `recomputeGameTotals` (13684) and `syncCurrentLifePreserverHolds` (13712). Painting can change `lifePreserverHeld` and `totals`. A refresh before the next `saveData` loses the hold update. Holds belong on the submit / undo / join boundary, with render only reading them.
+
+### Missing versus the spec, and what is not missing
+
+| Invariant | On `main` |
 | --- | --- |
-| `src/service-worker.js` lines 8–14 | Precache includes `./assets/comeback-logic.js` and omits Life Preserver. |
-| `public/sw.js` lines 8–13 | Precache includes `./assets/life-preserver-logic.js`. This is the shell you want. |
-| `scripts/copy-vendor-assets.mjs` lines 54–56 | `npm run build` replaces `public/sw.js` from the template. |
-| `vercel.json` | `buildCommand` is `npm run build`. |
-| `scripts/verify-production-assets.mjs` lines 39–41 | Guards the script tag. Does not read the worker template. |
+| NAME-FIT | Holds. Close #35. |
+| ROW-ADDS for a normal submit | Holds, via `recomputeGameTotals`. |
+| ROW-ADDS after a name merge | Fails for drag-merge and rename-merge. |
+| LP-VISIBLE | Fails on live and history cards. |
+| SHARED-PLACE | Fails except path replay. |
+| DISPUTE | Audit log works (`addAuditEntry` 8988, `openAuditLog` 9000). Lines are inserted as HTML without `escapeHtml` (9007–9008), and the live name cell interpolates the name the same way (13821–13823). `escapeHtml` exists and is used for suggestions. A name with markup becomes markup. |
+| PORCH-MEMORY for one device | Holds, including refresh of `gn_current`. |
+| PORCH-MEMORY for two devices | Fails. Last PUT wins. |
+| Built worker matches loaded scripts | Fails. See above. |
+| Closest Finish To 66 | Still a Records card (16200), fed by a winner’s heat against the 66 loss line (15902–15913). The product bar does not ask for this trophy. Beat the Heat’s real end is `endScore: 66` (8794) and `hasReachedEndScore` (8688–8694). |
 
-`comeback-logic.js` is still in the repo, so `cache.addAll` succeeds. The failure is silent.
+House rules that look like bugs and are not, until Matt says otherwise:
 
-**2. Life Preserver points are in the total and missing on the grid.**
+- Wizard does not block a dealer bid that makes the bids sum to the tricks. 818 does (`get818DealerBidInfo` 14178).
+- 818 cannot undo a locked bid. Wizard can (`isWizardBidLockUndoAvailable` 14056).
+- WHAMMY / Nolie / Cami do not fire for 818, Beat the Heat, or Rook (`detectRoundWhammy` 9747–9753, `detectNolieForRound` 9778).
 
-- Spin pushes `{ round: 0, hailMaryBonus: true }` at `public/index.html` around line 10996.
-- `recomputeGameTotals` (around 8652) adds that score, so the Total is right.
-- Round columns drop those rounds (`getRecordChaseRoundEntries`, around 13554).
-- Cells only render `r.comeback` (around 13842). New games never set `comeback`, because `applyComebackAndNotify` (around 9689) returns `[]`.
-- `buildMatchPlacePath` (around 12205) also skips the bonus round, then colors winners from full totals. The path’s last point can disagree with the standing the spin just created.
+### Open PRs against this sweep
 
-PR #37 and PR #45 both try to draw the adjustment. They are different patches on an old base. Take the behavior, not the branch: show the number on the previous scoring cell, keep the bonus out of hand counts, and add one Playwright assertion.
+| PR | Sweep result |
+| --- | --- |
+| #35 chip hug | Already on `main`. Close. |
+| #37 LP honesty | Do not merge. The LP-VISIBLE and merge-metadata gaps are real. The branch is older than #38–#42, which changed name fit and the 818 cap. |
+| #22 records | Do not merge. Only the Closest-to-66 removal is still a valid ticket, and it should be a new patch. |
+| #43 functional CI | Rebase and land. `main` has no `.github/` workflows. The check would have caught a script-tag regression and still would not catch the worker template. T1 adds that. |
+| #44 Porch Club | Park. Another theme pass on top of the two that already diverge at lines 4399 and 5400. |
+| #45 shared places | Cherry-pick SHARED-PLACE. Review its Life Preserver cell against LP-VISIBLE separately. Do not change the “strictly behind 1st” cap in the same patch. |
 
-**3. Ties are numbered by row.**
-
-`sortPlayersByTotal` (around 12177) orders equal totals by name. The live badge is `ri + 1` (around 13788). Two players on the same score get 6 and 7. `buildMatchPlacePath` (around 12214) already assigns both the best place and skips. History ranks and profile ranks use `findIndex` the same way as the live card.
-
-**4. Two merge implementations, both incomplete.**
-
-- Rename of a unique name (`renamePlayerEverywhere`, around 10719) rewrites roster, rounds, `hailMaryUsed`, and holds.
-- Rename onto an existing name calls `mergePlayerRecords` (around 10807). That adds totals and moves score keys. It does not rewrite `hailMaryUsed`, holds, `originalRoster`, or the live match.
-- Bench drag (`dropMerge`, around 11229) is a third, thinner copy: totals, winners, and `r.scores` only. Bids and actuals stay on the deleted name, so 818 and Wizard exact-rate records lie after a drag-merge. The comment that says this is the same flow as `mergePlayerRecords` is false.
-
-**5. Closest Finish To 66 is still a trophy for a loss.**
-
-`hasReachedEndScore` ends Beat the Heat at 66. The Records page still has Closest Finish To 66 (`renderRecordsPage` around 16200), fed by winner heat versus 66 (around 15902). Ice rounds, coolest game, and closest margin are the cards that match the rules.
-
-**6. One cloud key, last write wins.**
-
-`api/sync.js` stores a single Redis string. `pushPorchCloud` PUTs the whole backup. There is no revision. `mergeCloud` in `backup.js` drops the remote live match when this device already has one, then the following push writes that choice back for everyone. Fine for one iPad. Risky when two devices score at once.
-
-### Tech debt that will create the next wrong fix
-
-- **Unloaded Turbo engine.** `public/assets/comeback-logic.js`, the Turbo modals around line 8180, a pile of `.comeback` / `.scorecard-turbo-slot` CSS, QA fixtures, and `test:comeback` all describe a feature the shell is required to keep off. A future “just wire the script back up” patch reintroduces the bet Matt already rejected.
-- **Two theme passes in one file.** `public/index.html` is 16,464 lines. A “COHESIVE MOCKUP PASS” starts at line 4399 and again at line 5400. The next thousand lines are not the same sheet (about 160 differing lines). Later rules win. A chip fix in the first pass can be overwritten by the second. That is why Michelle generated three PRs.
-- **Dead Rook loop.** `submitRookRound` (around 11762) walks players against the target and does nothing. The real confirm runs after `recomputeGameTotals` a few lines later. Harmless, and a good sign the function has been patched in place too many times.
-- **No CI on `main`.** No `.github/` workflows. PR #43 proposes `npm run check` plus a small laptop Playwright pack, and it correctly leaves the screenshot matrix local.
-- **Naming.** Home-screen title Back Porch, manifest “Back Porch Games,” host `cardknight.vercel.app`, repo `gamenight`, old README CardKnight. Cloud sync only turns on for the CardKnight host (`canPorchCloud`).
-
-### Wrong bets
-
-- Rebuilding Turbos, or a “smarter” automatic extra, as the Grok upgrade. The porch chose the wheel.
-- Treating Life Preserver neighbor feedback as a repo task. The Google Form was filled and not published. It is not in this codebase. Publish it outside the app.
-- Merging PR #44 to “modernize” the porch. It is a night-theme preview and it says not to ship until Matt signs it. Scorecard name-fit math is easy to break with a font change.
-- Adding AI bids or an opponent. Out of product.
-- Splitting `index.html` before the worker, the invisible spin, and shared places are done.
-
-### Open PRs
-
-| PR | State | Do this |
-| --- | --- | --- |
-| [#35](https://github.com/mattwilliamsproduct/gamenight/pull/35) Hug Five Crowns name chips | Draft | Close. Superseded by #38 and #40. |
-| [#37](https://github.com/mattwilliamsproduct/gamenight/pull/37) Life Preserver and scorebook honesty | Open | Do not merge. Rebase only if a hunk is still true: merge metadata, cloud revision, showing the spin. Wheel caps and name fit moved on in #38–#42. |
-| [#22](https://github.com/mattwilliamsproduct/gamenight/pull/22) Records / extras / first toast | Draft | Do not merge. Steal only the Closest-to-66 removal, as a new patch. |
-| [#43](https://github.com/mattwilliamsproduct/gamenight/pull/43) Functional tests and PR CI | Open | Rebase onto current `main` and land. |
-| [#44](https://github.com/mattwilliamsproduct/gamenight/pull/44) Porch Club redesign | Open | Park until Matt signs the preview. |
-| [#45](https://github.com/mattwilliamsproduct/gamenight/pull/45) Shared places | Draft | Cherry-pick shared places. Review the Life Preserver cell separately. Ask before changing “cannot tie for 1st.” |
+The neighbor Life Preserver form is still outside this repo. Publishing it is not a code change.
 
 ## Next
 
-Tickets for this week. Acceptance is the test, not a redesign.
+### T1 — Worker matches the page (PORCH-MEMORY)
 
-### T1 — Ship the worker you think you ship
+`src/service-worker.js` `APP_SHELL` lists `life-preserver-logic.js` and does not list `comeback-logic.js`. `npm run build` output matches. `verify-production-assets.mjs` fails when the template and the script tags disagree.
 
-Edit `src/service-worker.js` so `APP_SHELL` lists `./assets/life-preserver-logic.js` and does not list `comeback-logic.js`. Run `npm run build`. Confirm generated `public/sw.js` matches. Extend `scripts/verify-production-assets.mjs` so `npm run check` fails when the template and the `index.html` script tags disagree.
+### T2 — Show the spin (LP-VISIBLE)
 
-Done when a fresh build precaches Life Preserver and the check fails if someone points the template back at Turbos.
+Last scoring cell shows the adjustment (`40 −30`, `0 +40`). Hidden columns mark Total. Undo clears it. Hand counts, Player Pace, WHAMMY, and `rounds.length` on the history card ignore `hailMaryBonus`. One Playwright or unit assertion on the cell text. `comeback-logic.js` stays unloaded.
 
-### T2 — Close the Michelle draft
+### T3 — One place function (SHARED-PLACE)
 
-Comment on #35 that #38 and #40 landed the chip and the name fit, point at the dealer-geometry assertions in `tests/visual/app.visual.spec.mjs`, and close it. One iPad look at Five Crowns with Michelle dealing. No new CSS.
+Live card, history list, and profile rank call the same loop as `buildMatchPlacePath` 12214–12222. A tied Wizard fixture shows `4` and `4`, then `6`. The Life Preserver cap is untouched.
 
-### T3 — Life Preserver mark on the card
+### T4 — One merge (ROW-ADDS)
 
-After a spin, the last scoring cell shows the adjustment the way a human can add (Five Crowns `40 −30`, Wizard `0 +40`). Hidden columns leave a mark by Total. Undo removes the mark and restores the hold. Hand count, Player Pace, and WHAMMY still ignore the bonus round.
+`dropMerge` and `mergePlayerRecords` call one helper. Scores, bids, actuals, `hailMaryUsed`, holds, roster, and retired flags move. The live match is included when that name is in it. A node test covers a Wizard round plus a Life Preserver bonus.
 
-Done when a unit or Playwright check covers the cell text and `npm run test:life-preserver` stays green. Do not load `comeback-logic.js` to get there.
+### T5 — Functional CI (#43) plus the worker check
 
-### T4 — Shared places
+`npm run check` and the small laptop pack on current `main`. Screenshot baselines stay local.
 
-Live scorecard, history list, and profile rank use the same shared-place loop as `buildMatchPlacePath`. A Wizard fixture with two players on the same total shows the same place and skips the next number.
+### T6 — Player Pace scans history once
 
-Done when that assertion exists and the Life Preserver “must stay behind 1st” cap is unchanged.
-
-### T5 — Land functional CI
-
-Rebase the #43 idea: `npm run check` plus the small laptop pack (Wizard mid-game length, Michelle fit, Actions menu, 818 +20, Beat the Heat at 66). Screenshot updates stay a local step, as `docs/release-checks.md` already says.
-
-### T6 — One merge path
-
-`dropMerge` and `mergePlayerRecords` call one helper. A merge moves scores, bids, actuals, `hailMaryUsed`, holds, roster, and retired flags. The live match is included when that name is in it.
-
-Done when a node test merges a Wizard round that has bids and a Life Preserver bonus and both names collapse to the target.
+`renderRecordChasePanel` stops calling `getRecordChaseHistory` per player. One walk of `gn_history` per paint, then a lookup. Same Best / Avg / Worst numbers.
 
 ### T7 — Drop Closest Finish To 66
 
-Delete that record card and its calculator. Leave ice rounds, coolest/hottest, closest margin, lopsided, and longest match. New commit on current `main`. Do not reopen #22.
+Remove the card and the calculator at 15902–15913 and 16200. Leave the other Beat the Heat cards. Do not reopen #22.
 
-### Explicitly later
+### Later, not this sweep
 
-- Cloud revision token so a stale iPad cannot clobber a newer scorebook (the useful kernel of #37).
-- Publish the Life Preserver neighbor form. Not a code change here.
-- Porch Club theme only after a signed preview, with name-fit tests rerun.
-- Rook WHAMMY only after team rounds are specified. The TODO at `detectRoundWhammy` is the right brake.
-
-## What a weaker pass would have shipped
-
-A pass that stopped at “PR #35 is open, Turbos have tests, Hail Mary is in the code” would have merged the Michelle draft, re-enabled `comeback-logic.js` because the tests import it, and treated the wheel as legacy. That undoes PR #34 and PR #42 and restarts the chip war #38 already ended.
-
-A pass that trusted `public/sw.js` without running the build would have reported the PWA shell healthy. The build script is the bug.
-
-A pass that called tied places and invisible Life Preserver points “polish” would have missed the two places the porch can see a total lie: the rank badge and the row that does not add up. The path replay already solved places. The total already includes the spin. The bug is that the live card does not use either fact.
+- Cloud revision so a stale PUT cannot replace a newer scorebook.
+- Delete the Turbo modal, the empty `comebackChip` slot, and the second theme pass only as their own changes, after T2, so a cleanup does not move the scorecard.
+- Rook WHAMMY only after team rounds are specified.
+- 818 bid-lock undo, and Wizard’s dealer-bid law, only if the table asks.
