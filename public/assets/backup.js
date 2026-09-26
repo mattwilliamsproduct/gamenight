@@ -7,7 +7,8 @@
     '818',
     'Flip 7 Vengeance',
     'Beat the Heat',
-    'Rook'
+    'Rook',
+    'Hand and Foot'
   ]);
 
   function gameCounts(history) {

@@ -4129,12 +4129,97 @@ button.dealer-name-indicator .dealer-player-label {
       background-color: #f4f8f3;
     }
     .bp-rook .bp-game-card-art { background-image: url('./theme/game-card-rook-thumb.jpg'); }
+    .game-card.quest-card.bp-game-card.bp-hand-foot {
+      background-image: none !important;
+      background-color: #f6f0ff;
+    }
+    .bp-hand-foot .bp-game-card-art {
+      background-image: linear-gradient(145deg, #4c1d95 0%, #9d174d 46%, #ea580c 100%);
+    }
+    .bp-hand-foot .bp-game-card-art::after {
+      content: '🃏';
+      position: absolute;
+      right: 14%;
+      bottom: 16%;
+      font-size: 2.6rem;
+      line-height: 1;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.28));
+    }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
     .bp-eight18 { border-bottom-color: #5aa77e !important; }
     .bp-flip7 { border-bottom-color: #d45f67 !important; }
     .bp-beat-heat { border-bottom-color: #e66a49 !important; }
     .bp-rook { border-bottom-color: #4f9fa3 !important; }
+    .bp-hand-foot { border-bottom-color: #7c3aed !important; }
+    .hf-side-names { display: flex; flex-direction: column; min-width: 0; line-height: 1.05; }
+    .score-entry-name.hf-side-names {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      display: flex;
+      flex-direction: column;
+      font-size: 1rem;
+    }
+    .hf-side-names .scoreboard-player-name { font-size: clamp(1.15rem, 2vw, 1.7rem); }
+    .hf-side-avatars { display: flex; gap: 0.15rem; }
+    .hf-side-avatars .avatar-wrap { width: auto; }
+    .hf-meld-hint {
+      display: block;
+      margin-top: 0.12rem;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.78;
+    }
+    .hf-setup-side {
+      border: 1.5px solid var(--hairline);
+      border-radius: 16px;
+      padding: 0.85rem 1rem;
+      background: var(--surface);
+    }
+    .hf-fields {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.45rem;
+      width: 100%;
+    }
+    .hf-field, .hf-round {
+      border: 2px solid var(--hairline);
+      border-radius: 14px;
+      background: var(--surface);
+      padding: 0.35rem 0.4rem 0.45rem;
+      text-align: center;
+      min-width: 0;
+    }
+    .hf-field.active {
+      border-color: var(--emerald);
+      background: var(--emerald-bg);
+    }
+    .hf-field-value, .hf-round-value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+      line-height: 1.1;
+      min-height: 1.2em;
+    }
+    .score-entry-hf-row { align-items: stretch !important; }
+    #score-entry-modal.score-entry-hand-foot .score-entry-lane-label { grid-template-columns: 1fr; }
+    #score-entry-modal.score-entry-hand-foot .score-entry-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-row,
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+      height: auto !important;
+    }
+    #score-entry-modal.score-entry-hand-foot .score-entry-rows { overflow-y: auto !important; }
+    #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"] {
+      opacity: 0.35;
+      pointer-events: none;
+    }
     html.dark .bp-game-card { color: #073f3b; }
     .quest-emblem {
       display: none;
@@ -5026,6 +5111,9 @@ button.dealer-name-indicator .dealer-player-label {
     #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('./theme/game-card-rook-thumb.jpg'); }
     #game-screen[data-game='Beat the Heat'] .bp-active-game-art {
       background-image: url('./theme/game-card-beat-heat-thumb.jpg');
+    }
+    #game-screen[data-game='Hand and Foot'] .bp-active-game-art {
+      background-image: linear-gradient(145deg, #4c1d95 0%, #9d174d 46%, #ea580c 100%);
     }
     .bp-live-kicker { display: none; }
     #game-title {
@@ -6027,6 +6115,9 @@ button.dealer-name-indicator .dealer-player-label {
     #game-screen[data-game='Rook'] .bp-active-game-art { background-image: url('./theme/game-card-rook-thumb.jpg'); }
     #game-screen[data-game='Beat the Heat'] .bp-active-game-art {
       background-image: url('./theme/game-card-beat-heat-thumb.jpg');
+    }
+    #game-screen[data-game='Hand and Foot'] .bp-active-game-art {
+      background-image: linear-gradient(145deg, #4c1d95 0%, #9d174d 46%, #ea580c 100%);
     }
     .bp-live-kicker { display: none; }
     #game-title {
@@ -7469,6 +7560,7 @@ button.dealer-name-indicator .dealer-player-label {
                 <option value="Flip 7 Vengeance">Flip 7</option>
                 <option value="Beat the Heat">Beat the Heat</option>
                 <option value="Rook">Rook</option>
+                <option value="Hand and Foot">Hand and Foot</option>
               </select>
             </label>
           </div>
@@ -7507,6 +7599,12 @@ button.dealer-name-indicator .dealer-player-label {
               <span class="bp-game-card-art" aria-hidden="true"></span>
               <div class="flex-1 min-w-0">
                 <div class="font-display text-3xl leading-tight">Rook</div>
+              </div>
+            </button>
+            <button onclick="startGame('Hand and Foot')" class="game-card quest-card bp-game-card bp-hand-foot group flex items-center justify-between" style="padding:1.75rem 1.85rem;min-height:110px;">
+              <span class="bp-game-card-art" aria-hidden="true"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-display text-3xl leading-tight">Hand and Foot</div>
               </div>
             </button>
           </div>
@@ -7561,11 +7659,11 @@ button.dealer-name-indicator .dealer-player-label {
               </div>
               <div class="actions-menu-section">
                 <span class="actions-menu-label">Table tools</span>
-                <button onclick="addPlayerMidGame();closeActionsMenu();" class="actions-menu-item">
+                <button id="actions-add-player-btn" onclick="addPlayerMidGame();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-1.8-4-4-4H6c-2.2 0-4 1.8-4 4"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M16 11h6"></path></svg></span>
                   <span>Add Player Mid-Game</span>
                 </button>
-                <button onclick="openReorderPlayersModal();closeActionsMenu();" class="actions-menu-item">
+                <button id="actions-reorder-btn" onclick="openReorderPlayersModal();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path></svg></span>
                   <span>Reorder Players</span>
                 </button>
@@ -7786,6 +7884,28 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ ROOK: Setup Modal ═══ -->
+    <div id="hand-foot-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="cancelHandFootSetup()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-lg p-7 relative pop-in">
+        <div class="text-center mb-5">
+          <div class="text-5xl mb-3">🃏</div>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Before round 1</div>
+          <h3 class="font-display text-3xl">Hand and Foot</h3>
+          <p id="hand-foot-setup-note" class="text-sm font-semibold mt-2" style="color:var(--muted);"></p>
+        </div>
+        <div id="hand-foot-format-toggle" class="hidden flex gap-2 mb-4">
+          <button type="button" id="hf-format-teams" onclick="handFootSetupFormat('teams')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Teams</button>
+          <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
+        </div>
+        <div id="hand-foot-setup-sides" class="space-y-3"></div>
+        <p id="hand-foot-setup-order" class="hidden text-[11px] font-semibold mt-3 leading-snug" style="color:var(--muted);">Teams follow lineup order: first half versus second half. Reorder the lineup before the match if you want different partners.</p>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="cancelHandFootSetup()" class="btn-ghost flex-1 py-4 font-extrabold">Back</button>
+          <button type="button" onclick="commitHandFootSetup()" class="btn-primary flex-[1.4] py-4 font-display text-xl">Start Match →</button>
+        </div>
+      </div>
+    </div>
+
     <div id="rook-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="surface-raised w-full max-w-md p-7 relative pop-in">
@@ -8036,7 +8156,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <div class="score-entry-side flex flex-col gap-3">
             <div class="score-entry-selected-card p-4">
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-3" style="color:var(--muted);">Selected Player</div>
+              <div id="score-entry-selected-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-3" style="color:var(--muted);">Selected Player</div>
               <div class="score-entry-selected-head">
                 <div id="score-entry-selected-avatar"></div>
                 <div class="min-w-0">
@@ -8133,7 +8253,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.</li>
               <li>One spin per player, per game.</li>
               <li>Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.</li>
-              <li>Not used in Rook or Beat the Heat.</li>
+              <li>Not used in Rook, Beat the Heat, or Hand and Foot.</li>
             </ul>
             <h4>What the wheel does</h4>
             <ul>
@@ -8419,6 +8539,7 @@ button.dealer-name-indicator .dealer-player-label {
 
 
   <script src="./assets/backup.js"></script>
+  <script src="./assets/hand-foot-logic.js"></script>
   <script src="./assets/life-preserver-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
@@ -8651,6 +8772,19 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function recomputeGameTotals(game){
     if(!game)return {};
+    if(isHandFootGame(game)){
+      const keys=getHandFootColumns(game);
+      game.totals={};
+      keys.forEach(k=>{ game.totals[k]=0; });
+      (game.rounds||[]).forEach(r=>{
+        Object.keys(r.scores||{}).forEach(p=>{
+          if(game.totals[p]===undefined) return;
+          const score=Number(r.scores[p]);
+          game.totals[p]+=Number.isFinite(score)?score:0;
+        });
+      });
+      return game.totals;
+    }
     game.totals={};
     (game.originalRoster||[]).forEach(p=>{if(p)game.totals[p]=0;});
     (game.rounds||[]).forEach(r=>{
@@ -8707,7 +8841,46 @@ button.dealer-name-indicator .dealer-player-label {
     }
     return "You've reached the final round.";
   }
+  function isHandFootGame(game){
+    const name=typeof game==='string'?game:game?.name||game?.game;
+    return name==='Hand and Foot';
+  }
+  function handFootApi(){
+    return window.BPGHandFoot||null;
+  }
+  function handFootMembersOf(game, key){
+    const side=(game?.handFoot?.sides||[]).find(s=>s&&s.key===key);
+    if(side?.members?.length) return side.members.slice();
+    return key?[key]:[];
+  }
+  function getHandFootColumns(game){
+    const api=handFootApi();
+    const sides=game?.handFoot?.sides||[];
+    if(api&&sides.length) return api.scoringKeys(sides);
+    return sides.map(s=>s&&s.key).filter(Boolean);
+  }
+  function handFootMeldForRound(roundNumber){
+    const api=handFootApi();
+    return api?api.meldForRound(roundNumber):([50,90,120,150][(Number(roundNumber)||0)-1]??null);
+  }
+  function handFootRoundTotal(parts){
+    const api=handFootApi();
+    if(api) return api.roundScore(parts||{});
+    const card=parseInt(parts?.cardPoints,10)||0;
+    const bonus=parseInt(parts?.bonuses,10)||0;
+    const left=Math.abs(parseInt(parts?.cardsLeft,10)||0);
+    return card+bonus-left;
+  }
+  function cloneHandFoot(config){
+    if(!config) return null;
+    return JSON.parse(JSON.stringify(config));
+  }
   function getRecordedPlayers(gameData){
+    if(isHandFootGame(gameData)){
+      const keys=getHandFootColumns(gameData);
+      const totals=gameData?.totals||{};
+      if(keys.length) return keys.filter(k=>totals[k]!==undefined);
+    }
     const retired=gameData?.retired||[];
     const totals=gameData?.totals||{};
     return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
@@ -8744,7 +8917,7 @@ button.dealer-name-indicator .dealer-player-label {
     return a+(a===b?10:0);
   }
   function isHighScoreGame(name){
-    return name==='Wizard'||name==='818'||name==='Flip 7 Vengeance'||name==='Rook';
+    return name==='Wizard'||name==='818'||name==='Flip 7 Vengeance'||name==='Rook'||name==='Hand and Foot';
   }
   function is818ExactRound(round, player, score){
     const bid=round?.bids?.[player];
@@ -8792,7 +8965,8 @@ button.dealer-name-indicator .dealer-player-label {
     "818":             { emoji:"🛡️", winLow:false, maxRounds:EIGHT18_ROUND_TRICKS.length },
     "Flip 7 Vengeance":{ emoji:"🎰", winLow:false, maxRounds:999 },
     "Beat the Heat":   { emoji:"🌶️", winLow:true,  maxRounds:999, endScore:66 },
-    "Rook":            { emoji:"🐦", winLow:false, maxRounds:999 }
+    "Rook":            { emoji:"🐦", winLow:false, maxRounds:999 },
+    "Hand and Foot":   { emoji:"🃏", winLow:false, maxRounds:4 }
   };
 
   function snapshotGameMaxRounds(game, playerCount){
@@ -9706,6 +9880,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   function openRetirePlayerModal(){
     if(!currentGame)return;
+    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
     const list=document.getElementById('retire-player-list');
     list.innerHTML='';
     const active=getActivePlayers(currentGame);
@@ -10178,7 +10353,8 @@ button.dealer-name-indicator .dealer-player-label {
     "818":`<div class="space-y-5"><p><strong>Quick idea:</strong> A tight trick-taking score race where exact bids get rewarded, but misses still score the tricks you actually took.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest score after the 8-1-8 round sequence.</li><li><strong>Rounds:</strong> Play 8 cards, then 7, 6, 5, 4, 3, 2, 1, then climb back up to 8.</li><li><strong>Bidding:</strong> Bid how many tricks you will take. The dealer cannot make the table's total bids equal the tricks available.</li><li><strong>Score:</strong> Your score is actual tricks taken. If you hit your bid exactly, add a 10-point bonus.</li><li><strong>Examples:</strong> Bid 2 and take 3 = 3 points. Bid 0 and take 0 = 10 points.</li></ul></div>`,
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
     "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
-    "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`
+    "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`,
+    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two teams of 2. Six start as two teams of 3. Three or five play singles. Four or six can switch to singles.</li><li><strong>Teams:</strong> A team enters one set of numbers. Every name on that team shows on the column.</li><li><strong>Each round:</strong> Card points, bonuses (canastas, red 3s, going out), and cards left. The app adds the first two and subtracts cards left. Type cards left as a positive number. The round total can be negative.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -11246,7 +11422,7 @@ button.dealer-name-indicator .dealer-player-label {
   let _pendingGameName = null;
 
   function shouldShowDealerRollForGame(name){
-    return prefs.dealerRoll && name !== 'Beat the Heat';
+    return prefs.dealerRoll && name !== 'Beat the Heat' && name !== 'Hand and Foot';
   }
 
   function createSavedMatchSnapshot(game, winners){
@@ -11277,15 +11453,20 @@ button.dealer-name-indicator .dealer-player-label {
       data.currentBids={...(game.currentBids||{})};
     }
     Object.assign(data,rookPersistedState(game));
+    if(game.handFoot) data.handFoot=cloneHandFoot(game.handFoot);
     return data;
   }
+
+  let _handFootCancelSnapshotId=null;
 
   function startGame(name){
     if(!players.length){alert('Add players to the Lineup first!');return;}
     warmCelebrationAssets();
     if(name==='Rook'&&players.length<4){alert('Rook needs at least 4 players for call-your-partner scoring. Add a few more players to the Lineup first.');return;}
     if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
+    if(name==='Hand and Foot'&&(players.length<2||players.length>6)){alert('Hand and Foot needs 2, 3, 4, 5, or 6 players.');return;}
     if(currentGame&&!confirm('Save current game and start new?'))return;
+    let supersededId=null;
     if(currentGame){
       const cfg=configs[currentGame.name];
       const keys=getRecordedPlayers(currentGame);
@@ -11293,14 +11474,20 @@ button.dealer-name-indicator .dealer-player-label {
         const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
         const snapshot=createSavedMatchSnapshot(currentGame,sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]));
         history.unshift(snapshot);
+        supersededId=snapshot.id;
         markHistoryChanged();
         saveData({ fullPersist: true, syncCold: true });
       }
     }
     _pendingGameName = name;
+    if(name==='Hand and Foot') _handFootCancelSnapshotId=supersededId;
     // Rook: show setup modal before animation chain
     if(name==='Rook'){
       openRookSetupModal();
+      return;
+    }
+    if(name==='Hand and Foot'){
+      openHandFootSetupModal();
       return;
     }
     // Animation chain: dealer roll (if enabled) → lineup intro (if enabled) → commit
@@ -11324,6 +11511,17 @@ button.dealer-name-indicator .dealer-player-label {
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
     if(name==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+    if(name==='Hand and Foot'){
+      const api=handFootApi();
+      const pending=window._handFootPendingConfig;
+      window._handFootPendingConfig=null;
+      const format=pending?.format||(api?api.defaultFormat(players.length):'singles');
+      const sides=pending?.sides||(api?api.buildSides(players, format):players.map(p=>({key:p,members:[p]})));
+      currentGame.handFoot={format, sides};
+      currentGame.totals={};
+      sides.forEach(side=>{ if(side?.key) currentGame.totals[side.key]=0; });
+      currentGame.currentScoreDrafts={};
+    }
     if(name==='Rook'){
       const rc=window._rookPendingConfig||{winTarget:300,minBid:70,totalCounters:200};
       window._rookPendingConfig=null;
@@ -11339,8 +11537,89 @@ button.dealer-name-indicator .dealer-player-label {
     }
     saveData(); requestWakeLock();
     haptic([30, 60, 30, 60, 100]);
-    addAuditEntry('Match Started', `${name} · ${players.length} players`);
+    const startDetail=name==='Hand and Foot'&&currentGame.handFoot
+      ? `${name} · ${players.length} players · ${currentGame.handFoot.format} · ${getHandFootColumns(currentGame).join(' vs ')}`
+      : `${name} · ${players.length} players`;
+    addAuditEntry('Match Started', startDetail);
     goActiveMatch();
+  }
+
+  let _hfSetup=null;
+  function openHandFootSetupModal(){
+    const roster=players.filter(Boolean);
+    const api=handFootApi();
+    const format=api?api.defaultFormat(roster.length):'singles';
+    _hfSetup={roster, format};
+    renderHandFootSetup();
+    const m=document.getElementById('hand-foot-setup-modal');
+    m.classList.remove('hidden');
+    setTimeout(()=>m.classList.remove('opacity-0'),10);
+  }
+  function renderHandFootSetup(){
+    if(!_hfSetup) return;
+    const api=handFootApi();
+    const count=_hfSetup.roster.length;
+    const canSwitch=api?api.canSwitchToSingles(count):count===4||count===6;
+    const toggle=document.getElementById('hand-foot-format-toggle');
+    if(toggle) toggle.classList.toggle('hidden', !canSwitch);
+    document.getElementById('hf-format-teams')?.classList.toggle('rook-opt-active', _hfSetup.format==='teams');
+    document.getElementById('hf-format-singles')?.classList.toggle('rook-opt-active', _hfSetup.format==='singles');
+    const note=document.getElementById('hand-foot-setup-note');
+    const order=document.getElementById('hand-foot-setup-order');
+    let noteText='Each player scores their own column.';
+    if(count===2) noteText='1 versus 1. Each player scores their own column.';
+    else if(_hfSetup.format==='teams'&&count===4) noteText='Two teams of 2. Each team enters one score.';
+    else if(_hfSetup.format==='teams'&&count===6) noteText='Two teams of 3. Each team enters one score.';
+    else if(count===3||count===5) noteText='Singles. Each player scores their own column.';
+    if(note) note.textContent=noteText;
+    if(order) order.classList.toggle('hidden', _hfSetup.format!=='teams');
+    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    const box=document.getElementById('hand-foot-setup-sides');
+    if(!box) return;
+    box.innerHTML=sides.map(side=>`<div class="hf-setup-side">
+      <div class="flex items-center gap-2 flex-wrap">
+        ${side.members.map(name=>`${getAvatarImg(name,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(name)}</span>`).join('<span style="color:var(--muted);">·</span>')}
+      </div>
+      <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score column</div>
+    </div>`).join('');
+  }
+  function handFootSetupFormat(format){
+    if(!_hfSetup) return;
+    const api=handFootApi();
+    if(api&&!api.canSwitchToSingles(_hfSetup.roster.length)) return;
+    _hfSetup.format=format==='teams'?'teams':'singles';
+    renderHandFootSetup();
+  }
+  function closeHandFootSetupModal(){
+    const m=document.getElementById('hand-foot-setup-modal');
+    if(!m) return;
+    m.classList.add('opacity-0');
+    setTimeout(()=>m.classList.add('hidden'),280);
+  }
+  function cancelHandFootSetup(){
+    const id=_handFootCancelSnapshotId;
+    _handFootCancelSnapshotId=null;
+    _pendingGameName=null;
+    window._handFootPendingConfig=null;
+    _hfSetup=null;
+    closeHandFootSetupModal();
+    if(id&&history[0]?.id===id){
+      history.shift();
+      markHistoryChanged();
+      saveData({ fullPersist: true, syncCold: true });
+    }
+  }
+  function commitHandFootSetup(){
+    if(!_hfSetup) return;
+    const api=handFootApi();
+    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    if(sides.length<2){ toast('Need at least two score columns','warning'); return; }
+    window._handFootPendingConfig={format:_hfSetup.format, sides};
+    _handFootCancelSnapshotId=null;
+    _hfSetup=null;
+    closeHandFootSetupModal();
+    if(prefs.lineupIntro) showLineupIntro(_pendingGameName);
+    else commitGameStart();
   }
 
   // ══════════════════════════════════════════════════
@@ -12626,7 +12905,13 @@ ${isDealer
       currentGame.rookOppTeamPointsDraft=g.rookOppTeamPointsDraft;
       currentGame.rookBidAmountDraft=g.rookBidAmountDraft;
     }
-    Object.keys(currentGame.totals).forEach(p=>{if(!players.includes(p))players.push(p);if(!allPlayers.includes(p))allPlayers.push(p);});
+    if(g.game==='Hand and Foot'&&g.handFoot){
+      currentGame.handFoot=cloneHandFoot(g.handFoot);
+      const members=(currentGame.handFoot.sides||[]).flatMap(side=>side.members||[]);
+      members.forEach(p=>{ if(p&&!players.includes(p))players.push(p); if(p&&!allPlayers.includes(p))allPlayers.push(p); });
+    } else {
+      Object.keys(currentGame.totals).forEach(p=>{if(!players.includes(p))players.push(p);if(!allPlayers.includes(p))allPlayers.push(p);});
+    }
     saveData({ fullPersist: true, syncCold: true }); requestWakeLock(); goActiveMatch();
   }
 
@@ -12866,6 +13151,7 @@ ${isDealer
   let _reorderModalTouch = null;
 
   function openReorderPlayersModal(){
+    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
     if(!currentGame || !currentGame.originalRoster){ toast('No active match', 'warning'); return; }
     const retired = currentGame.retired || [];
     _reorderPlayersWorking = currentGame.originalRoster.filter(p => p && !retired.includes(p)).slice();
@@ -13698,6 +13984,9 @@ ${isDealer
     } else if(currentGame.name==='Beat the Heat'){
       const endScore=getEndScoreForGame(currentGame);
       intel=endScore?`R${currentGame.currentRound} · Ends at ${endScore}`:`R${currentGame.currentRound} · Log Heat`;
+    } else if(isHandFootGame(currentGame)){
+      const meld=handFootMeldForRound(currentGame.currentRound);
+      intel=meld?`R${currentGame.currentRound} / ${maxR} · Meld ${meld}`:`R${currentGame.currentRound} / ${maxR}`;
     }
     if(over)intel='Final Scores';
     document.getElementById('round-intel').textContent=intel;
@@ -13707,8 +13996,8 @@ ${isDealer
     const activeRoster=getActiveRoster(currentGame);
     const dealerName=getCurrentDealerName(currentGame, activeRoster);
 
-    let gamePlayers=[...getActivePlayers(currentGame)];
-    getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
+    let gamePlayers=isHandFootGame(currentGame)?getHandFootColumns(currentGame):[...getActivePlayers(currentGame)];
+    if(!isHandFootGame(currentGame)) getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
     syncCurrentLifePreserverHolds({gameOver:over});
 
     let sortedP = currentGame.currentRound===1
@@ -13741,7 +14030,10 @@ ${isDealer
         <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">BID</span><span class="scorecard-bid-header-fraction">${submittedBidTotal}/${submittedBidRound}</span></span>
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
-    visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
+    visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
+      const meld=isHandFootGame(currentGame)?handFootMeldForRound(r.round):null;
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">${meld?`<span class="hf-round-label">R${r.round}</span><span class="hf-meld-hint">Meld ${meld}</span>`:`R${r.round}`}</th>`;
+    });
     if(!hasScorecardRounds)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
@@ -13768,7 +14060,7 @@ ${isDealer
 
       let avatarDragAttrs='';
       let rowDragAttrs='';
-      if(currentGame.currentRound===1&&!isRetired){
+      if(currentGame.currentRound===1&&!isRetired&&!isHandFootGame(currentGame)){
         avatarDragAttrs = `draggable="true"
           ondragstart="rosterDragStart(event, ${ri})"
           ondragend="rosterDragEnd(event)"
@@ -13812,15 +14104,23 @@ ${isDealer
         : '';
 
       const playerCellPad = 'px-5';
+      const hfMembers=isHandFootGame(currentGame)?handFootMembersOf(currentGame,p):null;
+      const hfTeam=!!(hfMembers&&hfMembers.length>1);
+      const avatarInner=hfTeam
+        ? `<span class="hf-side-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>`
+        : `${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
+      const nameInner=hfTeam
+        ? `<span class="hf-side-names">${hfMembers.map(m=>`<span class="scoreboard-player-name font-jakarta font-bold ${isLeader?'leader-text':''}">${escapeHtml(m)}</span>`).join('')}</span>${retiredTag}`
+        : `${isDealer
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${escapeHtml(p)}</span></button>`
+  : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${escapeHtml(p)}</span>`}${retiredTag}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
             <div class="scorecard-player-identity flex items-center gap-2 min-w-0 flex-1">
               ${rankBadge}
-              <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}</span>
-              <span class="scorecard-player-name-slot">${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
-  : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${p}</span>`}${retiredTag}</span>
+              <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${avatarInner}</span>
+              <span class="scorecard-player-name-slot">${nameInner}</span>
               <span class="scorecard-turbo-slot">${comebackChip}</span>
             </div>
           </div>
@@ -13841,11 +14141,14 @@ ${isDealer
         }
         const extra=Number(r.comeback?.[p])||0;
         const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const hfParts=isHandFootGame(currentGame)?r.handFootParts?.[p]:null;
+        const hfTitle=hfParts?` title="Card points ${hfParts.cardPoints} + bonuses ${hfParts.bonuses} − cards left ${hfParts.cardsLeft}"`:'';
+        const cellId=isHandFootGame(currentGame)?`score-past-${rIdx}-${rookElementId(p)}`:`score-past-${rIdx}-${p}`;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra?' has-comeback':''}">
-          <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
+          <input type="text" id="${cellId}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
-            class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
+            class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
           ${extraMark}
           </div>
         </td>`;
@@ -13892,12 +14195,15 @@ ${isDealer
     }
 
     // Show/hide "Retire Player" action based on whether there are active retirable players
+    const rosterLocked=isHandFootGame(currentGame);
     const retireBtn=document.getElementById('actions-retire-btn');
     if(retireBtn){
       const activeCount=getActivePlayerCount(currentGame);
-      if(over||activeCount<=1) retireBtn.classList.add('hidden');
+      if(rosterLocked||over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
+    document.getElementById('actions-add-player-btn')?.classList.toggle('hidden', rosterLocked);
+    document.getElementById('actions-reorder-btn')?.classList.toggle('hidden', rosterLocked);
     const lifePreserverRulesBtn=document.getElementById('actions-life-preserver-btn');
     if(lifePreserverRulesBtn){
       const supported=!!(window.BPGLifePreserver&&Array.isArray(BPGLifePreserver.SUPPORTED_GAMES)&&BPGLifePreserver.SUPPORTED_GAMES.includes(currentGame.name));
@@ -13941,7 +14247,7 @@ ${isDealer
     try{
     if(!currentGame)return;
     const cfg=configs[currentGame.name];
-    const gp=getActiveRoster(currentGame);
+    const gp=isHandFootGame(currentGame)?getHandFootColumns(currentGame):getActiveRoster(currentGame);
     const sorted=[...gp].sort((a,b)=>cfg.winLow?(currentGame.totals[a]||0)-(currentGame.totals[b]||0):(currentGame.totals[b]||0)-(currentGame.totals[a]||0));
     const pe=document.getElementById('live-podium');
     if(!sorted.length){ pe.innerHTML='<div class="text-center py-10 font-bold" style="color:var(--muted);">No players yet.</div>'; return; }
@@ -13969,8 +14275,8 @@ ${isDealer
       const p=top3[i];
       ph+=`<div class="flex flex-col items-center flex-1 max-w-[180px]">
         <div class="${i===0?'text-7xl':'text-5xl'} mb-2">${medals[i]}</div>
-        ${getStreakAvatarHtml(p,'avatar-img-lg')}
-        <div class="player-name-label mt-3 truncate w-full text-center text-lg">${p}</div>
+        ${isHandFootGame(currentGame)&&handFootMembersOf(currentGame,p).length>1?handFootMembersOf(currentGame,p).map(m=>getStreakAvatarHtml(m,'avatar-img')).join(''):getStreakAvatarHtml(p,'avatar-img-lg')}
+        <div class="player-name-label mt-3 truncate w-full text-center text-lg">${escapeHtml(isHandFootGame(currentGame)?handFootMembersOf(currentGame,p).join(' · '):p)}</div>
         <div class="font-jakarta font-extrabold tv-stat-num font-mono-num mb-2">${currentGame.totals[p]||0}</div>
         <div class="podium-bar w-full" style="height:${bh(p,i)}px;"></div>
       </div>`;
@@ -13983,7 +14289,7 @@ ${isDealer
           <div class="flex items-center gap-3">
             <span class="font-mono-num font-bold w-6" style="color:var(--muted);">${i+4}.</span>
             ${getStreakAvatarHtml(p,'avatar-img')}
-            <span class="player-name-label text-lg">${p}</span>
+            <span class="player-name-label text-lg">${escapeHtml(isHandFootGame(currentGame)?handFootMembersOf(currentGame,p).join(' · '):p)}</span>
             ${portraitComebackChip(p, sorted)}
           </div>
           <span class="font-jakarta font-extrabold text-2xl font-mono-num">${currentGame.totals[p]||0}</span>
@@ -14019,6 +14325,7 @@ ${isDealer
     if(currentGame.name==='Flip 7 Vengeance')fh+=row('Best Score',recs['Flip 7 Vengeance'].bestScore===-Infinity?'—':recs['Flip 7 Vengeance'].bestScore,recs['Flip 7 Vengeance'].bestPlayer,'🔥',true);
     if(currentGame.name==='Beat the Heat')fh+=row('Coolest Game',recs['Beat the Heat'].bestScore===Infinity?'—':recs['Beat the Heat'].bestScore,recs['Beat the Heat'].bestPlayer,'🌶️',true);
     if(currentGame.name==='Rook')fh+=row('Best Score',recs.Rook&&recs.Rook.bestScore===-Infinity?'—':recs.Rook?.bestScore,recs.Rook?.bestPlayer||'-','🐦',true);
+    if(currentGame.name==='Hand and Foot')fh+=row('Best Score',recs['Hand and Foot']?.bestScore===-Infinity?'—':recs['Hand and Foot']?.bestScore,recs['Hand and Foot']?.bestPlayer||'-','🃏',true);
     fh+=`</div>`;
     let sh=`<div class="surface p-5"><div class="flex items-center gap-2 mb-3 pb-3 border-b hairline"><span class="text-xl">💔</span><h3 class="font-display text-xl" style="color:var(--rose);">Hall of Shame</h3></div>`;
     sh+=row('Dead Lasts',recs.Overall.mostLastPlace,recs.Overall.mostLastPlacePlayer,'🥉',false);
@@ -14028,6 +14335,7 @@ ${isDealer
     if(currentGame.name==='Flip 7 Vengeance')sh+=row('Worst Score',recs['Flip 7 Vengeance'].worstScore===Infinity?'—':recs['Flip 7 Vengeance'].worstScore,recs['Flip 7 Vengeance'].worstPlayer,'💀',false);
     if(currentGame.name==='Beat the Heat')sh+=row('Hottest Game',recs['Beat the Heat'].worstScore===-Infinity?'—':recs['Beat the Heat'].worstScore,recs['Beat the Heat'].worstPlayer,'🔥',false);
     if(currentGame.name==='Rook')sh+=row('Worst Score',recs.Rook&&recs.Rook.worstScore===Infinity?'—':recs.Rook?.worstScore,recs.Rook?.worstPlayer||'-','💀',false);
+    if(currentGame.name==='Hand and Foot')sh+=row('Worst Score',recs['Hand and Foot']?.worstScore===Infinity?'—':recs['Hand and Foot']?.worstScore,recs['Hand and Foot']?.worstPlayer||'-','💀',false);
     sh+=`</div>`;
     rc.innerHTML=fh+sh;
     } finally {
@@ -14091,6 +14399,26 @@ ${isDealer
   let scoreEntryModalState=null;
   let scoreEntryFitRaf=0;
 
+  const HAND_FOOT_FIELDS=['cardPoints','bonuses','cardsLeft'];
+  const HAND_FOOT_FIELD_LABELS={cardPoints:'Card points',bonuses:'Bonuses',cardsLeft:'Cards left'};
+  function handFootModalParts(raw){
+    const parts={cardPoints:'',bonuses:'',cardsLeft:''};
+    if(!raw||typeof raw!=='object'||Array.isArray(raw)) return parts;
+    HAND_FOOT_FIELDS.forEach(k=>{
+      if(raw[k]!==undefined&&raw[k]!==null&&raw[k]!=='') parts[k]=String(raw[k]);
+    });
+    return parts;
+  }
+  function handFootPartsStarted(parts){
+    return !!parts&&HAND_FOOT_FIELDS.some(k=>parts[k]!==''&&parts[k]!=null);
+  }
+  function handFootEntryComplete(parts){
+    return !!parts&&HAND_FOOT_FIELDS.every(k=>parts[k]!==undefined&&parts[k]!==null&&parts[k]!==''&&parts[k]!=='-');
+  }
+  function handFootPreviewText(parts){
+    if(!handFootPartsStarted(parts)) return '—';
+    return String(handFootRoundTotal(parts));
+  }
   function getScoreEntryMode(){
     if(!currentGame||currentGame.name==='Rook')return null;
     if(currentGame.name==='Wizard'){
@@ -14106,6 +14434,10 @@ ${isDealer
     if(currentGame.name==='Five Crowns')return {kind:'scores',title:'Log Scores',primary:'Submit Scores',valueLabel:'Score'};
     if(currentGame.name==='Flip 7 Vengeance')return {kind:'scores',title:'Log Scores',primary:'Submit Scores',valueLabel:'Score'};
     if(currentGame.name==='Beat the Heat')return {kind:'heat',title:'Log Heat',primary:'Submit Heat',valueLabel:'Heat'};
+    if(currentGame.name==='Hand and Foot'){
+      const editing=scoreEntryModalState?.editingRoundIndex!=null;
+      return {kind:'hand-foot',title:editing?'Edit Round':'Log Scores',primary:editing?'Save Round':'Submit Scores',valueLabel:'Round'};
+    }
     return null;
   }
 
@@ -14121,6 +14453,12 @@ ${isDealer
     if(currentGame.name==='Beat the Heat'){
       const endScore=getEndScoreForGame(currentGame);
       return endScore?`Round ${currentGame.currentRound} · Ends at ${endScore} heat · ${mode.title}`:`Round ${currentGame.currentRound} · ${mode.title}`;
+    }
+    if(currentGame.name==='Hand and Foot'){
+      const roundNum=scoreEntryModalState?.editingRoundNumber||currentGame.currentRound;
+      const meld=handFootMeldForRound(roundNum);
+      const editing=scoreEntryModalState?.editingRoundIndex!=null;
+      return `${editing?'Editing round':'Round'} ${roundNum} of 4${meld?` · Minimum meld ${meld}`:''}`;
     }
     return `Round ${currentGame.currentRound} · ${mode.title}`;
   }
@@ -14236,7 +14574,7 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
     document.getElementById('score-entry-context').textContent=getScoreEntryRoundContext(mode);
-    document.getElementById('score-entry-lane-title').textContent=mode.valueLabel;
+    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Card points + bonuses − cards left':mode.valueLabel;
     updateScoreEntryProgress();
   }
 
@@ -14246,6 +14584,12 @@ ${isDealer
     const progress=document.getElementById('score-entry-progress');
     if(!progress)return;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    if(mode.kind==='hand-foot'){
+      const noun=currentGame.handFoot?.format==='teams'?'teams':'players';
+      const entered=players.filter(p=>handFootEntryComplete(scoreEntryModalState.values[p])).length;
+      progress.textContent=`${entered} of ${players.length} ${noun} entered`;
+      return;
+    }
     const entered=getScoreEntryEnteredCount();
     const label=mode.valueLabel.toLowerCase();
     const enteredText=`${entered} of ${players.length} ${label.endsWith('s')?label:`${label}s`} entered`;
@@ -14343,12 +14687,14 @@ ${isDealer
     gnPerfAction('opened score modal', mode.kind);
     if(activeInputId)closeNumpad({render:false});
 
-    const tablePlayers=getActivePlayers(currentGame);
-    warmActivePlayerAvatars(tablePlayers);
+    const tablePlayers=isHandFootGame(currentGame)?getHandFootColumns(currentGame):getActivePlayers(currentGame);
+    warmActivePlayerAvatars(isHandFootGame(currentGame)?(currentGame.originalRoster||[]):tablePlayers);
     const players=getScoreEntryDisplayPlayers(tablePlayers);
     const source=getScoreEntryDraftSource(mode);
     const values={};
-    tablePlayers.forEach(p=>{values[p]=readScoreEntryDraftValue(source,p,mode);});
+    tablePlayers.forEach(p=>{
+      values[p]=mode.kind==='hand-foot'?handFootModalParts(source[p]):readScoreEntryDraftValue(source,p,mode);
+    });
     scoreEntryModalState={
       mode,
       players,
@@ -14357,10 +14703,14 @@ ${isDealer
       acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,false])),
       dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
+      activeField:'cardPoints',
+      editingRoundIndex:null,
+      editingRoundNumber:null,
       initialJson:JSON.stringify(values)
     };
     renderScoreEntryModal();
     const modal=document.getElementById('score-entry-modal');
+    modal.classList.toggle('score-entry-hand-foot', mode.kind==='hand-foot');
     modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', players.length>=6);
     modal.classList.add('score-entry-managed-fit');
     modal.classList.remove('hidden');
@@ -14382,6 +14732,8 @@ ${isDealer
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       modal.classList.remove('score-entry-managed-fit');
+      modal.classList.remove('score-entry-hand-foot');
+      modal.classList.remove('hf-cards-left');
     },160);
     scoreEntryModalState=null;
   }
@@ -14403,7 +14755,14 @@ ${isDealer
     const {mode,players,values,dealer}=scoreEntryModalState;
     document.getElementById('score-entry-game').textContent=currentGame.name;
     document.getElementById('score-entry-primary-btn').textContent=mode.primary;
+    const kicker=document.getElementById('score-entry-selected-kicker');
+    if(kicker) kicker.textContent=mode.kind==='hand-foot'?'Selected side':'Selected Player';
     updateScoreEntryHeaderMeta();
+    if(mode.kind==='hand-foot'){
+      renderHandFootScoreEntryRows();
+      updateScoreEntrySelectedSummary();
+      return;
+    }
     const rows=players.map((p,idx)=>{
       const active=p===scoreEntryModalState.activePlayer;
       const safe=rookElementId(p);
@@ -14435,10 +14794,75 @@ ${isDealer
     updateScoreEntrySelectedSummary();
   }
 
+  function renderHandFootScoreEntryRows(){
+    if(!scoreEntryModalState) return;
+    const {players,values}=scoreEntryModalState;
+    const activeField=scoreEntryModalState.activeField||'cardPoints';
+    const rows=players.map((p,idx)=>{
+      const safe=rookElementId(p);
+      const active=p===scoreEntryModalState.activePlayer;
+      const parts=values[p]||handFootModalParts();
+      const complete=handFootEntryComplete(parts);
+      const members=handFootMembersOf(currentGame,p);
+      const team=members.length>1;
+      const fields=HAND_FOOT_FIELDS.map(field=>{
+        const label=HAND_FOOT_FIELD_LABELS[field];
+        const hint=field==='cardsLeft'?'<div class="score-entry-meta-label">subtracted</div>':'';
+        return `<button type="button" class="hf-field${active&&activeField===field?' active':''}" onclick="event.stopPropagation();selectHandFootField(${idx},'${field}')">
+          <div class="score-entry-meta-label">${label}</div>
+          <div id="score-entry-hf-${safe}-${field}" class="hf-field-value">${parts[field]!==''?escapeHtml(parts[field]):''}</div>
+          ${hint}
+        </button>`;
+      }).join('');
+      return `<div id="score-entry-row-${safe}" class="score-entry-row score-entry-hf-row no-context ${active?'active':''} ${complete?'is-complete':'is-empty'}" onclick="selectScoreEntryPlayer(${idx})">
+        <div class="score-entry-player-card">
+          ${team?`<span class="hf-side-avatars">${members.map(m=>getScoreEntryAvatarHtml(m,'score-entry-avatar')).join('')}</span>`:getScoreEntryAvatarHtml(p)}
+          <div class="score-entry-identity">
+            <div class="score-entry-name-line">
+              <span class="score-entry-row-status" aria-hidden="true">${complete?'✓':'○'}</span>
+              <div class="score-entry-name ${team?'hf-side-names':''}">${team?members.map(m=>`<span>${escapeHtml(m)}</span>`).join(''):escapeHtml(p)}</div>
+            </div>
+          </div>
+          <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
+        </div>
+        <div class="hf-fields">
+          ${fields}
+          <div class="hf-round"><div class="score-entry-meta-label">Round</div><div id="score-entry-hf-round-${safe}" class="hf-round-value">${handFootPreviewText(parts)}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('score-entry-rows').innerHTML=rows;
+  }
+
+  function selectHandFootField(idx, field){
+    if(!scoreEntryModalState||scoreEntryModalState.mode?.kind!=='hand-foot') return;
+    if(!HAND_FOOT_FIELDS.includes(field)) return;
+    selectScoreEntryPlayer(idx);
+    scoreEntryModalState.activeField=field;
+    renderHandFootScoreEntryRows();
+    updateScoreEntrySelectedSummary();
+  }
+
   function updateScoreEntrySelectedSummary(){
     if(!scoreEntryModalState)return;
     const p=scoreEntryModalState.activePlayer;
     const mode=scoreEntryModalState.mode;
+    const modal=document.getElementById('score-entry-modal');
+    if(mode.kind==='hand-foot'){
+      const field=scoreEntryModalState.activeField||'cardPoints';
+      const parts=scoreEntryModalState.values[p]||handFootModalParts();
+      const members=handFootMembersOf(currentGame,p);
+      document.getElementById('score-entry-selected-name').textContent=members.join(' · ');
+      document.getElementById('score-entry-selected-avatar').innerHTML=members.map(m=>getScoreEntryAvatarHtml(m,'score-entry-selected-avatar')).join('');
+      const meld=handFootMeldForRound(scoreEntryModalState.editingRoundNumber||currentGame.currentRound);
+      document.getElementById('score-entry-selected-detail').innerHTML=
+        `<span class="score-entry-chip">Entering ${HAND_FOOT_FIELD_LABELS[field].toLowerCase()}</span>`+
+        `<span class="score-entry-chip">Round ${handFootPreviewText(parts)}</span>`+
+        (meld?`<span class="score-entry-chip">Meld ${meld}</span>`:'');
+      modal?.classList.toggle('hf-cards-left', field==='cardsLeft');
+      return;
+    }
+    modal?.classList.remove('hf-cards-left');
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
@@ -14455,6 +14879,12 @@ ${isDealer
 
   function selectScoreEntryPlayer(idx){
     if(!scoreEntryModalState||idx<0||idx>=scoreEntryModalState.players.length)return;
+    if(scoreEntryModalState.mode?.kind==='hand-foot'&&scoreEntryModalState.players[idx]!==scoreEntryModalState.activePlayer){
+      scoreEntryModalState.activePlayer=scoreEntryModalState.players[idx];
+      renderHandFootScoreEntryRows();
+      updateScoreEntrySelectedSummary();
+      return;
+    }
     const prev=scoreEntryModalState.activePlayer;
     const next=scoreEntryModalState.players[idx];
     if(prev)document.getElementById(`score-entry-row-${rookElementId(prev)}`)?.classList.remove('active');
@@ -14469,6 +14899,27 @@ ${isDealer
     if(!scoreEntryModalState)return;
     const p=scoreEntryModalState.activePlayer;
     if(!p)return;
+    if(scoreEntryModalState.mode?.kind==='hand-foot'){
+      const safe=rookElementId(p);
+      const parts=scoreEntryModalState.values[p]||handFootModalParts();
+      HAND_FOOT_FIELDS.forEach(field=>{
+        const el=document.getElementById(`score-entry-hf-${safe}-${field}`);
+        if(el) el.textContent=parts[field]!==''?parts[field]:'';
+      });
+      const roundEl=document.getElementById(`score-entry-hf-round-${safe}`);
+      if(roundEl) roundEl.textContent=handFootPreviewText(parts);
+      const row=document.getElementById(`score-entry-row-${safe}`);
+      const complete=handFootEntryComplete(parts);
+      if(row){
+        row.classList.toggle('is-complete', complete);
+        row.classList.toggle('is-empty', !complete);
+        const indicator=row.querySelector('.score-entry-row-status');
+        if(indicator) indicator.textContent=complete?'✓':'○';
+      }
+      updateScoreEntryProgress();
+      updateScoreEntrySelectedSummary();
+      return;
+    }
     const el=document.getElementById(`score-entry-value-${rookElementId(p)}`);
     if(el)el.textContent=scoreEntryModalState.values[p]!==''?scoreEntryModalState.values[p]:'';
     updateScoreEntryRowState(p);
@@ -14491,6 +14942,21 @@ ${isDealer
   function scoreEntryKey(v){
     return gnRunNumpadHotPath('modal digit press',()=>{
       if(!scoreEntryModalState)return;
+      if(scoreEntryModalState.mode?.kind==='hand-foot'){
+        const p=scoreEntryModalState.activePlayer;
+        const field=scoreEntryModalState.activeField||'cardPoints';
+        if(!p) return;
+        if(field==='cardsLeft'&&v==='-') return;
+        if(!scoreEntryModalState.values[p]) scoreEntryModalState.values[p]=handFootModalParts();
+        let c=scoreEntryModalState.values[p][field]||'';
+        if(v==='backspace') c=c.slice(0,-1);
+        else if(v==='-') c=c.startsWith('-')?c.substring(1):'-'+c;
+        else if(c==='0'&&v!=='0'&&v!=='00') c=v;
+        else if(c.length<5) c+=v;
+        scoreEntryModalState.values[p][field]=c;
+        updateScoreEntryActiveValue();
+        return;
+      }
       gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
@@ -14508,6 +14974,27 @@ ${isDealer
   function scoreEntryNext(){
     return gnRunNumpadHotPath('modal Next',()=>{
       if(!scoreEntryModalState||!scoreEntryModalState.players.length)return;
+      if(scoreEntryModalState.mode?.kind==='hand-foot'){
+        const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+        const current=scoreEntryModalState.activePlayer||order[0];
+        const field=scoreEntryModalState.activeField||'cardPoints';
+        if(!scoreEntryModalState.values[current]) scoreEntryModalState.values[current]=handFootModalParts();
+        const curVal=scoreEntryModalState.values[current][field];
+        if(curVal===undefined||curVal===null||curVal===''||curVal==='-') scoreEntryModalState.values[current][field]='0';
+        const fieldIdx=HAND_FOOT_FIELDS.indexOf(field);
+        if(fieldIdx<HAND_FOOT_FIELDS.length-1){
+          scoreEntryModalState.activeField=HAND_FOOT_FIELDS[fieldIdx+1];
+        } else {
+          const currentIdx=order.indexOf(current);
+          const next=order[((currentIdx>=0?currentIdx:0)+1)%order.length];
+          scoreEntryModalState.activePlayer=next;
+          scoreEntryModalState.activeField='cardPoints';
+        }
+        renderHandFootScoreEntryRows();
+        updateScoreEntryProgress();
+        updateScoreEntrySelectedSummary();
+        return;
+      }
       gnPerfAction('modal Next');
       const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
       if(!order.length)return;
@@ -14525,6 +15012,11 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    if(mode.kind==='hand-foot'){
+      if(!currentGame.currentScoreDrafts)currentGame.currentScoreDrafts={};
+      players.forEach(p=>{ currentGame.currentScoreDrafts[p]=handFootModalParts(values[p]); });
+      return;
+    }
     if(isScoreEntryBidMode(mode)){
       if(!currentGame.currentBids)currentGame.currentBids={};
       players.forEach(p=>{currentGame.currentBids[p]=parseInt(values[p],10)||0;});
@@ -14545,6 +15037,14 @@ ${isDealer
     try{
     if(!scoreEntryModalState)return;
     gnPerfAction('modal Done');
+    if(scoreEntryModalState.mode?.kind==='hand-foot'&&scoreEntryModalState.editingRoundIndex!=null){
+      if(!validateScoreEntryModalSubmit())return;
+      const roundIndex=scoreEntryModalState.editingRoundIndex;
+      const values=JSON.parse(JSON.stringify(scoreEntryModalState.values));
+      closeScoreEntryModalOnly();
+      applyHandFootRoundEdit(roundIndex, values);
+      return;
+    }
     saveOpenScoreEntryModalDrafts();
     saveData();
     closeScoreEntryModalOnly();
@@ -14564,6 +15064,16 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return false;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    if(mode.kind==='hand-foot'){
+      const badLeft=players.find(p=>{
+        const raw=values[p]?.cardsLeft;
+        if(raw===undefined||raw===null||raw===''||raw==='-') return false;
+        return (parseInt(raw,10)||0)<0;
+      });
+      if(badLeft){ alert(`Cards left is a positive number. Check ${badLeft}.`); return false; }
+      const allZero=players.every(p=>handFootRoundTotal(values[p])===0);
+      return !allZero||confirm('Every side scored 0? Submit?');
+    }
     if(isScoreEntryBidMode(mode)){
       if(currentGame.name==='Wizard'){
         const tricks=getRoundTrickCount(currentGame);
@@ -14615,6 +15125,13 @@ ${isDealer
     try{
     if(!scoreEntryModalState||!validateScoreEntryModalSubmit())return;
     gnPerfAction('modal Submit', scoreEntryModalState.mode?.kind||'');
+    if(scoreEntryModalState.mode?.kind==='hand-foot'&&scoreEntryModalState.editingRoundIndex!=null){
+      const roundIndex=scoreEntryModalState.editingRoundIndex;
+      const values=JSON.parse(JSON.stringify(scoreEntryModalState.values));
+      closeScoreEntryModalOnly();
+      applyHandFootRoundEdit(roundIndex, values);
+      return;
+    }
     saveOpenScoreEntryModalDrafts();
     closeScoreEntryModalOnly();
     submitRound({skipConfirm:true});
@@ -14733,6 +15250,34 @@ ${isDealer
       }
     }
 
+    if(currentGame.name==='Hand and Foot'){
+      const columns=getHandFootColumns(currentGame);
+      const drafts=ensureCurrentScoreDrafts();
+      const scores={};
+      const handFootParts={};
+      let allZero=true;
+      columns.forEach(p=>{
+        const parsed=handFootPartsFromModal(drafts[p]);
+        if(parsed.total!==0) allZero=false;
+        scores[p]=parsed.total;
+        handFootParts[p]={cardPoints:parsed.cardPoints,bonuses:parsed.bonuses,cardsLeft:parsed.cardsLeft};
+      });
+      if(allZero&&!skipConfirm&&!confirm('Every side scored 0? Submit?')){isSubmitting=false;return;}
+      const prevSide=columns.slice().sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0]||null;
+      const roundData={round:currentGame.currentRound,scores,handFootParts};
+      currentGame.rounds.push(roundData);
+      addAuditEntry(`R${roundData.round} Submitted`, columns.map(p=>`${p}: ${scores[p]}`).join(', '));
+      currentGame.currentRound++;
+      currentGame.currentScoreDrafts={};
+      haptic([20,40,20,40,60]); soundSubmit();
+      recomputeGameTotals(currentGame);
+      saveData();
+      checkLeaderChange(prevSide);
+      scheduleRender();
+      setTimeout(()=>isSubmitting=false,500);
+      return;
+    }
+
     let allZero=true,scores={};
     const drafts=ensureCurrentScoreDrafts();
     gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
@@ -14754,10 +15299,70 @@ ${isDealer
     setTimeout(()=>isSubmitting=false,500);
   }
 
+  function handFootPartsFromModal(raw){
+    const api=handFootApi();
+    const card=api?api.parsePart(raw?.cardPoints,false):(parseInt(raw?.cardPoints,10)||0);
+    const bonus=api?api.parsePart(raw?.bonuses,false):(parseInt(raw?.bonuses,10)||0);
+    const left=api?api.parsePart(raw?.cardsLeft,true):Math.abs(parseInt(raw?.cardsLeft,10)||0);
+    return {cardPoints:card,bonuses:bonus,cardsLeft:left,total:card+bonus-left};
+  }
+  function applyHandFootRoundEdit(roundIndex, values){
+    const round=currentGame?.rounds?.[roundIndex];
+    if(!currentGame||!round||round.hailMaryBonus) return;
+    const columns=getHandFootColumns(currentGame);
+    round.scores=round.scores||{};
+    round.handFootParts=round.handFootParts||{};
+    columns.forEach(p=>{
+      const parsed=handFootPartsFromModal(values?.[p]);
+      round.scores[p]=parsed.total;
+      round.handFootParts[p]={cardPoints:parsed.cardPoints,bonuses:parsed.bonuses,cardsLeft:parsed.cardsLeft};
+    });
+    addAuditEntry(`R${round.round} Edited`, columns.map(p=>`${p}: ${round.scores[p]}`).join(', '));
+    recomputeGameTotals(currentGame);
+    haptic([20,40,20]);
+    saveData();
+    scheduleRender();
+  }
+  function openHandFootRoundEditor(player, roundIndex){
+    if(!currentGame||!isHandFootGame(currentGame)) return;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||round.hailMaryBonus) return;
+    if(activeInputId) closeNumpad({render:false});
+    const tablePlayers=getHandFootColumns(currentGame);
+    const values={};
+    tablePlayers.forEach(p=>{
+      const stored=round.handFootParts?.[p];
+      values[p]=stored?handFootModalParts(stored):handFootModalParts({cardPoints:round.scores?.[p]??'',bonuses:'',cardsLeft:''});
+    });
+    scoreEntryModalState={
+      mode:{kind:'hand-foot',title:'Edit Round',primary:'Save Round',valueLabel:'Round'},
+      players:getScoreEntryDisplayPlayers(tablePlayers),
+      tablePlayers,
+      values,
+      acknowledged:Object.fromEntries(tablePlayers.map(p=>[p,true])),
+      dealer:null,
+      activePlayer:tablePlayers.includes(player)?player:(tablePlayers[0]||null),
+      activeField:'cardPoints',
+      editingRoundIndex:roundIndex,
+      editingRoundNumber:round.round,
+      initialJson:JSON.stringify(values)
+    };
+    renderScoreEntryModal();
+    const modal=document.getElementById('score-entry-modal');
+    modal.classList.add('score-entry-hand-foot','score-entry-managed-fit');
+    modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', tablePlayers.length>=6);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(()=>{
+      fitScoreEntryModalLayout();
+      modal.classList.remove('opacity-0');
+    });
+  }
   function checkLeaderChange(prevLeader){
     if(!currentGame || !prevLeader) return;
     const cfg=configs[currentGame.name];
-    const pp = getActivePlayers(currentGame).filter(p => currentGame.totals[p] !== undefined);
+    const pool=isHandFootGame(currentGame)?getHandFootColumns(currentGame):getActivePlayers(currentGame);
+    const pp = pool.filter(p => currentGame.totals[p] !== undefined);
     if(!pp.length) return;
     const newLeader = pp.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a])[0];
     if(newLeader && newLeader !== prevLeader){
@@ -14810,6 +15415,7 @@ ${isDealer
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
   function addPlayerMidGame(){
+    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
     const input=document.getElementById('midgame-add-player-input');
     if(input)input.value='';
     hidePlayerSuggestions('midgame');
@@ -15077,6 +15683,8 @@ ${isDealer
         msgs.push(`⭐ ${p} set new Highest Flip 7 Score! (${s})`);
       if(data.game==='Rook'&&r['Rook']&&s>r['Rook'].bestScore&&r['Rook'].bestScore!==-Infinity)
         msgs.push(`⭐ ${p} set new Highest Rook Score! (${s})`);
+      if(data.game==='Hand and Foot'&&r['Hand and Foot']&&s>r['Hand and Foot'].bestScore&&r['Hand and Foot'].bestScore!==-Infinity)
+        msgs.push(`⭐ ${p} set new Highest Hand and Foot Score! (${s})`);
     });
     return msgs;
   }
@@ -15118,6 +15726,11 @@ ${isDealer
       snapshotGameMaxRounds(currentGame, roster.length);
       if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
       if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
+    if(lg.game==='Hand and Foot'&&lg.handFoot){
+      currentGame.handFoot=cloneHandFoot(lg.handFoot);
+      currentGame.totals={};
+      getHandFootColumns(currentGame).forEach(key=>{ currentGame.totals[key]=0; });
+    }
     if(lg.game==='Rook'){
       const prevCfg=lg.rookConfig||{winTarget:300,minBid:70,totalCounters:200};
       currentGame.rookConfig={...prevCfg};
@@ -15264,6 +15877,10 @@ ${isDealer
   }
 
   function openNumpad(player, roundIndex){
+    if(isHandFootGame(currentGame)&&roundIndex!=='current'){
+      openHandFootRoundEditor(player, roundIndex);
+      return;
+    }
     const timer=gnPerfStart('GN openNumpad');
     try{
       if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
@@ -15476,7 +16093,8 @@ ${isDealer
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
-      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}</th>`;
+      const meld=g.game==='Hand and Foot'?handFootMeldForRound(r.round):null;
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">${meld?`<span class="hf-round-label">R${r.round}</span><span class="hf-meld-hint">Meld ${meld}</span>`:`R${r.round}`}</th>`;
     });
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
@@ -15600,7 +16218,8 @@ ${isDealer
       "818":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-',worstRound:Infinity,worstRoundPlayer:'-',mostExactBids:0,mostExactBidsPlayer:'-',mostMissedBids:0,mostMissedBidsPlayer:'-'},
       "Flip 7 Vengeance":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-',worstRound:Infinity,worstRoundPlayer:'-'},
       "Beat the Heat":{bestScore:Infinity,bestPlayer:'-',worstScore:-Infinity,worstPlayer:'-',bestRound:Infinity,bestRoundPlayer:'-',worstRound:-Infinity,worstRoundPlayer:'-',mostZeros:0,mostZerosPlayer:'-'},
-      "Rook":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',mostBids:0,mostBidsPlayer:'-',mostSets:0,mostSetsPlayer:'-'}
+      "Rook":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',mostBids:0,mostBidsPlayer:'-',mostSets:0,mostSetsPlayer:'-'},
+      "Hand and Foot":{bestScore:-Infinity,bestPlayer:'-',worstScore:Infinity,worstPlayer:'-',bestRound:-Infinity,bestRoundPlayer:'-',worstRound:Infinity,worstRoundPlayer:'-'}
     };
     let stats={};
     history.forEach(h=>{
@@ -15690,6 +16309,10 @@ ${isDealer
                 if(!round.rookMadeIt)ms[p].rookSets++;
               }
             }
+            if(h.game==='Hand and Foot'){
+              if(score>r['Hand and Foot'].bestRound){r['Hand and Foot'].bestRound=score;r['Hand and Foot'].bestRoundPlayer=p;}
+              if(score<r['Hand and Foot'].worstRound){r['Hand and Foot'].worstRound=score;r['Hand and Foot'].worstRoundPlayer=p;}
+            }
           });
         });
         Object.entries(ms).forEach(([p,m])=>{
@@ -15743,7 +16366,8 @@ ${isDealer
       },
       "Flip 7 Vengeance": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,mostZeroRounds:null,closestMargin:null},
       "Beat the Heat": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,cleanestGame:null,closestMargin:null,mostIceRounds:null,closestFinish:null,mostLopsided:null,longestMatch:null},
-      "Rook": {bestGame:null,worstGame:null,mostSuccessfulBids:null,highestBidMade:null,biggestSet:null,closestMargin:null}
+      "Rook": {bestGame:null,worstGame:null,mostSuccessfulBids:null,highestBidMade:null,biggestSet:null,closestMargin:null},
+      "Hand and Foot": {bestGame:null,worstGame:null,bestRound:null,worstRound:null,closestMargin:null}
     };
     const allTime = {
       mostWins:[],bestWinRate:[],mostGames:[],mostLasts:[],
@@ -15969,6 +16593,10 @@ ${isDealer
             update(games["Flip 7 Vengeance"],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
             update(games["Flip 7 Vengeance"],'worstRound',entry(p,score,h,{round:r.round}),betterLow);
             if(score===0) perMatch[p].zeros++;
+          }
+          if(h.game==='Hand and Foot'){
+            update(games['Hand and Foot'],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
+            update(games['Hand and Foot'],'worstRound',entry(p,score,h,{round:r.round}),betterLow);
           }
           const extra=Number(r.comeback?.[p])||0;
           if(extra){
@@ -16209,6 +16837,13 @@ ${isDealer
         recordCard('Highest Bid Ever Made',data.games.Rook.highestBidMade,true),
         recordCard('Biggest Set Ever',data.games.Rook.biggestSet,false),
         recordCard('Closest Margin Of Victory',data.games.Rook.closestMargin,true)
+      ]),
+      gameSection('Hand and Foot',[
+        recordCard('Best Game Ever',data.games['Hand and Foot'].bestGame,true),
+        recordCard('Worst Game Ever',data.games['Hand and Foot'].worstGame,false),
+        recordCard('Best Single Round',data.games['Hand and Foot'].bestRound,true),
+        recordCard('Worst Single Round',data.games['Hand and Foot'].worstRound,false),
+        recordCard('Closest Margin Of Victory',data.games['Hand and Foot'].closestMargin,true)
       ])
     ].join('');
 
