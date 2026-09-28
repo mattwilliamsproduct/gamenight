@@ -21,6 +21,7 @@ const requiredAssets = [
   'public/assets/vendor/chart.js',
   'public/assets/vendor/html2canvas.js',
   'public/assets/life-preserver-logic.js',
+  'public/assets/scorebook.js',
   'public/assets/backup.js',
   'public/sw.js',
   'public/apple-touch-icon.png',
@@ -46,6 +47,10 @@ if(!index.includes("src=\"./assets/life-preserver-logic.js\"")){
 
 if(!index.includes("src=\"./assets/backup.js\"")){
   throw new Error('Backup helper is missing from the app shell.');
+}
+
+if(!index.includes("src=\"./assets/scorebook.js\"")){
+  throw new Error('Scorebook helper is missing from the app shell.');
 }
 
 function appShellEntries(source, label){
