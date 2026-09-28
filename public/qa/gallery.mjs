@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=life-preserver-hold-20260823';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=j145-scorebook-20260928';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
