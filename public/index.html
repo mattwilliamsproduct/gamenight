@@ -13605,11 +13605,21 @@ ${isDealer
       const cell=name.closest('td.scorecard-col-player');
       if(!cell)return;
       const chip=scorecardNameChipEl(name);
-      const cellBox=cell.getBoundingClientRect();
+      const row=name.closest('tr');
+      const totalCell=row?.querySelector('.scorecard-col-total');
+      const slot=name.closest('.scorecard-player-name-slot');
       const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
-      const available=scorecardNameAvailableWidth(name);
-      if(available<=0)return;
+      const totalLeft=totalCell?totalCell.getBoundingClientRect().left:cell.getBoundingClientRect().right;
+      const slotRight=slot?slot.getBoundingClientRect().right:cell.getBoundingClientRect().right;
+      // A name that only reaches the cell edge is clipped by the slot and paints into the total.
+      const nameTotalGap=16;
+      const limitRight=Math.min(slotRight, totalLeft-nameTotalGap);
+      if(chipBox.width>0&&chipBox.right<=limitRight-1)return;
+      let available=scorecardNameAvailableWidth(name);
+      const roomBeforeTotal=totalLeft-nameTotalGap-chipBox.left;
+      if(roomBeforeTotal>0)available=available>0?Math.min(available,roomBeforeTotal):roomBeforeTotal;
+      if(slot&&slot.clientWidth>0)available=available>0?Math.min(available,slot.clientWidth):slot.clientWidth;
+      if(available<=8)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
       const chipStyle=getComputedStyle(chip);
