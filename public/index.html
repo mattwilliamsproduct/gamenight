@@ -3033,19 +3033,9 @@ button.dealer-name-indicator {
         font-size: var(--scorecard-player-font) !important;
         line-height: 0.86;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .hf-team-label {
-        line-height: 1.05 !important;
-        white-space: nowrap !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-      }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
         width: var(--scorecard-avatar-size) !important;
         height: var(--scorecard-avatar-size) !important;
-      }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .hf-side-avatars .avatar-img-sc {
-        width: clamp(40px, calc(var(--scorecard-row-height) * 0.26), 76px) !important;
-        height: clamp(40px, calc(var(--scorecard-row-height) * 0.26), 76px) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell.tv-stat-num,
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell .tv-stat-num,
@@ -4170,10 +4160,6 @@ button.dealer-name-indicator .dealer-player-label {
       display: flex;
       flex-direction: column;
       font-size: 1rem;
-    }
-    .hf-team-label {
-      min-width: 0 !important;
-      max-width: 100%;
     }
     .hf-side-avatars { display: flex; gap: 0.2rem; align-items: center; }
     .hf-side-avatars .avatar-wrap { width: auto; }
@@ -14117,14 +14103,8 @@ ${isDealer
         : '';
 
       const playerCellPad = 'px-5';
-      const hfMembers=isHandFootGame(currentGame)?handFootMembersOf(currentGame,p):null;
-      const hfTeam=!!(hfMembers&&hfMembers.length>1);
-      const avatarInner=hfTeam
-        ? `<span class="hf-side-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>`
-        : `${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
-      const nameInner=hfTeam
-        ? `<span class="scoreboard-player-name hf-team-label font-jakarta font-bold ${isLeader?'leader-text':''}">${escapeHtml(p)}</span>${retiredTag}`
-        : `${isDealer
+      const avatarInner=`${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
+      const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${escapeHtml(p)}</span></button>`
   : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${escapeHtml(p)}</span>`}${retiredTag}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
