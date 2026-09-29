@@ -13485,9 +13485,19 @@ ${isDealer
       }
       root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
-      const availableRowsHeight=wrap.clientHeight-(head?.offsetHeight||0);
+      const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
+      const overEl=document.getElementById('game-over-section');
+      const boardEl=wrap.closest('.tournament-scoreboard');
+      // The final footer is taller than Log Scores. Keep the player column at the in-progress size.
+      const fitHeight=handFoot&&overEl&&!overEl.classList.contains('hidden')&&boardEl
+        ? Math.max(wrap.clientHeight, boardEl.clientHeight-97)
+        : wrap.clientHeight;
+      const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
-      const targetRow=Math.floor(availableRowsHeight/rows.length);
+      // Two team rows would otherwise stretch the shared player column into headline type.
+      // Size Hand and Foot like a four-player scorecard, which is the shipped table.
+      const rowSlots=handFoot?Math.max(rows.length,4):rows.length;
+      const targetRow=Math.floor(availableRowsHeight/rowSlots);
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
       root.classList.add('scorecard-fit-rows');
@@ -13525,9 +13535,15 @@ ${isDealer
       };
       for(let i=0;i<8;i++){
         applyFit();
-        const overflow=table.getBoundingClientRect().height-wrap.clientHeight;
+        const projected=(head?.offsetHeight||0)+rowHeight*rowSlots;
+        const actual=table.getBoundingClientRect().height;
+        const projectedOverflow=projected-fitHeight;
+        const actualOverflow=actual-wrap.clientHeight;
+        const overflow=Math.max(projectedOverflow, actualOverflow);
         if(overflow<=1)break;
-        const ratio=Math.max(0.8,(wrap.clientHeight-2)/Math.max(1,table.getBoundingClientRect().height));
+        const limit=projectedOverflow>=actualOverflow?fitHeight:wrap.clientHeight;
+        const used=projectedOverflow>=actualOverflow?projected:actual;
+        const ratio=Math.max(0.8,(limit-2)/Math.max(1,used));
         scale=Math.max(0.42,scale*ratio*0.97);
         rowHeight=Math.max(36,rowHeight*ratio*0.97);
       }
