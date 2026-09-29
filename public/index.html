@@ -3033,16 +3033,19 @@ button.dealer-name-indicator {
         font-size: var(--scorecard-player-font) !important;
         line-height: 0.86;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .hf-side-names .scoreboard-player-name {
-        font-size: calc(var(--scorecard-player-font) * 0.42) !important;
-        line-height: 1.08 !important;
-      }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .hf-side-names[data-count="3"] .scoreboard-player-name {
-        font-size: calc(var(--scorecard-player-font) * 0.30) !important;
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .hf-team-label {
+        line-height: 1.05 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
         width: var(--scorecard-avatar-size) !important;
         height: var(--scorecard-avatar-size) !important;
+      }
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .hf-side-avatars .avatar-img-sc {
+        width: clamp(40px, calc(var(--scorecard-row-height) * 0.26), 76px) !important;
+        height: clamp(40px, calc(var(--scorecard-row-height) * 0.26), 76px) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell.tv-stat-num,
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-total-cell .tv-stat-num,
@@ -4168,33 +4171,11 @@ button.dealer-name-indicator .dealer-player-label {
       flex-direction: column;
       font-size: 1rem;
     }
-    .scorecard-player-name-slot > .hf-side-names {
-      flex: 1 1 auto;
-      align-items: flex-start;
-      justify-content: center;
-      max-width: 100%;
-      max-height: 100%;
-      overflow: hidden;
-    }
-    .hf-side-names .scoreboard-player-name {
-      display: block !important;
-      width: auto;
-      max-width: 100%;
+    .hf-team-label {
       min-width: 0 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis;
-      white-space: nowrap !important;
-      line-height: 1.08 !important;
-      font-size: clamp(1rem, 1.7vw, 1.55rem) !important;
+      max-width: 100%;
     }
-    td.scorecard-col-player:has(.hf-side-names) > .flex {
-      max-height: 100%;
-      min-height: 0;
-      overflow: hidden;
-    }
-    .hf-side-avatars { display: flex; gap: 0.15rem; }
+    .hf-side-avatars { display: flex; gap: 0.2rem; align-items: center; }
     .hf-side-avatars .avatar-wrap { width: auto; }
     .hf-meld-hint {
       display: block;
@@ -14142,7 +14123,7 @@ ${isDealer
         ? `<span class="hf-side-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>`
         : `${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
       const nameInner=hfTeam
-        ? `<span class="hf-side-names" data-count="${hfMembers.length}">${hfMembers.map(m=>`<span class="scoreboard-player-name font-jakarta font-bold ${isLeader?'leader-text':''}">${escapeHtml(m)}</span>`).join('')}</span>${retiredTag}`
+        ? `<span class="scoreboard-player-name hf-team-label font-jakarta font-bold ${isLeader?'leader-text':''}">${escapeHtml(p)}</span>${retiredTag}`
         : `${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${escapeHtml(p)}</span></button>`
   : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${escapeHtml(p)}</span>`}${retiredTag}`;
