@@ -23,6 +23,7 @@ const requiredAssets = [
   'public/assets/life-preserver-logic.js',
   'public/assets/backup.js',
   'public/assets/sample-night.js',
+  'public/social-card.jpg',
   'public/sw.js',
   'public/apple-touch-icon.png',
   'public/bp-apple-touch-icon.png',
@@ -55,6 +56,10 @@ if(index.includes("src=\"./assets/sample-night.js\"")){
 
 if(!index.includes("sampleNight:'./assets/sample-night.js'")){
   throw new Error('The first-visit sample night is missing from the optional assets.');
+}
+
+if(!index.includes('property="og:image" content="https://cardknight.vercel.app/social-card.jpg"')){
+  throw new Error('Link previews need the social card image.');
 }
 
 if(!index.includes('name="apple-mobile-web-app-title" content="Back Porch"')){
