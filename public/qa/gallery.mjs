@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=life-preserver-hold-20260823';
+import {QA_SCENARIOS,QA_SURFACES,cloneScenario,scenarioForSurface} from './fixtures.mjs?v=gallery-surfaces-20260912';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
@@ -84,8 +84,9 @@ export async function bootQaGallery(api){
     assertRecordChasePreview(scenarioId,scenario);
     description.textContent=scenario.description;
     surfaceButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.surface===surface)));
-    api.hydrate(scenario.data);
-    api.showSurface(surface,scenario);
+    const live=scenarioForSurface(scenario,surface);
+    api.hydrate(live.data);
+    api.showSurface(surface,live);
     if(surface==='whammy'||surface==='nolie')await new Promise(resolve=>setTimeout(resolve,550));
     if(surface==='race')await new Promise(resolve=>setTimeout(resolve,800));
     await waitForStableImages();
@@ -98,7 +99,8 @@ export async function bootQaGallery(api){
     surface=scenario.defaultSurface;
     await render();
   });
-  surfaceButtons.forEach(button=>button.addEventListener('click',async()=>{
+  surfaceButtons.forEach(button=>button.addEventListener('click',async event=>{
+    event.stopPropagation();
     surface=button.dataset.surface;
     await render();
   }));
