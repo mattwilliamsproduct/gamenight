@@ -6,6 +6,18 @@ Back Porch Games is the human scorekeeper for porch game night. People play the 
 Shelf: Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Rook. Hand and Foot may be in flight on another PR.
 Production host: https://cardknight.vercel.app (home-screen name is Back Porch; the repo is `gamenight`).
 
+## Feature path
+
+Mandatory default for every non-typo feature or fix:
+
+1. **Clarify** the Goal and Non-goals. Load `docs/product-spec.md` and `docs/taste.md`.
+2. **Slice stub** in `docs/slices/` from `docs/slices/_TEMPLATE.md`. **Acceptance** (must be true) and **Anti-acceptance** (must not be true) are required. A typo-sized fix may use the same headings in the PR body. See `docs/slices/README.md`.
+3. **Smallest change** that makes Acceptance true and keeps Anti-acceptance false.
+4. **Prove-it** — visual (gallery / UI) plus backend (`npm run check`). Evidence in the PR before handoff.
+5. **Compound** novel lessons into `docs/solutions/` or `docs/taste.md`.
+
+Do not dump the template into this file. The stub is the job card; product and tech truth stay in `docs/`.
+
 ## Commands
 
 Exact scripts from `package.json`:
@@ -24,6 +36,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 - Static scorekeeper. The app is mainly `public/index.html`, `public/assets/*`, and `api/sync.js`. `npm run build` writes CSS, vendor files, and `public/sw.js`. Vercel serves `public/` plus that function.
 - Product bar: `docs/product-spec.md`
 - Taste: `docs/taste.md`
+- Slice stubs: `docs/slices/`
 - Tech contract: `docs/tech-spec.md`
 - Active rethink and findings: `docs/J-137-grok-4.7-rethink.md`
 - Release gates: `docs/release-checks.md`
@@ -35,8 +48,8 @@ North star: crush requirements so one-shots get better every correction.
 - Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. The current contract is one Redis blob with no revision check.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
-- Before a multi-step coding kickoff, load `docs/product-spec.md`, `docs/taste.md`, this file, and `docs/solutions/` (including `docs/solutions/README.md`). Load the builder-taste-profile skill when it is available.
-- Coding OS: on a feature request, do not wait for Matt to ask for a spec or a Notion card. Kick off, write or update product and tech spec stubs, create or update Matt HQ open actions, and compound durable feedback the same day. He is in the loop only for taste, kill, merge, and a short summarized spec review when the slice is non-trivial. Undraft or merge of an app or product PR still needs his explicit go.
+- Before a multi-step coding kickoff, load `docs/product-spec.md`, `docs/taste.md`, this file, `docs/slices/README.md`, and `docs/solutions/` (including `docs/solutions/README.md`). Load the builder-taste-profile skill when it is available.
+- Coding OS: on a feature request, do not wait for Matt to ask for a spec or a Notion card. Clarify, write a `docs/slices/` stub (Acceptance + Anti-acceptance required; PR body is enough for a typo-sized fix), create or update Matt HQ open actions, and compound durable feedback the same day. He is in the loop only for taste, kill, merge, and a short summarized spec review when the slice is non-trivial. Undraft or merge of an app or product PR still needs his explicit go.
 - Roles: Matt owns ideas, taste, feedback, and validation. Agents own expert implementation on Back Porch. Periodically review this repo for bugs, tech debt, and performance. Fix obvious no-tradeoff items in draft PRs. Taste tradeoffs get a short note for Matt. App or product undraft and merge still need his explicit go.
 - App and product PRs stay draft and sidelined until Matt says undraft or merge. Docs-only OS edits with no game behavior may merge.
 - Never claim ready without prove-it evidence: `npm run check`, plus a gallery or UI look when the change is UI. Non-UI work needs backend-prove-it. Put the evidence in the PR.
@@ -57,6 +70,7 @@ Done when the evidence is in the PR before handoff (verify-before-done).
 
 - Product spec: `docs/product-spec.md`
 - Taste: `docs/taste.md`
+- Slice specs: `docs/slices/README.md` (template: `docs/slices/_TEMPLATE.md`)
 - Tech spec: `docs/tech-spec.md`
 - J-137 rethink: `docs/J-137-grok-4.7-rethink.md`
 - Release checks: `docs/release-checks.md`

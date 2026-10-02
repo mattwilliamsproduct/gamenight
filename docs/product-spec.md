@@ -106,6 +106,10 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 - Splitting `public/index.html` as a project of its own. Fix the stacked theme CSS when a visual bug requires it. Do not boil the ocean first.
 - Per-player accounts. One porch, one password, one scorebook.
 
+## How we build
+
+Every non-typo feature or fix starts as a short slice stub in [slices/](slices/) (or the PR body for a tiny fix). The stub must carry **Acceptance** (must be true) and **Anti-acceptance** (must not be true) before code. See [slices/README.md](slices/README.md).
+
 ## Known bugs
 
 Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-137-grok-4.7-rethink.md](J-137-grok-4.7-rethink.md).
