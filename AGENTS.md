@@ -12,7 +12,7 @@ Exact scripts from `package.json`:
 
 - `npm install`
 - `npm run build` — `build:styles`, then `build:vendor` (minified CSS, vendor copies, and `public/sw.js`)
-- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, then `git diff --check`
+- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:hand-foot`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
@@ -36,6 +36,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 - Prefer the existing stack and patterns. Porch Club design PRs stay blocked without Matt's visual sign-off.
 - Game-behavior merges wait for Matt's UI test while that overnight rule is standing.
 - Compound after a ship: when you learn something novel, write `docs/solutions/<short-slug>.md` and/or one bullet in this section. The learning does not stay only in chat.
+- Hand and Foot on a phone keeps the keypad above the footer and keeps at least one round column on the scorecard. A side is recorded once, on its side key.
 
 ## Verification
 
