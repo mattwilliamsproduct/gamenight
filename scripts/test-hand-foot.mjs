@@ -180,6 +180,129 @@ test('a repeated side key is recorded once', () => {
   assert.deepEqual(HF.recordedKeys(dup, { Bo: -8, Cy: 0 }), ['Bo', 'Cy']);
 });
 
+test('each scoring input is its own field and survives a history save', () => {
+  const round = HF.persistRound(1, {
+    Ann: { canastas: 2, redThrees: 1, footPenalty: 0, cardPoints: 80 },
+    Bo: { canastas: 0, redThrees: 3, footPenalty: 100, cardPoints: -20 }
+  });
+  assert.deepEqual(round.handFootParts.Ann, {
+    canastas: 2,
+    redThrees: 1,
+    footPenalty: 0,
+    cardPoints: 80,
+    canastaEach: 500,
+    redThreeEach: 100,
+    roundScore: 1180
+  });
+  assert.equal(round.scores.Ann, 1180);
+  assert.equal(round.scores.Ann, round.handFootParts.Ann.roundScore);
+  assert.equal(round.handFootParts.Bo.redThrees, 3);
+  assert.equal(round.handFootParts.Bo.footPenalty, 100);
+  assert.equal(round.handFootParts.Bo.cardPoints, -20);
+  assert.equal(round.handFootParts.Bo.roundScore, 180);
+  assert.equal(Object.prototype.hasOwnProperty.call(round.handFootParts.Ann, 'bonuses'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(round.handFootParts.Ann, 'cardsLeft'), false);
+
+  const match = {
+    id: 1,
+    game: 'Hand and Foot',
+    handFoot: { format: 'singles', sides: HF.buildSides(['Ann', 'Bo'], 'singles') },
+    totals: { Ann: 1180, Bo: 180 },
+    rounds: [round]
+  };
+  const saved = JSON.parse(JSON.stringify(HF.normalizeMatch(match)));
+  assert.equal(saved.rounds[0].handFootParts.Ann.canastas, 2);
+  assert.equal(saved.rounds[0].handFootParts.Ann.redThrees, 1);
+  assert.equal(saved.rounds[0].handFootParts.Ann.footPenalty, 0);
+  assert.equal(saved.rounds[0].handFootParts.Ann.cardPoints, 80);
+  assert.equal(saved.rounds[0].handFootParts.Ann.roundScore, 1180);
+  assert.equal(saved.rounds[0].scores.Ann, 1180);
+  assert.equal(saved.rounds[0].scores.Bo, 180);
+  assert.deepEqual(HF.sumFieldForPlayer([saved], 'Ann', 'redThrees'), {
+    total: 1, roundsRecorded: 1, roundsUnknown: 0
+  });
+  assert.deepEqual(HF.sumFieldForMatch(saved, 'canastas'), {
+    total: 2, roundsRecorded: 2, roundsUnknown: 0
+  });
+});
+
+test('a team stores the five fields once, and a personal red-three total reads that side', () => {
+  const round = HF.persistRound(2, {
+    'Ann & Bo': { canastas: 1, redThrees: 4, footPenalty: 0, cardPoints: 10 },
+    'Cy & Dee': { canastas: 0, redThrees: 1, footPenalty: 100, cardPoints: 0 }
+  });
+  const match = HF.normalizeMatch({
+    game: 'Hand and Foot',
+    handFoot: { format: 'teams', sides: HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams') },
+    rounds: [round]
+  });
+  assert.equal(match.rounds[0].handFootParts['Ann & Bo'].redThrees, 4);
+  assert.equal(match.rounds[0].handFootParts['Ann & Bo'].roundScore, 500 + 400 + 10);
+  assert.equal(match.rounds[0].scores['Ann & Bo'], match.rounds[0].handFootParts['Ann & Bo'].roundScore);
+  assert.equal(Object.prototype.hasOwnProperty.call(match.rounds[0].handFootParts, 'Ann'), false);
+  assert.equal(HF.sumFieldForPlayer([match], 'Ann', 'redThrees').total, 4);
+  assert.equal(HF.sumFieldForPlayer([match], 'Bo', 'redThrees').total, 4);
+  assert.equal(HF.sumFieldForMatch(match, 'redThrees').total, 5);
+});
+
+test('red threes add across saved Hand and Foot matches and skip other games', () => {
+  const first = {
+    game: 'Hand and Foot',
+    handFoot: { format: 'singles', sides: HF.buildSides(['Ann', 'Bo'], 'singles') },
+    rounds: [HF.persistRound(1, {
+      Ann: { canastas: 0, redThrees: 2, footPenalty: 0, cardPoints: 0 },
+      Bo: { canastas: 0, redThrees: 1, footPenalty: 0, cardPoints: 0 }
+    })]
+  };
+  const second = {
+    game: 'Hand and Foot',
+    handFoot: { format: 'singles', sides: HF.buildSides(['Ann', 'Cy'], 'singles') },
+    rounds: [HF.persistRound(1, {
+      Ann: { canastas: 1, redThrees: 3, footPenalty: 0, cardPoints: 0 },
+      Cy: { canastas: 0, redThrees: 0, footPenalty: 0, cardPoints: 0 }
+    })]
+  };
+  const wizard = { game: 'Wizard', rounds: [{ round: 1, scores: { Ann: 20 } }] };
+  const history = [first, wizard, second];
+  assert.deepEqual(HF.sumFieldForPlayer(history, 'Ann', 'redThrees'), {
+    total: 5, roundsRecorded: 2, roundsUnknown: 0
+  });
+  assert.equal(HF.sumFieldForPlayer(history, 'Ann', 'canastas').total, 1);
+  assert.equal(HF.sumFieldForMatch(wizard, 'redThrees').total, 0);
+});
+
+test('an older three-field save keeps its score and does not invent canasta or red-three counts', () => {
+  const oldRound = {
+    round: 1,
+    scores: { Ann: -30, Bo: 120 },
+    handFootParts: {
+      Ann: { cardPoints: 20, bonuses: 0, cardsLeft: 50 },
+      Bo: { cardPoints: 100, bonuses: 50, cardsLeft: 30 }
+    }
+  };
+  const mapped = HF.normalizeMatch({
+    game: 'Hand and Foot',
+    handFoot: { format: 'singles', sides: HF.buildSides(['Ann', 'Bo'], 'singles') },
+    rounds: [oldRound]
+  });
+  const ann = mapped.rounds[0].handFootParts.Ann;
+  assert.equal(mapped.rounds[0].scores.Ann, -30);
+  assert.equal(ann.roundScore, -30);
+  assert.equal(ann.cardPoints, 20);
+  assert.equal(ann.bonuses, 0);
+  assert.equal(ann.cardsLeft, 50);
+  assert.equal(ann.legacy, true);
+  assert.equal(HF.roundScore(ann), -30);
+  assert.equal(Object.prototype.hasOwnProperty.call(ann, 'canastas'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(ann, 'redThrees'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(ann, 'footPenalty'), false);
+  assert.deepEqual(HF.sumFieldForPlayer([mapped], 'Ann', 'redThrees'), {
+    total: 0, roundsRecorded: 0, roundsUnknown: 1
+  });
+  assert.equal(HF.sumFieldForPlayer([mapped], 'Bo', 'cardPoints').total, 100);
+  assert.equal(HF.sumFieldForMatch(mapped, 'roundScore').total, 90);
+});
+
 test('an older saved round still adds card points and bonuses and subtracts cards left', () => {
   assert.equal(HF.roundScore({ cardPoints: 100, bonuses: 50, cardsLeft: 30 }), 120);
   assert.equal(HF.roundScore({ cardPoints: 20, bonuses: 0, cardsLeft: 50 }), -30);

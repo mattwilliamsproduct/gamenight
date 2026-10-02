@@ -111,6 +111,196 @@
     return keys.filter(key => Object.prototype.hasOwnProperty.call(totals, key));
   }
 
+  function isLegacyParts(parts) {
+    if (!parts || typeof parts !== 'object' || Array.isArray(parts)) return false;
+    if (usesStructuredScore(parts)) return false;
+    return !!(parts.legacy || parts.bonuses !== undefined || parts.cardsLeft !== undefined);
+  }
+
+  // One named field per input, plus the computed round score.
+  // Foot penalty is the points subtracted (0 means none). It is not a
+  // separate played/unplayed flag. Rates are stored so a later default
+  // does not rewrite this round. A bonuses lump is not written here.
+  function persistSideParts(raw) {
+    const parts = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    if (isLegacyParts(parts)) {
+      const legacy = {
+        cardPoints: parsePart(parts.cardPoints, false),
+        bonuses: parsePart(parts.bonuses, false),
+        cardsLeft: parsePart(parts.cardsLeft, true),
+        legacy: true
+      };
+      legacy.roundScore = roundScore(legacy);
+      return legacy;
+    }
+    const stored = {
+      canastas: parsePart(parts.canastas, true),
+      redThrees: parsePart(parts.redThrees, true),
+      footPenalty: parsePart(parts.footPenalty, true),
+      cardPoints: parsePart(parts.cardPoints, false),
+      canastaEach: rateOrDefault(parts, 'canastaEach', SCORE_DEFAULTS.canastaEach),
+      redThreeEach: rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach)
+    };
+    stored.roundScore = roundScore(stored);
+    return stored;
+  }
+
+  function persistRound(roundNumber, bySide) {
+    const scores = {};
+    const handFootParts = {};
+    Object.keys(bySide || {}).forEach(function (key) {
+      const stored = persistSideParts(bySide[key]);
+      handFootParts[key] = stored;
+      scores[key] = stored.roundScore;
+    });
+    return { round: roundNumber, scores: scores, handFootParts: handFootParts };
+  }
+
+  // Read path for an already saved side. The scorecard number wins when it
+  // is present, so normalizing history does not change a total. Old
+  // card/bonuses/cardsLeft rows stay on that formula. Their canasta, red
+  // three, and foot counts are left absent, because the bonuses lump cannot
+  // be split without inventing them.
+  function normalizeSideParts(parts, savedScore) {
+    if (!parts || typeof parts !== 'object' || Array.isArray(parts)) return null;
+    if (!usesStructuredScore(parts) && !isLegacyParts(parts)) return null;
+    const stored = persistSideParts(parts);
+    const scorecard = Number(savedScore);
+    if (Number.isFinite(scorecard)) stored.roundScore = scorecard;
+    else if (parts.roundScore !== undefined && parts.roundScore !== null && parts.roundScore !== '') {
+      const saved = Number(parts.roundScore);
+      if (Number.isFinite(saved)) stored.roundScore = saved;
+    }
+    return stored;
+  }
+
+  function normalizeRound(round) {
+    if (!round || typeof round !== 'object') return round;
+    const copy = Object.assign({}, round);
+    copy.scores = Object.assign({}, round.scores || {});
+    if (!round.handFootParts || typeof round.handFootParts !== 'object') return copy;
+    copy.handFootParts = {};
+    Object.keys(round.handFootParts).forEach(function (key) {
+      const parts = round.handFootParts[key];
+      if (!parts || typeof parts !== 'object') return;
+      const normalized = normalizeSideParts(parts, copy.scores[key]);
+      if (!normalized) return;
+      copy.handFootParts[key] = normalized;
+      if (!Number.isFinite(Number(copy.scores[key]))) copy.scores[key] = normalized.roundScore;
+    });
+    return copy;
+  }
+
+  function normalizeMatch(match) {
+    if (!match || typeof match !== 'object') return match;
+    const copy = JSON.parse(JSON.stringify(match));
+    copy.rounds = (copy.rounds || []).map(normalizeRound);
+    return copy;
+  }
+
+  function isHandFootHistory(match) {
+    const name = match && (match.game || match.name);
+    return name === GAME_NAME;
+  }
+
+  function readStat(parts, field, savedScore) {
+    const normalized = parts ? normalizeSideParts(parts, savedScore) : null;
+    if (field === 'roundScore') {
+      if (normalized && Number.isFinite(Number(normalized.roundScore))) return Number(normalized.roundScore);
+      return Number.isFinite(Number(savedScore)) ? Number(savedScore) : null;
+    }
+    if (!normalized) return null;
+    if (field === 'cardPoints') return parsePart(normalized.cardPoints, false);
+    if (!usesStructuredScore(normalized)) return null;
+    if (!Object.prototype.hasOwnProperty.call(normalized, field)) return null;
+    if (field === 'canastas' || field === 'redThrees' || field === 'footPenalty') {
+      return parsePart(normalized[field], true);
+    }
+    return null;
+  }
+
+  function sumFieldForSide(rounds, sideKey, field) {
+    const result = { total: 0, roundsRecorded: 0, roundsUnknown: 0 };
+    (rounds || []).forEach(function (round) {
+      if (!round || round.hailMaryBonus) return;
+      const parts = round.handFootParts && round.handFootParts[sideKey];
+      const saved = round.scores && round.scores[sideKey];
+      const value = readStat(parts, field, saved);
+      if (value === null) result.roundsUnknown += 1;
+      else {
+        result.total += value;
+        result.roundsRecorded += 1;
+      }
+    });
+    return result;
+  }
+
+  function sideKeysForMatch(match) {
+    const keys = [];
+    const seen = new Set();
+    const remember = function (key) {
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      keys.push(key);
+    };
+    ((match && match.handFoot && match.handFoot.sides) || []).forEach(function (side) {
+      remember(side && side.key);
+    });
+    (match && match.rounds || []).forEach(function (round) {
+      Object.keys(round && round.handFootParts || {}).forEach(remember);
+      Object.keys(round && round.scores || {}).forEach(remember);
+    });
+    return keys;
+  }
+
+  function sumFieldForMatch(match, field) {
+    const result = { total: 0, roundsRecorded: 0, roundsUnknown: 0 };
+    if (!isHandFootHistory(match)) return result;
+    sideKeysForMatch(match).forEach(function (key) {
+      const part = sumFieldForSide(match.rounds, key, field);
+      result.total += part.total;
+      result.roundsRecorded += part.roundsRecorded;
+      result.roundsUnknown += part.roundsUnknown;
+    });
+    return result;
+  }
+
+  function sideKeysForPlayer(match, playerName) {
+    if (!playerName) return [];
+    const sides = match && match.handFoot && match.handFoot.sides;
+    if (Array.isArray(sides) && sides.length) {
+      return sides.filter(function (side) {
+        return side && Array.isArray(side.members) && side.members.indexOf(playerName) !== -1;
+      }).map(function (side) { return side.key; });
+    }
+    const keys = [];
+    (match && match.rounds || []).forEach(function (round) {
+      const parts = round && round.handFootParts || {};
+      const scores = round && round.scores || {};
+      if ((Object.prototype.hasOwnProperty.call(parts, playerName) || Object.prototype.hasOwnProperty.call(scores, playerName)) && keys.indexOf(playerName) === -1) {
+        keys.push(playerName);
+      }
+    });
+    return keys;
+  }
+
+  // A personal total uses the side that player was on, once. A team count
+  // is not split across partners. Adding every partner's personal total
+  // counts that side again.
+  function sumFieldForPlayer(history, playerName, field) {
+    const result = { total: 0, roundsRecorded: 0, roundsUnknown: 0 };
+    (history || []).forEach(function (match) {
+      if (!isHandFootHistory(match)) return;
+      sideKeysForPlayer(match, playerName).forEach(function (key) {
+        const part = sumFieldForSide(match.rounds, key, field);
+        result.total += part.total;
+        result.roundsRecorded += part.roundsRecorded;
+        result.roundsUnknown += part.roundsUnknown;
+      });
+    });
+    return result;
+  }
+
   function totalForSides(rounds, keys) {
     const totals = {};
     (keys || []).forEach(key => { totals[key] = 0; });
@@ -169,6 +359,14 @@
     buildSides,
     parsePart,
     roundScore,
+    persistSideParts,
+    persistRound,
+    normalizeSideParts,
+    normalizeRound,
+    normalizeMatch,
+    sumFieldForSide,
+    sumFieldForMatch,
+    sumFieldForPlayer,
     meldForRound,
     scoringKeys,
     recordedKeys,

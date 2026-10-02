@@ -37,7 +37,7 @@ House notes already in the rules cards (`gameRulesText`):
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
 - Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Hand and Foot.
-- Hand and Foot: 2 is 1 versus 1. 4 starts as two teams of 2. 6 starts as two teams of 3. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. A team is one column. The score is stored once on the side name, not copied onto each teammate. Minimum meld (50, 90, 120, 150) is a hint, not an entry.
+- Hand and Foot: 2 is 1 versus 1. 4 starts as two teams of 2. 6 starts as two teams of 3. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. A team is one column. The score is stored once on the side name, not copied onto each teammate. Each round stores that side’s canasta count, red-three count, foot penalty, card points, the two rates, and the computed round score as separate fields. Minimum meld (50, 90, 120, 150) is a hint, not an entry. An older save that only has card points, bonuses, and cards left keeps that score. Its canasta and red-three counts stay unknown.
 
 ## Core flows
 

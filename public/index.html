@@ -11861,6 +11861,15 @@ button.dealer-name-indicator .dealer-player-label {
     }
     Object.assign(data,rookPersistedState(game));
     if(game.handFoot) data.handFoot=cloneHandFoot(game.handFoot);
+    if(isHandFootGame(game)){
+      const api=handFootApi();
+      if(api&&typeof api.normalizeMatch==='function'){
+        const normalized=api.normalizeMatch({game:game.name,handFoot:game.handFoot,rounds:game.rounds||[]});
+        data.rounds=normalized.rounds;
+      } else {
+        data.rounds=JSON.parse(JSON.stringify(game.rounds||[]));
+      }
+    }
     return data;
   }
 
@@ -15855,8 +15864,9 @@ ${isDealer
       columns.forEach(p=>{
         const parsed=handFootPartsFromModal(drafts[p]);
         if(parsed.total!==0) allZero=false;
-        scores[p]=parsed.total;
-        handFootParts[p]=handFootPersistParts(parsed);
+        const stored=handFootPersistParts(parsed);
+        scores[p]=stored.roundScore;
+        handFootParts[p]=stored;
       });
       if(allZero&&!skipConfirm&&!confirm('Every side scored 0? Submit?')){isSubmitting=false;return;}
       const prevSide=columns.slice().sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0]||null;
@@ -15917,10 +15927,15 @@ ${isDealer
     return stored;
   }
   function handFootPersistParts(parsed){
+    const api=handFootApi();
+    if(api&&typeof api.persistSideParts==='function') return api.persistSideParts(parsed);
     if(!parsed||parsed.legacy){
-      return {cardPoints:parsed?.cardPoints??0,bonuses:parsed?.bonuses??0,cardsLeft:parsed?.cardsLeft??0};
+      const card=parsed?.cardPoints??0;
+      const bonus=parsed?.bonuses??0;
+      const left=parsed?.cardsLeft??0;
+      return {cardPoints:card,bonuses:bonus,cardsLeft:left,legacy:true,roundScore:(card+bonus-Math.abs(left||0))};
     }
-    return {
+    const stored={
       canastas:parsed.canastas,
       redThrees:parsed.redThrees,
       footPenalty:parsed.footPenalty,
@@ -15928,6 +15943,8 @@ ${isDealer
       canastaEach:parsed.canastaEach,
       redThreeEach:parsed.redThreeEach
     };
+    stored.roundScore=parsed.total??((stored.canastas*stored.canastaEach)+(stored.redThrees*stored.redThreeEach)+stored.cardPoints-stored.footPenalty);
+    return stored;
   }
   function applyHandFootRoundEdit(roundIndex, values){
     const round=currentGame?.rounds?.[roundIndex];
@@ -15937,8 +15954,9 @@ ${isDealer
     round.handFootParts=round.handFootParts||{};
     columns.forEach(p=>{
       const parsed=handFootPartsFromModal(values?.[p]);
-      round.scores[p]=parsed.total;
-      round.handFootParts[p]=handFootPersistParts(parsed);
+      const stored=handFootPersistParts(parsed);
+      round.scores[p]=stored.roundScore;
+      round.handFootParts[p]=stored;
     });
     addAuditEntry(`R${round.round} Edited`, columns.map(p=>`${p}: ${round.scores[p]}`).join(', '));
     recomputeGameTotals(currentGame);
