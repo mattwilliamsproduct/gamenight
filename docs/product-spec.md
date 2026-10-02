@@ -19,7 +19,7 @@ Portrait is a podium, not the scoring surface. Rotate back for the card.
 
 ## Supported games
 
-The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math lives in that file. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
+The shelf is the seven buttons in `public/index.html` (`startGame`). Scoring math lives in that file, except Hand and Foot, which lives in `public/assets/hand-foot-logic.js`. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
 
 | Game | Wins | Length | What the app calculates | What a human enters |
 | --- | --- | --- | --- | --- |
@@ -29,13 +29,15 @@ The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math 
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
+| Hand and Foot | High score | 4 rounds | Card points + bonuses − cards left. Cards left is typed as a positive number. The round and the match total may be negative. | Card points, bonuses, cards left, once per side |
 
 House notes already in the rules cards (`gameRulesText`):
 
 - Wizard does **not** block the dealer from making bids sum to the tricks. 818 does. Leave Wizard that way unless the porch asks.
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
-- Life Preserver needs 4 active players and is off for Rook and Beat the Heat.
+- Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Hand and Foot.
+- Hand and Foot: 2 is 1 versus 1. 4 starts as two teams of 2. 6 starts as two teams of 3. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. A team is one column. The score is stored once on the side name, not copied onto each teammate. Minimum meld (50, 90, 120, 150) is a hint, not an entry.
 
 ## Core flows
 
@@ -46,8 +48,9 @@ House notes already in the rules cards (`gameRulesText`):
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
-6. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`).
-7. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, and Five Crowns complete when the round counter passes the length.
+6. Hand and Foot: confirm teams or singles, then card points, bonuses, and cards left for each side. The app adds the first two and subtracts cards left.
+7. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`). Hand and Foot adds the numeric round scores, so a negative round stays negative.
+8. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, Five Crowns, and Hand and Foot complete when the round counter passes the length.
 
 Mid-game join: the new player gets the average of the current losing half, written onto the last scoring round, with `joinBonus` on every earlier round so records ignore the catch-up. Wizard length resyncs from the new headcount and never shrinks below the round you are on.
 
@@ -59,7 +62,7 @@ One feature, two names. The wheel, the Actions item, and the copy say **Life Pre
 
 Who can spin (`getLifePreserverOffer`):
 
-- Game is 818, Wizard, Five Crowns, or Flip 7. Not Rook. Not Beat the Heat.
+- Game is 818, Wizard, Five Crowns, or Flip 7. Not Rook. Not Beat the Heat. Not Hand and Foot.
 - At least 4 active players. Not retired. Not already spun. Match still going.
 - Not in 1st. 2nd can qualify if they are also too far back.
 - Enough scoring rounds have been played (4, or about a quarter of a Wizard match, at least 3).

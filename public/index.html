@@ -4219,6 +4219,191 @@ button.dealer-name-indicator .dealer-player-label {
       opacity: 0.35;
       pointer-events: none;
     }
+    #hand-foot-setup-modal .hf-setup-card {
+      max-height: min(100%, calc(100dvh - 2rem));
+      overflow-y: auto;
+    }
+    #score-entry-modal.score-entry-hand-foot .hf-field .score-entry-meta-label,
+    #score-entry-modal.score-entry-hand-foot .hf-round .score-entry-meta-label {
+      white-space: normal;
+      letter-spacing: 0.04em;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-hf-row .score-entry-player-card {
+      grid-template-columns: auto minmax(0, 1fr) var(--se-fit-total-col) !important;
+      height: auto !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .hf-side-avatars .score-entry-avatar {
+      width: 34px !important;
+      height: 34px !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-name.hf-side-names {
+      font-size: 1rem !important;
+      line-height: 1.05 !important;
+      white-space: normal !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-selected-head {
+      grid-template-columns: auto minmax(0, 1fr) !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit #score-entry-selected-avatar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: auto !important;
+      height: auto !important;
+      max-width: 46vw;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit #score-entry-selected-avatar .score-entry-selected-avatar {
+      width: min(var(--se-fit-selected-avatar), 48px) !important;
+      height: min(var(--se-fit-selected-avatar), 48px) !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-selected-name {
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      line-height: 1.05 !important;
+    }
+    @media (max-width: 760px) {
+      #score-entry-modal.score-entry-hand-foot {
+        padding: 8px !important;
+        align-items: stretch !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-panel {
+        width: 100%;
+        height: calc(100dvh - 16px);
+        max-height: calc(100dvh - 16px);
+        overflow: hidden;
+        padding: 12px !important;
+      }
+      #score-entry-modal.score-entry-hand-foot #score-entry-game {
+        font-size: 2rem !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-b {
+        flex: 0 0 auto;
+        gap: 8px;
+        padding-bottom: 8px !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-layout {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        gap: 8px !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-list {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-rows {
+        overflow-y: auto !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-side {
+        flex: 0 0 auto;
+        min-height: 0;
+        overflow: visible;
+        gap: 8px !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-selected-card {
+        display: none !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-selected-card > :first-child,
+      #score-entry-modal.score-entry-hand-foot .score-entry-selected-detail {
+        margin: 0 !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-hf-row .score-entry-player-card {
+        min-height: 0 !important;
+        padding: 4px 6px !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-row {
+        gap: 0.28rem !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .hf-field,
+      #score-entry-modal.score-entry-hand-foot .hf-round {
+        padding: 0.15rem 0.25rem 0.2rem !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-keypad {
+        flex: 0 0 auto;
+        gap: 0.3rem;
+        padding: 0.3rem;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-key {
+        min-height: 2.55rem !important;
+        height: 2.55rem;
+        font-size: 1.3rem !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-t {
+        flex: 0 0 auto;
+        flex-direction: row;
+        gap: 0.4rem;
+        padding-top: 8px !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-t button {
+        min-height: 0;
+        padding-top: 0.7rem !important;
+        padding-bottom: 0.7rem !important;
+        font-size: 0.78rem !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .hf-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      #game-screen[data-game='Hand and Foot'] .scorecard-table-wrap {
+        overflow-x: hidden !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-player,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+        width: 52% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        padding-left: 0.4rem !important;
+        padding-right: 0.3rem !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+        width: 3.6rem !important;
+        min-width: 3.6rem !important;
+        max-width: 3.6rem !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-rank-badge {
+        width: 1.3rem !important;
+        height: 1.3rem !important;
+        font-size: 0.68rem !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .avatar-img-sc {
+        width: 28px !important;
+        height: 28px !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-player-identity {
+        gap: 0.3rem !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture td.score-cell.scorecard-round-td .score-cell-input {
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-meld-hint {
+        letter-spacing: 0;
+        line-height: 1.05;
+      }
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-rows {
+      overflow-y: auto !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-hf-row {
+      flex: 0 0 auto !important;
+      height: auto !important;
+    }
     html.dark .bp-game-card { color: #073f3b; }
     .quest-emblem {
       display: none;
@@ -7885,7 +8070,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- ═══ ROOK: Setup Modal ═══ -->
     <div id="hand-foot-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelHandFootSetup()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-lg p-7 relative pop-in">
+      <div class="surface-raised hf-setup-card w-full max-w-lg p-7 relative pop-in">
         <div class="text-center mb-5">
           <div class="text-5xl mb-3">🃏</div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Before round 1</div>
@@ -8876,6 +9061,9 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function getRecordedPlayers(gameData){
     if(isHandFootGame(gameData)){
+      const api=handFootApi();
+      const sides=gameData?.handFoot?.sides||[];
+      if(api?.recordedKeys&&sides.length) return api.recordedKeys(sides, gameData?.totals);
       const keys=getHandFootColumns(gameData);
       const totals=gameData?.totals||{};
       if(keys.length) return keys.filter(k=>totals[k]!==undefined);
@@ -10874,6 +11062,24 @@ button.dealer-name-indicator .dealer-player-label {
     toast(`✓ Renamed to "${newName}"`, 'success');
   }
 
+  function applyHandFootRename(record, oldName, newName, merge){
+    const api=handFootApi();
+    if(!record?.handFoot||typeof api?.renameMember!=='function') return;
+    const renamed=api.renameMember(record.handFoot, oldName, newName);
+    record.handFoot=renamed.config;
+    Object.entries(renamed.keyMap||{}).forEach(([from,to])=>{
+      transferPlayerKey(record.totals, from, to, !!merge);
+      if(Array.isArray(record.winners)){
+        record.winners=record.winners.map(w=>w===from?to:w);
+        if(merge) record.winners=[...new Set(record.winners)];
+      }
+      (record.rounds||[]).forEach(round=>{
+        transferPlayerKey(round?.scores, from, to, !!merge);
+        transferPlayerKey(round?.handFootParts, from, to, false);
+      });
+      transferPlayerKey(record.currentScoreDrafts, from, to, false);
+    });
+  }
   function transferPlayerKey(map, oldName, newName, merge=false){
     if(!map || oldName===newName || map[oldName]===undefined) return;
     if(merge && map[newName]!==undefined && typeof map[oldName]==='number' && typeof map[newName]==='number'){
@@ -10903,6 +11109,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     // history: totals, winners, rounds
     history.forEach(h => {
+      applyHandFootRename(h, oldName, newName, false);
       if(h.totals && h.totals[oldName] !== undefined){
         h.totals[newName] = h.totals[oldName];
         delete h.totals[oldName];
@@ -10941,6 +11148,7 @@ button.dealer-name-indicator .dealer-player-label {
     markHistoryChanged();
     // current game (if active)
     if(currentGame){
+      applyHandFootRename(currentGame, oldName, newName, false);
       if(currentGame.totals && currentGame.totals[oldName] !== undefined){
         currentGame.totals[newName] = currentGame.totals[oldName];
         delete currentGame.totals[oldName];
@@ -10981,6 +11189,7 @@ button.dealer-name-indicator .dealer-player-label {
   // For merges, we ADD totals (in history) and unify rosters.
   function mergePlayerRecords(src, target){
     history.forEach(h => {
+      applyHandFootRename(h, src, target, true);
       if(h.totals[src] !== undefined){
         h.totals[target] = (h.totals[target] || 0) + h.totals[src];
         delete h.totals[src];
@@ -10994,6 +11203,7 @@ button.dealer-name-indicator .dealer-player-label {
         });
       }
     });
+    if(currentGame) applyHandFootRename(currentGame, src, target, true);
     allPlayers = allPlayers.filter(p => p !== src);
     players = players.filter(p => p !== src);
     if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
@@ -13431,14 +13641,16 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
+      const keepOneRound=root.id==='scorecard-capture'&&document.getElementById('game-screen')?.dataset.game==='Hand and Foot';
+      const hideLimit=roundIdxs.length-(keepOneRound?1:0);
       fitActiveScorecardColumns(root);
-      while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<roundIdxs.length){
+      while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<hideLimit){
         hidden++;
         applyHidden(hidden);
         fitActiveScorecardColumns(root);
       }
       if(options?.hideUntilLeadFits){
-        while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
+        while(hidden<hideLimit&&scorecardLeadStillOverflows(table)){
           hidden++;
           applyHidden(hidden);
           fitActiveScorecardColumns(root);
@@ -14851,6 +15063,17 @@ ${isDealer
       </div>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
+    scrollHandFootActiveRowIntoView();
+  }
+  function scrollHandFootActiveRowIntoView(){
+    const scroller=document.getElementById('score-entry-rows');
+    const active=scroller?.querySelector('.score-entry-hf-row.active');
+    if(!scroller||!active) return;
+    const top=active.offsetTop;
+    const bottom=top+active.offsetHeight;
+    const viewBottom=scroller.scrollTop+scroller.clientHeight;
+    if(top<scroller.scrollTop) scroller.scrollTop=top;
+    else if(bottom>viewBottom) scroller.scrollTop=bottom-scroller.clientHeight;
   }
 
   function selectHandFootField(idx, field){

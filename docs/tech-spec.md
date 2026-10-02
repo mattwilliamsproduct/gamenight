@@ -10,6 +10,7 @@ One static site. `public/` is the deploy. `npm run build` writes CSS, vendor cop
 | --- | --- |
 | `public/index.html` | Shell, theme, and the match state machine. |
 | `public/assets/life-preserver-logic.js` | Pure Life Preserver rules. Loaded in production. |
+| `public/assets/hand-foot-logic.js` | Pure Hand and Foot sides, round score, and side-key rename. Loaded in production. |
 | `public/assets/backup.js` | Pure backup merge. Loaded in production. |
 | `public/assets/comeback-logic.js` | Old Turbo rules. Must not load. Kept so old `round.comeback` rows stay defined. |
 | `api/sync.js` | One Redis document for the porch. |
@@ -23,6 +24,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - Player names render as text. The dealer control hugs the glyphs (`max-content` on the label, transparent button).
 - Fitting may shrink the font. It may not ellipsize.
+- A Hand and Foot team name is one label in that same player column. Shrink it when it would be clipped or meet the total. Leave a gap before the total. Do not stack the teammates as one letter each.
 - A name of “Michelle” at the Five Crowns and late-Wizard fixtures stays fully inside the player cell at laptop and 1080p widths.
 
 ### ROW-ADDS
@@ -33,6 +35,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Wizard points for a submitted round are `20 + 10 × tricks` on an exact bid, otherwise `−10 × |bid − tricks|`. Wizard can return from scoring to bidding before the round is submitted. 818 uses the same two phases and has no unlock. That difference is intentional until the table asks for it.
 - 818 points are tricks taken, plus 10 when bid equals tricks. The dealer bid that would make the table sum equal the tricks in play is rejected. Wizard does not apply that dealer law.
 - Five Crowns, Flip 7, and Beat the Heat store the number the table typed.
+- Hand and Foot stores card points, bonuses, and cards left per side. The round score is card points + bonuses − cards left. Cards left is a positive number. `recomputeGameTotals` adds those round scores with numeric addition, so negatives survive. Records and winners use the side key from `recordedKeys`, not each teammate. Renaming a player rewrites that side key and moves the side's scores with it.
 - Rook: other team counters = configured hand total − bid-team counters. Made bid: each partner scores the team total. Set: each partner scores `−bid`. The other side scores its counters.
 - Undo removes the last scoring round and any Life Preserver rounds that followed it, then recomputes.
 

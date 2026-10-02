@@ -56,9 +56,70 @@
     return Object.prototype.hasOwnProperty.call(MELDS, n - 1) ? MELDS[n - 1] : null;
   }
 
-  // One key per side. Team members are not separate scoring rows.
+  // One key per side. A repeated key is still one record, so a merge
+  // cannot write the same player twice.
   function scoringKeys(sides) {
-    return (sides || []).map(side => side.key);
+    const keys = [];
+    const seen = new Set();
+    (sides || []).forEach(side => {
+      const key = side && side.key;
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      keys.push(key);
+    });
+    return keys;
+  }
+
+  // Records use the side key, including a 0 or a negative total.
+  // A teammate's own name is not a second record.
+  function recordedKeys(sides, totals) {
+    const keys = scoringKeys(sides);
+    if (!totals || typeof totals !== 'object') return keys;
+    return keys.filter(key => Object.prototype.hasOwnProperty.call(totals, key));
+  }
+
+  function totalForSides(rounds, keys) {
+    const totals = {};
+    (keys || []).forEach(key => { totals[key] = 0; });
+    (rounds || []).forEach(round => {
+      (keys || []).forEach(key => {
+        const score = Number(round && round.scores && round.scores[key]);
+        totals[key] += Number.isFinite(score) ? score : 0;
+      });
+    });
+    return totals;
+  }
+
+  // Rebuild side keys after a rename or a merge. Duplicate names on one side collapse.
+  function renameMember(config, oldName, newName) {
+    if (!config || !oldName || oldName === newName) {
+      return { config: config || null, keyMap: {} };
+    }
+    const previous = config.sides || [];
+    const sides = previous.map(side => {
+      const seen = new Set();
+      const members = [];
+      (side.members || []).forEach(member => {
+        const name = member === oldName ? newName : member;
+        if (!name || seen.has(name)) return;
+        seen.add(name);
+        members.push(name);
+      });
+      return { key: sideKey(members), members: members };
+    });
+    const keyMap = {};
+    previous.forEach((side, index) => {
+      const nextKey = sides[index] && sides[index].key;
+      if (side && side.key && nextKey && side.key !== nextKey) keyMap[side.key] = nextKey;
+    });
+    const seen = new Set();
+    const uniqueSides = [];
+    sides.forEach(side => {
+      if (!side.key || seen.has(side.key)) return;
+      seen.add(side.key);
+      uniqueSides.push(side);
+    });
+    return { config: { format: config.format, sides: uniqueSides }, keyMap: keyMap };
   }
 
   const api = {
@@ -74,7 +135,10 @@
     parsePart,
     roundScore,
     meldForRound,
-    scoringKeys
+    scoringKeys,
+    recordedKeys,
+    totalForSides,
+    renameMember
   };
 
   root.BPGHandFoot = api;
