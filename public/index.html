@@ -9493,10 +9493,26 @@ button.dealer-name-indicator .dealer-player-label {
     const c = getPlayerColor(name);
     return c > 0 ? `color-ring-${c}` : '';
   }
+  // Monogram tones follow the color-ring palette so a player without a photo still reads as their color.
+  const AVATAR_MONOGRAM_TONES=[
+    ['#e4e2dc','#6b6560'],
+    ['#fde2e0','#b42318'],['#fde7d6','#b54708'],['#faefc6','#8a5a00'],['#d7f2e6','#06724f'],
+    ['#d4f0f5','#0e6f86'],['#dde8fd','#1d4ed8'],['#ebe3fd','#6d28d9'],['#fbe1ee','#b8175a']
+  ];
+  function getAvatarInitials(name){
+    const words=(typeof name==='string'?name:'').trim().split(/\s+/).filter(Boolean);
+    if(!words.length) return '?';
+    const first=Array.from(words[0])[0]||'';
+    const last=words.length>1?(Array.from(words[words.length-1])[0]||''):'';
+    return (first+last).toUpperCase().replace(/[<>&"']/g,'')||'?';
+  }
   function getAvatarFallback(name){
-    const i=(name&&typeof name==='string')?name.charAt(0).toUpperCase():'?';
+    const initials=getAvatarInitials(name);
+    const [bg,fg]=AVATAR_MONOGRAM_TONES[getPlayerColor(name)]||AVATAR_MONOGRAM_TONES[0];
+    const size=initials.length>1?36:42;
+    const baseline=initials.length>1?63:65;
     // Simple SVG — no single quotes, so URL-encoded form is safe to embed in attributes.
-    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#e4e2dc" width="100" height="100"/><text fill="#78716c" x="50" y="58" font-size="46" font-weight="800" text-anchor="middle" font-family="sans-serif">${i}</text></svg>`;
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="${bg}" width="100" height="100"/><text fill="${fg}" x="50" y="${baseline}" font-size="${size}" font-weight="800" letter-spacing="1" text-anchor="middle" font-family="ui-rounded,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">${initials}</text></svg>`;
     // Additionally encode any residual single-quote chars so onerror attribute remains well-formed.
     return ('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)).replace(/'/g,'%27');
   }
