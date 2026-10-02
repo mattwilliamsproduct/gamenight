@@ -37,6 +37,7 @@ North star: crush requirements so one-shots get better every correction.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
 - Before a multi-step coding kickoff, load `docs/product-spec.md`, `docs/taste.md`, this file, and `docs/solutions/` (including `docs/solutions/README.md`). Load the builder-taste-profile skill when it is available.
 - Coding OS: on a feature request, do not wait for Matt to ask for a spec or a Notion card. Kick off, write or update product and tech spec stubs, create or update Matt HQ open actions, and compound durable feedback the same day. He is in the loop only for taste, kill, merge, and a short summarized spec review when the slice is non-trivial. Undraft or merge of an app or product PR still needs his explicit go.
+- Roles: Matt owns ideas, taste, feedback, and validation. Agents own expert implementation on Back Porch. Periodically review this repo for bugs, tech debt, and performance. Fix obvious no-tradeoff items in draft PRs. Taste tradeoffs get a short note for Matt. App or product undraft and merge still need his explicit go.
 - App and product PRs stay draft and sidelined until Matt says undraft or merge. Docs-only OS edits with no game behavior may merge.
 - Never claim ready without prove-it evidence: `npm run check`, plus a gallery or UI look when the change is UI. Non-UI work needs backend-prove-it. Put the evidence in the PR.
 - Prefer the existing stack and patterns. Porch Club design PRs stay blocked without Matt's visual sign-off.
