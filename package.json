@@ -14,6 +14,7 @@
     "test:sample-night": "node --test scripts/test-sample-night.mjs",
     "check": "npm run check:syntax && npm run check:production-assets && npm run test:comeback && npm run test:life-preserver && npm run test:backup && npm run test:sample-night && git diff --check",
     "qa:gallery": "node scripts/serve-public.mjs",
+    "render:social-card": "node scripts/render-social-card.mjs",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots"
   },

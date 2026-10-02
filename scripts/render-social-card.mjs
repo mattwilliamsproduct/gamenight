@@ -1,5 +1,5 @@
 // Renders public/social-card.jpg (the link preview) from the real sample-night scorecard.
-// Run after a visual change to the scorecard: node scripts/render-social-card.mjs
+// Run after a visual change to the scorecard: npm run render:social-card
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { readFile, stat } from 'node:fs/promises';
