@@ -7326,6 +7326,19 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen #round-intel.round-banner { font-size: 21px !important; }
     }
 
+    /* Sticky nav stays above the match banner (z-index 60; 80 while Actions is open).
+       Below 540px the five labels share one row; full words, no second line. */
+    #top-nav { z-index: 70; }
+    @media (max-width: 539px) {
+      #top-nav > div > div:last-child { gap: 0.25rem; }
+      #top-nav .nav-btn {
+        padding: 0.4rem 0.42rem;
+        font-size: 12.5px;
+        min-height: 2.15rem;
+        letter-spacing: 0.01em;
+      }
+    }
+
     /* ════════ DARK-MODE OVERRIDES ════════ */
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
