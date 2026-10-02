@@ -23,20 +23,26 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 
 - Static scorekeeper. The app is mainly `public/index.html`, `public/assets/*`, and `api/sync.js`. `npm run build` writes CSS, vendor files, and `public/sw.js`. Vercel serves `public/` plus that function.
 - Product bar: `docs/product-spec.md`
-- Taste (load before feature kickoffs): `docs/taste.md`
+- Taste: `docs/taste.md`
 - Tech contract: `docs/tech-spec.md`
 - Active rethink and findings: `docs/J-137-grok-4.7-rethink.md`
 - Release gates: `docs/release-checks.md`
 
 ## Hard constraints
 
+North star: crush requirements so one-shots get better every correction.
+
 - Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. The current contract is one Redis blob with no revision check.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
-- Prove the change in the real UI (`npm run qa:gallery` scenarios) before calling it ready.
+- Before a multi-step coding kickoff, load `docs/product-spec.md`, `docs/taste.md`, this file, and `docs/solutions/` (including `docs/solutions/README.md`). Load the builder-taste-profile skill when it is available.
+- Coding OS: on a feature request, do not wait for Matt to ask for a spec or a Notion card. Kick off, write or update product and tech spec stubs, create or update Matt HQ open actions, and compound durable feedback the same day. He is in the loop only for taste, kill, merge, and a short summarized spec review when the slice is non-trivial. Undraft or merge of an app or product PR still needs his explicit go.
+- Roles: Matt owns ideas, taste, feedback, and validation. Agents own expert implementation on Back Porch. Periodically review this repo for bugs, tech debt, and performance. Fix obvious no-tradeoff items in draft PRs. Taste tradeoffs get a short note for Matt. App or product undraft and merge still need his explicit go.
+- App and product PRs stay draft and sidelined until Matt says undraft or merge. Docs-only OS edits with no game behavior may merge.
+- Never claim ready without prove-it evidence: `npm run check`, plus a gallery or UI look when the change is UI. Non-UI work needs backend-prove-it. Put the evidence in the PR.
 - Prefer the existing stack and patterns. Porch Club design PRs stay blocked without Matt's visual sign-off.
 - Game-behavior merges wait for Matt's UI test while that overnight rule is standing.
-- Compound after a ship: when you learn something novel, write `docs/solutions/<short-slug>.md` and/or one bullet in this section. The learning does not stay only in chat.
+- After any durable Matt correction, or a novel lesson from a ship, compound the same day into `docs/solutions/<short-slug>.md` and/or `docs/taste.md` and/or one bullet in this section. Never leave durable feedback only in chat.
 
 ## Verification
 
@@ -50,7 +56,7 @@ Done when the evidence is in the PR before handoff (verify-before-done).
 ## Pointers
 
 - Product spec: `docs/product-spec.md`
-- Taste (load before feature kickoffs): `docs/taste.md`
+- Taste: `docs/taste.md`
 - Tech spec: `docs/tech-spec.md`
 - J-137 rethink: `docs/J-137-grok-4.7-rethink.md`
 - Release checks: `docs/release-checks.md`
