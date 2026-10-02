@@ -2,6 +2,8 @@
 
 Back Porch Games is a human scorekeeper. People play. The app tracks the card. Specs: [product-spec.md](product-spec.md), [tech-spec.md](tech-spec.md). This note is the code sweep against those bars. No app behavior was changed.
 
+This file plus those two specs are the canonical docs set (PR #47). PR #46 (J-138 Sol) should be closed, not merged. Unique Sol findings that survived a re-read of `main` are in [Also from J-138 Sol](#also-from-j-138-sol). `origin/main` was still `a18a52e` on 2026-10-02, so this branch did not need a rebase.
+
 ## Rec
 
 1. **PORCH-MEMORY.** Make `npm run build` emit the worker that is already committed. `src/service-worker.js` still precaches Turbo and drops Life Preserver. Vercel builds from that template.
@@ -145,7 +147,7 @@ The neighbor Life Preserver form is still outside this repo. Publishing it is no
 
 ### T2 — Show the spin (LP-VISIBLE)
 
-Last scoring cell shows the adjustment (`40 −30`, `0 +40`). Hidden columns mark Total. Undo clears it. Hand counts, Player Pace, WHAMMY, and `rounds.length` on the history card ignore `hailMaryBonus`. One Playwright or unit assertion on the cell text. `comeback-logic.js` stays unloaded.
+Last scoring cell shows the adjustment (`40 −30`, `0 +40`). Hidden columns mark Total. Undo clears it. Hand counts, Player Pace, WHAMMY, `rounds.length` on the history card, and per-round Hall of Fame walks (`calculateAllTimeRecords` at 15922) ignore `hailMaryBonus`. One Playwright or unit assertion on the cell text, plus one record assertion that a spin is not best/worst round. `comeback-logic.js` stays unloaded.
 
 ### T3 — One place function (SHARED-PLACE)
 
@@ -169,7 +171,34 @@ Remove the card and the calculator at 15902–15913 and 16200. Leave the other B
 
 ### Later, not this sweep
 
-- Cloud revision so a stale PUT cannot replace a newer scorebook.
+- Cloud revision so a stale PUT cannot replace a newer scorebook. The same slice should apply profile-only pulls, refuse to replace a live match on file import without a confirm, and flush the cloud timer on page hide. See the J-138 notes below.
 - Delete the Turbo modal, the empty `comebackChip` slot, and the second theme pass only as their own changes, after T2, so a cleanup does not move the scorecard.
 - Rook WHAMMY only after team rounds are specified.
 - 818 bid-lock undo, and Wizard’s dealer-bid law, only if the table asks.
+
+## Also from J-138 Sol
+
+Folded from PR #46 (`cursor/j-138-sol-rethink-8620`, files `docs/J-138-*`) on 2026-10-02. Re-checked on `main`. Already covered above and not repeated: the worker template, invisible Life Preserver cells, row-index places, three merge paths, duplicated theme CSS, unloaded Turbo engine, no PR CI, Closest Finish To 66, and `Date.now()` history ids.
+
+### Verified, and now part of the bar
+
+1. **Records treat a spin as a played round.** `calculateAllTimeRecords` builds `scoringRounds` by skipping `hailMaryBonus` (`public/index.html` 15920–15921) and then walks every `h.rounds` entry (15922–15951) without that skip. A Five Crowns subtraction or a Wizard bonus can become best or worst round. `joinBonus` is excluded. The spin is not. LP-VISIBLE now says per-round records ignore it. T2 includes this, not only the scorecard cell.
+
+2. **Cloud pull drops anything that is not a new player or finished game.** `pullPorchCloud` merges, then applies `next` only when `added.games || added.players` (10109–10120). An avatar, a lineup edit, or a remote live match with no new history row is computed and thrown away. Profile merge inside `mergeBackup` never even increments `added`.
+
+3. **File import replaces the live match. Cloud pull does not.** `mergeBackup` (`public/assets/backup.js` 94–96) takes `incoming.currentGame` whenever the key exists, including `null`. `importBackupText` (10024–10028) and `applyMergedBackup` (9988) write that over tonight’s match and alert “Merged.” `mergeCloud` (133–141) deletes the remote live match when this device already has one. Same word “merge,” two behaviors. PORCH-MEMORY now requires a confirm before a file replaces a live match.
+
+4. **Page hide flushes the iPad and not the cloud.** `visibilitychange` and `pagehide` (9186–9204) call `flushPendingSave` and `_persistGamenightState`. `schedulePorchPush` (10152–10155) is a 2.5s timer with no hide flush. A score can be local and still miss the other iPad if the page closes inside that window.
+
+5. **`hailMaryUsed` and the bonus round can disagree.** Eligibility trusts the name list (`life-preserver-logic.js` around 684). The points live on a `hailMaryBonus` round (`index.html` 10996). A backup can say used with no points, or the reverse. The tech spec now treats the round as the fact and the list as a cache.
+
+6. **Rook writes storage before totals.** `submitRookRound` calls `saveData` at 11759, then `recomputeGameTotals` at 11769. The empty target loop at 11762–11766 still does nothing. The confirm uses the recomputed totals. `gn_current` on disk can keep the previous totals until a later save. The next `renderGame` repairs the screen. It does not repair the blob already scheduled for cloud from the earlier `saveData` if that payload was snapshotted before recompute. The in-memory push 2.5s later usually sees the new totals. The ordering is still wrong.
+
+7. **The live match has no id.** `commitGameStart` (11322) sets name, roster, and rounds. It does not set a match id, revision, or timestamp. Finished rows use `Date.now()` (11254). Two devices cannot tell “same night, newer copy” from “different night.” Sol’s schema sketch (typed adjustments, `schemaVersion`, conditional PUT, 409) is a later extraction, not this contract. Do not start that migration inside a docs PR.
+
+### Read, and not adopted
+
+- **Do not rebase PR #35.** Sol’s J-138B still treats Michelle’s chip as open. NAME-FIT already holds on `main` (#38, #40, and the dealer-geometry tests). Close #35.
+- **Do not add an 818 bid-lock undo or a Wizard dealer-bid ban** unless the table asks. Sol’s product draft says both bid/trick games can unlock. This spec keeps Wizard-only undo and 818-only dealer law.
+- **Do not add a join confirmation dialog as a new feature** in this docs set. Sol wants the catch-up average and Wizard length change explained before `submitAddPlayerMidGame` (14823–14866). Current behavior applies them immediately. Leave that as a product question for Matt, not a silent requirement.
+- **Do not merge #46 to archive the Sol files.** Merging it would land a second product spec, a second tech spec, and a second rethink beside these. The unique notes are here. Close #46 after this fold.

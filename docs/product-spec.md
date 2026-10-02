@@ -93,8 +93,8 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 ### Memory
 
 - This iPad: `localStorage` (`gn_current`, `gn_history`, `gn_players_v2`, `gn_all_players`, profiles, UI scale).
-- File backup: export / import, merge by match id (`public/assets/backup.js`).
-- Porch cloud: only on `cardknight.vercel.app`, one shared password (`x-porch-key`), one Redis value `gamenight:backup:v1` (`api/sync.js`). A pull keeps the local live match when this device already has one. A push replaces the whole cloud blob. There is no revision check.
+- File backup: export / import, merge finished games by match id (`public/assets/backup.js`). Import must not replace tonight's live match unless the host confirms.
+- Porch cloud: only on `cardknight.vercel.app`, one shared password (`x-porch-key`), one Redis value `gamenight:backup:v1` (`api/sync.js`). A pull keeps the local live match when this device already has one, and still applies profile, lineup, and history edits when no new game was added. A push replaces the whole cloud blob. There is no revision check. Hiding the page must flush that push.
 
 ## Non-goals
 
@@ -115,9 +115,10 @@ Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-1
 3. **Tied players get consecutive places** on the live scorecard (`1, 2, 3, 4, 5, 6, 7` when the last four are two ties). The path replay already uses shared places (`4, 4, 6, 6`).
 4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
 5. **Closest Finish To 66 is still a trophy.** Reaching 66 ends Beat the Heat as a loss. The card records a winner's heat against that line.
-6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key.
+6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key. A pull also drops profile-only and remote-match-only updates when no new player or finished game arrived. Hiding the page flushes local storage and does not flush the pending cloud push. A file import can replace the live match without asking.
+7. **A Life Preserver spin can become a Hall of Fame “best round.”** The records walk includes `hailMaryBonus` rounds. The spin is also easy to desync from `hailMaryUsed`, which is a second flag for the same fact.
 
-Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft PR #35 is leftover from before those merges.
+Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft PR #35 is leftover from before those merges. A parallel Sol review (PR #46) still treats that chip as open. This spec does not. PR #47 is the canonical docs set. Unique Sol notes are in the J-137 rethink under “Also from J-138 Sol.” Do not merge PR #46. Close it after this fold.
 
 ## Next slices
 

@@ -42,7 +42,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Games: 818, Wizard, Five Crowns, Flip 7. Off for Rook and Beat the Heat. Minimum 4 active players. One spin per player per match.
 - The best legal result stays strictly behind 1st by at least one scoring step (1 point, or 5 in games that step by 5).
 - 818’s largest helpful slice is about two made bids (+20), and still behind 1st.
-- The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. It counts in the total. It does not count as a hand, a Player Pace round, a WHAMMY input, or a path-replay step.
+- The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. It counts in the total. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, or a path-replay step. `hailMaryUsed` is a cache of who has spun. The bonus round is the fact. They must not disagree.
 - The scorecard shows the adjustment on the scoring hand it followed, including history and Share Receipt. If that column is hidden, a mark sits beside Total.
 - Undo of the surrounding scoring round returns the spin to unused.
 
@@ -62,7 +62,10 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - `gn_current` is enough to resume the live match after a refresh, including bids, drafts, Rook phase, and Life Preserver holds.
 - History merge is by match `id`. A merge never double-counts a match and never drops a match whose id is new.
-- Two devices with the porch password converge on the union of finished games.
+- Two devices with the porch password converge on the union of finished games, including profile and lineup edits that add no new match.
+- A pull applies that union even when the only changes are avatars, prefs, or a remote live match and this device has no live match. A pull does not replace a live match already on this device.
+- A file import does not replace a live local match unless the host confirms. Cloud merge and file merge are allowed to differ only in that confirm.
+- Leaving or hiding the page flushes a pending cloud write. Local flush alone is not enough. The save indicator means the local write finished. A failed write is visible.
 - A push from a device that has not seen the latest cloud copy does not destroy the other device’s live match or newer finished games.
 - The service worker that `npm run build` emits precaches the scripts the page actually loads, including Life Preserver, and does not precache Turbo.
 
