@@ -1080,7 +1080,7 @@
       outline-offset: 2px;
     }
     .score-cell-stack { position: relative; }
-    .score-cell-stack.has-comeback {
+    .score-cell-stack:is(.has-comeback, .has-life-preserver) {
       display: inline-flex;
       flex-direction: column;
       align-items: center;
@@ -1097,16 +1097,16 @@
       box-sizing: border-box;
       overflow: hidden;
     }
-    .score-cell-stack.has-comeback:has(.score-cell-miss) {
+    .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.score-cell-miss) {
       border-color: rgba(225,29,72,0.78);
       box-shadow: 0 0 0 2px rgba(225,29,72,0.12);
     }
-    .score-cell-stack.has-comeback:has(.score-cell-active) {
+    .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.score-cell-active) {
       background: var(--surface);
       border-color: var(--emerald);
       box-shadow: 0 0 0 3px rgba(4,120,87,0.18);
     }
-    .score-cell-stack.has-comeback .score-cell-input {
+    .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input {
       display: block !important;
       background: transparent !important;
       border-color: transparent !important;
@@ -1120,16 +1120,17 @@
       padding: 0 !important;
       line-height: 1 !important;
     }
-    .score-cell-stack.has-comeback .score-cell-input.score-cell-miss,
-    .score-cell-stack.has-comeback .score-cell-input.score-cell-active {
+    .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input.score-cell-miss,
+    .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input.score-cell-active {
       border-color: transparent;
       box-shadow: none;
     }
-    .score-cell-stack.has-comeback .score-cell-base {
+    .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-base {
       display: block;
       line-height: 1;
     }
-    .score-cell-comeback {
+    .score-cell-comeback,
+    .score-cell-life-preserver {
       display: block;
       font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif;
       font-size: 0.82em;
@@ -1138,6 +1139,16 @@
       line-height: 1;
       margin: 0;
       padding: 0;
+      white-space: nowrap;
+    }
+    .score-total-life-preserver {
+      display: block;
+      margin: 0.12rem auto 0;
+      font-size: clamp(0.85rem, 2.6vw, 1.15rem);
+      font-weight: 400;
+      color: #0c4a6e;
+      line-height: 1;
+      letter-spacing: 0;
       white-space: nowrap;
     }
     .scorecard-receipt-stash {
@@ -3051,14 +3062,14 @@ button.dealer-name-indicator {
         font-size: var(--scorecard-col-input-font, var(--scorecard-input-font)) !important;
         line-height: 1 !important;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack.has-comeback {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack:is(.has-comeback, .has-life-preserver) {
         width: clamp(3rem, 4vw, 4rem);
         min-height: var(--scorecard-input-height);
         height: var(--scorecard-input-height);
         padding-top: 0.08rem;
         padding-bottom: 0.08rem;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack.has-comeback .score-cell-input {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input {
         height: auto !important;
         min-height: 0 !important;
         width: 100% !important;
@@ -3066,7 +3077,8 @@ button.dealer-name-indicator {
         padding-bottom: 0 !important;
         font-size: max(16px, calc(var(--scorecard-input-font) * 0.78)) !important;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback,
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-life-preserver {
         font-size: max(14px, calc(var(--scorecard-input-font) * 0.66)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .tv-round-cell-num {
@@ -3201,6 +3213,18 @@ button.dealer-name-indicator {
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: clamp(29rem, 40vw, 42rem);
+    }
+    @media (max-width: 700px) {
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+      #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+        width: 4.8rem;
+        min-width: 4.4rem;
+      }
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
@@ -6896,6 +6920,8 @@ button.dealer-name-indicator .dealer-player-label {
     .scorecard-table tbody td.scorecard-col-total,
     .scorecard-table .score-cell-input,
     .scorecard-table .score-cell-comeback,
+    .scorecard-table .score-cell-life-preserver,
+    .scorecard-table .score-total-life-preserver,
     .scorecard-table .score-cell-base,
     .scorecard-table .tv-round-cell-num,
     .scorecard-total-value,
@@ -7298,6 +7324,127 @@ button.dealer-name-indicator .dealer-player-label {
       #top-nav .bp-brand-games { font-size: 9.3px; }
       #game-screen #game-title { font-size: 36.8px; }
       #game-screen #round-intel.round-banner { font-size: 21px !important; }
+    }
+
+    /* Sticky nav stays above the match banner (z-index 60; 80 while Actions is open).
+       Below 540px the five labels share one row; full words, no second line. */
+    #top-nav { z-index: 70; }
+    @media (max-width: 539px) {
+      #top-nav > div > div:last-child { gap: 2px; }
+      #top-nav .nav-btn {
+        padding: 0.4rem 0.42rem;
+        font-size: 12.5px;
+        min-width: 44px;
+        min-height: 44px;
+        letter-spacing: 0.01em;
+      }
+    }
+    @media (max-width: 760px) {
+      /* Actions opens downward from the banner, inside the phone width. */
+      .active-match-actions > .relative { position: static; }
+      #actions-menu {
+        left: 0.5rem !important;
+        right: 0.5rem !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 8rem);
+        overflow-y: auto;
+      }
+      #game-screen #actions-btn,
+      #game-screen .active-match-banner .match-end-btn {
+        min-height: 44px;
+      }
+      button.scoreboard-rank-badge {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      /* Phone score entry: full-width keypad, a scrollable roster, names not ellipsized. */
+      #score-entry-modal .score-entry-side {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.35rem !important;
+      }
+      #score-entry-modal .score-entry-layout {
+        min-height: 0;
+        overflow: hidden;
+        grid-template-rows: minmax(6.75rem, 1fr) auto;
+      }
+      #score-entry-modal .score-entry-list {
+        min-height: 6.75rem !important;
+        overflow: hidden;
+      }
+      #score-entry-modal .score-entry-panel > .border-t button {
+        min-height: 44px !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+        overflow-y: auto !important;
+        min-height: 0;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-row,
+      #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+        flex: 0 0 auto !important;
+        min-height: 44px !important;
+        height: auto !important;
+      }
+      #score-entry-modal .score-entry-player-card,
+      #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
+      #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card,
+      #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-player-card {
+        grid-template-columns: 44px minmax(min-content, 1fr) 52px !important;
+      }
+      #score-entry-modal .score-entry-name-line {
+        flex-wrap: wrap;
+        row-gap: 0.15rem;
+      }
+      #score-entry-modal .score-entry-name,
+      #score-entry-modal.score-entry-managed-fit .score-entry-name,
+      #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-name {
+        flex: 1 1 auto;
+        min-width: max-content;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        font-size: 16px !important;
+      }
+      #score-entry-modal .score-entry-selected-card {
+        padding: 4px 8px !important;
+      }
+      #score-entry-modal .score-entry-selected-card > :first-child {
+        display: none;
+      }
+      #score-entry-modal .score-entry-selected-detail {
+        display: none;
+      }
+      #score-entry-modal .score-entry-selected-head,
+      #score-entry-modal.score-entry-managed-fit .score-entry-selected-head {
+        grid-template-columns: 40px minmax(0, 1fr) !important;
+        gap: 8px !important;
+      }
+      #score-entry-modal .score-entry-selected-avatar,
+      #score-entry-modal.score-entry-managed-fit .score-entry-selected-avatar {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      #score-entry-modal .score-entry-selected-name,
+      #score-entry-modal.score-entry-managed-fit .score-entry-selected-name {
+        font-size: 22px !important;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+        flex: 0 0 auto;
+        overflow: visible;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-key {
+        min-height: 44px !important;
+        min-width: 44px !important;
+      }
+      button.dealer-name-indicator {
+        min-width: 44px;
+        min-height: 44px;
+      }
     }
 
     /* ════════ DARK-MODE OVERRIDES ════════ */
@@ -8420,6 +8567,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   <script src="./assets/backup.js"></script>
   <script src="./assets/life-preserver-logic.js"></script>
+  <script src="./assets/scorebook.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -10212,7 +10360,7 @@ button.dealer-name-indicator .dealer-player-label {
     matches.forEach(h=>{
       const cfg=configs[h.game];
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const rank=sorted.findIndex(p=>p===name)+1;
+      const rank=competitionPlaces(sorted, h.totals)[name]||0;
       const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
       const won=!!h.winners?.includes(name);
       const s=summary.gameStats[h.game]||(summary.gameStats[h.game]={games:0,wins:0,lasts:0,posSum:0,best:null,worst:null,lastScore:null});
@@ -10249,7 +10397,7 @@ button.dealer-name-indicator .dealer-player-label {
       const ranks=matches.map(h=>{
         const cfg=configs[h.game];
         const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-        return sorted.findIndex(p=>p===name)+1;
+        return competitionPlaces(sorted, h.totals)[name]||0;
       }).filter(Boolean);
       summary.avgRank=ranks.length?ranks.reduce((sum,n)=>sum+n,0)/ranks.length:null;
     }
@@ -10480,7 +10628,7 @@ button.dealer-name-indicator .dealer-player-label {
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(h.totals[name]===h.totals[sorted[sorted.length-1]])lasts++;
-      const myRank=sorted.findIndex(p=>p===name)+1;
+      const myRank=competitionPlaces(sorted, h.totals)[name]||0;
       labels.push(`${h.game.split(' ')[0]}`); data.push(myRank);
     });
     const favoriteGame=summary.favoriteGame;
@@ -10699,131 +10847,36 @@ button.dealer-name-indicator .dealer-player-label {
     toast(`✓ Renamed to "${newName}"`, 'success');
   }
 
-  function transferPlayerKey(map, oldName, newName, merge=false){
-    if(!map || oldName===newName || map[oldName]===undefined) return;
-    if(merge && map[newName]!==undefined && typeof map[oldName]==='number' && typeof map[newName]==='number'){
-      map[newName]+=map[oldName];
-    } else if(map[newName]===undefined){
-      map[newName]=map[oldName];
-    }
-    delete map[oldName];
-  }
-  function transferRoundPlayerKeys(round, oldName, newName, merge=false){
-    if(!round) return;
-    ['scores','bids','actuals','joinBonus','comeback'].forEach(key=>transferPlayerKey(round[key], oldName, newName, merge));
-    if(round.rookBidder===oldName) round.rookBidder=newName;
-    if(round.rookPartner===oldName) round.rookPartner=newName;
+  function applyPlayerNameOnGame(game, oldName, newName, merge){
+    return BPGScorebook.applyPlayerNameOnGame(game, oldName, newName, merge);
   }
 
   // Helper: rename a player across ALL stored data structures
   function renamePlayerEverywhere(oldName, newName){
-    // allPlayers array
     allPlayers = allPlayers.map(p => p === oldName ? newName : p);
-    // players (active lineup) array
     players = players.map(p => p === oldName ? newName : p);
-    // playerProfiles object: move key
     if(playerProfiles[oldName]){
       playerProfiles[newName] = playerProfiles[oldName];
       delete playerProfiles[oldName];
     }
-    // history: totals, winners, rounds
-    history.forEach(h => {
-      if(h.totals && h.totals[oldName] !== undefined){
-        h.totals[newName] = h.totals[oldName];
-        delete h.totals[oldName];
-      }
-      if(Array.isArray(h.winners)){
-        h.winners = h.winners.map(w => w === oldName ? newName : w);
-      }
-      if(Array.isArray(h.rounds)){
-        h.rounds.forEach(r => {
-          transferRoundPlayerKeys(r, oldName, newName);
-        });
-      }
-      if(Array.isArray(h.originalRoster)){
-        h.originalRoster = h.originalRoster.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(h.retired)){
-        h.retired = h.retired.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(h.hailMaryUsed)){
-        h.hailMaryUsed = h.hailMaryUsed.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(h.lifePreserverHeld)){
-        h.lifePreserverHeld = h.lifePreserverHeld.map(p => p === oldName ? newName : p);
-      }
-      if(h.currentBids && h.currentBids[oldName] !== undefined){
-        h.currentBids[newName] = h.currentBids[oldName];
-        delete h.currentBids[oldName];
-      }
-      if(h.currentScoreDrafts && h.currentScoreDrafts[oldName] !== undefined){
-        h.currentScoreDrafts[newName] = h.currentScoreDrafts[oldName];
-        delete h.currentScoreDrafts[oldName];
-      }
-      if(h.rookHighBidder === oldName) h.rookHighBidder = newName;
-      if(h.rookPartner === oldName) h.rookPartner = newName;
-    });
+    history.forEach(h => applyPlayerNameOnGame(h, oldName, newName, false));
     markHistoryChanged();
-    // current game (if active)
-    if(currentGame){
-      if(currentGame.totals && currentGame.totals[oldName] !== undefined){
-        currentGame.totals[newName] = currentGame.totals[oldName];
-        delete currentGame.totals[oldName];
-      }
-      if(Array.isArray(currentGame.originalRoster)){
-        currentGame.originalRoster = currentGame.originalRoster.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(currentGame.retired)){
-        currentGame.retired = currentGame.retired.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(currentGame.hailMaryUsed)){
-        currentGame.hailMaryUsed = currentGame.hailMaryUsed.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(currentGame.lifePreserverHeld)){
-        currentGame.lifePreserverHeld = currentGame.lifePreserverHeld.map(p => p === oldName ? newName : p);
-      }
-      if(Array.isArray(currentGame.rounds)){
-        currentGame.rounds.forEach(r => {
-          transferRoundPlayerKeys(r, oldName, newName);
-        });
-      }
-      if(currentGame.currentBids && currentGame.currentBids[oldName] !== undefined){
-        currentGame.currentBids[newName] = currentGame.currentBids[oldName];
-        delete currentGame.currentBids[oldName];
-      }
-      if(currentGame.currentScoreDrafts && currentGame.currentScoreDrafts[oldName] !== undefined){
-        currentGame.currentScoreDrafts[newName] = currentGame.currentScoreDrafts[oldName];
-        delete currentGame.currentScoreDrafts[oldName];
-      }
-      if(currentGame.rookHighBidder === oldName) currentGame.rookHighBidder = newName;
-      if(currentGame.rookPartner === oldName) currentGame.rookPartner = newName;
-    }
+    if(currentGame) applyPlayerNameOnGame(currentGame, oldName, newName, false);
     saveData({ fullPersist: true, syncCold: true });
     if(currentGame) scheduleRender();
   }
 
-  // Helper: merge oldName's data into newName, then delete oldName.
-  // For merges, we ADD totals (in history) and unify rosters.
+  // Bench drag and rename-onto-an-existing-name both call this.
+  // Scores, bids, actuals, and Life Preserver bookkeeping move together.
   function mergePlayerRecords(src, target){
-    history.forEach(h => {
-      if(h.totals[src] !== undefined){
-        h.totals[target] = (h.totals[target] || 0) + h.totals[src];
-        delete h.totals[src];
-      }
-      if(Array.isArray(h.winners) && h.winners.includes(src)){
-        h.winners = [...new Set(h.winners.map(w => w === src ? target : w))];
-      }
-      if(Array.isArray(h.rounds)){
-        h.rounds.forEach(r => {
-          transferRoundPlayerKeys(r, src, target, true);
-        });
-      }
-    });
+    history.forEach(h => applyPlayerNameOnGame(h, src, target, true));
+    if(currentGame) applyPlayerNameOnGame(currentGame, src, target, true);
     allPlayers = allPlayers.filter(p => p !== src);
     players = players.filter(p => p !== src);
-    if(playerProfiles[src]) delete playerProfiles[src]; // target keeps its own profile
+    if(playerProfiles[src]) delete playerProfiles[src];
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
+    if(currentGame) scheduleRender();
   }
 
 
@@ -11230,14 +11283,9 @@ button.dealer-name-indicator .dealer-player-label {
     ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
     const src=ev.dataTransfer.getData('text/plain');
     if(src&&src!==target&&confirm(`⚠️ MERGE RECORDS: Combine all history from "${src}" into "${target}"?\n\n"${src}" will be deleted.`)){
-      history.forEach(h=>{
-        if(h.totals[src]!==undefined){h.totals[target]=(h.totals[target]||0)+h.totals[src];delete h.totals[src];}
-        if(h.winners?.includes(src)){h.winners=h.winners.map(w=>w===src?target:w);h.winners=[...new Set(h.winners)];}
-        if(h.rounds)h.rounds.forEach(r=>{if(r.scores[src]!==undefined){r.scores[target]=(r.scores[target]||0)+r.scores[src];delete r.scores[src];}});
-      });
-      allPlayers=allPlayers.filter(p=>p!==src); players=players.filter(p=>p!==src);
-      markHistoryChanged();
-      saveData({ fullPersist: true, syncCold: true }); renderRoster(); alert(`Merged "${src}" → "${target}".`);
+      mergePlayerRecords(src, target);
+      renderRoster();
+      alert(`Merged "${src}" → "${target}".`);
     }
   }
 
@@ -11846,6 +11894,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('scorecard-head').innerHTML=head;
 
     // --- BODY ---
+    const rookVisibleRounds=currentGame.rounds.map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let body='';
     sortedP.forEach((p,ri)=>{
       const total=currentGame.totals[p]||0;
@@ -11888,7 +11937,7 @@ ${isDealer
           ${progressBar}
         </td>
         <td data-sc-part="lead" class="scorecard-col-bid px-3 py-2 text-center align-middle">${bidCell}</td>
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${total}</span></td>
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${total}</span>${hiddenLifePreserverMarkup(currentGame.rounds, rookVisibleRounds, p)}</td>
         <td data-sc-part="lead" class="scorecard-col-target px-3 py-2 text-center">
           <span class="tv-target-pct font-mono-num" style="color:${pct>=100?'var(--emerald)':'var(--muted)'};">${pct}%</span>
         </td>`;
@@ -11909,9 +11958,11 @@ ${isDealer
         let label='';
         if(isBidder) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Bid ${r.rookBid} ${trumpEmoji}</div>`;
         else if(isPartner) label=`<div class="text-[9px] font-extrabold uppercase tracking-wider mb-0.5" style="color:var(--blue);">Partner ${indicator}</div>`;
+        const lpMark=lifePreserverMarkMarkup(currentGame.rounds, rIdx, p);
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           ${label}
           <span class="tv-round-cell-num font-mono-num" style="color:${cellColor};">${s>=0?'+':''}${s}</span>
+          ${lpMark}
         </td>`;
       });
 
@@ -12181,6 +12232,10 @@ ${isDealer
     });
   }
 
+  function competitionPlaces(sortedPlayers, totals){
+    return BPGScorebook.competitionPlaces(sortedPlayers, totals);
+  }
+
   function roundStandingPoints(round, player){
     if(!round || round.joinBonus?.[player] || round.scores?.[player]===undefined) return 0;
     return (Number(round.scores[player])||0)+(Number(round.comeback?.[player])||0);
@@ -12204,23 +12259,18 @@ ${isDealer
     const players=getRecordedPlayers(gameData);
     const rounds=gameData.rounds.filter(round=>!round.hailMaryBonus);
     if(players.length<2 || rounds.length<MATCH_PATH_MIN_ROUNDS) return null;
-    const totals=Object.fromEntries(players.map(p=>[p,0]));
+    const allRounds=gameData.rounds;
+    const totals=Object.fromEntries(players.map(p=>[p, BPGScorebook.lifePreserverLeading(allRounds, p)]));
     const ranks={};
     players.forEach(p=>{ ranks[p]=[]; });
     const labels=[];
     rounds.forEach(round=>{
-      players.forEach(p=>{ totals[p]=(Number(totals[p])||0)+roundStandingPoints(round, p); });
+      const sourceIndex=allRounds.indexOf(round);
+      players.forEach(p=>{
+        totals[p]=(Number(totals[p])||0)+roundStandingPoints(round, p)+BPGScorebook.lifePreserverFollowing(allRounds, sourceIndex, p);
+      });
       const sorted=sortPlayersByTotal(players, totals, cfg);
-      const place={};
-      let cursor=0;
-      while(cursor<sorted.length){
-        const score=totals[sorted[cursor]];
-        let end=cursor+1;
-        while(end<sorted.length && totals[sorted[end]]===score) end++;
-        const rank=cursor+1;
-        for(let i=cursor;i<end;i++) place[sorted[i]]=rank;
-        cursor=end;
-      }
+      const place=competitionPlaces(sorted, totals);
       players.forEach(p=>ranks[p].push(place[p]||sorted.length));
       labels.push(`R${round.round}`);
     });
@@ -13172,6 +13222,7 @@ ${isDealer
           hint.textContent='';
         }
       }
+      paintTrimmedLifePreserverMarks(root);
     } finally {
       gnPerfEnd(trimTimer);
     }
@@ -13714,6 +13765,7 @@ ${isDealer
     let sortedP = currentGame.currentRound===1
       ? [...gamePlayers]
       : [...gamePlayers].sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
+    const places = currentGame.currentRound===1 ? null : competitionPlaces(sortedP, currentGame.totals);
 
     const leaderScore = sortedP.length ? currentGame.totals[sortedP[0]] : (cfg.winLow?Infinity:-Infinity);
     let hi=-Infinity,lo=Infinity;
@@ -13785,9 +13837,10 @@ ${isDealer
       const isDesperate=!isRetired&&isHailMaryEligible(currentGame,p,sortedP,{gameOver:over});
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
+      const placeNum=places?places[p]:ri+1;
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${ri+1}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${ri+1}</span>`);
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${placeNum}</button>`
+        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${placeNum}</span>`);
 
       const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
 
@@ -13826,7 +13879,7 @@ ${isDealer
           </div>
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span></td>`;
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
       if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       // Past rounds
@@ -13839,14 +13892,13 @@ ${isDealer
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
         }
-        const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const extra=scoringExtraMarkup(currentGame.rounds, rIdx, r, p);
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
-          <div class="score-cell-stack${extra?' has-comeback':''}">
+          <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
-          ${extraMark}
+          ${extra.html}
           </div>
         </td>`;
       });
@@ -13921,6 +13973,59 @@ ${isDealer
     }
   }
 
+  function plainSigned(adjustment){
+    const n=Number(adjustment)||0;
+    return `${n>0?'+':'−'}${Math.abs(n)}`;
+  }
+  function lifePreserverMarkMarkup(rounds, roundIndex, player){
+    const lp=BPGScorebook.lifePreserverFollowing(rounds, roundIndex, player);
+    if(!lp) return '';
+    return `<span class="score-cell-life-preserver" data-lp="${lp}" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+  }
+  function hiddenLifePreserverMarkup(rounds, visibleIndexes, player){
+    const lp=BPGScorebook.lifePreserverHidden(rounds, visibleIndexes, player);
+    if(!lp) return '';
+    return `<span class="score-total-life-preserver" data-lp="${lp}" data-lp-base="${lp}" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+  }
+  function paintTrimmedLifePreserverMarks(root){
+    const table=root?.querySelector?.('table.scorecard-table');
+    if(!table) return;
+    table.querySelectorAll('tbody tr').forEach(row=>{
+      const hiddenSum=[...row.querySelectorAll('.score-cell-life-preserver')].reduce((sum,el)=>{
+        const cell=el.closest('[data-sc-round]');
+        if(!cell||!cell.classList.contains('scorecard-round--hidden')) return sum;
+        return sum+(Number(el.dataset.lp)||0);
+      },0);
+      const totalCell=row.querySelector('.scorecard-total-cell');
+      if(!totalCell) return;
+      let badge=totalCell.querySelector('.score-total-life-preserver');
+      const base=badge?Number(badge.dataset.lpBase||0):0;
+      const total=base+hiddenSum;
+      if(!total){
+        badge?.remove();
+        return;
+      }
+      if(!badge){
+        badge=document.createElement('span');
+        badge.className='score-total-life-preserver';
+        badge.dataset.lpBase='0';
+        totalCell.appendChild(badge);
+      }
+      badge.dataset.lp=String(total);
+      badge.title='Life Preserver';
+      badge.setAttribute('aria-label',`Life Preserver ${plainSigned(total)}`);
+      badge.innerHTML=signedPointsMarkup(total);
+    });
+  }
+  function scoringExtraMarkup(rounds, roundIndex, round, player){
+    const turbo=Number(round?.comeback?.[player])||0;
+    const turboMark=turbo?`<span class="score-cell-comeback">${signedPointsMarkup(turbo)}</span>`:'';
+    const lpMark=lifePreserverMarkMarkup(rounds, roundIndex, player);
+    return {
+      className:`${turbo?' has-comeback':''}${lpMark?' has-life-preserver':''}`,
+      html:turboMark+lpMark
+    };
+  }
   function signedPointsMarkup(adjustment){
     const n=Number(adjustment);
     if(!n) return '0';
@@ -14328,6 +14433,19 @@ ${isDealer
     panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
     panel.style.setProperty('--se-fit-selected-name',`${Math.floor(clamp(24,keyHeight*0.52,36))}px`);
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
+
+    const phone=(window.visualViewport?.width||window.innerWidth||0)<=760;
+    if(phone){
+      const items=[...rows.children];
+      const shown=items.slice(0, Math.min(2, items.length));
+      if(shown.length){
+        const first=shown[0].getBoundingClientRect();
+        const last=shown[shown.length-1].getBoundingClientRect();
+        rows.style.maxHeight=`${Math.ceil(last.bottom-first.top)}px`;
+      }
+    }else{
+      rows.style.maxHeight='';
+    }
   }
 
   function openScoreEntryModal(ev){
@@ -15435,15 +15553,16 @@ ${isDealer
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const rows=sorted.map((p,i)=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${i+1}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+      const places=competitionPlaces(sorted, h.totals);
+      const rows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4 gap-3">
           <div class="min-w-0 flex-1">
             <h3 class="font-display text-2xl truncate">${cfg.emoji} ${h.game}</h3>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${h.rounds?.length||0} rounds</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds</div>
           </div>
           <div class="flex gap-2 flex-shrink-0">
             <button onclick="openScorecard(${h.id})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
@@ -15473,6 +15592,7 @@ ${isDealer
     document.getElementById('modal-game-date').textContent=g.date;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
+    const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
@@ -15485,13 +15605,12 @@ ${isDealer
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
         <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
-        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span></td>`;
+        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span>${hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
-        const extra=Number(r.comeback?.[p])||0;
-        const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
+        const extra=scoringExtraMarkup(g.rounds, rIdx, r, p);
         const shown=r.scores[p]!==undefined?r.scores[p]:'';
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra?`<div class="score-cell-stack has-comeback"><span class="score-cell-base">${shown}</span>${extraMark}</div>`:shown}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
     });
@@ -16450,7 +16569,7 @@ ${isDealer
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(GN_QA_MODE){
       try{
-        const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-hold-20260823');
+        const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');
         await bootQaGallery(createQaApi());
       }catch(error){
         console.error('QA gallery could not start.',error);
