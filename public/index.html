@@ -4293,11 +4293,15 @@ button.dealer-name-indicator .dealer-player-label {
         padding-bottom: 8px !important;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-list {
+        display: flex;
+        flex-direction: column;
         flex: 1 1 auto;
         min-height: 0;
         overflow: hidden;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-rows {
+        flex: 1 1 0;
+        min-height: 0;
         overflow-y: auto !important;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-side {
@@ -4323,16 +4327,26 @@ button.dealer-name-indicator .dealer-player-label {
       #score-entry-modal.score-entry-hand-foot .hf-field,
       #score-entry-modal.score-entry-hand-foot .hf-round {
         padding: 0.15rem 0.25rem 0.2rem !important;
+        min-height: 44px;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-side {
+        width: 100%;
+        align-self: stretch;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-keypad {
         flex: 0 0 auto;
+        width: 100%;
         gap: 0.3rem;
         padding: 0.3rem;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-key {
-        min-height: 2.55rem !important;
-        height: 2.55rem;
+        min-height: 44px !important;
+        height: 44px;
+        min-width: 0;
         font-size: 1.3rem !important;
+      }
+      #score-entry-modal.score-entry-hand-foot .score-entry-key.next {
+        height: auto;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-t {
         flex: 0 0 auto;
@@ -4486,6 +4500,43 @@ button.dealer-name-indicator .dealer-player-label {
       }
       .montage-race-head-copy {
         text-align: left;
+      }
+      .nav-btn,
+      #game-screen #actions-btn,
+      #game-screen .active-match-banner .btn-accent,
+      #game-screen .active-match-banner .match-end-btn {
+        min-height: 44px;
+      }
+      #history-list-view .btn-ghost {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      #scorecard-modal.scorecard-modal-hand-foot > .surface-raised > button {
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #hand-foot-setup-modal {
+        padding: 8px !important;
+        align-items: stretch !important;
+      }
+      #hand-foot-setup-modal .hf-setup-card {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100dvh - 16px);
+        overflow: hidden;
+        margin-top: auto;
+        margin-bottom: auto;
+      }
+      #hand-foot-setup-modal .hf-setup-card > * {
+        flex-shrink: 0;
+      }
+      #hand-foot-setup-modal #hand-foot-setup-sides {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
       }
     }
     #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-rows {
@@ -7668,6 +7719,15 @@ button.dealer-name-indicator .dealer-player-label {
       #top-nav .bp-brand-games { font-size: 9.3px; }
       #game-screen #game-title { font-size: 36.8px; }
       #game-screen #round-intel.round-banner { font-size: 21px !important; }
+      #top-nav .nav-btn,
+      #history-screen .nav-btn {
+        min-height: 44px;
+      }
+      #game-screen #actions-btn,
+      #game-screen .active-match-banner .btn-accent,
+      #game-screen .active-match-banner .match-end-btn {
+        min-height: 44px;
+      }
     }
 
     /* ════════ DARK-MODE OVERRIDES ════════ */
@@ -14388,7 +14448,7 @@ ${isDealer
     sortedP.forEach((p,ri)=>{
       const isLeader=currentGame.currentRound>1&&currentGame.totals[p]===leaderScore;
       const isRetired=retired.includes(p);
-      const isDealer=!over&&p===dealerName&&!isRetired;
+      const isDealer=!over&&p===dealerName&&!isRetired&&!isHandFootGame(currentGame);
       const rowCls=isLeader?'leader-row':(isRetired?'row-retired':'');
       const cellBg=isLeader?'var(--emerald-bg)':(isRetired?'var(--surface-2)':'var(--surface)');
       const dist=(!isLeader&&currentGame.currentRound>1)
