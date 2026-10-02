@@ -43,6 +43,7 @@ North star: crush requirements so one-shots get better every correction.
 - Prefer the existing stack and patterns. Porch Club design PRs stay blocked without Matt's visual sign-off.
 - Game-behavior merges wait for Matt's UI test while that overnight rule is standing.
 - After any durable Matt correction, or a novel lesson from a ship, compound the same day into `docs/solutions/<short-slug>.md` and/or `docs/taste.md` and/or one bullet in this section. Never leave durable feedback only in chat.
+- Back Porch is a resume showcase. A stranger's first click is judged like a shipped product. Anything on the first-click path in `docs/porch-resume-showcase-bar.md` is not ready until it was opened at phone portrait, phone landscape, iPad landscape, and laptop.
 
 ## Verification
 
@@ -60,5 +61,6 @@ Done when the evidence is in the PR before handoff (verify-before-done).
 - Tech spec: `docs/tech-spec.md`
 - J-137 rethink: `docs/J-137-grok-4.7-rethink.md`
 - Release checks: `docs/release-checks.md`
+- Resume showcase bar and slice order: `docs/porch-resume-showcase-bar.md`
 - README: `README.md`
 - Solution notes: `docs/solutions/README.md`

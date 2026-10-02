@@ -58,3 +58,4 @@ Production host: https://cardknight.vercel.app. Home-screen name is Back Porch. 
 - App changes need visual plus backend prove-it: `npm run check`, the gallery scenarios you opened, and `npm run test:visual` when snapshots apply. Put that evidence in the PR.
 - Game-behavior merges wait for Matt's morning click while that overnight rule is standing.
 - Docs-only OS (taste, AGENTS.md pointers, spec edits with no game behavior) may merge without that click.
+- Showcase bar: a stranger with an empty book is a first-class user. See [porch-resume-showcase-bar.md](porch-resume-showcase-bar.md) for the first-click path, the kill list, and the slice order.
