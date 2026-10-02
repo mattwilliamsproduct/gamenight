@@ -7,5 +7,8 @@ Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Rook.
 - Product spec: [docs/product-spec.md](docs/product-spec.md)
 - Tech spec: [docs/tech-spec.md](docs/tech-spec.md)
 - Release checks: [docs/release-checks.md](docs/release-checks.md)
+- Goals and non-goals: [docs/goals-nongoals.md](docs/goals-nongoals.md)
+- Prove-it packet: [docs/prove-it-packet.md](docs/prove-it-packet.md)
+- Taste ledger: [docs/taste-ledger.md](docs/taste-ledger.md)
 - J-137 rethink: [docs/J-137-grok-4.7-rethink.md](docs/J-137-grok-4.7-rethink.md)
 - Agent memory: [AGENTS.md](AGENTS.md)
