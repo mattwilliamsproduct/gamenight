@@ -22,6 +22,7 @@ const requiredAssets = [
   'public/assets/vendor/html2canvas.js',
   'public/assets/life-preserver-logic.js',
   'public/assets/backup.js',
+  'public/assets/sample-night.js',
   'public/sw.js',
   'public/apple-touch-icon.png',
   'public/bp-apple-touch-icon.png',
@@ -46,6 +47,14 @@ if(!index.includes("src=\"./assets/life-preserver-logic.js\"")){
 
 if(!index.includes("src=\"./assets/backup.js\"")){
   throw new Error('Backup helper is missing from the app shell.');
+}
+
+if(index.includes("src=\"./assets/sample-night.js\"")){
+  throw new Error('The sample night should load only when someone asks for it, not with the app shell.');
+}
+
+if(!index.includes("sampleNight:'./assets/sample-night.js'")){
+  throw new Error('The first-visit sample night is missing from the optional assets.');
 }
 
 if(!index.includes('name="apple-mobile-web-app-title" content="Back Porch"')){
