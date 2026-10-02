@@ -23,6 +23,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 
 - Static scorekeeper. The app is mainly `public/index.html`, `public/assets/*`, and `api/sync.js`. `npm run build` writes CSS, vendor files, and `public/sw.js`. Vercel serves `public/` plus that function.
 - Product bar: `docs/product-spec.md`
+- Taste (load before feature kickoffs): `docs/taste.md`
 - Tech contract: `docs/tech-spec.md`
 - Active rethink and findings: `docs/J-137-grok-4.7-rethink.md`
 - Release gates: `docs/release-checks.md`
@@ -49,6 +50,7 @@ Done when the evidence is in the PR before handoff (verify-before-done).
 ## Pointers
 
 - Product spec: `docs/product-spec.md`
+- Taste (load before feature kickoffs): `docs/taste.md`
 - Tech spec: `docs/tech-spec.md`
 - J-137 rethink: `docs/J-137-grok-4.7-rethink.md`
 - Release checks: `docs/release-checks.md`
