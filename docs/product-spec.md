@@ -29,7 +29,7 @@ The shelf is the seven buttons in `public/index.html` (`startGame`). Scoring mat
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
-| Hand and Foot | High score | 4 rounds | Card points + bonuses − cards left. Cards left is typed as a positive number. The round and the match total may be negative. | Card points, bonuses, cards left, once per side |
+| Hand and Foot | High score | 4 rounds | Canastas × the round’s canasta rate + red 3s × the round’s red-3 rate + card points − foot penalty. Defaults are 500 and 100, stored on the round, and editable. A blank foot penalty subtracts nothing. The round and the match total may be negative. Older saved rounds that have no canasta, red-3, or foot fields still use card points + bonuses − cards left. | Canasta count, red-3 count, foot penalty, and total card points, once per side |
 
 House notes already in the rules cards (`gameRulesText`):
 
@@ -48,7 +48,7 @@ House notes already in the rules cards (`gameRulesText`):
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
-6. Hand and Foot: confirm teams or singles, then card points, bonuses, and cards left for each side. The app adds the first two and subtracts cards left.
+6. Hand and Foot: confirm teams or singles, then canasta count, red-3 count, foot penalty, and total card points for each side. The app multiplies the counts by that round’s rates, adds the card points, and subtracts the foot penalty.
 7. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`). Hand and Foot adds the numeric round scores, so a negative round stays negative.
 8. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, Five Crowns, and Hand and Foot complete when the round counter passes the length.
 

@@ -6,6 +6,15 @@
   const MAX_PLAYERS = 6;
   const ROUNDS = 4;
   const MELDS = Object.freeze([50, 90, 120, 150]);
+  // Matt named the inputs, not the point values. These are the usual
+  // Hand and Foot amounts: 500 for a canasta, 100 for a red three, and
+  // 100 if the foot was never played. The foot amount is not applied
+  // unless that side types it. A saved round stores the rates it used.
+  const SCORE_DEFAULTS = Object.freeze({
+    canastaEach: 500,
+    redThreeEach: 100,
+    footPenalty: 100
+  });
 
   function defaultFormat(count) {
     return count === 4 || count === 6 ? 'teams' : 'singles';
@@ -44,7 +53,31 @@
     return nonNegative ? Math.abs(n) : n;
   }
 
+  function usesStructuredScore(parts) {
+    if (!parts || typeof parts !== 'object') return false;
+    return ['canastas', 'redThrees', 'footPenalty'].some(function (key) {
+      return Object.prototype.hasOwnProperty.call(parts, key);
+    });
+  }
+
+  function rateOrDefault(parts, key, fallback) {
+    if (!parts || parts[key] === undefined || parts[key] === null || parts[key] === '') return fallback;
+    return parsePart(parts[key], false);
+  }
+
+  // New rounds: canastas × rate + red threes × rate + card points − foot penalty.
+  // Older saved rounds have no canasta, red-three, or foot fields, and still
+  // use card points + bonuses − cards left.
   function roundScore(parts) {
+    if (usesStructuredScore(parts)) {
+      const canastas = parsePart(parts.canastas, true);
+      const reds = parsePart(parts.redThrees, true);
+      const cards = parsePart(parts.cardPoints, false);
+      const foot = parsePart(parts.footPenalty, true);
+      const canastaEach = rateOrDefault(parts, 'canastaEach', SCORE_DEFAULTS.canastaEach);
+      const redEach = rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach);
+      return (canastas * canastaEach) + (reds * redEach) + cards - foot;
+    }
     const card = parsePart(parts && parts.cardPoints, false);
     const bonus = parsePart(parts && parts.bonuses, false);
     const left = parsePart(parts && parts.cardsLeft, true);
@@ -128,6 +161,8 @@
     MAX_PLAYERS,
     ROUNDS,
     MELDS,
+    SCORE_DEFAULTS,
+    usesStructuredScore,
     defaultFormat,
     canSwitchToSingles,
     sideKey,

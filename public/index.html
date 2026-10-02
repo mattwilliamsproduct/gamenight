@@ -4184,6 +4184,29 @@ button.dealer-name-indicator .dealer-player-label {
       gap: 0.45rem;
       width: 100%;
     }
+    .hf-rate-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      width: 100%;
+      flex: 1 0 100%;
+      margin-top: 0.75rem;
+    }
+    .hf-rate {
+      min-height: 44px;
+      border: 2px solid var(--hairline);
+      border-radius: 14px;
+      background: var(--surface);
+      padding: 0.2rem 0.4rem 0.3rem;
+      text-align: center;
+    }
+    .hf-rate.active {
+      border-color: var(--emerald);
+      background: var(--emerald-bg);
+    }
+    #score-entry-modal.score-entry-hand-foot .hf-round {
+      grid-column: 1 / -1;
+    }
     .hf-field, .hf-round {
       border: 2px solid var(--hairline);
       border-radius: 14px;
@@ -4215,6 +4238,7 @@ button.dealer-name-indicator .dealer-player-label {
       height: auto !important;
     }
     #score-entry-modal.score-entry-hand-foot .score-entry-rows { overflow-y: auto !important; }
+    #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('-')"],
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"] {
       opacity: 0.35;
       pointer-events: none;
@@ -4362,6 +4386,12 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #score-entry-modal.score-entry-hand-foot .hf-fields {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      #score-entry-modal.score-entry-hand-foot .hf-rate-bar {
+        margin-top: 0.35rem;
+      }
+      #score-entry-modal.score-entry-hand-foot .hf-rate {
+        min-height: 44px;
       }
       #game-screen[data-game='Hand and Foot'] .scorecard-table-wrap {
         overflow-x: hidden !important;
@@ -8483,6 +8513,16 @@ button.dealer-name-indicator .dealer-player-label {
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
+          <div id="hf-rate-bar" class="hf-rate-bar hidden">
+            <button type="button" id="hf-rate-canasta" class="hf-rate" onclick="selectHandFootRate('canastaEach')">
+              <div class="score-entry-meta-label">Each canasta</div>
+              <div id="hf-rate-canasta-value" class="hf-field-value">500</div>
+            </button>
+            <button type="button" id="hf-rate-red" class="hf-rate" onclick="selectHandFootRate('redThreeEach')">
+              <div class="score-entry-meta-label">Each red 3</div>
+              <div id="hf-rate-red-value" class="hf-field-value">100</div>
+            </button>
+          </div>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
@@ -9205,10 +9245,13 @@ button.dealer-name-indicator .dealer-player-label {
   function handFootRoundTotal(parts){
     const api=handFootApi();
     if(api) return api.roundScore(parts||{});
-    const card=parseInt(parts?.cardPoints,10)||0;
-    const bonus=parseInt(parts?.bonuses,10)||0;
-    const left=Math.abs(parseInt(parts?.cardsLeft,10)||0);
-    return card+bonus-left;
+    const structured=!!parts&&['canastas','redThrees','footPenalty'].some(k=>Object.prototype.hasOwnProperty.call(parts,k));
+    const n=(v,abs)=>{ const x=parseInt(v,10); if(!Number.isFinite(x)) return 0; return abs?Math.abs(x):x; };
+    if(structured){
+      const each=(v,d)=>v===undefined||v===null||v===''?d:n(v,false);
+      return n(parts.canastas,true)*each(parts.canastaEach,500)+n(parts.redThrees,true)*each(parts.redThreeEach,100)+n(parts.cardPoints,false)-n(parts.footPenalty,true);
+    }
+    return n(parts?.cardPoints,false)+n(parts?.bonuses,false)-n(parts?.cardsLeft,true);
   }
   function cloneHandFoot(config){
     if(!config) return null;
@@ -10696,7 +10739,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
     "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
     "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`,
-    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two teams of 2. Six start as two teams of 3. Three or five play singles. Four or six can switch to singles.</li><li><strong>Teams:</strong> A team enters one set of numbers. Every name on that team shows on the column.</li><li><strong>Each round:</strong> Card points, bonuses (canastas, red 3s, going out), and cards left. The app adds the first two and subtracts cards left. Type cards left as a positive number. The round total can be negative.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
+    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two teams of 2. Six start as two teams of 3. Three or five play singles. Four or six can switch to singles.</li><li><strong>Teams:</strong> A team enters one set of numbers. Every name on that team shows on the column.</li><li><strong>Each round:</strong> Number of canastas, number of red 3s, a foot penalty if that foot is still in hand, and total card points. The app multiplies the counts and adds the card points, then subtracts the foot penalty. Defaults, until you change them: 500 a canasta, 100 a red 3. Type 0 for the foot penalty when the foot was played. The suggested foot penalty is 100. The round total can be negative.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -14019,6 +14062,16 @@ ${isDealer
       name.style.setProperty('font-size',`${Math.min(maximum,best).toFixed(1)}px`,'important');
     });
   }
+  function scorecardGlyphBox(el){
+    if(!el) return null;
+    try{
+      const range=document.createRange();
+      range.selectNodeContents(el);
+      const box=range.getBoundingClientRect();
+      if(box.width>0||box.height>0) return box;
+    }catch(e){}
+    return el.getBoundingClientRect();
+  }
   function fitScorecardTotals(root){
     if(!root||root.offsetParent===null)return;
     const canvas=fitScorecardTotals.canvas||(fitScorecardTotals.canvas=document.createElement('canvas'));
@@ -14029,9 +14082,9 @@ ${isDealer
     values.forEach(value=>{
       const cell=value.closest('.scorecard-col-total');
       if(!cell||cell.clientWidth<=0)return;
-      const valueBox=value.getBoundingClientRect();
       const cellBox=cell.getBoundingClientRect();
-      if(valueBox.width<=cellBox.width+1&&valueBox.right<=cellBox.right+1&&valueBox.left>=cellBox.left-1)return;
+      const glyph=scorecardGlyphBox(value);
+      if(glyph.width<=cellBox.width+1&&glyph.right<=cellBox.right+1&&glyph.left>=cellBox.left-1)return;
       const cellStyle=getComputedStyle(cell);
       const available=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
       if(available<=0)return;
@@ -14041,8 +14094,20 @@ ${isDealer
       context.font=`${valueStyle.fontStyle} ${valueStyle.fontWeight} ${maximum}px ${valueStyle.fontFamily}`;
       const natural=context.measureText(text).width;
       if(natural<=available)return;
-      const fitted=Math.max(16,maximum*((available-1)/Math.max(1,natural))*0.96);
+      let fitted=Math.max(11,maximum*((available-1)/Math.max(1,natural))*0.96);
       value.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+      const after=scorecardGlyphBox(value);
+      if(after.right>cellBox.right+1||after.width>cellBox.width+1){
+        fitted=Math.max(11,fitted*(cellBox.width/Math.max(1,after.width))*0.96);
+        value.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+      }
+    });
+    root.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(input=>{
+      input.style.removeProperty('font-size');
+      if(input.clientWidth<=0||input.scrollWidth<=input.clientWidth+1)return;
+      const maximum=parseFloat(getComputedStyle(input).fontSize)||16;
+      const fitted=Math.max(11,maximum*(input.clientWidth/Math.max(1,input.scrollWidth))*0.92);
+      input.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
     });
   }
   function scorecardLeadStillOverflows(table){
@@ -14533,7 +14598,7 @@ ${isDealer
         const extra=Number(r.comeback?.[p])||0;
         const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
         const hfParts=isHandFootGame(currentGame)?r.handFootParts?.[p]:null;
-        const hfTitle=hfParts?` title="Card points ${hfParts.cardPoints} + bonuses ${hfParts.bonuses} − cards left ${hfParts.cardsLeft}"`:'';
+        const hfTitle=hfParts?` title="${handFootPartsTitle(hfParts)}"`:'';
         const cellId=isHandFootGame(currentGame)?`score-past-${rIdx}-${rookElementId(p)}`:`score-past-${rIdx}-${p}`;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra?' has-comeback':''}">
@@ -14790,15 +14855,88 @@ ${isDealer
   let scoreEntryModalState=null;
   let scoreEntryFitRaf=0;
 
-  const HAND_FOOT_FIELDS=['cardPoints','bonuses','cardsLeft'];
-  const HAND_FOOT_FIELD_LABELS={cardPoints:'Card points',bonuses:'Bonuses',cardsLeft:'Cards left'};
+  const HAND_FOOT_FIELDS=['canastas','redThrees','footPenalty','cardPoints'];
+  const HAND_FOOT_RATE_FIELDS=['canastaEach','redThreeEach'];
+  const HAND_FOOT_NO_MINUS=['canastas','redThrees','footPenalty'];
+  const HAND_FOOT_FIELD_LABELS={canastas:'Canastas',redThrees:'Red 3s',footPenalty:'Foot penalty',cardPoints:'Card points',canastaEach:'each canasta',redThreeEach:'each red 3'};
   function handFootModalParts(raw){
-    const parts={cardPoints:'',bonuses:'',cardsLeft:''};
-    if(!raw||typeof raw!=='object'||Array.isArray(raw)) return parts;
+    const blank={canastas:'',redThrees:'',footPenalty:'',cardPoints:''};
+    if(!raw||typeof raw!=='object'||Array.isArray(raw)) return blank;
+    const structured=['canastas','redThrees','footPenalty'].some(k=>raw[k]!==undefined&&raw[k]!==null);
+    const legacy=!structured&&(raw.legacy||raw.bonuses!==undefined||raw.cardsLeft!==undefined);
+    if(legacy){
+      return {
+        cardPoints:raw.cardPoints!=null&&raw.cardPoints!==''?String(raw.cardPoints):'',
+        bonuses:raw.bonuses!=null&&raw.bonuses!==''?String(raw.bonuses):'',
+        cardsLeft:raw.cardsLeft!=null&&raw.cardsLeft!==''?String(raw.cardsLeft):'',
+        legacy:true
+      };
+    }
+    const parts={canastas:'',redThrees:'',footPenalty:'',cardPoints:''};
     HAND_FOOT_FIELDS.forEach(k=>{
       if(raw[k]!==undefined&&raw[k]!==null&&raw[k]!=='') parts[k]=String(raw[k]);
     });
+    if(raw.canastaEach!=null&&raw.canastaEach!=='') parts.canastaEach=String(raw.canastaEach);
+    if(raw.redThreeEach!=null&&raw.redThreeEach!=='') parts.redThreeEach=String(raw.redThreeEach);
     return parts;
+  }
+  function handFootLegacyUntouched(parts){
+    return !!parts?.legacy&&['canastas','redThrees','footPenalty'].every(k=>parts[k]==null||parts[k]==='');
+  }
+  function handFootRatesFromValues(values){
+    const defaults=handFootApi()?.SCORE_DEFAULTS||{canastaEach:500,redThreeEach:100};
+    const saved=Object.values(values||{}).find(v=>v&&typeof v==='object'&&(v.canastaEach!=null&&v.canastaEach!==''||v.redThreeEach!=null&&v.redThreeEach!==''));
+    return {
+      canastaEach:saved?.canastaEach!=null&&saved.canastaEach!==''?String(saved.canastaEach):String(defaults.canastaEach),
+      redThreeEach:saved?.redThreeEach!=null&&saved.redThreeEach!==''?String(saved.redThreeEach):String(defaults.redThreeEach)
+    };
+  }
+  function handFootLiveParts(parts){
+    const rates=scoreEntryModalState?.rates||{};
+    if(handFootLegacyUntouched(parts)) return parts;
+    return Object.assign({}, parts, {
+      canastas:parts?.canastas??'',
+      redThrees:parts?.redThrees??'',
+      footPenalty:parts?.footPenalty??'',
+      cardPoints:parts?.cardPoints??'',
+      canastaEach:rates.canastaEach??parts?.canastaEach??'',
+      redThreeEach:rates.redThreeEach??parts?.redThreeEach??''
+    });
+  }
+  function handFootPartsTitle(parts){
+    if(!parts) return '';
+    if(parts.canastas!=null||parts.redThrees!=null||parts.footPenalty!=null){
+      const canastaEach=parts.canastaEach??handFootApi()?.SCORE_DEFAULTS?.canastaEach??500;
+      const redEach=parts.redThreeEach??handFootApi()?.SCORE_DEFAULTS?.redThreeEach??100;
+      return `Canastas ${parts.canastas??0}×${canastaEach} + red 3s ${parts.redThrees??0}×${redEach} + card points ${parts.cardPoints??0} − foot ${parts.footPenalty??0}`;
+    }
+    return `Card points ${parts.cardPoints} + bonuses ${parts.bonuses} − cards left ${parts.cardsLeft}`;
+  }
+  function syncHandFootRateBar(){
+    const bar=document.getElementById('hf-rate-bar');
+    const on=scoreEntryModalState?.mode?.kind==='hand-foot';
+    bar?.classList.toggle('hidden', !on);
+    if(!on) return;
+    const defaults=handFootApi()?.SCORE_DEFAULTS||{canastaEach:500,redThreeEach:100};
+    const rates=scoreEntryModalState.rates||{};
+    const canasta=rates.canastaEach===''||rates.canastaEach==null?String(defaults.canastaEach):rates.canastaEach;
+    const red=rates.redThreeEach===''||rates.redThreeEach==null?String(defaults.redThreeEach):rates.redThreeEach;
+    const canastaEl=document.getElementById('hf-rate-canasta-value');
+    const redEl=document.getElementById('hf-rate-red-value');
+    if(canastaEl) canastaEl.textContent=canasta;
+    if(redEl) redEl.textContent=red;
+    document.getElementById('hf-rate-canasta')?.classList.toggle('active', scoreEntryModalState.activeField==='canastaEach');
+    document.getElementById('hf-rate-red')?.classList.toggle('active', scoreEntryModalState.activeField==='redThreeEach');
+  }
+  function handFootValuesForSave(){
+    const values=JSON.parse(JSON.stringify(scoreEntryModalState?.values||{}));
+    const rates=scoreEntryModalState?.rates||{};
+    Object.keys(values).forEach(p=>{
+      if(!values[p]||typeof values[p]!=='object'||handFootLegacyUntouched(values[p])) return;
+      values[p].canastaEach=rates.canastaEach??'';
+      values[p].redThreeEach=rates.redThreeEach??'';
+    });
+    return values;
   }
   function handFootPartsStarted(parts){
     return !!parts&&HAND_FOOT_FIELDS.some(k=>parts[k]!==''&&parts[k]!=null);
@@ -14807,8 +14945,8 @@ ${isDealer
     return !!parts&&HAND_FOOT_FIELDS.every(k=>parts[k]!==undefined&&parts[k]!==null&&parts[k]!==''&&parts[k]!=='-');
   }
   function handFootPreviewText(parts){
-    if(!handFootPartsStarted(parts)) return '—';
-    return String(handFootRoundTotal(parts));
+    if(!handFootPartsStarted(parts)&&!handFootLegacyUntouched(parts)) return '—';
+    return String(handFootRoundTotal(handFootLiveParts(parts)));
   }
   function getScoreEntryMode(){
     if(!currentGame||currentGame.name==='Rook')return null;
@@ -14921,7 +15059,11 @@ ${isDealer
   }
 
   function scoreEntryStateJson(){
-    return scoreEntryModalState?JSON.stringify(scoreEntryModalState.values):'';
+    if(!scoreEntryModalState) return '';
+    if(scoreEntryModalState.mode?.kind==='hand-foot'){
+      return JSON.stringify({values:scoreEntryModalState.values,rates:scoreEntryModalState.rates||{}});
+    }
+    return JSON.stringify(scoreEntryModalState.values);
   }
 
   function getScoreEntryAvatarHtml(name, cls){
@@ -14965,7 +15107,7 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
     document.getElementById('score-entry-context').textContent=getScoreEntryRoundContext(mode);
-    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Card points + bonuses − cards left':mode.valueLabel;
+    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Canastas + red 3s + card points − foot':mode.valueLabel;
     updateScoreEntryProgress();
   }
 
@@ -15094,11 +15236,13 @@ ${isDealer
       acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,false])),
       dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
-      activeField:'cardPoints',
+      activeField:mode.kind==='hand-foot'?'canastas':'cardPoints',
+      rates:mode.kind==='hand-foot'?handFootRatesFromValues(values):null,
       editingRoundIndex:null,
       editingRoundNumber:null,
-      initialJson:JSON.stringify(values)
+      initialJson:''
     };
+    scoreEntryModalState.initialJson=scoreEntryStateJson();
     renderScoreEntryModal();
     const modal=document.getElementById('score-entry-modal');
     modal.classList.toggle('score-entry-hand-foot', mode.kind==='hand-foot');
@@ -15119,12 +15263,14 @@ ${isDealer
     const modal=document.getElementById('score-entry-modal');
     if(!modal)return;
     modal.classList.add('opacity-0');
+    modal.classList.remove('hf-cards-left','hf-no-minus');
+    document.getElementById('hf-rate-bar')?.classList.add('hidden');
     setTimeout(()=>{
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       modal.classList.remove('score-entry-managed-fit');
       modal.classList.remove('score-entry-hand-foot');
-      modal.classList.remove('hf-cards-left');
+      modal.classList.remove('hf-cards-left','hf-no-minus');
     },160);
     scoreEntryModalState=null;
   }
@@ -15188,7 +15334,7 @@ ${isDealer
   function renderHandFootScoreEntryRows(){
     if(!scoreEntryModalState) return;
     const {players,values}=scoreEntryModalState;
-    const activeField=scoreEntryModalState.activeField||'cardPoints';
+    const activeField=scoreEntryModalState.activeField||'canastas';
     const rows=players.map((p,idx)=>{
       const safe=rookElementId(p);
       const active=p===scoreEntryModalState.activePlayer;
@@ -15196,12 +15342,14 @@ ${isDealer
       const complete=handFootEntryComplete(parts);
       const members=handFootMembersOf(currentGame,p);
       const team=members.length>1;
+      const legacy=handFootLegacyUntouched(parts);
       const fields=HAND_FOOT_FIELDS.map(field=>{
         const label=HAND_FOOT_FIELD_LABELS[field];
-        const hint=field==='cardsLeft'?'<div class="score-entry-meta-label">subtracted</div>':'';
+        const hint=field==='footPenalty'?'<div class="score-entry-meta-label">if still in hand</div>':'';
+        const shown=parts[field]!=null&&parts[field]!==''?escapeHtml(String(parts[field])):'';
         return `<button type="button" class="hf-field${active&&activeField===field?' active':''}" onclick="event.stopPropagation();selectHandFootField(${idx},'${field}')">
           <div class="score-entry-meta-label">${label}</div>
-          <div id="score-entry-hf-${safe}-${field}" class="hf-field-value">${parts[field]!==''?escapeHtml(parts[field]):''}</div>
+          <div id="score-entry-hf-${safe}-${field}" class="hf-field-value">${shown}</div>
           ${hint}
         </button>`;
       }).join('');
@@ -15218,11 +15366,12 @@ ${isDealer
         </div>
         <div class="hf-fields">
           ${fields}
-          <div class="hf-round"><div class="score-entry-meta-label">Round</div><div id="score-entry-hf-round-${safe}" class="hf-round-value">${handFootPreviewText(parts)}</div></div>
+          <div class="hf-round"><div class="score-entry-meta-label">${legacy?'Older round':'Round'}</div><div id="score-entry-hf-round-${safe}" class="hf-round-value">${handFootPreviewText(parts)}</div></div>
         </div>
       </div>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
+    syncHandFootRateBar();
     scrollHandFootActiveRowIntoView();
   }
   function scrollHandFootActiveRowIntoView(){
@@ -15244,6 +15393,21 @@ ${isDealer
     renderHandFootScoreEntryRows();
     updateScoreEntrySelectedSummary();
   }
+  function selectHandFootRate(field){
+    if(!scoreEntryModalState||scoreEntryModalState.mode?.kind!=='hand-foot') return;
+    if(!HAND_FOOT_RATE_FIELDS.includes(field)) return;
+    scoreEntryModalState.activeField=field;
+    renderHandFootScoreEntryRows();
+    updateScoreEntrySelectedSummary();
+  }
+  function refreshHandFootRoundPreviews(){
+    if(!scoreEntryModalState) return;
+    const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players||[];
+    players.forEach(p=>{
+      const el=document.getElementById(`score-entry-hf-round-${rookElementId(p)}`);
+      if(el) el.textContent=handFootPreviewText(scoreEntryModalState.values[p]||handFootModalParts());
+    });
+  }
 
   function updateScoreEntrySelectedSummary(){
     if(!scoreEntryModalState)return;
@@ -15251,20 +15415,23 @@ ${isDealer
     const mode=scoreEntryModalState.mode;
     const modal=document.getElementById('score-entry-modal');
     if(mode.kind==='hand-foot'){
-      const field=scoreEntryModalState.activeField||'cardPoints';
+      const field=scoreEntryModalState.activeField||'canastas';
       const parts=scoreEntryModalState.values[p]||handFootModalParts();
       const members=handFootMembersOf(currentGame,p);
       document.getElementById('score-entry-selected-name').textContent=members.join(' · ');
       document.getElementById('score-entry-selected-avatar').innerHTML=members.map(m=>getScoreEntryAvatarHtml(m,'score-entry-selected-avatar')).join('');
       const meld=handFootMeldForRound(scoreEntryModalState.editingRoundNumber||currentGame.currentRound);
+      const label=HAND_FOOT_FIELD_LABELS[field]||'score';
       document.getElementById('score-entry-selected-detail').innerHTML=
-        `<span class="score-entry-chip">Entering ${HAND_FOOT_FIELD_LABELS[field].toLowerCase()}</span>`+
+        `<span class="score-entry-chip">Entering ${label.toLowerCase()}</span>`+
         `<span class="score-entry-chip">Round ${handFootPreviewText(parts)}</span>`+
         (meld?`<span class="score-entry-chip">Meld ${meld}</span>`:'');
-      modal?.classList.toggle('hf-cards-left', field==='cardsLeft');
+      modal?.classList.toggle('hf-no-minus', HAND_FOOT_NO_MINUS.includes(field));
+      modal?.classList.remove('hf-cards-left');
+      syncHandFootRateBar();
       return;
     }
-    modal?.classList.remove('hf-cards-left');
+    modal?.classList.remove('hf-cards-left','hf-no-minus');
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
@@ -15346,9 +15513,22 @@ ${isDealer
       if(!scoreEntryModalState)return;
       if(scoreEntryModalState.mode?.kind==='hand-foot'){
         const p=scoreEntryModalState.activePlayer;
-        const field=scoreEntryModalState.activeField||'cardPoints';
+        const field=scoreEntryModalState.activeField||'canastas';
         if(!p) return;
-        if(field==='cardsLeft'&&v==='-') return;
+        if(HAND_FOOT_RATE_FIELDS.includes(field)){
+          if(!scoreEntryModalState.rates) scoreEntryModalState.rates=handFootRatesFromValues(scoreEntryModalState.values);
+          let c=scoreEntryModalState.rates[field]||'';
+          if(v==='backspace') c=c.slice(0,-1);
+          else if(v==='-') c=c.startsWith('-')?c.substring(1):'-'+c;
+          else if(c==='0'&&v!=='0'&&v!=='00') c=v;
+          else if(c.length<5) c+=v;
+          scoreEntryModalState.rates[field]=c;
+          syncHandFootRateBar();
+          refreshHandFootRoundPreviews();
+          updateScoreEntrySelectedSummary();
+          return;
+        }
+        if(HAND_FOOT_NO_MINUS.includes(field)&&v==='-') return;
         if(!scoreEntryModalState.values[p]) scoreEntryModalState.values[p]=handFootModalParts();
         let c=scoreEntryModalState.values[p][field]||'';
         if(v==='backspace') c=c.slice(0,-1);
@@ -15379,18 +15559,30 @@ ${isDealer
       if(scoreEntryModalState.mode?.kind==='hand-foot'){
         const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
         const current=scoreEntryModalState.activePlayer||order[0];
-        const field=scoreEntryModalState.activeField||'cardPoints';
+        const field=scoreEntryModalState.activeField||'canastas';
+        if(HAND_FOOT_RATE_FIELDS.includes(field)){
+          const defaults=handFootApi()?.SCORE_DEFAULTS||{canastaEach:500,redThreeEach:100};
+          if(!scoreEntryModalState.rates) scoreEntryModalState.rates=handFootRatesFromValues(scoreEntryModalState.values);
+          const cur=scoreEntryModalState.rates[field];
+          if(cur===undefined||cur===null||cur===''||cur==='-') scoreEntryModalState.rates[field]=String(defaults[field]??0);
+          scoreEntryModalState.activeField='canastas';
+          renderHandFootScoreEntryRows();
+          updateScoreEntryProgress();
+          updateScoreEntrySelectedSummary();
+          return;
+        }
         if(!scoreEntryModalState.values[current]) scoreEntryModalState.values[current]=handFootModalParts();
         const curVal=scoreEntryModalState.values[current][field];
-        if(curVal===undefined||curVal===null||curVal===''||curVal==='-') scoreEntryModalState.values[current][field]='0';
+        const keepLegacyBlank=handFootLegacyUntouched(scoreEntryModalState.values[current])&&(curVal==null||curVal==='');
+        if(!keepLegacyBlank&&(curVal===undefined||curVal===null||curVal===''||curVal==='-')) scoreEntryModalState.values[current][field]='0';
         const fieldIdx=HAND_FOOT_FIELDS.indexOf(field);
-        if(fieldIdx<HAND_FOOT_FIELDS.length-1){
+        if(fieldIdx>=0&&fieldIdx<HAND_FOOT_FIELDS.length-1){
           scoreEntryModalState.activeField=HAND_FOOT_FIELDS[fieldIdx+1];
         } else {
           const currentIdx=order.indexOf(current);
           const next=order[((currentIdx>=0?currentIdx:0)+1)%order.length];
           scoreEntryModalState.activePlayer=next;
-          scoreEntryModalState.activeField='cardPoints';
+          scoreEntryModalState.activeField='canastas';
         }
         renderHandFootScoreEntryRows();
         updateScoreEntryProgress();
@@ -15416,7 +15608,15 @@ ${isDealer
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     if(mode.kind==='hand-foot'){
       if(!currentGame.currentScoreDrafts)currentGame.currentScoreDrafts={};
-      players.forEach(p=>{ currentGame.currentScoreDrafts[p]=handFootModalParts(values[p]); });
+      const rates=scoreEntryModalState.rates||{};
+      players.forEach(p=>{
+        const parts=handFootModalParts(values[p]);
+        if(!handFootLegacyUntouched(parts)){
+          parts.canastaEach=rates.canastaEach??parts.canastaEach??'';
+          parts.redThreeEach=rates.redThreeEach??parts.redThreeEach??'';
+        }
+        currentGame.currentScoreDrafts[p]=parts;
+      });
       return;
     }
     if(isScoreEntryBidMode(mode)){
@@ -15442,7 +15642,7 @@ ${isDealer
     if(scoreEntryModalState.mode?.kind==='hand-foot'&&scoreEntryModalState.editingRoundIndex!=null){
       if(!validateScoreEntryModalSubmit())return;
       const roundIndex=scoreEntryModalState.editingRoundIndex;
-      const values=JSON.parse(JSON.stringify(scoreEntryModalState.values));
+      const values=handFootValuesForSave();
       closeScoreEntryModalOnly();
       applyHandFootRoundEdit(roundIndex, values);
       return;
@@ -15467,13 +15667,7 @@ ${isDealer
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     if(mode.kind==='hand-foot'){
-      const badLeft=players.find(p=>{
-        const raw=values[p]?.cardsLeft;
-        if(raw===undefined||raw===null||raw===''||raw==='-') return false;
-        return (parseInt(raw,10)||0)<0;
-      });
-      if(badLeft){ alert(`Cards left is a positive number. Check ${badLeft}.`); return false; }
-      const allZero=players.every(p=>handFootRoundTotal(values[p])===0);
+      const allZero=players.every(p=>handFootRoundTotal(handFootLiveParts(values[p]))===0);
       return !allZero||confirm('Every side scored 0? Submit?');
     }
     if(isScoreEntryBidMode(mode)){
@@ -15529,7 +15723,7 @@ ${isDealer
     gnPerfAction('modal Submit', scoreEntryModalState.mode?.kind||'');
     if(scoreEntryModalState.mode?.kind==='hand-foot'&&scoreEntryModalState.editingRoundIndex!=null){
       const roundIndex=scoreEntryModalState.editingRoundIndex;
-      const values=JSON.parse(JSON.stringify(scoreEntryModalState.values));
+      const values=handFootValuesForSave();
       closeScoreEntryModalOnly();
       applyHandFootRoundEdit(roundIndex, values);
       return;
@@ -15662,7 +15856,7 @@ ${isDealer
         const parsed=handFootPartsFromModal(drafts[p]);
         if(parsed.total!==0) allZero=false;
         scores[p]=parsed.total;
-        handFootParts[p]={cardPoints:parsed.cardPoints,bonuses:parsed.bonuses,cardsLeft:parsed.cardsLeft};
+        handFootParts[p]=handFootPersistParts(parsed);
       });
       if(allZero&&!skipConfirm&&!confirm('Every side scored 0? Submit?')){isSubmitting=false;return;}
       const prevSide=columns.slice().sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0]||null;
@@ -15703,10 +15897,37 @@ ${isDealer
 
   function handFootPartsFromModal(raw){
     const api=handFootApi();
-    const card=api?api.parsePart(raw?.cardPoints,false):(parseInt(raw?.cardPoints,10)||0);
-    const bonus=api?api.parsePart(raw?.bonuses,false):(parseInt(raw?.bonuses,10)||0);
-    const left=api?api.parsePart(raw?.cardsLeft,true):Math.abs(parseInt(raw?.cardsLeft,10)||0);
-    return {cardPoints:card,bonuses:bonus,cardsLeft:left,total:card+bonus-left};
+    const live=handFootLiveParts(raw);
+    if(handFootLegacyUntouched(raw)){
+      const card=api?api.parsePart(raw.cardPoints,false):(parseInt(raw?.cardPoints,10)||0);
+      const bonus=api?api.parsePart(raw.bonuses,false):(parseInt(raw?.bonuses,10)||0);
+      const left=api?api.parsePart(raw.cardsLeft,true):Math.abs(parseInt(raw?.cardsLeft,10)||0);
+      return {cardPoints:card,bonuses:bonus,cardsLeft:left,total:api?api.roundScore(raw):(card+bonus-left),legacy:true};
+    }
+    const defaults=api?.SCORE_DEFAULTS||{canastaEach:500,redThreeEach:100};
+    const stored={
+      canastas:api?api.parsePart(live.canastas,true):Math.abs(parseInt(live.canastas,10)||0),
+      redThrees:api?api.parsePart(live.redThrees,true):Math.abs(parseInt(live.redThrees,10)||0),
+      footPenalty:api?api.parsePart(live.footPenalty,true):Math.abs(parseInt(live.footPenalty,10)||0),
+      cardPoints:api?api.parsePart(live.cardPoints,false):(parseInt(live.cardPoints,10)||0),
+      canastaEach:live.canastaEach===''||live.canastaEach==null?(defaults.canastaEach):(api?api.parsePart(live.canastaEach,false):(parseInt(live.canastaEach,10)||0)),
+      redThreeEach:live.redThreeEach===''||live.redThreeEach==null?(defaults.redThreeEach):(api?api.parsePart(live.redThreeEach,false):(parseInt(live.redThreeEach,10)||0))
+    };
+    stored.total=api?api.roundScore(stored):(stored.canastas*stored.canastaEach)+(stored.redThrees*stored.redThreeEach)+stored.cardPoints-stored.footPenalty;
+    return stored;
+  }
+  function handFootPersistParts(parsed){
+    if(!parsed||parsed.legacy){
+      return {cardPoints:parsed?.cardPoints??0,bonuses:parsed?.bonuses??0,cardsLeft:parsed?.cardsLeft??0};
+    }
+    return {
+      canastas:parsed.canastas,
+      redThrees:parsed.redThrees,
+      footPenalty:parsed.footPenalty,
+      cardPoints:parsed.cardPoints,
+      canastaEach:parsed.canastaEach,
+      redThreeEach:parsed.redThreeEach
+    };
   }
   function applyHandFootRoundEdit(roundIndex, values){
     const round=currentGame?.rounds?.[roundIndex];
@@ -15717,7 +15938,7 @@ ${isDealer
     columns.forEach(p=>{
       const parsed=handFootPartsFromModal(values?.[p]);
       round.scores[p]=parsed.total;
-      round.handFootParts[p]={cardPoints:parsed.cardPoints,bonuses:parsed.bonuses,cardsLeft:parsed.cardsLeft};
+      round.handFootParts[p]=handFootPersistParts(parsed);
     });
     addAuditEntry(`R${round.round} Edited`, columns.map(p=>`${p}: ${round.scores[p]}`).join(', '));
     recomputeGameTotals(currentGame);
@@ -15744,11 +15965,13 @@ ${isDealer
       acknowledged:Object.fromEntries(tablePlayers.map(p=>[p,true])),
       dealer:null,
       activePlayer:tablePlayers.includes(player)?player:(tablePlayers[0]||null),
-      activeField:'cardPoints',
+      activeField:'canastas',
+      rates:handFootRatesFromValues(values),
       editingRoundIndex:roundIndex,
       editingRoundNumber:round.round,
-      initialJson:JSON.stringify(values)
+      initialJson:''
     };
+    scoreEntryModalState.initialJson=scoreEntryStateJson();
     renderScoreEntryModal();
     const modal=document.getElementById('score-entry-modal');
     modal.classList.add('score-entry-hand-foot','score-entry-managed-fit');

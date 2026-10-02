@@ -76,6 +76,64 @@ test('negative rounds stay negative when the match total is added up', () => {
   assert.equal(HF.roundScore({ cardPoints: 20, bonuses: 0, cardsLeft: 50 }), -30);
 });
 
+test('two players each enter canastas, red threes, a foot penalty, and card points', () => {
+  const ann = { canastas: 2, redThrees: 1, footPenalty: 0, cardPoints: 80 };
+  const bo = { canastas: 0, redThrees: 3, footPenalty: 100, cardPoints: -20 };
+  assert.equal(HF.roundScore(ann), 1180);
+  assert.equal(HF.roundScore(bo), 180);
+  const keys = HF.scoringKeys(HF.buildSides(['Ann', 'Bo'], 'singles'));
+  assert.deepEqual(keys, ['Ann', 'Bo']);
+  assert.deepEqual(HF.totalForSides([
+    { scores: { Ann: HF.roundScore(ann), Bo: HF.roundScore(bo) } }
+  ], keys), { Ann: 1180, Bo: 180 });
+});
+
+test('a team side uses that same five-input score once', () => {
+  const sides = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  const keys = HF.scoringKeys(sides);
+  const annBo = HF.roundScore({ canastas: 2, redThrees: 1, footPenalty: 0, cardPoints: 80 });
+  const cyDee = HF.roundScore({ canastas: 0, redThrees: 0, footPenalty: 100, cardPoints: 40 });
+  assert.equal(annBo, 1180);
+  assert.equal(cyDee, -60);
+  assert.deepEqual(HF.totalForSides([
+    { scores: { 'Ann & Bo': annBo, 'Cy & Dee': cyDee } }
+  ], keys), { 'Ann & Bo': 1180, 'Cy & Dee': -60 });
+  assert.equal(keys.includes('Ann'), false);
+});
+
+// Assumed point values, because Matt named the inputs and not the amounts.
+// One canasta is 500 (not split into clean 500 / dirty 300 / wild 1000).
+// One red three is 100, so four red threes are 400, not a special 800.
+// The foot penalty is not applied until that side types it. 100 is the
+// suggested amount, kept on SCORE_DEFAULTS.footPenalty for the table to edit.
+// Both rates are editable per round. Card points are the typed total and
+// are not reduced by a second cards-left field.
+test('the round is canastas times 500, plus red threes times 100, plus card points, minus the foot penalty', () => {
+  assert.deepEqual(HF.SCORE_DEFAULTS, { canastaEach: 500, redThreeEach: 100, footPenalty: 100 });
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 1, footPenalty: 0, cardPoints: 0 }), 600);
+  assert.equal(HF.roundScore({ canastas: 2, redThrees: 0, footPenalty: 0, cardPoints: 35 }), 1035);
+  assert.equal(HF.roundScore({ canastas: '1', redThrees: '', footPenalty: '-', cardPoints: '15' }), 515);
+  assert.equal(HF.roundScore({ canastas: 0, redThrees: 4, footPenalty: 0, cardPoints: 0 }), 400);
+});
+
+test('a blank foot penalty subtracts nothing, and 100 applies only when that side enters it', () => {
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 0, footPenalty: '', cardPoints: 20 }), 520);
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: 20 }), 520);
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 0, footPenalty: 100, cardPoints: 20 }), 420);
+  assert.equal(HF.roundScore({ canastas: 0, redThrees: 0, footPenalty: -100, cardPoints: 50 }), -50);
+});
+
+test('negative card points stay in the automatic round', () => {
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: -40 }), 460);
+  assert.equal(HF.roundScore({ canastas: 0, redThrees: 0, footPenalty: 100, cardPoints: -25 }), -125);
+});
+
+test('canasta and red-three rates stay editable', () => {
+  assert.equal(HF.roundScore({ canastas: 2, redThrees: 1, footPenalty: 0, cardPoints: 0, canastaEach: 300, redThreeEach: 100 }), 700);
+  assert.equal(HF.roundScore({ canastas: 0, redThrees: 4, footPenalty: 0, cardPoints: 0, redThreeEach: 200 }), 800);
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: 0, canastaEach: '' }), 500);
+});
+
 test('a team score is recorded once on the side, not on each teammate', () => {
   const sides = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
   const totals = { 'Ann & Bo': -15, 'Cy & Dee': 0 };
@@ -122,7 +180,7 @@ test('a repeated side key is recorded once', () => {
   assert.deepEqual(HF.recordedKeys(dup, { Bo: -8, Cy: 0 }), ['Bo', 'Cy']);
 });
 
-test('round score adds the first two inputs and subtracts cards left', () => {
+test('an older saved round still adds card points and bonuses and subtracts cards left', () => {
   assert.equal(HF.roundScore({ cardPoints: 100, bonuses: 50, cardsLeft: 30 }), 120);
   assert.equal(HF.roundScore({ cardPoints: 20, bonuses: 0, cardsLeft: 50 }), -30);
   assert.equal(HF.roundScore({ cardPoints: 0, bonuses: -100, cardsLeft: 15 }), -115);
