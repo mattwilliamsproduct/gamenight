@@ -13647,9 +13647,9 @@ ${isDealer
       const chip=scorecardNameChipEl(name);
       const cellBox=cell.getBoundingClientRect();
       const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
       const available=scorecardNameAvailableWidth(name);
       if(available<=0)return;
+      if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
       const chipStyle=getComputedStyle(chip);
