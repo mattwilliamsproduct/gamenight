@@ -1,15 +1,19 @@
 (function (root) {
   'use strict';
 
+  function placeScore(totals, player) {
+    const n = Number(totals ? totals[player] : undefined);
+    return Number.isFinite(n) ? n : 0;
+  }
+
   function competitionPlaces(sortedPlayers, totals) {
     const place = {};
     const list = Array.isArray(sortedPlayers) ? sortedPlayers : [];
-    const scores = totals || {};
     let cursor = 0;
     while (cursor < list.length) {
-      const score = scores[list[cursor]];
+      const score = placeScore(totals, list[cursor]);
       let end = cursor + 1;
-      while (end < list.length && scores[list[end]] === score) end++;
+      while (end < list.length && placeScore(totals, list[end]) === score) end++;
       const rank = cursor + 1;
       for (let i = cursor; i < end; i++) place[list[i]] = rank;
       cursor = end;
@@ -75,12 +79,23 @@
     return next;
   }
 
+  function finiteNumber(value) {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const n = Number(value);
+      if (Number.isFinite(n)) return n;
+    }
+    return null;
+  }
+
   function moveOrMergeField(map, oldName, newName, merge) {
     if (!map || oldName === newName || !Object.prototype.hasOwnProperty.call(map, oldName)) return;
     const incoming = map[oldName];
     const hasExisting = Object.prototype.hasOwnProperty.call(map, newName);
-    if (merge && hasExisting && typeof incoming === 'number' && typeof map[newName] === 'number') {
-      map[newName] += incoming;
+    const incomingNumber = finiteNumber(incoming);
+    const existingNumber = hasExisting ? finiteNumber(map[newName]) : null;
+    if (merge && hasExisting && incomingNumber != null && existingNumber != null) {
+      map[newName] = existingNumber + incomingNumber;
     } else if (!hasExisting || !merge) {
       map[newName] = incoming;
     }
