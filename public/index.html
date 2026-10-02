@@ -7330,12 +7330,120 @@ button.dealer-name-indicator .dealer-player-label {
        Below 540px the five labels share one row; full words, no second line. */
     #top-nav { z-index: 70; }
     @media (max-width: 539px) {
-      #top-nav > div > div:last-child { gap: 0.25rem; }
+      #top-nav > div > div:last-child { gap: 2px; }
       #top-nav .nav-btn {
         padding: 0.4rem 0.42rem;
         font-size: 12.5px;
-        min-height: 2.15rem;
+        min-width: 44px;
+        min-height: 44px;
         letter-spacing: 0.01em;
+      }
+    }
+    @media (max-width: 760px) {
+      /* Actions opens downward from the banner, inside the phone width. */
+      .active-match-actions > .relative { position: static; }
+      #actions-menu {
+        left: 0.5rem !important;
+        right: 0.5rem !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 8rem);
+        overflow-y: auto;
+      }
+      #game-screen #actions-btn,
+      #game-screen .active-match-banner .match-end-btn {
+        min-height: 44px;
+      }
+      button.scoreboard-rank-badge {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      /* Phone score entry: full-width keypad, a scrollable roster, names not ellipsized. */
+      #score-entry-modal .score-entry-side {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.35rem !important;
+      }
+      #score-entry-modal .score-entry-layout {
+        min-height: 0;
+        overflow: hidden;
+        grid-template-rows: minmax(6.75rem, 1fr) auto;
+      }
+      #score-entry-modal .score-entry-list {
+        min-height: 6.75rem !important;
+        overflow: hidden;
+      }
+      #score-entry-modal .score-entry-panel > .border-t button {
+        min-height: 44px !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+        overflow-y: auto !important;
+        min-height: 0;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-row,
+      #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+        flex: 0 0 auto !important;
+        min-height: 44px !important;
+        height: auto !important;
+      }
+      #score-entry-modal .score-entry-player-card,
+      #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
+      #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card,
+      #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-player-card {
+        grid-template-columns: 44px minmax(min-content, 1fr) 52px !important;
+      }
+      #score-entry-modal .score-entry-name-line {
+        flex-wrap: wrap;
+        row-gap: 0.15rem;
+      }
+      #score-entry-modal .score-entry-name,
+      #score-entry-modal.score-entry-managed-fit .score-entry-name,
+      #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-name {
+        flex: 1 1 auto;
+        min-width: max-content;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        font-size: 16px !important;
+      }
+      #score-entry-modal .score-entry-selected-card {
+        padding: 4px 8px !important;
+      }
+      #score-entry-modal .score-entry-selected-card > :first-child {
+        display: none;
+      }
+      #score-entry-modal .score-entry-selected-detail {
+        display: none;
+      }
+      #score-entry-modal .score-entry-selected-head,
+      #score-entry-modal.score-entry-managed-fit .score-entry-selected-head {
+        grid-template-columns: 40px minmax(0, 1fr) !important;
+        gap: 8px !important;
+      }
+      #score-entry-modal .score-entry-selected-avatar,
+      #score-entry-modal.score-entry-managed-fit .score-entry-selected-avatar {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      #score-entry-modal .score-entry-selected-name,
+      #score-entry-modal.score-entry-managed-fit .score-entry-selected-name {
+        font-size: 22px !important;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+        flex: 0 0 auto;
+        overflow: visible;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-key {
+        min-height: 44px !important;
+        min-width: 44px !important;
+      }
+      button.dealer-name-indicator {
+        min-width: 44px;
+        min-height: 44px;
       }
     }
 
@@ -14325,6 +14433,19 @@ ${isDealer
     panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
     panel.style.setProperty('--se-fit-selected-name',`${Math.floor(clamp(24,keyHeight*0.52,36))}px`);
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
+
+    const phone=(window.visualViewport?.width||window.innerWidth||0)<=760;
+    if(phone){
+      const items=[...rows.children];
+      const shown=items.slice(0, Math.min(2, items.length));
+      if(shown.length){
+        const first=shown[0].getBoundingClientRect();
+        const last=shown[shown.length-1].getBoundingClientRect();
+        rows.style.maxHeight=`${Math.ceil(last.bottom-first.top)}px`;
+      }
+    }else{
+      rows.style.maxHeight='';
+    }
   }
 
   function openScoreEntryModal(ev){
