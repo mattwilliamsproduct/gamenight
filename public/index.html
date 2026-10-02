@@ -4178,6 +4178,23 @@ button.dealer-name-indicator .dealer-player-label {
       padding: 0.85rem 1rem;
       background: var(--surface);
     }
+    .hf-pair-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .hf-pair-select {
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1.5px solid var(--hairline);
+      background: var(--bg);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 0.35rem 0.45rem;
+    }
     .hf-fields {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4572,7 +4589,7 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-rows {
       overflow-y: auto !important;
     }
-    /* Six singles must scroll. The shared many-player fit shrinks every row to share one list, which piles Hand and Foot's four fields on top of each other and under the keypad. */
+    /* Six singles must scroll. The shared many-player fit shrinks every row to share one list, which piles Hand and Foot's fields on top of each other and under the keypad. */
     #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-hf-row,
     #score-entry-modal.score-entry-hand-foot.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-hf-row {
       flex: 0 0 auto !important;
@@ -8267,7 +8284,7 @@ button.dealer-name-indicator .dealer-player-label {
           <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
         </div>
         <div id="hand-foot-setup-sides" class="space-y-3"></div>
-        <p id="hand-foot-setup-order" class="hidden text-[11px] font-semibold mt-3 leading-snug" style="color:var(--muted);">Teams follow lineup order: first half versus second half. Reorder the lineup before the match if you want different partners.</p>
+        <p id="hand-foot-setup-order" class="hidden text-[11px] font-semibold mt-3 leading-snug" style="color:var(--muted);">Pick who sits together. Each pair enters one score, and both players keep that round.</p>
         <div class="flex gap-2 mt-6">
           <button type="button" onclick="cancelHandFootSetup()" class="btn-ghost flex-1 py-4 font-extrabold">Back</button>
           <button type="button" onclick="commitHandFootSetup()" class="btn-primary flex-[1.4] py-4 font-display text-xl">Start Match →</button>
@@ -8936,7 +8953,14 @@ button.dealer-name-indicator .dealer-player-label {
   // ── Core state ──
   let allPlayers = safeGetArray('gn_all_players').filter(p=>p&&typeof p==='string'&&p.trim());
   let players    = safeGetArray('gn_players_v2').filter(p=>p&&typeof p==='string'&&p.trim());
-  let history    = safeGetArray('gn_history');
+  let history    = safeGetArray('gn_history').map(h=>{
+    try{
+      if(h&&h.game==='Hand and Foot'&&h.handFoot&&window.BPGHandFoot&&typeof BPGHandFoot.normalizeMatch==='function'){
+        return BPGHandFoot.normalizeMatch(h);
+      }
+    }catch(e){}
+    return h;
+  });
   let playerProfiles = safeGetObject('gn_profiles');
 
   let currentGame = null;
@@ -9156,10 +9180,15 @@ button.dealer-name-indicator .dealer-player-label {
       game.totals={};
       keys.forEach(k=>{ game.totals[k]=0; });
       (game.rounds||[]).forEach(r=>{
-        Object.keys(r.scores||{}).forEach(p=>{
-          if(game.totals[p]===undefined) return;
-          const score=Number(r.scores[p]);
-          game.totals[p]+=Number.isFinite(score)?score:0;
+        keys.forEach(k=>{
+          const score=Number(handFootColumnScore(game, r, k));
+          game.totals[k]+=Number.isFinite(score)?score:0;
+        });
+      });
+      (game.handFoot?.sides||[]).forEach(side=>{
+        const total=game.totals[side?.key];
+        (side?.members||[]).forEach(name=>{
+          if(name&&Number.isFinite(total)) game.totals[name]=total;
         });
       });
       return game.totals;
@@ -9232,6 +9261,24 @@ button.dealer-name-indicator .dealer-player-label {
     if(side?.members?.length) return side.members.slice();
     return key?[key]:[];
   }
+  function handFootColumnScore(game, round, columnKey){
+    if(!round?.scores) return undefined;
+    if(round.scores[columnKey]!==undefined) return round.scores[columnKey];
+    const members=handFootMembersOf(game, columnKey);
+    for(const name of members){
+      if(round.scores[name]!==undefined) return round.scores[name];
+    }
+    return undefined;
+  }
+  function handFootColumnParts(game, round, columnKey){
+    const parts=round?.handFootParts||{};
+    if(parts[columnKey]) return parts[columnKey];
+    const members=handFootMembersOf(game, columnKey);
+    for(const name of members){
+      if(parts[name]) return parts[name];
+    }
+    return null;
+  }
   function getHandFootColumns(game){
     const api=handFootApi();
     const sides=game?.handFoot?.sides||[];
@@ -9245,11 +9292,14 @@ button.dealer-name-indicator .dealer-player-label {
   function handFootRoundTotal(parts){
     const api=handFootApi();
     if(api) return api.roundScore(parts||{});
-    const structured=!!parts&&['canastas','redThrees','footPenalty'].some(k=>Object.prototype.hasOwnProperty.call(parts,k));
+    const structured=!!parts&&['canastas','canastaPoints','redThrees','footPenalty'].some(k=>Object.prototype.hasOwnProperty.call(parts,k));
     const n=(v,abs)=>{ const x=parseInt(v,10); if(!Number.isFinite(x)) return 0; return abs?Math.abs(x):x; };
     if(structured){
       const each=(v,d)=>v===undefined||v===null||v===''?d:n(v,false);
-      return n(parts.canastas,true)*each(parts.canastaEach,500)+n(parts.redThrees,true)*each(parts.redThreeEach,100)+n(parts.cardPoints,false)-n(parts.footPenalty,true);
+      const canastaPts=Object.prototype.hasOwnProperty.call(parts,'canastaPoints')
+        ? n(parts.canastaPoints,false)
+        : n(parts.canastas,true)*each(parts.canastaEach,500);
+      return canastaPts+n(parts.redThrees,true)*each(parts.redThreeEach,100)+n(parts.cardPoints,false)-n(parts.footPenalty,true);
     }
     return n(parts?.cardPoints,false)+n(parts?.bonuses,false)-n(parts?.cardsLeft,true);
   }
@@ -10739,7 +10789,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
     "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
     "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`,
-    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two teams of 2. Six start as two teams of 3. Three or five play singles. Four or six can switch to singles.</li><li><strong>Teams:</strong> A team enters one set of numbers. Every name on that team shows on the column.</li><li><strong>Each round:</strong> Number of canastas, number of red 3s, a foot penalty if that foot is still in hand, and total card points. The app multiplies the counts and adds the card points, then subtracts the foot penalty. Defaults, until you change them: 500 a canasta, 100 a red 3. Type 0 for the foot penalty when the foot was played. The suggested foot penalty is 100. The round total can be negative.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
+    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two pairs. Six start as three pairs. Three or five play singles. Four or six can switch to singles. On a team table, pick who sits together before round 1.</li><li><strong>Teams:</strong> A pair enters one set of numbers. Both players keep that round total and the same breakdown.</li><li><strong>Each round:</strong> Number of canastas, canasta points, number of red 3s, a foot penalty if that foot is still in hand, and total card points. The app adds the canasta points, the red 3s, and the card points, then subtracts the foot penalty. Typed canasta points are used as entered. They are not added again as count times 500. A red 3 defaults to 100 until you change it. Type 0 for the foot penalty when the foot was played. The suggested foot penalty is 100. The round total can be negative.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -11289,7 +11339,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function transferRoundPlayerKeys(round, oldName, newName, merge=false){
     if(!round) return;
-    ['scores','bids','actuals','joinBonus','comeback'].forEach(key=>transferPlayerKey(round[key], oldName, newName, merge));
+    ['scores','bids','actuals','joinBonus','comeback','handFootParts'].forEach(key=>transferPlayerKey(round[key], oldName, newName, merge));
     if(round.rookBidder===oldName) round.rookBidder=newName;
     if(round.rookPartner===oldName) round.rookPartner=newName;
   }
@@ -11385,11 +11435,16 @@ button.dealer-name-indicator .dealer-player-label {
 
   // Helper: merge oldName's data into newName, then delete oldName.
   // For merges, we ADD totals (in history) and unify rosters.
+  function handFootSameSide(record, a, b){
+    if(!a||!b||a===b) return false;
+    return (record?.handFoot?.sides||[]).some(side=>Array.isArray(side?.members)&&side.members.includes(a)&&side.members.includes(b));
+  }
   function mergePlayerRecords(src, target){
     history.forEach(h => {
+      const partners=handFootSameSide(h, src, target);
       applyHandFootRename(h, src, target, true);
-      if(h.totals[src] !== undefined){
-        h.totals[target] = (h.totals[target] || 0) + h.totals[src];
+      if(h.totals&&h.totals[src] !== undefined){
+        if(!partners) h.totals[target] = (h.totals[target] || 0) + h.totals[src];
         delete h.totals[src];
       }
       if(Array.isArray(h.winners) && h.winners.includes(src)){
@@ -11397,7 +11452,13 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(Array.isArray(h.rounds)){
         h.rounds.forEach(r => {
-          transferRoundPlayerKeys(r, src, target, true);
+          if(partners){
+            if(r?.scores) delete r.scores[src];
+            if(r?.handFootParts) delete r.handFootParts[src];
+            ['bids','actuals','joinBonus','comeback'].forEach(key=>transferPlayerKey(r?.[key], src, target, true));
+          } else {
+            transferRoundPlayerKeys(r, src, target, true);
+          }
         });
       }
     });
@@ -11864,8 +11925,10 @@ button.dealer-name-indicator .dealer-player-label {
     if(isHandFootGame(game)){
       const api=handFootApi();
       if(api&&typeof api.normalizeMatch==='function'){
-        const normalized=api.normalizeMatch({game:game.name,handFoot:game.handFoot,rounds:game.rounds||[]});
+        const normalized=api.normalizeMatch({game:game.name,handFoot:game.handFoot,rounds:game.rounds||[],totals:{...(data.totals||{})},winners:[...(data.winners||[])]});
         data.rounds=normalized.rounds;
+        if(normalized.totals) data.totals=normalized.totals;
+        if(Array.isArray(normalized.winners)) data.winners=normalized.winners;
       } else {
         data.rounds=JSON.parse(JSON.stringify(game.rounds||[]));
       }
@@ -11935,7 +11998,10 @@ button.dealer-name-indicator .dealer-player-label {
       const sides=pending?.sides||(api?api.buildSides(players, format):players.map(p=>({key:p,members:[p]})));
       currentGame.handFoot={format, sides};
       currentGame.totals={};
-      sides.forEach(side=>{ if(side?.key) currentGame.totals[side.key]=0; });
+      sides.forEach(side=>{
+        if(side?.key) currentGame.totals[side.key]=0;
+        (side?.members||[]).forEach(name=>{ if(name) currentGame.totals[name]=0; });
+      });
       currentGame.currentScoreDrafts={};
     }
     if(name==='Rook'){
@@ -11965,7 +12031,7 @@ button.dealer-name-indicator .dealer-player-label {
     const roster=players.filter(Boolean);
     const api=handFootApi();
     const format=api?api.defaultFormat(roster.length):'singles';
-    _hfSetup={roster, format};
+    _hfSetup={roster, format, pairs:api?api.defaultPairs(roster):[]};
     renderHandFootSetup();
     const m=document.getElementById('hand-foot-setup-modal');
     m.classList.remove('hidden');
@@ -11984,20 +12050,40 @@ button.dealer-name-indicator .dealer-player-label {
     const order=document.getElementById('hand-foot-setup-order');
     let noteText='Each player scores their own column.';
     if(count===2) noteText='1 versus 1. Each player scores their own column.';
-    else if(_hfSetup.format==='teams'&&count===4) noteText='Two teams of 2. Each team enters one score.';
-    else if(_hfSetup.format==='teams'&&count===6) noteText='Two teams of 3. Each team enters one score.';
+    else if(_hfSetup.format==='teams'&&count===4) noteText='Two pairs. Each pair enters one score. Both players keep that round.';
+    else if(_hfSetup.format==='teams'&&count===6) noteText='Three pairs. Each pair enters one score. Both players keep that round.';
     else if(count===3||count===5) noteText='Singles. Each player scores their own column.';
     if(note) note.textContent=noteText;
-    if(order) order.classList.toggle('hidden', _hfSetup.format!=='teams');
-    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
+    if(order) order.classList.toggle('hidden', !teamPairs);
+    if(!_hfSetup.pairs) _hfSetup.pairs=api?api.defaultPairs(_hfSetup.roster):[];
+    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
     const box=document.getElementById('hand-foot-setup-sides');
     if(!box) return;
+    if(teamPairs){
+      const roster=_hfSetup.roster;
+      box.innerHTML=(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<div class="hf-setup-side">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">Pair ${pairIndex+1}</div>
+        <div class="hf-pair-row mt-2">
+          ${[0,1].map(seat=>`<select class="hf-pair-select" aria-label="Pair ${pairIndex+1}, player ${seat+1}" onchange="handFootSetPairMember(${pairIndex},${seat},this.value)">${roster.map(name=>`<option value="${escapeHtml(name)}"${name===pair[seat]?' selected':''}>${escapeHtml(name)}</option>`).join('')}</select>`).join('<span style="color:var(--muted);" aria-hidden="true">&amp;</span>')}
+        </div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score for both</div>
+      </div>`).join('');
+      return;
+    }
     box.innerHTML=sides.map(side=>`<div class="hf-setup-side">
       <div class="flex items-center gap-2 flex-wrap">
         ${side.members.map(name=>`${getAvatarImg(name,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(name)}</span>`).join('<span style="color:var(--muted);">·</span>')}
       </div>
       <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score column</div>
     </div>`).join('');
+  }
+  function handFootSetPairMember(pairIndex, seat, name){
+    if(!_hfSetup) return;
+    const api=handFootApi();
+    const pairs=_hfSetup.pairs||[];
+    _hfSetup.pairs=api&&typeof api.swapPairMember==='function'?api.swapPairMember(pairs, pairIndex, Number(seat), name):pairs;
+    renderHandFootSetup();
   }
   function handFootSetupFormat(format){
     if(!_hfSetup) return;
@@ -12028,7 +12114,8 @@ button.dealer-name-indicator .dealer-player-label {
   function commitHandFootSetup(){
     if(!_hfSetup) return;
     const api=handFootApi();
-    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    const teamPairs=_hfSetup.format==='teams'&&(_hfSetup.roster.length===4||_hfSetup.roster.length===6);
+    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
     if(sides.length<2){ toast('Need at least two score columns','warning'); return; }
     window._handFootPendingConfig={format:_hfSetup.format, sides};
     _handFootCancelSnapshotId=null;
@@ -14606,13 +14693,14 @@ ${isDealer
         }
         const extra=Number(r.comeback?.[p])||0;
         const extraMark=extra?`<span class="score-cell-comeback">${signedPointsMarkup(extra)}</span>`:'';
-        const hfParts=isHandFootGame(currentGame)?r.handFootParts?.[p]:null;
+        const hfParts=isHandFootGame(currentGame)?handFootColumnParts(currentGame, r, p):null;
         const hfTitle=hfParts?` title="${handFootPartsTitle(hfParts)}"`:'';
+        const hfShown=isHandFootGame(currentGame)?handFootColumnScore(currentGame, r, p):r.scores[p];
         const cellId=isHandFootGame(currentGame)?`score-past-${rIdx}-${rookElementId(p)}`:`score-past-${rIdx}-${p}`;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra?' has-comeback':''}">
           <input type="text" id="${cellId}" readonly inputmode="none" unselectable="on"
-            onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
+            onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${hfShown!==undefined&&hfShown!==null?hfShown:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
           ${extraMark}
           </div>
@@ -14864,14 +14952,14 @@ ${isDealer
   let scoreEntryModalState=null;
   let scoreEntryFitRaf=0;
 
-  const HAND_FOOT_FIELDS=['canastas','redThrees','footPenalty','cardPoints'];
+  const HAND_FOOT_FIELDS=['canastas','canastaPoints','redThrees','footPenalty','cardPoints'];
   const HAND_FOOT_RATE_FIELDS=['canastaEach','redThreeEach'];
   const HAND_FOOT_NO_MINUS=['canastas','redThrees','footPenalty'];
-  const HAND_FOOT_FIELD_LABELS={canastas:'Canastas',redThrees:'Red 3s',footPenalty:'Foot penalty',cardPoints:'Card points',canastaEach:'each canasta',redThreeEach:'each red 3'};
+  const HAND_FOOT_FIELD_LABELS={canastas:'Canastas',canastaPoints:'Canasta points',redThrees:'Red 3s',footPenalty:'Foot penalty',cardPoints:'Card points',canastaEach:'each canasta',redThreeEach:'each red 3'};
   function handFootModalParts(raw){
-    const blank={canastas:'',redThrees:'',footPenalty:'',cardPoints:''};
+    const blank={canastas:'',canastaPoints:'',redThrees:'',footPenalty:'',cardPoints:''};
     if(!raw||typeof raw!=='object'||Array.isArray(raw)) return blank;
-    const structured=['canastas','redThrees','footPenalty'].some(k=>raw[k]!==undefined&&raw[k]!==null);
+    const structured=['canastas','canastaPoints','redThrees','footPenalty'].some(k=>raw[k]!==undefined&&raw[k]!==null);
     const legacy=!structured&&(raw.legacy||raw.bonuses!==undefined||raw.cardsLeft!==undefined);
     if(legacy){
       return {
@@ -14881,12 +14969,18 @@ ${isDealer
         legacy:true
       };
     }
-    const parts={canastas:'',redThrees:'',footPenalty:'',cardPoints:''};
+    const parts={canastas:'',canastaPoints:'',redThrees:'',footPenalty:'',cardPoints:''};
     HAND_FOOT_FIELDS.forEach(k=>{
       if(raw[k]!==undefined&&raw[k]!==null&&raw[k]!=='') parts[k]=String(raw[k]);
     });
     if(raw.canastaEach!=null&&raw.canastaEach!=='') parts.canastaEach=String(raw.canastaEach);
     if(raw.redThreeEach!=null&&raw.redThreeEach!=='') parts.redThreeEach=String(raw.redThreeEach);
+    if(!Object.prototype.hasOwnProperty.call(raw,'canastaPoints')&&parts.canastas!==''){
+      const defaults=handFootApi()?.SCORE_DEFAULTS||{canastaEach:500};
+      const each=raw.canastaEach!=null&&raw.canastaEach!==''?parseInt(raw.canastaEach,10):defaults.canastaEach;
+      const count=Math.abs(parseInt(parts.canastas,10)||0);
+      parts.canastaPoints=String((Number.isFinite(each)?each:500)*count);
+    }
     return parts;
   }
   function handFootLegacyUntouched(parts){
@@ -14903,7 +14997,7 @@ ${isDealer
   function handFootLiveParts(parts){
     const rates=scoreEntryModalState?.rates||{};
     if(handFootLegacyUntouched(parts)) return parts;
-    return Object.assign({}, parts, {
+    const live=Object.assign({}, parts, {
       canastas:parts?.canastas??'',
       redThrees:parts?.redThrees??'',
       footPenalty:parts?.footPenalty??'',
@@ -14911,13 +15005,15 @@ ${isDealer
       canastaEach:rates.canastaEach??parts?.canastaEach??'',
       redThreeEach:rates.redThreeEach??parts?.redThreeEach??''
     });
+    if(parts&&Object.prototype.hasOwnProperty.call(parts,'canastaPoints')) live.canastaPoints=parts.canastaPoints??'';
+    return live;
   }
   function handFootPartsTitle(parts){
     if(!parts) return '';
-    if(parts.canastas!=null||parts.redThrees!=null||parts.footPenalty!=null){
-      const canastaEach=parts.canastaEach??handFootApi()?.SCORE_DEFAULTS?.canastaEach??500;
+    if(parts.canastas!=null||parts.canastaPoints!=null||parts.redThrees!=null||parts.footPenalty!=null){
       const redEach=parts.redThreeEach??handFootApi()?.SCORE_DEFAULTS?.redThreeEach??100;
-      return `Canastas ${parts.canastas??0}×${canastaEach} + red 3s ${parts.redThrees??0}×${redEach} + card points ${parts.cardPoints??0} − foot ${parts.footPenalty??0}`;
+      const canastaPts=parts.canastaPoints!=null&&parts.canastaPoints!==''?parts.canastaPoints:0;
+      return `Canastas ${parts.canastas??0} (${canastaPts} pts) + red 3s ${parts.redThrees??0}×${redEach} + card points ${parts.cardPoints??0} − foot ${parts.footPenalty??0}`;
     }
     return `Card points ${parts.cardPoints} + bonuses ${parts.bonuses} − cards left ${parts.cardsLeft}`;
   }
@@ -15116,7 +15212,7 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
     document.getElementById('score-entry-context').textContent=getScoreEntryRoundContext(mode);
-    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Canastas + red 3s + card points − foot':mode.valueLabel;
+    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Canasta points + red 3s + card points − foot':mode.valueLabel;
     updateScoreEntryProgress();
   }
 
@@ -15864,15 +15960,13 @@ ${isDealer
       columns.forEach(p=>{
         const parsed=handFootPartsFromModal(drafts[p]);
         if(parsed.total!==0) allZero=false;
-        const stored=handFootPersistParts(parsed);
-        scores[p]=stored.roundScore;
-        handFootParts[p]=stored;
+        writeHandFootSide(scores, handFootParts, p, parsed);
       });
       if(allZero&&!skipConfirm&&!confirm('Every side scored 0? Submit?')){isSubmitting=false;return;}
       const prevSide=columns.slice().sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0]||null;
       const roundData={round:currentGame.currentRound,scores,handFootParts};
       currentGame.rounds.push(roundData);
-      addAuditEntry(`R${roundData.round} Submitted`, columns.map(p=>`${p}: ${scores[p]}`).join(', '));
+      addAuditEntry(`R${roundData.round} Submitted`, columns.map(p=>`${p}: ${handFootColumnScore(currentGame, roundData, p)??''}`).join(', '));
       currentGame.currentRound++;
       currentGame.currentScoreDrafts={};
       haptic([20,40,20,40,60]); soundSubmit();
@@ -15923,8 +16017,21 @@ ${isDealer
       canastaEach:live.canastaEach===''||live.canastaEach==null?(defaults.canastaEach):(api?api.parsePart(live.canastaEach,false):(parseInt(live.canastaEach,10)||0)),
       redThreeEach:live.redThreeEach===''||live.redThreeEach==null?(defaults.redThreeEach):(api?api.parsePart(live.redThreeEach,false):(parseInt(live.redThreeEach,10)||0))
     };
-    stored.total=api?api.roundScore(stored):(stored.canastas*stored.canastaEach)+(stored.redThrees*stored.redThreeEach)+stored.cardPoints-stored.footPenalty;
+    if(Object.prototype.hasOwnProperty.call(live,'canastaPoints')){
+      stored.canastaPoints=api?api.parsePart(live.canastaPoints,false):(parseInt(live.canastaPoints,10)||0);
+    }
+    const canastaPts=Object.prototype.hasOwnProperty.call(stored,'canastaPoints')?stored.canastaPoints:stored.canastas*stored.canastaEach;
+    stored.total=api?api.roundScore(stored):canastaPts+(stored.redThrees*stored.redThreeEach)+stored.cardPoints-stored.footPenalty;
     return stored;
+  }
+  function writeHandFootSide(scores, handFootParts, columnKey, parsed){
+    const stored=handFootPersistParts(parsed);
+    const members=handFootMembersOf(currentGame, columnKey);
+    const names=members.length?members:[columnKey];
+    names.forEach(name=>{
+      scores[name]=stored.roundScore;
+      handFootParts[name]=handFootPersistParts(stored);
+    });
   }
   function handFootPersistParts(parsed){
     const api=handFootApi();
@@ -15937,28 +16044,29 @@ ${isDealer
     }
     const stored={
       canastas:parsed.canastas,
+      canastaPoints:parsed.canastaPoints,
       redThrees:parsed.redThrees,
       footPenalty:parsed.footPenalty,
       cardPoints:parsed.cardPoints,
       canastaEach:parsed.canastaEach,
       redThreeEach:parsed.redThreeEach
     };
-    stored.roundScore=parsed.total??((stored.canastas*stored.canastaEach)+(stored.redThrees*stored.redThreeEach)+stored.cardPoints-stored.footPenalty);
+    stored.roundScore=parsed.total??((stored.canastaPoints||0)+(stored.redThrees*stored.redThreeEach)+stored.cardPoints-stored.footPenalty);
     return stored;
   }
   function applyHandFootRoundEdit(roundIndex, values){
     const round=currentGame?.rounds?.[roundIndex];
     if(!currentGame||!round||round.hailMaryBonus) return;
     const columns=getHandFootColumns(currentGame);
-    round.scores=round.scores||{};
-    round.handFootParts=round.handFootParts||{};
+    const scores={};
+    const handFootParts={};
     columns.forEach(p=>{
       const parsed=handFootPartsFromModal(values?.[p]);
-      const stored=handFootPersistParts(parsed);
-      round.scores[p]=stored.roundScore;
-      round.handFootParts[p]=stored;
+      writeHandFootSide(scores, handFootParts, p, parsed);
     });
-    addAuditEntry(`R${round.round} Edited`, columns.map(p=>`${p}: ${round.scores[p]}`).join(', '));
+    round.scores=scores;
+    round.handFootParts=handFootParts;
+    addAuditEntry(`R${round.round} Edited`, columns.map(p=>`${p}: ${handFootColumnScore(currentGame, round, p)??''}`).join(', '));
     recomputeGameTotals(currentGame);
     haptic([20,40,20]);
     saveData();
@@ -15972,8 +16080,9 @@ ${isDealer
     const tablePlayers=getHandFootColumns(currentGame);
     const values={};
     tablePlayers.forEach(p=>{
-      const stored=round.handFootParts?.[p];
-      values[p]=stored?handFootModalParts(stored):handFootModalParts({cardPoints:round.scores?.[p]??'',bonuses:'',cardsLeft:''});
+      const stored=handFootColumnParts(currentGame, round, p);
+      const shown=handFootColumnScore(currentGame, round, p);
+      values[p]=stored?handFootModalParts(stored):handFootModalParts({cardPoints:shown??'',bonuses:'',cardsLeft:''});
     });
     scoreEntryModalState={
       mode:{kind:'hand-foot',title:'Edit Round',primary:'Save Round',valueLabel:'Round'},

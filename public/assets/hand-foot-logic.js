@@ -6,10 +6,10 @@
   const MAX_PLAYERS = 6;
   const ROUNDS = 4;
   const MELDS = Object.freeze([50, 90, 120, 150]);
-  // Matt named the inputs, not the point values. These are the usual
-  // Hand and Foot amounts: 500 for a canasta, 100 for a red three, and
-  // 100 if the foot was never played. The foot amount is not applied
-  // unless that side types it. A saved round stores the rates it used.
+  // Matt named the inputs, not every point value. A canasta is usually 500
+  // and a red three is usually 100. Those rates fill in only when a saved
+  // round has no explicit canasta-points number. The foot amount is not
+  // applied unless that side types it. A saved round stores the rates it used.
   const SCORE_DEFAULTS = Object.freeze({
     canastaEach: 500,
     redThreeEach: 100,
@@ -33,17 +33,65 @@
     return names.slice(0, -1).join(', ') + ' & ' + names[names.length - 1];
   }
 
-  function buildSides(roster, format) {
+  // Adjacent seats: (1,2), (3,4), and for six also (5,6).
+  function defaultPairs(roster) {
+    const names = (roster || []).filter(Boolean);
+    const pairs = [];
+    for (let i = 0; i + 1 < names.length; i += 2) pairs.push([names[i], names[i + 1]]);
+    return pairs;
+  }
+
+  function pairsCover(names, pairs) {
+    if (!Array.isArray(pairs) || pairs.length !== names.length / 2) return false;
+    const used = new Set();
+    for (let i = 0; i < pairs.length; i++) {
+      const pair = pairs[i];
+      if (!Array.isArray(pair) || pair.length !== 2) return false;
+      for (let s = 0; s < 2; s++) {
+        const name = pair[s];
+        if (!name || used.has(name) || names.indexOf(name) === -1) return false;
+        used.add(name);
+      }
+    }
+    return used.size === names.length;
+  }
+
+  // 4 players are two pairs. 6 players are three pairs of 2.
+  // A custom pair list is used only when every name is in exactly one pair.
+  function buildSides(roster, format, pairs) {
     const names = (roster || []).filter(Boolean);
     const useTeams = format === 'teams' && (names.length === 4 || names.length === 6);
     if (!useTeams) {
       return names.map(name => ({ key: name, members: [name] }));
     }
-    const half = names.length / 2;
-    return [names.slice(0, half), names.slice(half)].map(members => ({
+    const chosen = pairsCover(names, pairs) ? pairs : defaultPairs(names);
+    return chosen.map(members => ({
       key: sideKey(members),
       members: members.slice()
     }));
+  }
+
+  // Moving a player into a seat swaps them with whoever sat there,
+  // so every name stays in exactly one pair.
+  function swapPairMember(pairs, pairIndex, seat, name) {
+    const next = (pairs || []).map(pair => (pair || []).slice());
+    if (!next[pairIndex] || (seat !== 0 && seat !== 1)) return next;
+    const current = next[pairIndex][seat];
+    if (!name || current === name) return next;
+    let fromPair = -1;
+    let fromSeat = -1;
+    next.forEach((pair, i) => {
+      pair.forEach((n, s) => {
+        if (n === name) {
+          fromPair = i;
+          fromSeat = s;
+        }
+      });
+    });
+    if (fromPair < 0) return next;
+    next[fromPair][fromSeat] = current;
+    next[pairIndex][seat] = name;
+    return next;
   }
 
   function parsePart(raw, nonNegative) {
@@ -55,7 +103,7 @@
 
   function usesStructuredScore(parts) {
     if (!parts || typeof parts !== 'object') return false;
-    return ['canastas', 'redThrees', 'footPenalty'].some(function (key) {
+    return ['canastas', 'canastaPoints', 'redThrees', 'footPenalty'].some(function (key) {
       return Object.prototype.hasOwnProperty.call(parts, key);
     });
   }
@@ -65,18 +113,28 @@
     return parsePart(parts[key], false);
   }
 
-  // New rounds: canastas × rate + red threes × rate + card points − foot penalty.
+  // Typed canasta points win. A round saved before that field existed
+  // still uses canastas × the canasta rate, and that product is not added
+  // a second time once canasta points are present.
+  function canastaPointsOf(parts) {
+    if (parts && Object.prototype.hasOwnProperty.call(parts, 'canastaPoints')) {
+      return parsePart(parts.canastaPoints, false);
+    }
+    const canastas = parsePart(parts && parts.canastas, true);
+    const canastaEach = rateOrDefault(parts, 'canastaEach', SCORE_DEFAULTS.canastaEach);
+    return canastas * canastaEach;
+  }
+
+  // New rounds: canasta points + red threes × rate + card points − foot penalty.
   // Older saved rounds have no canasta, red-three, or foot fields, and still
   // use card points + bonuses − cards left.
   function roundScore(parts) {
     if (usesStructuredScore(parts)) {
-      const canastas = parsePart(parts.canastas, true);
       const reds = parsePart(parts.redThrees, true);
       const cards = parsePart(parts.cardPoints, false);
       const foot = parsePart(parts.footPenalty, true);
-      const canastaEach = rateOrDefault(parts, 'canastaEach', SCORE_DEFAULTS.canastaEach);
       const redEach = rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach);
-      return (canastas * canastaEach) + (reds * redEach) + cards - foot;
+      return canastaPointsOf(parts) + (reds * redEach) + cards - foot;
     }
     const card = parsePart(parts && parts.cardPoints, false);
     const bonus = parsePart(parts && parts.bonuses, false);
@@ -89,8 +147,7 @@
     return Object.prototype.hasOwnProperty.call(MELDS, n - 1) ? MELDS[n - 1] : null;
   }
 
-  // One key per side. A repeated key is still one record, so a merge
-  // cannot write the same player twice.
+  // One column per side. A repeated key is still one column.
   function scoringKeys(sides) {
     const keys = [];
     const seen = new Set();
@@ -103,12 +160,25 @@
     return keys;
   }
 
-  // Records use the side key, including a 0 or a negative total.
-  // A teammate's own name is not a second record.
+  // History records are the players. A team total on the side name still
+  // counts for every member of that side, once each.
   function recordedKeys(sides, totals) {
-    const keys = scoringKeys(sides);
-    if (!totals || typeof totals !== 'object') return keys;
-    return keys.filter(key => Object.prototype.hasOwnProperty.call(totals, key));
+    const names = [];
+    const seen = new Set();
+    (sides || []).forEach(side => {
+      const members = side && Array.isArray(side.members) && side.members.length
+        ? side.members
+        : (side && side.key ? [side.key] : []);
+      const sideHasTotal = !!(totals && side && side.key && Object.prototype.hasOwnProperty.call(totals, side.key));
+      members.forEach(name => {
+        if (!name || seen.has(name)) return;
+        const memberHas = !!(totals && Object.prototype.hasOwnProperty.call(totals, name));
+        if (totals && !memberHas && !sideHasTotal) return;
+        seen.add(name);
+        names.push(name);
+      });
+    });
+    return names;
   }
 
   function isLegacyParts(parts) {
@@ -121,6 +191,8 @@
   // Foot penalty is the points subtracted (0 means none). It is not a
   // separate played/unplayed flag. Rates are stored so a later default
   // does not rewrite this round. A bonuses lump is not written here.
+  // canastaPoints is stored even when it was derived, so the next read
+  // does not multiply the canasta count again.
   function persistSideParts(raw) {
     const parts = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
     if (isLegacyParts(parts)) {
@@ -135,6 +207,7 @@
     }
     const stored = {
       canastas: parsePart(parts.canastas, true),
+      canastaPoints: canastaPointsOf(parts),
       redThrees: parsePart(parts.redThrees, true),
       footPenalty: parsePart(parts.footPenalty, true),
       cardPoints: parsePart(parts.cardPoints, false),
@@ -152,6 +225,27 @@
       const stored = persistSideParts(bySide[key]);
       handFootParts[key] = stored;
       scores[key] = stored.roundScore;
+    });
+    return { round: roundNumber, scores: scores, handFootParts: handFootParts };
+  }
+
+  // One entry per team. The same breakdown and the same round total are
+  // copied onto each teammate. The side name is not also stored, so a
+  // later sum of every player key does not have a third copy.
+  function persistTeamRound(roundNumber, bySide, sides) {
+    const scores = {};
+    const handFootParts = {};
+    (sides || []).forEach(function (side) {
+      if (!side) return;
+      const raw = (bySide || {})[side.key];
+      if (!raw) return;
+      const members = Array.isArray(side.members) && side.members.length ? side.members : [side.key];
+      members.forEach(function (name) {
+        if (!name) return;
+        const stored = persistSideParts(raw);
+        handFootParts[name] = stored;
+        scores[name] = stored.roundScore;
+      });
     });
     return { round: roundNumber, scores: scores, handFootParts: handFootParts };
   }
@@ -191,10 +285,83 @@
     return copy;
   }
 
+  function cloneParts(parts) {
+    return JSON.parse(JSON.stringify(parts));
+  }
+
+  function roundHasPlayer(round, name) {
+    if (!round || !name) return false;
+    const parts = round.handFootParts || {};
+    const scores = round.scores || {};
+    return Object.prototype.hasOwnProperty.call(parts, name) || Object.prototype.hasOwnProperty.call(scores, name);
+  }
+
+  // Older team rounds stored the one entry on the side name. Copy that
+  // breakdown onto each teammate and drop the side name so it is not counted
+  // again. Rounds that already have a personal copy are left on the players.
+  function fanOutRound(round, sides) {
+    const copy = normalizeRound(round);
+    if (!copy || !Array.isArray(sides) || !sides.length) return copy;
+    const scores = Object.assign({}, copy.scores || {});
+    const parts = Object.assign({}, copy.handFootParts || {});
+    sides.forEach(function (side) {
+      if (!side || !side.key || !Array.isArray(side.members) || side.members.length < 2) return;
+      const members = side.members.filter(Boolean);
+      const heldBy = members.filter(function (name) { return roundHasPlayer({ scores: scores, handFootParts: parts }, name); });
+      const sideParts = parts[side.key];
+      const sideScore = scores[side.key];
+      const sideHolds = !!sideParts || sideScore !== undefined;
+      if (sideHolds && heldBy.length === 0) {
+        members.forEach(function (name) {
+          if (sideParts) parts[name] = cloneParts(sideParts);
+          if (sideScore !== undefined) scores[name] = sideScore;
+          else if (parts[name] && parts[name].roundScore !== undefined) scores[name] = parts[name].roundScore;
+        });
+      }
+      if (members.some(function (name) { return roundHasPlayer({ scores: scores, handFootParts: parts }, name); })) {
+        delete parts[side.key];
+        delete scores[side.key];
+      }
+    });
+    copy.scores = scores;
+    copy.handFootParts = parts;
+    return copy;
+  }
+
+  function fanOutTotals(match, sides) {
+    if (!match.totals || typeof match.totals !== 'object' || !Array.isArray(sides)) return;
+    sides.forEach(function (side) {
+      if (!side || !side.key || !Array.isArray(side.members) || side.members.length < 2) return;
+      const sideTotal = match.totals[side.key];
+      if (sideTotal === undefined) return;
+      const anyMember = side.members.some(function (name) {
+        return name && Object.prototype.hasOwnProperty.call(match.totals, name);
+      });
+      if (!anyMember) {
+        side.members.forEach(function (name) {
+          if (name) match.totals[name] = sideTotal;
+        });
+      }
+      delete match.totals[side.key];
+    });
+    if (!Array.isArray(match.winners)) return;
+    const next = [];
+    match.winners.forEach(function (winner) {
+      const side = sides.find(function (item) { return item && item.key === winner && Array.isArray(item.members) && item.members.length > 1; });
+      if (side) side.members.forEach(function (name) { if (name && next.indexOf(name) === -1) next.push(name); });
+      else if (winner && next.indexOf(winner) === -1) next.push(winner);
+    });
+    match.winners = next;
+  }
+
   function normalizeMatch(match) {
     if (!match || typeof match !== 'object') return match;
     const copy = JSON.parse(JSON.stringify(match));
-    copy.rounds = (copy.rounds || []).map(normalizeRound);
+    const sides = copy.handFoot && copy.handFoot.sides;
+    copy.rounds = (copy.rounds || []).map(function (round) {
+      return Array.isArray(sides) && sides.length ? fanOutRound(round, sides) : normalizeRound(round);
+    });
+    if (Array.isArray(sides) && sides.length) fanOutTotals(copy, sides);
     return copy;
   }
 
@@ -211,6 +378,9 @@
     }
     if (!normalized) return null;
     if (field === 'cardPoints') return parsePart(normalized.cardPoints, false);
+    if (field === 'canastaPoints' && Object.prototype.hasOwnProperty.call(normalized, 'canastaPoints')) {
+      return parsePart(normalized.canastaPoints, false);
+    }
     if (!usesStructuredScore(normalized)) return null;
     if (!Object.prototype.hasOwnProperty.call(normalized, field)) return null;
     if (field === 'canastas' || field === 'redThrees' || field === 'footPenalty') {
@@ -235,7 +405,37 @@
     return result;
   }
 
+  function roundHasKey(round, key) {
+    const parts = (round && round.handFootParts) || {};
+    const scores = (round && round.scores) || {};
+    return Object.prototype.hasOwnProperty.call(parts, key) || Object.prototype.hasOwnProperty.call(scores, key);
+  }
+
+  // One key per side. Prefer a teammate's own copy. Fall back to the side
+  // name for a save that has not been copied onto the players yet.
   function sideKeysForMatch(match) {
+    const sides = match && match.handFoot && match.handFoot.sides;
+    if (Array.isArray(sides) && sides.length) {
+      const keys = [];
+      const seen = new Set();
+      sides.forEach(function (side) {
+        if (!side) return;
+        const members = Array.isArray(side.members) ? side.members.filter(Boolean) : [];
+        let chosen = null;
+        members.forEach(function (name) {
+          if (chosen) return;
+          if ((match.rounds || []).some(function (round) { return roundHasKey(round, name); })) chosen = name;
+        });
+        if (!chosen && side.key && (match.rounds || []).some(function (round) { return roundHasKey(round, side.key); })) {
+          chosen = side.key;
+        }
+        if (!chosen) chosen = members[0] || side.key;
+        if (!chosen || seen.has(chosen)) return;
+        seen.add(chosen);
+        keys.push(chosen);
+      });
+      return keys;
+    }
     const keys = [];
     const seen = new Set();
     const remember = function (key) {
@@ -243,9 +443,6 @@
       seen.add(key);
       keys.push(key);
     };
-    ((match && match.handFoot && match.handFoot.sides) || []).forEach(function (side) {
-      remember(side && side.key);
-    });
     (match && match.rounds || []).forEach(function (round) {
       Object.keys(round && round.handFootParts || {}).forEach(remember);
       Object.keys(round && round.scores || {}).forEach(remember);
@@ -267,26 +464,19 @@
 
   function sideKeysForPlayer(match, playerName) {
     if (!playerName) return [];
+    const own = (match && match.rounds || []).some(function (round) { return roundHasKey(round, playerName); });
+    if (own) return [playerName];
     const sides = match && match.handFoot && match.handFoot.sides;
     if (Array.isArray(sides) && sides.length) {
       return sides.filter(function (side) {
         return side && Array.isArray(side.members) && side.members.indexOf(playerName) !== -1;
       }).map(function (side) { return side.key; });
     }
-    const keys = [];
-    (match && match.rounds || []).forEach(function (round) {
-      const parts = round && round.handFootParts || {};
-      const scores = round && round.scores || {};
-      if ((Object.prototype.hasOwnProperty.call(parts, playerName) || Object.prototype.hasOwnProperty.call(scores, playerName)) && keys.indexOf(playerName) === -1) {
-        keys.push(playerName);
-      }
-    });
-    return keys;
+    return [];
   }
 
-  // A personal total uses the side that player was on, once. A team count
-  // is not split across partners. Adding every partner's personal total
-  // counts that side again.
+  // A personal total reads that player's own copy of the team entry.
+  // Both teammates store the same count, so each query returns it once.
   function sumFieldForPlayer(history, playerName, field) {
     const result = { total: 0, roundsRecorded: 0, roundsUnknown: 0 };
     (history || []).forEach(function (match) {
@@ -356,11 +546,14 @@
     defaultFormat,
     canSwitchToSingles,
     sideKey,
+    defaultPairs,
     buildSides,
+    swapPairMember,
     parsePart,
     roundScore,
     persistSideParts,
     persistRound,
+    persistTeamRound,
     normalizeSideParts,
     normalizeRound,
     normalizeMatch,

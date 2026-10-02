@@ -29,7 +29,7 @@ The shelf is the seven buttons in `public/index.html` (`startGame`). Scoring mat
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
-| Hand and Foot | High score | 4 rounds | Canastas × the round’s canasta rate + red 3s × the round’s red-3 rate + card points − foot penalty. Defaults are 500 and 100, stored on the round, and editable. A blank foot penalty subtracts nothing. The round and the match total may be negative. Older saved rounds that have no canasta, red-3, or foot fields still use card points + bonuses − cards left. | Canasta count, red-3 count, foot penalty, and total card points, once per side |
+| Hand and Foot | High score | 4 rounds | Canasta points + red 3s × the round’s red-3 rate + card points − foot penalty. Typed canasta points are used as entered. A round with no canasta-points field still uses canastas × 500. A blank foot penalty subtracts nothing. The round and the match total may be negative. Older saved rounds that have no canasta, red-3, or foot fields still use card points + bonuses − cards left. | Canasta count, canasta points, red-3 count, foot penalty, and total card points, once per pair |
 
 House notes already in the rules cards (`gameRulesText`):
 
@@ -37,7 +37,7 @@ House notes already in the rules cards (`gameRulesText`):
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
 - Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Hand and Foot.
-- Hand and Foot: 2 is 1 versus 1. 4 starts as two teams of 2. 6 starts as two teams of 3. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. A team is one column. The score is stored once on the side name, not copied onto each teammate. Each round stores that side’s canasta count, red-three count, foot penalty, card points, the two rates, and the computed round score as separate fields. Minimum meld (50, 90, 120, 150) is a hint, not an entry. An older save that only has card points, bonuses, and cards left keeps that score. Its canasta and red-three counts stay unknown.
+- Hand and Foot: 2 is 1 versus 1. 4 starts as two pairs. 6 starts as three pairs of 2. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1, and a team table can re-seat who sits together. A pair is one column. The score is entered once, then copied onto each teammate: canasta count, canasta points, red-three count, foot penalty, card points, the two rates, and the computed round score. A match total counts each pair once. Minimum meld (50, 90, 120, 150) is a hint, not an entry. An older save that only has card points, bonuses, and cards left keeps that score. Its canasta and red-three counts stay unknown. An older team round stored only on the side name is copied onto both players.
 
 ## Core flows
 
@@ -48,7 +48,7 @@ House notes already in the rules cards (`gameRulesText`):
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
-6. Hand and Foot: confirm teams or singles, then canasta count, red-3 count, foot penalty, and total card points for each side. The app multiplies the counts by that round’s rates, adds the card points, and subtracts the foot penalty.
+6. Hand and Foot: pick pairs or singles, then canasta count, canasta points, red-3 count, foot penalty, and total card points once per pair. The app adds the canasta points, the red 3s, and the card points, then subtracts the foot penalty. Both teammates keep that round.
 7. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`). Hand and Foot adds the numeric round scores, so a negative round stays negative.
 8. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, Five Crowns, and Hand and Foot complete when the round counter passes the length.
 
