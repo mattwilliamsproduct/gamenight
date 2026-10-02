@@ -6,6 +6,8 @@ This file is the bar for that click and the order of work to reach it. Product r
 
 **The bar in one line:** within 10 seconds a stranger knows what this is; within 60 seconds they have seen a real scorecard work; nothing they can reach looks broken, half-themed, or placeholder.
 
+**Status, Fri Oct 2, 2026:** S2 (first click) is draft [#59](https://github.com/mattwilliamsproduct/gamenight/pull/59), waiting on Matt's look. It ships the welcome, the sealed sample night, `/?sample=1`, monogram avatars, the link preview card, and the first-click phone fixes. What it learned is in [solutions/first-click-sample-night.md](solutions/first-click-sample-night.md).
+
 ## What a stranger sees today
 
 Read on `main` (`c7740f8`) and live `https://cardknight.vercel.app` on Fri Oct 2, 2026. Screenshots are in the draft PRs.
@@ -82,7 +84,7 @@ A hiring manager who opens the repo will judge the code. A stranger who plays on
 
 The Playwright config today has iPad, laptop, and TV. It has no phone. The showcase is judged on phones.
 
-- Add `phone-portrait-webkit` (390×844) and `phone-landscape-webkit` (844×390) projects for one `showcase.spec.mjs` that walks the first-click path: first visit, Try a sample night, scorecard, bid entry, Actions, Records, Profiles, path replay, Exit.
+- One `tests/visual/showcase.spec.mjs` walks the first-click path at phone portrait (390×844), phone landscape (844×390), iPad, and laptop. It runs once under the iPad WebKit project and opens its own context per size, so no new Playwright projects are needed. #59 covers first visit, Try a sample night, the scorecard, Exit, the sealed check, and the populated-book check. Bid entry, Actions, Records, Profiles, and path replay join it after #49 lands.
 - Assert on every step: no horizontal overflow, the primary action is on screen, nothing escapes the viewport, no console errors, and (after #49) Total is visible.
 - Assert after Exit: localStorage is byte-for-byte what it was before the sample.
 - Gallery scenarios: `first-visit` (empty book) and the sample night itself.
@@ -114,7 +116,7 @@ Each slice is one draft PR with its own prove-it. Nothing undrafts without Matt.
 | --- | --- | --- |
 | S0 | Matt-only hygiene: GitHub About link to `cardknight.vercel.app`, repo description, mark #44 and #37 draft or close them, pick demo names and avatars. | Agents get 403. Five minutes. |
 | S1 | Merge #57 (worker). | Production is wrong today. |
-| S2 | **First click** (draft PR from this pass): welcome Home, sample night, monogram avatars, link preview, no native alert on an empty-book game tap. | The path is judged here. Additive, so it barely conflicts. |
+| S2 | **First click**, draft [#59](https://github.com/mattwilliamsproduct/gamenight/pull/59): welcome Home, sample night, monogram avatars, link preview, no native alert on an empty-book game tap. Merge after #49. | The path is judged here. Additive, so it barely conflicts. |
 | S3 | Matt's click on #49, then merge. | Phone scorecard, phone score entry, ties, Life Preserver on the card. |
 | S4 | Rebase #55 onto #49, then merge. | Escaping, one theme block, no Turbo path. Unblocks every visual slice. |
 | S5 | Rebase #43 (CI) and add the phone showcase spec. | Locks the path. |
@@ -147,7 +149,7 @@ Deferred: night teak and new art, Hand and Foot on the shelf (#48 still has open
 - No console errors on first load or anywhere on the sample path.
 - After the sample, localStorage is unchanged and no cloud request was sent.
 - ROW-ADDS, SHARED-PLACE, and LP-VISIBLE hold on every screen the sample reaches.
-- No native dialog on the sample path.
+- No native dialog on the sample path. Still open after #59: Save & End and Undo use `confirm()`, and the sample's import and porch-cloud blocks in Settings use `alert()`. S8 moves them all at once.
 - The link preview renders in a real unfurl (Slack or iMessage), not only in a validator.
 - The repo About link and README match what the link shows.
 
