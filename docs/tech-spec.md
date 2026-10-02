@@ -11,6 +11,8 @@ One static site. `public/` is the deploy. `npm run build` writes CSS, vendor cop
 | `public/index.html` | Shell, theme, and the match state machine. |
 | `public/assets/life-preserver-logic.js` | Pure Life Preserver rules. Loaded in production. |
 | `public/assets/backup.js` | Pure backup merge. Loaded in production. |
+| `public/assets/sample-night.js` | Seeded first-visit sample night. Loaded only when someone opens the sample (`loadOptionalAsset('sampleNight')`). |
+| `public/social-card.jpg` | Link preview, rendered from the sample scorecard by `npm run render:social-card`. |
 | `public/assets/comeback-logic.js` | Old Turbo rules. Must not load. Kept so old `round.comeback` rows stay defined. |
 | `api/sync.js` | One Redis document for the porch. |
 | `src/service-worker.js` | The worker template. The build copies it over `public/sw.js`. |
@@ -24,6 +26,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Player names render as text. The dealer control hugs the glyphs (`max-content` on the label, transparent button).
 - Fitting may shrink the font. It may not ellipsize.
 - A name of “Michelle” at the Five Crowns and late-Wizard fixtures stays fully inside the player cell at laptop and 1080p widths.
+- “Inside” means inside the name slot (`scorecard-player-name-slot`, which hides overflow), not just left of the cell's right edge. The cell has padding the slot does not.
 
 ### ROW-ADDS
 
@@ -68,6 +71,12 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Leaving or hiding the page flushes a pending cloud write. Local flush alone is not enough. The save indicator means the local write finished. A failed write is visible.
 - A push from a device that has not seen the latest cloud copy does not destroy the other device’s live match or newer finished games.
 - The service worker that `npm run build` emits precaches the scripts the page actually loads, including Life Preserver, and does not precache Turbo.
+
+### SAMPLE-SEALED
+
+- While `gnSampleNight` is true, nothing reaches `localStorage` or `/api/sync`. The guards sit at the choke points: `persistJsonIfChanged`, `_persistGamenightState`, `savePref`, the `gn_ui_scale` writes, and `canPorchCloud()`. A new write path goes through one of those or checks the flag.
+- The sample opens only when `currentGame` is null and `history` is empty, so it can never hide a real night. Exit is a reload, not a restore.
+- The sample data is built by `BPGSampleNight.buildSampleNight()` from real formulas. `npm run test:sample-night` locks ROW-ADDS, the 818 dealer law, and that only Walt is Life Preserver eligible on the live card. `tests/visual/showcase.spec.mjs` locks that storage stays empty through the welcome, the sample, and Exit at phone portrait, phone landscape, iPad, and laptop.
 
 ### Names and builds
 

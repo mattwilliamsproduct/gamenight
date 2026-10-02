@@ -3,16 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Back Porch Games is a relaxed scorekeeper for card and tabletop game nights.">
+  <meta name="description" content="The scorekeeper for porch game night. Wizard, Five Crowns, 818, Flip 7, Beat the Heat, and Rook: bids, totals, a Life Preserver for whoever falls behind, and every record. Try a sample night.">
   <meta name="theme-color" content="#08766c">
   <meta name="application-name" content="Back Porch Games">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Back Porch">
-  <meta property="og:title" content="Back Porch Games">
-  <meta property="og:description" content="Cards, scores, and good company.">
-  <meta property="og:image" content="./bp-icon-512.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Back Porch Games">
+  <meta property="og:url" content="https://cardknight.vercel.app/">
+  <meta property="og:title" content="Back Porch Games — the scorekeeper for porch game night">
+  <meta property="og:description" content="You play the cards. Back Porch keeps the score, throws a Life Preserver to whoever falls behind, and remembers who won last time.">
+  <meta property="og:image" content="https://cardknight.vercel.app/social-card.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A Back Porch Wizard scorecard mid-match: six players, running totals, and missed bids marked in red.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Back Porch Games — the scorekeeper for porch game night">
+  <meta name="twitter:description" content="You play the cards. Back Porch keeps the score, throws a Life Preserver to whoever falls behind, and remembers who won last time.">
+  <meta name="twitter:image" content="https://cardknight.vercel.app/social-card.jpg">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=4">
   <link rel="apple-touch-icon" sizes="180x180" href="./bp-apple-touch-icon.png?v=4">
@@ -3202,6 +3212,18 @@ button.dealer-name-indicator {
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: clamp(29rem, 40vw, 42rem);
     }
+    @media (max-width: 700px) {
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+      #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+        width: 4.8rem;
+        min-width: 4.4rem;
+      }
+    }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-fill-col {
@@ -3702,6 +3724,7 @@ button.dealer-name-indicator .dealer-player-label {
       z-index: 150;
       display: flex; flex-direction: column; gap: 0.5rem;
       pointer-events: none;
+      width: max-content;
       max-width: 90vw;
     }
     .toast {
@@ -3715,6 +3738,9 @@ button.dealer-name-indicator .dealer-player-label {
       pointer-events: auto; cursor: pointer;
       white-space: nowrap; max-width: 90vw;
       overflow: hidden; text-overflow: ellipsis;
+    }
+    @media (max-width: 760px) {
+      .toast { white-space: normal; text-wrap: balance; text-align: center; justify-content: center; border-radius: 1.1rem; }
     }
     .toast.success { background: var(--emerald); color: #fff; }
     .toast.warning { background: var(--amber); color: #fff; }
@@ -7300,6 +7326,191 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen #round-intel.round-banner { font-size: 21px !important; }
     }
 
+    /* ════════ FIRST VISIT + SAMPLE NIGHT ════════ */
+    .bp-welcome { display: none; }
+    .bp-roster-panel.is-first-visit > :not(.bp-welcome) { display: none !important; }
+    .bp-roster-panel.is-first-visit > .bp-welcome {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      min-height: 0;
+    }
+    .bp-welcome-kicker {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--emerald);
+    }
+    .bp-welcome-title {
+      margin-top: 0.55rem;
+      max-width: 17ch;
+      font-size: clamp(2.05rem, 3.3vw, 2.9rem);
+      line-height: 1.08;
+      color: var(--ink);
+    }
+    .bp-welcome-lede {
+      margin-top: 0.9rem;
+      max-width: 44ch;
+      font-size: 1.02rem;
+      line-height: 1.55;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+    .bp-welcome-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .bp-welcome-actions .btn-primary,
+    .bp-welcome-actions .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      min-height: 3.25rem;
+      padding: 0 1.45rem;
+      font-size: 1.05rem;
+    }
+    .bp-welcome-actions svg { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; }
+    .bp-welcome-note {
+      flex-basis: 100%;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .bp-welcome-points {
+      display: grid;
+      gap: 0.95rem;
+      margin: 0;
+      padding: 1.35rem 0 0;
+      list-style: none;
+      border-top: 1px solid var(--hairline);
+    }
+    .bp-welcome-point {
+      display: grid;
+      grid-template-columns: 2.6rem minmax(0, 1fr);
+      gap: 0.9rem;
+      align-items: start;
+    }
+    .bp-welcome-icon {
+      display: grid;
+      place-items: center;
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 12px;
+      color: var(--emerald);
+      background: var(--emerald-bg);
+      border: 1px solid var(--emerald-border);
+    }
+    .bp-welcome-icon svg { width: 1.2rem; height: 1.2rem; }
+    .bp-welcome-point strong {
+      display: block;
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .bp-welcome-point span {
+      display: block;
+      margin-top: 0.12rem;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    @media (min-width: 761px) and (min-height: 560px) {
+      .bp-roster-panel.is-first-visit > .bp-welcome { height: 100%; justify-content: center; }
+    }
+    @media (max-width: 760px) {
+      .bp-welcome-actions .btn-primary,
+      .bp-welcome-actions .btn-ghost { width: 100%; }
+      .bp-welcome-note { text-align: center; }
+      .bp-roster-panel > .bp-panel-heading { flex-wrap: wrap; row-gap: 0.75rem; }
+      #roster-count { white-space: nowrap; }
+    }
+    /* Short landscape phones: the one-screen lock has no room, so Home and the match scroll instead of clipping. */
+    @media (min-width: 761px) and (max-height: 559px) {
+      body.home-view,
+      body.active-match-view { overflow-y: auto; }
+      body.home-view .bp-app-shell,
+      body.active-match-view .bp-app-shell { height: auto; min-height: 100dvh; overflow: visible; }
+      body.active-match-view .bp-app-shell { padding-bottom: 0.75rem; }
+      body.home-view #home-screen,
+      body.home-view #home-screen .bp-roster-panel,
+      body.home-view #home-screen .bp-home-side,
+      body.home-view #home-screen .bp-on-deck-panel { overflow: visible; }
+
+      .bp-roster-panel.is-first-visit > .bp-welcome {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        column-gap: 1.75rem;
+        row-gap: 1rem;
+        align-items: start;
+      }
+      .bp-welcome > :first-child,
+      .bp-welcome-actions { grid-column: 1; }
+      .bp-welcome-title { max-width: 22ch; font-size: 1.7rem; }
+      .bp-welcome-lede { margin-top: 0.5rem; font-size: 0.9rem; line-height: 1.45; }
+      .bp-welcome-actions { gap: 0.6rem; }
+      .bp-welcome-actions .btn-primary,
+      .bp-welcome-actions .btn-ghost { min-height: 2.9rem; padding: 0 1.1rem; font-size: 0.95rem; }
+      .bp-welcome-points {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        gap: 0.8rem;
+        padding: 0 0 0 1.5rem;
+        border-top: 0;
+        border-left: 1px solid var(--hairline);
+      }
+      .bp-sample-chip-long { display: none; }
+    }
+
+    .bp-sample-chip { display: none; }
+    body.sample-night .bp-sample-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 2.75rem;
+      margin-left: 0.25rem;
+      padding: 0 0 0 0.85rem;
+      overflow: hidden;
+      border-radius: 999px;
+      color: var(--surface);
+      background: var(--ink);
+      box-shadow: var(--shadow-sm);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .bp-sample-chip-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 999px;
+      background: var(--bp-sunset);
+      box-shadow: 0 0 0 3px rgba(241,154,107,0.28);
+    }
+    .bp-sample-exit {
+      align-self: stretch;
+      min-height: 2.75rem;
+      margin-left: 0.15rem;
+      padding: 0 0.95rem 0 0.8rem;
+      color: inherit;
+      background: rgba(255,253,249,0.08);
+      border: 0;
+      border-left: 1px solid rgba(255,253,249,0.22);
+      font: inherit;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .bp-sample-exit:hover { background: rgba(255,253,249,0.2); }
+    .bp-sample-exit:active { background: rgba(255,253,249,0.28); }
+    .bp-sample-exit:focus-visible { outline: 2px solid var(--bp-sunset); outline-offset: -4px; }
+    @media (max-width: 420px) {
+      .bp-sample-chip-long { display: none; }
+    }
+
     /* ════════ DARK-MODE OVERRIDES ════════ */
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
@@ -7396,6 +7607,11 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="bp-brand-copy">
             <h1 class="brand-name leading-none"><span class="bp-brand-main">Back Porch</span><span class="bp-brand-games">Games</span></h1>
           </div>
+          <div class="bp-sample-chip" role="status" title="This is a sample night. Nothing you do here is saved.">
+            <span class="bp-sample-chip-dot" aria-hidden="true"></span>
+            <span>Sample<span class="bp-sample-chip-long"> night</span></span>
+            <button type="button" class="bp-sample-exit" onclick="exitSampleNight()">Exit</button>
+          </div>
         </div>
         <div class="flex flex-wrap gap-1.5 items-center">
           <button onclick="goHome()" class="nav-btn">Home</button>
@@ -7415,6 +7631,35 @@ button.dealer-name-indicator .dealer-player-label {
 
       <!-- Roster -->
       <div class="lg:col-span-7 lg:order-1 surface-raised brand-panel bp-roster-panel p-7">
+        <section class="bp-welcome" id="first-visit-welcome" aria-labelledby="first-visit-title">
+          <div>
+            <div class="bp-welcome-kicker">For porch game night</div>
+            <h2 id="first-visit-title" class="font-display bp-welcome-title">You play the cards. Back Porch keeps the score.</h2>
+            <p class="bp-welcome-lede">Wizard, Five Crowns, 818, Flip 7, Beat the Heat, and Rook. Bids, tricks, and totals for the whole table, on the iPad in the middle of it.</p>
+          </div>
+          <div class="bp-welcome-actions">
+            <button type="button" class="btn-primary" onclick="startSampleNight()">
+              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6.3 3.6a1 1 0 0 0-1.55.83v11.14a1 1 0 0 0 1.55.83l8.36-5.57a1 1 0 0 0 0-1.66L6.3 3.6Z"/></svg>
+              Try a sample night
+            </button>
+            <button type="button" class="btn-ghost" onclick="startOwnTable()">Start your own table</button>
+            <p class="bp-welcome-note">The sample is a Wizard match already in progress. Nothing you do there is saved.</p>
+          </div>
+          <ul class="bp-welcome-points">
+            <li class="bp-welcome-point">
+              <span class="bp-welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><path d="m16 17 2 2 3-4"/></svg></span>
+              <div><strong>Every hand adds up</strong><span>Bids, tricks, and penalties become totals you can audit, undo, and correct.</span></div>
+            </li>
+            <li class="bp-welcome-point">
+              <span class="bp-welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m4.9 4.9 4.3 4.3m5.6 5.6 4.3 4.3m0-14.2-4.3 4.3m-5.6 5.6-4.3 4.3"/></svg></span>
+              <div><strong>A Life Preserver, not a blowout</strong><span>Fall far enough behind and the wheel offers one honest spin back into the game.</span></div>
+            </li>
+            <li class="bp-welcome-point">
+              <span class="bp-welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>
+              <div><strong>The porch remembers</strong><span>Records, rivalries, and how each night played out, round by round.</span></div>
+            </li>
+          </ul>
+        </section>
         <div class="bp-panel-heading flex items-baseline justify-between mb-6">
           <div>
             <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--emerald);">Tonight's Table</div>
@@ -8440,6 +8685,8 @@ button.dealer-name-indicator .dealer-player-label {
   let playerProfiles = safeGetObject('gn_profiles');
 
   let currentGame = null;
+  // A sample night lives only in memory. While it is open, nothing may reach localStorage or the porch cloud.
+  let gnSampleNight = false;
   let recordChaseVisible = true;
   let recordChaseLayoutActive = false;
 
@@ -8833,8 +9080,10 @@ button.dealer-name-indicator .dealer-player-label {
   function adjustUI(d){
     currentUIBase=Math.max(8,Math.min(24,currentUIBase+(d*2)));
     document.documentElement.style.fontSize=currentUIBase+'px';
-    const t=gnPerfStart('GN localStorage.setItem gn_ui_scale');
-    try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);}
+    if(!gnSampleNight){
+      const t=gnPerfStart('GN localStorage.setItem gn_ui_scale');
+      try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);}
+    }
     syncAppearanceControls();
     if(_scorecardTrimRaf){
       cancelAnimationFrame(_scorecardTrimRaf);
@@ -8863,7 +9112,7 @@ button.dealer-name-indicator .dealer-player-label {
     statMontage:  loadPref('gn_pref_statmontage',  true),
     dealerRoll:   loadPref('gn_pref_dealerroll',   false), // off by default (optional extra step)
   };
-  function savePref(key, val){ const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(key, val ? '1' : '0');}finally{gnPerfEnd(t);} }
+  function savePref(key, val){ if(gnSampleNight)return; const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(key, val ? '1' : '0');}finally{gnPerfEnd(t);} }
 
   // ── Wake Lock ──
   let wakeLock = null;
@@ -8918,7 +9167,8 @@ button.dealer-name-indicator .dealer-player-label {
   const optionalAssetUrls={
     confetti:'./assets/vendor/canvas-confetti.js',
     chart:'./assets/vendor/chart.js',
-    html2canvas:'./assets/vendor/html2canvas.js'
+    html2canvas:'./assets/vendor/html2canvas.js',
+    sampleNight:'./assets/sample-night.js'
   };
   const optionalAssetLoads={};
   function loadOptionalAsset(name){
@@ -8927,6 +9177,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(name==='confetti'&&typeof window.confetti==='function')return Promise.resolve();
     if(name==='chart'&&window.Chart)return Promise.resolve();
     if(name==='html2canvas'&&typeof window.html2canvas==='function')return Promise.resolve();
+    if(name==='sampleNight'&&window.BPGSampleNight)return Promise.resolve();
     if(optionalAssetLoads[name])return optionalAssetLoads[name];
     optionalAssetLoads[name]=new Promise((resolve,reject)=>{
       const script=document.createElement('script');
@@ -9021,6 +9272,7 @@ button.dealer-name-indicator .dealer-player-label {
   const DRAFT_SAVE_DEBOUNCE_MS = 1200;
   const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
   function persistJsonIfChanged(key, value){
+    if(gnSampleNight) return;
     if(key === 'gn_current') gnWarnNumpadHotPath("persistJsonIfChanged('gn_current')");
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
@@ -9052,6 +9304,10 @@ button.dealer-name-indicator .dealer-player-label {
   }
   /** @param {{ fullPersist?: boolean, syncCold?: boolean, flushDeferred?: boolean }} [opts] */
   function _persistGamenightState(opts){
+    if(gnSampleNight){
+      updateNavButton();
+      return;
+    }
     const persistStateTimer = gnPerfStart('GN persist state');
     try{
       opts = opts || {};
@@ -9255,10 +9511,26 @@ button.dealer-name-indicator .dealer-player-label {
     const c = getPlayerColor(name);
     return c > 0 ? `color-ring-${c}` : '';
   }
+  // Monogram tones follow the color-ring palette so a player without a photo still reads as their color.
+  const AVATAR_MONOGRAM_TONES=[
+    ['#e4e2dc','#6b6560'],
+    ['#fde2e0','#b42318'],['#fde7d6','#b54708'],['#faefc6','#8a5a00'],['#d7f2e6','#06724f'],
+    ['#d4f0f5','#0e6f86'],['#dde8fd','#1d4ed8'],['#ebe3fd','#6d28d9'],['#fbe1ee','#b8175a']
+  ];
+  function getAvatarInitials(name){
+    const words=(typeof name==='string'?name:'').trim().split(/\s+/).filter(Boolean);
+    if(!words.length) return '?';
+    const first=Array.from(words[0])[0]||'';
+    const last=words.length>1?(Array.from(words[words.length-1])[0]||''):'';
+    return (first+last).toUpperCase().replace(/[<>&"']/g,'')||'?';
+  }
   function getAvatarFallback(name){
-    const i=(name&&typeof name==='string')?name.charAt(0).toUpperCase():'?';
+    const initials=getAvatarInitials(name);
+    const [bg,fg]=AVATAR_MONOGRAM_TONES[getPlayerColor(name)]||AVATAR_MONOGRAM_TONES[0];
+    const size=initials.length>1?36:42;
+    const baseline=initials.length>1?63:65;
     // Simple SVG — no single quotes, so URL-encoded form is safe to embed in attributes.
-    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#e4e2dc" width="100" height="100"/><text fill="#78716c" x="50" y="58" font-size="46" font-weight="800" text-anchor="middle" font-family="sans-serif">${i}</text></svg>`;
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="${bg}" width="100" height="100"/><text fill="${fg}" x="50" y="${baseline}" font-size="${size}" font-weight="800" letter-spacing="1" text-anchor="middle" font-family="ui-rounded,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">${initials}</text></svg>`;
     // Additionally encode any residual single-quote chars so onerror attribute remains well-formed.
     return ('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)).replace(/'/g,'%27');
   }
@@ -9997,7 +10269,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(Number.isFinite(Number(next.uiScale))){
       currentUIBase=Math.max(8,Math.min(24,Number(next.uiScale)));
       document.documentElement.style.fontSize=currentUIBase+'px';
-      try{localStorage.setItem('gn_ui_scale',currentUIBase);}catch(e){}
+      if(!gnSampleNight){try{localStorage.setItem('gn_ui_scale',currentUIBase);}catch(e){}}
       syncAppearanceControls();
     }
     if(added.games) markHistoryChanged();
@@ -10028,6 +10300,7 @@ button.dealer-name-indicator .dealer-player-label {
     applyMergedBackup(next, added);
   }
   function importDataFromText(){
+    if(blockedBySampleNight('import a backup'))return;
     const text=document.getElementById('import-text').value.trim(); if(!text)return alert('Paste your JSON first.');
     try{
       importBackupText(text);
@@ -10037,6 +10310,7 @@ button.dealer-name-indicator .dealer-player-label {
     const file=ev?.target?.files?.[0];
     if(ev?.target) ev.target.value='';
     if(!file)return;
+    if(blockedBySampleNight('import a backup'))return;
     const reader=new FileReader();
     reader.onerror=()=>alert('Could not read that file.');
     reader.onload=()=>{
@@ -10052,7 +10326,7 @@ button.dealer-name-indicator .dealer-player-label {
   let _porchBusy=false;
   let _porchApplying=false;
   function canPorchCloud(){
-    return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
+    return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE && !gnSampleNight;
   }
   function getPorchKey(){
     try{return localStorage.getItem(GN_PORCH_KEY)||'';}catch(e){return '';}
@@ -10070,6 +10344,10 @@ button.dealer-name-indicator .dealer-player-label {
   function refreshPorchCloudSettings(){
     const input=document.getElementById('porch-cloud-key');
     if(input && !input.value) input.value=getPorchKey();
+    if(gnSampleNight){
+      setPorchStatus('A sample night never touches the porch cloud. Exit the sample to sync.');
+      return;
+    }
     if(!canPorchCloud()){
       setPorchStatus('Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
       return;
@@ -10158,6 +10436,7 @@ button.dealer-name-indicator .dealer-player-label {
     const input=document.getElementById('porch-cloud-key');
     const key=(input&&input.value||'').trim();
     if(!key){alert('Enter a porch password first.');return;}
+    if(blockedBySampleNight('connect the porch cloud'))return;
     if(!canPorchCloud()){
       setPorchKey(key);
       setPorchStatus('Password saved here, but cloud save only runs on the live site.');
@@ -11092,11 +11371,12 @@ button.dealer-name-indicator .dealer-player-label {
 
   function renderRoster(){
     const bench=allPlayers.filter(p=>!players.includes(p));
+    document.querySelector('.bp-roster-panel')?.classList.toggle('is-first-visit', shouldShowFirstVisit());
     const rc=document.getElementById('roster-count');
-    if(rc) rc.innerHTML=`<span class="font-mono-num">${players.length}</span><span style="opacity:0.6;margin:0 0.3rem;">·</span><span class="font-mono-num">${bench.length}</span> on deck`;
+    if(rc) rc.innerHTML=`<span class="font-mono-num">${players.length}</span> playing<span style="opacity:0.6;margin:0 0.3rem;">·</span><span class="font-mono-num">${bench.length}</span> on deck`;
 
     let lh='';
-    if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Tonight's Table is empty — tap an On Deck player to play</div>`;
+    if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">${bench.length?'Tap an On Deck player to seat them at the table.':'Add the first player above to set the table.'}</div>`;
     else players.forEach((p,i)=>{
       lh+=`<div onclick="moveToBench('${escapeJsString(p)}')" class="lineup-enter roster-row-lineup" style="animation-delay:${i*35}ms">
         <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(p)}</span></div>
@@ -11106,7 +11386,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('lineup-list').innerHTML=lh;
 
     let bh='';
-    if(!bench.length) bh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">On Deck is empty</div>`;
+    if(!bench.length) bh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">${allPlayers.length?'Everyone is at the table.':'Players you add wait here between games.'}</div>`;
     else bench.forEach(p=>{
       const safe = escapeJsString(p);
       bh+=`<div class="roster-row-bench group" draggable="true" ondragstart="dragStart(event,'${safe}')" ondragover="allowDrop(event)" ondrop="dropMerge(event,'${safe}')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
@@ -11241,6 +11521,65 @@ button.dealer-name-indicator .dealer-player-label {
     }
   }
 
+  /* ═══ FIRST VISIT + SAMPLE NIGHT ═══ */
+  let firstVisitDismissed = false;
+  function isEmptyBook(){
+    return !currentGame && !history.length;
+  }
+  function shouldShowFirstVisit(){
+    return !gnSampleNight && !firstVisitDismissed && isEmptyBook() && !allPlayers.length;
+  }
+  function startOwnTable(){
+    firstVisitDismissed = true;
+    if(document.getElementById('home-screen').classList.contains('hidden')) navigateTo('home-screen');
+    renderRoster();
+    const input = document.getElementById('quick-add-player');
+    if(!input) return;
+    input.scrollIntoView({block:'center', behavior:'smooth'});
+    input.focus({preventScroll:true});
+  }
+  // The sample only opens over an empty book, so a real night can never be hidden behind it.
+  async function startSampleNight(){
+    if(gnSampleNight){ goActiveMatch(); return true; }
+    if(!isEmptyBook()){
+      toast('The sample night only opens on a device with no games yet.','warning');
+      return false;
+    }
+    try{ await loadOptionalAsset('sampleNight'); }
+    catch(e){
+      toast('The sample night could not load. Check the connection and try again.','warning');
+      return false;
+    }
+    flushPendingSave();
+    if(_porchPushTimer){ clearTimeout(_porchPushTimer); _porchPushTimer = null; }
+    gnSampleNight = true;
+    const sample = BPGSampleNight.buildSampleNight();
+    allPlayers = sample.allPlayers;
+    players = sample.players;
+    history = sample.history;
+    playerProfiles = sample.playerProfiles;
+    currentGame = sample.currentGame;
+    resetRecordChaseView();
+    markHistoryChanged();
+    document.body.classList.add('sample-night');
+    updateNavButton();
+    goActiveMatch();
+    toast('Sample night: Wizard, round 6. Nothing here is saved.');
+    return true;
+  }
+  function exitSampleNight(){
+    if(!gnSampleNight) return;
+    const params = new URLSearchParams(location.search);
+    params.delete('sample');
+    const query = params.toString();
+    location.replace(location.pathname + (query ? `?${query}` : '') + location.hash);
+  }
+  function blockedBySampleNight(action){
+    if(!gnSampleNight) return false;
+    alert(`Exit the sample night before you ${action}. Nothing from the sample is kept.`);
+    return true;
+  }
+
   /* ═══ GAME START ═══ */
   // Pending game name held while pre-game animations play
   let _pendingGameName = null;
@@ -11281,7 +11620,11 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function startGame(name){
-    if(!players.length){alert('Add players to the Lineup first!');return;}
+    if(!players.length){
+      toast('Add a player to Tonight\'s Table first.','warning');
+      startOwnTable();
+      return;
+    }
     warmCelebrationAssets();
     if(name==='Rook'&&players.length<4){alert('Rook needs at least 4 players for call-your-partner scoring. Add a few more players to the Lineup first.');return;}
     if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
@@ -13306,9 +13649,9 @@ ${isDealer
       const chip=scorecardNameChipEl(name);
       const cellBox=cell.getBoundingClientRect();
       const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
       const available=scorecardNameAvailableWidth(name);
       if(available<=0)return;
+      if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return;
 
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
       const chipStyle=getComputedStyle(chip);
@@ -16446,8 +16789,13 @@ ${isDealer
     if(canPorchCloud()&&getPorchKey()){
       await pullPorchCloud();
     }
-    if(currentGame){goActiveMatch(); requestWakeLock();}
-    else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+    const wantsSample=!GN_QA_MODE&&new URLSearchParams(location.search).has('sample');
+    const openedSample=wantsSample&&isEmptyBook()&&await startSampleNight();
+    if(!openedSample){
+      if(currentGame){goActiveMatch(); requestWakeLock();}
+      else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+      if(wantsSample&&!isEmptyBook()) toast('This device already has games, so the sample night stays closed.');
+    }
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=life-preserver-hold-20260823');
