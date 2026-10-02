@@ -39,6 +39,19 @@ House notes already in the rules cards (`gameRulesText`):
 
 ## Core flows
 
+### First visit and the sample night
+
+A device with no live match, no finished games, and no players opens on a welcome, not an empty setup form. It says what Back Porch is and offers two buttons:
+
+- **Try a sample night** opens a Wizard match already in progress: six players (June, Theo, Rosa, Hank, Priya, Walt), round 6 of 10, bidding, with five weeks of finished nights behind it in Records and Profiles. Walt is far enough back that the Life Preserver is on the table.
+- **Start your own table** goes to the add-player box.
+
+The sample is a sandbox. Nothing done inside it is saved: no `localStorage`, no prefs or UI scale, no porch cloud. Backup import and the porch password ask you to exit first. A **Sample · Exit** chip sits in the nav the whole time, and Exit reloads from untouched storage.
+
+`/?sample=1` opens the sample directly on an empty device (the resume link). A device that already has games ignores it and says so. The sample never covers a real night.
+
+Players with no photo show a monogram on a tint of their ring color.
+
 ### Score a round
 
 1. Home: On Deck → Tonight's Table → a game card.
