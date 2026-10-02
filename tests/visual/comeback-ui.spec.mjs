@@ -109,7 +109,7 @@ test('history scorecard cells include Comeback extras so rows still add up',asyn
     const vikkiRow=[...document.querySelectorAll('#modal-scorecard-body tr')].find(row=>row.textContent.includes('Vikki'));
     const cells=[...vikkiRow.querySelectorAll('.scorecard-round-td')].map(cell=>(cell.textContent||'').replace(/\s+/g,' ').trim());
     const total=Number(vikkiRow.querySelector('.scorecard-total-value')?.textContent);
-    const summed=match.rounds.filter(round=>!round.hailMaryBonus).reduce((sum,round)=>sum+BPGComeback.roundScoreForPlayer(round,'Vikki'),0);
+    const summed=match.rounds.filter(round=>!round.hailMaryBonus).reduce((sum,round)=>sum+(Number(round.scores?.Vikki)||0)+(Number(round.comeback?.Vikki)||0),0);
     return {
       cells,
       total,
@@ -138,21 +138,22 @@ test('renaming a player keeps Comeback extras attached to the new name',async({p
   expect(moved.oldTotal).toBeUndefined();
 });
 
-test('score-entry preview matches the clamped extra that would actually apply',async({page},testInfo)=>{
+test('score entry does not preview a live Turbo extra',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='laptop-chromium','Run the preview check once on laptop Chromium');
   await page.goto(blowoutUrl,{waitUntil:'networkidle'});
   await ready(page);
   const preview=await page.evaluate(()=>{
-    const draft={scores:{Vikki:0}};
-    return BPGComeback.previewComebackApply(currentGame,'Vikki',draft,getActivePlayers(currentGame));
+    const round={round:currentGame.currentRound,scores:{Vikki:0}};
+    const applied=applyComebackAndNotify(round,getActivePlayers(currentGame));
+    return {
+      applied,
+      comeback:round.comeback||null,
+      previewNodes:document.querySelectorAll('.score-entry-comeback-chip, button.scorecard-comeback-chip').length,
+      engineLoaded:typeof window.BPGComeback
+    };
   });
-  expect(preview.success).toBe(true);
-  expect(preview.extra).toBeLessThan(0);
-  expect(preview.label).toContain('0 −');
-  const applied=await page.evaluate(extra=>{
-    const round={round:7,scores:{Vikki:0}};
-    BPGComeback.applyComebackToRound(currentGame,round,getActivePlayers(currentGame));
-    return round.comeback?.Vikki||0;
-  });
-  expect(applied).toBe(preview.extra);
+  expect(preview.applied).toEqual([]);
+  expect(preview.comeback).toBeNull();
+  expect(preview.previewNodes).toBe(0);
+  expect(preview.engineLoaded).toBe('undefined');
 });
