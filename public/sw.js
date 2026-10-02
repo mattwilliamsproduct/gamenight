@@ -1,4 +1,4 @@
-const CACHE_NAME = 'back-porch-shell-prod-1786902600001';
+const CACHE_NAME = 'back-porch-shell-prod-1786902700003';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const APP_SHELL = [
   './assets/fonts.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
+  './assets/hand-foot-logic.js',
   './assets/life-preserver-logic.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
