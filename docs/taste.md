@@ -4,6 +4,30 @@ Load this before a feature kickoff. Product rules stay in [product-spec.md](prod
 
 Production host: https://cardknight.vercel.app. Home-screen name is Back Porch. Repo is `gamenight`. QA gallery is localhost-only (`npm run qa:gallery` at `http://127.0.0.1:4173/?gnqa=1`).
 
+## Likes / kills ledger
+
+Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt correction, add one like or one kill bullet the same day in that file and in this section.
+
+### Likes
+
+- A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
+- A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
+- Specs plus prove-it. Open the gallery scenarios that exercise the slice.
+- Small reversible slices that lock one invariant.
+- Compound after a ship into `AGENTS.md` or `docs/solutions/`.
+- Honest gap lists. Say what you did not look at.
+
+### Kills
+
+- Calling ready without opening the real UI.
+- Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
+- Overlap, uneven gaps, truncated text, or clipped menus.
+- A keypad covering a row, a name cut off, or Actions clipped by the match banner.
+- Truncated player names, or a control that no longer hugs the glyphs it labels.
+- Porch Club redesign work without Matt's visual sign-off.
+- Loading Turbos, or a second rescue beside Life Preserver.
+- Durable Matt feedback left only in chat.
+
 ## Prefer
 
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
