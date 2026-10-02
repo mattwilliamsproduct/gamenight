@@ -10,6 +10,10 @@ Run these after UI-affecting work and before a production push:
 
 The score-entry checks are specifically meant to catch clipped player rows, keypad overlap, hidden menus, and any regression caused by display zoom.
 
+Production loads Life Preserver (`public/assets/life-preserver-logic.js`) and must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests because old history can contain `round.comeback` extras. Those extras are display-only leftovers. Do not turn the Turbo script back on to satisfy a test.
+
+The service worker that ships is whatever `npm run build` writes from `src/service-worker.js`. After a worker edit, run the build and confirm the generated `public/sw.js` precache list matches the scripts in `index.html`.
+
 Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
 
 - both blowout players who cannot catch first get chips
