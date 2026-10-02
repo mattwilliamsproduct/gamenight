@@ -8,7 +8,7 @@ Production host: https://cardknight.vercel.app. Home-screen name is Back Porch. 
 
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
 - Clean hierarchy: what just happened, the totals, the next action.
-- Readable labels. Names stay whole (NAME-FIT). Scores stay countable.
+- Readable labels. A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
 - Specs plus prove-it. Open the gallery scenarios that exercise the slice.
 - Small reversible slices that lock one invariant.
 - Compound after a ship into `AGENTS.md` or `docs/solutions/`.
@@ -20,7 +20,7 @@ Production host: https://cardknight.vercel.app. Home-screen name is Back Porch. 
 - AI-slop layout: overlap, uneven gaps, truncated text, clipped menus.
 - Scope creep, or a second product/tech essay that competes with the canonical docs.
 - Cheerleading. Write kill criteria instead.
-- Porch Club redesign work without Matt's visual sign-off (PR #44 stays blocked).
+- Porch Club redesign work without Matt's visual sign-off.
 - Loading Turbos, or inventing a second rescue beside Life Preserver.
 
 ## Mobile
@@ -38,7 +38,7 @@ Production host: https://cardknight.vercel.app. Home-screen name is Back Porch. 
 ## Motion
 
 - No standing motion system in this file.
-- Prefer: if something already moves, the total, the Life Preserver mark, and a failed save stay readable while it moves.
+- Prefer: if the wheel or a total update already moves, the number that changed stays readable through the motion.
 - Avoid: new decorative motion that delays the next score.
 
 ## Copy voice
@@ -58,4 +58,3 @@ Production host: https://cardknight.vercel.app. Home-screen name is Back Porch. 
 - App changes need visual plus backend prove-it: `npm run check`, the gallery scenarios you opened, and `npm run test:visual` when snapshots apply. Put that evidence in the PR.
 - Game-behavior merges wait for Matt's morning click while that overnight rule is standing.
 - Docs-only OS (taste, AGENTS.md pointers, spec edits with no game behavior) may merge without that click.
-- Leave open app branches (#49, #48, #43) alone from a docs slice.
