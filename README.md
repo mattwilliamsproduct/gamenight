@@ -8,3 +8,4 @@ Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Rook.
 - Tech spec: [docs/tech-spec.md](docs/tech-spec.md)
 - Release checks: [docs/release-checks.md](docs/release-checks.md)
 - J-137 rethink: [docs/J-137-grok-4.7-rethink.md](docs/J-137-grok-4.7-rethink.md)
+- Agent memory: [AGENTS.md](AGENTS.md)
