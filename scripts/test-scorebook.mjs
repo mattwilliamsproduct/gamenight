@@ -122,3 +122,60 @@ test('a unique rename moves the Wizard round and Life Preserver together', () =>
   assert.deepEqual(game.lifePreserverHeld, ['Matt', 'Lindy']);
   assert.deepEqual(game.originalRoster, ['Lindy', 'Matt']);
 });
+
+test('empty standings and a three-way tie still skip the next place', () => {
+  assert.deepEqual(Scorebook.competitionPlaces([], {}), {});
+  const places = Scorebook.competitionPlaces(
+    ['Ann', 'Bea', 'Cal', 'Dee'],
+    { Ann: 10, Bea: 10, Cal: 10, Dee: 4 }
+  );
+  assert.deepEqual(places, { Ann: 1, Bea: 1, Cal: 1, Dee: 4 });
+});
+
+test('a numeric string ties with the same number instead of taking the next place', () => {
+  const places = Scorebook.competitionPlaces(
+    ['Megan', 'Matt', 'Linda'],
+    { Megan: '140', Matt: 140, Linda: 100 }
+  );
+  assert.deepEqual(places, { Megan: 1, Matt: 1, Linda: 3 });
+});
+
+test('a Life Preserver does not leak onto the next hand, and a zero spin adds nothing', () => {
+  const rounds = [
+    { round: 1, scores: { Linda: 10 } },
+    { round: 0, hailMaryBonus: true, scores: { Linda: -30 } },
+    { round: 2, scores: { Linda: 0 } },
+    { round: 0, hailMaryBonus: true, scores: { Mike: 0 } }
+  ];
+  assert.equal(Scorebook.scoringRoundCount(null), 0);
+  assert.equal(Scorebook.scoringRoundCount([]), 0);
+  assert.equal(Scorebook.lifePreserverFollowing(rounds, 0, 'Linda'), -30);
+  assert.equal(Scorebook.lifePreserverFollowing(rounds, 2, 'Linda'), 0);
+  assert.equal(Scorebook.lifePreserverFollowing(rounds, 2, 'Mike'), 0);
+  assert.equal(Scorebook.lifePreserverHidden(rounds, [0, 2], 'Linda'), 0);
+  assert.equal(Scorebook.lifePreserverHidden(rounds, [2], 'Linda'), -30);
+});
+
+test('merging numeric strings keeps the bid with the points', () => {
+  const game = {
+    totals: { Sam: '40', Alex: 10 },
+    hailMaryUsed: ['Sam'],
+    rounds: [
+      { round: 1, scores: { Sam: '40', Alex: '10' }, bids: { Sam: '2', Alex: '1' }, actuals: { Sam: 2, Alex: 1 } }
+    ]
+  };
+  Scorebook.applyPlayerNameOnGame(game, 'Sam', 'Alex', true);
+  assert.equal(game.totals.Alex, 50);
+  assert.equal(game.rounds[0].scores.Alex, 50);
+  assert.equal(game.rounds[0].bids.Alex, 3);
+  assert.equal(game.rounds[0].actuals.Alex, 3);
+  assert.equal(game.rounds[0].bids.Sam, undefined);
+  assert.deepEqual(game.hailMaryUsed, ['Alex']);
+});
+
+test('a name with no rounds still keeps the Life Preserver flag', () => {
+  const game = { rounds: [], hailMaryUsed: ['Linda'], totals: {} };
+  Scorebook.applyPlayerNameOnGame(game, 'Linda', 'Lindy', false);
+  assert.deepEqual(game.hailMaryUsed, ['Lindy']);
+  assert.deepEqual(game.rounds, []);
+});
