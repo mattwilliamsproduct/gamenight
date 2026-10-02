@@ -7,9 +7,12 @@
   const ROUNDS = 4;
   const MELDS = Object.freeze([50, 90, 120, 150]);
   // Matt named the inputs, not every point value. A canasta is usually 500
-  // and a red three is usually 100. Those rates fill in only when a saved
-  // round has no explicit canasta-points number. The foot amount is not
-  // applied unless that side types it. A saved round stores the rates it used.
+  // and a red three is usually 100. The entry form collects a canasta count,
+  // not a separate points box. Those rates fill in only when a saved round
+  // has no explicit canasta-points number. A save that already stores
+  // canastaPoints keeps that amount and does not also add the count times
+  // the rate. The foot amount is not applied unless that side types it.
+  // A saved round stores the rates it used.
   const SCORE_DEFAULTS = Object.freeze({
     canastaEach: 500,
     redThreeEach: 100,

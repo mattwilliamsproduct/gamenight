@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 
 const require = createRequire(import.meta.url);
@@ -430,4 +431,106 @@ test('an older saved round still adds card points and bonuses and subtracts card
   assert.equal(HF.roundScore({ cardPoints: '80', bonuses: '', cardsLeft: '-' }), 80);
   assert.equal(HF.roundScore({ cardPoints: 40, bonuses: 10, cardsLeft: -25 }), 25);
   assert.equal(HF.parsePart(-25, true), 25);
+});
+
+// The entry form sends a canasta count, not a separate points box.
+// 3 canastas at the documented rate of 500 is 1500. Matt's 900 example
+// stays valid only when a save already has canastaPoints. Dropping that
+// key, which a re-edit of the four fields does, uses the rate instead.
+test('prove-it: auto-total sums the four inputs under the documented rates', () => {
+  const entered = { canastas: 3, redThrees: 0, footPenalty: 95, cardPoints: 450 };
+  assert.equal(Object.prototype.hasOwnProperty.call(entered, 'canastaPoints'), false);
+  assert.equal(HF.roundScore(entered), (3 * 500) + 450 - 95);
+  assert.equal(HF.roundScore(entered), 1855);
+
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 1, cardPoints: 20 }), 620);
+  assert.equal(HF.roundScore({ canastas: 1, redThrees: 0, footPenalty: 100, cardPoints: 20 }), 420);
+  assert.equal(HF.roundScore({ canastas: 0, redThrees: 0, footPenalty: 0, cardPoints: -40 }), -40);
+  assert.equal(HF.roundScore({ canastas: 0, redThrees: 0, footPenalty: -50, cardPoints: 0 }), -50);
+
+  const typed = { canastas: 3, canastaPoints: 900, redThrees: 0, footPenalty: 95, cardPoints: 450 };
+  assert.equal(HF.roundScore(typed), 1255);
+  assert.notEqual(HF.roundScore(typed), 1255 + (3 * 500));
+  assert.equal(HF.roundScore({ canastas: 3, redThrees: 0, footPenalty: 95, cardPoints: 450, canastaEach: 300 }), 1255);
+
+  const mixed = { canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: 10, bonuses: 999, cardsLeft: 999 };
+  assert.equal(HF.roundScore(mixed), 510);
+});
+
+test('prove-it: each input and the computed round score persist per side', () => {
+  const sides = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  const round = HF.persistTeamRound(1, {
+    'Ann & Bo': { canastas: 3, redThrees: 2, footPenalty: 95, cardPoints: 450 },
+    'Cy & Dee': { canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: -10 }
+  }, sides);
+  const ann = round.handFootParts.Ann;
+  assert.equal(ann.canastas, 3);
+  assert.equal(ann.redThrees, 2);
+  assert.equal(ann.footPenalty, 95);
+  assert.equal(ann.cardPoints, 450);
+  assert.equal(ann.canastaPoints, 1500);
+  assert.equal(ann.roundScore, 2055);
+  assert.equal(HF.roundScore(ann), 2055);
+  assert.notEqual(HF.roundScore(ann), 2055 + 1500);
+  assert.equal(round.scores.Ann, 2055);
+  assert.equal(round.scores.Bo, 2055);
+  assert.deepEqual(round.handFootParts.Ann, round.handFootParts.Bo);
+  assert.notEqual(round.handFootParts.Ann, round.handFootParts.Bo);
+  assert.equal(round.handFootParts.Cy.roundScore, 490);
+  assert.equal(round.scores.Cy, 490);
+  assert.equal(round.scores.Dee, 490);
+  assert.equal(Object.prototype.hasOwnProperty.call(round.scores, 'Ann & Bo'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(round.handFootParts, 'Ann & Bo'), false);
+
+  const saved = JSON.parse(JSON.stringify(HF.normalizeMatch({
+    game: 'Hand and Foot',
+    handFoot: { format: 'teams', sides },
+    rounds: [round],
+    totals: { Ann: 2055, Bo: 2055, Cy: 490, Dee: 490 }
+  })));
+  assert.equal(saved.rounds[0].handFootParts.Ann.redThrees, 2);
+  assert.equal(saved.rounds[0].handFootParts.Bo.footPenalty, 95);
+  assert.equal(saved.rounds[0].handFootParts.Ann.cardPoints, 450);
+  assert.equal(saved.rounds[0].scores.Ann, saved.rounds[0].handFootParts.Ann.roundScore);
+  assert.equal(HF.sumFieldForPlayer([saved], 'Ann', 'redThrees').total, 2);
+  assert.equal(HF.sumFieldForPlayer([saved], 'Bo', 'redThrees').total, 2);
+  assert.equal(HF.sumFieldForMatch(saved, 'redThrees').total, 2);
+  assert.equal(HF.sumFieldForMatch(saved, 'roundScore').total, 2055 + 490);
+  assert.equal(
+    HF.sumFieldForPlayer([saved], 'Ann', 'roundScore').total
+      + HF.sumFieldForPlayer([saved], 'Bo', 'roundScore').total,
+    2055 * 2
+  );
+});
+
+test('prove-it: four players are two lineup pairs and six players are three', () => {
+  const four = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  assert.equal(four.length, 2);
+  assert.deepEqual(four.map(side => side.members), [['Ann', 'Bo'], ['Cy', 'Dee']]);
+  const six = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], 'teams');
+  assert.equal(six.length, 3);
+  assert.deepEqual(six.map(side => side.members), [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]);
+  assert.equal(six.every(side => side.members.length === 2), true);
+
+  const singles = HF.persistRound(1, {
+    Ann: { canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: 0 },
+    Bo: { canastas: 0, redThrees: 1, footPenalty: 0, cardPoints: 0 }
+  });
+  assert.deepEqual(Object.keys(singles.scores).sort(), ['Ann', 'Bo']);
+  assert.equal(Object.prototype.hasOwnProperty.call(singles.scores, 'Ann & Bo'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(singles.handFootParts, 'Ann & Bo'), false);
+  assert.equal(singles.scores.Ann, 500);
+  assert.equal(singles.scores.Bo, 100);
+});
+
+test('prove-it: the entry form is four inputs plus a computed total', () => {
+  const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(html, /const HAND_FOOT_FIELDS=\['canastas','redThrees','footPenalty','cardPoints'\]/);
+  assert.doesNotMatch(html, /HAND_FOOT_FIELDS=\[[^\]]*canastaPoints/);
+  assert.match(html, /footPenalty:'Foot in hand'/);
+  assert.match(html, /redThrees:'Red threes'/);
+  assert.match(html, /legacy\?'Older round':'Total'/);
+  assert.match(html, /class="hf-round"/);
+  assert.doesNotMatch(html, /<input[^>]*hf-round/);
+  assert.match(html, /Canastas \+ red threes \+ card points − foot/);
 });

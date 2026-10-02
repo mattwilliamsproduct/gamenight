@@ -10789,7 +10789,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
     "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
     "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`,
-    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two pairs. Six start as three pairs. Three or five play singles. Four or six can switch to singles. On a team table, pick who sits together before round 1.</li><li><strong>Teams:</strong> A pair enters one set of numbers. Both players keep that round total and the same breakdown.</li><li><strong>Each round:</strong> Number of canastas, canasta points, number of red 3s, a foot penalty if that foot is still in hand, and total card points. The app adds the canasta points, the red 3s, and the card points, then subtracts the foot penalty. Typed canasta points are used as entered. They are not added again as count times 500. A red 3 defaults to 100 until you change it. Type 0 for the foot penalty when the foot was played. The suggested foot penalty is 100. The round total can be negative.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
+    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Hand and Foot Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two pairs in lineup order. Six start as three pairs in lineup order. Three or five play singles. Four or six can switch to singles. The setup can still change those seats before round 1.</li><li><strong>Teams:</strong> A pair enters one set of numbers. Both players keep that round total and the same breakdown.</li><li><strong>Each round:</strong> Canastas (a count), red threes (a count), a foot-in-hand penalty, and card points. The total is filled in by the app. Canasta points are the count times that round’s canasta rate, which starts at 500. Red threes use that round’s red-3 rate, which starts at 100. Change a rate on the round if the table uses a different amount. The total adds those points and the card points, then subtracts the foot penalty. Type 0 when the foot was played. The suggested foot penalty is 100. The total can be negative. An older save that already stored canasta points uses that amount and does not also add the count times 500.</li><li><strong>Minimum meld:</strong> 50, then 90, then 120, then 150. That hint is on the round. You do not type it.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -14952,12 +14952,12 @@ ${isDealer
   let scoreEntryModalState=null;
   let scoreEntryFitRaf=0;
 
-  const HAND_FOOT_FIELDS=['canastas','canastaPoints','redThrees','footPenalty','cardPoints'];
+  const HAND_FOOT_FIELDS=['canastas','redThrees','footPenalty','cardPoints'];
   const HAND_FOOT_RATE_FIELDS=['canastaEach','redThreeEach'];
   const HAND_FOOT_NO_MINUS=['canastas','redThrees','footPenalty'];
-  const HAND_FOOT_FIELD_LABELS={canastas:'Canastas',canastaPoints:'Canasta points',redThrees:'Red 3s',footPenalty:'Foot penalty',cardPoints:'Card points',canastaEach:'each canasta',redThreeEach:'each red 3'};
+  const HAND_FOOT_FIELD_LABELS={canastas:'Canastas',redThrees:'Red threes',footPenalty:'Foot in hand',cardPoints:'Card points',canastaEach:'each canasta',redThreeEach:'each red 3'};
   function handFootModalParts(raw){
-    const blank={canastas:'',canastaPoints:'',redThrees:'',footPenalty:'',cardPoints:''};
+    const blank={canastas:'',redThrees:'',footPenalty:'',cardPoints:''};
     if(!raw||typeof raw!=='object'||Array.isArray(raw)) return blank;
     const structured=['canastas','canastaPoints','redThrees','footPenalty'].some(k=>raw[k]!==undefined&&raw[k]!==null);
     const legacy=!structured&&(raw.legacy||raw.bonuses!==undefined||raw.cardsLeft!==undefined);
@@ -14969,18 +14969,12 @@ ${isDealer
         legacy:true
       };
     }
-    const parts={canastas:'',canastaPoints:'',redThrees:'',footPenalty:'',cardPoints:''};
+    const parts={canastas:'',redThrees:'',footPenalty:'',cardPoints:''};
     HAND_FOOT_FIELDS.forEach(k=>{
       if(raw[k]!==undefined&&raw[k]!==null&&raw[k]!=='') parts[k]=String(raw[k]);
     });
     if(raw.canastaEach!=null&&raw.canastaEach!=='') parts.canastaEach=String(raw.canastaEach);
     if(raw.redThreeEach!=null&&raw.redThreeEach!=='') parts.redThreeEach=String(raw.redThreeEach);
-    if(!Object.prototype.hasOwnProperty.call(raw,'canastaPoints')&&parts.canastas!==''){
-      const defaults=handFootApi()?.SCORE_DEFAULTS||{canastaEach:500};
-      const each=raw.canastaEach!=null&&raw.canastaEach!==''?parseInt(raw.canastaEach,10):defaults.canastaEach;
-      const count=Math.abs(parseInt(parts.canastas,10)||0);
-      parts.canastaPoints=String((Number.isFinite(each)?each:500)*count);
-    }
     return parts;
   }
   function handFootLegacyUntouched(parts){
@@ -14997,7 +14991,7 @@ ${isDealer
   function handFootLiveParts(parts){
     const rates=scoreEntryModalState?.rates||{};
     if(handFootLegacyUntouched(parts)) return parts;
-    const live=Object.assign({}, parts, {
+    return Object.assign({}, parts, {
       canastas:parts?.canastas??'',
       redThrees:parts?.redThrees??'',
       footPenalty:parts?.footPenalty??'',
@@ -15005,15 +14999,17 @@ ${isDealer
       canastaEach:rates.canastaEach??parts?.canastaEach??'',
       redThreeEach:rates.redThreeEach??parts?.redThreeEach??''
     });
-    if(parts&&Object.prototype.hasOwnProperty.call(parts,'canastaPoints')) live.canastaPoints=parts.canastaPoints??'';
-    return live;
   }
   function handFootPartsTitle(parts){
     if(!parts) return '';
     if(parts.canastas!=null||parts.canastaPoints!=null||parts.redThrees!=null||parts.footPenalty!=null){
+      const canastaEach=parts.canastaEach??handFootApi()?.SCORE_DEFAULTS?.canastaEach??500;
       const redEach=parts.redThreeEach??handFootApi()?.SCORE_DEFAULTS?.redThreeEach??100;
-      const canastaPts=parts.canastaPoints!=null&&parts.canastaPoints!==''?parts.canastaPoints:0;
-      return `Canastas ${parts.canastas??0} (${canastaPts} pts) + red 3s ${parts.redThrees??0}×${redEach} + card points ${parts.cardPoints??0} − foot ${parts.footPenalty??0}`;
+      const count=parts.canastas??0;
+      const derived=Number(count)*Number(canastaEach);
+      const typed=parts.canastaPoints!=null&&parts.canastaPoints!==''?Number(parts.canastaPoints):derived;
+      const canastaText=Number.isFinite(typed)&&typed!==derived?`Canastas ${count} (${typed} pts)`:`Canastas ${count}×${canastaEach}`;
+      return `${canastaText} + red threes ${parts.redThrees??0}×${redEach} + card points ${parts.cardPoints??0} − foot ${parts.footPenalty??0}`;
     }
     return `Card points ${parts.cardPoints} + bonuses ${parts.bonuses} − cards left ${parts.cardsLeft}`;
   }
@@ -15212,7 +15208,7 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
     document.getElementById('score-entry-context').textContent=getScoreEntryRoundContext(mode);
-    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Canasta points + red 3s + card points − foot':mode.valueLabel;
+    document.getElementById('score-entry-lane-title').textContent=mode.kind==='hand-foot'?'Canastas + red threes + card points − foot':mode.valueLabel;
     updateScoreEntryProgress();
   }
 
@@ -15450,7 +15446,7 @@ ${isDealer
       const legacy=handFootLegacyUntouched(parts);
       const fields=HAND_FOOT_FIELDS.map(field=>{
         const label=HAND_FOOT_FIELD_LABELS[field];
-        const hint=field==='footPenalty'?'<div class="score-entry-meta-label">if still in hand</div>':'';
+        const hint=field==='footPenalty'?'<div class="score-entry-meta-label">penalty</div>':'';
         const shown=parts[field]!=null&&parts[field]!==''?escapeHtml(String(parts[field])):'';
         return `<button type="button" class="hf-field${active&&activeField===field?' active':''}" onclick="event.stopPropagation();selectHandFootField(${idx},'${field}')">
           <div class="score-entry-meta-label">${label}</div>
@@ -15471,7 +15467,7 @@ ${isDealer
         </div>
         <div class="hf-fields">
           ${fields}
-          <div class="hf-round"><div class="score-entry-meta-label">${legacy?'Older round':'Round'}</div><div id="score-entry-hf-round-${safe}" class="hf-round-value">${handFootPreviewText(parts)}</div></div>
+          <div class="hf-round"><div class="score-entry-meta-label">${legacy?'Older round':'Total'}</div><div id="score-entry-hf-round-${safe}" class="hf-round-value">${handFootPreviewText(parts)}</div></div>
         </div>
       </div>`;
     }).join('');
