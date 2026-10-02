@@ -673,6 +673,26 @@
     }
   }
 
+  // hailMaryBonus rounds are the fact. hailMaryUsed is only a cache of who those rounds name.
+  function reconcileHailMaryUsed(game) {
+    if (!game) return [];
+    const names = [];
+    const seen = new Set();
+    (game.rounds || []).forEach(round => {
+      if (!round || !round.hailMaryBonus) return;
+      Object.keys(round.scores || {}).forEach(player => {
+        if (!player || seen.has(player)) return;
+        seen.add(player);
+        names.push(player);
+      });
+    });
+    game.hailMaryUsed = names;
+    if (Array.isArray(game.lifePreserverHeld)) {
+      game.lifePreserverHeld = game.lifePreserverHeld.filter(name => name && !seen.has(name));
+    }
+    return game.hailMaryUsed;
+  }
+
   function getLifePreserverOffer(game, player, activePlayers, options) {
     const opts = options || {};
     if (!game || !player || !Array.isArray(activePlayers) || !activePlayers.includes(player)) {
@@ -904,6 +924,7 @@
     isHeldForCurrentRound,
     syncLifePreserverHolds,
     markLifePreserverUsed,
+    reconcileHailMaryUsed,
     explainLifePreserverOffer,
     explainLifePreserverRules,
     summarizeLifePreserverTable,

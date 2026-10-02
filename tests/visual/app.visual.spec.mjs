@@ -213,7 +213,6 @@ test('representative centered modal families use the shared viewport shell',asyn
     dealer:['#dealer-modal','#dealer-modal .surface-raised','Dealer modal'],
     retire:['#retire-player-modal','#retire-player-modal .surface-raised','Retire-player modal'],
     reorder:['#reorder-players-modal','#reorder-players-modal .surface-raised','Reorder-players modal'],
-    comebackRules:['#comeback-rules-modal','#comeback-rules-modal .comeback-rules-card','Comeback rules modal'],
     victory:['#victory-modal','#victory-modal .postgame-card','Victory modal'],
     loser:['#loser-modal','#loser-modal .postgame-card','Loser modal']
   };
@@ -234,7 +233,7 @@ test('representative centered modal families use the shared viewport shell',asyn
 
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal'],['comebackRules','openComebackRules']]){
+  for(const [name,fn] of [['rules','openRules'],['dealer','openDealerModal'],['retire','openRetirePlayerModal'],['reorder','openReorderPlayersModal']]){
     await page.evaluate(fnName=>window[fnName](),fn);
     await waitForModal(`${measure[name][0]}:not(.hidden)`);
     await expectCenteredInVisualViewport(page,{modalSelector:measure[name][0],cardSelector:measure[name][1],label:measure[name][2]});
@@ -970,16 +969,16 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   await expect(page.locator('#victory-names')).toContainText('Tie!');
 });
 
-test('undo last Five Crowns hand keeps Comeback chips on stranded players',async({page})=>{
+test('undo last Five Crowns hand reopens the hand without a Turbo chip',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
+  await expect(page.locator('button.scorecard-comeback-chip')).toHaveCount(0);
 
   await page.getByRole('button',{name:/Actions/}).click();
   page.once('dialog',dialog=>dialog.accept());
   await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
 
-  await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
+  await expect(page.locator('button.scorecard-comeback-chip')).toHaveCount(0);
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
 });
 

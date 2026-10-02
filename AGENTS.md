@@ -30,7 +30,8 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 
 ## Hard constraints
 
-- Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined.
+- Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined. The live scorecard does not render a Turbo chip slot or a Turbo rules modal.
+- `hailMaryUsed` is a cache. Rebuild it from `hailMaryBonus` rounds. Do not treat the list as a second fact.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. The current contract is one Redis blob with no revision check.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
 - Prove the change in the real UI (`npm run qa:gallery` scenarios) before calling it ready.

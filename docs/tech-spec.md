@@ -42,7 +42,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Games: 818, Wizard, Five Crowns, Flip 7. Off for Rook and Beat the Heat. Minimum 4 active players. One spin per player per match.
 - The best legal result stays strictly behind 1st by at least one scoring step (1 point, or 5 in games that step by 5).
 - 818’s largest helpful slice is about two made bids (+20), and still behind 1st.
-- The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. It counts in the total. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, or a path-replay step. `hailMaryUsed` is a cache of who has spun. The bonus round is the fact. They must not disagree.
+- The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. It counts in the total. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, or a path-replay step. `hailMaryUsed` is a cache of who has spun. The bonus round is the fact. They must not disagree. On spin, undo, merge, resume, and when a saved match is opened, rebuild `hailMaryUsed` from the `hailMaryBonus` rounds. A name on the list with no bonus round is not used. A bonus round with no list entry is used.
 - The scorecard shows the adjustment on the scoring hand it followed, including history and Share Receipt. If that column is hidden, a mark sits beside Total.
 - Undo of the surrounding scoring round returns the spin to unused.
 

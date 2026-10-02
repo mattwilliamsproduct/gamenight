@@ -604,3 +604,37 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
 });
+
+test('hailMaryUsed is rebuilt from bonus rounds', () => {
+  const players = FOUR;
+  const totals = { Ann: 10, Bea: 20, Cal: 30, Dee: 40 };
+  const bonus = { round: 0, hailMaryBonus: true, scores: { Dee: -15 } };
+  const stale = game({
+    name: 'Five Crowns',
+    players,
+    totals,
+    roundCount: 4,
+    spread: 8,
+    hailMaryUsed: ['Ann', 'Dee'],
+    extraRounds: [bonus],
+    lifePreserverHeld: ['Ann', 'Dee', 'Cal']
+  });
+  assert.deepEqual(LP.reconcileHailMaryUsed(stale), ['Dee']);
+  assert.deepEqual(stale.lifePreserverHeld, ['Ann', 'Cal']);
+  assert.equal(LP.getLifePreserverOffer(stale, 'Ann', players).reason === 'used', false);
+  assert.equal(LP.getLifePreserverOffer(stale, 'Dee', players).reason, 'used');
+
+  const missing = game({
+    name: 'Wizard',
+    players,
+    totals,
+    roundCount: 3,
+    spread: 20,
+    hailMaryUsed: [],
+    extraRounds: [{ round: 0, hailMaryBonus: true, scores: { Bea: 30 } }]
+  });
+  assert.deepEqual(LP.reconcileHailMaryUsed(missing), ['Bea']);
+
+  missing.rounds = missing.rounds.filter(round => !round.hailMaryBonus);
+  assert.deepEqual(LP.reconcileHailMaryUsed(missing), []);
+});

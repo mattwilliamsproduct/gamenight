@@ -10,22 +10,14 @@ function fontStack(family){
   return String(family||'').toLowerCase();
 }
 
-test('blowout Five Crowns gives Linda and Vikki Comeback chips',async({page},testInfo)=>{
+test('blowout Five Crowns keeps Linda and Vikki totals without Turbo chips',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='laptop-chromium','Run the logic check once on laptop Chromium');
   await page.goto(blowoutUrl,{waitUntil:'networkidle'});
   await ready(page);
 
   await expect(page.locator('#round-intel')).toHaveText('Hand of 9 · 9s Wild');
-  const chips=page.locator('button.scorecard-comeback-chip');
-  await expect(chips).toHaveCount(2);
-  const linda=page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip');
-  const vikki=page.locator('#scorecard-body tr',{hasText:'Vikki'}).locator('button.scorecard-comeback-chip');
-  await expect(linda).toHaveAttribute('aria-label',/Turbo|Comeback/);
-  await expect(vikki).toHaveAttribute('aria-label',/Turbo|Comeback/);
-  await expect(linda).toHaveText(/−\d+/);
-  await expect(vikki).toHaveText(/−\d+/);
-  await expect(linda).not.toHaveText('Comeback');
-  await expect(vikki).not.toHaveText('Comeback');
+  await expect(page.locator('button.scorecard-comeback-chip')).toHaveCount(0);
+  await expect(page.locator('.scorecard-turbo-slot')).toHaveCount(0);
   const totals=await page.evaluate(()=>({linda:currentGame.totals.Linda,vikki:currentGame.totals.Vikki}));
   expect(totals.linda).toBe(108);
   expect(totals.vikki).toBe(140);

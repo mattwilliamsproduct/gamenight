@@ -1,43 +1,16 @@
 import {expect,test} from '@playwright/test';
 
-test('Comeback chips explain the extra and do not offer a refuse button', async ({page}, testInfo) => {
+test('the live scorecard does not offer Turbo chips or a Turbo rules modal', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
-  const chips = page.locator('button.scorecard-comeback-chip');
-  await expect(chips).not.toHaveCount(0);
-  await expect(page.locator('#wheel-modal')).toHaveCount(0);
-  await expect(chips.first()).toHaveText(/−\d+/);
-  await expect(chips.first()).not.toHaveText('Comeback');
-  await expect(chips.first()).toHaveAttribute('aria-label', /Turbo|Comeback/);
-  await chips.first().click();
-  await expect(page.locator('#comeback-explain-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#comeback-explain-lead')).toContainText('behind the lead');
-  await expect(page.locator('#comeback-explain-list')).toContainText('Cannot take 1st');
-  await expect(page.getByRole('button', {name: /no thanks/i})).toHaveCount(0);
-  await page.locator('#comeback-explain-modal button').first().click();
-});
-
-test('Actions menu explains how Comeback works in this game', async ({page}, testInfo) => {
-  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
-  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
-  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
-
+  await expect(page.locator('button.scorecard-comeback-chip')).toHaveCount(0);
+  await expect(page.locator('.scorecard-turbo-slot')).toHaveCount(0);
+  await expect(page.locator('#comeback-explain-modal')).toHaveCount(0);
+  await expect(page.locator('#comeback-rules-modal')).toHaveCount(0);
   await page.getByRole('button', {name: 'Actions'}).click();
-  await page.getByRole('button', {name: 'Turbo Instructions'}).click();
-  await expect(page.locator('#comeback-rules-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#comeback-rules-title')).toHaveText('How Turbos work in Five Crowns');
-  const body = page.locator('#comeback-rules-content');
-  await expect(body).toContainText('What a turbo is');
-  await expect(body).toContainText('When you get one');
-  await expect(body).toContainText('How big it is');
-  await expect(body).toContainText('First place never');
-  await expect(body).toContainText('4 hands');
-  await expect(body).toContainText('Low score wins');
-  await expect(body).toContainText('On this table');
-  await expect(body).toContainText('Brick');
-  await expect(body).toContainText('automatic');
+  await expect(page.getByRole('button', {name: 'Turbo Instructions'})).toHaveCount(0);
 });
 
 test('ending a match stashes a visible scorecard copy for Share Receipt', async ({page}, testInfo) => {
@@ -68,22 +41,26 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   expect(stash.liveParentHidden).toBe(true);
 });
 
-test('apostrophe names can still open the Comeback explanation', async ({page}, testInfo) => {
+test('a markup name stays text on the scorecard and in the audit log', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
   await page.evaluate(() => {
-    const name = "O'Brien";
+    const name = `O'Brien <b>x</b>`;
     currentGame.originalRoster.push(name);
     currentGame.totals[name] = currentGame.totals.Brick;
     currentGame.rounds.forEach(round => {
       round.scores[name] = round.scores.Brick;
     });
+    addAuditEntry('Headed Ashore', `${name} left`);
     renderGame();
+    openAuditLog();
   });
-  await page.getByRole('button', {name: /Turbo .*O'Brien/}).click();
-  await expect(page.locator('#comeback-explain-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#comeback-explain-lead')).toContainText("O'Brien");
+  const nameCell = page.locator('#scorecard-body .scoreboard-player-name', {hasText: "O'Brien"});
+  await expect(nameCell).toHaveCount(1);
+  await expect(nameCell.locator('b')).toHaveCount(0);
+  await expect(page.locator('#audit-list .audit-entry b')).toHaveCount(0);
+  await expect(page.locator('#audit-list')).toContainText("O'Brien <b>x</b> left");
 });
 
 test('mid-game join after a legacy bonus round writes catch-up to the last scoring round', async ({page}, testInfo) => {
@@ -108,18 +85,18 @@ test('mid-game join after a legacy bonus round writes catch-up to the last scori
   expect(result.usedFlag).toBe(true);
 });
 
-test('undo last round keeps Comeback chips for whoever is still stranded', async ({page}, testInfo) => {
+test('undo last round reopens the hand without a Turbo chip', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
-  await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
+  await expect(page.locator('button.scorecard-comeback-chip')).toHaveCount(0);
 
   await page.getByRole('button', {name: /Actions/}).click();
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', {name: 'Undo Last Round', exact: true}).click();
 
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
-  await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
+  await expect(page.locator('button.scorecard-comeback-chip')).toHaveCount(0);
 });
 
 test('skipping a dealer roll does not steal the next game\'s Roll Die button', async ({page}, testInfo) => {
