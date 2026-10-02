@@ -1142,12 +1142,13 @@
       white-space: nowrap;
     }
     .score-total-life-preserver {
-      display: inline-block;
-      margin-left: 0.28rem;
-      vertical-align: middle;
-      font-size: 0.42em;
+      display: block;
+      margin: 0.12rem auto 0;
+      font-size: clamp(0.85rem, 2.6vw, 1.15rem);
+      font-weight: 400;
       color: #0c4a6e;
       line-height: 1;
+      letter-spacing: 0;
       white-space: nowrap;
     }
     .scorecard-receipt-stash {
@@ -3212,6 +3213,18 @@ button.dealer-name-indicator {
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: clamp(29rem, 40vw, 42rem);
+    }
+    @media (max-width: 700px) {
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+      #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+        width: 4.8rem;
+        min-width: 4.4rem;
+      }
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
@@ -13088,6 +13101,7 @@ ${isDealer
           hint.textContent='';
         }
       }
+      paintTrimmedLifePreserverMarks(root);
     } finally {
       gnPerfEnd(trimTimer);
     }
@@ -13845,12 +13859,42 @@ ${isDealer
   function lifePreserverMarkMarkup(rounds, roundIndex, player){
     const lp=BPGScorebook.lifePreserverFollowing(rounds, roundIndex, player);
     if(!lp) return '';
-    return `<span class="score-cell-life-preserver" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+    return `<span class="score-cell-life-preserver" data-lp="${lp}" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
   }
   function hiddenLifePreserverMarkup(rounds, visibleIndexes, player){
     const lp=BPGScorebook.lifePreserverHidden(rounds, visibleIndexes, player);
     if(!lp) return '';
-    return `<span class="score-total-life-preserver" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+    return `<span class="score-total-life-preserver" data-lp="${lp}" data-lp-base="${lp}" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+  }
+  function paintTrimmedLifePreserverMarks(root){
+    const table=root?.querySelector?.('table.scorecard-table');
+    if(!table) return;
+    table.querySelectorAll('tbody tr').forEach(row=>{
+      const hiddenSum=[...row.querySelectorAll('.score-cell-life-preserver')].reduce((sum,el)=>{
+        const cell=el.closest('[data-sc-round]');
+        if(!cell||!cell.classList.contains('scorecard-round--hidden')) return sum;
+        return sum+(Number(el.dataset.lp)||0);
+      },0);
+      const totalCell=row.querySelector('.scorecard-total-cell');
+      if(!totalCell) return;
+      let badge=totalCell.querySelector('.score-total-life-preserver');
+      const base=badge?Number(badge.dataset.lpBase||0):0;
+      const total=base+hiddenSum;
+      if(!total){
+        badge?.remove();
+        return;
+      }
+      if(!badge){
+        badge=document.createElement('span');
+        badge.className='score-total-life-preserver';
+        badge.dataset.lpBase='0';
+        totalCell.appendChild(badge);
+      }
+      badge.dataset.lp=String(total);
+      badge.title='Life Preserver';
+      badge.setAttribute('aria-label',`Life Preserver ${plainSigned(total)}`);
+      badge.innerHTML=signedPointsMarkup(total);
+    });
   }
   function scoringExtraMarkup(rounds, roundIndex, round, player){
     const turbo=Number(round?.comeback?.[player])||0;

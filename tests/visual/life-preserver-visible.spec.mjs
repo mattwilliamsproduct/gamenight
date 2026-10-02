@@ -50,6 +50,37 @@ test('a Life Preserver shows on the hand it followed, or beside Total when that 
   await expect(historyMike.locator('[aria-label="Life Preserver +40"]')).toBeVisible();
 });
 
+test('a phone hides trimmed hands and keeps each Life Preserver beside Total', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the phone-width check once on laptop Chromium');
+  await page.setViewportSize({width: 390, height: 844});
+  await openVisiblePreserver(page);
+  await page.waitForTimeout(400);
+
+  const view = await page.evaluate(() => {
+    const width = window.innerWidth;
+    const visible = (el) => {
+      if (!el) return false;
+      const box = el.getBoundingClientRect();
+      return box.width > 8 && box.left < width - 4 && box.right > 8;
+    };
+    return [...document.querySelectorAll('#scorecard-body tr')].map(row => ({
+      name: row.querySelector('.scoreboard-player-name, .dealer-player-label')?.textContent?.trim(),
+      totalOnScreen: visible(row.querySelector('.scorecard-total-cell')),
+      totalLabel: row.querySelector('.score-total-life-preserver')?.getAttribute('aria-label') || '',
+      hiddenHands: row.querySelectorAll('td.scorecard-round--hidden').length
+    }));
+  });
+
+  const mike = view.find(row => row.name === 'Mike');
+  const linda = view.find(row => row.name === 'Linda');
+  expect(mike?.totalOnScreen).toBe(true);
+  expect(linda?.totalOnScreen).toBe(true);
+  expect(mike?.hiddenHands).toBeGreaterThan(0);
+  expect(linda?.hiddenHands).toBeGreaterThan(0);
+  expect(mike?.totalLabel).toBe('Life Preserver +40');
+  expect(linda?.totalLabel).toBe('Life Preserver +15');
+});
+
 test('undo clears the Life Preserver that followed the removed hand', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the undo check once on laptop Chromium');
   await openVisiblePreserver(page);
