@@ -6,6 +6,10 @@ Back Porch Games is the human scorekeeper for porch game night. People play the 
 Shelf: Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Rook. Hand and Foot may be in flight on another PR.
 Production host: https://cardknight.vercel.app (home-screen name is Back Porch; the repo is `gamenight`).
 
+## Feature path
+
+After clarify, run Gate B (Choice + Score). Before ready language, run Gate C (Noul). Operator page: [`docs/jev-gates.md`](docs/jev-gates.md).
+
 ## Commands
 
 Exact scripts from `package.json`:
@@ -27,6 +31,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 - Tech contract: `docs/tech-spec.md`
 - Active rethink and findings: `docs/J-137-grok-4.7-rethink.md`
 - Release gates: `docs/release-checks.md`
+- Jev-class gates: `docs/jev-gates.md`
 
 ## Hard constraints
 
@@ -39,7 +44,7 @@ North star: crush requirements so one-shots get better every correction.
 - Coding OS: on a feature request, do not wait for Matt to ask for a spec or a Notion card. Kick off, write or update product and tech spec stubs, create or update Matt HQ open actions, and compound durable feedback the same day. He is in the loop only for taste, kill, merge, and a short summarized spec review when the slice is non-trivial. Undraft or merge of an app or product PR still needs his explicit go.
 - Roles: Matt owns ideas, taste, feedback, and validation. Agents own expert implementation on Back Porch. Periodically review this repo for bugs, tech debt, and performance. Fix obvious no-tradeoff items in draft PRs. Taste tradeoffs get a short note for Matt. App or product undraft and merge still need his explicit go.
 - App and product PRs stay draft and sidelined until Matt says undraft or merge. Docs-only OS edits with no game behavior may merge.
-- Never claim ready without prove-it evidence: `npm run check`, plus a gallery or UI look when the change is UI. Non-UI work needs backend-prove-it. Put the evidence in the PR.
+- Never claim ready without prove-it evidence: `npm run check`, plus a gallery or UI look when the change is UI. Non-UI work needs backend-prove-it. Put the evidence in the PR. Before ready language, run Gate C (Noul) — [`docs/jev-gates.md`](docs/jev-gates.md).
 - Prefer the existing stack and patterns. Porch Club design PRs stay blocked without Matt's visual sign-off.
 - Game-behavior merges wait for Matt's UI test while that overnight rule is standing.
 - After any durable Matt correction, or a novel lesson from a ship, compound the same day into `docs/solutions/<short-slug>.md` and/or `docs/taste.md` and/or one bullet in this section. Never leave durable feedback only in chat.
@@ -60,5 +65,6 @@ Done when the evidence is in the PR before handoff (verify-before-done).
 - Tech spec: `docs/tech-spec.md`
 - J-137 rethink: `docs/J-137-grok-4.7-rethink.md`
 - Release checks: `docs/release-checks.md`
+- Jev-class gates: `docs/jev-gates.md`
 - README: `README.md`
 - Solution notes: `docs/solutions/README.md`
