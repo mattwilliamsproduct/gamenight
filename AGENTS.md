@@ -12,12 +12,12 @@ Exact scripts from `package.json`:
 
 - `npm install`
 - `npm run build` — `build:styles`, then `build:vendor` (minified CSS, vendor copies, and `public/sw.js`)
-- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, then `git diff --check`
+- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:scorebook`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:scorebook`.
 
 ## Architecture
 
@@ -30,6 +30,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 ## Hard constraints
 
 - Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined.
+- A hidden scorecard column is not a deleted hand. If Pace or the column trim removes the hand a Life Preserver followed, the mark sits with Total. Place ties use the same numeric comparison as the sort, including numeric strings. See `docs/solutions/scorecard-places-and-life-preserver.md`.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. The current contract is one Redis blob with no revision check.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
 - Prove the change in the real UI (`npm run qa:gallery` scenarios) before calling it ready.
