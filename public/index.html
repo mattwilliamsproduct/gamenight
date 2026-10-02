@@ -3212,6 +3212,18 @@ button.dealer-name-indicator {
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
       width: clamp(29rem, 40vw, 42rem);
     }
+    @media (max-width: 700px) {
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+      #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+      #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+        width: 4.8rem;
+        min-width: 4.4rem;
+      }
+    }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-fill-col {
