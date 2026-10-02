@@ -17,7 +17,7 @@ Exact scripts from `package.json`:
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:hand-foot`.
 
 ## Architecture
 
