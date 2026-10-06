@@ -37,6 +37,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 North star: crush requirements so one-shots get better every correction.
 
 - Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined.
+- The worker that Vercel ships is `src/service-worker.js` copied over `public/sw.js` by `npm run build`. That template must precache the scripts the page loads (`life-preserver-logic.js`, `backup.js`) and must not list `comeback-logic.js`. `npm run check` fails if they disagree. Do not treat the committed `public/sw.js` as what production serves after a build.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. The current contract is one Redis blob with no revision check.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
 - Before a multi-step coding kickoff, load `docs/product-spec.md`, `docs/taste.md`, `docs/taste-ledger.md`, `docs/goals-nongoals.md`, this file, and `docs/solutions/` (including `docs/solutions/README.md`). Load the builder-taste-profile skill when it is available.
