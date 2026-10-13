@@ -721,3 +721,94 @@ export function cloneScenario(id){
   const scenario=QA_SCENARIOS[id]||QA_SCENARIOS['home-party'];
   return JSON.parse(JSON.stringify(scenario));
 }
+
+const BID_GAMES=new Set(['Wizard','818']);
+const RACE_MIN_ROUNDS=3;
+
+function copy(value){
+  return JSON.parse(JSON.stringify(value));
+}
+
+export function tableNames(scenario){
+  const totals=scenario?.data?.currentGame?.totals;
+  if(totals&&Object.keys(totals).length)return Object.keys(totals);
+  if(Array.isArray(scenario?.data?.players)&&scenario.data.players.length)return scenario.data.players.slice();
+  return NAMES.slice(0,8);
+}
+
+export function buildWhammyCelebration(names,round=4){
+  const winner=names[0]||'Diana';
+  return {
+    round,
+    winner,
+    scores:names.map((player,index)=>({
+      player,
+      score:player===winner?50:(index%2?-10:0)
+    }))
+  };
+}
+
+export function buildNolieCelebration(names,round=4){
+  return {
+    type:'nolie',
+    round,
+    scores:names.map((player,index)=>({player,score:20+((index%3)*10)}))
+  };
+}
+
+function fixtureGameOver(game){
+  if(!game)return true;
+  if(game.name==='Beat the Heat'){
+    return Object.values(game.totals||{}).some(score=>Number(score)>=66);
+  }
+  if(Number.isFinite(game.maxRounds)&&game.maxRounds!==999&&Number(game.currentRound)>game.maxRounds){
+    return true;
+  }
+  return false;
+}
+
+function playableRaceMatch(history){
+  return (history||[]).find(match=>Array.isArray(match?.rounds)&&match.rounds.filter(round=>!round.hailMaryBonus).length>=RACE_MIN_ROUNDS)||null;
+}
+
+export function scenarioForSurface(scenario,surface){
+  const next=copy(scenario);
+  const names=tableNames(next);
+  const round=next.data?.currentGame?.currentRound||4;
+
+  if(surface==='whammy'||surface==='nolie'){
+    next.celebrations=next.celebrations||{};
+    if(!next.celebrations.whammy)next.celebrations.whammy=buildWhammyCelebration(names,round);
+    if(!next.celebrations.nolie)next.celebrations.nolie=buildNolieCelebration(names,round);
+  }
+
+  if(['scorecard','actions'].includes(surface)&&!next.data.currentGame){
+    const fallback=QA_SCENARIOS['wizard-10'];
+    next.data.currentGame=copy(fallback.data.currentGame);
+    next.data.players=[...fallback.data.players];
+  }
+
+  if(surface==='entry-bids'){
+    if(!next.data.currentGame||!BID_GAMES.has(next.data.currentGame.name)){
+      const fallback=QA_SCENARIOS['wizard-10'];
+      next.data.currentGame=copy(fallback.data.currentGame);
+      next.data.players=[...fallback.data.players];
+    }
+  }
+
+  if(surface==='entry-scores'){
+    const game=next.data.currentGame;
+    if(!game||game.name==='Rook'||fixtureGameOver(game)){
+      const fallback=QA_SCENARIOS['five-crowns-comeback'];
+      next.data.currentGame=copy(fallback.data.currentGame);
+      next.data.players=[...fallback.data.players];
+    }
+  }
+
+  if(surface==='race'){
+    const match=playableRaceMatch(next.data.history);
+    next.data.history=match?[match,...(next.data.history||[]).filter(item=>item!==match)]:copy(QA_SCENARIOS['postgame-race'].data.history);
+  }
+
+  return next;
+}
