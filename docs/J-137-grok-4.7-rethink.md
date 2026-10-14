@@ -169,6 +169,8 @@ Live card, history list, and profile rank call the same loop as `buildMatchPlace
 
 Remove the card and the calculator at 15902–15913 and 16200. Leave the other Beat the Heat cards. Do not reopen #22.
 
+Draft PR #61 on a fresh `main` branch implements this. Game-behavior waits for Matt's morning UI check. Do not undraft or merge from this note.
+
 ### Later, not this sweep
 
 - Cloud revision so a stale PUT cannot replace a newer scorebook. The same slice should apply profile-only pulls, refuse to replace a live match on file import without a confirm, and flush the cloud timer on page hide. See the J-138 notes below.
