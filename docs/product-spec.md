@@ -114,7 +114,7 @@ Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-1
 2. **A Life Preserver changes the total and leaves no mark on the card.** Columns skip `hailMaryBonus` rounds. Cells only print `round.comeback`, which new games never write.
 3. **Tied players get consecutive places** on the live scorecard (`1, 2, 3, 4, 5, 6, 7` when the last four are two ties). The path replay already uses shared places (`4, 4, 6, 6`).
 4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
-5. ~~**Closest Finish To 66 is still a trophy.**~~ Fixed on this PR (T7). The Records / Hall card and the `closestFinish` calculator are removed. Reaching 66 is still a Beat the Heat loss. Ice rounds, coolest/hottest, cleanest average, closest margin, lopsided, and longest match stay.
+5. ~~**Closest Finish To 66 is still a trophy.**~~ Fixed on draft PR #61 (T7). The Records / Hall card and the `closestFinish` calculator are removed. Reaching 66 is still a Beat the Heat loss. Ice rounds, coolest/hottest, cleanest average, closest margin, lopsided, and longest match stay.
 6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key. A pull also drops profile-only and remote-match-only updates when no new player or finished game arrived. Hiding the page flushes local storage and does not flush the pending cloud push. A file import can replace the live match without asking.
 7. **A Life Preserver spin can become a Hall of Fame “best round.”** The records walk includes `hailMaryBonus` rounds. The spin is also easy to desync from `hailMaryUsed`, which is a second flag for the same fact.
 
@@ -129,4 +129,4 @@ Do these in order. Each one is a small, testable change. Leave the open redesign
 3. Use the path-replay place rule on the live scorecard, history, and profiles.
 4. Land functional PR checks (the idea in PR #43) on current main. Keep screenshot baselines local.
 5. One merge function for bench-drop and rename-merge, including `hailMaryUsed`, holds, bids, and actuals.
-6. ~~Remove the Closest Finish To 66 card in its own change. Do not revive PR #22 to do it.~~ Done on this PR (T7). Fresh branch off current main. #22 stays closed.
+6. ~~Remove the Closest Finish To 66 card in its own change. Do not revive PR #22 to do it.~~ Done on draft PR #61 (T7). Fresh branch off current main. #22 stays closed.

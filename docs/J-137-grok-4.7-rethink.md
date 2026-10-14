@@ -169,7 +169,7 @@ Live card, history list, and profile rank call the same loop as `buildMatchPlace
 
 Remove the card and the calculator at 15902–15913 and 16200. Leave the other Beat the Heat cards. Do not reopen #22.
 
-Draft on a fresh `main` branch implements this. Game-behavior waits for Matt's morning UI check. Do not undraft or merge from this note.
+Draft PR #61 on a fresh `main` branch implements this. Game-behavior waits for Matt's morning UI check. Do not undraft or merge from this note.
 
 ### Later, not this sweep
 
