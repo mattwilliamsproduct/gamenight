@@ -13566,12 +13566,25 @@ ${isDealer
     );
   }
 
-  function getRecordChaseHistory(player,gameName){
-    return history.filter(match=>
-      match?.game===gameName&&
+  function matchQualifiesForRecordChase(match,player,gameName){
+    return match?.game===gameName&&
       match.totals?.[player]!==undefined&&
-      getRecordChasePlayerRounds(match,player).length>0
-    );
+      getRecordChasePlayerRounds(match,player).length>0;
+  }
+
+  function getRecordChaseHistory(player,gameName){
+    return history.filter(match=>matchQualifiesForRecordChase(match,player,gameName));
+  }
+
+  function indexRecordChaseHistory(historyList,gameName,players){
+    const byPlayer=Object.create(null);
+    (players||[]).forEach(player=>{ byPlayer[player]=[]; });
+    (historyList||[]).forEach(match=>{
+      (players||[]).forEach(player=>{
+        if(matchQualifiesForRecordChase(match,player,gameName)) byPlayer[player].push(match);
+      });
+    });
+    return byPlayer;
   }
 
   function pickRecordChaseFinal(matches,player,cfg,wantBest){
@@ -13589,7 +13602,7 @@ ${isDealer
     },null);
   }
 
-  function getRecordChaseMetric(player,cfg){
+  function getRecordChaseMetric(player,cfg,matches){
     const empty={
       bestScore:null,
       avgFinal:null,
@@ -13598,12 +13611,11 @@ ${isDealer
       worstMatchId:null,
       ariaLabel:'No past games yet'
     };
-    const gameName=currentGame.name;
-    const matches=getRecordChaseHistory(player,gameName);
-    if(!matches.length)return empty;
-    const bestEntry=pickRecordChaseFinal(matches,player,cfg,true);
-    const worstEntry=pickRecordChaseFinal(matches,player,cfg,false);
-    const avgFinal=Math.round(matches.reduce((sum,match)=>sum+(Number(match.totals?.[player])||0),0)/matches.length);
+    const list=matches!==undefined?matches:getRecordChaseHistory(player,currentGame.name);
+    if(!list.length)return empty;
+    const bestEntry=pickRecordChaseFinal(list,player,cfg,true);
+    const worstEntry=pickRecordChaseFinal(list,player,cfg,false);
+    const avgFinal=Math.round(list.reduce((sum,match)=>sum+(Number(match.totals?.[player])||0),0)/list.length);
     const dash=value=>value==null?'—':String(value);
     const ariaLabel=`Best ${dash(bestEntry?.score)}, average ${dash(avgFinal)}, worst ${dash(worstEntry?.score)}`;
     return {
@@ -13637,8 +13649,9 @@ ${isDealer
       const missingClass=score==null?' is-missing':'';
       return `<div class="record-chase-score${missingClass}" aria-label="${escapeHtml('Average finish '+label)}">${escapeHtml(label)}</div>`;
     };
+    const matchesByPlayer=indexRecordChaseHistory(history,currentGame.name,players);
     list.innerHTML=players.map(player=>{
-      const metric=getRecordChaseMetric(player,cfg);
+      const metric=getRecordChaseMetric(player,cfg,matchesByPlayer[player]);
       const isLeader=currentGame.currentRound>1&&currentGame.totals[player]===leaderScore;
       return `<div class="record-chase-row${isLeader?' is-leader':''}" data-player="${escapeHtml(player)}" title="${escapeHtml(player)} · ${escapeHtml(metric.ariaLabel)}">
         ${pairScore('Best',metric.bestScore,metric.bestMatchId)}

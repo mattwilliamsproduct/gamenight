@@ -92,7 +92,7 @@ The fitter exists because the theme was pasted twice. A block labeled `BACK PORC
 
 `renderGame` (13651) recomputes totals, syncs holds, sorts, and assigns `innerHTML` for the whole head and body (13749, 13861). Then it paints portrait (13909) and schedules a column trim that reads layout. For eight players this is acceptable. It was written this way because the page never grew a scorecard model, so every feature appends to the string.
 
-Player Pace is the part that will not stay acceptable. `renderRecordChasePanel` (13640–13641) calls `getRecordChaseMetric` per player. Each call runs `getRecordChaseHistory` (13569–13574), which filters all of `gn_history`, then scans that list twice for best and worst (13604–13605). Eight players means eight full history walks on every scorecard paint, including after every round. This was written less efficiently than it could be because the Best / Avg / Worst cells were dropped into the row template as if they were labels. They are queries. One pass over history per paint, keyed by player, is the same data.
+Player Pace was the part that would not stay acceptable. `renderRecordChasePanel` used to call `getRecordChaseMetric` per player, and each call ran `getRecordChaseHistory` over all of `gn_history`. T6 indexes that list once per paint for the current game, then looks up Best / Avg / Worst. Same numbers.
 
 `persistJsonIfChanged` (9023–9047) already avoids rewriting an unchanged JSON string, and history is deferred two seconds during a live match (9092–9098). That part is doing the right work. The cloud push is not: it still ships the whole backup on the same cadence.
 
@@ -161,9 +161,9 @@ Live card, history list, and profile rank call the same loop as `buildMatchPlace
 
 `npm run check` and the small laptop pack on current `main`. Screenshot baselines stay local.
 
-### T6 — Player Pace scans history once
+### T6 — Player Pace scans history once — done
 
-`renderRecordChasePanel` stops calling `getRecordChaseHistory` per player. One walk of `gn_history` per paint, then a lookup. Same Best / Avg / Worst numbers.
+`renderRecordChasePanel` indexes `gn_history` once per paint for the current game, then looks up Best / Avg / Worst. Same numbers. Locked by `scripts/test-record-chase.mjs`.
 
 ### T7 — Drop Closest Finish To 66
 

@@ -12,12 +12,12 @@ Exact scripts from `package.json`:
 
 - `npm install`
 - `npm run build` — `build:styles`, then `build:vendor` (minified CSS, vendor copies, and `public/sw.js`)
-- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, then `git diff --check`
+- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:record-chase`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:record-chase`.
 
 ## Architecture
 
