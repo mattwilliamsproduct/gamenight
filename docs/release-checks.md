@@ -13,7 +13,7 @@ The score-entry checks are specifically meant to catch clipped player rows, keyp
 
 Production loads Life Preserver (`public/assets/life-preserver-logic.js`) and must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests because old history can contain `round.comeback` extras. Those extras are display-only leftovers. Do not turn the Turbo script back on to satisfy a test.
 
-The service worker that ships is whatever `npm run build` writes from `src/service-worker.js`. After a worker edit, run the build and confirm the generated `public/sw.js` precache list matches the scripts in `index.html`.
+The service worker that ships is whatever `npm run build` writes from `src/service-worker.js`. After a worker edit, run the build and confirm the generated `public/sw.js` precache list matches the scripts in `index.html`. `npm run check` also fails if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
 
 Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
 

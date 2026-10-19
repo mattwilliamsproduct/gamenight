@@ -74,7 +74,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Shelf labels may say Flip 7. Stored game name is `Flip 7 Vengeance`.
 - Home-screen short name is Back Porch. Manifest name is Back Porch Games.
 - Cloud sync runs only on `cardknight.vercel.app`.
-- `npm run check` fails if `index.html` loads `comeback-logic.js`, and fails if the worker template disagrees with the scripts the page loads.
+- `npm run check` fails if `index.html` loads `comeback-logic.js`, if the worker template disagrees with the scripts the page loads, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
 
 ## Data the match must round-trip
 
