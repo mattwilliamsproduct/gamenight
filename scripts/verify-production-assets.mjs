@@ -75,6 +75,26 @@ if(templateShell.join('\n') !== builtShell.join('\n')){
   throw new Error('public/sw.js APP_SHELL does not match src/service-worker.js.');
 }
 
+const SHELL_PREFIX = 'back-porch-shell-';
+const RELEASE_PLACEHOLDER = '__BACK_PORCH_RELEASE__';
+const templateCacheName = workerTemplate.match(/const CACHE_NAME = ['"]([^'"]+)['"]/)?.[1];
+if(!templateCacheName){
+  throw new Error('src/service-worker.js is missing CACHE_NAME.');
+}
+if(!templateCacheName.startsWith(SHELL_PREFIX)){
+  throw new Error('src/service-worker.js CACHE_NAME must keep the back-porch-shell- prefix.');
+}
+if(!templateCacheName.includes(RELEASE_PLACEHOLDER)){
+  throw new Error('src/service-worker.js CACHE_NAME must contain __BACK_PORCH_RELEASE__.');
+}
+if(
+  !/self\.addEventListener\(\s*['"]activate['"]/.test(workerTemplate)
+  || !workerTemplate.includes(`key.startsWith('${SHELL_PREFIX}')`)
+  || !/caches\.delete\(\s*key\s*\)/.test(workerTemplate)
+){
+  throw new Error('src/service-worker.js activate must delete old caches that start with back-porch-shell-.');
+}
+
 if(!index.includes('name="apple-mobile-web-app-title" content="Back Porch"')){
   throw new Error('iPad home-screen title should be the short Back Porch name.');
 }
