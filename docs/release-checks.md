@@ -3,7 +3,7 @@
 Run these after UI-affecting work and before a production push:
 
 1. Run `npm run build && npm run check`.
-2. Run `npm run test:functional`. Pull-request CI runs this automatically (syntax, unit checks, then laptop Chromium Playwright). It covers Wizard 6→7 rounds, Michelle name fit, the Actions menu, porch 818 Life Preserver +20, and Beat the Heat staying open below 66. It does not take screenshots.
+2. Run `npm run test:functional`. Pull-request CI runs this automatically (syntax, unit checks, then laptop Chromium Playwright). It covers Wizard 6→7 rounds, Michelle name fit, the Actions menu, porch 818 Life Preserver +20, Beat the Heat staying open below 66, shared Wizard places, and a Life Preserver mark on the card or beside Total. It does not take screenshots.
 3. Run `npm run test:visual`. It compares Home, scorecards, bid/score entry, Settings, Profiles, the Actions menu, WHAMMY, and Nolie against approved screenshots at iPad, laptop, and 1080p TV sizes. Keep this local; the full snapshot matrix is not on CI.
 4. When an intentional visual change is correct, run `npm run test:visual:update`, inspect the changed baselines, then rerun `npm run test:visual`.
 5. For manual scenario review, run `npm run qa:gallery` and open `http://127.0.0.1:4173/?gnqa=1`. The gallery only starts on localhost and does not save fixture data.
