@@ -7,11 +7,10 @@ const APP_SHELL = [
   './assets/fonts.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
-  './assets/comeback-logic.js',
+  './assets/life-preserver-logic.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
-  './bp-apple-touch-icon.png',
-  './apple-touch-icon.png'
+  './bp-apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {

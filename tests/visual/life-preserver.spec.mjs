@@ -345,18 +345,28 @@ test('View Pace restores full round columns after the viewport shrinks', async (
     recordChaseVisible = true;
     renderGame();
   });
-  const wide = await page.evaluate(() => ({
-    active: recordChaseLayoutActive,
-    cols: document.querySelectorAll('#scorecard-head .scorecard-round-th').length
-  }));
+  const wide = await page.evaluate(() => {
+    const headers = [...document.querySelectorAll('#scorecard-head .scorecard-round-th')];
+    return {
+      active: recordChaseLayoutActive,
+      cols: headers.length,
+      labels: headers.map(th => th.textContent.trim())
+    };
+  });
   expect(wide.active).toBe(true);
-  expect(wide.cols).toBe(2);
+  expect(wide.cols).toBe(5);
+  expect(wide.labels).toEqual(['R4', 'R5', 'R6', 'R7', 'R8']);
   await page.setViewportSize({width: 800, height: 900});
   await page.evaluate(() => syncRecordChaseLayoutForViewport());
-  const narrow = await page.evaluate(() => ({
-    active: recordChaseLayoutActive,
-    cols: document.querySelectorAll('#scorecard-head .scorecard-round-th').length
-  }));
+  const narrow = await page.evaluate(() => {
+    const headers = [...document.querySelectorAll('#scorecard-head .scorecard-round-th')];
+    return {
+      active: recordChaseLayoutActive,
+      cols: headers.length,
+      labels: headers.map(th => th.textContent.trim())
+    };
+  });
   expect(narrow.active).toBe(false);
   expect(narrow.cols).toBe(8);
+  expect(narrow.labels).toEqual(['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']);
 });

@@ -110,7 +110,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 
 Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-137-grok-4.7-rethink.md](J-137-grok-4.7-rethink.md).
 
-1. **The next Vercel build precaches the wrong script.** `npm run build` rewrites `public/sw.js` from `src/service-worker.js`, which still lists `comeback-logic.js` and omits `life-preserver-logic.js`. The committed worker is the right shell. The build throws it away.
+1. **The Vercel build precaches the wrong script.** `npm run build` rewrites `public/sw.js` from `src/service-worker.js`. After the #53 docs merge, production `cardknight.vercel.app/sw.js` already ships that template: it lists `comeback-logic.js` and omits `life-preserver-logic.js`. The committed worker in git is the right shell. The build throws it away. Standalone draft for T1 (do not wait on #49's game-behavior review).
 2. **A Life Preserver changes the total and leaves no mark on the card.** Columns skip `hailMaryBonus` rounds. Cells only print `round.comeback`, which new games never write.
 3. **Tied players get consecutive places** on the live scorecard (`1, 2, 3, 4, 5, 6, 7` when the last four are two ties). The path replay already uses shared places (`4, 4, 6, 6`).
 4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
@@ -124,7 +124,7 @@ Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft
 
 Do these in order. Each one is a small, testable change. Leave the open redesign and the Turbo engine alone.
 
-1. Make `src/service-worker.js` precache `life-preserver-logic.js`, and make `npm run check` fail if the template and the script tags disagree.
+1. Make `src/service-worker.js` precache `life-preserver-logic.js`, and make `npm run check` fail if the template and the script tags disagree. Standalone draft (T1). Do not wait for #49.
 2. Paint the Life Preserver adjustment on the hand it followed (and beside Total when that column is hidden). Keep it out of scoring-round counts.
 3. Use the path-replay place rule on the live scorecard, history, and profiles.
 4. Land functional PR checks (the idea in PR #43) on current main. Keep screenshot baselines local.
