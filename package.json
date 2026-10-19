@@ -15,6 +15,7 @@
     "check": "npm run check:syntax && npm run check:production-assets && npm run test:comeback && npm run test:life-preserver && npm run test:backup && npm run test:scorebook && git diff --check",
     "qa:gallery": "node scripts/serve-public.mjs",
     "test:functional": "playwright test --config=playwright.functional.config.mjs",
+    "test:porch-night": "playwright test --config=playwright.porch-night.config.mjs",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots"
   },

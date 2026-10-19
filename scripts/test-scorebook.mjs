@@ -179,3 +179,57 @@ test('a name with no rounds still keeps the Life Preserver flag', () => {
   assert.deepEqual(game.hailMaryUsed, ['Lindy']);
   assert.deepEqual(game.rounds, []);
 });
+
+test('Wizard exact bid is 20 plus 10 per trick; a miss is -10 per trick off', () => {
+  assert.equal(Scorebook.wizardRoundScore(0, 0), 20);
+  assert.equal(Scorebook.wizardRoundScore(1, 1), 30);
+  assert.equal(Scorebook.wizardRoundScore(3, 3), 50);
+  assert.equal(Scorebook.wizardRoundScore(3, 1), -20);
+  assert.equal(Scorebook.wizardRoundScore(0, 2), -20);
+  assert.equal(Scorebook.wizardRoundScore('4', '2'), -20);
+});
+
+test('818 scores tricks taken, plus 10 only on an exact bid', () => {
+  assert.equal(Scorebook.eight18RoundScore(2, 3), 3);
+  assert.equal(Scorebook.eight18RoundScore(0, 0), 10);
+  assert.equal(Scorebook.eight18RoundScore(2, 2), 12);
+  assert.equal(Scorebook.eight18RoundScore(8, 8), 18);
+  assert.equal(Scorebook.eight18RoundScore('3', '1'), 1);
+});
+
+test('Rook made and set split the hand the same way the table does', () => {
+  const players = ['Ann', 'Bea', 'Cal', 'Dee'];
+  const made = Scorebook.rookHandScores({
+    bidder: 'Ann',
+    partner: 'Cal',
+    bid: 80,
+    bidderTeamPoints: 90,
+    handTotal: 180,
+    players
+  });
+  assert.equal(made.made, true);
+  assert.equal(made.otherTeamPoints, 90);
+  assert.deepEqual(made.scores, { Ann: 90, Bea: 90, Cal: 90, Dee: 90 });
+
+  const set = Scorebook.rookHandScores({
+    bidder: 'Ann',
+    partner: 'Cal',
+    bid: 80,
+    bidderTeamPoints: 70,
+    handTotal: 180,
+    players
+  });
+  assert.equal(set.made, false);
+  assert.equal(set.otherTeamPoints, 110);
+  assert.deepEqual(set.scores, { Ann: -80, Bea: 110, Cal: -80, Dee: 110 });
+});
+
+test('the live page still uses the same Wizard, 818, and Rook formulas', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const html = await readFile(join(process.cwd(), 'public', 'index.html'), 'utf8');
+  assert.match(html, /scores\[p\]=\(bid===act\)\?20\+\(10\*act\):-10\*Math\.abs\(bid-act\)/);
+  assert.match(html, /function calculate818Score\(bid, actual\)\{[\s\S]*?return a\+\(a===b\?10:0\);/);
+  assert.match(html, /if\(madeIt\)\{\s*scores\[bidder\]=bidderTeamPts;\s*scores\[partner\]=bidderTeamPts;\s*opponents\.forEach\(p=>scores\[p\]=oppCounters\);/);
+  assert.match(html, /scores\[bidder\]=-bid;\s*scores\[partner\]=-bid;\s*opponents\.forEach\(p=>scores\[p\]=oppCounters\);/);
+});
