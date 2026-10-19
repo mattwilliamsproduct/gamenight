@@ -125,6 +125,40 @@
     return game;
   }
 
+  function wizardRoundScore(bid, tricks) {
+    const b = parseInt(bid, 10) || 0;
+    const a = parseInt(tricks, 10) || 0;
+    return b === a ? 20 + 10 * a : -10 * Math.abs(b - a);
+  }
+
+  function eight18RoundScore(bid, actual) {
+    const b = parseInt(bid, 10) || 0;
+    const a = parseInt(actual, 10) || 0;
+    return a + (a === b ? 10 : 0);
+  }
+
+  function rookHandScores(hand) {
+    const bidder = hand && hand.bidder;
+    const partner = hand && hand.partner;
+    const bid = Number(hand && hand.bid);
+    const handTotal = Number(hand && hand.handTotal);
+    let bidderTeamPoints = Number(hand && hand.bidderTeamPoints);
+    const players = Array.isArray(hand && hand.players) ? hand.players : [];
+    if (!Number.isFinite(bid) || !Number.isFinite(handTotal)) {
+      return { scores: {}, made: false, otherTeamPoints: 0 };
+    }
+    if (!Number.isFinite(bidderTeamPoints)) bidderTeamPoints = 0;
+    bidderTeamPoints = Math.max(0, Math.min(handTotal, bidderTeamPoints));
+    const otherTeamPoints = handTotal - bidderTeamPoints;
+    const made = bidderTeamPoints >= bid;
+    const scores = {};
+    players.forEach(player => {
+      if (player === bidder || player === partner) scores[player] = made ? bidderTeamPoints : -bid;
+      else scores[player] = otherTeamPoints;
+    });
+    return { scores, made, otherTeamPoints };
+  }
+
   const api = {
     competitionPlaces,
     isScoringRound,
@@ -132,7 +166,10 @@
     lifePreserverFollowing,
     lifePreserverLeading,
     lifePreserverHidden,
-    applyPlayerNameOnGame
+    applyPlayerNameOnGame,
+    wizardRoundScore,
+    eight18RoundScore,
+    rookHandScores
   };
 
   root.BPGScorebook = api;

@@ -10,6 +10,7 @@ One static site. `public/` is the deploy. `npm run build` writes CSS, vendor cop
 | --- | --- |
 | `public/index.html` | Shell, theme, and the match state machine. |
 | `public/assets/life-preserver-logic.js` | Pure Life Preserver rules. Loaded in production. |
+| `public/assets/scorebook.js` | Places, Life Preserver marks, name merges, and golden Wizard / 818 / Rook scoring. Loaded in production. |
 | `public/assets/backup.js` | Pure backup merge. Loaded in production. |
 | `public/assets/comeback-logic.js` | Old Turbo rules. Must not load. Kept so old `round.comeback` rows stay defined. |
 | `api/sync.js` | One Redis document for the porch. |

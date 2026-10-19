@@ -15,10 +15,11 @@ Exact scripts from `package.json`:
 - `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:scorebook`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:functional` — Playwright laptop functional pack
+- `npm run test:porch-night` — one laptop Chromium walk of the porch-night gallery fixtures
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:scorebook`, `npm run test:functional`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:scorebook`, `npm run test:functional`, `npm run test:porch-night`.
 
 ## Architecture
 
