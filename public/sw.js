@@ -8,6 +8,7 @@ const APP_SHELL = [
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
   './assets/life-preserver-logic.js',
+  './assets/scorebook.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
   './bp-apple-touch-icon.png'
