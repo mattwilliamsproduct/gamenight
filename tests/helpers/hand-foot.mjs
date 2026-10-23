@@ -1,6 +1,28 @@
+import {mkdirSync} from 'node:fs';
+import {resolve} from 'node:path';
 import {expect} from '@playwright/test';
 
-export const MEDIA_DIR='/cursor/stores/bc-de6e09c3-8389-4db6-9a60-34ab3130e501/media/hand-and-foot';
+const PROVE_IT_MEDIA='/cursor/stores/bc-de6e09c3-8389-4db6-9a60-34ab3130e501/media/hand-and-foot';
+
+function resolveMediaDir(){
+  const candidates=[
+    process.env.HF_MEDIA_DIR,
+    PROVE_IT_MEDIA,
+    resolve('test-results/hand-and-foot')
+  ].filter(Boolean);
+  let lastError=null;
+  for(const dir of candidates){
+    try{
+      mkdirSync(dir, {recursive:true});
+      return dir;
+    }catch(error){
+      lastError=error;
+    }
+  }
+  throw new Error(`No writable Hand and Foot screenshot directory: ${lastError&&lastError.message}`);
+}
+
+export const MEDIA_DIR=resolveMediaDir();
 
 export async function silencePorchPrompts(page){
   page.on('dialog', dialog=>dialog.accept());
