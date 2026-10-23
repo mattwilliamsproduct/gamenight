@@ -13,3 +13,5 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md) — Vercel ships `src/service-worker.js`, not the committed `public/sw.js`.
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.
+
+Standing trap: [data-integrity-records.md](data-integrity-records.md) — bid accuracy comes from bids and actuals, a historical round keeps its own roster, and a Life Preserver flag follows the spins that remain.

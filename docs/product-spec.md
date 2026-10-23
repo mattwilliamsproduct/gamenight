@@ -76,6 +76,10 @@ What the wheel may do:
 
 The spin is stored as its own round: `{ round: 0, hailMaryBonus: true, scores: { Name: adjustment } }`. It is inside the total. It is excluded from round columns, Player Pace, round records, WHAMMY / Nolie / Cami, and the place-over-time path.
 
+A zero-point spin is still a spin. It consumes that player's Life Preserver and sets `assistedMatch` even though the total does not move. `assistedMatch` follows the spins that are still in the match (`hailMaryBonus` rounds, or a legacy `hailMaryUsed` list). Undo of the only spin clears the round, the used list, and `assistedMatch`. Opening the wheel does not mark the match assisted.
+
+Records keep the real final total and the winner. Career games, wins, losses, and win rate count the match. Best and worst final-score superlatives, including Cleanest Game, use unassisted matches only and say so. Every player in an assisted match is out of those superlatives. The book does not subtract the spin to invent another score. If a game's history is all assisted, those cards say "No unassisted matches yet". Single-round records and Wizard / 818 exact bids skip synthetic rounds. Exact and missed bids come from the stored bid and actual. A positive 818 miss stays a miss. An exact 0 stays exact. A legacy round with no bid or no actual is left out of the bid-accuracy count.
+
 ### Hail Mary
 
 There is no second bonus. "Hail Mary" in code, tests, and old history is the Life Preserver spin. Do not design a separate Hail Mary button.
@@ -116,7 +120,7 @@ Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-1
 4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
 5. **Closest Finish To 66 is still a trophy.** Reaching 66 ends Beat the Heat as a loss. The card records a winner's heat against that line.
 6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key. A pull also drops profile-only and remote-match-only updates when no new player or finished game arrived. Hiding the page flushes local storage and does not flush the pending cloud push. A file import can replace the live match without asking.
-7. **A Life Preserver spin can become a Hall of Fame “best round.”** The records walk includes `hailMaryBonus` rounds. The spin is also easy to desync from `hailMaryUsed`, which is a second flag for the same fact.
+7. **A Life Preserver spin can become a Hall of Fame “best round.”** On main, the records walk includes `hailMaryBonus` rounds, and Wizard exact bids treat a positive score as a made bid. This draft keeps the spin in the total, drops it from single-round records and bid counts, and labels final-score superlatives "Unassisted matches only". It is not on main until this draft merges.
 
 Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft PR #35 is leftover from before those merges. A parallel Sol review (PR #46) still treats that chip as open. This spec does not. PR #47 is the canonical docs set. Unique Sol notes are in the J-137 rethink under “Also from J-138 Sol.” Do not merge PR #46. Close it after this fold.
 

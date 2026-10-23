@@ -551,6 +551,51 @@ const lifePreserverVisibleGame=makeCurrentGame('Wizard',lifePreserverVisiblePlay
   hailMaryUsed:['Linda','Mike']
 });
 
+const recordsHealPlayers=[...NAMES];
+function recordsHealAssistedMatch(){
+  const played=Object.fromEntries(recordsHealPlayers.map(player=>[player,player==='Brick'?0:12]));
+  const rounds=[
+    {round:1,scores:played},
+    {round:0,hailMaryBonus:true,scores:{Brick:-18}}
+  ];
+  const totals=totalRounds(recordsHealPlayers,rounds);
+  return {
+    id:1785200000001,
+    game:'Five Crowns',
+    date:'10/11/2026',
+    totals,
+    winners:['Brick'],
+    rounds,
+    originalRoster:[...recordsHealPlayers],
+    currentRound:2,
+    maxRounds:11,
+    hailMaryUsed:['Brick'],
+    assistedMatch:true,
+    retired:[],
+    completed:true
+  };
+}
+function recordsHealPlainMatch(){
+  const played=Object.fromEntries(recordsHealPlayers.map(player=>[player,player==='Matt'?4:10]));
+  const rounds=[{round:1,scores:played}];
+  const totals=totalRounds(recordsHealPlayers,rounds);
+  return {
+    id:1785200000002,
+    game:'Five Crowns',
+    date:'10/18/2026',
+    totals,
+    winners:['Matt'],
+    rounds,
+    originalRoster:[...recordsHealPlayers],
+    currentRound:2,
+    maxRounds:11,
+    hailMaryUsed:[],
+    assistedMatch:false,
+    retired:[],
+    completed:true
+  };
+}
+
 function finishedMatchFromGame(game,id){
   return {
     id,
@@ -793,6 +838,18 @@ export const QA_SCENARIOS = {
       history:[finishedMatchFromGame(lifePreserverVisibleGame,1785100000002)],
       playerProfiles:profiles(),
       currentGame:lifePreserverVisibleGame
+    }
+  },
+  'records-assisted-heal':{
+    label:'Records · Assisted Match Heal',
+    description:'Twelve players. Brick’s Five Crowns Life Preserver is −18 on round 0 beside a real 0 hand. Unassisted score records use the other match.',
+    defaultSurface:'home',
+    data:{
+      allPlayers:[...NAMES],
+      players:[...NAMES],
+      history:[recordsHealAssistedMatch(),recordsHealPlainMatch()],
+      playerProfiles:profiles(),
+      currentGame:null
     }
   }
 };

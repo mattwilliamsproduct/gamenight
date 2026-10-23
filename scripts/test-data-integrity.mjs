@@ -5,6 +5,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const Scorebook = require('../public/assets/scorebook.js');
+const Life = require('../public/assets/life-preserver-logic.js');
 
 test('blank and non-integer entries are rejected before they can become numbers', () => {
   assert.equal(Scorebook.parseEntryInteger('').ok, false);
@@ -473,7 +474,7 @@ test('a Rook total under the win target reopens, and a Life Preserver round cann
 test('a Life Preserver is an assisted match only after a spin is stored', () => {
   assert.equal(Scorebook.isAssistedMatch({ lifePreserverHeld: ['Linda'], rounds: [] }), false);
   assert.equal(Scorebook.isAssistedMatch({ hailMaryUsed: [], rounds: [{ round: 1, scores: { Linda: 4 } }] }), false);
-  assert.equal(Scorebook.isAssistedMatch({ assistedMatch: true, rounds: [] }), true);
+  assert.equal(Scorebook.isAssistedMatch({ assistedMatch: true, rounds: [], hailMaryUsed: [] }), false);
   assert.equal(Scorebook.isAssistedMatch({ hailMaryUsed: ['Linda'], rounds: [{ round: 1, scores: { Linda: 4 } }] }), true);
   assert.equal(Scorebook.isAssistedMatch({
     rounds: [{ round: 0, hailMaryBonus: true, scores: { Brick: -18 } }]
@@ -513,6 +514,13 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /BPGScorebook\.isSyntheticAdjustmentRound/);
   assert.match(page, /BPGScorebook\.isAssistedMatch/);
   assert.match(page, /BPGScorebook\.recordLifePreserverSpin/);
+  assert.match(page, /BPGScorebook\.classifyBidAccuracy/);
+  assert.match(page, /BPGScorebook\.syncAssistedMatch/);
+  assert.match(page, /BPGScorebook\.historicalRoundParticipants/);
+  assert.match(page, /historyReopenWouldReplaceActive/);
+  assert.match(page, /ensureGameId/);
+  assert.doesNotMatch(page, /if\(score>0\)ms\[p\]\.exacts/);
+  assert.doesNotMatch(page, /return Number\(score\)>=10/);
   assert.doesNotMatch(page, /if\(score!==0\) update\(games\["Five Crowns"\],'bestRound'/);
   const wheelStart = page.indexOf('function authorizeHailMary');
   const wheelEnd = page.indexOf('function applyLifePreserverResult');
@@ -617,4 +625,245 @@ test('a blank live trick is rejected before it can be stored as zero', () => {
   assert.equal(checked.values.Alice, undefined);
   assert.equal(checked.values.Bob, 2);
   assert.match(checked.message, /Check Alice/);
+});
+
+test('the 12-player records fixture keeps Brick’s spin beside a real zero hand', async () => {
+  const {QA_SCENARIOS} = await import('../public/qa/fixtures.mjs');
+  const heal = QA_SCENARIOS['records-assisted-heal'].data;
+  assert.equal(heal.allPlayers.length, 12);
+  assert.equal(heal.currentGame, null);
+  assert.equal(heal.history.length, 2);
+  const assisted = heal.history.find(match => match.assistedMatch === true);
+  const plain = heal.history.find(match => match.assistedMatch !== true);
+  assert.ok(assisted);
+  assert.ok(plain);
+  assert.equal(Scorebook.isAssistedMatch(assisted), true);
+  assert.equal(Scorebook.isAssistedMatch(plain), false);
+  assert.equal(assisted.originalRoster.length, 12);
+  const spin = assisted.rounds.find(round => round.hailMaryBonus === true);
+  const hand = assisted.rounds.find(round => round.round === 1);
+  assert.equal(spin.scores.Brick, -18);
+  assert.equal(spin.round, 0);
+  assert.equal(Scorebook.isSyntheticAdjustmentRound(spin), true);
+  assert.equal(Scorebook.isPlayedScoringRound(hand), true);
+  assert.equal(hand.scores.Brick, 0);
+  assert.equal(assisted.totals.Brick, -18);
+  assert.equal(plain.totals.Matt, 4);
+  const copy = JSON.parse(JSON.stringify(assisted));
+  const before = JSON.stringify({totals: copy.totals, rounds: copy.rounds});
+  Scorebook.recomputeTotals(copy);
+  Scorebook.recomputeTotals(copy);
+  assert.equal(JSON.stringify({totals: copy.totals, rounds: copy.rounds}), before);
+  assert.equal(copy.rounds.length, 2);
+  const home = QA_SCENARIOS['home-party'].data.history;
+  assert.equal(home.some(match => (match.rounds || []).some(round => round.scores && round.scores.Brick === -18)), false);
+});
+
+test('bid accuracy uses bids and actuals, including an exact zero and a positive 818 miss', () => {
+  const positiveMiss = {
+    round: 1,
+    bids: { Ada: 3 },
+    actuals: { Ada: 2 },
+    scores: { Ada: 15 }
+  };
+  assert.equal(Scorebook.eight18RoundScore(3, 2), 2);
+  assert.equal(Scorebook.classifyBidAccuracy(positiveMiss, 'Ada'), 'miss');
+  const exactZero = { round: 1, bids: { Bea: 0 }, actuals: { Bea: '0' }, scores: { Bea: 0 } };
+  assert.equal(Scorebook.classifyBidAccuracy(exactZero, 'Bea'), 'exact');
+  const legacy = { round: 2, scores: { Cal: 40 } };
+  assert.equal(Scorebook.classifyBidAccuracy(legacy, 'Cal'), null);
+  const spin = { round: 0, hailMaryBonus: true, scores: { Ada: 15 }, bids: { Ada: 1 }, actuals: { Ada: 1 } };
+  assert.equal(Scorebook.classifyBidAccuracy(spin, 'Ada'), null);
+});
+
+test('the shared commit boundary rejects blank, whitespace, non-finite, fractional, and out-of-range values', () => {
+  const check = (game, kind, roundNumber, raw) => Scorebook.validateEntries({
+    game,
+    kind,
+    roundNumber,
+    players: ['Ada'],
+    values: { Ada: raw }
+  });
+  ['', '   ', NaN, Infinity, -Infinity, 'NaN', 'Infinity', 2.5, '2.5'].forEach(raw => {
+    assert.equal(check('Wizard', 'tricks', 2, raw).ok, false, `trick ${String(raw)}`);
+    assert.equal(check('Five Crowns', 'scores', 1, raw).ok, false, `score ${String(raw)}`);
+    assert.equal(check('Flip 7 Vengeance', 'scores', 1, raw).ok, false, `flip ${String(raw)}`);
+    assert.equal(check('Beat the Heat', 'scores', 1, raw).ok, false, `heat ${String(raw)}`);
+  });
+  [-1, '-1', 3].forEach(raw => {
+    const tricks = check('818', 'tricks', 8, raw);
+    assert.equal(tricks.ok, false, String(raw));
+    assert.equal(tricks.limit, 1);
+  });
+  assert.equal(check('Wizard', 'tricks', 4, 0).ok, true);
+  assert.equal(check('Wizard', 'tricks', 4, '0').values.Ada, 0);
+  assert.equal(check('Five Crowns', 'scores', 1, 0).values.Ada, 0);
+  assert.equal(check('Beat the Heat', 'scores', 2, '0').values.Ada, 0);
+
+  const game = {
+    name: 'Five Crowns',
+    originalRoster: ['Ada'],
+    totals: { Ada: 15 },
+    auditLog: [],
+    rounds: [{ round: 1, scores: { Ada: 15 } }]
+  };
+  const before = JSON.stringify(game);
+  ['', '   ', NaN, Infinity, 2.5, -1].forEach(raw => {
+    const result = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Ada: raw } });
+    assert.equal(result.ok, false, String(raw));
+    assert.equal(JSON.stringify(game), before);
+  });
+  const saved = Scorebook.commitRoundCorrection(game, { roundIndex: 0, now: 9, scores: { Ada: '0' } });
+  assert.equal(saved.ok, true);
+  assert.equal(game.rounds[0].scores.Ada, 0);
+  assert.equal(game.totals.Ada, 0);
+  assert.equal(game.auditLog.at(-1).detail, 'Ada: 15 -> 0');
+});
+
+test('a historical trick correction counts the players who were in that round', () => {
+  const game = {
+    name: '818',
+    dealerOffset: 0,
+    originalRoster: ['Alice', 'Bob', 'Cara', 'Dan'],
+    retired: ['Cara'],
+    currentRound: 4,
+    maxRounds: 15,
+    completed: false,
+    totals: { Alice: 2, Bob: 2, Cara: 2, Dan: 1 },
+    auditLog: [],
+    rounds: [{
+      round: 3,
+      bids: { Alice: 1, Bob: 1, Cara: 1, Dan: 0 },
+      actuals: { Alice: 2, Bob: 2, Cara: 2, Dan: 1 },
+      scores: { Alice: 2, Bob: 2, Cara: 2, Dan: 1 },
+      joinBonus: { Dan: true }
+    }]
+  };
+  assert.deepEqual(Scorebook.historicalRoundParticipants(game, game.rounds[0]), ['Alice', 'Bob', 'Cara']);
+  const before = JSON.stringify(game);
+  const ignoredRetired = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: 4, Bob: 2 }
+  });
+  assert.equal(ignoredRetired.ok, false);
+  assert.match(ignoredRetired.message, /must total 6/);
+  assert.equal(JSON.stringify(game), before);
+
+  const saved = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    now: 44,
+    actuals: { Alice: 3, Bob: 1, Cara: 2 }
+  });
+  assert.equal(saved.ok, true);
+  assert.deepEqual(game.rounds[0].actuals, { Alice: 3, Bob: 1, Cara: 2, Dan: 1 });
+  assert.equal(game.rounds[0].scores.Cara, 2);
+  assert.equal(game.retired[0], 'Cara');
+
+  const illegal = {
+    name: '818',
+    dealerOffset: 0,
+    originalRoster: ['Alice', 'Bob', 'Cara', 'Dan'],
+    retired: ['Cara'],
+    currentRound: 4,
+    totals: { Alice: 2, Bob: 2, Cara: 2 },
+    auditLog: [],
+    rounds: [{
+      round: 3,
+      bids: { Alice: 1, Bob: 1, Cara: 4 },
+      actuals: { Alice: 2, Bob: 2, Cara: 2 },
+      scores: { Alice: 2, Bob: 2, Cara: 2 }
+    }]
+  };
+  const dealer = Scorebook.commitRoundCorrection(illegal, {
+    roundIndex: 0,
+    actuals: { Alice: 2, Bob: 2, Cara: 2 }
+  });
+  assert.equal(dealer.ok, false);
+  assert.equal(dealer.message, 'Dealer Cara cannot bid 4 on round 3.');
+  assert.equal(illegal.auditLog.length, 0);
+  assert.equal(illegal.rounds[0].actuals.Cara, 2);
+});
+
+test('reopening a saved match does not replace a different active game', () => {
+  const active = { id: 111, gameId: 111, name: 'Five Crowns', rounds: [{ round: 1, scores: { Matt: 4 } }] };
+  const edited = { id: 66, gameId: 66, game: 'Beat the Heat' };
+  assert.equal(Scorebook.historyReopenWouldReplaceActive(active, edited), true);
+  assert.equal(Scorebook.historyReopenWouldReplaceActive(null, edited), false);
+  assert.equal(Scorebook.historyReopenWouldReplaceActive(edited, edited), false);
+  assert.equal(Scorebook.historyReopenWouldReplaceActive({ name: 'Wizard' }, edited), true);
+});
+
+test('undoing the only Life Preserver clears assistedMatch, including a zero-point spin', () => {
+  const game = {
+    name: 'Five Crowns',
+    originalRoster: ['Ada'],
+    currentRound: 3,
+    rounds: [
+      { round: 1, scores: { Ada: 12 } },
+      { round: 0, hailMaryBonus: true, scores: { Ada: -5 } },
+      { round: 2, scores: { Ada: 4 } }
+    ],
+    totals: { Ada: 11 },
+    hailMaryUsed: ['Ada'],
+    assistedMatch: true
+  };
+  const undo = target => {
+    let lastIdx = -1;
+    for (let i = target.rounds.length - 1; i >= 0; i -= 1) {
+      if (!target.rounds[i].hailMaryBonus) { lastIdx = i; break; }
+    }
+    if (lastIdx < 0) return false;
+    const removed = target.rounds.slice(lastIdx);
+    target.rounds = target.rounds.slice(0, lastIdx);
+    target.hailMaryUsed = Life.releaseRemovedLifePreservers(target.hailMaryUsed, removed);
+    Scorebook.syncAssistedMatch(target);
+    Scorebook.recomputeTotals(target);
+    return true;
+  };
+  assert.equal(undo(game), true);
+  assert.equal(Scorebook.isAssistedMatch(game), true);
+  assert.equal(game.assistedMatch, true);
+  assert.equal(undo(game), true);
+  assert.equal(game.assistedMatch, false);
+  assert.deepEqual(game.hailMaryUsed, []);
+  const reloaded = JSON.parse(JSON.stringify(game));
+  assert.equal(Scorebook.isAssistedMatch(reloaded), false);
+
+  const neutral = {
+    name: 'Five Crowns',
+    originalRoster: ['Ada'],
+    currentRound: 2,
+    rounds: [{ round: 1, scores: { Ada: 12 } }],
+    totals: { Ada: 12 },
+    hailMaryUsed: [],
+    assistedMatch: false
+  };
+  Scorebook.recordLifePreserverSpin(neutral, 'Ada', 0);
+  assert.equal(neutral.totals.Ada, 12);
+  assert.equal(neutral.assistedMatch, true);
+  assert.deepEqual(neutral.hailMaryUsed, ['Ada']);
+  assert.equal(neutral.rounds.at(-1).scores.Ada, 0);
+  assert.equal(undo(neutral), true);
+  assert.equal(neutral.assistedMatch, false);
+  assert.equal(neutral.rounds.some(round => round.hailMaryBonus), false);
+  const stored = JSON.parse(JSON.stringify(neutral));
+  assert.equal(Scorebook.isAssistedMatch(stored), false);
+  assert.equal(stored.assistedMatch, false);
+});
+
+test('every match keeps a stable gameId once it has one', () => {
+  const legacy = { id: 42, name: 'Wizard', currentRound: 3, wizardPhase: 'scoring' };
+  assert.equal(Scorebook.ensureGameId(legacy), 42);
+  assert.equal(legacy.gameId, 42);
+  assert.equal(Scorebook.ensureGameId(legacy), 42);
+  const fresh = { name: '818', currentRound: 4 };
+  const minted = Scorebook.ensureGameId(fresh);
+  assert.ok(minted);
+  assert.equal(fresh.id, minted);
+  assert.equal(Scorebook.ensureGameId(fresh), minted);
+  const identity = Scorebook.matchIdentity(fresh);
+  assert.deepEqual(identity, { gameId: minted, round: 4, phase: 'bidding' });
+  const named = { gameId: 'porch-night', name: 'Five Crowns', currentRound: 2 };
+  assert.equal(Scorebook.ensureGameId(named), 'porch-night');
+  assert.equal(named.id, 'porch-night');
 });

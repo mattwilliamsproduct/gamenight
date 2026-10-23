@@ -403,11 +403,20 @@
     return !!(round && !isSyntheticAdjustmentRound(round));
   }
 
-  function isAssistedMatch(game) {
+  function appliedLifePreserverRemains(game) {
     if (!game || typeof game !== 'object') return false;
-    if (game.assistedMatch === true) return true;
-    if (Array.isArray(game.hailMaryUsed) && game.hailMaryUsed.some(name => !!name)) return true;
-    return (game.rounds || []).some(round => round && round.hailMaryBonus === true);
+    if ((game.rounds || []).some(round => round && round.hailMaryBonus === true)) return true;
+    return Array.isArray(game.hailMaryUsed) && game.hailMaryUsed.some(name => !!name);
+  }
+
+  function isAssistedMatch(game) {
+    return appliedLifePreserverRemains(game);
+  }
+
+  function syncAssistedMatch(game) {
+    if (!game || typeof game !== 'object') return false;
+    game.assistedMatch = appliedLifePreserverRemains(game);
+    return game.assistedMatch;
   }
 
   function recordLifePreserverSpin(game, player, adjustment) {
@@ -416,11 +425,129 @@
     const parsed = parseEntryInteger(adjustment);
     const value = parsed.ok ? parsed.value : 0;
     game.rounds.push({ round: 0, scores: { [player]: value }, hailMaryBonus: true });
-    game.assistedMatch = true;
     if (!Array.isArray(game.hailMaryUsed)) game.hailMaryUsed = [];
     if (!game.hailMaryUsed.includes(player)) game.hailMaryUsed.push(player);
     recomputeTotals(game);
+    syncAssistedMatch(game);
     return game;
+  }
+
+  function bidFieldPresent(map, player) {
+    if (!map || !Object.prototype.hasOwnProperty.call(map, player)) return false;
+    const raw = map[player];
+    if (raw === undefined || raw === null || String(raw).trim() === '') return false;
+    const value = Number(raw);
+    return Number.isFinite(value);
+  }
+
+  function classifyBidAccuracy(round, player) {
+    if (!isPlayedScoringRound(round) || !player) return null;
+    if (!bidFieldPresent(round.bids, player) || !bidFieldPresent(round.actuals, player)) return null;
+    return Number(round.bids[player]) === Number(round.actuals[player]) ? 'exact' : 'miss';
+  }
+
+  function mintGameId() {
+    const cryptoApi = globalThis.crypto;
+    if (cryptoApi && typeof cryptoApi.randomUUID === 'function') return cryptoApi.randomUUID();
+    return `gn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function ensureGameId(game) {
+    if (!game || typeof game !== 'object') return null;
+    const hasGameId = game.gameId != null && game.gameId !== '';
+    const hasId = game.id != null && game.id !== '';
+    if (!hasGameId && hasId) game.gameId = game.id;
+    else if (hasGameId && !hasId) game.id = game.gameId;
+    else if (!hasGameId && !hasId) {
+      const minted = mintGameId();
+      game.gameId = minted;
+      game.id = minted;
+    }
+    return game.gameId;
+  }
+
+  function matchPhase(game) {
+    const name = gameName(game);
+    if (name === 'Wizard') return (game && game.wizardPhase) || 'bidding';
+    if (name === '818') return (game && game.eight18Phase) || 'bidding';
+    if (name === 'Rook') return (game && game.rookPhase) || 'bidSetup';
+    return 'scoring';
+  }
+
+  function matchIdentity(game) {
+    if (!game || typeof game !== 'object') return null;
+    return {
+      gameId: ensureGameId(game),
+      round: Number(game.currentRound) || 1,
+      phase: matchPhase(game)
+    };
+  }
+
+  function historyReopenWouldReplaceActive(active, edited) {
+    if (!active) return false;
+    if (edited && active === edited) return false;
+    const keyOf = game => {
+      if (!game) return '';
+      if (game.gameId != null && game.gameId !== '') return String(game.gameId);
+      if (game.id != null && game.id !== '') return String(game.id);
+      return '';
+    };
+    const activeKey = keyOf(active);
+    const editedKey = keyOf(edited);
+    if (!activeKey || !editedKey) return true;
+    return activeKey !== editedKey;
+  }
+
+  function historicalRoundParticipants(game, round) {
+    if (!round || isSyntheticAdjustmentRound(round)) return [];
+    const join = round.joinBonus || {};
+    const seen = new Set();
+    const named = [];
+    const add = player => {
+      if (!player || join[player] || seen.has(player)) return;
+      seen.add(player);
+      named.push(player);
+    };
+    const bids = round.bids || {};
+    const actuals = round.actuals || {};
+    if (Object.keys(bids).length || Object.keys(actuals).length) {
+      Object.keys(bids).forEach(add);
+      Object.keys(actuals).forEach(add);
+    } else {
+      Object.keys(round.scores || {}).forEach(add);
+    }
+    const roster = game && Array.isArray(game.originalRoster) && game.originalRoster.length
+      ? game.originalRoster
+      : named;
+    const ordered = roster.filter(player => seen.has(player));
+    named.forEach(player => {
+      if (!ordered.includes(player)) ordered.push(player);
+    });
+    return ordered;
+  }
+
+  function eight18DealerBidViolation(game, round, players) {
+    if (gameName(game) !== '818' || !round || !players || !players.length) return null;
+    const bids = round.bids || {};
+    const known = players.every(player => bidFieldPresent(bids, player));
+    if (!known) return null;
+    const roundNumber = Number(round.round) || 1;
+    const offset = Number(game && game.dealerOffset) || 0;
+    const index = ((roundNumber - 1 + offset) % players.length + players.length) % players.length;
+    const dealer = players[index];
+    const limit = roundTrickLimit(game, roundNumber);
+    const others = players.reduce((sum, player) => {
+      if (player === dealer) return sum;
+      return sum + Number(bids[player]);
+    }, 0);
+    const forbidden = limit - others;
+    if (!Number.isInteger(forbidden) || forbidden < 0 || forbidden > limit) return null;
+    if (Number(bids[dealer]) !== forbidden) return null;
+    return {
+      dealer,
+      forbidden,
+      message: `Dealer ${dealer} cannot bid ${forbidden} on round ${roundNumber}.`
+    };
   }
 
   function signedScore(value) {
@@ -510,10 +637,8 @@
     };
   }
 
-  function trickRoundPlayers(round) {
-    const bids = round && round.bids;
-    const keys = bids ? Object.keys(bids) : [];
-    return keys.length ? keys : Object.keys((round && round.actuals) || {});
+  function trickRoundPlayers(game, round) {
+    return historicalRoundParticipants(game, round);
   }
 
   function correctionDetail(kind, changes) {
@@ -532,7 +657,7 @@
     if (!round) return { ok: false, reason: 'verify', message: 'That round is missing.' };
     const name = gameName(game);
     if (name === 'Wizard' || name === '818') {
-      const players = trickRoundPlayers(round);
+      const players = trickRoundPlayers(game, round);
       const limit = roundTrickLimit(game, round.round);
       const outOfRange = players.filter(player => {
         const actual = round.actuals && round.actuals[player];
@@ -571,7 +696,7 @@
       const changes = [];
 
       if (kind === 'tricks') {
-        const players = trickRoundPlayers(round);
+        const players = trickRoundPlayers(draft, round);
         if (!players.length) return { ok: false, reason: 'invalid', message: 'That round has no bids to correct.' };
         const rawActuals = {};
         players.forEach(player => {
@@ -596,6 +721,16 @@
             limit: checked.limit,
             sum: balanced.sum,
             message: `${entryGameLabel(draft)} round ${round.round} must total ${checked.limit} tricks. This table totals ${balanced.sum}.`
+          };
+        }
+        const dealerBlock = eight18DealerBidViolation(draft, round, players);
+        if (dealerBlock) {
+          return {
+            ok: false,
+            reason: 'dealer',
+            invalidPlayers: [dealerBlock.dealer],
+            limit: checked.limit,
+            message: dealerBlock.message
           };
         }
         const actualsChanged = players.some(player => !sameNumber(round.actuals && round.actuals[player], checked.values[player]));
@@ -729,7 +864,14 @@
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
     isAssistedMatch,
+    syncAssistedMatch,
     recordLifePreserverSpin,
+    classifyBidAccuracy,
+    ensureGameId,
+    matchIdentity,
+    historyReopenWouldReplaceActive,
+    historicalRoundParticipants,
+    eight18DealerBidViolation,
     standingOver,
     leadersOf,
     refreshStanding,

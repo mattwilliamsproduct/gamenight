@@ -109,25 +109,31 @@ test('Share Receipt keeps the Life Preserver mark from the live card', async ({p
   expect(receipt).toContain('+15');
 });
 
-test('merging a live name keeps the Wizard bid and the Life Preserver', async ({page})=>{
+test('merging two names from the same live Wizard match is refused', async ({page})=>{
   await openVisiblePreserver(page);
+  const dialogs=[];
+  page.on('dialog', async dialog=>{
+    dialogs.push(dialog.message());
+    await dialog.accept();
+  });
   const merged=await page.evaluate(()=>{
-    mergePlayerRecords('Linda','Mike');
+    const before=JSON.stringify(currentGame);
+    const ok=mergePlayerRecords('Linda','Mike');
     const scoring=currentGame.rounds.find(round=>round.round===1);
-    const bonus=currentGame.rounds.find(round=>round.hailMaryBonus&&round.scores.Mike===15);
     return {
-      bid:scoring?.bids?.Mike,
+      ok,
+      unchanged:JSON.stringify(currentGame)===before,
       lindaBid:scoring?.bids?.Linda,
-      score:scoring?.scores?.Mike,
-      bonus:bonus?.scores?.Mike,
-      used:[...(currentGame.hailMaryUsed||[])],
-      roster:[...currentGame.originalRoster]
+      mikeBid:scoring?.bids?.Mike,
+      roster:[...currentGame.originalRoster],
+      spins:currentGame.rounds.filter(round=>round.hailMaryBonus).length
     };
   });
-  expect(merged.bid).toBe(3);
-  expect(merged.bonus).toBe(15);
-  expect(merged.score).toBe(25);
-  expect(merged.lindaBid).toBeUndefined();
-  expect(merged.used).toEqual(['Mike']);
-  expect(merged.roster).toEqual(['Matt','Mike']);
+  expect(merged.ok).toBe(false);
+  expect(merged.unchanged).toBe(true);
+  expect(merged.lindaBid).toBe(2);
+  expect(merged.mikeBid).toBe(1);
+  expect(merged.roster).toEqual(['Matt','Mike','Linda']);
+  expect(merged.spins).toBe(2);
+  expect(dialogs.join('\n')).toContain('same match');
 });

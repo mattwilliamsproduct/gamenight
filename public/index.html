@@ -8950,11 +8950,8 @@ button.dealer-name-indicator .dealer-player-label {
   function isHighScoreGame(name){
     return name==='Wizard'||name==='818'||name==='Flip 7 Vengeance'||name==='Rook';
   }
-  function is818ExactRound(round, player, score){
-    const bid=round?.bids?.[player];
-    const actual=round?.actuals?.[player];
-    if(bid!==undefined&&actual!==undefined) return Number(bid)===Number(actual);
-    return Number(score)>=10;
+  function is818ExactRound(round, player){
+    return BPGScorebook.classifyBidAccuracy(round, player)==='exact';
   }
   const WIZARD_RECORD_PLAYER_COUNTS = [4,5,6,7,8];
   function createWizardScoreBuckets(){
@@ -11366,9 +11363,11 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function createSavedMatchSnapshot(game, winners){
-    if(!game.id) game.id=Date.now();
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(game);
+    else if(!game.id) game.id=Date.now();
     const data={
       id:game.id,
+      gameId:game.gameId||game.id,
       game:game.name,
       completed:true,
       assistedMatch:game.assistedMatch===true,
@@ -11439,6 +11438,7 @@ button.dealer-name-indicator .dealer-player-label {
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
     currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -12729,7 +12729,9 @@ ${isDealer
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={id:g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -15042,6 +15044,9 @@ ${isDealer
     if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
       currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
     }
+    if(window.BPGScorebook&&typeof BPGScorebook.syncAssistedMatch==='function'){
+      BPGScorebook.syncAssistedMatch(currentGame);
+    }
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
     toast(`↶ Round ${last.round} undone`, 'warning');
@@ -15519,19 +15524,23 @@ ${isDealer
     saved.currentRound=game.currentRound;
     saved.completed=game.completed===true;
     saved.assistedMatch=game.assistedMatch===true;
+    saved.gameId=game.gameId||game.id;
     saved.maxRounds=game.maxRounds;
     markHistoryChanged();
   }
 
   function finalizeHistoryCorrection(match, result){
     markHistoryChanged();
-    if(result.standing?.reopened && !currentGame){
+    const reopened=!!(result.standing&&result.standing.reopened);
+    const blocked=reopened&&BPGScorebook.historyReopenWouldReplaceActive(currentGame, match);
+    if(reopened&&!blocked&&!currentGame){
       closeModal('scorecard-modal');
       resumeMatch(match.id,{force:true});
       toast('Match is back on the table');
       return;
     }
-    if(result.standing?.reopened) toast('That saved match is under the line again');
+    if(blocked) toast('Corrected match saved. The game on the table stayed put.');
+    else if(reopened) toast('That saved match is under the line again');
     else if(result.standing?.winnersChanged) toast('Standings updated');
     saveData({ fullPersist: true, syncCold: true });
     renderHistoryList();
@@ -15569,7 +15578,7 @@ ${isDealer
     const round=match.rounds?.[spec.roundIndex];
     const name=match.name||match.game;
     if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)||(name!=='Wizard'&&name!=='818')) return;
-    const players=Object.keys(round.bids||{});
+    const players=BPGScorebook.historicalRoundParticipants(match, round);
     if(!players.length) return;
     const values={};
     const acknowledged={};
@@ -15678,7 +15687,7 @@ ${isDealer
       return;
     }
     syncSavedMatchFromGame(match);
-    saveData();
+    saveData({ fullPersist: true, syncCold: true });
     scheduleRender();
     if(result.standing?.reopened) toast('The match is back under the line');
     else if(result.standing?.winnersChanged) toast('Standings updated');
@@ -15714,7 +15723,7 @@ ${isDealer
       if(window.BPGComeback) BPGComeback.syncComebackAfterScoreEdit(currentGame, currentGame.rounds[roundIndex], player);
       recomputeGameTotals(currentGame);
       syncSavedMatchFromGame(currentGame);
-      saveData();
+      saveData({ fullPersist: true, syncCold: true });
       if(result.standing?.reopened) toast('The match is back under the line');
       else if(result.standing?.winnersChanged) toast('Standings updated');
     }
@@ -16210,12 +16219,16 @@ ${isDealer
             if(h.game==='Wizard'){
               if(score>r.Wizard.bestRound){r.Wizard.bestRound=score;r.Wizard.bestRoundPlayer=p;}
               if(score<r.Wizard.worstRound){r.Wizard.worstRound=score;r.Wizard.worstRoundPlayer=p;}
-              if(score>0)ms[p].exacts++; else ms[p].busted++;
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(bidResult==='exact')ms[p].exacts++;
+              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='818'){
               if(score>r['818'].bestRound){r['818'].bestRound=score;r['818'].bestRoundPlayer=p;}
               if(score<r['818'].worstRound){r['818'].worstRound=score;r['818'].worstRoundPlayer=p;}
-              if(is818ExactRound(round,p,score))ms[p].exacts++; else ms[p].busted++;
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(bidResult==='exact')ms[p].exacts++;
+              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='Flip 7 Vengeance'){
               if(score>r['Flip 7 Vengeance'].bestRound){r['Flip 7 Vengeance'].bestRound=score;r['Flip 7 Vengeance'].bestRoundPlayer=p;}
@@ -16490,10 +16503,11 @@ ${isDealer
             update(games['818'],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
             update(games['818'],'worstRound',entry(p,score,h,{round:r.round}),betterLow);
             const bid = r.bids?.[p], actual = r.actuals?.[p];
-            perMatch[p].eight18BidTotal++;
-            if(is818ExactRound(r,p,score)) perMatch[p].exacts++;
-            else perMatch[p].busted++;
-            if(bid!==undefined && actual!==undefined){
+            const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+            if(bidResult==='exact') perMatch[p].exacts++;
+            else if(bidResult==='miss') perMatch[p].busted++;
+            if(bidResult) perMatch[p].eight18BidTotal++;
+            if(bidResult&&bid!==undefined&&actual!==undefined){
               const miss=Math.abs(Number(actual)-Number(bid));
               if(miss>0) update(games['818'],'biggestMiss',entry(p,miss,h,{round:r.round,label:`Bid ${bid}, took ${actual}`}),betterHigh);
               update(games['818'],'mostTricksRound',entry(p,actual,h,{round:r.round,label:`${actual} tricks`}),betterHigh);
@@ -16506,11 +16520,12 @@ ${isDealer
               update(games.Wizard,'biggestFinalRoundSwing',entry(p,score,h,{round:r.round,label:`${score >= 0 ? '+' : ''}${score} in final round`}),betterHigh);
             }
             const bid = r.bids?.[p], actual = r.actuals?.[p];
-            if(bid!==undefined && actual!==undefined){
+            const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+            if(bidResult){
               if(!wizardBidStats[p]) wizardBidStats[p]={exact:0,total:0,busted:0};
               wizardBidStats[p].total++;
               perMatch[p].wizardBidTotal++;
-              if(bid===actual){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
+              if(bidResult==='exact'){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
               else { wizardBidStats[p].busted++; perMatch[p].busted++; }
               if(Number(bid)===0&&Number(actual)===0) perMatch[p].zeroBidsHit++;
               if(actual<bid) update(games.Wizard,'biggestOverbid',entry(p,bid-actual,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
@@ -17013,6 +17028,21 @@ ${isDealer
     };
   }
 
+  function backfillStableGameIds(){
+    if(!window.BPGScorebook||typeof BPGScorebook.ensureGameId!=='function')return;
+    let changed=false;
+    const stamp=game=>{
+      if(!game||typeof game!=='object')return;
+      const hadGameId=game.gameId!=null&&game.gameId!=='';
+      const hadId=game.id!=null&&game.id!=='';
+      BPGScorebook.ensureGameId(game);
+      if(!hadGameId||!hadId)changed=true;
+    };
+    stamp(currentGame);
+    (history||[]).forEach(stamp);
+    if(changed) _persistGamenightState({fullPersist:true, syncCold:true});
+  }
+
   /* ═══ BOOT ═══ */
   window.onload=async function(){
     gnPerfInit();
@@ -17027,6 +17057,7 @@ ${isDealer
     }
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+    backfillStableGameIds();
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');
