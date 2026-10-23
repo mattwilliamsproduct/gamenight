@@ -66,6 +66,55 @@ async function entryProblems(page){
   });
 }
 
+async function activeRowProblems(page){
+  return page.evaluate(()=>{
+    const problems=[];
+    const scroller=document.getElementById('score-entry-rows');
+    const active=scroller?.querySelector('.score-entry-hf-row.active');
+    const keypad=document.querySelector('#score-entry-modal .score-entry-keypad')?.getBoundingClientRect();
+    const panel=document.querySelector('#score-entry-modal .score-entry-panel')?.getBoundingClientRect();
+    const view=scroller?.getBoundingClientRect();
+    const footer=[...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].map(el=>el.getBoundingClientRect());
+    if(!active||!keypad||!view||!panel) return ['missing active row, keypad, or list'];
+    const hit=(a,b)=>a.width>0 && b.width>0 && a.x<b.right-0.5 && a.right>b.x+0.5 && a.y<b.bottom-0.5 && a.bottom>b.y+0.5;
+    const fields=[...active.querySelectorAll('.hf-field, .hf-round')];
+    if(fields.filter(el=>el.classList.contains('hf-field')).length<6) problems.push('active row has fewer than 6 inputs');
+    fields.forEach(el=>{
+      const r=el.getBoundingClientRect();
+      const label=(el.querySelector('.score-entry-meta-label')?.textContent||'').trim()||'field';
+      if(r.width<44 || r.height<44) problems.push(`${label} ${Math.round(r.width)}x${Math.round(r.height)}`);
+      if(r.top<view.top-1) problems.push(`${label} clipped above the list`);
+      if(r.bottom>view.bottom+1) problems.push(`${label} clipped below the list`);
+      if(r.bottom>keypad.top+0.5) problems.push(`${label} sits under the keypad`);
+      if(hit(r, keypad)) problems.push(`${label} overlaps the keypad`);
+      footer.forEach(btn=>{ if(hit(r, btn)) problems.push(`${label} overlaps a footer button`); });
+      const value=el.querySelector('.hf-field-value, .hf-round-value');
+      if(value && parseFloat(getComputedStyle(value).fontSize)<14) problems.push(`${label} value font ${getComputedStyle(value).fontSize}`);
+    });
+    footer.forEach(btn=>{
+      if(hit(btn, keypad)) problems.push('footer overlaps keypad');
+    });
+    if(keypad.width<panel.width*0.85) problems.push(`keypad width ${Math.round(keypad.width)} of panel ${Math.round(panel.width)}`);
+    return problems;
+  });
+}
+
+async function scrollActiveRowFully(page){
+  await page.evaluate(()=>{
+    const scroller=document.getElementById('score-entry-rows');
+    const active=scroller?.querySelector('.score-entry-hf-row.active');
+    if(!scroller||!active) return;
+    const top=active.offsetTop;
+    const bottom=top+active.offsetHeight;
+    if(active.offsetHeight<=scroller.clientHeight){
+      if(top<scroller.scrollTop) scroller.scrollTop=Math.max(0, top);
+      else if(bottom>scroller.scrollTop+scroller.clientHeight) scroller.scrollTop=bottom-scroller.clientHeight;
+    }else{
+      scroller.scrollTop=top;
+    }
+  });
+}
+
 async function scorecardProblems(page){
   return page.evaluate(()=>{
     const problems=[];
@@ -117,25 +166,23 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     await expect(page.locator('#game-screen')).toBeVisible();
     await openScoreEntry(page);
     await typeRound(page, [['2','1','2','1','450','95']]);
-    await page.evaluate(()=>{
-      const scroller=document.getElementById('score-entry-rows');
-      const first=scroller?.querySelector('.score-entry-hf-row');
-      if(scroller&&first) scroller.scrollTop=Math.max(0, first.offsetTop-4);
-    });
-    await page.screenshot({path:`${MEDIA_DIR}/${viewport.entry}`, fullPage:false});
-    if(viewport.also) await page.screenshot({path:`${MEDIA_DIR}/${viewport.also}`, fullPage:false});
-    await page.evaluate(()=>{
-      const scroller=document.getElementById('score-entry-rows');
-      const active=scroller?.querySelector('.score-entry-hf-row.active');
-      if(!scroller||!active) return;
-      const top=active.offsetTop;
-      const bottom=top+active.offsetHeight;
-      const viewBottom=scroller.scrollTop+scroller.clientHeight;
-      if(top<scroller.scrollTop) scroller.scrollTop=top;
-      else if(bottom>viewBottom) scroller.scrollTop=bottom-scroller.clientHeight;
-    });
+    if(viewport.name==='phone'){
+      await page.evaluate(()=>{
+        const scroller=document.getElementById('score-entry-rows');
+        const first=scroller?.querySelector('.score-entry-hf-row');
+        if(scroller&&first) scroller.scrollTop=Math.max(0, first.offsetTop-4);
+      });
+      await page.screenshot({path:`${MEDIA_DIR}/${viewport.entry}`, fullPage:false});
+      if(viewport.also) await page.screenshot({path:`${MEDIA_DIR}/${viewport.also}`, fullPage:false});
+    }
+    await scrollActiveRowFully(page);
     const entry=await entryProblems(page);
     expect(entry, `${viewport.name} entry`).toEqual([]);
+    const active=await activeRowProblems(page);
+    expect(active, `${viewport.name} active row`).toEqual([]);
+    if(viewport.name==='ipad'){
+      await page.screenshot({path:`${MEDIA_DIR}/${viewport.entry}`, fullPage:false});
+    }
     await typeRound(page, [['0','1','0','0','0','20']]);
     await submitEntry(page);
     await page.waitForFunction(()=>{

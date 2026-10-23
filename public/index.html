@@ -4370,10 +4370,15 @@ button.dealer-name-indicator .dealer-player-label {
         overflow-y: auto !important;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-side {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
         flex: 0 0 auto;
         min-height: 0;
         overflow: visible;
         gap: 8px !important;
+        width: 100%;
+        align-self: stretch;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-selected-card {
         display: none !important;
@@ -4393,10 +4398,6 @@ button.dealer-name-indicator .dealer-player-label {
       #score-entry-modal.score-entry-hand-foot .hf-round {
         padding: 0.15rem 0.25rem 0.2rem !important;
         min-height: 44px;
-      }
-      #score-entry-modal.score-entry-hand-foot .score-entry-side {
-        width: 100%;
-        align-self: stretch;
       }
       #score-entry-modal.score-entry-hand-foot .score-entry-keypad {
         flex: 0 0 auto;
