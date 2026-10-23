@@ -717,7 +717,7 @@
       font-weight: 800;
       line-height: 1.2;
     }
-    .score-entry-confirm-status[data-entry-state="unentered"] { color: var(--rose); }
+    .score-entry-confirm-status[data-entry-state="unentered"] { color: var(--muted); }
     .score-entry-confirm-status[data-entry-state="suggested"] { color: var(--blue); }
     .score-entry-confirm-status[data-entry-state="confirmed"] { color: var(--emerald); }
     .score-entry-unconfirmed:empty { display: none; }
@@ -726,7 +726,7 @@
       margin-top: 0.35rem;
       font-size: 0.85rem;
       font-weight: 800;
-      color: var(--rose);
+      color: var(--muted);
     }
     #score-entry-primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .score-current-input {
@@ -1780,6 +1780,7 @@
     }
     @media (max-width: 760px) {
       .score-entry-progress { width: 100%; margin-top: 0.75rem; }
+      .score-entry-unconfirmed { flex: 1 0 100%; }
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
@@ -11668,8 +11669,9 @@ button.dealer-name-indicator .dealer-player-label {
   function confirmRookCall(){
     if(!_rookCallTrump){toast('Please pick a trump color','warning');return;}
     const cardInput=document.getElementById('rook-call-card-input').value.trim();
+    if(!cardInput){toast('Enter the called card first','warning');return;}
     currentGame.rookTrump=_rookCallTrump;
-    currentGame.rookCalledCard=cardInput||'(not specified)';
+    currentGame.rookCalledCard=cardInput;
     currentGame.rookPhase='results';
     const m=document.getElementById('rook-call-modal');
     m.classList.add('opacity-0');
@@ -11842,9 +11844,16 @@ button.dealer-name-indicator .dealer-player-label {
     const partner=_rookSelectedPartner;
     const bid=currentGame.rookHighBid;
     const handTotal=currentGame.rookConfig.totalCounters;
-    let bidderTeamPts=parseInt(document.getElementById('rook-bidder-team-input').value,10);
-    if(!Number.isFinite(bidderTeamPts))bidderTeamPts=0;
-    bidderTeamPts=Math.max(0,Math.min(handTotal,bidderTeamPts));
+    if(!bidder){toast('Name the high bidder first','warning');return;}
+    if(bid==null||bid===''||!Number.isFinite(Number(bid))){toast('Enter the bid first','warning');return;}
+    if(!currentGame.rookTrump){toast('Pick a trump color first','warning');return;}
+    if(!currentGame.rookCalledCard||currentGame.rookCalledCard==='(not specified)'){toast('Enter the called card first','warning');return;}
+    const parsedCounters=BPGScorebook.parseEntryInteger(document.getElementById('rook-bidder-team-input').value);
+    if(!parsedCounters.ok||parsedCounters.value<0||parsedCounters.value>handTotal){
+      toast(`Enter bid-team counters from 0 to ${handTotal}`,'warning');
+      return;
+    }
+    let bidderTeamPts=parsedCounters.value;
     const otherTeamPts=handTotal-bidderTeamPts;
     const madeIt=bidderTeamPts>=bid;
     const oppCounters=otherTeamPts;
@@ -11862,11 +11871,6 @@ button.dealer-name-indicator .dealer-player-label {
       scores[partner]=-bid;
       opponents.forEach(p=>scores[p]=oppCounters);
     }
-
-    // Also give zero to retired players who somehow have no score
-    currentGame.originalRoster.filter(p=>p&&currentGame.retired?.includes(p)).forEach(p=>{
-      if(scores[p]===undefined)scores[p]=0;
-    });
 
     const roundData={
       round:currentGame.currentRound,
@@ -14019,7 +14023,7 @@ ${isDealer
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
-            onclick="openPastScoreCell('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
+            onclick="openPastScoreCell('${escapeJsString(p)}',${rIdx})" value="${shownRoundScore(r.scores, p)}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
           ${extra.html}
           </div>
@@ -14423,6 +14427,12 @@ ${isDealer
     return scoreEntryModalState?JSON.stringify(scoreEntryModalState.values):'';
   }
 
+  function shownRoundScore(scores, player){
+    if(!scores || !Object.prototype.hasOwnProperty.call(scores, player)) return '';
+    const score=BPGScorebook.historyScoreOrNull(scores[player]);
+    return score==null?'':score;
+  }
+
   function getScoreEntryAvatarHtml(name, cls){
     const fb=getAvatarFallback(name);
     const ring=getColorRingClass(name);
@@ -14460,15 +14470,6 @@ ${isDealer
     if(!el)return;
     el.dataset.entryState=status.state;
     el.textContent=status.label;
-  }
-
-  function scoreEntryUnconfirmedMessage(){
-    if(!scoreEntryModalState)return '';
-    const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players||[];
-    return BPGScorebook.unconfirmedScoreEntryMessage({
-      players,
-      acknowledged:scoreEntryModalState.acknowledged||{}
-    });
   }
 
   function updateScoreEntryRowState(player){
@@ -14509,11 +14510,10 @@ ${isDealer
     } else {
       progress.textContent=enteredText;
     }
-    const block=scoreEntryUnconfirmedMessage();
     const note=document.getElementById('score-entry-unconfirmed');
-    if(note) note.textContent=block;
+    if(note) note.textContent=(!isScoreEntryBidMode(mode)&&!isScoreEntryTrickMode(mode))?BPGScorebook.scoreEntryBlankHelper():'';
     const submit=document.getElementById('score-entry-primary-btn');
-    if(submit) submit.disabled=!!block;
+    if(submit) submit.disabled=false;
   }
 
   function scheduleScoreEntryModalFit(){
@@ -14859,11 +14859,6 @@ ${isDealer
 
   function validateScoreEntryModalSubmit(){
     if(!scoreEntryModalState||!currentGame)return false;
-    const unconfirmed=scoreEntryUnconfirmedMessage();
-    if(unconfirmed){
-      alert(unconfirmed);
-      return false;
-    }
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     const roundNumber=currentGame.currentRound;
@@ -14883,7 +14878,11 @@ ${isDealer
     if(isScoreEntryTrickMode(mode)){
       const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'tricks',roundNumber,players,values});
       if(!checked.ok) return rejectScoreEntries(checked);
-      return checked.sum===checked.limit||confirm(`Total tricks (${checked.sum}) ≠ round tricks (${checked.limit}). Submit anyway?`);
+      if(checked.sum!==checked.limit){
+        alert(`${currentGame.name} round ${roundNumber} must total ${checked.limit} tricks. This table totals ${checked.sum}.`);
+        return false;
+      }
+      return true;
     }
     const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players,values});
     if(!checked.ok) return rejectScoreEntries(checked);
@@ -14971,7 +14970,11 @@ ${isDealer
         });
         if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
         const totalActual=checked.sum;
-        if(totalActual!==checked.limit&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${checked.limit}). Submit anyway?`)){isSubmitting=false;return;}
+        if(totalActual!==checked.limit){
+          alert(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          isSubmitting=false;
+          return;
+        }
         const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
@@ -15030,7 +15033,11 @@ ${isDealer
         });
         if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
         const totalActual=checked.sum;
-        if(totalActual!==checked.limit&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${checked.limit}). Submit anyway?`)){isSubmitting=false;return;}
+        if(totalActual!==checked.limit){
+          alert(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          isSubmitting=false;
+          return;
+        }
         const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=calculate818Score(bid,act);});
@@ -16123,7 +16130,7 @@ ${isDealer
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=scoringExtraMarkup(g.rounds, rIdx, r, p);
-        const shown=r.scores[p]!==undefined?r.scores[p]:'';
+        const shown=shownRoundScore(r.scores, p);
         body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
@@ -16289,7 +16296,9 @@ ${isDealer
         playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0});
         h.rounds.forEach(round=>{
           if(!round.scores || BPGScorebook.isSyntheticAdjustmentRound(round))return;
-          Object.entries(round.scores).forEach(([p,score])=>{
+          Object.entries(round.scores).forEach(([p,rawScore])=>{
+            const score=BPGScorebook.historyScoreOrNull(rawScore);
+            if(score==null)return;
             if(!playersInMatch.includes(p))return;
             if(round.joinBonus?.[p])return; // exclude join-bonus scores
             if(!ms[p])ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0};
@@ -16572,7 +16581,9 @@ ${isDealer
       const finalScoringRound = scoringRounds[scoringRounds.length-1] || null;
       h.rounds.forEach(r=>{
         if(BPGScorebook.isSyntheticAdjustmentRound(r)) return;
-        Object.entries(r.scores||{}).forEach(([p,score])=>{
+        Object.entries(r.scores||{}).forEach(([p,rawScore])=>{
+          const score=BPGScorebook.historyScoreOrNull(rawScore);
+          if(score==null)return;
           if(!perMatch[p] || r.joinBonus?.[p]) return;
           perMatch[p].roundScores.push(score);
           if(h.game==='Five Crowns'){

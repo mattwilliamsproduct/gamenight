@@ -234,7 +234,9 @@
     const invalidPlayers = [];
     const values = {};
     players.forEach(player => {
-      const parsed = parseEntryInteger(rawValues[player]);
+      let raw = rawValues[player];
+      if ((kind === 'scores' || kind === 'tricks') && scoreEntryValueIsBlank(raw)) raw = 0;
+      const parsed = parseEntryInteger(raw);
       if (!parsed.ok) {
         invalidPlayers.push(player);
         return;
@@ -401,11 +403,22 @@
     return text === '' || text === '-' || text === '+';
   }
 
+  function scoreEntryBlankHelper() {
+    return 'Blank scores count as 0';
+  }
+
+  function historyScoreOrNull(raw) {
+    if (raw == null) return null;
+    if (typeof raw === 'string' && raw.trim() === '') return null;
+    const parsed = parseEntryInteger(raw);
+    return parsed.ok ? parsed.value : null;
+  }
+
   function scoreEntryStatus(entry) {
     const source = entry || {};
     const value = source.value == null ? '' : String(source.value);
+    if (scoreEntryValueIsBlank(value)) return { state: 'unentered', label: 'Blank' };
     if (source.acknowledged) return { state: 'confirmed', label: `✓ Confirmed: ${value}` };
-    if (scoreEntryValueIsBlank(value)) return { state: 'unentered', label: 'Unentered · Tap 0 or enter score' };
     return { state: 'suggested', label: `💡 Suggested: ${value} (tap Next to confirm)` };
   }
 
@@ -419,12 +432,6 @@
     const index = order.indexOf(player);
     if (order.length) session.activePlayer = order[(index + 1) % order.length];
     return session;
-  }
-
-  function unconfirmedScoreEntryMessage(session) {
-    const players = (session && session.players) || [];
-    const pending = players.filter(player => !(session.acknowledged && session.acknowledged[player])).length;
-    return pending ? `${pending} of ${players.length} players still unconfirmed` : '';
   }
 
   function isSyntheticAdjustmentRound(round) {
@@ -447,8 +454,7 @@
 
   function isCompletedHistoryMatch(match) {
     if (!match || typeof match !== 'object') return false;
-    if (match.gameOver === false || match.completed === false) return false;
-    return true;
+    return match.completed !== false;
   }
 
   function syncAssistedMatch(game) {
@@ -539,10 +545,17 @@
   function historicalRoundParticipants(game, round) {
     if (!round || isSyntheticAdjustmentRound(round)) return [];
     const join = round.joinBonus || {};
+    const retired = new Set((game && game.retired) || []);
     const seen = new Set();
     const named = [];
     const add = player => {
       if (!player || join[player] || seen.has(player)) return;
+      if (retired.has(player)) {
+        const bid = round.bids && round.bids[player];
+        const actual = round.actuals && round.actuals[player];
+        const score = round.scores && round.scores[player];
+        if (scoreEntryValueIsBlank(bid) && scoreEntryValueIsBlank(actual) && scoreEntryValueIsBlank(score)) return;
+      }
       seen.add(player);
       named.push(player);
     };
@@ -803,22 +816,32 @@
         const rawScores = source.scores || {};
         const players = Object.keys(rawScores);
         if (!players.length) return { ok: false, reason: 'invalid', message: 'Nothing to correct.' };
+        if (!round.scores) round.scores = {};
+        const editable = {};
+        players.forEach(player => {
+          const raw = rawScores[player];
+          const stored = Object.prototype.hasOwnProperty.call(round.scores, player) ? round.scores[player] : undefined;
+          if (scoreEntryValueIsBlank(raw) && historyScoreOrNull(stored) == null) return;
+          editable[player] = raw;
+        });
+        const editPlayers = Object.keys(editable);
+        if (!editPlayers.length) return { ok: true, changed: false, noop: true, message: '' };
         const checked = validateEntries({
           game: draft,
           kind: 'scores',
           roundNumber: round.round,
-          players,
-          values: rawScores
+          players: editPlayers,
+          values: editable
         });
         if (!checked.ok) return checked;
-        players.forEach(player => {
-          const from = round.scores ? round.scores[player] : undefined;
+        editPlayers.forEach(player => {
+          const from = Object.prototype.hasOwnProperty.call(round.scores, player) ? round.scores[player] : undefined;
           const to = checked.values[player];
-          if (!sameNumber(from, to)) changes.push({ player, from: Number(from), to });
+          const fromNumber = historyScoreOrNull(from);
+          if (fromNumber !== to) changes.push({ player, from: fromNumber == null ? from : fromNumber, to });
         });
         if (!changes.length) return { ok: true, changed: false, noop: true, message: '' };
-        if (!round.scores) round.scores = {};
-        players.forEach(player => { round.scores[player] = checked.values[player]; });
+        editPlayers.forEach(player => { round.scores[player] = checked.values[player]; });
       }
 
       recomputeTotals(draft);
@@ -902,9 +925,10 @@
     acceptScoreEntryPlayer,
     selectScoreEntryPlayer,
     scoreEntryValueIsBlank,
+    scoreEntryBlankHelper,
+    historyScoreOrNull,
     scoreEntryStatus,
     confirmScoreEntryOnNext,
-    unconfirmedScoreEntryMessage,
     isCompletedHistoryMatch,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,

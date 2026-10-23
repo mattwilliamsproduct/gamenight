@@ -238,8 +238,7 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   await expect(page.locator('#score-entry-modal')).toBeVisible();
 });
 
-test('P0-02 a blank trick is rejected before it can become zero', async ({page})=>{
-  const dialogs=armDialogs(page);
+test('P0-02 a blank trick counts as 0 and then the round total is checked', async ({page})=>{
   await installMatch(page,{
     id:2003,
     name:'Wizard',
@@ -262,21 +261,27 @@ test('P0-02 a blank trick is rejected before it can become zero', async ({page})
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'backspace')).click();
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
-  await page.locator('#score-entry-row-Bob .score-entry-row-status').click();
-  await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 1');
-  await page.locator('#score-entry-primary-btn').click();
-  await expect.poll(()=>dialogs.length).toBe(1);
-  expect(dialogs[0].message).toContain('Check Alice');
-  expect(dialogs[0].message).not.toContain('Bob');
+  await expect(page.locator('#score-entry-status-Alice')).toHaveText('Blank');
+  await expect(page.locator('#score-entry-status-Bob')).toContainText('Suggested: 1');
+  const short=page.waitForEvent('dialog');
+  await Promise.all([
+    short.then(async dialog=>{
+      expect(dialog.type()).toBe('alert');
+      expect(dialog.message()).toBe('Wizard round 2 must total 2 tricks. This table totals 1.');
+      await dialog.accept();
+    }),
+    page.locator('#score-entry-primary-btn').click()
+  ]);
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
-  const live=await page.evaluate(()=>({
-    rounds:currentGame.rounds.length,
-    round:currentGame.currentRound,
-    drafts:currentGame.currentScoreDrafts
-  }));
-  expect(live).toEqual({rounds:0, round:2, drafts:{}});
+  await page.locator('#score-entry-row-Bob .score-entry-name').click();
+  await (await entryKey(page,'2')).click();
+  await expect(page.locator('#score-entry-value-Bob')).toHaveText('2');
+  await page.locator('#score-entry-primary-btn').click();
+  await expect(page.locator('#score-entry-modal')).toBeHidden();
+  const stored=await page.evaluate(()=>currentGame.rounds[0].actuals);
+  expect(stored).toEqual({Alice:0, Bob:2});
 });
 
 test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
@@ -349,19 +354,14 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   await expect(catRow).toHaveClass(/is-empty/);
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Cat')).toHaveText('');
-  await expect(page.locator('#score-entry-status-Cat')).toContainText('Unentered');
-  await expect(page.locator('#score-entry-status-Cat')).toContainText('Tap 0 or enter score');
+  await expect(page.locator('#score-entry-status-Cat')).toHaveText('Blank');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
   const catBlank=await page.evaluate(()=>({
     value:scoreEntryModalState.values.Cat,
     acknowledged:scoreEntryModalState.acknowledged.Cat
   }));
   expect(catBlank).toEqual({value:'', acknowledged:false});
-  await expect(page.locator('#score-entry-unconfirmed')).toContainText('1 of 2 players still unconfirmed');
-  await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
-  await catRow.locator('.score-entry-name').click();
-  await (await entryKey(page,'0')).click();
-  await expect(page.locator('#score-entry-value-Cat')).toHaveText('0');
-  await expect(page.locator('#score-entry-status-Cat')).toContainText('Confirmed: 0');
+  await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.locator('#score-entry-primary-btn').click();
   await expect.poll(()=>dialogs.length).toBe(1);
   expect(dialogs[0].message).toBe('Five Crowns scores must be whole numbers, 0 or higher. Check Matt.');
@@ -511,11 +511,21 @@ test('P0-06 a Wizard round correction rejects a bad table, then saves the balanc
   await expect(page.locator('#round-correction-modal')).toBeVisible();
   await expect(page.locator('#round-correction-limit')).toContainText('1 trick');
   await correctionKey(page,'backspace').click();
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('—');
   await page.locator('#round-correction-save').click();
-  await expect(page.locator('#round-correction-error')).toContainText('Check Alice');
+  await expect(page.locator('#round-correction-modal')).toBeHidden();
+  const blankSaved=await persisted(page);
+  expect(blankSaved.game).toBe(before.game);
+  expect(blankSaved.current).toBe(before.current);
+  await page.locator('#score-past-0-Alice').click();
   await correctionKey(page,'2').click();
   await page.locator('#round-correction-save').click();
   await expect(page.locator('#round-correction-error')).toHaveText('Wizard tricks must be from 0 to 1. Check Alice.');
+  await correctionKey(page,'backspace').click();
+  await page.locator('.round-correction-row[data-player="Bob"]').click();
+  await correctionKey(page,'backspace').click();
+  await page.locator('#round-correction-save').click();
+  await expect(page.locator('#round-correction-error')).toHaveText('Wizard round 1 must total 1 tricks. This table totals 0.');
   await page.keyboard.press('Escape');
   await expect(page.locator('#round-correction-modal')).toBeHidden();
   const rejected=await persisted(page);
@@ -1285,7 +1295,7 @@ test('a zero-point spin stays assisted until undo, then reload clears it', async
   expect(reloaded.identity.round).toBe(1);
 });
 
-test('a blank Next stays unentered until the player taps 0', async ({page})=>{
+test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   const dialogs=armDialogs(page);
   await installMatch(page,{
     id:4101,
@@ -1306,8 +1316,9 @@ test('a blank Next stays unentered until the player taps 0', async ({page})=>{
   await page.locator('#submit-action-btn').click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   const alice=page.locator('#score-entry-status-Alice');
-  await expect(alice).toContainText('Unentered');
-  await expect(alice).toContainText('Tap 0 or enter score');
+  await expect(alice).toHaveText('Blank');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(page.locator('#score-entry-status-Bob')).not.toContainText('Suggested');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const blank=await page.evaluate(()=>({
     value:scoreEntryModalState.values.Alice,
@@ -1316,29 +1327,82 @@ test('a blank Next stays unentered until the player taps 0', async ({page})=>{
   expect(blank).toEqual({value:'', acknowledged:false});
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
   await expect(page.locator('#score-entry-row-Alice')).toHaveClass(/is-empty/);
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('4 of 4 players still unconfirmed');
-  await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
-  await page.locator('#score-entry-row-Alice .score-entry-name').click();
-  await (await entryKey(page,'0')).click();
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('0');
-  await expect(alice).toContainText('Confirmed: 0');
-  const zero=await page.evaluate(()=>({
-    value:scoreEntryModalState.values.Alice,
-    acknowledged:scoreEntryModalState.acknowledged.Alice
-  }));
-  expect(zero).toEqual({value:'0', acknowledged:true});
+  await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.locator('#score-entry-row-Bob .score-entry-name').click();
+  await (await entryKey(page,'0')).click();
+  await expect(page.locator('#score-entry-value-Bob')).toHaveText('0');
+  await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
+  await page.locator('#score-entry-row-Cara .score-entry-name').click();
   await (await entryKey(page,'4')).click();
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('2 of 4 players still unconfirmed');
-  await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
-  await shot(page,'slice1-blank-next');
-  const before=await persisted(page);
-  await page.evaluate(()=>submitScoreEntryModal());
-  await expect.poll(()=>dialogs.length).toBe(1);
-  expect(dialogs[0].message).toBe('2 of 4 players still unconfirmed');
-  const after=await persisted(page);
-  expect(after.game).toBe(before.game);
-  expect(await page.evaluate(()=>currentGame.rounds.length)).toBe(0);
+  await expect(page.locator('#score-entry-value-Dan')).toHaveText('');
+  await shot(page,'slice1-blank-submits-zero');
+  await page.locator('#score-entry-primary-btn').click();
+  await expect(page.locator('#score-entry-modal')).toBeHidden();
+  expect(dialogs).toEqual([]);
+  const stored=await page.evaluate(()=>currentGame.rounds[0].scores);
+  expect(stored).toEqual({Alice:0, Bob:0, Cara:4, Dan:0});
+  expect(stored.Alice).toBe(stored.Bob);
+  expect(stored.Alice).toBe(stored.Dan);
+  await expect(page.locator('#score-past-0-Alice')).toHaveValue('0');
+  await expect(page.locator('#score-past-0-Bob')).toHaveValue('0');
+  await expect(page.locator('#score-past-0-Dan')).toHaveValue('0');
+  await page.locator('#score-past-0-Cara').click();
+  await (await padKey(page,'backspace')).click();
+  await expect(page.locator('#score-past-0-Cara')).toHaveValue('');
+  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>currentGame.rounds[0].scores.Cara)).toBe(0);
+  const afterEdit=await page.evaluate(()=>({
+    scores:currentGame.rounds[0].scores,
+    audit:currentGame.auditLog.map(entry=>entry.detail)
+  }));
+  expect(afterEdit.scores).toEqual({Alice:0, Bob:0, Cara:0, Dan:0});
+  expect(afterEdit.scores.Cara).toBe(afterEdit.scores.Alice);
+  expect(afterEdit.audit.some(detail=>String(detail).includes('Cara: 4 -> 0'))).toBe(true);
+  await page.goto('/');
+  await page.waitForFunction(()=>currentGame&&currentGame.id===4101&&currentGame.rounds[0]);
+  const reloaded=await page.evaluate(()=>currentGame.rounds[0].scores);
+  expect(reloaded).toEqual({Alice:0, Bob:0, Cara:0, Dan:0});
+  await page.setViewportSize({width:390, height:844});
+  await page.locator('#submit-action-btn').click();
+  await expect(page.locator('#score-entry-modal')).toBeVisible();
+  await page.waitForFunction(()=>{
+    const modal=document.getElementById('score-entry-modal');
+    if(!modal||modal.classList.contains('hidden')) return false;
+    return Number(getComputedStyle(modal).opacity)>0.95 && modal.classList.contains('score-entry-managed-fit');
+  });
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(page.locator('#score-entry-status-Alice')).toHaveText('Blank');
+  await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
+  await shot(page,'slice1-blank-submits-zero-phone');
+  const book=await page.evaluate(()=>{
+    currentGame=null;
+    _matchHallOfFameSnap=null;
+    _matchAllTimeRecordsSnap=null;
+    history=[{
+      id:77,
+      gameId:77,
+      game:'Five Crowns',
+      completed:true,
+      gameOver:true,
+      winners:['Bea'],
+      originalRoster:['Ada','Bea'],
+      totals:{Ada:0, Bea:0},
+      rounds:[{round:1, scores:{Ada:null, Bea:0}}],
+      date:'10/23/2026'
+    }];
+    const fame=calculateHallOfFame();
+    const records=calculateAllTimeRecords();
+    return {
+      mostZeros:fame['Five Crowns'].mostZeros,
+      mostZerosPlayer:fame['Five Crowns'].mostZerosPlayer,
+      bestRound:records.games['Five Crowns'].bestRound.value,
+      bestRoundPlayer:records.games['Five Crowns'].bestRound.player
+    };
+  });
+  expect(book.mostZeros).toBe(1);
+  expect(book.mostZerosPlayer).toBe('Bea');
+  expect(book.bestRound).toBe(0);
+  expect(book.bestRoundPlayer).toBe('Bea');
 });
 
 test('retired 818 seats keep Cara in the correction and leave Dan out', async ({page})=>{

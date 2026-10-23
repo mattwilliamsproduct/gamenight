@@ -46,7 +46,7 @@ test('balanced out-of-bounds tricks name every invalid player and do not invent 
   assert.equal(result.values.Cara, 0);
 });
 
-test('a blank trick is not coerced to zero, and a valid table still sums', () => {
+test('a blank trick becomes 0 before the round total is checked', () => {
   const blank = Scorebook.validateEntries({
     game: '818',
     kind: 'tricks',
@@ -54,20 +54,30 @@ test('a blank trick is not coerced to zero, and a valid table still sums', () =>
     players: ['Alice', 'Bob'],
     values: { Alice: '', Bob: '1' }
   });
-  assert.equal(blank.ok, false);
+  assert.equal(blank.ok, true);
   assert.equal(blank.limit, 1);
-  assert.equal(blank.message, '818 tricks must be from 0 to 1. Check Alice.');
+  assert.deepEqual(blank.values, { Alice: 0, Bob: 1 });
+  assert.equal(Scorebook.trickTableIsBalanced(blank.values, ['Alice', 'Bob'], blank.limit).ok, true);
 
-  const ok = Scorebook.validateEntries({
+  const short = Scorebook.validateEntries({
+    game: 'Wizard',
+    kind: 'tricks',
+    roundNumber: 2,
+    players: ['Alice', 'Bob'],
+    values: { Alice: null, Bob: '1' }
+  });
+  assert.deepEqual(short.values, { Alice: 0, Bob: 1 });
+  assert.equal(Scorebook.trickTableIsBalanced(short.values, ['Alice', 'Bob'], short.limit).ok, false);
+
+  const bid = Scorebook.validateEntries({
     game: 'Wizard',
     kind: 'bids',
     roundNumber: 2,
     players: ['Alice', 'Bob'],
-    values: { Alice: '1', Bob: 1 }
+    values: { Alice: '', Bob: 1 }
   });
-  assert.equal(ok.ok, true);
-  assert.equal(ok.sum, 2);
-  assert.deepEqual(ok.values, { Alice: 1, Bob: 1 });
+  assert.equal(bid.ok, false);
+  assert.match(bid.message, /Check Alice/);
 });
 
 test('Five Crowns, Flip 7, and Beat the Heat reject negative played-round inputs', () => {
@@ -303,8 +313,17 @@ test('an out-of-bounds or unbalanced historical trick table changes nothing', ()
     roundIndex: 0,
     actuals: { Alice: '', Bob: 1 }
   });
-  assert.equal(blank.ok, false);
-  assert.match(blank.message, /Check Alice/);
+  assert.equal(blank.ok, true);
+  assert.equal(blank.noop, true);
+  assert.equal(game.rounds[0].actuals.Alice, 0);
+  assert.deepEqual(game, before);
+
+  const short = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: '', Bob: '' }
+  });
+  assert.equal(short.ok, false);
+  assert.equal(short.message, 'Wizard round 1 must total 1 tricks. This table totals 0.');
   assert.deepEqual(game, before);
 
   const unbalanced = Scorebook.commitRoundCorrection(game, {
@@ -386,8 +405,12 @@ test('a negative Five Crowns correction is rejected and a real edit logs once', 
   assert.match(rejected.message, /Five Crowns scores must be whole numbers, 0 or higher\. Check Alice\./);
   assert.deepEqual(game, before);
 
-  const blank = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Alice: '   ' } });
-  assert.equal(blank.ok, false);
+  const blankGame = JSON.parse(JSON.stringify(before));
+  const blank = Scorebook.commitRoundCorrection(blankGame, { roundIndex: 0, scores: { Alice: '   ' } });
+  assert.equal(blank.ok, true);
+  assert.equal(blankGame.rounds[0].scores.Alice, 0);
+  assert.equal(blankGame.rounds[0].scores.Alice, Scorebook.historyScoreOrNull('0'));
+  assert.equal(blankGame.rounds[0].scores.Bob, 4);
   assert.deepEqual(game, before);
 
   const saved = Scorebook.commitRoundCorrection(game, { roundIndex: 0, now: 333, scores: { Alice: 3 } });
@@ -526,7 +549,17 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /ensureGameId/);
   assert.match(page, /BPGScorebook\.isCompletedHistoryMatch/);
   assert.match(page, /BPGScorebook\.scoreEntryValueIsBlank/);
-  assert.match(page, /BPGScorebook\.unconfirmedScoreEntryMessage/);
+  assert.match(page, /BPGScorebook\.historyScoreOrNull/);
+  assert.match(page, /BPGScorebook\.scoreEntryBlankHelper/);
+  assert.match(page, /function shownRoundScore/);
+  const fame = page.slice(page.indexOf('function calculateHallOfFame'), page.indexOf('function calculateAllTimeRecords'));
+  const records = page.slice(page.indexOf('function calculateAllTimeRecords'), page.indexOf('function renderHallOfFame'));
+  assert.match(fame, /BPGScorebook\.isCompletedHistoryMatch/);
+  assert.match(records, /BPGScorebook\.isCompletedHistoryMatch/);
+  assert.match(fame, /historyScoreOrNull/);
+  assert.match(records, /historyScoreOrNull/);
+  assert.doesNotMatch(page, /unconfirmedScoreEntryMessage/);
+  assert.doesNotMatch(page, /players still unconfirmed/);
   assert.match(page, /function parkActiveMatch/);
   assert.match(page, /Save the game on the table and resume this match\?/);
   assert.match(page, /data-match-status="incomplete"/);
@@ -534,10 +567,11 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /score-entry-confirm-status/);
   assert.match(page, /function jsAttrArg/);
   const scorebook = fs.readFileSync(new URL('../public/assets/scorebook.js', import.meta.url), 'utf8');
-  assert.match(scorebook, /Unentered · Tap 0 or enter score/);
+  assert.match(scorebook, /Blank scores count as 0/);
   assert.match(scorebook, /Suggested: \$\{value\} \(tap Next to confirm\)/);
   assert.match(scorebook, /Confirmed: \$\{value\}/);
-  assert.match(scorebook, /players still unconfirmed/);
+  assert.match(scorebook, /kind === 'scores' \|\| kind === 'tricks'/);
+  assert.match(scorebook, /return match\.completed !== false/);
   assert.doesNotMatch(page, /if\(score>0\)ms\[p\]\.exacts/);
   assert.doesNotMatch(page, /return Number\(score\)>=10/);
   assert.doesNotMatch(page, /if\(score!==0\) update\(games\["Five Crowns"\],'bestRound'/);
@@ -632,7 +666,7 @@ test('the rename path checks every match before it changes storage', () => {
   assert.match(page, /both played in the same match/);
 });
 
-test('a blank live trick is rejected before it can be stored as zero', () => {
+test('a blank live trick is 0, then the round total decides', () => {
   const checked = Scorebook.validateEntries({
     game: 'Wizard',
     kind: 'tricks',
@@ -640,10 +674,18 @@ test('a blank live trick is rejected before it can be stored as zero', () => {
     players: ['Alice', 'Bob'],
     values: { Alice: '', Bob: '2' }
   });
-  assert.equal(checked.ok, false);
-  assert.equal(checked.values.Alice, undefined);
-  assert.equal(checked.values.Bob, 2);
-  assert.match(checked.message, /Check Alice/);
+  assert.equal(checked.ok, true);
+  assert.deepEqual(checked.values, { Alice: 0, Bob: 2 });
+  assert.equal(Scorebook.trickTableIsBalanced(checked.values, ['Alice', 'Bob'], checked.limit).ok, true);
+  const fraction = Scorebook.validateEntries({
+    game: 'Wizard',
+    kind: 'tricks',
+    roundNumber: 2,
+    players: ['Alice'],
+    values: { Alice: '1.5' }
+  });
+  assert.equal(fraction.ok, false);
+  assert.equal(fraction.values.Alice, undefined);
 });
 
 test('the 12-player records fixture keeps Brick’s spin beside a real zero hand', async () => {
@@ -702,39 +744,63 @@ test('bid accuracy uses bids and actuals, including legacy scores and rule-consi
   assert.equal(Scorebook.classifyBidAccuracy(spin, 'Ada'), null);
 });
 
-test('Next leaves a blank score unentered and confirms a suggested bid', () => {
+test('Next leaves a blank score empty, and a submitted blank matches a typed 0', () => {
   const blank = Scorebook.createScoreEntrySession(['Ada', 'Bea', 'Cal', 'Dan'], { Ada: '', Bea: '', Cal: '', Dan: '' });
   Scorebook.confirmScoreEntryOnNext(blank);
   assert.equal(blank.values.Ada, '');
   assert.equal(blank.acknowledged.Ada, false);
   assert.equal(blank.activePlayer, 'Bea');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).state, 'unentered');
-  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Unentered · Tap 0 or enter score');
-  assert.equal(Scorebook.unconfirmedScoreEntryMessage(blank), '4 of 4 players still unconfirmed');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: true }).label, 'Blank');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Blank');
+  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Blank scores count as 0');
+  assert.notEqual(
+    Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label,
+    Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).label
+  );
   Scorebook.pressScoreEntryKey(blank, '0');
   assert.equal(blank.values.Bea, '0');
   assert.equal(blank.acknowledged.Bea, true);
   assert.equal(Scorebook.scoreEntryStatus({ value: '0', acknowledged: true }).label, '✓ Confirmed: 0');
 
   const suggested = Scorebook.createScoreEntrySession(['Ada', 'Bea'], { Ada: '3', Bea: '0' });
+  Scorebook.pressScoreEntryKey(suggested, '2');
+  assert.equal(suggested.values.Ada, '2');
+  assert.equal(suggested.acknowledged.Ada, true);
+  assert.equal(suggested.values.Bea, '0');
   assert.equal(Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).state, 'suggested');
   assert.equal(Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).label, '💡 Suggested: 3 (tap Next to confirm)');
   assert.equal(Scorebook.scoreEntryStatus({ value: '0', acknowledged: false }).label, '💡 Suggested: 0 (tap Next to confirm)');
-  Scorebook.confirmScoreEntryOnNext(suggested);
-  assert.equal(suggested.values.Ada, '3');
-  assert.equal(suggested.acknowledged.Ada, true);
+  const fresh = Scorebook.createScoreEntrySession(['Ada', 'Bea'], { Ada: '3', Bea: '0' });
+  Scorebook.confirmScoreEntryOnNext(fresh);
+  assert.equal(fresh.values.Ada, '3');
+  assert.equal(fresh.acknowledged.Ada, true);
   assert.equal(Scorebook.scoreEntryStatus({ value: '3', acknowledged: true }).label, '✓ Confirmed: 3');
-  assert.equal(Scorebook.unconfirmedScoreEntryMessage(suggested), '1 of 2 players still unconfirmed');
-  Scorebook.selectScoreEntryPlayer(suggested, 'Bea');
-  Scorebook.confirmScoreEntryOnNext(suggested);
-  assert.equal(suggested.acknowledged.Bea, true);
-  assert.equal(Scorebook.unconfirmedScoreEntryMessage(suggested), '');
+  Scorebook.selectScoreEntryPlayer(fresh, 'Bea');
+  Scorebook.confirmScoreEntryOnNext(fresh);
+  assert.equal(fresh.acknowledged.Bea, true);
+
+  const submitted = Scorebook.validateEntries({
+    game: 'Five Crowns',
+    kind: 'scores',
+    roundNumber: 1,
+    players: ['Ada', 'Bea', 'Cal', 'Dan'],
+    values: { Ada: '', Bea: '0', Cal: null, Dan: '   ' }
+  });
+  assert.equal(submitted.ok, true);
+  assert.deepEqual(submitted.values, { Ada: 0, Bea: 0, Cal: 0, Dan: 0 });
+  assert.equal(Scorebook.historyScoreOrNull(null), null);
+  assert.equal(Scorebook.historyScoreOrNull(''), null);
+  assert.equal(Scorebook.historyScoreOrNull(0), 0);
+  assert.equal(Scorebook.historyScoreOrNull('0'), 0);
+  assert.notEqual(Scorebook.historyScoreOrNull(null), Scorebook.historyScoreOrNull(0));
 });
 
 test('an incomplete history row is left out of completed-match stats', () => {
   assert.equal(Scorebook.isCompletedHistoryMatch(null), false);
   assert.equal(Scorebook.isCompletedHistoryMatch({ completed: false, gameOver: true, winners: ['Ada'] }), false);
-  assert.equal(Scorebook.isCompletedHistoryMatch({ completed: true, gameOver: false, winners: [] }), false);
+  assert.equal(Scorebook.isCompletedHistoryMatch({ completed: false, gameOver: false, winners: [] }), false);
+  assert.equal(Scorebook.isCompletedHistoryMatch({ completed: true, gameOver: false, winners: [] }), true);
   assert.equal(Scorebook.isCompletedHistoryMatch({ winners: ['Ada'] }), true);
   assert.equal(Scorebook.isCompletedHistoryMatch({ completed: true, gameOver: true }), true);
 });
@@ -747,7 +813,18 @@ test('the shared commit boundary rejects blank, whitespace, non-finite, fraction
     players: ['Ada'],
     values: { Ada: raw }
   });
-  ['', '   ', NaN, Infinity, -Infinity, 'NaN', 'Infinity', 2.5, '2.5'].forEach(raw => {
+  ['', '   ', null, undefined, '-', '+'].forEach(raw => {
+    const tricks = check('Wizard', 'tricks', 2, raw);
+    assert.equal(tricks.ok, true, `trick ${String(raw)}`);
+    assert.equal(tricks.values.Ada, 0);
+    assert.equal(check('Wizard', 'bids', 2, raw).ok, false, `bid ${String(raw)}`);
+    ['Five Crowns', 'Flip 7 Vengeance', 'Beat the Heat'].forEach(game => {
+      const scores = check(game, 'scores', 1, raw);
+      assert.equal(scores.ok, true, `${game} ${String(raw)}`);
+      assert.equal(scores.values.Ada, 0);
+    });
+  });
+  [NaN, Infinity, -Infinity, 'NaN', 'Infinity', 2.5, '2.5'].forEach(raw => {
     assert.equal(check('Wizard', 'tricks', 2, raw).ok, false, `trick ${String(raw)}`);
     assert.equal(check('Five Crowns', 'scores', 1, raw).ok, false, `score ${String(raw)}`);
     assert.equal(check('Flip 7 Vengeance', 'scores', 1, raw).ok, false, `flip ${String(raw)}`);
@@ -771,7 +848,7 @@ test('the shared commit boundary rejects blank, whitespace, non-finite, fraction
     rounds: [{ round: 1, scores: { Ada: 15 } }]
   };
   const before = JSON.stringify(game);
-  ['', '   ', NaN, Infinity, 2.5, -1].forEach(raw => {
+  [NaN, Infinity, 2.5, -1].forEach(raw => {
     const result = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Ada: raw } });
     assert.equal(result.ok, false, String(raw));
     assert.equal(JSON.stringify(game), before);
@@ -781,6 +858,36 @@ test('the shared commit boundary rejects blank, whitespace, non-finite, fraction
   assert.equal(game.rounds[0].scores.Ada, 0);
   assert.equal(game.totals.Ada, 0);
   assert.equal(game.auditLog.at(-1).detail, 'Ada: 15 -> 0');
+
+  const blanked = {
+    name: 'Five Crowns',
+    originalRoster: ['Ada', 'Bea'],
+    totals: { Ada: 0, Bea: 0 },
+    auditLog: [],
+    rounds: [{ round: 1, scores: { Ada: null, Bea: 0 } }]
+  };
+  const kept = Scorebook.commitRoundCorrection(blanked, { roundIndex: 0, scores: { Ada: '', Bea: '0' } });
+  assert.equal(kept.ok, true);
+  assert.equal(kept.noop, true);
+  assert.equal(blanked.auditLog.length, 0);
+  assert.equal(blanked.rounds[0].scores.Ada, null);
+  assert.equal(blanked.rounds[0].scores.Bea, 0);
+  assert.equal(Scorebook.historyScoreOrNull(blanked.rounds[0].scores.Ada), null);
+  assert.equal(Scorebook.historyScoreOrNull(blanked.rounds[0].scores.Bea), 0);
+
+  const retired = {
+    name: 'Five Crowns',
+    originalRoster: ['Ada', 'Cara'],
+    retired: ['Cara'],
+    totals: { Ada: 4, Cara: 0 },
+    auditLog: [],
+    rounds: [{ round: 1, scores: { Ada: 4, Cara: null } }]
+  };
+  const retiredBlank = Scorebook.commitRoundCorrection(retired, { roundIndex: 0, scores: { Cara: null, Ada: '' } });
+  assert.equal(retiredBlank.ok, true);
+  assert.equal(retired.rounds[0].scores.Cara, null);
+  assert.equal(retired.rounds[0].scores.Ada, 0);
+  assert.equal(Scorebook.historicalRoundParticipants(retired, retired.rounds[0]).includes('Cara'), false);
 });
 
 test('a historical trick correction counts the players who were in that round', () => {

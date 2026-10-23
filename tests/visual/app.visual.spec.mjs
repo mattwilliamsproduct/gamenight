@@ -814,14 +814,16 @@ test('score-entry acknowledgement handles explicit zero and blank Next',async({p
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   const firstRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
   const firstRow=page.locator(`#${firstRowId}`);
-  await expect(firstRow.locator('.score-entry-confirm-status')).toContainText('Unentered');
-  await expect(firstRow.locator('.score-entry-confirm-status')).toContainText('Tap 0 or enter score');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Blank');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(firstRow.locator('.score-entry-confirm-status')).not.toContainText('Suggested');
+  await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   await expect(firstRow).toHaveClass(/is-empty/);
   await expect(firstRow).not.toHaveClass(/is-complete/);
   await expect(firstRow.locator('.score-entry-value')).toHaveText('');
-  await expect(firstRow.locator('.score-entry-confirm-status')).toContainText('Tap 0 or enter score');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Blank');
   const blank=await page.evaluate(rowId=>{
     const player=rowId.replace('score-entry-row-','');
     return {
