@@ -10882,12 +10882,11 @@ button.dealer-name-indicator .dealer-player-label {
     const newName = (document.getElementById('rename-input').value || '').trim();
     if(!newName){ alert('Please enter a name.'); return; }
     if(newName === oldName){ closeRenameModal(); return; }
-    if(allPlayers.includes(newName)){
+    if(playerNameIsTaken(newName)){
       if(!confirm(`A player named "${newName}" already exists. Merge "${oldName}" into "${newName}"? All history will combine.`)){
         return;
       }
-      // Treat as merge (same flow as bench drag merge, but programmatic)
-      mergePlayerRecords(oldName, newName);
+      if(mergePlayerRecords(oldName, newName)===false) return;
       closeRenameModal();
       closeProfileDetail();
       renderProfilesGrid();
@@ -10924,7 +10923,23 @@ button.dealer-name-indicator .dealer-player-label {
 
   // Bench drag and rename-onto-an-existing-name both call this.
   // Scores, bids, actuals, and Life Preserver bookkeeping move together.
+  function playerNameIsTaken(name){
+    if(!name) return false;
+    if(allPlayers.includes(name) || playerProfiles[name]) return true;
+    const games=history.slice();
+    if(currentGame) games.push(currentGame);
+    return games.some(game=>BPGScorebook.participantNames(game).has(name));
+  }
+
   function mergePlayerRecords(src, target){
+    const games=history.slice();
+    if(currentGame) games.push(currentGame);
+    const shared=BPGScorebook.findSharedMatch(games, src, target);
+    if(shared){
+      const label=shared.game||shared.name||'a match';
+      alert(`Cannot merge ${src} into ${target} because both played in the same match (${label}). Player merges are only allowed when two aliases never played in the same game.`);
+      return false;
+    }
     history.forEach(h => applyPlayerNameOnGame(h, src, target, true));
     if(currentGame) applyPlayerNameOnGame(currentGame, src, target, true);
     allPlayers = allPlayers.filter(p => p !== src);
@@ -10933,6 +10948,7 @@ button.dealer-name-indicator .dealer-player-label {
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
     if(currentGame) scheduleRender();
+    return true;
   }
 
 
@@ -11335,7 +11351,7 @@ button.dealer-name-indicator .dealer-player-label {
     ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
     const src=ev.dataTransfer.getData('text/plain');
     if(src&&src!==target&&confirm(`⚠️ MERGE RECORDS: Combine all history from "${src}" into "${target}"?\n\n"${src}" will be deleted.`)){
-      mergePlayerRecords(src, target);
+      if(mergePlayerRecords(src, target)===false) return;
       renderRoster();
       alert(`Merged "${src}" → "${target}".`);
     }

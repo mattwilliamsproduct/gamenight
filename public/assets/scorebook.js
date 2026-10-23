@@ -102,9 +102,42 @@
     delete map[oldName];
   }
 
+  function participantNames(game) {
+    const names = new Set();
+    const add = name => { if (name) names.add(name); };
+    if (!game || typeof game !== 'object') return names;
+    ['players', 'originalRoster', 'retired'].forEach(key => {
+      (Array.isArray(game[key]) ? game[key] : []).forEach(add);
+    });
+    Object.keys(game.totals || {}).forEach(add);
+    (game.rounds || []).forEach(round => {
+      if (!round) return;
+      ['scores', 'bids', 'actuals'].forEach(key => Object.keys(round[key] || {}).forEach(add));
+      add(round.rookBidder);
+      add(round.rookPartner);
+    });
+    add(game.rookHighBidder);
+    add(game.rookPartner);
+    return names;
+  }
+
+  function findSharedMatch(games, oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return null;
+    for (const game of games || []) {
+      const names = participantNames(game);
+      if (names.has(oldName) && names.has(newName)) return game;
+    }
+    return null;
+  }
+
+  function namesShareMatch(games, oldName, newName) {
+    return !!findSharedMatch(games, oldName, newName);
+  }
+
   function applyPlayerNameOnGame(game, oldName, newName, merge) {
     if (!game || !oldName || !newName || oldName === newName) return game;
     const combining = !!merge;
+    if (combining && namesShareMatch([game], oldName, newName)) return game;
     if (game.totals) moveOrMergeField(game.totals, oldName, newName, combining);
     if (Array.isArray(game.winners)) game.winners = replaceName(game.winners, oldName, newName);
     (game.rounds || []).forEach(round => {
@@ -671,6 +704,9 @@
     lifePreserverLeading,
     lifePreserverHidden,
     applyPlayerNameOnGame,
+    participantNames,
+    findSharedMatch,
+    namesShareMatch,
     wizardRoundScore,
     eight18RoundScore,
     rookHandScores,

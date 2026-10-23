@@ -532,6 +532,79 @@ test('historical edits on the page share one commit, cancel, and audit boundary'
   assert.match(page, /event\.key!=='Escape'/);
 });
 
+test('same-match merges are blocked for retired players and round-level seats', () => {
+  const retired = {
+    name: 'Five Crowns',
+    originalRoster: ['Bea'],
+    retired: ['Ada'],
+    totals: { Bea: 4 },
+    rounds: [{ round: 1, scores: { Bea: 4 } }]
+  };
+  assert.equal(Scorebook.findSharedMatch([retired], 'Ada', 'Bea'), retired);
+
+  const tricksOnly = {
+    name: '818',
+    rounds: [{ round: 8, actuals: { Ada: 1, Bea: 0 }, bids: { Bea: 0 } }]
+  };
+  assert.equal(Scorebook.participantNames(tricksOnly).has('Ada'), true);
+  assert.equal(Scorebook.findSharedMatch([tricksOnly], 'Ada', 'Bea'), tricksOnly);
+
+  const rook = {
+    name: 'Rook',
+    rookHighBidder: 'Ada',
+    rookPartner: 'Bea',
+    rounds: [{ round: 1, rookBidder: 'Ada', rookPartner: 'Cal', scores: { Cal: 10 } }]
+  };
+  assert.equal(Scorebook.findSharedMatch([rook], 'Ada', 'Bea'), rook);
+  assert.equal(Scorebook.findSharedMatch([rook], 'Ada', 'Cal'), rook);
+
+  const before = JSON.parse(JSON.stringify(retired));
+  Scorebook.applyPlayerNameOnGame(retired, 'Ada', 'Bea', true);
+  assert.deepEqual(retired, before);
+});
+
+test('a fresh rename and a disjoint merge keep every match score intact', () => {
+  const lindaGame = {
+    name: 'Five Crowns',
+    originalRoster: ['Linda', 'Cara'],
+    totals: { Linda: 10, Cara: 4 },
+    rounds: [{ round: 1, scores: { Linda: 10, Cara: 4 } }]
+  };
+  const mattGame = {
+    name: 'Wizard',
+    originalRoster: ['Matt'],
+    retired: ['Matt'],
+    totals: { Matt: 30 },
+    rounds: [{ round: 1, scores: { Matt: 30 }, bids: { Matt: 1 }, actuals: { Matt: 1 } }]
+  };
+  assert.equal(Scorebook.findSharedMatch([lindaGame, mattGame], 'Linda', 'Matt'), null);
+  Scorebook.applyPlayerNameOnGame(lindaGame, 'Linda', 'Matt', true);
+  Scorebook.applyPlayerNameOnGame(mattGame, 'Linda', 'Matt', true);
+  assert.equal(lindaGame.rounds[0].scores.Matt, 10);
+  assert.equal(lindaGame.rounds[0].scores.Cara, 4);
+  assert.equal(lindaGame.rounds[0].scores.Linda, undefined);
+  assert.equal(mattGame.rounds[0].scores.Matt, 30);
+  assert.equal(mattGame.rounds[0].actuals.Matt, 1);
+
+  const fresh = {
+    name: 'Flip 7 Vengeance',
+    originalRoster: ['Sam'],
+    totals: { Sam: 15 },
+    rounds: [{ round: 1, scores: { Sam: 15 } }]
+  };
+  Scorebook.applyPlayerNameOnGame(fresh, 'Sam', 'Samuel', false);
+  assert.equal(fresh.rounds[0].scores.Samuel, 15);
+  assert.equal(fresh.totals.Sam, undefined);
+});
+
+test('the rename path checks every match before it changes storage', () => {
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(page, /BPGScorebook\.findSharedMatch/);
+  assert.match(page, /mergePlayerRecords\(oldName, newName\)===false/);
+  assert.match(page, /mergePlayerRecords\(src, target\)===false/);
+  assert.match(page, /both played in the same match/);
+});
+
 test('a blank live trick is rejected before it can be stored as zero', () => {
   const checked = Scorebook.validateEntries({
     game: 'Wizard',
