@@ -14524,7 +14524,7 @@ ${isDealer
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
-              <span class="score-entry-row-status" aria-hidden="true">${isComplete?'✓':'○'}</span>
+              <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':'○'}</span>
               <div class="score-entry-name truncate">${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
               <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
@@ -14599,15 +14599,38 @@ ${isDealer
       gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
-      let c=scoreEntryModalState.values[p]||'';
-      if(v==='backspace')c=c.slice(0,-1);
-      else if(v==='-')c=c.startsWith('-')?c.substring(1):'-'+c;
-      else if(c==='0'&&v!=='0'&&v!=='00')c=v;
-      else if(c.length<5)c+=v;
-      scoreEntryModalState.values[p]=c;
-      if(/^\d+$/.test(v))scoreEntryModalState.acknowledged[p]=true;
+      const next=BPGScorebook.applyScoreEntryKey({
+        value:scoreEntryModalState.values[p]??'',
+        acknowledged:!!scoreEntryModalState.acknowledged[p]
+      }, v);
+      scoreEntryModalState.values[p]=next.value;
+      scoreEntryModalState.acknowledged[p]=next.acknowledged;
       updateScoreEntryActiveValue();
     });
+  }
+
+  function confirmScoreEntryRow(ev, idx){
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    if(!scoreEntryModalState)return;
+    const player=scoreEntryModalState.players?.[idx];
+    if(!player)return;
+    const next=BPGScorebook.acceptScoreEntryValue({
+      value:scoreEntryModalState.values[player]??'',
+      acknowledged:!!scoreEntryModalState.acknowledged[player]
+    });
+    if(!next.accepted)return;
+    scoreEntryModalState.values[player]=next.value;
+    scoreEntryModalState.acknowledged[player]=true;
+    if(scoreEntryModalState.activePlayer!==player){
+      selectScoreEntryPlayer(idx);
+      return;
+    }
+    updateScoreEntryRowState(player);
+    updateScoreEntryActiveValue();
+    updateScoreEntryProgress();
   }
 
   function scoreEntryNext(){
@@ -14630,13 +14653,13 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    if(isScoreEntryBidMode(mode)){
-      if(!currentGame.currentBids)currentGame.currentBids={};
-      players.forEach(p=>{currentGame.currentBids[p]=parseInt(values[p],10)||0;});
-    } else {
-      if(!currentGame.currentScoreDrafts)currentGame.currentScoreDrafts={};
-      players.forEach(p=>{currentGame.currentScoreDrafts[p]=parseInt(values[p],10)||0;});
-    }
+    const target=isScoreEntryBidMode(mode)
+      ? (currentGame.currentBids||(currentGame.currentBids={}))
+      : (currentGame.currentScoreDrafts||(currentGame.currentScoreDrafts={}));
+    players.forEach(p=>{
+      const parsed=BPGScorebook.parseEntryInteger(values[p]);
+      target[p]=parsed.ok?parsed.value:(values[p]??'');
+    });
   }
 
   function saveOpenScoreEntryModalDrafts(){
@@ -14665,52 +14688,37 @@ ${isDealer
     closeScoreEntryModalOnly();
   }
 
+  function rejectScoreEntries(result){
+    if(result&&result.message) alert(result.message);
+    return false;
+  }
+
   function validateScoreEntryModalSubmit(){
     if(!scoreEntryModalState||!currentGame)return false;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    const roundNumber=currentGame.currentRound;
     if(isScoreEntryBidMode(mode)){
-      if(currentGame.name==='Wizard'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`Wizard bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-      }
+      const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'bids',roundNumber,players,values});
+      if(!checked.ok) return rejectScoreEntries(checked);
       if(currentGame.name==='818'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-        const dealerInfo=get818DealerBidInfo(values, players);
-        if(dealerInfo?.applies){
-          const dealerBid=parseInt(values[dealerInfo.dealer],10)||0;
-          if(dealerBid===dealerInfo.forbidden){
-            alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
-            return false;
-          }
+        const dealerInfo=get818DealerBidInfo(checked.values, players);
+        if(dealerInfo?.applies&&checked.values[dealerInfo.dealer]===dealerInfo.forbidden){
+          alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
+          return false;
         }
       }
-      const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
+      const allZero=players.every(p=>checked.values[p]===0);
       return !allZero||confirm('Lock in all 0 bids?');
     }
     if(isScoreEntryTrickMode(mode)){
-      if(currentGame.name==='818'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-      }
-      const total=players.reduce((s,p)=>s+(parseInt(values[p],10)||0),0);
-      const tricks=getRoundTrickCount(currentGame);
-      return total===tricks||confirm(`Total tricks (${total}) ≠ round tricks (${tricks}). Submit anyway?`);
+      const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'tricks',roundNumber,players,values});
+      if(!checked.ok) return rejectScoreEntries(checked);
+      return checked.sum===checked.limit||confirm(`Total tricks (${checked.sum}) ≠ round tricks (${checked.limit}). Submit anyway?`);
     }
-    const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
+    const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players,values});
+    if(!checked.ok) return rejectScoreEntries(checked);
+    const allZero=players.every(p=>checked.values[p]===0);
     const label=currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?';
     return !allZero||confirm(label);
   }
@@ -14726,6 +14734,19 @@ ${isDealer
     } finally {
       gnPerfEnd(timer);
     }
+  }
+
+  function readLiveEntryRaw(player, draftMap){
+    const el=document.getElementById(`score-input-${player}`);
+    if(el) return el.value;
+    if(draftMap && Object.prototype.hasOwnProperty.call(draftMap, player)) return draftMap[player];
+    return '';
+  }
+
+  function readLiveEntryMap(players, draftMap){
+    const values={};
+    players.forEach(player=>{ values[player]=readLiveEntryRaw(player, draftMap); });
+    return values;
   }
 
   function submitRound(options){
@@ -14752,26 +14773,37 @@ ${isDealer
 
     if(currentGame.name==='Wizard'){
       if(currentGame.wizardPhase==='bidding'){
-        let totalBids=0,allZero=true;
         if(!currentGame.currentBids)currentGame.currentBids={};
-        gp.forEach(p=>{
-          const el=document.getElementById(`score-input-${p}`);
-          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
-          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'bids',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>currentGame.currentRound);
-        if(invalid){alert(`Wizard bids must be from 0 to ${currentGame.currentRound}. Check ${invalid}.`);isSubmitting=false;return;}
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalBids=checked.sum;
+        const allZero=gp.every(p=>checked.values[p]===0);
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.currentBids={...checked.values};
         currentGame.wizardPhase='scoring';
-        gnPerfAction('locked Wizard bids', `total ${totalBids}/${currentGame.currentRound}`);
-        addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
+        gnPerfAction('locked Wizard bids', `total ${totalBids}/${checked.limit}`);
+        addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${checked.limit}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
-        let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
-        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
-        if(totalActual!==currentGame.currentRound&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${currentGame.currentRound}). Submit anyway?`)){isSubmitting=false;return;}
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'tricks',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, drafts)
+        });
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalActual=checked.sum;
+        if(totalActual!==checked.limit&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${checked.limit}). Submit anyway?`)){isSubmitting=false;return;}
+        const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
@@ -14794,34 +14826,43 @@ ${isDealer
     if(currentGame.name==='818'){
       const tricks=getRoundTrickCount(currentGame);
       if((currentGame.eight18Phase||'bidding')==='bidding'){
-        let totalBids=0,allZero=true;
         if(!currentGame.currentBids)currentGame.currentBids={};
-        gp.forEach(p=>{
-          const el=document.getElementById(`score-input-${p}`);
-          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
-          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'bids',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>tricks);
-        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
-        const dealerInfo=get818DealerBidInfo(currentGame.currentBids, gp);
-        if(dealerInfo?.applies&&currentGame.currentBids[dealerInfo.dealer]===dealerInfo.forbidden){
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalBids=checked.sum;
+        const allZero=gp.every(p=>checked.values[p]===0);
+        const dealerInfo=get818DealerBidInfo(checked.values, gp);
+        if(dealerInfo?.applies&&checked.values[dealerInfo.dealer]===dealerInfo.forbidden){
           alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
           isSubmitting=false;
           return;
         }
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.currentBids={...checked.values};
         currentGame.eight18Phase='scoring';
         gnPerfAction('locked 818 bids', `total ${totalBids}/${tricks}`);
         addAuditEntry(`R${currentGame.currentRound} 818 bids locked`, `Total: ${totalBids}/${tricks}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
-        let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
-        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
-        const invalid=gp.find(p=>actuals[p]<0||actuals[p]>tricks);
-        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
-        if(totalActual!==tricks&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${tricks}). Submit anyway?`)){isSubmitting=false;return;}
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'tricks',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, drafts)
+        });
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalActual=checked.sum;
+        if(totalActual!==checked.limit&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${checked.limit}). Submit anyway?`)){isSubmitting=false;return;}
+        const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=calculate818Score(bid,act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
@@ -14838,10 +14879,18 @@ ${isDealer
       }
     }
 
-    let allZero=true,scores={};
-    const drafts=ensureCurrentScoreDrafts();
-    gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
-    if(allZero&&!skipConfirm&&!confirm('Everyone scored 0? Submit?')){isSubmitting=false;return;}
+    const scoreDrafts=ensureCurrentScoreDrafts();
+    const checkedScores=BPGScorebook.validateEntries({
+      game:currentGame.name,
+      kind:'scores',
+      roundNumber:currentGame.currentRound,
+      players:gp,
+      values:readLiveEntryMap(gp, scoreDrafts)
+    });
+    if(!checkedScores.ok){alert(checkedScores.message);isSubmitting=false;return;}
+    const scores={...checkedScores.values};
+    const allZero=gp.every(p=>scores[p]===0);
+    if(allZero&&!skipConfirm&&!confirm(currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?')){isSubmitting=false;return;}
     const roundData = {round:currentGame.currentRound,scores};
     const celebration = detectRoundCelebration(currentGame, roundData);
     applyComebackAndNotify(roundData, gp);

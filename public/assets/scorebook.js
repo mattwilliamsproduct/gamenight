@@ -296,6 +296,72 @@
     return game.totals;
   }
 
+  function applyScoreEntryKey(entry, key) {
+    const source = entry || {};
+    let value = source.value == null ? '' : String(source.value);
+    let acknowledged = !!source.acknowledged;
+    const token = key == null ? '' : String(key);
+    const digit = /^[0-9]+$/.test(token);
+    if (!acknowledged && digit) {
+      return { value: token, acknowledged: true, replaced: true };
+    }
+    if (token === 'backspace') value = value.slice(0, -1);
+    else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
+    else if (digit && value === '0' && token !== '0' && token !== '00') value = token;
+    else if (digit && value.length < 5) value += token;
+    if (digit || token === 'backspace' || token === '-') acknowledged = true;
+    return { value, acknowledged, replaced: false };
+  }
+
+  function acceptScoreEntryValue(entry) {
+    const source = entry || {};
+    const value = source.value == null ? '' : String(source.value);
+    if (value === '' || value === '-') {
+      return { value, acknowledged: !!source.acknowledged, accepted: false };
+    }
+    return { value, acknowledged: true, accepted: true };
+  }
+
+  function createScoreEntrySession(players, values) {
+    const list = Array.isArray(players) ? players.filter(Boolean) : [];
+    return {
+      players: list.slice(),
+      activePlayer: list[0] || null,
+      values: Object.assign({}, values || {}),
+      acknowledged: Object.fromEntries(list.map(player => [player, false]))
+    };
+  }
+
+  function pressScoreEntryKey(session, key) {
+    const player = session && session.activePlayer;
+    if (!session || !player) return session;
+    const next = applyScoreEntryKey({
+      value: session.values[player],
+      acknowledged: session.acknowledged[player]
+    }, key);
+    session.values[player] = next.value;
+    session.acknowledged[player] = next.acknowledged;
+    return session;
+  }
+
+  function acceptScoreEntryPlayer(session, player) {
+    if (!session || !player) return session;
+    const next = acceptScoreEntryValue({
+      value: session.values[player],
+      acknowledged: session.acknowledged[player]
+    });
+    if (!next.accepted) return session;
+    session.values[player] = next.value;
+    session.acknowledged[player] = true;
+    return session;
+  }
+
+  function selectScoreEntryPlayer(session, player) {
+    if (!session || !player) return session;
+    session.activePlayer = player;
+    return session;
+  }
+
   function rookHandScores(hand) {
     const bidder = hand && hand.bidder;
     const partner = hand && hand.partner;
@@ -338,7 +404,13 @@
     snapshotMatchState,
     restoreMatchState,
     commitValidatedMutation,
-    recomputeTotals
+    recomputeTotals,
+    applyScoreEntryKey,
+    acceptScoreEntryValue,
+    createScoreEntrySession,
+    pressScoreEntryKey,
+    acceptScoreEntryPlayer,
+    selectScoreEntryPlayer
   };
 
   root.BPGScorebook = api;

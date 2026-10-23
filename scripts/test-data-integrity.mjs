@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 
 const require = createRequire(import.meta.url);
@@ -175,4 +176,84 @@ test('trick balance uses the round limit that was validated, not a stand-in roun
   const values = { Alice: 0, Bob: 1 };
   assert.equal(Scorebook.trickTableIsBalanced(values, ['Alice', 'Bob'], 1).ok, true);
   assert.equal(Scorebook.trickTableIsBalanced(values, ['Alice', 'Bob'], 8).ok, false);
+});
+
+test('the first digit on an untouched Wizard or 818 prefill replaces the bid', () => {
+  const session = Scorebook.createScoreEntrySession(['Alice', 'Bob'], { Alice: '1', Bob: '3' });
+  Scorebook.pressScoreEntryKey(session, '0');
+  assert.equal(session.values.Alice, '0');
+  assert.equal(session.acknowledged.Alice, true);
+  assert.equal(session.values.Bob, '3');
+  assert.equal(session.acknowledged.Bob, false);
+
+  const second = Scorebook.createScoreEntrySession(['Alice'], { Alice: '3' });
+  Scorebook.pressScoreEntryKey(second, '3');
+  assert.equal(second.values.Alice, '3');
+  assert.equal(second.acknowledged.Alice, true);
+});
+
+test('digits after the replacement append, including a two-digit trick count', () => {
+  const session = Scorebook.createScoreEntrySession(['Alice'], { Alice: '1' });
+  Scorebook.pressScoreEntryKey(session, '1');
+  Scorebook.pressScoreEntryKey(session, '0');
+  assert.equal(session.values.Alice, '10');
+  assert.equal(session.acknowledged.Alice, true);
+
+  const zeroFirst = Scorebook.createScoreEntrySession(['Bob'], { Bob: '4' });
+  Scorebook.pressScoreEntryKey(zeroFirst, '0');
+  Scorebook.pressScoreEntryKey(zeroFirst, '2');
+  assert.equal(zeroFirst.values.Bob, '2');
+});
+
+test('NEXT-style acceptance keeps an unchanged prefill and later digits append', () => {
+  const session = Scorebook.createScoreEntrySession(['Alice', 'Bob'], { Alice: '1', Bob: '2' });
+  Scorebook.acceptScoreEntryPlayer(session, 'Alice');
+  assert.equal(session.values.Alice, '1');
+  assert.equal(session.acknowledged.Alice, true);
+
+  Scorebook.pressScoreEntryKey(session, '0');
+  assert.equal(session.values.Alice, '10');
+
+  const blank = Scorebook.acceptScoreEntryValue({ value: '', acknowledged: false });
+  assert.equal(blank.accepted, false);
+  assert.equal(blank.acknowledged, false);
+  const dash = Scorebook.acceptScoreEntryValue({ value: '-', acknowledged: false });
+  assert.equal(dash.accepted, false);
+});
+
+test('leaving a player and coming back keeps the acknowledged entry', () => {
+  const session = Scorebook.createScoreEntrySession(['Alice', 'Bob'], { Alice: '1', Bob: '4' });
+  Scorebook.pressScoreEntryKey(session, '2');
+  Scorebook.selectScoreEntryPlayer(session, 'Bob');
+  Scorebook.selectScoreEntryPlayer(session, 'Alice');
+  assert.equal(session.activePlayer, 'Alice');
+  assert.equal(session.values.Alice, '2');
+  assert.equal(session.acknowledged.Alice, true);
+  Scorebook.pressScoreEntryKey(session, '0');
+  assert.equal(session.values.Alice, '20');
+  assert.equal(session.values.Bob, '4');
+  assert.equal(session.acknowledged.Bob, false);
+});
+
+test('the score entry modal and submit path use the shared prefill and bounds contracts', () => {
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(page, /BPGScorebook\.applyScoreEntryKey/);
+  assert.match(page, /BPGScorebook\.acceptScoreEntryValue/);
+  assert.match(page, /BPGScorebook\.validateEntries/);
+  assert.match(page, /function readLiveEntryRaw/);
+  assert.doesNotMatch(page, /parseInt\(el\.value\)\|\|0/);
+});
+
+test('a blank live trick is rejected before it can be stored as zero', () => {
+  const checked = Scorebook.validateEntries({
+    game: 'Wizard',
+    kind: 'tricks',
+    roundNumber: 2,
+    players: ['Alice', 'Bob'],
+    values: { Alice: '', Bob: '2' }
+  });
+  assert.equal(checked.ok, false);
+  assert.equal(checked.values.Alice, undefined);
+  assert.equal(checked.values.Bob, 2);
+  assert.match(checked.message, /Check Alice/);
 });
