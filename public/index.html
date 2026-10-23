@@ -666,6 +666,33 @@
       padding-right: 0.28rem;
       overflow: visible;
     }
+    .score-cell-input.score-cell-hit {
+      border-color: rgba(4,120,87,0.72);
+      box-shadow: 0 0 0 2px rgba(4,120,87,0.12);
+    }
+    .round-correction-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0,1.4fr) auto auto auto;
+      gap: 0.6rem;
+      align-items: center;
+      text-align: left;
+      border-radius: 14px;
+      padding: 0.65rem 0.8rem;
+      background: var(--surface-2);
+      border: 1.5px solid var(--hairline);
+      color: var(--ink);
+    }
+    .round-correction-row.is-active { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(4,120,87,0.16); }
+    .round-correction-actual { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .round-correction-score.score-cell-hit,
+    .round-correction-score.score-cell-miss {
+      border-radius: 10px;
+      padding: 0.15rem 0.45rem;
+      font-weight: 800;
+    }
+    .round-correction-score.score-cell-hit { color: #047857; box-shadow: inset 0 0 0 1.5px rgba(4,120,87,0.45); }
+    .round-correction-score.score-cell-miss { color: #be123c; box-shadow: inset 0 0 0 1.5px rgba(225,29,72,0.45); }
     .score-current-input {
       background: var(--surface);
       border: 2px solid var(--hairline);
@@ -8137,8 +8164,12 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="custom-numpad" class="hidden fixed bottom-0 md:bottom-6 right-0 md:right-6 w-full max-w-[350px] text-white p-4 md:p-5 z-[100] transform translate-y-full transition-transform duration-300 rounded-t-3xl md:rounded-3xl" style="background:#0f0f0e;border:1px solid #2c2c29;box-shadow:0 -8px 40px rgba(0,0,0,0.3);">
       <div class="flex justify-between items-center mb-4 px-2">
         <div id="numpad-label" class="font-extrabold uppercase tracking-[0.15em] text-xs" style="color:#34d399;">Enter Score</div>
-        <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
+        <div class="flex gap-2">
+          <button id="numpad-cancel" onclick="cancelPastNumpad()" class="hidden font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#fda4af;">Cancel</button>
+          <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
+        </div>
       </div>
+      <div id="numpad-error" class="hidden mb-3 mx-2 text-sm font-bold" style="color:#fda4af;" role="alert"></div>
       <div id="numpad-context" class="hidden mb-4 mx-2 rounded-2xl border px-3 py-2" style="border-color:rgba(52,211,153,0.28);background:rgba(52,211,153,0.08);">
         <div id="numpad-context-bid" class="font-extrabold uppercase tracking-[0.14em] text-[11px]" style="color:#67e8f9;"></div>
         <div id="numpad-context-result" class="mt-1 font-jakarta font-extrabold text-base" style="color:#f8fafc;"></div>
@@ -8158,6 +8189,35 @@ button.dealer-name-indicator .dealer-player-label {
         <button onclick="numpadNext()" class="numpad-btn rounded-2xl py-4 sm:py-5 text-base font-extrabold row-span-2 flex flex-col items-center justify-center gap-1" style="background:var(--emerald);color:#fff;box-shadow:0 10px 22px -8px rgba(4,120,87,0.6);">Next <span>→</span></button>
         <button onclick="numpadPress('00')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-xl font-extrabold font-mono-num">00</button>
         <button onclick="numpadPress('0')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold col-span-2 font-mono-num">0</button>
+      </div>
+    </div>
+
+    <!-- Historical Wizard / 818 round correction -->
+    <div id="round-correction-modal" class="hidden fixed inset-0 z-[160] flex items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="cancelRoundCorrection()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+      <div class="surface-raised relative w-full max-w-lg p-5 md:p-6 pop-in" role="dialog" aria-labelledby="round-correction-title">
+        <div id="round-correction-title" class="font-display text-3xl"></div>
+        <div id="round-correction-limit" class="mt-1 text-sm font-extrabold" style="color:var(--muted);"></div>
+        <div id="round-correction-sum" class="text-sm font-extrabold"></div>
+        <div id="round-correction-error" class="mt-3 text-sm font-bold" style="color:var(--rose);" role="alert"></div>
+        <div id="round-correction-rows" class="mt-4 space-y-2 max-h-64 overflow-y-auto"></div>
+        <div class="grid grid-cols-3 gap-2 mt-4 no-select">
+          <button type="button" onclick="roundCorrectionKey('1')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">1</button>
+          <button type="button" onclick="roundCorrectionKey('2')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">2</button>
+          <button type="button" onclick="roundCorrectionKey('3')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">3</button>
+          <button type="button" onclick="roundCorrectionKey('4')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">4</button>
+          <button type="button" onclick="roundCorrectionKey('5')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">5</button>
+          <button type="button" onclick="roundCorrectionKey('6')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">6</button>
+          <button type="button" onclick="roundCorrectionKey('7')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">7</button>
+          <button type="button" onclick="roundCorrectionKey('8')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">8</button>
+          <button type="button" onclick="roundCorrectionKey('9')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">9</button>
+          <button type="button" onclick="roundCorrectionKey('backspace')" class="numpad-btn rounded-2xl py-3 text-lg font-extrabold" style="background:rgba(159,18,56,0.3);color:#fda4af;">⌫</button>
+          <button type="button" onclick="roundCorrectionKey('0')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num col-span-2">0</button>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button type="button" onclick="cancelRoundCorrection()" class="btn-ghost flex-1 py-3 text-sm">Cancel</button>
+          <button type="button" id="round-correction-save" onclick="saveRoundCorrection()" class="btn-primary flex-1 py-3 text-sm">Save Round</button>
+        </div>
       </div>
     </div>
 
@@ -11285,9 +11345,12 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function createSavedMatchSnapshot(game, winners){
+    if(!game.id) game.id=Date.now();
     const data={
-      id:Date.now(),
+      id:game.id,
       game:game.name,
+      completed:true,
+      assistedMatch:game.assistedMatch===true,
       date:new Date().toLocaleDateString(),
       totals:{...(game.totals||{})},
       winners:[...(winners||[])],
@@ -12638,13 +12701,14 @@ ${isDealer
     releaseWakeLock(); currentGame=null; saveData(); goHome();
   }
 
-  function resumeMatch(id){
-    if(currentGame&&!confirm('This will scratch your active match. Proceed?'))return;
+  function resumeMatch(id, options){
+    const force=!!(options&&options.force);
+    if(currentGame&&!force&&!confirm('This will scratch your active match. Proceed?'))return;
     const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame={id:g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -13874,7 +13938,10 @@ ${isDealer
         let missClass='', missTitle='';
         if(isBidTrickGame(currentGame)&&r.bids?.[p]!==undefined&&r.actuals?.[p]!==undefined){
           const diff=r.actuals[p]-r.bids[p];
-          if(diff!==0){
+          if(diff===0){
+            missClass=' score-cell-hit';
+            missTitle=` title="Exact bid"`;
+          } else {
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
@@ -13883,7 +13950,7 @@ ${isDealer
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
-            onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
+            onclick="openPastScoreCell('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
           ${extra.html}
           </div>
@@ -15179,6 +15246,8 @@ ${isDealer
     const worst=data.totals[sorted[sorted.length-1]];
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
     const alerts=silent?[]:analyzeRecords(data);
+    const existing=history.findIndex(h=>h.id===data.id);
+    if(existing>=0) history.splice(existing,1);
     history.unshift(data);
     markHistoryChanged();
     if(!silent) stashScorecardReceipt();
@@ -15331,7 +15400,8 @@ ${isDealer
   }
 
   /* ═══ NUMPAD ═══ */
-  let activeInputContext=null, activeInputId=null;
+  let activeInputContext=null, activeInputId=null, numpadOriginalValue=null, numpadEntryAcknowledged=false;
+  let roundCorrectionState=null;
   let _numpadCloseTimer=null;
 
   function containNumpadEvent(ev){
@@ -15391,6 +15461,270 @@ ${isDealer
     box.classList.remove('hidden');
   }
 
+  function setNumpadError(message){
+    const error=document.getElementById('numpad-error');
+    if(!error) return;
+    error.textContent=message||'';
+    error.classList.toggle('hidden', !message);
+  }
+
+  function prepareMatchForCorrection(match){
+    if(!match) return {hadMax:true};
+    const hadMax=Number.isFinite(match.maxRounds)&&match.maxRounds>0;
+    if(!hadMax){
+      const named=match.name?match:{name:match.game,originalRoster:match.originalRoster||[],currentRound:match.currentRound};
+      const max=getMaxRoundsForGame(named);
+      if(max) match.maxRounds=max;
+    }
+    const hadEnd=Number(match.endScore)>0;
+    if(!hadEnd && (match.name==='Beat the Heat'||match.game==='Beat the Heat')) match.endScore=66;
+    return {hadMax,hadEnd};
+  }
+
+  function restoreCorrectionMeta(match, meta, result){
+    if(!match||!meta||(result&&result.ok)) return;
+    if(!meta.hadMax) delete match.maxRounds;
+    if(!meta.hadEnd) delete match.endScore;
+  }
+
+  function syncSavedMatchFromGame(game){
+    if(!game||game.id==null) return;
+    const saved=history.find(h=>h.id===game.id);
+    if(!saved||saved===game) return;
+    saved.rounds=JSON.parse(JSON.stringify(game.rounds||[]));
+    saved.totals=JSON.parse(JSON.stringify(game.totals||{}));
+    saved.winners=[...(game.winners||[])];
+    saved.auditLog=JSON.parse(JSON.stringify(game.auditLog||[]));
+    saved.currentRound=game.currentRound;
+    saved.completed=game.completed===true;
+    saved.assistedMatch=game.assistedMatch===true;
+    saved.maxRounds=game.maxRounds;
+    markHistoryChanged();
+  }
+
+  function finalizeHistoryCorrection(match, result){
+    markHistoryChanged();
+    if(result.standing?.reopened && !currentGame){
+      closeModal('scorecard-modal');
+      resumeMatch(match.id,{force:true});
+      toast('Match is back on the table');
+      return;
+    }
+    if(result.standing?.reopened) toast('That saved match is under the line again');
+    else if(result.standing?.winnersChanged) toast('Standings updated');
+    saveData({ fullPersist: true, syncCold: true });
+    renderHistoryList();
+    if(typeof renderHallOfFame==='function') renderHallOfFame();
+    const card=document.getElementById('scorecard-modal');
+    if(card && !card.classList.contains('hidden')) openScorecard(match.id);
+  }
+
+  function openPastScoreCell(player, roundIndex){
+    if(!currentGame) return;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return;
+    if(isBidTrickGame(currentGame)){
+      if(activeInputId) closeNumpad({discard:true,render:false});
+      openRoundCorrection({source:'live', roundIndex, focusPlayer:player});
+      return;
+    }
+    openNumpad(player, roundIndex);
+  }
+
+  function openHistoryRoundCorrection(historyId, roundIndex){
+    openRoundCorrection({source:'history', historyId, roundIndex});
+  }
+
+  function correctionMatch(state){
+    if(!state) return null;
+    if(state.source==='history') return history.find(h=>h.id===state.historyId)||null;
+    return currentGame;
+  }
+
+  function openRoundCorrection(spec){
+    const source=spec?.source||'live';
+    const match=source==='history'?history.find(h=>h.id===spec.historyId):currentGame;
+    if(!match) return;
+    const round=match.rounds?.[spec.roundIndex];
+    const name=match.name||match.game;
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)||(name!=='Wizard'&&name!=='818')) return;
+    const players=Object.keys(round.bids||{});
+    if(!players.length) return;
+    const values={};
+    const acknowledged={};
+    players.forEach(player=>{
+      const actual=round.actuals?.[player];
+      values[player]=actual==null?'':String(actual);
+      acknowledged[player]=false;
+    });
+    roundCorrectionState={
+      source,
+      historyId:spec.historyId??null,
+      roundIndex:spec.roundIndex,
+      players,
+      values,
+      acknowledged,
+      activePlayer:spec.focusPlayer&&players.includes(spec.focusPlayer)?spec.focusPlayer:players[0],
+      limit:BPGScorebook.roundTrickLimit(name, round.round),
+      roundNumber:round.round,
+      gameName:name,
+      bids:{...(round.bids||{})},
+      error:''
+    };
+    renderRoundCorrection();
+    openModal('round-correction-modal');
+  }
+
+  function renderRoundCorrection(){
+    const state=roundCorrectionState;
+    if(!state) return;
+    const title=document.getElementById('round-correction-title');
+    const limit=document.getElementById('round-correction-limit');
+    const sumEl=document.getElementById('round-correction-sum');
+    const error=document.getElementById('round-correction-error');
+    const rows=document.getElementById('round-correction-rows');
+    if(title) title.textContent=`${state.gameName} · Round ${state.roundNumber}`;
+    if(limit) limit.textContent=`This round has ${state.limit} tricks.`;
+    const parsedSum=state.players.reduce((total,player)=>{
+      const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
+      return total+(parsed.ok?parsed.value:0);
+    },0);
+    if(sumEl) sumEl.textContent=`Logged ${parsedSum} of ${state.limit}`;
+    if(error) error.textContent=state.error||'';
+    if(!rows) return;
+    rows.innerHTML=state.players.map((player,index)=>{
+      const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
+      const bid=state.bids[player];
+      const score=parsed.ok?(state.gameName==='818'?BPGScorebook.eight18RoundScore(bid,parsed.value):BPGScorebook.wizardRoundScore(bid,parsed.value)):'—';
+      const badge=parsed.ok?(Number(bid)===parsed.value?'score-cell-hit':'score-cell-miss'):'';
+      return `<button type="button" class="round-correction-row${player===state.activePlayer?' is-active':''}" data-player="${escapeHtml(player)}" onclick="selectRoundCorrectionPlayer(${index})">
+        <span class="player-name-label">${escapeHtml(player)}</span>
+        <span>Bid ${bid}</span>
+        <span class="round-correction-actual">${escapeHtml(state.values[player]||'—')}</span>
+        <span class="round-correction-score ${badge}">${score}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function selectRoundCorrectionPlayer(index){
+    if(!roundCorrectionState) return;
+    const player=roundCorrectionState.players[index];
+    if(!player) return;
+    roundCorrectionState.activePlayer=player;
+    renderRoundCorrection();
+  }
+
+  function roundCorrectionKey(key){
+    const state=roundCorrectionState;
+    if(!state||!state.activePlayer) return;
+    const player=state.activePlayer;
+    const next=BPGScorebook.applyScoreEntryKey({
+      value:state.values[player]??'',
+      acknowledged:!!state.acknowledged[player]
+    }, key);
+    state.values[player]=next.value;
+    state.acknowledged[player]=next.acknowledged;
+    state.error='';
+    renderRoundCorrection();
+  }
+
+  function cancelRoundCorrection(){
+    if(!roundCorrectionState) return;
+    roundCorrectionState=null;
+    closeModal('round-correction-modal');
+  }
+
+  function saveRoundCorrection(){
+    const state=roundCorrectionState;
+    const match=correctionMatch(state);
+    if(!state||!match) return;
+    const meta=prepareMatchForCorrection(match);
+    const result=BPGScorebook.commitRoundCorrection(match,{
+      roundIndex:state.roundIndex,
+      actuals:{...state.values}
+    });
+    restoreCorrectionMeta(match, meta, result);
+    if(!result.ok){
+      state.error=result.message||'That round was not saved.';
+      renderRoundCorrection();
+      return;
+    }
+    roundCorrectionState=null;
+    closeModal('round-correction-modal');
+    if(!result.changed) return;
+    if(state.source==='history'){
+      finalizeHistoryCorrection(match, result);
+      return;
+    }
+    syncSavedMatchFromGame(match);
+    saveData();
+    scheduleRender();
+    if(result.standing?.reopened) toast('The match is back under the line');
+    else if(result.standing?.winnersChanged) toast('Standings updated');
+  }
+
+  function commitPastScoreFromInput(){
+    if(!activeInputContext||activeInputContext.roundIndex==='current'||!currentGame) return true;
+    if(!BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return true;
+    const el=document.getElementById(activeInputId);
+    if(!el) return true;
+    const player=activeInputContext.player;
+    const roundIndex=activeInputContext.roundIndex;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return true;
+    const parsed=BPGScorebook.parseEntryInteger(el.value);
+    if(parsed.ok && Number(round.scores?.[player])===parsed.value){
+      setNumpadError('');
+      return true;
+    }
+    const meta=prepareMatchForCorrection(currentGame);
+    const result=BPGScorebook.commitRoundCorrection(currentGame,{
+      roundIndex,
+      scores:{[player]:el.value}
+    });
+    restoreCorrectionMeta(currentGame, meta, result);
+    if(!result.ok){
+      setNumpadError(result.message||'That score was not saved.');
+      alert(result.message);
+      return false;
+    }
+    setNumpadError('');
+    if(result.changed){
+      if(window.BPGComeback) BPGComeback.syncComebackAfterScoreEdit(currentGame, currentGame.rounds[roundIndex], player);
+      recomputeGameTotals(currentGame);
+      syncSavedMatchFromGame(currentGame);
+      saveData();
+      if(result.standing?.reopened) toast('The match is back under the line');
+      else if(result.standing?.winnersChanged) toast('Standings updated');
+    }
+    return true;
+  }
+
+  function cancelPastNumpad(){
+    if(!(activeInputContext&&activeInputContext.roundIndex!=='current')) return;
+    if(activeInputId&&numpadOriginalValue!=null){
+      const el=document.getElementById(activeInputId);
+      if(el) el.value=numpadOriginalValue;
+    }
+    setNumpadError('');
+    numpadEntryAcknowledged=false;
+    closeNumpad({discard:true,render:false});
+  }
+
+  document.addEventListener('keydown', event=>{
+    if(event.key!=='Escape') return;
+    if(roundCorrectionState){
+      event.preventDefault();
+      cancelRoundCorrection();
+      return;
+    }
+    const pad=document.getElementById('custom-numpad');
+    if(activeInputContext&&activeInputContext.roundIndex!=='current'&&pad&&!pad.classList.contains('hidden')){
+      event.preventDefault();
+      cancelPastNumpad();
+    }
+  });
+
   function saveActiveInputToModel(){
     const timer=gnPerfStart('GN saveActiveInputToModel');
     try{
@@ -15398,6 +15732,7 @@ ${isDealer
       const el=document.getElementById(activeInputId); if(!el)return;
       let v=parseInt(el.value); if(isNaN(v))v=0;
         if(activeInputContext.roundIndex!=='current'){
+          if(currentGame&&BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return commitPastScoreFromInput();
           const round=currentGame?.rounds[activeInputContext.roundIndex];
           if(round){
             round.scores[activeInputContext.player]=v;
@@ -15423,16 +15758,26 @@ ${isDealer
       if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
       const isCurrentRound = roundIndex === 'current';
       const switchingCurrentScoreInput = activeInputContext?.roundIndex === 'current' && isCurrentRound;
-      if(activeInputId)saveActiveInputToModel();
+      if(activeInputId){
+        const saved=saveActiveInputToModel();
+        if(saved===false) return;
+      }
       if(!switchingCurrentScoreInput) flushPendingSave();
       activeInputContext={player,roundIndex};
       activeInputId=isCurrentRound?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
+      const pastScore=!isCurrentRound && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      numpadOriginalValue=pastScore?null:null;
+      numpadEntryAcknowledged=false;
       document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
       const el=document.getElementById(activeInputId);
       if(el){
         el.classList.add('score-cell-active');
         document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
+        if(pastScore) numpadOriginalValue=el.value;
       }
+      const cancel=document.getElementById('numpad-cancel');
+      if(cancel) cancel.classList.toggle('hidden', !pastScore);
+      setNumpadError('');
       updateNumpadContext(player,roundIndex);
       document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
       const np=document.getElementById('custom-numpad');
@@ -15448,6 +15793,14 @@ ${isDealer
       if(!activeInputId)return;
       gnPerfAction('numpad press', v);
       const el=document.getElementById(activeInputId); if(!el)return;
+      const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      if(pastScore){
+        const next=BPGScorebook.applyScoreEntryKey({value:el.value,acknowledged:!!numpadEntryAcknowledged}, v);
+        el.value=next.value;
+        numpadEntryAcknowledged=next.acknowledged;
+        setNumpadError('');
+        return;
+      }
       let c=el.value;
       if(v==='backspace')el.value=c.slice(0,-1);
       else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
@@ -15546,13 +15899,15 @@ ${isDealer
       if(!activeInputId)return;
       gnPerfAction('numpad Next');
       const el=document.getElementById(activeInputId);
-      if(el&&(el.value===''||el.value==='-'))el.value='0';
-      saveActiveInputToModel();
+      const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      if(!pastScore && el&&(el.value===''||el.value==='-'))el.value='0';
+      const saved=saveActiveInputToModel();
+      if(saved===false) return;
       // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
       // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
       const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
       const ci = seatOrder.indexOf(activeInputContext.player);
-      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
+      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad({discard:true});return;}
       const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
       openNumpad(np,'current');
       maybeScrollNumpadTarget(np);
@@ -15564,13 +15919,22 @@ ${isDealer
 
   function closeNumpad(options){
     const shouldRender = !options || options.render !== false;
+    const discard = !!(options && options.discard);
     const hadInput = !!activeInputContext;
     const shouldRefreshTotals = hadInput && activeInputContext.roundIndex !== 'current';
-    if(hadInput)gnPerfAction('numpad Done');
+    if(hadInput && !discard)gnPerfAction('numpad Done');
     if(hadInput)suppressSubmitAfterNumpad();
     if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
-    if(activeInputId)saveActiveInputToModel();
+    if(!discard && activeInputId){
+      const saved=saveActiveInputToModel();
+      if(saved===false) return;
+    }
     flushPendingSave();
+    numpadOriginalValue=null;
+    numpadEntryAcknowledged=false;
+    const cancel=document.getElementById('numpad-cancel');
+    if(cancel) cancel.classList.add('hidden');
+    setNumpadError('');
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
@@ -15632,7 +15996,8 @@ ${isDealer
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
-      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}</th>`;
+      const canCorrect=(g.game==='Wizard'||g.game==='818')&&!BPGScorebook.isSyntheticAdjustmentRound(r);
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}${canCorrect?` <button type="button" class="round-correct-btn font-extrabold uppercase tracking-wider" onclick="openHistoryRoundCorrection(${g.id},${rIdx})">Correct</button>`:''}</th>`;
     });
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;

@@ -362,6 +362,265 @@
     return session;
   }
 
+  function isSyntheticAdjustmentRound(round) {
+    return !!(round && (round.hailMaryBonus === true || Number(round.round) === 0));
+  }
+
+  function isPlayedScoringRound(round) {
+    return !!(round && !isSyntheticAdjustmentRound(round));
+  }
+
+  function signedScore(value) {
+    const n = Number(value) || 0;
+    return n >= 0 ? `+${n}` : String(n);
+  }
+
+  function lowScoreWins(game) {
+    const name = gameName(game);
+    return name === 'Five Crowns' || name === 'Beat the Heat';
+  }
+
+  function beatTheHeatLine(game) {
+    const line = Number(game && game.endScore);
+    return Number.isFinite(line) && line > 0 ? line : 66;
+  }
+
+  function rookWinTarget(game) {
+    const target = Number(game && game.rookConfig && game.rookConfig.winTarget);
+    return Number.isFinite(target) && target > 0 ? target : 0;
+  }
+
+  function activeStandingPlayers(game) {
+    const retired = new Set((game && game.retired) || []);
+    const totals = (game && game.totals) || {};
+    const roster = game && Array.isArray(game.originalRoster) && game.originalRoster.length
+      ? game.originalRoster
+      : Object.keys(totals);
+    return roster.filter(player => player && !retired.has(player) && Object.prototype.hasOwnProperty.call(totals, player));
+  }
+
+  function matchLengthOver(game) {
+    const maxR = Number(game && game.maxRounds);
+    if (!Number.isFinite(maxR) || maxR <= 0 || maxR >= 999) return false;
+    return (Number(game.currentRound) || 0) > maxR;
+  }
+
+  function beatTheHeatOver(game) {
+    if (gameName(game) !== 'Beat the Heat') return false;
+    const line = beatTheHeatLine(game);
+    return activeStandingPlayers(game).some(player => (Number(game.totals[player]) || 0) >= line);
+  }
+
+  function rookTargetOver(game) {
+    if (gameName(game) !== 'Rook') return false;
+    const target = rookWinTarget(game);
+    if (!target) return false;
+    return activeStandingPlayers(game).some(player => (Number(game.totals[player]) || 0) >= target);
+  }
+
+  function standingOver(game) {
+    return matchLengthOver(game) || beatTheHeatOver(game) || rookTargetOver(game);
+  }
+
+  function leadersOf(game) {
+    const players = activeStandingPlayers(game);
+    if (!players.length) return [];
+    const low = lowScoreWins(game);
+    let best = null;
+    players.forEach(player => {
+      const score = Number(game.totals[player]) || 0;
+      if (best == null || (low ? score < best : score > best)) best = score;
+    });
+    return players.filter(player => (Number(game.totals[player]) || 0) === best);
+  }
+
+  function refreshStanding(game, before) {
+    const over = standingOver(game);
+    const priorWinners = Array.isArray(game.winners) ? game.winners.slice() : [];
+    if (before && before.over && !over) {
+      game.winners = [];
+      game.completed = false;
+      return { over: false, reopened: true, winnersChanged: priorWinners.length > 0, winners: [] };
+    }
+    const finished = over || !!(before && before.completed);
+    if (!finished) {
+      return { over: false, reopened: false, winnersChanged: false, winners: priorWinners };
+    }
+    const next = leadersOf(game);
+    game.winners = next.slice();
+    game.completed = true;
+    return {
+      over,
+      reopened: false,
+      winnersChanged: priorWinners.join('\0') !== next.join('\0'),
+      winners: next.slice()
+    };
+  }
+
+  function trickRoundPlayers(round) {
+    const bids = round && round.bids;
+    const keys = bids ? Object.keys(bids) : [];
+    return keys.length ? keys : Object.keys((round && round.actuals) || {});
+  }
+
+  function correctionDetail(kind, changes) {
+    if (kind === 'tricks') {
+      return changes.map(change => `${change.player}: ${change.fromActual} -> ${change.toActual} (${signedScore(change.fromScore)} -> ${signedScore(change.toScore)})`).join(', ');
+    }
+    return changes.map(change => `${change.player}: ${change.from} -> ${change.to}`).join(', ');
+  }
+
+  function sameNumber(left, right) {
+    return Number(left) === Number(right);
+  }
+
+  function verifyRoundCorrection(game, roundIndex) {
+    const round = game && game.rounds && game.rounds[roundIndex];
+    if (!round) return { ok: false, reason: 'verify', message: 'That round is missing.' };
+    const name = gameName(game);
+    if (name === 'Wizard' || name === '818') {
+      const players = trickRoundPlayers(round);
+      const limit = roundTrickLimit(game, round.round);
+      const outOfRange = players.filter(player => {
+        const actual = round.actuals && round.actuals[player];
+        return !Number.isInteger(actual) || actual < 0 || actual > limit;
+      });
+      if (outOfRange.length) return { ok: false, reason: 'verify', message: 'Round no longer adds up.' };
+      if (!trickTableIsBalanced(round.actuals, players, limit).ok) {
+        return { ok: false, reason: 'verify', message: 'Round no longer adds up.' };
+      }
+      const scoreFor = name === 'Wizard' ? wizardRoundScore : eight18RoundScore;
+      const mismatched = players.some(player => round.scores[player] !== scoreFor(round.bids[player], round.actuals[player]));
+      if (mismatched) return { ok: false, reason: 'verify', message: 'Round scores no longer match the tricks.' };
+    }
+    const copy = snapshotMatchState(game);
+    recomputeTotals(copy);
+    const keys = new Set([...Object.keys(game.totals || {}), ...Object.keys(copy.totals || {})]);
+    for (const key of keys) {
+      if ((Number(game.totals[key]) || 0) !== (Number(copy.totals[key]) || 0)) {
+        return { ok: false, reason: 'verify', message: 'Totals no longer match the rounds.' };
+      }
+    }
+    return { ok: true };
+  }
+
+  function commitRoundCorrection(game, spec) {
+    const source = spec || {};
+    return commitValidatedMutation(game, draft => {
+      const roundIndex = source.roundIndex;
+      const round = draft && draft.rounds && draft.rounds[roundIndex];
+      if (!round || isSyntheticAdjustmentRound(round)) {
+        return { ok: false, reason: 'invalid', message: 'That round cannot be corrected.' };
+      }
+      const name = gameName(draft);
+      const before = { over: standingOver(draft), completed: draft.completed === true };
+      const kind = (name === 'Wizard' || name === '818') ? 'tricks' : 'scores';
+      const changes = [];
+
+      if (kind === 'tricks') {
+        const players = trickRoundPlayers(round);
+        if (!players.length) return { ok: false, reason: 'invalid', message: 'That round has no bids to correct.' };
+        const rawActuals = {};
+        players.forEach(player => {
+          if (source.actuals && Object.prototype.hasOwnProperty.call(source.actuals, player)) rawActuals[player] = source.actuals[player];
+          else rawActuals[player] = round.actuals ? round.actuals[player] : '';
+        });
+        const checked = validateEntries({
+          game: draft,
+          kind: 'tricks',
+          roundNumber: round.round,
+          players,
+          values: rawActuals
+        });
+        if (!checked.ok) return checked;
+        const balanced = trickTableIsBalanced(checked.values, players, checked.limit);
+        if (!balanced.ok) {
+          return {
+            ok: false,
+            reason: 'unbalanced',
+            invalidPlayers: [],
+            values: checked.values,
+            limit: checked.limit,
+            sum: balanced.sum,
+            message: `${entryGameLabel(draft)} round ${round.round} must total ${checked.limit} tricks. This table totals ${balanced.sum}.`
+          };
+        }
+        const actualsChanged = players.some(player => !sameNumber(round.actuals && round.actuals[player], checked.values[player]));
+        if (!actualsChanged) return { ok: true, changed: false, noop: true, message: '' };
+        const scoreFor = name === 'Wizard' ? wizardRoundScore : eight18RoundScore;
+        const nextScores = {};
+        players.forEach(player => {
+          const fromActual = round.actuals ? round.actuals[player] : undefined;
+          const toActual = checked.values[player];
+          const fromScore = round.scores ? round.scores[player] : scoreFor(round.bids[player], fromActual);
+          const toScore = scoreFor(round.bids[player], toActual);
+          nextScores[player] = toScore;
+          if (!sameNumber(fromActual, toActual) || !sameNumber(fromScore, toScore)) {
+            changes.push({
+              player,
+              fromActual: Number(fromActual),
+              toActual,
+              fromScore: Number(fromScore),
+              toScore
+            });
+          }
+        });
+        if (!round.actuals) round.actuals = {};
+        if (!round.scores) round.scores = {};
+        players.forEach(player => {
+          round.actuals[player] = checked.values[player];
+          round.scores[player] = nextScores[player];
+        });
+      } else {
+        const rawScores = source.scores || {};
+        const players = Object.keys(rawScores);
+        if (!players.length) return { ok: false, reason: 'invalid', message: 'Nothing to correct.' };
+        const checked = validateEntries({
+          game: draft,
+          kind: 'scores',
+          roundNumber: round.round,
+          players,
+          values: rawScores
+        });
+        if (!checked.ok) return checked;
+        players.forEach(player => {
+          const from = round.scores ? round.scores[player] : undefined;
+          const to = checked.values[player];
+          if (!sameNumber(from, to)) changes.push({ player, from: Number(from), to });
+        });
+        if (!changes.length) return { ok: true, changed: false, noop: true, message: '' };
+        if (!round.scores) round.scores = {};
+        players.forEach(player => { round.scores[player] = checked.values[player]; });
+      }
+
+      recomputeTotals(draft);
+      const standing = refreshStanding(draft, before);
+      const detail = correctionDetail(kind, changes);
+      const action = `R${round.round} ${kind === 'tricks' ? 'Tricks Edited' : 'Score Edited'}`;
+      if (!Array.isArray(draft.auditLog)) draft.auditLog = [];
+      draft.auditLog.push({
+        ts: source.now || Date.now(),
+        action,
+        detail,
+        round: round.round,
+        kind,
+        changes
+      });
+      if (draft.auditLog.length > 200) draft.auditLog = draft.auditLog.slice(-200);
+      return {
+        ok: true,
+        changed: true,
+        noop: false,
+        action,
+        detail,
+        kind,
+        changes,
+        standing,
+        winners: Array.isArray(draft.winners) ? draft.winners.slice() : []
+      };
+    }, draft => verifyRoundCorrection(draft, source.roundIndex));
+  }
+
   function rookHandScores(hand) {
     const bidder = hand && hand.bidder;
     const partner = hand && hand.partner;
@@ -410,7 +669,13 @@
     createScoreEntrySession,
     pressScoreEntryKey,
     acceptScoreEntryPlayer,
-    selectScoreEntryPlayer
+    selectScoreEntryPlayer,
+    isSyntheticAdjustmentRound,
+    isPlayedScoringRound,
+    standingOver,
+    leadersOf,
+    refreshStanding,
+    commitRoundCorrection
   };
 
   root.BPGScorebook = api;

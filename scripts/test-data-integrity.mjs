@@ -244,6 +244,243 @@ test('the score entry modal and submit path use the shared prefill and bounds co
   assert.doesNotMatch(page, /parseInt\(el\.value\)\|\|0/);
 });
 
+function finishedWizard() {
+  return {
+    name: 'Wizard',
+    originalRoster: ['Alice', 'Bob'],
+    currentRound: 2,
+    maxRounds: 1,
+    completed: true,
+    winners: ['Bob'],
+    totals: { Alice: -10, Bob: 30 },
+    auditLog: [],
+    rounds: [{
+      round: 1,
+      bids: { Alice: 1, Bob: 1 },
+      actuals: { Alice: 0, Bob: 1 },
+      scores: { Alice: -10, Bob: 30 }
+    }]
+  };
+}
+
+test('a Wizard historical correction rewrites tricks, scores, the winner, and one audit entry together', () => {
+  const game = finishedWizard();
+  const result = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    now: 111,
+    actuals: { Alice: 1, Bob: 0 }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(game.rounds[0].actuals.Alice, 1);
+  assert.equal(game.rounds[0].actuals.Bob, 0);
+  assert.equal(game.rounds[0].scores.Alice, 30);
+  assert.equal(game.rounds[0].scores.Bob, -10);
+  assert.equal(game.totals.Alice, 30);
+  assert.equal(game.totals.Bob, -10);
+  assert.deepEqual(game.winners, ['Alice']);
+  assert.equal(game.currentRound, 2);
+  assert.equal(game.auditLog.length, 1);
+  assert.equal(game.auditLog[0].action, 'R1 Tricks Edited');
+  assert.equal(game.auditLog[0].detail, 'Alice: 0 -> 1 (-10 -> +30), Bob: 1 -> 0 (+30 -> -10)');
+  assert.equal(result.standing.reopened, false);
+});
+
+test('an out-of-bounds or unbalanced historical trick table changes nothing', () => {
+  const game = finishedWizard();
+  const before = JSON.parse(JSON.stringify(game));
+  const bounds = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: -1, Bob: 2 }
+  });
+  assert.equal(bounds.ok, false);
+  assert.match(bounds.message, /Wizard tricks must be from 0 to 1\. Check Alice, Bob\./);
+  assert.deepEqual(game, before);
+
+  const blank = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: '', Bob: 1 }
+  });
+  assert.equal(blank.ok, false);
+  assert.match(blank.message, /Check Alice/);
+  assert.deepEqual(game, before);
+
+  const unbalanced = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: 1, Bob: 1 }
+  });
+  assert.equal(unbalanced.ok, false);
+  assert.equal(unbalanced.message, 'Wizard round 1 must total 1 tricks. This table totals 2.');
+  assert.deepEqual(game, before);
+});
+
+test('saving the same tricks is a no-op and writes no audit event', () => {
+  const game = finishedWizard();
+  const result = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: '0', Bob: '1' }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.noop, true);
+  assert.deepEqual(game.auditLog, []);
+  assert.equal(game.rounds[0].scores.Alice, -10);
+});
+
+test('an 818 historical correction uses that round’s trick count, not the live round counter', () => {
+  const game = {
+    name: '818',
+    currentRound: 15,
+    maxRounds: 15,
+    completed: true,
+    originalRoster: ['Alice', 'Bob'],
+    winners: ['Alice'],
+    totals: { Alice: 11, Bob: 0 },
+    auditLog: [],
+    rounds: [{
+      round: 8,
+      bids: { Alice: 1, Bob: 1 },
+      actuals: { Alice: 1, Bob: 0 },
+      scores: { Alice: 11, Bob: 0 }
+    }]
+  };
+  const rejected = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    actuals: { Alice: 8, Bob: 0 }
+  });
+  assert.equal(rejected.ok, false);
+  assert.match(rejected.message, /818 tricks must be from 0 to 1/);
+  assert.equal(game.rounds[0].actuals.Alice, 1);
+
+  const saved = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    now: 222,
+    actuals: { Alice: 0, Bob: 1 }
+  });
+  assert.equal(saved.ok, true);
+  assert.equal(game.rounds[0].scores.Alice, 0);
+  assert.equal(game.rounds[0].scores.Bob, 11);
+  assert.deepEqual(game.winners, ['Bob']);
+  assert.equal(game.auditLog.length, 1);
+  assert.equal(game.auditLog[0].action, 'R8 Tricks Edited');
+});
+
+test('a negative Five Crowns correction is rejected and a real edit logs once', () => {
+  const game = {
+    name: 'Five Crowns',
+    originalRoster: ['Alice', 'Bob'],
+    currentRound: 3,
+    maxRounds: 11,
+    totals: { Alice: 15, Bob: 4 },
+    winners: ['Bob'],
+    auditLog: [],
+    rounds: [
+      { round: 1, scores: { Alice: 15, Bob: 4 } },
+      { round: 2, scores: { Alice: 0, Bob: 0 } }
+    ]
+  };
+  const before = JSON.parse(JSON.stringify(game));
+  const rejected = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Alice: -15 } });
+  assert.equal(rejected.ok, false);
+  assert.match(rejected.message, /Five Crowns scores must be whole numbers, 0 or higher\. Check Alice\./);
+  assert.deepEqual(game, before);
+
+  const blank = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Alice: '   ' } });
+  assert.equal(blank.ok, false);
+  assert.deepEqual(game, before);
+
+  const saved = Scorebook.commitRoundCorrection(game, { roundIndex: 0, now: 333, scores: { Alice: 3 } });
+  assert.equal(saved.ok, true);
+  assert.equal(game.rounds[0].scores.Alice, 3);
+  assert.equal(game.totals.Alice, 3);
+  assert.equal(game.auditLog.length, 1);
+  assert.equal(game.auditLog[0].action, 'R1 Score Edited');
+  assert.equal(game.auditLog[0].detail, 'Alice: 15 -> 3');
+  assert.deepEqual(game.winners, ['Bob']);
+});
+
+test('a final-round Five Crowns correction can change the winner without reopening the match', () => {
+  const game = {
+    name: 'Five Crowns',
+    originalRoster: ['Alice', 'Bob'],
+    currentRound: 2,
+    maxRounds: 1,
+    completed: true,
+    winners: ['Alice'],
+    totals: { Alice: 5, Bob: 10 },
+    auditLog: [],
+    rounds: [{ round: 1, scores: { Alice: 5, Bob: 10 } }]
+  };
+  const result = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Bob: 0 } });
+  assert.equal(result.ok, true);
+  assert.deepEqual(game.winners, ['Bob']);
+  assert.equal(game.completed, true);
+  assert.equal(result.standing.reopened, false);
+  assert.equal(game.currentRound, 2);
+});
+
+test('a Beat the Heat correction under 66 reopens the match and clears the winner', () => {
+  const game = {
+    name: 'Beat the Heat',
+    endScore: 66,
+    originalRoster: ['Alice', 'Bob'],
+    currentRound: 3,
+    maxRounds: 999,
+    completed: true,
+    winners: ['Alice'],
+    totals: { Alice: 10, Bob: 70 },
+    auditLog: [{ action: 'Match Started' }],
+    rounds: [{ round: 1, scores: { Alice: 10, Bob: 70 } }]
+  };
+  const result = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Bob: 20 } });
+  assert.equal(result.ok, true);
+  assert.equal(result.standing.reopened, true);
+  assert.equal(game.completed, false);
+  assert.deepEqual(game.winners, []);
+  assert.equal(game.totals.Bob, 20);
+  assert.equal(game.auditLog.length, 2);
+});
+
+test('a Rook total under the win target reopens, and a Life Preserver round cannot be corrected', () => {
+  const rook = {
+    name: 'Rook',
+    rookConfig: { winTarget: 100 },
+    originalRoster: ['Alice', 'Bob'],
+    currentRound: 2,
+    maxRounds: 999,
+    completed: true,
+    winners: ['Bob'],
+    totals: { Alice: 40, Bob: 110 },
+    auditLog: [],
+    rounds: [{ round: 1, scores: { Alice: 40, Bob: 110 } }]
+  };
+  const reopened = Scorebook.commitRoundCorrection(rook, { roundIndex: 0, scores: { Bob: 40 } });
+  assert.equal(reopened.standing.reopened, true);
+  assert.deepEqual(rook.winners, []);
+
+  const spin = {
+    name: 'Five Crowns',
+    originalRoster: ['Alice'],
+    totals: { Alice: -18 },
+    auditLog: [],
+    rounds: [{ round: 0, hailMaryBonus: true, scores: { Alice: -18 } }]
+  };
+  const blocked = Scorebook.commitRoundCorrection(spin, { roundIndex: 0, scores: { Alice: 0 } });
+  assert.equal(blocked.ok, false);
+  assert.equal(spin.totals.Alice, -18);
+  assert.deepEqual(spin.auditLog, []);
+});
+
+test('historical edits on the page share one commit, cancel, and audit boundary', () => {
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(page, /BPGScorebook\.commitRoundCorrection/);
+  assert.match(page, /function cancelRoundCorrection/);
+  assert.match(page, /function cancelPastNumpad/);
+  assert.match(page, /function openPastScoreCell/);
+  assert.match(page, /score-cell-hit/);
+  assert.match(page, /id="round-correction-modal"/);
+  assert.match(page, /event\.key!=='Escape'/);
+});
+
 test('a blank live trick is rejected before it can be stored as zero', () => {
   const checked = Scorebook.validateEntries({
     game: 'Wizard',
