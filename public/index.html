@@ -693,6 +693,15 @@
     }
     .round-correction-score.score-cell-hit { color: #047857; box-shadow: inset 0 0 0 1.5px rgba(4,120,87,0.45); }
     .round-correction-score.score-cell-miss { color: #be123c; box-shadow: inset 0 0 0 1.5px rgba(225,29,72,0.45); }
+    .assisted-match-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #b45309;
+      letter-spacing: 0.12em;
+    }
     .score-current-input {
       background: var(--surface);
       border: 2px solid var(--hairline);
@@ -11093,14 +11102,10 @@ button.dealer-name-indicator .dealer-player-label {
       }
       alert(`🛟 The Life Preserver says:\n\n${win.label}`);
       if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
-      currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
+      BPGScorebook.recordLifePreserverSpin(currentGame, wheelPlayer, adj);
       if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
         BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
-      } else {
-        if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
-        currentGame.hailMaryUsed.push(wheelPlayer);
       }
-      recomputeGameTotals(currentGame);
       syncCurrentLifePreserverHolds({gameOver:over});
       addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
@@ -15962,7 +15967,7 @@ ${isDealer
         <div class="flex items-center justify-between mb-4 gap-3">
           <div class="min-w-0 flex-1">
             <h3 class="font-display text-2xl truncate">${cfg.emoji} ${h.game}</h3>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${BPGScorebook.isAssistedMatch(h)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}</div>
           </div>
           <div class="flex gap-2 flex-shrink-0">
             <button onclick="openScorecard(${h.id})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
@@ -15989,7 +15994,7 @@ ${isDealer
   function openScorecard(id){
     const g=history.find(h=>h.id===id); if(!g)return;
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${g.game}`;
-    document.getElementById('modal-game-date').textContent=g.date;
+    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
     const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
@@ -16080,7 +16085,8 @@ ${isDealer
     const bests = {};
     history.forEach(h => {
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
-      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]));
+      if(BPGScorebook.isAssistedMatch(h)) return;
+      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
       if(!hasLegit && h.rounds) return;
       const s = h.totals[name];
       if(!bests[h.game]){
@@ -16130,6 +16136,10 @@ ${isDealer
       if(!sorted.length)return;
       const lastScore=h.totals[sorted[sorted.length-1]];
       const lastPlayers=sorted.filter(p=>h.totals[p]===lastScore);
+      const assisted=BPGScorebook.isAssistedMatch(h);
+      if(!r._coverage) r._coverage={};
+      if(!r._coverage[h.game]) r._coverage[h.game]={assisted:0,unassisted:0};
+      r._coverage[h.game][assisted?'assisted':'unassisted']++;
 
       playersInMatch.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
@@ -16141,8 +16151,8 @@ ${isDealer
       // Per-match totals: only if player has at least one LEGIT (non-joinBonus) round
       playersInMatch.forEach(p=>{
         const score=h.totals[p];
-        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]));
-        if(!hasLegit) return;
+        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
+        if(!hasLegit || assisted) return;
         if(isHighScoreGame(h.game)){
           if(score>r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
           if(score<r[h.game].worstScore){r[h.game].worstScore=score;r[h.game].worstPlayer=p;}
@@ -16167,7 +16177,7 @@ ${isDealer
         let ms={};
         playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0});
         h.rounds.forEach(round=>{
-          if(!round.scores)return;
+          if(!round.scores || BPGScorebook.isSyntheticAdjustmentRound(round))return;
           Object.entries(round.scores).forEach(([p,score])=>{
             if(!playersInMatch.includes(p))return;
             if(round.joinBonus?.[p])return; // exclude join-bonus scores
@@ -16323,6 +16333,10 @@ ${isDealer
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
       const winners = (h.winners||[]).filter(p=>sorted.includes(p));
+      const assisted = BPGScorebook.isAssistedMatch(h);
+      if(!games._coverage) games._coverage={};
+      if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
+      games._coverage[h.game][assisted?'assisted':'unassisted']++;
       sorted.forEach((p,idx)=>{
         const ps = ensurePlayer(p);
         const won = winners.includes(p), last = lastPlayers.includes(p), pos = idx+1;
@@ -16341,9 +16355,11 @@ ${isDealer
         update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
         bg.games++; bg.wins += won?1:0; bg.posSum += pos;
-        const scoreEntry = entry(p,h.totals[p],h);
-        if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
-        if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+        if(!assisted){
+          const scoreEntry = entry(p,h.totals[p],h);
+          if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
+          if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+        }
       });
 
       for(let i=0;i<sorted.length;i++){
@@ -16385,8 +16401,8 @@ ${isDealer
       const gameRecords = games[h.game];
       if(gameRecords){
         sorted.forEach(p=>{
-          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p]);
-          if(!hasLegit) return;
+          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p] && !BPGScorebook.isSyntheticAdjustmentRound(r));
+          if(!hasLegit || assisted) return;
           const finalEntry = entry(p,h.totals[p],h);
           if(cfg.winLow){
             update(gameRecords,'bestGame',finalEntry,betterLow);
@@ -16440,11 +16456,12 @@ ${isDealer
       const scoringRounds = h.rounds.filter(r=>!r.hailMaryBonus);
       const finalScoringRound = scoringRounds[scoringRounds.length-1] || null;
       h.rounds.forEach(r=>{
+        if(BPGScorebook.isSyntheticAdjustmentRound(r)) return;
         Object.entries(r.scores||{}).forEach(([p,score])=>{
           if(!perMatch[p] || r.joinBonus?.[p]) return;
           perMatch[p].roundScores.push(score);
           if(h.game==='Five Crowns'){
-            if(score!==0) update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round}),betterLow);
+            update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round,label:`R${r.round}`}),betterLow);
             update(games["Five Crowns"],'worstRound',entry(p,score,h,{round:r.round}),betterHigh);
             if(score===0) perMatch[p].zeros++;
           }
@@ -16514,16 +16531,18 @@ ${isDealer
             const v = variance(m.roundScores);
             update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Variance ${v.toFixed(1)}`}),betterLow);
           }
-          if(m.roundScores.length){
+          if(!assisted && m.roundScores.length){
             const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
             const avg=total/m.roundScores.length;
             update(games["Five Crowns"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} avg · ${total} over ${m.roundScores.length} hands`}),betterLow);
           }
         }
         if(h.game==='Beat the Heat'&&m.roundScores.length){
-          const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
-          const avg=total/m.roundScores.length;
-          update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
+          if(!assisted){
+            const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
+            const avg=total/m.roundScores.length;
+            update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
+          }
           if(m.zeros>0) update(games["Beat the Heat"],'mostIceRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero-heat rounds`}),betterHigh);
         }
         if(h.game==='818'){
@@ -16632,12 +16651,24 @@ ${isDealer
       <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
       <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
     </div>`;
-    const recordCard = (title,r,pos=true) => {
-      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-bold mt-2" style="color:var(--muted);">No qualifying history</div></div>`;
+    const recordCard = (title,r,pos=true,note='',emptyText='No qualifying history') => {
+      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
+      const roundBit=Number.isFinite(r?.round)?` · R${r.round}`:'';
+      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="font-bold mt-2" style="color:var(--muted);">${emptyText}</div></div>`;
       return `<div class="surface p-5 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.label&&Number.isFinite(r.round)?'':roundBit}${r.date?` · ${r.date}`:''}</div></div></div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${Number.isFinite(r.value)?(Number.isInteger(r.value)?r.value:r.value.toFixed(1)):(r.value??'—')}</div>
       </div>`;
+    };
+    const UNASSISTED='Unassisted matches only';
+    const scoreRecord=(gameName,record)=>{
+      const row=data.games._coverage?.[gameName];
+      if(row && row.assisted>0 && row.unassisted===0) return {record:null, note:UNASSISTED, empty:'No unassisted matches yet'};
+      return {record, note:UNASSISTED, empty:'No qualifying history'};
+    };
+    const unassistedCard=(gameName,title,record,pos)=> {
+      const shown=scoreRecord(gameName,record);
+      return recordCard(title, shown.record, pos, shown.note, shown.empty);
     };
     const section = (id,title,body) => `<section id="${id}" class="space-y-4"><h2 class="font-display text-3xl border-b-2 hairline pb-3">${title}</h2>${body}</section>`;
     const gameSection = (name,items) => `<div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">${configs[name]?.emoji||''} ${name}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${items.join('')}</div></div>`;
@@ -16658,26 +16689,26 @@ ${isDealer
     </div>`;
 
     const wizardBestGameCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
-      recordCard(`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
+      unassistedCard('Wizard',`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
     );
     const wizardExactCountCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
       recordCard(`Most Exact Bids · ${count}P`,data.games.Wizard.mostExactByPlayerCount[count],true)
     );
     const perGameHtml = [
       gameSection('Five Crowns',[
-        recordCard('Best Game Ever',data.games["Five Crowns"].bestGame,true),
-        recordCard('Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
+        unassistedCard('Five Crowns','Best Game Ever',data.games["Five Crowns"].bestGame,true),
+        unassistedCard('Five Crowns','Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
         recordCard('Best Single Round Ever',data.games["Five Crowns"].bestRound,true),
         recordCard('Crash and Burn: Worst Round',data.games["Five Crowns"].worstRound,false),
         recordCard('Most Perfect Rounds In One Game',data.games["Five Crowns"].mostPerfectRounds,true),
-        recordCard('Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
+        unassistedCard('Five Crowns','Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
         recordCard('Most Consistent Game',data.games["Five Crowns"].mostConsistent,true),
         recordCard('Closest Margin Of Victory',data.games["Five Crowns"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Five Crowns"].mostLopsided,true)
       ]),
       gameSection('Wizard',[
         ...wizardBestGameCards,
-        recordCard('Worst Game Ever',data.games.Wizard.worstGame,false),
+        unassistedCard('Wizard','Worst Game Ever',data.games.Wizard.worstGame,false),
         recordCard('Best Single Round',data.games.Wizard.bestRound,true),
         recordCard('Worst Single Round',data.games.Wizard.worstRound,false),
         recordCard('Best Career Exact Bid Percentage',data.games.Wizard.bestExactBidPct,true),
@@ -16691,8 +16722,8 @@ ${isDealer
         recordCard('Most Tricks Won In One Round',data.games.Wizard.mostTricksRound,true)
       ]),
       gameSection('818',[
-        recordCard('Best Game Ever',data.games['818'].bestGame,true),
-        recordCard('Worst Game Ever',data.games['818'].worstGame,false),
+        unassistedCard('818','Best Game Ever',data.games['818'].bestGame,true),
+        unassistedCard('818','Worst Game Ever',data.games['818'].worstGame,false),
         recordCard('Best Single Round',data.games['818'].bestRound,true),
         recordCard('Worst Single Round',data.games['818'].worstRound,false),
         recordCard('Most Exact Bids In One Game',data.games['818'].mostExactSingleGame,true),
@@ -16703,28 +16734,28 @@ ${isDealer
         recordCard('Closest Margin Of Victory',data.games['818'].closestMargin,true)
       ]),
       gameSection('Flip 7 Vengeance',[
-        recordCard('Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
-        recordCard('Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
+        unassistedCard('Flip 7 Vengeance','Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
+        unassistedCard('Flip 7 Vengeance','Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
         recordCard('Best Single Round',data.games["Flip 7 Vengeance"].bestRound,true),
         recordCard('Worst Single Round',data.games["Flip 7 Vengeance"].worstRound,false),
         recordCard('Most Zero Rounds In One Game',data.games["Flip 7 Vengeance"].mostZeroRounds,false),
         recordCard('Closest Margin Of Victory',data.games["Flip 7 Vengeance"].closestMargin,true)
       ]),
       gameSection('Beat the Heat',[
-        recordCard('Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
-        recordCard('Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
+        unassistedCard('Beat the Heat','Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
+        unassistedCard('Beat the Heat','Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
         recordCard('Coolest Single Round',data.games["Beat the Heat"].bestRound,true),
         recordCard('Hottest Single Round',data.games["Beat the Heat"].worstRound,false),
         recordCard('Most Ice-Cold Rounds',data.games["Beat the Heat"].mostIceRounds,true),
-        recordCard('Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
+        unassistedCard('Beat the Heat','Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
         recordCard('Closest Finish To 66',data.games["Beat the Heat"].closestFinish,true),
         recordCard('Closest Margin Of Victory',data.games["Beat the Heat"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Beat the Heat"].mostLopsided,false),
         recordCard('Longest Match',data.games["Beat the Heat"].longestMatch,true)
       ]),
       gameSection('Rook',[
-        recordCard('Best Game Ever',data.games.Rook.bestGame,true),
-        recordCard('Worst Game Ever',data.games.Rook.worstGame,false),
+        unassistedCard('Rook','Best Game Ever',data.games.Rook.bestGame,true),
+        unassistedCard('Rook','Worst Game Ever',data.games.Rook.worstGame,false),
         recordCard('Most Successful Bids In One Game',data.games.Rook.mostSuccessfulBids,true),
         recordCard('Highest Bid Ever Made',data.games.Rook.highestBidMade,true),
         recordCard('Biggest Set Ever',data.games.Rook.biggestSet,false),
@@ -16802,63 +16833,75 @@ ${isDealer
         <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-shame" style="color:var(--rose);">Hall of Shame</h2>
         <div id="shame-content" class="space-y-3"></div>
       </div>`;
-    const fmt=(ttl,val,player,pos,sfx='')=>{
+    const UNASSISTED='Unassisted matches only';
+    const fameScore=(gameName,value,player)=>{
+      const row=r._coverage?.[gameName];
+      if(row && row.assisted>0 && row.unassisted===0) return {value:NaN, player:'No unassisted matches yet'};
+      return {value, player};
+    };
+    const fmt=(ttl,val,player,pos,sfx='',note='')=>{
       const cleanVal=Number.isFinite(val)&&!Number.isInteger(val)?val.toFixed(1):val;
-      const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':cleanVal+sfx;
+      const dv=(!Number.isFinite(val)||(val===0&&player==='-'))?'—':cleanVal+sfx;
       const col=pos?'var(--emerald)':'var(--rose)';
+      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
       return `<div class="surface p-5 flex justify-between items-center">
         <div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-1" style="color:var(--muted);">${ttl}</div>
+          ${noteHtml}
           <div class="player-name-label text-xl">${player}</div>
         </div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${col};">${dv}</div>
       </div>`;
     };
+    const fameLine=(title,gameName,value,player,pos)=>{
+      const shown=fameScore(gameName,value,player);
+      return fmt(title,shown.value,shown.player,pos,'',UNASSISTED);
+    };
     const wizardScoreRows = WIZARD_RECORD_PLAYER_COUNTS.map(count=>{
       const bucket=r.Wizard.bestScoreByPlayerCount?.[count];
-      return fmt(`Wizard: ${count}P High Score`,bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
+      return fameLine(`Wizard: ${count}P High Score`,'Wizard',bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
     });
     document.getElementById('fame-content').innerHTML=[
       fmt('Most Matches',r.Overall.mostGames,r.Overall.mostGamesPlayer,true),
       fmt('Best Win Rate (Min 3)',r.Overall.bestWinRate,r.Overall.bestWinRatePlayer,true,'%'),
-      fmt('Five Crowns: Best Score',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
+      fameLine('Five Crowns: Best Score','Five Crowns',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
       fmt('Five Crowns: Perfect Hands',r['Five Crowns'].mostZeros,r['Five Crowns'].mostZerosPlayer,true),
-      fmt('Five Crowns: Cleanest Game',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
+      fameLine('Five Crowns: Cleanest Game','Five Crowns',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
       ...wizardScoreRows,
       fmt('Wizard: Best Bid Round',r.Wizard.bestRound,r.Wizard.bestRoundPlayer,true),
       fmt('Wizard: The Clairvoyant',r.Wizard.mostExactBids,r.Wizard.mostExactBidsPlayer,true),
       fmt('Wizard: Zero-Bid Specialist',deepRecords.games.Wizard.mostZeroBidsHit?.value??0,deepRecords.games.Wizard.mostZeroBidsHit?.player||'-',true),
-      fmt('818: Best Score',r['818'].bestScore,r['818'].bestPlayer,true),
+      fameLine('818: Best Score','818',r['818'].bestScore,r['818'].bestPlayer,true),
       fmt('818: Best Bid Round',r['818'].bestRound,r['818'].bestRoundPlayer,true),
       fmt('818: Exact Bids',r['818'].mostExactBids,r['818'].mostExactBidsPlayer,true),
-      fmt('Flip 7: Best Score',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
+      fameLine('Flip 7: Best Score','Flip 7 Vengeance',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
       fmt('Flip 7: High Roller',r['Flip 7 Vengeance'].bestRound,r['Flip 7 Vengeance'].bestRoundPlayer,true),
-      fmt('Beat the Heat: Coolest Score',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
+      fameLine('Beat the Heat: Coolest Score','Beat the Heat',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
       fmt('Beat the Heat: Ice Rounds',r['Beat the Heat'].mostZeros,r['Beat the Heat'].mostZerosPlayer,true),
-      fmt('Beat the Heat: Cleanest Game',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
+      fameLine('Beat the Heat: Cleanest Game','Beat the Heat',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
       fmt('Beat the Heat: Closest To 66',deepRecords.games['Beat the Heat'].closestFinish?.value??Infinity,deepRecords.games['Beat the Heat'].closestFinish?.player||'-',true),
       fmt('Comeback Extra: Most In One Game',r.Overall.mostComebackExtras,r.Overall.mostComebackExtrasPlayer,true),
       fmt('Comeback Extra: Biggest Help',r.Overall.biggestComebackExtra,r.Overall.biggestComebackExtraPlayer,true),
-      fmt('Rook: Best Score',r.Rook.bestScore,r.Rook.bestPlayer,true),
+      fameLine('Rook: Best Score','Rook',r.Rook.bestScore,r.Rook.bestPlayer,true),
       fmt('Rook: Most Bids Won',r.Rook.mostBids,r.Rook.mostBidsPlayer,true),
     ].join('');
     document.getElementById('shame-content').innerHTML=[
       fmt('Bronze Medal (Dead Lasts)',r.Overall.mostLastPlace,r.Overall.mostLastPlacePlayer,false),
-      fmt('Five Crowns: Worst Score',r['Five Crowns'].worstScore,r['Five Crowns'].worstPlayer,false),
+      fameLine('Five Crowns: Worst Score','Five Crowns',r['Five Crowns'].worstScore,r['Five Crowns'].worstPlayer,false),
       fmt('Five Crowns: Massive Penalty',r['Five Crowns'].worstRound,r['Five Crowns'].worstRoundPlayer,false),
-      fmt('Wizard: Catastrophic Failure',r.Wizard.worstScore,r.Wizard.worstPlayer,false),
+      fameLine('Wizard: Catastrophic Failure','Wizard',r.Wizard.worstScore,r.Wizard.worstPlayer,false),
       fmt('Wizard: Worst Busted Bid',r.Wizard.worstRound,r.Wizard.worstRoundPlayer,false),
       fmt('Wizard: Blind Seer',r.Wizard.mostBustedBids,r.Wizard.mostBustedBidsPlayer,false),
-      fmt('818: Worst Score',r['818'].worstScore,r['818'].worstPlayer,false),
+      fameLine('818: Worst Score','818',r['818'].worstScore,r['818'].worstPlayer,false),
       fmt('818: Worst Bid Round',r['818'].worstRound,r['818'].worstRoundPlayer,false),
       fmt('818: Most Missed Bids',r['818'].mostMissedBids,r['818'].mostMissedBidsPlayer,false),
-      fmt('Flip 7: Bottom of Barrel',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
+      fameLine('Flip 7: Bottom of Barrel','Flip 7 Vengeance',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
       fmt('Flip 7: Coldest Round',r['Flip 7 Vengeance'].worstRound,r['Flip 7 Vengeance'].worstRoundPlayer,false),
       fmt('Flip 7: Most Zero Rounds',deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.value??0,deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.player||'-',false),
-      fmt('Beat the Heat: Hottest Score',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
+      fameLine('Beat the Heat: Hottest Score','Beat the Heat',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
       fmt('Beat the Heat: Hottest Round',r['Beat the Heat'].worstRound,r['Beat the Heat'].worstRoundPlayer,false),
       fmt('Beat the Heat: Most Lopsided',deepRecords.games['Beat the Heat'].mostLopsided?.value??0,deepRecords.games['Beat the Heat'].mostLopsided?.player||'-',false),
-      fmt('Rook: Worst Score',r.Rook.worstScore,r.Rook.worstPlayer,false),
+      fameLine('Rook: Worst Score','Rook',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
     ].join('');
   }

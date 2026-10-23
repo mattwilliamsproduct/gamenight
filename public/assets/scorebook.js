@@ -370,6 +370,26 @@
     return !!(round && !isSyntheticAdjustmentRound(round));
   }
 
+  function isAssistedMatch(game) {
+    if (!game || typeof game !== 'object') return false;
+    if (game.assistedMatch === true) return true;
+    if (Array.isArray(game.hailMaryUsed) && game.hailMaryUsed.some(name => !!name)) return true;
+    return (game.rounds || []).some(round => round && round.hailMaryBonus === true);
+  }
+
+  function recordLifePreserverSpin(game, player, adjustment) {
+    if (!game || !player) return game;
+    if (!Array.isArray(game.rounds)) game.rounds = [];
+    const parsed = parseEntryInteger(adjustment);
+    const value = parsed.ok ? parsed.value : 0;
+    game.rounds.push({ round: 0, scores: { [player]: value }, hailMaryBonus: true });
+    game.assistedMatch = true;
+    if (!Array.isArray(game.hailMaryUsed)) game.hailMaryUsed = [];
+    if (!game.hailMaryUsed.includes(player)) game.hailMaryUsed.push(player);
+    recomputeTotals(game);
+    return game;
+  }
+
   function signedScore(value) {
     const n = Number(value) || 0;
     return n >= 0 ? `+${n}` : String(n);
@@ -672,6 +692,8 @@
     selectScoreEntryPlayer,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
+    isAssistedMatch,
+    recordLifePreserverSpin,
     standingOver,
     leadersOf,
     refreshStanding,

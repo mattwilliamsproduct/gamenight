@@ -470,6 +470,57 @@ test('a Rook total under the win target reopens, and a Life Preserver round cann
   assert.deepEqual(spin.auditLog, []);
 });
 
+test('a Life Preserver is an assisted match only after a spin is stored', () => {
+  assert.equal(Scorebook.isAssistedMatch({ lifePreserverHeld: ['Linda'], rounds: [] }), false);
+  assert.equal(Scorebook.isAssistedMatch({ hailMaryUsed: [], rounds: [{ round: 1, scores: { Linda: 4 } }] }), false);
+  assert.equal(Scorebook.isAssistedMatch({ assistedMatch: true, rounds: [] }), true);
+  assert.equal(Scorebook.isAssistedMatch({ hailMaryUsed: ['Linda'], rounds: [{ round: 1, scores: { Linda: 4 } }] }), true);
+  assert.equal(Scorebook.isAssistedMatch({
+    rounds: [{ round: 0, hailMaryBonus: true, scores: { Brick: -18 } }]
+  }), true);
+  assert.equal(Scorebook.isPlayedScoringRound({ round: 0, hailMaryBonus: true, scores: { Brick: -18 } }), false);
+  assert.equal(Scorebook.isSyntheticAdjustmentRound({ round: 0, scores: { Brick: -18 } }), true);
+  assert.equal(Scorebook.isPlayedScoringRound({ round: 1, scores: { Brick: 0 } }), true);
+});
+
+test('recording a Life Preserver spin is included once and stays put when totals are rebuilt', () => {
+  const game = {
+    name: 'Five Crowns',
+    originalRoster: ['Brick'],
+    rounds: [{ round: 1, scores: { Brick: 4 } }],
+    totals: { Brick: 4 },
+    hailMaryUsed: [],
+    lifePreserverHeld: ['Brick']
+  };
+  Scorebook.recordLifePreserverSpin(game, 'Brick', -18);
+  assert.equal(game.assistedMatch, true);
+  assert.deepEqual(game.hailMaryUsed, ['Brick']);
+  assert.equal(game.rounds.length, 2);
+  assert.equal(game.rounds[1].hailMaryBonus, true);
+  assert.equal(game.totals.Brick, -14);
+  Scorebook.recomputeTotals(game);
+  Scorebook.recomputeTotals(game);
+  assert.equal(game.totals.Brick, -14);
+  assert.equal(game.rounds.length, 2);
+  assert.equal(game.lifePreserverHeld[0], 'Brick');
+});
+
+test('records copy keeps the assisted-match rules on the page', () => {
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(page, /Unassisted matches only/);
+  assert.match(page, /No unassisted matches yet/);
+  assert.match(page, /Assisted Match/);
+  assert.match(page, /BPGScorebook\.isSyntheticAdjustmentRound/);
+  assert.match(page, /BPGScorebook\.isAssistedMatch/);
+  assert.match(page, /BPGScorebook\.recordLifePreserverSpin/);
+  assert.doesNotMatch(page, /if\(score!==0\) update\(games\["Five Crowns"\],'bestRound'/);
+  const wheelStart = page.indexOf('function authorizeHailMary');
+  const wheelEnd = page.indexOf('function applyLifePreserverResult');
+  const wheel = page.slice(wheelStart, wheelEnd);
+  assert.equal(wheel.includes('assistedMatch'), false);
+  assert.equal(wheel.includes('recordLifePreserverSpin'), false);
+});
+
 test('historical edits on the page share one commit, cancel, and audit boundary', () => {
   const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
   assert.match(page, /BPGScorebook\.commitRoundCorrection/);
