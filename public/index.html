@@ -7451,6 +7451,36 @@ button.dealer-name-indicator .dealer-player-label {
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
     html.dark .audit-entry { background: var(--bg-2); }
+    /* ════════ SLICE 2 · 10-FOOT TV HIERARCHY (opt-in preview: ?slice2 or localStorage bpg-slice2-tv=1) ════════
+       Priority 1: names + totals. Priority 2: round scores, exact bids marked by an emerald dot, misses quiet.
+       Priority 3: header context. Off by default so production and approved snapshots stay unchanged. */
+    body.slice2-tv {
+      --s2-exact: #0D6E52;
+      --s2-total-ink: #0A5C54;
+      --s2-miss-ink: #655E57;
+    }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-stack { position: relative; }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-stack::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: clamp(6px, calc(var(--scorecard-input-font, 20px) * 0.3), 11px);
+      height: clamp(6px, calc(var(--scorecard-input-font, 20px) * 0.3), 11px);
+      border-radius: 50%;
+      background: var(--s2-exact);
+      box-shadow: 0 0 0 1.5px var(--surface);
+      pointer-events: none;
+    }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-input { font-weight: 800; color: var(--ink); }
+    body.slice2-tv #scorecard-capture .score-cell-input.score-cell-miss {
+      border-color: transparent;
+      box-shadow: none;
+      color: var(--s2-miss-ink);
+      font-weight: 500;
+    }
+    body.slice2-tv #scorecard-capture .scorecard-total-value { color: var(--s2-total-ink); font-weight: 800; letter-spacing: -0.02em; }
+    body.slice2-tv #scorecard-capture .scoreboard-player-name { font-weight: 800; letter-spacing: -0.015em; }
   </style>
 </head>
 
@@ -8576,6 +8606,9 @@ button.dealer-name-indicator .dealer-player-label {
   const GN_QA_LOCAL_HOSTS = new Set(['localhost','127.0.0.1','::1']);
   const GN_QA_PREVIEW_HOST = location.hostname.endsWith('.vercel.app') && location.hostname!=='cardknight.vercel.app';
   const GN_QA_MODE = (GN_QA_LOCAL_HOSTS.has(location.hostname)||GN_QA_PREVIEW_HOST) && new URLSearchParams(location.search).has('gnqa');
+  // Slice 2 10-foot TV hierarchy preview. Opt-in until Matt signs off on the visual change.
+  const GN_SLICE2_TV = new URLSearchParams(location.search).has('slice2') || (()=>{try{return localStorage.getItem('bpg-slice2-tv')==='1';}catch(e){return false;}})();
+  if(GN_SLICE2_TV) document.body.classList.add('slice2-tv');
 
   // ── Storage helpers ──
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
@@ -9794,7 +9827,7 @@ button.dealer-name-indicator .dealer-player-label {
     const btn=document.getElementById('btn-spin');
     if(btn){
       btn.disabled=false;
-      btn.textContent='SPIN THE WHEEL';
+      btn.textContent=LP_SPIN_COPY.ready;
     }
     if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
     return wasSpinning;
@@ -10882,6 +10915,8 @@ button.dealer-name-indicator .dealer-player-label {
 
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
+  // Slice 2 preview uses calmer sentence-case copy; production keeps the approved labels.
+  const LP_SPIN_COPY = GN_SLICE2_TV ? {ready:'Spin Wheel', spinning:'Spinning…'} : {ready:'SPIN THE WHEEL', spinning:'SPINNING…'};
   let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
   function lifePreserverSpinDuration(){
     return GN_QA_MODE ? 80 : 6200;
@@ -10970,7 +11005,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('wheel-player-name').textContent=p;
     const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
     document.getElementById('btn-spin').disabled=false;
-    document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+    document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
     const spinner=document.getElementById('wheel-spinner');
     if(spinner){
       spinner.style.transition='none';
@@ -11011,7 +11046,7 @@ button.dealer-name-indicator .dealer-player-label {
     cancelLifePreserverSpin();
     const spinToken=_lifePreserverSpinToken;
     document.getElementById('btn-spin').disabled=true;
-    document.getElementById('btn-spin').textContent='SPINNING…';
+    document.getElementById('btn-spin').textContent=LP_SPIN_COPY.spinning;
     const spinner=document.getElementById('wheel-spinner');
     const slices=drawWheel();
     const deg=Math.floor(Math.random()*360);
@@ -11034,7 +11069,7 @@ button.dealer-name-indicator .dealer-player-label {
       if(!live.eligible){
         toast('Life Preserver is no longer available', 'warning');
         document.getElementById('btn-spin').disabled=false;
-        document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+        document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
         closeWheel();
         return;
       }
@@ -13884,16 +13919,19 @@ ${isDealer
 
       // Past rounds
       visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
-        let missClass='', missTitle='';
+        let missClass='', missTitle='', exactTdClass='';
         if(isBidTrickGame(currentGame)&&r.bids?.[p]!==undefined&&r.actuals?.[p]!==undefined){
           const diff=r.actuals[p]-r.bids[p];
           if(diff!==0){
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
+          }else{
+            exactTdClass=' scorecard-round-td--exact';
+            missTitle=' title="Exact bid"';
           }
         }
         const extra=scoringExtraMarkup(currentGame.rounds, rIdx, r, p);
-        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
+        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td${exactTdClass}">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
