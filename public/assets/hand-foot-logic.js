@@ -6,16 +6,18 @@
   const MAX_PLAYERS = 6;
   const ROUNDS = 4;
   const MELDS = Object.freeze([50, 90, 120, 150]);
-  // Matt named the inputs, not every point value. A canasta is usually 500
-  // and a red three is usually 100. The entry form collects a canasta count,
-  // not a separate points box. Those rates fill in only when a saved round
-  // has no explicit canasta-points number. A save that already stores
-  // canastaPoints keeps that amount and does not also add the count times
-  // the rate. The foot amount is not applied unless that side types it.
-  // A saved round stores the rates it used.
+  // Clean canastas are 500, dirty canastas are 300, and a red three is 100.
+  // Going out adds 100 once. Cards left are subtracted once. An older
+  // foot penalty is that same subtraction only when the round has no
+  // cards-left field, so the two are never both taken off. Older saves
+  // that stored one canasta count, or card points plus a bonuses lump,
+  // keep the formula they were saved with.
   const SCORE_DEFAULTS = Object.freeze({
-    canastaEach: 500,
+    cleanCanastaEach: 500,
+    dirtyCanastaEach: 300,
     redThreeEach: 100,
+    goingOutBonus: 100,
+    canastaEach: 500,
     footPenalty: 100
   });
 
@@ -104,8 +106,16 @@
     return nonNegative ? Math.abs(n) : n;
   }
 
+  function usesNewBreakdown(parts) {
+    if (!parts || typeof parts !== 'object') return false;
+    return ['cleanCanastas', 'dirtyCanastas', 'goingOut'].some(function (key) {
+      return Object.prototype.hasOwnProperty.call(parts, key);
+    });
+  }
+
   function usesStructuredScore(parts) {
     if (!parts || typeof parts !== 'object') return false;
+    if (usesNewBreakdown(parts)) return true;
     return ['canastas', 'canastaPoints', 'redThrees', 'footPenalty'].some(function (key) {
       return Object.prototype.hasOwnProperty.call(parts, key);
     });
@@ -128,17 +138,44 @@
     return canastas * canastaEach;
   }
 
-  // New rounds: canasta points + red threes × rate + card points − foot penalty.
-  // Older saved rounds have no canasta, red-three, or foot fields, and still
-  // use card points + bonuses − cards left.
-  function roundScore(parts) {
-    if (usesStructuredScore(parts)) {
-      const reds = parsePart(parts.redThrees, true);
-      const cards = parsePart(parts.cardPoints, false);
-      const foot = parsePart(parts.footPenalty, true);
-      const redEach = rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach);
-      return canastaPointsOf(parts) + (reds * redEach) + cards - foot;
+  // Going out is once per side. A typed 2 still pays the bonus one time.
+  function wentOut(parts) {
+    return parsePart(parts && parts.goingOut, true) > 0 ? 1 : 0;
+  }
+
+  // Cards left is the only subtraction on a new round. If that field is
+  // absent, an older foot penalty fills the same role. Both are never taken.
+  function unplayedCards(parts) {
+    if (parts && Object.prototype.hasOwnProperty.call(parts, 'cardsLeft') && usesNewBreakdown(parts)) {
+      return parsePart(parts.cardsLeft, true);
     }
+    return parsePart(parts && parts.footPenalty, true);
+  }
+
+  function newRoundScore(parts) {
+    const clean = parsePart(parts.cleanCanastas, true) * rateOrDefault(parts, 'cleanCanastaEach', SCORE_DEFAULTS.cleanCanastaEach);
+    const dirty = parsePart(parts.dirtyCanastas, true) * rateOrDefault(parts, 'dirtyCanastaEach', SCORE_DEFAULTS.dirtyCanastaEach);
+    const reds = parsePart(parts.redThrees, true) * rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach);
+    const going = wentOut(parts) * rateOrDefault(parts, 'goingOutBonus', SCORE_DEFAULTS.goingOutBonus);
+    const cards = parsePart(parts.cardPoints, false);
+    return clean + dirty + reds + going + cards - unplayedCards(parts);
+  }
+
+  function oldStructuredScore(parts) {
+    const reds = parsePart(parts.redThrees, true);
+    const cards = parsePart(parts.cardPoints, false);
+    const foot = parsePart(parts.footPenalty, true);
+    const redEach = rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach);
+    return canastaPointsOf(parts) + (reds * redEach) + cards - foot;
+  }
+
+  // New rounds: clean × 500 + dirty × 300 + red 3s × 100 + going out
+  // + melded card points − cards left.
+  // A saved round with one canasta count still uses that older formula.
+  // A saved round with none of those fields still uses card points + bonuses − cards left.
+  function roundScore(parts) {
+    if (usesNewBreakdown(parts)) return newRoundScore(parts);
+    if (usesStructuredScore(parts)) return oldStructuredScore(parts);
     const card = parsePart(parts && parts.cardPoints, false);
     const bonus = parsePart(parts && parts.bonuses, false);
     const left = parsePart(parts && parts.cardsLeft, true);
@@ -186,7 +223,7 @@
 
   function isLegacyParts(parts) {
     if (!parts || typeof parts !== 'object' || Array.isArray(parts)) return false;
-    if (usesStructuredScore(parts)) return false;
+    if (usesNewBreakdown(parts) || usesStructuredScore(parts)) return false;
     return !!(parts.legacy || parts.bonuses !== undefined || parts.cardsLeft !== undefined);
   }
 
@@ -198,6 +235,25 @@
   // does not multiply the canasta count again.
   function persistSideParts(raw) {
     const parts = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    if (usesNewBreakdown(parts)) {
+      const going = wentOut(parts);
+      const goingRate = rateOrDefault(parts, 'goingOutBonus', SCORE_DEFAULTS.goingOutBonus);
+      const storedNew = {
+        cleanCanastas: parsePart(parts.cleanCanastas, true),
+        dirtyCanastas: parsePart(parts.dirtyCanastas, true),
+        redThrees: parsePart(parts.redThrees, true),
+        goingOut: going,
+        goingOutPoints: going * goingRate,
+        cardPoints: parsePart(parts.cardPoints, false),
+        cardsLeft: unplayedCards(parts),
+        cleanCanastaEach: rateOrDefault(parts, 'cleanCanastaEach', SCORE_DEFAULTS.cleanCanastaEach),
+        dirtyCanastaEach: rateOrDefault(parts, 'dirtyCanastaEach', SCORE_DEFAULTS.dirtyCanastaEach),
+        redThreeEach: rateOrDefault(parts, 'redThreeEach', SCORE_DEFAULTS.redThreeEach),
+        goingOutBonus: goingRate
+      };
+      storedNew.roundScore = roundScore(storedNew);
+      return storedNew;
+    }
     if (isLegacyParts(parts)) {
       const legacy = {
         cardPoints: parsePart(parts.cardPoints, false),
@@ -386,8 +442,14 @@
     }
     if (!usesStructuredScore(normalized)) return null;
     if (!Object.prototype.hasOwnProperty.call(normalized, field)) return null;
-    if (field === 'canastas' || field === 'redThrees' || field === 'footPenalty') {
+    if (field === 'canastas' || field === 'redThrees' || field === 'footPenalty' || field === 'cleanCanastas' || field === 'dirtyCanastas' || field === 'goingOut') {
       return parsePart(normalized[field], true);
+    }
+    if (field === 'cardsLeft' && (usesNewBreakdown(normalized) || normalized.legacy)) {
+      return parsePart(normalized.cardsLeft, true);
+    }
+    if (field === 'goingOutPoints' && Object.prototype.hasOwnProperty.call(normalized, 'goingOutPoints')) {
+      return parsePart(normalized.goingOutPoints, true);
     }
     return null;
   }

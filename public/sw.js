@@ -9,6 +9,7 @@ const APP_SHELL = [
   './assets/backup.js',
   './assets/hand-foot-logic.js',
   './assets/life-preserver-logic.js',
+  './assets/scorebook.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
   './bp-apple-touch-icon.png'

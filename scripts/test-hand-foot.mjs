@@ -105,15 +105,19 @@ test('a team side uses that same five-input score once', () => {
   assert.equal(keys.includes('Ann'), false);
 });
 
-// Assumed point values, because Matt named the inputs and not the amounts.
-// One canasta is 500 (not split into clean 500 / dirty 300 / wild 1000).
-// One red three is 100, so four red threes are 400, not a special 800.
-// The foot penalty is not applied until that side types it. 100 is the
-// suggested amount, kept on SCORE_DEFAULTS.footPenalty for the table to edit.
-// Both rates are editable per round. Card points are the typed total and
-// are not reduced by a second cards-left field.
+// Older saves still use one canasta count times 500. A new round splits
+// that into clean 500 and dirty 300. One red three is 100, so four red
+// threes are 400 unless the table edits the rate. The old foot penalty
+// stays on those older saves. A new round subtracts cards left instead.
 test('the round is canastas times 500, plus red threes times 100, plus card points, minus the foot penalty', () => {
-  assert.deepEqual(HF.SCORE_DEFAULTS, { canastaEach: 500, redThreeEach: 100, footPenalty: 100 });
+  assert.deepEqual(HF.SCORE_DEFAULTS, {
+    cleanCanastaEach: 500,
+    dirtyCanastaEach: 300,
+    redThreeEach: 100,
+    goingOutBonus: 100,
+    canastaEach: 500,
+    footPenalty: 100
+  });
   assert.equal(HF.roundScore({ canastas: 1, redThrees: 1, footPenalty: 0, cardPoints: 0 }), 600);
   assert.equal(HF.roundScore({ canastas: 2, redThrees: 0, footPenalty: 0, cardPoints: 35 }), 1035);
   assert.equal(HF.roundScore({ canastas: '1', redThrees: '', footPenalty: '-', cardPoints: '15' }), 515);
@@ -523,14 +527,225 @@ test('prove-it: four players are two lineup pairs and six players are three', ()
   assert.equal(singles.scores.Bo, 100);
 });
 
-test('prove-it: the entry form is four inputs plus a computed total', () => {
+test('prove-it: the entry form is six inputs plus a computed total', () => {
   const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-  assert.match(html, /const HAND_FOOT_FIELDS=\['canastas','redThrees','footPenalty','cardPoints'\]/);
+  assert.match(html, /const HAND_FOOT_FIELDS=\['cleanCanastas','dirtyCanastas','redThrees','goingOut','cardPoints','cardsLeft'\]/);
   assert.doesNotMatch(html, /HAND_FOOT_FIELDS=\[[^\]]*canastaPoints/);
-  assert.match(html, /footPenalty:'Foot in hand'/);
-  assert.match(html, /redThrees:'Red threes'/);
+  assert.match(html, /cleanCanastas:'Clean'/);
+  assert.match(html, /dirtyCanastas:'Dirty'/);
+  assert.match(html, /redThrees:'Red 3s'/);
+  assert.match(html, /goingOut:'Going out'/);
+  assert.match(html, /cardsLeft:'Cards left'/);
+  assert.match(html, /handFootLegacyUntouched\(parts\)\|\|handFootPriorUntouched\(parts\)/);
   assert.match(html, /legacy\?'Older round':'Total'/);
   assert.match(html, /class="hf-round"/);
   assert.doesNotMatch(html, /<input[^>]*hf-round/);
-  assert.match(html, /Canastas \+ red threes \+ card points − foot/);
+  assert.match(html, /Clean × 500 \+ dirty × 300 \+ red 3s \+ going out − cards left/);
+  assert.match(html, /!!merge && !partners/);
+});
+
+const NEW_EXAMPLE = {
+  cleanCanastas: 2,
+  dirtyCanastas: 1,
+  redThrees: 2,
+  goingOut: 1,
+  cardPoints: 450,
+  cardsLeft: 95
+};
+
+test('clean canastas score 500 each', () => {
+  assert.equal(HF.roundScore({ cleanCanastas: 1, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 500);
+  assert.equal(HF.roundScore({ cleanCanastas: 2, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 1000);
+  assert.equal(HF.roundScore({ cleanCanastas: 2, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0, cleanCanastaEach: 400 }), 800);
+});
+
+test('dirty canastas score 300 each', () => {
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 1, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 300);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 2, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 600);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 1, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0, dirtyCanastaEach: 250 }), 250);
+});
+
+test('red 3s score 100 each', () => {
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 1, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 100);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 4, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 400);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 4, goingOut: 0, cardPoints: 0, cardsLeft: 0, redThreeEach: 200 }), 800);
+});
+
+test('going out adds 100 once', () => {
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 0, goingOut: 1, cardPoints: 0, cardsLeft: 0 }), 100);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 0, goingOut: 2, cardPoints: 0, cardsLeft: 0 }), 100);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0 }), 0);
+  const stored = HF.persistSideParts({ cleanCanastas: 0, dirtyCanastas: 0, goingOut: 2, goingOutPoints: 100, cardPoints: 0, cardsLeft: 0 });
+  assert.equal(stored.goingOut, 1);
+  assert.equal(stored.goingOutPoints, 100);
+  assert.equal(stored.roundScore, 100);
+  assert.equal(HF.roundScore(stored), 100);
+});
+
+test('melded card points are added and cards left are subtracted once', () => {
+  assert.equal(HF.roundScore(NEW_EXAMPLE), 1955);
+  assert.equal(HF.roundScore({ cleanCanastas: 1, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 25, cardsLeft: 0 }), 525);
+  assert.equal(HF.roundScore({ cleanCanastas: 1, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 200, cardsLeft: 40, footPenalty: 100 }), 660);
+  const stored = HF.persistSideParts({
+    cleanCanastas: 1,
+    dirtyCanastas: 0,
+    redThrees: 0,
+    goingOut: 0,
+    cardPoints: 200,
+    cardsLeft: 40,
+    footPenalty: 100
+  });
+  assert.equal(stored.cardsLeft, 40);
+  assert.equal(Object.prototype.hasOwnProperty.call(stored, 'footPenalty'), false);
+  assert.equal(stored.roundScore, 660);
+  assert.equal(HF.roundScore({ cleanCanastas: 1, goingOut: 0, cardPoints: 200, footPenalty: 100 }), 600);
+});
+
+test('a new round can be negative', () => {
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: -80, cardsLeft: 50 }), -130);
+  assert.equal(HF.roundScore({ cleanCanastas: 0, dirtyCanastas: 0, redThrees: 0, goingOut: 1, cardPoints: -200, cardsLeft: 0 }), -100);
+  const keys = ['Ann', 'Bo'];
+  const totals = HF.totalForSides([
+    { scores: { Ann: -130, Bo: 1955 } },
+    { scores: { Ann: 20, Bo: -40 } }
+  ], keys);
+  assert.deepEqual(totals, { Ann: -110, Bo: 1915 });
+});
+
+test('editing a previous round replaces the stored fields and drops the old canasta amount', () => {
+  const first = HF.persistSideParts({ canastas: 3, canastaPoints: 900, redThrees: 0, footPenalty: 95, cardPoints: 450 });
+  assert.equal(first.roundScore, 1255);
+  const edited = HF.persistSideParts({
+    cleanCanastas: 3,
+    dirtyCanastas: 0,
+    redThrees: 0,
+    goingOut: 0,
+    cardPoints: 450,
+    cardsLeft: 95
+  });
+  assert.equal(edited.roundScore, 1855);
+  assert.equal(Object.prototype.hasOwnProperty.call(edited, 'canastaPoints'), false);
+  assert.equal(HF.persistSideParts(first).roundScore, 1255);
+});
+
+test('renaming and merging players keeps one copy of a Hand and Foot round', () => {
+  const Scorebook = require('../public/assets/scorebook.js');
+  const sides = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  const round = HF.persistTeamRound(1, {
+    'Ann & Bo': NEW_EXAMPLE,
+    'Cy & Dee': { cleanCanastas: 0, dirtyCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: -40, cardsLeft: 0 }
+  }, sides);
+  const game = {
+    name: 'Hand and Foot',
+    game: 'Hand and Foot',
+    handFoot: { format: 'teams', sides },
+    originalRoster: ['Ann', 'Bo', 'Cy', 'Dee'],
+    totals: { Ann: 1955, Bo: 1955, Cy: -40, Dee: -40, 'Ann & Bo': 1955 },
+    rounds: [round]
+  };
+  const renamed = HF.renameMember(game.handFoot, 'Ann', 'Annie');
+  assert.equal(renamed.config.sides[0].key, 'Annie & Bo');
+  assert.deepEqual(renamed.keyMap, { 'Ann & Bo': 'Annie & Bo' });
+  Scorebook.applyPlayerNameOnGame(game, 'Ann', 'Annie', false);
+  assert.equal(game.rounds[0].handFootParts.Annie.cleanCanastas, 2);
+  assert.equal(game.rounds[0].scores.Annie, 1955);
+  assert.equal(game.rounds[0].handFootParts.Ann, undefined);
+  assert.equal(game.totals.Annie, 1955);
+
+  const singles = {
+    totals: { Ann: 100, Bo: 40 },
+    rounds: [{
+      round: 1,
+      scores: { Ann: 100, Bo: 40 },
+      handFootParts: {
+        Ann: HF.persistSideParts({ cleanCanastas: 0, dirtyCanastas: 0, goingOut: 1, cardPoints: 0, cardsLeft: 0 }),
+        Bo: HF.persistSideParts({ cleanCanastas: 0, dirtyCanastas: 0, goingOut: 0, cardPoints: 40, cardsLeft: 0 })
+      }
+    }]
+  };
+  Scorebook.applyPlayerNameOnGame(singles, 'Ann', 'Bo', true);
+  assert.equal(singles.totals.Bo, 140);
+  assert.equal(singles.rounds[0].scores.Bo, 140);
+  assert.equal(singles.rounds[0].handFootParts.Ann, undefined);
+  assert.equal(singles.rounds[0].handFootParts.Bo.roundScore, 40);
+});
+
+test('a JSON backup round-trips a new Hand and Foot round and an older save', () => {
+  const Backup = require('../public/assets/backup.js');
+  const sides = HF.buildSides(['Ann', 'Bo'], 'singles');
+  const fresh = HF.persistRound(1, { Ann: NEW_EXAMPLE, Bo: { cleanCanastas: 0, dirtyCanastas: 0, goingOut: 0, cardPoints: -40, cardsLeft: 10 } });
+  const older = {
+    round: 2,
+    scores: { Ann: -30, Bo: 1255 },
+    handFootParts: {
+      Ann: { cardPoints: 20, bonuses: 0, cardsLeft: 50, legacy: true, roundScore: -30 },
+      Bo: { canastas: 3, canastaPoints: 900, redThrees: 0, footPenalty: 95, cardPoints: 450, canastaEach: 500, redThreeEach: 100, roundScore: 1255 }
+    }
+  };
+  const historyMatch = {
+    id: 4801,
+    game: 'Hand and Foot',
+    handFoot: { format: 'singles', sides },
+    totals: { Ann: 1925, Bo: 1205 },
+    rounds: [fresh, older]
+  };
+  const live = {
+    name: 'Hand and Foot',
+    originalRoster: ['Ann', 'Bo'],
+    currentRound: 2,
+    handFoot: { format: 'singles', sides },
+    totals: { Ann: 1955, Bo: -50 },
+    rounds: [fresh]
+  };
+  const file = Backup.buildBackup({
+    history: [historyMatch],
+    allPlayers: ['Ann', 'Bo'],
+    players: ['Ann', 'Bo'],
+    currentGame: live
+  });
+  const parsed = Backup.parseBackup(JSON.stringify(file));
+  const merged = Backup.mergeBackup({ history: [], allPlayers: [], players: [] }, parsed);
+  const saved = merged.next.history[0];
+  assert.equal(saved.rounds[0].handFootParts.Ann.cleanCanastas, 2);
+  assert.equal(saved.rounds[0].handFootParts.Ann.dirtyCanastas, 1);
+  assert.equal(saved.rounds[0].handFootParts.Ann.roundScore, 1955);
+  assert.equal(saved.rounds[1].handFootParts.Ann.roundScore, -30);
+  assert.equal(saved.rounds[1].handFootParts.Ann.legacy, true);
+  assert.equal(Object.prototype.hasOwnProperty.call(saved.rounds[1].handFootParts.Ann, 'cleanCanastas'), false);
+  assert.equal(saved.rounds[1].handFootParts.Bo.canastaPoints, 900);
+  assert.equal(saved.rounds[1].scores.Bo, 1255);
+  assert.equal(merged.next.currentGame.rounds[0].scores.Ann, 1955);
+  assert.equal(merged.next.currentGame.handFoot.format, 'singles');
+  const normalized = HF.normalizeMatch(saved);
+  assert.equal(normalized.rounds[0].scores.Ann, 1955);
+  assert.equal(normalized.rounds[1].scores.Ann, -30);
+  assert.equal(HF.roundScore(normalized.rounds[1].handFootParts.Bo), 1255);
+});
+
+test('a new team save copies clean, dirty, going out, and cards left onto both players once', () => {
+  const sides = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  const round = HF.persistTeamRound(1, {
+    'Ann & Bo': NEW_EXAMPLE,
+    'Cy & Dee': { cleanCanastas: 0, dirtyCanastas: 1, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 20 }
+  }, sides);
+  assert.equal(round.handFootParts.Ann.cleanCanastas, 2);
+  assert.equal(round.handFootParts.Bo.dirtyCanastas, 1);
+  assert.equal(round.handFootParts.Ann.goingOut, 1);
+  assert.equal(round.handFootParts.Ann.cardsLeft, 95);
+  assert.equal(round.scores.Ann, 1955);
+  assert.equal(round.scores.Bo, 1955);
+  assert.equal(round.scores.Cy, 280);
+  assert.equal(Object.prototype.hasOwnProperty.call(round.scores, 'Ann & Bo'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(round.handFootParts.Ann, 'footPenalty'), false);
+  const match = HF.normalizeMatch({
+    game: 'Hand and Foot',
+    handFoot: { format: 'teams', sides },
+    rounds: [round],
+    totals: { Ann: 1955, Bo: 1955, Cy: 280, Dee: 280 }
+  });
+  assert.equal(HF.sumFieldForMatch(match, 'cleanCanastas').total, 2);
+  assert.equal(HF.sumFieldForMatch(match, 'dirtyCanastas').total, 2);
+  assert.equal(HF.sumFieldForPlayer([match], 'Ann', 'roundScore').total, 1955);
+  assert.equal(HF.sumFieldForPlayer([match], 'Bo', 'roundScore').total, 1955);
+  assert.equal(HF.sumFieldForMatch(match, 'roundScore').total, 1955 + 280);
 });

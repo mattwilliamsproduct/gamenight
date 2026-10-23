@@ -511,6 +511,62 @@ const wizardThresholdGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardRoun
 const fiveCrownsThresholdGame=makeCurrentGame('Five Crowns',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,fiveCrownsThresholdTotals,8));
 const flip7ThresholdGame=makeCurrentGame('Flip 7 Vengeance',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,flip7ThresholdTotals,5));
 
+const tiedPlacePlayers=['Alexis','Diana','Ethan','Megan','Matt','Linda','Mike'];
+const tiedPlaceGame=makeCurrentGame('Wizard',tiedPlacePlayers,[{
+  round:1,
+  scores:Object.fromEntries(tiedPlacePlayers.map((player,index)=>[player,[200,180,160,140,140,100,100][index]]))
+}],{
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{}
+});
+
+const lifePreserverVisiblePlayers=['Matt','Mike','Linda'];
+function lifePreserverVisibleRound(round,scores,bids){
+  const row={
+    round,
+    scores:Object.fromEntries(lifePreserverVisiblePlayers.map((player,index)=>[player,scores[index]]))
+  };
+  if(bids){
+    row.bids=Object.fromEntries(lifePreserverVisiblePlayers.map((player,index)=>[player,bids[index]]));
+    row.actuals=Object.fromEntries(lifePreserverVisiblePlayers.map((player,index)=>[player,bids[index]]));
+  }
+  return row;
+}
+const lifePreserverVisibleRounds=[
+  lifePreserverVisibleRound(1,[20,15,10],[1,1,2]),
+  {round:0,hailMaryBonus:true,scores:{Linda:15}},
+  lifePreserverVisibleRound(2,[20,15,10]),
+  lifePreserverVisibleRound(3,[20,15,10]),
+  lifePreserverVisibleRound(4,[20,15,10]),
+  lifePreserverVisibleRound(5,[10,15,10]),
+  lifePreserverVisibleRound(6,[10,15,10]),
+  {round:0,hailMaryBonus:true,scores:{Mike:40}}
+];
+const lifePreserverVisibleGame=makeCurrentGame('Wizard',lifePreserverVisiblePlayers,lifePreserverVisibleRounds,{
+  currentRound:7,
+  wizardPhase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  hailMaryUsed:['Linda','Mike']
+});
+
+function finishedMatchFromGame(game,id){
+  return {
+    id,
+    game:game.name,
+    date:'9/28/2026',
+    totals:{...game.totals},
+    winners:winnersFor(game.name, game.totals),
+    rounds:JSON.parse(JSON.stringify(game.rounds)),
+    originalRoster:[...game.originalRoster],
+    currentRound:game.currentRound,
+    hailMaryUsed:[...(game.hailMaryUsed||[])],
+    lifePreserverHeld:[...(game.lifePreserverHeld||[])],
+    retired:[...(game.retired||[])]
+  };
+}
+
 export const QA_SURFACES = [
   {id:'home',label:'Home setup'},
   {id:'scorecard',label:'Scorecard'},
@@ -714,6 +770,30 @@ export const QA_SCENARIOS = {
     description:'Same eight-player Five Crowns path replay with no personal-best or worst notes under the chart.',
     defaultSurface:'race',
     data:{allPlayers:[...NAMES],players:[...race8Players],history:[race8Match],playerProfiles:profiles(),currentGame:null}
+  },
+  'wizard-tied-places':{
+    label:'Wizard · Tied Places',
+    description:'Seven-player Wizard. Megan and Matt share 4th. Linda and Mike share 6th.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...tiedPlacePlayers],
+      players:[...tiedPlacePlayers],
+      history:[finishedMatchFromGame(tiedPlaceGame,1785100000001)],
+      playerProfiles:profiles(),
+      currentGame:tiedPlaceGame
+    }
+  },
+  'wizard-life-preserver-visible':{
+    label:'Wizard · Life Preserver On The Card',
+    description:'Linda’s +15 follows hand 1 and is hidden by Pace. Mike’s +40 follows hand 6 and stays on that cell. The spin is not an extra round.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...lifePreserverVisiblePlayers],
+      players:[...lifePreserverVisiblePlayers],
+      history:[finishedMatchFromGame(lifePreserverVisibleGame,1785100000002)],
+      playerProfiles:profiles(),
+      currentGame:lifePreserverVisibleGame
+    }
   }
 };
 

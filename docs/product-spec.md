@@ -29,7 +29,7 @@ The shelf is the seven buttons in `public/index.html` (`startGame`). Scoring mat
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
-| Hand and Foot | High score | 4 rounds | Canastas × the round’s canasta rate (default 500) + red 3s × the round’s red-3 rate (default 100) + card points − foot penalty. A saved round that already has canasta points uses that amount and does not also add the count times the rate. A blank foot penalty subtracts nothing. The round and the match total may be negative. Older saved rounds that have no canasta, red-3, or foot fields still use card points + bonuses − cards left. | Canasta count, red-3 count, foot penalty, and card points, once per pair. The total is computed. |
+| Hand and Foot | High score | 4 rounds | Clean canastas × 500 + dirty canastas × 300 + red 3s × 100 + 100 for going out + melded card points − cards left. Going out pays once. Cards left is the only subtraction on a new round. The round and the match total may be negative. An older canasta-count save still uses that count times its rate, or a stored canasta-points amount, plus red 3s, plus card points, minus the foot penalty. An older three-field save still uses card points + bonuses − cards left. | Clean count, dirty count, red-3 count, going out, card points, and cards left, once per pair. The total is computed. |
 
 House notes already in the rules cards (`gameRulesText`):
 
@@ -37,7 +37,7 @@ House notes already in the rules cards (`gameRulesText`):
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
 - Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Hand and Foot.
-- Hand and Foot: 2 is 1 versus 1. 4 starts as two pairs in lineup order. 6 starts as three pairs of 2 in lineup order. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. The setup already has seat lists that can re-seat a pair; that is not a second partner picker, and it is not the same as locking pairs to lineup order. A pair is one column. The score is entered once, then copied onto each teammate: canasta count, red-three count, foot penalty, card points, the two rates, the canasta points (the count times the rate, unless an older save already stored an amount), and the computed round score. A match total counts each pair once. Minimum meld (50, 90, 120, 150) is a hint, not an entry. An older save that only has card points, bonuses, and cards left keeps that score. Its canasta and red-three counts stay unknown. An older team round stored only on the side name is copied onto both players.
+- Hand and Foot: 2 is 1 versus 1. 4 starts as two pairs in lineup order. 6 starts as three pairs of 2 in lineup order. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. The setup already has seat lists that can re-seat a pair; that is not a second partner picker, and it is not the same as locking pairs to lineup order. A pair is one column. The score is entered once, then copied onto each teammate: clean count, dirty count, red-3 count, going out, card points, cards left, the three rates, and the computed round score. Cards left is the subtraction. An older foot penalty is used only when that round has no cards-left field. A match total counts each pair once. Minimum meld (50, 90, 120, 150) is a hint, not an entry. An older save that only has card points, bonuses, and cards left keeps that score. Its canasta and red-three counts stay unknown. An older canasta-count save keeps its formula until someone types a new field. An older team round stored only on the side name is copied onto both players.
 
 ## Core flows
 
@@ -48,7 +48,7 @@ House notes already in the rules cards (`gameRulesText`):
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
-6. Hand and Foot: pairs or singles, then canasta count, red-3 count, foot penalty, and card points once per pair. The app fills in the total from those fields. Both teammates keep that round.
+6. Hand and Foot: pairs or singles, then clean canastas, dirty canastas, red 3s, going out, card points, and cards left once per pair. The app fills in the total from those fields. Both teammates keep that round.
 7. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`). Hand and Foot adds the numeric round scores, so a negative round stays negative.
 8. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, Five Crowns, and Hand and Foot complete when the round counter passes the length.
 
@@ -113,7 +113,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 
 Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-137-grok-4.7-rethink.md](J-137-grok-4.7-rethink.md).
 
-1. **The next Vercel build precaches the wrong script.** `npm run build` rewrites `public/sw.js` from `src/service-worker.js`, which still lists `comeback-logic.js` and omits `life-preserver-logic.js`. The committed worker is the right shell. The build throws it away.
+1. **The Vercel build precaches the wrong script.** `npm run build` rewrites `public/sw.js` from `src/service-worker.js`. After the #53 docs merge, production `cardknight.vercel.app/sw.js` already ships that template: it lists `comeback-logic.js` and omits `life-preserver-logic.js`. The committed worker in git is the right shell. The build throws it away. Standalone draft for T1 (do not wait on #49's game-behavior review).
 2. **A Life Preserver changes the total and leaves no mark on the card.** Columns skip `hailMaryBonus` rounds. Cells only print `round.comeback`, which new games never write.
 3. **Tied players get consecutive places** on the live scorecard (`1, 2, 3, 4, 5, 6, 7` when the last four are two ties). The path replay already uses shared places (`4, 4, 6, 6`).
 4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
@@ -127,7 +127,7 @@ Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft
 
 Do these in order. Each one is a small, testable change. Leave the open redesign and the Turbo engine alone.
 
-1. Make `src/service-worker.js` precache `life-preserver-logic.js`, and make `npm run check` fail if the template and the script tags disagree.
+1. Make `src/service-worker.js` precache `life-preserver-logic.js`, and make `npm run check` fail if the template and the script tags disagree. Standalone draft (T1). Do not wait for #49.
 2. Paint the Life Preserver adjustment on the hand it followed (and beside Total when that column is hidden). Keep it out of scoring-round counts.
 3. Use the path-replay place rule on the live scorecard, history, and profiles.
 4. Land functional PR checks (the idea in PR #43) on current main. Keep screenshot baselines local.
