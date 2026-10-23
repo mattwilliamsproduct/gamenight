@@ -137,6 +137,165 @@
     return a + (a === b ? 10 : 0);
   }
 
+  const EIGHT18_ROUND_TRICKS = [8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8];
+  const NON_NEGATIVE_PLAYED_GAMES = {
+    'Five Crowns': true,
+    'Flip 7': true,
+    'Flip 7 Vengeance': true,
+    'Beat the Heat': true
+  };
+
+  function gameName(game) {
+    if (typeof game === 'string') return game;
+    return (game && (game.name || game.game)) || '';
+  }
+
+  function roundTrickLimit(game, roundNumber) {
+    const name = gameName(game);
+    const round = Number(roundNumber);
+    if (!Number.isInteger(round) || round < 1) return 0;
+    if (name === '818') return EIGHT18_ROUND_TRICKS[round - 1] || 0;
+    if (name === 'Wizard') return round;
+    return 0;
+  }
+
+  function parseEntryInteger(raw) {
+    if (raw === undefined || raw === null) return { ok: false, reason: 'blank' };
+    if (typeof raw === 'number') {
+      if (!Number.isInteger(raw)) return { ok: false, reason: 'not-integer' };
+      return { ok: true, value: raw };
+    }
+    const text = String(raw).trim();
+    if (text === '' || text === '-' || text === '+') return { ok: false, reason: 'blank' };
+    if (!/^[+-]?\d+$/.test(text)) return { ok: false, reason: 'not-integer' };
+    const value = Number(text);
+    if (!Number.isSafeInteger(value)) return { ok: false, reason: 'not-integer' };
+    return { ok: true, value };
+  }
+
+  function playedScoreMustBeNonNegative(game) {
+    return !!NON_NEGATIVE_PLAYED_GAMES[gameName(game)];
+  }
+
+  function entryGameLabel(game) {
+    const name = gameName(game);
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') return 'Flip 7';
+    return name || 'Score';
+  }
+
+  function entryRejectionMessage(game, kind, limit, players) {
+    const who = (players || []).join(', ');
+    const label = entryGameLabel(game);
+    if (kind === 'bids') return `${label} bids must be from 0 to ${limit}. Check ${who}.`;
+    if (kind === 'tricks') return `${label} tricks must be from 0 to ${limit}. Check ${who}.`;
+    return `${label} scores must be whole numbers, 0 or higher. Check ${who}.`;
+  }
+
+  function validateEntries(spec) {
+    const source = spec || {};
+    const kind = source.kind;
+    const players = Array.isArray(source.players) ? source.players : [];
+    const rawValues = source.values || {};
+    const bounded = kind === 'bids' || kind === 'tricks';
+    const limit = bounded ? roundTrickLimit(source.game, source.roundNumber) : null;
+    const invalidPlayers = [];
+    const values = {};
+    players.forEach(player => {
+      const parsed = parseEntryInteger(rawValues[player]);
+      if (!parsed.ok) {
+        invalidPlayers.push(player);
+        return;
+      }
+      if (bounded && (parsed.value < 0 || parsed.value > limit)) {
+        invalidPlayers.push(player);
+        return;
+      }
+      if (kind === 'scores' && playedScoreMustBeNonNegative(source.game) && parsed.value < 0) {
+        invalidPlayers.push(player);
+        return;
+      }
+      values[player] = parsed.value;
+    });
+    if (invalidPlayers.length) {
+      return {
+        ok: false,
+        reason: 'invalid',
+        invalidPlayers,
+        values,
+        limit,
+        message: entryRejectionMessage(source.game, kind, limit, invalidPlayers)
+      };
+    }
+    const sum = players.reduce((total, player) => total + values[player], 0);
+    return { ok: true, invalidPlayers: [], values, sum, limit, message: '' };
+  }
+
+  function trickTableIsBalanced(values, players, limit) {
+    const list = Array.isArray(players) ? players : [];
+    const sum = list.reduce((total, player) => total + (Number(values && values[player]) || 0), 0);
+    return { ok: sum === limit, sum, limit };
+  }
+
+  function snapshotMatchState(game) {
+    return JSON.parse(JSON.stringify(game || {}));
+  }
+
+  function restoreMatchState(game, snap) {
+    if (!game || !snap) return game;
+    Object.keys(game).forEach(key => { delete game[key]; });
+    Object.assign(game, JSON.parse(JSON.stringify(snap)));
+    return game;
+  }
+
+  function commitValidatedMutation(game, mutate, verify) {
+    if (!game || typeof mutate !== 'function') {
+      return { ok: false, reason: 'missing', message: 'That change was not saved.' };
+    }
+    const snap = snapshotMatchState(game);
+    let result;
+    try {
+      result = mutate(game);
+    } catch (error) {
+      restoreMatchState(game, snap);
+      return { ok: false, reason: 'failed', message: 'That change was not saved.' };
+    }
+    if (!result || result.ok === false) {
+      restoreMatchState(game, snap);
+      return result || { ok: false, reason: 'rejected', message: 'That change was not saved.' };
+    }
+    if (typeof verify === 'function') {
+      let check;
+      try {
+        check = verify(game, result);
+      } catch (error) {
+        restoreMatchState(game, snap);
+        return { ok: false, reason: 'failed', message: 'That change was not saved.' };
+      }
+      if (!check || check.ok === false) {
+        restoreMatchState(game, snap);
+        return check || { ok: false, reason: 'verify', message: 'That change was not saved.' };
+      }
+    }
+    return result;
+  }
+
+  function recomputeTotals(game) {
+    if (!game) return {};
+    game.totals = {};
+    (game.originalRoster || []).forEach(player => { if (player) game.totals[player] = 0; });
+    (game.rounds || []).forEach(round => {
+      Object.keys((round && round.scores) || {}).forEach(player => {
+        if (game.totals[player] === undefined) game.totals[player] = 0;
+        game.totals[player] += (round.scores[player] || 0);
+      });
+      Object.entries((round && round.comeback) || {}).forEach(([player, extra]) => {
+        if (game.totals[player] === undefined) game.totals[player] = 0;
+        game.totals[player] += Number(extra) || 0;
+      });
+    });
+    return game.totals;
+  }
+
   function rookHandScores(hand) {
     const bidder = hand && hand.bidder;
     const partner = hand && hand.partner;
@@ -169,7 +328,17 @@
     applyPlayerNameOnGame,
     wizardRoundScore,
     eight18RoundScore,
-    rookHandScores
+    rookHandScores,
+    gameName,
+    roundTrickLimit,
+    parseEntryInteger,
+    playedScoreMustBeNonNegative,
+    validateEntries,
+    trickTableIsBalanced,
+    snapshotMatchState,
+    restoreMatchState,
+    commitValidatedMutation,
+    recomputeTotals
   };
 
   root.BPGScorebook = api;

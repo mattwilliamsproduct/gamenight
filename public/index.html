@@ -8798,20 +8798,7 @@ button.dealer-name-indicator .dealer-player-label {
     return _allTimeRecordsCache.data;
   }
   function recomputeGameTotals(game){
-    if(!game)return {};
-    game.totals={};
-    (game.originalRoster||[]).forEach(p=>{if(p)game.totals[p]=0;});
-    (game.rounds||[]).forEach(r=>{
-      Object.keys(r.scores||{}).forEach(p=>{
-        if(game.totals[p]===undefined)game.totals[p]=0;
-        game.totals[p]+=(r.scores[p]||0);
-      });
-      Object.entries(r.comeback||{}).forEach(([p,extra])=>{
-        if(game.totals[p]===undefined)game.totals[p]=0;
-        game.totals[p]+=Number(extra)||0;
-      });
-    });
-    return game.totals;
+    return BPGScorebook.recomputeTotals(game);
   }
   function getActiveRoster(game){
     const retired=game?.retired||[];
