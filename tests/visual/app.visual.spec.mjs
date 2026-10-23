@@ -814,12 +814,22 @@ test('score-entry acknowledgement handles explicit zero and blank Next',async({p
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   const firstRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
   const firstRow=page.locator(`#${firstRowId}`);
+  await expect(firstRow.locator('.score-entry-confirm-status')).toContainText('Unentered');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toContainText('Tap 0 or enter score');
   await page.getByRole('button',{name:'Next',exact:true}).click();
-  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 scores entered');
-  await expect(firstRow).toHaveClass(/is-complete/);
-  await expect(firstRow.locator('.score-entry-value')).toHaveText('0');
-  await firstRow.click();
-  await expect(firstRow).toHaveClass(/is-complete/);
+  await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
+  await expect(firstRow).toHaveClass(/is-empty/);
+  await expect(firstRow).not.toHaveClass(/is-complete/);
+  await expect(firstRow.locator('.score-entry-value')).toHaveText('');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toContainText('Tap 0 or enter score');
+  const blank=await page.evaluate(rowId=>{
+    const player=rowId.replace('score-entry-row-','');
+    return {
+      value:scoreEntryModalState.values[player],
+      acknowledged:!!scoreEntryModalState.acknowledged[player]
+    };
+  }, firstRowId);
+  expect(blank).toEqual({value:'', acknowledged:false});
 });
 
 test('score-entry Next acknowledges prefilled values without changing them',async({page})=>{
@@ -829,10 +839,13 @@ test('score-entry Next acknowledges prefilled values without changing them',asyn
 
   const prefilledRow=page.locator('#score-entry-row-Matt');
   await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('Suggested: 1');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('tap Next to confirm');
   await prefilledRow.click();
   await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(prefilledRow).toHaveClass(/is-complete/);
   await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('Confirmed: 1');
   await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 tricks entered · Tricks: 1 / 1');
 });
 
@@ -850,6 +863,17 @@ test('Wizard rejects bids outside the available trick range',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=entry-bids',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await page.getByRole('button',{name:'9',exact:true}).click();
+  await page.evaluate(()=>{
+    const state=scoreEntryModalState;
+    const players=state.tablePlayers||state.players;
+    players.forEach(player=>{
+      if(state.acknowledged[player]) return;
+      state.values[player]='0';
+      state.acknowledged[player]=true;
+      updateScoreEntryRowState(player);
+    });
+    updateScoreEntryProgress();
+  });
   let message='';
   page.once('dialog',async dialog=>{
     message=dialog.message();
@@ -1013,6 +1037,8 @@ test('starting another game preserves and resumes Wizard and 818 entry state',as
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await page.evaluate(()=>startGame('818'));
   await page.evaluate(()=>{
+    const names=getActivePlayers(currentGame);
+    currentGame.currentBids=Object.fromEntries(names.map(name=>[name,1]));
     submitRound({skipConfirm:true});
     Object.assign(ensureCurrentScoreDrafts(),{Megan:3,Matt:2});
     saveData();

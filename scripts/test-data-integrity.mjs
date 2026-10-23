@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
+import { EIGHT18_BID_ACCURACY_ROUNDS } from '../public/qa/fixtures.mjs';
 
 const require = createRequire(import.meta.url);
 const Scorebook = require('../public/assets/scorebook.js');
@@ -416,6 +417,7 @@ test('a final-round Five Crowns correction can change the winner without reopeni
   assert.deepEqual(game.winners, ['Bob']);
   assert.equal(game.completed, true);
   assert.equal(result.standing.reopened, false);
+  assert.equal(game.gameOver, true);
   assert.equal(game.currentRound, 2);
 });
 
@@ -436,6 +438,7 @@ test('a Beat the Heat correction under 66 reopens the match and clears the winne
   assert.equal(result.ok, true);
   assert.equal(result.standing.reopened, true);
   assert.equal(game.completed, false);
+  assert.equal(game.gameOver, false);
   assert.deepEqual(game.winners, []);
   assert.equal(game.totals.Bob, 20);
   assert.equal(game.auditLog.length, 2);
@@ -456,6 +459,8 @@ test('a Rook total under the win target reopens, and a Life Preserver round cann
   };
   const reopened = Scorebook.commitRoundCorrection(rook, { roundIndex: 0, scores: { Bob: 40 } });
   assert.equal(reopened.standing.reopened, true);
+  assert.equal(rook.completed, false);
+  assert.equal(rook.gameOver, false);
   assert.deepEqual(rook.winners, []);
 
   const spin = {
@@ -519,6 +524,20 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /BPGScorebook\.historicalRoundParticipants/);
   assert.match(page, /historyReopenWouldReplaceActive/);
   assert.match(page, /ensureGameId/);
+  assert.match(page, /BPGScorebook\.isCompletedHistoryMatch/);
+  assert.match(page, /BPGScorebook\.scoreEntryValueIsBlank/);
+  assert.match(page, /BPGScorebook\.unconfirmedScoreEntryMessage/);
+  assert.match(page, /function parkActiveMatch/);
+  assert.match(page, /Save the game on the table and resume this match\?/);
+  assert.match(page, /data-match-status="incomplete"/);
+  assert.match(page, /Resume Match/);
+  assert.match(page, /score-entry-confirm-status/);
+  assert.match(page, /function jsAttrArg/);
+  const scorebook = fs.readFileSync(new URL('../public/assets/scorebook.js', import.meta.url), 'utf8');
+  assert.match(scorebook, /Unentered · Tap 0 or enter score/);
+  assert.match(scorebook, /Suggested: \$\{value\} \(tap Next to confirm\)/);
+  assert.match(scorebook, /Confirmed: \$\{value\}/);
+  assert.match(scorebook, /players still unconfirmed/);
   assert.doesNotMatch(page, /if\(score>0\)ms\[p\]\.exacts/);
   assert.doesNotMatch(page, /return Number\(score\)>=10/);
   assert.doesNotMatch(page, /if\(score!==0\) update\(games\["Five Crowns"\],'bestRound'/);
@@ -659,21 +678,65 @@ test('the 12-player records fixture keeps Brick’s spin beside a real zero hand
   assert.equal(home.some(match => (match.rounds || []).some(round => round.scores && round.scores.Brick === -18)), false);
 });
 
-test('bid accuracy uses bids and actuals, including an exact zero and a positive 818 miss', () => {
-  const positiveMiss = {
-    round: 1,
-    bids: { Ada: 3 },
-    actuals: { Ada: 2 },
-    scores: { Ada: 15 }
-  };
+test('bid accuracy uses bids and actuals, including legacy scores and rule-consistent 818 rounds', () => {
   assert.equal(Scorebook.eight18RoundScore(3, 2), 2);
-  assert.equal(Scorebook.classifyBidAccuracy(positiveMiss, 'Ada'), 'miss');
-  const exactZero = { round: 1, bids: { Bea: 0 }, actuals: { Bea: '0' }, scores: { Bea: 0 } };
-  assert.equal(Scorebook.classifyBidAccuracy(exactZero, 'Bea'), 'exact');
+  assert.equal(Scorebook.eight18RoundScore(0, 0), 10);
+  // Legacy/inconsistent-score fixtures. The stored score is not the shelf formula.
+  // Bid accuracy ignores it and compares bid with actual.
+  assert.equal(EIGHT18_BID_ACCURACY_ROUNDS.legacyMiss.fixtureKind, 'legacy-inconsistent-score');
+  assert.equal(EIGHT18_BID_ACCURACY_ROUNDS.legacyMiss.scores.Ada, 15);
+  assert.equal(Scorebook.classifyBidAccuracy(EIGHT18_BID_ACCURACY_ROUNDS.legacyMiss, 'Ada'), 'miss');
+  assert.equal(EIGHT18_BID_ACCURACY_ROUNDS.legacyExactZero.fixtureKind, 'legacy-inconsistent-score');
+  assert.equal(EIGHT18_BID_ACCURACY_ROUNDS.legacyExactZero.scores.Bea, 0);
+  assert.equal(Scorebook.classifyBidAccuracy(EIGHT18_BID_ACCURACY_ROUNDS.legacyExactZero, 'Bea'), 'exact');
+  // Rule-consistent 818. A miss scores the tricks taken. An exact zero scores tricks + 10.
+  assert.equal(EIGHT18_BID_ACCURACY_ROUNDS.standardMiss.fixtureKind, 'rule-consistent-818');
+  assert.deepEqual(EIGHT18_BID_ACCURACY_ROUNDS.standardMiss.scores, { Dee: 2 });
+  assert.equal(Scorebook.classifyBidAccuracy(EIGHT18_BID_ACCURACY_ROUNDS.standardMiss, 'Dee'), 'miss');
+  assert.equal(EIGHT18_BID_ACCURACY_ROUNDS.standardExactZero.fixtureKind, 'rule-consistent-818');
+  assert.deepEqual(EIGHT18_BID_ACCURACY_ROUNDS.standardExactZero.scores, { Eve: 10 });
+  assert.equal(Scorebook.classifyBidAccuracy(EIGHT18_BID_ACCURACY_ROUNDS.standardExactZero, 'Eve'), 'exact');
   const legacy = { round: 2, scores: { Cal: 40 } };
   assert.equal(Scorebook.classifyBidAccuracy(legacy, 'Cal'), null);
   const spin = { round: 0, hailMaryBonus: true, scores: { Ada: 15 }, bids: { Ada: 1 }, actuals: { Ada: 1 } };
   assert.equal(Scorebook.classifyBidAccuracy(spin, 'Ada'), null);
+});
+
+test('Next leaves a blank score unentered and confirms a suggested bid', () => {
+  const blank = Scorebook.createScoreEntrySession(['Ada', 'Bea', 'Cal', 'Dan'], { Ada: '', Bea: '', Cal: '', Dan: '' });
+  Scorebook.confirmScoreEntryOnNext(blank);
+  assert.equal(blank.values.Ada, '');
+  assert.equal(blank.acknowledged.Ada, false);
+  assert.equal(blank.activePlayer, 'Bea');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).state, 'unentered');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Unentered · Tap 0 or enter score');
+  assert.equal(Scorebook.unconfirmedScoreEntryMessage(blank), '4 of 4 players still unconfirmed');
+  Scorebook.pressScoreEntryKey(blank, '0');
+  assert.equal(blank.values.Bea, '0');
+  assert.equal(blank.acknowledged.Bea, true);
+  assert.equal(Scorebook.scoreEntryStatus({ value: '0', acknowledged: true }).label, '✓ Confirmed: 0');
+
+  const suggested = Scorebook.createScoreEntrySession(['Ada', 'Bea'], { Ada: '3', Bea: '0' });
+  assert.equal(Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).state, 'suggested');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).label, '💡 Suggested: 3 (tap Next to confirm)');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '0', acknowledged: false }).label, '💡 Suggested: 0 (tap Next to confirm)');
+  Scorebook.confirmScoreEntryOnNext(suggested);
+  assert.equal(suggested.values.Ada, '3');
+  assert.equal(suggested.acknowledged.Ada, true);
+  assert.equal(Scorebook.scoreEntryStatus({ value: '3', acknowledged: true }).label, '✓ Confirmed: 3');
+  assert.equal(Scorebook.unconfirmedScoreEntryMessage(suggested), '1 of 2 players still unconfirmed');
+  Scorebook.selectScoreEntryPlayer(suggested, 'Bea');
+  Scorebook.confirmScoreEntryOnNext(suggested);
+  assert.equal(suggested.acknowledged.Bea, true);
+  assert.equal(Scorebook.unconfirmedScoreEntryMessage(suggested), '');
+});
+
+test('an incomplete history row is left out of completed-match stats', () => {
+  assert.equal(Scorebook.isCompletedHistoryMatch(null), false);
+  assert.equal(Scorebook.isCompletedHistoryMatch({ completed: false, gameOver: true, winners: ['Ada'] }), false);
+  assert.equal(Scorebook.isCompletedHistoryMatch({ completed: true, gameOver: false, winners: [] }), false);
+  assert.equal(Scorebook.isCompletedHistoryMatch({ winners: ['Ada'] }), true);
+  assert.equal(Scorebook.isCompletedHistoryMatch({ completed: true, gameOver: true }), true);
 });
 
 test('the shared commit boundary rejects blank, whitespace, non-finite, fractional, and out-of-range values', () => {
@@ -791,6 +854,8 @@ test('reopening a saved match does not replace a different active game', () => {
   assert.equal(Scorebook.historyReopenWouldReplaceActive(null, edited), false);
   assert.equal(Scorebook.historyReopenWouldReplaceActive(edited, edited), false);
   assert.equal(Scorebook.historyReopenWouldReplaceActive({ name: 'Wizard' }, edited), true);
+  const reopened = { id: 66, gameId: 66, completed: false, gameOver: false, winners: [] };
+  assert.equal(Scorebook.isCompletedHistoryMatch(reopened), false);
 });
 
 test('undoing the only Life Preserver clears assistedMatch, including a zero-point spin', () => {

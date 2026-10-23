@@ -596,6 +596,41 @@ function recordsHealPlainMatch(){
   };
 }
 
+// 818 bid-accuracy fixtures.
+// Legacy/inconsistent-score fixtures store a score that is not the shelf formula.
+// Bid accuracy ignores that score and compares bid with actual.
+// Rule-consistent 818: an exact bid scores tricks + 10, and a miss scores the tricks taken.
+export const EIGHT18_BID_ACCURACY_ROUNDS = {
+  legacyMiss: {
+    round: 1,
+    bids: { Ada: 3 },
+    actuals: { Ada: 2 },
+    scores: { Ada: 15 },
+    fixtureKind: 'legacy-inconsistent-score'
+  },
+  legacyExactZero: {
+    round: 1,
+    bids: { Bea: 0 },
+    actuals: { Bea: 0 },
+    scores: { Bea: 0 },
+    fixtureKind: 'legacy-inconsistent-score'
+  },
+  standardMiss: {
+    round: 2,
+    bids: { Dee: 3 },
+    actuals: { Dee: 2 },
+    scores: { Dee: 2 },
+    fixtureKind: 'rule-consistent-818'
+  },
+  standardExactZero: {
+    round: 2,
+    bids: { Eve: 0 },
+    actuals: { Eve: 0 },
+    scores: { Eve: 10 },
+    fixtureKind: 'rule-consistent-818'
+  }
+};
+
 function finishedMatchFromGame(game,id){
   return {
     id,

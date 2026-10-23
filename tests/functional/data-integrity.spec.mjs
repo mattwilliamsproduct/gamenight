@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import {expect,test} from '@playwright/test';
 import {openScenario} from '../helpers/qa.mjs';
+import {EIGHT18_BID_ACCURACY_ROUNDS} from '../../public/qa/fixtures.mjs';
 
 const ARTIFACTS='/opt/cursor/artifacts';
 const cloudHits=[];
@@ -167,9 +168,13 @@ test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
   const mattRow=page.locator('#score-entry-row-Matt');
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
   await expect(matt).toHaveText('1');
+  await expect(page.locator('#score-entry-status-Matt')).toContainText('Suggested: 1');
+  await expect(page.locator('#score-entry-status-Matt')).toContainText('tap Next to confirm');
+  await expect(page.locator('#score-entry-status-Megan')).toContainText('Suggested: 0');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await expect(matt).toHaveText('1');
   await expect(mattRow).toHaveClass(/is-complete/);
+  await expect(page.locator('#score-entry-status-Matt')).toContainText('Confirmed: 1');
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
   await (await entryKey(page,'0')).click();
   await expect(matt).toHaveText('10');
@@ -181,6 +186,7 @@ test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
   await page.locator('#score-entry-row-Matt .score-entry-row-status').click();
   await expect(matt).toHaveText('1');
   await expect(mattRow).toHaveClass(/is-complete/);
+  await expect(page.locator('#score-entry-status-Matt')).toContainText('Confirmed: 1');
   await page.locator('#score-entry-row-Cat .score-entry-name').click();
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
   await expect(matt).toHaveText('1');
@@ -256,6 +262,8 @@ test('P0-02 a blank trick is rejected before it can become zero', async ({page})
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'backspace')).click();
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
+  await page.locator('#score-entry-row-Bob .score-entry-row-status').click();
+  await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 1');
   await page.locator('#score-entry-primary-btn').click();
   await expect.poll(()=>dialogs.length).toBe(1);
   expect(dialogs[0].message).toContain('Check Alice');
@@ -295,6 +303,8 @@ test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
   await expect(page.locator('#score-entry-context')).toContainText('1 trick');
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'8')).click();
+  await page.locator('#score-entry-row-Bob .score-entry-row-status').click();
+  await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
   await page.locator('#score-entry-primary-btn').click();
   await expect.poll(()=>dialogs.length).toBe(1);
   expect(dialogs[0].message).toBe('818 tricks must be from 0 to 1. Check Alice.');
@@ -336,10 +346,22 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const catRow=page.locator('#score-entry-row-Cat');
-  await catRow.locator('.score-entry-row-status').click();
   await expect(catRow).toHaveClass(/is-empty/);
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
+  await expect(page.locator('#score-entry-value-Cat')).toHaveText('');
+  await expect(page.locator('#score-entry-status-Cat')).toContainText('Unentered');
+  await expect(page.locator('#score-entry-status-Cat')).toContainText('Tap 0 or enter score');
+  const catBlank=await page.evaluate(()=>({
+    value:scoreEntryModalState.values.Cat,
+    acknowledged:scoreEntryModalState.acknowledged.Cat
+  }));
+  expect(catBlank).toEqual({value:'', acknowledged:false});
+  await expect(page.locator('#score-entry-unconfirmed')).toContainText('1 of 2 players still unconfirmed');
+  await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
+  await catRow.locator('.score-entry-name').click();
+  await (await entryKey(page,'0')).click();
   await expect(page.locator('#score-entry-value-Cat')).toHaveText('0');
+  await expect(page.locator('#score-entry-status-Cat')).toContainText('Confirmed: 0');
   await page.locator('#score-entry-primary-btn').click();
   await expect.poll(()=>dialogs.length).toBe(1);
   expect(dialogs[0].message).toBe('Five Crowns scores must be whole numbers, 0 or higher. Check Matt.');
@@ -1045,20 +1067,43 @@ test('P0-03 phone width still shows the assisted badge and the healed round', as
 
 test('bid accuracy ignores point sign and legacy rounds that have no bid', async ({page})=>{
   await openScenario(page,{scenario:'home-party', surface:'home'});
-  const stats=await page.evaluate(()=>{
+  const rounds=EIGHT18_BID_ACCURACY_ROUNDS;
+  // Legacy/inconsistent-score fixtures: bid 3 / actual 2 stored as 15, and bid 0 / actual 0 stored as 0.
+  // Rule-consistent 818 sits beside them: miss scores 2, exact zero scores 10.
+  expect(rounds.legacyMiss.fixtureKind).toBe('legacy-inconsistent-score');
+  expect(rounds.legacyExactZero.fixtureKind).toBe('legacy-inconsistent-score');
+  expect(rounds.standardMiss).toMatchObject({fixtureKind:'rule-consistent-818', scores:{Dee:2}});
+  expect(rounds.standardExactZero).toMatchObject({fixtureKind:'rule-consistent-818', scores:{Eve:10}});
+  const stats=await page.evaluate(fixture=>{
     currentGame=null;
     history=[
       {
-        id:8181, gameId:8181, game:'818', date:'10/23/2026', completed:true,
+        id:8181, gameId:8181, game:'818', date:'10/23/2026', completed:true, gameOver:true,
         originalRoster:['Ada','Bea','Cal'], winners:['Bea'],
         totals:{Ada:15, Bea:0, Cal:27},
         rounds:[
-          {round:1, bids:{Ada:3, Bea:0}, actuals:{Ada:2, Bea:0}, scores:{Ada:15, Bea:0, Cal:15}},
-          {round:2, scores:{Cal:12}}
+          {
+            round:1,
+            bids:{...fixture.legacyMiss.bids, ...fixture.legacyExactZero.bids},
+            actuals:{...fixture.legacyMiss.actuals, ...fixture.legacyExactZero.actuals},
+            scores:{...fixture.legacyMiss.scores, ...fixture.legacyExactZero.scores, Cal:15}
+          },
+          {round:3, scores:{Cal:12}}
         ]
       },
       {
-        id:707, gameId:707, game:'Wizard', date:'10/23/2026', completed:true,
+        id:8182, gameId:8182, game:'818', date:'10/23/2026', completed:true, gameOver:true,
+        originalRoster:['Dee','Eve'], winners:['Eve'],
+        totals:{Dee:fixture.standardMiss.scores.Dee, Eve:fixture.standardExactZero.scores.Eve},
+        rounds:[{
+          round:2,
+          bids:{...fixture.standardMiss.bids, ...fixture.standardExactZero.bids},
+          actuals:{...fixture.standardMiss.actuals, ...fixture.standardExactZero.actuals},
+          scores:{...fixture.standardMiss.scores, ...fixture.standardExactZero.scores}
+        }]
+      },
+      {
+        id:707, gameId:707, game:'Wizard', date:'10/23/2026', completed:true, gameOver:true,
         originalRoster:['Zoe','Yan'], winners:['Zoe'],
         totals:{Zoe:0, Yan:70},
         rounds:[
@@ -1072,6 +1117,12 @@ test('bid accuracy ignores point sign and legacy rounds that have no bid', async
     const records=calculateAllTimeRecords();
     return {
       formula:BPGScorebook.eight18RoundScore(3,2),
+      exactZeroFormula:BPGScorebook.eight18RoundScore(0,0),
+      legacyMiss:BPGScorebook.classifyBidAccuracy(history[0].rounds[0], 'Ada'),
+      legacyExact:BPGScorebook.classifyBidAccuracy(history[0].rounds[0], 'Bea'),
+      standardMiss:BPGScorebook.classifyBidAccuracy(history[1].rounds[0], 'Dee'),
+      standardExact:BPGScorebook.classifyBidAccuracy(history[1].rounds[0], 'Eve'),
+      missingBid:BPGScorebook.classifyBidAccuracy(history[0].rounds[1], 'Cal'),
       eightExact:fame['818'].mostExactBids,
       eightExactPlayer:fame['818'].mostExactBidsPlayer,
       eightMiss:fame['818'].mostMissedBids,
@@ -1083,8 +1134,14 @@ test('bid accuracy ignores point sign and legacy rounds that have no bid', async
       singleMiss:records.games['818'].mostMissedSingleGame,
       wizardSingle:records.games.Wizard.mostExactSingleGame
     };
-  });
+  }, rounds);
   expect(stats.formula).toBe(2);
+  expect(stats.exactZeroFormula).toBe(10);
+  expect(stats.legacyMiss).toBe('miss');
+  expect(stats.legacyExact).toBe('exact');
+  expect(stats.standardMiss).toBe('miss');
+  expect(stats.standardExact).toBe('exact');
+  expect(stats.missingBid).toBeNull();
   expect(stats.eightExact).toBe(1);
   expect(stats.eightExactPlayer).toBe('Bea');
   expect(stats.eightMiss).toBe(1);
@@ -1144,6 +1201,7 @@ test('a historical reopen leaves the other active game in place', async ({page})
       liveName:currentGame.name,
       liveSame:JSON.stringify(currentGame)===liveBefore,
       heatCompleted:heat.completed,
+      heatGameOver:heat.gameOver,
       heatTotal:heat.totals.Bob,
       historyId:history[0].id,
       storedLive:JSON.parse(localStorage.getItem('gn_current')).id,
@@ -1156,10 +1214,13 @@ test('a historical reopen leaves the other active game in place', async ({page})
   expect(outcome.liveName).toBe('Five Crowns');
   expect(outcome.liveSame).toBe(true);
   expect(outcome.heatCompleted).toBe(false);
+  expect(outcome.heatGameOver).toBe(false);
   expect(outcome.heatTotal).toBe(20);
   expect(outcome.historyId).toBe(66);
   expect(outcome.storedLive).toBe(111);
   expect(outcome.storedHeat.completed).toBe(false);
+  expect(outcome.storedHeat.gameOver).toBe(false);
+  expect(outcome.storedHeat.winners).toEqual([]);
   expect(outcome.storedHeat.totals.Bob).toBe(20);
   await page.locator('#scorecard-capture').screenshot({path:`${ARTIFACTS}/slice1-active-game-preserved.png`});
 });
@@ -1222,4 +1283,365 @@ test('a zero-point spin stays assisted until undo, then reload clears it', async
   expect(reloaded.cloud).toBe(false);
   expect(reloaded.identity.gameId).toBe(303);
   expect(reloaded.identity.round).toBe(1);
+});
+
+test('a blank Next stays unentered until the player taps 0', async ({page})=>{
+  const dialogs=armDialogs(page);
+  await installMatch(page,{
+    id:4101,
+    gameId:4101,
+    name:'Five Crowns',
+    originalRoster:['Alice','Bob','Cara','Dan'],
+    currentRound:1,
+    maxRounds:11,
+    rounds:[],
+    totals:{Alice:0, Bob:0, Cara:0, Dan:0},
+    winners:[],
+    auditLog:[],
+    hailMaryUsed:[],
+    retired:[],
+    currentScoreDrafts:{},
+    completed:false
+  }, null);
+  await page.locator('#submit-action-btn').click();
+  await expect(page.locator('#score-entry-modal')).toBeVisible();
+  const alice=page.locator('#score-entry-status-Alice');
+  await expect(alice).toContainText('Unentered');
+  await expect(alice).toContainText('Tap 0 or enter score');
+  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
+  const blank=await page.evaluate(()=>({
+    value:scoreEntryModalState.values.Alice,
+    acknowledged:scoreEntryModalState.acknowledged.Alice
+  }));
+  expect(blank).toEqual({value:'', acknowledged:false});
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
+  await expect(page.locator('#score-entry-row-Alice')).toHaveClass(/is-empty/);
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('4 of 4 players still unconfirmed');
+  await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
+  await page.locator('#score-entry-row-Alice .score-entry-name').click();
+  await (await entryKey(page,'0')).click();
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('0');
+  await expect(alice).toContainText('Confirmed: 0');
+  const zero=await page.evaluate(()=>({
+    value:scoreEntryModalState.values.Alice,
+    acknowledged:scoreEntryModalState.acknowledged.Alice
+  }));
+  expect(zero).toEqual({value:'0', acknowledged:true});
+  await page.locator('#score-entry-row-Bob .score-entry-name').click();
+  await (await entryKey(page,'4')).click();
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('2 of 4 players still unconfirmed');
+  await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
+  await shot(page,'slice1-blank-next');
+  const before=await persisted(page);
+  await page.evaluate(()=>submitScoreEntryModal());
+  await expect.poll(()=>dialogs.length).toBe(1);
+  expect(dialogs[0].message).toBe('2 of 4 players still unconfirmed');
+  const after=await persisted(page);
+  expect(after.game).toBe(before.game);
+  expect(await page.evaluate(()=>currentGame.rounds.length)).toBe(0);
+});
+
+test('retired 818 seats keep Cara in the correction and leave Dan out', async ({page})=>{
+  await openScenario(page,{scenario:'home-party', surface:'home'});
+  await page.evaluate(()=>{
+    currentGame=null;
+    history=[{
+      id:8183,
+      gameId:8183,
+      game:'818',
+      date:'10/23/2026',
+      dealerOffset:0,
+      originalRoster:['Alice','Bob','Cara','Dan'],
+      retired:['Cara'],
+      currentRound:4,
+      maxRounds:15,
+      completed:true,
+      gameOver:true,
+      winners:['Alice'],
+      totals:{Alice:2, Bob:2, Cara:2},
+      rounds:[{
+        round:3,
+        bids:{Alice:1, Bob:1, Cara:4},
+        actuals:{Alice:2, Bob:2, Cara:2},
+        scores:{Alice:2, Bob:2, Cara:2}
+      }],
+      hailMaryUsed:[],
+      auditLog:[]
+    }];
+    markHistoryChanged();
+    saveData({fullPersist:true, syncCold:true});
+    showHistory();
+  });
+  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.locator('.round-correct-btn').click();
+  await expect(page.locator('#round-correction-modal')).toBeVisible();
+  await expect(page.locator('.round-correction-row')).toHaveCount(3);
+  await expect(page.locator('.round-correction-row[data-player="Cara"]')).toBeVisible();
+  await expect(page.locator('.round-correction-row[data-player="Dan"]')).toHaveCount(0);
+  const beforeDealer=await page.evaluate(()=>JSON.stringify(history[0]));
+  await page.locator('#round-correction-save').click();
+  await expect(page.locator('#round-correction-error')).toHaveText('Dealer Cara cannot bid 4 on round 3.');
+  await expect(page.locator('#round-correction-modal')).toBeVisible();
+  expect(await page.evaluate(()=>JSON.stringify(history[0]))).toBe(beforeDealer);
+  await shot(page,'slice1-818-dealer-cara');
+
+  await page.evaluate(()=>{
+    cancelRoundCorrection();
+    closeModal('scorecard-modal');
+    currentGame=null;
+    history=[{
+      id:8184,
+      gameId:8184,
+      game:'818',
+      date:'10/23/2026',
+      dealerOffset:0,
+      originalRoster:['Alice','Bob','Cara','Dan'],
+      retired:['Cara'],
+      currentRound:4,
+      maxRounds:15,
+      completed:true,
+      gameOver:true,
+      winners:['Alice'],
+      totals:{Alice:2, Bob:2, Cara:2, Dan:1},
+      rounds:[{
+        round:3,
+        bids:{Alice:1, Bob:1, Cara:1, Dan:0},
+        actuals:{Alice:2, Bob:2, Cara:2, Dan:1},
+        scores:{Alice:2, Bob:2, Cara:2, Dan:1},
+        joinBonus:{Dan:true}
+      }],
+      hailMaryUsed:[],
+      auditLog:[]
+    }];
+    markHistoryChanged();
+    saveData({fullPersist:true, syncCold:true});
+    showHistory();
+  });
+  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.locator('.round-correct-btn').click();
+  await expect(page.locator('.round-correction-row')).toHaveCount(3);
+  await expect(page.locator('.round-correction-row[data-player="Dan"]')).toHaveCount(0);
+  await correctionKey(page,'4').click();
+  await page.locator('#round-correction-save').click();
+  await expect(page.locator('#round-correction-error')).toHaveText('818 round 3 must total 6 tricks. This table totals 8.');
+  await expect(page.locator('#round-correction-modal')).toBeVisible();
+  expect(await page.evaluate(()=>history[0].rounds[0].actuals.Dan)).toBe(1);
+  await correctionKey(page,'backspace').click();
+  await correctionKey(page,'3').click();
+  await page.locator('.round-correction-row[data-player="Bob"]').click();
+  await correctionKey(page,'1').click();
+  await page.locator('#round-correction-save').click();
+  await expect(page.locator('#round-correction-modal')).toBeHidden();
+  const saved=await page.evaluate(()=>{
+    const row=history.find(match=>match.id===8184);
+    return {
+      actuals:{...row.rounds[0].actuals},
+      scores:{...row.rounds[0].scores},
+      action:row.auditLog.at(-1).action,
+      retired:[...row.retired],
+      live:currentGame
+    };
+  });
+  expect(saved.actuals).toEqual({Alice:3, Bob:1, Cara:2, Dan:1});
+  expect(saved.scores.Dan).toBe(1);
+  expect(saved.scores.Alice).toBe(3);
+  expect(saved.scores.Bob).toBe(11);
+  expect(saved.scores.Cara).toBe(2);
+  expect(saved.action).toBe('R3 Tricks Edited');
+  expect(saved.retired).toEqual(['Cara']);
+  expect(saved.live).toBeNull();
+});
+
+test('boot backfills a legacy match that has no id and no gameId', async ({page})=>{
+  // Saved matches live in gn_history. The live table is gn_current. There is no gn_state key.
+  // Seed before the document script reads storage. A later write is flushed away on pagehide.
+  const legacy={
+    game:'Five Crowns',
+    date:'10/23/2026',
+    originalRoster:['Ada'],
+    totals:{Ada:4},
+    winners:['Ada'],
+    rounds:[{round:1, scores:{Ada:4}}],
+    completed:true,
+    currentRound:2,
+    maxRounds:11
+  };
+  await page.addInitScript(match=>{
+    if(localStorage.getItem('gn_history')) return;
+    localStorage.setItem('gn_history', JSON.stringify([match]));
+    localStorage.removeItem('gn_current');
+  }, legacy);
+  await page.goto('/');
+  await page.waitForFunction(()=>{
+    const rows=JSON.parse(localStorage.getItem('gn_history')||'[]');
+    return !!(rows[0]&&rows[0].gameId);
+  });
+  const first=await page.evaluate(()=>{
+    const stored=JSON.parse(localStorage.getItem('gn_history'))[0];
+    return {
+      storedId:stored.id,
+      storedGameId:stored.gameId,
+      memoryId:history[0].id,
+      memoryGameId:history[0].gameId,
+      cloud:canPorchCloud(),
+      porch:localStorage.getItem('gn_porch_key')
+    };
+  });
+  expect(String(first.storedGameId).length).toBeGreaterThan(0);
+  expect(first.storedId).toBe(first.storedGameId);
+  expect(first.memoryGameId).toBe(first.storedGameId);
+  expect(first.memoryId).toBe(first.storedGameId);
+  expect(first.cloud).toBe(false);
+  expect(first.porch).toBeNull();
+  await page.evaluate(()=>showHistory());
+  await expect(page.locator('#history-list-view button',{hasText:'Resume'}).first()).toBeVisible();
+  const onclick=await page.locator('#history-list-view button',{hasText:'Resume'}).first().getAttribute('onclick');
+  expect(onclick).toBe(`resumeMatch(${JSON.stringify(first.storedGameId)})`);
+  await page.reload();
+  await page.waitForFunction(gameId=>{
+    const rows=JSON.parse(localStorage.getItem('gn_history')||'[]');
+    return rows[0]&&rows[0].gameId===gameId;
+  }, first.storedGameId);
+  const second=await page.evaluate(()=>({
+    memory:history[0].gameId,
+    stored:JSON.parse(localStorage.getItem('gn_history'))[0].gameId,
+    cloud:canPorchCloud()
+  }));
+  expect(second.memory).toBe(first.storedGameId);
+  expect(second.stored).toBe(first.storedGameId);
+  expect(second.cloud).toBe(false);
+});
+
+test('an incomplete history match stays out of the book until Resume Match is confirmed', async ({page})=>{
+  const live={
+    id:111,
+    gameId:111,
+    name:'Five Crowns',
+    originalRoster:['Matt','Cat'],
+    currentRound:2,
+    maxRounds:11,
+    completed:false,
+    gameOver:false,
+    winners:[],
+    rounds:[{round:1, scores:{Matt:4, Cat:8}}],
+    totals:{Matt:4, Cat:8},
+    auditLog:[],
+    hailMaryUsed:[],
+    retired:[]
+  };
+  await installMatch(page, live, null);
+  const messages=[];
+  page.on('dialog', async dialog=>{
+    messages.push(dialog.message());
+    if(messages.length===1) await dialog.dismiss();
+    else await dialog.accept();
+  });
+  const stats=await page.evaluate(()=>{
+    history=[
+      {
+        id:501,
+        gameId:501,
+        game:'Wizard',
+        date:'10/23/2026',
+        originalRoster:['Alice','Bob'],
+        currentRound:2,
+        maxRounds:30,
+        completed:true,
+        gameOver:true,
+        winners:['Alice'],
+        totals:{Alice:30, Bob:-10},
+        rounds:[{round:1, bids:{Alice:1, Bob:1}, actuals:{Alice:1, Bob:0}, scores:{Alice:30, Bob:-10}}],
+        hailMaryUsed:[],
+        retired:[],
+        auditLog:[]
+      },
+      {
+        id:66,
+        gameId:66,
+        game:'Beat the Heat',
+        date:'10/23/2026',
+        originalRoster:['Alice','Bob'],
+        currentRound:2,
+        maxRounds:999,
+        endScore:66,
+        completed:false,
+        gameOver:false,
+        winners:[],
+        totals:{Alice:10, Bob:20},
+        rounds:[{round:1, scores:{Alice:10, Bob:20}}],
+        hailMaryUsed:[],
+        retired:[],
+        auditLog:[]
+      }
+    ];
+    markHistoryChanged();
+    saveData({fullPersist:true, syncCold:true});
+    _matchHallOfFameSnap=null;
+    _matchAllTimeRecordsSnap=null;
+    const fame=calculateHallOfFame();
+    const records=calculateAllTimeRecords();
+    const alice=getProfileSummary('Alice');
+    const bob=getProfileSummary('Bob');
+    const aliceGames=records.allTime.mostGames.find(row=>row.player==='Alice');
+    showHistory();
+    return {
+      heatBest:fame['Beat the Heat'].bestPlayer,
+      heatBestGame:records.games['Beat the Heat'].bestGame,
+      mostGames:fame.Overall.mostGames,
+      wizardBest:fame.Wizard.bestPlayer,
+      aliceGames:alice.games,
+      aliceWins:alice.wins,
+      bobGames:bob.games,
+      bobWins:bob.wins,
+      aliceRecordGames:aliceGames?aliceGames.value:0,
+      liveId:currentGame.id
+    };
+  });
+  expect(stats.heatBest).toBe('-');
+  expect(stats.heatBestGame).toBeNull();
+  expect(stats.mostGames).toBe(1);
+  expect(stats.wizardBest).toBe('Alice');
+  expect(stats.aliceGames).toBe(1);
+  expect(stats.aliceWins).toBe(1);
+  expect(stats.bobGames).toBe(1);
+  expect(stats.bobWins).toBe(0);
+  expect(stats.aliceRecordGames).toBe(1);
+  expect(stats.liveId).toBe(111);
+  const heat=page.locator('#history-list-view .surface',{hasText:'Beat the Heat'});
+  const wizard=page.locator('#history-list-view .surface',{hasText:'Wizard'});
+  await expect(heat.locator('[data-match-status="incomplete"]')).toHaveText('Incomplete');
+  await expect(heat.getByRole('button',{name:'Resume Match', exact:true})).toBeVisible();
+  await expect(wizard.locator('[data-match-status="incomplete"]')).toHaveCount(0);
+  await expect(wizard.getByRole('button',{name:'Resume', exact:true})).toBeVisible();
+  await heat.screenshot({path:`${ARTIFACTS}/slice1-incomplete-resume.png`});
+  await heat.getByRole('button',{name:'Resume Match', exact:true}).click();
+  expect(messages).toEqual(['Save the game on the table and resume this match?']);
+  expect(await page.evaluate(()=>currentGame.id)).toBe(111);
+  await heat.getByRole('button',{name:'Resume Match', exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>currentGame&&currentGame.id)).toBe(66);
+  const parked=await page.evaluate(()=>{
+    const prior=history.find(row=>row.id===111);
+    return {
+      liveId:currentGame.id,
+      liveName:currentGame.name,
+      heatInHistory:history.some(row=>row.id===66),
+      priorCompleted:prior&&prior.completed,
+      priorGameOver:prior&&prior.gameOver,
+      priorMatt:prior&&prior.totals.Matt,
+      priorWinners:prior?prior.winners:null
+    };
+  });
+  expect(parked).toEqual({
+    liveId:66,
+    liveName:'Beat the Heat',
+    heatInHistory:false,
+    priorCompleted:false,
+    priorGameOver:false,
+    priorMatt:4,
+    priorWinners:[]
+  });
+  expect(messages).toEqual([
+    'Save the game on the table and resume this match?',
+    'Save the game on the table and resume this match?'
+  ]);
 });

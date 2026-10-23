@@ -349,7 +349,7 @@
   function acceptScoreEntryValue(entry) {
     const source = entry || {};
     const value = source.value == null ? '' : String(source.value);
-    if (value === '' || value === '-') {
+    if (scoreEntryValueIsBlank(value)) {
       return { value, acknowledged: !!source.acknowledged, accepted: false };
     }
     return { value, acknowledged: true, accepted: true };
@@ -395,6 +395,38 @@
     return session;
   }
 
+  function scoreEntryValueIsBlank(value) {
+    if (value == null) return true;
+    const text = String(value).trim();
+    return text === '' || text === '-' || text === '+';
+  }
+
+  function scoreEntryStatus(entry) {
+    const source = entry || {};
+    const value = source.value == null ? '' : String(source.value);
+    if (source.acknowledged) return { state: 'confirmed', label: `✓ Confirmed: ${value}` };
+    if (scoreEntryValueIsBlank(value)) return { state: 'unentered', label: 'Unentered · Tap 0 or enter score' };
+    return { state: 'suggested', label: `💡 Suggested: ${value} (tap Next to confirm)` };
+  }
+
+  function confirmScoreEntryOnNext(session) {
+    if (!session || !session.activePlayer) return session;
+    const player = session.activePlayer;
+    if (!scoreEntryValueIsBlank(session.values && session.values[player])) {
+      acceptScoreEntryPlayer(session, player);
+    }
+    const order = Array.isArray(session.players) ? session.players : [];
+    const index = order.indexOf(player);
+    if (order.length) session.activePlayer = order[(index + 1) % order.length];
+    return session;
+  }
+
+  function unconfirmedScoreEntryMessage(session) {
+    const players = (session && session.players) || [];
+    const pending = players.filter(player => !(session.acknowledged && session.acknowledged[player])).length;
+    return pending ? `${pending} of ${players.length} players still unconfirmed` : '';
+  }
+
   function isSyntheticAdjustmentRound(round) {
     return !!(round && (round.hailMaryBonus === true || Number(round.round) === 0));
   }
@@ -411,6 +443,12 @@
 
   function isAssistedMatch(game) {
     return appliedLifePreserverRemains(game);
+  }
+
+  function isCompletedHistoryMatch(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (match.gameOver === false || match.completed === false) return false;
+    return true;
   }
 
   function syncAssistedMatch(game) {
@@ -620,6 +658,7 @@
     if (before && before.over && !over) {
       game.winners = [];
       game.completed = false;
+      game.gameOver = false;
       return { over: false, reopened: true, winnersChanged: priorWinners.length > 0, winners: [] };
     }
     const finished = over || !!(before && before.completed);
@@ -629,6 +668,7 @@
     const next = leadersOf(game);
     game.winners = next.slice();
     game.completed = true;
+    game.gameOver = true;
     return {
       over,
       reopened: false,
@@ -861,6 +901,11 @@
     pressScoreEntryKey,
     acceptScoreEntryPlayer,
     selectScoreEntryPlayer,
+    scoreEntryValueIsBlank,
+    scoreEntryStatus,
+    confirmScoreEntryOnNext,
+    unconfirmedScoreEntryMessage,
+    isCompletedHistoryMatch,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
     isAssistedMatch,

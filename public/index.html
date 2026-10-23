@@ -702,6 +702,33 @@
       color: #b45309;
       letter-spacing: 0.12em;
     }
+    .incomplete-match-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: #ffe4e6;
+      color: #be123c;
+      letter-spacing: 0.12em;
+    }
+    .score-entry-confirm-status {
+      margin-top: 0.15rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .score-entry-confirm-status[data-entry-state="unentered"] { color: var(--rose); }
+    .score-entry-confirm-status[data-entry-state="suggested"] { color: var(--blue); }
+    .score-entry-confirm-status[data-entry-state="confirmed"] { color: var(--emerald); }
+    .score-entry-unconfirmed:empty { display: none; }
+    .score-entry-unconfirmed {
+      width: 100%;
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--rose);
+    }
+    #score-entry-primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .score-current-input {
       background: var(--surface);
       border: 2px solid var(--hairline);
@@ -8240,6 +8267,7 @@ button.dealer-name-indicator .dealer-player-label {
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
+          <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
@@ -10395,7 +10423,7 @@ button.dealer-name-indicator .dealer-player-label {
     const select=document.getElementById('profile-game-filter');
     if(!select)return;
     const selected=select.value || 'all';
-    const games=Object.keys(configs).filter(g=>history.some(h=>h.game===g&&h.totals));
+    const games=Object.keys(configs).filter(g=>history.some(h=>h.game===g&&h.totals&&BPGScorebook.isCompletedHistoryMatch(h)));
     select.innerHTML=`<option value="all">All games</option>${games.map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g.replace(' Vengeance',''))}</option>`).join('')}`;
     select.value=games.includes(selected)?selected:'all';
   }
@@ -10407,7 +10435,7 @@ button.dealer-name-indicator .dealer-player-label {
       needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0
     };
     const matches=history
-      .filter(h=>h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
+      .filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
       .slice()
       .sort((a,b)=>(a.id||0)-(b.id||0));
     matches.forEach(h=>{
@@ -10626,7 +10654,7 @@ button.dealer-name-indicator .dealer-player-label {
       stats[key].byGame[event.game]=(stats[key].byGame[event.game]||0)+1;
     };
     history.forEach(h=>{
-      if(!configs[h.game]||!Array.isArray(h.rounds))return;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!configs[h.game]||!Array.isArray(h.rounds))return;
       h.rounds.forEach(round=>{
         const whammy=detectHistoryWhammyForRound(h, round);
         if(whammy){ add('whammy', whammy); return; }
@@ -10676,7 +10704,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     let games=0,wins=0,lasts=0,labels=[],data=[];
     history.slice().reverse().forEach(h=>{
-      if(!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
       games++; if(h.winners?.includes(name))wins++;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
@@ -12368,7 +12396,7 @@ ${isDealer
     if(!cfg) return null;
     let picked=null;
     history.forEach(h=>{
-      if(!h || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
+      if(!h || !BPGScorebook.isCompletedHistoryMatch(h) || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
       const score=Number(h.totals[name]);
       if(!Number.isFinite(score)) return;
       if(picked==null){ picked=score; return; }
@@ -12383,7 +12411,7 @@ ${isDealer
   function consecutiveResultStreak(name, wantWin){
     let n=0;
     for(const h of history){
-      if(!playerPlayedMatch(h, name)) continue;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
       const won=!!h.winners?.includes(name);
       if(wantWin?won:!won) n++;
       else break;
@@ -12398,7 +12426,7 @@ ${isDealer
     let losses=0;
     for(let i=start+1;i<history.length;i++){
       const h=history[i];
-      if(!playerPlayedMatch(h, name)) continue;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
       if(h.winners?.includes(name)) break;
       losses++;
     }
@@ -12722,9 +12750,27 @@ ${isDealer
     releaseWakeLock(); currentGame=null; saveData(); goHome();
   }
 
+  function parkActiveMatch(){
+    if(!currentGame) return null;
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
+    const finished=currentGame.completed===true||currentGame.gameOver===true;
+    const snapshot=createSavedMatchSnapshot(currentGame, finished?(currentGame.winners||[]):[]);
+    snapshot.completed=finished;
+    snapshot.gameOver=finished;
+    if(!finished) snapshot.winners=[];
+    const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
+    if(idx>=0) history[idx]=snapshot;
+    else history.unshift(snapshot);
+    markHistoryChanged();
+    return snapshot;
+  }
+
   function resumeMatch(id, options){
     const force=!!(options&&options.force);
-    if(currentGame&&!force&&!confirm('This will scratch your active match. Proceed?'))return;
+    if(currentGame&&!force){
+      if(!confirm('Save the game on the table and resume this match?'))return;
+      parkActiveMatch();
+    }
     const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
@@ -14400,6 +14446,31 @@ ${isDealer
     return players.filter(scoreEntryPlayerIsAcknowledged).length;
   }
 
+  function scoreEntryStatusFor(player){
+    return BPGScorebook.scoreEntryStatus({
+      value:scoreEntryModalState?.values?.[player]??'',
+      acknowledged:scoreEntryPlayerIsAcknowledged(player)
+    });
+  }
+
+  function paintScoreEntryStatus(player){
+    if(!player)return;
+    const status=scoreEntryStatusFor(player);
+    const el=document.getElementById(`score-entry-status-${rookElementId(player)}`);
+    if(!el)return;
+    el.dataset.entryState=status.state;
+    el.textContent=status.label;
+  }
+
+  function scoreEntryUnconfirmedMessage(){
+    if(!scoreEntryModalState)return '';
+    const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players||[];
+    return BPGScorebook.unconfirmedScoreEntryMessage({
+      players,
+      acknowledged:scoreEntryModalState.acknowledged||{}
+    });
+  }
+
   function updateScoreEntryRowState(player){
     if(!scoreEntryModalState||!currentGame||!player)return;
     const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
@@ -14410,6 +14481,7 @@ ${isDealer
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${acknowledged?'entered':'needed'}`);
     const indicator=row.querySelector('.score-entry-row-status');
     if(indicator)indicator.textContent=acknowledged?'✓':'○';
+    paintScoreEntryStatus(player);
     const slot=row.querySelector('.score-entry-comeback-slot');
     if(slot) slot.innerHTML=previewComebackForEntry(player, scoreEntryModalState.values[player]);
   }
@@ -14437,6 +14509,11 @@ ${isDealer
     } else {
       progress.textContent=enteredText;
     }
+    const block=scoreEntryUnconfirmedMessage();
+    const note=document.getElementById('score-entry-unconfirmed');
+    if(note) note.textContent=block;
+    const submit=document.getElementById('score-entry-primary-btn');
+    if(submit) submit.disabled=!!block;
   }
 
   function scheduleScoreEntryModalFit(){
@@ -14605,6 +14682,7 @@ ${isDealer
       const bid=currentGame.currentBids?.[p]??0;
       const isDealer=p===dealer;
       const isComplete=scoreEntryPlayerIsAcknowledged(p);
+      const entryStatus=scoreEntryStatusFor(p);
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
@@ -14623,7 +14701,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div></div>
+        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}">${escapeHtml(entryStatus.label)}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
@@ -14671,14 +14749,9 @@ ${isDealer
     updateScoreEntrySelectedSummary();
   }
 
-  function markScoreEntryPlayerComplete(player, fillBlank){
+  function markScoreEntryPlayerComplete(player){
     if(!scoreEntryModalState||!player)return;
-    const currentValue=scoreEntryModalState.values?.[player];
-    if(fillBlank&&(currentValue===undefined||currentValue===null||currentValue===''||currentValue==='-')){
-      scoreEntryModalState.values[player]='0';
-      const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
-      if(valueEl)valueEl.textContent='0';
-    }
+    if(BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]))return;
     scoreEntryModalState.acknowledged[player]=true;
     updateScoreEntryRowState(player);
   }
@@ -14716,6 +14789,7 @@ ${isDealer
     scoreEntryModalState.acknowledged[player]=true;
     if(scoreEntryModalState.activePlayer!==player){
       selectScoreEntryPlayer(idx);
+      updateScoreEntryProgress();
       return;
     }
     updateScoreEntryRowState(player);
@@ -14730,7 +14804,7 @@ ${isDealer
       const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
       if(!order.length)return;
       const current=scoreEntryModalState.activePlayer||order[0];
-      markScoreEntryPlayerComplete(current,true);
+      markScoreEntryPlayerComplete(current);
       updateScoreEntryProgress();
       const currentIdx=order.indexOf(current);
       const next=order[((currentIdx>=0?currentIdx:0)+1)%order.length];
@@ -14785,6 +14859,11 @@ ${isDealer
 
   function validateScoreEntryModalSubmit(){
     if(!scoreEntryModalState||!currentGame)return false;
+    const unconfirmed=scoreEntryUnconfirmedMessage();
+    if(unconfirmed){
+      alert(unconfirmed);
+      return false;
+    }
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     const roundNumber=currentGame.currentRound;
@@ -15976,6 +16055,10 @@ ${isDealer
     },300);
   }
 
+  function jsAttrArg(value){
+    return JSON.stringify(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  }
+
   /* ═══ HISTORY LIST ═══ */
   function renderHistoryList(){
     const c=document.getElementById('history-list-view');
@@ -15992,12 +16075,12 @@ ${isDealer
         <div class="flex items-center justify-between mb-4 gap-3">
           <div class="min-w-0 flex-1">
             <h3 class="font-display text-2xl truncate">${cfg.emoji} ${h.game}</h3>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${BPGScorebook.isAssistedMatch(h)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${BPGScorebook.isCompletedHistoryMatch(h)?'':' · <span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'}${BPGScorebook.isAssistedMatch(h)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}</div>
           </div>
           <div class="flex gap-2 flex-shrink-0">
-            <button onclick="openScorecard(${h.id})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
-            <button onclick="resumeMatch(${h.id})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">Resume</button>
-            <button onclick="deleteMatchRecord(${h.id})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
+            <button onclick="openScorecard(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
+            <button onclick="resumeMatch(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">${BPGScorebook.isCompletedHistoryMatch(h)?'Resume':'Resume Match'}</button>
+            <button onclick="deleteMatchRecord(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
           </div>
         </div>
         <div class="divide-y hairline">${rows}</div>
@@ -16027,7 +16110,7 @@ ${isDealer
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
       const canCorrect=(g.game==='Wizard'||g.game==='818')&&!BPGScorebook.isSyntheticAdjustmentRound(r);
-      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}${canCorrect?` <button type="button" class="round-correct-btn font-extrabold uppercase tracking-wider" onclick="openHistoryRoundCorrection(${g.id},${rIdx})">Correct</button>`:''}</th>`;
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}${canCorrect?` <button type="button" class="round-correct-btn font-extrabold uppercase tracking-wider" onclick="openHistoryRoundCorrection(${jsAttrArg(g.id)},${rIdx})">Correct</button>`:''}</th>`;
     });
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
@@ -16060,6 +16143,7 @@ ${isDealer
     }
     const h2h = {};
     history.forEach(m => {
+      if(!BPGScorebook.isCompletedHistoryMatch(m)) return;
       const cfg = configs[m.game]; if(!cfg || !m.totals) return;
       const playersInMatch = getRecordedPlayers(m);
       playersInMatch.forEach(pa => {
@@ -16109,6 +16193,7 @@ ${isDealer
   function _personalBestsForPlayer(name){
     const bests = {};
     history.forEach(h => {
+      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
       if(BPGScorebook.isAssistedMatch(h)) return;
       const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
@@ -16155,6 +16240,7 @@ ${isDealer
     };
     let stats={};
     history.forEach(h=>{
+      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
       const playersInMatch=getRecordedPlayers(h);
       const sorted=sortPlayersByTotal(playersInMatch, h.totals, cfg);
@@ -16279,7 +16365,7 @@ ${isDealer
     } else {
       _matchAllTimeRecordsSnap = null;
     }
-    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
+    const completed = history.filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
     const chrono = completed.slice().sort((a,b)=>(a.id||0)-(b.id||0));
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
     const players = {};
