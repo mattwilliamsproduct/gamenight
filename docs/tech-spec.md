@@ -10,7 +10,8 @@ One static site. `public/` is the deploy. `npm run build` writes CSS, vendor cop
 | --- | --- |
 | `public/index.html` | Shell, theme, and the match state machine. |
 | `public/assets/life-preserver-logic.js` | Pure Life Preserver rules. Loaded in production. |
-| `public/assets/scorebook.js` | Places, Life Preserver marks, name merges, and golden Wizard / 818 / Rook scoring. Loaded in production. |
+| `public/assets/scorebook.js` | Places, Life Preserver marks, name merges, and golden Wizard / 818 / Rook scoring. Loaded in production. A Hand and Foot rename also moves `handFootParts`. |
+| `public/assets/hand-foot-logic.js` | Pure Hand and Foot sides, round score, and side-key rename. Loaded in production. |
 | `public/assets/backup.js` | Pure backup merge. Loaded in production. |
 | `public/assets/comeback-logic.js` | Old Turbo rules. Must not load. Kept so old `round.comeback` rows stay defined. |
 | `api/sync.js` | One Redis document for the porch. |
@@ -24,6 +25,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - Player names render as text. The dealer control hugs the glyphs (`max-content` on the label, transparent button).
 - Fitting may shrink the font. It may not ellipsize.
+- A Hand and Foot team name is one label in that same player column. Shrink it when it would be clipped or meet the total. Leave a gap before the total. Do not stack the teammates as one letter each.
 - A name of “Michelle” at the Five Crowns and late-Wizard fixtures stays fully inside the player cell at laptop and 1080p widths.
 
 ### ROW-ADDS
@@ -34,6 +36,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Wizard points for a submitted round are `20 + 10 × tricks` on an exact bid, otherwise `−10 × |bid − tricks|`. Wizard can return from scoring to bidding before the round is submitted. 818 uses the same two phases and has no unlock. That difference is intentional until the table asks for it.
 - 818 points are tricks taken, plus 10 when bid equals tricks. The dealer bid that would make the table sum equal the tricks in play is rejected. Wizard does not apply that dealer law.
 - Five Crowns, Flip 7, and Beat the Heat store the number the table typed.
+- Hand and Foot stores each new input on its own field under `round.handFootParts[player]`: `cleanCanastas`, `dirtyCanastas`, `redThrees`, `goingOut`, `goingOutPoints`, `cardPoints`, `cardsLeft`, `cleanCanastaEach`, `dirtyCanastaEach`, `redThreeEach`, `goingOutBonus`, and `roundScore`. `round.scores[player]` is the same number as `roundScore`. The formula is clean × 500 + dirty × 300 + red 3s × 100 + 100 when going out + card points − cards left. Going out is stored as 0 or 1, and `goingOutPoints` is not added a second time. Cards left is the only subtraction. If a new breakdown also has `footPenalty`, cards left wins. If the new breakdown has no `cardsLeft` key, `footPenalty` is that subtraction. A new save does not write `canastas`, `canastaPoints`, or `footPenalty`. A pair is entered once and copied onto each teammate. The side name is not stored again. The total is computed, not typed. Counts, going out, and cards left are non-negative. Card points may be negative. Blank rates use 500, 300, and 100. An older save with `canastas` or `canastaPoints` keeps that formula, including an explicit 900 that is not also `canastas × 500`. Re-opening that round and typing a new field switches it onto the new formula. Saving it untouched keeps the old total. A save with only card points, bonuses, and cards left stays on that formula and does not invent canasta counts. `recomputeGameTotals` adds one teammate’s round scores onto the pair column, then copies that total onto both players. Renaming a player rewrites the side and moves `handFootParts`. Merging two teammates does not add their identical totals. The scorebook merge of two different singles adds the numeric scores and keeps the target’s part object.
 - Rook: other team counters = configured hand total − bid-team counters. Made bid: each partner scores the team total. Set: each partner scores `−bid`. The other side scores its counters.
 - Undo removes the last scoring round and any Life Preserver rounds that followed it, then recomputes.
 

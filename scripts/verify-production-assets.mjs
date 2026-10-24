@@ -22,6 +22,7 @@ const requiredAssets = [
   'public/assets/vendor/html2canvas.js',
   'public/assets/life-preserver-logic.js',
   'public/assets/scorebook.js',
+  'public/assets/hand-foot-logic.js',
   'public/assets/backup.js',
   'public/sw.js',
   'public/apple-touch-icon.png',
@@ -53,6 +54,10 @@ if(!index.includes("src=\"./assets/scorebook.js\"")){
   throw new Error('Scorebook helper is missing from the app shell.');
 }
 
+if(!index.includes("src=\"./assets/hand-foot-logic.js\"")){
+  throw new Error('Hand and Foot scoring helper is missing from the app shell.');
+}
+
 function appShellEntries(source, label){
   const match = source.match(/const APP_SHELL = \[([\s\S]*?)\];/);
   if(!match) throw new Error(`${label} is missing APP_SHELL.`);
@@ -68,6 +73,9 @@ if(templateShell.includes('./assets/comeback-logic.js') || builtShell.includes('
 }
 if(!templateShell.includes('./assets/life-preserver-logic.js')){
   throw new Error('The service worker template omits life-preserver-logic.js.');
+}
+if(!templateShell.includes('./assets/hand-foot-logic.js')){
+  throw new Error('The service worker template omits hand-foot-logic.js.');
 }
 
 const loadedScripts = [...index.matchAll(/<script\s+src="\.\/([^"]+)"/g)].map(entry => `./${entry[1]}`);

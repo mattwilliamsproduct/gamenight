@@ -19,7 +19,7 @@ Portrait is a podium, not the scoring surface. Rotate back for the card.
 
 ## Supported games
 
-The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math lives in that file. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
+The shelf is the seven buttons in `public/index.html` (`startGame`). Scoring math lives in that file, except Hand and Foot, which lives in `public/assets/hand-foot-logic.js`. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
 
 | Game | Wins | Length | What the app calculates | What a human enters |
 | --- | --- | --- | --- | --- |
@@ -29,13 +29,15 @@ The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math 
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
+| Hand and Foot | High score | 4 rounds | Clean canastas × 500 + dirty canastas × 300 + red 3s × 100 + 100 for going out + melded card points − cards left. Going out pays once. Cards left is the only subtraction on a new round. The round and the match total may be negative. An older canasta-count save still uses that count times its rate, or a stored canasta-points amount, plus red 3s, plus card points, minus the foot penalty. An older three-field save still uses card points + bonuses − cards left. | Clean count, dirty count, red-3 count, going out, card points, and cards left, once per pair. The total is computed. |
 
 House notes already in the rules cards (`gameRulesText`):
 
 - Wizard does **not** block the dealer from making bids sum to the tricks. 818 does. Leave Wizard that way unless the porch asks.
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
-- Life Preserver needs 4 active players and is off for Rook and Beat the Heat.
+- Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Hand and Foot.
+- Hand and Foot: 2 is 1 versus 1. 4 starts as two pairs in lineup order. 6 starts as three pairs of 2 in lineup order. 3 or 5 stay singles. 4 and 6 can switch to singles before round 1. The setup already has seat lists that can re-seat a pair; that is not a second partner picker, and it is not the same as locking pairs to lineup order. A pair is one column. The score is entered once, then copied onto each teammate: clean count, dirty count, red-3 count, going out, card points, cards left, the three rates, and the computed round score. Cards left is the subtraction. An older foot penalty is used only when that round has no cards-left field. A match total counts each pair once. Minimum meld (50, 90, 120, 150) is a hint, not an entry. An older save that only has card points, bonuses, and cards left keeps that score. Its canasta and red-three counts stay unknown. An older canasta-count save keeps its formula until someone types a new field. An older team round stored only on the side name is copied onto both players.
 
 ## Core flows
 
@@ -46,8 +48,9 @@ House notes already in the rules cards (`gameRulesText`):
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
-6. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`).
-7. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, and Five Crowns complete when the round counter passes the length.
+6. Hand and Foot: pairs or singles, then clean canastas, dirty canastas, red 3s, going out, card points, and cards left once per pair. The app fills in the total from those fields. Both teammates keep that round.
+7. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`). Hand and Foot adds the numeric round scores, so a negative round stays negative.
+8. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, Five Crowns, and Hand and Foot complete when the round counter passes the length.
 
 Mid-game join: the new player gets the average of the current losing half, written onto the last scoring round, with `joinBonus` on every earlier round so records ignore the catch-up. Wizard length resyncs from the new headcount and never shrinks below the round you are on.
 
@@ -59,7 +62,7 @@ One feature, two names. The wheel, the Actions item, and the copy say **Life Pre
 
 Who can spin (`getLifePreserverOffer`):
 
-- Game is 818, Wizard, Five Crowns, or Flip 7. Not Rook. Not Beat the Heat.
+- Game is 818, Wizard, Five Crowns, or Flip 7. Not Rook. Not Beat the Heat. Not Hand and Foot.
 - At least 4 active players. Not retired. Not already spun. Match still going.
 - Not in 1st. 2nd can qualify if they are also too far back.
 - Enough scoring rounds have been played (4, or about a quarter of a Wizard match, at least 3).

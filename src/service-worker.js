@@ -7,6 +7,7 @@ const APP_SHELL = [
   './assets/fonts.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
+  './assets/hand-foot-logic.js',
   './assets/life-preserver-logic.js',
   './assets/scorebook.js',
   './bp-icon-192.png',

@@ -12,14 +12,14 @@ Exact scripts from `package.json`:
 
 - `npm install`
 - `npm run build` — `build:styles`, then `build:vendor` (minified CSS, vendor copies, and `public/sw.js`)
-- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:scorebook`, then `git diff --check`
+- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:scorebook`, `test:hand-foot`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:functional` — Playwright laptop functional pack
 - `npm run test:porch-night` — one laptop Chromium walk of the porch-night gallery fixtures
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:scorebook`, `npm run test:functional`, `npm run test:porch-night`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:scorebook`, `npm run test:hand-foot`, `npm run test:functional`, `npm run test:porch-night`.
 
 ## Architecture
 
@@ -39,7 +39,7 @@ Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `n
 North star: crush requirements so one-shots get better every correction.
 
 - Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined.
-- The worker that Vercel ships is `src/service-worker.js` copied over `public/sw.js` by `npm run build`. That template must precache the scripts the page loads (`life-preserver-logic.js`, `backup.js`, `scorebook.js`) and must not list `comeback-logic.js`. `npm run check` fails if they disagree, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix. Do not treat the committed `public/sw.js` as what production serves after a build.
+- The worker that Vercel ships is `src/service-worker.js` copied over `public/sw.js` by `npm run build`. That template must precache the scripts the page loads (`life-preserver-logic.js`, `backup.js`, `scorebook.js`, `hand-foot-logic.js`) and must not list `comeback-logic.js`. `npm run check` fails if they disagree, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix. Do not treat the committed `public/sw.js` as what production serves after a build.
 - A hidden scorecard column is not a deleted hand. If Pace or the column trim removes the hand a Life Preserver followed, the mark sits with Total. Place ties use the same numeric comparison as the sort, including numeric strings. See `docs/solutions/scorecard-places-and-life-preserver.md`.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. The current contract is one Redis blob with no revision check.
 - Features stay inside the PR or slice intent. Canonical product and tech truth stays in `docs/`.
@@ -58,6 +58,7 @@ North star: crush requirements so one-shots get better every correction.
 - Prefer the existing stack and patterns. Porch Club design PRs stay blocked without Matt's visual sign-off.
 - Game-behavior merges wait for Matt's UI test while that overnight rule is standing.
 - After any durable Matt correction, or a novel lesson from a ship, compound the same day into `docs/solutions/<short-slug>.md` and/or `docs/taste.md` and/or `docs/taste-ledger.md` and/or one bullet in this section. Never leave durable feedback only in chat.
+- Hand and Foot on a phone keeps the keypad above the footer. Score entry rows scroll instead of stacking. A 390px-wide scorecard, including the saved one, keeps all four round columns and never hides the last one. A pair is entered once and copied onto both players.
 
 ## Verification
 
