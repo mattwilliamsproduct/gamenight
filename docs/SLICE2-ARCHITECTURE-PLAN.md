@@ -24,18 +24,36 @@ Design source: `/workspace/bpg-audit/slice2-design-proposals/` (5 proposals, 9 r
 4. **Copy constants, not scattered strings.** `LP_SPIN_COPY` is declared beside `GN_SLICE2_TV` and holds the wheel button labels. Each label is defined once. An early Life Preserver reset can read it without a temporal-dead-zone error.
 5. **The fit engine stays the only sizing authority.** The dot is sized from `--scorecard-input-font`, so it scales from iPad to 1080p.
 
-## Next slices (not started)
+## What the Warm Porch Ledger preview adds
 
-- **Records → Championship Ledger.** Split `renderHallOfFame()` output into three pure view-models (`podium`, `gameLedger[]`, `shame[]`) from the existing history math. Render each into its own section. On phones, use a `Hall of Fame | Shame & Rivalries` segmented control. Unit-test the view-models in `scripts/test-scorebook.mjs` style.
-- **Life Preserver confirm step (needs Matt's call).** Add a `result` state after the wheel settles. Points apply only on `Apply −N to Scorecard`. Undo/audit already exists (`addAuditEntry`). Risk: a closed modal leaves a spin pending. Needs a test in `life-preserver.spec.mjs`.
-- **Home "Tonight's Table" seat grid** with one `Edit Seating` entry point that replaces per-row controls.
+Still one flag. `?slice2` (or `localStorage['bpg-slice2-tv']='1'`) adds `html.slice2-tv` and loads `public/assets/slice2.css` plus `public/assets/slice2.js`. Flag off does not request those files.
+
+- **Skin.** Cream paper and a 6px coastal strip replace the resort photo only while the flag is on. Numbers stay tabular.
+- **TV scoreboard.** Names and totals use Nunito Sans at weight 800. Those rules carry `!important` and a more specific selector than the production `font-weight: 400 !important` lock, so the heavier weight actually wins. The fit engine still shrinks the size for 8–10 players. Exact bids keep the emerald dot. Misses stay quiet. One header line. Actions are Life Preserver, History, and Enter Round.
+- **Home.** Active-match banner, seat pills with one Edit Seating control, the six real games, and recent nights. Phone stacks the cards. No "Roll d20".
+- **Entry and history editor.** The existing sheets are restyled. Lock Bids, Review Scores, Next, and the validation stay as they are. Blank scores still count as 0 when Next fills them.
+- **Life Preserver.** Ivory rim, teal track, brass dividers, upright labels, pocket widths from the real weights. Spin is about 3 seconds, 80ms when motion is reduced or the gallery is open. The result still applies by itself. There is no confirm step.
+- **Records.** Hall of Fame and Hall of Shame read `getHallOfFame()` and `getAllTimeRecords()`. Phones switch them with a segmented control.
+
+Deep links, gallery only: add `&slice2&slice2view=home|entry|editor|wheel|records` to a `?gnqa=1&gallery=0&scenario=` URL. The scoreboard is `&slice2&surface=scorecard`.
+
+## Still Matt's call
+
+- **Life Preserver confirm step.** The mock shows Apply. The spin still applies on its own, because a confirm step would change the game. Undo and the audit log already exist.
 
 ## Verification (this preview, on `35b564c`)
 
 - `npm run check` passed on main and on this branch: comeback 34, life preserver 33, backup 4, scorebook 15. No failures.
 - `npx playwright test --project=laptop-chromium --project=tv-1080p-chromium`: 86 passed, 42 skipped, 26 failed on both. The sorted failing-test lists are identical. The failures are stale snapshots plus Comeback tests that expect `comeback-logic.js`, which production does not load. Snapshots were not updated.
 - Flag off, a 10-player Wizard scorecard has no `slice2-tv` class, no exact-bid class, and the rose miss ring. Flag on (`?slice2`), the class is set, 30 exact bids show the emerald dot and `title="Exact bid"`, misses lose the rose ring, and the page reports no console errors.
-- Current main locks scorecard names and totals with `font-weight: 400 !important` (Londrina Solid and Score Sign). The Slice 2 weight and letter-spacing rules do not override that, so those computed weights stay 400. Totals still take the Slice 2 ink. The dot and the quiet miss do apply.
+- The production lock is `font-weight: 400 !important` on scorecard names and totals. Under the flag, `html.slice2-tv` rules with `font-weight: 800 !important` and Nunito Sans win, so names and totals are heavier. Flag off stays at 400.
+
+## Verification (Warm Porch Ledger pass)
+
+- `npm run check` passed: comeback 34, life preserver 33, backup 4, scorebook 15.
+- `npx playwright test --project=laptop-chromium --project=tv-1080p-chromium`: 102 passed, 42 skipped, 26 failed. The failing names match the previous baseline on both projects (17 on laptop, 9 on TV). The 16 new passes are the flag-on tests, eight on each project, including the five-viewport clip check. Snapshots were not updated.
+- Flag-on screenshots at 1920×1080 and 390×844: home, scoreboard, score entry, history editor, Life Preserver, and records.
+- iPad WebKit (`ipad-landscape-webkit`, 1194×834) ran the same flag-on tests, including the clip sweep, after the system WebKit libraries were installed. They passed.
 
 ## Verification (original draft)
 
