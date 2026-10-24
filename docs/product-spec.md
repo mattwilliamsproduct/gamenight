@@ -108,25 +108,31 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 
 ## Known bugs
 
-Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-137-grok-4.7-rethink.md](J-137-grok-4.7-rethink.md).
+Confirmed on `main` as of Oct 21 2026 (`35b564c`), after #43, #49, #57, #64, and #65. Older details and PR disposition are in [J-137-grok-4.7-rethink.md](J-137-grok-4.7-rethink.md).
 
-1. **The Vercel build precaches the wrong script.** `npm run build` rewrites `public/sw.js` from `src/service-worker.js`. After the #53 docs merge, production `cardknight.vercel.app/sw.js` already ships that template: it lists `comeback-logic.js` and omits `life-preserver-logic.js`. The committed worker in git is the right shell. The build throws it away. Standalone draft for T1 (do not wait on #49's game-behavior review).
-2. **A Life Preserver changes the total and leaves no mark on the card.** Columns skip `hailMaryBonus` rounds. Cells only print `round.comeback`, which new games never write.
-3. **Tied players get consecutive places** on the live scorecard (`1, 2, 3, 4, 5, 6, 7` when the last four are two ties). The path replay already uses shared places (`4, 4, 6, 6`).
-4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
+1. **The Vercel build precaches the wrong script.** Fixed in #57. `src/service-worker.js` precaches `life-preserver-logic.js` and omits `comeback-logic.js`. #64 makes `npm run check` fail if that template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
+2. **A Life Preserver changes the total and leaves no mark on the card.** Fixed in #49. The adjustment paints on the hand it followed, or beside Total when Pace or the column trim hides that hand.
+3. **Tied players get consecutive places.** Fixed in #49. Live card, history, and profiles use the same `competitionPlaces` loop as the path replay.
+4. **Merging two names drops Life Preserver bookkeeping.** Fixed in #49. Bench drag, rename-merge, and unique rename all call `applyPlayerNameOnGame`, including `hailMaryUsed`, holds, bids, and actuals.
 5. **Closest Finish To 66 is still a trophy.** Reaching 66 ends Beat the Heat as a loss. The card records a winner's heat against that line.
-6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key. A pull also drops profile-only and remote-match-only updates when no new player or finished game arrived. Hiding the page flushes local storage and does not flush the pending cloud push. A file import can replace the live match without asking.
-7. **A Life Preserver spin can become a Hall of Fame “best round.”** The records walk includes `hailMaryBonus` rounds. The spin is also easy to desync from `hailMaryUsed`, which is a second flag for the same fact.
+6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key. A pull also drops profile-only and remote-match-only updates when no new player or finished game arrived. Hiding the page flushes local storage and does not flush the pending cloud push. A file import can replace the live match without asking. A cloud revision still waits for a named ticket.
+7. **A Life Preserver spin can become a Hall of Fame “best round.”** #49 did not change `calculateAllTimeRecords`. That walk still includes `hailMaryBonus` rounds after it builds `scoringRounds`. `hailMaryUsed` can still disagree with the bonus round.
 
-Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft PR #35 is leftover from before those merges. A parallel Sol review (PR #46) still treats that chip as open. This spec does not. PR #47 is the canonical docs set. Unique Sol notes are in the J-137 rethink under “Also from J-138 Sol.” Do not merge PR #46. Close it after this fold.
+Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft PRs #35 and #46 are already closed. PR #47 is the canonical docs set. Unique Sol notes are in the J-137 rethink under “Also from J-138 Sol.”
 
 ## Next slices
 
 Do these in order. Each one is a small, testable change. Leave the open redesign and the Turbo engine alone.
 
-1. Make `src/service-worker.js` precache `life-preserver-logic.js`, and make `npm run check` fail if the template and the script tags disagree. Standalone draft (T1). Do not wait for #49.
-2. Paint the Life Preserver adjustment on the hand it followed (and beside Total when that column is hidden). Keep it out of scoring-round counts.
-3. Use the path-replay place rule on the live scorecard, history, and profiles.
-4. Land functional PR checks (the idea in PR #43) on current main. Keep screenshot baselines local.
-5. One merge function for bench-drop and rename-merge, including `hailMaryUsed`, holds, bids, and actuals.
-6. Remove the Closest Finish To 66 card in its own change. Do not revive PR #22 to do it.
+Done:
+
+1. Worker template matches the page, and `npm run check` fails if the template and the script tags disagree. #57 and #64.
+2. Paint the Life Preserver adjustment on the hand it followed, and beside Total when that column is hidden. History hand counts use scoring rounds. #49. Hall of Fame per-round records still include the spin (remaining slice 1).
+3. Use the path-replay place rule on the live scorecard, history, and profiles. #49.
+4. Functional PR checks on current main. Screenshot baselines stay local. #43. Scorebook scoring goldens and a porch-night CI walk landed in #65.
+5. One merge function for bench-drop and rename-merge, including `hailMaryUsed`, holds, bids, and actuals. #49.
+
+Remaining, in order:
+
+1. Keep Life Preserver spins out of Hall of Fame best and worst round. Skip `hailMaryBonus` in the `calculateAllTimeRecords` walk. The spin is not a hand.
+2. Remove the Closest Finish To 66 card in its own change. Do not revive PR #22 to do it. Draft #61 already has this cut.
