@@ -16,6 +16,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Small reversible slices that lock one invariant.
 - Compound after a ship into `AGENTS.md` or `docs/solutions/`.
 - Honest gap lists. Say what you did not look at.
+- A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
 
 ### Kills
 
@@ -27,6 +28,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Porch Club redesign work without Matt's visual sign-off.
 - Loading Turbos, or a second rescue beside Life Preserver.
 - Durable Matt feedback left only in chat.
+- A positive 818 miss, or a round with no stored bid, counted as an exact bid. A Life Preserver flag that stays on after the last spin is undone.
+- An unfinished history match still counting as a completed game.
 
 ## Prefer
 

@@ -44,7 +44,7 @@ House notes already in the rules cards (`gameRulesText`):
 1. Home: On Deck → Tonight's Table → a game card.
 2. Optional dealer roll and lineup intro (Settings; dealer roll defaults off).
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
-4. Five Crowns, Flip 7, and Beat the Heat: one number per active player.
+4. Five Crowns, Flip 7, and Beat the Heat: one number per active player. Next on an empty row leaves that draft empty and moves on. The modal says `Blank scores count as 0`. Submit stores a blank score as `0`. A locked Wizard or 818 bid stays `Suggested: N (tap Next to confirm)` until Next or the row check marks `✓ Confirmed: N`, and that suggestion stays distinct from a blank cell. The first digit on a suggestion replaces it. A blank Wizard or 818 trick becomes `0`, and the round is saved only when those tricks add up to the round size. A blank bid is still rejected. A `null` already stored for a retired player who was not in the hand stays `null`. Rook still needs a bidder, a bid, a trump, a called card, a partner, and bid-team counters.
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
 6. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`).
 7. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, and Five Crowns complete when the round counter passes the length.
@@ -75,6 +75,10 @@ What the wheel may do:
 - One spin per player per match. Undo of a later round gives the spin back if that undo removes the bonus round.
 
 The spin is stored as its own round: `{ round: 0, hailMaryBonus: true, scores: { Name: adjustment } }`. It is inside the total. It is excluded from round columns, Player Pace, round records, WHAMMY / Nolie / Cami, and the place-over-time path.
+
+A zero-point spin is still a spin. It consumes that player's Life Preserver and sets `assistedMatch` even though the total does not move. `assistedMatch` follows the spins that are still in the match (`hailMaryBonus` rounds, or a legacy `hailMaryUsed` list). Undo of the only spin clears the round, the used list, and `assistedMatch`. Opening the wheel does not mark the match assisted.
+
+Records keep the real final total and the winner. Career games, wins, losses, and win rate count a finished match. A history row counts when `completed !== false`. A reopened row has `completed === false`: it is out of those career counts and out of final-score records until it is finished again. Timeline badges that row Incomplete and offers Resume Match. Resume Match asks to save the game on the table before it swaps. A stored `null` score is missing history, not a zero. Best and worst final-score superlatives, including Cleanest Game, use unassisted matches only and say so. Every player in an assisted match is out of those superlatives. The book does not subtract the spin to invent another score. If a game's history is all assisted, those cards say "No unassisted matches yet". Single-round records and Wizard / 818 exact bids skip synthetic rounds. Exact and missed bids come from the stored bid and actual. On the 818 shelf, an exact bid scores tricks + 10 and a miss scores the tricks taken, so bid 3 / took 2 is +2 and still a miss, and bid 0 / took 0 is +10 and an exact bid. A stored score that disagrees with that formula is a legacy fixture; bid accuracy still uses bid against actual. A legacy round with no bid or no actual is left out of the bid-accuracy count.
 
 ### Hail Mary
 
@@ -116,7 +120,7 @@ Confirmed on `main` as of the J-137 read. Details and PR disposition are in [J-1
 4. **Merging two names drops Life Preserver bookkeeping**, and the bench drag-merge does not even use the same function as rename-merge. Bids and actuals can be left behind on the drag path.
 5. **Closest Finish To 66 is still a trophy.** Reaching 66 ends Beat the Heat as a loss. The card records a winner's heat against that line.
 6. **Two iPads can overwrite one cloud blob.** Puts are last-write-wins on a single key. A pull also drops profile-only and remote-match-only updates when no new player or finished game arrived. Hiding the page flushes local storage and does not flush the pending cloud push. A file import can replace the live match without asking.
-7. **A Life Preserver spin can become a Hall of Fame “best round.”** The records walk includes `hailMaryBonus` rounds. The spin is also easy to desync from `hailMaryUsed`, which is a second flag for the same fact.
+7. **A Life Preserver spin can become a Hall of Fame “best round.”** On main, the records walk includes `hailMaryBonus` rounds, and Wizard exact bids treat a positive score as a made bid. This draft keeps the spin in the total, drops it from single-round records and bid counts, and labels final-score superlatives "Unassisted matches only". It is not on main until this draft merges.
 
 Michelle's dealer chip and full name were fixed on main (PRs #38 and #40). Draft PR #35 is leftover from before those merges. A parallel Sol review (PR #46) still treats that chip as open. This spec does not. PR #47 is the canonical docs set. Unique Sol notes are in the J-137 rethink under “Also from J-138 Sol.” Do not merge PR #46. Close it after this fold.
 
