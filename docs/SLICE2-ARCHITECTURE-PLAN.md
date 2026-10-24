@@ -30,7 +30,14 @@ Design source: `/workspace/bpg-audit/slice2-design-proposals/` (5 proposals, 9 r
 - **Life Preserver confirm step (needs Matt's call).** Add a `result` state after the wheel settles. Points apply only on `Apply −N to Scorecard`. Undo/audit already exists (`addAuditEntry`). Risk: a closed modal leaves a spin pending. Needs a test in `life-preserver.spec.mjs`.
 - **Home "Tonight's Table" seat grid** with one `Edit Seating` entry point that replaces per-row controls.
 
-## Verification (this draft)
+## Verification (this preview, on `35b564c`)
+
+- `npm run check` passed on main and on this branch: comeback 34, life preserver 33, backup 4, scorebook 15. No failures.
+- `npx playwright test --project=laptop-chromium --project=tv-1080p-chromium`: 86 passed, 42 skipped, 26 failed on both. The sorted failing-test lists are identical. The failures are stale snapshots plus Comeback tests that expect `comeback-logic.js`, which production does not load. Snapshots were not updated.
+- Flag off, a 10-player Wizard scorecard has no `slice2-tv` class, no exact-bid class, and the rose miss ring. Flag on (`?slice2`), the class is set, 30 exact bids show the emerald dot and `title="Exact bid"`, misses lose the rose ring, and the page reports no console errors.
+- Current main locks scorecard names and totals with `font-weight: 400 !important` (Londrina Solid and Score Sign). The Slice 2 weight and letter-spacing rules do not override that, so those computed weights stay 400. Totals still take the Slice 2 ink. The dot and the quiet miss do apply.
+
+## Verification (original draft)
 
 - `npm run check`: all unit suites pass.
 - `npx playwright test --project=laptop-chromium --project=tv-1080p-chromium`: 91 passed, 48 skipped, 0 failed on the Oct 2 draft base (same as that baseline). WebKit iPad wasn't run on this box. This preview is rebased onto `35b564c`; compare its Playwright counts to a fresh main baseline.
