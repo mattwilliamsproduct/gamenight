@@ -8609,6 +8609,8 @@ button.dealer-name-indicator .dealer-player-label {
   // Slice 2 10-foot TV hierarchy preview. Opt-in until Matt signs off on the visual change.
   const GN_SLICE2_TV = new URLSearchParams(location.search).has('slice2') || (()=>{try{return localStorage.getItem('bpg-slice2-tv')==='1';}catch(e){return false;}})();
   if(GN_SLICE2_TV) document.body.classList.add('slice2-tv');
+  // Declared with the flag so any early Life Preserver reset can read it. Production keeps the approved labels.
+  const LP_SPIN_COPY = GN_SLICE2_TV ? {ready:'Spin Wheel', spinning:'Spinning…'} : {ready:'SPIN THE WHEEL', spinning:'SPINNING…'};
 
   // ── Storage helpers ──
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
@@ -10915,8 +10917,6 @@ button.dealer-name-indicator .dealer-player-label {
 
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
-  // Slice 2 preview uses calmer sentence-case copy; production keeps the approved labels.
-  const LP_SPIN_COPY = GN_SLICE2_TV ? {ready:'Spin Wheel', spinning:'Spinning…'} : {ready:'SPIN THE WHEEL', spinning:'SPINNING…'};
   let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
   function lifePreserverSpinDuration(){
     return GN_QA_MODE ? 80 : 6200;
@@ -13925,7 +13925,7 @@ ${isDealer
           if(diff!==0){
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
-          }else{
+          }else if(GN_SLICE2_TV){
             exactTdClass=' scorecard-round-td--exact';
             missTitle=' title="Exact bid"';
           }
