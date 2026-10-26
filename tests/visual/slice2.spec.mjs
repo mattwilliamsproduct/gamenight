@@ -251,6 +251,7 @@ function scoreEntryReport(){
     const visible = rows.filter((row) => overlapOf(row) >= 16);
     const firstFull = rows.find((row) => overlapOf(row) >= Math.min(row.getBoundingClientRect().height * 0.7, 28));
     const first = firstFull?.getBoundingClientRect();
+    const activeBox = active?.getBoundingClientRect();
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
       const r = el.getBoundingClientRect();
       return {t: (el.textContent || '').trim(), top: r.top, bottom: r.bottom, h: r.height};
