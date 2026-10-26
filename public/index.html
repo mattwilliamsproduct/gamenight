@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" id="html-root">
 <head>
+  <script>
+  (function(){
+    try{
+      var on=new URLSearchParams(location.search).has('slice2');
+      if(!on){ try{ on=localStorage.getItem('bpg-slice2-tv')==='1'; }catch(err){} }
+      if(!on) return;
+      document.documentElement.classList.add('slice2-tv');
+      var link=document.createElement('link');
+      link.rel='stylesheet';
+      link.href='./assets/slice2.css?v=slice2-ledger-1';
+      document.head.appendChild(link);
+    }catch(err){}
+  })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="Back Porch Games is a relaxed scorekeeper for card and tabletop game nights.">
@@ -7515,6 +7529,53 @@ button.dealer-name-indicator .dealer-player-label {
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
     html.dark .audit-entry { background: var(--bg-2); }
+    /* ════════ SLICE 2 · 10-FOOT TV HIERARCHY (opt-in preview: ?slice2 or localStorage bpg-slice2-tv=1) ════════
+       Priority 1: names + totals. Priority 2: round scores, exact bids marked by an emerald dot, misses quiet.
+       Priority 3: header context. Off by default so production and approved snapshots stay unchanged. */
+    body.slice2-tv {
+      --s2-exact: #0D6E52;
+      --s2-total-ink: #0A5C54;
+      --s2-miss-ink: #655E57;
+    }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-stack { position: relative; }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-stack::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: clamp(6px, calc(var(--scorecard-input-font, 20px) * 0.3), 11px);
+      height: clamp(6px, calc(var(--scorecard-input-font, 20px) * 0.3), 11px);
+      border-radius: 50%;
+      background: var(--s2-exact);
+      box-shadow: 0 0 0 1.5px var(--surface);
+      pointer-events: none;
+    }
+    html.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-input { font-weight: 800 !important; color: var(--ink); }
+    html.slice2-tv #scorecard-capture .score-cell-input.score-cell-miss {
+      border-color: transparent !important;
+      box-shadow: none !important;
+      color: var(--s2-miss-ink) !important;
+      font-weight: 600 !important;
+    }
+    html.slice2-tv #scorecard-capture .scorecard-total-value {
+      color: var(--s2-total-ink) !important;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.03em !important;
+      font-variant-numeric: tabular-nums !important;
+    }
+    html.slice2-tv #scorecard-capture .scoreboard-player-name {
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      color: #14312e !important;
+    }
+    html.slice2-tv #home-screen > :not(#slice2-home) { display: none !important; }
+    html.slice2-tv body.active-match-view #top-nav,
+    html.slice2-tv #game-screen .active-match-banner,
+    html.slice2-tv #record-chase-panel,
+    html.slice2-tv #submit-section { display: none !important; }
   </style>
 </head>
 
@@ -8674,6 +8735,11 @@ button.dealer-name-indicator .dealer-player-label {
   const GN_QA_LOCAL_HOSTS = new Set(['localhost','127.0.0.1','::1']);
   const GN_QA_PREVIEW_HOST = location.hostname.endsWith('.vercel.app') && location.hostname!=='cardknight.vercel.app';
   const GN_QA_MODE = (GN_QA_LOCAL_HOSTS.has(location.hostname)||GN_QA_PREVIEW_HOST) && new URLSearchParams(location.search).has('gnqa');
+  // Slice 2 10-foot TV hierarchy preview. Opt-in until Matt signs off on the visual change.
+  const GN_SLICE2_TV = new URLSearchParams(location.search).has('slice2') || (()=>{try{return localStorage.getItem('bpg-slice2-tv')==='1';}catch(e){return false;}})();
+  if(GN_SLICE2_TV) document.body.classList.add('slice2-tv');
+  // Declared with the flag so any early Life Preserver reset can read it. Production keeps the approved labels.
+  const LP_SPIN_COPY = GN_SLICE2_TV ? {ready:'Spin Wheel', spinning:'Spinning…'} : {ready:'SPIN THE WHEEL', spinning:'SPINNING…'};
 
   // ── Storage helpers ──
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
@@ -9876,7 +9942,7 @@ button.dealer-name-indicator .dealer-player-label {
     const btn=document.getElementById('btn-spin');
     if(btn){
       btn.disabled=false;
-      btn.textContent='SPIN THE WHEEL';
+      btn.textContent=LP_SPIN_COPY.ready;
     }
     if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
     return wasSpinning;
@@ -10982,7 +11048,12 @@ button.dealer-name-indicator .dealer-player-label {
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
   let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
   function lifePreserverSpinDuration(){
-    return GN_QA_MODE ? 80 : 6200;
+    if(GN_QA_MODE) return 80;
+    if(GN_SLICE2_TV){
+      const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      return reduce ? 80 : 3000;
+    }
+    return 6200;
   }
 
   function getLifePreserverOfferForPlayer(player, activePlayers, extra){
@@ -11000,6 +11071,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function drawWheel(){
+    if(GN_SLICE2_TV && window.BPGSlice2 && typeof BPGSlice2.paintWheel==='function') return BPGSlice2.paintWheel();
     const c=document.getElementById('wheel-canvas'); const ctx=c.getContext('2d');
     const slices=getWheelSlices();
     if(!slices.length)return slices;
@@ -11068,7 +11140,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('wheel-player-name').textContent=p;
     const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
     document.getElementById('btn-spin').disabled=false;
-    document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+    document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
     const spinner=document.getElementById('wheel-spinner');
     if(spinner){
       spinner.style.transition='none';
@@ -11109,7 +11181,7 @@ button.dealer-name-indicator .dealer-player-label {
     cancelLifePreserverSpin();
     const spinToken=_lifePreserverSpinToken;
     document.getElementById('btn-spin').disabled=true;
-    document.getElementById('btn-spin').textContent='SPINNING…';
+    document.getElementById('btn-spin').textContent=LP_SPIN_COPY.spinning;
     const spinner=document.getElementById('wheel-spinner');
     const slices=drawWheel();
     const deg=Math.floor(Math.random()*360);
@@ -11132,7 +11204,7 @@ button.dealer-name-indicator .dealer-player-label {
       if(!live.eligible){
         toast('Life Preserver is no longer available', 'warning');
         document.getElementById('btn-spin').disabled=false;
-        document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+        document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
         closeWheel();
         return;
       }
@@ -11272,6 +11344,7 @@ button.dealer-name-indicator .dealer-player-label {
       </div>`;
     });
     document.getElementById('bench-list').innerHTML=bh;
+    if(GN_SLICE2_TV && window.BPGSlice2) window.BPGSlice2.refresh('home');
   }
 
   function addPlayerToAll(selectedName){
@@ -11285,6 +11358,16 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
   function moveToBench(n){ players=players.filter(p=>p!==n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
+  function slice2TableState(){ return {players, allPlayers, history, currentGame}; }
+  function slice2ReorderSeat(index, dir){
+    const next=index+dir;
+    if(next<0||next>=players.length)return;
+    const tmp=players[index];
+    players[index]=players[next];
+    players[next]=tmp;
+    saveData({ fullPersist: true, syncCold: true });
+    renderRoster();
+  }
 
   // ── Swipe to delete (bench) ──
   let _benchSwipe = null; // { startX, currentEl, delta, moved }
@@ -13481,11 +13564,27 @@ ${isDealer
       const chip=scorecardNameChipEl(name);
       const cellBox=cell.getBoundingClientRect();
       const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
-      const available=scorecardNameAvailableWidth(name);
-      if(available<=0)return;
-
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
+      const available=scorecardNameAvailableWidth(name);
+      if(available<=0){
+        if(!GN_SLICE2_TV)return;
+        let lo=12,hi=maximum,best=12;
+        for(let i=0;i<12;i++){
+          const mid=(lo+hi)/2;
+          name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
+          const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
+          if(fittedBox.right<=cellBox.right-1){
+            best=mid;
+            lo=mid;
+          }else{
+            hi=mid;
+          }
+        }
+        name.style.setProperty('font-size',`${best.toFixed(1)}px`,'important');
+        return;
+      }
+      if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return;
+
       const chipStyle=getComputedStyle(chip);
       const text=scorecardNameDisplayText(name);
       const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
@@ -13918,7 +14017,8 @@ ${isDealer
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
-    if(!hasScorecardRounds)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
+    if(GN_SLICE2_TV && !over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">R${currentGame.currentRound} · Now</th>`;
+    if(!hasScorecardRounds && !GN_SLICE2_TV)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
     try{
@@ -14004,11 +14104,11 @@ ${isDealer
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
         <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
-      if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
+      if(!hasScorecardRounds && !GN_SLICE2_TV)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       // Past rounds
       visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
-        let missClass='', missTitle='';
+        let missClass='', missTitle='', exactTdClass='';
         if(isBidTrickGame(currentGame)&&r.bids?.[p]!==undefined&&r.actuals?.[p]!==undefined){
           const diff=r.actuals[p]-r.bids[p];
           if(diff===0){
@@ -14017,10 +14117,13 @@ ${isDealer
           } else {
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
+          }else if(GN_SLICE2_TV){
+            exactTdClass=' scorecard-round-td--exact';
+            missTitle=' title="Exact bid"';
           }
         }
         const extra=scoringExtraMarkup(currentGame.rounds, rIdx, r, p);
-        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
+        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td${exactTdClass}">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
             onclick="openPastScoreCell('${escapeJsString(p)}',${rIdx})" value="${shownRoundScore(r.scores, p)}"
@@ -14029,6 +14132,14 @@ ${isDealer
           </div>
         </td>`;
       });
+      if(GN_SLICE2_TV && !over){
+        let nowLabel='—';
+        if(isBidTrick){
+          const bid=currentGame.currentBids?.[p];
+          nowLabel=(bid===undefined||bid==='')?'—':`Bid ${bid}`;
+        }
+        body+=`<td class="scorecard-col-now px-1 py-2 text-center"><span class="s2-now-bid">${escapeHtml(String(nowLabel))}</span></td>`;
+      }
 
       body+=`</tr>`;
     });
@@ -14097,6 +14208,7 @@ ${isDealer
     }
     } finally {
       gnPerfEnd(renderTimer);
+      if(GN_SLICE2_TV && currentGame && window.BPGSlice2) window.BPGSlice2.refresh('game');
     }
   }
 
@@ -14589,7 +14701,7 @@ ${isDealer
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
 
     const phone=(window.visualViewport?.width||window.innerWidth||0)<=760;
-    if(phone){
+    if(phone && !GN_SLICE2_TV){
       const items=[...rows.children];
       const shown=items.slice(0, Math.min(2, items.length));
       if(shown.length){
@@ -14599,6 +14711,27 @@ ${isDealer
       }
     }else{
       rows.style.maxHeight='';
+    }
+  }
+
+  function scrollScoreEntryActiveIntoView(){
+    if(!GN_SLICE2_TV||!scoreEntryModalState)return;
+    const scroller=document.getElementById('score-entry-rows');
+    const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
+    if(!scroller||!row)return;
+    const pad=12;
+    const rowBox=row.getBoundingClientRect();
+    const lane=scroller.getBoundingClientRect();
+    const top=rowBox.top-lane.top-pad+scroller.scrollTop;
+    const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    scroller.scrollTop=Math.max(0,Math.min(top,max));
+    const nextLane=scroller.getBoundingClientRect();
+    const stub=[...scroller.querySelectorAll('.score-entry-row')].find((el)=>{
+      const box=el.getBoundingClientRect();
+      return box.bottom>nextLane.top+2 && box.top<nextLane.top-1;
+    });
+    if(stub && stub!==row){
+      scroller.scrollTop+=Math.ceil(stub.getBoundingClientRect().bottom-nextLane.top);
     }
   }
 
@@ -14640,6 +14773,7 @@ ${isDealer
     requestAnimationFrame(()=>{
       fitScoreEntryModalLayout();
       modal.classList.remove('opacity-0');
+      requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
     });
     } finally {
       gnPerfEnd(timer);
@@ -14736,6 +14870,7 @@ ${isDealer
     updateScoreEntryRowState(prev);
     updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
+    requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
   }
 
   function updateScoreEntryActiveValue(){
@@ -16949,6 +17084,7 @@ ${isDealer
     if(!history.length){
       c.classList.remove('grid');
       c.innerHTML=`<div class="surface p-10 text-center font-bold max-w-xl mx-auto w-full" style="color:var(--muted);">Play games to unlock Records.</div>`;
+      if(GN_SLICE2_TV && window.BPGSlice2) window.BPGSlice2.refresh('records');
       return;
     }
     c.classList.add('grid');
@@ -17032,6 +17168,7 @@ ${isDealer
       fameLine('Rook: Worst Score','Rook',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
     ].join('');
+    if(GN_SLICE2_TV && window.BPGSlice2) window.BPGSlice2.refresh('records');
   }
 
   function handleOrientation(){
@@ -17165,6 +17302,12 @@ ${isDealer
       }
     }
   };
+  if(GN_SLICE2_TV){
+    const slice2Script=document.createElement('script');
+    slice2Script.src='./assets/slice2.js?v=slice2-ledger-1';
+    slice2Script.async=false;
+    document.body.appendChild(slice2Script);
+  }
   </script>
   <canvas id="postgame-confetti-canvas" width="2" height="2" aria-hidden="true"></canvas>
 </body>

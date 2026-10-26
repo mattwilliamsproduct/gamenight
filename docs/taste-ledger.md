@@ -20,6 +20,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Ready-to-test language without a filled `docs/prove-it-packet.md`.
 - Overlap, uneven gaps, truncated text, or clipped menus.
 - A keypad covering a row, a name cut off, or Actions clipped by the match banner.
+- A keypad typing a score while the selected player is off-screen and unnamed.
 - Truncated player names, or a control that no longer hugs the glyphs it labels.
 - Porch Club redesign work without Matt's visual sign-off.
 - Loading Turbos, or a second rescue beside Life Preserver.

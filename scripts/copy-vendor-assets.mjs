@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const rootDir = process.cwd();
@@ -43,7 +43,41 @@ await Promise.all(fonts.map(async ([source, destination]) => {
   await copyFile(join(rootDir, 'node_modules', source), join(fontsDir, destination));
 }));
 
-await writeFile(join(assetsDir, 'fonts.css'), `@font-face{font-family:'Bree Serif';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/bree-serif-400.woff2') format('woff2')}\n@font-face{font-family:'Londrina Solid';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/londrina-solid-400.woff2') format('woff2')}\n@font-face{font-family:'Nunito Sans';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/nunito-sans-500.woff2') format('woff2')}\n@font-face{font-family:'Nunito Sans';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/nunito-sans-600.woff2') format('woff2')}\n@font-face{font-family:'Nunito Sans';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/nunito-sans-700.woff2') format('woff2')}\n@font-face{font-family:'Nunito Sans';font-style:normal;font-weight:800;font-display:swap;src:url('./fonts/nunito-sans-800.woff2') format('woff2')}\n@font-face{font-family:'Nunito Sans';font-style:normal;font-weight:900;font-display:swap;src:url('./fonts/nunito-sans-900.woff2') format('woff2')}\n@font-face{font-family:Pacifico;font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/pacifico-400.woff2') format('woff2')}\n@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/plus-jakarta-sans-400.woff2') format('woff2')}\n@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/plus-jakarta-sans-500.woff2') format('woff2')}\n@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/plus-jakarta-sans-600.woff2') format('woff2')}\n@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/plus-jakarta-sans-700.woff2') format('woff2')}\n@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:800;font-display:swap;src:url('./fonts/plus-jakarta-sans-800.woff2') format('woff2')}\n`);
+// Score Sign is the heavy Nunito Sans 800 face, limited to dash code points,
+// so minus signs in score cells do not fall back to a thinner font.
+const fontFaces = [
+  { family: "'Bree Serif'", file: 'bree-serif-400.woff2', weight: 400 },
+  { family: "'Londrina Solid'", file: 'londrina-solid-400.woff2', weight: 400 },
+  { family: "'Score Sign'", file: 'nunito-sans-800.woff2', weight: 400, unicodeRange: 'U+002D,U+2012,U+2013,U+2212' },
+  { family: "'Nunito Sans'", file: 'nunito-sans-500.woff2', weight: 500 },
+  { family: "'Nunito Sans'", file: 'nunito-sans-600.woff2', weight: 600 },
+  { family: "'Nunito Sans'", file: 'nunito-sans-700.woff2', weight: 700 },
+  { family: "'Nunito Sans'", file: 'nunito-sans-800.woff2', weight: 800 },
+  { family: "'Nunito Sans'", file: 'nunito-sans-900.woff2', weight: 900 },
+  { family: 'Pacifico', file: 'pacifico-400.woff2', weight: 400 },
+  { family: "'Plus Jakarta Sans'", file: 'plus-jakarta-sans-400.woff2', weight: 400 },
+  { family: "'Plus Jakarta Sans'", file: 'plus-jakarta-sans-500.woff2', weight: 500 },
+  { family: "'Plus Jakarta Sans'", file: 'plus-jakarta-sans-600.woff2', weight: 600 },
+  { family: "'Plus Jakarta Sans'", file: 'plus-jakarta-sans-700.woff2', weight: 700 },
+  { family: "'Plus Jakarta Sans'", file: 'plus-jakarta-sans-800.woff2', weight: 800 }
+];
+
+const fontsCss = fontFaces.map(face => {
+  const unicode = face.unicodeRange ? `;unicode-range:${face.unicodeRange}` : '';
+  return `@font-face{font-family:${face.family};font-style:normal;font-weight:${face.weight};font-display:swap;src:url('./fonts/${face.file}') format('woff2')${unicode}}`;
+}).join('\n') + '\n';
+
+if(!fontsCss.includes("font-family:'Score Sign'")){
+  throw new Error('fonts.css is missing the Score Sign face.');
+}
+
+const scoreSignFile = fontFaces.find(face => face.family === "'Score Sign'")?.file;
+if(!scoreSignFile || !fonts.some(([, destination]) => destination === scoreSignFile)){
+  throw new Error('Score Sign must reuse a font file copied by the vendor font list.');
+}
+await access(join(fontsDir, scoreSignFile));
+
+await writeFile(join(assetsDir, 'fonts.css'), fontsCss);
 
 await writeFile(join(vendorDir, 'vendor-manifest.json'), JSON.stringify({
   canvasConfetti: '1.9.3',
