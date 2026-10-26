@@ -3845,7 +3845,7 @@ button.dealer-name-indicator .dealer-player-label {
       pointer-events: none;
     }
     body.active-match-view #save-indicator {
-      top: 0.65rem;
+      top: auto;
     }
     #save-indicator.show { opacity: 1; transform: translateY(0); }
 
@@ -9268,6 +9268,7 @@ button.dealer-name-indicator .dealer-player-label {
   // ── Save indicator flash ──
   function flashSaveIndicator(){
     const el = document.getElementById('save-indicator'); if(!el) return;
+    if (window.BPGSlice2 && typeof BPGSlice2.parkSaveIndicator === 'function') BPGSlice2.parkSaveIndicator();
     el.classList.add('show');
     clearTimeout(flashSaveIndicator._t);
     flashSaveIndicator._t = setTimeout(()=>el.classList.remove('show'), 900);

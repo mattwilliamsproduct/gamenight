@@ -123,6 +123,20 @@
       if (action.includes('openSettings')) button.textContent = phone ? '⚙' : 'Settings';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
     });
+    parkSaveIndicator();
+  }
+
+  function parkSaveIndicator() {
+    const el = document.getElementById('save-indicator');
+    if (!el) return;
+    const game = document.getElementById('game-screen');
+    const row = document.querySelector('#slice2-board-bar .s2-board-line-row');
+    const onBoard = !!(game && !game.classList.contains('hidden') && row);
+    if (onBoard) {
+      if (el.parentElement !== row) row.appendChild(el);
+      return;
+    }
+    if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
   function paintHome() {
@@ -251,7 +265,18 @@
     const cluster = document.querySelector('#game-screen .active-match-actions');
     const dest = bar.querySelector('.s2-board-actions');
     if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, dest.firstChild);
+    const copy = bar.querySelector('.s2-board-copy');
     const line = document.getElementById('slice2-board-line');
+    if (copy && line) {
+      let row = bar.querySelector('.s2-board-line-row');
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 's2-board-line-row';
+        copy.insertBefore(row, line);
+        row.appendChild(line);
+      }
+    }
+    parkSaveIndicator();
     const legend = document.getElementById('slice2-score-legend');
     const enter = document.getElementById('slice2-enter-btn');
     const historyButton = document.getElementById('slice2-history-btn');
@@ -587,7 +612,7 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel };
+  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

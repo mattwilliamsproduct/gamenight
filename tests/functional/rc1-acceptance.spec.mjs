@@ -123,7 +123,9 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
     const chrome = await page.evaluate(() => {
       const nav = document.getElementById('top-nav');
       const box = nav.getBoundingClientRect();
-      const buttons = [...nav.querySelectorAll('.nav-btn')].filter((button) => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const buttons = [...nav.querySelectorAll('button')].filter((button) => {
         const style = getComputedStyle(button);
         return style.display !== 'none' && style.visibility !== 'hidden' && button.getBoundingClientRect().height > 0;
       });
@@ -131,11 +133,23 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
       const indicator = document.getElementById('save-indicator');
       const seats = [...document.querySelectorAll('.s2-seat')].map((seat) => seat.getBoundingClientRect());
       const names = [...document.querySelectorAll('#scorecard-body tr .scorecard-col-player')].map((cell) => cell.getBoundingClientRect());
-      const toast = indicator?.getBoundingClientRect();
+      const toast = indicator?.classList.contains('show') ? indicator.getBoundingClientRect() : null;
       const overlaps = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
       return {
         navHeight: box.height,
         labels: buttons.map((button) => (button.textContent || '').replace(/\s+/g, ' ').trim()),
+        titles: buttons.map((button) => button.getAttribute('title') || ''),
+        boxes: buttons.map((button) => {
+          const rect = button.getBoundingClientRect();
+          return {
+            label: (button.textContent || button.getAttribute('title') || '').trim(),
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            inView: rect.left >= -1 && rect.top >= -1 && rect.right <= vw + 1 && rect.bottom <= vh + 1
+          };
+        }),
         savedInNav: !!(saved && nav.contains(saved) && getComputedStyle(saved).display !== 'none'),
         toastTop: toast?.top ?? null,
         toastOverlapsSeat: seats.some((seat) => overlaps(toast, seat)),
@@ -145,9 +159,54 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
     expect(chrome.navHeight, `${size.width} nav stays one line`).toBeLessThanOrEqual(72);
     expect(chrome.savedInNav, `${size.width} Saved is not a nav slot`).toBe(false);
     expect(chrome.labels.join(' '), `${size.width} nav labels`).not.toMatch(/Active Match|Saved/i);
+    expect(chrome.titles.join(' '), `${size.width} settings gear on screen`).toMatch(/Settings/);
+    chrome.boxes.forEach((control) => {
+      expect(control.inView, `${size.width} ${control.label || 'nav control'} stays in the viewport ${JSON.stringify(control)}`).toBe(true);
+    });
     expect(chrome.toastOverlapsSeat, `${size.width} Saved toast misses seats`).toBe(false);
     expect(chrome.toastOverlapsName, `${size.width} Saved toast misses names`).toBe(false);
   }
+});
+
+test('Saved chip stays off header text and phone entry drops Selected Player', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
+  const scorecard = await page.evaluate(() => {
+    if (window.BPGSlice2) BPGSlice2.parkSaveIndicator();
+    flashSaveIndicator();
+    const toast = document.getElementById('save-indicator');
+    const line = document.getElementById('slice2-board-line');
+    const toastBox = toast.getBoundingClientRect();
+    const lineBox = line.getBoundingClientRect();
+    const hits = (a, b) => !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right);
+    return {
+      inRow: !!document.querySelector('#slice2-board-bar .s2-board-line-row')?.contains(toast),
+      shown: toast.classList.contains('show'),
+      overlapsLine: hits(toastBox, lineBox),
+      lineText: (line.textContent || '').trim()
+    };
+  });
+  expect(scorecard.inRow, 'Saved parks in the board header row').toBe(true);
+  expect(scorecard.shown, 'Saved is visible for the overlap check').toBe(true);
+  expect(scorecard.overlapsLine, 'Saved does not cover the board line').toBe(false);
+  expect(scorecard.lineText, 'board line keeps the dealer').toMatch(/Dealer:/);
+
+  await page.setViewportSize({width: 375, height: 667});
+  await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
+  const entry = await page.evaluate(() => {
+    const label = document.querySelector('#score-entry-modal .score-entry-selected-card > :first-child');
+    const name = document.getElementById('score-entry-selected-name');
+    const labelBox = label?.getBoundingClientRect();
+    const nameBox = name.getBoundingClientRect();
+    return {
+      labelText: (label?.textContent || '').trim(),
+      labelShown: !!(label && getComputedStyle(label).display !== 'none' && labelBox.height > 0),
+      nameText: (name.textContent || '').trim(),
+      prefix: getComputedStyle(name, '::before').content
+    };
+  });
+  expect(entry.labelShown, 'Selected Player label is gone on 375').toBe(false);
+  expect(entry.nameText, 'selected name stays Megan').toMatch(/Megan/i);
 });
 
 test('every keypad key is fully visible and hit-testable at 375 and 390', async ({page}) => {
