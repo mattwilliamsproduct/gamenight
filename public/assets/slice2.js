@@ -112,11 +112,12 @@
       saved.textContent = 'Saved';
       actions.appendChild(saved);
     }
+    const phone = window.matchMedia('(max-width: 760px)').matches;
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
-      if (action.includes('goHome')) button.textContent = "Tonight's Table";
-      if (action.includes('showHistory')) button.textContent = `Timeline & Records (${table.history.length})`;
-      if (action.includes('showProfiles')) button.textContent = `Player Passports (${table.allPlayers.length})`;
+      if (action.includes('goHome')) button.textContent = phone ? 'Table' : "Tonight's Table";
+      if (action.includes('showHistory')) button.textContent = phone ? 'Records' : `Timeline & Records (${table.history.length})`;
+      if (action.includes('showProfiles')) button.textContent = phone ? 'Profiles' : `Player Passports (${table.allPlayers.length})`;
       if (action.includes('openSettings')) button.textContent = 'Settings';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
     });
@@ -494,6 +495,9 @@
     wired = true;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
+    if (window.matchMedia) {
+      window.matchMedia('(max-width: 760px)').addEventListener('change', () => paintNav());
+    }
   }
 
   function refresh(which) {

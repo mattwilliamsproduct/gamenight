@@ -231,3 +231,35 @@ test('slice2 surfaces do not clip', async ({page}) => {
   }
   expect(problems, problems.join('\n')).toEqual([]);
 });
+
+test('phone keypad leaves roster rows reachable', async ({page}) => {
+  await page.setViewportSize({width: 375, height: 667});
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&slice2&surface=entry-scores', {waitUntil: 'networkidle'});
+  await ready(page);
+  await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+  const report = await page.evaluate(() => {
+    const keypad = document.querySelector('#score-entry-modal .score-entry-keypad');
+    const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
+    if (!keypad || !rows.length) return {covered: -1, rowCount: rows.length};
+    const k = keypad.getBoundingClientRect();
+    const covered = rows.filter((row) => {
+      const r = row.getBoundingClientRect();
+      if (r.height < 8) return false;
+      return r.bottom > k.top + 4 && r.top < k.bottom - 4 && r.right > k.left && r.left < k.right;
+    }).length;
+    const names = [...document.querySelectorAll('#score-entry-modal .score-entry-name')].map((el) => {
+      const style = getComputedStyle(el);
+      return {
+        overflow: style.overflowX,
+        ellipsis: style.textOverflow,
+        clipped: el.scrollWidth > el.clientWidth + 4 && (style.overflowX === 'hidden' || style.overflowX === 'clip') && style.textOverflow !== 'ellipsis'
+      };
+    });
+    return {covered, rowCount: rows.length, nameClip: names.filter((n) => n.clipped).length};
+  });
+  expect(report.rowCount).toBeGreaterThan(0);
+  expect(report.covered, 'keypad should not cover roster rows').toBe(0);
+  expect(report.nameClip, 'names should ellipsize instead of clip').toBe(0);
+  const keyBox = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
+  expect(keyBox.height).toBeGreaterThanOrEqual(44);
+});

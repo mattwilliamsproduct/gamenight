@@ -13440,7 +13440,6 @@ ${isDealer
       const chip=scorecardNameChipEl(name);
       const cellBox=cell.getBoundingClientRect();
       const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
       const available=scorecardNameAvailableWidth(name);
       if(available<=0){
@@ -13460,6 +13459,7 @@ ${isDealer
         name.style.setProperty('font-size',`${best.toFixed(1)}px`,'important');
         return;
       }
+      if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return;
 
       const chipStyle=getComputedStyle(chip);
       const text=scorecardNameDisplayText(name);
