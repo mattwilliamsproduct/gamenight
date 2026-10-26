@@ -622,6 +622,43 @@ function recordsHealPlainMatch(){
   };
 }
 
+function rookFinishedNight(){
+  return {
+    id:1784390000001,
+    game:'Rook',
+    date:'10/20/2026',
+    originalRoster:['Megan','Matt','Cat','Mike'],
+    retired:['Mike'],
+    totals:{Megan:90,Matt:90,Cat:110,Mike:40},
+    winners:['Cat'],
+    completed:true,
+    currentRound:2,
+    rounds:[{round:1,scores:{Megan:90,Matt:90,Cat:110,Mike:40},rookBid:90,rookBidder:'Megan',rookPartner:'Matt',rookMadeIt:true}]
+  };
+}
+
+function recordsAssisted818Match(){
+  const roster=['Megan','Matt','Cat','Mike','Duke'];
+  const rounds=legalEight18Rounds(roster,Object.fromEntries(roster.map((player,index)=>[player,36+index*7])),5);
+  rounds.push({round:0,hailMaryBonus:true,scores:{Duke:12}});
+  const totals=totalRounds(roster,rounds);
+  return {
+    id:1785200000003,
+    game:'818',
+    date:'10/19/2026',
+    totals,
+    winners:winnersFor('818',totals),
+    rounds,
+    originalRoster:[...roster],
+    currentRound:6,
+    maxRounds:15,
+    hailMaryUsed:['Duke'],
+    assistedMatch:true,
+    retired:[],
+    completed:true
+  };
+}
+
 // 818 bid-accuracy fixtures.
 // Legacy/inconsistent-score fixtures store a score that is not the shelf formula.
 // Bid accuracy ignores that score and compares bid with actual.
@@ -908,18 +945,7 @@ export const QA_SCENARIOS = {
     data:{
       allPlayers:[...NAMES],
       players:NAMES.slice(0,4),
-      history:[{
-        id:1784390000001,
-        game:'Rook',
-        date:'10/20/2026',
-        originalRoster:['Megan','Matt','Cat','Mike'],
-        retired:['Mike'],
-        totals:{Megan:90,Matt:90,Cat:110,Mike:40},
-        winners:['Cat'],
-        completed:true,
-        currentRound:2,
-        rounds:[{round:1,scores:{Megan:90,Matt:90,Cat:110,Mike:40},rookBid:90,rookBidder:'Megan',rookPartner:'Matt',rookMadeIt:true}]
-      }],
+      history:[rookFinishedNight()],
       playerProfiles:profiles(),
       currentGame:makeCurrentGame('Rook', NAMES.slice(0,4), [], {
         currentRound:1,
@@ -939,6 +965,18 @@ export const QA_SCENARIOS = {
       history:[recordsHealAssistedMatch(),recordsHealPlainMatch()],
       playerProfiles:profiles(),
       currentGame:null
+    }
+  },
+  'demo-seed':{
+    label:'TEMP Demo Seed',
+    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, and a Rook night with contracts.',
+    defaultSurface:'home',
+    data:{
+      allPlayers:[...NAMES],
+      players:[...crownsPlayers],
+      history:[...sharedHistory,rookFinishedNight(),recordsAssisted818Match()],
+      playerProfiles:profiles(),
+      currentGame:JSON.parse(JSON.stringify(crownsGame))
     }
   }
 };

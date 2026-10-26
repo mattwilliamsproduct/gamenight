@@ -8,6 +8,18 @@
       if(new URLSearchParams(location.search).has('standings')){
         document.documentElement.classList.add('s2-standings-only');
       }
+      var demoParams=new URLSearchParams(location.search);
+      if(!demoParams.has('demo')) return;
+      var demoHost=window.__GN_DEMO_HOST_OVERRIDE__||location.hostname;
+      var demoOk=demoHost==='localhost'||demoHost==='127.0.0.1'||demoHost==='::1'||/^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(demoHost);
+      if(!demoOk||demoHost==='cardknight.vercel.app'){
+        document.documentElement.dataset.gnDemoIgnored='1';
+        return;
+      }
+      document.documentElement.classList.add('gn-demo-pending');
+      var demoStyle=document.createElement('style');
+      demoStyle.textContent='html.gn-demo-pending body{visibility:hidden}';
+      document.documentElement.appendChild(demoStyle);
     }catch(err){}
   })();
   </script>
@@ -9348,6 +9360,7 @@ button.dealer-name-indicator .dealer-player-label {
   const DRAFT_SAVE_DEBOUNCE_MS = 1200;
   const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
   function persistJsonIfChanged(key, value){
+    if(window.__GN_DEMO_SKIP_PERSIST) return;
     if(key === 'gn_current') gnWarnNumpadHotPath("persistJsonIfChanged('gn_current')");
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
@@ -17251,6 +17264,51 @@ ${isDealer
   }
 
   /* ═══ BOOT ═══ */
+  window.BPGDemoLiveGame=function(){return currentGame;};
+  async function bootDemoSeedIfRequested(){
+    const params=new URLSearchParams(location.search);
+    const host=window.__GN_DEMO_HOST_OVERRIDE__||location.hostname;
+    const allowed=host==='localhost'||host==='127.0.0.1'||host==='::1'||/^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(host);
+    if(!params.has('demo')){
+      document.documentElement.classList.remove('gn-demo-pending');
+      return null;
+    }
+    if(!allowed||host==='cardknight.vercel.app'){
+      document.body.dataset.gnDemoReady='ignored';
+      document.documentElement.classList.remove('gn-demo-pending');
+      return null;
+    }
+    try{
+    const {bootDemoSeed}=await import('./assets/demo-seed.mjs');
+    return await bootDemoSeed({
+      hostname:host,
+      search:location.search,
+      storage:localStorage,
+      applyState(data){
+        const fixture=data||{};
+        allPlayers=Array.isArray(fixture.allPlayers)?fixture.allPlayers.slice():[];
+        players=Array.isArray(fixture.players)?fixture.players.slice():[];
+        history=Array.isArray(fixture.history)?JSON.parse(JSON.stringify(fixture.history)):[];
+        playerProfiles=fixture.playerProfiles&&typeof fixture.playerProfiles==='object'?JSON.parse(JSON.stringify(fixture.playerProfiles)):{};
+        currentGame=fixture.currentGame?JSON.parse(JSON.stringify(fixture.currentGame)):null;
+        if(currentGame&&(!currentGame.name||!Array.isArray(currentGame.originalRoster))) currentGame=null;
+        if(currentGame?.name==='Rook'&&currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
+        markHistoryChanged();
+      },
+      skipPersist(on){ window.__GN_DEMO_SKIP_PERSIST=!!on; },
+      ready(status, view){
+        document.body.dataset.gnDemoReady=status||'';
+        document.body.dataset.gnDemoView=view||'';
+        document.documentElement.classList.remove('gn-demo-pending');
+      }
+    });
+    }catch(error){
+      console.warn('TEMP demo seed skipped', error);
+      document.body.dataset.gnDemoReady='error';
+      document.documentElement.classList.remove('gn-demo-pending');
+      return null;
+    }
+  }
   window.onload=async function(){
     gnPerfInit();
     document.getElementById('html-root')?.classList.remove('dark');
@@ -17259,9 +17317,11 @@ ${isDealer
     initPwaUpdates();
     handleOrientation();
     updateNavButton();
+    const demoBoot=await bootDemoSeedIfRequested();
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     backfillStableGameIds();
+    if(demoBoot&&typeof demoBoot.open==='function') demoBoot.open();
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');
