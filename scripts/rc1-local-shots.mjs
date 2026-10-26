@@ -69,7 +69,11 @@ async function walkRook(page, prefix) {
   await shot(page, `${prefix}-rook-editor`);
   await page.locator('.rook-player-btn').first().click();
   await page.locator('#rook-round-panel .btn-primary').click();
-  await page.waitForFunction(() => !document.getElementById('rook-call-modal')?.classList.contains('hidden'));
+  await page.waitForFunction(() => {
+    const modal = document.getElementById('rook-call-modal');
+    if (!modal || modal.classList.contains('hidden')) return false;
+    return Number(getComputedStyle(modal).opacity) > 0.95;
+  });
   const call = await page.evaluate(clipReport());
   console.log(`${prefix} call-modal`, JSON.stringify(call));
   await shot(page, `${prefix}-rook-call`);
@@ -92,11 +96,43 @@ await phone.evaluate(() => {
 await phone.waitForTimeout(120);
 await shot(phone, '390-scorecard-saved');
 
-await open(phone, 'scenario=home-party&slice2view=records');
+await open(phone, 'scenario=rook-bid-setup&slice2view=records');
+await phone.evaluate(() => document.querySelector('.s2-nights-col')?.scrollIntoView({block: 'start'}));
+await phone.waitForTimeout(80);
 await shot(phone, '390-records');
+await phone.locator('[data-s2-action="night-scorecard"]').first().click();
+await phone.waitForFunction(() => {
+  const modal = document.getElementById('scorecard-modal');
+  return modal && !modal.classList.contains('hidden') && Number(getComputedStyle(modal).opacity) > 0.9;
+});
+await shot(phone, '390-records-retired');
+await phone.evaluate(() => typeof closeModal === 'function' && closeModal('scorecard-modal'));
 
 await walkRook(phone, '390');
 await phone.close();
+
+const entry = await browser.newPage({viewport: {width: 390, height: 844}});
+await open(entry, 'scenario=five-crowns-comeback&surface=entry-scores');
+const roster = await entry.evaluate(() => {
+  const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
+  const list = document.querySelector('#score-entry-modal .score-entry-list');
+  const scroller = document.getElementById('score-entry-rows');
+  const lane = (scroller || list)?.getBoundingClientRect();
+  const visible = rows.filter((row) => {
+    const r = row.getBoundingClientRect();
+    if (!lane || r.height < 8) return false;
+    return (Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top)) >= 16;
+  }).map((row) => (row.querySelector('.score-entry-name')?.textContent || '').trim());
+  return {
+    visibleCount: visible.length,
+    names: visible,
+    listH: Math.round(list?.getBoundingClientRect().height || 0),
+    rowsH: Math.round(scroller?.getBoundingClientRect().height || 0)
+  };
+});
+console.log('390 entry roster', JSON.stringify(roster));
+await shot(entry, '390-entry-roster');
+await entry.close();
 
 const short = await browser.newPage({viewport: {width: 375, height: 667}});
 await open(short, 'scenario=wizard-scoring-8&surface=scorecard');

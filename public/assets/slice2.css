@@ -1706,12 +1706,15 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
 
 @media (max-width: 420px) and (min-height: 800px) {
   html.slice2-tv #score-entry-modal .score-entry-list {
-    min-height: 13.5rem;
+    flex: 0 0 auto !important;
+    min-height: 14.75rem !important;
+    height: 14.75rem;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    min-height: 11.25rem;
+    min-height: 12.75rem !important;
+    height: 12.75rem;
   }
 
   html.slice2-tv #score-entry-modal #score-entry-game {
