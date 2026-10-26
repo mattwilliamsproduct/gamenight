@@ -2,6 +2,7 @@
 import {cloneScenario} from '../qa/fixtures.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
+export const DEMO_VERSION = '2';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
 
 export const DEMO_VIEW_IDS = [
@@ -52,10 +53,10 @@ const WRITE_VIEWS = new Set([
 ]);
 
 const GAME_SCENARIO = {
-  fivecrowns: 'five-crowns-comeback',
-  wizard: 'wizard-scoring-8',
-  '818': 'eight18-porch-lp',
-  flip7: 'flip7-turbo-ladder',
+  fivecrowns: 'demo-seed',
+  wizard: 'demo-wizard',
+  '818': 'demo-818',
+  flip7: 'demo-flip7',
   beattheheat: 'beat-the-heat-close',
   rook: 'rook-bid-setup'
 };
@@ -87,7 +88,7 @@ export function deviceHasSavedData(storage){
 }
 
 export function isDemoSeeded(storage){
-  return storage.getItem(DEMO_FLAG) === '1';
+  return storage.getItem(DEMO_FLAG) === DEMO_VERSION;
 }
 
 export function buildDemoPayload(){
@@ -101,7 +102,7 @@ export function writeDemoPayload(storage, data){
   storage.setItem('gn_profiles', JSON.stringify(data.playerProfiles || {}));
   if (data.currentGame) storage.setItem('gn_current', JSON.stringify(data.currentGame));
   else storage.removeItem('gn_current');
-  storage.setItem(DEMO_FLAG, '1');
+  storage.setItem(DEMO_FLAG, DEMO_VERSION);
 }
 
 export function stripDemoSearch(href){
@@ -214,7 +215,7 @@ function applyLifePreserverAfter(data){
 function payloadForView(view, base){
   const typed = parseTypedView(view);
   if (view === 'empty-home' || view === 'empty-records') return emptyPayload();
-  if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('five-crowns-comeback');
+  if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('demo-seed');
   if (view === 'lifepreserver') return scenarioData('eight18-porch-lp');
   if (view === 'lifepreserver-after') return applyLifePreserverAfter(scenarioData('eight18-porch-lp'));
   if (view === 'rook-contract') return scenarioData('rook-bid-setup');
@@ -328,8 +329,9 @@ export function decideDemoAction({hostname, search, storage}){
     return {status: 'empty', view, persist: false, blocked: false, payload: emptyPayload()};
   }
   const seeded = isDemoSeeded(storage);
+  const demoDevice = !!storage.getItem(DEMO_FLAG);
   const hasData = deviceHasSavedData(storage);
-  if (hasData && !seeded) {
+  if (hasData && !demoDevice) {
     return {status: 'blocked', view, persist: false, blocked: true, payload: null};
   }
   if (seeded && hasData) {

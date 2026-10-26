@@ -4,6 +4,7 @@ import {QA_SCENARIOS} from '../public/qa/fixtures.mjs';
 import {validateScenario} from '../public/qa/fixture-rules.mjs';
 import {
   DEMO_FLAG,
+  DEMO_VERSION,
   DEMO_VIEW_IDS,
   buildDemoPayload,
   decideDemoAction,
@@ -42,6 +43,14 @@ test('demo-seed gallery fixture is rule-valid and covers all six games', () => {
   assert.ok(history.some((match) => (match.retired || []).includes('Mike')), 'retired Mike missing');
   assert.ok(history.some((match) => match.game === 'Rook' && match.rounds?.[0]?.rookBid === 90), 'Rook contracts missing');
   assert.equal(QA_SCENARIOS['demo-seed'].data.currentGame?.name, 'Five Crowns');
+  const live = QA_SCENARIOS['demo-seed'].data.currentGame;
+  const r8 = live.rounds.find((round) => round.round === 8);
+  const r8Zeros = live.originalRoster.filter((player) => Number(r8.scores[player]) === 0);
+  assert.equal(r8Zeros.length, 1, `live R8 should have one go-out, got ${r8Zeros.join(',')}`);
+  assert.ok(r8Zeros[0] === 'Matt', 'Matt goes out on live R8');
+  const rook = history.find((match) => match.game === 'Rook');
+  assert.equal(rook.rounds[0].scores.Megan, rook.rounds[0].scores.Matt);
+  assert.equal(rook.rounds[0].scores.Cat, rook.rounds[0].scores.Mike);
 });
 
 test('production host ignores ?demo and never writes', () => {
@@ -74,7 +83,7 @@ test('empty preview device can seed; real history is left alone', () => {
   assert.equal(seed.status, 'seeded');
   assert.equal(seed.persist, true);
   writeDemoPayload(empty, seed.seed);
-  assert.equal(empty.getItem(DEMO_FLAG), '1');
+  assert.equal(empty.getItem(DEMO_FLAG), DEMO_VERSION);
   assert.ok(deviceHasSavedData(empty));
 
   const real = memoryStorage({
