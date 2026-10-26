@@ -13,3 +13,5 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md) — Vercel ships `src/service-worker.js`, not the committed `public/sw.js`.
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.
+
+Standing trap: [slice2-phone-scorekeeper.md](slice2-phone-scorekeeper.md) — flag-on Slice 2 still needs a scrollable phone roster above the keypad; do not port #59 welcome/sample work onto that preview.

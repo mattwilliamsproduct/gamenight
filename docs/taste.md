@@ -52,6 +52,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Prefer: a phone pass first (labels readable, nothing clipped). Scoring still happens on iPad landscape or the TV.
 - Avoid: treating portrait as the scorecard. Portrait is a podium. Rotate back for the card.
 - Kill: keypad covering a row, a name cut off, Actions clipped by the match banner.
+- Kill: a keypad typing a score while the selected player is off-screen and unnamed.
 
 ## Density / typography
 

@@ -13440,7 +13440,6 @@ ${isDealer
       const chip=scorecardNameChipEl(name);
       const cellBox=cell.getBoundingClientRect();
       const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
       const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
       const available=scorecardNameAvailableWidth(name);
       if(available<=0){
@@ -13460,6 +13459,7 @@ ${isDealer
         name.style.setProperty('font-size',`${best.toFixed(1)}px`,'important');
         return;
       }
+      if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return;
 
       const chipStyle=getComputedStyle(chip);
       const text=scorecardNameDisplayText(name);
@@ -14547,7 +14547,7 @@ ${isDealer
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
 
     const phone=(window.visualViewport?.width||window.innerWidth||0)<=760;
-    if(phone){
+    if(phone && !GN_SLICE2_TV){
       const items=[...rows.children];
       const shown=items.slice(0, Math.min(2, items.length));
       if(shown.length){
@@ -14558,6 +14558,18 @@ ${isDealer
     }else{
       rows.style.maxHeight='';
     }
+  }
+
+  function scrollScoreEntryActiveIntoView(){
+    if(!GN_SLICE2_TV||!scoreEntryModalState)return;
+    const scroller=document.getElementById('score-entry-rows');
+    const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
+    if(!scroller||!row)return;
+    const pad=12;
+    const lane=scroller.getBoundingClientRect();
+    const top=row.getBoundingClientRect().top-lane.top-pad+scroller.scrollTop;
+    const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
 
   function openScoreEntryModal(ev){
@@ -14598,6 +14610,7 @@ ${isDealer
     requestAnimationFrame(()=>{
       fitScoreEntryModalLayout();
       modal.classList.remove('opacity-0');
+      requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
     });
     } finally {
       gnPerfEnd(timer);
@@ -14693,6 +14706,7 @@ ${isDealer
     updateScoreEntryRowState(prev);
     updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
+    requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
   }
 
   function updateScoreEntryActiveValue(){
