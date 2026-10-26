@@ -666,6 +666,69 @@
       padding-right: 0.28rem;
       overflow: visible;
     }
+    .score-cell-input.score-cell-hit {
+      border-color: rgba(4,120,87,0.72);
+      box-shadow: 0 0 0 2px rgba(4,120,87,0.12);
+    }
+    .round-correction-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0,1.4fr) auto auto auto;
+      gap: 0.6rem;
+      align-items: center;
+      text-align: left;
+      border-radius: 14px;
+      padding: 0.65rem 0.8rem;
+      background: var(--surface-2);
+      border: 1.5px solid var(--hairline);
+      color: var(--ink);
+    }
+    .round-correction-row.is-active { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(4,120,87,0.16); }
+    .round-correction-actual { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .round-correction-score.score-cell-hit,
+    .round-correction-score.score-cell-miss {
+      border-radius: 10px;
+      padding: 0.15rem 0.45rem;
+      font-weight: 800;
+    }
+    .round-correction-score.score-cell-hit { color: #047857; box-shadow: inset 0 0 0 1.5px rgba(4,120,87,0.45); }
+    .round-correction-score.score-cell-miss { color: #be123c; box-shadow: inset 0 0 0 1.5px rgba(225,29,72,0.45); }
+    .assisted-match-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #b45309;
+      letter-spacing: 0.12em;
+    }
+    .incomplete-match-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: #ffe4e6;
+      color: #be123c;
+      letter-spacing: 0.12em;
+    }
+    .score-entry-confirm-status {
+      margin-top: 0.15rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .score-entry-confirm-status[data-entry-state="unentered"] { color: var(--muted); }
+    .score-entry-confirm-status[data-entry-state="suggested"] { color: var(--blue); }
+    .score-entry-confirm-status[data-entry-state="confirmed"] { color: var(--emerald); }
+    .score-entry-unconfirmed:empty { display: none; }
+    .score-entry-unconfirmed {
+      width: 100%;
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+    #score-entry-primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .score-current-input {
       background: var(--surface);
       border: 2px solid var(--hairline);
@@ -1717,6 +1780,7 @@
     }
     @media (max-width: 760px) {
       .score-entry-progress { width: 100%; margin-top: 0.75rem; }
+      .score-entry-unconfirmed { flex: 1 0 100%; }
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
@@ -8137,8 +8201,12 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="custom-numpad" class="hidden fixed bottom-0 md:bottom-6 right-0 md:right-6 w-full max-w-[350px] text-white p-4 md:p-5 z-[100] transform translate-y-full transition-transform duration-300 rounded-t-3xl md:rounded-3xl" style="background:#0f0f0e;border:1px solid #2c2c29;box-shadow:0 -8px 40px rgba(0,0,0,0.3);">
       <div class="flex justify-between items-center mb-4 px-2">
         <div id="numpad-label" class="font-extrabold uppercase tracking-[0.15em] text-xs" style="color:#34d399;">Enter Score</div>
-        <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
+        <div class="flex gap-2">
+          <button id="numpad-cancel" onclick="cancelPastNumpad()" class="hidden font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#fda4af;">Cancel</button>
+          <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
+        </div>
       </div>
+      <div id="numpad-error" class="hidden mb-3 mx-2 text-sm font-bold" style="color:#fda4af;" role="alert"></div>
       <div id="numpad-context" class="hidden mb-4 mx-2 rounded-2xl border px-3 py-2" style="border-color:rgba(52,211,153,0.28);background:rgba(52,211,153,0.08);">
         <div id="numpad-context-bid" class="font-extrabold uppercase tracking-[0.14em] text-[11px]" style="color:#67e8f9;"></div>
         <div id="numpad-context-result" class="mt-1 font-jakarta font-extrabold text-base" style="color:#f8fafc;"></div>
@@ -8161,6 +8229,35 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
+    <!-- Historical Wizard / 818 round correction -->
+    <div id="round-correction-modal" class="hidden fixed inset-0 z-[160] flex items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="cancelRoundCorrection()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+      <div class="surface-raised relative w-full max-w-lg p-5 md:p-6 pop-in" role="dialog" aria-labelledby="round-correction-title">
+        <div id="round-correction-title" class="font-display text-3xl"></div>
+        <div id="round-correction-limit" class="mt-1 text-sm font-extrabold" style="color:var(--muted);"></div>
+        <div id="round-correction-sum" class="text-sm font-extrabold"></div>
+        <div id="round-correction-error" class="mt-3 text-sm font-bold" style="color:var(--rose);" role="alert"></div>
+        <div id="round-correction-rows" class="mt-4 space-y-2 max-h-64 overflow-y-auto"></div>
+        <div class="grid grid-cols-3 gap-2 mt-4 no-select">
+          <button type="button" onclick="roundCorrectionKey('1')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">1</button>
+          <button type="button" onclick="roundCorrectionKey('2')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">2</button>
+          <button type="button" onclick="roundCorrectionKey('3')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">3</button>
+          <button type="button" onclick="roundCorrectionKey('4')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">4</button>
+          <button type="button" onclick="roundCorrectionKey('5')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">5</button>
+          <button type="button" onclick="roundCorrectionKey('6')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">6</button>
+          <button type="button" onclick="roundCorrectionKey('7')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">7</button>
+          <button type="button" onclick="roundCorrectionKey('8')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">8</button>
+          <button type="button" onclick="roundCorrectionKey('9')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">9</button>
+          <button type="button" onclick="roundCorrectionKey('backspace')" class="numpad-btn rounded-2xl py-3 text-lg font-extrabold" style="background:rgba(159,18,56,0.3);color:#fda4af;">⌫</button>
+          <button type="button" onclick="roundCorrectionKey('0')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num col-span-2">0</button>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button type="button" onclick="cancelRoundCorrection()" class="btn-ghost flex-1 py-3 text-sm">Cancel</button>
+          <button type="button" id="round-correction-save" onclick="saveRoundCorrection()" class="btn-primary flex-1 py-3 text-sm">Save Round</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Focused Score Entry Modal -->
     <div id="score-entry-modal" class="hidden fixed inset-0 z-[155] items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelScoreEntryModal()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
@@ -8171,6 +8268,7 @@ button.dealer-name-indicator .dealer-player-label {
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
+          <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
@@ -8798,20 +8896,7 @@ button.dealer-name-indicator .dealer-player-label {
     return _allTimeRecordsCache.data;
   }
   function recomputeGameTotals(game){
-    if(!game)return {};
-    game.totals={};
-    (game.originalRoster||[]).forEach(p=>{if(p)game.totals[p]=0;});
-    (game.rounds||[]).forEach(r=>{
-      Object.keys(r.scores||{}).forEach(p=>{
-        if(game.totals[p]===undefined)game.totals[p]=0;
-        game.totals[p]+=(r.scores[p]||0);
-      });
-      Object.entries(r.comeback||{}).forEach(([p,extra])=>{
-        if(game.totals[p]===undefined)game.totals[p]=0;
-        game.totals[p]+=Number(extra)||0;
-      });
-    });
-    return game.totals;
+    return BPGScorebook.recomputeTotals(game);
   }
   function getActiveRoster(game){
     const retired=game?.retired||[];
@@ -8894,11 +8979,8 @@ button.dealer-name-indicator .dealer-player-label {
   function isHighScoreGame(name){
     return name==='Wizard'||name==='818'||name==='Flip 7 Vengeance'||name==='Rook';
   }
-  function is818ExactRound(round, player, score){
-    const bid=round?.bids?.[player];
-    const actual=round?.actuals?.[player];
-    if(bid!==undefined&&actual!==undefined) return Number(bid)===Number(actual);
-    return Number(score)>=10;
+  function is818ExactRound(round, player){
+    return BPGScorebook.classifyBidAccuracy(round, player)==='exact';
   }
   const WIZARD_RECORD_PLAYER_COUNTS = [4,5,6,7,8];
   function createWizardScoreBuckets(){
@@ -10342,7 +10424,7 @@ button.dealer-name-indicator .dealer-player-label {
     const select=document.getElementById('profile-game-filter');
     if(!select)return;
     const selected=select.value || 'all';
-    const games=Object.keys(configs).filter(g=>history.some(h=>h.game===g&&h.totals));
+    const games=Object.keys(configs).filter(g=>history.some(h=>h.game===g&&h.totals&&BPGScorebook.isCompletedHistoryMatch(h)));
     select.innerHTML=`<option value="all">All games</option>${games.map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g.replace(' Vengeance',''))}</option>`).join('')}`;
     select.value=games.includes(selected)?selected:'all';
   }
@@ -10354,7 +10436,7 @@ button.dealer-name-indicator .dealer-player-label {
       needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0
     };
     const matches=history
-      .filter(h=>h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
+      .filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
       .slice()
       .sort((a,b)=>(a.id||0)-(b.id||0));
     matches.forEach(h=>{
@@ -10573,7 +10655,7 @@ button.dealer-name-indicator .dealer-player-label {
       stats[key].byGame[event.game]=(stats[key].byGame[event.game]||0)+1;
     };
     history.forEach(h=>{
-      if(!configs[h.game]||!Array.isArray(h.rounds))return;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!configs[h.game]||!Array.isArray(h.rounds))return;
       h.rounds.forEach(round=>{
         const whammy=detectHistoryWhammyForRound(h, round);
         if(whammy){ add('whammy', whammy); return; }
@@ -10623,7 +10705,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     let games=0,wins=0,lasts=0,labels=[],data=[];
     history.slice().reverse().forEach(h=>{
-      if(!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
       games++; if(h.winners?.includes(name))wins++;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
@@ -10826,12 +10908,11 @@ button.dealer-name-indicator .dealer-player-label {
     const newName = (document.getElementById('rename-input').value || '').trim();
     if(!newName){ alert('Please enter a name.'); return; }
     if(newName === oldName){ closeRenameModal(); return; }
-    if(allPlayers.includes(newName)){
+    if(playerNameIsTaken(newName)){
       if(!confirm(`A player named "${newName}" already exists. Merge "${oldName}" into "${newName}"? All history will combine.`)){
         return;
       }
-      // Treat as merge (same flow as bench drag merge, but programmatic)
-      mergePlayerRecords(oldName, newName);
+      if(mergePlayerRecords(oldName, newName)===false) return;
       closeRenameModal();
       closeProfileDetail();
       renderProfilesGrid();
@@ -10868,7 +10949,23 @@ button.dealer-name-indicator .dealer-player-label {
 
   // Bench drag and rename-onto-an-existing-name both call this.
   // Scores, bids, actuals, and Life Preserver bookkeeping move together.
+  function playerNameIsTaken(name){
+    if(!name) return false;
+    if(allPlayers.includes(name) || playerProfiles[name]) return true;
+    const games=history.slice();
+    if(currentGame) games.push(currentGame);
+    return games.some(game=>BPGScorebook.participantNames(game).has(name));
+  }
+
   function mergePlayerRecords(src, target){
+    const games=history.slice();
+    if(currentGame) games.push(currentGame);
+    const shared=BPGScorebook.findSharedMatch(games, src, target);
+    if(shared){
+      const label=shared.game||shared.name||'a match';
+      alert(`Cannot merge ${src} into ${target} because both played in the same match (${label}). Player merges are only allowed when two aliases never played in the same game.`);
+      return false;
+    }
     history.forEach(h => applyPlayerNameOnGame(h, src, target, true));
     if(currentGame) applyPlayerNameOnGame(currentGame, src, target, true);
     allPlayers = allPlayers.filter(p => p !== src);
@@ -10877,6 +10974,7 @@ button.dealer-name-indicator .dealer-player-label {
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
     if(currentGame) scheduleRender();
+    return true;
   }
 
 
@@ -11046,14 +11144,10 @@ button.dealer-name-indicator .dealer-player-label {
       }
       alert(`🛟 The Life Preserver says:\n\n${win.label}`);
       if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
-      currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
+      BPGScorebook.recordLifePreserverSpin(currentGame, wheelPlayer, adj);
       if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
         BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
-      } else {
-        if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
-        currentGame.hailMaryUsed.push(wheelPlayer);
       }
-      recomputeGameTotals(currentGame);
       syncCurrentLifePreserverHolds({gameOver:over});
       addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
       haptic([60, 80, 60, 80, 120]);
@@ -11283,7 +11377,7 @@ button.dealer-name-indicator .dealer-player-label {
     ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
     const src=ev.dataTransfer.getData('text/plain');
     if(src&&src!==target&&confirm(`⚠️ MERGE RECORDS: Combine all history from "${src}" into "${target}"?\n\n"${src}" will be deleted.`)){
-      mergePlayerRecords(src, target);
+      if(mergePlayerRecords(src, target)===false) return;
       renderRoster();
       alert(`Merged "${src}" → "${target}".`);
     }
@@ -11298,9 +11392,14 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function createSavedMatchSnapshot(game, winners){
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(game);
+    else if(!game.id) game.id=Date.now();
     const data={
-      id:Date.now(),
+      id:game.id,
+      gameId:game.gameId||game.id,
       game:game.name,
+      completed:true,
+      assistedMatch:game.assistedMatch===true,
       date:new Date().toLocaleDateString(),
       totals:{...(game.totals||{})},
       winners:[...(winners||[])],
@@ -11368,6 +11467,7 @@ button.dealer-name-indicator .dealer-player-label {
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
     currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -11569,8 +11669,9 @@ button.dealer-name-indicator .dealer-player-label {
   function confirmRookCall(){
     if(!_rookCallTrump){toast('Please pick a trump color','warning');return;}
     const cardInput=document.getElementById('rook-call-card-input').value.trim();
+    if(!cardInput){toast('Enter the called card first','warning');return;}
     currentGame.rookTrump=_rookCallTrump;
-    currentGame.rookCalledCard=cardInput||'(not specified)';
+    currentGame.rookCalledCard=cardInput;
     currentGame.rookPhase='results';
     const m=document.getElementById('rook-call-modal');
     m.classList.add('opacity-0');
@@ -11743,9 +11844,16 @@ button.dealer-name-indicator .dealer-player-label {
     const partner=_rookSelectedPartner;
     const bid=currentGame.rookHighBid;
     const handTotal=currentGame.rookConfig.totalCounters;
-    let bidderTeamPts=parseInt(document.getElementById('rook-bidder-team-input').value,10);
-    if(!Number.isFinite(bidderTeamPts))bidderTeamPts=0;
-    bidderTeamPts=Math.max(0,Math.min(handTotal,bidderTeamPts));
+    if(!bidder){toast('Name the high bidder first','warning');return;}
+    if(bid==null||bid===''||!Number.isFinite(Number(bid))){toast('Enter the bid first','warning');return;}
+    if(!currentGame.rookTrump){toast('Pick a trump color first','warning');return;}
+    if(!currentGame.rookCalledCard||currentGame.rookCalledCard==='(not specified)'){toast('Enter the called card first','warning');return;}
+    const parsedCounters=BPGScorebook.parseEntryInteger(document.getElementById('rook-bidder-team-input').value);
+    if(!parsedCounters.ok||parsedCounters.value<0||parsedCounters.value>handTotal){
+      toast(`Enter bid-team counters from 0 to ${handTotal}`,'warning');
+      return;
+    }
+    let bidderTeamPts=parsedCounters.value;
     const otherTeamPts=handTotal-bidderTeamPts;
     const madeIt=bidderTeamPts>=bid;
     const oppCounters=otherTeamPts;
@@ -11763,11 +11871,6 @@ button.dealer-name-indicator .dealer-player-label {
       scores[partner]=-bid;
       opponents.forEach(p=>scores[p]=oppCounters);
     }
-
-    // Also give zero to retired players who somehow have no score
-    currentGame.originalRoster.filter(p=>p&&currentGame.retired?.includes(p)).forEach(p=>{
-      if(scores[p]===undefined)scores[p]=0;
-    });
 
     const roundData={
       round:currentGame.currentRound,
@@ -12297,7 +12400,7 @@ ${isDealer
     if(!cfg) return null;
     let picked=null;
     history.forEach(h=>{
-      if(!h || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
+      if(!h || !BPGScorebook.isCompletedHistoryMatch(h) || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
       const score=Number(h.totals[name]);
       if(!Number.isFinite(score)) return;
       if(picked==null){ picked=score; return; }
@@ -12312,7 +12415,7 @@ ${isDealer
   function consecutiveResultStreak(name, wantWin){
     let n=0;
     for(const h of history){
-      if(!playerPlayedMatch(h, name)) continue;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
       const won=!!h.winners?.includes(name);
       if(wantWin?won:!won) n++;
       else break;
@@ -12327,7 +12430,7 @@ ${isDealer
     let losses=0;
     for(let i=start+1;i<history.length;i++){
       const h=history[i];
-      if(!playerPlayedMatch(h, name)) continue;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
       if(h.winners?.includes(name)) break;
       losses++;
     }
@@ -12651,13 +12754,34 @@ ${isDealer
     releaseWakeLock(); currentGame=null; saveData(); goHome();
   }
 
-  function resumeMatch(id){
-    if(currentGame&&!confirm('This will scratch your active match. Proceed?'))return;
+  function parkActiveMatch(){
+    if(!currentGame) return null;
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
+    const finished=currentGame.completed===true||currentGame.gameOver===true;
+    const snapshot=createSavedMatchSnapshot(currentGame, finished?(currentGame.winners||[]):[]);
+    snapshot.completed=finished;
+    snapshot.gameOver=finished;
+    if(!finished) snapshot.winners=[];
+    const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
+    if(idx>=0) history[idx]=snapshot;
+    else history.unshift(snapshot);
+    markHistoryChanged();
+    return snapshot;
+  }
+
+  function resumeMatch(id, options){
+    const force=!!(options&&options.force);
+    if(currentGame&&!force){
+      if(!confirm('Save the game on the table and resume this match?'))return;
+      parkActiveMatch();
+    }
     const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -13887,7 +14011,10 @@ ${isDealer
         let missClass='', missTitle='';
         if(isBidTrickGame(currentGame)&&r.bids?.[p]!==undefined&&r.actuals?.[p]!==undefined){
           const diff=r.actuals[p]-r.bids[p];
-          if(diff!==0){
+          if(diff===0){
+            missClass=' score-cell-hit';
+            missTitle=` title="Exact bid"`;
+          } else {
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
@@ -13896,7 +14023,7 @@ ${isDealer
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
-            onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
+            onclick="openPastScoreCell('${escapeJsString(p)}',${rIdx})" value="${shownRoundScore(r.scores, p)}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
           ${extra.html}
           </div>
@@ -14300,6 +14427,12 @@ ${isDealer
     return scoreEntryModalState?JSON.stringify(scoreEntryModalState.values):'';
   }
 
+  function shownRoundScore(scores, player){
+    if(!scores || !Object.prototype.hasOwnProperty.call(scores, player)) return '';
+    const score=BPGScorebook.historyScoreOrNull(scores[player]);
+    return score==null?'':score;
+  }
+
   function getScoreEntryAvatarHtml(name, cls){
     const fb=getAvatarFallback(name);
     const ring=getColorRingClass(name);
@@ -14323,6 +14456,22 @@ ${isDealer
     return players.filter(scoreEntryPlayerIsAcknowledged).length;
   }
 
+  function scoreEntryStatusFor(player){
+    return BPGScorebook.scoreEntryStatus({
+      value:scoreEntryModalState?.values?.[player]??'',
+      acknowledged:scoreEntryPlayerIsAcknowledged(player)
+    });
+  }
+
+  function paintScoreEntryStatus(player){
+    if(!player)return;
+    const status=scoreEntryStatusFor(player);
+    const el=document.getElementById(`score-entry-status-${rookElementId(player)}`);
+    if(!el)return;
+    el.dataset.entryState=status.state;
+    el.textContent=status.label;
+  }
+
   function updateScoreEntryRowState(player){
     if(!scoreEntryModalState||!currentGame||!player)return;
     const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
@@ -14333,6 +14482,7 @@ ${isDealer
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${acknowledged?'entered':'needed'}`);
     const indicator=row.querySelector('.score-entry-row-status');
     if(indicator)indicator.textContent=acknowledged?'✓':'○';
+    paintScoreEntryStatus(player);
     const slot=row.querySelector('.score-entry-comeback-slot');
     if(slot) slot.innerHTML=previewComebackForEntry(player, scoreEntryModalState.values[player]);
   }
@@ -14360,6 +14510,10 @@ ${isDealer
     } else {
       progress.textContent=enteredText;
     }
+    const note=document.getElementById('score-entry-unconfirmed');
+    if(note) note.textContent=(!isScoreEntryBidMode(mode)&&!isScoreEntryTrickMode(mode))?BPGScorebook.scoreEntryBlankHelper():'';
+    const submit=document.getElementById('score-entry-primary-btn');
+    if(submit) submit.disabled=false;
   }
 
   function scheduleScoreEntryModalFit(){
@@ -14528,6 +14682,7 @@ ${isDealer
       const bid=currentGame.currentBids?.[p]??0;
       const isDealer=p===dealer;
       const isComplete=scoreEntryPlayerIsAcknowledged(p);
+      const entryStatus=scoreEntryStatusFor(p);
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
@@ -14537,7 +14692,7 @@ ${isDealer
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
-              <span class="score-entry-row-status" aria-hidden="true">${isComplete?'✓':'○'}</span>
+              <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':'○'}</span>
               <div class="score-entry-name truncate">${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
               <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
@@ -14546,7 +14701,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div></div>
+        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}">${escapeHtml(entryStatus.label)}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
@@ -14594,14 +14749,9 @@ ${isDealer
     updateScoreEntrySelectedSummary();
   }
 
-  function markScoreEntryPlayerComplete(player, fillBlank){
+  function markScoreEntryPlayerComplete(player){
     if(!scoreEntryModalState||!player)return;
-    const currentValue=scoreEntryModalState.values?.[player];
-    if(fillBlank&&(currentValue===undefined||currentValue===null||currentValue===''||currentValue==='-')){
-      scoreEntryModalState.values[player]='0';
-      const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
-      if(valueEl)valueEl.textContent='0';
-    }
+    if(BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]))return;
     scoreEntryModalState.acknowledged[player]=true;
     updateScoreEntryRowState(player);
   }
@@ -14612,15 +14762,39 @@ ${isDealer
       gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
-      let c=scoreEntryModalState.values[p]||'';
-      if(v==='backspace')c=c.slice(0,-1);
-      else if(v==='-')c=c.startsWith('-')?c.substring(1):'-'+c;
-      else if(c==='0'&&v!=='0'&&v!=='00')c=v;
-      else if(c.length<5)c+=v;
-      scoreEntryModalState.values[p]=c;
-      if(/^\d+$/.test(v))scoreEntryModalState.acknowledged[p]=true;
+      const next=BPGScorebook.applyScoreEntryKey({
+        value:scoreEntryModalState.values[p]??'',
+        acknowledged:!!scoreEntryModalState.acknowledged[p]
+      }, v);
+      scoreEntryModalState.values[p]=next.value;
+      scoreEntryModalState.acknowledged[p]=next.acknowledged;
       updateScoreEntryActiveValue();
     });
+  }
+
+  function confirmScoreEntryRow(ev, idx){
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    if(!scoreEntryModalState)return;
+    const player=scoreEntryModalState.players?.[idx];
+    if(!player)return;
+    const next=BPGScorebook.acceptScoreEntryValue({
+      value:scoreEntryModalState.values[player]??'',
+      acknowledged:!!scoreEntryModalState.acknowledged[player]
+    });
+    if(!next.accepted)return;
+    scoreEntryModalState.values[player]=next.value;
+    scoreEntryModalState.acknowledged[player]=true;
+    if(scoreEntryModalState.activePlayer!==player){
+      selectScoreEntryPlayer(idx);
+      updateScoreEntryProgress();
+      return;
+    }
+    updateScoreEntryRowState(player);
+    updateScoreEntryActiveValue();
+    updateScoreEntryProgress();
   }
 
   function scoreEntryNext(){
@@ -14630,7 +14804,7 @@ ${isDealer
       const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
       if(!order.length)return;
       const current=scoreEntryModalState.activePlayer||order[0];
-      markScoreEntryPlayerComplete(current,true);
+      markScoreEntryPlayerComplete(current);
       updateScoreEntryProgress();
       const currentIdx=order.indexOf(current);
       const next=order[((currentIdx>=0?currentIdx:0)+1)%order.length];
@@ -14643,13 +14817,13 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    if(isScoreEntryBidMode(mode)){
-      if(!currentGame.currentBids)currentGame.currentBids={};
-      players.forEach(p=>{currentGame.currentBids[p]=parseInt(values[p],10)||0;});
-    } else {
-      if(!currentGame.currentScoreDrafts)currentGame.currentScoreDrafts={};
-      players.forEach(p=>{currentGame.currentScoreDrafts[p]=parseInt(values[p],10)||0;});
-    }
+    const target=isScoreEntryBidMode(mode)
+      ? (currentGame.currentBids||(currentGame.currentBids={}))
+      : (currentGame.currentScoreDrafts||(currentGame.currentScoreDrafts={}));
+    players.forEach(p=>{
+      const parsed=BPGScorebook.parseEntryInteger(values[p]);
+      target[p]=parsed.ok?parsed.value:(values[p]??'');
+    });
   }
 
   function saveOpenScoreEntryModalDrafts(){
@@ -14678,52 +14852,41 @@ ${isDealer
     closeScoreEntryModalOnly();
   }
 
+  function rejectScoreEntries(result){
+    if(result&&result.message) alert(result.message);
+    return false;
+  }
+
   function validateScoreEntryModalSubmit(){
     if(!scoreEntryModalState||!currentGame)return false;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    const roundNumber=currentGame.currentRound;
     if(isScoreEntryBidMode(mode)){
-      if(currentGame.name==='Wizard'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`Wizard bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-      }
+      const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'bids',roundNumber,players,values});
+      if(!checked.ok) return rejectScoreEntries(checked);
       if(currentGame.name==='818'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-        const dealerInfo=get818DealerBidInfo(values, players);
-        if(dealerInfo?.applies){
-          const dealerBid=parseInt(values[dealerInfo.dealer],10)||0;
-          if(dealerBid===dealerInfo.forbidden){
-            alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
-            return false;
-          }
+        const dealerInfo=get818DealerBidInfo(checked.values, players);
+        if(dealerInfo?.applies&&checked.values[dealerInfo.dealer]===dealerInfo.forbidden){
+          alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
+          return false;
         }
       }
-      const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
+      const allZero=players.every(p=>checked.values[p]===0);
       return !allZero||confirm('Lock in all 0 bids?');
     }
     if(isScoreEntryTrickMode(mode)){
-      if(currentGame.name==='818'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
+      const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'tricks',roundNumber,players,values});
+      if(!checked.ok) return rejectScoreEntries(checked);
+      if(checked.sum!==checked.limit){
+        alert(`${currentGame.name} round ${roundNumber} must total ${checked.limit} tricks. This table totals ${checked.sum}.`);
+        return false;
       }
-      const total=players.reduce((s,p)=>s+(parseInt(values[p],10)||0),0);
-      const tricks=getRoundTrickCount(currentGame);
-      return total===tricks||confirm(`Total tricks (${total}) ≠ round tricks (${tricks}). Submit anyway?`);
+      return true;
     }
-    const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
+    const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players,values});
+    if(!checked.ok) return rejectScoreEntries(checked);
+    const allZero=players.every(p=>checked.values[p]===0);
     const label=currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?';
     return !allZero||confirm(label);
   }
@@ -14739,6 +14902,19 @@ ${isDealer
     } finally {
       gnPerfEnd(timer);
     }
+  }
+
+  function readLiveEntryRaw(player, draftMap){
+    const el=document.getElementById(`score-input-${player}`);
+    if(el) return el.value;
+    if(draftMap && Object.prototype.hasOwnProperty.call(draftMap, player)) return draftMap[player];
+    return '';
+  }
+
+  function readLiveEntryMap(players, draftMap){
+    const values={};
+    players.forEach(player=>{ values[player]=readLiveEntryRaw(player, draftMap); });
+    return values;
   }
 
   function submitRound(options){
@@ -14765,26 +14941,41 @@ ${isDealer
 
     if(currentGame.name==='Wizard'){
       if(currentGame.wizardPhase==='bidding'){
-        let totalBids=0,allZero=true;
         if(!currentGame.currentBids)currentGame.currentBids={};
-        gp.forEach(p=>{
-          const el=document.getElementById(`score-input-${p}`);
-          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
-          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'bids',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>currentGame.currentRound);
-        if(invalid){alert(`Wizard bids must be from 0 to ${currentGame.currentRound}. Check ${invalid}.`);isSubmitting=false;return;}
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalBids=checked.sum;
+        const allZero=gp.every(p=>checked.values[p]===0);
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.currentBids={...checked.values};
         currentGame.wizardPhase='scoring';
-        gnPerfAction('locked Wizard bids', `total ${totalBids}/${currentGame.currentRound}`);
-        addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
+        gnPerfAction('locked Wizard bids', `total ${totalBids}/${checked.limit}`);
+        addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${checked.limit}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
-        let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
-        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
-        if(totalActual!==currentGame.currentRound&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${currentGame.currentRound}). Submit anyway?`)){isSubmitting=false;return;}
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'tricks',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, drafts)
+        });
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalActual=checked.sum;
+        if(totalActual!==checked.limit){
+          alert(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          isSubmitting=false;
+          return;
+        }
+        const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
@@ -14807,34 +14998,47 @@ ${isDealer
     if(currentGame.name==='818'){
       const tricks=getRoundTrickCount(currentGame);
       if((currentGame.eight18Phase||'bidding')==='bidding'){
-        let totalBids=0,allZero=true;
         if(!currentGame.currentBids)currentGame.currentBids={};
-        gp.forEach(p=>{
-          const el=document.getElementById(`score-input-${p}`);
-          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
-          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'bids',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>tricks);
-        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
-        const dealerInfo=get818DealerBidInfo(currentGame.currentBids, gp);
-        if(dealerInfo?.applies&&currentGame.currentBids[dealerInfo.dealer]===dealerInfo.forbidden){
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalBids=checked.sum;
+        const allZero=gp.every(p=>checked.values[p]===0);
+        const dealerInfo=get818DealerBidInfo(checked.values, gp);
+        if(dealerInfo?.applies&&checked.values[dealerInfo.dealer]===dealerInfo.forbidden){
           alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
           isSubmitting=false;
           return;
         }
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.currentBids={...checked.values};
         currentGame.eight18Phase='scoring';
         gnPerfAction('locked 818 bids', `total ${totalBids}/${tricks}`);
         addAuditEntry(`R${currentGame.currentRound} 818 bids locked`, `Total: ${totalBids}/${tricks}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
-        let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
-        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
-        const invalid=gp.find(p=>actuals[p]<0||actuals[p]>tricks);
-        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
-        if(totalActual!==tricks&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${tricks}). Submit anyway?`)){isSubmitting=false;return;}
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'tricks',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, drafts)
+        });
+        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        const totalActual=checked.sum;
+        if(totalActual!==checked.limit){
+          alert(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          isSubmitting=false;
+          return;
+        }
+        const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=calculate818Score(bid,act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
@@ -14851,10 +15055,18 @@ ${isDealer
       }
     }
 
-    let allZero=true,scores={};
-    const drafts=ensureCurrentScoreDrafts();
-    gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
-    if(allZero&&!skipConfirm&&!confirm('Everyone scored 0? Submit?')){isSubmitting=false;return;}
+    const scoreDrafts=ensureCurrentScoreDrafts();
+    const checkedScores=BPGScorebook.validateEntries({
+      game:currentGame.name,
+      kind:'scores',
+      roundNumber:currentGame.currentRound,
+      players:gp,
+      values:readLiveEntryMap(gp, scoreDrafts)
+    });
+    if(!checkedScores.ok){alert(checkedScores.message);isSubmitting=false;return;}
+    const scores={...checkedScores.values};
+    const allZero=gp.every(p=>scores[p]===0);
+    if(allZero&&!skipConfirm&&!confirm(currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?')){isSubmitting=false;return;}
     const roundData = {round:currentGame.currentRound,scores};
     const celebration = detectRoundCelebration(currentGame, roundData);
     applyComebackAndNotify(roundData, gp);
@@ -14917,6 +15129,9 @@ ${isDealer
 
     if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
       currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
+    }
+    if(window.BPGScorebook&&typeof BPGScorebook.syncAssistedMatch==='function'){
+      BPGScorebook.syncAssistedMatch(currentGame);
     }
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
@@ -15143,6 +15358,8 @@ ${isDealer
     const worst=data.totals[sorted[sorted.length-1]];
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
     const alerts=silent?[]:analyzeRecords(data);
+    const existing=history.findIndex(h=>h.id===data.id);
+    if(existing>=0) history.splice(existing,1);
     history.unshift(data);
     markHistoryChanged();
     if(!silent) stashScorecardReceipt();
@@ -15295,7 +15512,8 @@ ${isDealer
   }
 
   /* ═══ NUMPAD ═══ */
-  let activeInputContext=null, activeInputId=null;
+  let activeInputContext=null, activeInputId=null, numpadOriginalValue=null, numpadEntryAcknowledged=false;
+  let roundCorrectionState=null;
   let _numpadCloseTimer=null;
 
   function containNumpadEvent(ev){
@@ -15355,6 +15573,274 @@ ${isDealer
     box.classList.remove('hidden');
   }
 
+  function setNumpadError(message){
+    const error=document.getElementById('numpad-error');
+    if(!error) return;
+    error.textContent=message||'';
+    error.classList.toggle('hidden', !message);
+  }
+
+  function prepareMatchForCorrection(match){
+    if(!match) return {hadMax:true};
+    const hadMax=Number.isFinite(match.maxRounds)&&match.maxRounds>0;
+    if(!hadMax){
+      const named=match.name?match:{name:match.game,originalRoster:match.originalRoster||[],currentRound:match.currentRound};
+      const max=getMaxRoundsForGame(named);
+      if(max) match.maxRounds=max;
+    }
+    const hadEnd=Number(match.endScore)>0;
+    if(!hadEnd && (match.name==='Beat the Heat'||match.game==='Beat the Heat')) match.endScore=66;
+    return {hadMax,hadEnd};
+  }
+
+  function restoreCorrectionMeta(match, meta, result){
+    if(!match||!meta||(result&&result.ok)) return;
+    if(!meta.hadMax) delete match.maxRounds;
+    if(!meta.hadEnd) delete match.endScore;
+  }
+
+  function syncSavedMatchFromGame(game){
+    if(!game||game.id==null) return;
+    const saved=history.find(h=>h.id===game.id);
+    if(!saved||saved===game) return;
+    saved.rounds=JSON.parse(JSON.stringify(game.rounds||[]));
+    saved.totals=JSON.parse(JSON.stringify(game.totals||{}));
+    saved.winners=[...(game.winners||[])];
+    saved.auditLog=JSON.parse(JSON.stringify(game.auditLog||[]));
+    saved.currentRound=game.currentRound;
+    saved.completed=game.completed===true;
+    saved.assistedMatch=game.assistedMatch===true;
+    saved.gameId=game.gameId||game.id;
+    saved.maxRounds=game.maxRounds;
+    markHistoryChanged();
+  }
+
+  function finalizeHistoryCorrection(match, result){
+    markHistoryChanged();
+    const reopened=!!(result.standing&&result.standing.reopened);
+    const blocked=reopened&&BPGScorebook.historyReopenWouldReplaceActive(currentGame, match);
+    if(reopened&&!blocked&&!currentGame){
+      closeModal('scorecard-modal');
+      resumeMatch(match.id,{force:true});
+      toast('Match is back on the table');
+      return;
+    }
+    if(blocked) toast('Corrected match saved. The game on the table stayed put.');
+    else if(reopened) toast('That saved match is under the line again');
+    else if(result.standing?.winnersChanged) toast('Standings updated');
+    saveData({ fullPersist: true, syncCold: true });
+    renderHistoryList();
+    if(typeof renderHallOfFame==='function') renderHallOfFame();
+    const card=document.getElementById('scorecard-modal');
+    if(card && !card.classList.contains('hidden')) openScorecard(match.id);
+  }
+
+  function openPastScoreCell(player, roundIndex){
+    if(!currentGame) return;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return;
+    if(isBidTrickGame(currentGame)){
+      if(activeInputId) closeNumpad({discard:true,render:false});
+      openRoundCorrection({source:'live', roundIndex, focusPlayer:player});
+      return;
+    }
+    openNumpad(player, roundIndex);
+  }
+
+  function openHistoryRoundCorrection(historyId, roundIndex){
+    openRoundCorrection({source:'history', historyId, roundIndex});
+  }
+
+  function correctionMatch(state){
+    if(!state) return null;
+    if(state.source==='history') return history.find(h=>h.id===state.historyId)||null;
+    return currentGame;
+  }
+
+  function openRoundCorrection(spec){
+    const source=spec?.source||'live';
+    const match=source==='history'?history.find(h=>h.id===spec.historyId):currentGame;
+    if(!match) return;
+    const round=match.rounds?.[spec.roundIndex];
+    const name=match.name||match.game;
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)||(name!=='Wizard'&&name!=='818')) return;
+    const players=BPGScorebook.historicalRoundParticipants(match, round);
+    if(!players.length) return;
+    const values={};
+    const acknowledged={};
+    players.forEach(player=>{
+      const actual=round.actuals?.[player];
+      values[player]=actual==null?'':String(actual);
+      acknowledged[player]=false;
+    });
+    roundCorrectionState={
+      source,
+      historyId:spec.historyId??null,
+      roundIndex:spec.roundIndex,
+      players,
+      values,
+      acknowledged,
+      activePlayer:spec.focusPlayer&&players.includes(spec.focusPlayer)?spec.focusPlayer:players[0],
+      limit:BPGScorebook.roundTrickLimit(name, round.round),
+      roundNumber:round.round,
+      gameName:name,
+      bids:{...(round.bids||{})},
+      error:''
+    };
+    renderRoundCorrection();
+    openModal('round-correction-modal');
+  }
+
+  function renderRoundCorrection(){
+    const state=roundCorrectionState;
+    if(!state) return;
+    const title=document.getElementById('round-correction-title');
+    const limit=document.getElementById('round-correction-limit');
+    const sumEl=document.getElementById('round-correction-sum');
+    const error=document.getElementById('round-correction-error');
+    const rows=document.getElementById('round-correction-rows');
+    if(title) title.textContent=`${state.gameName} · Round ${state.roundNumber}`;
+    if(limit) limit.textContent=`This round has ${state.limit} tricks.`;
+    const parsedSum=state.players.reduce((total,player)=>{
+      const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
+      return total+(parsed.ok?parsed.value:0);
+    },0);
+    if(sumEl) sumEl.textContent=`Logged ${parsedSum} of ${state.limit}`;
+    if(error) error.textContent=state.error||'';
+    if(!rows) return;
+    rows.innerHTML=state.players.map((player,index)=>{
+      const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
+      const bid=state.bids[player];
+      const score=parsed.ok?(state.gameName==='818'?BPGScorebook.eight18RoundScore(bid,parsed.value):BPGScorebook.wizardRoundScore(bid,parsed.value)):'—';
+      const badge=parsed.ok?(Number(bid)===parsed.value?'score-cell-hit':'score-cell-miss'):'';
+      return `<button type="button" class="round-correction-row${player===state.activePlayer?' is-active':''}" data-player="${escapeHtml(player)}" onclick="selectRoundCorrectionPlayer(${index})">
+        <span class="player-name-label">${escapeHtml(player)}</span>
+        <span>Bid ${bid}</span>
+        <span class="round-correction-actual">${escapeHtml(state.values[player]||'—')}</span>
+        <span class="round-correction-score ${badge}">${score}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function selectRoundCorrectionPlayer(index){
+    if(!roundCorrectionState) return;
+    const player=roundCorrectionState.players[index];
+    if(!player) return;
+    roundCorrectionState.activePlayer=player;
+    renderRoundCorrection();
+  }
+
+  function roundCorrectionKey(key){
+    const state=roundCorrectionState;
+    if(!state||!state.activePlayer) return;
+    const player=state.activePlayer;
+    const next=BPGScorebook.applyScoreEntryKey({
+      value:state.values[player]??'',
+      acknowledged:!!state.acknowledged[player]
+    }, key);
+    state.values[player]=next.value;
+    state.acknowledged[player]=next.acknowledged;
+    state.error='';
+    renderRoundCorrection();
+  }
+
+  function cancelRoundCorrection(){
+    if(!roundCorrectionState) return;
+    roundCorrectionState=null;
+    closeModal('round-correction-modal');
+  }
+
+  function saveRoundCorrection(){
+    const state=roundCorrectionState;
+    const match=correctionMatch(state);
+    if(!state||!match) return;
+    const meta=prepareMatchForCorrection(match);
+    const result=BPGScorebook.commitRoundCorrection(match,{
+      roundIndex:state.roundIndex,
+      actuals:{...state.values}
+    });
+    restoreCorrectionMeta(match, meta, result);
+    if(!result.ok){
+      state.error=result.message||'That round was not saved.';
+      renderRoundCorrection();
+      return;
+    }
+    roundCorrectionState=null;
+    closeModal('round-correction-modal');
+    if(!result.changed) return;
+    if(state.source==='history'){
+      finalizeHistoryCorrection(match, result);
+      return;
+    }
+    syncSavedMatchFromGame(match);
+    saveData({ fullPersist: true, syncCold: true });
+    scheduleRender();
+    if(result.standing?.reopened) toast('The match is back under the line');
+    else if(result.standing?.winnersChanged) toast('Standings updated');
+  }
+
+  function commitPastScoreFromInput(){
+    if(!activeInputContext||activeInputContext.roundIndex==='current'||!currentGame) return true;
+    if(!BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return true;
+    const el=document.getElementById(activeInputId);
+    if(!el) return true;
+    const player=activeInputContext.player;
+    const roundIndex=activeInputContext.roundIndex;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return true;
+    const parsed=BPGScorebook.parseEntryInteger(el.value);
+    if(parsed.ok && Number(round.scores?.[player])===parsed.value){
+      setNumpadError('');
+      return true;
+    }
+    const meta=prepareMatchForCorrection(currentGame);
+    const result=BPGScorebook.commitRoundCorrection(currentGame,{
+      roundIndex,
+      scores:{[player]:el.value}
+    });
+    restoreCorrectionMeta(currentGame, meta, result);
+    if(!result.ok){
+      setNumpadError(result.message||'That score was not saved.');
+      alert(result.message);
+      return false;
+    }
+    setNumpadError('');
+    if(result.changed){
+      if(window.BPGComeback) BPGComeback.syncComebackAfterScoreEdit(currentGame, currentGame.rounds[roundIndex], player);
+      recomputeGameTotals(currentGame);
+      syncSavedMatchFromGame(currentGame);
+      saveData({ fullPersist: true, syncCold: true });
+      if(result.standing?.reopened) toast('The match is back under the line');
+      else if(result.standing?.winnersChanged) toast('Standings updated');
+    }
+    return true;
+  }
+
+  function cancelPastNumpad(){
+    if(!(activeInputContext&&activeInputContext.roundIndex!=='current')) return;
+    if(activeInputId&&numpadOriginalValue!=null){
+      const el=document.getElementById(activeInputId);
+      if(el) el.value=numpadOriginalValue;
+    }
+    setNumpadError('');
+    numpadEntryAcknowledged=false;
+    closeNumpad({discard:true,render:false});
+  }
+
+  document.addEventListener('keydown', event=>{
+    if(event.key!=='Escape') return;
+    if(roundCorrectionState){
+      event.preventDefault();
+      cancelRoundCorrection();
+      return;
+    }
+    const pad=document.getElementById('custom-numpad');
+    if(activeInputContext&&activeInputContext.roundIndex!=='current'&&pad&&!pad.classList.contains('hidden')){
+      event.preventDefault();
+      cancelPastNumpad();
+    }
+  });
+
   function saveActiveInputToModel(){
     const timer=gnPerfStart('GN saveActiveInputToModel');
     try{
@@ -15362,6 +15848,7 @@ ${isDealer
       const el=document.getElementById(activeInputId); if(!el)return;
       let v=parseInt(el.value); if(isNaN(v))v=0;
         if(activeInputContext.roundIndex!=='current'){
+          if(currentGame&&BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return commitPastScoreFromInput();
           const round=currentGame?.rounds[activeInputContext.roundIndex];
           if(round){
             round.scores[activeInputContext.player]=v;
@@ -15387,16 +15874,26 @@ ${isDealer
       if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
       const isCurrentRound = roundIndex === 'current';
       const switchingCurrentScoreInput = activeInputContext?.roundIndex === 'current' && isCurrentRound;
-      if(activeInputId)saveActiveInputToModel();
+      if(activeInputId){
+        const saved=saveActiveInputToModel();
+        if(saved===false) return;
+      }
       if(!switchingCurrentScoreInput) flushPendingSave();
       activeInputContext={player,roundIndex};
       activeInputId=isCurrentRound?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
+      const pastScore=!isCurrentRound && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      numpadOriginalValue=pastScore?null:null;
+      numpadEntryAcknowledged=false;
       document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
       const el=document.getElementById(activeInputId);
       if(el){
         el.classList.add('score-cell-active');
         document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
+        if(pastScore) numpadOriginalValue=el.value;
       }
+      const cancel=document.getElementById('numpad-cancel');
+      if(cancel) cancel.classList.toggle('hidden', !pastScore);
+      setNumpadError('');
       updateNumpadContext(player,roundIndex);
       document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
       const np=document.getElementById('custom-numpad');
@@ -15412,6 +15909,14 @@ ${isDealer
       if(!activeInputId)return;
       gnPerfAction('numpad press', v);
       const el=document.getElementById(activeInputId); if(!el)return;
+      const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      if(pastScore){
+        const next=BPGScorebook.applyScoreEntryKey({value:el.value,acknowledged:!!numpadEntryAcknowledged}, v);
+        el.value=next.value;
+        numpadEntryAcknowledged=next.acknowledged;
+        setNumpadError('');
+        return;
+      }
       let c=el.value;
       if(v==='backspace')el.value=c.slice(0,-1);
       else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
@@ -15510,13 +16015,15 @@ ${isDealer
       if(!activeInputId)return;
       gnPerfAction('numpad Next');
       const el=document.getElementById(activeInputId);
-      if(el&&(el.value===''||el.value==='-'))el.value='0';
-      saveActiveInputToModel();
+      const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      if(!pastScore && el&&(el.value===''||el.value==='-'))el.value='0';
+      const saved=saveActiveInputToModel();
+      if(saved===false) return;
       // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
       // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
       const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
       const ci = seatOrder.indexOf(activeInputContext.player);
-      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
+      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad({discard:true});return;}
       const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
       openNumpad(np,'current');
       maybeScrollNumpadTarget(np);
@@ -15528,13 +16035,22 @@ ${isDealer
 
   function closeNumpad(options){
     const shouldRender = !options || options.render !== false;
+    const discard = !!(options && options.discard);
     const hadInput = !!activeInputContext;
     const shouldRefreshTotals = hadInput && activeInputContext.roundIndex !== 'current';
-    if(hadInput)gnPerfAction('numpad Done');
+    if(hadInput && !discard)gnPerfAction('numpad Done');
     if(hadInput)suppressSubmitAfterNumpad();
     if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
-    if(activeInputId)saveActiveInputToModel();
+    if(!discard && activeInputId){
+      const saved=saveActiveInputToModel();
+      if(saved===false) return;
+    }
     flushPendingSave();
+    numpadOriginalValue=null;
+    numpadEntryAcknowledged=false;
+    const cancel=document.getElementById('numpad-cancel');
+    if(cancel) cancel.classList.add('hidden');
+    setNumpadError('');
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
@@ -15544,6 +16060,10 @@ ${isDealer
       np.classList.add('hidden');
       if(currentGame&&shouldRender&&shouldRefreshTotals)scheduleRender();
     },300);
+  }
+
+  function jsAttrArg(value){
+    return JSON.stringify(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   }
 
   /* ═══ HISTORY LIST ═══ */
@@ -15562,12 +16082,12 @@ ${isDealer
         <div class="flex items-center justify-between mb-4 gap-3">
           <div class="min-w-0 flex-1">
             <h3 class="font-display text-2xl truncate">${cfg.emoji} ${h.game}</h3>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${BPGScorebook.isCompletedHistoryMatch(h)?'':' · <span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'}${BPGScorebook.isAssistedMatch(h)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}</div>
           </div>
           <div class="flex gap-2 flex-shrink-0">
-            <button onclick="openScorecard(${h.id})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
-            <button onclick="resumeMatch(${h.id})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">Resume</button>
-            <button onclick="deleteMatchRecord(${h.id})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
+            <button onclick="openScorecard(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
+            <button onclick="resumeMatch(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">${BPGScorebook.isCompletedHistoryMatch(h)?'Resume':'Resume Match'}</button>
+            <button onclick="deleteMatchRecord(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
           </div>
         </div>
         <div class="divide-y hairline">${rows}</div>
@@ -15589,14 +16109,15 @@ ${isDealer
   function openScorecard(id){
     const g=history.find(h=>h.id===id); if(!g)return;
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${g.game}`;
-    document.getElementById('modal-game-date').textContent=g.date;
+    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
     const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
-      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}</th>`;
+      const canCorrect=(g.game==='Wizard'||g.game==='818')&&!BPGScorebook.isSyntheticAdjustmentRound(r);
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}${canCorrect?` <button type="button" class="round-correct-btn font-extrabold uppercase tracking-wider" onclick="openHistoryRoundCorrection(${jsAttrArg(g.id)},${rIdx})">Correct</button>`:''}</th>`;
     });
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
@@ -15609,7 +16130,7 @@ ${isDealer
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=scoringExtraMarkup(g.rounds, rIdx, r, p);
-        const shown=r.scores[p]!==undefined?r.scores[p]:'';
+        const shown=shownRoundScore(r.scores, p);
         body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
@@ -15629,6 +16150,7 @@ ${isDealer
     }
     const h2h = {};
     history.forEach(m => {
+      if(!BPGScorebook.isCompletedHistoryMatch(m)) return;
       const cfg = configs[m.game]; if(!cfg || !m.totals) return;
       const playersInMatch = getRecordedPlayers(m);
       playersInMatch.forEach(pa => {
@@ -15678,8 +16200,10 @@ ${isDealer
   function _personalBestsForPlayer(name){
     const bests = {};
     history.forEach(h => {
+      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
-      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]));
+      if(BPGScorebook.isAssistedMatch(h)) return;
+      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
       if(!hasLegit && h.rounds) return;
       const s = h.totals[name];
       if(!bests[h.game]){
@@ -15723,12 +16247,17 @@ ${isDealer
     };
     let stats={};
     history.forEach(h=>{
+      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
       const playersInMatch=getRecordedPlayers(h);
       const sorted=sortPlayersByTotal(playersInMatch, h.totals, cfg);
       if(!sorted.length)return;
       const lastScore=h.totals[sorted[sorted.length-1]];
       const lastPlayers=sorted.filter(p=>h.totals[p]===lastScore);
+      const assisted=BPGScorebook.isAssistedMatch(h);
+      if(!r._coverage) r._coverage={};
+      if(!r._coverage[h.game]) r._coverage[h.game]={assisted:0,unassisted:0};
+      r._coverage[h.game][assisted?'assisted':'unassisted']++;
 
       playersInMatch.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
@@ -15740,8 +16269,8 @@ ${isDealer
       // Per-match totals: only if player has at least one LEGIT (non-joinBonus) round
       playersInMatch.forEach(p=>{
         const score=h.totals[p];
-        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]));
-        if(!hasLegit) return;
+        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
+        if(!hasLegit || assisted) return;
         if(isHighScoreGame(h.game)){
           if(score>r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
           if(score<r[h.game].worstScore){r[h.game].worstScore=score;r[h.game].worstPlayer=p;}
@@ -15766,8 +16295,10 @@ ${isDealer
         let ms={};
         playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0});
         h.rounds.forEach(round=>{
-          if(!round.scores)return;
-          Object.entries(round.scores).forEach(([p,score])=>{
+          if(!round.scores || BPGScorebook.isSyntheticAdjustmentRound(round))return;
+          Object.entries(round.scores).forEach(([p,rawScore])=>{
+            const score=BPGScorebook.historyScoreOrNull(rawScore);
+            if(score==null)return;
             if(!playersInMatch.includes(p))return;
             if(round.joinBonus?.[p])return; // exclude join-bonus scores
             if(!ms[p])ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0};
@@ -15783,12 +16314,16 @@ ${isDealer
             if(h.game==='Wizard'){
               if(score>r.Wizard.bestRound){r.Wizard.bestRound=score;r.Wizard.bestRoundPlayer=p;}
               if(score<r.Wizard.worstRound){r.Wizard.worstRound=score;r.Wizard.worstRoundPlayer=p;}
-              if(score>0)ms[p].exacts++; else ms[p].busted++;
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(bidResult==='exact')ms[p].exacts++;
+              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='818'){
               if(score>r['818'].bestRound){r['818'].bestRound=score;r['818'].bestRoundPlayer=p;}
               if(score<r['818'].worstRound){r['818'].worstRound=score;r['818'].worstRoundPlayer=p;}
-              if(is818ExactRound(round,p,score))ms[p].exacts++; else ms[p].busted++;
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(bidResult==='exact')ms[p].exacts++;
+              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='Flip 7 Vengeance'){
               if(score>r['Flip 7 Vengeance'].bestRound){r['Flip 7 Vengeance'].bestRound=score;r['Flip 7 Vengeance'].bestRoundPlayer=p;}
@@ -15839,7 +16374,7 @@ ${isDealer
     } else {
       _matchAllTimeRecordsSnap = null;
     }
-    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
+    const completed = history.filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
     const chrono = completed.slice().sort((a,b)=>(a.id||0)-(b.id||0));
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
     const players = {};
@@ -15922,6 +16457,10 @@ ${isDealer
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
       const winners = (h.winners||[]).filter(p=>sorted.includes(p));
+      const assisted = BPGScorebook.isAssistedMatch(h);
+      if(!games._coverage) games._coverage={};
+      if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
+      games._coverage[h.game][assisted?'assisted':'unassisted']++;
       sorted.forEach((p,idx)=>{
         const ps = ensurePlayer(p);
         const won = winners.includes(p), last = lastPlayers.includes(p), pos = idx+1;
@@ -15940,9 +16479,11 @@ ${isDealer
         update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
         bg.games++; bg.wins += won?1:0; bg.posSum += pos;
-        const scoreEntry = entry(p,h.totals[p],h);
-        if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
-        if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+        if(!assisted){
+          const scoreEntry = entry(p,h.totals[p],h);
+          if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
+          if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+        }
       });
 
       for(let i=0;i<sorted.length;i++){
@@ -15984,8 +16525,8 @@ ${isDealer
       const gameRecords = games[h.game];
       if(gameRecords){
         sorted.forEach(p=>{
-          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p]);
-          if(!hasLegit) return;
+          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p] && !BPGScorebook.isSyntheticAdjustmentRound(r));
+          if(!hasLegit || assisted) return;
           const finalEntry = entry(p,h.totals[p],h);
           if(cfg.winLow){
             update(gameRecords,'bestGame',finalEntry,betterLow);
@@ -16039,11 +16580,14 @@ ${isDealer
       const scoringRounds = h.rounds.filter(r=>!r.hailMaryBonus);
       const finalScoringRound = scoringRounds[scoringRounds.length-1] || null;
       h.rounds.forEach(r=>{
-        Object.entries(r.scores||{}).forEach(([p,score])=>{
+        if(BPGScorebook.isSyntheticAdjustmentRound(r)) return;
+        Object.entries(r.scores||{}).forEach(([p,rawScore])=>{
+          const score=BPGScorebook.historyScoreOrNull(rawScore);
+          if(score==null)return;
           if(!perMatch[p] || r.joinBonus?.[p]) return;
           perMatch[p].roundScores.push(score);
           if(h.game==='Five Crowns'){
-            if(score!==0) update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round}),betterLow);
+            update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round,label:`R${r.round}`}),betterLow);
             update(games["Five Crowns"],'worstRound',entry(p,score,h,{round:r.round}),betterHigh);
             if(score===0) perMatch[p].zeros++;
           }
@@ -16056,10 +16600,11 @@ ${isDealer
             update(games['818'],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
             update(games['818'],'worstRound',entry(p,score,h,{round:r.round}),betterLow);
             const bid = r.bids?.[p], actual = r.actuals?.[p];
-            perMatch[p].eight18BidTotal++;
-            if(is818ExactRound(r,p,score)) perMatch[p].exacts++;
-            else perMatch[p].busted++;
-            if(bid!==undefined && actual!==undefined){
+            const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+            if(bidResult==='exact') perMatch[p].exacts++;
+            else if(bidResult==='miss') perMatch[p].busted++;
+            if(bidResult) perMatch[p].eight18BidTotal++;
+            if(bidResult&&bid!==undefined&&actual!==undefined){
               const miss=Math.abs(Number(actual)-Number(bid));
               if(miss>0) update(games['818'],'biggestMiss',entry(p,miss,h,{round:r.round,label:`Bid ${bid}, took ${actual}`}),betterHigh);
               update(games['818'],'mostTricksRound',entry(p,actual,h,{round:r.round,label:`${actual} tricks`}),betterHigh);
@@ -16072,11 +16617,12 @@ ${isDealer
               update(games.Wizard,'biggestFinalRoundSwing',entry(p,score,h,{round:r.round,label:`${score >= 0 ? '+' : ''}${score} in final round`}),betterHigh);
             }
             const bid = r.bids?.[p], actual = r.actuals?.[p];
-            if(bid!==undefined && actual!==undefined){
+            const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+            if(bidResult){
               if(!wizardBidStats[p]) wizardBidStats[p]={exact:0,total:0,busted:0};
               wizardBidStats[p].total++;
               perMatch[p].wizardBidTotal++;
-              if(bid===actual){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
+              if(bidResult==='exact'){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
               else { wizardBidStats[p].busted++; perMatch[p].busted++; }
               if(Number(bid)===0&&Number(actual)===0) perMatch[p].zeroBidsHit++;
               if(actual<bid) update(games.Wizard,'biggestOverbid',entry(p,bid-actual,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
@@ -16113,16 +16659,18 @@ ${isDealer
             const v = variance(m.roundScores);
             update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Variance ${v.toFixed(1)}`}),betterLow);
           }
-          if(m.roundScores.length){
+          if(!assisted && m.roundScores.length){
             const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
             const avg=total/m.roundScores.length;
             update(games["Five Crowns"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} avg · ${total} over ${m.roundScores.length} hands`}),betterLow);
           }
         }
         if(h.game==='Beat the Heat'&&m.roundScores.length){
-          const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
-          const avg=total/m.roundScores.length;
-          update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
+          if(!assisted){
+            const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
+            const avg=total/m.roundScores.length;
+            update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
+          }
           if(m.zeros>0) update(games["Beat the Heat"],'mostIceRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero-heat rounds`}),betterHigh);
         }
         if(h.game==='818'){
@@ -16231,12 +16779,24 @@ ${isDealer
       <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
       <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
     </div>`;
-    const recordCard = (title,r,pos=true) => {
-      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-bold mt-2" style="color:var(--muted);">No qualifying history</div></div>`;
+    const recordCard = (title,r,pos=true,note='',emptyText='No qualifying history') => {
+      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
+      const roundBit=Number.isFinite(r?.round)?` · R${r.round}`:'';
+      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="font-bold mt-2" style="color:var(--muted);">${emptyText}</div></div>`;
       return `<div class="surface p-5 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.label&&Number.isFinite(r.round)?'':roundBit}${r.date?` · ${r.date}`:''}</div></div></div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${Number.isFinite(r.value)?(Number.isInteger(r.value)?r.value:r.value.toFixed(1)):(r.value??'—')}</div>
       </div>`;
+    };
+    const UNASSISTED='Unassisted matches only';
+    const scoreRecord=(gameName,record)=>{
+      const row=data.games._coverage?.[gameName];
+      if(row && row.assisted>0 && row.unassisted===0) return {record:null, note:UNASSISTED, empty:'No unassisted matches yet'};
+      return {record, note:UNASSISTED, empty:'No qualifying history'};
+    };
+    const unassistedCard=(gameName,title,record,pos)=> {
+      const shown=scoreRecord(gameName,record);
+      return recordCard(title, shown.record, pos, shown.note, shown.empty);
     };
     const section = (id,title,body) => `<section id="${id}" class="space-y-4"><h2 class="font-display text-3xl border-b-2 hairline pb-3">${title}</h2>${body}</section>`;
     const gameSection = (name,items) => `<div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">${configs[name]?.emoji||''} ${name}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${items.join('')}</div></div>`;
@@ -16257,26 +16817,26 @@ ${isDealer
     </div>`;
 
     const wizardBestGameCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
-      recordCard(`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
+      unassistedCard('Wizard',`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
     );
     const wizardExactCountCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
       recordCard(`Most Exact Bids · ${count}P`,data.games.Wizard.mostExactByPlayerCount[count],true)
     );
     const perGameHtml = [
       gameSection('Five Crowns',[
-        recordCard('Best Game Ever',data.games["Five Crowns"].bestGame,true),
-        recordCard('Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
+        unassistedCard('Five Crowns','Best Game Ever',data.games["Five Crowns"].bestGame,true),
+        unassistedCard('Five Crowns','Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
         recordCard('Best Single Round Ever',data.games["Five Crowns"].bestRound,true),
         recordCard('Crash and Burn: Worst Round',data.games["Five Crowns"].worstRound,false),
         recordCard('Most Perfect Rounds In One Game',data.games["Five Crowns"].mostPerfectRounds,true),
-        recordCard('Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
+        unassistedCard('Five Crowns','Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
         recordCard('Most Consistent Game',data.games["Five Crowns"].mostConsistent,true),
         recordCard('Closest Margin Of Victory',data.games["Five Crowns"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Five Crowns"].mostLopsided,true)
       ]),
       gameSection('Wizard',[
         ...wizardBestGameCards,
-        recordCard('Worst Game Ever',data.games.Wizard.worstGame,false),
+        unassistedCard('Wizard','Worst Game Ever',data.games.Wizard.worstGame,false),
         recordCard('Best Single Round',data.games.Wizard.bestRound,true),
         recordCard('Worst Single Round',data.games.Wizard.worstRound,false),
         recordCard('Best Career Exact Bid Percentage',data.games.Wizard.bestExactBidPct,true),
@@ -16290,8 +16850,8 @@ ${isDealer
         recordCard('Most Tricks Won In One Round',data.games.Wizard.mostTricksRound,true)
       ]),
       gameSection('818',[
-        recordCard('Best Game Ever',data.games['818'].bestGame,true),
-        recordCard('Worst Game Ever',data.games['818'].worstGame,false),
+        unassistedCard('818','Best Game Ever',data.games['818'].bestGame,true),
+        unassistedCard('818','Worst Game Ever',data.games['818'].worstGame,false),
         recordCard('Best Single Round',data.games['818'].bestRound,true),
         recordCard('Worst Single Round',data.games['818'].worstRound,false),
         recordCard('Most Exact Bids In One Game',data.games['818'].mostExactSingleGame,true),
@@ -16302,28 +16862,28 @@ ${isDealer
         recordCard('Closest Margin Of Victory',data.games['818'].closestMargin,true)
       ]),
       gameSection('Flip 7 Vengeance',[
-        recordCard('Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
-        recordCard('Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
+        unassistedCard('Flip 7 Vengeance','Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
+        unassistedCard('Flip 7 Vengeance','Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
         recordCard('Best Single Round',data.games["Flip 7 Vengeance"].bestRound,true),
         recordCard('Worst Single Round',data.games["Flip 7 Vengeance"].worstRound,false),
         recordCard('Most Zero Rounds In One Game',data.games["Flip 7 Vengeance"].mostZeroRounds,false),
         recordCard('Closest Margin Of Victory',data.games["Flip 7 Vengeance"].closestMargin,true)
       ]),
       gameSection('Beat the Heat',[
-        recordCard('Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
-        recordCard('Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
+        unassistedCard('Beat the Heat','Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
+        unassistedCard('Beat the Heat','Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
         recordCard('Coolest Single Round',data.games["Beat the Heat"].bestRound,true),
         recordCard('Hottest Single Round',data.games["Beat the Heat"].worstRound,false),
         recordCard('Most Ice-Cold Rounds',data.games["Beat the Heat"].mostIceRounds,true),
-        recordCard('Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
+        unassistedCard('Beat the Heat','Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
         recordCard('Closest Finish To 66',data.games["Beat the Heat"].closestFinish,true),
         recordCard('Closest Margin Of Victory',data.games["Beat the Heat"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Beat the Heat"].mostLopsided,false),
         recordCard('Longest Match',data.games["Beat the Heat"].longestMatch,true)
       ]),
       gameSection('Rook',[
-        recordCard('Best Game Ever',data.games.Rook.bestGame,true),
-        recordCard('Worst Game Ever',data.games.Rook.worstGame,false),
+        unassistedCard('Rook','Best Game Ever',data.games.Rook.bestGame,true),
+        unassistedCard('Rook','Worst Game Ever',data.games.Rook.worstGame,false),
         recordCard('Most Successful Bids In One Game',data.games.Rook.mostSuccessfulBids,true),
         recordCard('Highest Bid Ever Made',data.games.Rook.highestBidMade,true),
         recordCard('Biggest Set Ever',data.games.Rook.biggestSet,false),
@@ -16401,63 +16961,75 @@ ${isDealer
         <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-shame" style="color:var(--rose);">Hall of Shame</h2>
         <div id="shame-content" class="space-y-3"></div>
       </div>`;
-    const fmt=(ttl,val,player,pos,sfx='')=>{
+    const UNASSISTED='Unassisted matches only';
+    const fameScore=(gameName,value,player)=>{
+      const row=r._coverage?.[gameName];
+      if(row && row.assisted>0 && row.unassisted===0) return {value:NaN, player:'No unassisted matches yet'};
+      return {value, player};
+    };
+    const fmt=(ttl,val,player,pos,sfx='',note='')=>{
       const cleanVal=Number.isFinite(val)&&!Number.isInteger(val)?val.toFixed(1):val;
-      const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':cleanVal+sfx;
+      const dv=(!Number.isFinite(val)||(val===0&&player==='-'))?'—':cleanVal+sfx;
       const col=pos?'var(--emerald)':'var(--rose)';
+      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
       return `<div class="surface p-5 flex justify-between items-center">
         <div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-1" style="color:var(--muted);">${ttl}</div>
+          ${noteHtml}
           <div class="player-name-label text-xl">${player}</div>
         </div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${col};">${dv}</div>
       </div>`;
     };
+    const fameLine=(title,gameName,value,player,pos)=>{
+      const shown=fameScore(gameName,value,player);
+      return fmt(title,shown.value,shown.player,pos,'',UNASSISTED);
+    };
     const wizardScoreRows = WIZARD_RECORD_PLAYER_COUNTS.map(count=>{
       const bucket=r.Wizard.bestScoreByPlayerCount?.[count];
-      return fmt(`Wizard: ${count}P High Score`,bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
+      return fameLine(`Wizard: ${count}P High Score`,'Wizard',bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
     });
     document.getElementById('fame-content').innerHTML=[
       fmt('Most Matches',r.Overall.mostGames,r.Overall.mostGamesPlayer,true),
       fmt('Best Win Rate (Min 3)',r.Overall.bestWinRate,r.Overall.bestWinRatePlayer,true,'%'),
-      fmt('Five Crowns: Best Score',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
+      fameLine('Five Crowns: Best Score','Five Crowns',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
       fmt('Five Crowns: Perfect Hands',r['Five Crowns'].mostZeros,r['Five Crowns'].mostZerosPlayer,true),
-      fmt('Five Crowns: Cleanest Game',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
+      fameLine('Five Crowns: Cleanest Game','Five Crowns',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
       ...wizardScoreRows,
       fmt('Wizard: Best Bid Round',r.Wizard.bestRound,r.Wizard.bestRoundPlayer,true),
       fmt('Wizard: The Clairvoyant',r.Wizard.mostExactBids,r.Wizard.mostExactBidsPlayer,true),
       fmt('Wizard: Zero-Bid Specialist',deepRecords.games.Wizard.mostZeroBidsHit?.value??0,deepRecords.games.Wizard.mostZeroBidsHit?.player||'-',true),
-      fmt('818: Best Score',r['818'].bestScore,r['818'].bestPlayer,true),
+      fameLine('818: Best Score','818',r['818'].bestScore,r['818'].bestPlayer,true),
       fmt('818: Best Bid Round',r['818'].bestRound,r['818'].bestRoundPlayer,true),
       fmt('818: Exact Bids',r['818'].mostExactBids,r['818'].mostExactBidsPlayer,true),
-      fmt('Flip 7: Best Score',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
+      fameLine('Flip 7: Best Score','Flip 7 Vengeance',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
       fmt('Flip 7: High Roller',r['Flip 7 Vengeance'].bestRound,r['Flip 7 Vengeance'].bestRoundPlayer,true),
-      fmt('Beat the Heat: Coolest Score',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
+      fameLine('Beat the Heat: Coolest Score','Beat the Heat',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
       fmt('Beat the Heat: Ice Rounds',r['Beat the Heat'].mostZeros,r['Beat the Heat'].mostZerosPlayer,true),
-      fmt('Beat the Heat: Cleanest Game',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
+      fameLine('Beat the Heat: Cleanest Game','Beat the Heat',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
       fmt('Beat the Heat: Closest To 66',deepRecords.games['Beat the Heat'].closestFinish?.value??Infinity,deepRecords.games['Beat the Heat'].closestFinish?.player||'-',true),
       fmt('Comeback Extra: Most In One Game',r.Overall.mostComebackExtras,r.Overall.mostComebackExtrasPlayer,true),
       fmt('Comeback Extra: Biggest Help',r.Overall.biggestComebackExtra,r.Overall.biggestComebackExtraPlayer,true),
-      fmt('Rook: Best Score',r.Rook.bestScore,r.Rook.bestPlayer,true),
+      fameLine('Rook: Best Score','Rook',r.Rook.bestScore,r.Rook.bestPlayer,true),
       fmt('Rook: Most Bids Won',r.Rook.mostBids,r.Rook.mostBidsPlayer,true),
     ].join('');
     document.getElementById('shame-content').innerHTML=[
       fmt('Bronze Medal (Dead Lasts)',r.Overall.mostLastPlace,r.Overall.mostLastPlacePlayer,false),
-      fmt('Five Crowns: Worst Score',r['Five Crowns'].worstScore,r['Five Crowns'].worstPlayer,false),
+      fameLine('Five Crowns: Worst Score','Five Crowns',r['Five Crowns'].worstScore,r['Five Crowns'].worstPlayer,false),
       fmt('Five Crowns: Massive Penalty',r['Five Crowns'].worstRound,r['Five Crowns'].worstRoundPlayer,false),
-      fmt('Wizard: Catastrophic Failure',r.Wizard.worstScore,r.Wizard.worstPlayer,false),
+      fameLine('Wizard: Catastrophic Failure','Wizard',r.Wizard.worstScore,r.Wizard.worstPlayer,false),
       fmt('Wizard: Worst Busted Bid',r.Wizard.worstRound,r.Wizard.worstRoundPlayer,false),
       fmt('Wizard: Blind Seer',r.Wizard.mostBustedBids,r.Wizard.mostBustedBidsPlayer,false),
-      fmt('818: Worst Score',r['818'].worstScore,r['818'].worstPlayer,false),
+      fameLine('818: Worst Score','818',r['818'].worstScore,r['818'].worstPlayer,false),
       fmt('818: Worst Bid Round',r['818'].worstRound,r['818'].worstRoundPlayer,false),
       fmt('818: Most Missed Bids',r['818'].mostMissedBids,r['818'].mostMissedBidsPlayer,false),
-      fmt('Flip 7: Bottom of Barrel',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
+      fameLine('Flip 7: Bottom of Barrel','Flip 7 Vengeance',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
       fmt('Flip 7: Coldest Round',r['Flip 7 Vengeance'].worstRound,r['Flip 7 Vengeance'].worstRoundPlayer,false),
       fmt('Flip 7: Most Zero Rounds',deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.value??0,deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.player||'-',false),
-      fmt('Beat the Heat: Hottest Score',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
+      fameLine('Beat the Heat: Hottest Score','Beat the Heat',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
       fmt('Beat the Heat: Hottest Round',r['Beat the Heat'].worstRound,r['Beat the Heat'].worstRoundPlayer,false),
       fmt('Beat the Heat: Most Lopsided',deepRecords.games['Beat the Heat'].mostLopsided?.value??0,deepRecords.games['Beat the Heat'].mostLopsided?.player||'-',false),
-      fmt('Rook: Worst Score',r.Rook.worstScore,r.Rook.worstPlayer,false),
+      fameLine('Rook: Worst Score','Rook',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
     ].join('');
   }
@@ -16553,6 +17125,21 @@ ${isDealer
     };
   }
 
+  function backfillStableGameIds(){
+    if(!window.BPGScorebook||typeof BPGScorebook.ensureGameId!=='function')return;
+    let changed=false;
+    const stamp=game=>{
+      if(!game||typeof game!=='object')return;
+      const hadGameId=game.gameId!=null&&game.gameId!=='';
+      const hadId=game.id!=null&&game.id!=='';
+      BPGScorebook.ensureGameId(game);
+      if(!hadGameId||!hadId)changed=true;
+    };
+    stamp(currentGame);
+    (history||[]).forEach(stamp);
+    if(changed) _persistGamenightState({fullPersist:true, syncCold:true});
+  }
+
   /* ═══ BOOT ═══ */
   window.onload=async function(){
     gnPerfInit();
@@ -16567,6 +17154,7 @@ ${isDealer
     }
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+    backfillStableGameIds();
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');
