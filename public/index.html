@@ -14560,6 +14560,27 @@ ${isDealer
     }
   }
 
+  function scrollScoreEntryActiveIntoView(){
+    if(!GN_SLICE2_TV||!scoreEntryModalState)return;
+    const scroller=document.getElementById('score-entry-rows');
+    const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
+    if(!scroller||!row)return;
+    const pad=12;
+    const rowBox=row.getBoundingClientRect();
+    const lane=scroller.getBoundingClientRect();
+    const top=rowBox.top-lane.top-pad+scroller.scrollTop;
+    const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    scroller.scrollTop=Math.max(0,Math.min(top,max));
+    const nextLane=scroller.getBoundingClientRect();
+    const stub=[...scroller.querySelectorAll('.score-entry-row')].find((el)=>{
+      const box=el.getBoundingClientRect();
+      return box.bottom>nextLane.top+2 && box.top<nextLane.top-1;
+    });
+    if(stub && stub!==row){
+      scroller.scrollTop+=Math.ceil(stub.getBoundingClientRect().bottom-nextLane.top);
+    }
+  }
+
   function openScoreEntryModal(ev){
     const timer=gnPerfStart('GN score modal open');
     try{
@@ -14598,10 +14619,7 @@ ${isDealer
     requestAnimationFrame(()=>{
       fitScoreEntryModalLayout();
       modal.classList.remove('opacity-0');
-      if(GN_SLICE2_TV){
-        document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`)
-          ?.scrollIntoView({block:'nearest',inline:'nearest'});
-      }
+      requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
     });
     } finally {
       gnPerfEnd(timer);
@@ -14697,12 +14715,7 @@ ${isDealer
     updateScoreEntryRowState(prev);
     updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
-    if(GN_SLICE2_TV){
-      requestAnimationFrame(()=>{
-        document.getElementById(`score-entry-row-${rookElementId(next)}`)
-          ?.scrollIntoView({block:'nearest',inline:'nearest'});
-      });
-    }
+    requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
   }
 
   function updateScoreEntryActiveValue(){
