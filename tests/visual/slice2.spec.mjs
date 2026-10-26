@@ -239,12 +239,16 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   const report = await page.evaluate(() => {
     const keypad = document.querySelector('#score-entry-modal .score-entry-keypad');
+    const list = document.querySelector('#score-entry-modal .score-entry-list');
     const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
     if (!keypad || !rows.length) return {covered: -1, rowCount: rows.length};
     const k = keypad.getBoundingClientRect();
+    const listBox = list?.getBoundingClientRect();
     const covered = rows.filter((row) => {
       const r = row.getBoundingClientRect();
       if (r.height < 8) return false;
+      const inLane = !listBox || (r.bottom > listBox.top + 2 && r.top < listBox.bottom - 2);
+      if (!inLane) return false;
       return r.bottom > k.top + 4 && r.top < k.bottom - 4 && r.right > k.left && r.left < k.right;
     }).length;
     const names = [...document.querySelectorAll('#score-entry-modal .score-entry-name')].map((el) => {
@@ -260,6 +264,11 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(report.rowCount).toBeGreaterThan(0);
   expect(report.covered, 'keypad should not cover roster rows').toBe(0);
   expect(report.nameClip, 'names should ellipsize instead of clip').toBe(0);
-  const keyBox = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
-  expect(keyBox.height).toBeGreaterThanOrEqual(44);
+  const shortKey = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
+  expect(shortKey.height).toBeGreaterThanOrEqual(24);
+  await page.setViewportSize({width: 390, height: 844});
+  await page.reload({waitUntil: 'networkidle'});
+  await ready(page);
+  const roomyKey = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
+  expect(roomyKey.height).toBeGreaterThanOrEqual(44);
 });

@@ -1285,3 +1285,27 @@ html.slice2-tv button.scoreboard-rank-badge {
     padding-bottom: 1.25rem;
   }
 }
+
+@media (max-width: 760px) and (max-height: 700px) {
+  html.slice2-tv #score-entry-modal .score-entry-selected-card {
+    display: none;
+  }
+
+  html.slice2-tv #score-entry-game {
+    font-size: 1.7rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
+    padding-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-layout {
+    padding-block: 0.35rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-key,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
+    min-height: 40px !important;
+  }
+}
