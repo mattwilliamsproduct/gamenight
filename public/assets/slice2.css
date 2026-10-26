@@ -1657,6 +1657,14 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
     min-width: 0;
   }
 
+  html.slice2-tv body.active-match-view #rook-round-panel {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: min(62dvh, 100%);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   html.slice2-tv .rook-command-center {
     padding: 0.9rem !important;
   }
@@ -1673,6 +1681,8 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
   }
 
   html.slice2-tv #rook-call-modal .grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.3rem;
   }
 
@@ -1682,9 +1692,26 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
   }
 }
 
+@media (min-width: 1200px) {
+  html.slice2-tv body.active-match-view #rook-round-panel {
+    overflow: visible;
+    max-height: none;
+  }
+
+  html.slice2-tv #rook-call-modal .surface-raised {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 420px) and (min-height: 800px) {
   html.slice2-tv #score-entry-modal .score-entry-list {
-    min-height: 10.75rem;
+    min-height: 13.5rem;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-rows,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+    min-height: 11.25rem;
   }
 
   html.slice2-tv #score-entry-modal #score-entry-game {

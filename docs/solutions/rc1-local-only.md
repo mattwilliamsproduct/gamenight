@@ -8,6 +8,9 @@ Matt’s release is this browser on this device. Same draft. Cloud stays parked.
 - `api/sync.js` and Redis `gamenight:backup:v1` stay shipped and untouched. No client path GETs, PUTs, or deletes that key.
 - Settings and Records say scores are saved in this browser on this device. Backup / Restore are the copy path. Restore copy matches `mergeBackup`, including that a file’s live match replaces the table.
 - The save chip says "Saved on this device".
+- Entry and Restore errors use `#score-entry-error` / `#backup-inline-msg`. Past-cell errors stay on `#numpad-error`. Do not put those back on `alert()`.
+- Retired seats still count in display via `getDisplayPlayers` plus a Retired badge. Win / HOF math still uses `getRecordedPlayers`.
+- The Rook contract editor at phone width scrolls inside `#rook-round-panel` so the CTA is not clipped by the locked scorecard shell.
 
 ## What not to repeat
 

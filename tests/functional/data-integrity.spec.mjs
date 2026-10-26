@@ -195,7 +195,6 @@ test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
 });
 
 test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})=>{
-  const dialogs=armDialogs(page);
   const game={
     id:2002,
     name:'Wizard',
@@ -224,9 +223,8 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   await (await entryKey(page,'3')).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('3');
   await page.locator('#score-entry-primary-btn').click();
-  await expect.poll(()=>dialogs.length).toBe(1);
-  expect(dialogs[0].type).toBe('alert');
-  expect(dialogs[0].message).toBe('Wizard tricks must be from 0 to 2. Check Alice, Bob.');
+  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
+  await expect(page.locator('#score-entry-error')).toHaveText('Wizard tricks must be from 0 to 2. Check Alice, Bob.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.history).toBe(before.history);
@@ -263,15 +261,9 @@ test('P0-02 a blank trick counts as 0 and then the round total is checked', asyn
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
   await expect(page.locator('#score-entry-status-Alice')).toHaveText('Blank');
   await expect(page.locator('#score-entry-status-Bob')).toContainText('Suggested: 1');
-  const short=page.waitForEvent('dialog');
-  await Promise.all([
-    short.then(async dialog=>{
-      expect(dialog.type()).toBe('alert');
-      expect(dialog.message()).toBe('Wizard round 2 must total 2 tricks. This table totals 1.');
-      await dialog.accept();
-    }),
-    page.locator('#score-entry-primary-btn').click()
-  ]);
+  await page.locator('#score-entry-primary-btn').click();
+  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
+  await expect(page.locator('#score-entry-error')).toHaveText('Wizard round 2 must total 2 tricks. This table totals 1.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
@@ -285,7 +277,6 @@ test('P0-02 a blank trick counts as 0 and then the round total is checked', asyn
 });
 
 test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
-  const dialogs=armDialogs(page);
   await installMatch(page,{
     id:2018,
     name:'818',
@@ -311,8 +302,8 @@ test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
   await page.locator('#score-entry-row-Bob .score-entry-row-status').click();
   await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
   await page.locator('#score-entry-primary-btn').click();
-  await expect.poll(()=>dialogs.length).toBe(1);
-  expect(dialogs[0].message).toBe('818 tricks must be from 0 to 1. Check Alice.');
+  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
+  await expect(page.locator('#score-entry-error')).toHaveText('818 tricks must be from 0 to 1. Check Alice.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
@@ -325,7 +316,6 @@ test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
 });
 
 test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played round', async ({page})=>{
-  const dialogs=armDialogs(page);
   await installMatch(page,{
     id:2015,
     name:'Five Crowns',
@@ -363,8 +353,8 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   expect(catBlank).toEqual({value:'', acknowledged:false});
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.locator('#score-entry-primary-btn').click();
-  await expect.poll(()=>dialogs.length).toBe(1);
-  expect(dialogs[0].message).toBe('Five Crowns scores must be whole numbers, 0 or higher. Check Matt.');
+  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
+  await expect(page.locator('#score-entry-error')).toHaveText('Five Crowns scores must be whole numbers, 0 or higher. Check Matt.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
@@ -385,7 +375,6 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
 });
 
 test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writes nothing', async ({page})=>{
-  const dialogs=armDialogs(page);
   const game={
     id:5151,
     name:'Five Crowns',
@@ -430,9 +419,9 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   await (await padKey(page,'-')).click();
   await expect(cell).toHaveValue('-15');
   await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
-  await expect.poll(()=>dialogs.length).toBe(1);
-  expect(dialogs[0].message).toContain('0 or higher');
-  expect(dialogs[0].message).toContain('Matt');
+  await expect(page.locator('#numpad-error')).toBeVisible();
+  await expect(page.locator('#numpad-error')).toContainText('0 or higher');
+  await expect(page.locator('#numpad-error')).toContainText('Matt');
   const rejected=await page.evaluate(()=>({
     score:currentGame.rounds[0].scores.Matt,
     total:currentGame.totals.Matt,

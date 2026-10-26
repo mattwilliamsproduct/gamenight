@@ -41,6 +41,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - SELECTED PLAYER crowding the Scoring pill on phone entry.
 - A porch password or cloud sync control in Settings this release.
 - A Saved chip that does not say the write is on this device.
+- A browser `alert()` for score-entry or Restore errors.
+- Silently dropping retired seats from Records.
 
 ## Prefer
 

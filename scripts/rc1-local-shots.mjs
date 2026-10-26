@@ -19,6 +19,62 @@ async function shot(page, name) {
   console.log(`wrote ${name} ${page.viewportSize().width}x${page.viewportSize().height}`);
 }
 
+function clipReport() {
+  return () => {
+    const box = (el) => {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return {
+        id: el.id || el.className,
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+        top: Math.round(r.top),
+        bottom: Math.round(r.bottom),
+        left: Math.round(r.left),
+        right: Math.round(r.right),
+        overflowX: r.right > window.innerWidth + 1 || r.left < -1,
+        overflowY: r.bottom > window.innerHeight + 1 || r.top < -1,
+        overflowHidden: /hidden/.test(style.overflow + style.overflowX + style.overflowY)
+      };
+    };
+    const center = document.querySelector('.rook-command-center');
+    const cta = document.querySelector('#rook-round-panel .btn-primary');
+    const modal = document.querySelector('#rook-call-modal .surface-raised');
+    const trump = [...document.querySelectorAll('#rook-call-modal .rook-setup-btn')];
+    const keys = trump.map((el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        t: (el.textContent || '').trim().replace(/\s+/g, ' '),
+        inside: r.top >= -0.5 && r.left >= -0.5 && r.bottom <= window.innerHeight + 0.5 && r.right <= window.innerWidth + 0.5,
+        w: Math.round(r.width)
+      };
+    });
+    return {
+      vw: window.innerWidth,
+      vh: window.innerHeight,
+      panel: box(document.getElementById('rook-round-panel')),
+      center: box(center),
+      cta: box(cta),
+      modal: box(modal),
+      trump: keys
+    };
+  };
+}
+
+async function walkRook(page, prefix) {
+  await open(page, 'scenario=rook-bid-setup&surface=scorecard');
+  const setup = await page.evaluate(clipReport());
+  console.log(`${prefix} bid-setup`, JSON.stringify(setup));
+  await shot(page, `${prefix}-rook-editor`);
+  await page.locator('.rook-player-btn').first().click();
+  await page.locator('#rook-round-panel .btn-primary').click();
+  await page.waitForFunction(() => !document.getElementById('rook-call-modal')?.classList.contains('hidden'));
+  const call = await page.evaluate(clipReport());
+  console.log(`${prefix} call-modal`, JSON.stringify(call));
+  await shot(page, `${prefix}-rook-call`);
+}
+
 const browser = await chromium.launch();
 
 const phone = await browser.newPage({viewport: {width: 390, height: 844}});
@@ -39,8 +95,7 @@ await shot(phone, '390-scorecard-saved');
 await open(phone, 'scenario=home-party&slice2view=records');
 await shot(phone, '390-records');
 
-await open(phone, 'scenario=rook-bid-setup&surface=scorecard');
-await shot(phone, '390-rook-editor');
+await walkRook(phone, '390');
 await phone.close();
 
 const short = await browser.newPage({viewport: {width: 375, height: 667}});
@@ -54,8 +109,7 @@ await shot(short, '375-scorecard-saved');
 await short.close();
 
 const tv = await browser.newPage({viewport: {width: 1440, height: 900}});
-await open(tv, 'scenario=rook-bid-setup&surface=scorecard');
-await shot(tv, '1440-rook-editor');
+await walkRook(tv, '1440');
 await tv.close();
 
 await browser.close();
