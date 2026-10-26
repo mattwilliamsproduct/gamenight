@@ -14565,7 +14565,7 @@ ${isDealer
     const scroller=document.getElementById('score-entry-rows');
     const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
     if(!scroller||!row)return;
-    const pad=8;
+    const pad=12;
     const lane=scroller.getBoundingClientRect();
     const top=row.getBoundingClientRect().top-lane.top-pad+scroller.scrollTop;
     const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);

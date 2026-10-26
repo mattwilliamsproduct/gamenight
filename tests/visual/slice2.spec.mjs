@@ -243,14 +243,14 @@ function scoreEntryReport(){
     const scoringLabel = document.querySelector('#score-entry-modal .score-entry-selected-card');
     const k = keypad?.getBoundingClientRect();
     const lane = (scroller || list)?.getBoundingClientRect();
-    const visible = rows.filter((row) => {
+    const overlapOf = (row) => {
       const r = row.getBoundingClientRect();
-      if (!lane || r.height < 8) return false;
-      const overlap = Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top);
-      return overlap >= Math.min(r.height * 0.7, 28);
-    });
-    const first = visible[0]?.getBoundingClientRect();
-    const activeBox = active?.getBoundingClientRect();
+      if (!lane || r.height < 8) return 0;
+      return Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top);
+    };
+    const visible = rows.filter((row) => overlapOf(row) >= 16);
+    const firstFull = rows.find((row) => overlapOf(row) >= Math.min(row.getBoundingClientRect().height * 0.7, 28));
+    const first = firstFull?.getBoundingClientRect();
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
       const r = el.getBoundingClientRect();
       return {t: (el.textContent || '').trim(), top: r.top, bottom: r.bottom, h: r.height};
