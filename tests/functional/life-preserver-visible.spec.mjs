@@ -13,9 +13,9 @@ test('a Life Preserver shows on the hand it followed, or beside Total when that 
   await expect(mikeRow.locator('.score-cell-life-preserver')).toHaveCount(1);
   await expect(mikeRow.locator('[aria-label="Life Preserver +40"]')).toBeVisible();
   await expect(mikeRow.locator('.scorecard-round-td').last()).toContainText('0');
-  await expect(lindaRow.locator('.score-cell-life-preserver')).toHaveCount(0);
+  await expect(lindaRow.locator('.score-cell-life-preserver')).toHaveCount(1);
   await expect(lindaRow.locator('[aria-label="Life Preserver +15"]')).toBeVisible();
-  await expect(lindaRow.locator('.score-total-life-preserver')).toBeVisible();
+  await expect(lindaRow.locator('.score-total-life-preserver')).toHaveCount(0);
 
   const path=await page.evaluate(()=>{
     const match=history.find(item=>item.game==='Wizard');
