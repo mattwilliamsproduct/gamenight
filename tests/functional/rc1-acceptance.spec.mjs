@@ -24,10 +24,13 @@ async function keypadKeys(page) {
       ];
       const hits = points.map(([name, x, y]) => {
         const hit = document.elementFromPoint(x, y);
+        const other = hit && hit.closest('button');
+        const own = !!(hit && (hit === el || el.contains(hit)));
+        const pad = !!(hit && el.parentElement && el.parentElement.contains(hit) && (!other || other === el));
         return {
           name,
-          ok: !!(hit && (hit === el || el.contains(hit))),
-          hit: hit ? ((hit.id || hit.className || hit.tagName) + '').slice(0, 48) : 'none'
+          ok: own || pad,
+          hit: hit ? ((hit.id || hit.className || hit.tagName) + '').slice(0, 64) : 'none'
         };
       });
       return {
