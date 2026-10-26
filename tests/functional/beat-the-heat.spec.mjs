@@ -22,7 +22,7 @@ test('Beat the Heat stays open below 66 heat', async ({page})=>{
 test('Beat the Heat shows Match Complete when a player already has 66+ heat', async ({page})=>{
   await openScenario(page,{scenario:'beat-the-heat-over'});
 
-  await expect(page.locator('#slice2-board-line, #round-intel')).toContainText(/Round|Final Scores/);
+  await expect(page.locator('#slice2-board-line')).toContainText(/Beat the Heat/);
   await expect(page.locator('#game-over-section')).toBeVisible();
   await expect(page.locator('#game-over-copy')).toHaveText('Someone reached 66 heat. The match is over.');
   await expect(page.locator('#submit-section')).toBeHidden();

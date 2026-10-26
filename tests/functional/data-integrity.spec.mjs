@@ -797,7 +797,7 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   await page.getByRole('button',{name:/^Records/}).first().click();
   const nights=page.locator('#hall-of-fame-view .s2-night');
   await expect(nights).toHaveCount(2);
-  await expect(nights.filter({has: page.locator('[data-assisted-match="true"]')})).toHaveCount(1);
+  await expect(page.locator('#hall-of-fame-view .s2-night[data-assisted-match="true"]')).toHaveCount(1);
   await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
   await expect(page.locator('#hall-of-fame-view')).toContainText('Matt');
   await expect(page.locator('#hall-of-fame-view')).toContainText('4 pts');

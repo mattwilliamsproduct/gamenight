@@ -1101,6 +1101,10 @@ html.slice2-tv .s2-rival {
     grid-template-columns: 1fr 1fr;
   }
 
+  html.slice2-tv .s2-board-actions .active-match-actions {
+    grid-column: 1 / -1;
+  }
+
   html.slice2-tv #slice2-enter-btn {
     grid-column: 1 / -1;
   }

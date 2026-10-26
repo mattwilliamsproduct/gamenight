@@ -41,57 +41,77 @@ async function assertKeypadFullyUsable(page, sizeName) {
   });
 }
 
+async function enterTableScores(page, digit = '5') {
+  const count = await page.evaluate(() => (currentGame.originalRoster || []).length);
+  const key = page.locator('#score-entry-modal .score-entry-key', {hasText: digit}).first();
+  const next = page.locator('#score-entry-modal .score-entry-key.next');
+  for (let index = 0; index < count; index += 1) {
+    await key.click();
+    if (index < count - 1) await next.click();
+  }
+  await page.locator('#score-entry-primary-btn').click();
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/, {timeout: 8000});
+}
+
 for (const size of SIZES) {
   test.describe(`RC task completion ${size.name}`, () => {
     test.use({viewport: {width: size.width, height: size.height}});
 
     test(`start, enter, correct, resume, and spin at ${size.name}`, async ({page}) => {
+      test.setTimeout(90000);
+      page.on('dialog', (dialog) => dialog.accept());
       await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
       await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
       await expect(page.locator('#score-entry-selected-name')).toContainText(/Megan|Scoring/);
       if (size.width <= 390) await assertKeypadFullyUsable(page, size.name);
       const before = await page.evaluate(() => Number(currentGame.totals.Megan) || 0);
-      await page.locator('#score-entry-modal .score-entry-key', {hasText: '7'}).click();
-      await page.locator('#score-entry-modal .score-entry-key.next').click();
-      await expect(page.locator('#score-entry-selected-name')).toContainText(/Matt|Scoring/);
-      await page.locator('#score-entry-primary-btn').click();
-      const afterOpen = await page.evaluate(() => {
-        const modal = document.getElementById('score-entry-modal');
-        return !modal || modal.classList.contains('hidden');
-      });
-      expect(afterOpen).toBeTruthy();
-
-      await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
-      const firstCell = page.locator('#scorecard-body .score-cell-input').first();
-      await firstCell.click();
-      const editor = page.locator('#numpad, #score-entry-modal, #history-correct-modal');
-      await expect(editor.first()).toBeVisible({timeout: 5000}).catch(() => {});
+      await enterTableScores(page, '5');
       await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
+      const afterEnter = await page.evaluate(() => Number(currentGame.totals.Megan) || 0);
+      expect(afterEnter, `${size.name} Megan total after entering eight scores`).toBe(before + 5);
 
+      const visibleCell = page.locator('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input').first();
+      if (await visibleCell.count()) {
+        await visibleCell.click();
+      } else {
+        await page.evaluate(() => {
+          const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+          openPastScoreCell(currentGame.originalRoster[0], last);
+        });
+      }
+      const editor = page.locator('#custom-numpad, #numpad, #score-entry-modal, #round-correction-modal');
+      await expect(editor.first()).toBeVisible({timeout: 5000});
+      await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
+      await page.keyboard.press('Escape').catch(() => {});
       await page.evaluate(() => {
-        try { localStorage.setItem('gn_current', JSON.stringify(currentGame)); } catch (error) {}
+        if (typeof closeNumpad === 'function') closeNumpad();
+        if (typeof closeScoreEntryModalOnly === 'function') closeScoreEntryModalOnly();
       });
-      await page.reload({waitUntil: 'networkidle'});
-      await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
-      await expect(page.locator('#slice2-board-bar, #scorecard-body')).toBeVisible();
+
+      await page.evaluate(() => goHome());
+      await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
+      await page.locator('[data-s2-action="resume"]').click();
+      await expect(page.locator('#slice2-board-bar')).toBeVisible();
+      await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
+      const resumed = await page.evaluate(() => Number(currentGame?.totals?.Megan) || 0);
+      expect(resumed, `${size.name} Megan total after Resume`).toBe(afterEnter);
 
       await openScenario(page, {scenario: 'eight18-porch-lp', surface: 'scorecard'});
-      const spin = page.getByRole('button', {name: /Life Preserver available/}).first();
-      if (await spin.count()) {
-        await spin.click();
-        await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-        await expect(page.locator('#wheel-commit-line')).toContainText(/applies immediately/);
-        await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
-        await page.locator('#btn-spin').click();
-        await expect(page.locator('#wheel-result')).toBeVisible({timeout: 4000});
-        await expect(page.locator('#wheel-result-adjustment')).not.toHaveText('');
-        await expect(page.locator('#wheel-result-total')).toContainText(/New total/);
-        await expect(page.locator('#wheel-result-standing')).toContainText(/Standing/);
-        await expect(page.getByRole('button', {name: 'Back to scorecard'})).toBeVisible();
-        await expect(page.getByRole('button', {name: /^Apply$/i})).toHaveCount(0);
-        await page.getByRole('button', {name: 'Back to scorecard'}).click();
-      }
-      expect(before).toBeGreaterThanOrEqual(0);
+      const chip = page.getByRole('button', {name: /Life Preserver available/}).first();
+      if (await chip.count()) await chip.click();
+      else await page.locator('#slice2-lp-btn').click();
+      await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+      await expect(page.locator('#wheel-commit-line')).toContainText(/applies immediately/);
+      await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
+      await page.locator('#btn-spin').click();
+      await expect(page.locator('#wheel-result')).toBeVisible({timeout: 6000});
+      await expect(page.locator('#wheel-result-adjustment')).not.toHaveText('');
+      await expect(page.locator('#wheel-result-total')).toContainText(/New total/);
+      await expect(page.locator('#wheel-result-standing')).toContainText(/Standing/);
+      await expect(page.getByRole('button', {name: 'Back to scorecard'})).toBeVisible();
+      await expect(page.getByRole('button', {name: /^Apply$/i})).toHaveCount(0);
+      await page.getByRole('button', {name: 'Back to scorecard'}).click();
+      await expect(page.locator('#wheel-modal')).toHaveClass(/hidden/);
     });
   });
 }

@@ -318,8 +318,10 @@
     const rows = shelf.map(([id, title, unit, art]) => {
       const card = hall[id] || {};
       const round = data.games?.[id]?.bestRound;
-      const matchValue = scoreText(card.bestScore, unit);
-      const matchWho = card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : '';
+      const coverage = hall._coverage?.[id];
+      const noUnassisted = !!(coverage && coverage.assisted > 0 && coverage.unassisted === 0);
+      const matchValue = noUnassisted ? '—' : scoreText(card.bestScore, unit);
+      const matchWho = noUnassisted ? 'No unassisted matches yet' : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : '');
       const roundValue = round && finite(round.value) ? scoreText(round.value, unit) : '—';
       const roundWho = round?.player || '';
       return `<div class="s2-ledger-row">
