@@ -14565,16 +14565,11 @@ ${isDealer
     const scroller=document.getElementById('score-entry-rows');
     const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
     if(!scroller||!row)return;
-    const pad=16;
-    const lane=()=>scroller.getBoundingClientRect();
-    const start=row.getBoundingClientRect().top-lane().top-pad+scroller.scrollTop;
+    const pad=8;
+    const lane=scroller.getBoundingClientRect();
+    const top=row.getBoundingClientRect().top-lane.top-pad+scroller.scrollTop;
     const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-    scroller.scrollTop=Math.max(0,Math.min(start,max));
-    const first=[...scroller.querySelectorAll('.score-entry-row')].find((el)=>el.getBoundingClientRect().bottom>lane().top+1);
-    if(first){
-      const need=lane().top+pad-first.getBoundingClientRect().top;
-      if(need>0.5)scroller.scrollTop=Math.max(0,scroller.scrollTop-Math.ceil(need));
-    }
+    scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
 
   function openScoreEntryModal(ev){

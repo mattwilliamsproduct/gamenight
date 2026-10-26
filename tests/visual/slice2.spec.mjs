@@ -245,7 +245,9 @@ function scoreEntryReport(){
     const lane = (scroller || list)?.getBoundingClientRect();
     const visible = rows.filter((row) => {
       const r = row.getBoundingClientRect();
-      return lane && r.height >= 8 && r.bottom > lane.top + 2 && r.top < lane.bottom - 2;
+      if (!lane || r.height < 8) return false;
+      const overlap = Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top);
+      return overlap >= Math.min(r.height * 0.7, 28);
     });
     const first = visible[0]?.getBoundingClientRect();
     const activeBox = active?.getBoundingClientRect();

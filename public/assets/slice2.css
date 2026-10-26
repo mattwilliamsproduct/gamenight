@@ -1233,13 +1233,13 @@ html.slice2-tv button.scoreboard-rank-badge {
 
   html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-player-card {
     border-color: var(--s2-teal) !important;
-    box-shadow: 0 0 0 2px rgba(10, 92, 84, 0.22);
+    box-shadow: inset 0 0 0 2px rgba(10, 92, 84, 0.35);
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-input-cell,
   html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-value {
-    outline: 2px solid var(--s2-teal);
-    outline-offset: 1px;
+    box-shadow: inset 0 0 0 2px var(--s2-teal);
+    outline: none;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-side {
