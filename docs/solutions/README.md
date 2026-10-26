@@ -23,3 +23,5 @@ Standing trap: [rc1-one-skin.md](rc1-one-skin.md) — Warm Porch Ledger is the o
 Standing trap: [rc1-phone-p1.md](rc1-phone-p1.md) — one shared NAME-FIT size, Saved is not a nav slot, and Life Preserver header copy states the real spin range.
 
 Standing trap: [rc1-local-only.md](rc1-local-only.md) — this release does not call `/api/sync`; Redis stays an untouched backup.
+
+Standing trap: [review-gallery-preview-only.md](review-gallery-preview-only.md) — `/review` is preview-only; production builds and `cardknight.vercel.app` must 404 it.

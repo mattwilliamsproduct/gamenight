@@ -36,3 +36,4 @@ The table starts with a header and one example row. The example is the format. I
 | 2026-10-26 | rc1-local-only | scoring_rules. Cloud off, local copy, leftover review items. No Redis write. | 3 | n/a | fallback | Gate C. Conservative. Check pass. Functional 51/51. Do not undraft or merge. |
 | 2026-10-26 | rc1-keypad-regression | taste_ui. Keypad first, roster shrinks, Exact bid off Rook. | 2 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
 | 2026-10-26 | rc1-keypad-regression | taste_ui. Keypad first, roster shrinks, Exact bid off Rook. | 2 | n/a | fallback | Gate C. Conservative. Check pass. Functional 52/52. Do not undraft or merge. |
+| 2026-10-26 | review-gallery | taste_ui. Preview-only /review browse gallery. No scoring/sync. | 2 | n/a | fallback | Gate B. Proceed on a separate draft. Client-side iframes because Playwright cannot run in the Vercel build. Do not undraft or merge. |

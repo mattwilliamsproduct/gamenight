@@ -532,6 +532,41 @@ const porch818Game=makeCurrentGame('818',porch818Players,porch818Rounds,{
   currentScoreDrafts:{},
   maxRounds:15
 });
+const porch818AfterRounds=[...porch818Rounds,{round:0,hailMaryBonus:true,scores:{Cat:20}}];
+const porch818AfterGame=makeCurrentGame('818',porch818Players,porch818AfterRounds,{
+  eight18Phase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  maxRounds:15,
+  hailMaryUsed:['Cat'],
+  assistedMatch:true
+});
+const rookReviewPlayers=NAMES.slice(0,4);
+const rookMidRounds=[{
+  round:1,
+  scores:{Megan:90,Matt:90,Cat:110,Mike:110},
+  rookBid:90,
+  rookBidder:'Megan',
+  rookPartner:'Matt',
+  rookMadeIt:true
+}];
+const rookMidGame=makeCurrentGame('Rook',rookReviewPlayers,rookMidRounds,{
+  currentRound:2,
+  rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+  rookPhase:'results',
+  rookHighBidder:'Megan',
+  rookHighBid:90,
+  rookTrump:'Red',
+  rookCalledCard:'Rook',
+  rookPartner:'Matt'
+});
+const rookCallingGame=makeCurrentGame('Rook',rookReviewPlayers,rookMidRounds,{
+  currentRound:2,
+  rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+  rookPhase:'calling',
+  rookHighBidder:'Megan',
+  rookHighBid:90
+});
 const wizardThresholdRounds=[
   {round:1,bids:{Matt:1,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:1},actuals:{Matt:1,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:30,Cat:20,Megan:20,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-10}},
   {round:2,bids:{Matt:2,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:2},actuals:{Matt:2,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:40,Cat:20,Megan:20,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-20}},
@@ -939,6 +974,42 @@ export const QA_SCENARIOS = {
       history:[recordsHealAssistedMatch(),recordsHealPlainMatch()],
       playerProfiles:profiles(),
       currentGame:null
+    }
+  },
+  'empty-table':{
+    label:'Empty porch',
+    description:'No seated players, no history, and no live match.',
+    defaultSurface:'home',
+    data:{allPlayers:[],players:[],history:[],playerProfiles:{},currentGame:null}
+  },
+  'eight18-porch-lp-after':{
+    label:'818 · Porch Life Preserver After',
+    description:'Same porch 818 table after Cat’s +20 Life Preserver (Hail Mary) spin.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...porch818Players],history:sharedHistory,playerProfiles:profiles(),currentGame:porch818AfterGame}
+  },
+  'rook-midgame':{
+    label:'Rook · Midgame',
+    description:'Four-player Rook after one made bid so the scorecard and results modal have numbers.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...NAMES],
+      players:[...rookReviewPlayers],
+      history:sharedHistory,
+      playerProfiles:profiles(),
+      currentGame:rookMidGame
+    }
+  },
+  'rook-calling':{
+    label:'Rook · Trump and partner',
+    description:'Four-player Rook after the bid, ready to name trump and the called card.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...NAMES],
+      players:[...rookReviewPlayers],
+      history:sharedHistory,
+      playerProfiles:profiles(),
+      currentGame:rookCallingGame
     }
   }
 };

@@ -602,10 +602,45 @@
     const view = new URLSearchParams(location.search).get('slice2view');
     if (view === 'home') goHome();
     else if (view === 'records') showHistory();
-    else if (view === 'entry') openScoreEntryModal();
-    else if (view === 'wheel') {
+    else if (view === 'records-shame') {
+      shamePane = true;
+      showHistory();
+      paintRecords();
+    } else if (view === 'entry') openScoreEntryModal();
+    else if (view === 'error-entry') {
+      if (typeof openScoreEntryModal === 'function') openScoreEntryModal();
+      if (typeof showScoreEntryError === 'function') {
+        showScoreEntryError('Bids must be whole numbers from 0 through this round.');
+      }
+    } else if (view === 'settings-backup') {
+      if (typeof openSettings === 'function') openSettings();
+      document.querySelector('.local-storage-statement, #backup-device-summary')?.scrollIntoView({block: 'center'});
+    } else if (view === 'rook-contract') {
+      if (typeof openRookSetupModal === 'function') openRookSetupModal();
+    } else if (view === 'rook-call') {
+      const bidder = currentGame?.rookHighBidder || (typeof getActivePlayers === 'function' ? getActivePlayers(currentGame)[0] : '');
+      const bid = currentGame?.rookHighBid || currentGame?.rookConfig?.minBid || 70;
+      if (typeof openRookCallModal === 'function') openRookCallModal(bidder, bid);
+    } else if (view === 'rook-results') {
+      if (typeof openRookResultsModal === 'function') openRookResultsModal();
+    } else if (view === 'wheel') {
       const player = firstEligible();
       if (player) authorizeHailMary(player);
+    } else if (view === 'wheel-after') {
+      const used = (currentGame?.hailMaryUsed || [])[0];
+      const player = used || firstEligible();
+      if (player && typeof authorizeHailMary === 'function' && !(currentGame?.hailMaryUsed || []).includes(player)) {
+        authorizeHailMary(player);
+      } else if (player && typeof authorizeHailMary === 'function') {
+        wheelPlayer = player;
+        if (typeof drawWheel === 'function') drawWheel();
+        if (typeof openModal === 'function') openModal('wheel-modal');
+      }
+      if (typeof showLifePreserverResult === 'function') {
+        const adj = 20;
+        const total = (Number(currentGame?.totals?.[player]) || 0);
+        showLifePreserverResult({player, adj, label: '+20', total, place: 2});
+      }
     } else if (view === 'editor') {
       document.querySelector('#scorecard-body .score-cell-input')?.click();
     }

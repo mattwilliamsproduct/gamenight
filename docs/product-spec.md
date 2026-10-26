@@ -111,6 +111,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 - The Porch Club night redesign (PR #44) until Matt signs the preview.
 - Splitting `public/index.html` as a project of its own. Fix the stacked theme CSS when a visual bug requires it. Do not boil the ocean first.
 - Per-player accounts. One porch, one password, one scorebook.
+- A `/review` gallery on production. That page is a preview-only Matt browse tool. It must 404 on `cardknight.vercel.app`.
 
 ## Known bugs
 
