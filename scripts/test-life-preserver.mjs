@@ -437,7 +437,8 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   const brickMin = Math.min(...brickAdjustments);
   const brickMax = Math.max(...brickAdjustments);
   const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
-  assert.match(explained.wheelLine, new RegExp(`Spin range ${signed(brickMin)} to ${signed(brickMax)}`));
+  const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(explained.wheelLine, new RegExp(`Spin range ${escapeRegExp(signed(brickMin))} to ${escapeRegExp(signed(brickMax))}`));
   assert.ok(brickMin < 0, 'negative slices stay on the wheel');
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
@@ -460,7 +461,8 @@ test('wheel line spin range matches the slice min and max', () => {
   const min = Math.min(...adjustments);
   const max = Math.max(...adjustments);
   const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
-  assert.match(explained.wheelLine, new RegExp(`Spin range ${signed(min)} to ${signed(max)}`));
+  const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(explained.wheelLine, new RegExp(`Spin range ${escapeRegExp(signed(min))} to ${escapeRegExp(signed(max))}`));
   assert.match(explained.wheelLine, /behind 1st/);
   assert.doesNotMatch(explained.wheelLine, /Best help/);
   assert.ok(min < 0, 'negative slices stay on the wheel');
