@@ -232,43 +232,76 @@ test('slice2 surfaces do not clip', async ({page}) => {
   expect(problems, problems.join('\n')).toEqual([]);
 });
 
+function scoreEntryReport(){
+  return () => {
+    const keypad = document.querySelector('#score-entry-modal .score-entry-keypad');
+    const scroller = document.getElementById('score-entry-rows');
+    const list = document.querySelector('#score-entry-modal .score-entry-list');
+    const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
+    const active = document.querySelector('#score-entry-modal .score-entry-row.active');
+    const selectedName = (document.getElementById('score-entry-selected-name')?.textContent || '').trim();
+    const scoringLabel = document.querySelector('#score-entry-modal .score-entry-selected-card');
+    const k = keypad?.getBoundingClientRect();
+    const lane = (scroller || list)?.getBoundingClientRect();
+    const visible = rows.filter((row) => {
+      const r = row.getBoundingClientRect();
+      return lane && r.height >= 8 && r.bottom > lane.top + 2 && r.top < lane.bottom - 2;
+    });
+    const first = visible[0]?.getBoundingClientRect();
+    const activeBox = active?.getBoundingClientRect();
+    const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
+      const r = el.getBoundingClientRect();
+      return {t: (el.textContent || '').trim(), top: r.top, bottom: r.bottom, h: r.height};
+    });
+    const covered = visible.filter((row) => {
+      const r = row.getBoundingClientRect();
+      return k && r.bottom > k.top + 4 && r.top < k.bottom - 4 && r.right > k.left && r.left < k.right;
+    }).length;
+    return {
+      selectedName,
+      activeName: (active?.querySelector('.score-entry-name')?.textContent || '').trim(),
+      activeVisible: !!(activeBox && lane && activeBox.bottom > lane.top + 4 && activeBox.top < lane.bottom - 4),
+      visibleCount: visible.length,
+      firstRowClipped: !!(first && lane && first.top < lane.top - 1),
+      scoringLabel: scoringLabel && getComputedStyle(scoringLabel).display !== 'none'
+        ? (scoringLabel.innerText || '').replace(/\s+/g, ' ').trim()
+        : '',
+      covered,
+      zeroKey: keys.find((key) => key.t === '0') || null,
+      vh: window.innerHeight
+    };
+  };
+}
+
 test('phone keypad leaves roster rows reachable', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&slice2&surface=entry-scores', {waitUntil: 'networkidle'});
   await ready(page);
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-  const report = await page.evaluate(() => {
-    const keypad = document.querySelector('#score-entry-modal .score-entry-keypad');
-    const list = document.querySelector('#score-entry-modal .score-entry-list');
-    const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
-    if (!keypad || !rows.length) return {covered: -1, rowCount: rows.length};
-    const k = keypad.getBoundingClientRect();
-    const listBox = list?.getBoundingClientRect();
-    const covered = rows.filter((row) => {
-      const r = row.getBoundingClientRect();
-      if (r.height < 8) return false;
-      const inLane = !listBox || (r.bottom > listBox.top + 2 && r.top < listBox.bottom - 2);
-      if (!inLane) return false;
-      return r.bottom > k.top + 4 && r.top < k.bottom - 4 && r.right > k.left && r.left < k.right;
-    }).length;
-    const names = [...document.querySelectorAll('#score-entry-modal .score-entry-name')].map((el) => {
-      const style = getComputedStyle(el);
-      return {
-        overflow: style.overflowX,
-        ellipsis: style.textOverflow,
-        clipped: el.scrollWidth > el.clientWidth + 4 && (style.overflowX === 'hidden' || style.overflowX === 'clip') && style.textOverflow !== 'ellipsis'
-      };
-    });
-    return {covered, rowCount: rows.length, nameClip: names.filter((n) => n.clipped).length};
-  });
-  expect(report.rowCount).toBeGreaterThan(0);
-  expect(report.covered, 'keypad should not cover roster rows').toBe(0);
-  expect(report.nameClip, 'names should ellipsize instead of clip').toBe(0);
-  const shortKey = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
-  expect(shortKey.height).toBeGreaterThanOrEqual(24);
+  const short = await page.evaluate(scoreEntryReport());
+  expect(short.covered, 'keypad should not cover roster rows').toBe(0);
+  expect(short.activeVisible, 'selected roster row should stay in view').toBe(true);
+  expect(short.activeName).toBe(short.selectedName);
+  expect(short.firstRowClipped, 'first visible roster row should not be clipped').toBe(false);
+  expect(short.scoringLabel).toMatch(/Scoring:\s*Megan|Megan/);
+  expect(short.zeroKey?.bottom).toBeLessThanOrEqual(short.vh + 1);
+  expect(short.zeroKey?.h).toBeGreaterThanOrEqual(24);
   await page.setViewportSize({width: 390, height: 844});
   await page.reload({waitUntil: 'networkidle'});
   await ready(page);
-  const roomyKey = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
-  expect(roomyKey.height).toBeGreaterThanOrEqual(44);
+  const roomy = await page.evaluate(scoreEntryReport());
+  expect(roomy.covered).toBe(0);
+  expect(roomy.activeVisible).toBe(true);
+  expect(roomy.visibleCount, '390 should show a third roster row').toBeGreaterThanOrEqual(3);
+  expect(roomy.zeroKey?.h).toBeGreaterThanOrEqual(44);
+  expect(roomy.zeroKey?.bottom).toBeLessThanOrEqual(roomy.vh + 1);
+  await page.evaluate(() => {
+    const row = [...document.querySelectorAll('#score-entry-modal .score-entry-row')]
+      .find((el) => (el.querySelector('.score-entry-name')?.textContent || '').trim() === 'Brick');
+    row?.click();
+  });
+  await page.waitForTimeout(80);
+  const last = await page.evaluate(scoreEntryReport());
+  expect(last.activeName).toBe('Brick');
+  expect(last.activeVisible, 'last player row should scroll into view').toBe(true);
 });

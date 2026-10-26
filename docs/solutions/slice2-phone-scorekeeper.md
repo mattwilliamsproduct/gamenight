@@ -9,4 +9,4 @@ What fixed it (flag-on only):
 - Scorecard names that fit the cell but overflow the name slot now shrink (`#59` NAME-FIT early-exit). Slice 2 still shrinks when the slot width is 0.
 - `#59`'s one-line `#roster-count` chip is flag-off home only. Slice 2 already replaced that chip; the seated heading now stays on one line and the panel head wraps instead.
 
-What not to repeat: do not restyle the ledger or change Life Preserver auto-apply. Do not port #59 welcome / sample-night / link-preview work onto this branch.
+What not to repeat: do not restyle the ledger or change Life Preserver auto-apply. Do not port #59 welcome / sample-night / link-preview work onto this branch. Do not hide the selected player on a short phone without a named indicator — scroll the SELECTED roster row into view and outline it; keep a compact one-line `Scoring: Name` if it fits without pushing 00/0 off screen.

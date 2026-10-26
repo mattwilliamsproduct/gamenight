@@ -53,6 +53,7 @@ Deep links, gallery only: add `&slice2&slice2view=home|entry|editor|wheel|record
 Flag-on only. No restyle of cream-and-teal. Life Preserver still auto-applies.
 
 - Phone keypad no longer covers roster rows. Gallery: `five-crowns-comeback` + `surface=entry-scores`.
+- Selected player stays in the roster scroll (highlighted) and, on 375, a compact `Scoring: Name` label. First visible row is not clipped under the progress bar. 390 uses leftover space for a third roster row.
 - `#59` toast wrap and name-slot shrink are ported. `#59` roster-count chip is skipped (Slice 2 already replaced it); seated headings nowrap instead.
 - Laptop game cards grow at 1200px+. Phone nav shortens to Table / Records / Profiles.
 - `npm run check` and the Slice 2 clip sweep still apply. New Playwright: `phone keypad leaves roster rows reachable`.

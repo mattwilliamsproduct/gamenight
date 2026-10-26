@@ -14547,7 +14547,7 @@ ${isDealer
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
 
     const phone=(window.visualViewport?.width||window.innerWidth||0)<=760;
-    if(phone){
+    if(phone && !GN_SLICE2_TV){
       const items=[...rows.children];
       const shown=items.slice(0, Math.min(2, items.length));
       if(shown.length){
@@ -14598,6 +14598,10 @@ ${isDealer
     requestAnimationFrame(()=>{
       fitScoreEntryModalLayout();
       modal.classList.remove('opacity-0');
+      if(GN_SLICE2_TV){
+        document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`)
+          ?.scrollIntoView({block:'nearest',inline:'nearest'});
+      }
     });
     } finally {
       gnPerfEnd(timer);
@@ -14693,6 +14697,12 @@ ${isDealer
     updateScoreEntryRowState(prev);
     updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
+    if(GN_SLICE2_TV){
+      requestAnimationFrame(()=>{
+        document.getElementById(`score-entry-row-${rookElementId(next)}`)
+          ?.scrollIntoView({block:'nearest',inline:'nearest'});
+      });
+    }
   }
 
   function updateScoreEntryActiveValue(){
