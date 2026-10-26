@@ -33,3 +33,6 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
+- Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
+- Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
+- SELECTED PLAYER crowding the Scoring pill on phone entry.

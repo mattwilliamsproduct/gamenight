@@ -177,18 +177,26 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
     const toast = document.getElementById('save-indicator');
     const line = document.getElementById('slice2-board-line');
     const toastBox = toast.getBoundingClientRect();
-    const lineBox = line.getBoundingClientRect();
-    const hits = (a, b) => !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right);
+    const range = document.createRange();
+    range.selectNodeContents(line);
+    const textBox = range.getBoundingClientRect();
+    const hits = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
     return {
       inRow: !!document.querySelector('#slice2-board-bar .s2-board-line-row')?.contains(toast),
       shown: toast.classList.contains('show'),
-      overlapsLine: hits(toastBox, lineBox),
+      display: getComputedStyle(toast).display,
+      width: Math.round(toastBox.width),
+      height: Math.round(toastBox.height),
+      overlapsText: hits(toastBox, textBox),
       lineText: (line.textContent || '').trim()
     };
   });
   expect(scorecard.inRow, 'Saved parks in the board header row').toBe(true);
   expect(scorecard.shown, 'Saved is visible for the overlap check').toBe(true);
-  expect(scorecard.overlapsLine, 'Saved does not cover the board line').toBe(false);
+  expect(scorecard.display, 'Saved chip is painted').not.toBe('none');
+  expect(scorecard.width, `Saved chip has a box ${JSON.stringify(scorecard)}`).toBeGreaterThan(20);
+  expect(scorecard.height, 'Saved chip has height').toBeGreaterThan(10);
+  expect(scorecard.overlapsText, 'Saved does not cover header text').toBe(false);
   expect(scorecard.lineText, 'board line keeps the dealer').toMatch(/Dealer:/);
 
   await page.setViewportSize({width: 375, height: 667});

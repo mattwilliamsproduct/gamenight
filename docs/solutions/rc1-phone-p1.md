@@ -14,6 +14,6 @@ Matt’s 390 state-shot pass. Same draft. No new taste.
 ## What not to repeat
 
 - Do not fit scorecard names per row after setting a shared `--scorecard-player-font`. One column, one size.
-- Do not put Saved in `#top-nav`. The flash lives top-right, under the nav, never on a seat or name row.
+- Do not put Saved in `#top-nav`. On the scorecard it is an in-row chip beside the board line. On home and Records it hangs in the nav gutter. It must never cover header, seat, or name text. `.show` has to beat the parked `display: none` rule, including `body.active-match-view`.
 - Do not use `fullPage` shots to judge 390 layout width.
 - Do not change Life Preserver slice math to make the header prettier. Negative slices are intended.

@@ -75,12 +75,14 @@ html.slice2-tv #save-indicator {
 html.slice2-tv .s2-board-line-row {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
 }
 
 html.slice2-tv .s2-board-line-row #slice2-board-line {
-  flex: 1 1 auto;
+  flex: 1 1 12rem;
   min-width: 0;
 }
 
@@ -96,9 +98,12 @@ html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator {
   flex: 0 0 auto;
   margin-left: auto;
   box-shadow: none;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.62rem;
 }
 
-html.slice2-tv .s2-board-line-row #save-indicator.show {
+html.slice2-tv .s2-board-line-row #save-indicator.show,
+html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator.show {
   display: inline-flex;
   opacity: 1;
   transform: none;

@@ -36,6 +36,9 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
+- Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
+- Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
+- SELECTED PLAYER crowding the Scoring pill on phone entry.
 
 ## Prefer
 
