@@ -3,8 +3,7 @@ import {expect,test} from '@playwright/test';
 async function openHallOfFame(page){
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  await page.getByRole('button',{name:'Records',exact:true}).first().click();
-  await page.locator('#tab-fame').click();
+  await page.getByRole('button',{name:/^Records/}).first().click();
   await expect(page.locator('#hall-of-fame-view')).toBeVisible();
 }
 
@@ -12,24 +11,14 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   test.skip(testInfo.project.name!=='laptop-chromium','Run the records check once on laptop Chromium');
   await openHallOfFame(page);
 
-  const fame=page.locator('#fame-content');
-  const shame=page.locator('#shame-content');
-  await expect(fame).toContainText('818: Best Score');
-  await expect(fame).toContainText('818: Exact Bids');
-  await expect(fame).toContainText('Beat the Heat: Coolest Score');
-  await expect(fame).toContainText('Beat the Heat: Ice Rounds');
-  await expect(fame).toContainText('Comeback Extra: Most In One Game');
-  await expect(shame).toContainText('818: Worst Score');
-  await expect(shame).toContainText('818: Most Missed Bids');
-  await expect(shame).toContainText('Beat the Heat: Hottest Score');
-
-  await page.locator('#tab-records').click();
-  const records=page.locator('#records-view');
-  await expect(records).toContainText('818');
-  await expect(records).toContainText('Most Exact Bids In One Game');
-  await expect(records).toContainText('Closest Finish To 66');
-  await expect(records).toContainText('The 818 Brick');
-  await expect(records).toContainText('The Meltdown');
+  const ledger=page.locator('#hall-of-fame-view');
+  await expect(ledger).toContainText('Game Championship Ledger');
+  await expect(ledger).toContainText('818');
+  await expect(ledger).toContainText('Beat the Heat');
+  await expect(ledger).toContainText('Unassisted matches only');
+  await expect(ledger).toContainText('Hall of Shame');
+  await expect(ledger).toContainText('Past nights');
+  await expect(page.locator('#tab-records')).toBeHidden();
 });
 
 test('818 Hall of Fame uses that game\'s exact-bid scoring',async({page},testInfo)=>{

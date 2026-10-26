@@ -284,6 +284,7 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
 });
 
 test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-runtime-state',async({page})=>{
+  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel and the pace toggle.');
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -345,6 +346,7 @@ test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-r
 });
 
 test('record-chase-preview keeps real player history and aligned metrics',async({page})=>{
+  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel.');
   await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -417,6 +419,7 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
 });
 
 test('beat-the-heat pace still opens the best finished scorecard',async({page})=>{
+  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel.');
   await page.goto('/?gnqa=1&gallery=0&scenario=beat-the-heat-pace&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -584,13 +587,10 @@ test('five-crowns first round uses compact avatar-led player identities',async({
 
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
   const selectors={
-    brand:'#top-nav .bp-brand-main',
-    brandGames:'#top-nav .bp-brand-games',
-    nav:'#top-nav .nav-btn',
-    game:'#game-title',
-    round:'#round-intel',
+    board:'#slice2-board-line',
+    enter:'#slice2-enter-btn',
     actions:'#actions-btn',
-    save:'#game-screen .active-match-banner .match-end-btn'
+    save:'#slice2-board-bar .match-end-btn'
   };
   const readSizes=()=>page.evaluate(entries=>Object.fromEntries(Object.entries(entries).map(([key,selector])=>[
     key,
@@ -1108,19 +1108,24 @@ test('all six game types reach their first scoring surface',async({page})=>{
     localStorage.setItem('gn_pref_dealerroll','0');
   });
   const games=[
-    {button:'Five Crowns',title:'Five Crowns',action:'Log Scores'},
-    {button:'Wizard',title:'Wizard',action:'Log Bids'},
-    {button:'818',title:'818',action:'Log Bids'},
-    {button:'Flip 7',title:'Flip 7 Vengeance',action:'Log Scores'},
-    {button:'Beat the Heat',title:'Beat the Heat',action:'Log Heat'},
-    {button:'Rook',title:'Rook',action:'Trump & partner card →',rook:true}
+    {id:'Five Crowns',title:'Five Crowns'},
+    {id:'Wizard',title:'Wizard'},
+    {id:'818',title:'818'},
+    {id:'Flip 7 Vengeance',title:'Flip 7'},
+    {id:'Beat the Heat',title:'Beat the Heat'},
+    {id:'Rook',title:'Rook',rook:true}
   ];
+  page.on('dialog',dialog=>dialog.accept());
   for(const game of games){
     await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
     await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-    await page.getByRole('button',{name:game.button,exact:true}).click();
-    if(game.rook)await page.getByRole('button',{name:'Start Match →',exact:true}).click();
-    await expect(page.locator('#game-title')).toHaveText(game.title);
-    await expect(page.getByRole('button',{name:game.action,exact:true})).toBeVisible();
+    await page.locator(`[data-s2-action="pick-game"][data-s2-game="${game.id}"]`).click();
+    await page.locator('#slice2-start-btn').click();
+    if(game.rook){
+      const start=page.getByRole('button',{name:/Start Match/});
+      if(await start.count()) await start.click();
+    }
+    await expect(page.locator('#slice2-board-line')).toContainText(game.title);
+    await expect(page.locator('#slice2-enter-btn')).toBeVisible();
   }
 });

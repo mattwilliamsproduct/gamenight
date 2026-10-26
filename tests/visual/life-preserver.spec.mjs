@@ -17,7 +17,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-help')).toContainText('Who can spin');
-  await expect(page.locator('#life-preserver-help')).toContainText('cannot match or pass 1st');
+  await expect(page.locator('#life-preserver-help')).toContainText('Cannot tie or pass the leader');
   await expect(page.locator('#life-preserver-why')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-why')).toContainText('Why these numbers');
   await expect(page.locator('#life-preserver-why')).toContainText('behind 1st');

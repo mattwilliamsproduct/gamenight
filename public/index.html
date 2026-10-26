@@ -12890,6 +12890,7 @@ ${isDealer
     if(idx>=0) history[idx]=snapshot;
     else history.unshift(snapshot);
     markHistoryChanged();
+    saveData();
     return snapshot;
   }
 

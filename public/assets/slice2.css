@@ -88,6 +88,7 @@ html.slice2-tv #home-screen > :not(#slice2-home) {
 html.slice2-tv #game-screen .active-match-banner,
 html.slice2-tv #leader-banner,
 html.slice2-tv #record-chase-panel,
+html.slice2-tv #scorecard-view-toggle-wrap,
 html.slice2-tv #submit-section {
   display: none !important;
 }
