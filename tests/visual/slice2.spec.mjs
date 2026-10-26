@@ -240,7 +240,9 @@ function scoreEntryReport(){
     const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
     const active = document.querySelector('#score-entry-modal .score-entry-row.active');
     const selectedName = (document.getElementById('score-entry-selected-name')?.textContent || '').trim();
-    const scoringLabel = document.querySelector('#score-entry-modal .score-entry-selected-card');
+    const scoringName = document.getElementById('score-entry-selected-name');
+    const scoringPrefix = scoringName ? getComputedStyle(scoringName, '::before').content.replace(/["']/g, '') : '';
+    const scoringCard = document.querySelector('#score-entry-modal .score-entry-selected-card');
     const k = keypad?.getBoundingClientRect();
     const lane = (scroller || list)?.getBoundingClientRect();
     const overlapOf = (row) => {
@@ -278,8 +280,8 @@ function scoreEntryReport(){
       activeVisible: !!(activeBox && lane && activeBox.bottom > lane.top + 4 && activeBox.top < lane.bottom - 4),
       visibleCount: visible.length,
       firstRowClipped: !!(first && lane && first.top < lane.top - 1),
-      scoringLabel: scoringLabel && getComputedStyle(scoringLabel).display !== 'none'
-        ? (scoringLabel.innerText || '').replace(/\s+/g, ' ').trim()
+      scoringLabel: scoringCard && getComputedStyle(scoringCard).display !== 'none'
+        ? `${scoringPrefix}${(scoringName?.textContent || '').trim()}`.replace(/\s+/g, ' ').trim()
         : '',
       covered,
       keys,

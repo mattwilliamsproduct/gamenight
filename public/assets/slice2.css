@@ -1319,9 +1319,9 @@ html.slice2-tv button.scoreboard-rank-badge {
   }
 
   html.slice2-tv #score-entry-modal .score-entry-list {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-height: 3.75rem;
-    max-height: 4.6rem;
+    max-height: none;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
