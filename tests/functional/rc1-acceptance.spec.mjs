@@ -12,9 +12,24 @@ async function keypadKeys(page) {
   return page.evaluate(() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const inset = 2;
     return [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
       const box = el.getBoundingClientRect();
-      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      const points = [
+        ['center', box.left + box.width / 2, box.top + box.height / 2],
+        ['tl', box.left + inset, box.top + inset],
+        ['tr', box.right - inset, box.top + inset],
+        ['bl', box.left + inset, box.bottom - inset],
+        ['br', box.right - inset, box.bottom - inset]
+      ];
+      const hits = points.map(([name, x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+        return {
+          name,
+          ok: !!(hit && (hit === el || el.contains(hit))),
+          hit: hit ? ((hit.id || hit.className || hit.tagName) + '').slice(0, 48) : 'none'
+        };
+      });
       return {
         label: (el.textContent || '').trim(),
         top: box.top,
@@ -23,7 +38,8 @@ async function keypadKeys(page) {
         right: box.right,
         visible: box.width > 8 && box.height > 8 && box.bottom > 0 && box.top < vh && box.right > 0 && box.left < vw,
         inView: box.top >= -1 && box.left >= -1 && box.bottom <= vh + 1 && box.right <= vw + 1,
-        hit: !!(hit && (hit === el || el.contains(hit))),
+        hits,
+        hit: hits.every((point) => point.ok),
         vw,
         vh
       };
@@ -37,8 +53,31 @@ async function assertKeypadFullyUsable(page, sizeName) {
   keys.forEach((key) => {
     expect(key.visible, `${sizeName} ${key.label} visible`).toBe(true);
     expect(key.inView, `${sizeName} ${key.label} fully in view ${JSON.stringify(key)}`).toBe(true);
-    expect(key.hit, `${sizeName} ${key.label} hit-testable`).toBe(true);
+    expect(key.hit, `${sizeName} ${key.label} unobstructed at center and four corners ${JSON.stringify(key.hits)}`).toBe(true);
   });
+}
+
+async function assertEntryFooterLayout(page, sizeName) {
+  const footer = await page.evaluate(() => {
+    const cancel = [...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].find((el) => (el.textContent || '').trim() === 'Cancel');
+    const review = [...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].find((el) => /Review/.test(el.textContent || ''));
+    const submit = document.getElementById('score-entry-primary-btn');
+    const row = document.querySelector('#score-entry-modal .score-entry-panel > .border-t');
+    if (!cancel || !review || !submit || !row) return null;
+    const c = cancel.getBoundingClientRect();
+    const r = review.getBoundingClientRect();
+    const s = submit.getBoundingClientRect();
+    const bar = row.getBoundingClientRect();
+    return {
+      sameRow: Math.abs(c.top - r.top) < 8 && Math.abs(c.bottom - r.bottom) < 8,
+      submitBelow: s.top >= Math.max(c.bottom, r.bottom) - 2,
+      submitFull: s.width >= bar.width * 0.9
+    };
+  });
+  expect(footer, `${sizeName} entry footer exists`).toBeTruthy();
+  expect(footer.sameRow, `${sizeName} Cancel and Review share one row`).toBe(true);
+  expect(footer.submitBelow, `${sizeName} Submit sits under Cancel/Review`).toBe(true);
+  expect(footer.submitFull, `${sizeName} Submit is full width`).toBe(true);
 }
 
 async function enterTableScores(page, digit = '5') {
@@ -63,7 +102,10 @@ for (const size of SIZES) {
       await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
       await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
       await expect(page.locator('#score-entry-selected-name')).toContainText(/Megan|Scoring/);
-      if (size.width <= 390) await assertKeypadFullyUsable(page, size.name);
+      if (size.width <= 390) {
+        await assertKeypadFullyUsable(page, size.name);
+        await assertEntryFooterLayout(page, size.name);
+      }
       const before = await page.evaluate(() => Number(currentGame.totals.Megan) || 0);
       await enterTableScores(page, '5');
       await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
@@ -299,11 +341,21 @@ test('retired players stay visible on a Records scorecard', async ({page}) => {
   await expect(page.locator('#modal-scorecard-body .retired-badge')).toHaveText(/Retired/i);
 });
 
-test('every keypad key is fully visible and hit-testable at 375 and 390', async ({page}) => {
+test('every keypad key is fully visible and unobstructed at 375 and 390 for 8 players', async ({page}) => {
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
     await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
     await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+    const players = await page.locator('#score-entry-modal .score-entry-row').count();
+    expect(players, `${size.width}x${size.height} eight-player roster`).toBe(8);
     await assertKeypadFullyUsable(page, `${size.width}x${size.height}`);
+    await assertEntryFooterLayout(page, `${size.width}x${size.height}`);
   }
+});
+
+test('Rook scorecard hides Exact bid', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openScenario(page, {scenario: 'rook-bid-setup', surface: 'scorecard'});
+  await expect(page.locator('#slice2-score-legend')).toBeHidden();
+  await expect(page.locator('#slice2-board-bar')).not.toContainText('Exact bid');
 });

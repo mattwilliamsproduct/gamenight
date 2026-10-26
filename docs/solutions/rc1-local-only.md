@@ -11,6 +11,8 @@ Matt’s release is this browser on this device. Same draft. Cloud stays parked.
 - Entry and Restore errors use `#score-entry-error` / `#backup-inline-msg`. Past-cell errors stay on `#numpad-error`. Do not put those back on `alert()`.
 - Retired seats still count in display via `getDisplayPlayers` plus a Retired badge. Win / HOF math still uses `getRecordedPlayers`.
 - The Rook contract editor at phone width scrolls inside `#rook-round-panel` so the CTA is not clipped by the locked scorecard shell.
+- Do not lock the 390 roster to a fixed rem height. The keypad and the Cancel / Review / Submit footer keep their space first. Three roster rows are leftover space, not a reservation.
+- `#slice2-score-legend { display: flex }` beats the `hidden` attribute. Hide Exact bid with `[hidden] { display: none }` and only write that copy for Wizard / 818.
 
 ## What not to repeat
 

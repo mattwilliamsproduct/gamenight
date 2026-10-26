@@ -14,10 +14,10 @@ Draft only. Do not undraft or merge until Matt says go. Physical iPhone Safari f
 ## Earlier RC items
 
 1. Home with a live match: Resume is the one obvious primary.
-2. Five Crowns entry: 00 / 0 stay on screen at 375. Names share one scorecard size.
+2. Five Crowns entry at 375 and 390 with 8 players: 00 / 0 stay fully on screen and are not covered by Cancel. Cancel + Review share one row. Submit is full width. Names share one scorecard size.
 3. Life Preserver on `eight18-porch-lp`: range copy, one spin, applies immediately.
 4. Records: Fame / Shame, past nights on the ledger, retired seats show a Retired badge.
-5. Rook contract editor at 390 and 1440: nothing clipped.
+5. Rook contract editor at 390 and 1440: nothing clipped. No Exact bid legend. The legend is Wizard / 818 only.
 6. Entry and Restore errors are an inline message, not a browser `alert()`.
 
 Kill the release if a keypad key is clipped, a name is cut off, a spin can be taken twice, or any device hits `/api/sync`.

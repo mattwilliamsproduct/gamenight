@@ -40,3 +40,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A Saved chip that does not say the write is on this device.
 - A browser `alert()` for score-entry or Restore errors.
 - Silently dropping retired seats from Records.
+- Exact bid chrome on Rook or any game that does not bid.

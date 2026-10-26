@@ -111,28 +111,39 @@ await phone.evaluate(() => typeof closeModal === 'function' && closeModal('score
 await walkRook(phone, '390');
 await phone.close();
 
-const entry = await browser.newPage({viewport: {width: 390, height: 844}});
-await open(entry, 'scenario=five-crowns-comeback&surface=entry-scores');
-const roster = await entry.evaluate(() => {
-  const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
-  const list = document.querySelector('#score-entry-modal .score-entry-list');
-  const scroller = document.getElementById('score-entry-rows');
-  const lane = (scroller || list)?.getBoundingClientRect();
-  const visible = rows.filter((row) => {
-    const r = row.getBoundingClientRect();
-    if (!lane || r.height < 8) return false;
-    return (Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top)) >= 16;
-  }).map((row) => (row.querySelector('.score-entry-name')?.textContent || '').trim());
-  return {
-    visibleCount: visible.length,
-    names: visible,
-    listH: Math.round(list?.getBoundingClientRect().height || 0),
-    rowsH: Math.round(scroller?.getBoundingClientRect().height || 0)
-  };
-});
-console.log('390 entry roster', JSON.stringify(roster));
-await shot(entry, '390-entry-roster');
-await entry.close();
+async function shootEntry(width, height, name) {
+  const page = await browser.newPage({viewport: {width, height}});
+  await open(page, 'scenario=five-crowns-comeback&surface=entry-scores');
+  const report = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
+    const list = document.querySelector('#score-entry-modal .score-entry-list');
+    const scroller = document.getElementById('score-entry-rows');
+    const lane = (scroller || list)?.getBoundingClientRect();
+    const visible = rows.filter((row) => {
+      const r = row.getBoundingClientRect();
+      if (!lane || r.height < 8) return false;
+      return (Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top)) >= Math.min(r.height * 0.7, 28);
+    }).map((row) => (row.querySelector('.score-entry-name')?.textContent || '').trim());
+    const cancel = [...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].find((el) => (el.textContent || '').trim() === 'Cancel');
+    const zero = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].find((el) => (el.textContent || '').trim() === '0');
+    const c = cancel?.getBoundingClientRect();
+    const z = zero?.getBoundingClientRect();
+    return {
+      players: rows.length,
+      visibleCount: visible.length,
+      names: visible,
+      zeroBottom: z ? Math.round(z.bottom) : null,
+      cancelTop: c ? Math.round(c.top) : null,
+      gap: z && c ? Math.round(c.top - z.bottom) : null
+    };
+  });
+  console.log(`${name} entry`, JSON.stringify(report));
+  await shot(page, name);
+  await page.close();
+}
+
+await shootEntry(390, 844, '390-entry-roster');
+await shootEntry(375, 667, '375-entry-roster');
 
 const short = await browser.newPage({viewport: {width: 375, height: 667}});
 await open(short, 'scenario=wizard-scoring-8&surface=scorecard');

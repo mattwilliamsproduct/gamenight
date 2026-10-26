@@ -590,6 +590,11 @@ html.slice2-tv #slice2-score-legend {
   gap: 0.4rem;
 }
 
+html.slice2-tv #slice2-score-legend[hidden],
+html.slice2-tv #slice2-score-note[hidden] {
+  display: none !important;
+}
+
 html.slice2-tv #slice2-score-legend::before {
   content: "";
   width: 0.55rem;
@@ -1637,6 +1642,41 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
 }
 
 @media (max-width: 760px) {
+  html.slice2-tv #score-entry-modal .score-entry-list {
+    flex: 1 1 auto;
+    min-height: 3.75rem;
+    height: auto;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-rows,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-keypad,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+    flex: 0 0 auto !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+    padding-top: 8px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t button {
+    min-height: 44px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t #score-entry-primary-btn {
+    grid-column: 1 / -1;
+  }
+
   html.slice2-tv #score-entry-modal .score-entry-selected-card > :first-child {
     display: none !important;
   }
@@ -1705,18 +1745,6 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
 }
 
 @media (max-width: 420px) and (min-height: 800px) {
-  html.slice2-tv #score-entry-modal .score-entry-list {
-    flex: 0 0 auto !important;
-    min-height: 14.75rem !important;
-    height: 14.75rem;
-  }
-
-  html.slice2-tv #score-entry-modal .score-entry-rows,
-  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    min-height: 12.75rem !important;
-    height: 12.75rem;
-  }
-
   html.slice2-tv #score-entry-modal #score-entry-game {
     font-size: 1.45rem !important;
   }

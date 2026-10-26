@@ -282,8 +282,11 @@
     const historyButton = document.getElementById('slice2-history-btn');
     if (line) line.textContent = boardLine(currentGame);
     if (legend) {
-      legend.hidden = !isBidTrickGame(currentGame);
-      legend.textContent = isEight18Game(currentGame) ? 'Exact bid · +10 bonus' : 'Exact bid';
+      const showExact = isBidTrickGame(currentGame);
+      legend.hidden = !showExact;
+      legend.textContent = showExact
+        ? (isEight18Game(currentGame) ? 'Exact bid · +10 bonus' : 'Exact bid')
+        : '';
     }
     if (enter) {
       enter.textContent = enterLabel(currentGame);
