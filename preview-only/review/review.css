@@ -155,20 +155,19 @@ h1 {
   flex-direction: column;
 }
 
-.review-frame-clip {
-  position: relative;
+.review-frame-host {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   width: 100%;
-  max-height: 280px;
-  background: #e8e0d2;
-  overflow: hidden;
+  background: var(--card);
 }
 
-.review-frame-clip[data-size="phone"] { aspect-ratio: 390 / 844; }
-.review-frame-clip[data-size="tablet"] { aspect-ratio: 768 / 1024; }
-.review-frame-clip[data-size="tv"] { aspect-ratio: 1440 / 900; }
-
-@media (min-width: 768px) {
-  .review-frame-clip { max-height: 340px; }
+.review-frame-clip {
+  position: relative;
+  flex: 0 0 auto;
+  background: #e8e0d2;
+  overflow: hidden;
 }
 
 .review-frame-clip img,
@@ -185,12 +184,17 @@ h1 {
   object-position: top center;
 }
 
-.review-frame-clip iframe {
+.review-frame-scaler {
   position: absolute;
   top: 0;
   left: 0;
   transform-origin: top left;
   pointer-events: none;
+}
+
+.review-frame-clip iframe {
+  max-width: none;
+  max-height: none;
 }
 
 .review-open-full {

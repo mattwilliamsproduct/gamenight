@@ -44,6 +44,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A browser `alert()` for score-entry or Restore errors.
 - Silently dropping retired seats from Records.
 - Exact bid chrome on Rook or any game that does not bid.
+- A review tile whose iframe is not the named width × height. Scale the frame; do not shrink the page.
 
 ## Prefer
 

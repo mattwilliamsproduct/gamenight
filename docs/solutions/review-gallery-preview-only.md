@@ -11,4 +11,6 @@ What keeps it off production:
 
 Regeneration: Playwright/Chromium is not reliable inside a Vercel build (no browser system libs). Preview builds emit the HTML/JS catalog. The page lazy-loads each view in an iframe, or a `public/review/shots/` PNG if `npm run review:shots` wrote one. After the RC `TEMP: demo seed` merge, tiles, Open live, and `npm run review:shots` all use the same `DEMO_VIEW_IDS` (`/?demo&view=<id>&size=<phone|tablet|tv>`). Hail Mary is the 818 Life Preserver spin: `lifepreserver` before and `lifepreserver-after`.
 
-What not to repeat: do not commit screenshots or `public/review/` onto a branch that can promote to `cardknight.vercel.app`. Do not add `/review` to `src/service-worker.js`.
+Tiles render each iframe at the named width × height (`390×844`, `768×1024`, `1440×900`) and `transform: scale()` it down to fit. The clip shrink-wraps that scaled frame and stays centered so a phone tile on a wide column has no gray gutter. Capture time displays in `America/New_York` with an `ET` label.
+
+What not to repeat: do not commit screenshots or `public/review/` onto a branch that can promote to `cardknight.vercel.app`. Do not add `/review` to `src/service-worker.js`. Do not let a tile iframe inherit the gallery viewport.

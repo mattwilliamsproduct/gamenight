@@ -41,3 +41,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A browser `alert()` for score-entry or Restore errors.
 - Silently dropping retired seats from Records.
 - Exact bid chrome on Rook or any game that does not bid.
+- A review tile whose iframe is not the named width × height. Scale the frame; do not shrink the page.

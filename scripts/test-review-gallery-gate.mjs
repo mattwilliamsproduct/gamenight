@@ -15,6 +15,7 @@ import {
   screenLivePath
 } from './review-catalog.mjs';
 import {emitReviewGallery} from './build-review-gallery.mjs';
+import {fitReviewFrame, formatReviewTime} from '../preview-only/review/review-lib.mjs';
 
 const execFileAsync = promisify(execFile);
 const rootDir = process.cwd();
@@ -92,6 +93,28 @@ test('middleware and worker never ship /review to production', async () => {
   assert.equal(worker.includes('./review'), false);
   const {stdout} = await execFileAsync('git', ['ls-files', 'public/review'], {cwd: rootDir});
   assert.equal(stdout.trim(), '', 'public/review must stay untracked so production output cannot ship it from git');
+});
+
+test('review frames keep exact device size and scale down to fit', () => {
+  const phoneAtTv = fitReviewFrame({width: 390, height: 844}, {availableWidth: 450, maxHeight: 340});
+  assert.equal(phoneAtTv.frameWidth, 390);
+  assert.equal(phoneAtTv.frameHeight, 844);
+  assert.equal(phoneAtTv.clipWidth, Math.round(390 * phoneAtTv.scale));
+  assert.ok(phoneAtTv.clipWidth < 390, 'phone tile must shrink to the 340px cap, not leave a wide gutter');
+  assert.ok(Math.abs(phoneAtTv.clipWidth / phoneAtTv.clipHeight - 390 / 844) < 0.02);
+
+  const tabletOnPhone = fitReviewFrame({width: 768, height: 1024}, {availableWidth: 358, maxHeight: 280});
+  assert.equal(tabletOnPhone.frameWidth, 768);
+  assert.equal(tabletOnPhone.frameHeight, 1024);
+  assert.ok(tabletOnPhone.scale < 1);
+  assert.equal(tabletOnPhone.clipWidth, Math.round(768 * tabletOnPhone.scale));
+});
+
+test('review capture time is America/New_York with an ET label', () => {
+  const stamp = formatReviewTime('2026-10-26T23:49:06.367Z');
+  assert.match(stamp, /ET$/);
+  assert.match(stamp, /19:49:06/);
+  assert.equal(stamp.includes('UTC'), false);
 });
 
 test('demo detector follows the RC TEMP seed', async () => {

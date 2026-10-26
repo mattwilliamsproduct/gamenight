@@ -1,3 +1,5 @@
+import {fitReviewFrame, formatReviewTime} from './review-lib.mjs';
+
 const grid = document.getElementById('review-grid');
 const screenFilter = document.getElementById('filter-screen');
 const filters = document.getElementById('review-filters');
@@ -24,24 +26,38 @@ function shortCommit(value) {
   return String(value || 'local').slice(0, 12);
 }
 
-function formatTime(iso) {
-  try {
-    return new Date(iso).toLocaleString('en-US', {hour12: false});
-  } catch {
-    return iso;
-  }
-}
-
 function currentSizeFilter() {
   return filters.querySelector('input[name="size"]:checked')?.value || '';
 }
 
-function scaleFor(clip, size) {
-  const width = clip.clientWidth || size.width;
-  return Math.max(0.12, Math.min(1, width / size.width));
+function clipMaxHeight() {
+  return window.matchMedia('(min-width: 768px)').matches ? 340 : 280;
 }
 
-function mountPreview(clip, tile) {
+function applyFrameFit(article, clip, tile, scaler, frame) {
+  const fit = fitReviewFrame(tile.size, {
+    availableWidth: article.clientWidth || tile.size.width,
+    maxHeight: clipMaxHeight()
+  });
+  clip.style.width = `${fit.clipWidth}px`;
+  clip.style.height = `${fit.clipHeight}px`;
+  if (scaler) {
+    scaler.style.width = `${fit.frameWidth}px`;
+    scaler.style.height = `${fit.frameHeight}px`;
+    scaler.style.transform = `scale(${fit.scale})`;
+  }
+  if (frame) {
+    frame.width = String(fit.frameWidth);
+    frame.height = String(fit.frameHeight);
+    frame.style.width = `${fit.frameWidth}px`;
+    frame.style.height = `${fit.frameHeight}px`;
+    frame.style.maxWidth = 'none';
+    frame.style.maxHeight = 'none';
+  }
+  return fit;
+}
+
+function mountPreview(article, clip, tile) {
   if (clip.dataset.mounted === '1') return;
   clip.dataset.mounted = '1';
   const shot = `./shots/${tile.screen.id}--${tile.size.id}.png`;
@@ -50,19 +66,16 @@ function mountPreview(clip, tile) {
   img.decoding = 'async';
   img.addEventListener('error', () => {
     img.remove();
+    const scaler = document.createElement('div');
+    scaler.className = 'review-frame-scaler';
     const frame = document.createElement('iframe');
     frame.title = img.alt;
     frame.setAttribute('loading', 'lazy');
+    applyFrameFit(article, clip, tile, scaler, frame);
+    new ResizeObserver(() => applyFrameFit(article, clip, tile, scaler, frame)).observe(article);
+    scaler.appendChild(frame);
+    clip.appendChild(scaler);
     frame.src = liveUrl(tile.screen, tile.size.id);
-    const applyScale = () => {
-      const scale = scaleFor(clip, tile.size);
-      frame.style.width = `${tile.size.width}px`;
-      frame.style.height = `${tile.size.height}px`;
-      frame.style.transform = `scale(${scale})`;
-    };
-    applyScale();
-    new ResizeObserver(applyScale).observe(clip);
-    clip.appendChild(frame);
   }, {once: true});
   img.src = shot;
   clip.appendChild(img);
@@ -85,6 +98,8 @@ function renderTiles() {
     article.className = 'review-tile';
     article.dataset.screen = tile.screen.id;
     article.dataset.size = tile.size.id;
+    const host = document.createElement('div');
+    host.className = 'review-frame-host';
     const clip = document.createElement('div');
     clip.className = 'review-frame-clip';
     clip.dataset.size = tile.size.id;
@@ -100,15 +115,17 @@ function renderTiles() {
     live.target = '_blank';
     live.rel = 'noopener';
     live.textContent = `Open live · ${tile.size.label} ${tile.size.width}×${tile.size.height}`;
-    caption.innerHTML = `<strong>${tile.screen.label}</strong><span>${tile.size.label} ${tile.size.width}×${tile.size.height} · ${formatTime(catalog.generatedAt)} · ${shortCommit(catalog.commit)}</span>`;
+    caption.innerHTML = `<strong>${tile.screen.label}</strong><span>${tile.size.label} ${tile.size.width}×${tile.size.height} · ${formatReviewTime(catalog.generatedAt)} · ${shortCommit(catalog.commit)}</span>`;
     caption.appendChild(live);
     clip.appendChild(open);
-    article.appendChild(clip);
+    host.appendChild(clip);
+    article.appendChild(host);
     article.appendChild(caption);
     grid.appendChild(article);
+    applyFrameFit(article, clip, tile);
     const watcher = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        mountPreview(clip, tile);
+        mountPreview(article, clip, tile);
         watcher.disconnect();
       }
     }, {rootMargin: '120px'});
@@ -123,8 +140,11 @@ function openLightbox(tile) {
   const frame = document.createElement('iframe');
   frame.title = lightboxLabel.textContent;
   frame.src = liveUrl(tile.screen, tile.size.id);
+  frame.width = String(tile.size.width);
+  frame.height = String(tile.size.height);
   frame.style.width = `${tile.size.width}px`;
   frame.style.height = `${tile.size.height}px`;
+  frame.style.maxWidth = 'none';
   lightboxStage.appendChild(frame);
   if (typeof lightbox.showModal === 'function') lightbox.showModal();
 }
@@ -138,7 +158,7 @@ async function boot() {
   const response = await fetch('./catalog.json', {cache: 'no-store'});
   if (!response.ok) throw new Error('Review catalog is missing. This page is preview-only.');
   catalog = await response.json();
-  meta.textContent = `${catalog.tileCount} tiles · ${formatTime(catalog.generatedAt)} · ${shortCommit(catalog.commit)}${catalog.demoReady ? ' · demo views' : ' · gnqa fixtures'}`;
+  meta.textContent = `${catalog.tileCount} tiles · ${formatReviewTime(catalog.generatedAt)} · ${shortCommit(catalog.commit)}${catalog.demoReady ? ' · demo views' : ' · gnqa fixtures'}`;
   catalog.screens.forEach((screen) => {
     const option = document.createElement('option');
     option.value = screen.id;
