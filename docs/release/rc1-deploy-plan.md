@@ -4,6 +4,8 @@ Do not run this plan until Matt says go. This PR stays draft.
 
 Production host: https://cardknight.vercel.app
 
+Required before undraft or merge: revert the TEMP demo seed commit and confirm `?demo` does nothing.
+
 Cloud sync is off this release. Do not touch production Redis or Vercel env vars. Do not PUT, DELETE, or rotate `GN_SYNC_PASSWORD`. `#37` stays parked.
 
 ## Recoverable backup
