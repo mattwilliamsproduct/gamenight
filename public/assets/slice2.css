@@ -1308,11 +1308,42 @@ html.slice2-tv button.scoreboard-rank-badge {
 }
 
 @media (max-width: 760px) and (max-height: 700px) {
+  html.slice2-tv #score-entry-modal {
+    padding: 6px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel {
+    height: calc(100dvh - 12px);
+    max-height: calc(100dvh - 12px);
+    padding: 12px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-list {
+    flex: 0 1 auto;
+    min-height: 3.75rem;
+    max-height: 4.6rem;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-rows,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+    padding-top: 8px;
+    padding-right: 10px;
+    padding-bottom: 4px;
+    scroll-padding-top: 8px;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-row,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+    scroll-margin-top: 8px;
+  }
+
   html.slice2-tv #score-entry-modal .score-entry-selected-card {
     display: flex !important;
     align-items: center;
     min-height: 28px;
     padding: 2px 8px !important;
+    margin: 0;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-selected-avatar,
@@ -1336,20 +1367,42 @@ html.slice2-tv button.scoreboard-rank-badge {
   }
 
   html.slice2-tv #score-entry-game {
-    font-size: 1.7rem !important;
+    font-size: 1.55rem !important;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
-    padding-bottom: 8px !important;
-    gap: 8px !important;
+    padding-bottom: 6px !important;
+    gap: 6px !important;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-layout {
-    padding-block: 0.35rem !important;
+    gap: 0.25rem !important;
+    padding-block: 0.2rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-side {
+    gap: 0.3rem !important;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-key,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
     min-height: 40px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+    padding-top: 8px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t button {
+    min-height: 40px !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t #score-entry-primary-btn {
+    grid-column: 1 / -1;
   }
 }

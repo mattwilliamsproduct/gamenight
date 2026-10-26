@@ -254,7 +254,19 @@ function scoreEntryReport(){
     const activeBox = active?.getBoundingClientRect();
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
       const r = el.getBoundingClientRect();
-      return {t: (el.textContent || '').trim(), top: r.top, bottom: r.bottom, h: r.height};
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const hit = document.elementFromPoint(cx, cy);
+      return {
+        t: (el.textContent || '').trim(),
+        top: r.top,
+        bottom: r.bottom,
+        left: r.left,
+        right: r.right,
+        h: r.height,
+        inside: r.top >= -0.5 && r.left >= -0.5 && r.bottom <= window.innerHeight + 0.5 && r.right <= window.innerWidth + 0.5,
+        hit: !!(hit === el || el.contains(hit))
+      };
     });
     const covered = visible.filter((row) => {
       const r = row.getBoundingClientRect();
@@ -270,10 +282,21 @@ function scoreEntryReport(){
         ? (scoringLabel.innerText || '').replace(/\s+/g, ' ').trim()
         : '',
       covered,
+      keys,
       zeroKey: keys.find((key) => key.t === '0') || null,
-      vh: window.innerHeight
+      vh: window.innerHeight,
+      activeFull: !!(activeBox && lane && activeBox.top >= lane.top - 1 && activeBox.bottom <= lane.bottom + 1)
     };
   };
+}
+
+function expectKeysUsable(report, minHeight){
+  expect(report.keys.length, 'keypad should render keys').toBeGreaterThan(0);
+  report.keys.forEach((key) => {
+    expect(key.inside, `${key.t} should sit fully in the viewport`).toBe(true);
+    expect(key.hit, `${key.t} center should hit the key`).toBe(true);
+    expect(key.h, `${key.t} height`).toBeGreaterThanOrEqual(minHeight);
+  });
 }
 
 test('phone keypad leaves roster rows reachable', async ({page}) => {
@@ -286,9 +309,9 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(short.activeVisible, 'selected roster row should stay in view').toBe(true);
   expect(short.activeName).toBe(short.selectedName);
   expect(short.firstRowClipped, 'first visible roster row should not be clipped').toBe(false);
-  expect(short.scoringLabel).toMatch(/Scoring:\s*Megan|Megan/);
-  expect(short.zeroKey?.bottom).toBeLessThanOrEqual(short.vh + 1);
-  expect(short.zeroKey?.h).toBeGreaterThanOrEqual(24);
+  expect(short.scoringLabel).toMatch(/Scoring:\s*Megan/);
+  expect(short.activeFull, 'selected roster row should be fully unclipped').toBe(true);
+  expectKeysUsable(short, 40);
   await page.setViewportSize({width: 390, height: 844});
   await page.reload({waitUntil: 'networkidle'});
   await ready(page);
@@ -296,8 +319,7 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(roomy.covered).toBe(0);
   expect(roomy.activeVisible).toBe(true);
   expect(roomy.visibleCount, '390 should show a third roster row').toBeGreaterThanOrEqual(3);
-  expect(roomy.zeroKey?.h).toBeGreaterThanOrEqual(44);
-  expect(roomy.zeroKey?.bottom).toBeLessThanOrEqual(roomy.vh + 1);
+  expectKeysUsable(roomy, 44);
   await page.evaluate(() => {
     const row = [...document.querySelectorAll('#score-entry-modal .score-entry-row')]
       .find((el) => (el.querySelector('.score-entry-name')?.textContent || '').trim() === 'Brick');
