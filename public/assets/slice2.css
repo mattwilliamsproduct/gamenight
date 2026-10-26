@@ -1214,9 +1214,10 @@ html.slice2-tv button.scoreboard-rank-badge {
     flex: 1 1 auto;
     overflow-y: auto !important;
     min-height: 0;
-    padding-top: 12px;
+    padding-top: 16px;
+    padding-right: 8px;
     padding-bottom: 8px;
-    scroll-padding-top: 12px;
+    scroll-padding-top: 16px;
     scroll-padding-bottom: 8px;
   }
 
@@ -1226,7 +1227,7 @@ html.slice2-tv button.scoreboard-rank-badge {
     flex: 0 0 auto !important;
     min-height: 44px !important;
     height: auto !important;
-    scroll-margin-top: 12px;
+    scroll-margin-top: 16px;
     scroll-margin-bottom: 8px;
   }
 
