@@ -562,11 +562,11 @@ const lifePreserverVisiblePlayers=['Matt','Mike','Linda'];
 const lifePreserverVisibleRounds=[
   {round:1,bids:{Matt:1,Mike:1,Linda:1},actuals:{Matt:1,Mike:0,Linda:0},scores:{Matt:30,Mike:-10,Linda:-10}},
   {round:0,hailMaryBonus:true,scores:{Linda:15}},
-  {round:2,bids:{Matt:2,Mike:2,Linda:2},actuals:{Matt:2,Mike:0,Linda:0},scores:{Matt:40,Mike:-20,Linda:-20}},
-  {round:3,bids:{Matt:2,Mike:1,Linda:2},actuals:{Matt:2,Mike:1,Linda:0},scores:{Matt:40,Mike:30,Linda:-20}},
-  {round:4,bids:{Matt:2,Mike:1,Linda:1},actuals:{Matt:2,Mike:1,Linda:1},scores:{Matt:40,Mike:30,Linda:30}},
-  {round:5,bids:{Matt:1,Mike:2,Linda:2},actuals:{Matt:1,Mike:2,Linda:2},scores:{Matt:30,Mike:40,Linda:40}},
-  {round:6,bids:{Matt:2,Mike:2,Linda:2},actuals:{Matt:2,Mike:2,Linda:2},scores:{Matt:40,Mike:40,Linda:40}},
+  {round:2,bids:{Matt:0,Mike:2,Linda:0},actuals:{Matt:0,Mike:2,Linda:0},scores:{Matt:20,Mike:40,Linda:20}},
+  {round:3,bids:{Matt:0,Mike:3,Linda:0},actuals:{Matt:0,Mike:3,Linda:0},scores:{Matt:20,Mike:50,Linda:20}},
+  {round:4,bids:{Matt:0,Mike:4,Linda:0},actuals:{Matt:0,Mike:4,Linda:0},scores:{Matt:20,Mike:60,Linda:20}},
+  {round:5,bids:{Matt:2,Mike:3,Linda:0},actuals:{Matt:2,Mike:3,Linda:0},scores:{Matt:40,Mike:50,Linda:20}},
+  {round:6,bids:{Matt:3,Mike:3,Linda:0},actuals:{Matt:3,Mike:3,Linda:0},scores:{Matt:50,Mike:50,Linda:20}},
   {round:0,hailMaryBonus:true,scores:{Mike:40}}
 ];
 const lifePreserverVisibleGame=makeCurrentGame('Wizard',lifePreserverVisiblePlayers,lifePreserverVisibleRounds,{

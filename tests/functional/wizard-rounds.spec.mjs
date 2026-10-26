@@ -3,7 +3,7 @@ import {openScenario} from '../helpers/qa.mjs';
 
 test('adding a seventh Wizard player shortens a 6-player match from 10 rounds to 8', async ({page})=>{
   await openScenario(page,{scenario:'wizard-6-mid'});
-  await expect(page.locator('#round-intel')).toContainText('R3 / 10');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Round 3 of 10/);
 
   await page.getByRole('button',{name:/Actions/}).click();
   await page.getByRole('button',{name:'Add Player Mid-Game',exact:true}).click();
@@ -11,7 +11,7 @@ test('adding a seventh Wizard player shortens a 6-player match from 10 rounds to
   await page.locator('#midgame-add-player-input').fill('Alexis');
   await page.locator('#add-player-modal').getByRole('button',{name:'Add',exact:true}).click();
 
-  await expect(page.locator('#round-intel')).toContainText('R3 / 8');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Round 3 of 8/);
   await expect(page.locator('#toast-container')).toContainText('Match is now 8 rounds');
 
   const state=await page.evaluate(()=>({

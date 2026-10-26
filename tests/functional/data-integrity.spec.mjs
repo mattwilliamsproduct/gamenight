@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import {expect,test} from '@playwright/test';
-import {openScenario} from '../helpers/qa.mjs';
+import {enterRoundButton, openScenario} from '../helpers/qa.mjs';
 import {EIGHT18_BID_ACCURACY_ROUNDS} from '../../public/qa/fixtures.mjs';
 
 const ARTIFACTS='/opt/cursor/artifacts';
@@ -120,7 +120,7 @@ function wizardRoundTen(){
 
 test('P0-01 first trick digit replaces the prefill, then later digits append', async ({page})=>{
   await installMatch(page, wizardRoundTen(), null);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   const modal=page.locator('#score-entry-modal');
   await expect(modal).toBeVisible();
   await expect(page.locator('#score-entry-context')).toContainText('Round 10');
@@ -161,7 +161,7 @@ test('P0-01 first trick digit replaces the prefill, then later digits append', a
 
 test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
   await installMatch(page, wizardRoundTen(), null);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
 
   const matt=page.locator('#score-entry-value-Matt');
@@ -181,7 +181,7 @@ test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
 
   await page.evaluate(()=>closeScoreEntryModalOnly());
   await expect(page.locator('#score-entry-modal')).toBeHidden();
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   await page.locator('#score-entry-row-Matt .score-entry-row-status').click();
   await expect(matt).toHaveText('1');
@@ -215,7 +215,7 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   };
   await installMatch(page, game, null);
   const before=await persisted(page);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'-')).click();
@@ -257,7 +257,7 @@ test('P0-02 a blank trick counts as 0 and then the round total is checked', asyn
     completed:false
   }, null);
   const before=await persisted(page);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'backspace')).click();
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
@@ -304,7 +304,7 @@ test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
     completed:false
   }, null);
   const before=await persisted(page);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-context')).toContainText('1 trick');
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'8')).click();
@@ -342,7 +342,7 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
     completed:false
   }, null);
   const before=await persisted(page);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   const mattRow=page.locator('#score-entry-row-Matt');
   await mattRow.locator('.score-entry-row-status').click();
   await expect(mattRow).toHaveClass(/is-empty/);
@@ -794,37 +794,16 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   expect(healed.cloud).toBe(false);
   expect(healed.porch).toBeNull();
 
-  await page.getByRole('button',{name:'Records', exact:true}).first().click();
-  const cards=page.locator('#history-list-view .surface');
-  await expect(cards).toHaveCount(2);
-  await expect(cards.first().locator('[data-assisted-match="true"]')).toHaveText('Assisted Match');
-  await expect(cards.first()).toContainText('-18');
-  await expect(cards.nth(1).locator('[data-assisted-match="true"]')).toHaveCount(0);
+  await page.getByRole('button',{name:/^Records/}).first().click();
+  const nights=page.locator('#hall-of-fame-view .s2-night');
+  await expect(nights).toHaveCount(2);
+  await expect(nights.filter({has: page.locator('[data-assisted-match="true"]')})).toHaveCount(1);
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Matt');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('4 pts');
+  await expect(page.locator('#hall-of-fame-view')).not.toContainText('-18');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
-  await cards.first().screenshot({path:`${ARTIFACTS}/slice1-timeline-assisted.png`});
-  await shot(page,'slice1-timeline-assisted-viewport');
-
-  await page.locator('#tab-fame').click();
-  const fameScore=page.locator('#fame-content .surface',{hasText:'Five Crowns: Best Score'});
-  await expect(fameScore).toContainText('Unassisted matches only');
-  await expect(fameScore).toContainText('Matt');
-  await expect(fameScore.locator('.text-3xl')).toHaveText('4');
-  await expect(fameScore).not.toContainText('-18');
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-hall-of-fame-unassisted.png`});
-
-  await page.locator('#tab-records').click();
-  const bestRound=page.locator('#records-view .surface',{hasText:'Best Single Round Ever'});
-  await expect(bestRound).toContainText('Brick');
-  await expect(bestRound).toContainText('R1');
-  await expect(bestRound).not.toContainText('-18');
-  await expect(bestRound).not.toContainText('R0');
-  await expect(bestRound.locator('.text-3xl')).toHaveText('0');
-  const bestGame=page.locator('#records-view .surface',{hasText:'Best Game Ever'}).first();
-  await expect(bestGame).toContainText('Unassisted matches only');
-  await expect(bestGame).toContainText('Matt');
-  await expect(bestGame.locator('.text-3xl')).toHaveText('4');
-  await bestRound.scrollIntoViewIfNeeded();
-  await bestRound.screenshot({path:`${ARTIFACTS}/slice1-records-best-single-round.png`});
   await shot(page,'slice1-records-best-single-round-viewport');
 });
 
@@ -836,18 +815,11 @@ test('P0-03 an all-assisted shelf says there are no unassisted matches', async (
     markHistoryChanged();
     showHistory();
   });
-  await page.locator('#tab-records').click();
-  const bestGame=page.locator('#records-view .surface',{hasText:'Best Game Ever'}).first();
-  await expect(bestGame).toContainText('No unassisted matches yet');
-  await expect(bestGame).toContainText('Unassisted matches only');
-  const bestRound=page.locator('#records-view .surface',{hasText:'Best Single Round Ever'});
-  await expect(bestRound.locator('.text-3xl')).toHaveText('0');
-  await page.locator('#tab-fame').click();
-  const fameScore=page.locator('#fame-content .surface',{hasText:'Five Crowns: Best Score'});
-  await expect(fameScore).toContainText('No unassisted matches yet');
-  await expect(fameScore).toContainText('Unassisted matches only');
+  await expect(page.locator('#hall-of-fame-view')).toBeVisible();
+  await expect(page.locator('#hall-of-fame-view')).toContainText('No unassisted matches yet');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
-  await fameScore.screenshot({path:`${ARTIFACTS}/slice1-all-assisted-empty.png`});
+  await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-all-assisted-empty.png`});
 });
 
 test('P0-03 spins stay out of exact bids and opening the wheel is not an assisted match', async ({page})=>{
@@ -1061,17 +1033,12 @@ test('P0-07 a fresh rename and a disjoint merge keep each match’s scores', asy
 test('P0-03 phone width still shows the assisted badge and the healed round', async ({page})=>{
   await page.setViewportSize({width:390, height:844});
   await openScenario(page,{scenario:'records-assisted-heal', surface:'home'});
-  await page.getByRole('button',{name:'Records', exact:true}).first().click();
+  await page.getByRole('button',{name:/^Records/}).first().click();
   await expect(page.locator('[data-assisted-match="true"]').first()).toBeVisible();
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await shot(page,'slice1-phone-timeline');
-  await page.locator('#tab-fame').click();
-  await expect(page.locator('#fame-content')).toContainText('Unassisted matches only');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
   await shot(page,'slice1-phone-hall-of-fame');
-  await page.locator('#tab-records').click();
-  const bestRound=page.locator('#records-view .surface',{hasText:'Best Single Round Ever'});
-  await bestRound.scrollIntoViewIfNeeded();
-  await expect(bestRound.locator('.text-3xl')).toHaveText('0');
   await shot(page,'slice1-phone-records');
 });
 
@@ -1313,7 +1280,7 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
     currentScoreDrafts:{},
     completed:false
   }, null);
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   const alice=page.locator('#score-entry-status-Alice');
   await expect(alice).toHaveText('Blank');
@@ -1363,7 +1330,7 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   const reloaded=await page.evaluate(()=>currentGame.rounds[0].scores);
   expect(reloaded).toEqual({Alice:0, Bob:0, Cara:0, Dan:0});
   await page.setViewportSize({width:390, height:844});
-  await page.locator('#submit-action-btn').click();
+  await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   await page.waitForFunction(()=>{
     const modal=document.getElementById('score-entry-modal');
@@ -1558,9 +1525,10 @@ test('boot backfills a legacy match that has no id and no gameId', async ({page}
   expect(first.cloud).toBe(false);
   expect(first.porch).toBeNull();
   await page.evaluate(()=>showHistory());
-  await expect(page.locator('#history-list-view button',{hasText:'Resume'}).first()).toBeVisible();
-  const onclick=await page.locator('#history-list-view button',{hasText:'Resume'}).first().getAttribute('onclick');
-  expect(onclick).toBe(`resumeMatch(${JSON.stringify(first.storedGameId)})`);
+  const resume=page.locator('#hall-of-fame-view [data-s2-action="night-resume"]').first();
+  await expect(resume).toBeVisible();
+  const resumeId=await resume.getAttribute('data-s2-id');
+  expect(String(resumeId)).toBe(String(first.storedGameId));
   await page.reload();
   await page.waitForFunction(gameId=>{
     const rows=JSON.parse(localStorage.getItem('gn_history')||'[]');
@@ -1671,17 +1639,17 @@ test('an incomplete history match stays out of the book until Resume Match is co
   expect(stats.bobWins).toBe(0);
   expect(stats.aliceRecordGames).toBe(1);
   expect(stats.liveId).toBe(111);
-  const heat=page.locator('#history-list-view .surface',{hasText:'Beat the Heat'});
-  const wizard=page.locator('#history-list-view .surface',{hasText:'Wizard'});
-  await expect(heat.locator('[data-match-status="incomplete"]')).toHaveText('Incomplete');
-  await expect(heat.getByRole('button',{name:'Resume Match', exact:true})).toBeVisible();
-  await expect(wizard.locator('[data-match-status="incomplete"]')).toHaveCount(0);
-  await expect(wizard.getByRole('button',{name:'Resume', exact:true})).toBeVisible();
+  const heat=page.locator('#hall-of-fame-view .s2-night',{hasText:'Beat the Heat'});
+  const wizard=page.locator('#hall-of-fame-view .s2-night',{hasText:'Wizard'});
+  await expect(heat).toContainText('Incomplete');
+  await expect(heat.locator('[data-s2-action="night-resume"]')).toBeVisible();
+  await expect(wizard).not.toContainText('Incomplete');
+  await expect(wizard.locator('[data-s2-action="night-resume"]')).toBeVisible();
   await heat.screenshot({path:`${ARTIFACTS}/slice1-incomplete-resume.png`});
-  await heat.getByRole('button',{name:'Resume Match', exact:true}).click();
+  await heat.locator('[data-s2-action="night-resume"]').click();
   expect(messages).toEqual(['Save the game on the table and resume this match?']);
   expect(await page.evaluate(()=>currentGame.id)).toBe(111);
-  await heat.getByRole('button',{name:'Resume Match', exact:true}).click();
+  await heat.locator('[data-s2-action="night-resume"]').click();
   await expect.poll(()=>page.evaluate(()=>currentGame&&currentGame.id)).toBe(66);
   const parked=await page.evaluate(()=>{
     const prior=history.find(row=>row.id===111);

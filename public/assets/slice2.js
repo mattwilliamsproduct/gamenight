@@ -123,7 +123,7 @@
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
       if (action.includes('goHome')) button.textContent = phone ? 'Table' : "Tonight's Table";
-      if (action.includes('showHistory')) button.textContent = phone ? 'Records' : `Timeline & Records (${table.history.length})`;
+      if (action.includes('showHistory')) button.textContent = phone ? 'Records' : `Records (${table.history.length})`;
       if (action.includes('showProfiles')) button.textContent = phone ? 'Profiles' : `Player Passports (${table.allPlayers.length})`;
       if (action.includes('openSettings')) button.textContent = 'Settings';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
@@ -253,6 +253,9 @@
         </div>`;
       screen.insertBefore(bar, screen.firstChild);
     }
+    const cluster = document.querySelector('#game-screen .active-match-actions');
+    const dest = bar.querySelector('.s2-board-actions');
+    if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, dest.firstChild);
     const line = document.getElementById('slice2-board-line');
     const legend = document.getElementById('slice2-score-legend');
     const enter = document.getElementById('slice2-enter-btn');
@@ -346,7 +349,7 @@
       const bits = [match.date || ''];
       if (incomplete) bits.push('Incomplete');
       if (assisted) bits.push('Assisted');
-      return `<article class="s2-night">
+      return `<article class="s2-night"${assisted ? ' data-assisted-match="true"' : ''}>
         <div>
           <strong>${escapeHtml(label)}</strong>
           <span>${escapeHtml(bits.filter(Boolean).join(' · '))}</span>

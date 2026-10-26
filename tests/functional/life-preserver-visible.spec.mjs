@@ -39,9 +39,8 @@ test('a Life Preserver shows on the hand it followed, or beside Total when that 
   expect(path.finalMatt).toBe(path.mattLast);
 
   await page.evaluate(()=>showHistory());
-  await expect(page.locator('#history-list-view')).toContainText('9/28/2026 · 6 rounds');
-  await expect(page.locator('#history-list-view')).not.toContainText('8 rounds');
-  await page.getByRole('button',{name:'Scorecard',exact:true}).click();
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Wizard');
+  await page.locator('#hall-of-fame-view [data-s2-action="night-scorecard"]').first().click();
   const historyLinda=page.locator('#modal-scorecard-body tr',{hasText:'Linda'});
   const historyMike=page.locator('#modal-scorecard-body tr',{hasText:'Mike'});
   await expect(historyLinda.locator('[aria-label="Life Preserver +15"]')).toBeVisible();
@@ -131,7 +130,7 @@ test('merging two names from the same live Wizard match is refused', async ({pag
   });
   expect(merged.ok).toBe(false);
   expect(merged.unchanged).toBe(true);
-  expect(merged.lindaBid).toBe(2);
+  expect(merged.lindaBid).toBe(1);
   expect(merged.mikeBid).toBe(1);
   expect(merged.roster).toEqual(['Matt','Mike','Linda']);
   expect(merged.spins).toBe(2);

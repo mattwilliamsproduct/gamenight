@@ -196,6 +196,32 @@ html.slice2-tv .s2-seat-actions {
   gap: 8px;
 }
 
+html.slice2-tv #slice2-board-bar,
+html.slice2-tv .s2-board-actions,
+html.slice2-tv .s2-board-actions .active-match-actions {
+  overflow: visible;
+}
+
+html.slice2-tv .s2-board-actions .active-match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
+}
+
+html.slice2-tv .s2-board-actions #actions-btn,
+html.slice2-tv .s2-board-actions .match-end-btn {
+  appearance: none;
+  border: 1.5px solid var(--s2-line);
+  background: var(--s2-card);
+  color: var(--s2-ink);
+  border-radius: 999px;
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+}
+
 html.slice2-tv .s2-btn {
   appearance: none;
   border: 1.5px solid var(--s2-line);

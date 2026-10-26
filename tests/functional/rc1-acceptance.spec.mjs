@@ -54,9 +54,7 @@ for (const size of SIZES) {
       await page.locator('#score-entry-modal .score-entry-key', {hasText: '7'}).click();
       await page.locator('#score-entry-modal .score-entry-key.next').click();
       await expect(page.locator('#score-entry-selected-name')).toContainText(/Matt|Scoring/);
-      await page.locator('#score-entry-done').click().catch(async () => {
-        await page.getByRole('button', {name: /Save|Submit|Done|Lock/i}).first().click();
-      });
+      await page.locator('#score-entry-primary-btn').click();
       const afterOpen = await page.evaluate(() => {
         const modal = document.getElementById('score-entry-modal');
         return !modal || modal.classList.contains('hidden');
