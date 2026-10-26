@@ -116,7 +116,7 @@ test('life preserver wheel keeps the odds and auto-applies', async ({page}) => {
   await ready(page);
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-mode-label')).toHaveText('Life Preserver');
-  await expect(page.locator('#btn-spin')).toHaveText('Spin Wheel');
+  await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
   await expect(page.getByRole('button', {name: /Apply/})).toHaveCount(0);
   await expect(page.locator('#wheel-canvas')).toHaveAttribute('data-slice2-wheel', '1');
   const before = await page.evaluate(() => getWheelSlices().map((slice) => [slice.adjustment, slice.weight, slice._wheelKind]));
@@ -238,14 +238,19 @@ function scoreEntryReport(){
     const rows = [...document.querySelectorAll('#score-entry-modal .score-entry-row')];
     const active = document.querySelector('#score-entry-modal .score-entry-row.active');
     const selectedName = (document.getElementById('score-entry-selected-name')?.textContent || '').trim();
-    const scoringLabel = document.querySelector('#score-entry-modal .score-entry-selected-card');
+    const scoringName = document.getElementById('score-entry-selected-name');
+    const scoringPrefix = scoringName ? getComputedStyle(scoringName, '::before').content.replace(/["']/g, '') : '';
+    const scoringCard = document.querySelector('#score-entry-modal .score-entry-selected-card');
     const k = keypad?.getBoundingClientRect();
     const lane = (scroller || list)?.getBoundingClientRect();
-    const visible = rows.filter((row) => {
+    const overlapOf = (row) => {
       const r = row.getBoundingClientRect();
-      return lane && r.height >= 8 && r.bottom > lane.top + 2 && r.top < lane.bottom - 2;
-    });
-    const first = visible[0]?.getBoundingClientRect();
+      if (!lane || r.height < 8) return 0;
+      return Math.min(r.bottom, lane.bottom) - Math.max(r.top, lane.top);
+    };
+    const visible = rows.filter((row) => overlapOf(row) >= 16);
+    const firstFull = rows.find((row) => overlapOf(row) >= Math.min(row.getBoundingClientRect().height * 0.7, 28));
+    const first = firstFull?.getBoundingClientRect();
     const activeBox = active?.getBoundingClientRect();
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
       const r = el.getBoundingClientRect();
@@ -260,6 +265,7 @@ function scoreEntryReport(){
         right: r.right,
         h: r.height,
         w: r.width,
+        inside: r.top >= -0.5 && r.left >= -0.5 && r.bottom <= window.innerHeight + 0.5 && r.right <= window.innerWidth + 0.5,
         hit: !!(hit && (hit === el || el.contains(hit)))
       };
     });
@@ -273,16 +279,26 @@ function scoreEntryReport(){
       activeVisible: !!(activeBox && lane && activeBox.bottom > lane.top + 4 && activeBox.top < lane.bottom - 4),
       visibleCount: visible.length,
       firstRowClipped: !!(first && lane && first.top < lane.top - 1),
-      scoringLabel: scoringLabel && getComputedStyle(scoringLabel).display !== 'none'
-        ? (scoringLabel.innerText || '').replace(/\s+/g, ' ').trim()
+      scoringLabel: scoringCard && getComputedStyle(scoringCard).display !== 'none'
+        ? `${scoringPrefix}${(scoringName?.textContent || '').trim()}`.replace(/\s+/g, ' ').trim()
         : '',
       covered,
-      zeroKey: keys.find((key) => key.t === '0') || null,
       keys,
+      zeroKey: keys.find((key) => key.t === '0') || null,
       vh: window.innerHeight,
-      vw: window.innerWidth
+      vw: window.innerWidth,
+      activeFull: !!(activeBox && lane && activeBox.top >= lane.top - 1 && activeBox.bottom <= lane.bottom + 1)
     };
   };
+}
+
+function expectKeysUsable(report, minHeight){
+  expect(report.keys.length, 'keypad should render keys').toBeGreaterThan(0);
+  report.keys.forEach((key) => {
+    expect(key.inside, `${key.t} should sit fully in the viewport`).toBe(true);
+    expect(key.hit, `${key.t} center should hit the key`).toBe(true);
+    expect(key.h, `${key.t} height`).toBeGreaterThanOrEqual(minHeight);
+  });
 }
 
 test('phone keypad leaves roster rows reachable', async ({page}) => {
@@ -295,17 +311,9 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(short.activeVisible, 'selected roster row should stay in view').toBe(true);
   expect(short.activeName).toBe(short.selectedName);
   expect(short.firstRowClipped, 'first visible roster row should not be clipped').toBe(false);
-  expect(short.scoringLabel).toMatch(/Scoring:\s*Megan|Megan/);
-  expect(short.zeroKey?.bottom).toBeLessThanOrEqual(short.vh + 1);
-  expect(short.zeroKey?.h).toBeGreaterThanOrEqual(24);
-  expect(short.keys.length, 'every keypad key should render').toBeGreaterThanOrEqual(12);
-  short.keys.forEach((key) => {
-    expect(key.top, `${key.t} top`).toBeGreaterThanOrEqual(-1);
-    expect(key.bottom, `${key.t} bottom`).toBeLessThanOrEqual(short.vh + 1);
-    expect(key.left, `${key.t} left`).toBeGreaterThanOrEqual(-1);
-    expect(key.right, `${key.t} right`).toBeLessThanOrEqual(short.vw + 1);
-    expect(key.hit, `${key.t} should be hit-testable`).toBe(true);
-  });
+  expect(short.scoringLabel).toMatch(/Scoring:\s*Megan/);
+  expect(short.activeFull, 'selected roster row should be fully unclipped').toBe(true);
+  expectKeysUsable(short, 40);
   await page.setViewportSize({width: 390, height: 844});
   await page.reload({waitUntil: 'networkidle'});
   await ready(page);
@@ -313,8 +321,7 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(roomy.covered).toBe(0);
   expect(roomy.activeVisible).toBe(true);
   expect(roomy.visibleCount, '390 should show a third roster row').toBeGreaterThanOrEqual(3);
-  expect(roomy.zeroKey?.h).toBeGreaterThanOrEqual(44);
-  expect(roomy.zeroKey?.bottom).toBeLessThanOrEqual(roomy.vh + 1);
+  expectKeysUsable(roomy, 44);
   await page.evaluate(() => {
     const row = [...document.querySelectorAll('#score-entry-modal .score-entry-row')]
       .find((el) => (el.querySelector('.score-entry-name')?.textContent || '').trim() === 'Brick');

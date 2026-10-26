@@ -14744,19 +14744,10 @@ ${isDealer
     const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
     if(!scroller||!row)return;
     const pad=12;
-    const rowBox=row.getBoundingClientRect();
     const lane=scroller.getBoundingClientRect();
-    const top=rowBox.top-lane.top-pad+scroller.scrollTop;
+    const top=row.getBoundingClientRect().top-lane.top-pad+scroller.scrollTop;
     const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
     scroller.scrollTop=Math.max(0,Math.min(top,max));
-    const nextLane=scroller.getBoundingClientRect();
-    const stub=[...scroller.querySelectorAll('.score-entry-row')].find((el)=>{
-      const box=el.getBoundingClientRect();
-      return box.bottom>nextLane.top+2 && box.top<nextLane.top-1;
-    });
-    if(stub && stub!==row){
-      scroller.scrollTop+=Math.ceil(stub.getBoundingClientRect().bottom-nextLane.top);
-    }
   }
 
   function openScoreEntryModal(ev){
