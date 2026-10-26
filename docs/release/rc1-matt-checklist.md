@@ -2,6 +2,8 @@
 
 Draft only. Do not undraft or merge until Matt says go. Physical iPhone Safari first, then a TV-distance look. Gallery ids: `http://127.0.0.1:4173/?gnqa=1&scenario=<id>`.
 
+Required before undraft or merge: revert the TEMP demo seed commit and confirm `?demo` does nothing.
+
 ## Local-only
 
 1. Settings has no porch password. Backup and Restore are easy to find.

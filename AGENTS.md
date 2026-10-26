@@ -12,14 +12,14 @@ Exact scripts from `package.json`:
 
 - `npm install`
 - `npm run build` — `build:styles`, then `build:vendor` (minified CSS, vendor copies, and `public/sw.js`), then `build:review` (preview-only `/review` when `VERCEL_ENV !== 'production'`)
-- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:local-only`, `test:scorebook`, `test:data-integrity`, `test:fixture-rules`, `test:review-gate`, then `git diff --check`
+- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:local-only`, `test:scorebook`, `test:data-integrity`, `test:fixture-rules`, `test:review-gate`, `test:demo-seed`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:functional` — Playwright laptop functional pack
 - `npm run test:porch-night` — one laptop Chromium walk of the porch-night gallery fixtures
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:local-only`, `npm run test:scorebook`, `npm run test:data-integrity`, `npm run test:fixture-rules`, `npm run test:review-gate`, `npm run test:functional`, `npm run test:porch-night`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:local-only`, `npm run test:scorebook`, `npm run test:data-integrity`, `npm run test:fixture-rules`, `npm run test:review-gate`, `npm run test:demo-seed`, `npm run test:functional`, `npm run test:porch-night`.
 
 ## Architecture
 

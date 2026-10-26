@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import {DEMO_VIEW_IDS} from '../public/assets/demo-seed.mjs';
 import {
   REQUIRED_REVIEW_IDS,
   REVIEW_SCREENS,
@@ -21,10 +22,11 @@ const rootDir = process.cwd();
 test('review catalog covers every required screen at three sizes', () => {
   const ids = REVIEW_SCREENS.map((screen) => screen.id);
   assert.deepEqual(ids, REQUIRED_REVIEW_IDS);
+  assert.deepEqual(ids, DEMO_VIEW_IDS);
   for (const needed of [
-    'home', 'scorecard-five-crowns', 'entry-five-crowns', 'scorecard-wizard', 'entry-wizard',
-    'scorecard-818', 'entry-818', 'scorecard-flip-7', 'entry-flip-7', 'scorecard-beat-the-heat',
-    'entry-beat-the-heat', 'scorecard-rook', 'entry-rook', 'keypad-8p', 'lifepreserver',
+    'home', 'active-match', 'scorecard-fivecrowns', 'entry-fivecrowns', 'scorecard-wizard', 'entry-wizard',
+    'scorecard-818', 'entry-818', 'scorecard-flip7', 'entry-flip7', 'scorecard-beattheheat',
+    'entry-beattheheat', 'scorecard-rook', 'entry-rook', 'keypad-8p', 'lifepreserver',
     'lifepreserver-after', 'records', 'records-shame', 'rook-contract', 'rook-call',
     'settings', 'settings-backup', 'history', 'profiles', 'empty-home', 'empty-records', 'error-entry'
   ]) {
@@ -32,7 +34,7 @@ test('review catalog covers every required screen at three sizes', () => {
   }
   assert.equal(REVIEW_SIZES.length, 3);
   assert.deepEqual(REVIEW_SIZES.map((size) => `${size.width}x${size.height}`), ['390x844', '768x1024', '1440x900']);
-  assert.equal(REVIEW_SCREENS.length * REVIEW_SIZES.length, 81);
+  assert.equal(REVIEW_SCREENS.length * REVIEW_SIZES.length, 84);
 });
 
 test('live paths prefer demo views and keep gnqa fallbacks', () => {
@@ -71,9 +73,9 @@ test('preview emit writes the catalog and source files', async () => {
     publicReviewDir
   });
   assert.equal(result.emitted, true);
-  assert.equal(result.tileCount, 81);
+  assert.equal(result.tileCount, 84);
   const catalog = JSON.parse(await readFile(join(publicReviewDir, 'catalog.json'), 'utf8'));
-  assert.equal(catalog.tileCount, 81);
+  assert.equal(catalog.tileCount, 84);
   assert.equal(catalog.commit, 'deadbeef');
   await access(join(publicReviewDir, 'index.html'));
   await access(join(publicReviewDir, 'review.js'));
@@ -92,7 +94,7 @@ test('middleware and worker never ship /review to production', async () => {
   assert.equal(stdout.trim(), '', 'public/review must stay untracked so production output cannot ship it from git');
 });
 
-test('demo detector stays off until RC seed lands', async () => {
+test('demo detector follows the RC TEMP seed', async () => {
   const index = await readFile(join(rootDir, 'public/index.html'), 'utf8');
-  assert.equal(typeof detectDemoDeepLinks(index), 'boolean');
+  assert.equal(detectDemoDeepLinks(index), true);
 });

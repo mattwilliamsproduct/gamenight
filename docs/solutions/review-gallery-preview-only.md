@@ -9,6 +9,6 @@ What keeps it off production:
 - `middleware.js` 404s `/review` on production and the production alias even if files leak.
 - `public/review/` is gitignored. `npm run test:review-gate` fails if git tracks it, if a production emit leaves files, or if the worker template precaches `/review`.
 
-Regeneration: Playwright/Chromium is not reliable inside a Vercel build (no browser system libs). Preview builds emit the HTML/JS catalog. The page lazy-loads each view in an iframe, or a `public/review/shots/` PNG if `npm run review:shots` wrote one. After the RC `?demo&view=<id>` seed lands, Open live and shot capture use those same ids.
+Regeneration: Playwright/Chromium is not reliable inside a Vercel build (no browser system libs). Preview builds emit the HTML/JS catalog. The page lazy-loads each view in an iframe, or a `public/review/shots/` PNG if `npm run review:shots` wrote one. After the RC `TEMP: demo seed` merge, tiles, Open live, and `npm run review:shots` all use the same `DEMO_VIEW_IDS` (`/?demo&view=<id>&size=<phone|tablet|tv>`). Hail Mary is the 818 Life Preserver spin: `lifepreserver` before and `lifepreserver-after`.
 
 What not to repeat: do not commit screenshots or `public/review/` onto a branch that can promote to `cardknight.vercel.app`. Do not add `/review` to `src/service-worker.js`.
