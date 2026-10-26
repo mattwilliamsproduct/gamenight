@@ -1,20 +1,23 @@
-# RC1 Matt checklist
+# RC1 ready-for-review checklist
 
-Five minutes. Physical iPhone Safari first, then a TV-distance look. Gallery ids are the prove-it surface if you want a seeded table: `http://127.0.0.1:4173/?gnqa=1&scenario=<id>`.
+Draft only. Do not undraft or merge until Matt says go. Physical iPhone Safari first, then a TV-distance look. Gallery ids: `http://127.0.0.1:4173/?gnqa=1&scenario=<id>`.
 
-## iPhone Safari (about 3 minutes)
+## Local-only
 
-1. Home with a live match. Resume should be the one obvious primary. Starting another game should say the table match is saved as incomplete.
-2. Start or resume Five Crowns. Enter scores for the table. On 375, the 00 / 0 row must stay fully on screen.
-3. Open a finished score. Change one past-round number. Confirm the total updates.
-4. Leave and come back. The incomplete match should still be there.
-5. On `eight18-porch-lp`, use Cat's one spin. The header states the spin range from the actual slices, plus "One spin per player per match" and "Cannot tie or pass the leader". The button is "Use your one spin". The result applies immediately. There is no Apply button. Back to scorecard shows the new total and standing.
+1. Settings has no porch password. Backup and Restore are easy to find.
+2. Copy says: "Scores and history are saved in this browser on this device." Same sentence on Records.
+3. Restore copy is honest: it adds missing games and players, keeps finished games, and a live match in the file replaces the table.
+4. The loss note is next to Restore: clearing browser data or losing this device can lose history you have not backed up.
+5. After a save, the chip says "Saved on this device" and does not cover Dealer copy at 375 or 390.
+6. Refresh keeps `gn_history` / `gn_current`. The network log has no `/api/sync`.
 
-## TV distance (about 2 minutes)
+## Earlier RC items
 
-1. Scorecard on a laptop or TV. Names and totals should dominate. Historical round numbers stay quiet.
-2. Records: Fame / Shame only. No leftover Timeline tabs. Best match says "Unassisted matches only". Wins and win rate may count assisted nights.
-3. Rook contract editor still opens and reads.
-4. Empty home and empty Records should look finished, not like a missing skin.
+1. Home with a live match: Resume is the one obvious primary.
+2. Five Crowns entry: 00 / 0 stay on screen at 375. Names share one scorecard size.
+3. Life Preserver on `eight18-porch-lp`: range copy, one spin, applies immediately.
+4. Records: Fame / Shame, past nights on the ledger, retired seats show a Retired badge.
+5. Rook contract editor at 390 and 1440: nothing clipped.
+6. Entry and Restore errors are an inline message, not a browser `alert()`.
 
-Kill the release if a keypad key is clipped, a name is cut off, or a spin can be taken twice.
+Kill the release if a keypad key is clipped, a name is cut off, a spin can be taken twice, or any device hits `/api/sync`.

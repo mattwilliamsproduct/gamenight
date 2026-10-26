@@ -311,7 +311,7 @@
     const hidden = view.classList.contains('hidden');
     if (!table.history.length) {
       view.className = `s2-ledger${hidden ? ' hidden' : ''}`;
-      view.innerHTML = '<section class="s2-panel"><h2>Hall of Fame</h2><p class="s2-sub">Play a few nights to fill the ledger.</p></section>';
+      view.innerHTML = '<section class="s2-panel"><h2>Hall of Fame</h2><p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p><p class="s2-sub">Play a few nights to fill the ledger.</p></section>';
       return;
     }
     const hall = getHallOfFame();
@@ -371,6 +371,8 @@
       const bits = [match.date || ''];
       if (incomplete) bits.push('Incomplete');
       if (assisted) bits.push('Assisted');
+      const retired = (match.retired || []).filter(Boolean);
+      if (retired.length) bits.push(`Retired · ${retired.join(', ')}`);
       return `<article class="s2-night"${assisted ? ' data-assisted-match="true"' : ''}>
         <div>
           <strong>${escapeHtml(label)}</strong>
@@ -404,6 +406,7 @@
       </div>
       <section class="s2-panel s2-nights-col">
         <div class="s2-panel-head"><h2>Past nights</h2></div>
+        <p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p>
         <div class="s2-night-list">${nightsHtml || '<p class="s2-sub">No nights saved yet.</p>'}</div>
       </section>`;
     if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');

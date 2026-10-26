@@ -13,7 +13,7 @@ A game night on the iPad (landscape) or the TV succeeds when these are true. The
 3. **LP-VISIBLE.** A Life Preserver changes the total and the scorecard shows where those points came from. The spin is not a hand.
 4. **SHARED-PLACE.** Tied scores share a place. The next distinct score skips ahead. The same rule is used on the live card, history, profiles, and the path replay.
 5. **DISPUTE.** The table can finish, undo, and reopen a dispute from the audit log without a laptop.
-6. **PORCH-MEMORY.** Tonight's match survives a refresh. Finished games survive a second iPad through the porch cloud, without one live match erasing another.
+6. **PORCH-MEMORY.** Tonight's match survives a refresh. Finished games stay on this device. A Backup file is how you copy them. Cloud sync is off this release. The existing Redis copy stays untouched.
 
 Portrait is a podium, not the scoring surface. Rotate back for the card.
 
@@ -99,8 +99,8 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 ### Memory
 
 - This iPad: `localStorage` (`gn_current`, `gn_history`, `gn_players_v2`, `gn_all_players`, profiles, UI scale).
-- File backup: export / import, merge finished games by match id (`public/assets/backup.js`). Import must not replace tonight's live match unless the host confirms.
-- Porch cloud: only on `cardknight.vercel.app`, one shared password (`x-porch-key`), one Redis value `gamenight:backup:v1` (`api/sync.js`). A pull keeps the local live match when this device already has one, and still applies profile, lineup, and history edits when no new game was added. A push replaces the whole cloud blob. There is no revision check. Hiding the page must flush that push.
+- File backup: Backup / Restore in Settings. Restore (`mergeBackup`) adds games and players this device does not have and leaves existing finished games. If the file has a live match, that match replaces the one on this table.
+- Porch cloud: off this release. `api/sync.js` and Redis `gamenight:backup:v1` stay in place as an untouched backup. The client does not GET or PUT. `#37` stays parked.
 
 ## Non-goals
 

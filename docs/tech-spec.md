@@ -73,11 +73,10 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - `gn_current` is enough to resume the live match after a refresh, including bids, drafts, Rook phase, and Life Preserver holds.
 - History merge is by match `id`. A merge never double-counts a match and never drops a match whose id is new.
-- Two devices with the porch password converge on the union of finished games, including profile and lineup edits that add no new match.
-- A pull applies that union even when the only changes are avatars, prefs, or a remote live match and this device has no live match. A pull does not replace a live match already on this device.
-- A file import does not replace a live local match unless the host confirms. Cloud merge and file merge are allowed to differ only in that confirm.
-- Leaving or hiding the page flushes a pending cloud write. Local flush alone is not enough. The save indicator means the local write finished. A failed write is visible.
-- A push from a device that has not seen the latest cloud copy does not destroy the other device’s live match or newer finished games.
+- This release is local-only. The client does not call `/api/sync`. `api/sync.js` and the existing Redis blob stay in place, untouched. GitHub `#37` stays parked.
+- Scores and history live in this browser on this device (`gn_history`, `gn_current`). A stored `gn_porch_key` is ignored, not deleted. Boot still reads those keys first and never replaces them from the cloud.
+- File Backup writes a JSON file. File Restore uses `mergeBackup`: it adds games and players this device does not have. Existing finished games stay. Exports always include `currentGame`, so Restore replaces the live table with the file's live match (or clears it if the file has none). Incoming photos and text-size settings overwrite the same keys here.
+- The save indicator says "Saved on this device" and means the local write finished.
 - The service worker that `npm run build` emits precaches the scripts the page actually loads, including Life Preserver, `slice2.css`, and `slice2.js`, and does not precache Turbo.
 
 ### Names and builds
@@ -86,7 +85,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Each match has a stable `gameId`. A legacy row that already has `id` keeps that value as `gameId`. A row with neither gets one id, stored on both fields, on boot before the gallery hydrates. Reload keeps that same id. Saved matches live in `gn_history`. The live table is `gn_current`. `(gameId, currentRound, phase)` is the match cursor. Phase is `wizardPhase`, `eight18Phase`, `rookPhase`, or `scoring`. History buttons pass the id through `jsAttrArg` so a minted id still opens Scorecard, Resume, and Correct.
 - Shelf labels may say Flip 7. Stored game name is `Flip 7 Vengeance`.
 - Home-screen short name is Back Porch. Manifest name is Back Porch Games.
-- Cloud sync runs only on `cardknight.vercel.app`.
+- Cloud sync is off this release. The Redis function stays shipped and unused.
 - `npm run check` fails if `index.html` loads `comeback-logic.js`, if the worker template disagrees with the scripts the page loads, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
 
 ## Data the match must round-trip

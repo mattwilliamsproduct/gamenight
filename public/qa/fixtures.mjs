@@ -901,6 +901,34 @@ export const QA_SCENARIOS = {
       currentGame:lifePreserverVisibleGame
     }
   },
+  'rook-bid-setup':{
+    label:'Rook · Bid setup',
+    description:'Four-player Rook at the contract editor, plus one finished night with a retired seat.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...NAMES],
+      players:NAMES.slice(0,4),
+      history:[{
+        id:1784390000001,
+        game:'Rook',
+        date:'10/20/2026',
+        originalRoster:['Megan','Matt','Cat','Mike'],
+        retired:['Mike'],
+        totals:{Megan:90,Matt:90,Cat:110,Mike:40},
+        winners:['Cat'],
+        completed:true,
+        currentRound:2,
+        rounds:[{round:1,scores:{Megan:90,Matt:90,Cat:110,Mike:40},rookBid:90,rookBidder:'Megan',rookPartner:'Matt',rookMadeIt:true}]
+      }],
+      playerProfiles:profiles(),
+      currentGame:makeCurrentGame('Rook', NAMES.slice(0,4), [], {
+        currentRound:1,
+        rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+        rookPhase:'bidSetup',
+        totals:Object.fromEntries(NAMES.slice(0,4).map(player=>[player,0]))
+      })
+    }
+  },
   'records-assisted-heal':{
     label:'Records · Assisted Match Heal',
     description:'Twelve players. Brick’s Five Crowns Life Preserver is −18 on round 0 beside a real 0 hand. Unassisted score records use the other match.',

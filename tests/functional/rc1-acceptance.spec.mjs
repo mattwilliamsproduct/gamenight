@@ -198,6 +198,7 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
   expect(scorecard.height, 'Saved chip has height').toBeGreaterThan(10);
   expect(scorecard.overlapsText, 'Saved does not cover header text').toBe(false);
   expect(scorecard.lineText, 'board line keeps the dealer').toMatch(/Dealer:/);
+  expect(await page.locator('#save-indicator').textContent(), 'Saved names this device').toMatch(/Saved on this device/);
 
   await page.setViewportSize({width: 375, height: 667});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
@@ -215,6 +216,87 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
   });
   expect(entry.labelShown, 'Selected Player label is gone on 375').toBe(false);
   expect(entry.nameText, 'selected name stays Megan').toMatch(/Megan/i);
+});
+
+test('a porch key and local history boot with no cloud sync', async ({page}) => {
+  const hits = [];
+  await page.route('**/api/sync**', async (route) => {
+    hits.push(`${route.request().method()} ${route.request().url()}`);
+    await route.abort();
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem('gn_porch_key', 'porch-night');
+    localStorage.setItem('gn_history', JSON.stringify([{
+      id: 42,
+      gameId: 42,
+      game: 'Five Crowns',
+      date: '10/26/2026',
+      originalRoster: ['Ada'],
+      totals: {Ada: 8},
+      winners: ['Ada'],
+      rounds: [{round: 1, scores: {Ada: 8}}],
+      completed: true,
+      currentRound: 2
+    }]));
+    localStorage.removeItem('gn_current');
+  });
+  await page.goto('/', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => {
+    try {
+      const rows = JSON.parse(localStorage.getItem('gn_history') || '[]');
+      return rows.length === 1 && Number(rows[0].id) === 42;
+    } catch (error) {
+      return false;
+    }
+  });
+  const state = await page.evaluate(() => {
+    const stored = JSON.parse(localStorage.getItem('gn_history') || '[]');
+    const live = (typeof history !== 'undefined' && Array.isArray(history)) ? history : stored;
+    return {
+      stored: stored.length,
+      live: live.length,
+      id: live[0]?.id ?? stored[0]?.id,
+      cloud: canPorchCloud(),
+      key: localStorage.getItem('gn_porch_key')
+    };
+  });
+  expect(state.stored, 'local history stays on disk').toBe(1);
+  expect(state.live, 'boot keeps local history in memory').toBe(1);
+  expect(Number(state.id), 'same match id after boot').toBe(42);
+  expect(state.cloud, 'cloud sync stays off').toBe(false);
+  expect(state.key, 'stored porch key is left alone').toBe('porch-night');
+  expect(hits, `no /api/sync traffic ${hits.join(' | ')}`).toEqual([]);
+});
+
+test('Settings and Records say history is local, and Restore copy matches mergeBackup', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openScenario(page, {scenario: 'home-party', surface: 'settings'});
+  await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#settings-modal .local-storage-statement')).toHaveText('Scores and history are saved in this browser on this device.');
+  await expect(page.locator('#settings-modal button', {hasText: 'Backup'})).toBeVisible();
+  await expect(page.locator('#settings-modal button', {hasText: 'Restore'}).first()).toBeVisible();
+  await expect(page.locator('#backup-restore-copy')).toContainText('adds games and players');
+  await expect(page.locator('#backup-restore-copy')).toContainText('Finished games already here stay');
+  await expect(page.locator('#backup-restore-copy')).toContainText('match in progress');
+  await expect(page.locator('#settings-modal')).toContainText('Clearing browser data or losing this device');
+  await expect(page.locator('#porch-cloud-key')).toHaveCount(0);
+  await page.evaluate(() => closeSettings());
+
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2view=records', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await expect(page.locator('#hall-of-fame-view .local-storage-statement')).toContainText('Scores and history are saved in this browser on this device.');
+});
+
+test('retired players stay visible on a Records scorecard', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openScenario(page, {scenario: 'rook-bid-setup', surface: 'scorecard'});
+  await page.evaluate(() => {
+    if (typeof showHistory === 'function') showHistory();
+    if (typeof openScorecard === 'function') openScorecard(1784390000001);
+  });
+  await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#modal-scorecard-body')).toContainText('Mike');
+  await expect(page.locator('#modal-scorecard-body .retired-badge')).toHaveText(/Retired/i);
 });
 
 test('every keypad key is fully visible and hit-testable at 375 and 390', async ({page}) => {

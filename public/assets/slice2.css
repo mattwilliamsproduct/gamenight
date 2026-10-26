@@ -107,6 +107,10 @@ html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator.show {
   display: inline-flex;
   opacity: 1;
   transform: none;
+  white-space: normal;
+  max-width: 11rem;
+  line-height: 1.15;
+  text-align: right;
 }
 
 html.slice2-tv #home-screen:not(.hidden) {
@@ -1273,6 +1277,13 @@ html.slice2-tv button.scoreboard-rank-badge {
 }
 
 @media (max-width: 760px) {
+  html.slice2-tv .s2-board-line-row #save-indicator.show,
+  html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator.show {
+    flex-basis: 100%;
+    max-width: 100%;
+    justify-content: flex-end;
+  }
+
   html.slice2-tv #top-nav {
     padding-left: 0.45rem !important;
     padding-right: 0.45rem !important;
@@ -1638,5 +1649,45 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
     text-transform: uppercase;
     color: var(--s2-muted);
     margin-bottom: 0.1rem;
+  }
+
+  html.slice2-tv #rook-round-panel,
+  html.slice2-tv .rook-command-center {
+    overflow: visible;
+    min-width: 0;
+  }
+
+  html.slice2-tv .rook-command-center {
+    padding: 0.9rem !important;
+  }
+
+  html.slice2-tv .rook-command-center .flex.items-center.justify-between,
+  html.slice2-tv .rook-command-center .flex.items-center.gap-3 {
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  html.slice2-tv #rook-call-modal .surface-raised {
+    max-height: calc(100dvh - 1.25rem);
+    overflow-y: auto;
+  }
+
+  html.slice2-tv #rook-call-modal .grid {
+    gap: 0.3rem;
+  }
+
+  html.slice2-tv #rook-call-modal .rook-setup-btn {
+    min-width: 0;
+    padding: 0.4rem 0.1rem;
+  }
+}
+
+@media (max-width: 420px) and (min-height: 800px) {
+  html.slice2-tv #score-entry-modal .score-entry-list {
+    min-height: 10.75rem;
+  }
+
+  html.slice2-tv #score-entry-modal #score-entry-game {
+    font-size: 1.45rem !important;
   }
 }

@@ -36,3 +36,5 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
 - SELECTED PLAYER crowding the Scoring pill on phone entry.
+- A porch password or cloud sync control in Settings this release.
+- A Saved chip that does not say the write is on this device.

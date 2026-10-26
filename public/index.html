@@ -3843,11 +3843,23 @@ button.dealer-name-indicator .dealer-player-label {
       transform: translateY(-8px);
       transition: opacity 0.25s, transform 0.25s;
       pointer-events: none;
+      max-width: calc(100vw - 1.6rem);
+      white-space: normal;
+      line-height: 1.15;
+      text-align: right;
     }
     body.active-match-view #save-indicator {
       top: auto;
     }
     #save-indicator.show { opacity: 1; transform: translateY(0); }
+    .inline-form-error {
+      display: none;
+      margin-top: 0.55rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--rose);
+    }
+    .inline-form-error.is-on { display: block; }
 
     /* ════════ AUDIT LOG ════════ */
     .audit-entry {
@@ -7593,7 +7605,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div>
 
   <!-- Save indicator -->
-  <div id="save-indicator">✓ Saved</div>
+  <div id="save-indicator">✓ Saved on this device</div>
 
   <!-- Lineup Intro Overlay -->
   <div id="lineup-intro" class="hidden">
@@ -8319,6 +8331,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
           <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
+          <p id="score-entry-error" class="inline-form-error" role="alert"></p>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
@@ -8563,27 +8576,31 @@ button.dealer-name-indicator .dealer-player-label {
 
         <!-- Data -->
         <div class="border-t hairline pt-5">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Data Vault</div>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">This device</div>
           <div class="space-y-3">
+            <p class="local-storage-statement text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Scores and history are saved in this browser on this device.</p>
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
-            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad unless Porch Cloud is connected. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
+            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
             <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Porch Cloud</div>
-              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">One scorebook for the live website. Safari and the home-screen app then share the same nights, even if you delete the icon.</p>
-              <p id="porch-cloud-status" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);"></p>
-              <input id="porch-cloud-key" type="password" autocomplete="off" class="w-full rounded-xl p-3 text-sm font-bold outline-none border hairline" style="background:var(--bg-2);color:var(--ink);" placeholder="Porch password">
-              <button type="button" onclick="savePorchPassword()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Save &amp; Sync</button>
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Backup</div>
+              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Save a file of the games, players, and the match on this table.</p>
+              <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Backup</button>
+            </div>
+            <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Restore</div>
+              <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds games and players this device does not already have. Finished games already here stay as they are. If the file has a match in progress, that match replaces the one on this table. Player photos and text-size settings in the file overwrite the ones here.</p>
+              <p class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
+              <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
+              <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
+              <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
+              <details class="rounded-2xl border hairline p-3" style="background:var(--bg-2);">
+                <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
+                <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
+                <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--surface);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
+                <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Paste &amp; Restore</button>
+              </details>
             </div>
             <button id="settings-perf-report-btn" onclick="openPerfReport()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">⚡ Performance Report</button>
-            <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📥 Export Backup File</button>
-            <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📤 Import Backup File</button>
-            <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
-            <details class="rounded-2xl border hairline p-3" style="background:var(--surface-2);">
-              <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
-              <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
-              <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--bg-2);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
-              <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📋 Paste &amp; Merge</button>
-            </details>
           </div>
         </div>
       </div>
@@ -9004,6 +9021,25 @@ button.dealer-name-indicator .dealer-player-label {
     const retired=gameData?.retired||[];
     const totals=gameData?.totals||{};
     return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
+  }
+  function getDisplayPlayers(gameData){
+    const seen=new Set();
+    const named=[];
+    const add=player=>{
+      if(!player||seen.has(player)) return;
+      seen.add(player);
+      named.push(player);
+    };
+    getRecordedPlayers(gameData).forEach(add);
+    (gameData?.retired||[]).forEach(player=>{
+      if(!player) return;
+      if(gameData?.totals?.[player]!==undefined || (gameData?.originalRoster||[]).includes(player)) add(player);
+    });
+    return named;
+  }
+  function retiredBadgeMarkup(gameData, player){
+    if(!player || !(gameData?.retired||[]).includes(player)) return '';
+    return `<span class="retired-badge ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`;
   }
   const EIGHT18_ROUND_TRICKS = [8,7,6,5,4,3,2,1,2,3,4,5,6,7,8];
   function isEight18Game(game=currentGame){
@@ -9437,7 +9473,7 @@ button.dealer-name-indicator .dealer-player-label {
       const execTimer = gnPerfStart('GN saveData exec');
       try{
         _persistGamenightState({ fullPersist, syncCold });
-        if(!_porchApplying) schedulePorchPush();
+        /* Porch cloud is off this release. Local persist only. */
       } finally {
         gnPerfEnd(execTimer);
       }
@@ -9606,7 +9642,6 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
     refreshBackupSummary();
-    refreshPorchCloudSettings();
     openModal('settings-modal');
   }
   function closeSettings(){ closeModal('settings-modal'); }
@@ -10294,23 +10329,45 @@ button.dealer-name-indicator .dealer-player-label {
     if(added.games) markHistoryChanged();
     if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
     saveData({ fullPersist: true, syncCold: true });
-    const incoming=added.incoming?.line || 'No finished games.';
     const now=added.device?.line || BPGBackup.summarizeHistory(history).line;
-    alert(`Merged ${added.games} new game${added.games===1?'':'s'}.\n\nIn that file: ${incoming}\nNow on this copy: ${now}`);
+    toast(`Merged ${added.games} new game${added.games===1?'':'s'}. ${now}`, 'default');
     refreshBackupSummary();
     closeSettings();
     goHome();
   }
+  function showFormError(id, message){
+    const el=document.getElementById(id);
+    if(!el){
+      if(message) toast(message, 'warning');
+      return;
+    }
+    el.textContent=message||'';
+    el.classList.toggle('is-on', !!message);
+  }
+  function showBackupError(message){
+    showFormError('backup-inline-msg', message);
+  }
+  function showScoreEntryError(message){
+    const modal=document.getElementById('score-entry-modal');
+    if(modal && !modal.classList.contains('hidden')){
+      showFormError('score-entry-error', message);
+      return;
+    }
+    if(message) toast(message, 'warning');
+  }
   function exportData(){
-    if(!window.BPGBackup)return alert('Backup is not ready.');
+    showBackupError('');
+    if(!window.BPGBackup){
+      showBackupError('Backup is not ready.');
+      return;
+    }
     const d=BPGBackup.buildBackup(currentBackupState());
     const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=url; a.download=`gamenight-${Date.now()}.json`; a.click();
     URL.revokeObjectURL(url);
     const snap=BPGBackup.summarizeHistory(d.history);
-    alert(`Saved backup file.\n\n${snap.line}`);
-    closeSettings();
+    toast(`Backup file ready. ${snap.line}`, 'default');
   }
   function importBackupText(text){
     if(!window.BPGBackup) throw new Error('invalid-backup');
@@ -10319,148 +10376,54 @@ button.dealer-name-indicator .dealer-player-label {
     applyMergedBackup(next, added);
   }
   function importDataFromText(){
-    const text=document.getElementById('import-text').value.trim(); if(!text)return alert('Paste your JSON first.');
+    const text=document.getElementById('import-text').value.trim();
+    if(!text){
+      showBackupError('Paste your JSON first.');
+      return;
+    }
     try{
+      showBackupError('');
       importBackupText(text);
-    }catch(e){alert('Invalid JSON.');}
+    }catch(e){showBackupError('That paste is not a valid backup.');}
   }
   function importDataFromFile(ev){
     const file=ev?.target?.files?.[0];
     if(ev?.target) ev.target.value='';
     if(!file)return;
     const reader=new FileReader();
-    reader.onerror=()=>alert('Could not read that file.');
+    reader.onerror=()=>showBackupError('Could not read that file.');
     reader.onload=()=>{
       try{
+        showBackupError('');
         importBackupText(String(reader.result||''));
-      }catch(e){alert('That file is not a valid backup.');}
+      }catch(e){showBackupError('That file is not a valid backup.');}
     };
     reader.readAsText(file);
   }
 
   const GN_PORCH_KEY='gn_porch_key';
-  let _porchPushTimer=null;
-  let _porchBusy=false;
-  let _porchApplying=false;
   function canPorchCloud(){
-    return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
+    return false;
   }
   function getPorchKey(){
     try{return localStorage.getItem(GN_PORCH_KEY)||'';}catch(e){return '';}
   }
-  function setPorchKey(value){
-    try{
-      if(value) localStorage.setItem(GN_PORCH_KEY,value);
-      else localStorage.removeItem(GN_PORCH_KEY);
-    }catch(e){}
+  function setPorchKey(){
+    /* Leave gn_porch_key alone. Cloud sync is off this release. */
   }
-  function setPorchStatus(text){
-    const el=document.getElementById('porch-cloud-status');
-    if(el) el.textContent=text||'';
-  }
-  function refreshPorchCloudSettings(){
-    const input=document.getElementById('porch-cloud-key');
-    if(input && !input.value) input.value=getPorchKey();
-    if(!canPorchCloud()){
-      setPorchStatus('Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
-      return;
-    }
-    if(!getPorchKey()){
-      setPorchStatus('Enter the porch password once. After that, this copy stays in sync.');
-      return;
-    }
-    setPorchStatus('Password saved on this copy. Tap Save & Sync if the status is stale.');
-  }
-  async function porchRequest(method,body){
-    const key=getPorchKey();
-    if(!canPorchCloud()||!key) throw Object.assign(new Error('no-cloud'),{status:0});
-    const res=await fetch('/api/sync',{
-      method,
-      headers:{
-        'Content-Type':'application/json',
-        'x-porch-key':key
-      },
-      body:method==='PUT'?JSON.stringify(body):undefined
-    });
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok) throw Object.assign(new Error(data.error||'cloud-failed'),{status:res.status,data});
-    return data;
+  function setPorchStatus(){}
+  function refreshPorchCloudSettings(){}
+  async function porchRequest(){
+    throw Object.assign(new Error('cloud-off'),{status:0});
   }
   async function pullPorchCloud(){
-    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return null;
-    if(_porchBusy) return null;
-    _porchBusy=true;
-    try{
-      setPorchStatus('Checking the porch cloud…');
-      const data=await porchRequest('GET');
-      if(!data.backup){
-        setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
-        return {empty:true};
-      }
-      const {next,added}=BPGBackup.mergeCloud(currentBackupState(),data.backup);
-      if(added.games||added.players){
-        _porchApplying=true;
-        allPlayers=next.allPlayers;
-        players=next.players;
-        history=next.history;
-        playerProfiles=next.playerProfiles;
-        if(!currentGame && next.currentGame) currentGame=next.currentGame;
-        if(added.games) markHistoryChanged();
-        saveData({fullPersist:true,syncCold:true});
-        _porchApplying=false;
-      }
-      const snap=BPGBackup.summarizeHistory(history);
-      setPorchStatus(`Cloud is connected. ${snap.line}`);
-      refreshBackupSummary();
-      return {added,empty:false};
-    }catch(error){
-      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
-      else if(error.status===401) setPorchStatus('That porch password did not match.');
-      else setPorchStatus('Could not reach the porch cloud.');
-      return null;
-    }finally{
-      _porchApplying=false;
-      _porchBusy=false;
-    }
+    return null;
   }
   async function pushPorchCloud(){
-    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
-    if(_porchBusy) return;
-    _porchBusy=true;
-    try{
-      const payload=BPGBackup.buildBackup(currentBackupState());
-      await porchRequest('PUT',payload);
-      const snap=BPGBackup.summarizeHistory(payload.history);
-      setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
-    }catch(error){
-      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
-      else if(error.status===401) setPorchStatus('That porch password did not match.');
-      else setPorchStatus('Could not save to the porch cloud.');
-    }finally{
-      _porchBusy=false;
-    }
+    return;
   }
-  function schedulePorchPush(){
-    if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
-    if(_porchPushTimer) clearTimeout(_porchPushTimer);
-    _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
-  }
-  async function savePorchPassword(){
-    const input=document.getElementById('porch-cloud-key');
-    const key=(input&&input.value||'').trim();
-    if(!key){alert('Enter a porch password first.');return;}
-    if(!canPorchCloud()){
-      setPorchKey(key);
-      setPorchStatus('Password saved here, but cloud save only runs on the live site.');
-      return;
-    }
-    setPorchKey(key);
-    const pulled=await pullPorchCloud();
-    if(pulled&&pulled.empty) await pushPorchCloud();
-    else if(pulled) await pushPorchCloud();
-    if(currentGame) goActiveMatch();
-    else goHome();
-  }
+  function schedulePorchPush(){}
+  function savePorchPassword(){}
 
   /* ═══ RULES TEXT ═══ */
   const gameRulesText = {
@@ -14030,8 +13993,7 @@ ${isDealer
     const activeRoster=getActiveRoster(currentGame);
     const dealerName=getCurrentDealerName(currentGame, activeRoster);
 
-    let gamePlayers=[...getActivePlayers(currentGame)];
-    getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
+    let gamePlayers=[...getDisplayPlayers(currentGame)];
     syncCurrentLifePreserverHolds({gameOver:over});
 
     let sortedP = currentGame.currentRound===1
@@ -14114,7 +14076,7 @@ ${isDealer
         ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${placeNum}</button>`
         : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${placeNum}</span>`);
 
-      const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
+      const retiredTag=retiredBadgeMarkup(currentGame,p);
 
       const wizardCurrentBid = showSubmittedBids
         ? (() => {
@@ -14778,6 +14740,7 @@ ${isDealer
     const source=getScoreEntryDraftSource(mode);
     const values={};
     tablePlayers.forEach(p=>{values[p]=readScoreEntryDraftValue(source,p,mode);});
+    showFormError('score-entry-error','');
     scoreEntryModalState={
       mode,
       players,
@@ -15012,7 +14975,7 @@ ${isDealer
   }
 
   function rejectScoreEntries(result){
-    if(result&&result.message) alert(result.message);
+    if(result&&result.message) showScoreEntryError(result.message);
     return false;
   }
 
@@ -15031,7 +14994,7 @@ ${isDealer
       const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'tricks',roundNumber,players,values});
       if(!checked.ok) return rejectScoreEntries(checked);
       if(checked.sum!==checked.limit){
-        alert(`${currentGame.name} round ${roundNumber} must total ${checked.limit} tricks. This table totals ${checked.sum}.`);
+        showScoreEntryError(`${currentGame.name} round ${roundNumber} must total ${checked.limit} tricks. This table totals ${checked.sum}.`);
         return false;
       }
       return true;
@@ -15101,7 +15064,7 @@ ${isDealer
           players:gp,
           values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
         const totalBids=checked.sum;
         const allZero=gp.every(p=>checked.values[p]===0);
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
@@ -15120,10 +15083,10 @@ ${isDealer
           players:gp,
           values:readLiveEntryMap(gp, drafts)
         });
-        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
         const totalActual=checked.sum;
         if(totalActual!==checked.limit){
-          alert(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          showScoreEntryError(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
           isSubmitting=false;
           return;
         }
@@ -15158,7 +15121,7 @@ ${isDealer
           players:gp,
           values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
         const totalBids=checked.sum;
         const allZero=gp.every(p=>checked.values[p]===0);
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
@@ -15177,10 +15140,10 @@ ${isDealer
           players:gp,
           values:readLiveEntryMap(gp, drafts)
         });
-        if(!checked.ok){alert(checked.message);isSubmitting=false;return;}
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
         const totalActual=checked.sum;
         if(totalActual!==checked.limit){
-          alert(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          showScoreEntryError(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
           isSubmitting=false;
           return;
         }
@@ -15209,7 +15172,7 @@ ${isDealer
       players:gp,
       values:readLiveEntryMap(gp, scoreDrafts)
     });
-    if(!checkedScores.ok){alert(checkedScores.message);isSubmitting=false;return;}
+    if(!checkedScores.ok){showScoreEntryError(checkedScores.message);isSubmitting=false;return;}
     const scores={...checkedScores.values};
     const allZero=gp.every(p=>scores[p]===0);
     if(allZero&&!skipConfirm&&!confirm(currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?')){isSubmitting=false;return;}
@@ -15947,7 +15910,6 @@ ${isDealer
     restoreCorrectionMeta(currentGame, meta, result);
     if(!result.ok){
       setNumpadError(result.message||'That score was not saved.');
-      alert(result.message);
       return false;
     }
     setNumpadError('');
@@ -16218,10 +16180,10 @@ ${isDealer
     if(!history.length){c.innerHTML=`<div class="surface p-10 text-center font-bold" style="color:var(--muted);">No match history yet.</div>`;return;}
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
-      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
+      const sorted=sortPlayersByTotal(getDisplayPlayers(h), h.totals, cfg);
       const places=competitionPlaces(sorted, h.totals);
       const rows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}${retiredBadgeMarkup(h,p)}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
@@ -16257,7 +16219,7 @@ ${isDealer
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${g.game}`;
     document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
     const cfg=configs[g.game];
-    const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
+    const sorted=sortPlayersByTotal(getDisplayPlayers(g), g.totals, cfg);
     const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
@@ -16271,7 +16233,7 @@ ${isDealer
     sorted.forEach(p=>{
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}${retiredBadgeMarkup(g,p)}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span>${hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
@@ -17297,9 +17259,6 @@ ${isDealer
     initPwaUpdates();
     handleOrientation();
     updateNavButton();
-    if(canPorchCloud()&&getPorchKey()){
-      await pullPorchCloud();
-    }
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     backfillStableGameIds();
