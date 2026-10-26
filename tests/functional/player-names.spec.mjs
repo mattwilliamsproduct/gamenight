@@ -33,3 +33,31 @@ test('late five-player Wizard keeps Michelle letters unclipped', async ({page})=
   expect(michelle.text.toUpperCase()).toBe('MICHELLE');
   expect(michelle.scrollWidth,'Michelle glyphs should fit their name box').toBeLessThanOrEqual(michelle.clientWidth+1);
 });
+
+test('390 scorecard names share one column size', async ({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await openScenario(page,{scenario:'wizard-scoring-8'});
+  await nextPaint(page);
+  const fit=await page.evaluate(()=>{
+    const names=[...document.querySelectorAll('#scorecard-body .scoreboard-player-name')];
+    const sizes=names.map(name=>Number.parseFloat(getComputedStyle(name).fontSize));
+    const unique=[...new Set(sizes.map(size=>size.toFixed(1)))];
+    const boxes=names.map(name=>{
+      const cell=name.closest('td.scorecard-col-player');
+      const chip=name.querySelector('.dealer-player-label')||name;
+      const cellBox=cell.getBoundingClientRect();
+      const chipBox=chip.getBoundingClientRect();
+      return {
+        text:(chip.textContent||'').trim(),
+        size:Number.parseFloat(getComputedStyle(name).fontSize),
+        fits:chipBox.right<=cellBox.right+1.5
+      };
+    });
+    return {unique,boxes,min:Math.min(...sizes),max:Math.max(...sizes)};
+  });
+  expect(fit.boxes.length,'wizard-scoring-8 should have names').toBeGreaterThan(3);
+  expect(fit.unique.length,'all names in the column share one size').toBe(1);
+  expect(fit.max-fit.min,'shared size should not drift').toBeLessThan(0.15);
+  expect(fit.boxes.every(row=>row.fits),'every name stays inside its cell').toBe(true);
+  expect(fit.min,'shared name size stays readable').toBeGreaterThanOrEqual(12);
+});

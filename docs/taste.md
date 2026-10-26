@@ -18,6 +18,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Honest gap lists. Say what you did not look at.
 - A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
 - When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
+- Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
 
 ### Kills
 
@@ -33,6 +34,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - An unfinished history match still counting as a completed game.
 - "Warm Porch Ledger" as a user-facing subtitle.
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
+- Phone nav wrapping onto a second line, or Saved taking a nav slot.
+- Life Preserver header copy that says only the best help while the wheel still has negative slices.
 
 ## Prefer
 

@@ -8,7 +8,7 @@ Production name on the home screen is **Back Porch**. The Vercel host is still `
 
 A game night on the iPad (landscape) or the TV succeeds when these are true. The ids are the contract in [tech-spec.md](tech-spec.md). A change is done when the invariant holds and a test locks it.
 
-1. **NAME-FIT.** A name fits its cell. Michelle stays whole, and the dealer chip hugs the letters.
+1. **NAME-FIT.** A name fits its cell. Michelle stays whole, and the dealer chip hugs the letters. Names in one column share one size. The column shrinks for a long name and does not grow a short name past that size.
 2. **ROW-ADDS.** A logged round changes the total by exactly the number that was entered, and the row still adds up after an edit, an undo, or a mid-game join.
 3. **LP-VISIBLE.** A Life Preserver changes the total and the scorecard shows where those points came from. The spin is not a hand.
 4. **SHARED-PLACE.** Tied scores share a place. The next distinct score skips ahead. The same rule is used on the live card, history, profiles, and the path replay.

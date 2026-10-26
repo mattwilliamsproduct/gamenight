@@ -116,6 +116,40 @@ for (const size of SIZES) {
   });
 }
 
+test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'home-party', surface: 'home'});
+    const chrome = await page.evaluate(() => {
+      const nav = document.getElementById('top-nav');
+      const box = nav.getBoundingClientRect();
+      const buttons = [...nav.querySelectorAll('.nav-btn')].filter((button) => {
+        const style = getComputedStyle(button);
+        return style.display !== 'none' && style.visibility !== 'hidden' && button.getBoundingClientRect().height > 0;
+      });
+      const saved = document.getElementById('slice2-saved');
+      const indicator = document.getElementById('save-indicator');
+      const seats = [...document.querySelectorAll('.s2-seat')].map((seat) => seat.getBoundingClientRect());
+      const names = [...document.querySelectorAll('#scorecard-body tr .scorecard-col-player')].map((cell) => cell.getBoundingClientRect());
+      const toast = indicator?.getBoundingClientRect();
+      const overlaps = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
+      return {
+        navHeight: box.height,
+        labels: buttons.map((button) => (button.textContent || '').replace(/\s+/g, ' ').trim()),
+        savedInNav: !!(saved && nav.contains(saved) && getComputedStyle(saved).display !== 'none'),
+        toastTop: toast?.top ?? null,
+        toastOverlapsSeat: seats.some((seat) => overlaps(toast, seat)),
+        toastOverlapsName: names.some((cell) => overlaps(toast, cell))
+      };
+    });
+    expect(chrome.navHeight, `${size.width} nav stays one line`).toBeLessThanOrEqual(72);
+    expect(chrome.savedInNav, `${size.width} Saved is not a nav slot`).toBe(false);
+    expect(chrome.labels.join(' '), `${size.width} nav labels`).not.toMatch(/Active Match|Saved/i);
+    expect(chrome.toastOverlapsSeat, `${size.width} Saved toast misses seats`).toBe(false);
+    expect(chrome.toastOverlapsName, `${size.width} Saved toast misses names`).toBe(false);
+  }
+});
+
 test('every keypad key is fully visible and hit-testable at 375 and 390', async ({page}) => {
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);

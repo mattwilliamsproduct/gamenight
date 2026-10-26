@@ -25,6 +25,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - Player names render as text. The dealer control hugs the glyphs (`max-content` on the label, transparent button).
 - Fitting may shrink the font. It may not ellipsize.
+- All names in a scorecard column share one size. Shrink for the longest name that needs it. Do not grow a short name past that shared size.
 - A name of “Michelle” at the Five Crowns and late-Wizard fixtures stays fully inside the player cell at laptop and 1080p widths.
 
 ### ROW-ADDS
@@ -44,7 +45,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - One rescue. UI copy says Life Preserver. Persisted fields may still be named `hailMaryBonus`, `hailMaryUsed`, `lifePreserverHeld`.
 - Games: 818, Wizard, Five Crowns, Flip 7. Off for Rook and Beat the Heat. Minimum 4 active players. One spin per player per match.
 - The best legal result stays strictly behind 1st by at least one scoring step (1 point, or 5 in games that step by 5).
-- 818’s largest helpful slice is about two made bids (+20), and still behind 1st.
+- 818’s largest helpful slice is about two made bids (+20), and still behind 1st. Most slices help. Some do nothing. A few slightly hurt. The wheel header states the computed slice range (`Spin range −5 to +20`), not only the best help.
 - The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. The UI commits before the wheel moves and applies the landed result immediately. There is no post-spin Apply. `recordLifePreserverSpin` no-ops if that player already used a spin. It counts in the total once. Recomputing totals does not apply it again. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, a path-replay step, or a Wizard / 818 exact or missed bid. `hailMaryUsed` is a cache of who has spun. A legacy save with that list and no bonus round still counts as assisted. A sticky `assistedMatch: true` with no remaining spin does not.
 - A zero-point spin still sets `assistedMatch` and `hailMaryUsed`. Undo removes the bonus rounds that followed the undone hand, releases those players, and recomputes `assistedMatch` from what remains.
 - Timeline and history keep the real total and show an Assisted Match badge when a spin remains. Best Game Score, Highest Winning Score, Worst Game Score, and Cleanest Game read unassisted matches only. The label is "Unassisted matches only". An all-assisted shelf says "No unassisted matches yet".

@@ -113,19 +113,14 @@
     const row = document.querySelector('#top-nav > div');
     const actions = row?.children?.[1];
     if (!actions) return;
-    if (!document.getElementById('slice2-saved')) {
-      const saved = document.createElement('span');
-      saved.id = 'slice2-saved';
-      saved.textContent = 'Saved';
-      actions.appendChild(saved);
-    }
+    document.getElementById('slice2-saved')?.remove();
     const phone = window.matchMedia('(max-width: 760px)').matches;
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
       if (action.includes('goHome')) button.textContent = phone ? 'Table' : "Tonight's Table";
       if (action.includes('showHistory')) button.textContent = phone ? 'Records' : `Records (${table.history.length})`;
       if (action.includes('showProfiles')) button.textContent = phone ? 'Profiles' : `Player Passports (${table.allPlayers.length})`;
-      if (action.includes('openSettings')) button.textContent = 'Settings';
+      if (action.includes('openSettings')) button.textContent = phone ? '⚙' : 'Settings';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
     });
   }

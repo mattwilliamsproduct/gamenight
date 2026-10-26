@@ -12,7 +12,8 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
-  await expect(page.locator('#wheel-why-line')).toContainText('Best help');
+  await expect(page.locator('#wheel-why-line')).toContainText('Spin range');
+  await expect(page.locator('#wheel-why-line')).not.toContainText('Best help');
   await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
   await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
@@ -41,6 +42,10 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   expect(snapshot.maxSafe).toBeLessThanOrEqual(75);
   expect(snapshot.labels.join(' ')).not.toMatch(/Half|Wipe|Double|×2|Dbl/i);
   expect(snapshot.adjustments.some(value => value < 0)).toBe(true);
+  const rangeMin = Math.min(...snapshot.adjustments);
+  const rangeMax = Math.max(...snapshot.adjustments);
+  const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
+  await expect(page.locator('#wheel-why-line')).toContainText(`Spin range ${signed(rangeMin)} to ${signed(rangeMax)}`);
 
   const applied = await page.evaluate(() => {
     const player = wheelPlayer;
@@ -229,7 +234,9 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-why-line')).toContainText('Spin range');
   await expect(page.locator('#wheel-why-line')).toContainText('+20');
+  await expect(page.locator('#wheel-why-line')).not.toContainText('Best help');
 
   const snapshot = await page.evaluate(() => ({
     player: lifePreserverOfferSnapshot?.player,
@@ -242,6 +249,10 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   expect(snapshot.maxSafe).toBe(20);
   expect(snapshot.adjustments).toContain(20);
   expect(Math.max(...snapshot.adjustments)).toBe(20);
+  const rangeMin = Math.min(...snapshot.adjustments);
+  const rangeMax = Math.max(...snapshot.adjustments);
+  const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
+  await expect(page.locator('#wheel-why-line')).toContainText(`Spin range ${signed(rangeMin)} to ${signed(rangeMax)}`);
 
   const table = await page.evaluate(() => {
     const players = getActivePlayers(currentGame);
@@ -337,6 +348,7 @@ test('skipping a dealer roll does not steal the next game\'s Roll Die button', a
 });
 
 test('View Pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete View Pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});

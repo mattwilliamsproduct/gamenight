@@ -55,26 +55,21 @@ html.slice2-tv #top-nav .nav-btn.s2-nav-on {
 }
 
 html.slice2-tv #slice2-saved {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-left: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: var(--s2-good-bg);
-  color: var(--s2-teal-deep);
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 0.82rem;
-  font-weight: 800;
-  white-space: nowrap;
+  display: none !important;
 }
 
-html.slice2-tv #slice2-saved::before {
-  content: "";
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--s2-teal);
+html.slice2-tv #save-indicator {
+  top: 4.6rem;
+  right: 0.75rem;
+  left: auto;
+  bottom: auto;
+  background: var(--s2-good-bg);
+  color: var(--s2-teal-deep);
+  border-color: var(--s2-line);
+}
+
+html.slice2-tv body.active-match-view #save-indicator {
+  top: 0.65rem;
 }
 
 html.slice2-tv #home-screen:not(.hidden) {
@@ -1151,7 +1146,12 @@ html.slice2-tv .s2-rival {
 
 @media (max-width: 420px) {
   html.slice2-tv .s2-podium {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  html.slice2-tv .s2-podium article {
+    padding: 8px;
   }
 
   html.slice2-tv .s2-game-art {
@@ -1232,6 +1232,51 @@ html.slice2-tv button.scoreboard-rank-badge {
 }
 
 @media (max-width: 760px) {
+  html.slice2-tv #top-nav > div,
+  html.slice2-tv #top-nav > div > div:last-child {
+    flex-wrap: nowrap !important;
+  }
+
+  html.slice2-tv #top-nav > div {
+    gap: 0.4rem;
+  }
+
+  html.slice2-tv #top-nav .bp-brand-games {
+    display: none;
+  }
+
+  html.slice2-tv #top-nav .nav-btn {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  html.slice2-tv #nav-active-btn {
+    display: none !important;
+  }
+
+  html.slice2-tv .s2-podium {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  html.slice2-tv .s2-nights-col {
+    margin-top: 8px;
+  }
+
+  html.slice2-tv .s2-night {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  html.slice2-tv .s2-night-actions .s2-btn {
+    min-height: 36px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.82rem;
+  }
+
   html.slice2-tv .toast {
     white-space: normal;
     text-wrap: balance;

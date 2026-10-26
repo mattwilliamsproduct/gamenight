@@ -442,6 +442,7 @@ test('beat-the-heat pace still opens the best finished scorecard',async({page})=
 });
 
 test('late eight-player five crowns shows five rounds beside Best Avg Worst',async({page},testInfo)=>{
+  test.skip(true,'Obsolete View Pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name!=='laptop-chromium','Check the late eight-player pace layout once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-late-8&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
@@ -487,8 +488,8 @@ test('late five-crowns totals stay centered and names stay whole',async({page})=
   expect(totals.every(row=>row.totalCenterGap<=2),'three-digit totals should stay centered in the Total column').toBe(true);
   expect(totals.find(row=>row.name==='Michelle')?.nameFits,'Michelle should not be clipped').toBe(true);
 
-  await page.locator('#scorecard-view-pace-toggle').click();
-  await expect(page.locator('#record-chase-panel')).toBeHidden();
+  await expect(page.locator('#record-chase-panel')).toHaveCount(0);
+  await expect(page.locator('#scorecard-view-pace-toggle')).toHaveCount(0);
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))));
   const namesAfter=await page.evaluate(()=>[...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map(name=>{
     const label=name.querySelector('.dealer-player-label')||name;
@@ -915,7 +916,6 @@ test('active scorecard columns and panels stay geometrically aligned',async({pag
     const nav=document.querySelector('#top-nav');
     const banner=document.querySelector('#game-screen .active-match-banner');
     const actions=[
-      document.querySelector('#scorecard-view-toggle-wrap'),
       document.querySelector('#actions-btn'),
       document.querySelector('.match-end-btn')
     ].map(element=>element?.getBoundingClientRect());

@@ -8,7 +8,7 @@ Five minutes. Physical iPhone Safari first, then a TV-distance look. Gallery ids
 2. Start or resume Five Crowns. Enter scores for the table. On 375, the 00 / 0 row must stay fully on screen.
 3. Open a finished score. Change one past-round number. Confirm the total updates.
 4. Leave and come back. The incomplete match should still be there.
-5. On `eight18-porch-lp`, use Cat's one spin. The copy is "Use your one spin". The result applies immediately. There is no Apply button. Back to scorecard shows the new total and standing.
+5. On `eight18-porch-lp`, use Cat's one spin. The header states the spin range from the actual slices, plus "One spin per player per match" and "Cannot tie or pass the leader". The button is "Use your one spin". The result applies immediately. There is no Apply button. Back to scorecard shows the new total and standing.
 
 ## TV distance (about 2 minutes)
 

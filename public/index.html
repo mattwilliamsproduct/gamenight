@@ -3824,7 +3824,10 @@ button.dealer-name-indicator .dealer-player-label {
     /* ════════ SAVE INDICATOR ════════ */
     #save-indicator {
       position: fixed;
-      bottom: 1rem; left: 1rem;
+      top: 4.6rem;
+      right: 0.75rem;
+      left: auto;
+      bottom: auto;
       background: var(--surface);
       border: 1px solid var(--hairline);
       border-radius: 999px;
@@ -3837,9 +3840,12 @@ button.dealer-name-indicator .dealer-player-label {
       z-index: 45;
       box-shadow: var(--shadow-sm);
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(-8px);
       transition: opacity 0.25s, transform 0.25s;
       pointer-events: none;
+    }
+    body.active-match-view #save-indicator {
+      top: 0.65rem;
     }
     #save-indicator.show { opacity: 1; transform: translateY(0); }
 
@@ -7798,12 +7804,6 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
         <div class="active-match-actions flex flex-nowrap gap-2 items-center relative min-w-0">
-          <div id="scorecard-view-toggle-wrap" class="scorecard-view-toggle-wrap hidden">
-            <button id="scorecard-view-pace-toggle" type="button" class="scorecard-view-toggle" role="switch" aria-checked="true" aria-label="View Pace" onclick="toggleRecordChasePanel()">
-              <span class="scorecard-view-toggle-label">View Pace</span>
-              <span class="scorecard-view-toggle-track" aria-hidden="true"><span class="scorecard-view-toggle-thumb"></span></span>
-            </button>
-          </div>
           <div class="relative">
             <button type="button" onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5" aria-haspopup="menu" aria-expanded="false" aria-controls="actions-menu">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
@@ -7864,7 +7864,7 @@ button.dealer-name-indicator .dealer-player-label {
         <div id="rook-round-panel" class="hidden mb-4"></div>
 
         <div id="scorecard-capture" class="surface-raised tournament-scoreboard overflow-hidden mb-20">
-          <div id="scorecard-live-layout" class="scorecard-live-layout record-chase-active">
+          <div id="scorecard-live-layout" class="scorecard-live-layout">
             <div class="scorecard-live-main">
               <div id="scorecard-rounds-hint" class="scorecard-rounds-hint scorecard-hidden-rounds-hint hidden text-center py-1.5 px-2 text-[10px] font-extrabold tracking-wide select-none" style="color:var(--muted);background:var(--surface-2);"></div>
               <div class="scorecard-table-wrap">
@@ -7874,14 +7874,6 @@ button.dealer-name-indicator .dealer-player-label {
                 </table>
               </div>
             </div>
-            <aside id="record-chase-panel" class="record-chase-panel" aria-label="Player Pace metrics">
-              <div class="record-chase-head">
-                <span class="record-chase-head-label">Best</span>
-                <span class="record-chase-head-label">Avg</span>
-                <span class="record-chase-head-label">Worst</span>
-              </div>
-              <div id="record-chase-list" class="record-chase-list"></div>
-            </aside>
           </div>
 
           <div id="submit-section" class="tournament-footer p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
@@ -8754,11 +8746,11 @@ button.dealer-name-indicator .dealer-player-label {
   let playerProfiles = safeGetObject('gn_profiles');
 
   let currentGame = null;
-  let recordChaseVisible = true;
+  let recordChaseVisible = false;
   let recordChaseLayoutActive = false;
 
   function resetRecordChaseView(){
-    recordChaseVisible = true;
+    recordChaseVisible = false;
     recordChaseLayoutActive = false;
   }
   let _historyRevision = 0;
@@ -13593,6 +13585,62 @@ ${isDealer
   function scorecardNameChipWidth(name){
     return scorecardNameChipEl(name).getBoundingClientRect().width;
   }
+  function neededScorecardNameSize(name,maximum,context){
+    const cell=name.closest('td.scorecard-col-player');
+    if(!cell)return maximum;
+    const chip=scorecardNameChipEl(name);
+    const cellBox=cell.getBoundingClientRect();
+    const chipBox=chip.getBoundingClientRect();
+    const available=scorecardNameAvailableWidth(name);
+    const finish=size=>{
+      name.style.removeProperty('font-size');
+      return Math.max(12,Math.min(maximum,size));
+    };
+    if(available<=0){
+      let lo=12,hi=maximum,best=12;
+      for(let i=0;i<12;i++){
+        const mid=(lo+hi)/2;
+        name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
+        const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
+        if(fittedBox.right<=cellBox.right-1){
+          best=mid;
+          lo=mid;
+        }else{
+          hi=mid;
+        }
+      }
+      return finish(best);
+    }
+    if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return finish(maximum);
+    const chipStyle=getComputedStyle(chip);
+    const text=scorecardNameDisplayText(name);
+    const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
+      .reduce((sum,property)=>sum+(parseFloat(chipStyle[property])||0),0);
+    const letterSpacing=parseFloat(chipStyle.letterSpacing)||0;
+    const measureAt=size=>{
+      context.font=`${chipStyle.fontStyle} ${chipStyle.fontVariant} ${chipStyle.fontWeight} ${size}px ${chipStyle.fontFamily}`;
+      return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
+    };
+    let fitted=maximum;
+    const natural=measureAt(maximum);
+    if(natural>available){
+      fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
+    }
+    name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+    if(scorecardNameChipWidth(name)<=available+1)return finish(Math.min(maximum,fitted));
+    let lo=12,hi=Math.min(maximum,fitted),best=12;
+    for(let i=0;i<10;i++){
+      const mid=(lo+hi)/2;
+      name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
+      if(scorecardNameChipWidth(name)<=available){
+        best=mid;
+        lo=mid;
+      }else{
+        hi=mid;
+      }
+    }
+    return finish(best);
+  }
   function fitScorecardPlayerNames(root){
     if(!root||root.offsetParent===null)return;
     const canvas=fitScorecardPlayerNames.canvas||(fitScorecardPlayerNames.canvas=document.createElement('canvas'));
@@ -13600,60 +13648,14 @@ ${isDealer
     if(!context)return;
     const names=[...root.querySelectorAll('.scoreboard-player-name')];
     names.forEach(name=>name.style.removeProperty('font-size'));
+    if(!names.length)return;
+    const sharedMax=names.reduce((max,name)=>Math.max(max,parseFloat(getComputedStyle(name).fontSize)||16),12);
+    let columnSize=sharedMax;
     names.forEach(name=>{
-      const cell=name.closest('td.scorecard-col-player');
-      if(!cell)return;
-      const chip=scorecardNameChipEl(name);
-      const cellBox=cell.getBoundingClientRect();
-      const chipBox=chip.getBoundingClientRect();
-      const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
-      const available=scorecardNameAvailableWidth(name);
-      if(available<=0){
-        let lo=12,hi=maximum,best=12;
-        for(let i=0;i<12;i++){
-          const mid=(lo+hi)/2;
-          name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
-          const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
-          if(fittedBox.right<=cellBox.right-1){
-            best=mid;
-            lo=mid;
-          }else{
-            hi=mid;
-          }
-        }
-        name.style.setProperty('font-size',`${best.toFixed(1)}px`,'important');
-        return;
-      }
-      if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return;
-
-      const chipStyle=getComputedStyle(chip);
-      const text=scorecardNameDisplayText(name);
-      const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
-        .reduce((sum,property)=>sum+(parseFloat(chipStyle[property])||0),0);
-      const letterSpacing=parseFloat(chipStyle.letterSpacing)||0;
-      const measureAt=size=>{
-        context.font=`${chipStyle.fontStyle} ${chipStyle.fontVariant} ${chipStyle.fontWeight} ${size}px ${chipStyle.fontFamily}`;
-        return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
-      };
-      let fitted=maximum;
-      const natural=measureAt(maximum);
-      if(natural>available){
-        fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
-      }
-      name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-      if(scorecardNameChipWidth(name)<=available+1)return;
-      let lo=12,hi=Math.min(maximum,fitted),best=12;
-      for(let i=0;i<10;i++){
-        const mid=(lo+hi)/2;
-        name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
-        if(scorecardNameChipWidth(name)<=available){
-          best=mid;
-          lo=mid;
-        }else{
-          hi=mid;
-        }
-      }
-      name.style.setProperty('font-size',`${Math.min(maximum,best).toFixed(1)}px`,'important');
+      columnSize=Math.min(columnSize,neededScorecardNameSize(name,sharedMax,context));
+    });
+    names.forEach(name=>{
+      name.style.setProperty('font-size',`${columnSize.toFixed(1)}px`,'important');
     });
   }
   function fitScorecardTotals(root){
@@ -13840,17 +13842,23 @@ ${isDealer
     BPGLifePreserver.syncLifePreserverHolds(currentGame, players, Object.assign({gameOver:over}, extra||{}));
   }
 
-  function setRecordChaseLayout(enabled){
+  function setRecordChaseLayout(){
+    recordChaseVisible=false;
+    recordChaseLayoutActive=false;
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
-    const available=window.matchMedia('(min-width: 901px)').matches&&currentGame?.name!=='Rook';
-    recordChaseLayoutActive=!!enabled&&available;
-    if(layout)layout.classList.toggle('record-chase-active',recordChaseLayoutActive);
-    if(panel)panel.classList.toggle('hidden',!recordChaseLayoutActive);
+    if(layout)layout.classList.remove('record-chase-active');
+    if(panel){
+      panel.classList.add('hidden');
+      panel.setAttribute('hidden','');
+    }
     const toggleWrap=document.getElementById('scorecard-view-toggle-wrap');
     const paceToggle=document.getElementById('scorecard-view-pace-toggle');
-    if(toggleWrap)toggleWrap.classList.toggle('hidden',!available);
-    if(paceToggle)paceToggle.setAttribute('aria-checked',String(recordChaseLayoutActive));
+    if(toggleWrap)toggleWrap.classList.add('hidden');
+    if(paceToggle){
+      paceToggle.setAttribute('aria-checked','false');
+      paceToggle.hidden=true;
+    }
   }
 
   function syncRecordChaseLayoutForViewport(){
@@ -13861,8 +13869,7 @@ ${isDealer
   }
 
   function toggleRecordChasePanel(){
-    recordChaseVisible=!recordChaseVisible;
-    renderGame();
+    setRecordChaseLayout();
   }
 
   function getRecordChaseRoundEntries(gameData){

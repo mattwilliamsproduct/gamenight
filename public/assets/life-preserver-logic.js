@@ -245,7 +245,14 @@
     const summary = place
       ? `${player} is ${place}, ${leaderBit}.`
       : `${player} is ${leaderBit}.`;
-    const wheelLine = `${player} is ${leaderGap} behind 1st. Best help ${bestShort}.`;
+    const adjustments = (offer.slices || []).map(slice => Number(slice.adjustment) || 0);
+    const rangeMin = adjustments.length
+      ? Math.min(...adjustments)
+      : Math.min(sign * maxSafe, (-sign) * (Number(offer.maxSetback) || 0), 0);
+    const rangeMax = adjustments.length
+      ? Math.max(...adjustments)
+      : Math.max(sign * maxSafe, (-sign) * (Number(offer.maxSetback) || 0), 0);
+    const wheelLine = `${player} is ${leaderGap} behind 1st. Spin range ${formatSignedPoints(rangeMin)} to ${formatSignedPoints(rangeMax)}.`;
     const bullets = [];
 
     if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points.`);

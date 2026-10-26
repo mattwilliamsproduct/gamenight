@@ -431,7 +431,14 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
   assert.match(explained.wheelLine, /behind 1st/);
+  assert.match(explained.wheelLine, /Spin range/);
   assert.match(explained.wheelLine, /−75/);
+  const brickAdjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
+  const brickMin = Math.min(...brickAdjustments);
+  const brickMax = Math.max(...brickAdjustments);
+  const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
+  assert.match(explained.wheelLine, new RegExp(`Spin range ${signed(brickMin)} to ${signed(brickMax)}`));
+  assert.ok(brickMin < 0, 'negative slices stay on the wheel');
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
   assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
@@ -440,6 +447,24 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
+});
+
+test('wheel line spin range matches the slice min and max', () => {
+  const currentGame = QA_SCENARIOS['eight18-porch-lp'].data.currentGame;
+  const players = currentGame.originalRoster;
+  const result = LP.getLifePreserverOffer(currentGame, 'Brick', players);
+  assert.equal(result.eligible, true);
+  const explained = LP.explainLifePreserverOffer(result);
+  const adjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
+  assert.ok(adjustments.length > 0);
+  const min = Math.min(...adjustments);
+  const max = Math.max(...adjustments);
+  const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
+  assert.match(explained.wheelLine, new RegExp(`Spin range ${signed(min)} to ${signed(max)}`));
+  assert.match(explained.wheelLine, /behind 1st/);
+  assert.doesNotMatch(explained.wheelLine, /Best help/);
+  assert.ok(min < 0, 'negative slices stay on the wheel');
+  assert.ok(max > 0);
 });
 
 test('Five Crowns QA fixture still has one available and one used Life Preserver', () => {

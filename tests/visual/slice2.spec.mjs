@@ -83,7 +83,7 @@ test('tv scoreboard emphasizes names and keeps entry validation', async ({page})
   await expect(page.locator('#slice2-board-line')).toContainText('Bids');
   await expect(page.locator('#top-nav')).toBeHidden();
   await expect(page.locator('#submit-section')).toBeHidden();
-  await expect(page.locator('#record-chase-panel')).toBeHidden();
+  await expect(page.locator('#record-chase-panel')).toHaveCount(0);
   const type = await page.locator('.scoreboard-player-name').first().evaluate((el) => {
     const style = getComputedStyle(el);
     return {weight: style.fontWeight, transform: style.textTransform, family: style.fontFamily};
