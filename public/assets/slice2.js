@@ -1,4 +1,4 @@
-/* Warm Porch Ledger interactions. Loaded only while the Slice 2 flag is on. */
+/* Warm Porch Ledger interactions. Always loaded. */
 (function () {
   const GAMES = [
     { id: 'Five Crowns', title: 'Five Crowns', art: 'five', line: '11 rounds · Lowest total wins', detail: () => '11 rounds' },
@@ -16,6 +16,13 @@
 
   function state() {
     return slice2TableState();
+  }
+
+  function coerceMatchId(value) {
+    if (value == null || value === '') return null;
+    const raw = String(value);
+    const asNum = Number(raw);
+    return Number.isFinite(asNum) && String(asNum) === raw ? asNum : raw;
   }
 
   function gameMeta(id) {
@@ -151,8 +158,7 @@
           <p class="s2-sub">${escapeHtml(matchSubtitle(game))}</p>
         </div>
         <div class="s2-banner-actions">
-          <button type="button" class="s2-btn" data-s2-action="scorecard">Scorecard</button>
-          <button type="button" class="s2-btn s2-btn-primary" data-s2-action="resume">Resume Game</button>
+          <button type="button" class="s2-btn s2-btn-primary" data-s2-action="resume">Resume</button>
         </div>
       </section>`;
     })() : '';
@@ -186,7 +192,12 @@
     const nights = table.history.slice(0, 4).map((match) => {
       const winner = (match.winners && match.winners[0]) || 'Tied';
       const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
-      return `<article class="s2-night"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(match.date || '')}${winner ? ` · ${escapeHtml(winner)}` : ''}</span></article>`;
+      const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
+      const status = incomplete ? 'Incomplete' : (winner ? winner : '');
+      return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
+        <strong>${escapeHtml(label)}</strong>
+        <span>${escapeHtml(match.date || '')}${status ? ` · ${escapeHtml(status)}` : ''}</span>
+      </button>`;
     }).join('');
     root.innerHTML = `${banner}
       <div class="s2-home-grid">
@@ -328,6 +339,24 @@
     const rivalText = rival
       ? `${rival.a} vs ${rival.b} · ${rival.edgePlayer && rival.edgePlayer !== 'Even' ? `${rival.edgePlayer} leads ${Math.max(rival.aWins, rival.bWins)}–${Math.min(rival.aWins, rival.bWins)}` : 'Even'} · ${rival.together} nights`
       : '';
+    const nightsHtml = table.history.map((match) => {
+      const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
+      const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
+      const assisted = window.BPGScorebook && BPGScorebook.isAssistedMatch(match);
+      const bits = [match.date || ''];
+      if (incomplete) bits.push('Incomplete');
+      if (assisted) bits.push('Assisted');
+      return `<article class="s2-night">
+        <div>
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(bits.filter(Boolean).join(' · '))}</span>
+        </div>
+        <div class="s2-night-actions">
+          <button type="button" class="s2-btn" data-s2-action="night-scorecard" data-s2-id="${escapeHtml(String(match.id || ''))}">Scorecard</button>
+          <button type="button" class="s2-btn" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
+        </div>
+      </article>`;
+    }).join('');
     view.className = `s2-ledger${shamePane ? ' s2-pane-shame' : ''}${hidden ? ' hidden' : ''}`;
     view.innerHTML = `<div class="s2-segment" role="tablist" aria-label="Records">
         <button type="button" class="s2-btn${shamePane ? '' : ' is-on'}" id="slice2-show-fame" data-s2-action="show-fame">Hall of Fame</button>
@@ -338,7 +367,7 @@
           <div class="s2-podium">${podium.map((card) => `<article><small>${escapeHtml(card.kicker)}</small><strong>${escapeHtml(card.value)}</strong><span>${escapeHtml(card.name)}</span><small>${escapeHtml(card.sub)}</small>${getAvatarImg(card.name, 'avatar-img')}</article>`).join('')}</div>
           <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${table.history.length} nights</span></div>
           <div class="s2-ledger-table">
-            <div class="s2-ledger-row is-head"><span>Game</span><span>Best match</span><span>Best round</span></div>
+            <div class="s2-ledger-row is-head"><span>Game</span><span>Best match <small class="s2-unassisted-note">Unassisted matches only</small></span><span>Best round</span></div>
             ${rows}
           </div>
         </section>
@@ -347,7 +376,11 @@
           ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
           ${rivalText ? `<article class="s2-rival"><small class="s2-kicker">Head-to-head</small><p class="s2-sub">${escapeHtml(rivalText)}</p></article>` : ''}
         </section>
-      </div>`;
+      </div>
+      <section class="s2-panel s2-nights-col">
+        <div class="s2-panel-head"><h2>Past nights</h2></div>
+        <div class="s2-night-list">${nightsHtml || '<p class="s2-sub">No nights saved yet.</p>'}</div>
+      </section>`;
     if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
   }
 
@@ -464,6 +497,12 @@
       startGame(selected);
     } else if (action === 'resume' || action === 'scorecard') {
       goActiveMatch();
+    } else if (action === 'night-open' || action === 'night-scorecard') {
+      const id = coerceMatchId(target.dataset.s2Id);
+      if (id != null && typeof openScorecard === 'function') openScorecard(id);
+    } else if (action === 'night-resume') {
+      const id = coerceMatchId(target.dataset.s2Id);
+      if (id != null && typeof resumeMatch === 'function') resumeMatch(id);
     } else if (action === 'life-preserver') {
       const player = firstEligible();
       if (player) authorizeHailMary(player);

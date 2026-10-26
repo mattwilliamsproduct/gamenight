@@ -17,3 +17,5 @@ Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-lif
 Standing trap: [data-integrity-records.md](data-integrity-records.md) — bid accuracy comes from bids and actuals, a historical round keeps its own roster, and a Life Preserver flag follows the spins that remain.
 
 Standing trap: [slice2-phone-scorekeeper.md](slice2-phone-scorekeeper.md) — Slice 2 still needs a scrollable phone roster above the keypad; do not port #59 welcome/sample work onto that preview.
+
+Standing trap: [rc1-one-skin.md](rc1-one-skin.md) — Warm Porch Ledger is the only skin; 818 / Wizard gallery rows must be rule-valid, including dealer law.

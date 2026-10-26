@@ -1023,6 +1023,34 @@ test('undoing the only Life Preserver clears assistedMatch, including a zero-poi
   assert.equal(stored.assistedMatch, false);
 });
 
+test('818 blank dealer bid matches typing 0 against the dealer rule', () => {
+  const game = { name: '818', dealerOffset: 0, currentRound: 1 };
+  const players = ['Ann', 'Bea', 'Cal', 'Dee'];
+  const typed = Scorebook.validateEntries({
+    game,
+    kind: 'bids',
+    roundNumber: 1,
+    players,
+    values: { Ann: 0, Bea: 3, Cal: 3, Dee: 2 }
+  });
+  const blank = Scorebook.validateEntries({
+    game,
+    kind: 'bids',
+    roundNumber: 1,
+    players,
+    values: { Ann: '', Bea: 3, Cal: 3, Dee: 2 }
+  });
+  assert.equal(typed.ok, false);
+  assert.equal(blank.ok, false);
+  assert.equal(typed.reason, 'dealer');
+  assert.equal(blank.reason, typed.reason);
+  assert.equal(typed.forbidden, 0);
+  assert.equal(blank.forbidden, 0);
+  assert.deepEqual(typed.values, blank.values);
+  assert.match(typed.message, /cannot bid 0/);
+  assert.equal(blank.message, typed.message);
+});
+
 test('every match keeps a stable gameId once it has one', () => {
   const legacy = { id: 42, name: 'Wizard', currentRound: 3, wizardPhase: 'scoring' };
   assert.equal(Scorebook.ensureGameId(legacy), 42);

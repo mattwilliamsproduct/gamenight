@@ -262,7 +262,7 @@
     if (binding === 'rank') {
       bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
-      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot match or pass 1st.`);
+      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
     } else if (binding === 'rescue') {
       bullets.push(`The biggest help is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
@@ -321,7 +321,7 @@
     let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
       'Most slices help. Some do nothing. A few hurt a little.',
-      'The best result can pull you back toward the lead. It cannot match or pass 1st — you always stay at least one point behind.'
+      'Cannot tie or pass the leader.'
     ];
 
     if (gameName === '818') {
@@ -344,7 +344,7 @@
       timing,
       'You are not in 1st. 2nd can get one too, but only if they are also too far back to catch the lead.',
       gap,
-      'You have not used yours yet. One spin per player, per game.',
+      'You have not used yours yet. One spin per player per match.',
       'Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.',
       'If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.'
     ];

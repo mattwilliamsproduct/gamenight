@@ -236,6 +236,7 @@
     players.forEach(player => {
       let raw = rawValues[player];
       if ((kind === 'scores' || kind === 'tricks') && scoreEntryValueIsBlank(raw)) raw = 0;
+      if (kind === 'bids' && gameName(source.game) === '818' && scoreEntryValueIsBlank(raw)) raw = 0;
       const parsed = parseEntryInteger(raw);
       if (!parsed.ok) {
         invalidPlayers.push(player);
@@ -260,6 +261,20 @@
         limit,
         message: entryRejectionMessage(source.game, kind, limit, invalidPlayers)
       };
+    }
+    if (kind === 'bids' && gameName(source.game) === '818') {
+      const dealerBlock = eight18DealerBidViolation(source.game, { round: source.roundNumber, bids: values }, players);
+      if (dealerBlock) {
+        return {
+          ok: false,
+          reason: 'dealer',
+          invalidPlayers: [dealerBlock.dealer],
+          values,
+          limit,
+          forbidden: dealerBlock.forbidden,
+          message: dealerBlock.message
+        };
+      }
     }
     const sum = players.reduce((total, player) => total + values[player], 0);
     return { ok: true, invalidPlayers: [], values, sum, limit, message: '' };
@@ -466,11 +481,16 @@
   function recordLifePreserverSpin(game, player, adjustment) {
     if (!game || !player) return game;
     if (!Array.isArray(game.rounds)) game.rounds = [];
+    if (!Array.isArray(game.hailMaryUsed)) game.hailMaryUsed = [];
+    const alreadyUsed = game.hailMaryUsed.includes(player);
+    const alreadySpun = (game.rounds || []).some(round => (
+      round && round.hailMaryBonus === true && round.scores && Object.prototype.hasOwnProperty.call(round.scores, player)
+    ));
+    if (alreadyUsed || alreadySpun) return game;
     const parsed = parseEntryInteger(adjustment);
     const value = parsed.ok ? parsed.value : 0;
     game.rounds.push({ round: 0, scores: { [player]: value }, hailMaryBonus: true });
-    if (!Array.isArray(game.hailMaryUsed)) game.hailMaryUsed = [];
-    if (!game.hailMaryUsed.includes(player)) game.hailMaryUsed.push(player);
+    game.hailMaryUsed.push(player);
     recomputeTotals(game);
     syncAssistedMatch(game);
     return game;

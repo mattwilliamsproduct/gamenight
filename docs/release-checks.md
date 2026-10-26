@@ -15,7 +15,7 @@ Production loads Life Preserver (`public/assets/life-preserver-logic.js`) and mu
 
 The service worker that ships is whatever `npm run build` writes from `src/service-worker.js`. After a worker edit, run the build and confirm the generated `public/sw.js` precache list matches the scripts in `index.html`. `npm run check` also fails if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
 
-Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
+Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) are skipped on RC1. Production does not load `comeback-logic.js`. Those files used to assert:
 
 - both blowout players who cannot catch first get chips
 - extras sit inside the round-score box, not floating under it

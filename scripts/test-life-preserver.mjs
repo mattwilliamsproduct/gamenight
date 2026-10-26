@@ -348,11 +348,10 @@ test('porch 818 table gives Cat about +20, not a ticket to 1st', () => {
   assert.equal(vikki.maxSafeAdjustment, 20);
   assert.equal(brick.eligible, true);
   assert.equal(brick.maxSafeAdjustment, 20);
-  assert.equal(megan.eligible, true);
-  assert.ok(megan.maxSafeAdjustment <= 20);
-  assert.ok(megan.maxSafeAdjustment <= megan.rankCap);
+  assert.equal(megan.eligible, false);
+  assert.equal(megan.reason, 'recovery-load');
   assert.equal(LP.capLifePreserverAdjustment(80, cat), 20);
-  assert.equal(currentGame.totals.Cat + 20, 78);
+  assert.equal(currentGame.totals.Cat + 20, 61);
   assert.ok(currentGame.totals.Cat + 20 < currentGame.totals.Duke);
   assertNoPodium(cat, players, currentGame.totals);
   assertNoPodium(vikki, players, currentGame.totals);
@@ -519,7 +518,8 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.ok(eight18.how.some(line => /not in 1st/.test(line)));
   assert.ok(eight18.how.some(line => /made bids/.test(line)));
   assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
-  assert.ok(eight18.wheel.some(line => /cannot match or pass 1st/.test(line)));
+  assert.ok(eight18.how.some(line => /One spin per player per match/.test(line)));
+  assert.ok(eight18.wheel.some(line => /Cannot tie or pass the leader/.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
   assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
@@ -541,8 +541,8 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
 
 test('threshold QA fixtures unlock only Duke at the first legal hole', () => {
   const cases = [
-    ['eight18-life-preserver-threshold', '818', 123],
-    ['wizard-life-preserver-threshold', 'Wizard', 190],
+    ['eight18-life-preserver-threshold', '818', 81],
+    ['wizard-life-preserver-threshold', 'Wizard', -150],
     ['five-crowns-life-preserver-threshold', 'Five Crowns', 54],
     ['flip7-life-preserver-threshold', 'Flip 7 Vengeance', 112]
   ];
@@ -603,4 +603,36 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
+});
+
+test('a landed Life Preserver is locked, persists, blocks a second spin, and marks assisted', () => {
+  const Scorebook = require('../public/assets/scorebook.js');
+  const players = FOUR;
+  const live = game({
+    name: '818',
+    players,
+    totals: { Ann: 80, Bea: 70, Cal: 60, Dee: 40 },
+    roundCount: 6,
+    spread: 10,
+    currentRound: 7
+  });
+  Scorebook.recordLifePreserverSpin(live, 'Dee', 12);
+  assert.equal(live.assistedMatch, true);
+  assert.deepEqual(live.hailMaryUsed, ['Dee']);
+  assert.equal(live.rounds.filter(round => round.hailMaryBonus).length, 1);
+  assert.equal(live.totals.Dee, 12);
+  assert.equal(LP.getLifePreserverOffer(live, 'Dee', players).reason, 'used');
+
+  const reloaded = JSON.parse(JSON.stringify(live));
+  assert.equal(Scorebook.isAssistedMatch(reloaded), true);
+  assert.deepEqual(reloaded.hailMaryUsed, ['Dee']);
+  assert.equal(reloaded.rounds.filter(round => round.hailMaryBonus).length, 1);
+  assert.equal(reloaded.totals.Dee, 12);
+  assert.equal(LP.getLifePreserverOffer(reloaded, 'Dee', players).reason, 'used');
+
+  const before = JSON.stringify(reloaded.rounds);
+  Scorebook.recordLifePreserverSpin(reloaded, 'Dee', 20);
+  assert.equal(JSON.stringify(reloaded.rounds), before);
+  assert.deepEqual(reloaded.hailMaryUsed, ['Dee']);
+  assert.equal(reloaded.rounds.filter(round => round.hailMaryBonus).length, 1);
 });

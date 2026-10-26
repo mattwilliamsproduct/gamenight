@@ -1,7 +1,7 @@
 import {expect,test} from '@playwright/test';
 import {openScenario} from '../helpers/qa.mjs';
 
-test('tied Wizard places are shared on the live card, history list, and profiles', async ({page})=>{
+test('tied Wizard places are shared on the live card and profiles', async ({page})=>{
   await openScenario(page,{scenario:'wizard-tied-places'});
 
   const live=await page.locator('#scorecard-body tr').evaluateAll(rows=>rows.map(row=>({
@@ -17,10 +17,6 @@ test('tied Wizard places are shared on the live card, history list, and profiles
     {name:'Linda',place:'6'},
     {name:'Mike',place:'6'}
   ]);
-
-  await page.evaluate(()=>showHistory());
-  const historyPlaces=await page.locator('#history-list-view .font-mono-num.text-sm').allTextContents();
-  expect(historyPlaces.map(text=>text.trim())).toEqual(['1.','2.','3.','4.','4.','6.','6.']);
 
   const ranks=await page.evaluate(()=>({
     megan:getProfileSummary('Megan').avgRank,

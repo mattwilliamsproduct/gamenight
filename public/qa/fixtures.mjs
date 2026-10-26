@@ -1,3 +1,5 @@
+import {legalEight18Rounds, wizardScore} from './fixture-rules.mjs';
+
 const NAMES = ['Megan','Matt','Cat','Mike','Vikki','Duke','Brick','Linda','Michelle','Alexis','Ethan','Diana'];
 const AVATARS = ['meg.png','dwight-wig.png','joker-cards.png','neo.png','belle.png','mario.png','frankenstein.png','jasmine.png','leia.png','toothless.png','ironman.png','barbie-beach.png'];
 
@@ -14,39 +16,57 @@ function totalRounds(players,rounds){
   return totals;
 }
 
+function balanceActuals(players,actuals,tricks){
+  let sum=players.reduce((total,player)=>total+(actuals[player]||0),0);
+  let guard=0;
+  while(sum>tricks && guard<400){
+    const player=players[guard%players.length];
+    if(actuals[player]>0){actuals[player]-=1;sum-=1;}
+    guard+=1;
+  }
+  guard=0;
+  while(sum<tricks && guard<400){
+    const player=players[guard%players.length];
+    if(actuals[player]<tricks){actuals[player]+=1;sum+=1;}
+    guard+=1;
+  }
+}
+
 function wizardRounds(players,count){
   return Array.from({length:count},(_,roundIndex)=>{
     const round=roundIndex+1;
-    const bids={},actuals={},scores={};
+    const bids={},actuals={};
     players.forEach((player,index)=>{
       const bid=(index+round)%Math.min(round+1,3);
       const adjustment=(index+round)%4===0?1:((index+round)%5===0?-1:0);
-      const actual=Math.max(0,Math.min(round,bid+adjustment));
       bids[player]=bid;
-      actuals[player]=actual;
-      scores[player]=actual===bid?20+(bid*10):(-10*Math.abs(actual-bid));
+      actuals[player]=Math.max(0,Math.min(round,bid+adjustment));
     });
+    balanceActuals(players,actuals,round);
+    const scores=Object.fromEntries(players.map(player=>[player,wizardScore(bids[player],actuals[player])]));
     return {round,bids,actuals,scores};
   });
 }
 
 function wizardRoundsFromScores(players,scoreRows){
   return scoreRows.map((scoreRow,roundIndex)=>{
-    const bids={},actuals={},scores={};
+    const bids={},actuals={};
+    const tricks=roundIndex+1;
     players.forEach((player,index)=>{
       const score=Number(scoreRow[index])||0;
       if(score>=20){
-        const bid=Math.max(0,Math.round((score-20)/10));
+        const bid=Math.max(0,Math.min(tricks,Math.round((score-20)/10)));
         bids[player]=bid;
         actuals[player]=bid;
       } else {
-        const miss=Math.max(1,Math.round(Math.abs(score)/10));
+        const miss=Math.max(0,Math.min(tricks,Math.max(1,Math.round(Math.abs(score)/10))));
         bids[player]=miss;
         actuals[player]=0;
       }
-      scores[player]=score;
     });
-    return {round:roundIndex+1,bids,actuals,scores};
+    balanceActuals(players,actuals,tricks);
+    const scores=Object.fromEntries(players.map(player=>[player,wizardScore(bids[player],actuals[player])]));
+    return {round:tricks,bids,actuals,scores};
   });
 }
 
@@ -90,9 +110,14 @@ function historyFixture(){
   return Array.from({length:18},(_,index)=>{
     const game=games[index%games.length];
     const roster=NAMES.slice(0,5+(index%4));
+    const count=3+(index%3);
     const rounds=game==='Wizard'
-      ? wizardRounds(roster,3+(index%3))
-      : fiveCrownsRounds(roster,3+(index%4));
+      ? wizardRounds(roster,count)
+      : game==='818'
+        ? legalEight18Rounds(roster,Object.fromEntries(roster.map((player,playerIndex)=>[player,30+playerIndex*8])),count)
+        : game==='Beat the Heat'
+          ? fiveCrownsRounds(roster,Math.min(3,count)).map(round=>({...round,scores:Object.fromEntries(Object.entries(round.scores).map(([player,score])=>[player,Math.min(12,score)]))}))
+          : fiveCrownsRounds(roster,count);
     const totals=totalRounds(roster,rounds);
     return {
       id:1784390400000-(index*86400000),
@@ -297,17 +322,18 @@ const race8Match={
   hailMaryUsed:[],
   retired:[]
 };
+const race8PriorRounds=heatRoundsFromScores(race8Players,[
+  [8,10,12,14,16,18,20,22],
+  [10,12,14,16,18,20,22,24],
+  [12,14,16,18,20,22,24,26]
+]);
 const race8Prior={
   id:909250,
   game:'Five Crowns',
   date:'8/11/2026',
-  totals:Object.fromEntries(race8Players.map((player,index)=>[player,30+index*4])),
+  totals:totalRounds(race8Players,race8PriorRounds),
   winners:['Megan'],
-  rounds:heatRoundsFromScores(race8Players,[
-    [8,10,12,14,16,18,20,22],
-    [10,12,14,16,18,20,22,24],
-    [12,14,16,18,20,22,24,26]
-  ]),
+  rounds:race8PriorRounds,
   originalRoster:[...race8Players],
   currentRound:4,
   hailMaryUsed:[],
@@ -416,23 +442,14 @@ function roundsFromPlayerRows(players,scoreRows,decorate){
     return round;
   });
 }
-function eight18Decorate(round){
-  const tricks=[8,7,6,5,4,3,2,1,2,3,4,5,6,7,8][round.round-1]||0;
-  const bids={};
-  const actuals={};
-  Object.entries(round.scores).forEach(([player,score])=>{
-    const value=Number(score)||0;
-    if(value>=10){
-      const made=Math.max(0,Math.min(tricks,value-10));
-      bids[player]=made;
-      actuals[player]=made;
-    }else{
-      bids[player]=Math.min(tricks,Math.max(1,Math.round(tricks/3)));
-      actuals[player]=Math.max(0,value);
-    }
+function wizardExactRounds(players, takersByRound){
+  return takersByRound.map((takers, index)=>{
+    const round=index+1;
+    const actuals=Object.fromEntries(players.map(player=>[player,Number(takers[player])||0]));
+    const bids={...actuals};
+    const scores=Object.fromEntries(players.map(player=>[player,wizardScore(bids[player],actuals[player])]));
+    return {round,bids,actuals,scores};
   });
-  round.bids=bids;
-  round.actuals=actuals;
 }
 
 const fiveCrownsLadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
@@ -447,29 +464,18 @@ const fiveCrownsLadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
 ]);
 const fiveCrownsLadderGame=makeCurrentGame('Five Crowns',turboLadderPlayers,fiveCrownsLadderRounds);
 
-const wizardLadderRounds=wizardRoundsFromScores(turboLadderPlayers,[
-  [30,20,20,20,20,20,20,20],
-  [30,30,30,20,20,20,20,20],
-  [20,20,20,20,20,20,20,20],
-  [40,20,20,20,20,20,15,10],
-  [20,20,15,20,15,10,10,10]
+const wizardLadderRounds=wizardExactRounds(turboLadderPlayers,[
+  {Matt:1},
+  {Matt:1,Cat:1},
+  {Matt:1,Cat:1,Megan:1},
+  {Matt:1,Cat:1,Megan:1,Michelle:1},
+  {Matt:1,Cat:1,Megan:1,Michelle:1,Mike:1}
 ]);
 const wizardLadderGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardLadderRounds);
 
-const eight18LadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
-  [12,12,10,10,10,10,10,10],
-  [11,11,10,10,10,10,10,10],
-  [11,11,10,10,10,10,10,8],
-  [12,10,10,10,10,10,8,8],
-  [11,10,10,10,8,8,8,8],
-  [11,10,8,8,8,8,8,8],
-  [10,10,8,8,8,8,8,8],
-  [10,8,8,8,8,8,8,8],
-  [11,10,8,8,8,8,8,6],
-  [11,10,8,8,8,6,6,6],
-  [10,10,10,8,8,8,8,8]
-],eight18Decorate);
-const eight18LadderGame=makeCurrentGame('818',turboLadderPlayers,eight18LadderRounds);
+const eight18LadderGame=makeCurrentGame('818',turboLadderPlayers,legalEight18Rounds(turboLadderPlayers,{
+  Matt:110,Cat:108,Megan:96,Michelle:92,Mike:88,Vikki:84,Linda:80,Duke:72
+},11,{dealerOffset:1}));
 
 const flip7LadderRounds=roundsFromPlayerRows(turboLadderPlayers,[
   [28,22,16,14,12,10,8,6],
@@ -490,57 +496,77 @@ function roundsFromTotals(players, totals, count, decorate){
   return roundsFromPlayerRows(players, rows, decorate);
 }
 
-const eight18ThresholdTotals={Matt:140,Cat:136,Megan:134,Michelle:133,Mike:133,Vikki:132,Linda:132,Duke:123};
-const wizardThresholdTotals={Matt:230,Cat:225,Megan:222,Michelle:220,Mike:218,Vikki:216,Linda:214,Duke:190};
 const fiveCrownsThresholdTotals={Matt:24,Cat:28,Megan:30,Michelle:32,Mike:34,Vikki:36,Linda:38,Duke:54};
 const flip7ThresholdTotals={Matt:140,Cat:136,Megan:132,Michelle:130,Mike:128,Vikki:126,Linda:124,Duke:112};
 
-const eight18ThresholdGame=makeCurrentGame('818',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,eight18ThresholdTotals,12,eight18Decorate));
+const eight18ThresholdRounds=[
+  {round:1,bids:{Matt:1,Cat:1,Megan:1,Michelle:1,Mike:1,Vikki:0,Linda:1,Duke:1},actuals:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:8,Linda:0,Duke:0},scores:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:8,Linda:0,Duke:0}},
+  {round:2,bids:{Matt:1,Cat:1,Megan:2,Michelle:1,Mike:1,Vikki:1,Linda:0,Duke:1},actuals:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:7,Duke:0},scores:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:7,Duke:0}},
+  {round:3,bids:{Matt:6,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:1,Duke:1},actuals:{Matt:6,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:16,Cat:10,Megan:10,Michelle:10,Mike:10,Vikki:10,Linda:0,Duke:0}},
+  {round:4,bids:{Matt:0,Cat:5,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:1},actuals:{Matt:0,Cat:5,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:10,Cat:15,Megan:10,Michelle:10,Mike:10,Vikki:10,Linda:10,Duke:0}},
+  {round:5,bids:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},actuals:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:4,Duke:0},scores:{Matt:10,Cat:10,Megan:10,Michelle:10,Mike:10,Vikki:10,Linda:4,Duke:10}},
+  {round:6,bids:{Matt:3,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:1,Linda:0,Duke:0},actuals:{Matt:3,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:13,Cat:10,Megan:10,Michelle:10,Mike:10,Vikki:0,Linda:10,Duke:10}},
+  {round:7,bids:{Matt:0,Cat:0,Megan:2,Michelle:0,Mike:0,Vikki:1,Linda:0,Duke:0},actuals:{Matt:0,Cat:0,Megan:2,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:10,Cat:10,Megan:12,Michelle:10,Mike:10,Vikki:0,Linda:10,Duke:10}},
+  {round:8,bids:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:1,Vikki:1,Linda:0,Duke:0},actuals:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:1,Linda:0,Duke:0},scores:{Matt:10,Cat:10,Megan:10,Michelle:10,Mike:0,Vikki:11,Linda:10,Duke:10}},
+  {round:9,bids:{Matt:0,Cat:0,Megan:0,Michelle:1,Mike:2,Vikki:0,Linda:0,Duke:0},actuals:{Matt:0,Cat:0,Megan:0,Michelle:0,Mike:2,Vikki:0,Linda:0,Duke:0},scores:{Matt:10,Cat:10,Megan:10,Michelle:0,Mike:12,Vikki:10,Linda:10,Duke:10}},
+  {round:10,bids:{Matt:0,Cat:0,Megan:1,Michelle:3,Mike:0,Vikki:0,Linda:0,Duke:0},actuals:{Matt:0,Cat:0,Megan:0,Michelle:3,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:10,Cat:10,Megan:0,Michelle:13,Mike:10,Vikki:10,Linda:10,Duke:10}},
+  {round:11,bids:{Matt:0,Cat:1,Megan:1,Michelle:0,Mike:0,Vikki:3,Linda:0,Duke:0},actuals:{Matt:0,Cat:0,Megan:1,Michelle:0,Mike:0,Vikki:3,Linda:0,Duke:0},scores:{Matt:10,Cat:0,Megan:11,Michelle:10,Mike:10,Vikki:13,Linda:10,Duke:10}},
+  {round:12,bids:{Matt:0,Cat:0,Megan:1,Michelle:0,Mike:1,Vikki:0,Linda:1,Duke:1},actuals:{Matt:1,Cat:0,Megan:1,Michelle:0,Mike:1,Vikki:0,Linda:1,Duke:1},scores:{Matt:1,Cat:10,Megan:11,Michelle:10,Mike:11,Vikki:10,Linda:11,Duke:11}}
+];
+const eight18ThresholdGame=makeCurrentGame('818',turboLadderPlayers,eight18ThresholdRounds);
 const porch818Players=['Duke','Mike','Megan','Brick','Cat','Vikki'];
-const porch818Totals={Duke:97,Mike:95,Megan:78,Brick:67,Cat:58,Vikki:54};
-const porch818Game=makeCurrentGame('818',porch818Players,roundsFromTotals(porch818Players,porch818Totals,9,eight18Decorate),{
+const porch818Rounds=[
+  {round:1,bids:{Duke:1,Mike:1,Megan:1,Brick:1,Cat:1,Vikki:0},actuals:{Duke:0,Mike:0,Megan:0,Brick:0,Cat:0,Vikki:8},scores:{Duke:0,Mike:0,Megan:0,Brick:0,Cat:0,Vikki:8}},
+  {round:2,bids:{Duke:0,Mike:1,Megan:1,Brick:1,Cat:1,Vikki:0},actuals:{Duke:0,Mike:0,Megan:0,Brick:0,Cat:0,Vikki:7},scores:{Duke:10,Mike:0,Megan:0,Brick:0,Cat:0,Vikki:7}},
+  {round:3,bids:{Duke:0,Mike:6,Megan:1,Brick:1,Cat:1,Vikki:1},actuals:{Duke:0,Mike:6,Megan:0,Brick:0,Cat:0,Vikki:0},scores:{Duke:10,Mike:16,Megan:0,Brick:0,Cat:0,Vikki:0}},
+  {round:4,bids:{Duke:0,Mike:0,Megan:5,Brick:1,Cat:1,Vikki:1},actuals:{Duke:0,Mike:0,Megan:5,Brick:0,Cat:0,Vikki:0},scores:{Duke:10,Mike:10,Megan:15,Brick:0,Cat:0,Vikki:0}},
+  {round:5,bids:{Duke:0,Mike:0,Megan:0,Brick:4,Cat:0,Vikki:1},actuals:{Duke:0,Mike:0,Megan:0,Brick:4,Cat:0,Vikki:0},scores:{Duke:10,Mike:10,Megan:10,Brick:14,Cat:10,Vikki:0}},
+  {round:6,bids:{Duke:0,Mike:2,Megan:0,Brick:1,Cat:0,Vikki:1},actuals:{Duke:0,Mike:2,Megan:0,Brick:1,Cat:0,Vikki:0},scores:{Duke:10,Mike:12,Megan:10,Brick:11,Cat:10,Vikki:0}},
+  {round:7,bids:{Duke:0,Mike:0,Megan:0,Brick:0,Cat:0,Vikki:0},actuals:{Duke:0,Mike:0,Megan:0,Brick:0,Cat:0,Vikki:2},scores:{Duke:10,Mike:10,Megan:10,Brick:10,Cat:10,Vikki:2}},
+  {round:8,bids:{Duke:0,Mike:0,Megan:1,Brick:0,Cat:1,Vikki:0},actuals:{Duke:0,Mike:0,Megan:1,Brick:0,Cat:0,Vikki:0},scores:{Duke:10,Mike:10,Megan:11,Brick:10,Cat:0,Vikki:10}},
+  {round:9,bids:{Duke:0,Mike:0,Megan:0,Brick:0,Cat:1,Vikki:0},actuals:{Duke:0,Mike:0,Megan:0,Brick:1,Cat:1,Vikki:0},scores:{Duke:10,Mike:10,Megan:10,Brick:1,Cat:11,Vikki:10}}
+];
+const porch818Game=makeCurrentGame('818',porch818Players,porch818Rounds,{
   eight18Phase:'bidding',
   currentBids:{},
   currentScoreDrafts:{},
   maxRounds:15
 });
-const wizardThresholdGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardRoundsFromScores(
-  turboLadderPlayers,
-  roundsFromTotals(turboLadderPlayers,wizardThresholdTotals,5).map(round=>turboLadderPlayers.map(player=>round.scores[player]))
-));
+const wizardThresholdRounds=[
+  {round:1,bids:{Matt:1,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:1},actuals:{Matt:1,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:30,Cat:20,Megan:20,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-10}},
+  {round:2,bids:{Matt:2,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:2},actuals:{Matt:2,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:40,Cat:20,Megan:20,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-20}},
+  {round:3,bids:{Matt:1,Cat:1,Megan:1,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:3},actuals:{Matt:1,Cat:1,Megan:1,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:30,Cat:30,Megan:30,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-30}},
+  {round:4,bids:{Matt:0,Cat:1,Megan:1,Michelle:1,Mike:1,Vikki:0,Linda:0,Duke:4},actuals:{Matt:0,Cat:1,Megan:1,Michelle:1,Mike:1,Vikki:0,Linda:0,Duke:0},scores:{Matt:20,Cat:30,Megan:30,Michelle:30,Mike:30,Vikki:20,Linda:20,Duke:-40}},
+  {round:5,bids:{Matt:0,Cat:1,Megan:0,Michelle:1,Mike:1,Vikki:1,Linda:1,Duke:5},actuals:{Matt:0,Cat:1,Megan:0,Michelle:1,Mike:1,Vikki:1,Linda:1,Duke:0},scores:{Matt:20,Cat:30,Megan:20,Michelle:30,Mike:30,Vikki:30,Linda:30,Duke:-50}}
+];
+const wizardThresholdGame=makeCurrentGame('Wizard',turboLadderPlayers,wizardThresholdRounds);
 const fiveCrownsThresholdGame=makeCurrentGame('Five Crowns',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,fiveCrownsThresholdTotals,8));
 const flip7ThresholdGame=makeCurrentGame('Flip 7 Vengeance',turboLadderPlayers,roundsFromTotals(turboLadderPlayers,flip7ThresholdTotals,5));
 
 const tiedPlacePlayers=['Alexis','Diana','Ethan','Megan','Matt','Linda','Mike'];
-const tiedPlaceGame=makeCurrentGame('Wizard',tiedPlacePlayers,[{
-  round:1,
-  scores:Object.fromEntries(tiedPlacePlayers.map((player,index)=>[player,[200,180,160,140,140,100,100][index]]))
-}],{
+const tiedPlaceGame=makeCurrentGame('Wizard',tiedPlacePlayers,[
+  {round:1,bids:{Alexis:1,Diana:0,Ethan:0,Megan:0,Matt:0,Linda:0,Mike:0},actuals:{Alexis:1,Diana:0,Ethan:0,Megan:0,Matt:0,Linda:0,Mike:0},scores:{Alexis:30,Diana:20,Ethan:20,Megan:20,Matt:20,Linda:20,Mike:20}},
+  {round:2,bids:{Alexis:1,Diana:1,Ethan:0,Megan:0,Matt:0,Linda:0,Mike:0},actuals:{Alexis:1,Diana:1,Ethan:0,Megan:0,Matt:0,Linda:0,Mike:0},scores:{Alexis:30,Diana:30,Ethan:20,Megan:20,Matt:20,Linda:20,Mike:20}},
+  {round:3,bids:{Alexis:1,Diana:1,Ethan:1,Megan:0,Matt:0,Linda:0,Mike:0},actuals:{Alexis:1,Diana:1,Ethan:1,Megan:0,Matt:0,Linda:0,Mike:0},scores:{Alexis:30,Diana:30,Ethan:30,Megan:20,Matt:20,Linda:20,Mike:20}},
+  {round:4,bids:{Alexis:1,Diana:1,Ethan:1,Megan:1,Matt:0,Linda:0,Mike:0},actuals:{Alexis:1,Diana:1,Ethan:1,Megan:1,Matt:0,Linda:0,Mike:0},scores:{Alexis:30,Diana:30,Ethan:30,Megan:30,Matt:20,Linda:20,Mike:20}},
+  {round:5,bids:{Alexis:1,Diana:1,Ethan:1,Megan:0,Matt:1,Linda:1,Mike:0},actuals:{Alexis:1,Diana:1,Ethan:1,Megan:0,Matt:1,Linda:1,Mike:0},scores:{Alexis:30,Diana:30,Ethan:30,Megan:20,Matt:30,Linda:30,Mike:20}},
+  {round:6,bids:{Alexis:1,Diana:1,Ethan:0,Megan:1,Matt:1,Linda:1,Mike:1},actuals:{Alexis:1,Diana:1,Ethan:0,Megan:1,Matt:1,Linda:1,Mike:1},scores:{Alexis:30,Diana:30,Ethan:20,Megan:30,Matt:30,Linda:30,Mike:30}},
+  {round:7,bids:{Alexis:2,Diana:1,Ethan:1,Megan:1,Matt:1,Linda:0,Mike:1},actuals:{Alexis:2,Diana:1,Ethan:1,Megan:1,Matt:1,Linda:0,Mike:1},scores:{Alexis:40,Diana:30,Ethan:30,Megan:30,Matt:30,Linda:20,Mike:30}}
+],{
   wizardPhase:'bidding',
   currentBids:{},
   currentScoreDrafts:{}
 });
 
 const lifePreserverVisiblePlayers=['Matt','Mike','Linda'];
-function lifePreserverVisibleRound(round,scores,bids){
-  const row={
-    round,
-    scores:Object.fromEntries(lifePreserverVisiblePlayers.map((player,index)=>[player,scores[index]]))
-  };
-  if(bids){
-    row.bids=Object.fromEntries(lifePreserverVisiblePlayers.map((player,index)=>[player,bids[index]]));
-    row.actuals=Object.fromEntries(lifePreserverVisiblePlayers.map((player,index)=>[player,bids[index]]));
-  }
-  return row;
-}
 const lifePreserverVisibleRounds=[
-  lifePreserverVisibleRound(1,[20,15,10],[1,1,2]),
+  {round:1,bids:{Matt:1,Mike:1,Linda:1},actuals:{Matt:1,Mike:0,Linda:0},scores:{Matt:30,Mike:-10,Linda:-10}},
   {round:0,hailMaryBonus:true,scores:{Linda:15}},
-  lifePreserverVisibleRound(2,[20,15,10]),
-  lifePreserverVisibleRound(3,[20,15,10]),
-  lifePreserverVisibleRound(4,[20,15,10]),
-  lifePreserverVisibleRound(5,[10,15,10]),
-  lifePreserverVisibleRound(6,[10,15,10]),
+  {round:2,bids:{Matt:2,Mike:2,Linda:2},actuals:{Matt:2,Mike:0,Linda:0},scores:{Matt:40,Mike:-20,Linda:-20}},
+  {round:3,bids:{Matt:2,Mike:1,Linda:2},actuals:{Matt:2,Mike:1,Linda:0},scores:{Matt:40,Mike:30,Linda:-20}},
+  {round:4,bids:{Matt:2,Mike:1,Linda:1},actuals:{Matt:2,Mike:1,Linda:1},scores:{Matt:40,Mike:30,Linda:30}},
+  {round:5,bids:{Matt:1,Mike:2,Linda:2},actuals:{Matt:1,Mike:2,Linda:2},scores:{Matt:30,Mike:40,Linda:40}},
+  {round:6,bids:{Matt:2,Mike:2,Linda:2},actuals:{Matt:2,Mike:2,Linda:2},scores:{Matt:40,Mike:40,Linda:40}},
   {round:0,hailMaryBonus:true,scores:{Mike:40}}
 ];
 const lifePreserverVisibleGame=makeCurrentGame('Wizard',lifePreserverVisiblePlayers,lifePreserverVisibleRounds,{
@@ -759,7 +785,7 @@ export const QA_SCENARIOS = {
   },
   'eight18-life-preserver-threshold':{
     label:'818 · Life Preserver Threshold',
-    description:'Eight-player 818 after 12 of 15. Duke is 17 behind 1st — about two made bids back, with three rounds left. Nobody else has one.',
+    description:'Eight-player 818 after 12 of 15. Duke is 19 behind 1st — the first legal hole that unlocks only Duke, with three rounds left.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:eight18ThresholdGame}
   },
@@ -771,7 +797,7 @@ export const QA_SCENARIOS = {
   },
   'wizard-life-preserver-threshold':{
     label:'Wizard · Life Preserver Threshold',
-    description:'Eight-player Wizard after 5 of 7. Duke is 40 behind 1st — the closest hole that still unlocks a Life Preserver. Nobody else has one.',
+    description:'Eight-player Wizard after 5 of 7. Duke is far enough behind 1st that only he unlocks a Life Preserver. Nobody else has one.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardThresholdGame}
   },

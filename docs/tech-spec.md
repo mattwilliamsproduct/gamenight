@@ -12,6 +12,7 @@ One static site. `public/` is the deploy. `npm run build` writes CSS, vendor cop
 | `public/assets/life-preserver-logic.js` | Pure Life Preserver rules. Loaded in production. |
 | `public/assets/scorebook.js` | Places, Life Preserver marks, name merges, and golden Wizard / 818 / Rook scoring. Loaded in production. |
 | `public/assets/backup.js` | Pure backup merge. Loaded in production. |
+| `public/assets/slice2.css` / `slice2.js` | Warm Porch Ledger skin. Always loaded and precached. |
 | `public/assets/comeback-logic.js` | Old Turbo rules. Must not load. Kept so old `round.comeback` rows stay defined. |
 | `api/sync.js` | One Redis document for the porch. |
 | `src/service-worker.js` | The worker template. The build copies it over `public/sw.js`. |
@@ -32,7 +33,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - A Life Preserver adjustment is one of those `round.scores` entries. It is not a second total.
 - `joinBonus` marks catch-up points. Records and Player Pace skip those cells. The live total still includes them.
 - Wizard points for a submitted round are `20 + 10 × tricks` on an exact bid, otherwise `−10 × |bid − tricks|`. Wizard can return from scoring to bidding before the round is submitted. 818 uses the same two phases and has no unlock. That difference is intentional until the table asks for it.
-- 818 points are tricks taken, plus 10 when bid equals tricks. The dealer bid that would make the table sum equal the tricks in play is rejected. Wizard does not apply that dealer law.
+- 818 points are tricks taken, plus 10 when bid equals tricks. The dealer bid that would make the table sum equal the tricks in play is rejected. A blank 818 bid becomes 0, then that same dealer check runs. Wizard blank bids stay invalid. Wizard does not apply that dealer law.
 - Five Crowns, Flip 7, and Beat the Heat store the number the table typed. A played-round entry for those games must be a whole number, 0 or higher. Blank and whitespace are rejected before they become 0. Wizard and Rook calculated scores, and Life Preserver adjustments, may be negative.
 - Wizard and 818 bids and tricks are whole numbers from 0 through that round's trick count. Wizard's count is the round number. 818's count is the 8-1-8 schedule for that round, not `currentRound`. The same check covers the live submit and a historical correction.
 - Rook: other team counters = configured hand total − bid-team counters. Made bid: each partner scores the team total. Set: each partner scores `−bid`. The other side scores its counters.
@@ -44,7 +45,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Games: 818, Wizard, Five Crowns, Flip 7. Off for Rook and Beat the Heat. Minimum 4 active players. One spin per player per match.
 - The best legal result stays strictly behind 1st by at least one scoring step (1 point, or 5 in games that step by 5).
 - 818’s largest helpful slice is about two made bids (+20), and still behind 1st.
-- The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. It counts in the total once. Recomputing totals does not apply it again. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, a path-replay step, or a Wizard / 818 exact or missed bid. `hailMaryUsed` is a cache of who has spun. A legacy save with that list and no bonus round still counts as assisted. A sticky `assistedMatch: true` with no remaining spin does not.
+- The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. The UI commits before the wheel moves and applies the landed result immediately. There is no post-spin Apply. `recordLifePreserverSpin` no-ops if that player already used a spin. It counts in the total once. Recomputing totals does not apply it again. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, a path-replay step, or a Wizard / 818 exact or missed bid. `hailMaryUsed` is a cache of who has spun. A legacy save with that list and no bonus round still counts as assisted. A sticky `assistedMatch: true` with no remaining spin does not.
 - A zero-point spin still sets `assistedMatch` and `hailMaryUsed`. Undo removes the bonus rounds that followed the undone hand, releases those players, and recomputes `assistedMatch` from what remains.
 - Timeline and history keep the real total and show an Assisted Match badge when a spin remains. Best Game Score, Highest Winning Score, Worst Game Score, and Cleanest Game read unassisted matches only. The label is "Unassisted matches only". An all-assisted shelf says "No unassisted matches yet".
 - The scorecard shows the adjustment on the scoring hand it followed, including history and Share Receipt. If that column is hidden, a mark sits beside Total.
@@ -76,7 +77,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - A file import does not replace a live local match unless the host confirms. Cloud merge and file merge are allowed to differ only in that confirm.
 - Leaving or hiding the page flushes a pending cloud write. Local flush alone is not enough. The save indicator means the local write finished. A failed write is visible.
 - A push from a device that has not seen the latest cloud copy does not destroy the other device’s live match or newer finished games.
-- The service worker that `npm run build` emits precaches the scripts the page actually loads, including Life Preserver, and does not precache Turbo.
+- The service worker that `npm run build` emits precaches the scripts the page actually loads, including Life Preserver, `slice2.css`, and `slice2.js`, and does not precache Turbo.
 
 ### Names and builds
 

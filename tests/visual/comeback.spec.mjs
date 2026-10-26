@@ -1,6 +1,7 @@
 import {expect,test} from '@playwright/test';
 
 test('Comeback chips explain the extra and do not offer a refuse button', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -20,6 +21,7 @@ test('Comeback chips explain the extra and do not offer a refuse button', async 
 });
 
 test('Actions menu explains how Comeback works in this game', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -69,6 +71,7 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
 });
 
 test('apostrophe names can still open the Comeback explanation', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -109,6 +112,7 @@ test('mid-game join after a legacy bonus round writes catch-up to the last scori
 });
 
 test('undo last round keeps Comeback chips for whoever is still stranded', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');

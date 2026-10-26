@@ -40,19 +40,17 @@ test('slice2 palette clears WCAG AA', () => {
   });
 });
 
-test('flag off keeps the production scorecard', async ({page}) => {
+test('Warm Porch Ledger is the default skin', async ({page}) => {
   const urls = [];
   page.on('request', (request) => urls.push(request.url()));
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard', {waitUntil: 'networkidle'});
   await ready(page);
-  await expect(page.locator('html')).not.toHaveClass(/slice2-tv/);
-  await expect(page.locator('#slice2-home')).toHaveCount(0);
-  await expect(page.locator('#slice2-board-bar')).toHaveCount(0);
-  await expect(page.locator('.scorecard-round-td--exact')).toHaveCount(0);
-  const weight = await page.locator('.scoreboard-player-name').first().evaluate((el) => getComputedStyle(el).fontWeight);
-  expect(String(weight)).toBe('400');
-  await expect(page.locator('#btn-spin')).toHaveText('SPIN THE WHEEL');
-  expect(urls.some((url) => url.includes('slice2.js') || url.includes('slice2.css'))).toBe(false);
+  await expect(page.locator('html')).toHaveClass(/slice2-tv/);
+  await expect(page.locator('#slice2-board-bar')).toBeVisible();
+  await expect(page.locator('.scorecard-round-td--exact').first()).toBeVisible();
+  await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
+  expect(urls.some((url) => url.includes('slice2.js'))).toBe(true);
+  expect(urls.some((url) => url.includes('slice2.css'))).toBe(true);
 });
 
 test('home has the table, games, and one seating control', async ({page}) => {
@@ -251,7 +249,19 @@ function scoreEntryReport(){
     const activeBox = active?.getBoundingClientRect();
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
       const r = el.getBoundingClientRect();
-      return {t: (el.textContent || '').trim(), top: r.top, bottom: r.bottom, h: r.height};
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const hit = document.elementFromPoint(cx, cy);
+      return {
+        t: (el.textContent || '').trim(),
+        top: r.top,
+        bottom: r.bottom,
+        left: r.left,
+        right: r.right,
+        h: r.height,
+        w: r.width,
+        hit: !!(hit && (hit === el || el.contains(hit)))
+      };
     });
     const covered = visible.filter((row) => {
       const r = row.getBoundingClientRect();
@@ -268,7 +278,9 @@ function scoreEntryReport(){
         : '',
       covered,
       zeroKey: keys.find((key) => key.t === '0') || null,
-      vh: window.innerHeight
+      keys,
+      vh: window.innerHeight,
+      vw: window.innerWidth
     };
   };
 }
@@ -286,6 +298,14 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(short.scoringLabel).toMatch(/Scoring:\s*Megan|Megan/);
   expect(short.zeroKey?.bottom).toBeLessThanOrEqual(short.vh + 1);
   expect(short.zeroKey?.h).toBeGreaterThanOrEqual(24);
+  expect(short.keys.length, 'every keypad key should render').toBeGreaterThanOrEqual(12);
+  short.keys.forEach((key) => {
+    expect(key.top, `${key.t} top`).toBeGreaterThanOrEqual(-1);
+    expect(key.bottom, `${key.t} bottom`).toBeLessThanOrEqual(short.vh + 1);
+    expect(key.left, `${key.t} left`).toBeGreaterThanOrEqual(-1);
+    expect(key.right, `${key.t} right`).toBeLessThanOrEqual(short.vw + 1);
+    expect(key.hit, `${key.t} should be hit-testable`).toBe(true);
+  });
   await page.setViewportSize({width: 390, height: 844});
   await page.reload({waitUntil: 'networkidle'});
   await ready(page);

@@ -17,6 +17,8 @@ A game night on the iPad (landscape) or the TV succeeds when these are true. The
 
 Portrait is a podium, not the scoring surface. Rotate back for the card.
 
+The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records show Fame / Shame and past nights, not the old Timeline / HOF / Records tabs.
+
 ## Supported games
 
 The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math lives in that file. Life Preserver math lives in `public/assets/life-preserver-logic.js`.

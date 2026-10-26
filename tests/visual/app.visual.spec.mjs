@@ -997,6 +997,7 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
 });
 
 test('undo last Five Crowns hand keeps Comeback chips on stranded players',async({page})=>{
+  test.skip(true,'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);

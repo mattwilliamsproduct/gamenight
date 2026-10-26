@@ -13,6 +13,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Compound after a ship into `AGENTS.md` or `docs/solutions/`.
 - Honest gap lists. Say what you did not look at.
 - A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
+- When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
 
 ## Kills
 
@@ -27,3 +28,5 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Durable Matt feedback left only in chat.
 - A positive 818 miss, or a round with no stored bid, counted as an exact bid. A Life Preserver flag that stays on after the last spin is undone.
 - An unfinished history match still counting as a completed game.
+- "Warm Porch Ledger" as a user-facing subtitle.
+- A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
