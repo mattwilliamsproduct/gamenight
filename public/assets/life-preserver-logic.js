@@ -65,6 +65,16 @@
     zero: '#b4a89c'
   };
 
+  // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
+  // and then clamped by max helpful / max setback. Do not change eligibility here.
+  const OUTCOME_TABLE = Object.freeze({
+    smallHelp: 0.45,
+    mediumHelp: 0.30,
+    bigHelp: 0.05,
+    noChange: 0.12,
+    smallSetback: 0.08
+  });
+
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
   }
@@ -679,53 +689,77 @@
     return ((mid + Math.PI / 2) * 180) / Math.PI;
   }
 
-  function buildSlices(maxHelpful, maxSetback, winLow, increment) {
+  function rewardStretch(options) {
+    const opts = options || {};
+    const remaining = Number(opts.remainingRounds);
+    if (remaining === 1) return 0;
+    const unit = Math.max(Number(opts.oneStrongRound) || 0, Number(opts.increment) || 1);
+    const gap = Math.max(0, Number(opts.leaderGap) || 0);
+    let stretch = clamp(gap / Math.max(unit * 4, 1) - 1, 0, 0.25);
+    if (remaining > 1 && remaining <= 3) stretch = Math.min(0.25, stretch + 0.08);
+    return stretch;
+  }
+
+  function bandMagnitudes(band, increment, maxHelpful, maxSetback, stretch) {
+    const step = Math.max(1, increment);
+    if (band === 'small') {
+      return uniquePositive([step, step * 2]).filter((value) => value <= maxHelpful);
+    }
+    if (band === 'medium') {
+      const values = [step * 6, step * 8].map((value) => (
+        floorToIncrement(value * (1 + stretch * 0.4), step)
+      ));
+      return uniquePositive(values).filter((value) => value > step * 2 && value < maxHelpful);
+    }
+    if (band === 'big') {
+      const raised = floorToIncrement(Math.max(step * 12, maxHelpful * 0.8) * (1 + stretch * 0.6), step);
+      return uniquePositive([raised, maxHelpful]).filter((value) => value > step * 2 && value <= maxHelpful);
+    }
+    if (band === 'setback') {
+      return uniquePositive([step, Math.min(maxSetback, step * 2)]).filter((value) => value <= maxSetback);
+    }
+    return [0];
+  }
+
+  function slicesForBand(values, weight, kind, sign, colorFn) {
+    if (!values.length || weight <= 0) return [];
+    const each = weight / values.length;
+    return values.map((magnitude, index) => {
+      const adjustment = kind === 'zero' ? 0 : (kind === 'bad' ? -sign * magnitude : sign * magnitude);
+      return makeSlice(adjustment, kind, colorFn(index), each);
+    });
+  }
+
+  function buildSlices(maxHelpful, maxSetback, winLow, increment, options) {
     const sign = helpfulSign(winLow);
     const maxH = Math.max(increment, floorToIncrement(maxHelpful, increment));
-    const small = increment;
-    const ten = floorToIncrement(10, increment);
-    const five = floorToIncrement(5, increment);
-    const smallPlus = uniquePositive([five, ten, small + increment]).find((value) => value > small && value <= maxH) || small;
+    const maxB = Math.max(increment, floorToIncrement(maxSetback, increment));
+    const stretch = rewardStretch({ ...options, increment });
+    const small = bandMagnitudes('small', increment, maxH, maxB, stretch);
+    const medium = bandMagnitudes('medium', increment, maxH, maxB, stretch);
+    const big = bandMagnitudes('big', increment, maxH, maxB, stretch);
+    const setbacks = bandMagnitudes('setback', increment, maxH, maxB, stretch);
 
-    const mediums = uniquePositive([30, 40, 50, 60].map((value) => floorToIncrement(value, increment)))
-      .filter((value) => value > smallPlus && value < maxH);
-
-    const rawSetback = Math.max(increment, floorToIncrement(maxSetback, increment));
-    const badSmall = increment;
-    const badPlus = rawSetback > increment
-      ? Math.max(increment, Math.min(rawSetback, floorToIncrement(Math.min(10, rawSetback), increment) || increment))
-      : increment;
-
-    const raw = [];
-    const pushGood = (magnitude, color) => {
-      if (magnitude >= increment && magnitude <= maxH) raw.push(makeSlice(sign * magnitude, 'good', color));
-    };
-
-    // 12 small helpful slices: about 5 or 10, or the game increment when the cap is tight.
-    for (let i = 0; i < 12; i++) {
-      const magnitude = (i % 3 === 2 && smallPlus !== small) ? smallPlus : small;
-      pushGood(magnitude, magnitude === small ? COLORS.goodSoft : COLORS.goodMid);
+    let smallP = OUTCOME_TABLE.smallHelp;
+    let mediumP = OUTCOME_TABLE.mediumHelp;
+    let bigP = OUTCOME_TABLE.bigHelp;
+    if (!medium.length) {
+      smallP += mediumP;
+      mediumP = 0;
+    }
+    if (!big.length) {
+      if (medium.length) mediumP += bigP;
+      else smallP += bigP;
+      bigP = 0;
     }
 
-    mediums.slice(0, 3).forEach((magnitude) => pushGood(magnitude, COLORS.goodMid));
-    pushGood(maxH, COLORS.goodStrong);
-
-    raw.push(makeSlice(0, 'zero', COLORS.zero));
-    raw.push(makeSlice(0, 'zero', COLORS.zero));
-    raw.push(makeSlice(-sign * badSmall, 'bad', COLORS.badSoft));
-    if (badPlus !== badSmall) {
-      raw.push(makeSlice(-sign * badPlus, 'bad', COLORS.badStrong));
-      const badCount = raw.filter((slice) => slice.kind === 'bad').length;
-      if (badCount / raw.length > 0.10) raw.pop();
-    }
-
-    const good = raw.filter((slice) => slice.kind === 'good').length;
-    const total = raw.length;
-    if (total && good / total < 0.75) {
-      while (raw.filter((slice) => slice.kind === 'good').length / raw.length < 0.75) {
-        pushGood(small, COLORS.goodSoft);
-      }
-    }
+    const raw = [
+      ...slicesForBand(small, smallP, 'good', sign, () => COLORS.goodSoft),
+      ...slicesForBand(medium, mediumP, 'good', sign, () => COLORS.goodMid),
+      ...slicesForBand(big, bigP, 'good', sign, (index) => (index ? COLORS.goodStrong : COLORS.goodMid)),
+      ...slicesForBand([0], OUTCOME_TABLE.noChange, 'zero', sign, () => COLORS.zero),
+      ...slicesForBand(setbacks, OUTCOME_TABLE.smallSetback, 'bad', sign, (index) => (index ? COLORS.badStrong : COLORS.badSoft))
+    ];
     return arrangeWheelSlices(raw);
   }
 
@@ -952,8 +986,13 @@
         scoreIncrement: cfg.increment
       });
     }
-    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
     const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
+    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, {
+      recoveryLoad,
+      leaderGap,
+      remainingRounds,
+      oneStrongRound
+    });
     const bestPlaceAfter = rankWithScore(
       player,
       playerScore + (helpfulSign(cfg.winLow) * wheelHelp),
@@ -1049,6 +1088,7 @@
     rankWithScore,
     bestAllowedRankFor,
     scoringRounds,
+    OUTCOME_TABLE,
     sliceArcs,
     wheelSliceKind,
     pickWeightedSlice,

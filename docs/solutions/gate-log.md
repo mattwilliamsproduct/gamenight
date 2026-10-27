@@ -39,4 +39,5 @@ The table starts with a header and one example row. The example is the format. I
 | 2026-10-26 | rc1-demo-seed | taste_ui. TEMP `?demo` seed and view deep links. Preview hosts only. Revert before merge. | 2 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
 | 2026-10-26 | rc1-demo-seed | taste_ui. TEMP `?demo` seed and view deep links. Preview hosts only. Revert before merge. | 2 | n/a | fallback | Gate C. Conservative. Check pass. Functional 83/83. Do not undraft or merge. |
 | 2026-10-27 | rc1-scorecard-table | taste_ui. Table exit, Audit Log name, LP header control, Save & End confirm. | 3 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
-| 2026-10-27 | rc1-lp-wheel | scoring_rules. Color by benefit, equal-weight helpful-majority slices, Best/Worst copy. | 3 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
+| 2026-10-27 | rc1-lp-wheel | scoring_rules. Color by benefit, lock-before-animate, Best help / Largest setback copy. | 3 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
+| 2026-10-27 | rc1-lp-balance | scoring_rules. One OUTCOME_TABLE 45/30/5/12/8. Game-relative amounts. Guardrails unchanged. | 3 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
