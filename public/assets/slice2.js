@@ -275,6 +275,12 @@
               <h2>Start a New Match</h2>
               <p class="s2-sub">Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}</p>
             </div>
+            <label class="s2-rules-picker">
+              <select class="s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
+                <option value="">Game Instructions</option>
+                ${picker.map((game) => `<option value="${escapeHtml(game.id)}">${escapeHtml(game.title)}</option>`).join('')}
+              </select>
+            </label>
           </div>
           <div class="s2-game-grid">${cards}</div>
           <div class="s2-startbar">
@@ -890,10 +896,20 @@
     field.value = '';
   }
 
+  function onChange(event) {
+    const select = event.target.closest?.('[data-s2-action="game-rules"]');
+    if (!select) return;
+    const name = select.value;
+    if (!name) return;
+    if (typeof openGameRules === 'function') openGameRules(name);
+    select.value = '';
+  }
+
   function wire() {
     if (wired) return;
     wired = true;
     document.addEventListener('click', onClick);
+    document.addEventListener('change', onChange);
     document.addEventListener('submit', onSubmit);
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => paintNav());

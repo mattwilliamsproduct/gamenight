@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openScenario} from '../helpers/qa.mjs';
 import {
   MEDIA_DIR,
   freshTable,
@@ -239,4 +240,111 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
       expect(scroll.fieldBottom).toBeLessThanOrEqual(scroll.keypadTop+1);
     }
   }
+});
+
+const CARD_WIDTHS = [375, 390, 1024, 1440];
+
+async function canastaCellOverflow(page) {
+  return page.evaluate(() => {
+    const problems = [];
+    const cells = [
+      ...document.querySelectorAll('#scorecard-capture .score-cell-input, #scorecard-capture .scorecard-total-value')
+    ];
+    if (!cells.length) problems.push('no score cells');
+    cells.forEach((el) => {
+      const text = (el.value != null ? el.value : el.textContent || '').trim();
+      if (!text) return;
+      if (el.scrollWidth > el.clientWidth + 1) {
+        problems.push(`overflow ${text} ${el.scrollWidth}>${el.clientWidth}`);
+      }
+    });
+    return {problems, count: cells.length};
+  });
+}
+
+test('Canasta score cells never clip 4-digit or 5-digit totals', async ({page}) => {
+  test.setTimeout(90000);
+  for (const width of CARD_WIDTHS) {
+    await page.setViewportSize({width, height: width >= 1024 ? 900 : 844});
+    await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
+    await expect(page.locator('#scorecard-body .score-cell-input').first()).toHaveValue(/^\d{4,}$/);
+    const four = await canastaCellOverflow(page);
+    expect(four.problems, `${width} 4-digit ${JSON.stringify(four)}`).toEqual([]);
+    await page.evaluate(() => {
+      document.querySelectorAll('#scorecard-capture .score-cell-input').forEach((el) => {
+        el.value = '12345';
+      });
+      document.querySelectorAll('#scorecard-capture .scorecard-total-value').forEach((el) => {
+        el.textContent = '12345';
+      });
+    });
+    const five = await canastaCellOverflow(page);
+    expect(five.problems, `${width} 5-digit ${JSON.stringify(five)}`).toEqual([]);
+  }
+});
+
+test('Canasta team rows stay dense and show full two-line names', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
+  const phone = await page.evaluate(() => {
+    const names = [...document.querySelectorAll('#scorecard-capture .hf-team-name')].map((el) => ({
+      text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+      overflow: getComputedStyle(el).textOverflow,
+      whiteSpace: getComputedStyle(el).whiteSpace,
+      lines: el.querySelectorAll('.hf-team-line').length
+    }));
+    return names;
+  });
+  expect(phone.length, '390 team names').toBeGreaterThanOrEqual(2);
+  phone.forEach((name) => {
+    expect(name.overflow).not.toBe('ellipsis');
+    expect(name.lines).toBe(2);
+    expect(name.text).toMatch(/&/);
+  });
+  expect(phone.some((name) => /Megan/.test(name.text) && /Matt/.test(name.text))).toBe(true);
+  expect(phone.some((name) => /Cat/.test(name.text) && /Mike/.test(name.text))).toBe(true);
+
+  await page.setViewportSize({width: 1440, height: 900});
+  await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
+  const laptop = await page.evaluate(() => {
+    const row = document.querySelector('#scorecard-capture tbody tr');
+    const avatars = [...document.querySelectorAll('#scorecard-capture .hf-team-avatars .avatar-img-sc')];
+    return {
+      rowHeight: row ? row.getBoundingClientRect().height : 0,
+      avatar: avatars.map((el) => ({w: el.getBoundingClientRect().width, h: el.getBoundingClientRect().height})),
+      names: [...document.querySelectorAll('#scorecard-capture .hf-team-name')].map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim())
+    };
+  });
+  expect(laptop.rowHeight, `1440 row ${laptop.rowHeight}`).toBeGreaterThan(40);
+  expect(laptop.rowHeight, `1440 row ${laptop.rowHeight}`).toBeLessThanOrEqual(96);
+  expect(laptop.avatar.length).toBeGreaterThanOrEqual(2);
+  laptop.avatar.forEach((box) => {
+    expect(box.w, JSON.stringify(box)).toBeLessThanOrEqual(48);
+    expect(box.h, JSON.stringify(box)).toBeLessThanOrEqual(48);
+  });
+  expect(laptop.names.some((text) => /Megan/.test(text) && /Matt/.test(text))).toBe(true);
+});
+
+test('Canasta rules open from Game Instructions and in-game Actions', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/?wipe=1&slice2', {waitUntil: 'domcontentloaded'});
+  await page.waitForSelector('.s2-rules-select');
+  await page.locator('.s2-rules-select').selectOption('Hand and Foot');
+  await page.waitForFunction(() => {
+    const modal = document.getElementById('rules-modal');
+    return !!modal && !modal.classList.contains('hidden') && !modal.classList.contains('opacity-0');
+  });
+  await expect(page.locator('#rules-title')).toHaveText('Canasta');
+  await expect(page.locator('#rules-content')).toContainText('Clean canastas');
+  await page.evaluate(() => { if (typeof closeRules === 'function') closeRules(); });
+
+  await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
+  await page.locator('#actions-btn').click();
+  await page.getByRole('button', {name: /^Rules$/}).click();
+  await page.waitForFunction(() => {
+    const modal = document.getElementById('rules-modal');
+    return !!modal && !modal.classList.contains('hidden') && !modal.classList.contains('opacity-0');
+  });
+  await expect(page.locator('#rules-title')).toHaveText('Canasta');
+  await expect(page.locator('#rules-content')).toContainText('sevens');
 });

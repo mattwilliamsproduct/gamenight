@@ -4445,17 +4445,11 @@ button.dealer-name-indicator .dealer-player-label {
       background-color: #f6f0ff;
     }
     .bp-hand-foot .bp-game-card-art {
-      background-image: linear-gradient(145deg, #4c1d95 0%, #9d174d 46%, #ea580c 100%);
+      background-image: url('./assets/art/dusk/canasta.webp');
+      background-size: cover;
+      background-position: center;
     }
-    .bp-hand-foot .bp-game-card-art::after {
-      content: '🃏';
-      position: absolute;
-      right: 14%;
-      bottom: 16%;
-      font-size: 2.6rem;
-      line-height: 1;
-      filter: drop-shadow(0 8px 10px rgba(0,0,0,.28));
-    }
+    .bp-hand-foot .bp-game-card-art::after { content: none; }
     .bp-five-crowns { border-bottom-color: #df7f55 !important; }
     .bp-wizard { border-bottom-color: #3b9c99 !important; }
     .bp-eight18 { border-bottom-color: #5aa77e !important; }
@@ -4482,6 +4476,91 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0.06em;
       text-transform: uppercase;
       opacity: 0.78;
+    }
+    /* Canasta scorecard: Five Crowns density at every width. Two-line team names. No clipped cells. */
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total {
+      table-layout: fixed;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-player {
+      white-space: normal !important;
+      overflow: hidden;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-player-name-slot {
+      overflow: visible;
+      align-items: flex-start;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name.hf-team-name,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-player-name-slot button.dealer-name-indicator.hf-team-name {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      width: auto !important;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-name,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name.hf-team-name {
+      display: flex !important;
+      flex-direction: column;
+      align-items: flex-start;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      line-height: 1.12 !important;
+      font-size: clamp(0.92rem, 1.35vw, 1.15rem) !important;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-line {
+      display: block;
+      white-space: nowrap;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-name .dealer-player-label {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars {
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      position: relative;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars .avatar-wrap + .avatar-wrap {
+      margin-left: -14px;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars .avatar-img-sc,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .hf-team-avatars .avatar-img-sc,
+    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .hf-team-avatars .avatar-img-sc {
+      width: 36px !important;
+      height: 36px !important;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture td.score-cell.scorecard-round-td .score-cell-input,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .score-cell-input {
+      max-width: 100% !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      overflow: hidden;
+      text-overflow: clip;
+      font-size: clamp(0.95rem, 1.5vw, 1.2rem) !important;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell {
+      min-width: 5.5rem !important;
+      width: 5.75rem !important;
+      max-width: 6.25rem !important;
+      overflow: hidden;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: clip;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(1.05rem, 1.8vw, 1.45rem) !important;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-th,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-td {
+      width: 5.5rem;
+      max-width: 5.5rem;
+      min-width: 4.75rem;
     }
     .hf-setup-side {
       border: 1.5px solid var(--hairline);
@@ -4770,7 +4849,8 @@ button.dealer-name-indicator .dealer-player-label {
         height: 1.3rem !important;
         font-size: 0.68rem !important;
       }
-      #game-screen[data-game='Hand and Foot'] #scorecard-capture .avatar-img-sc {
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .avatar-img-sc,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars .avatar-img-sc {
         width: 28px !important;
         height: 28px !important;
       }
@@ -4804,8 +4884,10 @@ button.dealer-name-indicator .dealer-player-label {
         min-width: 0 !important;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .score-cell-input,
-      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value,
-      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name {
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value {
+        font-size: 13px !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name:not(.hf-team-name) {
         font-size: 13px !important;
       }
       #scorecard-modal.scorecard-modal-hand-foot {
@@ -10744,10 +10826,21 @@ button.dealer-name-indicator .dealer-player-label {
   }
   window.GN_PERF_EXPORT=buildPerfReportText;
   window.GN_DEBUG_EXPORT=buildPerfReportText;
+  function rulesContentKey(name){
+    if(name==='Canasta') return 'Hand and Foot';
+    return name;
+  }
+  function rulesDisplayTitle(name){
+    const key=rulesContentKey(name);
+    if(key==='Hand and Foot') return 'Canasta';
+    if(key==='Flip 7 Vengeance') return 'Flip 7';
+    return name;
+  }
   function openGameRules(name){
     if(!name)return;
-    document.getElementById('rules-title').textContent=name==='Flip 7 Vengeance'?'Flip 7':name;
-    document.getElementById('rules-content').innerHTML=gameRulesText[name]||'';
+    const key=rulesContentKey(name);
+    document.getElementById('rules-title').textContent=rulesDisplayTitle(name);
+    document.getElementById('rules-content').innerHTML=gameRulesText[key]||'';
     openModal('rules-modal');
   }
   function openGameRulesFromSelect(select){
@@ -14815,6 +14908,7 @@ ${isDealer
       root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
+      if(handFoot)return;
       const overEl=document.getElementById('game-over-section');
       const boardEl=wrap.closest('.tournament-scoreboard');
       // The final footer is taller than Log Scores. Keep the player column at the in-progress size.
@@ -14986,7 +15080,7 @@ ${isDealer
     const canvas=fitScorecardPlayerNames.canvas||(fitScorecardPlayerNames.canvas=document.createElement('canvas'));
     const context=canvas.getContext('2d');
     if(!context)return;
-    const names=[...root.querySelectorAll('.scoreboard-player-name')];
+    const names=[...root.querySelectorAll('.scoreboard-player-name')].filter(name=>!name.classList.contains('hf-team-name')&&!name.closest('.hf-team-name'));
     names.forEach(name=>name.style.removeProperty('font-size'));
     if(!names.length)return;
     const sharedMax=names.reduce((max,name)=>Math.max(max,parseFloat(getComputedStyle(name).fontSize)||16),12);
@@ -15526,10 +15620,17 @@ ${isDealer
         : '';
 
       const playerCellPad = 'px-5';
-      const avatarInner=`${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
+      const hfMembers=isHandFootGame(currentGame)?handFootMembersOf(currentGame,p):[];
+      const hfTeam=hfMembers.length>1;
+      const avatarInner=hfTeam
+        ? `<span class="hf-team-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`
+        : `${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
+      const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
+      const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
+      const nameLabel=hfTeam?hfMembers.join(' & '):p;
       const nameInner=`${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${escapeHtml(p)}</span></button>`
-  : `<span class="scoreboard-player-name font-jakarta font-bold text-3xl ${isLeader?'leader-text':''}">${escapeHtml(p)}</span>`}${retiredTag}`;
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer — tap to change" aria-label="${escapeHtml(nameLabel)} is dealer — tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
+  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">

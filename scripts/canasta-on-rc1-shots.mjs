@@ -14,7 +14,10 @@ const SHOT_LIST = [
   {name: 'demo-canasta-hand-and-foot-390', width: 390, height: 844, path: '/?demo&view=game&game=hand-and-foot', after: 'scorecard'},
   {name: 'demo-canasta-hand-and-foot-1440', width: 1440, height: 900, path: '/?demo&view=game&game=hand-and-foot', after: 'scorecard'},
   {name: 'demo-rook-with-games-1440', width: 1440, height: 900, path: '/?demo&view=game&game=rook&games=rook', after: 'rook'},
-  {name: 'canasta-rules-390', width: 390, height: 844, path: '/?gnqa=1&gallery=0&scenario=canasta-house-round', after: 'rules'}
+  {name: 'canasta-rules-instructions-390', width: 390, height: 844, path: '/?wipe=1&slice2', after: 'rules-instructions'},
+  {name: 'canasta-rules-instructions-1440', width: 1440, height: 900, path: '/?wipe=1&slice2', after: 'rules-instructions'},
+  {name: 'canasta-rules-actions-390', width: 390, height: 844, path: '/?gnqa=1&gallery=0&scenario=canasta-house-round', after: 'rules-actions'},
+  {name: 'canasta-rules-actions-1440', width: 1440, height: 900, path: '/?gnqa=1&gallery=0&scenario=canasta-house-round', after: 'rules-actions'}
 ];
 
 async function waitReady(page, demo) {
@@ -23,6 +26,13 @@ async function waitReady(page, demo) {
     return document.body.dataset.gnQaReady === 'true' || !!document.querySelector('#slice2-home, #scorecard-body');
   }, demo, {timeout: 25000});
   await page.evaluate(() => document.body.classList.add('gn-qa-gallery-hidden'));
+}
+
+async function waitRulesOpen(page) {
+  await page.waitForFunction(() => {
+    const modal = document.getElementById('rules-modal');
+    return !!modal && !modal.classList.contains('hidden') && !modal.classList.contains('opacity-0');
+  }, null, {timeout: 8000});
 }
 
 async function scrollPickerIntoView(page) {
@@ -54,20 +64,16 @@ for (const shot of SHOT_LIST) {
   if (shot.after === 'rook') {
     await page.waitForSelector('#rook-bid-amount-input', {timeout: 15000});
   }
-  if (shot.after === 'rules') {
-    const opened = await page.evaluate(() => {
-      if (typeof openGameRules === 'function') {
-        openGameRules('Hand and Foot');
-        return true;
-      }
-      return false;
-    });
-    if (opened) {
-      await page.waitForFunction(() => {
-        const modal = document.getElementById('rules-modal');
-        return !!modal && !modal.classList.contains('hidden');
-      }, null, {timeout: 8000}).catch(() => {});
-    }
+  if (shot.after === 'rules-instructions') {
+    await page.waitForSelector('.s2-rules-select', {timeout: 15000});
+    await page.locator('.s2-rules-select').selectOption('Hand and Foot');
+    await waitRulesOpen(page);
+  }
+  if (shot.after === 'rules-actions') {
+    await page.waitForSelector('#scorecard-body, #scorecard-capture', {timeout: 15000});
+    await page.locator('#actions-btn').click();
+    await page.getByRole('button', {name: /^Rules$/}).click();
+    await waitRulesOpen(page);
   }
 
   const dest = `${OUT}/${shot.name}.png`;
@@ -80,8 +86,10 @@ for (const shot of SHOT_LIST) {
       text: el.textContent.replace(/\s+/g, ' ').trim()
     }));
     const rules = document.getElementById('rules-modal');
-    const rulesOpen = !!(rules && !rules.classList.contains('hidden'));
-    return {tiles, rulesOpen, title: document.title};
+    const rulesOpen = !!(rules && !rules.classList.contains('hidden') && !rules.classList.contains('opacity-0'));
+    const title = document.getElementById('rules-title')?.textContent || '';
+    const names = [...document.querySelectorAll('#scorecard-capture .hf-team-name, #scorecard-capture .scoreboard-player-name')].map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim());
+    return {tiles, rulesOpen, rulesTitle: title, names, title: document.title};
   });
   notes.push({name: shot.name, ...labels});
   await page.close();
