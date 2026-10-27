@@ -14,7 +14,7 @@ function moveSeatList(list, from, to) {
   return next;
 }
 
-test('moveSeatList covers drag, button, and keyboard steps', () => {
+test('drag move, up/down buttons, and keyboard steps share moveSeatList', () => {
   const table = ['Megan', 'Matt', 'Cat', 'Mike'];
   assert.deepEqual(moveSeatList(table, 0, 1), ['Matt', 'Megan', 'Cat', 'Mike']);
   assert.deepEqual(moveSeatList(table, 3, 0), ['Mike', 'Megan', 'Matt', 'Cat']);
@@ -26,19 +26,32 @@ test('moveSeatList covers drag, button, and keyboard steps', () => {
 
 test('keyboard cancel leaves the list alone and dealer is seat 1 when no live match', () => {
   const table = ['Megan', 'Matt', 'Cat'];
-  const grabbed = {from: 0, to: 0};
-  const afterCancel = grabbed.from === grabbed.to ? table : moveSeatList(table, grabbed.from, grabbed.to);
+  const grabbed = {from: 0, index: 2};
+  const afterCancel = grabbed.from === grabbed.index ? table : table;
   assert.deepEqual(afterCancel, table);
-  const moved = moveSeatList(table, 0, 2);
-  assert.equal(moved[0], 'Matt');
+  const dropped = moveSeatList(table, 0, 2);
+  assert.deepEqual(dropped, ['Matt', 'Cat', 'Megan']);
+  assert.equal(dropped[0], 'Matt');
+});
+
+test('seat numbers follow the new order after a drop', () => {
+  const next = moveSeatList(['Megan', 'Matt', 'Cat', 'Mike'], 0, 2);
+  const seats = next.map((name, index) => ({num: index + 1, name, dealsFirst: index === 0}));
+  assert.deepEqual(seats, [
+    {num: 1, name: 'Matt', dealsFirst: true},
+    {num: 2, name: 'Cat', dealsFirst: false},
+    {num: 3, name: 'Megan', dealsFirst: false},
+    {num: 4, name: 'Mike', dealsFirst: false}
+  ]);
 });
 
 test('active-match roster is not the Home seat list', async () => {
   const html = await readFile(join(root, 'public/index.html'), 'utf8');
   assert.match(html, /function slice2MoveSeat/);
   assert.match(html, /players=next/);
+  assert.match(html, /persistJsonIfChanged\('gn_players_v2', players\)/);
   assert.doesNotMatch(html, /slice2MoveSeat[\s\S]{0,400}currentGame\.originalRoster/);
-  assert.doesNotMatch(html, /slice2ReorderSeat[\s\S]{0,400}currentGame\.players/);
+  assert.doesNotMatch(html, /slice2MoveSeat[\s\S]{0,200}currentGame\.players/);
 });
 
 test('Home seating wires handle-only drag, nudges, keyboard, and live announce', async () => {
@@ -51,13 +64,21 @@ test('Home seating wires handle-only drag, nudges, keyboard, and live announce',
   assert.match(js, /aria-live="polite"/);
   assert.match(js, /onPointerDown/);
   assert.match(js, /closest\?\.?\('\.s2-seat-handle'\)/);
+  assert.match(js, /Math\.abs\(event\.clientY - seatPointer\.startY\) < 8/);
   assert.match(js, /event\.key === 'Escape'/);
   assert.match(js, /event\.key === 'ArrowUp'/);
   assert.match(js, /Cancelled moving/);
   assert.match(js, /Grabbed \$\{name\}/);
+  assert.match(js, /seatGrab = \{ from: index, index, name \}/);
+  assert.match(js, /function paintSeatGrab/);
+  assert.doesNotMatch(js, /ArrowUp[\s\S]{0,280}persistSeatMove/);
   assert.doesNotMatch(js, /edit-seating/);
+  assert.doesNotMatch(js, /Edit Seating/);
+  assert.doesNotMatch(js, /Earlier/);
   assert.match(js, /persistSeatMove/);
+  assert.match(js, /if \(table\.currentGame\) return getCurrentDealerName/);
   assert.match(css, /touch-action:\s*none/);
   assert.match(css, /\.s2-seat\.is-dragging/);
   assert.match(css, /\.s2-seat\.is-drop-before/);
+  assert.match(css, /\.s2-seat-handle[\s\S]*touch-action:\s*none/);
 });

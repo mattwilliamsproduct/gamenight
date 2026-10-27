@@ -8,7 +8,7 @@ Two-column Home starts at 861px. Both cards stretch to the same row height (`ali
 
 Seating is one player per row: seat number, avatar, name, dealer badge, up/down, remove to on deck, and a drag handle. There is no Edit Seating control. Drag starts from the handle only. Keyboard: focus the handle, Space to grab, arrows to move, Space to drop, Escape to cancel.
 
-Home reorder only writes the `players` lineup. It does not change `currentGame.originalRoster` or the live dealer rotation.
+Home reorder only writes the `players` lineup. It does not change `currentGame.originalRoster` or the live dealer rotation. See [home-seat-reorder.md](home-seat-reorder.md).
 
 Phone stays Table, then Start, then nights. Seat rows stay compact on phone. Recent nights cards add a small podium. See [home-night-podium.md](home-night-podium.md).
 

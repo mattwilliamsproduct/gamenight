@@ -339,18 +339,32 @@
 
   function restoreSeatGrab(root) {
     if (!seatGrab || !root) return;
-    const handle = root.querySelector(`.s2-seat[data-s2-index="${seatGrab.index}"] .s2-seat-handle`);
+    const handle = root.querySelector(`.s2-seat[data-s2-index="${seatGrab.from}"] .s2-seat-handle`);
     if (!handle) return;
     handle.classList.add('is-grabbed');
     handle.focus();
-    const table = state();
-    const name = table.players[seatGrab.index] || seatGrab.name || 'Player';
-    seatLive(`${name} is seat ${seatGrab.index + 1} of ${table.players.length}.`);
+    paintSeatGrab();
+  }
+
+  function paintSeatGrab() {
+    if (!seatGrab) return;
+    const seats = document.querySelectorAll('#slice2-home .s2-seat');
+    clearSeatDragStyles();
+    seats[seatGrab.from]?.classList.add('is-dragging');
+    seats[seatGrab.from]?.querySelector('.s2-seat-handle')?.classList.add('is-grabbed');
+    if (seatGrab.index !== seatGrab.from) {
+      seats[seatGrab.index]?.classList.add(seatGrab.index < seatGrab.from ? 'is-drop-before' : 'is-drop-after');
+    }
+    const count = seats.length;
+    seatLive(`${seatGrab.name} would be seat ${seatGrab.index + 1} of ${count}.`);
   }
 
   function clearSeatDragStyles() {
     document.querySelectorAll('#slice2-home .s2-seat.is-dragging, #slice2-home .s2-seat.is-drop-before, #slice2-home .s2-seat.is-drop-after').forEach((el) => {
       el.classList.remove('is-dragging', 'is-drop-before', 'is-drop-after');
+    });
+    document.querySelectorAll('#slice2-home .s2-seat-handle.is-grabbed').forEach((el) => {
+      el.classList.remove('is-grabbed');
     });
   }
 
@@ -374,6 +388,9 @@
         cursor += dir;
       }
     }
+    const table = state();
+    const name = table.players[to] || 'Player';
+    seatLive(`${name} is seat ${to + 1} of ${table.players.length}.`);
   }
 
   function paintBoard() {
@@ -867,27 +884,29 @@
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
       if (!seatGrab) {
-        seatGrab = { index, name };
-        handle.classList.add('is-grabbed');
+        seatGrab = { from: index, index, name };
+        paintSeatGrab();
         seatLive(`Grabbed ${name}. Use arrows to move, Space to drop, Escape to cancel.`);
         return;
       }
-      const from = seatGrab.index;
+      const from = seatGrab.from;
+      const to = seatGrab.index;
       seatGrab = null;
-      if (from !== index) persistSeatMove(from, index);
+      clearSeatDragStyles();
+      if (from !== to) persistSeatMove(from, to);
       else seatLive(`Cancelled moving ${name}.`);
     } else if (event.key === 'Escape' && seatGrab) {
       event.preventDefault();
       seatGrab = null;
+      clearSeatDragStyles();
       handle.classList.remove('is-grabbed');
       seatLive(`Cancelled moving ${name}.`);
     } else if ((event.key === 'ArrowUp' || event.key === 'ArrowDown') && seatGrab) {
       event.preventDefault();
       const next = seatGrab.index + (event.key === 'ArrowUp' ? -1 : 1);
       if (next < 0 || next >= table.players.length) return;
-      const from = seatGrab.index;
-      seatGrab = { index: next, name: table.players[from] };
-      persistSeatMove(from, next);
+      seatGrab = { from: seatGrab.from, index: next, name: seatGrab.name };
+      paintSeatGrab();
     }
   }
 
