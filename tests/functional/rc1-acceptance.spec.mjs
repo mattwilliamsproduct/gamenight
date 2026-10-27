@@ -115,15 +115,18 @@ for (const size of SIZES) {
       const afterEnter = await page.evaluate(() => Number(currentGame.totals.Megan) || 0);
       expect(afterEnter, `${size.name} Megan total after entering eight scores`).toBe(before + 5);
 
-      const visibleCell = page.locator('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input').locator('visible=true').first();
-      if (await visibleCell.count()) {
-        await visibleCell.click();
-      } else {
-        await page.evaluate(() => {
-          const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+      await page.evaluate(() => {
+        const cell = [...document.querySelectorAll('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input')]
+          .find((el) => el.getClientRects().length && el.getBoundingClientRect().width > 8);
+        if (cell) {
+          cell.click();
+          return;
+        }
+        const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+        if (typeof openPastScoreCell === 'function' && last >= 0) {
           openPastScoreCell(currentGame.originalRoster[0], last);
-        });
-      }
+        }
+      });
       const editor = page.locator('#custom-numpad, #numpad, #score-entry-modal, #round-correction-modal');
       await expect(editor.first()).toBeVisible({timeout: 5000});
       await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();

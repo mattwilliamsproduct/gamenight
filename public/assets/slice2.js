@@ -492,49 +492,61 @@
       }
       return;
     }
-    const cssCx = shellW / 2;
-    const cssCy = shellH / 2;
+    const shell = canvas.parentElement;
+    const layerW = (shell && shell.clientWidth) || shellW;
+    const layerH = (shell && shell.clientHeight) || shellH;
+    const canvasLeft = canvas.offsetLeft || 0;
+    const canvasTop = canvas.offsetTop || 0;
+    const cssCx = canvasLeft + shellW / 2;
+    const cssCy = canvasTop + shellH / 2;
     const scale = canvas.width / shellW;
-    const pad = 8;
+    const bandR = (outer / canvas.width) * shellW;
+    const pad = 6;
     const boxes = [];
     const clamp = (value, min, max) => {
       if (min > max) return (min + max) / 2;
       return Math.min(max, Math.max(min, value));
     };
     const overlap = (a, b) => (
-      a.x < b.x + b.w + 4 && a.x + a.w + 4 > b.x && a.y < b.y + b.h + 4 && a.y + a.h + 4 > b.y
+      a.x < b.x + b.w + 6 && a.x + a.w + 6 > b.x && a.y < b.y + b.h + 6 && a.y + a.h + 6 > b.y
     );
     callouts.forEach((item, index) => {
       const el = document.createElement('span');
       el.className = `wheel-callout is-${item.kind || 'zero'}`;
       el.textContent = item.signed;
       layer.appendChild(el);
-      const bw = Math.max(el.getBoundingClientRect().width, el.offsetWidth, 32);
-      const bh = Math.max(el.getBoundingClientRect().height, el.offsetHeight, 18);
+      const bw = Math.max(el.getBoundingClientRect().width, el.offsetWidth, 36);
+      const bh = Math.max(el.getBoundingClientRect().height, el.offsetHeight, 20);
       const minX = pad + bw / 2;
-      const maxX = shellW - pad - bw / 2;
+      const maxX = layerW - pad - bw / 2;
       const minY = pad + bh / 2;
-      const maxY = shellH - pad - bh / 2;
-      const top = -Math.PI / 2;
-      const fromTop = Math.atan2(Math.sin(item.mid - top), Math.cos(item.mid - top));
-      let ang = item.mid;
-      if (Math.abs(fromTop) < 0.36) ang = top + (fromTop >= 0 ? 0.55 : -0.55);
-      const left = Math.cos(ang) < -0.25;
-      const right = Math.cos(ang) > 0.25;
-      const low = Math.sin(ang) > 0;
+      const maxY = layerH - pad - bh / 2;
+      const left = Math.cos(item.mid) < -0.18;
+      const right = Math.cos(item.mid) > 0.18;
+      const low = Math.sin(item.mid) > 0.12;
+      const high = Math.sin(item.mid) < -0.12;
+      const gutter = bandR + 10 + Math.max(bw, bh) / 2;
+      const stack = index * (bh + 8);
       const candidates = [];
-      if (left) candidates.push({ x: minX, y: low ? maxY - index * (bh + 6) : minY + index * (bh + 6) });
-      if (right) candidates.push({ x: maxX, y: low ? maxY - index * (bh + 6) : minY + index * (bh + 6) });
-      [0.44, 0.40, 0.36].forEach((frac) => {
-        const r = Math.min(shellW, shellH) * frac;
-        candidates.push({ x: cssCx + Math.cos(ang) * r, y: cssCy + Math.sin(ang) * r });
+      if (left) {
+        candidates.push({ x: minX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
+      }
+      if (right) {
+        candidates.push({ x: maxX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
+      }
+      [gutter, gutter + 6, gutter + 12].forEach((radius) => {
+        candidates.push({
+          x: cssCx + Math.cos(item.mid) * radius,
+          y: cssCy + Math.sin(item.mid) * radius
+        });
       });
-      let chosen = { x: clamp(cssCx + Math.cos(ang) * (shellW * 0.4), minX, maxX), y: clamp(cssCy + Math.sin(ang) * (shellH * 0.4), minY, maxY) };
+      let chosen = { x: left ? minX : (right ? maxX : cssCx), y: clamp(cssCy, minY, maxY) };
       candidates.some((spot) => {
         const x = clamp(spot.x, minX, maxX);
         const y = clamp(spot.y, minY, maxY);
         const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
-        if (boxes.some((other) => overlap(box, other))) return false;
+        const onBand = Math.hypot(x - cssCx, y - cssCy) < bandR + 4;
+        if (onBand || boxes.some((other) => overlap(box, other))) return false;
         chosen = { x, y };
         return true;
       });
@@ -544,21 +556,23 @@
       el.style.top = `${chosen.y}px`;
       const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };
       boxes.push(box);
-      const fromX = (canvas.width / 2) + Math.cos(item.mid) * (outer - 6);
-      const fromY = (canvas.height / 2) + Math.sin(item.mid) * (outer - 6);
-      const toX = box.cx * scale;
-      const toY = box.cy * scale;
+      const fromX = (canvas.width / 2) + Math.cos(item.mid) * (outer - 4);
+      const fromY = (canvas.height / 2) + Math.sin(item.mid) * (outer - 4);
+      const toX = (box.cx - canvasLeft) * scale;
+      const toY = (box.cy - canvasTop) * scale;
       const dx = toX - fromX;
       const dy = toY - fromY;
       const dist = Math.hypot(dx, dy) || 1;
-      const stop = (Math.max(bw, bh) / 2 + 8) * scale;
+      const stop = ((Math.min(bw, bh) / 2) + 10) * scale;
       const t = Math.max(0, (dist - stop) / dist);
-      context.beginPath();
-      context.moveTo(fromX, fromY);
-      context.lineTo(fromX + dx * t, fromY + dy * t);
-      context.strokeStyle = 'rgba(8, 87, 79, 0.45)';
-      context.lineWidth = 2;
-      context.stroke();
+      if (t > 0.08) {
+        context.beginPath();
+        context.moveTo(fromX, fromY);
+        context.lineTo(fromX + dx * t, fromY + dy * t);
+        context.strokeStyle = 'rgba(8, 87, 79, 0.4)';
+        context.lineWidth = 2;
+        context.stroke();
+      }
     });
   }
 
@@ -579,8 +593,8 @@
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
     const scale = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
-    const outer = cx * 0.84;
-    const inner = cx * 0.16;
+    const outer = cx * 0.70;
+    const inner = cx * 0.14;
     const midR = (inner + outer) / 2;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
@@ -614,7 +628,8 @@
       const font = Math.max(34, Math.min(52, 18 * scale, chord * 0.5));
       context.font = `800 ${font}px "Nunito Sans", sans-serif`;
       const textW = context.measureText(signed).width;
-      const roomy = arc >= Math.PI * 2 * 0.08 && textW < chord * 0.82;
+      const onLeft = Math.cos(mid) < -0.18;
+      const roomy = !onLeft && kind !== 'bad' && arc >= Math.PI * 2 * 0.10 && textW < chord * 0.78;
       context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
       context.textAlign = 'center';
       context.textBaseline = 'middle';

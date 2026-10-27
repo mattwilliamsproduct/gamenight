@@ -50,6 +50,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A Life Preserver wheel that paints helpful low-score slices red because they are negative.
 - A settings gear on the scorecard match header, or phone History sitting outside Actions.
 - A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
+- A setback callout that clips the + so +10 reads as 10 or as help.
 
 ## Prefer
 

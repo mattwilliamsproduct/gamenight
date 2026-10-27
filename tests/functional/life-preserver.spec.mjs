@@ -87,6 +87,8 @@ test('Life Preserver callouts stay signed and inside the wheel', async ({page}) 
         const box = el.getBoundingClientRect();
         return {
           text: (el.textContent || '').trim(),
+          width: box.width,
+          unclipped: el.scrollWidth <= el.clientWidth + 1,
           insideShell: !!(shell && box.left >= shell.left - 1 && box.top >= shell.top - 1 && box.right <= shell.right + 1 && box.bottom <= shell.bottom + 1),
           insideModal: !!(modal && box.left >= modal.left - 1 && box.top >= modal.top - 1 && box.right <= modal.right + 1 && box.bottom <= modal.bottom + 1)
         };
@@ -95,11 +97,12 @@ test('Life Preserver callouts stay signed and inside the wheel', async ({page}) 
     });
     expect(report.length).toBeGreaterThan(0);
     report.forEach((chip) => {
-      expect(chip.text).toMatch(/^(0|[+\u2212\-]\d+)$/);
-      expect(chip.insideShell).toBe(true);
-      expect(chip.insideModal).toBe(true);
+      expect(chip.text, `${width} callout stays signed ${JSON.stringify(chip)}`).toMatch(/^(0|[+\u2212\-]\d+)$/);
+      expect(chip.unclipped, `${width} ${chip.text} text stays inside its chip`).toBe(true);
+      expect(chip.insideShell, `${width} ${chip.text} stays in the wheel ${JSON.stringify(chip)}`).toBe(true);
+      expect(chip.insideModal, `${width} ${chip.text} stays in the modal`).toBe(true);
     });
-    expect(report.some((chip) => chip.text === '+10' || chip.text === '+5')).toBe(true);
+    expect(report.some((chip) => chip.text === '+10'), `${width} shows a full +10 setback`).toBe(true);
   }
 });
 
@@ -108,16 +111,23 @@ test('Life Preserver dialog stays usable at a short laptop height', async ({page
   await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
   const help = page.locator('#btn-life-preserver-help');
-  await help.scrollIntoViewIfNeeded();
-  const visibleInDialog = await page.evaluate(() => {
+  await expect(help).toBeVisible();
+  const fit = await page.evaluate(() => {
     const dialog = document.querySelector('#wheel-modal .life-preserver-dialog');
     const button = document.getElementById('btn-life-preserver-help');
-    if (!dialog || !button) return false;
+    if (!dialog || !button) return {ok: false};
     const dialogBox = dialog.getBoundingClientRect();
     const buttonBox = button.getBoundingClientRect();
-    return buttonBox.bottom <= dialogBox.bottom + 2 && buttonBox.top >= dialogBox.top - 2;
+    return {
+      ok: buttonBox.bottom <= Math.min(dialogBox.bottom, window.innerHeight) + 2
+        && buttonBox.top >= dialogBox.top - 2
+        && dialogBox.bottom <= window.innerHeight + 2,
+      buttonBottom: buttonBox.bottom,
+      dialogBottom: dialogBox.bottom,
+      vh: window.innerHeight
+    };
   });
-  expect(visibleInDialog).toBe(true);
+  expect(fit.ok, `short laptop keeps How Life Preserver works on screen ${JSON.stringify(fit)}`).toBe(true);
 });
 
 test('Life Preserver locks the outcome before the reveal and blocks a second spin', async ({page}) => {

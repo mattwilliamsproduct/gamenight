@@ -47,3 +47,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A Life Preserver wheel that paints helpful low-score slices red because they are negative.
 - A settings gear on the scorecard match header, or phone History sitting outside Actions.
 - A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
+- A setback callout that clips the + so +10 reads as 10 or as help.
