@@ -480,53 +480,66 @@
     if (!layer) return;
     layer.replaceChildren();
     if (!callouts.length) return;
-    const shellW = canvas.clientWidth || 1;
-    const shellH = canvas.clientHeight || 1;
+    const shellW = canvas.clientWidth;
+    const shellH = canvas.clientHeight;
+    if (!shellW || !shellH || shellW < 80) {
+      if (!placeWheelCallouts._retry) {
+        placeWheelCallouts._retry = true;
+        requestAnimationFrame(() => {
+          placeWheelCallouts._retry = false;
+          placeWheelCallouts(canvas, context, callouts, outer);
+        });
+      }
+      return;
+    }
     const cssCx = shellW / 2;
     const cssCy = shellH / 2;
     const scale = canvas.width / shellW;
-    const pad = 6;
+    const pad = 8;
     const boxes = [];
-    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    const clamp = (value, min, max) => {
+      if (min > max) return (min + max) / 2;
+      return Math.min(max, Math.max(min, value));
+    };
     const overlap = (a, b) => (
       a.x < b.x + b.w + 4 && a.x + a.w + 4 > b.x && a.y < b.y + b.h + 4 && a.y + a.h + 4 > b.y
     );
-    callouts.forEach((item) => {
+    callouts.forEach((item, index) => {
       const el = document.createElement('span');
       el.className = `wheel-callout is-${item.kind || 'zero'}`;
       el.textContent = item.signed;
       layer.appendChild(el);
-      const bw = Math.max(el.offsetWidth, 28);
-      const bh = Math.max(el.offsetHeight, 18);
+      const bw = Math.max(el.getBoundingClientRect().width, el.offsetWidth, 32);
+      const bh = Math.max(el.getBoundingClientRect().height, el.offsetHeight, 18);
+      const minX = pad + bw / 2;
+      const maxX = shellW - pad - bw / 2;
+      const minY = pad + bh / 2;
+      const maxY = shellH - pad - bh / 2;
       const top = -Math.PI / 2;
       const fromTop = Math.atan2(Math.sin(item.mid - top), Math.cos(item.mid - top));
       let ang = item.mid;
-      if (Math.abs(fromTop) < 0.36) ang = top + (fromTop >= 0 ? 0.52 : -0.52);
+      if (Math.abs(fromTop) < 0.36) ang = top + (fromTop >= 0 ? 0.55 : -0.55);
+      const left = Math.cos(ang) < -0.25;
+      const right = Math.cos(ang) > 0.25;
+      const low = Math.sin(ang) > 0;
       const candidates = [];
-      if (Math.cos(ang) < -0.4) {
-        const sideY = cssCy + Math.sin(ang) * (shellH * 0.34);
-        candidates.push({ x: pad + bw / 2, y: clamp(sideY, pad + bh / 2, shellH - pad - bh / 2) });
-        candidates.push({ x: pad + bw / 2, y: Math.sin(ang) > 0 ? shellH - pad - bh / 2 : pad + bh / 2 });
-      }
-      if (Math.cos(ang) > 0.4) {
-        const sideY = cssCy + Math.sin(ang) * (shellH * 0.34);
-        candidates.push({ x: shellW - pad - bw / 2, y: clamp(sideY, pad + bh / 2, shellH - pad - bh / 2) });
-      }
-      [0.46, 0.42, 0.38].forEach((frac) => {
+      if (left) candidates.push({ x: minX, y: low ? maxY - index * (bh + 6) : minY + index * (bh + 6) });
+      if (right) candidates.push({ x: maxX, y: low ? maxY - index * (bh + 6) : minY + index * (bh + 6) });
+      [0.44, 0.40, 0.36].forEach((frac) => {
         const r = Math.min(shellW, shellH) * frac;
         candidates.push({ x: cssCx + Math.cos(ang) * r, y: cssCy + Math.sin(ang) * r });
       });
-      let chosen = candidates[0] || { x: cssCx, y: cssCy };
+      let chosen = { x: clamp(cssCx + Math.cos(ang) * (shellW * 0.4), minX, maxX), y: clamp(cssCy + Math.sin(ang) * (shellH * 0.4), minY, maxY) };
       candidates.some((spot) => {
-        const x = clamp(spot.x, pad + bw / 2, shellW - pad - bw / 2);
-        const y = clamp(spot.y, pad + bh / 2, shellH - pad - bh / 2);
+        const x = clamp(spot.x, minX, maxX);
+        const y = clamp(spot.y, minY, maxY);
         const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
         if (boxes.some((other) => overlap(box, other))) return false;
         chosen = { x, y };
         return true;
       });
-      chosen.x = clamp(chosen.x, pad + bw / 2, shellW - pad - bw / 2);
-      chosen.y = clamp(chosen.y, pad + bh / 2, shellH - pad - bh / 2);
+      chosen.x = clamp(chosen.x, minX, maxX);
+      chosen.y = clamp(chosen.y, minY, maxY);
       el.style.left = `${chosen.x}px`;
       el.style.top = `${chosen.y}px`;
       const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };
@@ -538,7 +551,7 @@
       const dx = toX - fromX;
       const dy = toY - fromY;
       const dist = Math.hypot(dx, dy) || 1;
-      const stop = (Math.max(bw, bh) / 2 + 6) * scale;
+      const stop = (Math.max(bw, bh) / 2 + 8) * scale;
       const t = Math.max(0, (dist - stop) / dist);
       context.beginPath();
       context.moveTo(fromX, fromY);

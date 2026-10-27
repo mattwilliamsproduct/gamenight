@@ -72,6 +72,14 @@ test('Life Preserver callouts stay signed and inside the wheel', async ({page}) 
     await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
     await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
     await page.locator('.wheel-callout').first().waitFor({state: 'visible', timeout: 5000});
+    await page.waitForFunction(() => {
+      const shell = document.querySelector('.wheel-shell')?.getBoundingClientRect();
+      const chips = [...document.querySelectorAll('.wheel-callout')];
+      return !!(shell && chips.length && chips.every((el) => {
+        const box = el.getBoundingClientRect();
+        return box.width > 8 && box.left >= shell.left - 1 && box.right <= shell.right + 1 && box.top >= shell.top - 1 && box.bottom <= shell.bottom + 1;
+      }));
+    }, null, {timeout: 4000});
     const report = await page.evaluate(() => {
       const shell = document.querySelector('.wheel-shell')?.getBoundingClientRect();
       const modal = document.querySelector('#wheel-modal .life-preserver-dialog')?.getBoundingClientRect();
