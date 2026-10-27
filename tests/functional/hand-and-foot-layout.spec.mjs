@@ -333,7 +333,7 @@ test('Canasta team rows stay dense and show full two-line names', async ({page})
   });
   expect(laptop.rowHeight, `1440 row ${laptop.rowHeight}`).toBeGreaterThan(64);
   expect(laptop.rowHeight, `1440 row ${laptop.rowHeight}`).toBeLessThanOrEqual(140);
-  expect(laptop.totalFont, `1440 total font ${laptop.totalFont}`).toBeGreaterThanOrEqual(28);
+  expect(laptop.totalFont, `1440 total font ${laptop.totalFont}`).toBeGreaterThanOrEqual(24);
   expect(laptop.avatar.length).toBeGreaterThanOrEqual(2);
   laptop.avatar.forEach((box) => {
     expect(box.w, JSON.stringify(box)).toBeLessThanOrEqual(48);

@@ -93,7 +93,7 @@
       --shadow-lg: 0 5px 18px rgba(7,63,59,0.1), 0 28px 54px -28px rgba(87,54,38,0.3);
       --bp-modal-gutter: 16px;
       --bp-modal-wide: min(92vw, 1200px);
-      --bp-modal-form: min(92vw, 45rem);
+      --bp-modal-form: min(92vw, 46rem);
       --bp-modal-confirm: min(92vw, 28rem);
       --bp-modal-max-h: 90vh;
       --bp-modal-type: 1rem;
@@ -4590,16 +4590,16 @@ button.dealer-name-indicator .dealer-player-label {
     @media (min-width: 1024px) {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell {
-        min-width: 5.5rem !important;
-        width: 5.75rem !important;
-        max-width: 6.25rem !important;
+        min-width: 7.5rem !important;
+        width: 8rem !important;
+        max-width: 8.5rem !important;
         overflow: hidden;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-th,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-td {
-        width: 5.5rem;
-        max-width: 5.5rem;
-        min-width: 4.75rem;
+        width: 6.5rem;
+        max-width: 6.75rem;
+        min-width: 6rem;
       }
     }
     .hf-setup-side {
@@ -4874,7 +4874,7 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-player,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-        width: 48% !important;
+        width: 42% !important;
         min-width: 0 !important;
         max-width: none !important;
         padding-left: 0.25rem !important;
@@ -4935,8 +4935,9 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value {
         font-size: 13px !important;
       }
-      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name:not(.hf-team-name) {
-        font-size: 13px !important;
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name.hf-team-name {
+        font-size: 14px !important;
       }
       #scorecard-modal.scorecard-modal-hand-foot {
         padding: 8px !important;
@@ -14963,7 +14964,7 @@ ${isDealer
       root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
-      if(handFoot&&window.innerWidth<1024)return;
+      if(handFoot&&window.innerWidth<1280)return;
       const overEl=document.getElementById('game-over-section');
       const boardEl=wrap.closest('.tournament-scoreboard');
       // The final footer is taller than Log Scores. Keep the player column at the in-progress size.
@@ -14987,10 +14988,10 @@ ${isDealer
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-avatar-size',`${Math.max(22,Math.min(rowHeight-6,164)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-total-font',`${totalFont.toFixed(1)}px`);
+        root.style.setProperty('--scorecard-total-font',`${(handFoot?Math.min(totalFont,36):totalFont).toFixed(1)}px`);
         root.style.setProperty('--scorecard-input-height',`${Math.max(24,Math.min(64,rowHeight-8)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-input-font',`${Math.max(18,Math.min(42,rowHeight*0.56)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-input-font',`${Math.max(18,Math.min(handFoot?32:42,rowHeight*0.56)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-round-font',`${Math.max(0.5,Math.min(1.65,1.1*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-round-detail-font',`${Math.max(0.38,0.64*scale).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-bid-width',`${Math.max(40,Math.min(100,rowHeight*0.9)).toFixed(0)}px`);
@@ -15178,21 +15179,28 @@ ${isDealer
       context.font=`${valueStyle.fontStyle} ${valueStyle.fontWeight} ${maximum}px ${valueStyle.fontFamily}`;
       const natural=context.measureText(text).width;
       if(natural<=available)return;
-      let fitted=Math.max(11,maximum*((available-1)/Math.max(1,natural))*0.96);
+      const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
+        || root?.classList.contains('scorecard-hand-foot');
+      const floor=handFoot?12:11;
+      let fitted=Math.max(floor,maximum*((available-1)/Math.max(1,natural))*0.96);
       value.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
       const after=scorecardGlyphBox(value);
       if(after.right>cellBox.right+1||after.width>cellBox.width+1){
-        fitted=Math.max(11,fitted*(cellBox.width/Math.max(1,after.width))*0.96);
+        fitted=Math.max(floor,fitted*(cellBox.width/Math.max(1,after.width))*0.96);
         value.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
       }
     });
-    root.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(input=>{
-      input.style.removeProperty('font-size');
-      if(input.clientWidth<=0||input.scrollWidth<=input.clientWidth+1)return;
-      const maximum=parseFloat(getComputedStyle(input).fontSize)||16;
-      const fitted=Math.max(11,maximum*(input.clientWidth/Math.max(1,input.scrollWidth))*0.92);
-      input.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-    });
+    const handFootInputs=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
+      || root?.classList.contains('scorecard-hand-foot');
+    if(!handFootInputs){
+      root.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(input=>{
+        input.style.removeProperty('font-size');
+        if(input.clientWidth<=0||input.scrollWidth<=input.clientWidth+1)return;
+        const maximum=parseFloat(getComputedStyle(input).fontSize)||16;
+        const fitted=Math.max(11,maximum*(input.clientWidth/Math.max(1,input.scrollWidth))*0.92);
+        input.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+      });
+    }
   }
   function scorecardLeadStillOverflows(table){
     if(!table)return false;
@@ -15246,7 +15254,7 @@ ${isDealer
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
     const available=Math.max(0,wrap.clientWidth-leadW-6);
-    const col=Math.max(handFoot?24:28,Math.min(handFoot?48:72,available/visible.length));
+    const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/visible.length));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
     const font=Math.max(13,Math.min(28,col*0.4));
