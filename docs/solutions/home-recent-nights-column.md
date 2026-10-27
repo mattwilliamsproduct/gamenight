@@ -1,21 +1,19 @@
 # Home columns and seating
 
-Matt did not like leftover height between Tonight's Table and Start a New Match. He said not to move Recent nights, and to drop the `?home=a/b` flags. Tonight's Table fills the left column down to the bottom of Start a New Match and spends that height on people.
+Matt wanted Tonight's Table taller, then capped the first step at 15 percent. Do not silently close the rest of the gap.
 
 ## Rule
 
-Two-column Home starts at 861px (the existing `max-width: 860px` stack). Both cards stretch to the same row height. Extra height on the left grows the single-column seat list (`minmax(52px, 1fr)`), with larger avatars, names, and seat numbers, and a roomier bench and add-player row. Extra height on the right grows the game tiles. Recent nights stays full width below both.
+Two-column Home starts at 861px. Columns size to their content (`align-items: start`). Tonight's Table is about 15 percent taller than the compact single-column seat list, and that height goes into bigger seat cards (52px rows, 44px avatars, larger names and seat numbers), not padding or a stretch to match Start a New Match.
 
-Seating is one player per row: seat number, avatar, name, dealer badge, up/down, remove to on deck, and a drag handle. There is no Edit Seating control. Drag starts from the handle only (`touch-action: none` on the handle). Keyboard: focus the handle, Space to grab, arrows to move, Space to drop, Escape to cancel. An `aria-live` region announces the new seat.
+Recent nights stays full width below both.
 
-Home reorder only writes the `players` lineup (same `saveData` path as before). It does not change `currentGame.originalRoster` or the live dealer rotation.
+Seating is one player per row: seat number, avatar, name, dealer badge, up/down, remove to on deck, and a drag handle. There is no Edit Seating control. Drag starts from the handle only. Keyboard: focus the handle, Space to grab, arrows to move, Space to drop, Escape to cancel.
+
+Home reorder only writes the `players` lineup. It does not change `currentGame.originalRoster` or the live dealer rotation.
 
 Phone stays Table, then Start, then nights. Seat rows stay compact on phone.
 
-## Rook podium
-
-Recent nights uses `BPGRecords.nightPodium`, which calls the same `sortPlayersByTotal` + `competitionPlaces` helpers as Records. Rook has no separate team object: partners share a total, so they share 1st, and the other pair takes the next competition place (usually 3rd). Incomplete nights stay labeled Incomplete with no podium.
-
 ## Kill
 
-Dead leftover height between the two Home columns, empty padding inside those cards, Recent nights parked in the left column, or `?home=` flags after Matt picked stretch.
+Growing Tonight's Table past 15 percent to close the leftover under Start a New Match without Matt asking. Empty padding inside the table card. Recent nights parked in the left column.
