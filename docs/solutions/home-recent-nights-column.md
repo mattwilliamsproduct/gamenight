@@ -4,7 +4,7 @@ Matt wanted Tonight's Table taller, then capped the first step at 15 percent. Do
 
 ## Rule
 
-Two-column Home starts at 861px. Columns size to their content (`align-items: start`). Tonight's Table is about 15 percent taller than the compact single-column seat list, and that height goes into bigger seat cards (52px rows, 44px avatars, larger names and seat numbers), not padding or a stretch to match Start a New Match.
+Two-column Home starts at 861px. Columns size to their content (`align-items: start`). Tonight's Table is about 15 percent taller than the compact single-column seat list, and that height goes into bigger seat cards (50px rows, 42px avatars, larger names and seat numbers), not padding or a stretch to match Start a New Match.
 
 Recent nights stays full width below both.
 

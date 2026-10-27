@@ -21,9 +21,9 @@ test('laptop Home grows seat cards about 15 percent and keeps Recent nights full
   assert.doesNotMatch(defaultGrid[0], /align-items:\s*stretch/);
   assert.doesNotMatch(css, /\.s2-home-table,\s*html\.slice2-tv \.s2-home-start\s*\{[\s\S]*height:\s*100%/);
   assert.doesNotMatch(css, /grid-auto-rows:\s*minmax\(52px, 1fr\)/);
-  assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*grid-auto-rows:\s*minmax\(52px, auto\)/);
-  assert.match(css, /\.s2-seat \.avatar-img\s*\{[\s\S]*width:\s*44px/);
-  assert.match(css, /\.s2-seat-name\s*\{[\s\S]*font-size:\s*1\.08rem/);
+  assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*grid-auto-rows:\s*minmax\(50px, auto\)/);
+  assert.match(css, /\.s2-seat \.avatar-img\s*\{[\s\S]*width:\s*42px/);
+  assert.match(css, /\.s2-seat-name\s*\{[\s\S]*font-size:\s*1\.04rem/);
   assert.match(css, /\.s2-seat-handle\s*\{[\s\S]*touch-action:\s*none;/);
   assert.match(css, /@media \(max-width:\s*860px\)[\s\S]*grid-auto-rows:\s*minmax\(44px, auto\)/);
   assert.doesNotMatch(css, /data-bp-home/);

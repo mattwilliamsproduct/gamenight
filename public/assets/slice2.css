@@ -331,8 +331,8 @@ html.slice2-tv .s2-game-grid {
 
 html.slice2-tv .s2-seat-grid {
   grid-template-columns: 1fr;
-  gap: 12px;
-  grid-auto-rows: minmax(52px, auto);
+  gap: 10px;
+  grid-auto-rows: minmax(50px, auto);
 }
 
 html.slice2-tv .s2-seat,
@@ -344,11 +344,11 @@ html.slice2-tv .s2-night {
 
 html.slice2-tv .s2-seat {
   display: grid;
-  grid-template-columns: 1.75rem 44px minmax(0, 1fr) auto;
-  gap: 10px;
+  grid-template-columns: 1.65rem 42px minmax(0, 1fr) auto;
+  gap: 8px;
   align-items: center;
-  min-height: 52px;
-  padding: 8px 12px;
+  min-height: 50px;
+  padding: 6px 10px;
   border-radius: 16px;
   border: 1.5px solid var(--s2-line);
   background: #fffaf4;
@@ -443,13 +443,13 @@ html.slice2-tv .s2-seat-num {
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 1.08rem;
+  font-size: 1.04rem;
   font-variant-numeric: tabular-nums;
 }
 
 html.slice2-tv .s2-seat .avatar-img {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -476,7 +476,7 @@ html.slice2-tv .s2-shame-card p {
 html.slice2-tv .s2-seat-name {
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 1.08rem;
+  font-size: 1.04rem;
   color: var(--s2-ink);
 }
 
