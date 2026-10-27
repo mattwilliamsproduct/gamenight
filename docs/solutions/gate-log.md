@@ -54,3 +54,4 @@ The table starts with a header and one example row. The example is the format. I
 | 2026-10-27 | rc1-look-pass | taste_ui. Signed +10 callouts, \u221260/\u221275 clamp, tidy laptop header, commit-line break, short-laptop modal. | 2 | n/a | fallback | Gate C. Conservative. Check pass. Functional 95/95. Do not undraft or merge. |
 | 2026-10-27 | rc1-overlap | taste_ui. Pointer misses callouts. Short laptop keeps a 260px wheel and scrolls. | 2 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
 | 2026-10-27 | rc1-overlap | taste_ui. Pointer misses callouts. Short laptop keeps a 260px wheel and scrolls. | 2 | n/a | fallback | Gate C. Conservative. Check pass. Functional 96/96. Do not undraft or merge. |
+| 2026-10-27 | review-gallery | taste_ui. Merge rc1-records into /review. Catalog every DEMO_VIEW_ID at phone/tablet/laptop. | 2 | n/a | fallback | Gate C. Conservative. Check 159/159. Functional 99/99. 96 tiles. Do not undraft or merge. |
