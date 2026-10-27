@@ -1603,7 +1603,7 @@ html.slice2-tv button.scoreboard-rank-badge {
 
   html.slice2-tv .s2-board-actions {
     flex: 1 1 auto;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     margin-left: auto;
@@ -1624,6 +1624,7 @@ html.slice2-tv button.scoreboard-rank-badge {
     padding: 0.35rem 0.8rem;
     font-size: 0.86rem;
     line-height: 1;
+    white-space: nowrap;
   }
 
   html.slice2-tv #slice2-enter-btn {

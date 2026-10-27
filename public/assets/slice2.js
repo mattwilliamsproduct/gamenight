@@ -628,8 +628,7 @@
       const font = Math.max(34, Math.min(52, 18 * scale, chord * 0.5));
       context.font = `800 ${font}px "Nunito Sans", sans-serif`;
       const textW = context.measureText(signed).width;
-      const onLeft = Math.cos(mid) < -0.18;
-      const roomy = !onLeft && kind !== 'bad' && arc >= Math.PI * 2 * 0.10 && textW < chord * 0.78;
+      const roomy = kind !== 'bad' && arc >= Math.PI * 2 * 0.10 && textW < chord * 0.78;
       context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
       context.textAlign = 'center';
       context.textBaseline = 'middle';
