@@ -9,7 +9,8 @@ import {
   submitEntry,
   silencePorchPrompts,
   startHandFoot,
-  typeRound
+  typeRound,
+  withSevensField
 } from '../helpers/hand-foot.mjs';
 
 test.use({serviceWorkers:'block', deviceScaleFactor:2});
@@ -38,10 +39,14 @@ async function entryProblems(page){
     const problems=[];
     const keypad=document.querySelector('#score-entry-modal .score-entry-keypad');
     const keyBox=boxOf(keypad);
+    const scroller=document.getElementById('score-entry-rows');
+    const view=scroller?.getBoundingClientRect();
     const footer=[...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].map(boxOf);
     const fields=[...document.querySelectorAll('#score-entry-modal .hf-field, #score-entry-modal .hf-round, #score-entry-modal .hf-rate')].map(el=>({el, box:boxOf(el)}));
     const keys=[...document.querySelectorAll('#score-entry-modal .score-entry-key')].map(boxOf);
+    const clippedAway=(el, box)=>scroller && scroller.contains(el) && view && (box.bottom<=view.top+1 || box.top>=view.bottom-1);
     fields.forEach(item=>{
+      if(clippedAway(item.el, item.box)) return;
       if(hit(item.box, keyBox)) problems.push(`field overlaps keypad: ${item.box.text}`);
       footer.forEach(btn=>{ if(hit(item.box, btn)) problems.push(`field overlaps ${btn.text}`); });
       if(item.box.width<44 || item.box.height<44) problems.push(`field ${Math.round(item.box.width)}x${Math.round(item.box.height)} ${item.box.text}`);
@@ -165,7 +170,7 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     await page.getByRole('button', {name:/Start Match/}).click();
     await expect(page.locator('#game-screen')).toBeVisible();
     await openScoreEntry(page);
-    await typeRound(page, [['2','1','2','1','450','95']]);
+    await typeRound(page, [['2','1','2','1','450','95']].map(withSevensField));
     if(viewport.name==='phone'){
       await page.evaluate(()=>{
         const scroller=document.getElementById('score-entry-rows');
@@ -183,7 +188,7 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     if(viewport.name==='ipad'){
       await page.screenshot({path:`${MEDIA_DIR}/${viewport.entry}`, fullPage:false});
     }
-    await typeRound(page, [['0','1','0','0','0','20']]);
+    await typeRound(page, [['0','1','0','0','0','20']].map(withSevensField));
     await submitEntry(page);
     await page.waitForFunction(()=>{
       const game=JSON.parse(localStorage.getItem('gn_current')||'null');

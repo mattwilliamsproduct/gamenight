@@ -102,7 +102,7 @@ export async function submitEntry(page){
   await page.waitForTimeout(600);
 }
 
-function withSevensField(values){
+export function withSevensField(values){
   if(Array.isArray(values)&&values.length===6) return [values[0],values[1],'0',...values.slice(2)];
   return values;
 }

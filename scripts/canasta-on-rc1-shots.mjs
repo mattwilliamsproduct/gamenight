@@ -11,6 +11,9 @@ const SHOT_LIST = [
   {name: 'picker-demo-rook-1440', width: 1440, height: 900, path: '/?demo&games=rook', after: 'picker-demo'},
   {name: 'canasta-scorecard-390', width: 390, height: 844, path: '/?gnqa=1&gallery=0&scenario=canasta-house-round', after: 'scorecard'},
   {name: 'canasta-scorecard-1024', width: 1024, height: 768, path: '/?gnqa=1&gallery=0&scenario=canasta-house-round', after: 'scorecard'},
+  {name: 'demo-canasta-hand-and-foot-390', width: 390, height: 844, path: '/?demo&view=game&game=hand-and-foot', after: 'scorecard'},
+  {name: 'demo-canasta-hand-and-foot-1440', width: 1440, height: 900, path: '/?demo&view=game&game=hand-and-foot', after: 'scorecard'},
+  {name: 'demo-rook-with-games-1440', width: 1440, height: 900, path: '/?demo&view=game&game=rook&games=rook', after: 'rook'},
   {name: 'canasta-rules-390', width: 390, height: 844, path: '/?gnqa=1&gallery=0&scenario=canasta-house-round', after: 'rules'}
 ];
 
@@ -47,6 +50,9 @@ for (const shot of SHOT_LIST) {
   }
   if (shot.after === 'scorecard') {
     await page.waitForSelector('#scorecard-body, #scorecard-capture', {timeout: 15000});
+  }
+  if (shot.after === 'rook') {
+    await page.waitForSelector('#rook-bid-amount-input', {timeout: 15000});
   }
   if (shot.after === 'rules') {
     await page.evaluate(() => {
