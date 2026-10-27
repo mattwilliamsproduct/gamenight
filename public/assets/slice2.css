@@ -82,8 +82,8 @@ html.slice2-tv .s2-board-line-row {
 }
 
 html.slice2-tv .s2-board-line-row #slice2-board-line {
-  flex: 1 1 12rem;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: max-content;
 }
 
 html.slice2-tv .s2-board-line-row #save-indicator,
@@ -568,10 +568,10 @@ html.slice2-tv #slice2-board-bar {
 
 html.slice2-tv .s2-board-identity {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  min-width: 0;
-  flex: 0 1 auto;
+  min-width: 16rem;
+  flex: 1 1 16rem;
 }
 
 html.slice2-tv .s2-table-btn {
@@ -1046,6 +1046,11 @@ html.slice2-tv #btn-life-preserver-help {
 }
 
 @media (max-height: 700px) {
+  html.slice2-tv #wheel-odds-line:not(.hidden) {
+    font-size: 0.8rem !important;
+    margin-bottom: 0.04rem !important;
+  }
+
   html.slice2-tv #wheel-modal {
     align-items: center !important;
     padding: 4px !important;
@@ -1640,8 +1645,8 @@ html.slice2-tv button.scoreboard-rank-badge {
 
   html.slice2-tv .s2-board-identity {
     align-items: center;
-    min-width: 0;
-    flex: 0 1 auto;
+    min-width: 16rem;
+    flex: 1 1 18rem;
   }
 
   html.slice2-tv #slice2-board-line {
@@ -1681,8 +1686,8 @@ html.slice2-tv button.scoreboard-rank-badge {
   }
 
   html.slice2-tv .s2-board-actions {
-    flex: 1 1 auto;
-    flex-wrap: wrap;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
     margin-left: auto;
@@ -1690,6 +1695,12 @@ html.slice2-tv button.scoreboard-rank-badge {
 
   html.slice2-tv .s2-board-actions .active-match-actions {
     flex-wrap: nowrap;
+  }
+
+  @media (max-height: 700px) {
+    html.slice2-tv #slice2-board-sub {
+      display: none !important;
+    }
   }
 
   html.slice2-tv .s2-board-actions #actions-btn,

@@ -305,8 +305,9 @@
       if (!row) {
         row = document.createElement('div');
         row.className = 's2-board-line-row';
-        copy.insertBefore(row, line);
-        row.appendChild(line);
+        const titleRow = bar.querySelector('.s2-board-title-row') || line;
+        copy.insertBefore(row, titleRow);
+        row.appendChild(titleRow);
       }
     }
     parkSaveIndicator();
@@ -315,7 +316,10 @@
       const full = boardLine(currentGame);
       const title = boardTitle(currentGame);
       const rest = full.startsWith(`${title} · `) ? full.slice(title.length + 3) : full;
-      line.innerHTML = `<strong class="s2-board-title">${escapeHtml(title)}</strong><span class="s2-board-round">${escapeHtml(rest)}</span>`;
+      const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => (
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])
+      ));
+      line.innerHTML = `<strong class="s2-board-title">${esc(title)}</strong><span class="s2-board-round"> · ${esc(rest)}</span>`;
     }
     const sub = document.getElementById('slice2-board-sub');
     if (sub) {

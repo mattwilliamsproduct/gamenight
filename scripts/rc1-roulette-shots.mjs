@@ -87,6 +87,70 @@ await reduceDialog.screenshot({path: `${OUT}/390-linda-fc-reduced.png`});
 await reduceDialog.screenshot({path: '/opt/cursor/artifacts/screenshots/390-linda-fc-reduced.png'});
 await reduce.close();
 
+const proposedSizes = [
+  {name: '375', width: 375, height: 667},
+  {name: '390', width: 390, height: 844},
+  {name: '1024', width: 1024, height: 650},
+  {name: '1440', width: 1440, height: 900}
+];
+for (const size of proposedSizes) {
+  for (const item of [
+    {id: 'linda-proposed', url: '/?demo&view=lifepreserver-low&lp=proposed'},
+    {id: 'cat-proposed', url: '/?demo&view=lifepreserver&lp=proposed'}
+  ]) {
+    const page = await browser.newPage({viewport: {width: size.width, height: size.height}});
+    await waitReady(page, item.url);
+    const pre = await page.evaluate(() => BPGSlice2.wheelLabelReport());
+    measures.push({size: size.name, case: item.id, phase: 'pre', ...pre});
+    const dialog = page.locator('#wheel-modal .life-preserver-dialog');
+    await dialog.screenshot({path: `${OUT}/${size.name}-${item.id}-pre.png`});
+    await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-${item.id}-pre.png`});
+    if (size.name === '390' || size.name === '1440') {
+      await page.emulateMedia({reducedMotion: 'reduce'});
+      await page.locator('#btn-spin').click();
+      await page.locator('#wheel-result').waitFor({state: 'visible', timeout: 4000});
+      const post = await page.evaluate(() => BPGSlice2.wheelLabelReport());
+      measures.push({size: size.name, case: item.id, phase: 'reveal', ...post});
+      await dialog.screenshot({path: `${OUT}/${size.name}-${item.id}-reveal.png`});
+      await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-${item.id}-reveal.png`});
+    }
+    await page.close();
+  }
+}
+
+const headerSizes = [
+  {name: '375', width: 375, height: 667},
+  {name: '390', width: 390, height: 844},
+  {name: '1024', width: 1024, height: 650},
+  {name: '1440', width: 1440, height: 900}
+];
+for (const size of headerSizes) {
+  const page = await browser.newPage({viewport: {width: size.width, height: size.height}});
+  await page.goto(`${BASE}/?demo&view=active-match`, {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  const bar = page.locator('#slice2-board-bar');
+  await bar.screenshot({path: `${OUT}/${size.name}-header-after.png`});
+  await bar.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-header-after.png`});
+  await page.screenshot({path: `${OUT}/${size.name}-scorecard-after.png`, fullPage: false});
+  if (size.name === '390' || size.name === '1024') {
+    await page.locator('#actions-btn').click();
+    const eligible = await page.evaluate(() => {
+      const game = currentGame;
+      const table = getActivePlayers(game);
+      return table.filter((player) => isHailMaryEligible(game, player, table, {gameOver: false}));
+    });
+    if (eligible.length) {
+      await page.locator('#actions-life-preserver-btn').click();
+      const picker = page.locator('#lp-picker-modal');
+      if (await picker.isVisible()) {
+        await picker.screenshot({path: `${OUT}/${size.name}-lp-picker.png`});
+        await picker.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-lp-picker.png`});
+      }
+    }
+  }
+  await page.close();
+}
+
 writeFileSync(`${OUT}/measures.json`, JSON.stringify(measures, null, 2));
 await browser.close();
 console.log(JSON.stringify(measures.map((row) => ({

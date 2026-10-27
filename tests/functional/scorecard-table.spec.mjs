@@ -203,7 +203,7 @@ test('Life Preserver picker opens from Actions and a badge goes straight to that
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   await page.locator('#actions-btn').click();
   await page.locator('#actions-life-preserver-btn').click();
-  await expect(page.locator('#life-preserver-rules-modal, #lp-picker-modal, #wheel-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#life-preserver-rules-modal:not(.hidden), #lp-picker-modal:not(.hidden), #wheel-modal:not(.hidden)')).toBeVisible();
 
   await openScenario(page, {scenario: 'eight18-porch-lp', surface: 'scorecard'});
   await page.locator('#actions-btn').click();
@@ -225,7 +225,7 @@ test('Life Preserver picker opens from Actions and a badge goes straight to that
   await page.locator('#actions-btn').click();
   await page.locator('#actions-life-preserver-btn').click();
   await expect(page.locator('#lp-picker-modal')).not.toHaveClass(/hidden/);
-  await page.getByRole('button', {name: 'Cancel'}).click();
+  await page.locator('#lp-picker-modal').getByRole('button', {name: 'Cancel'}).click();
   await expect(page.locator('#lp-picker-modal')).toHaveClass(/hidden/);
   const afterCancel = await page.evaluate(() => [...(currentGame.hailMaryUsed || [])]);
   expect(afterCancel).toContain('Vikki');
