@@ -20,9 +20,9 @@ On localhost or `*-mattwilliamsproducts-projects.vercel.app`:
 
 v2 tiles live at `public/assets/art/dusk/<slug>.webp`. Later passes replace those files in place. Do not rename the slugs.
 
-The attached v2 binaries did not mount in this environment. The committed WebPs reconstruct those six tighter frames so crop and slugs can be judged. Overwrite the same files with the original rasters.
+The five mapped v2 binaries did not mount in this environment. Those committed WebPs reconstruct the tighter frames so crop and slugs can be judged. Overwrite the same files with the original rasters.
 
-Mapped slugs: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`. `canasta.webp` is sheet-only. Rook keeps `public/theme/game-card-rook-thumb.jpg`.
+Mapped slugs: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`. `canasta.webp` is sheet-only: cream heart stack (hand) and a teal back (foot). The official 960×540 attachment did not mount at `back-porch/art/dusk-v2/canasta.webp`; the committed file reconstructs that frame at the same cover crop. Rook keeps `public/theme/game-card-rook-thumb.jpg`.
 
 Tile CSS: `background-size: cover` and `background-position: 50% 55%`. Wizard is `50% 46%` so the hat tip stays in the crop. Cropping the small lamp is fine. Do not letterbox.
 
@@ -33,7 +33,7 @@ Tile CSS: `background-size: cover` and `background-position: 50% 55%`. Wizard is
 - **Wizard** — one hat, one card, one candle.
 - **Flip 7** — one 7 flipping off a deck.
 - **Beat the Heat** — one chili on a short card fan.
-- **Canasta** — two small stacks (hand and foot) on the porch table. Not a picker game on this branch.
+- **Canasta** — two small stacks on the porch table: a cream heart face (hand) and a teal back (foot). Not a picker game on this branch.
 - **Rook** — keeps the current beach thumb. No dusk Rook on this branch.
 
 ## Logo

@@ -22,6 +22,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
 - Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
 - Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
+- Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 
 ## Kills
 
@@ -57,3 +58,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
 - Edit Seating plus Earlier/Later when the Home list can reorder in place.
 - A second ranking function for Recent nights, or a podium on an Incomplete night.
+- Adding Canasta to the game registry or Home picker from this art pass.
