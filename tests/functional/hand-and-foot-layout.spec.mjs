@@ -44,11 +44,21 @@ async function entryProblems(page){
     const footer=[...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].map(boxOf);
     const fields=[...document.querySelectorAll('#score-entry-modal .hf-field, #score-entry-modal .hf-round, #score-entry-modal .hf-rate')].map(el=>({el, box:boxOf(el)}));
     const keys=[...document.querySelectorAll('#score-entry-modal .score-entry-key')].map(boxOf);
+    const visibleBox=(el, box)=>{
+      if(!scroller || !scroller.contains(el) || !view) return box;
+      const x=Math.max(box.x, view.x);
+      const y=Math.max(box.y, view.y);
+      const right=Math.min(box.right, view.right);
+      const bottom=Math.min(box.bottom, view.bottom);
+      return {x, y, right, bottom, width:right-x, height:bottom-y, text:box.text};
+    };
     const clippedAway=(el, box)=>scroller && scroller.contains(el) && view && (box.bottom<=view.top+1 || box.top>=view.bottom-1);
     fields.forEach(item=>{
       if(clippedAway(item.el, item.box)) return;
-      if(hit(item.box, keyBox)) problems.push(`field overlaps keypad: ${item.box.text}`);
-      footer.forEach(btn=>{ if(hit(item.box, btn)) problems.push(`field overlaps ${btn.text}`); });
+      const shown=visibleBox(item.el, item.box);
+      if(shown.width<=0 || shown.height<=0) return;
+      if(hit(shown, keyBox)) problems.push(`field overlaps keypad: ${item.box.text}`);
+      footer.forEach(btn=>{ if(hit(shown, btn)) problems.push(`field overlaps ${btn.text}`); });
       if(item.box.width<44 || item.box.height<44) problems.push(`field ${Math.round(item.box.width)}x${Math.round(item.box.height)} ${item.box.text}`);
       const label=item.el.querySelector('.score-entry-meta-label');
       const value=item.el.querySelector('.hf-field-value, .hf-round-value');
