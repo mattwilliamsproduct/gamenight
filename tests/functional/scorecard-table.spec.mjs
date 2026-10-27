@@ -27,7 +27,9 @@ test('Table parks an unfinished entry and Resume restores it after Records', asy
 
   await page.evaluate(() => showHistory());
   await expect(page.locator('#history-screen')).not.toHaveClass(/hidden/);
-  await page.locator('[data-s2-action="resume"]').click();
+  await page.evaluate(() => goHome());
+  await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
+  await page.locator('#slice2-home [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-table-btn')).toBeVisible();
   const resumed = await draftValue(page);
