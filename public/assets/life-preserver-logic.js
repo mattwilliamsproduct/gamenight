@@ -57,12 +57,12 @@
   };
 
   const COLORS = {
-    badStrong: '#c47a6a',
-    badSoft: '#e4b4a6',
-    goodStrong: '#0f766e',
-    goodMid: '#2a9d8f',
-    goodSoft: '#7bc9b7',
-    zero: '#b4a89c'
+    badStrong: '#a34e42',
+    badSoft: '#c46b5c',
+    goodStrong: '#085c56',
+    goodMid: '#0c766e',
+    goodSoft: '#14756c',
+    zero: '#6b635c'
   };
 
   // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
@@ -516,20 +516,55 @@
   }
 
   const ROULETTE_UNIT = 0.025;
-  const MIN_SEGMENT_FRAC = 0.04;
-  const WHEEL_OUTER_FRAC = 0.96;
-  const WHEEL_INNER_FRAC = 0.18;
+  const TARGET_POCKETS = 40;
+  const POCKET_WIDTH_SLOP = 0.25;
+  const MIN_SEGMENT_FRAC = ROULETTE_UNIT * (1 - POCKET_WIDTH_SLOP);
+  const WHEEL_BOWL_FRAC = 1;
+  const WHEEL_TRACK_FRAC = 0.84;
+  const WHEEL_OUTER_FRAC = 0.78;
+  const WHEEL_INNER_FRAC = 0.62;
+  const WHEEL_FRET_INNER_FRAC = 0.30;
+  const WHEEL_HUB_FRAC = 0.20;
+  const EQUAL_POCKET_OPTION = Object.freeze({
+    pockets: 40,
+    unit: 0.025,
+    counts: Object.freeze({
+      smallHelp: 18,
+      mediumHelp: 12,
+      bigHelp: 2,
+      noChange: 5,
+      smallSetback: 3
+    }),
+    implied: Object.freeze({
+      smallHelp: 0.45,
+      mediumHelp: 0.30,
+      bigHelp: 0.05,
+      noChange: 0.125,
+      smallSetback: 0.075
+    }),
+    live: OUTCOME_TABLE,
+    note: 'Closest even-width plan. Not used live. Live keeps 12% and 8% exact with 2.4% and 2.667% pockets.'
+  });
 
   function outcomeKey(slice) {
     return `${wheelSliceKind(slice)}:${Number(slice.adjustment) || 0}`;
   }
 
-  function segmentCountFor(weight) {
+  function pocketCountFor(weight, target) {
+    const goal = Number(target) || TARGET_POCKETS;
+    const avg = 1 / goal;
     const value = Number(weight) || 0;
     if (value <= 0) return 0;
-    let n = Math.max(1, Math.round(value / ROULETTE_UNIT));
-    while (n > 1 && value / n < MIN_SEGMENT_FRAC - 1e-9) n -= 1;
+    let n = Math.max(1, Math.round(value / avg));
+    const minW = avg * (1 - POCKET_WIDTH_SLOP);
+    const maxW = avg * (1 + POCKET_WIDTH_SLOP);
+    while (value / n > maxW + 1e-12) n += 1;
+    while (n > 1 && value / n < minW - 1e-12) n -= 1;
     return n;
+  }
+
+  function segmentCountFor(weight) {
+    return pocketCountFor(weight, TARGET_POCKETS);
   }
 
   function mergeEqualOutcomes(slices) {
@@ -581,9 +616,26 @@
         probability: (Number(slice.weight) || 0) / total,
         weight: Number(slice.weight) || 0,
         segments,
+        pocketWidth: segments ? ((Number(slice.weight) || 0) / total) / segments : 0,
         arcDegrees: ((Number(slice.weight) || 0) / total) * 360
       };
     }).sort((a, b) => a.adjustment - b.adjustment || a.kind.localeCompare(b.kind));
+  }
+
+  function describePocketTable(slices) {
+    const outcomes = summarizeWheelOutcomes(slices);
+    const totalPockets = outcomes.reduce((sum, outcome) => sum + outcome.segments, 0);
+    const avg = totalPockets ? 1 / totalPockets : 0;
+    return {
+      pockets: totalPockets,
+      averageWidth: avg,
+      equalOption: EQUAL_POCKET_OPTION,
+      outcomes: outcomes.map((outcome) => ({
+        ...outcome,
+        widthEach: outcome.pocketWidth,
+        widthVsAverage: avg ? outcome.pocketWidth / avg - 1 : 0
+      }))
+    };
   }
 
   function arrangeRouletteSegments(outcomes) {
@@ -723,21 +775,22 @@
     const scale = canvasWidth / cssWidth;
     const chord = 2 * Math.sin(arc / 2) * midR;
     const radial = Math.max(outer - inner, 1);
-    const radialMode = chord < Math.max(48 * scale, signed.length * 20 * scale);
+    const radialMode = false;
+    const tangentialMode = true;
     const chordCss = chord / scale;
     const radialCss = radial / scale;
-    const targetCss = Math.max(11, Math.min(cssWidth * 0.088, radialCss * 0.24, radialMode ? chordCss * 0.58 : chordCss * 0.38));
-    const cssFont = Math.max(10, Math.min(targetCss, radialMode ? chordCss * 0.62 : chordCss * 0.42));
+    const targetCss = Math.max(8, Math.min(
+      cssWidth * 0.038,
+      radialCss * 0.58,
+      chordCss * (signed.length > 2 ? 0.52 : 0.6)
+    ));
+    const cssFont = Math.max(8, Math.min(targetCss, chordCss * 0.62));
     const canvasFont = cssFont * scale;
     const textW = signed.length * canvasFont * 0.52;
     const textH = canvasFont * 0.86;
     const x = cx + Math.cos(mid) * midR;
     const y = cy + Math.sin(mid) * midR;
-    let rotation = 0;
-    if (radialMode) {
-      rotation = mid;
-      if (Math.cos(mid) < 0) rotation += Math.PI;
-    }
+    const rotation = mid + Math.PI / 2;
     const hw = textW / 2;
     const hh = textH / 2;
     const corners = [
@@ -770,6 +823,7 @@
       arc,
       rotation,
       radialMode,
+      tangentialMode,
       canvasFont,
       cssFont,
       textW,
@@ -1314,16 +1368,25 @@
     OUTCOME_TABLE,
     COLORS,
     ROULETTE_UNIT,
+    TARGET_POCKETS,
+    POCKET_WIDTH_SLOP,
     MIN_SEGMENT_FRAC,
+    EQUAL_POCKET_OPTION,
+    WHEEL_BOWL_FRAC,
+    WHEEL_TRACK_FRAC,
     WHEEL_OUTER_FRAC,
     WHEEL_INNER_FRAC,
+    WHEEL_FRET_INNER_FRAC,
+    WHEEL_HUB_FRAC,
     sliceArcs,
     attachSliceArcs,
     wheelSliceKind,
     outcomeKey,
+    pocketCountFor,
     segmentCountFor,
     mergeEqualOutcomes,
     summarizeWheelOutcomes,
+    describePocketTable,
     pickWeightedSlice,
     buildLockedOutcome,
     describeLifePreserverResult,

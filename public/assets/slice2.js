@@ -514,6 +514,87 @@
     return { size, chrome, vw, vh, availW, availH, dialogW, dialogH };
   }
 
+  function paintWoodBowl(context, cx, cy, radius) {
+    const wood = context.createRadialGradient(cx - radius * 0.18, cy - radius * 0.22, radius * 0.08, cx, cy, radius);
+    wood.addColorStop(0, '#7a5130');
+    wood.addColorStop(0.38, '#5a3820');
+    wood.addColorStop(0.72, '#3d2616');
+    wood.addColorStop(0.88, '#c4a36a');
+    wood.addColorStop(0.94, '#8a6a3c');
+    wood.addColorStop(1, '#2b1a10');
+    context.beginPath();
+    context.arc(cx, cy, radius, 0, Math.PI * 2);
+    context.fillStyle = wood;
+    context.fill();
+    for (let i = 0; i < 7; i++) {
+      context.beginPath();
+      context.arc(cx, cy, radius * (0.805 + i * 0.026), 0, Math.PI * 2);
+      context.strokeStyle = `rgba(28, 16, 8, ${0.06 + i * 0.015})`;
+      context.lineWidth = 4;
+      context.stroke();
+    }
+    [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((angle) => {
+      const r = radius * 0.905;
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+      context.save();
+      context.translate(x, y);
+      context.rotate(angle);
+      context.beginPath();
+      context.moveTo(0, -7);
+      context.lineTo(5, 0);
+      context.lineTo(0, 7);
+      context.lineTo(-5, 0);
+      context.closePath();
+      context.fillStyle = '#f3ead8';
+      context.fill();
+      context.restore();
+    });
+  }
+
+  function paintCone(context, cx, cy, inner, hub) {
+    const cone = context.createRadialGradient(cx - hub * 0.3, cy - hub * 0.35, hub * 0.2, cx, cy, inner);
+    cone.addColorStop(0, '#1a2624');
+    cone.addColorStop(0.55, '#243330');
+    cone.addColorStop(1, '#16201e');
+    context.beginPath();
+    context.arc(cx, cy, inner, 0, Math.PI * 2);
+    context.fillStyle = cone;
+    context.fill();
+    [0.52, 0.40].forEach((frac, index) => {
+      context.beginPath();
+      context.arc(cx, cy, cx * frac, 0, Math.PI * 2);
+      context.strokeStyle = index ? 'rgba(196, 163, 106, 0.35)' : 'rgba(212, 192, 150, 0.45)';
+      context.lineWidth = index ? 3 : 5;
+      context.stroke();
+    });
+  }
+
+  function paintTurret(context, cx, cy, hub) {
+    const metal = context.createRadialGradient(cx - hub * 0.25, cy - hub * 0.3, hub * 0.1, cx, cy, hub);
+    metal.addColorStop(0, '#d7c6a4');
+    metal.addColorStop(0.45, '#8f7a55');
+    metal.addColorStop(1, '#3d3222');
+    context.beginPath();
+    context.arc(cx, cy, hub, 0, Math.PI * 2);
+    context.fillStyle = metal;
+    context.fill();
+    context.beginPath();
+    context.arc(cx, cy, hub * 0.78, 0, Math.PI * 2);
+    context.fillStyle = '#1c2927';
+    context.fill();
+    for (let i = 0; i < 3; i++) {
+      const angle = -Math.PI / 2 + i * ((Math.PI * 2) / 3);
+      context.beginPath();
+      context.moveTo(cx + Math.cos(angle) * hub * 0.2, cy + Math.sin(angle) * hub * 0.2);
+      context.lineTo(cx + Math.cos(angle) * hub * 1.35, cy + Math.sin(angle) * hub * 1.35);
+      context.strokeStyle = 'rgba(215, 198, 164, 0.7)';
+      context.lineWidth = 7;
+      context.lineCap = 'round';
+      context.stroke();
+    }
+  }
+
   function paintWheel() {
     sizeLifePreserverModal();
     const canvas = document.getElementById('wheel-canvas');
@@ -532,12 +613,15 @@
     const total = slices.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const outerFrac = Number(LP.WHEEL_OUTER_FRAC) || 0.96;
-    const innerFrac = Number(LP.WHEEL_INNER_FRAC) || 0.18;
-    const outer = cx * outerFrac;
-    const inner = cx * innerFrac;
+    const bowl = cx * (Number(LP.WHEEL_BOWL_FRAC) || 1);
+    const outer = cx * (Number(LP.WHEEL_OUTER_FRAC) || 0.78);
+    const inner = cx * (Number(LP.WHEEL_INNER_FRAC) || 0.62);
+    const fretInner = cx * (Number(LP.WHEEL_FRET_INNER_FRAC) || 0.3);
+    const hubR = cx * (Number(LP.WHEEL_HUB_FRAC) || 0.2);
     const cssWidth = canvas.clientWidth || canvas.width;
     context.clearRect(0, 0, canvas.width, canvas.height);
+    paintWoodBowl(context, cx, cy, bowl);
+    paintCone(context, cx, cy, inner, hubR);
     let angle = -Math.PI / 2;
     const labels = [];
     slices.forEach((slice) => {
@@ -549,18 +633,43 @@
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
-      context.fillStyle = slice.color || (kind === 'good' ? '#2a9d8f' : (kind === 'bad' ? '#e4b4a6' : '#b4a89c'));
+      context.fillStyle = slice.color || (kind === 'good' ? '#0c766e' : (kind === 'bad' ? '#c46b5c' : '#6b635c'));
       context.fill();
-      context.strokeStyle = 'rgba(8, 87, 79, 0.28)';
-      context.lineWidth = 2;
-      context.beginPath();
-      context.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
-      context.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
-      context.stroke();
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
     });
+    angle = -Math.PI / 2;
+    slices.forEach((slice) => {
+      const arc = ((Number(slice.weight) || 0) / total) * Math.PI * 2;
+      const x1 = cx + Math.cos(angle) * fretInner;
+      const y1 = cy + Math.sin(angle) * fretInner;
+      const x2 = cx + Math.cos(angle) * (outer + 3);
+      const y2 = cy + Math.sin(angle) * (outer + 3);
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.strokeStyle = 'rgba(40, 28, 16, 0.55)';
+      context.lineWidth = 5;
+      context.stroke();
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.strokeStyle = 'rgba(236, 224, 196, 0.92)';
+      context.lineWidth = 2.2;
+      context.stroke();
+      angle += arc;
+    });
+    context.beginPath();
+    context.arc(cx, cy, outer + 2, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(230, 214, 178, 0.9)';
+    context.lineWidth = 6;
+    context.stroke();
+    context.beginPath();
+    context.arc(cx, cy, inner, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(20, 14, 8, 0.45)';
+    context.lineWidth = 4;
+    context.stroke();
     slices.forEach((slice) => {
       const layout = typeof LP.labelLayout === 'function'
         ? LP.labelLayout(slice, {
@@ -578,24 +687,13 @@
       context.translate(layout.x, layout.y);
       context.rotate(layout.rotation);
       context.font = `800 ${layout.canvasFont}px "Nunito Sans", sans-serif`;
-      context.fillStyle = layout.kind === 'bad' ? '#3b1410' : (layout.kind === 'good' ? '#04332e' : '#3f3a36');
+      context.fillStyle = '#f6efe2';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.fillText(layout.text, 0, 0);
       context.restore();
     });
-    context.beginPath();
-    context.arc(cx, cy, outer, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(138, 106, 50, 0.75)';
-    context.lineWidth = 5;
-    context.stroke();
-    context.beginPath();
-    context.arc(cx, cy, inner - 2, 0, Math.PI * 2);
-    context.fillStyle = '#f7f3ea';
-    context.fill();
-    context.strokeStyle = 'rgba(138, 106, 50, 0.4)';
-    context.lineWidth = 4;
-    context.stroke();
+    paintTurret(context, cx, cy, hubR);
     const hub = document.querySelector('.wheel-spinner-hub');
     const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
     if (hub) hub.textContent = resultOpen ? '' : 'SPIN';
@@ -603,8 +701,66 @@
     if (mode && !resultOpen) mode.textContent = 'Life Preserver';
     canvas.dataset.slice2Wheel = '1';
     paintWheel.lastLabels = labels;
-    paintWheel.lastGeometry = { cx, cy, outer, inner, cssWidth, canvasWidth: canvas.width };
+    paintWheel.lastGeometry = { cx, cy, outer, inner, cssWidth, canvasWidth: canvas.width, bowl, hubR };
+    if (paintWheel.ballReady == null) {
+      placeLifePreserverBall(0, 42, 1);
+      paintWheel.ballReady = true;
+    }
     return slices;
+  }
+
+  function ballNodes() {
+    return {
+      orbit: document.getElementById('wheel-ball-orbit'),
+      ball: document.getElementById('wheel-ball')
+    };
+  }
+
+  function placeLifePreserverBall(angleDeg, radiusPct, opacity) {
+    const { orbit, ball } = ballNodes();
+    if (!orbit || !ball) return;
+    orbit.style.transform = `rotate(${angleDeg}deg)`;
+    ball.style.top = `calc(50% - ${radiusPct}%)`;
+    ball.style.opacity = String(opacity);
+    paintWheel.ballAngle = angleDeg;
+    paintWheel.ballRadius = radiusPct;
+  }
+
+  function animateLifePreserverBall(landingDeg, options) {
+    const { orbit, ball } = ballNodes();
+    if (!orbit || !ball) return Promise.resolve();
+    const reduce = !!(options && options.reduced);
+    const end = Number(landingDeg) || 0;
+    if (reduce) {
+      orbit.style.transition = 'none';
+      ball.style.transition = 'opacity 180ms ease-out';
+      placeLifePreserverBall(end, 35, 0);
+      ball.offsetHeight;
+      placeLifePreserverBall(end, 35, 1);
+      paintWheel.ballParked = true;
+      return Promise.resolve();
+    }
+    const start = Number(paintWheel.ballAngle) || 0;
+    const turns = 360 * 5 + end;
+    orbit.style.transition = 'transform 2.55s cubic-bezier(0.12, 0.68, 0.18, 1)';
+    ball.style.transition = 'top 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 120ms linear';
+    placeLifePreserverBall(start, 42, 1);
+    orbit.offsetHeight;
+    placeLifePreserverBall(turns, 42, 1);
+    window.setTimeout(() => {
+      placeLifePreserverBall(turns, 35, 1);
+      paintWheel.ballParked = true;
+    }, 2100);
+    return Promise.resolve();
+  }
+
+  function resetLifePreserverBall() {
+    const { orbit, ball } = ballNodes();
+    if (orbit) orbit.style.transition = 'none';
+    if (ball) ball.style.transition = 'none';
+    paintWheel.ballParked = false;
+    paintWheel.ballReady = true;
+    placeLifePreserverBall(0, 42, 1);
   }
 
   function wheelLabelReport() {
@@ -634,7 +790,10 @@
       spinInView: !!(spinBox && spinBox.top >= -1 && spinBox.bottom <= window.innerHeight + 1 && spinBox.left >= -1 && spinBox.right <= window.innerWidth + 1 && spinBox.width > 8),
       diameterShare: sized && sized.size
         ? sized.size / Math.min(window.innerWidth, window.innerHeight - sized.chrome)
-        : 0
+        : 0,
+      pockets: labels.length,
+      ball: !!(document.getElementById('wheel-ball')),
+      ballRadius: paintWheel.ballRadius || 0
     };
   }
 
@@ -773,7 +932,16 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, sizeLifePreserverModal, wheelLabelReport };
+  window.BPGSlice2 = {
+    refresh,
+    paintWheel,
+    parkSaveIndicator,
+    sizeLifePreserverModal,
+    wheelLabelReport,
+    animateLifePreserverBall,
+    resetLifePreserverBall,
+    placeLifePreserverBall
+  };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

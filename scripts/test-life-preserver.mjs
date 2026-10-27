@@ -921,7 +921,7 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
     const result = offerFromCase(item);
     assert.equal(result.eligible, true, item.label);
     const slices = result.slices;
-    assert.ok(slices.length >= 5, `${item.label}: too few segments`);
+    assert.ok(slices.length >= 36 && slices.length <= 44, `${item.label}: pocket count ${slices.length}`);
     const arcs = LP.sliceArcs(slices);
     const totalArc = arcs.reduce((sum, arc) => sum + arc.arc, 0);
     assert.ok(Math.abs(totalArc - Math.PI * 2) < 1e-9, `${item.label}: arcs ${totalArc}`);
@@ -953,6 +953,24 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
       assert.ok(Math.abs(smallP - 0.75) < 1e-9, `Duke small+folded medium should be 75%, got ${smallP}`);
       console.log('DUKE_ROULETTE', JSON.stringify(outcomes, null, 2));
     }
+    const table = LP.describePocketTable(slices);
+    assert.ok(table.pockets >= 36 && table.pockets <= 44, `${item.label} pockets ${table.pockets}`);
+    table.outcomes.forEach((outcome) => {
+      assert.ok(
+        Math.abs(outcome.widthVsAverage) <= 0.26,
+        `${item.label} ${outcome.label} width ${outcome.widthEach} vs avg ${table.averageWidth}`
+      );
+    });
+    assert.equal(table.equalOption.implied.noChange, 0.125);
+    assert.equal(LP.OUTCOME_TABLE.noChange, 0.12);
+    assert.equal(LP.OUTCOME_TABLE.smallSetback, 0.08);
+    console.log('POCKET_TABLE', item.label, JSON.stringify(table.outcomes.map((row) => ({
+      label: row.label,
+      prob: Number(row.probability.toFixed(4)),
+      pockets: row.segments,
+      width: Number(row.widthEach.toFixed(4)),
+      arc: Number(row.arcDegrees.toFixed(2))
+    }))));
   }
 });
 
@@ -1020,19 +1038,21 @@ test('in-slice label boxes stay inside their roulette segments', () => {
         assert.equal(layout.text, LP.formatSignedPoints(slice.adjustment));
         assert.ok(layout.insidePie, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left the pie`);
         assert.ok(layout.insideSegment, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left its segment`);
-        assert.ok(layout.cssFont >= 10, `${item.label} ${layout.text} font ${layout.cssFont}`);
+        assert.ok(layout.cssFont >= 8, `${item.label} ${layout.text} font ${layout.cssFont}`);
+        assert.equal(layout.tangentialMode, true, `${item.label} ${layout.text} should read along the rim`);
       });
     }
   }
 });
 
 test('in-slice label fonts grow with the wheel', () => {
-  const small = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 280, canvasWidth: 800 };
-  const large = { ...small, cssWidth: 560 };
+  const small = { cx: 200, cy: 200, outer: 200 * LP.WHEEL_OUTER_FRAC, inner: 200 * LP.WHEEL_INNER_FRAC, cssWidth: 280, canvasWidth: 400 };
+  const large = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 560, canvasWidth: 800 };
   const result = offerFromCase(ROULETTE_CASES[0]);
-  const slices = LP.attachSliceArcs(result.slices);
-  const wide = slices.reduce((best, slice) => ((slice._end - slice._start) > (best._end - best._start) ? slice : best), slices[0]);
-  const smallFont = LP.labelLayout(wide, small).cssFont;
-  const largeFont = LP.labelLayout(wide, large).cssFont;
-  assert.ok(largeFont > smallFont + 4, `wide-slice font ${smallFont} -> ${largeFont}`);
+  const smallSlices = LP.attachSliceArcs(result.slices.map((slice) => ({ ...slice })));
+  const largeSlices = LP.attachSliceArcs(result.slices.map((slice) => ({ ...slice })));
+  const pick = (slices) => slices.reduce((best, slice) => ((slice._end - slice._start) > (best._end - best._start) ? slice : best), slices[0]);
+  const smallFont = LP.labelLayout(pick(smallSlices), small).cssFont;
+  const largeFont = LP.labelLayout(pick(largeSlices), large).cssFont;
+  assert.ok(largeFont > smallFont + 3, `rim font ${smallFont} -> ${largeFont}`);
 });

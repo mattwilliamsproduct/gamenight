@@ -3670,15 +3670,38 @@ button.dealer-name-indicator {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 54px;
-      height: 54px;
+      width: 18%;
+      height: 18%;
       transform: translate(-50%,-50%);
-      z-index: 12;
+      z-index: 15;
       border-radius: 999px;
-      border: 4px solid #fffaf1;
-      background: radial-gradient(circle at 35% 30%, #6ee7b7, #0a4f49 70%);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.35);
+      border: 3px solid #d7c6a4;
+      background: radial-gradient(circle at 35% 30%, #2a403c, #13201e 70%);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.18);
+      color: #f6efe2;
+      font-family: "Nunito Sans", sans-serif;
+      font-weight: 800;
+      font-size: clamp(0.62rem, 2.2vw, 0.85rem);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .wheel-ball-orbit {
+      position: absolute;
+      inset: 0;
+      z-index: 14;
       pointer-events: none;
+      transform-origin: 50% 50%;
+    }
+    .wheel-ball {
+      position: absolute;
+      left: 50%;
+      top: calc(50% - 42%);
+      width: 4.6%;
+      height: 4.6%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: radial-gradient(circle at 32% 28%, #fff, #efe6d6 52%, #b7ad9a 100%);
+      box-shadow: 0 2px 5px rgba(20, 12, 6, 0.45), inset 0 1px 0 rgba(255,255,255,0.8);
     }
     .scorecard-life-preserver-rank {
       width: 2.1rem;
@@ -8465,7 +8488,10 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="wheel-spinner" class="wheel-spinner">
             <div class="wheel-pointer" aria-hidden="true"></div>
           </div>
-          <div class="wheel-spinner-hub"></div>
+          <div id="wheel-ball-orbit" class="wheel-ball-orbit" aria-hidden="true">
+            <div id="wheel-ball" class="wheel-ball"></div>
+          </div>
+          <button type="button" class="wheel-spinner-hub" onclick="spinWheel()" aria-label="Use your one spin">SPIN</button>
           <div id="wheel-callouts" class="wheel-callouts" hidden></div>
         </div>
         <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
@@ -11300,6 +11326,9 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.offsetHeight;
       spinner.style.transition='';
     }
+    if(window.BPGSlice2&&typeof BPGSlice2.resetLifePreserverBall==='function'){
+      BPGSlice2.resetLifePreserverBall();
+    }
     hideLifePreserverHelp();
     cancelLifePreserverSpin();
     _lifePreserverCommitted=false;
@@ -11405,10 +11434,12 @@ button.dealer-name-indicator .dealer-player-label {
         ? BPGLifePreserver.rotationDegreesForSlice(win)
         : 0);
     const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(spinner){
+    currentWheelRotation=landing;
+    if(window.BPGSlice2&&typeof BPGSlice2.animateLifePreserverBall==='function'){
+      BPGSlice2.animateLifePreserverBall(landing,{reduced:reduce});
+    }else if(spinner){
       spinner.style.transition=reduce?'transform 180ms ease-out':'transform 3s cubic-bezier(0.12, 0.7, 0.2, 1)';
-      currentWheelRotation=(reduce?0:360*6)+landing;
-      spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+      spinner.style.transform=`rotate(${(reduce?0:360*6)+landing}deg)`;
     }
     haptic([60, 80, 60, 80, 120]);
     _lifePreserverSpinTimer=setTimeout(()=>{

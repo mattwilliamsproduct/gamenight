@@ -89,6 +89,9 @@ test('Life Preserver roulette labels stay inside their slices', async ({page}) =
       expect(label.insidePie, `${viewport.width} ${label.text} stays in the pie`).toBe(true);
     });
     expect(report.labels.some((label) => label.text === '+10'), `${viewport.width} shows +10`).toBe(true);
+    expect(report.pockets, `${viewport.width} pocket count ${report.pockets}`).toBeGreaterThanOrEqual(36);
+    expect(report.pockets, `${viewport.width} pocket count ${report.pockets}`).toBeLessThanOrEqual(44);
+    expect(report.ball, `${viewport.width} paints a ball`).toBe(true);
     expect(report.spinInView, `${viewport.width} keeps Use Your One Spin on screen ${JSON.stringify(report)}`).toBe(true);
     expect(report.diameterShare, `${viewport.width} wheel fill ${JSON.stringify(report)}`).toBeGreaterThanOrEqual(0.70);
   }

@@ -20,6 +20,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 - A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.
 - A Life Preserver modal that uses the leftover viewport so the wheel and slice numbers can get big. Use Your One Spin stays on screen.
+- A Life Preserver that reads as a roulette bowl: narrow pockets, numbered rim, frets, turret, and a ball that settles.
 
 ## Kills
 
@@ -53,3 +54,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
 - Life Preserver labels outside the pie, callout pills, or leader lines.
 - A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
+- A Life Preserver that still looks like a pie chart with extra wedges.
