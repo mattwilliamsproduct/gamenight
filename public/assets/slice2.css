@@ -1916,9 +1916,10 @@ html.slice2-tv .s2-headline-card strong {
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
   letter-spacing: -0.03em;
   line-height: 1;
+  white-space: nowrap;
 }
 
 html.slice2-tv .s2-fame-col {
@@ -1971,6 +1972,27 @@ html.slice2-tv .s2-ledger-row {
   align-items: baseline;
   padding: 10px 2px;
   border-top: 1px solid var(--s2-line);
+}
+
+html.slice2-tv .s2-leader-row {
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+html.slice2-tv .s2-leader-row .s2-player-link {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html.slice2-tv .s2-leader-row .s2-book-who {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+html.slice2-tv .s2-leader-row strong {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
 }
 
 html.slice2-tv .s2-ledger-row {
@@ -2200,6 +2222,10 @@ html.slice2-tv .s2-night-actions .s2-btn {
   white-space: nowrap;
 }
 
+html.slice2-tv .s2-segment .s2-btn {
+  white-space: nowrap;
+}
+
 html.slice2-tv .s2-disclose summary {
   cursor: pointer;
   font-family: "Bree Serif", Georgia, serif;
@@ -2228,25 +2254,97 @@ html.slice2-tv .s2-records-filters select:focus {
     justify-content: flex-start;
   }
 
-  html.slice2-tv .s2-book-row {
+  html.slice2-tv .s2-book-row:not(.s2-leader-row) {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  html.slice2-tv .s2-book-who {
+  html.slice2-tv .s2-book-row:not(.s2-leader-row) .s2-book-who {
     grid-column: 1 / -1;
+  }
+
+  html.slice2-tv .s2-leader-row {
+    grid-template-columns: 1.6rem minmax(0, 1fr) auto;
   }
 
   html.slice2-tv .s2-headline-card strong {
     font-size: 1.7rem;
   }
-}
 
-@media (min-width: 1400px) {
-  html.slice2-tv .s2-records-more {
+  html.slice2-tv .s2-fame-col .s2-panel-head h2,
+  html.slice2-tv .s2-nights-col .s2-panel-head h2,
+  html.slice2-tv .s2-explore-col .s2-panel-head h2 {
+    white-space: normal;
+  }
+
+  html.slice2-tv .s2-ledger-row.is-head {
     display: none;
   }
 
+  html.slice2-tv .s2-ledger-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px 2px;
+  }
+
+  html.slice2-tv .s2-ledger-stat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+    align-items: baseline;
+  }
+
+  html.slice2-tv .s2-ledger-stat::before {
+    content: attr(data-label);
+    color: var(--s2-muted);
+    font-family: "Nunito Sans", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  html.slice2-tv .s2-ledger-stat small {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  html.slice2-tv .s2-ledger-stat strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 1.15rem;
+  }
+}
+
+html.slice2-tv .s2-night-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+html.slice2-tv .s2-night-day {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 10px;
+}
+
+html.slice2-tv .s2-night-day h3 {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1400px) {
   html.slice2-tv .s2-explore-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  html.slice2-tv .s2-tab-rest {
+    display: none;
+  }
+
+  html.slice2-tv .s2-segment .s2-btn {
+    font-size: 0.82rem;
+    padding-inline: 0.45rem;
   }
 }

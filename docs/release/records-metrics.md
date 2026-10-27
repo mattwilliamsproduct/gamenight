@@ -22,3 +22,27 @@ Definitions for the restored Records book. The same rules live as comments in `p
 | Comeback extras | Only when a match stored `round.comeback`. Halftime-deficit stories stay off without that data. | Same value lists every name. | Hidden when no stored extras exist. | No. |
 
 Closest Finish To 66 stays computed and stays off the board. Reaching 66 ends Beat the Heat as a loss.
+
+## Name mapping
+
+Primary labels are the claim. Fun subtitles sit on two Shame rows only. Ledger and Fame stay professional.
+
+| Old name | New primary | Subtitle | Definition |
+| --- | --- | --- | --- |
+| Most Wins All Time | Career wins |  | Completed matches in `winners`, with games played beside the count. |
+| Best Win Rate (Min 5) | Win rate |  | `wins / games`, printed as `45% · 9 of 20`. Leaders need 5 games. |
+| Most Games Played | Most matches |  | Completed matches the player sat. |
+| Dead Last Derby / Bronze Medal | Most last-place finishes |  | Shared last place, same numeric compare as the scorecard. |
+| The Disaster Award | Worst final score · Five Crowns |  | Highest unassisted Five Crowns total. |
+| The Crash and Burn | Highest single-round score | Crash and Burn | Highest played scoring-round score. Life Preserver rounds are out. |
+| The 818 Brick | Worst final score · 818 |  | Lowest unassisted 818 total. Retired as a primary label. |
+| The Meltdown | Worst final score · Beat the Heat | Meltdown | Highest unassisted Beat the Heat total. |
+| The Overconfident | Most missed bids · Wizard |  | Stored Wizard bid vs actual classified missed. |
+| The Invisible Man | Most games without a win |  | Most completed matches with zero wins. |
+| The Slow Learner | Most consecutive last-place finishes |  | Consecutive completed last-place finishes, in id order. |
+| The Sharp Shooter | Best career exact-bid rate · Wizard |  | Exact Wizard bids / Wizard bids. Needs 10 bids. |
+| The Comeback Kid | Wins from a stored-halftime deficit |  | Only when `round.comeback` exists. Hidden otherwise. |
+| The Streaker | Longest winning streak |  | Consecutive completed wins, in id order. |
+| Wizard: The Clairvoyant | Most exact bids · Wizard |  | Career exact Wizard bids. |
+| Wizard: Zero-Bid Specialist | Most zero bids hit · Wizard |  | Wizard bid 0 and actual 0. |
+| Cleanest Game | Cleanest game |  | Average scoring-round score in one unassisted match. |

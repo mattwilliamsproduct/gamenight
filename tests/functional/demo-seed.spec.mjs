@@ -107,7 +107,7 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-nights')).toHaveClass(/is-on/);
     await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Incomplete/);
-    await expect(page.locator('.s2-night-winner', {hasText: / and /})).toBeVisible();
+    await expect(page.locator('.s2-night-winner', {hasText: / and /}).first()).toBeVisible();
   },
   'records-shame': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);

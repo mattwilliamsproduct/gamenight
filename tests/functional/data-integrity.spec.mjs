@@ -707,7 +707,7 @@ test('P0-06 history scorecard Correct updates a finished Wizard without a live t
     saveData({fullPersist:true, syncCold:true});
     showHistory();
   });
-  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.getByRole('button',{name:/View scorecard|Scorecard/}).first().click();
   await page.locator('.round-correct-btn').click();
   await expect(page.locator('#round-correction-modal')).toBeVisible();
   await correctionKey(page,'1').click();
@@ -790,7 +790,8 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
   await expect(page.locator('#hall-of-fame-view')).toContainText('Matt');
   await expect(page.locator('#hall-of-fame-view')).toContainText('4 pts');
-  await expect(page.locator('#hall-of-fame-view')).not.toContainText('-18');
+  await expect(page.locator('.s2-ledger-table')).not.toContainText('-18');
+  await expect(page.locator('.s2-night-card[data-assisted-match="true"]')).toContainText('-18');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-hall-of-fame-unassisted.png`});
   await shot(page,'slice1-records-best-single-round-viewport');
@@ -1392,7 +1393,7 @@ test('retired 818 seats keep Cara in the correction and leave Dan out', async ({
     saveData({fullPersist:true, syncCold:true});
     showHistory();
   });
-  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.getByRole('button',{name:/View scorecard|Scorecard/}).first().click();
   await page.locator('.round-correct-btn').click();
   await expect(page.locator('#round-correction-modal')).toBeVisible();
   await expect(page.locator('.round-correction-row')).toHaveCount(3);
@@ -1437,7 +1438,7 @@ test('retired 818 seats keep Cara in the correction and leave Dan out', async ({
     saveData({fullPersist:true, syncCold:true});
     showHistory();
   });
-  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.getByRole('button',{name:/View scorecard|Scorecard/}).first().click();
   await page.locator('.round-correct-btn').click();
   await expect(page.locator('.round-correction-row')).toHaveCount(3);
   await expect(page.locator('.round-correction-row[data-player="Dan"]')).toHaveCount(0);

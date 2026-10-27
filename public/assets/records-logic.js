@@ -497,7 +497,7 @@
     };
     const compact = !!ctx.compact;
     const html = [
-      tabsHtml(pane, esc),
+      tabsHtml(pane),
       pane === 'overview' ? overviewHtml(hall, data, table, helpers, ctx, compact) : '',
       pane === 'explore' ? exploreHtml(hall, data, table, helpers, ctx, compact) : '',
       pane === 'nights' ? nightsHtml(table.history, helpers, ctx, false, compact) : ''
@@ -507,12 +507,12 @@
     view.innerHTML = html;
   }
 
-  function tabsHtml(pane, esc) {
-    const tab = (id, action, label, on) => `<button type="button" class="s2-btn${on ? ' is-on' : ''}" id="${id}" data-s2-action="${action}">${esc(label)}</button>`;
+  function tabsHtml(pane) {
+    const tab = (id, action, label, on) => `<button type="button" class="s2-btn${on ? ' is-on' : ''}" id="${id}" data-s2-action="${action}">${label}</button>`;
     return `<div class="s2-segment" role="tablist" aria-label="Records">
       ${tab('slice2-show-fame', 'show-fame', 'Overview', pane === 'overview')}
-      ${tab('slice2-show-shame', 'show-shame', 'Explore records', pane === 'explore')}
-      ${tab('slice2-show-nights', 'show-nights', 'Past nights', pane === 'nights')}
+      ${tab('slice2-show-shame', 'show-shame', 'Explore<span class="s2-tab-rest"> records</span>', pane === 'explore')}
+      ${tab('slice2-show-nights', 'show-nights', 'Past<span class="s2-tab-rest"> nights</span>', pane === 'nights')}
     </div>`;
   }
 
@@ -521,8 +521,9 @@
     return `<button type="button" class="s2-player-link" data-s2-action="open-profile" data-s2-player="${escapeAttr(name)}">${avatar(name, 'avatar-img s2-mini-avatar')}<span class="player-name-label">${esc(name)}</span></button>`;
   }
 
-  function ledgerStat(value, who, note) {
-    return `<div class="s2-ledger-stat"><strong>${value}</strong><small>${who || ''}</small>${note || ''}</div>`;
+  function ledgerStat(value, who, note, label) {
+    const labeled = label ? ` data-label="${escapeAttr(label)}"` : '';
+    return `<div class="s2-ledger-stat"${labeled}><strong>${value}</strong><small>${who || ''}</small>${note || ''}</div>`;
   }
 
   function overviewHtml(hall, data, table, helpers, ctx, compact) {
@@ -533,7 +534,7 @@
     const streak = data.allTime && data.allTime.longestWinningStreak;
     const headlines = [
       wins ? { kicker: 'Career wins', value: String(wins.value), name: wins.player, sub: wins.label || `${wins.value} wins` } : null,
-      rate ? { kicker: 'Win rate', value: formatWinRate(rate.wins != null ? rate.wins : rate.value, rate.games) || `${rate.value}%`, name: rate.player, sub: rate.games ? `${rate.games} completed matches` : (rate.label || '') } : null,
+      rate ? { kicker: 'Win rate', value: finite(rate.value) ? `${rate.value}%` : '-', name: rate.player, sub: formatWinRate(rate.wins != null ? rate.wins : rate.value, rate.games) || (rate.label || '') } : null,
       streak ? { kicker: 'Win streak', value: `${streak.value}W`, name: streak.player, sub: streak.label || 'in a row' } : null
     ].filter(Boolean);
     const rows = GAMES.map((game) => {
@@ -547,8 +548,8 @@
       const roundWho = round && round.player || '';
       return `<div class="s2-ledger-row">
         <div class="s2-ledger-game"><span class="s2-ledger-mark s2-art-${game.art}" aria-hidden="true"></span><div><strong>${esc(game.title)}</strong></div></div>
-        ${ledgerStat(esc(matchValue), esc(matchWho))}
-        ${ledgerStat(esc(roundValue), esc(roundWho))}
+        ${ledgerStat(esc(matchValue), esc(matchWho), '', 'Best final')}
+        ${ledgerStat(esc(roundValue), esc(roundWho), '', 'Best round')}
       </div>`;
     }).join('');
     const selectedShame = (data.shameAwards || []).filter((award) => award.record && award.id !== 'wizard-exact' && award.id !== 'comeback-wins').slice(0, 4);
@@ -567,9 +568,11 @@
           ${playerLink(card.name, esc, avatar)}
           <small>${esc(card.sub)}</small>
         </article>`).join('')}</div>
+        <p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p>
         <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${table.history.length} nights</span></div>
         <div class="s2-ledger-table">
-          <div class="s2-ledger-row is-head"><span>Game</span><span>Best final <small class="s2-unassisted-note">Unassisted matches only</small></span><span>Best round</span></div>
+          <p class="s2-sub s2-unassisted-note">Unassisted matches only on best final.</p>
+          <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
           ${rows}
         </div>
       </section>
@@ -674,8 +677,8 @@
     const lines = (rows, title) => {
       const shown = (rows || []).filter((row) => recordMatchesPlayer(row, playerFilter)).slice(0, 8);
       if (!shown.length) return '';
-      return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row, index) => `<div class="s2-book-row">
-        <span>${index + 1}.</span>${playerLink(row.player, esc, avatar)}
+      return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row, index) => `<div class="s2-book-row s2-leader-row">
+        <span class="s2-leader-rank">${index + 1}.</span>${playerLink(row.player, esc, avatar)}
         <span class="s2-book-who">${esc(row.label || formatWinRate(row.wins, row.games) || '')}</span>
         <strong>${esc(String(row.value ?? '-'))}</strong>
       </div>`).join('')}</div>`;
@@ -922,7 +925,7 @@
     const resume = model.showResume
       ? `<button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${id}">Resume</button>`
       : '';
-    return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.assisted ? '" data-assisted-match="true' : ''}" data-s2-action="night-open" data-s2-id="${id}">
+    return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.winners.length > 1 ? ' is-joint' : ''}"${model.assisted ? ' data-assisted-match="true"' : ''} data-s2-action="night-open" data-s2-id="${id}">
       <header class="s2-night-head">
         <strong>${esc(model.gameTitle)}</strong>
         <span>${esc(model.date)}${model.incomplete ? '' : ` · ${esc(meta)}`}</span>
