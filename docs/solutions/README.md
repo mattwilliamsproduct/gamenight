@@ -32,7 +32,7 @@ Standing trap: [rc1-records-restore.md](rc1-records-restore.md) — Records keep
 
 Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Preserver labels stay inside every slice; equal-ish pockets stay accurate-ish, and the draw still uses the live table.
 
-Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport.
+Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport. Add Player is form, not confirm.
 
 Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus Canasta. Rook keeps the current beach thumb.
 

@@ -11,7 +11,7 @@ Matt gave the go to preview Hand and Foot on the release candidate as **Canasta*
 - Team helpers used by Canasta stay available when Rook is hidden.
 - The 8-player Five Crowns keypad Next-corner failures also fail on RC1 `7a1b1a6` in this environment, so they are not a Canasta-branch regression.
 - Live four-round Canasta scorecards keep R1–R4 on a 390-wide table. RC1 trim still applies to longer history cards. Phone entry uses a 3-column grid so the sevens field and round total stay above the keypad. End Match goes through RC1 Save & End.
-- Score cells never clip. 4-digit and 5-digit totals fit at 375 / 390 / 1024 / 1440. Two-team rows skip TV fit-row stretch so they keep Five Crowns density. Team identity is two overlapped avatars plus a two-line name (`Megan &` / `Matt`) with no ellipsis.
+- Score cells never clip. 4-digit and 5-digit totals fit at 375 / 390 / 1024 / 1440. Phone team names stay `Megan &` / `Matt` in full — the player column gets room, the pair shrinks. Laptop rows use the Five Crowns type scale (8-slot fit) with small paired avatars.
 - Picker tile art uses `public/assets/art/dusk/canasta.webp` in both the default and dusk art sets, cover-cropped. From `slice2.css` the URL is `./art/dusk/canasta.webp` (`../art/` 404s). A beach-style Canasta tile is a Matt taste call.
 - Canasta rules open from slice2 Game Instructions and from in-game Actions. The sheet title is Canasta.
 - `.hf-rate-bar { display:grid }` beats Tailwind `.hidden`. Keep `.hf-rate-bar.hidden { display: none !important; }` so Five Crowns and Wizard entry never show Canasta rate chips.

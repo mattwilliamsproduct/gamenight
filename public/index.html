@@ -93,7 +93,7 @@
       --shadow-lg: 0 5px 18px rgba(7,63,59,0.1), 0 28px 54px -28px rgba(87,54,38,0.3);
       --bp-modal-gutter: 16px;
       --bp-modal-wide: min(92vw, 1200px);
-      --bp-modal-form: min(92vw, 40rem);
+      --bp-modal-form: min(92vw, 45rem);
       --bp-modal-confirm: min(92vw, 28rem);
       --bp-modal-max-h: 90vh;
       --bp-modal-type: 1rem;
@@ -172,9 +172,33 @@
     .bp-modal-panel--confirm {
       overflow-y: auto;
     }
-    #add-player-modal .bp-modal-panel,
     #rename-modal .bp-modal-panel {
       overflow: visible;
+    }
+    #add-player-modal .bp-modal-panel {
+      overflow: hidden;
+      min-height: min(36rem, var(--bp-modal-max-h));
+    }
+    #add-player-modal #midgame-add-player-input {
+      font-size: 18px;
+      min-height: 48px;
+    }
+    #add-player-modal .add-player-suggest {
+      position: static;
+      flex: 1 1 auto;
+      max-height: none;
+      min-height: 8rem;
+      margin-top: 0.75rem;
+    }
+    #add-player-modal .player-suggest-option {
+      min-height: 56px;
+      font-size: 18px;
+    }
+    @media (max-width: 640px) {
+      #add-player-modal .bp-modal-panel {
+        height: var(--bp-modal-max-h);
+        min-height: var(--bp-modal-max-h);
+      }
     }
     .bp-modal-head {
       flex: 0 0 auto;
@@ -4489,7 +4513,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-player {
       white-space: normal !important;
-      overflow: hidden;
+      overflow: visible;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-player-name-slot {
       overflow: visible;
@@ -4503,7 +4527,8 @@ button.dealer-name-indicator .dealer-player-label {
       width: auto !important;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-name,
-    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name.hf-team-name {
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name.hf-team-name,
+    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .hf-team-name {
       display: flex !important;
       flex-direction: column;
       align-items: flex-start;
@@ -4511,11 +4536,13 @@ button.dealer-name-indicator .dealer-player-label {
       overflow: visible !important;
       text-overflow: clip !important;
       line-height: 1.12 !important;
-      font-size: clamp(0.92rem, 1.35vw, 1.15rem) !important;
+      font-size: clamp(1rem, 1.5vw, 1.4rem) !important;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-line {
       display: block;
       white-space: nowrap;
+      overflow: visible;
+      max-width: none;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-name .dealer-player-label {
       display: flex;
@@ -4553,6 +4580,12 @@ button.dealer-name-indicator .dealer-player-label {
       text-overflow: clip;
       font-variant-numeric: tabular-nums;
       font-size: clamp(1.05rem, 1.8vw, 1.45rem) !important;
+    }
+    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .scorecard-total-value {
+      font-size: var(--scorecard-total-font) !important;
+    }
+    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .score-cell-input {
+      font-size: var(--scorecard-input-font) !important;
     }
     @media (min-width: 1024px) {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
@@ -4841,10 +4874,10 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-player,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-        width: 38% !important;
+        width: 48% !important;
         min-width: 0 !important;
         max-width: none !important;
-        padding-left: 0.3rem !important;
+        padding-left: 0.25rem !important;
         padding-right: 0.15rem !important;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total,
@@ -4863,11 +4896,14 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .avatar-img-sc,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars .avatar-img-sc {
-        width: 28px !important;
-        height: 28px !important;
+        width: 22px !important;
+        height: 22px !important;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars .avatar-wrap + .avatar-wrap {
+        margin-left: -12px;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-player-identity {
-        gap: 0.3rem !important;
+        gap: 0.22rem !important;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture td.score-cell.scorecard-round-td .score-cell-input {
         min-width: 0 !important;
@@ -9233,12 +9269,12 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Add Player Mid-Game -->
     <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAddPlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-6 md:p-7 relative pop-in">
         <button onclick="closeAddPlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
-        <div class="text-center mb-5 pr-8">
+        <div class="bp-modal-head text-center mb-5 pr-8">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Mid-Game Add</div>
           <h3 class="font-display text-3xl">Add Player</h3>
-          <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Pick an On Deck player or type a new name.</p>
+          <p class="text-sm font-semibold mt-2" style="color:var(--muted);">Pick an On Deck player or type a new name.</p>
         </div>
         <div class="flex gap-2">
           <div class="player-suggest-wrap">
@@ -9248,12 +9284,12 @@ button.dealer-name-indicator .dealer-player-label {
               onfocus="updatePlayerSuggestions('midgame')"
               onblur="hidePlayerSuggestionsSoon('midgame')"
               onkeydown="handlePlayerSuggestKey(event,'midgame')"
-              class="w-full rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
+              class="w-full rounded-2xl px-5 py-3.5 font-bold outline-none transition-colors placeholder:opacity-50"
               style="background:var(--bg-2);color:var(--ink);border:1.5px solid var(--hairline);">
-            <div id="midgame-player-suggestions" class="player-suggest-menu hidden"></div>
           </div>
-          <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-base">Add</button>
+          <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-lg">Add</button>
         </div>
+        <div id="midgame-player-suggestions" class="player-suggest-menu add-player-suggest hidden"></div>
         <p id="midgame-player-name-error" class="inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
       </div>
     </div>
@@ -14927,7 +14963,7 @@ ${isDealer
       root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
-      if(handFoot)return;
+      if(handFoot&&window.innerWidth<1024)return;
       const overEl=document.getElementById('game-over-section');
       const boardEl=wrap.closest('.tournament-scoreboard');
       // The final footer is taller than Log Scores. Keep the player column at the in-progress size.
@@ -14936,9 +14972,8 @@ ${isDealer
         : wrap.clientHeight;
       const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
-      // Two team rows would otherwise stretch the shared player column into headline type.
-      // Size Hand and Foot like a four-player scorecard, which is the shipped table.
-      const rowSlots=handFoot?Math.max(rows.length,4):rows.length;
+      // Two team rows must not eat the leftover viewport. Size them like an 8-player Five Crowns card.
+      const rowSlots=handFoot?8:rows.length;
       const targetRow=Math.floor(availableRowsHeight/rowSlots);
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
