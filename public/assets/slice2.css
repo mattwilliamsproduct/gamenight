@@ -700,8 +700,8 @@ html.slice2-tv .s2-now-bid {
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now,
 html.slice2-tv #scorecard-capture td.scorecard-col-now {
-  width: 3.4rem;
-  min-width: 3.2rem;
+  width: 3.6rem;
+  min-width: 3.4rem;
   max-width: 5.6rem;
 }
 
