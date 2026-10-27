@@ -76,6 +76,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Home-screen short name is Back Porch. Manifest name is Back Porch Games.
 - Cloud sync runs only on `cardknight.vercel.app`.
 - `npm run check` fails if `index.html` loads `comeback-logic.js`, if the worker template disagrees with the scripts the page loads, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
+- Player names are single strings. A comma name is rejected at add, rename, and import. Existing saved names are left as-is.
 
 ## Data the match must round-trip
 
