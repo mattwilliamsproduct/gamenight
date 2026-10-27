@@ -3309,8 +3309,8 @@ button.dealer-name-indicator {
         max-width: none;
       }
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-        width: 4.8rem;
-        min-width: 4.4rem;
+        width: 5.15rem;
+        min-width: 4.9rem;
       }
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
@@ -3574,12 +3574,43 @@ button.dealer-name-indicator {
       color: var(--ink);
       font-weight: 800;
     }
+    .wheel-mode-label {
+      font-family: "Bree Serif", Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 0 2.5rem 0.45rem;
+      color: var(--ink);
+    }
+    .wheel-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.55rem 0.85rem;
+      margin: 0 0 1rem;
+    }
+    .wheel-legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+    .wheel-legend-chip::before {
+      content: "";
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+    }
+    .wheel-legend-chip.is-help::before { background: #34d399; }
+    .wheel-legend-chip.is-zero::before { background: #c4b8ae; }
+    .wheel-legend-chip.is-setback::before { background: #f0a394; }
     .wheel-shell {
       position: relative;
       width: min(26rem, 72vw, calc(100dvh - 22rem));
       height: min(26rem, 72vw, calc(100dvh - 22rem));
       flex: 0 1 auto;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.85rem;
     }
     .wheel-shell::before {
       content: '';
@@ -8425,7 +8456,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">Life Preserver Unlocked</div>
+        <div id="wheel-mode-label" class="wheel-mode-label">Life Preserver</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
         <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
@@ -8436,6 +8467,11 @@ button.dealer-name-indicator .dealer-player-label {
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
           <div id="wheel-spinner" class="wheel-spinner"></div>
           <div class="wheel-spinner-hub"></div>
+        </div>
+        <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
+          <span class="wheel-legend-chip is-help">Help</span>
+          <span class="wheel-legend-chip is-zero">No change</span>
+          <span class="wheel-legend-chip is-setback">Setback</span>
         </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl shrink-0">Use your one spin</button>
         <div id="wheel-result" class="hidden w-full mt-4 p-5 text-left rounded-2xl" style="background:var(--emerald-bg);border:1px solid var(--emerald-border);">
@@ -11085,12 +11121,21 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function getWheelSlices(){
-    const activePlayers=getActivePlayers(currentGame);
-    if(!wheelPlayer||!activePlayers.includes(wheelPlayer))return [];
-    if(lifePreserverOfferSnapshot?.player===wheelPlayer&&Array.isArray(lifePreserverOfferSnapshot.slices)){
+    const player=wheelPlayer
+      || currentGame?.lifePreserverLastResult?.player
+      || document.getElementById('wheel-result-player')?.textContent
+      || '';
+    const activePlayers=currentGame?getActivePlayers(currentGame):[];
+    if(!player||(activePlayers.length&&!activePlayers.includes(player))){
+      return lifePreserverOfferSnapshot?.slices||[];
+    }
+    if(lifePreserverOfferSnapshot?.player===player&&Array.isArray(lifePreserverOfferSnapshot.slices)){
       return lifePreserverOfferSnapshot.slices;
     }
-    return getLifePreserverOfferForPlayer(wheelPlayer, activePlayers).slices||[];
+    if(!currentGame) return lifePreserverOfferSnapshot?.slices||[];
+    const offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    if(offer.slices?.length) lifePreserverOfferSnapshot=offer;
+    return offer.slices||lifePreserverOfferSnapshot?.slices||[];
   }
 
   function resetLifePreserverResultPanel(){
@@ -11102,6 +11147,8 @@ button.dealer-name-indicator .dealer-player-label {
     if(commit) commit.classList.remove('hidden');
     if(spin) spin.classList.remove('hidden');
     if(help) help.classList.remove('hidden');
+    document.getElementById('wheel-modal')?.classList.remove('wheel-has-result');
+    document.getElementById('wheel-player-name')?.classList.remove('hidden');
   }
 
   function showLifePreserverResult(detail){
@@ -11139,6 +11186,22 @@ button.dealer-name-indicator .dealer-player-label {
     if(spin) spin.classList.add('hidden');
     if(help) help.classList.add('hidden');
     if(result) result.classList.remove('hidden');
+    document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
+    const mode=document.getElementById('wheel-mode-label');
+    if(mode) mode.textContent='Life Preserver';
+    document.getElementById('wheel-player-name')?.classList.add('hidden');
+    if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
+    const slices=drawWheel();
+    const landed=slices.find((slice)=>Number(slice.adjustment)===adj);
+    const spinner=document.getElementById('wheel-spinner');
+    if(spinner&&landed&&window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function'){
+      const landing=BPGLifePreserver.rotationDegreesForSlice(landed);
+      if(Math.abs(currentWheelRotation||0)<1){
+        spinner.style.transition='none';
+        currentWheelRotation=landing;
+        spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+      }
+    }
   }
 
   function drawWheel(){
@@ -11209,7 +11272,7 @@ button.dealer-name-indicator .dealer-player-label {
     wheelPlayer=p;
     lifePreserverOfferSnapshot=offer;
     document.getElementById('wheel-player-name').textContent=p;
-    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
+    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='Life Preserver';
     document.getElementById('btn-spin').disabled=false;
     document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
     const spinner=document.getElementById('wheel-spinner');
@@ -14130,7 +14193,10 @@ ${isDealer
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
-    if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">R${currentGame.currentRound} · Now</th>`;
+    const nowLabel=window.matchMedia('(max-width: 760px)').matches
+      ? `R${currentGame.currentRound}`
+      : `R${currentGame.currentRound}\u00a0·\u00a0Now`;
+    if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
     try{

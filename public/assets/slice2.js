@@ -67,9 +67,7 @@
     } else if (game.name === 'Wizard') {
       bits.push(`Round ${game.currentRound} of ${maxR}`);
     } else if (game.name === 'Five Crowns') {
-      const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-      const wild = wilds[(game.currentRound || 1) - 1];
-      bits.push(`Round ${game.currentRound} of ${maxR}${wild ? ` · ${wild}s Wild` : ''}`);
+      bits.push(`Round ${game.currentRound} of ${maxR}`);
     } else if (maxR && maxR < 900) {
       bits.push(`Round ${game.currentRound} of ${maxR}`);
     } else {
@@ -89,6 +87,13 @@
       }
     }
     return bits.join(' · ');
+  }
+
+  function boardSubLine(game) {
+    if (game.name !== 'Five Crowns') return '';
+    const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    const wild = wilds[(game.currentRound || 1) - 1];
+    return wild ? `${wild}s\u00a0Wild` : '';
   }
 
   function enterLabel(game) {
@@ -123,6 +128,7 @@
         <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">← Table</button>
         <div class="s2-board-copy">
           <p id="slice2-board-line"></p>
+          <p id="slice2-board-sub"></p>
           <p id="slice2-score-legend"></p>
           <p id="slice2-score-note"></p>
         </div>
@@ -306,6 +312,12 @@
     const lpBtn = document.getElementById('slice2-lp-btn');
     const lpExplain = document.getElementById('slice2-lp-explain');
     if (line) line.textContent = boardLine(currentGame);
+    const sub = document.getElementById('slice2-board-sub');
+    if (sub) {
+      const wild = boardSubLine(currentGame);
+      sub.textContent = wild;
+      sub.hidden = !wild;
+    }
     if (legend) {
       const showExact = isBidTrickGame(currentGame);
       legend.hidden = !showExact;
@@ -456,34 +468,31 @@
 
   function paintWheel() {
     const canvas = document.getElementById('wheel-canvas');
-    const slices = getWheelSlices();
+    const live = (typeof getWheelSlices === 'function' ? getWheelSlices() : []) || [];
+    const slices = live.length ? live : (paintWheel.lastSlices || []);
     if (!canvas) return slices;
     const context = canvas.getContext('2d');
     if (!slices.length) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       return slices;
     }
-    const total = slices.reduce((sum, slice) => sum + slice.weight, 0);
+    paintWheel.lastSlices = slices;
+    const total = slices.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const rim = cx * 0.97;
-    const trackOuter = cx * 0.9;
+    const scale = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
     const outer = cx * 0.84;
-    const inner = cx * 0.66;
-    const trackInner = cx * 0.58;
+    const inner = cx * 0.28;
+    const midR = (inner + outer) / 2;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
-    context.arc(cx, cy, rim, 0, Math.PI * 2);
+    context.arc(cx, cy, cx * 0.98, 0, Math.PI * 2);
     context.fillStyle = '#f4efe4';
     context.fill();
-    context.beginPath();
-    context.arc(cx, cy, trackOuter, 0, Math.PI * 2);
-    context.arc(cx, cy, trackInner, 0, Math.PI * 2, true);
-    context.fillStyle = '#08574f';
-    context.fill();
     let angle = -Math.PI / 2;
+    const callouts = [];
     slices.forEach((slice) => {
-      const arc = (slice.weight / total) * Math.PI * 2;
+      const arc = ((Number(slice.weight) || 0) / total) * Math.PI * 2;
       const kind = (window.BPGLifePreserver && typeof BPGLifePreserver.wheelSliceKind === 'function')
         ? BPGLifePreserver.wheelSliceKind(slice)
         : (slice.kind || (slice.adjustment === 0 ? 'zero' : 'good'));
@@ -491,44 +500,70 @@
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
-      context.fillStyle = slice.color || (kind === 'good' ? '#34d399' : (kind === 'bad' ? '#dc2626' : '#c4b8ae'));
+      context.fillStyle = slice.color || (kind === 'good' ? '#34d399' : (kind === 'bad' ? '#f0a394' : '#c4b8ae'));
       context.fill();
       context.strokeStyle = 'rgba(8, 87, 79, 0.35)';
-      context.lineWidth = 2;
+      context.lineWidth = 3;
       context.beginPath();
       context.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
       context.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
       context.stroke();
       const mid = angle + arc / 2;
-      const radius = (inner + outer) / 2;
-      const full = String(slice.label || '').replace(/\s*pts/ig, '').trim() || '0';
-      const short = full.split(' · ')[0] || full;
-      const text = arc >= 0.35 ? full : short;
+      const signed = (window.BPGLifePreserver && typeof BPGLifePreserver.formatSignedPoints === 'function')
+        ? BPGLifePreserver.formatSignedPoints(slice.adjustment)
+        : String(slice.adjustment || '0');
+      const chord = 2 * Math.sin(arc / 2) * midR;
+      const font = Math.max(30, Math.min(46, (16 * scale), chord * 0.55));
+      context.font = `800 ${font}px "Nunito Sans", sans-serif`;
+      const textW = context.measureText(signed).width;
+      const roomy = arc >= Math.PI * 2 * 0.08 && textW < chord * 0.82;
       context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
-      context.font = `800 ${Math.max(12, Math.min(20, arc * 48))}px "Nunito Sans", sans-serif`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      if (arc >= 0.12) context.fillText(text, cx + Math.cos(mid) * radius, cy + Math.sin(mid) * radius);
+      if (roomy) {
+        context.fillText(signed, cx + Math.cos(mid) * midR, cy + Math.sin(mid) * midR);
+      } else {
+        callouts.push({ mid, signed, kind, font: Math.max(28, 14 * scale) });
+      }
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
     });
+    callouts.forEach((item, index) => {
+      const nudge = (index - (callouts.length - 1) / 2) * 0.08;
+      const mid = item.mid + nudge;
+      const innerPt = { x: cx + Math.cos(item.mid) * (outer - 10), y: cy + Math.sin(item.mid) * (outer - 10) };
+      const labelR = cx * 0.93;
+      const label = { x: cx + Math.cos(mid) * labelR, y: cy + Math.sin(mid) * labelR };
+      context.beginPath();
+      context.moveTo(innerPt.x, innerPt.y);
+      context.lineTo(label.x, label.y);
+      context.strokeStyle = 'rgba(8, 87, 79, 0.55)';
+      context.lineWidth = 2;
+      context.stroke();
+      context.font = `800 ${item.font}px "Nunito Sans", sans-serif`;
+      context.fillStyle = item.kind === 'bad' ? '#3b1410' : (item.kind === 'good' ? '#04332e' : '#3f3a36');
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(item.signed, label.x, label.y);
+    });
     context.beginPath();
-    context.arc(cx, cy, trackOuter, 0, Math.PI * 2);
+    context.arc(cx, cy, outer, 0, Math.PI * 2);
     context.strokeStyle = 'rgba(138, 106, 50, 0.7)';
     context.lineWidth = 3;
     context.stroke();
     context.beginPath();
-    context.arc(cx, cy, inner - 4, 0, Math.PI * 2);
+    context.arc(cx, cy, inner - 2, 0, Math.PI * 2);
     context.fillStyle = '#f7f3ea';
     context.fill();
     context.strokeStyle = 'rgba(138, 106, 50, 0.4)';
-    context.lineWidth = 5;
+    context.lineWidth = 4;
     context.stroke();
     const hub = document.querySelector('.wheel-spinner-hub');
-    if (hub) hub.textContent = 'SPIN';
+    const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
+    if (hub) hub.textContent = resultOpen ? '' : 'SPIN';
     const mode = document.getElementById('wheel-mode-label');
-    if (mode) mode.textContent = 'Life Preserver';
+    if (mode && !resultOpen) mode.textContent = 'Life Preserver';
     canvas.dataset.slice2Wheel = '1';
     return slices;
   }

@@ -666,7 +666,7 @@
     const helpful = adj * helpfulSign(winLow) > 0;
     const abs = Math.abs(adj);
     let headline = 'No change';
-    if (adj && helpful) headline = winLow ? `${abs} points off` : `${abs} points on`;
+    if (adj && helpful) headline = winLow ? `${abs} points off` : `+${abs} points`;
     else if (adj) headline = `${abs} point setback`;
     const totals = `${detail.beforeTotal} → ${detail.afterTotal}`;
     const beforeRank = Number(detail.beforeRank) || 0;

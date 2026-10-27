@@ -698,8 +698,18 @@ test('pickWeightedSlice follows slice weights and lock is independent of animati
   assert.equal(locked.afterTotal, 60);
   assert.equal(locked.afterRank, 2);
   const described = LP.describeLifePreserverResult(locked);
-  assert.match(described.headline, /20 points on/);
+  assert.match(described.headline, /\+20 points/);
   assert.match(described.totals, /40 → 60/);
+  const low = LP.describeLifePreserverResult({
+    adjustment: -20,
+    beforeTotal: 150,
+    afterTotal: 130,
+    beforeRank: 8,
+    afterRank: 7,
+    winLow: true
+  });
+  assert.match(low.headline, /20 points off/);
+  assert.match(low.totals, /150 → 130/);
 });
 
 test('a landed Life Preserver is locked, persists, blocks a second spin, and marks assisted', () => {

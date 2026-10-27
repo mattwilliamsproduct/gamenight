@@ -21,6 +21,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
+- Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 
 ### Kills
 
@@ -48,6 +49,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Exact bid chrome on Rook or any game that does not bid.
 - A Life Preserver wheel that paints helpful low-score slices red because they are negative.
 - A settings gear on the scorecard match header, or phone History sitting outside Actions.
+- A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
 
 ## Prefer
 

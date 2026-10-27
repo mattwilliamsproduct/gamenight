@@ -132,6 +132,28 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
   expect(after.history).toBe(before.history + 1);
 });
 
+test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({page}) => {
+  for (const width of [375, 390]) {
+    await page.setViewportSize({width, height: 844});
+    await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
+    await expect(page.locator('#slice2-board-line')).toContainText(/Round \d+ of \d+/);
+    await expect(page.locator('#slice2-board-line')).not.toContainText(/Wild/);
+    await expect(page.locator('#slice2-board-sub')).toContainText(/Wild/);
+    const nowBox = await page.locator('th.scorecard-col-now').boundingBox();
+    expect(nowBox.height).toBeLessThan(36);
+    const overflow = await page.evaluate(() => {
+      return [...document.querySelectorAll('#scorecard-capture .scorecard-total-value')].some((value) => {
+        const cell = value.closest('.scorecard-col-total');
+        if (!cell) return true;
+        const valueBox = value.getBoundingClientRect();
+        const cellBox = cell.getBoundingClientRect();
+        return valueBox.right > cellBox.right + 1 || valueBox.left < cellBox.left - 1;
+      });
+    });
+    expect(overflow).toBe(false);
+  }
+});
+
 test('Life Preserver header control shows only when someone can spin', async ({page}) => {
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   await expect(page.locator('#slice2-lp-wrap')).toBeHidden();

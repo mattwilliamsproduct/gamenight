@@ -637,6 +637,20 @@ html.slice2-tv #slice2-board-line {
   line-height: 1.3;
 }
 
+html.slice2-tv #slice2-board-sub {
+  margin: 0.12rem 0 0;
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+  font-size: clamp(0.82rem, 1.3vw, 1rem);
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+html.slice2-tv #slice2-board-sub[hidden] {
+  display: none !important;
+}
+
 html.slice2-tv #slice2-score-legend,
 html.slice2-tv #slice2-score-note {
   margin: 0.15rem 0 0;
@@ -686,13 +700,15 @@ html.slice2-tv .s2-now-bid {
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now,
 html.slice2-tv #scorecard-capture td.scorecard-col-now {
-  width: 4.6rem;
-  max-width: 5rem;
+  width: 3.4rem;
+  min-width: 3.2rem;
+  max-width: 5.6rem;
 }
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now {
-  white-space: normal;
-  line-height: 1.05;
+  white-space: nowrap;
+  line-height: 1.1;
+  letter-spacing: 0.04em !important;
 }
 
 html.slice2-tv #scorecard-capture {
@@ -953,9 +969,63 @@ html.slice2-tv .wheel-spinner::after {
   filter: none !important;
 }
 
+html.slice2-tv .wheel-mode-label {
+  font-size: 1.15rem !important;
+  line-height: 1.2 !important;
+  margin: 0 2.5rem 0.45rem !important;
+  font-weight: 800 !important;
+}
+
+html.slice2-tv #wheel-modal.wheel-has-result .wheel-mode-label {
+  font-size: 1.25rem !important;
+  margin-bottom: 0.7rem !important;
+}
+
+html.slice2-tv #wheel-modal.wheel-has-result .wheel-shell {
+  margin-top: 0.15rem;
+}
+
+html.slice2-tv .wheel-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem 0.85rem;
+  margin: 0 0 1rem;
+}
+
+html.slice2-tv .wheel-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--s2-ink);
+}
+
+html.slice2-tv .wheel-legend-chip::before {
+  content: "";
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(8, 87, 79, 0.25);
+}
+
+html.slice2-tv .wheel-legend-chip.is-help::before {
+  background: #34d399;
+}
+
+html.slice2-tv .wheel-legend-chip.is-zero::before {
+  background: #c4b8ae;
+}
+
+html.slice2-tv .wheel-legend-chip.is-setback::before {
+  background: #f0a394;
+}
+
 html.slice2-tv .wheel-spinner-hub {
-  width: 32%;
-  height: 32%;
+  width: 18%;
+  height: 18%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1221,11 +1291,11 @@ html.slice2-tv .s2-rival {
 
   html.slice2-tv #scorecard-capture td.scorecard-total-cell,
   html.slice2-tv #scorecard-capture th.scorecard-col-total {
-    width: 4rem !important;
-    min-width: 0 !important;
-    max-width: 4.5rem !important;
-    padding-left: 0.15rem !important;
-    padding-right: 0.15rem !important;
+    width: 5rem !important;
+    min-width: 4.85rem !important;
+    max-width: 5.4rem !important;
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
   }
 
   html.slice2-tv .s2-segment {

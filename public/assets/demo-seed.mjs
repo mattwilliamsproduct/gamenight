@@ -343,6 +343,7 @@ function openDemoView(view){
   }
   if (view === 'lifepreserver-after') {
     if (typeof goActiveMatch === 'function') goActiveMatch();
+    if (typeof authorizeHailMary === 'function') authorizeHailMary('Cat');
     if (typeof showLifePreserverResult === 'function') {
       const game = readLiveGame();
       const total = Number(game?.totals?.Cat) || 61;
@@ -359,7 +360,6 @@ function openDemoView(view){
         leaderGapAfter: 19
       });
     }
-    if (typeof drawWheel === 'function') drawWheel();
     if (typeof openModal === 'function') openModal('wheel-modal');
     return;
   }
