@@ -490,8 +490,9 @@
     [...dialog.children].forEach((el) => {
       if (el === shell || el.id === 'life-preserver-help') return;
       if (el.classList.contains('hidden')) return;
-      chrome += el.getBoundingClientRect().height;
       const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return;
+      chrome += el.getBoundingClientRect().height;
       chrome += (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
     });
     const availW = Math.max(176, Math.min(vw - 16, dialog.clientWidth || vw) - padX);

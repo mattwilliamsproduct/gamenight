@@ -952,49 +952,57 @@ html.slice2-tv .wheel-callout {
 
 @media (max-height: 700px) {
   html.slice2-tv #wheel-modal {
-    align-items: flex-start !important;
-    padding: 6px 12px !important;
-    overflow-y: auto;
+    align-items: center !important;
+    padding: 4px 10px !important;
+    overflow: hidden;
   }
 
   html.slice2-tv .wheel-shell {
-    margin-top: 0.2rem;
-    margin-bottom: 0.35rem;
+    margin-top: 0.1rem;
+    margin-bottom: 0.2rem;
   }
 
   html.slice2-tv #wheel-modal .life-preserver-dialog {
     max-height: calc(100dvh - 8px);
     overflow: hidden;
-    padding: 0.7rem 1rem 0.65rem !important;
+    padding: 0.55rem 0.9rem 0.5rem !important;
+  }
+
+  html.slice2-tv #wheel-mode-label {
+    margin: 0.05rem 2rem 0.2rem !important;
+    font-size: 0.95rem !important;
   }
 
   html.slice2-tv #wheel-player-name {
-    font-size: clamp(1.35rem, 3.4vw, 1.9rem) !important;
-    margin-bottom: 0.15rem !important;
+    font-size: clamp(1.2rem, 3vw, 1.6rem) !important;
+    margin-bottom: 0.1rem !important;
   }
 
   html.slice2-tv #wheel-player-meta,
+  html.slice2-tv #wheel-commit-line {
+    margin-bottom: 0.1rem !important;
+    font-size: 0.8rem !important;
+  }
+
   html.slice2-tv #wheel-game-line,
-  html.slice2-tv #wheel-commit-line,
   html.slice2-tv #wheel-best-place {
-    margin-bottom: 0.2rem !important;
-    font-size: 0.86rem !important;
+    display: none !important;
   }
 
   html.slice2-tv .wheel-legend {
-    margin: 0 0 0.55rem;
+    margin: 0.15rem 0 0.35rem;
   }
 
   html.slice2-tv #btn-spin {
-    padding-top: 0.55rem !important;
-    padding-bottom: 0.55rem !important;
-    font-size: 1.15rem !important;
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
+    font-size: 1.05rem !important;
   }
 
   html.slice2-tv #btn-life-preserver-help {
-    margin-top: 0.4rem !important;
-    padding-top: 0.45rem !important;
-    padding-bottom: 0.45rem !important;
+    margin-top: 0.25rem !important;
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
   }
 }
 

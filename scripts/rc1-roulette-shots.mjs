@@ -29,8 +29,13 @@ async function waitReady(page, url) {
       return !!(modal && !modal.classList.contains('hidden'));
     });
     if (!opened) throw new Error('Duke wheel did not open');
+    await page.evaluate(() => document.body.classList.add('gn-qa-gallery-hidden'));
   }
   await page.locator('#wheel-modal').waitFor({state: 'visible'});
+  await page.evaluate(() => {
+    document.body.classList.add('gn-qa-gallery-hidden');
+    document.getElementById('wheel-modal')?.classList.remove('opacity-0', 'hidden');
+  });
   await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
 }
 
@@ -46,8 +51,9 @@ for (const size of SIZES) {
     const pre = await page.evaluate(() => BPGSlice2.wheelLabelReport());
     measures.push({size: size.name, case: item.id, phase: 'pre', ...pre});
     const preName = `${size.name}-${item.id}-pre`;
-    await page.screenshot({path: `${OUT}/${preName}.png`, fullPage: false});
-    await page.screenshot({path: `/opt/cursor/artifacts/screenshots/${preName}.png`, fullPage: false});
+    const dialog = page.locator('#wheel-modal .life-preserver-dialog');
+    await dialog.screenshot({path: `${OUT}/${preName}.png`});
+    await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${preName}.png`});
     await page.close();
   }
 }
@@ -62,8 +68,9 @@ for (const size of SIZES) {
     const post = await page.evaluate(() => BPGSlice2.wheelLabelReport());
     measures.push({size: size.name, case: item.id, phase: 'post', ...post});
     const postName = `${size.name}-${item.id}-post`;
-    await page.screenshot({path: `${OUT}/${postName}.png`, fullPage: false});
-    await page.screenshot({path: `/opt/cursor/artifacts/screenshots/${postName}.png`, fullPage: false});
+    const dialog = page.locator('#wheel-modal .life-preserver-dialog');
+    await dialog.screenshot({path: `${OUT}/${postName}.png`});
+    await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${postName}.png`});
     await page.close();
   }
 }
@@ -75,8 +82,9 @@ await reduce.locator('#btn-spin').click();
 await reduce.locator('#wheel-result').waitFor({state: 'visible', timeout: 4000});
 const reduceReport = await reduce.evaluate(() => BPGSlice2.wheelLabelReport());
 measures.push({size: '390', case: 'linda-fc', phase: 'reduced-motion', ...reduceReport});
-await reduce.screenshot({path: `${OUT}/390-linda-fc-reduced.png`, fullPage: false});
-await reduce.screenshot({path: '/opt/cursor/artifacts/screenshots/390-linda-fc-reduced.png', fullPage: false});
+const reduceDialog = reduce.locator('#wheel-modal .life-preserver-dialog');
+await reduceDialog.screenshot({path: `${OUT}/390-linda-fc-reduced.png`});
+await reduceDialog.screenshot({path: '/opt/cursor/artifacts/screenshots/390-linda-fc-reduced.png'});
 await reduce.close();
 
 writeFileSync(`${OUT}/measures.json`, JSON.stringify(measures, null, 2));
