@@ -27,6 +27,8 @@ const requiredAssets = [
   'public/assets/vendor/html2canvas.js',
   'public/assets/life-preserver-logic.js',
   'public/assets/scorebook.js',
+  'public/assets/game-registry.js',
+  'public/assets/hand-foot-logic.js',
   'public/assets/backup.js',
   'public/sw.js',
   'public/apple-touch-icon.png',
@@ -75,6 +77,14 @@ if(!index.includes("src=\"./assets/backup.js\"")){
 
 if(!index.includes("src=\"./assets/scorebook.js\"")){
   throw new Error('Scorebook helper is missing from the app shell.');
+}
+
+if(!index.includes("src=\"./assets/hand-foot-logic.js\"")){
+  throw new Error('Hand and Foot scoring helper is missing from the app shell.');
+}
+
+if(!index.includes("src=\"./assets/game-registry.js\"")){
+  throw new Error('Game registry is missing from the app shell.');
 }
 
 function appShellEntries(source, label){

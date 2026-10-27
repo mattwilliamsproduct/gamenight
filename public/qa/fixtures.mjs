@@ -690,6 +690,67 @@ function demoFiveCrownsLiveRounds(players){
   return perRound.map((values,index)=>scoreRound(index+1,players,values));
 }
 
+function canastaHouseRound(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const parts={
+    cleanCanastas:1,
+    dirtyCanastas:1,
+    sevensCanastas:1,
+    redThrees:4,
+    goingOut:1,
+    cardPoints:40,
+    cardsLeft:20,
+    cleanCanastaEach:500,
+    dirtyCanastaEach:300,
+    sevensCanastaEach:1500,
+    redThreeEachLow:100,
+    redThreeEachHigh:200,
+    redThreeHighAt:4,
+    goingOutBonus:100,
+    roundScore:3220
+  };
+  const quiet={
+    cleanCanastas:0,
+    dirtyCanastas:1,
+    sevensCanastas:0,
+    redThrees:2,
+    goingOut:0,
+    cardPoints:15,
+    cardsLeft:10,
+    cleanCanastaEach:500,
+    dirtyCanastaEach:300,
+    sevensCanastaEach:1500,
+    redThreeEachLow:100,
+    redThreeEachHigh:200,
+    redThreeHighAt:4,
+    goingOutBonus:100,
+    roundScore:505
+  };
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const round={
+    round:1,
+    scores:{Megan:3220,Matt:3220,Cat:505,Mike:505},
+    handFootParts:{Megan:{...parts},Matt:{...parts},Cat:{...quiet},Mike:{...quiet}}
+  };
+  return {
+    name:'Hand and Foot',
+    id:1785600000001,
+    gameId:1785600000001,
+    originalRoster:[...roster],
+    currentRound:2,
+    maxRounds:4,
+    rounds:[round],
+    totals:{Megan:3220,Matt:3220,Cat:505,Mike:505},
+    handFoot:{format:'teams', sides},
+    hailMaryUsed:[],
+    retired:[],
+    currentScoreDrafts:{}
+  };
+}
+
 function rookFinishedNight(){
   const roster=['Megan','Matt','Cat','Mike'];
   const rounds=[{
@@ -1164,6 +1225,18 @@ export const QA_SCENARIOS = {
       history:[finishedMatchFromGame(lifePreserverVisibleGame,1785100000002)],
       playerProfiles:profiles(),
       currentGame:lifePreserverVisibleGame
+    }
+  },
+  'canasta-house-round':{
+    label:'Canasta · House rules round',
+    description:'Hand and Foot saved as Canasta. Round 1 has a sevens canasta and 4 red 3s (800). Highest wins.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:['Megan','Matt','Cat','Mike'],
+      players:['Megan','Matt','Cat','Mike'],
+      history:[],
+      playerProfiles:profiles(),
+      currentGame:canastaHouseRound()
     }
   },
   'rook-bid-setup':{

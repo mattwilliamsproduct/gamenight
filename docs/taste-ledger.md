@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
 - A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
 - Specs plus prove-it. Open the gallery scenarios that exercise the slice.
