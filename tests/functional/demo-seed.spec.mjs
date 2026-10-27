@@ -81,12 +81,21 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#wheel-result')).not.toHaveClass(/hidden/);
     await expect(page.locator('#btn-spin')).toBeHidden();
+    await expect(page.locator('#wheel-result-adjustment')).toContainText('+20 points');
+    await expect(page.locator('#wheel-legend')).toBeVisible();
+    const painted = await page.evaluate(() => {
+      const canvas = document.getElementById('wheel-canvas');
+      const context = canvas.getContext('2d');
+      const data = context.getImageData(Math.floor(canvas.width * 0.75), Math.floor(canvas.height * 0.5), 1, 1).data;
+      return data[3] > 0 && !(data[0] > 240 && data[1] > 240 && data[2] > 240);
+    });
+    expect(painted).toBe(true);
   },
   'lifepreserver-low': async (page) => {
     await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#wheel-player-name')).toHaveText('Linda');
     await expect(page.locator('#btn-spin')).toBeEnabled();
-    await expect(page.locator('#wheel-why-line')).toContainText(/Best:|Worst:/);
+    await expect(page.locator('#wheel-commit-line')).toContainText(/Best help:|Largest setback:/);
   },
   records: async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);

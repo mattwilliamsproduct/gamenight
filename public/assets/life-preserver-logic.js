@@ -57,13 +57,23 @@
   };
 
   const COLORS = {
-    badStrong: '#991b1b',
-    badSoft: '#dc2626',
-    goodStrong: '#10b981',
-    goodMid: '#34d399',
-    goodSoft: '#6ee7b7',
-    zero: '#8a837e'
+    badStrong: '#c47a6a',
+    badSoft: '#e4b4a6',
+    goodStrong: '#0f766e',
+    goodMid: '#2a9d8f',
+    goodSoft: '#7bc9b7',
+    zero: '#b4a89c'
   };
+
+  // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
+  // and then clamped by max helpful / max setback. Do not change eligibility here.
+  const OUTCOME_TABLE = Object.freeze({
+    smallHelp: 0.45,
+    mediumHelp: 0.30,
+    bigHelp: 0.05,
+    noChange: 0.12,
+    smallSetback: 0.08
+  });
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -172,14 +182,21 @@
     return winLow ? -1 : 1;
   }
 
-  function formatPointLabel(adjustment) {
-    if (!adjustment) return '0 Pts';
-    const sign = adjustment > 0 ? '+' : '−';
-    return `${sign}${Math.abs(adjustment)} Pts`;
+  function formatSignedPoints(adjustment) {
+    if (!adjustment) return '0';
+    return `${adjustment > 0 ? '+' : '−'}${Math.abs(adjustment)}`;
   }
 
-  function formatSignedPoints(adjustment) {
-    return formatPointLabel(adjustment).replace(/ Pts$/, '');
+  function formatPointLabel(adjustment) {
+    if (!adjustment) return '0 Pts';
+    return `${formatSignedPoints(adjustment)} Pts`;
+  }
+
+  function formatWheelLabel(adjustment, kind) {
+    const signed = formatSignedPoints(adjustment);
+    if (kind === 'zero' || !adjustment) return `${signed} · No change`;
+    if (kind === 'bad') return `${signed} · Setback`;
+    return `${signed} · Help`;
   }
 
   function ordinal(value) {
@@ -246,24 +263,28 @@
       ? `${player} is ${place}, ${leaderBit}.`
       : `${player} is ${leaderBit}.`;
     const adjustments = (offer.slices || []).map(slice => Number(slice.adjustment) || 0);
-    const rangeMin = adjustments.length
-      ? Math.min(...adjustments)
-      : Math.min(sign * maxSafe, (-sign) * (Number(offer.maxSetback) || 0), 0);
-    const rangeMax = adjustments.length
-      ? Math.max(...adjustments)
-      : Math.max(sign * maxSafe, (-sign) * (Number(offer.maxSetback) || 0), 0);
     const bestAdj = sign * maxSafe;
-    const worstAdj = adjustments.length
-      ? (winLow ? Math.max(...adjustments) : Math.min(...adjustments.filter((value) => value < 0), rangeMin))
-      : (-sign) * (Number(offer.maxSetback) || 0);
     const worstShown = adjustments.length
       ? (sign > 0 ? Math.min(...adjustments) : Math.max(...adjustments))
-      : worstAdj;
-    const wheelLine = `${player} is ${leaderGap} behind 1st. Best: ${formatSignedPoints(bestAdj)} · Worst: ${formatSignedPoints(worstShown)}.`;
+      : (-sign) * (Number(offer.maxSetback) || 0);
+    const playerScore = Number.isFinite(offer.playerScore) ? offer.playerScore : null;
+    const gameLine = winLow
+      ? `${gameName}: lower scores win. Helpful spins subtract points.`
+      : `${gameName}: higher scores win. Helpful spins add points.`;
+    const rangeLine = `Best help: ${formatSignedPoints(bestAdj)} points · Largest setback: ${formatSignedPoints(worstShown)} points`;
+    const standingBit = playerScore == null
+      ? `${leaderGap} behind 1st`
+      : `total ${playerScore} · ${leaderGap} behind 1st`;
+    const wheelLine = `${player} ${standingBit}. ${rangeLine}`;
+    let bestPlaceLine = '';
+    if (Number.isFinite(offer.bestPlaceAfter) && Number.isFinite(offer.rank)) {
+      if (offer.bestPlaceAfter !== offer.rank) {
+        bestPlaceLine = `Best outcome would move you to ${ordinal(offer.bestPlaceAfter)}`;
+      }
+    }
     const bullets = [];
 
-    if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points. Best: ${formatSignedPoints(bestAdj)} · Worst: ${formatSignedPoints(worstShown)}.`);
-    else bullets.push(`${gameName} scores high, so a good spin adds points. Best: ${formatSignedPoints(bestAdj)} · Worst: ${formatSignedPoints(worstShown)}.`);
+    bullets.push(`${gameLine} ${rangeLine}`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
       bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
@@ -307,7 +328,7 @@
       bullets.push(`The red slice is a modest setback of ${setbackShort}.`);
     }
 
-    return { summary, wheelLine, bullets, bindingLimit: binding };
+    return { summary, wheelLine, gameLine, rangeLine, bestPlaceLine, bullets, bindingLimit: binding };
   }
 
   function minScoringRoundsFor(game, players) {
@@ -581,63 +602,164 @@
     return [...new Set(values.filter((value) => Number.isFinite(value) && value > 0))];
   }
 
-  function makeSlice(adjustment, kind, color) {
+  function makeSlice(adjustment, kind, color, weight) {
     return {
-      label: formatPointLabel(adjustment),
+      label: formatWheelLabel(adjustment, kind),
       color,
       adjustment,
-      weight: 1,
+      weight: Number.isFinite(weight) ? weight : 1,
       kind
     };
   }
 
-  function buildSlices(maxHelpful, maxSetback, winLow, increment) {
+  function pickWeightedSlice(slices, random) {
+    const list = slices || [];
+    const total = list.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0);
+    if (!list.length || total <= 0) return null;
+    const draw = typeof random === 'function' ? Number(random()) : Math.random();
+    let roll = (Number.isFinite(draw) ? Math.min(Math.max(draw, 0), 0.999999) : 0) * total;
+    for (const slice of list) {
+      roll -= Number(slice.weight) || 0;
+      if (roll < 0) return slice;
+    }
+    return list[list.length - 1];
+  }
+
+  function packGapAfter(nextScore, leaderScore, winLow) {
+    return winLow ? nextScore - leaderScore : leaderScore - nextScore;
+  }
+
+  function buildLockedOutcome(offer, slice, totals, players) {
+    if (!offer || !slice) return null;
+    const player = offer.player;
+    const winLow = !!offer.winLow;
+    const adj = capLifePreserverAdjustment(slice.adjustment, offer);
+    const beforeTotal = Number(totals?.[player]) || 0;
+    const afterTotal = beforeTotal + adj;
+    const beforeRank = Number(offer.rank) || 0;
+    const afterRank = rankWithScore(player, afterTotal, players || [], totals || {}, winLow);
+    const leaderScore = Number.isFinite(offer.leaderScore)
+      ? offer.leaderScore
+      : (winLow
+        ? Math.min(...(players || []).map((name) => Number(totals?.[name]) || 0))
+        : Math.max(...(players || []).map((name) => Number(totals?.[name]) || 0)));
+    const leaderGapBefore = Number(offer.leaderGap) || 0;
+    const leaderGapAfter = packGapAfter(afterTotal, leaderScore, winLow);
+    return {
+      player,
+      adjustment: adj,
+      label: formatWheelLabel(adj, wheelSliceKind({ ...slice, adjustment: adj })),
+      beforeTotal,
+      afterTotal,
+      beforeRank,
+      afterRank,
+      leaderGapBefore,
+      leaderGapAfter,
+      winLow
+    };
+  }
+
+  function describeLifePreserverResult(detail) {
+    if (!detail) return { headline: '', totals: '', standing: '' };
+    const adj = Number(detail.adjustment) || 0;
+    const winLow = !!detail.winLow;
+    const helpful = adj * helpfulSign(winLow) > 0;
+    const abs = Math.abs(adj);
+    let headline = 'No change';
+    if (adj && helpful) headline = winLow ? `${abs} points off` : `+${abs} points`;
+    else if (adj) headline = `${abs} point setback`;
+    const totals = `${detail.beforeTotal} → ${detail.afterTotal}`;
+    const beforeRank = Number(detail.beforeRank) || 0;
+    const afterRank = Number(detail.afterRank) || 0;
+    let standing = '';
+    if (beforeRank && afterRank && beforeRank === afterRank) {
+      const gap = Number(detail.leaderGapAfter);
+      standing = Number.isFinite(gap)
+        ? `Stays ${ordinal(beforeRank)} · gap to leader ${gap >= (Number(detail.leaderGapBefore) || gap) ? 'is' : 'reduced to'} ${gap}`
+        : `Stays ${ordinal(beforeRank)}`;
+    } else if (beforeRank && afterRank) {
+      standing = `${ordinal(beforeRank)} → ${ordinal(afterRank)} place`;
+    }
+    return { headline, totals, standing };
+  }
+
+  function rotationDegreesForSlice(slice) {
+    if (!slice || !Number.isFinite(slice._start) || !Number.isFinite(slice._end)) return 0;
+    const mid = (slice._start + slice._end) / 2;
+    return ((mid + Math.PI / 2) * 180) / Math.PI;
+  }
+
+  function rewardStretch(options) {
+    const opts = options || {};
+    const remaining = Number(opts.remainingRounds);
+    if (remaining === 1) return 0;
+    const unit = Math.max(Number(opts.oneStrongRound) || 0, Number(opts.increment) || 1);
+    const gap = Math.max(0, Number(opts.leaderGap) || 0);
+    let stretch = clamp(gap / Math.max(unit * 4, 1) - 1, 0, 0.25);
+    if (remaining > 1 && remaining <= 3) stretch = Math.min(0.25, stretch + 0.08);
+    return stretch;
+  }
+
+  function bandMagnitudes(band, increment, maxHelpful, maxSetback, stretch) {
+    const step = Math.max(1, increment);
+    if (band === 'small') {
+      return uniquePositive([step, step * 2]).filter((value) => value <= maxHelpful);
+    }
+    if (band === 'medium') {
+      const values = [step * 6, step * 8].map((value) => (
+        floorToIncrement(value * (1 + stretch * 0.4), step)
+      ));
+      return uniquePositive(values).filter((value) => value > step * 2 && value < maxHelpful);
+    }
+    if (band === 'big') {
+      const raised = floorToIncrement(Math.max(step * 12, maxHelpful * 0.8) * (1 + stretch * 0.6), step);
+      return uniquePositive([raised, maxHelpful]).filter((value) => value > step * 2 && value <= maxHelpful);
+    }
+    if (band === 'setback') {
+      return uniquePositive([step, Math.min(maxSetback, step * 2)]).filter((value) => value <= maxSetback);
+    }
+    return [0];
+  }
+
+  function slicesForBand(values, weight, kind, sign, colorFn) {
+    if (!values.length || weight <= 0) return [];
+    const each = weight / values.length;
+    return values.map((magnitude, index) => {
+      const adjustment = kind === 'zero' ? 0 : (kind === 'bad' ? -sign * magnitude : sign * magnitude);
+      return makeSlice(adjustment, kind, colorFn(index), each);
+    });
+  }
+
+  function buildSlices(maxHelpful, maxSetback, winLow, increment, options) {
     const sign = helpfulSign(winLow);
     const maxH = Math.max(increment, floorToIncrement(maxHelpful, increment));
-    const small = increment;
-    const ten = floorToIncrement(10, increment);
-    const five = floorToIncrement(5, increment);
-    const smallPlus = uniquePositive([five, ten, small + increment]).find((value) => value > small && value <= maxH) || small;
+    const maxB = Math.max(increment, floorToIncrement(maxSetback, increment));
+    const stretch = rewardStretch({ ...options, increment });
+    const small = bandMagnitudes('small', increment, maxH, maxB, stretch);
+    const medium = bandMagnitudes('medium', increment, maxH, maxB, stretch);
+    const big = bandMagnitudes('big', increment, maxH, maxB, stretch);
+    const setbacks = bandMagnitudes('setback', increment, maxH, maxB, stretch);
 
-    const mediums = uniquePositive([30, 40, 50, 60].map((value) => floorToIncrement(value, increment)))
-      .filter((value) => value > smallPlus && value < maxH);
-
-    const rawSetback = Math.max(increment, floorToIncrement(maxSetback, increment));
-    const badSmall = increment;
-    const badPlus = rawSetback > increment
-      ? Math.max(increment, Math.min(rawSetback, floorToIncrement(Math.min(10, rawSetback), increment) || increment))
-      : increment;
-
-    const raw = [];
-    const pushGood = (magnitude, color) => {
-      if (magnitude >= increment && magnitude <= maxH) raw.push(makeSlice(sign * magnitude, 'good', color));
-    };
-
-    // 12 small helpful slices: about 5 or 10, or the game increment when the cap is tight.
-    for (let i = 0; i < 12; i++) {
-      const magnitude = (i % 3 === 2 && smallPlus !== small) ? smallPlus : small;
-      pushGood(magnitude, magnitude === small ? COLORS.goodSoft : COLORS.goodMid);
+    let smallP = OUTCOME_TABLE.smallHelp;
+    let mediumP = OUTCOME_TABLE.mediumHelp;
+    let bigP = OUTCOME_TABLE.bigHelp;
+    if (!medium.length) {
+      smallP += mediumP;
+      mediumP = 0;
+    }
+    if (!big.length) {
+      if (medium.length) mediumP += bigP;
+      else smallP += bigP;
+      bigP = 0;
     }
 
-    mediums.slice(0, 3).forEach((magnitude) => pushGood(magnitude, COLORS.goodMid));
-    pushGood(maxH, COLORS.goodStrong);
-
-    raw.push(makeSlice(0, 'zero', COLORS.zero));
-    raw.push(makeSlice(0, 'zero', COLORS.zero));
-    raw.push(makeSlice(-sign * badSmall, 'bad', COLORS.badSoft));
-    if (badPlus !== badSmall) {
-      raw.push(makeSlice(-sign * badPlus, 'bad', COLORS.badStrong));
-      const badCount = raw.filter((slice) => slice.kind === 'bad').length;
-      if (badCount / raw.length > 0.10) raw.pop();
-    }
-
-    const good = raw.filter((slice) => slice.kind === 'good').length;
-    const total = raw.length;
-    if (total && good / total < 0.75) {
-      while (raw.filter((slice) => slice.kind === 'good').length / raw.length < 0.75) {
-        pushGood(small, COLORS.goodSoft);
-      }
-    }
+    const raw = [
+      ...slicesForBand(small, smallP, 'good', sign, () => COLORS.goodSoft),
+      ...slicesForBand(medium, mediumP, 'good', sign, () => COLORS.goodMid),
+      ...slicesForBand(big, bigP, 'good', sign, (index) => (index ? COLORS.goodStrong : COLORS.goodMid)),
+      ...slicesForBand([0], OUTCOME_TABLE.noChange, 'zero', sign, () => COLORS.zero),
+      ...slicesForBand(setbacks, OUTCOME_TABLE.smallSetback, 'bad', sign, (index) => (index ? COLORS.badStrong : COLORS.badSoft))
+    ];
     return arrangeWheelSlices(raw);
   }
 
@@ -864,8 +986,20 @@
         scoreIncrement: cfg.increment
       });
     }
-    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
     const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
+    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, {
+      recoveryLoad,
+      leaderGap,
+      remainingRounds,
+      oneStrongRound
+    });
+    const bestPlaceAfter = rankWithScore(
+      player,
+      playerScore + (helpfulSign(cfg.winLow) * wheelHelp),
+      players,
+      totals,
+      cfg.winLow
+    );
     const offer = {
       eligible: true,
       reason: 'ok',
@@ -875,7 +1009,10 @@
       playerCount: players.length,
       packPlayer: sorted[packRank - 1],
       leaderPlayer: sorted[0],
+      leaderScore,
+      playerScore,
       rank,
+      bestPlaceAfter,
       leaderGap,
       packGap,
       comebackUnit,
@@ -951,8 +1088,15 @@
     rankWithScore,
     bestAllowedRankFor,
     scoringRounds,
+    OUTCOME_TABLE,
     sliceArcs,
-    wheelSliceKind
+    wheelSliceKind,
+    pickWeightedSlice,
+    buildLockedOutcome,
+    describeLifePreserverResult,
+    rotationDegreesForSlice,
+    formatWheelLabel,
+    formatSignedPoints
   };
 
   root.BPGLifePreserver = api;
