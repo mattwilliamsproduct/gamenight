@@ -148,6 +148,7 @@ export function stripDemoSearch(href){
   const keepDemo = url.searchParams.has('demo') && keepDemoSearchForChrome(url.search);
   url.searchParams.delete('demo');
   url.searchParams.delete('view');
+  url.searchParams.delete('home');
   const rest = url.searchParams.toString();
   const search = [keepDemo ? 'demo' : '', rest].filter(Boolean).join('&');
   return url.pathname + (search ? `?${search}` : '') + url.hash;

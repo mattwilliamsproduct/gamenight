@@ -294,98 +294,33 @@ html.slice2-tv .s2-home-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.86fr) minmax(0, 1.25fr);
   gap: 16px;
-  align-items: start;
-}
-
-html.slice2-tv[data-bp-home="a"] .s2-home-grid,
-html.slice2-tv[data-bp-home="b"] .s2-home-grid {
   align-items: stretch;
 }
 
-html.slice2-tv[data-bp-home="a"] .s2-home-table,
-html.slice2-tv[data-bp-home="a"] .s2-home-start,
-html.slice2-tv[data-bp-home="b"] .s2-home-start {
+html.slice2-tv .s2-home-table,
+html.slice2-tv .s2-home-start {
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
 }
 
-html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-game-grid,
-html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-game-grid {
+html.slice2-tv .s2-home-start .s2-game-grid {
   flex: 1 1 auto;
   align-content: stretch;
 }
 
-html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-game,
-html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-game {
+html.slice2-tv .s2-home-start .s2-game {
   height: 100%;
 }
 
-html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-game-art,
-html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-game-art {
+html.slice2-tv .s2-home-start .s2-game-art {
   flex: 1 1 auto;
   min-height: 72px;
 }
 
-html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-startbar,
-html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-startbar {
+html.slice2-tv .s2-home-start .s2-startbar {
   margin-top: auto;
-}
-
-html.slice2-tv[data-bp-home="a"] .s2-add {
-  margin-top: auto;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-home-table {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights {
-  grid-column: 1;
-  grid-row: 2;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-home-start {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night-list {
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 12px;
-  padding: 8px 10px;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night-copy {
-  flex-wrap: nowrap;
-  gap: 2px 8px;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night-podium {
-  gap: 6px 8px;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights .s2-podium-avatar {
-  width: 28px;
-  height: 28px;
-}
-
-html.slice2-tv[data-bp-home="b"] .s2-nights .s2-podium-place[data-place="1"] .s2-podium-avatar {
-  width: 32px;
-  height: 32px;
 }
 
 html.slice2-tv .s2-panel {
@@ -415,13 +350,10 @@ html.slice2-tv .s2-game-grid {
 
 html.slice2-tv .s2-seat-grid {
   grid-template-columns: 1fr;
-  grid-auto-rows: minmax(44px, auto);
-}
-
-html.slice2-tv[data-bp-home="a"] .s2-seat-grid {
   flex: 1 1 auto;
   align-content: stretch;
-  grid-auto-rows: minmax(44px, 1fr);
+  gap: 12px;
+  grid-auto-rows: minmax(52px, 1fr);
 }
 
 html.slice2-tv .s2-seat,
@@ -433,12 +365,12 @@ html.slice2-tv .s2-night {
 
 html.slice2-tv .s2-seat {
   display: grid;
-  grid-template-columns: 1.5rem 36px minmax(0, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: 1.75rem 44px minmax(0, 1fr) auto;
+  gap: 10px;
   align-items: center;
-  min-height: 44px;
-  padding: 4px 8px;
-  border-radius: 14px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 16px;
   border: 1.5px solid var(--s2-line);
   background: #fffaf4;
 }
@@ -531,10 +463,17 @@ html.slice2-tv .s2-seat-num {
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
+  font-size: 1.08rem;
   font-variant-numeric: tabular-nums;
 }
 
-html.slice2-tv .s2-seat .avatar-img,
+html.slice2-tv .s2-seat .avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 html.slice2-tv .s2-podium .avatar-img,
 html.slice2-tv .s2-shame-card .avatar-img {
   width: 36px;
@@ -557,7 +496,7 @@ html.slice2-tv .s2-shame-card p {
 html.slice2-tv .s2-seat-name {
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 0.98rem;
+  font-size: 1.08rem;
   color: var(--s2-ink);
 }
 
@@ -581,8 +520,8 @@ html.slice2-tv .s2-seat-actions {
 html.slice2-tv .s2-deck {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 html.slice2-tv .s2-chip {
@@ -590,8 +529,8 @@ html.slice2-tv .s2-chip {
   background: var(--s2-card);
   color: var(--s2-ink);
   border-radius: 999px;
-  min-height: 36px;
-  padding: 0.35rem 0.75rem;
+  min-height: 40px;
+  padding: 0.45rem 0.9rem;
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
   cursor: pointer;
@@ -600,8 +539,8 @@ html.slice2-tv .s2-chip {
 html.slice2-tv .s2-add {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 html.slice2-tv .s2-add input,
@@ -616,6 +555,10 @@ html.slice2-tv #score-entry-modal input {
   padding: 0.4rem 0.75rem;
   font-family: "Nunito Sans", sans-serif;
   font-weight: 700;
+}
+
+html.slice2-tv .s2-add input {
+  min-height: 48px;
 }
 
 html.slice2-tv .s2-game-grid {
@@ -1644,17 +1587,26 @@ html.slice2-tv .s2-rival {
     height: auto;
   }
 
-  html.slice2-tv[data-bp-home="b"] .s2-home-table,
-  html.slice2-tv[data-bp-home="b"] .s2-home-start,
-  html.slice2-tv[data-bp-home="b"] .s2-nights {
-    grid-column: 1;
-    grid-row: auto;
-    height: auto;
-  }
-
   html.slice2-tv .s2-seat-grid {
     flex: 0 0 auto;
+    gap: 10px;
     grid-auto-rows: minmax(44px, auto);
+  }
+
+  html.slice2-tv .s2-seat {
+    grid-template-columns: 1.5rem 36px minmax(0, 1fr) auto;
+    min-height: 44px;
+    padding: 4px 8px;
+  }
+
+  html.slice2-tv .s2-seat .avatar-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  html.slice2-tv .s2-seat-name,
+  html.slice2-tv .s2-seat-num {
+    font-size: 0.98rem;
   }
 
   html.slice2-tv .s2-home-start .s2-game-art {
