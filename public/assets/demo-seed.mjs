@@ -345,14 +345,21 @@ function openDemoView(view){
     if (typeof goActiveMatch === 'function') goActiveMatch();
     if (typeof showLifePreserverResult === 'function') {
       const game = readLiveGame();
+      const total = Number(game?.totals?.Cat) || 61;
       showLifePreserverResult({
         player: 'Cat',
-        label: '+20',
+        label: '+20 · Help',
         adj: 20,
-        total: game?.totals?.Cat,
-        place: 2
+        beforeTotal: total - 20,
+        total,
+        beforePlace: 3,
+        place: 2,
+        winLow: false,
+        leaderGapBefore: 39,
+        leaderGapAfter: 19
       });
     }
+    if (typeof drawWheel === 'function') drawWheel();
     if (typeof openModal === 'function') openModal('wheel-modal');
     return;
   }

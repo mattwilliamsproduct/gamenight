@@ -11113,11 +11113,14 @@ button.dealer-name-indicator .dealer-player-label {
     const adjEl=document.getElementById('wheel-result-adjustment');
     const totalEl=document.getElementById('wheel-result-total');
     const standEl=document.getElementById('wheel-result-standing');
+    const adj=Number(detail.adj)||0;
+    const afterTotal=Number.isFinite(detail.total)?detail.total:adj;
+    const beforeTotal=Number.isFinite(detail.beforeTotal)?detail.beforeTotal:afterTotal-adj;
     const described=(window.BPGLifePreserver&&typeof BPGLifePreserver.describeLifePreserverResult==='function')
       ? BPGLifePreserver.describeLifePreserverResult({
-        adjustment:detail.adj,
-        beforeTotal:detail.beforeTotal,
-        afterTotal:detail.total,
+        adjustment:adj,
+        beforeTotal,
+        afterTotal,
         beforeRank:detail.beforePlace,
         afterRank:detail.place,
         leaderGapBefore:detail.leaderGapBefore,

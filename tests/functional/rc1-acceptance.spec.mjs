@@ -146,13 +146,13 @@ for (const size of SIZES) {
       if (await chip.count()) await chip.click();
       else await page.locator('#slice2-lp-btn').click();
       await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-      await expect(page.locator('#wheel-commit-line')).toContainText(/applies immediately/);
+      await expect(page.locator('#wheel-commit-line')).toContainText(/Best help:/);
       await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
       await page.locator('#btn-spin').click();
       await expect(page.locator('#wheel-result')).toBeVisible({timeout: 6000});
       await expect(page.locator('#wheel-result-adjustment')).not.toHaveText('');
-      await expect(page.locator('#wheel-result-total')).toContainText(/New total/);
-      await expect(page.locator('#wheel-result-standing')).toContainText(/Standing/);
+      await expect(page.locator('#wheel-result-total')).toContainText(/→/);
+      await expect(page.locator('#wheel-result-standing')).not.toHaveText('');
       await expect(page.getByRole('button', {name: 'Back to scorecard'})).toBeVisible();
       await expect(page.getByRole('button', {name: /^Apply$/i})).toHaveCount(0);
       await page.getByRole('button', {name: 'Back to scorecard'}).click();
