@@ -57,7 +57,7 @@ test('scorecard places read as visible ordinals on lowest-wins, highest-wins, an
   expect(crowns.visible, 'Five Crowns place is visible').toBe(true);
   expect(crowns.font, `Five Crowns place ${crowns.font}px`).toBeGreaterThanOrEqual(14);
 
-  await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
+  await openScenario(page, {scenario: 'wizard-early-8', surface: 'scorecard'});
   const wizard = await placeFontPx(page, 'Matt');
   expect(wizard.text).toMatch(/^\d+(st|nd|rd|th)$/);
   expect(wizard.visible, 'Wizard place is visible').toBe(true);

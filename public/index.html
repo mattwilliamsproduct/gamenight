@@ -3177,9 +3177,12 @@ button.dealer-name-indicator {
         line-height: 1.05 !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
-        width: var(--scorecard-rank-size) !important;
-        height: var(--scorecard-rank-size) !important;
-        font-size: var(--scorecard-rank-font) !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 2.2rem !important;
+        min-height: 1.45rem !important;
+        padding: 0.12rem 0.4rem !important;
+        font-size: max(0.88rem, var(--scorecard-rank-font, 0.88rem)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-dealer-avatar-badge {
         font-size: var(--scorecard-dealer-font) !important;
@@ -13812,8 +13815,8 @@ ${isDealer
         root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,rowHeight*0.14)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-rank-size',`${Math.max(12,Math.min(42,28*scale)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.4,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-rank-size',`${Math.max(22,Math.min(42,28*scale)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.88,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.36,Math.min(0.95,0.72*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-size',`${Math.max(11,Math.min(30,22*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
