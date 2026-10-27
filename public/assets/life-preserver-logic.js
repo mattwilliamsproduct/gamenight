@@ -726,8 +726,8 @@
     const radialMode = chord < Math.max(48 * scale, signed.length * 20 * scale);
     const chordCss = chord / scale;
     const radialCss = radial / scale;
-    const targetCss = Math.max(10, Math.min(cssWidth * 0.06, radialCss * 0.22, radialMode ? chordCss * 0.58 : chordCss * 0.36));
-    const cssFont = Math.max(9, Math.min(targetCss, radialMode ? chordCss * 0.62 : chordCss * 0.4));
+    const targetCss = Math.max(11, Math.min(cssWidth * 0.088, radialCss * 0.24, radialMode ? chordCss * 0.58 : chordCss * 0.38));
+    const cssFont = Math.max(10, Math.min(targetCss, radialMode ? chordCss * 0.62 : chordCss * 0.42));
     const canvasFont = cssFont * scale;
     const textW = signed.length * canvasFont * 0.52;
     const textH = canvasFont * 0.86;

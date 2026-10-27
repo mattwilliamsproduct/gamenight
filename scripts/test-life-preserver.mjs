@@ -1007,16 +1007,32 @@ test('realized Life Preserver frequencies still match the outcome table', () => 
 });
 
 test('in-slice label boxes stay inside their roulette segments', () => {
-  const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 340, canvasWidth: 800 };
-  for (const item of ROULETTE_CASES) {
-    const result = offerFromCase(item);
-    const slices = LP.attachSliceArcs(result.slices);
-    slices.forEach((slice, index) => {
-      const layout = LP.labelLayout(slice, geo);
-      assert.equal(layout.text, LP.formatSignedPoints(slice.adjustment));
-      assert.ok(layout.insidePie, `${item.label} slice ${index} ${layout.text} left the pie`);
-      assert.ok(layout.insideSegment, `${item.label} slice ${index} ${layout.text} left its segment`);
-      assert.ok(layout.cssFont >= 9, `${item.label} ${layout.text} font ${layout.cssFont}`);
-    });
+  const geos = [
+    { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 340, canvasWidth: 800 },
+    { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 520, canvasWidth: 800 }
+  ];
+  for (const geo of geos) {
+    for (const item of ROULETTE_CASES) {
+      const result = offerFromCase(item);
+      const slices = LP.attachSliceArcs(result.slices);
+      slices.forEach((slice, index) => {
+        const layout = LP.labelLayout(slice, geo);
+        assert.equal(layout.text, LP.formatSignedPoints(slice.adjustment));
+        assert.ok(layout.insidePie, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left the pie`);
+        assert.ok(layout.insideSegment, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left its segment`);
+        assert.ok(layout.cssFont >= 10, `${item.label} ${layout.text} font ${layout.cssFont}`);
+      });
+    }
   }
+});
+
+test('in-slice label fonts grow with the wheel', () => {
+  const small = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 280, canvasWidth: 800 };
+  const large = { ...small, cssWidth: 560 };
+  const result = offerFromCase(ROULETTE_CASES[0]);
+  const slices = LP.attachSliceArcs(result.slices);
+  const wide = slices.reduce((best, slice) => ((slice._end - slice._start) > (best._end - best._start) ? slice : best), slices[0]);
+  const smallFont = LP.labelLayout(wide, small).cssFont;
+  const largeFont = LP.labelLayout(wide, large).cssFont;
+  assert.ok(largeFont > smallFont + 4, `wide-slice font ${smallFont} -> ${largeFont}`);
 });

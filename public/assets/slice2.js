@@ -483,6 +483,14 @@
     shell.style.height = '';
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const gutter = 8;
+    const landscape = vw > vh;
+    const dialogW = Math.floor(landscape ? Math.min(vw - gutter, vh - gutter) : vw - gutter);
+    const dialogH = Math.floor(vh - gutter);
+    dialog.style.width = `${dialogW}px`;
+    dialog.style.maxWidth = `${dialogW}px`;
+    dialog.style.maxHeight = `${dialogH}px`;
+    dialog.style.minHeight = landscape ? `${dialogH}px` : '';
     const cs = getComputedStyle(dialog);
     const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
@@ -492,15 +500,18 @@
       if (el.classList.contains('hidden')) return;
       const style = getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden') return;
-      chrome += el.getBoundingClientRect().height;
+      if (style.position === 'absolute' || style.position === 'fixed') return;
+      const box = el.getBoundingClientRect();
+      if (box.height < 1) return;
+      chrome += box.height;
       chrome += (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
     });
-    const availW = Math.max(176, Math.min(vw - 16, dialog.clientWidth || vw) - padX);
-    const availH = Math.max(176, vh - 16 - chrome);
+    const availW = Math.max(168, dialogW - padX);
+    const availH = Math.max(168, dialogH - chrome);
     const size = Math.floor(Math.min(availW, availH));
     shell.style.width = `${size}px`;
     shell.style.height = `${size}px`;
-    return { size, chrome, vw, vh, availW, availH };
+    return { size, chrome, vw, vh, availW, availH, dialogW, dialogH };
   }
 
   function paintWheel() {
@@ -618,11 +629,12 @@
       font: labels.length ? Math.round(Math.min(...labels.map((item) => item.cssFont)) * 10) / 10 : 0,
       maxFont: labels.length ? Math.round(Math.max(...labels.map((item) => item.cssFont)) * 10) / 10 : 0,
       chrome: sized?.chrome || 0,
+      dialog: sized ? { width: sized.dialogW, height: sized.dialogH } : null,
       viewport: { width: window.innerWidth, height: window.innerHeight },
-      spinInView: !!(spinBox && spinBox.top >= -1 && spinBox.bottom <= window.innerHeight + 1 && spinBox.width > 8),
+      spinInView: !!(spinBox && spinBox.top >= -1 && spinBox.bottom <= window.innerHeight + 1 && spinBox.left >= -1 && spinBox.right <= window.innerWidth + 1 && spinBox.width > 8),
       diameterShare: sized && sized.size
         ? sized.size / Math.min(window.innerWidth, window.innerHeight - sized.chrome)
-        : 0
+        : 0}
     };
   }
 

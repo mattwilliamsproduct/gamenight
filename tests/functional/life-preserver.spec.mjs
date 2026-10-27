@@ -90,7 +90,7 @@ test('Life Preserver roulette labels stay inside their slices', async ({page}) =
     });
     expect(report.labels.some((label) => label.text === '+10'), `${viewport.width} shows +10`).toBe(true);
     expect(report.spinInView, `${viewport.width} keeps Use Your One Spin on screen ${JSON.stringify(report)}`).toBe(true);
-    expect(report.diameterShare, `${viewport.width} wheel fill ${JSON.stringify(report)}`).toBeGreaterThanOrEqual(0.68);
+    expect(report.diameterShare, `${viewport.width} wheel fill ${JSON.stringify(report)}`).toBeGreaterThanOrEqual(0.70);
   }
 });
 
@@ -139,7 +139,7 @@ test('Life Preserver dialog stays usable at a short laptop height', async ({page
   expect(fit.callouts).toBe(0);
   expect(fit.overlapCopy, `short laptop copy stays off the wheel ${JSON.stringify(fit.overlapCopy)}`).toEqual([]);
   expect(fit.spinInView, `short laptop keeps the spin button on screen ${JSON.stringify(fit)}`).toBe(true);
-  expect(fit.diameterShare, `short laptop wheel fill ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(0.68);
+  expect(fit.diameterShare, `short laptop wheel fill ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(0.70);
 });
 
 test('Life Preserver locks the outcome before the reveal and blocks a second spin', async ({page}) => {
