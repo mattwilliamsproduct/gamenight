@@ -65,6 +65,53 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   expect(badWeight / total).toBeLessThanOrEqual(0.10);
 });
 
+test('Life Preserver callouts stay signed and inside the wheel', async ({page}) => {
+  for (const width of [375, 390, 1440]) {
+    await page.setViewportSize({width, height: width === 1440 ? 900 : 844});
+    await page.goto(`/?demo&view=lifepreserver-low`, {waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+    await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+    await page.locator('.wheel-callout').first().waitFor({state: 'visible', timeout: 5000});
+    const report = await page.evaluate(() => {
+      const shell = document.querySelector('.wheel-shell')?.getBoundingClientRect();
+      const modal = document.querySelector('#wheel-modal .life-preserver-dialog')?.getBoundingClientRect();
+      const chips = [...document.querySelectorAll('.wheel-callout')].map((el) => {
+        const box = el.getBoundingClientRect();
+        return {
+          text: (el.textContent || '').trim(),
+          insideShell: !!(shell && box.left >= shell.left - 1 && box.top >= shell.top - 1 && box.right <= shell.right + 1 && box.bottom <= shell.bottom + 1),
+          insideModal: !!(modal && box.left >= modal.left - 1 && box.top >= modal.top - 1 && box.right <= modal.right + 1 && box.bottom <= modal.bottom + 1)
+        };
+      });
+      return chips;
+    });
+    expect(report.length).toBeGreaterThan(0);
+    report.forEach((chip) => {
+      expect(chip.text).toMatch(/^(0|[+\u2212\-]\d+)$/);
+      expect(chip.insideShell).toBe(true);
+      expect(chip.insideModal).toBe(true);
+    });
+    expect(report.some((chip) => chip.text === '+10' || chip.text === '+5')).toBe(true);
+  }
+});
+
+test('Life Preserver dialog stays usable at a short laptop height', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 640});
+  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  const help = page.locator('#btn-life-preserver-help');
+  await help.scrollIntoViewIfNeeded();
+  const visibleInDialog = await page.evaluate(() => {
+    const dialog = document.querySelector('#wheel-modal .life-preserver-dialog');
+    const button = document.getElementById('btn-life-preserver-help');
+    if (!dialog || !button) return false;
+    const dialogBox = dialog.getBoundingClientRect();
+    const buttonBox = button.getBoundingClientRect();
+    return buttonBox.bottom <= dialogBox.bottom + 2 && buttonBox.top >= dialogBox.top - 2;
+  });
+  expect(visibleInDialog).toBe(true);
+});
+
 test('Life Preserver locks the outcome before the reveal and blocks a second spin', async ({page}) => {
   await openScenario(page, {scenario: 'five-crowns-preservers', surface: 'scorecard'});
   await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();

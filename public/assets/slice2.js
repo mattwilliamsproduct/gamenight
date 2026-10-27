@@ -73,8 +73,6 @@
     } else {
       bits.push(`Round ${game.currentRound}`);
     }
-    const dealer = getCurrentDealerName(game);
-    if (dealer) bits.push(`Dealer: ${dealer}`);
     if (isBidTrickGame(game) && !isMatchOver(game)) {
       const phase = getBidTrickPhase(game);
       const tricks = getRoundTrickCount(game);
@@ -90,10 +88,15 @@
   }
 
   function boardSubLine(game) {
-    if (game.name !== 'Five Crowns') return '';
-    const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-    const wild = wilds[(game.currentRound || 1) - 1];
-    return wild ? `${wild}s\u00a0Wild` : '';
+    const bits = [];
+    if (game.name === 'Five Crowns') {
+      const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const wild = wilds[(game.currentRound || 1) - 1];
+      if (wild) bits.push(`${wild}s\u00a0Wild`);
+    }
+    const dealer = getCurrentDealerName(game);
+    if (dealer) bits.push(`Dealer:\u00a0${dealer}`);
+    return bits.join(' · ');
   }
 
   function enterLabel(game) {
@@ -466,6 +469,86 @@
     if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
   }
 
+  function placeWheelCallouts(canvas, context, callouts, outer) {
+    let layer = document.getElementById('wheel-callouts');
+    if (!layer && canvas.parentElement) {
+      layer = document.createElement('div');
+      layer.id = 'wheel-callouts';
+      layer.className = 'wheel-callouts';
+      canvas.parentElement.appendChild(layer);
+    }
+    if (!layer) return;
+    layer.replaceChildren();
+    if (!callouts.length) return;
+    const shellW = canvas.clientWidth || 1;
+    const shellH = canvas.clientHeight || 1;
+    const cssCx = shellW / 2;
+    const cssCy = shellH / 2;
+    const scale = canvas.width / shellW;
+    const pad = 6;
+    const boxes = [];
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    const overlap = (a, b) => (
+      a.x < b.x + b.w + 4 && a.x + a.w + 4 > b.x && a.y < b.y + b.h + 4 && a.y + a.h + 4 > b.y
+    );
+    callouts.forEach((item) => {
+      const el = document.createElement('span');
+      el.className = `wheel-callout is-${item.kind || 'zero'}`;
+      el.textContent = item.signed;
+      layer.appendChild(el);
+      const bw = Math.max(el.offsetWidth, 28);
+      const bh = Math.max(el.offsetHeight, 18);
+      const top = -Math.PI / 2;
+      const fromTop = Math.atan2(Math.sin(item.mid - top), Math.cos(item.mid - top));
+      let ang = item.mid;
+      if (Math.abs(fromTop) < 0.36) ang = top + (fromTop >= 0 ? 0.52 : -0.52);
+      const candidates = [];
+      if (Math.cos(ang) < -0.4) {
+        const sideY = cssCy + Math.sin(ang) * (shellH * 0.34);
+        candidates.push({ x: pad + bw / 2, y: clamp(sideY, pad + bh / 2, shellH - pad - bh / 2) });
+        candidates.push({ x: pad + bw / 2, y: Math.sin(ang) > 0 ? shellH - pad - bh / 2 : pad + bh / 2 });
+      }
+      if (Math.cos(ang) > 0.4) {
+        const sideY = cssCy + Math.sin(ang) * (shellH * 0.34);
+        candidates.push({ x: shellW - pad - bw / 2, y: clamp(sideY, pad + bh / 2, shellH - pad - bh / 2) });
+      }
+      [0.46, 0.42, 0.38].forEach((frac) => {
+        const r = Math.min(shellW, shellH) * frac;
+        candidates.push({ x: cssCx + Math.cos(ang) * r, y: cssCy + Math.sin(ang) * r });
+      });
+      let chosen = candidates[0] || { x: cssCx, y: cssCy };
+      candidates.some((spot) => {
+        const x = clamp(spot.x, pad + bw / 2, shellW - pad - bw / 2);
+        const y = clamp(spot.y, pad + bh / 2, shellH - pad - bh / 2);
+        const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
+        if (boxes.some((other) => overlap(box, other))) return false;
+        chosen = { x, y };
+        return true;
+      });
+      chosen.x = clamp(chosen.x, pad + bw / 2, shellW - pad - bw / 2);
+      chosen.y = clamp(chosen.y, pad + bh / 2, shellH - pad - bh / 2);
+      el.style.left = `${chosen.x}px`;
+      el.style.top = `${chosen.y}px`;
+      const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };
+      boxes.push(box);
+      const fromX = (canvas.width / 2) + Math.cos(item.mid) * (outer - 6);
+      const fromY = (canvas.height / 2) + Math.sin(item.mid) * (outer - 6);
+      const toX = box.cx * scale;
+      const toY = box.cy * scale;
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const dist = Math.hypot(dx, dy) || 1;
+      const stop = (Math.max(bw, bh) / 2 + 6) * scale;
+      const t = Math.max(0, (dist - stop) / dist);
+      context.beginPath();
+      context.moveTo(fromX, fromY);
+      context.lineTo(fromX + dx * t, fromY + dy * t);
+      context.strokeStyle = 'rgba(8, 87, 79, 0.45)';
+      context.lineWidth = 2;
+      context.stroke();
+    });
+  }
+
   function paintWheel() {
     const canvas = document.getElementById('wheel-canvas');
     const live = (typeof getWheelSlices === 'function' ? getWheelSlices() : []) || [];
@@ -474,6 +557,8 @@
     const context = canvas.getContext('2d');
     if (!slices.length) {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      const empty = document.getElementById('wheel-callouts');
+      if (empty) empty.replaceChildren();
       return slices;
     }
     paintWheel.lastSlices = slices;
@@ -529,47 +614,7 @@
       slice._end = angle + arc;
       angle += arc;
     });
-    callouts.forEach((item, index) => {
-      const clustered = callouts.some((other, otherIndex) => (
-        otherIndex !== index && Math.abs(Math.atan2(Math.sin(other.mid - item.mid), Math.cos(other.mid - item.mid))) < 0.28
-      ));
-      const top = -Math.PI / 2;
-      const fromTop = Math.atan2(Math.sin(item.mid - top), Math.cos(item.mid - top));
-      let mid = item.mid + ((index % 2) ? 0.06 : -0.04);
-      if (Math.abs(fromTop) < 0.36) mid = top + (fromTop >= 0 ? 0.44 : -0.44);
-      const labelR = cx * (clustered && index % 2 ? 0.96 : 0.91);
-      const innerPt = { x: cx + Math.cos(item.mid) * (outer - 8), y: cy + Math.sin(item.mid) * (outer - 8) };
-      context.font = `800 ${item.font}px "Nunito Sans", sans-serif`;
-      const textW = context.measureText(item.signed).width;
-      const padX = Math.max(8, item.font * 0.28);
-      const padY = Math.max(5, item.font * 0.22);
-      let x = cx + Math.cos(mid) * labelR;
-      let y = cy + Math.sin(mid) * labelR;
-      x = Math.min(canvas.width - textW / 2 - padX - 6, Math.max(textW / 2 + padX + 6, x));
-      y = Math.min(canvas.height - item.font / 2 - padY - 6, Math.max(item.font / 2 + padY + 6, y));
-      const boxW = textW + padX * 2;
-      const boxH = item.font + padY * 2;
-      const boxX = x - boxW / 2;
-      const boxY = y - boxH / 2;
-      context.beginPath();
-      context.moveTo(innerPt.x, innerPt.y);
-      context.lineTo(x, y);
-      context.strokeStyle = 'rgba(8, 87, 79, 0.5)';
-      context.lineWidth = 2;
-      context.stroke();
-      context.beginPath();
-      if (typeof context.roundRect === 'function') context.roundRect(boxX, boxY, boxW, boxH, 10);
-      else context.rect(boxX, boxY, boxW, boxH);
-      context.fillStyle = '#f7f3ea';
-      context.fill();
-      context.strokeStyle = 'rgba(8, 87, 79, 0.28)';
-      context.lineWidth = 1.5;
-      context.stroke();
-      context.fillStyle = item.kind === 'bad' ? '#3b1410' : (item.kind === 'good' ? '#04332e' : '#3f3a36');
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillText(item.signed, x, y);
-    });
+    placeWheelCallouts(canvas, context, callouts, outer);
     context.beginPath();
     context.arc(cx, cy, outer, 0, Math.PI * 2);
     context.strokeStyle = 'rgba(138, 106, 50, 0.7)';

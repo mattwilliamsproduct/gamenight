@@ -137,8 +137,9 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
     await page.setViewportSize({width, height: 844});
     await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
     await expect(page.locator('#slice2-board-line')).toContainText(/Round \d+ of \d+/);
-    await expect(page.locator('#slice2-board-line')).not.toContainText(/Wild/);
+    await expect(page.locator('#slice2-board-line')).not.toContainText(/Wild|Dealer/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Wild/);
+    await expect(page.locator('#slice2-board-sub')).toContainText(/Dealer/);
     await expect(page.locator('th.scorecard-col-now')).toHaveText(/^R\d+$/);
     const nowWraps = await page.locator('th.scorecard-col-now').evaluate((el) => getComputedStyle(el).whiteSpace !== 'nowrap');
     expect(nowWraps).toBe(false);
@@ -153,6 +154,28 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
     });
     expect(overflow).toBe(false);
   }
+});
+
+test('laptop scorecard keeps a Table button and a one-line title', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 900});
+  await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
+  await expect(page.locator('#slice2-table-btn')).toBeVisible();
+  const tableLooksLikeButton = await page.locator('#slice2-table-btn').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return style.borderStyle !== 'none' && parseFloat(style.borderWidth) > 0 && style.backgroundColor !== 'rgba(0, 0, 0, 0)';
+  });
+  expect(tableLooksLikeButton).toBe(true);
+  const titleWraps = await page.locator('#slice2-board-line').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return style.whiteSpace !== 'nowrap' || el.getClientRects().length > 1;
+  });
+  expect(titleWraps).toBe(false);
+  await expect(page.locator('#slice2-board-line')).not.toContainText(/Dealer/);
+  const heights = await page.evaluate(() => {
+    const ids = ['slice2-table-btn', 'slice2-history-btn', 'actions-btn'];
+    return ids.map((id) => Math.round(document.getElementById(id)?.getBoundingClientRect().height || 0));
+  });
+  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(8);
 });
 
 test('Life Preserver header control shows only when someone can spin', async ({page}) => {

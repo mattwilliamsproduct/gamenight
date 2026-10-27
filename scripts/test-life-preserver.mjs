@@ -464,6 +464,9 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   const brickAdjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
   const brickMin = Math.min(...brickAdjustments);
   const brickMax = Math.max(...brickAdjustments);
+  assert.ok(brickAdjustments.includes(-60), `big help should be −60, got ${brickAdjustments.join(',')}`);
+  assert.ok(brickAdjustments.includes(-75), `jackpot should stay −75, got ${brickAdjustments.join(',')}`);
+  assert.ok(!brickAdjustments.includes(-65), 'stretch must not invent −65');
   assert.ok(brickMin < 0, 'negative slices stay on the wheel');
   assert.ok(brickMax > 0, 'small bad slices stay on the wheel');
   assert.match(explained.summary, /7th of 8/);

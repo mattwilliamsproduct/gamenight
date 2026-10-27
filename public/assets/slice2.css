@@ -576,12 +576,12 @@ html.slice2-tv .s2-board-identity {
 
 html.slice2-tv .s2-table-btn {
   flex: 0 0 auto;
-  min-height: 36px;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.85rem;
-  color: var(--s2-muted);
-  background: transparent;
-  border-color: transparent;
+  min-height: 40px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--s2-ink);
+  background: var(--s2-card);
+  border-color: var(--s2-line);
 }
 
 html.slice2-tv .s2-table-btn:hover,
@@ -925,13 +925,74 @@ html.slice2-tv #wheel-modal .life-preserver-dialog {
   overflow: auto;
 }
 
+html.slice2-tv #wheel-commit-line {
+  max-width: 22rem;
+  text-align: center;
+  line-height: 1.35;
+}
+
 html.slice2-tv #wheel-modal .life-preserver-dialog > p.text-xs {
   display: none;
 }
 
 html.slice2-tv .wheel-shell {
-  width: min(28rem, 86vw, 62dvh);
-  height: min(28rem, 86vw, 62dvh);
+  position: relative;
+  width: min(28rem, 86vw, 48dvh);
+  height: min(28rem, 86vw, 48dvh);
+}
+
+html.slice2-tv .wheel-callouts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+html.slice2-tv .wheel-callout {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  background: #f7f3ea;
+  border: 1px solid rgba(8, 87, 79, 0.3);
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+html.slice2-tv .wheel-callout.is-bad {
+  color: #3b1410;
+}
+
+html.slice2-tv .wheel-callout.is-good {
+  color: #04332e;
+}
+
+@media (max-height: 700px) {
+  html.slice2-tv .wheel-shell {
+    width: min(22rem, 70vw, 38dvh);
+    height: min(22rem, 70vw, 38dvh);
+  }
+
+  html.slice2-tv #wheel-modal .life-preserver-dialog {
+    max-height: calc(100dvh - 8px);
+    overflow-y: auto;
+  }
+
+  html.slice2-tv #wheel-player-name {
+    font-size: clamp(1.6rem, 4vw, 2.2rem) !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  html.slice2-tv #btn-spin {
+    padding-top: 0.7rem !important;
+    padding-bottom: 0.7rem !important;
+    font-size: 1.35rem !important;
+  }
 }
 
 html.slice2-tv .wheel-shell::before {
@@ -1468,20 +1529,64 @@ html.slice2-tv button.scoreboard-rank-badge {
 }
 
 @media (min-width: 768px) {
+  html.slice2-tv #slice2-board-bar {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  html.slice2-tv .s2-board-identity {
+    align-items: center;
+    min-width: 0;
+  }
+
+  html.slice2-tv #slice2-board-line {
+    white-space: nowrap;
+  }
+
+  html.slice2-tv .s2-board-line-row {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  html.slice2-tv .s2-board-line-row #save-indicator.show,
+  html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator.show {
+    max-width: none;
+    white-space: nowrap;
+    font-size: 0.62rem;
+    padding: 0.18rem 0.5rem;
+  }
+
   html.slice2-tv .s2-table-btn {
-    min-height: 36px;
-    padding: 0.3rem 0.65rem;
-    font-size: 0.82rem;
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--s2-ink);
+    background: var(--s2-card);
+    border-color: var(--s2-line);
+  }
+
+  html.slice2-tv #slice2-lp-explain {
+    display: none !important;
+  }
+
+  html.slice2-tv .s2-board-actions {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   html.slice2-tv .s2-board-actions #actions-btn,
   html.slice2-tv .s2-board-actions .match-end-btn,
-  html.slice2-tv .s2-board-actions .s2-btn {
+  html.slice2-tv .s2-board-actions .s2-btn,
+  html.slice2-tv #slice2-history-btn,
+  html.slice2-tv #slice2-lp-btn {
     min-height: 40px;
-    font-size: 0.9rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.88rem;
   }
 
   html.slice2-tv #slice2-enter-btn {
+    flex: 1 1 100%;
     min-height: 44px;
   }
 }

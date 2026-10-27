@@ -712,8 +712,8 @@
       return uniquePositive(values).filter((value) => value > step * 2 && value < maxHelpful);
     }
     if (band === 'big') {
-      const raised = floorToIncrement(Math.max(step * 12, maxHelpful * 0.8) * (1 + stretch * 0.6), step);
-      return uniquePositive([raised, maxHelpful]).filter((value) => value > step * 2 && value <= maxHelpful);
+      const base = floorToIncrement(Math.max(step * 12, maxHelpful * 0.8), step);
+      return uniquePositive([base, maxHelpful]).filter((value) => value > step * 2 && value <= maxHelpful);
     }
     if (band === 'setback') {
       return uniquePositive([step, Math.min(maxSetback, step * 2)]).filter((value) => value <= maxSetback);

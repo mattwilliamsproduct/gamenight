@@ -8472,6 +8472,7 @@ button.dealer-name-indicator .dealer-player-label {
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
           <div id="wheel-spinner" class="wheel-spinner"></div>
           <div class="wheel-spinner-hub"></div>
+          <div id="wheel-callouts" class="wheel-callouts"></div>
         </div>
         <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
           <span class="wheel-legend-chip is-help">Help</span>
@@ -10104,7 +10105,8 @@ button.dealer-name-indicator .dealer-player-label {
     }
     const commit=document.getElementById('wheel-commit-line');
     if(commit){
-      commit.textContent=explained.rangeLine||'Best help and largest setback show after the table is ready.';
+      const range=explained.rangeLine||'Best help and largest setback show after the table is ready.';
+      commit.innerHTML=range.replace(/ · /g,'<br>');
     }
     const bestPlace=document.getElementById('wheel-best-place');
     if(bestPlace){
