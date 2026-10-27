@@ -690,6 +690,74 @@ function demoFiveCrownsLiveRounds(players){
   return perRound.map((values,index)=>scoreRound(index+1,players,values));
 }
 
+function canastaHouseParts(spec){
+  const rates={
+    cleanCanastaEach:500,
+    dirtyCanastaEach:300,
+    sevensCanastaEach:1500,
+    redThreeEachLow:100,
+    redThreeEachHigh:200,
+    redThreeHighAt:4,
+    goingOutBonus:100
+  };
+  const reds=spec.redThrees||0;
+  const redScore=reds>=rates.redThreeHighAt?reds*rates.redThreeEachHigh:reds*rates.redThreeEachLow;
+  const going=spec.goingOut?rates.goingOutBonus:0;
+  const roundScore=(spec.cleanCanastas||0)*rates.cleanCanastaEach
+    +(spec.dirtyCanastas||0)*rates.dirtyCanastaEach
+    +(spec.sevensCanastas||0)*rates.sevensCanastaEach
+    +redScore
+    +going
+    +(spec.cardPoints||0)
+    -(spec.cardsLeft||0);
+  return {...rates,...spec,roundScore};
+}
+
+function canastaTeamRound(round,hot,quiet,hotNames,quietNames){
+  const scores={};
+  const handFootParts={};
+  hotNames.forEach((name)=>{scores[name]=hot.roundScore;handFootParts[name]={...hot};});
+  quietNames.forEach((name)=>{scores[name]=quiet.roundScore;handFootParts[name]={...quiet};});
+  return {round,scores,handFootParts};
+}
+
+function canastaHouseRound(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const hot=canastaHouseParts({cleanCanastas:1,dirtyCanastas:1,sevensCanastas:1,redThrees:4,goingOut:1,cardPoints:40,cardsLeft:20});
+  const quiet=canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:2,goingOut:0,cardPoints:15,cardsLeft:10});
+  const round=canastaTeamRound(1,hot,quiet,['Megan','Matt'],['Cat','Mike']);
+  return makeCurrentGame('Hand and Foot',roster,[round],{
+    id:1785600000001,
+    gameId:1785600000001,
+    maxRounds:4,
+    handFoot:{format:'teams', sides}
+  });
+}
+
+function demoCanastaLive(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const r1Hot=canastaHouseParts({cleanCanastas:1,dirtyCanastas:1,sevensCanastas:1,redThrees:4,goingOut:1,cardPoints:40,cardsLeft:20});
+  const r1Quiet=canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:2,goingOut:0,cardPoints:15,cardsLeft:10});
+  const r2Hot=canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:1,goingOut:0,cardPoints:80,cardsLeft:5});
+  const r2Quiet=canastaHouseParts({cleanCanastas:1,dirtyCanastas:0,sevensCanastas:0,redThrees:3,goingOut:1,cardPoints:25,cardsLeft:0});
+  const rounds=[
+    canastaTeamRound(1,r1Hot,r1Quiet,['Megan','Matt'],['Cat','Mike']),
+    canastaTeamRound(2,r2Hot,r2Quiet,['Megan','Matt'],['Cat','Mike'])
+  ];
+  return makeCurrentGame('Hand and Foot',roster,rounds,{
+    maxRounds:4,
+    handFoot:{format:'teams', sides}
+  });
+}
+
 function rookFinishedNight(){
   const roster=['Megan','Matt','Cat','Mike'];
   const rounds=[{
@@ -1166,6 +1234,18 @@ export const QA_SCENARIOS = {
       currentGame:lifePreserverVisibleGame
     }
   },
+  'canasta-house-round':{
+    label:'Canasta · House rules round',
+    description:'Hand and Foot saved as Canasta. Round 1 has a sevens canasta and 4 red 3s (800). Highest wins.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:['Megan','Matt','Cat','Mike'],
+      players:['Megan','Matt','Cat','Mike'],
+      history:[],
+      playerProfiles:profiles(),
+      currentGame:canastaHouseRound()
+    }
+  },
   'rook-bid-setup':{
     label:'Rook · Bid setup',
     description:'Four-player Rook at the contract editor, plus one finished night with a retired seat.',
@@ -1218,6 +1298,12 @@ export const QA_SCENARIOS = {
     description:'Preview-only mid-game 818 with mixed bids.',
     defaultSurface:'scorecard',
     data:demoTable(demo818Live())
+  },
+  'demo-canasta':{
+    label:'TEMP Demo Canasta',
+    description:'Preview-only in-progress Canasta (Hand and Foot). Two teams, two rounds, including a sevens canasta and 4 red 3s.',
+    defaultSurface:'scorecard',
+    data:demoTable(demoCanastaLive())
   }
 };
 

@@ -8,6 +8,8 @@ const APP_SHELL = [
   './assets/slice2.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
+  './assets/game-registry.js',
+  './assets/hand-foot-logic.js',
   './assets/life-preserver-logic.js',
   './assets/scorebook.js',
   './assets/slice2.js',

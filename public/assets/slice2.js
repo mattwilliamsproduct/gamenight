@@ -1,13 +1,15 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
-  const GAMES = [
-    { id: 'Five Crowns', title: 'Five Crowns', art: 'five', line: '11 rounds · Lowest total wins', detail: () => '11 rounds' },
-    { id: '818', title: '818', art: '818', line: '15 rounds · Highest total wins', detail: () => '15 rounds' },
-    { id: 'Wizard', title: 'Wizard', art: 'wizard', line: 'Highest total wins', detail: (count) => `${Math.max(1, Math.floor(60 / Math.max(count, 1)))} rounds` },
-    { id: 'Flip 7 Vengeance', title: 'Flip 7', art: 'flip7', line: 'Highest total wins · Open match', detail: () => 'Open match' },
-    { id: 'Beat the Heat', title: 'Beat the Heat', art: 'heat', line: 'Lowest heat wins · Ends at 66', detail: () => 'Ends at 66' },
-    { id: 'Rook', title: 'Rook', art: 'rook', line: 'Highest total wins · Teams', detail: () => 'Teams' }
-  ];
+  function registryGames() {
+    return (window.BPGGames && BPGGames.visibleGames()) || [];
+  }
+
+  function displayGameName(id) {
+    if (window.BPGGames && typeof BPGGames.displayName === 'function') return BPGGames.displayName(id);
+    if (id === 'Hand and Foot') return 'Canasta';
+    if (id === 'Flip 7 Vengeance') return 'Flip 7';
+    return id || 'Match';
+  }
 
   let editing = false;
   let selected = 'Five Crowns';
@@ -26,7 +28,8 @@
   }
 
   function gameMeta(id) {
-    return GAMES.find((game) => game.id === id) || GAMES[0];
+    const games = registryGames();
+    return games.find((game) => game.id === id) || window.BPGGames?.gameById(id) || games[0];
   }
 
   function dealerOf(table) {
@@ -38,7 +41,7 @@
     if (!game || (game.currentRound || 1) <= 1) return '';
     const table = getActivePlayers(game);
     if (!table.length) return '';
-    const low = game.name === 'Five Crowns' || game.name === 'Beat the Heat';
+    const low = window.BPGGames ? BPGGames.winLow(game.name) : (game.name === 'Five Crowns' || game.name === 'Beat the Heat');
     const sorted = [...table].sort((a, b) => low ? (game.totals[a] || 0) - (game.totals[b] || 0) : (game.totals[b] || 0) - (game.totals[a] || 0));
     const name = sorted[0];
     return `Leader: ${name} (${game.totals[name] || 0} pts)`;
@@ -59,7 +62,7 @@
   }
 
   function boardTitle(game) {
-    return game.name === 'Flip 7 Vengeance' ? 'Flip 7' : game.name;
+    return displayGameName(game.name);
   }
 
   function boardLine(game) {
@@ -190,6 +193,8 @@
     }
     const table = state();
     const dealer = dealerOf(table);
+    const picker = registryGames();
+    if (!picker.some((game) => game.id === selected)) selected = picker[0]?.id || 'Five Crowns';
     const meta = gameMeta(selected);
     const seated = table.players.length;
     const bench = table.allPlayers.filter((player) => !table.players.includes(player));
@@ -197,8 +202,8 @@
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
       const title = maxR && maxR < 900
-        ? `Resume ${game.name === 'Flip 7 Vengeance' ? 'Flip 7' : game.name} · Round ${game.currentRound} of ${maxR} · ${getActivePlayers(game).length} Players`
-        : `Resume ${game.name === 'Flip 7 Vengeance' ? 'Flip 7' : game.name} · Round ${game.currentRound} · ${getActivePlayers(game).length} Players`;
+        ? `Resume ${displayGameName(game.name)} · Round ${game.currentRound} of ${maxR} · ${getActivePlayers(game).length} Players`
+        : `Resume ${displayGameName(game.name)} · Round ${game.currentRound} · ${getActivePlayers(game).length} Players`;
       return `<section class="s2-banner">
         <div>
           <div class="s2-kicker">Active match</div>
@@ -226,7 +231,7 @@
       </article>`;
     }).join('') || '<p class="s2-sub">Add players to fill tonight\'s table.</p>';
     const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
-    const cards = GAMES.map((game) => {
+    const cards = registryGames().map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}">
         <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
@@ -239,7 +244,7 @@
     }).join('');
     const nights = table.history.slice(0, 4).map((match) => {
       const winner = (match.winners && match.winners[0]) || 'Tied';
-      const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
+      const label = displayGameName(match.game);
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
       const status = incomplete ? 'Incomplete' : (winner ? winner : '');
       return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
@@ -270,6 +275,12 @@
               <h2>Start a New Match</h2>
               <p class="s2-sub">Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}</p>
             </div>
+            <label class="s2-rules-picker">
+              <select class="s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
+                <option value="">Game Instructions</option>
+                ${picker.map((game) => `<option value="${escapeHtml(game.id)}">${escapeHtml(game.title)}</option>`).join('')}
+              </select>
+            </label>
           </div>
           <div class="s2-game-grid">${cards}</div>
           <div class="s2-startbar">
@@ -379,14 +390,12 @@
       rateFallback ? { kicker: 'Win rate', value: `${rateFallback.value}%`, name: rateFallback.player, sub: rateFallback.label || '' } : null,
       streak ? { kicker: 'Win streak', value: `${streak.value}W`, name: streak.player, sub: streak.label || 'in a row' } : null
     ].filter(Boolean);
-    const shelf = [
-      ['Five Crowns', 'Five Crowns', 'pts', 'five'],
-      ['818', '818', 'pts', '818'],
-      ['Wizard', 'Wizard', 'pts', 'wizard'],
-      ['Flip 7 Vengeance', 'Flip 7', 'pts', 'flip7'],
-      ['Beat the Heat', 'Beat the Heat', 'heat', 'heat'],
-      ['Rook', 'Rook', 'pts', 'rook']
-    ];
+    const shelf = (window.BPGGames ? BPGGames.GAMES : []).map((game) => [
+      game.id,
+      game.title,
+      game.id === 'Beat the Heat' ? 'heat' : 'pts',
+      game.art
+    ]);
     const rows = shelf.map(([id, title, unit, art]) => {
       const card = hall[id] || {};
       const round = data.games?.[id]?.bestRound;
@@ -417,7 +426,7 @@
       ? `${rival.a} vs ${rival.b} · ${rival.edgePlayer && rival.edgePlayer !== 'Even' ? `${rival.edgePlayer} leads ${Math.max(rival.aWins, rival.bWins)}–${Math.min(rival.aWins, rival.bWins)}` : 'Even'} · ${rival.together} nights`
       : '';
     const nightsHtml = table.history.map((match) => {
-      const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
+      const label = displayGameName(match.game);
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
       const assisted = window.BPGScorebook && BPGScorebook.isAssistedMatch(match);
       const bits = [match.date || ''];
@@ -887,10 +896,20 @@
     field.value = '';
   }
 
+  function onChange(event) {
+    const select = event.target.closest?.('[data-s2-action="game-rules"]');
+    if (!select) return;
+    const name = select.value;
+    if (!name) return;
+    if (typeof openGameRules === 'function') openGameRules(name);
+    select.value = '';
+  }
+
   function wire() {
     if (wired) return;
     wired = true;
     document.addEventListener('click', onClick);
+    document.addEventListener('change', onChange);
     document.addEventListener('submit', onSubmit);
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => paintNav());

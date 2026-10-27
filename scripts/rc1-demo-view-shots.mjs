@@ -15,6 +15,7 @@ const VIEWS = [
   {id: 'game-flip7', path: '/?demo&view=game&game=flip7'},
   {id: 'game-beat-the-heat', path: '/?demo&view=game&game=beat-the-heat'},
   {id: 'game-rook', path: '/?demo&view=game&game=rook&games=rook'},
+  {id: 'game-hand-and-foot', path: '/?demo&view=game&game=hand-and-foot'},
   {id: 'lifepreserver', path: '/?demo&view=lifepreserver'},
   {id: 'bids-wizard', path: '/?demo&view=bids-wizard'},
   {id: 'entry-fivecrowns', path: '/?demo&view=entry-fivecrowns'},

@@ -145,21 +145,32 @@ test('view=game&game= picks the in-progress scorecard for that shelf game', () =
     ['wizard', 'Wizard'],
     ['flip7', 'Flip 7 Vengeance'],
     ['beat-the-heat', 'Beat the Heat'],
-    ['rook', 'Rook']
+    ['rook', 'Rook'],
+    ['hand-and-foot', 'Hand and Foot'],
+    ['canasta', 'Hand and Foot']
   ]) {
+    const extra = game === 'rook' ? '&games=rook' : '';
     const action = decideDemoAction({
       hostname: 'localhost',
-      search: `?demo&view=game&game=${game}`,
+      search: `?demo&view=game&game=${game}${extra}`,
       storage
     });
     assert.equal(action.status, 'seeded', game);
     assert.equal(action.payload.currentGame?.name, name, game);
   }
-  const missing = decideDemoAction({
+  const canasta = decideDemoAction({
     hostname: 'localhost',
     search: '?demo&view=game&game=hand-and-foot',
     storage
   });
-  assert.equal(missing.status, 'seeded');
-  assert.ok(missing.payload);
+  assert.equal(canasta.status, 'seeded');
+  assert.equal(canasta.payload.currentGame?.name, 'Hand and Foot');
+  assert.equal(canasta.payload.currentGame?.handFoot?.format, 'teams');
+  assert.equal(canasta.payload.currentGame?.handFoot?.sides?.length, 2);
+  assert.equal(canasta.payload.currentGame?.rounds?.length, 2);
+  assert.equal(canasta.payload.currentGame?.currentRound, 3);
+  const r1 = canasta.payload.currentGame.rounds[0].handFootParts.Megan;
+  assert.equal(r1.sevensCanastas, 1);
+  assert.equal(r1.redThrees, 4);
+  assert.equal(r1.roundScore, 3220);
 });
