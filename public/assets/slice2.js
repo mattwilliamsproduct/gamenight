@@ -510,6 +510,20 @@
     const overlap = (a, b) => (
       a.x < b.x + b.w + 6 && a.x + a.w + 6 > b.x && a.y < b.y + b.h + 6 && a.y + a.h + 6 > b.y
     );
+    const shellBox = (shell && shell.getBoundingClientRect()) || canvas.getBoundingClientRect();
+    const pointerEl = (shell && shell.querySelector('.wheel-pointer')) || document.querySelector('.wheel-pointer');
+    const pointerPad = 10;
+    let pointerBox = { x: cssCx - 22, y: -4, w: 44, h: 40 };
+    if (pointerEl) {
+      const pointer = pointerEl.getBoundingClientRect();
+      pointerBox = {
+        x: pointer.left - shellBox.left - pointerPad,
+        y: pointer.top - shellBox.top - pointerPad,
+        w: pointer.width + pointerPad * 2,
+        h: pointer.height + pointerPad * 2
+      };
+    }
+    const hitsPointer = (box) => overlap(box, pointerBox);
     callouts.forEach((item, index) => {
       const el = document.createElement('span');
       el.className = `wheel-callout is-${item.kind || 'zero'}`;
@@ -525,33 +539,65 @@
       const right = Math.cos(item.mid) > 0.18;
       const low = Math.sin(item.mid) > 0.12;
       const high = Math.sin(item.mid) < -0.12;
+      const topCone = Math.sin(item.mid) < -0.55;
       const gutter = bandR + 10 + Math.max(bw, bh) / 2;
       const stack = index * (bh + 8);
+      const side = Math.cos(item.mid) >= 0 ? 1 : -1;
       const candidates = [];
+      if (topCone || high) {
+        candidates.push(
+          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
+          { x: clamp(cssCx - side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
+          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + bh + 12 }
+        );
+      }
       if (left) {
         candidates.push({ x: minX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
       }
       if (right) {
         candidates.push({ x: maxX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
       }
-      [gutter, gutter + 6, gutter + 12].forEach((radius) => {
+      [gutter, gutter + 8, gutter + 16].forEach((radius) => {
+        const ang = topCone ? item.mid + side * 0.55 : item.mid;
         candidates.push({
-          x: cssCx + Math.cos(item.mid) * radius,
-          y: cssCy + Math.sin(item.mid) * radius
+          x: cssCx + Math.cos(ang) * radius,
+          y: cssCy + Math.sin(ang) * radius
         });
       });
-      let chosen = { x: left ? minX : (right ? maxX : cssCx), y: clamp(cssCy, minY, maxY) };
+      let chosen = {
+        x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX),
+        y: topCone ? minY + 4 : clamp(cssCy, minY, maxY)
+      };
       candidates.some((spot) => {
         const x = clamp(spot.x, minX, maxX);
         const y = clamp(spot.y, minY, maxY);
         const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
         const onBand = Math.hypot(x - cssCx, y - cssCy) < bandR + 4;
-        if (onBand || boxes.some((other) => overlap(box, other))) return false;
+        if (onBand || hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
         chosen = { x, y };
         return true;
       });
       chosen.x = clamp(chosen.x, minX, maxX);
       chosen.y = clamp(chosen.y, minY, maxY);
+      const nudges = [
+        { x: chosen.x + 36, y: chosen.y },
+        { x: chosen.x - 36, y: chosen.y },
+        { x: chosen.x, y: chosen.y + 28 },
+        { x: chosen.x, y: chosen.y - 28 },
+        { x: chosen.x + 48, y: chosen.y + 20 },
+        { x: chosen.x - 48, y: chosen.y + 20 }
+      ];
+      let safe = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh };
+      if (hitsPointer(safe) || boxes.some((other) => overlap(safe, other))) {
+        nudges.some((spot) => {
+          const x = clamp(spot.x, minX, maxX);
+          const y = clamp(spot.y, minY, maxY);
+          const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
+          if (hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
+          chosen = { x, y };
+          return true;
+        });
+      }
       el.style.left = `${chosen.x}px`;
       el.style.top = `${chosen.y}px`;
       const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };

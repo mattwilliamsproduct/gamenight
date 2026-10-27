@@ -937,8 +937,10 @@ html.slice2-tv #wheel-modal .life-preserver-dialog > p.text-xs {
 
 html.slice2-tv .wheel-shell {
   position: relative;
-  width: min(28rem, 86vw, 48dvh);
-  height: min(28rem, 86vw, 48dvh);
+  flex: 0 0 auto;
+  width: min(28rem, 86vw, max(260px, 48dvh));
+  height: min(28rem, 86vw, max(260px, 48dvh));
+  margin-top: 0.35rem;
   overflow: visible;
 }
 
@@ -979,14 +981,15 @@ html.slice2-tv .wheel-callout.is-good {
 @media (max-height: 700px) {
   html.slice2-tv #wheel-modal {
     align-items: flex-start !important;
-    padding: 4px 12px !important;
+    padding: 6px 12px !important;
     overflow-y: auto;
   }
 
   html.slice2-tv .wheel-shell {
-    width: min(20rem, 62vw, 32dvh);
-    height: min(20rem, 62vw, 32dvh);
-    margin-bottom: 0.4rem;
+    width: min(22rem, 72vw, max(260px, 42dvh));
+    height: min(22rem, 72vw, max(260px, 42dvh));
+    margin-top: 0.45rem;
+    margin-bottom: 0.55rem;
   }
 
   html.slice2-tv #wheel-modal .life-preserver-dialog {
@@ -997,19 +1000,19 @@ html.slice2-tv .wheel-callout.is-good {
 
   html.slice2-tv #wheel-player-name {
     font-size: clamp(1.35rem, 3.4vw, 1.9rem) !important;
-    margin-bottom: 0.1rem !important;
+    margin-bottom: 0.15rem !important;
   }
 
   html.slice2-tv #wheel-player-meta,
   html.slice2-tv #wheel-game-line,
   html.slice2-tv #wheel-commit-line,
   html.slice2-tv #wheel-best-place {
-    margin-bottom: 0.15rem !important;
+    margin-bottom: 0.2rem !important;
     font-size: 0.86rem !important;
   }
 
   html.slice2-tv .wheel-legend {
-    margin: 0 0 0.45rem;
+    margin: 0 0 0.55rem;
   }
 
   html.slice2-tv #btn-spin {
@@ -1053,18 +1056,22 @@ html.slice2-tv .wheel-spinner::before {
 }
 
 html.slice2-tv .wheel-spinner::after {
-  content: "" !important;
+  display: none !important;
+}
+
+html.slice2-tv .wheel-pointer {
   position: absolute;
   left: 50%;
-  top: 7%;
+  top: 3px;
   width: 18px;
   height: 18px;
-  border: 2px solid #f7f1e6 !important;
+  border: 2px solid #f7f1e6;
   border-radius: 50%;
   transform: translateX(-50%);
   background: radial-gradient(circle at 35% 32%, #fff, #f4efe4 46%, #8a6a32 82%);
   box-shadow: 0 2px 5px rgba(20, 49, 46, 0.35);
-  filter: none !important;
+  z-index: 13;
+  pointer-events: none;
 }
 
 html.slice2-tv .wheel-mode-label {
@@ -1124,8 +1131,8 @@ html.slice2-tv .wheel-legend-chip.is-setback::before {
 }
 
 html.slice2-tv .wheel-spinner-hub {
-  width: 14%;
-  height: 14%;
+  width: max(18%, 3.25rem);
+  height: max(18%, 3.25rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1136,8 +1143,8 @@ html.slice2-tv .wheel-spinner-hub {
   color: var(--s2-teal);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: clamp(0.85rem, 2vw, 1.15rem);
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
 }
 
 html.slice2-tv #btn-spin {

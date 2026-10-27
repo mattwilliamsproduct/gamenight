@@ -8470,7 +8470,9 @@ button.dealer-name-indicator .dealer-player-label {
         <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
-          <div id="wheel-spinner" class="wheel-spinner"></div>
+          <div id="wheel-spinner" class="wheel-spinner">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+          </div>
           <div class="wheel-spinner-hub"></div>
           <div id="wheel-callouts" class="wheel-callouts"></div>
         </div>
@@ -11213,7 +11215,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(mode) mode.textContent='Life Preserver Unlocked';
     document.getElementById('wheel-player-name')?.classList.add('hidden');
     if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
-    const slices=drawWheel();
+    const slices=(typeof getWheelSlices==='function'?getWheelSlices():[])||[];
     const landed=slices.find((slice)=>Number(slice.adjustment)===adj);
     const spinner=document.getElementById('wheel-spinner');
     if(spinner&&landed&&window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function'){
@@ -11224,6 +11226,7 @@ button.dealer-name-indicator .dealer-player-label {
         spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
       }
     }
+    drawWheel();
   }
 
   function drawWheel(){
