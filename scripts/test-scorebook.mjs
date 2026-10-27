@@ -204,7 +204,7 @@ test('Rook made and set split the hand the same way the table does', () => {
   assert.deepEqual(set.scores, { Ann: -80, Bea: 110, Cal: -80, Dee: 110 });
 });
 
-test('renaming a Hand and Foot player moves the round parts, and a merge adds the points once', () => {
+test('renaming a Hand and Foot player moves the round parts; a same-match merge is refused', () => {
   const game = {
     name: 'Hand and Foot',
     originalRoster: ['Ann', 'Bo'],
@@ -224,11 +224,33 @@ test('renaming a Hand and Foot player moves the round parts, and a merge adds th
   assert.equal(game.rounds[0].scores.Annie, 500);
   assert.deepEqual(game.originalRoster, ['Annie', 'Bo']);
 
+  const beforeMerge = JSON.parse(JSON.stringify(game));
   Scorebook.applyPlayerNameOnGame(game, 'Annie', 'Bo', true);
-  assert.equal(game.totals.Bo, 600);
-  assert.equal(game.rounds[0].scores.Bo, 600);
-  assert.equal(game.rounds[0].handFootParts.Annie, undefined);
-  assert.equal(game.rounds[0].handFootParts.Bo.roundScore, 100);
+  assert.deepEqual(game, beforeMerge);
+  assert.equal(game.totals.Annie, 500);
+  assert.equal(game.totals.Bo, 100);
+});
+
+test('merging Hand and Foot history from a different night adds the points once', () => {
+  const night = {
+    name: 'Hand and Foot',
+    originalRoster: ['Annie'],
+    totals: { Annie: 500 },
+    rounds: [{
+      round: 1,
+      scores: { Annie: 500 },
+      handFootParts: {
+        Annie: { cleanCanastas: 1, dirtyCanastas: 0, sevensCanastas: 0, redThrees: 0, goingOut: 0, cardPoints: 0, cardsLeft: 0, roundScore: 500 }
+      }
+    }]
+  };
+  Scorebook.applyPlayerNameOnGame(night, 'Annie', 'Bo', true);
+  assert.equal(night.totals.Bo, 500);
+  assert.equal(night.totals.Annie, undefined);
+  assert.equal(night.rounds[0].scores.Bo, 500);
+  assert.equal(night.rounds[0].handFootParts.Bo.cleanCanastas, 1);
+  assert.equal(night.rounds[0].handFootParts.Annie, undefined);
+  assert.deepEqual(night.originalRoster, ['Bo']);
 });
 
 test('Add Player suggestions spread profile names and drop comma ghosts', () => {

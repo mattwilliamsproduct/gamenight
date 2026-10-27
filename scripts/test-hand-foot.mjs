@@ -664,11 +664,25 @@ test('renaming and merging players keeps one copy of a Hand and Foot round', () 
       }
     }]
   };
+  const beforeSameMatch = JSON.parse(JSON.stringify(singles));
   Scorebook.applyPlayerNameOnGame(singles, 'Ann', 'Bo', true);
-  assert.equal(singles.totals.Bo, 140);
-  assert.equal(singles.rounds[0].scores.Bo, 140);
-  assert.equal(singles.rounds[0].handFootParts.Ann, undefined);
-  assert.equal(singles.rounds[0].handFootParts.Bo.roundScore, 40);
+  assert.deepEqual(singles, beforeSameMatch);
+
+  const otherNight = {
+    totals: { Ann: 100 },
+    rounds: [{
+      round: 1,
+      scores: { Ann: 100 },
+      handFootParts: {
+        Ann: HF.persistSideParts({ cleanCanastas: 0, dirtyCanastas: 0, goingOut: 1, cardPoints: 0, cardsLeft: 0 })
+      }
+    }]
+  };
+  Scorebook.applyPlayerNameOnGame(otherNight, 'Ann', 'Bo', true);
+  assert.equal(otherNight.totals.Bo, 100);
+  assert.equal(otherNight.rounds[0].scores.Bo, 100);
+  assert.equal(otherNight.rounds[0].handFootParts.Ann, undefined);
+  assert.equal(otherNight.rounds[0].handFootParts.Bo.roundScore, 100);
 });
 
 test('a JSON backup round-trips a new Hand and Foot round and an older save', () => {
