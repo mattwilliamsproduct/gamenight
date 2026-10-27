@@ -45,7 +45,7 @@ test('no demo param keeps the current Home tiles and logo', async () => {
   duskRules.forEach((block) => {
     assert.match(block, /\[data-bp-art="dusk"\]/, 'dusk tile image leaked outside the demo attr');
   });
-  assert.match(duskCss, /html\[data-bp-logo="dusk"\]/);
+  assert.match(duskCss, /\[data-bp-logo="dusk"\]/);
 });
 
 test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => {

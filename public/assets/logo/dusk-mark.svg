@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Back Porch lantern">
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="Back Porch lantern">
   <rect width="32" height="32" rx="8" fill="#073f3b"/>
-  <path d="M16 3.6v3.1" stroke="#f4efe6" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12.6 6.7h6.8" stroke="#f4efe6" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M11.1 9.6h9.8l1.15 2.7v10.1a2.1 2.1 0 0 1-2.1 2.1H12.05a2.1 2.1 0 0 1-2.1-2.1V12.3Z" fill="#f4efe6"/>
-  <rect x="12.35" y="13.15" width="7.3" height="8.1" rx="1.15" fill="#073f3b"/>
-  <path d="M16 14.7c1.15 1.35 1.7 2.35 1.7 3.45a1.7 1.7 0 1 1-3.4 0c0-1.1.55-2.1 1.7-3.45Z" fill="#e76f51"/>
+  <path d="M16 3.4v2.6" stroke="#f4efe6" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M11.4 8.2 L16 6.2 L20.6 8.2 Z" fill="#f4efe6"/>
+  <path d="M11.2 8.8h9.6l1.1 2.2v11.2a2 2 0 0 1-2 2H12.1a2 2 0 0 1-2-2V11Z" fill="#f4efe6"/>
+  <rect x="12.4" y="12.6" width="7.2" height="8.4" rx="1" fill="#073f3b"/>
+  <path d="M16 13.8c1.2 1.4 1.8 2.5 1.8 3.6a1.8 1.8 0 1 1-3.6 0c0-1.1.6-2.2 1.8-3.6Z" fill="#e76f51"/>
+  <path d="M12.4 22.4h7.2" stroke="#073f3b" stroke-width="1.1"/>
 </svg>

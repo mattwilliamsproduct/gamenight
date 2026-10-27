@@ -53,3 +53,4 @@ The table starts with a header and one example row. The example is the format. I
 | 2026-10-27 | rc1-overlap | taste_ui. Pointer misses callouts. Short laptop keeps a 260px wheel and scrolls. | 2 | n/a | fallback | Gate B. Proceed on the same draft. Do not undraft or merge. |
 | 2026-10-27 | rc1-overlap | taste_ui. Pointer misses callouts. Short laptop keeps a 260px wheel and scrolls. | 2 | n/a | fallback | Gate C. Conservative. Check pass. Functional 96/96. Do not undraft or merge. |
 | 2026-10-27 | demo-art-dusk | taste_ui. One dusk Home-art direction and lantern logo, preview params only. | 2 | n/a | fallback | Gate B. Proceed on a new draft from rc1-records. Do not undraft or merge. |
+| 2026-10-27 | demo-art-dusk | taste_ui. One dusk Home-art direction and lantern logo, preview params only. | 2 | n/a | fallback | Gate C. Conservative. npm run check pass. SVG stand-ins are clearer IDs, not finished art. Wait for painted rasters. Do not undraft or merge. |

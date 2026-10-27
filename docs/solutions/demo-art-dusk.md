@@ -18,7 +18,7 @@ On localhost or `*-mattwilliamsproducts-projects.vercel.app`:
 
 ## Drop-in rasters
 
-Matt is painting the six tiles. Put WebP at `public/assets/art/dusk/<slug>.webp`. CSS already prefers WebP and falls back to the SVG stand-in.
+Matt is painting the six tiles. Put WebP at `public/assets/art/dusk/<slug>.webp`. The stand-ins are SVG until those files land. After they land, set `html.dataset.bpArtRaster = '1'` (or add the files and switch the CSS) so the tiles use cover-cropped rasters.
 
 Slugs: `five-crowns`, `wizard`, `818`, `flip-7`, `beat-the-heat`, `rook`.
 
@@ -36,6 +36,8 @@ Slugs: `five-crowns`, `wizard`, `818`, `flip-7`, `beat-the-heat`, `rook`.
 One option: a flat lantern mark (`public/assets/logo/dusk-mark.svg`) plus the existing Pacifico "Back Porch" wordmark. "Games" stays secondary. The mark uses three colors (`#073f3b`, `#f4efe6`, `#e76f51`) so it stays crisp at 32px. The full lockup is `public/assets/logo/dusk.svg`.
 
 Pacifico stays. It is the current nav face. A new display face would be a second taste call.
+
+Honest bar on the SVG stand-ins: they fix the “same beach” problem and drop the baked 818 numerals, but they are flat icons, not finished dusk paintings. Flip 7 / Wizard / Rook / Heat read at 1440. Five Crowns is weaker at 375. 818 is a card fan, not yet an 8-1-8. Do not treat these as the ship art. Wait for the painted WebPs.
 
 ## Kill criteria
 
