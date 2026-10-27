@@ -5,6 +5,7 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 const OUT = '/opt/cursor/artifacts/records';
 const VIEWS = ['records-overview', 'records-explore', 'records-nights'];
 const SIZES = [
+  {name: '375', width: 375, height: 812},
   {name: '390', width: 390, height: 844},
   {name: '1440', width: 1440, height: 900}
 ];

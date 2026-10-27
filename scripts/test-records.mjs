@@ -24,6 +24,7 @@ const helpers = {
 
 test('win rate always prints the denominator and hides thin samples from the lead', () => {
   assert.equal(Records.formatWinRate(9, 20), '45% · 9 of 20');
+  assert.equal(Records.formatWinRateDenom(9, 20), '9 of 20');
   assert.equal(Records.formatWinRate(1, 1), '100% · 1 of 1');
   assert.equal(Records.winRateEligible(1), false);
   assert.equal(Records.winRateEligible(5), true);
@@ -88,6 +89,9 @@ test('joint winners stay joint on the night card', () => {
   assert.ok(card.winners.length > 1);
   assert.match(card.winnerText, / and /);
   assert.match(card.winnerText, /won$/);
+  const listed = card.standings.filter((row) => row.isWinner).map((row) => row.name);
+  assert.ok(listed.length > 1);
+  assert.equal(card.winnerText, `${listed[0]} and ${listed[1]} won`);
 });
 
 test('demo-seed past nights include an incomplete match', () => {

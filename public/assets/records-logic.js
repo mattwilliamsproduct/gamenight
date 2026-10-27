@@ -116,6 +116,13 @@
     return `${pct}% · ${taken} of ${played}`;
   }
 
+  function formatWinRateDenom(wins, games) {
+    const played = Number(games) || 0;
+    const taken = Number(wins) || 0;
+    if (played <= 0) return '';
+    return `${taken} of ${played}`;
+  }
+
   function rankWinRates(players, min) {
     const floor = min == null ? WIN_RATE_MIN_GAMES : min;
     const eligible = (players || []).filter((player) => winRateEligible(player.games, floor));
@@ -301,10 +308,12 @@
     }));
   }
 
-  function winnerText(winners) {
-    if (!winners || !winners.length) return '';
-    if (winners.length === 1) return `${winners[0]} won`;
-    return `${formatTiedNames(winners.map((name) => ({ player: name })))} won`;
+  function winnerText(winners, standings) {
+    const fromList = (standings || []).filter((row) => row.isWinner).map((row) => row.name);
+    const names = fromList.length ? fromList : (winners || []).filter(Boolean);
+    if (!names.length) return '';
+    if (names.length === 1) return `${names[0]} won`;
+    return `${formatTiedNames(names.map((name) => ({ player: name })))} won`;
   }
 
   function nightCardModel(match, helpers) {
@@ -326,7 +335,7 @@
       throughRound: throughRound(match, scorebook),
       rounds,
       winners,
-      winnerText: incomplete ? '' : winnerText(winners),
+      winnerText: incomplete ? '' : winnerText(winners, standings),
       standings,
       showResume: shouldShowResume(match, scorebook),
       showScorecard: true,
@@ -447,10 +456,10 @@
       game: 'Wizard'
     })).sort((a, b) => b.value - a.value)[0] || null;
     const list = [
-      { id: 'fc-worst-final', record: games['Five Crowns'] && games['Five Crowns'].worstGame, stat: (r) => `${r.value} in Five Crowns` },
+      { id: 'fc-worst-final', record: games['Five Crowns'] && games['Five Crowns'].worstGame, stat: (r) => `${r.value} points` },
       { id: 'fc-worst-round', record: games['Five Crowns'] && games['Five Crowns'].worstRound, stat: (r) => `${r.value} points in one round` },
-      { id: 'e818-worst-final', record: games['818'] && games['818'].worstGame, stat: (r) => `${r.value} in 818` },
-      { id: 'heat-worst-final', record: games['Beat the Heat'] && games['Beat the Heat'].worstGame, stat: (r) => `${r.value} heat in Beat the Heat` },
+      { id: 'e818-worst-final', record: games['818'] && games['818'].worstGame, stat: (r) => `${r.value} points` },
+      { id: 'heat-worst-final', record: games['Beat the Heat'] && games['Beat the Heat'].worstGame, stat: (r) => `${r.value} heat` },
       { id: 'wizard-missed', record: missed, stat: (r) => r.label },
       { id: 'no-wins', record: noWin ? { player: noWin.name, value: noWin.games, label: `${noWin.games} games, 0 wins`, date: 'Career' } : null, stat: (r) => r.label },
       { id: 'last-streak', record: lastStreak ? { player: lastStreak.name, value: lastStreak.longestLast, label: `${lastStreak.longestLast} straight last-place finishes`, date: 'Career' } : null, stat: (r) => r.label },
@@ -500,7 +509,8 @@
       tabsHtml(pane),
       pane === 'overview' ? overviewHtml(hall, data, table, helpers, ctx, compact) : '',
       pane === 'explore' ? exploreHtml(hall, data, table, helpers, ctx, compact) : '',
-      pane === 'nights' ? nightsHtml(table.history, helpers, ctx, false, compact) : ''
+      pane === 'nights' ? nightsHtml(table.history, helpers, ctx, false, compact) : '',
+      '<p class="s2-sub s2-records-footer local-storage-statement">Scores and history are saved in this browser on this device.</p>'
     ].join('');
     view.className = `s2-ledger s2-pane-${pane}${hidden ? ' hidden' : ''}`;
     view.dataset.recordsPane = pane;
@@ -512,7 +522,7 @@
     return `<div class="s2-segment" role="tablist" aria-label="Records">
       ${tab('slice2-show-fame', 'show-fame', 'Overview', pane === 'overview')}
       ${tab('slice2-show-shame', 'show-shame', 'Explore<span class="s2-tab-rest"> records</span>', pane === 'explore')}
-      ${tab('slice2-show-nights', 'show-nights', '<span class="s2-tab-rest">Past </span>nights', pane === 'nights')}
+      ${tab('slice2-show-nights', 'show-nights', 'Past nights', pane === 'nights')}
     </div>`;
   }
 
@@ -534,7 +544,7 @@
     const streak = data.allTime && data.allTime.longestWinningStreak;
     const headlines = [
       wins ? { kicker: 'Career wins', value: String(wins.value), name: wins.player, sub: wins.label || `${wins.value} wins` } : null,
-      rate ? { kicker: 'Win rate', value: finite(rate.value) ? `${rate.value}%` : '-', name: rate.player, sub: formatWinRate(rate.wins != null ? rate.wins : rate.value, rate.games) || (rate.label || '') } : null,
+      rate ? { kicker: 'Win rate', value: finite(rate.value) ? `${rate.value}%` : '-', name: rate.player, sub: formatWinRateDenom(rate.wins != null ? rate.wins : rate.value, rate.games) || (rate.label || '') } : null,
       streak ? { kicker: 'Win streak', value: `${streak.value}W`, name: streak.player, sub: streak.label || 'in a row' } : null
     ].filter(Boolean);
     const rows = GAMES.map((game) => {
@@ -568,7 +578,6 @@
           ${playerLink(card.name, esc, avatar)}
           <small>${esc(card.sub)}</small>
         </article>`).join('')}</div>
-        <p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p>
         <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${table.history.length} nights</span></div>
         <div class="s2-ledger-table">
           <p class="s2-sub s2-unassisted-note">Unassisted matches only on best final.</p>
@@ -884,7 +893,6 @@
     return `<div class="s2-records-pane s2-nights-col" data-pane="nights">
       <section class="s2-panel">
         <div class="s2-panel-head"><h2>Past nights</h2></div>
-        <p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p>
         <div class="s2-night-list">${body || '<p class="s2-sub">No nights saved yet.</p>'}</div>
       </section>
     </div>`;
@@ -954,6 +962,7 @@
     groupNightsByEvening,
     winRateEligible,
     formatWinRate,
+    formatWinRateDenom,
     rankWinRates,
     formatTiedNames,
     keepBestWithTies,

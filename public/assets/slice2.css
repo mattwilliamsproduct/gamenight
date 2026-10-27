@@ -1101,6 +1101,7 @@ html.slice2-tv .s2-segment {
 
 html.slice2-tv .s2-segment .s2-btn {
   flex: 1;
+  min-width: 0;
   border: 0;
   background: transparent;
 }
@@ -2020,6 +2021,20 @@ html.slice2-tv .s2-player-link {
   cursor: pointer;
 }
 
+html.slice2-tv #hall-of-fame-view .player-name-label,
+html.slice2-tv #hall-of-fame-view .s2-player-link .player-name-label,
+html.slice2-tv #hall-of-fame-view .s2-night-finish .player-name-label,
+html.slice2-tv #hall-of-fame-view .s2-shame-row small,
+html.slice2-tv #hall-of-fame-view .s2-ledger-stat small {
+  font-family: "Nunito Sans", sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  font-size: 1rem !important;
+  color: var(--s2-ink);
+}
+
 html.slice2-tv .s2-mini-avatar {
   width: 28px;
   height: 28px;
@@ -2267,7 +2282,9 @@ html.slice2-tv .s2-night-finish strong,
 html.slice2-tv .s2-night-place {
   font-family: "Nunito Sans", sans-serif;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
   font-weight: 800;
+  font-size: 1rem;
 }
 
 html.slice2-tv .s2-night-finish.is-winner .player-name-label,
@@ -2411,7 +2428,19 @@ html.slice2-tv .s2-night-day {
 
   html.slice2-tv .s2-night-day > .s2-night-card:only-of-type {
     grid-column: 1 / -1;
-    max-width: 44rem;
+  }
+
+  html.slice2-tv #hall-of-fame-view .player-name-label,
+  html.slice2-tv #hall-of-fame-view .s2-player-link .player-name-label,
+  html.slice2-tv #hall-of-fame-view .s2-night-finish .player-name-label,
+  html.slice2-tv #hall-of-fame-view .s2-shame-row small,
+  html.slice2-tv #hall-of-fame-view .s2-ledger-stat small {
+    font-size: 1.2rem !important;
+  }
+
+  html.slice2-tv .s2-night-finish strong,
+  html.slice2-tv .s2-night-place {
+    font-size: 1.2rem;
   }
 }
 
@@ -2421,13 +2450,27 @@ html.slice2-tv .s2-night-day {
   }
 }
 
+html.slice2-tv .s2-records-footer {
+  margin: 18px 2px 0;
+  color: var(--s2-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 @media (max-width: 420px) {
   html.slice2-tv .s2-tab-rest {
     display: none;
   }
 
+  html.slice2-tv .s2-segment {
+    gap: 2px;
+    padding: 3px;
+    flex-wrap: nowrap;
+  }
+
   html.slice2-tv .s2-segment .s2-btn {
-    font-size: 0.82rem;
-    padding-inline: 0.45rem;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.28rem;
+    letter-spacing: 0;
   }
 }
