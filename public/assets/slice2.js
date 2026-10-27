@@ -501,12 +501,14 @@
       context.stroke();
       const mid = angle + arc / 2;
       const radius = (inner + outer) / 2;
-      const text = String(slice.label || '').replace(/\s*pts/ig, '').trim() || '0';
-      context.fillStyle = kind === 'bad' ? '#fff7f4' : (kind === 'good' ? '#04332e' : '#3f3a36');
-      context.font = `800 ${Math.max(11, Math.min(22, arc * 64))}px "Nunito Sans", sans-serif`;
+      const full = String(slice.label || '').replace(/\s*pts/ig, '').trim() || '0';
+      const short = full.split(' · ')[0] || full;
+      const text = arc >= 0.35 ? full : short;
+      context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
+      context.font = `800 ${Math.max(12, Math.min(20, arc * 48))}px "Nunito Sans", sans-serif`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      if (arc >= 0.18) context.fillText(text, cx + Math.cos(mid) * radius, cy + Math.sin(mid) * radius);
+      if (arc >= 0.12) context.fillText(text, cx + Math.cos(mid) * radius, cy + Math.sin(mid) * radius);
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;

@@ -455,8 +455,8 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
   assert.match(explained.wheelLine, /behind 1st/);
-  assert.match(explained.wheelLine, /Best: −75/);
-  assert.match(explained.wheelLine, /Worst:/);
+  assert.match(explained.wheelLine, /Best help: −75 points/);
+  assert.match(explained.wheelLine, /Largest setback:/);
   const brickAdjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
   const brickMin = Math.min(...brickAdjustments);
   const brickMax = Math.max(...brickAdjustments);
@@ -464,7 +464,7 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(brickMax > 0, 'small bad slices stay on the wheel');
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
-  assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet) && /Best: −75/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /lower scores win/.test(bullet) && /Best help: −75 points/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /red slice/.test(bullet)));
@@ -484,10 +484,10 @@ test('wheel line spin range matches the slice min and max', () => {
   const max = Math.max(...adjustments);
   const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
   const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  assert.match(explained.wheelLine, /Best:/);
-  assert.match(explained.wheelLine, /Worst:/);
+  assert.match(explained.wheelLine, /Best help:/);
+  assert.match(explained.wheelLine, /Largest setback:/);
   assert.match(explained.wheelLine, /behind 1st/);
-  assert.doesNotMatch(explained.wheelLine, /Best help/);
+  assert.doesNotMatch(explained.wheelLine, /Worst:/);
   assert.doesNotMatch(explained.wheelLine, /Spin range/);
   assert.ok(min < 0, 'negative slices stay on the wheel');
   assert.ok(max > 0);
@@ -655,6 +655,47 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
+});
+
+test('pickWeightedSlice follows slice weights and lock is independent of animation', () => {
+  const slices = [
+    { adjustment: 10, weight: 80, kind: 'good', label: '+10 · Help' },
+    { adjustment: 0, weight: 12, kind: 'zero', label: '0 · No change' },
+    { adjustment: -5, weight: 8, kind: 'bad', label: '−5 · Setback' }
+  ];
+  const arcs = LP.sliceArcs(slices);
+  arcs.forEach((arc, index) => {
+    assert.equal(Number(arc.fraction.toFixed(6)), Number((slices[index].weight / 100).toFixed(6)));
+  });
+  const picks = { 10: 0, 0: 0, [-5]: 0 };
+  const n = 10000;
+  for (let i = 0; i < n; i++) {
+    const pick = LP.pickWeightedSlice(slices, () => (i + 0.5) / n);
+    picks[pick.adjustment] += 1;
+  }
+  assert.ok(picks[10] / n > 0.75, `helpful pick ${picks[10]}/${n}`);
+  assert.ok(picks[-5] / n < 0.12, `setback pick ${picks[-5]}/${n}`);
+
+  const totals = { Ann: 100, Bea: 40 };
+  const offer = {
+    eligible: true,
+    player: 'Bea',
+    winLow: false,
+    rank: 2,
+    leaderGap: 60,
+    leaderScore: 100,
+    maxSafeAdjustment: 20,
+    maxSetback: 5,
+    scoreIncrement: 1
+  };
+  const locked = LP.buildLockedOutcome(offer, { adjustment: 20, kind: 'good' }, totals, ['Ann', 'Bea']);
+  assert.equal(locked.adjustment, 20);
+  assert.equal(locked.beforeTotal, 40);
+  assert.equal(locked.afterTotal, 60);
+  assert.equal(locked.afterRank, 2);
+  const described = LP.describeLifePreserverResult(locked);
+  assert.match(described.headline, /20 points on/);
+  assert.match(described.totals, /40 → 60/);
 });
 
 test('a landed Life Preserver is locked, persists, blocks a second spin, and marks assisted', () => {

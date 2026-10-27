@@ -6,8 +6,8 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
 
   await page.getByRole('button',{name:/Life Preserver available for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
-  await expect(page.locator('#wheel-why-line')).toContainText('+20');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Best help: +20');
+  await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
 
   const snapshot=await page.evaluate(()=>({
     player:lifePreserverOfferSnapshot?.player,
@@ -63,4 +63,30 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   const total = compared.reduce((sum, slice) => sum + slice.weight, 0);
   expect(goodWeight / total).toBeGreaterThanOrEqual(0.75);
   expect(badWeight / total).toBeLessThanOrEqual(0.10);
+});
+
+test('Life Preserver locks the outcome before the reveal and blocks a second spin', async ({page}) => {
+  await openScenario(page, {scenario: 'five-crowns-preservers', surface: 'scorecard'});
+  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  const locked = await page.evaluate(() => {
+    spinWheel();
+    const first = {
+      used: [...(currentGame.hailMaryUsed || [])],
+      bonus: currentGame.rounds.filter((round) => round.hailMaryBonus).length,
+      result: currentGame.lifePreserverLastResult || null,
+      total: currentGame.totals.Brick
+    };
+    spinWheel();
+    return {
+      first,
+      secondBonus: currentGame.rounds.filter((round) => round.hailMaryBonus).length,
+      secondTotal: currentGame.totals.Brick
+    };
+  });
+  expect(locked.first.used).toContain('Brick');
+  expect(locked.first.bonus).toBe(1);
+  expect(locked.first.result?.player).toBe('Brick');
+  expect(locked.secondBonus).toBe(1);
+  expect(locked.secondTotal).toBe(locked.first.total);
 });
