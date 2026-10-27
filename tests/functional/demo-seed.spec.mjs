@@ -82,6 +82,12 @@ const VIEW_ASSERT = {
     await expect(page.locator('#wheel-result')).not.toHaveClass(/hidden/);
     await expect(page.locator('#btn-spin')).toBeHidden();
   },
+  'lifepreserver-low': async (page) => {
+    await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#wheel-player-name')).toHaveText('Linda');
+    await expect(page.locator('#btn-spin')).toBeEnabled();
+    await expect(page.locator('#wheel-why-line')).toContainText(/Best:|Worst:/);
+  },
   records: async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);

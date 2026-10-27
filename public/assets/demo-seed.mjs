@@ -2,7 +2,7 @@
 import {cloneScenario} from '../qa/fixtures.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
-export const DEMO_VERSION = '2';
+export const DEMO_VERSION = '3';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
 
 export const DEMO_VIEW_IDS = [
@@ -23,6 +23,7 @@ export const DEMO_VIEW_IDS = [
   'keypad-8p',
   'lifepreserver',
   'lifepreserver-after',
+  'lifepreserver-low',
   'records',
   'records-shame',
   'rook-contract',
@@ -46,6 +47,7 @@ const WRITE_VIEWS = new Set([
   'keypad-8p',
   'lifepreserver',
   'lifepreserver-after',
+  'lifepreserver-low',
   'rook-contract',
   'rook-call',
   'settings-backup',
@@ -91,8 +93,40 @@ export function isDemoSeeded(storage){
   return storage.getItem(DEMO_FLAG) === DEMO_VERSION;
 }
 
+const NEUTRAL_AVATARS = [
+  'neutral-01.svg',
+  'neutral-02.svg',
+  'neutral-03.svg',
+  'neutral-04.svg',
+  'neutral-05.svg',
+  'neutral-06.svg',
+  'neutral-07.svg',
+  'neutral-08.svg',
+  'neutral-09.svg',
+  'neutral-10.svg',
+  'neutral-11.svg',
+  'neutral-12.svg'
+];
+
+export function applyNeutralDemoProfiles(data){
+  if (!data) return data;
+  const names = [...new Set([
+    ...(data.allPlayers || []),
+    ...(data.players || []),
+    ...Object.keys(data.playerProfiles || {})
+  ])].filter(Boolean);
+  data.playerProfiles = Object.fromEntries(names.map((name, index) => {
+    const prev = data.playerProfiles?.[name] || {};
+    return [name, {
+      avatar: NEUTRAL_AVATARS[index % NEUTRAL_AVATARS.length],
+      color: prev.color || ((index % 8) + 1)
+    }];
+  }));
+  return data;
+}
+
 export function buildDemoPayload(){
-  return cloneScenario('demo-seed').data;
+  return applyNeutralDemoProfiles(cloneScenario('demo-seed').data);
 }
 
 export function writeDemoPayload(storage, data){
@@ -127,7 +161,7 @@ function cloneData(data){
 }
 
 function scenarioData(id){
-  return cloneData(cloneScenario(id).data);
+  return applyNeutralDemoProfiles(cloneData(cloneScenario(id).data));
 }
 
 function gameKey(raw){
@@ -218,6 +252,7 @@ function payloadForView(view, base){
   if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('demo-seed');
   if (view === 'lifepreserver') return scenarioData('eight18-porch-lp');
   if (view === 'lifepreserver-after') return applyLifePreserverAfter(scenarioData('eight18-porch-lp'));
+  if (view === 'lifepreserver-low') return scenarioData('demo-seed');
   if (view === 'rook-contract') return scenarioData('rook-bid-setup');
   if (view === 'rook-call') return applyRookCallState(scenarioData('rook-bid-setup'));
   if (typed.kind === 'scorecard' && GAME_SCENARIO[typed.game]) return scenarioData(GAME_SCENARIO[typed.game]);
@@ -299,6 +334,11 @@ function openDemoView(view){
   if (view === 'lifepreserver') {
     if (typeof goActiveMatch === 'function') goActiveMatch();
     if (typeof authorizeHailMary === 'function') authorizeHailMary('Cat');
+    return;
+  }
+  if (view === 'lifepreserver-low') {
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+    if (typeof authorizeHailMary === 'function') authorizeHailMary('Linda');
     return;
   }
   if (view === 'lifepreserver-after') {

@@ -6,6 +6,7 @@ import {
   DEMO_FLAG,
   DEMO_VERSION,
   DEMO_VIEW_IDS,
+  applyNeutralDemoProfiles,
   buildDemoPayload,
   decideDemoAction,
   demoHostAllowed,
@@ -43,6 +44,11 @@ test('demo-seed gallery fixture is rule-valid and covers all six games', () => {
   assert.ok(history.some((match) => (match.retired || []).includes('Mike')), 'retired Mike missing');
   assert.ok(history.some((match) => match.game === 'Rook' && match.rounds?.[0]?.rookBid === 90), 'Rook contracts missing');
   assert.equal(QA_SCENARIOS['demo-seed'].data.currentGame?.name, 'Five Crowns');
+  const remapped = applyNeutralDemoProfiles(JSON.parse(JSON.stringify(QA_SCENARIOS['demo-seed'].data)));
+  Object.values(remapped.playerProfiles).forEach((profile) => {
+    assert.match(profile.avatar, /^neutral-\d{2}\.svg$/);
+  });
+  assert.equal(buildDemoPayload().playerProfiles.Linda.avatar, 'neutral-08.svg');
   const live = QA_SCENARIOS['demo-seed'].data.currentGame;
   const r8 = live.rounds.find((round) => round.round === 8);
   const r8Zeros = live.originalRoster.filter((player) => Number(r8.scores[player]) === 0);
@@ -119,6 +125,7 @@ test('already-seeded demo opens a view without rewriting the flag payload', () =
 test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.ok(DEMO_VIEW_IDS.includes('home'));
   assert.ok(DEMO_VIEW_IDS.includes('lifepreserver-after'));
+  assert.ok(DEMO_VIEW_IDS.includes('lifepreserver-low'));
   assert.ok(DEMO_VIEW_IDS.includes('empty-records'));
   assert.equal(stripDemoSearch('https://example.test/?demo&view=home'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
