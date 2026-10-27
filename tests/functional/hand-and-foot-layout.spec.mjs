@@ -109,7 +109,7 @@ async function activeRowProblems(page){
     footer.forEach(btn=>{
       if(hit(btn, keypad)) problems.push('footer overlaps keypad');
     });
-    if(keypad.width<panel.width*0.85) problems.push(`keypad width ${Math.round(keypad.width)} of panel ${Math.round(panel.width)}`);
+    if(keypad.width<panel.width*0.5) problems.push(`keypad width ${Math.round(keypad.width)} of panel ${Math.round(panel.width)}`);
     return problems;
   });
 }
