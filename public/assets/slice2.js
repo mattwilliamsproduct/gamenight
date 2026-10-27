@@ -634,7 +634,7 @@
       spinInView: !!(spinBox && spinBox.top >= -1 && spinBox.bottom <= window.innerHeight + 1 && spinBox.left >= -1 && spinBox.right <= window.innerWidth + 1 && spinBox.width > 8),
       diameterShare: sized && sized.size
         ? sized.size / Math.min(window.innerWidth, window.innerHeight - sized.chrome)
-        : 0}
+        : 0
     };
   }
 
