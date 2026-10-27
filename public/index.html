@@ -17847,9 +17847,10 @@ ${isDealer
         markHistoryChanged();
       },
       skipPersist(on){ window.__GN_DEMO_SKIP_PERSIST=!!on; },
-      ready(status, view){
+      ready(status, view, game){
         document.body.dataset.gnDemoReady=status||'';
         document.body.dataset.gnDemoView=view||'';
+        document.body.dataset.gnDemoGame=game||'';
         document.documentElement.classList.remove('gn-demo-pending');
       }
     });
