@@ -50,6 +50,7 @@ Pacifico stays. It is the current nav face. A new display face would be a second
 - A mark that turns to mud at 32px or 40px.
 - Edits to Life Preserver, the scorecard header, or Records files.
 - Renaming the dusk WebP slugs so a v2 cannot drop in.
+- Re-encoding or reconstructing `canasta.webp` when the approved 960×540 raster is attached.
 
 ## Density / NAME-FIT / gallery
 
