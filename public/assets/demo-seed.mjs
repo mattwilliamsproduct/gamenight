@@ -65,7 +65,8 @@ const GAME_SCENARIO = {
   '818': 'demo-818',
   flip7: 'demo-flip7',
   beattheheat: 'beat-the-heat-close',
-  rook: 'rook-bid-setup'
+  rook: 'rook-bid-setup',
+  handandfoot: 'demo-canasta'
 };
 
 function previewHostPattern(){
