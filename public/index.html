@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html lang="en" id="html-root">
 <head>
+  <script>
+  (function(){
+    try{
+      document.documentElement.classList.add('slice2-tv');
+      if(new URLSearchParams(location.search).has('standings')){
+        document.documentElement.classList.add('s2-standings-only');
+      }
+      var demoParams=new URLSearchParams(location.search);
+      if(!demoParams.has('demo')) return;
+      var demoHost=window.__GN_DEMO_HOST_OVERRIDE__||location.hostname;
+      var demoOk=demoHost==='localhost'||demoHost==='127.0.0.1'||demoHost==='::1'||/^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(demoHost);
+      if(!demoOk||demoHost==='cardknight.vercel.app'){
+        document.documentElement.dataset.gnDemoIgnored='1';
+        return;
+      }
+      document.documentElement.classList.add('gn-demo-pending');
+      var demoStyle=document.createElement('style');
+      demoStyle.textContent='html.gn-demo-pending body{visibility:hidden}';
+      document.documentElement.appendChild(demoStyle);
+    }catch(err){}
+  })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="Back Porch Games is a relaxed scorekeeper for card and tabletop game nights.">
@@ -22,6 +44,7 @@
   <link rel="preload" href="./assets/fonts/londrina-solid-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./assets/app-utilities.css">
+  <link rel="stylesheet" href="./assets/slice2.css">
 
   <style>
     /* ════════ TOKENS ════════ */
@@ -666,6 +689,69 @@
       padding-right: 0.28rem;
       overflow: visible;
     }
+    .score-cell-input.score-cell-hit {
+      border-color: rgba(4,120,87,0.72);
+      box-shadow: 0 0 0 2px rgba(4,120,87,0.12);
+    }
+    .round-correction-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0,1.4fr) auto auto auto;
+      gap: 0.6rem;
+      align-items: center;
+      text-align: left;
+      border-radius: 14px;
+      padding: 0.65rem 0.8rem;
+      background: var(--surface-2);
+      border: 1.5px solid var(--hairline);
+      color: var(--ink);
+    }
+    .round-correction-row.is-active { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(4,120,87,0.16); }
+    .round-correction-actual { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .round-correction-score.score-cell-hit,
+    .round-correction-score.score-cell-miss {
+      border-radius: 10px;
+      padding: 0.15rem 0.45rem;
+      font-weight: 800;
+    }
+    .round-correction-score.score-cell-hit { color: #047857; box-shadow: inset 0 0 0 1.5px rgba(4,120,87,0.45); }
+    .round-correction-score.score-cell-miss { color: #be123c; box-shadow: inset 0 0 0 1.5px rgba(225,29,72,0.45); }
+    .assisted-match-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #b45309;
+      letter-spacing: 0.12em;
+    }
+    .incomplete-match-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: #ffe4e6;
+      color: #be123c;
+      letter-spacing: 0.12em;
+    }
+    .score-entry-confirm-status {
+      margin-top: 0.15rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .score-entry-confirm-status[data-entry-state="unentered"] { color: var(--muted); }
+    .score-entry-confirm-status[data-entry-state="suggested"] { color: var(--blue); }
+    .score-entry-confirm-status[data-entry-state="confirmed"] { color: var(--emerald); }
+    .score-entry-unconfirmed:empty { display: none; }
+    .score-entry-unconfirmed {
+      width: 100%;
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+    #score-entry-primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .score-current-input {
       background: var(--surface);
       border: 2px solid var(--hairline);
@@ -1088,9 +1174,9 @@
       gap: 0;
       width: clamp(3rem, 4vw, 4rem);
       max-width: 100%;
-      min-height: 2.4rem;
+      min-height: 2.7rem;
       margin: 0 auto;
-      padding: 0.12rem 0.15rem 0.16rem;
+      padding: 0.16rem 0.18rem 0.2rem;
       background: var(--bg-2);
       border: 1.5px solid transparent;
       border-radius: 10px;
@@ -1136,8 +1222,8 @@
       font-size: 0.82em;
       font-weight: 400;
       color: #0c4a6e;
-      line-height: 1;
-      margin: 0;
+      line-height: 1.05;
+      margin: 0.12rem 0 0;
       padding: 0;
       white-space: nowrap;
     }
@@ -1717,6 +1803,7 @@
     }
     @media (max-width: 760px) {
       .score-entry-progress { width: 100%; margin-top: 0.75rem; }
+      .score-entry-unconfirmed { flex: 1 0 100%; }
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
@@ -3090,9 +3177,12 @@ button.dealer-name-indicator {
         line-height: 1.05 !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
-        width: var(--scorecard-rank-size) !important;
-        height: var(--scorecard-rank-size) !important;
-        font-size: var(--scorecard-rank-font) !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 2.2rem !important;
+        min-height: 1.45rem !important;
+        padding: 0.12rem 0.4rem !important;
+        font-size: max(0.88rem, var(--scorecard-rank-font, 0.88rem)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-dealer-avatar-badge {
         font-size: var(--scorecard-dealer-font) !important;
@@ -3222,8 +3312,8 @@ button.dealer-name-indicator {
         max-width: none;
       }
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-        width: 4.8rem;
-        min-width: 4.4rem;
+        width: 5.15rem;
+        min-width: 4.9rem;
       }
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
@@ -3387,14 +3477,40 @@ button.dealer-name-indicator {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 1.72rem;
-      height: 1.72rem;
-      border-radius: 9px;
+      min-width: 2.35rem;
+      height: auto;
+      min-height: 1.55rem;
+      padding: 0.14rem 0.42rem;
+      border-radius: 999px;
       border: 1px solid rgba(6,78,59,0.16);
       background: rgba(236,253,245,0.68);
       color: var(--emerald);
-      font-size: 0.78rem;
-      font-weight: 900;
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .scoreboard-rank-badge.is-place-1 {
+      background: #f3e0a8;
+      border-color: #c9a24a;
+      color: #6a4a12;
+    }
+    .scoreboard-rank-badge.is-place-2 {
+      background: #e4e0d6;
+      border-color: #b0aaa0;
+      color: #4a4741;
+    }
+    .scoreboard-rank-badge.is-place-3 {
+      background: #f0cfc0;
+      border-color: #d07a68;
+      color: #6a3328;
+    }
+    .scoreboard-rank-badge.is-place-rest {
+      background: #eef4f1;
+      border-color: #c5d4ce;
+      color: #1f4a44;
     }
     html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
 
@@ -3404,7 +3520,7 @@ button.dealer-name-indicator {
         radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
         var(--surface);
       box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
-      max-height: calc(100dvh - 32px);
+      max-height: calc(100dvh - 8px);
       overflow: hidden;
     }
     .life-preserver-help {
@@ -3487,34 +3603,62 @@ button.dealer-name-indicator {
       color: var(--ink);
       font-weight: 800;
     }
+    .wheel-mode-label {
+      font-family: "Bree Serif", Georgia, serif;
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      font-weight: 800;
+      line-height: 1.25;
+      margin: 0.05rem 2.2rem 0.25rem;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    #wheel-modal.wheel-has-result .wheel-mode-label {
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      margin: 0.08rem 2.2rem 0.3rem;
+    }
+    .wheel-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.4rem 0.7rem;
+      margin: 0.2rem 0 0.45rem;
+    }
+    .wheel-legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+    .wheel-legend-chip::before {
+      content: "";
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+    }
+    .wheel-legend-chip.is-help::before { background: #34d399; }
+    .wheel-legend-chip.is-zero::before { background: #c4b8ae; }
+    .wheel-legend-chip.is-setback::before { background: #f0a394; }
     .wheel-shell {
       position: relative;
-      width: min(26rem, 72vw, calc(100dvh - 22rem));
-      height: min(26rem, 72vw, calc(100dvh - 22rem));
+      width: min(calc(100vw - 1.5rem), calc(100dvh - 10rem));
+      height: min(calc(100vw - 1.5rem), calc(100dvh - 10rem));
       flex: 0 1 auto;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.35rem;
+      overflow: hidden;
     }
     .wheel-shell::before {
       content: '';
       position: absolute;
-      inset: -14px;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
       border-radius: 999px;
-      background: conic-gradient(
-        from -20deg,
-        #fffaf1 0deg 38deg,
-        #e76f51 38deg 58deg,
-        #fffaf1 58deg 128deg,
-        #e76f51 128deg 148deg,
-        #fffaf1 148deg 218deg,
-        #e76f51 218deg 238deg,
-        #fffaf1 238deg 308deg,
-        #e76f51 308deg 328deg,
-        #fffaf1 328deg 360deg
-      );
-      box-shadow: 0 18px 36px -28px rgba(0,45,42,0.9), inset 0 0 0 3px rgba(7,63,59,0.35);
+      background: transparent;
+      box-shadow: inset 0 0 0 3px rgba(138, 106, 50, 0.55);
     }
+    .wheel-callouts,
+    .wheel-callout { display: none !important; }
     .wheel-shell canvas {
       position: relative;
       z-index: 1;
@@ -3555,19 +3699,45 @@ button.dealer-name-indicator {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 54px;
-      height: 54px;
+      width: 18%;
+      height: 18%;
       transform: translate(-50%,-50%);
-      z-index: 12;
+      z-index: 15;
       border-radius: 999px;
-      border: 4px solid #fffaf1;
-      background: radial-gradient(circle at 35% 30%, #6ee7b7, #0a4f49 70%);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.35);
+      border: 3px solid #d7c6a4;
+      background: radial-gradient(circle at 35% 30%, #2a403c, #13201e 70%);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.18);
+      color: #f6efe2;
+      font-family: "Nunito Sans", sans-serif;
+      font-weight: 800;
+      font-size: clamp(0.62rem, 2.2vw, 0.85rem);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .wheel-ball-orbit {
+      position: absolute;
+      inset: 0;
+      z-index: 14;
       pointer-events: none;
+      transform-origin: 50% 50%;
+    }
+    .wheel-ball {
+      position: absolute;
+      left: 50%;
+      top: calc(50% - 46%);
+      width: 7.2%;
+      height: 7.2%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 26%, #fffdf6, #f4e4c4 58%, #d7b07a 100%);
+      box-shadow: 0 3px 6px rgba(80, 48, 16, 0.28), inset 0 2px 0 rgba(255,255,255,0.9);
+      border: 2px solid rgba(255, 248, 232, 0.9);
     }
     .scorecard-life-preserver-rank {
-      width: 2.1rem;
-      height: 2.1rem;
+      min-width: 2.4rem;
+      width: auto;
+      height: auto;
+      min-height: 1.7rem;
       border-radius: 999px !important;
       border: 3px solid transparent !important;
       background:
@@ -3749,7 +3919,10 @@ button.dealer-name-indicator .dealer-player-label {
     /* ════════ SAVE INDICATOR ════════ */
     #save-indicator {
       position: fixed;
-      bottom: 1rem; left: 1rem;
+      top: 4.6rem;
+      right: 0.75rem;
+      left: auto;
+      bottom: auto;
       background: var(--surface);
       border: 1px solid var(--hairline);
       border-radius: 999px;
@@ -3762,11 +3935,26 @@ button.dealer-name-indicator .dealer-player-label {
       z-index: 45;
       box-shadow: var(--shadow-sm);
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(-8px);
       transition: opacity 0.25s, transform 0.25s;
       pointer-events: none;
+      max-width: calc(100vw - 1.6rem);
+      white-space: normal;
+      line-height: 1.15;
+      text-align: right;
+    }
+    body.active-match-view #save-indicator {
+      top: auto;
     }
     #save-indicator.show { opacity: 1; transform: translateY(0); }
+    .inline-form-error {
+      display: none;
+      margin-top: 0.55rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--rose);
+    }
+    .inline-form-error.is-on { display: block; }
 
     /* ════════ AUDIT LOG ════════ */
     .audit-entry {
@@ -7451,6 +7639,53 @@ button.dealer-name-indicator .dealer-player-label {
     html.dark .btn-ghost:hover { background: var(--bg-2); }
     html.dark #custom-numpad { background:#0a0a09; border-color:#2c2c29; }
     html.dark .audit-entry { background: var(--bg-2); }
+    /* ════════ SLICE 2 · 10-FOOT TV HIERARCHY (opt-in preview: ?slice2 or localStorage bpg-slice2-tv=1) ════════
+       Priority 1: names + totals. Priority 2: round scores, exact bids marked by an emerald dot, misses quiet.
+       Priority 3: header context. Off by default so production and approved snapshots stay unchanged. */
+    body.slice2-tv {
+      --s2-exact: #0D6E52;
+      --s2-total-ink: #0A5C54;
+      --s2-miss-ink: #655E57;
+    }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-stack { position: relative; }
+    body.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-stack::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: clamp(6px, calc(var(--scorecard-input-font, 20px) * 0.3), 11px);
+      height: clamp(6px, calc(var(--scorecard-input-font, 20px) * 0.3), 11px);
+      border-radius: 50%;
+      background: var(--s2-exact);
+      box-shadow: 0 0 0 1.5px var(--surface);
+      pointer-events: none;
+    }
+    html.slice2-tv #scorecard-capture td.scorecard-round-td--exact .score-cell-input { font-weight: 800 !important; color: var(--ink); }
+    html.slice2-tv #scorecard-capture .score-cell-input.score-cell-miss {
+      border-color: transparent !important;
+      box-shadow: none !important;
+      color: var(--s2-miss-ink) !important;
+      font-weight: 600 !important;
+    }
+    html.slice2-tv #scorecard-capture .scorecard-total-value {
+      color: var(--s2-total-ink) !important;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.03em !important;
+      font-variant-numeric: tabular-nums !important;
+    }
+    html.slice2-tv #scorecard-capture .scoreboard-player-name {
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      color: #14312e !important;
+    }
+    html.slice2-tv #home-screen > :not(#slice2-home) { display: none !important; }
+    html.slice2-tv body.active-match-view #top-nav,
+    html.slice2-tv #game-screen .active-match-banner,
+    html.slice2-tv #record-chase-panel,
+    html.slice2-tv #submit-section { display: none !important; }
   </style>
 </head>
 
@@ -7465,7 +7700,7 @@ button.dealer-name-indicator .dealer-player-label {
   </div>
 
   <!-- Save indicator -->
-  <div id="save-indicator">✓ Saved</div>
+  <div id="save-indicator">✓ Saved on this device</div>
 
   <!-- Lineup Intro Overlay -->
   <div id="lineup-intro" class="hidden">
@@ -7525,7 +7760,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div class="surface-raised w-full max-w-lg p-7 relative max-h-[85vh] flex flex-col pop-in">
       <button onclick="closeAuditLog()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
       <div class="mb-5">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Round History</div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">This match</div>
         <h3 class="font-display text-3xl">Audit Log</h3>
         <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Life Preserver, and retirement — for settling disputes.</p>
       </div>
@@ -7676,12 +7911,6 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
         <div class="active-match-actions flex flex-nowrap gap-2 items-center relative min-w-0">
-          <div id="scorecard-view-toggle-wrap" class="scorecard-view-toggle-wrap hidden">
-            <button id="scorecard-view-pace-toggle" type="button" class="scorecard-view-toggle" role="switch" aria-checked="true" aria-label="View Pace" onclick="toggleRecordChasePanel()">
-              <span class="scorecard-view-toggle-label">View Pace</span>
-              <span class="scorecard-view-toggle-track" aria-hidden="true"><span class="scorecard-view-toggle-thumb"></span></span>
-            </button>
-          </div>
           <div class="relative">
             <button type="button" onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5" aria-haspopup="menu" aria-expanded="false" aria-controls="actions-menu">
               Actions <span id="actions-caret" class="text-[10px]">▾</span>
@@ -7693,15 +7922,15 @@ button.dealer-name-indicator .dealer-player-label {
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 6 6v1"></path></svg></span>
                   <span>Undo Last Round</span>
                 </button>
-                <button onclick="openAuditLog();closeActionsMenu();" class="actions-menu-item">
+                <button onclick="openAuditLog();closeActionsMenu();" class="actions-menu-item" id="actions-audit-log-btn">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="14" height="18" x="5" y="3" rx="2"></rect><path d="M9 3h6v4H9z"></path><path d="M9 12h6"></path><path d="M9 16h6"></path></svg></span>
-                  <span>Round History / Audit Log</span>
+                  <span>Audit Log</span>
                 </button>
                 <button onclick="openRules();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H2"></path><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3h7"></path></svg></span>
                   <span>Rules</span>
                 </button>
-                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverRules();closeActionsMenu();" class="actions-menu-item">
+                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverEntry();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.25"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg></span>
                   <span>Life Preserver</span>
                 </button>
@@ -7729,7 +7958,7 @@ button.dealer-name-indicator .dealer-player-label {
               </div>
             </div>
           </div>
-          <button onclick="endGame()" class="btn-ghost match-end-btn px-4 py-2.5 text-sm">Save &amp; End</button>
+          <button type="button" onclick="requestEndGame()" class="btn-ghost match-end-btn px-4 py-2.5 text-sm">Save &amp; End</button>
         </div>
       </div>
 
@@ -7742,7 +7971,7 @@ button.dealer-name-indicator .dealer-player-label {
         <div id="rook-round-panel" class="hidden mb-4"></div>
 
         <div id="scorecard-capture" class="surface-raised tournament-scoreboard overflow-hidden mb-20">
-          <div id="scorecard-live-layout" class="scorecard-live-layout record-chase-active">
+          <div id="scorecard-live-layout" class="scorecard-live-layout">
             <div class="scorecard-live-main">
               <div id="scorecard-rounds-hint" class="scorecard-rounds-hint scorecard-hidden-rounds-hint hidden text-center py-1.5 px-2 text-[10px] font-extrabold tracking-wide select-none" style="color:var(--muted);background:var(--surface-2);"></div>
               <div class="scorecard-table-wrap">
@@ -7752,14 +7981,6 @@ button.dealer-name-indicator .dealer-player-label {
                 </table>
               </div>
             </div>
-            <aside id="record-chase-panel" class="record-chase-panel" aria-label="Player Pace metrics">
-              <div class="record-chase-head">
-                <span class="record-chase-head-label">Best</span>
-                <span class="record-chase-head-label">Avg</span>
-                <span class="record-chase-head-label">Worst</span>
-              </div>
-              <div id="record-chase-list" class="record-chase-list"></div>
-            </aside>
           </div>
 
           <div id="submit-section" class="tournament-footer p-4 border-t hairline flex flex-col sm:flex-row sm:justify-end gap-4" style="background:var(--surface-2);">
@@ -7770,7 +7991,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
             <h3 class="font-display text-3xl" style="color:var(--emerald);">Match Complete!</h3>
             <p id="game-over-copy" class="font-bold" style="color:var(--emerald);">You've reached the final round.</p>
-            <button onclick="endGame()" class="btn-primary px-12 py-4 text-xl">End Match &amp; See Winner</button>
+            <button type="button" onclick="requestEndGame()" class="btn-primary px-12 py-4 text-xl">End Match &amp; See Winner</button>
           </div>
         </div>
       </div>
@@ -8137,8 +8358,12 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="custom-numpad" class="hidden fixed bottom-0 md:bottom-6 right-0 md:right-6 w-full max-w-[350px] text-white p-4 md:p-5 z-[100] transform translate-y-full transition-transform duration-300 rounded-t-3xl md:rounded-3xl" style="background:#0f0f0e;border:1px solid #2c2c29;box-shadow:0 -8px 40px rgba(0,0,0,0.3);">
       <div class="flex justify-between items-center mb-4 px-2">
         <div id="numpad-label" class="font-extrabold uppercase tracking-[0.15em] text-xs" style="color:#34d399;">Enter Score</div>
-        <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
+        <div class="flex gap-2">
+          <button id="numpad-cancel" onclick="cancelPastNumpad()" class="hidden font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#fda4af;">Cancel</button>
+          <button onclick="closeNumpad()" class="font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full" style="background:#2c2c29;color:#a3a3a3;">Close Keypad</button>
+        </div>
       </div>
+      <div id="numpad-error" class="hidden mb-3 mx-2 text-sm font-bold" style="color:#fda4af;" role="alert"></div>
       <div id="numpad-context" class="hidden mb-4 mx-2 rounded-2xl border px-3 py-2" style="border-color:rgba(52,211,153,0.28);background:rgba(52,211,153,0.08);">
         <div id="numpad-context-bid" class="font-extrabold uppercase tracking-[0.14em] text-[11px]" style="color:#67e8f9;"></div>
         <div id="numpad-context-result" class="mt-1 font-jakarta font-extrabold text-base" style="color:#f8fafc;"></div>
@@ -8161,6 +8386,35 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
+    <!-- Historical Wizard / 818 round correction -->
+    <div id="round-correction-modal" class="hidden fixed inset-0 z-[160] flex items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="cancelRoundCorrection()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+      <div class="surface-raised relative w-full max-w-lg p-5 md:p-6 pop-in" role="dialog" aria-labelledby="round-correction-title">
+        <div id="round-correction-title" class="font-display text-3xl"></div>
+        <div id="round-correction-limit" class="mt-1 text-sm font-extrabold" style="color:var(--muted);"></div>
+        <div id="round-correction-sum" class="text-sm font-extrabold"></div>
+        <div id="round-correction-error" class="mt-3 text-sm font-bold" style="color:var(--rose);" role="alert"></div>
+        <div id="round-correction-rows" class="mt-4 space-y-2 max-h-64 overflow-y-auto"></div>
+        <div class="grid grid-cols-3 gap-2 mt-4 no-select">
+          <button type="button" onclick="roundCorrectionKey('1')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">1</button>
+          <button type="button" onclick="roundCorrectionKey('2')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">2</button>
+          <button type="button" onclick="roundCorrectionKey('3')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">3</button>
+          <button type="button" onclick="roundCorrectionKey('4')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">4</button>
+          <button type="button" onclick="roundCorrectionKey('5')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">5</button>
+          <button type="button" onclick="roundCorrectionKey('6')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">6</button>
+          <button type="button" onclick="roundCorrectionKey('7')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">7</button>
+          <button type="button" onclick="roundCorrectionKey('8')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">8</button>
+          <button type="button" onclick="roundCorrectionKey('9')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num">9</button>
+          <button type="button" onclick="roundCorrectionKey('backspace')" class="numpad-btn rounded-2xl py-3 text-lg font-extrabold" style="background:rgba(159,18,56,0.3);color:#fda4af;">⌫</button>
+          <button type="button" onclick="roundCorrectionKey('0')" class="numpad-btn bg-neutral-800 text-white rounded-2xl py-3 text-xl font-extrabold font-mono-num col-span-2">0</button>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button type="button" onclick="cancelRoundCorrection()" class="btn-ghost flex-1 py-3 text-sm">Cancel</button>
+          <button type="button" id="round-correction-save" onclick="saveRoundCorrection()" class="btn-primary flex-1 py-3 text-sm">Save Round</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Focused Score Entry Modal -->
     <div id="score-entry-modal" class="hidden fixed inset-0 z-[155] items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelScoreEntryModal()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
@@ -8171,6 +8425,8 @@ button.dealer-name-indicator .dealer-player-label {
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
+          <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
+          <p id="score-entry-error" class="inline-form-error" role="alert"></p>
         </div>
 
         <div class="score-entry-layout grid gap-5 py-5 min-h-0 flex-1">
@@ -8248,20 +8504,43 @@ button.dealer-name-indicator .dealer-player-label {
 
 
     <!-- Life Preserver Wheel -->
-    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-1 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+      <div class="surface-raised life-preserver-dialog w-full p-5 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
+        <div id="wheel-mode-label" class="wheel-mode-label">Life Preserver</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
-        <p class="text-xs font-bold mb-2 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
+        <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
+        <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-commit-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);">Best help and largest setback show after the table is ready.</p>
+        <p id="wheel-odds-line" class="hidden text-sm md:text-base font-extrabold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-best-place" class="hidden text-sm md:text-base font-semibold mb-3 max-w-md leading-snug" style="color:var(--ink-2);"></p>
         <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
-          <div id="wheel-spinner" class="wheel-spinner"></div>
-          <div class="wheel-spinner-hub"></div>
+          <div id="wheel-spinner" class="wheel-spinner">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+          </div>
+          <div id="wheel-ball-orbit" class="wheel-ball-orbit" aria-hidden="true">
+            <div id="wheel-ball" class="wheel-ball"></div>
+          </div>
+          <button type="button" class="wheel-spinner-hub" onclick="spinWheel()" aria-label="Use your one spin">SPIN</button>
+          <div id="wheel-callouts" class="wheel-callouts" hidden></div>
         </div>
-        <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl shrink-0">SPIN THE WHEEL</button>
+        <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
+          <span class="wheel-legend-chip is-help">Help</span>
+          <span class="wheel-legend-chip is-zero">No change</span>
+          <span class="wheel-legend-chip is-setback">Setback</span>
+        </div>
+        <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl shrink-0">Use your one spin</button>
+        <div id="wheel-result" class="hidden w-full mt-4 p-5 text-left rounded-2xl" style="background:var(--emerald-bg);border:1px solid var(--emerald-border);">
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--emerald);">Landed result · Locked</div>
+          <p id="wheel-result-player" class="player-name-label text-2xl md:text-3xl leading-tight" style="color:var(--ink);"></p>
+          <p id="wheel-result-adjustment" class="font-display text-3xl md:text-5xl leading-tight" style="color:var(--ink);"></p>
+          <p id="wheel-result-total" class="text-lg md:text-2xl font-extrabold mt-2 font-mono-num" style="color:var(--ink);"></p>
+          <p id="wheel-result-standing" class="text-lg md:text-2xl font-extrabold mt-1" style="color:var(--ink);"></p>
+          <button type="button" onclick="closeWheel()" class="btn-primary w-full mt-4 py-4 font-display text-xl">Back to scorecard</button>
+        </div>
         <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold shrink-0">How Life Preserver works</button>
         <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-50 flex flex-col p-6 md:p-7 text-left">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);">🛟 Life Preserver</div>
@@ -8278,7 +8557,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>You are not in 1st. 2nd can get one too if they are also too far back to catch the lead.</li>
               <li>You have to be far enough behind 1st that catching them with normal play is unlikely. That gap is much smaller in 818 than in Wizard, because 818 moves in tens and Wizard can swing 50 or more in one round.</li>
               <li>If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.</li>
-              <li>One spin per player, per game.</li>
+              <li>One spin per player per match.</li>
               <li>Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.</li>
               <li>Not used in Rook or Beat the Heat.</li>
             </ul>
@@ -8286,8 +8565,9 @@ button.dealer-name-indicator .dealer-player-label {
             <ul>
               <li>The numbers are sized to this game, this table, and how far behind you are.</li>
               <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
-              <li>The best result can pull you back toward the lead, but it cannot match or pass 1st.</li>
-              <li>You always finish at least one point behind 1st.</li>
+              <li>Cannot tie or pass the leader.</li>
+              <li>You always finish at least one scoring step behind 1st.</li>
+              <li>The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.</li>
               <li>Most slices help. Some do nothing. A few slightly hurt.</li>
               <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
             </ul>
@@ -8310,6 +8590,31 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
+
+    <div id="lp-picker-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeLifePreserverPicker()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Life Preserver</div>
+        <h3 class="font-display text-3xl mb-2">Who spins?</h3>
+        <p class="text-sm font-semibold mb-4" style="color:var(--ink-2);">Pick a player. Cancel spends nothing.</p>
+        <div id="lp-picker-list" class="flex flex-col gap-2 mb-4"></div>
+        <button type="button" onclick="closeLifePreserverPicker()" class="btn-ghost w-full py-3">Cancel</button>
+      </div>
+    </div>
+
+    <!-- End match confirm -->
+    <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Save &amp; End</div>
+        <h3 class="font-display text-3xl mb-3" id="end-match-title">End this match now?</h3>
+        <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy"></p>
+        <div class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+          <button type="button" id="end-match-cancel" onclick="closeEndMatchModal()" class="btn-ghost px-5 py-3 text-sm">Cancel</button>
+          <button type="button" id="end-match-confirm" onclick="confirmEndMatch()" class="btn-primary px-5 py-3 text-sm">Save &amp; End</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Life Preserver rules -->
     <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
@@ -8407,27 +8712,31 @@ button.dealer-name-indicator .dealer-player-label {
 
         <!-- Data -->
         <div class="border-t hairline pt-5">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Data Vault</div>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">This device</div>
           <div class="space-y-3">
+            <p class="local-storage-statement text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Scores and history are saved in this browser on this device.</p>
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
-            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad unless Porch Cloud is connected. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
+            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
             <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Porch Cloud</div>
-              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">One scorebook for the live website. Safari and the home-screen app then share the same nights, even if you delete the icon.</p>
-              <p id="porch-cloud-status" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);"></p>
-              <input id="porch-cloud-key" type="password" autocomplete="off" class="w-full rounded-xl p-3 text-sm font-bold outline-none border hairline" style="background:var(--bg-2);color:var(--ink);" placeholder="Porch password">
-              <button type="button" onclick="savePorchPassword()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Save &amp; Sync</button>
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Backup</div>
+              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Save a file of the games, players, and the match on this table.</p>
+              <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Backup</button>
+            </div>
+            <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Restore</div>
+              <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds games and players this device does not already have. Finished games already here stay as they are. If the file has a match in progress, that match replaces the one on this table. Player photos and text-size settings in the file overwrite the ones here.</p>
+              <p class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
+              <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
+              <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
+              <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
+              <details class="rounded-2xl border hairline p-3" style="background:var(--bg-2);">
+                <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
+                <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
+                <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--surface);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
+                <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Paste &amp; Restore</button>
+              </details>
             </div>
             <button id="settings-perf-report-btn" onclick="openPerfReport()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">⚡ Performance Report</button>
-            <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">📥 Export Backup File</button>
-            <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📤 Import Backup File</button>
-            <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
-            <details class="rounded-2xl border hairline p-3" style="background:var(--surface-2);">
-              <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
-              <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
-              <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--bg-2);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
-              <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">📋 Paste &amp; Merge</button>
-            </details>
           </div>
         </div>
       </div>
@@ -8576,6 +8885,8 @@ button.dealer-name-indicator .dealer-player-label {
   const GN_QA_LOCAL_HOSTS = new Set(['localhost','127.0.0.1','::1']);
   const GN_QA_PREVIEW_HOST = location.hostname.endsWith('.vercel.app') && location.hostname!=='cardknight.vercel.app';
   const GN_QA_MODE = (GN_QA_LOCAL_HOSTS.has(location.hostname)||GN_QA_PREVIEW_HOST) && new URLSearchParams(location.search).has('gnqa');
+  document.body.classList.add('slice2-tv');
+  const LP_SPIN_COPY = {ready:'Use your one spin', spinning:'Spinning…'};
 
   // ── Storage helpers ──
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
@@ -8588,11 +8899,11 @@ button.dealer-name-indicator .dealer-player-label {
   let playerProfiles = safeGetObject('gn_profiles');
 
   let currentGame = null;
-  let recordChaseVisible = true;
+  let recordChaseVisible = false;
   let recordChaseLayoutActive = false;
 
   function resetRecordChaseView(){
-    recordChaseVisible = true;
+    recordChaseVisible = false;
     recordChaseLayoutActive = false;
   }
   let _historyRevision = 0;
@@ -8798,20 +9109,7 @@ button.dealer-name-indicator .dealer-player-label {
     return _allTimeRecordsCache.data;
   }
   function recomputeGameTotals(game){
-    if(!game)return {};
-    game.totals={};
-    (game.originalRoster||[]).forEach(p=>{if(p)game.totals[p]=0;});
-    (game.rounds||[]).forEach(r=>{
-      Object.keys(r.scores||{}).forEach(p=>{
-        if(game.totals[p]===undefined)game.totals[p]=0;
-        game.totals[p]+=(r.scores[p]||0);
-      });
-      Object.entries(r.comeback||{}).forEach(([p,extra])=>{
-        if(game.totals[p]===undefined)game.totals[p]=0;
-        game.totals[p]+=Number(extra)||0;
-      });
-    });
-    return game.totals;
+    return BPGScorebook.recomputeTotals(game);
   }
   function getActiveRoster(game){
     const retired=game?.retired||[];
@@ -8860,6 +9158,25 @@ button.dealer-name-indicator .dealer-player-label {
     const totals=gameData?.totals||{};
     return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
   }
+  function getDisplayPlayers(gameData){
+    const seen=new Set();
+    const named=[];
+    const add=player=>{
+      if(!player||seen.has(player)) return;
+      seen.add(player);
+      named.push(player);
+    };
+    getRecordedPlayers(gameData).forEach(add);
+    (gameData?.retired||[]).forEach(player=>{
+      if(!player) return;
+      if(gameData?.totals?.[player]!==undefined || (gameData?.originalRoster||[]).includes(player)) add(player);
+    });
+    return named;
+  }
+  function retiredBadgeMarkup(gameData, player){
+    if(!player || !(gameData?.retired||[]).includes(player)) return '';
+    return `<span class="retired-badge ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`;
+  }
   const EIGHT18_ROUND_TRICKS = [8,7,6,5,4,3,2,1,2,3,4,5,6,7,8];
   function isEight18Game(game=currentGame){
     const name=typeof game==='string'?game:game?.name||game?.game;
@@ -8894,11 +9211,8 @@ button.dealer-name-indicator .dealer-player-label {
   function isHighScoreGame(name){
     return name==='Wizard'||name==='818'||name==='Flip 7 Vengeance'||name==='Rook';
   }
-  function is818ExactRound(round, player, score){
-    const bid=round?.bids?.[player];
-    const actual=round?.actuals?.[player];
-    if(bid!==undefined&&actual!==undefined) return Number(bid)===Number(actual);
-    return Number(score)>=10;
+  function is818ExactRound(round, player){
+    return BPGScorebook.classifyBidAccuracy(round, player)==='exact';
   }
   const WIZARD_RECORD_PLAYER_COUNTS = [4,5,6,7,8];
   function createWizardScoreBuckets(){
@@ -9126,6 +9440,7 @@ button.dealer-name-indicator .dealer-player-label {
   // ── Save indicator flash ──
   function flashSaveIndicator(){
     const el = document.getElementById('save-indicator'); if(!el) return;
+    if (window.BPGSlice2 && typeof BPGSlice2.parkSaveIndicator === 'function') BPGSlice2.parkSaveIndicator();
     el.classList.add('show');
     clearTimeout(flashSaveIndicator._t);
     flashSaveIndicator._t = setTimeout(()=>el.classList.remove('show'), 900);
@@ -9169,6 +9484,7 @@ button.dealer-name-indicator .dealer-player-label {
   const DRAFT_SAVE_DEBOUNCE_MS = 1200;
   const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
   function persistJsonIfChanged(key, value){
+    if(window.__GN_DEMO_SKIP_PERSIST) return;
     if(key === 'gn_current') gnWarnNumpadHotPath("persistJsonIfChanged('gn_current')");
     if(key === 'gn_history' && _historyRevision === _lastPersistedHistoryRev && _lastPersistedState[key] !== undefined){
       return;
@@ -9294,7 +9610,7 @@ button.dealer-name-indicator .dealer-player-label {
       const execTimer = gnPerfStart('GN saveData exec');
       try{
         _persistGamenightState({ fullPersist, syncCold });
-        if(!_porchApplying) schedulePorchPush();
+        /* Porch cloud is off this release. Local persist only. */
       } finally {
         gnPerfEnd(execTimer);
       }
@@ -9382,8 +9698,21 @@ button.dealer-name-indicator .dealer-player-label {
     closeNumpad();
   }
   function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
+  function leaveMatchToTable(){
+    gnPerfAction('clicked Table');
+    if(typeof closeActionsMenu==='function') closeActionsMenu();
+    if(typeof closeEndMatchModal==='function') closeEndMatchModal();
+    if(typeof scoreEntryModalState!=='undefined' && scoreEntryModalState){
+      saveOpenScoreEntryModalDrafts();
+      saveData();
+      closeScoreEntryModalOnly();
+    } else if(currentGame){
+      saveData();
+    }
+    goHome();
+  }
   function goActiveMatch(){ if(currentGame){navigateTo('game-screen');renderGame();}else{goHome();} }
-  function showHistory(){ gnPerfAction('opened History'); navigateTo('history-screen'); let t=gnPerfStart('GN renderHistory'); try{renderHistoryList();}finally{gnPerfEnd(t);} t=gnPerfStart('GN renderHallOfFame'); try{renderHallOfFame();}finally{gnPerfEnd(t);} }
+  function showHistory(){ gnPerfAction('opened History'); navigateTo('history-screen'); const t=gnPerfStart('GN renderHallOfFame'); try{renderHallOfFame();}finally{gnPerfEnd(t);} switchTab('hall-of-fame-view'); }
   function showProfiles(){ gnPerfAction('opened Profiles'); navigateTo('profiles-screen'); const t=gnPerfStart('GN renderProfiles'); try{renderProfilesGrid();}finally{gnPerfEnd(t);} }
   function switchTab(id){
     if(id==='records-view')gnPerfAction('opened Records');
@@ -9463,7 +9792,6 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
     refreshBackupSummary();
-    refreshPorchCloudSettings();
     openModal('settings-modal');
   }
   function closeSettings(){ closeModal('settings-modal'); }
@@ -9757,6 +10085,39 @@ button.dealer-name-indicator .dealer-player-label {
     }
     return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
   }
+  function eligibleLifePreserverNames(){
+    if(!currentGame) return [];
+    const table=getActivePlayers(currentGame);
+    if(isMatchOver(currentGame)) return [];
+    return table.filter((player)=>isHailMaryEligible(currentGame, player, table, {gameOver:false}));
+  }
+  function closeLifePreserverPicker(){
+    closeModal('lp-picker-modal');
+  }
+  function openLifePreserverPicker(){
+    const names=eligibleLifePreserverNames();
+    const list=document.getElementById('lp-picker-list');
+    if(list){
+      list.innerHTML=names.map((name)=>`<button type="button" class="btn-ghost w-full py-3 text-left font-extrabold lp-picker-item" data-lp-player="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join('');
+    }
+    openModal('lp-picker-modal');
+  }
+  function openLifePreserverEntry(player){
+    if(player){
+      authorizeHailMary(player);
+      return;
+    }
+    const names=eligibleLifePreserverNames();
+    if(names.length===1){
+      authorizeHailMary(names[0]);
+      return;
+    }
+    if(names.length>1){
+      openLifePreserverPicker();
+      return;
+    }
+    openLifePreserverRules();
+  }
   function openLifePreserverRules(){
     if(!currentGame)return;
     const players=getActivePlayers(currentGame);
@@ -9792,11 +10153,11 @@ button.dealer-name-indicator .dealer-player-label {
     }
     _lifePreserverSpinToken++;
     const btn=document.getElementById('btn-spin');
-    if(btn){
+    if(btn && !_lifePreserverCommitted){
       btn.disabled=false;
-      btn.textContent='SPIN THE WHEEL';
+      btn.textContent=LP_SPIN_COPY.ready;
     }
-    if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
+    if(wasSpinning&&notify&&!_lifePreserverCommitted) toast('Life Preserver not applied', 'warning');
     return wasSpinning;
   }
   function closeWheel(){
@@ -9821,8 +10182,43 @@ button.dealer-name-indicator .dealer-player-label {
       : {summary:'',wheelLine:'',bullets:[]};
     const line=document.getElementById('wheel-why-line');
     if(line){
-      line.textContent=explained.wheelLine||'';
-      line.classList.toggle('hidden', !explained.wheelLine);
+      line.textContent='';
+      line.classList.add('hidden');
+    }
+    const meta=document.getElementById('wheel-player-meta');
+    if(meta){
+      const offer=lifePreserverOfferSnapshot;
+      if(offer&&offer.eligible){
+        const score=Number.isFinite(offer.playerScore)?offer.playerScore:'';
+        const gap=Math.round(Number(offer.leaderGap)||0);
+        meta.textContent=score===''?`${gap} behind 1st`:`Current total ${score} · ${gap} behind 1st`;
+      }else{
+        meta.textContent='';
+      }
+    }
+    const gameLine=document.getElementById('wheel-game-line');
+    if(gameLine){
+      gameLine.textContent=explained.gameLine||'';
+      gameLine.classList.toggle('hidden', !explained.gameLine);
+    }
+    const commit=document.getElementById('wheel-commit-line');
+    if(commit){
+      const range=explained.rangeLine||'Best help and largest setback show after the table is ready.';
+      commit.innerHTML=range.replace(/ · /g,'<br>');
+    }
+    const odds=document.getElementById('wheel-odds-line');
+    if(odds){
+      const proposed=lifePreserverTableMode()==='proposed';
+      const spec=(window.BPGLifePreserver&&typeof BPGLifePreserver.outcomeSpec==='function')
+        ? BPGLifePreserver.outcomeSpec({table:lifePreserverTableMode()})
+        : null;
+      odds.textContent=proposed && spec?.oddsLine ? spec.oddsLine : '';
+      odds.classList.toggle('hidden', !(proposed && spec?.oddsLine));
+    }
+    const bestPlace=document.getElementById('wheel-best-place');
+    if(bestPlace){
+      bestPlace.textContent=explained.bestPlaceLine||'';
+      bestPlace.classList.toggle('hidden', !explained.bestPlaceLine);
     }
     const card=document.getElementById('life-preserver-why');
     const lead=document.getElementById('life-preserver-why-lead');
@@ -10123,6 +10519,13 @@ button.dealer-name-indicator .dealer-player-label {
     if(btn && btn.contains(e.target)) return;
     closeActionsMenu();
   });
+  document.addEventListener('click', (e) => {
+    const pick = e.target.closest?.('[data-lp-player]');
+    if(!pick) return;
+    const player = pick.getAttribute('data-lp-player');
+    closeLifePreserverPicker();
+    if(player) authorizeHailMary(player);
+  });
 
   /* ═══ EXPORT / IMPORT ═══ */
   function currentBackupState(){
@@ -10151,23 +10554,45 @@ button.dealer-name-indicator .dealer-player-label {
     if(added.games) markHistoryChanged();
     if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
     saveData({ fullPersist: true, syncCold: true });
-    const incoming=added.incoming?.line || 'No finished games.';
     const now=added.device?.line || BPGBackup.summarizeHistory(history).line;
-    alert(`Merged ${added.games} new game${added.games===1?'':'s'}.\n\nIn that file: ${incoming}\nNow on this copy: ${now}`);
+    toast(`Merged ${added.games} new game${added.games===1?'':'s'}. ${now}`, 'default');
     refreshBackupSummary();
     closeSettings();
     goHome();
   }
+  function showFormError(id, message){
+    const el=document.getElementById(id);
+    if(!el){
+      if(message) toast(message, 'warning');
+      return;
+    }
+    el.textContent=message||'';
+    el.classList.toggle('is-on', !!message);
+  }
+  function showBackupError(message){
+    showFormError('backup-inline-msg', message);
+  }
+  function showScoreEntryError(message){
+    const modal=document.getElementById('score-entry-modal');
+    if(modal && !modal.classList.contains('hidden')){
+      showFormError('score-entry-error', message);
+      return;
+    }
+    if(message) toast(message, 'warning');
+  }
   function exportData(){
-    if(!window.BPGBackup)return alert('Backup is not ready.');
+    showBackupError('');
+    if(!window.BPGBackup){
+      showBackupError('Backup is not ready.');
+      return;
+    }
     const d=BPGBackup.buildBackup(currentBackupState());
     const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=url; a.download=`gamenight-${Date.now()}.json`; a.click();
     URL.revokeObjectURL(url);
     const snap=BPGBackup.summarizeHistory(d.history);
-    alert(`Saved backup file.\n\n${snap.line}`);
-    closeSettings();
+    toast(`Backup file ready. ${snap.line}`, 'default');
   }
   function importBackupText(text){
     if(!window.BPGBackup) throw new Error('invalid-backup');
@@ -10176,148 +10601,54 @@ button.dealer-name-indicator .dealer-player-label {
     applyMergedBackup(next, added);
   }
   function importDataFromText(){
-    const text=document.getElementById('import-text').value.trim(); if(!text)return alert('Paste your JSON first.');
+    const text=document.getElementById('import-text').value.trim();
+    if(!text){
+      showBackupError('Paste your JSON first.');
+      return;
+    }
     try{
+      showBackupError('');
       importBackupText(text);
-    }catch(e){alert('Invalid JSON.');}
+    }catch(e){showBackupError('That paste is not a valid backup.');}
   }
   function importDataFromFile(ev){
     const file=ev?.target?.files?.[0];
     if(ev?.target) ev.target.value='';
     if(!file)return;
     const reader=new FileReader();
-    reader.onerror=()=>alert('Could not read that file.');
+    reader.onerror=()=>showBackupError('Could not read that file.');
     reader.onload=()=>{
       try{
+        showBackupError('');
         importBackupText(String(reader.result||''));
-      }catch(e){alert('That file is not a valid backup.');}
+      }catch(e){showBackupError('That file is not a valid backup.');}
     };
     reader.readAsText(file);
   }
 
   const GN_PORCH_KEY='gn_porch_key';
-  let _porchPushTimer=null;
-  let _porchBusy=false;
-  let _porchApplying=false;
   function canPorchCloud(){
-    return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
+    return false;
   }
   function getPorchKey(){
     try{return localStorage.getItem(GN_PORCH_KEY)||'';}catch(e){return '';}
   }
-  function setPorchKey(value){
-    try{
-      if(value) localStorage.setItem(GN_PORCH_KEY,value);
-      else localStorage.removeItem(GN_PORCH_KEY);
-    }catch(e){}
+  function setPorchKey(){
+    /* Leave gn_porch_key alone. Cloud sync is off this release. */
   }
-  function setPorchStatus(text){
-    const el=document.getElementById('porch-cloud-status');
-    if(el) el.textContent=text||'';
-  }
-  function refreshPorchCloudSettings(){
-    const input=document.getElementById('porch-cloud-key');
-    if(input && !input.value) input.value=getPorchKey();
-    if(!canPorchCloud()){
-      setPorchStatus('Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
-      return;
-    }
-    if(!getPorchKey()){
-      setPorchStatus('Enter the porch password once. After that, this copy stays in sync.');
-      return;
-    }
-    setPorchStatus('Password saved on this copy. Tap Save & Sync if the status is stale.');
-  }
-  async function porchRequest(method,body){
-    const key=getPorchKey();
-    if(!canPorchCloud()||!key) throw Object.assign(new Error('no-cloud'),{status:0});
-    const res=await fetch('/api/sync',{
-      method,
-      headers:{
-        'Content-Type':'application/json',
-        'x-porch-key':key
-      },
-      body:method==='PUT'?JSON.stringify(body):undefined
-    });
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok) throw Object.assign(new Error(data.error||'cloud-failed'),{status:res.status,data});
-    return data;
+  function setPorchStatus(){}
+  function refreshPorchCloudSettings(){}
+  async function porchRequest(){
+    throw Object.assign(new Error('cloud-off'),{status:0});
   }
   async function pullPorchCloud(){
-    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return null;
-    if(_porchBusy) return null;
-    _porchBusy=true;
-    try{
-      setPorchStatus('Checking the porch cloud…');
-      const data=await porchRequest('GET');
-      if(!data.backup){
-        setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
-        return {empty:true};
-      }
-      const {next,added}=BPGBackup.mergeCloud(currentBackupState(),data.backup);
-      if(added.games||added.players){
-        _porchApplying=true;
-        allPlayers=next.allPlayers;
-        players=next.players;
-        history=next.history;
-        playerProfiles=next.playerProfiles;
-        if(!currentGame && next.currentGame) currentGame=next.currentGame;
-        if(added.games) markHistoryChanged();
-        saveData({fullPersist:true,syncCold:true});
-        _porchApplying=false;
-      }
-      const snap=BPGBackup.summarizeHistory(history);
-      setPorchStatus(`Cloud is connected. ${snap.line}`);
-      refreshBackupSummary();
-      return {added,empty:false};
-    }catch(error){
-      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
-      else if(error.status===401) setPorchStatus('That porch password did not match.');
-      else setPorchStatus('Could not reach the porch cloud.');
-      return null;
-    }finally{
-      _porchApplying=false;
-      _porchBusy=false;
-    }
+    return null;
   }
   async function pushPorchCloud(){
-    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
-    if(_porchBusy) return;
-    _porchBusy=true;
-    try{
-      const payload=BPGBackup.buildBackup(currentBackupState());
-      await porchRequest('PUT',payload);
-      const snap=BPGBackup.summarizeHistory(payload.history);
-      setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
-    }catch(error){
-      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
-      else if(error.status===401) setPorchStatus('That porch password did not match.');
-      else setPorchStatus('Could not save to the porch cloud.');
-    }finally{
-      _porchBusy=false;
-    }
+    return;
   }
-  function schedulePorchPush(){
-    if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
-    if(_porchPushTimer) clearTimeout(_porchPushTimer);
-    _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
-  }
-  async function savePorchPassword(){
-    const input=document.getElementById('porch-cloud-key');
-    const key=(input&&input.value||'').trim();
-    if(!key){alert('Enter a porch password first.');return;}
-    if(!canPorchCloud()){
-      setPorchKey(key);
-      setPorchStatus('Password saved here, but cloud save only runs on the live site.');
-      return;
-    }
-    setPorchKey(key);
-    const pulled=await pullPorchCloud();
-    if(pulled&&pulled.empty) await pushPorchCloud();
-    else if(pulled) await pushPorchCloud();
-    if(currentGame) goActiveMatch();
-    else goHome();
-  }
+  function schedulePorchPush(){}
+  function savePorchPassword(){}
 
   /* ═══ RULES TEXT ═══ */
   const gameRulesText = {
@@ -10342,7 +10673,7 @@ button.dealer-name-indicator .dealer-player-label {
     const select=document.getElementById('profile-game-filter');
     if(!select)return;
     const selected=select.value || 'all';
-    const games=Object.keys(configs).filter(g=>history.some(h=>h.game===g&&h.totals));
+    const games=Object.keys(configs).filter(g=>history.some(h=>h.game===g&&h.totals&&BPGScorebook.isCompletedHistoryMatch(h)));
     select.innerHTML=`<option value="all">All games</option>${games.map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g.replace(' Vengeance',''))}</option>`).join('')}`;
     select.value=games.includes(selected)?selected:'all';
   }
@@ -10354,7 +10685,7 @@ button.dealer-name-indicator .dealer-player-label {
       needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0
     };
     const matches=history
-      .filter(h=>h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
+      .filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
       .slice()
       .sort((a,b)=>(a.id||0)-(b.id||0));
     matches.forEach(h=>{
@@ -10573,7 +10904,7 @@ button.dealer-name-indicator .dealer-player-label {
       stats[key].byGame[event.game]=(stats[key].byGame[event.game]||0)+1;
     };
     history.forEach(h=>{
-      if(!configs[h.game]||!Array.isArray(h.rounds))return;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!configs[h.game]||!Array.isArray(h.rounds))return;
       h.rounds.forEach(round=>{
         const whammy=detectHistoryWhammyForRound(h, round);
         if(whammy){ add('whammy', whammy); return; }
@@ -10623,7 +10954,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     let games=0,wins=0,lasts=0,labels=[],data=[];
     history.slice().reverse().forEach(h=>{
-      if(!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
       games++; if(h.winners?.includes(name))wins++;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
@@ -10826,12 +11157,11 @@ button.dealer-name-indicator .dealer-player-label {
     const newName = (document.getElementById('rename-input').value || '').trim();
     if(!newName){ alert('Please enter a name.'); return; }
     if(newName === oldName){ closeRenameModal(); return; }
-    if(allPlayers.includes(newName)){
+    if(playerNameIsTaken(newName)){
       if(!confirm(`A player named "${newName}" already exists. Merge "${oldName}" into "${newName}"? All history will combine.`)){
         return;
       }
-      // Treat as merge (same flow as bench drag merge, but programmatic)
-      mergePlayerRecords(oldName, newName);
+      if(mergePlayerRecords(oldName, newName)===false) return;
       closeRenameModal();
       closeProfileDetail();
       renderProfilesGrid();
@@ -10868,7 +11198,23 @@ button.dealer-name-indicator .dealer-player-label {
 
   // Bench drag and rename-onto-an-existing-name both call this.
   // Scores, bids, actuals, and Life Preserver bookkeeping move together.
+  function playerNameIsTaken(name){
+    if(!name) return false;
+    if(allPlayers.includes(name) || playerProfiles[name]) return true;
+    const games=history.slice();
+    if(currentGame) games.push(currentGame);
+    return games.some(game=>BPGScorebook.participantNames(game).has(name));
+  }
+
   function mergePlayerRecords(src, target){
+    const games=history.slice();
+    if(currentGame) games.push(currentGame);
+    const shared=BPGScorebook.findSharedMatch(games, src, target);
+    if(shared){
+      const label=shared.game||shared.name||'a match';
+      alert(`Cannot merge ${src} into ${target} because both played in the same match (${label}). Player merges are only allowed when two aliases never played in the same game.`);
+      return false;
+    }
     history.forEach(h => applyPlayerNameOnGame(h, src, target, true));
     if(currentGame) applyPlayerNameOnGame(currentGame, src, target, true);
     allPlayers = allPlayers.filter(p => p !== src);
@@ -10877,31 +11223,137 @@ button.dealer-name-indicator .dealer-player-label {
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
     if(currentGame) scheduleRender();
+    return true;
   }
 
 
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
-  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
+  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0, _lifePreserverCommitted=false;
   function lifePreserverSpinDuration(){
-    return GN_QA_MODE ? 80 : 6200;
+    if(GN_QA_MODE) return 80;
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return reduce ? 80 : 2400;
+  }
+
+  function lifePreserverTableMode(){
+    if(typeof window!=='undefined' && window.BPG_LP_TABLE==='proposed') return 'proposed';
+    try{
+      const params=new URLSearchParams(location.search);
+      if(params.get('lp')==='proposed') return 'proposed';
+    }catch(err){}
+    return 'current';
   }
 
   function getLifePreserverOfferForPlayer(player, activePlayers, extra){
     if(!window.BPGLifePreserver)return {eligible:false,reason:'missing-engine',slices:[]};
-    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
+    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, Object.assign({
+      table: lifePreserverTableMode()
+    }, extra||{}));
+  }
+
+  function offerSlicesForPlayer(player){
+    if(!currentGame||!player) return lifePreserverOfferSnapshot||{slices:[]};
+    if(lifePreserverOfferSnapshot?.player===player&&lifePreserverOfferSnapshot.slices?.length){
+      return lifePreserverOfferSnapshot;
+    }
+    const activePlayers=getActivePlayers(currentGame);
+    let offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    if(offer.slices?.length) return offer;
+    const used=currentGame.hailMaryUsed||[];
+    if(!used.includes(player)) return offer;
+    currentGame.hailMaryUsed=used.filter((name)=>name!==player);
+    offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    currentGame.hailMaryUsed=used;
+    return offer;
   }
 
   function getWheelSlices(){
-    const activePlayers=getActivePlayers(currentGame);
-    if(!wheelPlayer||!activePlayers.includes(wheelPlayer))return [];
-    if(lifePreserverOfferSnapshot?.player===wheelPlayer&&Array.isArray(lifePreserverOfferSnapshot.slices)){
-      return lifePreserverOfferSnapshot.slices;
+    const player=wheelPlayer
+      || currentGame?.lifePreserverLastResult?.player
+      || document.getElementById('wheel-result-player')?.textContent
+      || '';
+    const activePlayers=currentGame?getActivePlayers(currentGame):[];
+    if(!player||(activePlayers.length&&!activePlayers.includes(player))){
+      return lifePreserverOfferSnapshot?.slices||[];
     }
-    return getLifePreserverOfferForPlayer(wheelPlayer, activePlayers).slices||[];
+    const offer=offerSlicesForPlayer(player);
+    if(offer.slices?.length){
+      wheelPlayer=player;
+      lifePreserverOfferSnapshot=offer;
+    }
+    return offer.slices||lifePreserverOfferSnapshot?.slices||[];
+  }
+
+  function resetLifePreserverResultPanel(){
+    const result=document.getElementById('wheel-result');
+    const commit=document.getElementById('wheel-commit-line');
+    const spin=document.getElementById('btn-spin');
+    const help=document.getElementById('btn-life-preserver-help');
+    if(result) result.classList.add('hidden');
+    if(commit) commit.classList.remove('hidden');
+    if(spin) spin.classList.remove('hidden');
+    if(help) help.classList.remove('hidden');
+    document.getElementById('wheel-modal')?.classList.remove('wheel-has-result');
+    document.getElementById('wheel-player-name')?.classList.remove('hidden');
+  }
+
+  function showLifePreserverResult(detail){
+    const result=document.getElementById('wheel-result');
+    const commit=document.getElementById('wheel-commit-line');
+    const spin=document.getElementById('btn-spin');
+    const help=document.getElementById('btn-life-preserver-help');
+    const playerEl=document.getElementById('wheel-result-player');
+    const adjEl=document.getElementById('wheel-result-adjustment');
+    const totalEl=document.getElementById('wheel-result-total');
+    const standEl=document.getElementById('wheel-result-standing');
+    const adj=Number(detail.adj)||0;
+    const afterTotal=Number.isFinite(detail.total)?detail.total:adj;
+    const beforeTotal=Number.isFinite(detail.beforeTotal)?detail.beforeTotal:afterTotal-adj;
+    const described=(window.BPGLifePreserver&&typeof BPGLifePreserver.describeLifePreserverResult==='function')
+      ? BPGLifePreserver.describeLifePreserverResult({
+        adjustment:adj,
+        beforeTotal,
+        afterTotal,
+        beforeRank:detail.beforePlace,
+        afterRank:detail.place,
+        leaderGapBefore:detail.leaderGapBefore,
+        leaderGapAfter:detail.leaderGapAfter,
+        winLow:detail.winLow
+      })
+      : {headline:'',totals:'',standing:''};
+    if(playerEl) playerEl.textContent=detail.player||'';
+    if(adjEl) adjEl.textContent=described.headline||`${detail.adj>0?'+':''}${detail.adj}`;
+    if(totalEl) totalEl.textContent=described.totals||`New total: ${detail.total}`;
+    if(standEl) standEl.textContent=described.standing||'';
+    ['wheel-game-line','wheel-player-meta','wheel-best-place','wheel-why-line','wheel-odds-line'].forEach((id)=>{
+      document.getElementById(id)?.classList.add('hidden');
+    });
+    if(commit) commit.classList.add('hidden');
+    if(spin) spin.classList.add('hidden');
+    if(help) help.classList.add('hidden');
+    if(result) result.classList.remove('hidden');
+    document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
+    const mode=document.getElementById('wheel-mode-label');
+    if(mode) mode.textContent='Life Preserver Unlocked';
+    document.getElementById('wheel-player-name')?.classList.add('hidden');
+    if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
+    const slices=(typeof getWheelSlices==='function'?getWheelSlices():[])||[];
+    const landed=slices.find((slice)=>Number(slice.adjustment)===adj);
+    const spinner=document.getElementById('wheel-spinner');
+    if(spinner&&landed&&window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function'){
+      const landing=BPGLifePreserver.rotationDegreesForSlice(landed);
+      if(Math.abs(currentWheelRotation||0)<1){
+        spinner.style.transition='none';
+        currentWheelRotation=landing;
+        spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+      }
+    }
+    drawWheel();
   }
 
   function drawWheel(){
+    if(window.BPGSlice2 && typeof BPGSlice2.paintWheel==='function') return BPGSlice2.paintWheel();
     const c=document.getElementById('wheel-canvas'); const ctx=c.getContext('2d');
     const slices=getWheelSlices();
     if(!slices.length)return slices;
@@ -10968,9 +11420,9 @@ button.dealer-name-indicator .dealer-player-label {
     wheelPlayer=p;
     lifePreserverOfferSnapshot=offer;
     document.getElementById('wheel-player-name').textContent=p;
-    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
+    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='Life Preserver';
     document.getElementById('btn-spin').disabled=false;
-    document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
+    document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
     const spinner=document.getElementById('wheel-spinner');
     if(spinner){
       spinner.style.transition='none';
@@ -10979,11 +11431,19 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.offsetHeight;
       spinner.style.transition='';
     }
+    if(window.BPGSlice2&&typeof BPGSlice2.resetLifePreserverBall==='function'){
+      BPGSlice2.resetLifePreserverBall();
+    }
     hideLifePreserverHelp();
     cancelLifePreserverSpin();
+    _lifePreserverCommitted=false;
+    resetLifePreserverResultPanel();
     renderLifePreserverExplanation();
-    drawWheel();
     openModal('wheel-modal');
+    if(window.BPGSlice2&&typeof BPGSlice2.sizeLifePreserverModal==='function'){
+      BPGSlice2.sizeLifePreserverModal();
+    }
+    drawWheel();
   }
 
   function applyLifePreserverResult(player, proposedAdj, liveOffer){
@@ -11008,56 +11468,92 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function spinWheel(){
+    if(_lifePreserverCommitted)return;
     cancelLifePreserverSpin();
-    const spinToken=_lifePreserverSpinToken;
+    const spinToken=++_lifePreserverSpinToken;
     document.getElementById('btn-spin').disabled=true;
-    document.getElementById('btn-spin').textContent='SPINNING…';
+    document.getElementById('btn-spin').textContent=LP_SPIN_COPY.spinning;
     const spinner=document.getElementById('wheel-spinner');
     const slices=drawWheel();
-    const deg=Math.floor(Math.random()*360);
-    currentWheelRotation += 360*7 + deg;
-    if(spinner)spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+    if(!currentGame||!wheelPlayer||!slices.length){
+      document.getElementById('btn-spin').disabled=false;
+      document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
+      return;
+    }
+    const alreadySpun=!!(currentGame.hailMaryUsed||[]).includes(wheelPlayer)
+      || (currentGame.rounds||[]).some(round=>round&&round.hailMaryBonus&&round.scores&&Object.prototype.hasOwnProperty.call(round.scores,wheelPlayer));
+    if(alreadySpun){
+      toast('This Life Preserver is already locked', 'warning');
+      closeWheel();
+      return;
+    }
+    const activePlayers=getActivePlayers(currentGame);
+    const over=isMatchOver(currentGame);
+    const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
+    if(!live.eligible){
+      toast('Life Preserver is no longer available', 'warning');
+      document.getElementById('btn-spin').disabled=false;
+      document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
+      closeWheel();
+      return;
+    }
+    const win=(window.BPGLifePreserver&&typeof BPGLifePreserver.pickWeightedSlice==='function')
+      ? BPGLifePreserver.pickWeightedSlice(slices)
+      : slices[0];
+    const proposed=Number(win?.adjustment)||0;
+    const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
+    if(proposed!==0&&adj===0){
+      toast('Life Preserver cannot be applied safely now', 'warning');
+      closeWheel();
+      return;
+    }
+    const beforeTotal=Number(currentGame.totals?.[wheelPlayer])||0;
+    const beforePlaces=competitionPlaces(activePlayers, currentGame.totals);
+    const locked=(window.BPGLifePreserver&&typeof BPGLifePreserver.buildLockedOutcome==='function')
+      ? BPGLifePreserver.buildLockedOutcome(live, Object.assign({}, win, {adjustment:adj}), currentGame.totals, activePlayers)
+      : null;
+    BPGScorebook.recordLifePreserverSpin(currentGame, wheelPlayer, adj);
+    if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
+      BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
+    }
+    syncCurrentLifePreserverHolds({gameOver:over});
+    addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win&&win.label||adj}" → ${adj>=0?'+':''}${adj}`);
+    currentGame.lifePreserverLastResult={
+      player:wheelPlayer,
+      adj,
+      beforeTotal,
+      total:currentGame.totals[wheelPlayer],
+      beforePlace:beforePlaces[wheelPlayer],
+      place:competitionPlaces(getActivePlayers(currentGame), currentGame.totals)[wheelPlayer],
+      leaderGapBefore:live.leaderGap,
+      leaderGapAfter:locked&&locked.leaderGapAfter,
+      winLow:!!live.winLow,
+      label:win&&win.label
+    };
+    _lifePreserverCommitted=true;
+    saveData();
+    scheduleRender();
+    const landing=(window.BPGLifePreserver&&typeof BPGLifePreserver.landingDegreesForSlice==='function')
+      ? BPGLifePreserver.landingDegreesForSlice(win)
+      : ((window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function')
+        ? BPGLifePreserver.rotationDegreesForSlice(win)
+        : 0);
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    currentWheelRotation=landing;
+    if(window.BPGSlice2&&typeof BPGSlice2.animateLifePreserverBall==='function'){
+      BPGSlice2.animateLifePreserverBall(landing,{reduced:reduce});
+    }else if(spinner){
+      spinner.style.transition=reduce?'transform 180ms ease-out':'transform 2.2s cubic-bezier(0.18, 0.82, 0.22, 1)';
+      spinner.style.transform=`rotate(${(reduce?0:360*3)+landing}deg)`;
+    }
+    if(window.BPGSlice2&&typeof BPGSlice2.highlightLifePreserverPocket==='function'){
+      BPGSlice2.highlightLifePreserverPocket(win);
+    }
+    haptic([60, 80, 60, 80, 120]);
     _lifePreserverSpinTimer=setTimeout(()=>{
       _lifePreserverSpinTimer=null;
       if(spinToken!==_lifePreserverSpinToken)return;
-      if(!currentGame||!wheelPlayer)return;
-      const rotRad=((currentWheelRotation%360)*Math.PI)/180;
-      let pa=-Math.PI/2+rotRad;
-      while(pa<-Math.PI)pa+=2*Math.PI; while(pa>Math.PI)pa-=2*Math.PI;
-      let win=slices.find(s=>pa>=s._start&&pa<=s._end);
-      if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
-      if(!win)win=slices[0];
-      const activePlayers=getActivePlayers(currentGame);
-      const over=isMatchOver(currentGame);
-      const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
-      const proposed=Number(win?.adjustment)||0;
-      if(!live.eligible){
-        toast('Life Preserver is no longer available', 'warning');
-        document.getElementById('btn-spin').disabled=false;
-        document.getElementById('btn-spin').textContent='SPIN THE WHEEL';
-        closeWheel();
-        return;
-      }
-      const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
-      if(proposed!==0&&adj===0){
-        toast('Life Preserver cannot be applied safely now', 'warning');
-        closeWheel();
-        return;
-      }
-      alert(`🛟 The Life Preserver says:\n\n${win.label}`);
-      if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
-      currentGame.rounds.push({round:0,scores:{[wheelPlayer]:adj},hailMaryBonus:true});
-      if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
-        BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
-      } else {
-        if(!currentGame.hailMaryUsed)currentGame.hailMaryUsed=[];
-        currentGame.hailMaryUsed.push(wheelPlayer);
-      }
-      recomputeGameTotals(currentGame);
-      syncCurrentLifePreserverHolds({gameOver:over});
-      addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
-      haptic([60, 80, 60, 80, 120]);
-      saveData(); closeWheel(); scheduleRender();
+      showLifePreserverResult(currentGame.lifePreserverLastResult);
     },lifePreserverSpinDuration());
   }
 
@@ -11178,6 +11674,7 @@ button.dealer-name-indicator .dealer-player-label {
       </div>`;
     });
     document.getElementById('bench-list').innerHTML=bh;
+    if(window.BPGSlice2) window.BPGSlice2.refresh('home');
   }
 
   function addPlayerToAll(selectedName){
@@ -11191,6 +11688,16 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
   function moveToBench(n){ players=players.filter(p=>p!==n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
+  function slice2TableState(){ return {players, allPlayers, history, currentGame}; }
+  function slice2ReorderSeat(index, dir){
+    const next=index+dir;
+    if(next<0||next>=players.length)return;
+    const tmp=players[index];
+    players[index]=players[next];
+    players[next]=tmp;
+    saveData({ fullPersist: true, syncCold: true });
+    renderRoster();
+  }
 
   // ── Swipe to delete (bench) ──
   let _benchSwipe = null; // { startX, currentEl, delta, moved }
@@ -11283,7 +11790,7 @@ button.dealer-name-indicator .dealer-player-label {
     ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
     const src=ev.dataTransfer.getData('text/plain');
     if(src&&src!==target&&confirm(`⚠️ MERGE RECORDS: Combine all history from "${src}" into "${target}"?\n\n"${src}" will be deleted.`)){
-      mergePlayerRecords(src, target);
+      if(mergePlayerRecords(src, target)===false) return;
       renderRoster();
       alert(`Merged "${src}" → "${target}".`);
     }
@@ -11298,9 +11805,14 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function createSavedMatchSnapshot(game, winners){
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(game);
+    else if(!game.id) game.id=Date.now();
     const data={
-      id:Date.now(),
+      id:game.id,
+      gameId:game.gameId||game.id,
       game:game.name,
+      completed:true,
+      assistedMatch:game.assistedMatch===true,
       date:new Date().toLocaleDateString(),
       totals:{...(game.totals||{})},
       winners:[...(winners||[])],
@@ -11333,17 +11845,10 @@ button.dealer-name-indicator .dealer-player-label {
     warmCelebrationAssets();
     if(name==='Rook'&&players.length<4){alert('Rook needs at least 4 players for call-your-partner scoring. Add a few more players to the Lineup first.');return;}
     if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
-    if(currentGame&&!confirm('Save current game and start new?'))return;
     if(currentGame){
-      const cfg=configs[currentGame.name];
-      const keys=getRecordedPlayers(currentGame);
-      if(keys.length){
-        const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
-        const snapshot=createSavedMatchSnapshot(currentGame,sorted.filter(p=>currentGame.totals[p]===currentGame.totals[sorted[0]]));
-        history.unshift(snapshot);
-        markHistoryChanged();
-        saveData({ fullPersist: true, syncCold: true });
-      }
+      if(!confirm('The match on the table will be saved as incomplete. Start this new game anyway?'))return;
+      parkActiveMatch();
+      currentGame=null;
     }
     _pendingGameName = name;
     // Rook: show setup modal before animation chain
@@ -11368,6 +11873,7 @@ button.dealer-name-indicator .dealer-player-label {
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
     currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
     if(name==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
@@ -11569,8 +12075,9 @@ button.dealer-name-indicator .dealer-player-label {
   function confirmRookCall(){
     if(!_rookCallTrump){toast('Please pick a trump color','warning');return;}
     const cardInput=document.getElementById('rook-call-card-input').value.trim();
+    if(!cardInput){toast('Enter the called card first','warning');return;}
     currentGame.rookTrump=_rookCallTrump;
-    currentGame.rookCalledCard=cardInput||'(not specified)';
+    currentGame.rookCalledCard=cardInput;
     currentGame.rookPhase='results';
     const m=document.getElementById('rook-call-modal');
     m.classList.add('opacity-0');
@@ -11743,9 +12250,16 @@ button.dealer-name-indicator .dealer-player-label {
     const partner=_rookSelectedPartner;
     const bid=currentGame.rookHighBid;
     const handTotal=currentGame.rookConfig.totalCounters;
-    let bidderTeamPts=parseInt(document.getElementById('rook-bidder-team-input').value,10);
-    if(!Number.isFinite(bidderTeamPts))bidderTeamPts=0;
-    bidderTeamPts=Math.max(0,Math.min(handTotal,bidderTeamPts));
+    if(!bidder){toast('Name the high bidder first','warning');return;}
+    if(bid==null||bid===''||!Number.isFinite(Number(bid))){toast('Enter the bid first','warning');return;}
+    if(!currentGame.rookTrump){toast('Pick a trump color first','warning');return;}
+    if(!currentGame.rookCalledCard||currentGame.rookCalledCard==='(not specified)'){toast('Enter the called card first','warning');return;}
+    const parsedCounters=BPGScorebook.parseEntryInteger(document.getElementById('rook-bidder-team-input').value);
+    if(!parsedCounters.ok||parsedCounters.value<0||parsedCounters.value>handTotal){
+      toast(`Enter bid-team counters from 0 to ${handTotal}`,'warning');
+      return;
+    }
+    let bidderTeamPts=parsedCounters.value;
     const otherTeamPts=handTotal-bidderTeamPts;
     const madeIt=bidderTeamPts>=bid;
     const oppCounters=otherTeamPts;
@@ -11763,11 +12277,6 @@ button.dealer-name-indicator .dealer-player-label {
       scores[partner]=-bid;
       opponents.forEach(p=>scores[p]=oppCounters);
     }
-
-    // Also give zero to retired players who somehow have no score
-    currentGame.originalRoster.filter(p=>p&&currentGame.retired?.includes(p)).forEach(p=>{
-      if(scores[p]===undefined)scores[p]=0;
-    });
 
     const roundData={
       round:currentGame.currentRound,
@@ -11821,7 +12330,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(winners_.length>0){
       const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
       if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
-        endGame(false);
+        commitEndGame(false);
       }
     }
     scheduleRender();
@@ -12297,7 +12806,7 @@ ${isDealer
     if(!cfg) return null;
     let picked=null;
     history.forEach(h=>{
-      if(!h || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
+      if(!h || !BPGScorebook.isCompletedHistoryMatch(h) || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
       const score=Number(h.totals[name]);
       if(!Number.isFinite(score)) return;
       if(picked==null){ picked=score; return; }
@@ -12312,7 +12821,7 @@ ${isDealer
   function consecutiveResultStreak(name, wantWin){
     let n=0;
     for(const h of history){
-      if(!playerPlayedMatch(h, name)) continue;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
       const won=!!h.winners?.includes(name);
       if(wantWin?won:!won) n++;
       else break;
@@ -12327,7 +12836,7 @@ ${isDealer
     let losses=0;
     for(let i=start+1;i<history.length;i++){
       const h=history[i];
-      if(!playerPlayedMatch(h, name)) continue;
+      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
       if(h.winners?.includes(name)) break;
       losses++;
     }
@@ -12651,13 +13160,35 @@ ${isDealer
     releaseWakeLock(); currentGame=null; saveData(); goHome();
   }
 
-  function resumeMatch(id){
-    if(currentGame&&!confirm('This will scratch your active match. Proceed?'))return;
+  function parkActiveMatch(){
+    if(!currentGame) return null;
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
+    const finished=currentGame.completed===true||currentGame.gameOver===true;
+    const snapshot=createSavedMatchSnapshot(currentGame, finished?(currentGame.winners||[]):[]);
+    snapshot.completed=finished;
+    snapshot.gameOver=finished;
+    if(!finished) snapshot.winners=[];
+    const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
+    if(idx>=0) history[idx]=snapshot;
+    else history.unshift(snapshot);
+    markHistoryChanged();
+    saveData();
+    return snapshot;
+  }
+
+  function resumeMatch(id, options){
+    const force=!!(options&&options.force);
+    if(currentGame&&!force){
+      if(!confirm('Save the game on the table and resume this match?'))return;
+      parkActiveMatch();
+    }
     const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={name:g.game,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
+    if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
     else snapshotGameMaxRounds(currentGame);
     if(g.game==='Wizard'){currentGame.wizardPhase=g.wizardPhase||'bidding';currentGame.currentBids=g.currentBids||{};}
@@ -13196,14 +13727,17 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
+      const keepLastPast=(wrap.clientWidth||0)>=700;
       fitActiveScorecardColumns(root);
       while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<roundIdxs.length){
+        if(keepLastPast&&hidden===roundIdxs.length-1) break;
         hidden++;
         applyHidden(hidden);
         fitActiveScorecardColumns(root);
       }
       if(options?.hideUntilLeadFits){
         while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
+          if(keepLastPast&&hidden===roundIdxs.length-1) break;
           hidden++;
           applyHidden(hidden);
           fitActiveScorecardColumns(root);
@@ -13281,8 +13815,8 @@ ${isDealer
         root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,rowHeight*0.14)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-rank-size',`${Math.max(12,Math.min(42,28*scale)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.4,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-rank-size',`${Math.max(22,Math.min(42,28*scale)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.88,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.36,Math.min(0.95,0.72*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-size',`${Math.max(11,Math.min(30,22*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
@@ -13344,6 +13878,62 @@ ${isDealer
   function scorecardNameChipWidth(name){
     return scorecardNameChipEl(name).getBoundingClientRect().width;
   }
+  function neededScorecardNameSize(name,maximum,context){
+    const cell=name.closest('td.scorecard-col-player');
+    if(!cell)return maximum;
+    const chip=scorecardNameChipEl(name);
+    const cellBox=cell.getBoundingClientRect();
+    const chipBox=chip.getBoundingClientRect();
+    const available=scorecardNameAvailableWidth(name);
+    const finish=size=>{
+      name.style.removeProperty('font-size');
+      return Math.max(12,Math.min(maximum,size));
+    };
+    if(available<=0){
+      let lo=12,hi=maximum,best=12;
+      for(let i=0;i<12;i++){
+        const mid=(lo+hi)/2;
+        name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
+        const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
+        if(fittedBox.right<=cellBox.right-1){
+          best=mid;
+          lo=mid;
+        }else{
+          hi=mid;
+        }
+      }
+      return finish(best);
+    }
+    if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return finish(maximum);
+    const chipStyle=getComputedStyle(chip);
+    const text=scorecardNameDisplayText(name);
+    const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
+      .reduce((sum,property)=>sum+(parseFloat(chipStyle[property])||0),0);
+    const letterSpacing=parseFloat(chipStyle.letterSpacing)||0;
+    const measureAt=size=>{
+      context.font=`${chipStyle.fontStyle} ${chipStyle.fontVariant} ${chipStyle.fontWeight} ${size}px ${chipStyle.fontFamily}`;
+      return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
+    };
+    let fitted=maximum;
+    const natural=measureAt(maximum);
+    if(natural>available){
+      fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
+    }
+    name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+    if(scorecardNameChipWidth(name)<=available+1)return finish(Math.min(maximum,fitted));
+    let lo=12,hi=Math.min(maximum,fitted),best=12;
+    for(let i=0;i<10;i++){
+      const mid=(lo+hi)/2;
+      name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
+      if(scorecardNameChipWidth(name)<=available){
+        best=mid;
+        lo=mid;
+      }else{
+        hi=mid;
+      }
+    }
+    return finish(best);
+  }
   function fitScorecardPlayerNames(root){
     if(!root||root.offsetParent===null)return;
     const canvas=fitScorecardPlayerNames.canvas||(fitScorecardPlayerNames.canvas=document.createElement('canvas'));
@@ -13351,45 +13941,14 @@ ${isDealer
     if(!context)return;
     const names=[...root.querySelectorAll('.scoreboard-player-name')];
     names.forEach(name=>name.style.removeProperty('font-size'));
+    if(!names.length)return;
+    const sharedMax=names.reduce((max,name)=>Math.max(max,parseFloat(getComputedStyle(name).fontSize)||16),12);
+    let columnSize=sharedMax;
     names.forEach(name=>{
-      const cell=name.closest('td.scorecard-col-player');
-      if(!cell)return;
-      const chip=scorecardNameChipEl(name);
-      const cellBox=cell.getBoundingClientRect();
-      const chipBox=chip.getBoundingClientRect();
-      if(chipBox.right<=cellBox.right+2)return;
-      const available=scorecardNameAvailableWidth(name);
-      if(available<=0)return;
-
-      const maximum=parseFloat(getComputedStyle(name).fontSize)||16;
-      const chipStyle=getComputedStyle(chip);
-      const text=scorecardNameDisplayText(name);
-      const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
-        .reduce((sum,property)=>sum+(parseFloat(chipStyle[property])||0),0);
-      const letterSpacing=parseFloat(chipStyle.letterSpacing)||0;
-      const measureAt=size=>{
-        context.font=`${chipStyle.fontStyle} ${chipStyle.fontVariant} ${chipStyle.fontWeight} ${size}px ${chipStyle.fontFamily}`;
-        return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
-      };
-      let fitted=maximum;
-      const natural=measureAt(maximum);
-      if(natural>available){
-        fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
-      }
-      name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-      if(scorecardNameChipWidth(name)<=available+1)return;
-      let lo=12,hi=Math.min(maximum,fitted),best=12;
-      for(let i=0;i<10;i++){
-        const mid=(lo+hi)/2;
-        name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
-        if(scorecardNameChipWidth(name)<=available){
-          best=mid;
-          lo=mid;
-        }else{
-          hi=mid;
-        }
-      }
-      name.style.setProperty('font-size',`${Math.min(maximum,best).toFixed(1)}px`,'important');
+      columnSize=Math.min(columnSize,neededScorecardNameSize(name,sharedMax,context));
+    });
+    names.forEach(name=>{
+      name.style.setProperty('font-size',`${columnSize.toFixed(1)}px`,'important');
     });
   }
   function fitScorecardTotals(root){
@@ -13576,17 +14135,23 @@ ${isDealer
     BPGLifePreserver.syncLifePreserverHolds(currentGame, players, Object.assign({gameOver:over}, extra||{}));
   }
 
-  function setRecordChaseLayout(enabled){
+  function setRecordChaseLayout(){
+    recordChaseVisible=false;
+    recordChaseLayoutActive=false;
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
-    const available=window.matchMedia('(min-width: 901px)').matches&&currentGame?.name!=='Rook';
-    recordChaseLayoutActive=!!enabled&&available;
-    if(layout)layout.classList.toggle('record-chase-active',recordChaseLayoutActive);
-    if(panel)panel.classList.toggle('hidden',!recordChaseLayoutActive);
+    if(layout)layout.classList.remove('record-chase-active');
+    if(panel){
+      panel.classList.add('hidden');
+      panel.setAttribute('hidden','');
+    }
     const toggleWrap=document.getElementById('scorecard-view-toggle-wrap');
     const paceToggle=document.getElementById('scorecard-view-pace-toggle');
-    if(toggleWrap)toggleWrap.classList.toggle('hidden',!available);
-    if(paceToggle)paceToggle.setAttribute('aria-checked',String(recordChaseLayoutActive));
+    if(toggleWrap)toggleWrap.classList.add('hidden');
+    if(paceToggle){
+      paceToggle.setAttribute('aria-checked','false');
+      paceToggle.hidden=true;
+    }
   }
 
   function syncRecordChaseLayoutForViewport(){
@@ -13597,8 +14162,7 @@ ${isDealer
   }
 
   function toggleRecordChasePanel(){
-    recordChaseVisible=!recordChaseVisible;
-    renderGame();
+    setRecordChaseLayout();
   }
 
   function getRecordChaseRoundEntries(gameData){
@@ -13758,8 +14322,7 @@ ${isDealer
     const activeRoster=getActiveRoster(currentGame);
     const dealerName=getCurrentDealerName(currentGame, activeRoster);
 
-    let gamePlayers=[...getActivePlayers(currentGame)];
-    getRecordedPlayers(currentGame).forEach(p=>{if(p&&!gamePlayers.includes(p))gamePlayers.push(p);});
+    let gamePlayers=[...getDisplayPlayers(currentGame)];
     syncCurrentLifePreserverHolds({gameOver:over});
 
     let sortedP = currentGame.currentRound===1
@@ -13794,7 +14357,10 @@ ${isDealer
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
-    if(!hasScorecardRounds)head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
+    const nowLabel=window.matchMedia('(max-width: 760px)').matches
+      ? `R${currentGame.currentRound}`
+      : `R${currentGame.currentRound}\u00a0·\u00a0Now`;
+    if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
     try{
@@ -13838,11 +14404,13 @@ ${isDealer
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const placeNum=places?places[p]:ri+1;
+      const placeLabel=ordinalLive(placeNum);
+      const placeTone=placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${placeNum}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${placeNum}</span>`);
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank${placeTone} shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)}, ${placeLabel} — tap to spin">${placeLabel}</button>`
+        : `<span class="scoreboard-rank-badge${placeTone}${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used, '+placeLabel+'"':` aria-label="${placeLabel}"`}>${placeLabel}</span>`);
 
-      const retiredTag=isRetired?`<span class="ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`:'';
+      const retiredTag=retiredBadgeMarkup(currentGame,p);
 
       const wizardCurrentBid = showSubmittedBids
         ? (() => {
@@ -13880,28 +14448,38 @@ ${isDealer
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
         <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
-      if(!hasScorecardRounds)body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
-
       // Past rounds
       visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
-        let missClass='', missTitle='';
+        let missClass='', missTitle='', exactTdClass='';
         if(isBidTrickGame(currentGame)&&r.bids?.[p]!==undefined&&r.actuals?.[p]!==undefined){
           const diff=r.actuals[p]-r.bids[p];
-          if(diff!==0){
+          if(diff===0){
+            missClass=' score-cell-hit';
+            exactTdClass=' scorecard-round-td--exact';
+            missTitle=' title="Exact bid"';
+          } else {
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
         }
         const extra=scoringExtraMarkup(currentGame.rounds, rIdx, r, p);
-        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">
+        body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td${exactTdClass}">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="score-past-${rIdx}-${p}" readonly inputmode="none" unselectable="on"
-            onclick="openNumpad('${escapeJsString(p)}',${rIdx})" value="${r.scores[p]!==undefined?r.scores[p]:''}"
+            onclick="openPastScoreCell('${escapeJsString(p)}',${rIdx})" value="${shownRoundScore(r.scores, p)}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}>
           ${extra.html}
           </div>
         </td>`;
       });
+      if(!over){
+        let nowLabel='—';
+        if(isBidTrick){
+          const bid=currentGame.currentBids?.[p];
+          nowLabel=(bid===undefined||bid==='')?'—':`Bid ${bid}`;
+        }
+        body+=`<td class="scorecard-col-now px-1 py-2 text-center"><span class="s2-now-bid">${escapeHtml(String(nowLabel))}</span></td>`;
+      }
 
       body+=`</tr>`;
     });
@@ -13970,6 +14548,7 @@ ${isDealer
     }
     } finally {
       gnPerfEnd(renderTimer);
+      if(currentGame && window.BPGSlice2) window.BPGSlice2.refresh('game');
     }
   }
 
@@ -14300,6 +14879,12 @@ ${isDealer
     return scoreEntryModalState?JSON.stringify(scoreEntryModalState.values):'';
   }
 
+  function shownRoundScore(scores, player){
+    if(!scores || !Object.prototype.hasOwnProperty.call(scores, player)) return '';
+    const score=BPGScorebook.historyScoreOrNull(scores[player]);
+    return score==null?'':score;
+  }
+
   function getScoreEntryAvatarHtml(name, cls){
     const fb=getAvatarFallback(name);
     const ring=getColorRingClass(name);
@@ -14323,6 +14908,22 @@ ${isDealer
     return players.filter(scoreEntryPlayerIsAcknowledged).length;
   }
 
+  function scoreEntryStatusFor(player){
+    return BPGScorebook.scoreEntryStatus({
+      value:scoreEntryModalState?.values?.[player]??'',
+      acknowledged:scoreEntryPlayerIsAcknowledged(player)
+    });
+  }
+
+  function paintScoreEntryStatus(player){
+    if(!player)return;
+    const status=scoreEntryStatusFor(player);
+    const el=document.getElementById(`score-entry-status-${rookElementId(player)}`);
+    if(!el)return;
+    el.dataset.entryState=status.state;
+    el.textContent=status.label;
+  }
+
   function updateScoreEntryRowState(player){
     if(!scoreEntryModalState||!currentGame||!player)return;
     const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
@@ -14333,6 +14934,7 @@ ${isDealer
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${acknowledged?'entered':'needed'}`);
     const indicator=row.querySelector('.score-entry-row-status');
     if(indicator)indicator.textContent=acknowledged?'✓':'○';
+    paintScoreEntryStatus(player);
     const slot=row.querySelector('.score-entry-comeback-slot');
     if(slot) slot.innerHTML=previewComebackForEntry(player, scoreEntryModalState.values[player]);
   }
@@ -14360,6 +14962,10 @@ ${isDealer
     } else {
       progress.textContent=enteredText;
     }
+    const note=document.getElementById('score-entry-unconfirmed');
+    if(note) note.textContent=(!isScoreEntryBidMode(mode)&&!isScoreEntryTrickMode(mode))?BPGScorebook.scoreEntryBlankHelper():'';
+    const submit=document.getElementById('score-entry-primary-btn');
+    if(submit) submit.disabled=false;
   }
 
   function scheduleScoreEntryModalFit(){
@@ -14434,18 +15040,19 @@ ${isDealer
     panel.style.setProperty('--se-fit-selected-name',`${Math.floor(clamp(24,keyHeight*0.52,36))}px`);
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
 
-    const phone=(window.visualViewport?.width||window.innerWidth||0)<=760;
-    if(phone){
-      const items=[...rows.children];
-      const shown=items.slice(0, Math.min(2, items.length));
-      if(shown.length){
-        const first=shown[0].getBoundingClientRect();
-        const last=shown[shown.length-1].getBoundingClientRect();
-        rows.style.maxHeight=`${Math.ceil(last.bottom-first.top)}px`;
-      }
-    }else{
-      rows.style.maxHeight='';
-    }
+    rows.style.maxHeight='';
+  }
+
+  function scrollScoreEntryActiveIntoView(){
+    if(!scoreEntryModalState)return;
+    const scroller=document.getElementById('score-entry-rows');
+    const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
+    if(!scroller||!row)return;
+    const pad=12;
+    const lane=scroller.getBoundingClientRect();
+    const top=row.getBoundingClientRect().top-lane.top-pad+scroller.scrollTop;
+    const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
 
   function openScoreEntryModal(ev){
@@ -14467,6 +15074,7 @@ ${isDealer
     const source=getScoreEntryDraftSource(mode);
     const values={};
     tablePlayers.forEach(p=>{values[p]=readScoreEntryDraftValue(source,p,mode);});
+    showFormError('score-entry-error','');
     scoreEntryModalState={
       mode,
       players,
@@ -14486,6 +15094,7 @@ ${isDealer
     requestAnimationFrame(()=>{
       fitScoreEntryModalLayout();
       modal.classList.remove('opacity-0');
+      requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
     });
     } finally {
       gnPerfEnd(timer);
@@ -14528,6 +15137,7 @@ ${isDealer
       const bid=currentGame.currentBids?.[p]??0;
       const isDealer=p===dealer;
       const isComplete=scoreEntryPlayerIsAcknowledged(p);
+      const entryStatus=scoreEntryStatusFor(p);
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
@@ -14537,7 +15147,7 @@ ${isDealer
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
-              <span class="score-entry-row-status" aria-hidden="true">${isComplete?'✓':'○'}</span>
+              <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':'○'}</span>
               <div class="score-entry-name truncate">${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
               <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
@@ -14546,7 +15156,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div></div>
+        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}">${escapeHtml(entryStatus.label)}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
@@ -14581,6 +15191,7 @@ ${isDealer
     updateScoreEntryRowState(prev);
     updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
+    requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
   }
 
   function updateScoreEntryActiveValue(){
@@ -14594,14 +15205,9 @@ ${isDealer
     updateScoreEntrySelectedSummary();
   }
 
-  function markScoreEntryPlayerComplete(player, fillBlank){
+  function markScoreEntryPlayerComplete(player){
     if(!scoreEntryModalState||!player)return;
-    const currentValue=scoreEntryModalState.values?.[player];
-    if(fillBlank&&(currentValue===undefined||currentValue===null||currentValue===''||currentValue==='-')){
-      scoreEntryModalState.values[player]='0';
-      const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
-      if(valueEl)valueEl.textContent='0';
-    }
+    if(BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]))return;
     scoreEntryModalState.acknowledged[player]=true;
     updateScoreEntryRowState(player);
   }
@@ -14612,15 +15218,39 @@ ${isDealer
       gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
-      let c=scoreEntryModalState.values[p]||'';
-      if(v==='backspace')c=c.slice(0,-1);
-      else if(v==='-')c=c.startsWith('-')?c.substring(1):'-'+c;
-      else if(c==='0'&&v!=='0'&&v!=='00')c=v;
-      else if(c.length<5)c+=v;
-      scoreEntryModalState.values[p]=c;
-      if(/^\d+$/.test(v))scoreEntryModalState.acknowledged[p]=true;
+      const next=BPGScorebook.applyScoreEntryKey({
+        value:scoreEntryModalState.values[p]??'',
+        acknowledged:!!scoreEntryModalState.acknowledged[p]
+      }, v);
+      scoreEntryModalState.values[p]=next.value;
+      scoreEntryModalState.acknowledged[p]=next.acknowledged;
       updateScoreEntryActiveValue();
     });
+  }
+
+  function confirmScoreEntryRow(ev, idx){
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    if(!scoreEntryModalState)return;
+    const player=scoreEntryModalState.players?.[idx];
+    if(!player)return;
+    const next=BPGScorebook.acceptScoreEntryValue({
+      value:scoreEntryModalState.values[player]??'',
+      acknowledged:!!scoreEntryModalState.acknowledged[player]
+    });
+    if(!next.accepted)return;
+    scoreEntryModalState.values[player]=next.value;
+    scoreEntryModalState.acknowledged[player]=true;
+    if(scoreEntryModalState.activePlayer!==player){
+      selectScoreEntryPlayer(idx);
+      updateScoreEntryProgress();
+      return;
+    }
+    updateScoreEntryRowState(player);
+    updateScoreEntryActiveValue();
+    updateScoreEntryProgress();
   }
 
   function scoreEntryNext(){
@@ -14630,7 +15260,7 @@ ${isDealer
       const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
       if(!order.length)return;
       const current=scoreEntryModalState.activePlayer||order[0];
-      markScoreEntryPlayerComplete(current,true);
+      markScoreEntryPlayerComplete(current);
       updateScoreEntryProgress();
       const currentIdx=order.indexOf(current);
       const next=order[((currentIdx>=0?currentIdx:0)+1)%order.length];
@@ -14643,13 +15273,13 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame)return;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    if(isScoreEntryBidMode(mode)){
-      if(!currentGame.currentBids)currentGame.currentBids={};
-      players.forEach(p=>{currentGame.currentBids[p]=parseInt(values[p],10)||0;});
-    } else {
-      if(!currentGame.currentScoreDrafts)currentGame.currentScoreDrafts={};
-      players.forEach(p=>{currentGame.currentScoreDrafts[p]=parseInt(values[p],10)||0;});
-    }
+    const target=isScoreEntryBidMode(mode)
+      ? (currentGame.currentBids||(currentGame.currentBids={}))
+      : (currentGame.currentScoreDrafts||(currentGame.currentScoreDrafts={}));
+    players.forEach(p=>{
+      const parsed=BPGScorebook.parseEntryInteger(values[p]);
+      target[p]=parsed.ok?parsed.value:(values[p]??'');
+    });
   }
 
   function saveOpenScoreEntryModalDrafts(){
@@ -14678,52 +15308,34 @@ ${isDealer
     closeScoreEntryModalOnly();
   }
 
+  function rejectScoreEntries(result){
+    if(result&&result.message) showScoreEntryError(result.message);
+    return false;
+  }
+
   function validateScoreEntryModalSubmit(){
     if(!scoreEntryModalState||!currentGame)return false;
     const {mode,values}=scoreEntryModalState;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
+    const roundNumber=currentGame.currentRound;
     if(isScoreEntryBidMode(mode)){
-      if(currentGame.name==='Wizard'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`Wizard bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-      }
-      if(currentGame.name==='818'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
-        const dealerInfo=get818DealerBidInfo(values, players);
-        if(dealerInfo?.applies){
-          const dealerBid=parseInt(values[dealerInfo.dealer],10)||0;
-          if(dealerBid===dealerInfo.forbidden){
-            alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
-            return false;
-          }
-        }
-      }
-      const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
+      const checked=BPGScorebook.validateEntries({game:currentGame,kind:'bids',roundNumber,players,values});
+      if(!checked.ok) return rejectScoreEntries(checked);
+      const allZero=players.every(p=>checked.values[p]===0);
       return !allZero||confirm('Lock in all 0 bids?');
     }
     if(isScoreEntryTrickMode(mode)){
-      if(currentGame.name==='818'){
-        const tricks=getRoundTrickCount(currentGame);
-        const invalid=players.find(p=>{
-          const v=parseInt(values[p],10)||0;
-          return v<0||v>tricks;
-        });
-        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);return false;}
+      const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'tricks',roundNumber,players,values});
+      if(!checked.ok) return rejectScoreEntries(checked);
+      if(checked.sum!==checked.limit){
+        showScoreEntryError(`${currentGame.name} round ${roundNumber} must total ${checked.limit} tricks. This table totals ${checked.sum}.`);
+        return false;
       }
-      const total=players.reduce((s,p)=>s+(parseInt(values[p],10)||0),0);
-      const tricks=getRoundTrickCount(currentGame);
-      return total===tricks||confirm(`Total tricks (${total}) ≠ round tricks (${tricks}). Submit anyway?`);
+      return true;
     }
-    const allZero=players.every(p=>(parseInt(values[p],10)||0)===0);
+    const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players,values});
+    if(!checked.ok) return rejectScoreEntries(checked);
+    const allZero=players.every(p=>checked.values[p]===0);
     const label=currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?';
     return !allZero||confirm(label);
   }
@@ -14739,6 +15351,19 @@ ${isDealer
     } finally {
       gnPerfEnd(timer);
     }
+  }
+
+  function readLiveEntryRaw(player, draftMap){
+    const el=document.getElementById(`score-input-${player}`);
+    if(el) return el.value;
+    if(draftMap && Object.prototype.hasOwnProperty.call(draftMap, player)) return draftMap[player];
+    return '';
+  }
+
+  function readLiveEntryMap(players, draftMap){
+    const values={};
+    players.forEach(player=>{ values[player]=readLiveEntryRaw(player, draftMap); });
+    return values;
   }
 
   function submitRound(options){
@@ -14765,26 +15390,41 @@ ${isDealer
 
     if(currentGame.name==='Wizard'){
       if(currentGame.wizardPhase==='bidding'){
-        let totalBids=0,allZero=true;
         if(!currentGame.currentBids)currentGame.currentBids={};
-        gp.forEach(p=>{
-          const el=document.getElementById(`score-input-${p}`);
-          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
-          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'bids',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>currentGame.currentRound);
-        if(invalid){alert(`Wizard bids must be from 0 to ${currentGame.currentRound}. Check ${invalid}.`);isSubmitting=false;return;}
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
+        const totalBids=checked.sum;
+        const allZero=gp.every(p=>checked.values[p]===0);
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.currentBids={...checked.values};
         currentGame.wizardPhase='scoring';
-        gnPerfAction('locked Wizard bids', `total ${totalBids}/${currentGame.currentRound}`);
-        addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${currentGame.currentRound}`);
+        gnPerfAction('locked Wizard bids', `total ${totalBids}/${checked.limit}`);
+        addAuditEntry(`R${currentGame.currentRound} Bids locked`, `Total: ${totalBids}/${checked.limit}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
-        let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
-        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
-        if(totalActual!==currentGame.currentRound&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${currentGame.currentRound}). Submit anyway?`)){isSubmitting=false;return;}
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'tricks',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, drafts)
+        });
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
+        const totalActual=checked.sum;
+        if(totalActual!==checked.limit){
+          showScoreEntryError(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          isSubmitting=false;
+          return;
+        }
+        const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=(bid===act)?20+(10*act):-10*Math.abs(bid-act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
@@ -14807,34 +15447,41 @@ ${isDealer
     if(currentGame.name==='818'){
       const tricks=getRoundTrickCount(currentGame);
       if((currentGame.eight18Phase||'bidding')==='bidding'){
-        let totalBids=0,allZero=true;
         if(!currentGame.currentBids)currentGame.currentBids={};
-        gp.forEach(p=>{
-          const el=document.getElementById(`score-input-${p}`);
-          const bid=parseInt(el?el.value:(currentGame.currentBids[p]??0))||0;
-          currentGame.currentBids[p]=bid; totalBids+=bid; if(bid!==0)allZero=false;
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame,
+          kind:'bids',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, currentGame.currentBids)
         });
-        const invalid=gp.find(p=>currentGame.currentBids[p]<0||currentGame.currentBids[p]>tricks);
-        if(invalid){alert(`818 bids must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
-        const dealerInfo=get818DealerBidInfo(currentGame.currentBids, gp);
-        if(dealerInfo?.applies&&currentGame.currentBids[dealerInfo.dealer]===dealerInfo.forbidden){
-          alert(`Dealer cannot bid ${dealerInfo.forbidden} this round.`);
-          isSubmitting=false;
-          return;
-        }
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
+        const totalBids=checked.sum;
+        const allZero=gp.every(p=>checked.values[p]===0);
         if(allZero&&!skipConfirm&&!confirm('Lock in all 0 bids?')){isSubmitting=false;return;}
+        currentGame.currentBids={...checked.values};
         currentGame.eight18Phase='scoring';
         gnPerfAction('locked 818 bids', `total ${totalBids}/${tricks}`);
         addAuditEntry(`R${currentGame.currentRound} 818 bids locked`, `Total: ${totalBids}/${tricks}`);
         haptic([30,60,30]); soundSubmit();
         saveData(); scheduleRender(); setTimeout(()=>isSubmitting=false,500); return;
       } else {
-        let totalActual=0,actuals={};
         const drafts=ensureCurrentScoreDrafts();
-        gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;actuals[p]=v;totalActual+=v;});
-        const invalid=gp.find(p=>actuals[p]<0||actuals[p]>tricks);
-        if(invalid){alert(`818 tricks must be from 0 to ${tricks}. Check ${invalid}.`);isSubmitting=false;return;}
-        if(totalActual!==tricks&&!skipConfirm&&!confirm(`Total tricks (${totalActual}) ≠ round tricks (${tricks}). Submit anyway?`)){isSubmitting=false;return;}
+        const checked=BPGScorebook.validateEntries({
+          game:currentGame.name,
+          kind:'tricks',
+          roundNumber:currentGame.currentRound,
+          players:gp,
+          values:readLiveEntryMap(gp, drafts)
+        });
+        if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
+        const totalActual=checked.sum;
+        if(totalActual!==checked.limit){
+          showScoreEntryError(`${currentGame.name} round ${currentGame.currentRound} must total ${checked.limit} tricks. This table totals ${totalActual}.`);
+          isSubmitting=false;
+          return;
+        }
+        const actuals={...checked.values};
         let scores={};
         gp.forEach(p=>{const bid=currentGame.currentBids[p]??0,act=actuals[p]??0; scores[p]=calculate818Score(bid,act);});
         const roundData = {round:currentGame.currentRound,scores,bids:{...currentGame.currentBids},actuals};
@@ -14851,10 +15498,18 @@ ${isDealer
       }
     }
 
-    let allZero=true,scores={};
-    const drafts=ensureCurrentScoreDrafts();
-    gp.forEach(p=>{const el=document.getElementById(`score-input-${p}`);const raw=el?el.value:drafts[p];const v=parseInt(raw)||0;if(v!==0)allZero=false;scores[p]=v;});
-    if(allZero&&!skipConfirm&&!confirm('Everyone scored 0? Submit?')){isSubmitting=false;return;}
+    const scoreDrafts=ensureCurrentScoreDrafts();
+    const checkedScores=BPGScorebook.validateEntries({
+      game:currentGame.name,
+      kind:'scores',
+      roundNumber:currentGame.currentRound,
+      players:gp,
+      values:readLiveEntryMap(gp, scoreDrafts)
+    });
+    if(!checkedScores.ok){showScoreEntryError(checkedScores.message);isSubmitting=false;return;}
+    const scores={...checkedScores.values};
+    const allZero=gp.every(p=>scores[p]===0);
+    if(allZero&&!skipConfirm&&!confirm(currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?')){isSubmitting=false;return;}
     const roundData = {round:currentGame.currentRound,scores};
     const celebration = detectRoundCelebration(currentGame, roundData);
     applyComebackAndNotify(roundData, gp);
@@ -14917,6 +15572,9 @@ ${isDealer
 
     if(window.BPGLifePreserver&&typeof BPGLifePreserver.releaseRemovedLifePreservers==='function'){
       currentGame.hailMaryUsed=BPGLifePreserver.releaseRemovedLifePreservers(currentGame.hailMaryUsed, removedRounds);
+    }
+    if(window.BPGScorebook&&typeof BPGScorebook.syncAssistedMatch==='function'){
+      BPGScorebook.syncAssistedMatch(currentGame);
     }
     addAuditEntry(`R${last.round} Undone`, 'Round rolled back');
     haptic([80, 40, 40]);
@@ -15110,17 +15768,43 @@ ${isDealer
     }, 4300);
   }
 
+  function endMatchCopy(over){
+    if(over){
+      return 'This writes the final standings to Records and clears the live table. Cancel keeps you on the scorecard.';
+    }
+    return 'This match is still in progress. Ending now writes the current standings to Records as a finished night and clears the live table. Home will no longer show Resume for this match. Cancel keeps you on the scorecard and does not change scores.';
+  }
+  function requestEndGame(){
+    if(!currentGame)return;
+    if(typeof closeActionsMenu==='function') closeActionsMenu();
+    const over=isMatchOver(currentGame);
+    const title=document.getElementById('end-match-title');
+    const copy=document.getElementById('end-match-copy');
+    if(title) title.textContent=over?'Save this match to Records?':'End this match now?';
+    if(copy) copy.textContent=endMatchCopy(over);
+    openModal('end-match-modal');
+  }
+  function closeEndMatchModal(){
+    closeModal('end-match-modal');
+  }
+  function confirmEndMatch(){
+    closeEndMatchModal();
+    commitEndGame(false);
+  }
   function endGame(silent=false){
     if(!currentGame)return;
-    if(!silent&&!confirm('Save match to records?'))return;
+    if(!silent){ requestEndGame(); return; }
+    commitEndGame(true);
+  }
+  function commitEndGame(silent=false){
+    if(!currentGame)return;
     const cfg=configs[currentGame.name];
     // Exclude retired players from winner consideration.
     const keys=getRecordedPlayers(currentGame);
     if(!keys.length){currentGame=null;saveData();goHome();return;}
     const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
     const topScore=currentGame.totals[sorted[0]];
-      const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
-
+    const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
     const data=createSavedMatchSnapshot(currentGame,tied);
     finishMatch(data, silent);
   }
@@ -15143,6 +15827,8 @@ ${isDealer
     const worst=data.totals[sorted[sorted.length-1]];
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
     const alerts=silent?[]:analyzeRecords(data);
+    const existing=history.findIndex(h=>h.id===data.id);
+    if(existing>=0) history.splice(existing,1);
     history.unshift(data);
     markHistoryChanged();
     if(!silent) stashScorecardReceipt();
@@ -15295,7 +15981,8 @@ ${isDealer
   }
 
   /* ═══ NUMPAD ═══ */
-  let activeInputContext=null, activeInputId=null;
+  let activeInputContext=null, activeInputId=null, numpadOriginalValue=null, numpadEntryAcknowledged=false;
+  let roundCorrectionState=null;
   let _numpadCloseTimer=null;
 
   function containNumpadEvent(ev){
@@ -15355,6 +16042,273 @@ ${isDealer
     box.classList.remove('hidden');
   }
 
+  function setNumpadError(message){
+    const error=document.getElementById('numpad-error');
+    if(!error) return;
+    error.textContent=message||'';
+    error.classList.toggle('hidden', !message);
+  }
+
+  function prepareMatchForCorrection(match){
+    if(!match) return {hadMax:true};
+    const hadMax=Number.isFinite(match.maxRounds)&&match.maxRounds>0;
+    if(!hadMax){
+      const named=match.name?match:{name:match.game,originalRoster:match.originalRoster||[],currentRound:match.currentRound};
+      const max=getMaxRoundsForGame(named);
+      if(max) match.maxRounds=max;
+    }
+    const hadEnd=Number(match.endScore)>0;
+    if(!hadEnd && (match.name==='Beat the Heat'||match.game==='Beat the Heat')) match.endScore=66;
+    return {hadMax,hadEnd};
+  }
+
+  function restoreCorrectionMeta(match, meta, result){
+    if(!match||!meta||(result&&result.ok)) return;
+    if(!meta.hadMax) delete match.maxRounds;
+    if(!meta.hadEnd) delete match.endScore;
+  }
+
+  function syncSavedMatchFromGame(game){
+    if(!game||game.id==null) return;
+    const saved=history.find(h=>h.id===game.id);
+    if(!saved||saved===game) return;
+    saved.rounds=JSON.parse(JSON.stringify(game.rounds||[]));
+    saved.totals=JSON.parse(JSON.stringify(game.totals||{}));
+    saved.winners=[...(game.winners||[])];
+    saved.auditLog=JSON.parse(JSON.stringify(game.auditLog||[]));
+    saved.currentRound=game.currentRound;
+    saved.completed=game.completed===true;
+    saved.assistedMatch=game.assistedMatch===true;
+    saved.gameId=game.gameId||game.id;
+    saved.maxRounds=game.maxRounds;
+    markHistoryChanged();
+  }
+
+  function finalizeHistoryCorrection(match, result){
+    markHistoryChanged();
+    const reopened=!!(result.standing&&result.standing.reopened);
+    const blocked=reopened&&BPGScorebook.historyReopenWouldReplaceActive(currentGame, match);
+    if(reopened&&!blocked&&!currentGame){
+      closeModal('scorecard-modal');
+      resumeMatch(match.id,{force:true});
+      toast('Match is back on the table');
+      return;
+    }
+    if(blocked) toast('Corrected match saved. The game on the table stayed put.');
+    else if(reopened) toast('That saved match is under the line again');
+    else if(result.standing?.winnersChanged) toast('Standings updated');
+    saveData({ fullPersist: true, syncCold: true });
+    renderHistoryList();
+    if(typeof renderHallOfFame==='function') renderHallOfFame();
+    const card=document.getElementById('scorecard-modal');
+    if(card && !card.classList.contains('hidden')) openScorecard(match.id);
+  }
+
+  function openPastScoreCell(player, roundIndex){
+    if(!currentGame) return;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return;
+    if(isBidTrickGame(currentGame)){
+      if(activeInputId) closeNumpad({discard:true,render:false});
+      openRoundCorrection({source:'live', roundIndex, focusPlayer:player});
+      return;
+    }
+    openNumpad(player, roundIndex);
+  }
+
+  function openHistoryRoundCorrection(historyId, roundIndex){
+    openRoundCorrection({source:'history', historyId, roundIndex});
+  }
+
+  function correctionMatch(state){
+    if(!state) return null;
+    if(state.source==='history') return history.find(h=>h.id===state.historyId)||null;
+    return currentGame;
+  }
+
+  function openRoundCorrection(spec){
+    const source=spec?.source||'live';
+    const match=source==='history'?history.find(h=>h.id===spec.historyId):currentGame;
+    if(!match) return;
+    const round=match.rounds?.[spec.roundIndex];
+    const name=match.name||match.game;
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)||(name!=='Wizard'&&name!=='818')) return;
+    const players=BPGScorebook.historicalRoundParticipants(match, round);
+    if(!players.length) return;
+    const values={};
+    const acknowledged={};
+    players.forEach(player=>{
+      const actual=round.actuals?.[player];
+      values[player]=actual==null?'':String(actual);
+      acknowledged[player]=false;
+    });
+    roundCorrectionState={
+      source,
+      historyId:spec.historyId??null,
+      roundIndex:spec.roundIndex,
+      players,
+      values,
+      acknowledged,
+      activePlayer:spec.focusPlayer&&players.includes(spec.focusPlayer)?spec.focusPlayer:players[0],
+      limit:BPGScorebook.roundTrickLimit(name, round.round),
+      roundNumber:round.round,
+      gameName:name,
+      bids:{...(round.bids||{})},
+      error:''
+    };
+    renderRoundCorrection();
+    openModal('round-correction-modal');
+  }
+
+  function renderRoundCorrection(){
+    const state=roundCorrectionState;
+    if(!state) return;
+    const title=document.getElementById('round-correction-title');
+    const limit=document.getElementById('round-correction-limit');
+    const sumEl=document.getElementById('round-correction-sum');
+    const error=document.getElementById('round-correction-error');
+    const rows=document.getElementById('round-correction-rows');
+    if(title) title.textContent=`${state.gameName} · Round ${state.roundNumber}`;
+    if(limit) limit.textContent=`This round has ${state.limit} tricks.`;
+    const parsedSum=state.players.reduce((total,player)=>{
+      const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
+      return total+(parsed.ok?parsed.value:0);
+    },0);
+    if(sumEl) sumEl.textContent=`Logged ${parsedSum} of ${state.limit}`;
+    if(error) error.textContent=state.error||'';
+    if(!rows) return;
+    rows.innerHTML=state.players.map((player,index)=>{
+      const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
+      const bid=state.bids[player];
+      const score=parsed.ok?(state.gameName==='818'?BPGScorebook.eight18RoundScore(bid,parsed.value):BPGScorebook.wizardRoundScore(bid,parsed.value)):'—';
+      const badge=parsed.ok?(Number(bid)===parsed.value?'score-cell-hit':'score-cell-miss'):'';
+      return `<button type="button" class="round-correction-row${player===state.activePlayer?' is-active':''}" data-player="${escapeHtml(player)}" onclick="selectRoundCorrectionPlayer(${index})">
+        <span class="player-name-label">${escapeHtml(player)}</span>
+        <span>Bid ${bid}</span>
+        <span class="round-correction-actual">${escapeHtml(state.values[player]||'—')}</span>
+        <span class="round-correction-score ${badge}">${score}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function selectRoundCorrectionPlayer(index){
+    if(!roundCorrectionState) return;
+    const player=roundCorrectionState.players[index];
+    if(!player) return;
+    roundCorrectionState.activePlayer=player;
+    renderRoundCorrection();
+  }
+
+  function roundCorrectionKey(key){
+    const state=roundCorrectionState;
+    if(!state||!state.activePlayer) return;
+    const player=state.activePlayer;
+    const next=BPGScorebook.applyScoreEntryKey({
+      value:state.values[player]??'',
+      acknowledged:!!state.acknowledged[player]
+    }, key);
+    state.values[player]=next.value;
+    state.acknowledged[player]=next.acknowledged;
+    state.error='';
+    renderRoundCorrection();
+  }
+
+  function cancelRoundCorrection(){
+    if(!roundCorrectionState) return;
+    roundCorrectionState=null;
+    closeModal('round-correction-modal');
+  }
+
+  function saveRoundCorrection(){
+    const state=roundCorrectionState;
+    const match=correctionMatch(state);
+    if(!state||!match) return;
+    const meta=prepareMatchForCorrection(match);
+    const result=BPGScorebook.commitRoundCorrection(match,{
+      roundIndex:state.roundIndex,
+      actuals:{...state.values}
+    });
+    restoreCorrectionMeta(match, meta, result);
+    if(!result.ok){
+      state.error=result.message||'That round was not saved.';
+      renderRoundCorrection();
+      return;
+    }
+    roundCorrectionState=null;
+    closeModal('round-correction-modal');
+    if(!result.changed) return;
+    if(state.source==='history'){
+      finalizeHistoryCorrection(match, result);
+      return;
+    }
+    syncSavedMatchFromGame(match);
+    saveData({ fullPersist: true, syncCold: true });
+    scheduleRender();
+    if(result.standing?.reopened) toast('The match is back under the line');
+    else if(result.standing?.winnersChanged) toast('Standings updated');
+  }
+
+  function commitPastScoreFromInput(){
+    if(!activeInputContext||activeInputContext.roundIndex==='current'||!currentGame) return true;
+    if(!BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return true;
+    const el=document.getElementById(activeInputId);
+    if(!el) return true;
+    const player=activeInputContext.player;
+    const roundIndex=activeInputContext.roundIndex;
+    const round=currentGame.rounds?.[roundIndex];
+    if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return true;
+    const parsed=BPGScorebook.parseEntryInteger(el.value);
+    if(parsed.ok && Number(round.scores?.[player])===parsed.value){
+      setNumpadError('');
+      return true;
+    }
+    const meta=prepareMatchForCorrection(currentGame);
+    const result=BPGScorebook.commitRoundCorrection(currentGame,{
+      roundIndex,
+      scores:{[player]:el.value}
+    });
+    restoreCorrectionMeta(currentGame, meta, result);
+    if(!result.ok){
+      setNumpadError(result.message||'That score was not saved.');
+      return false;
+    }
+    setNumpadError('');
+    if(result.changed){
+      if(window.BPGComeback) BPGComeback.syncComebackAfterScoreEdit(currentGame, currentGame.rounds[roundIndex], player);
+      recomputeGameTotals(currentGame);
+      syncSavedMatchFromGame(currentGame);
+      saveData({ fullPersist: true, syncCold: true });
+      if(result.standing?.reopened) toast('The match is back under the line');
+      else if(result.standing?.winnersChanged) toast('Standings updated');
+    }
+    return true;
+  }
+
+  function cancelPastNumpad(){
+    if(!(activeInputContext&&activeInputContext.roundIndex!=='current')) return;
+    if(activeInputId&&numpadOriginalValue!=null){
+      const el=document.getElementById(activeInputId);
+      if(el) el.value=numpadOriginalValue;
+    }
+    setNumpadError('');
+    numpadEntryAcknowledged=false;
+    closeNumpad({discard:true,render:false});
+  }
+
+  document.addEventListener('keydown', event=>{
+    if(event.key!=='Escape') return;
+    if(roundCorrectionState){
+      event.preventDefault();
+      cancelRoundCorrection();
+      return;
+    }
+    const pad=document.getElementById('custom-numpad');
+    if(activeInputContext&&activeInputContext.roundIndex!=='current'&&pad&&!pad.classList.contains('hidden')){
+      event.preventDefault();
+      cancelPastNumpad();
+    }
+  });
+
   function saveActiveInputToModel(){
     const timer=gnPerfStart('GN saveActiveInputToModel');
     try{
@@ -15362,6 +16316,7 @@ ${isDealer
       const el=document.getElementById(activeInputId); if(!el)return;
       let v=parseInt(el.value); if(isNaN(v))v=0;
         if(activeInputContext.roundIndex!=='current'){
+          if(currentGame&&BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return commitPastScoreFromInput();
           const round=currentGame?.rounds[activeInputContext.roundIndex];
           if(round){
             round.scores[activeInputContext.player]=v;
@@ -15387,16 +16342,26 @@ ${isDealer
       if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
       const isCurrentRound = roundIndex === 'current';
       const switchingCurrentScoreInput = activeInputContext?.roundIndex === 'current' && isCurrentRound;
-      if(activeInputId)saveActiveInputToModel();
+      if(activeInputId){
+        const saved=saveActiveInputToModel();
+        if(saved===false) return;
+      }
       if(!switchingCurrentScoreInput) flushPendingSave();
       activeInputContext={player,roundIndex};
       activeInputId=isCurrentRound?`score-input-${player}`:`score-past-${roundIndex}-${player}`;
+      const pastScore=!isCurrentRound && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      numpadOriginalValue=pastScore?null:null;
+      numpadEntryAcknowledged=false;
       document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
       const el=document.getElementById(activeInputId);
       if(el){
         el.classList.add('score-cell-active');
         document.getElementById('numpad-label').textContent = isCurrentRound ? `Scoring ${player}` : `Editing ${player} · R${+roundIndex+1}`;
+        if(pastScore) numpadOriginalValue=el.value;
       }
+      const cancel=document.getElementById('numpad-cancel');
+      if(cancel) cancel.classList.toggle('hidden', !pastScore);
+      setNumpadError('');
       updateNumpadContext(player,roundIndex);
       document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
       const np=document.getElementById('custom-numpad');
@@ -15412,6 +16377,14 @@ ${isDealer
       if(!activeInputId)return;
       gnPerfAction('numpad press', v);
       const el=document.getElementById(activeInputId); if(!el)return;
+      const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      if(pastScore){
+        const next=BPGScorebook.applyScoreEntryKey({value:el.value,acknowledged:!!numpadEntryAcknowledged}, v);
+        el.value=next.value;
+        numpadEntryAcknowledged=next.acknowledged;
+        setNumpadError('');
+        return;
+      }
       let c=el.value;
       if(v==='backspace')el.value=c.slice(0,-1);
       else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
@@ -15510,13 +16483,15 @@ ${isDealer
       if(!activeInputId)return;
       gnPerfAction('numpad Next');
       const el=document.getElementById(activeInputId);
-      if(el&&(el.value===''||el.value==='-'))el.value='0';
-      saveActiveInputToModel();
+      const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
+      if(!pastScore && el&&(el.value===''||el.value==='-'))el.value='0';
+      const saved=saveActiveInputToModel();
+      if(saved===false) return;
       // Always follow the ORIGINAL seating order (originalRoster) regardless of current scorecard sort.
       // This matches the physical seating arrangement at the table — the person sitting to the right plays next.
       const seatOrder = getActivePlayers(currentGame).filter(p=>document.getElementById(`score-input-${p}`));
       const ci = seatOrder.indexOf(activeInputContext.player);
-      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad();return;}
+      if(activeInputContext.roundIndex!=='current'){flushPendingSave();closeNumpad({discard:true});return;}
       const np = seatOrder[(ci + 1) % seatOrder.length] || seatOrder[0];
       openNumpad(np,'current');
       maybeScrollNumpadTarget(np);
@@ -15528,13 +16503,22 @@ ${isDealer
 
   function closeNumpad(options){
     const shouldRender = !options || options.render !== false;
+    const discard = !!(options && options.discard);
     const hadInput = !!activeInputContext;
     const shouldRefreshTotals = hadInput && activeInputContext.roundIndex !== 'current';
-    if(hadInput)gnPerfAction('numpad Done');
+    if(hadInput && !discard)gnPerfAction('numpad Done');
     if(hadInput)suppressSubmitAfterNumpad();
     if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
-    if(activeInputId)saveActiveInputToModel();
+    if(!discard && activeInputId){
+      const saved=saveActiveInputToModel();
+      if(saved===false) return;
+    }
     flushPendingSave();
+    numpadOriginalValue=null;
+    numpadEntryAcknowledged=false;
+    const cancel=document.getElementById('numpad-cancel');
+    if(cancel) cancel.classList.add('hidden');
+    setNumpadError('');
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
@@ -15546,28 +16530,32 @@ ${isDealer
     },300);
   }
 
+  function jsAttrArg(value){
+    return JSON.stringify(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  }
+
   /* ═══ HISTORY LIST ═══ */
   function renderHistoryList(){
     const c=document.getElementById('history-list-view');
     if(!history.length){c.innerHTML=`<div class="surface p-10 text-center font-bold" style="color:var(--muted);">No match history yet.</div>`;return;}
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
-      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
+      const sorted=sortPlayersByTotal(getDisplayPlayers(h), h.totals, cfg);
       const places=competitionPlaces(sorted, h.totals);
       const rows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}${retiredBadgeMarkup(h,p)}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4 gap-3">
           <div class="min-w-0 flex-1">
             <h3 class="font-display text-2xl truncate">${cfg.emoji} ${h.game}</h3>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${BPGScorebook.isCompletedHistoryMatch(h)?'':' · <span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'}${BPGScorebook.isAssistedMatch(h)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}</div>
           </div>
           <div class="flex gap-2 flex-shrink-0">
-            <button onclick="openScorecard(${h.id})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
-            <button onclick="resumeMatch(${h.id})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">Resume</button>
-            <button onclick="deleteMatchRecord(${h.id})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
+            <button onclick="openScorecard(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
+            <button onclick="resumeMatch(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">${BPGScorebook.isCompletedHistoryMatch(h)?'Resume':'Resume Match'}</button>
+            <button onclick="deleteMatchRecord(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
           </div>
         </div>
         <div class="divide-y hairline">${rows}</div>
@@ -15589,14 +16577,15 @@ ${isDealer
   function openScorecard(id){
     const g=history.find(h=>h.id===id); if(!g)return;
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${g.game}`;
-    document.getElementById('modal-game-date').textContent=g.date;
+    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
     const cfg=configs[g.game];
-    const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
+    const sorted=sortPlayersByTotal(getDisplayPlayers(g), g.totals, cfg);
     const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
       if(r.hailMaryBonus) return;
-      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}</th>`;
+      const canCorrect=(g.game==='Wizard'||g.game==='818')&&!BPGScorebook.isSyntheticAdjustmentRound(r);
+      head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-3 py-3 text-center scorecard-round-th">R${r.round}${canCorrect?` <button type="button" class="round-correct-btn font-extrabold uppercase tracking-wider" onclick="openHistoryRoundCorrection(${jsAttrArg(g.id)},${rIdx})">Correct</button>`:''}</th>`;
     });
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
@@ -15604,12 +16593,12 @@ ${isDealer
     sorted.forEach(p=>{
       const w=g.winners?.includes(p);
       body+=`<tr class="${w?'leader-row':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}${retiredBadgeMarkup(g,p)}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span>${hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=scoringExtraMarkup(g.rounds, rIdx, r, p);
-        const shown=r.scores[p]!==undefined?r.scores[p]:'';
+        const shown=shownRoundScore(r.scores, p);
         body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:shown}</td>`;
       });
       body+=`</tr>`;
@@ -15629,6 +16618,7 @@ ${isDealer
     }
     const h2h = {};
     history.forEach(m => {
+      if(!BPGScorebook.isCompletedHistoryMatch(m)) return;
       const cfg = configs[m.game]; if(!cfg || !m.totals) return;
       const playersInMatch = getRecordedPlayers(m);
       playersInMatch.forEach(pa => {
@@ -15678,8 +16668,10 @@ ${isDealer
   function _personalBestsForPlayer(name){
     const bests = {};
     history.forEach(h => {
+      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
-      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]));
+      if(BPGScorebook.isAssistedMatch(h)) return;
+      const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
       if(!hasLegit && h.rounds) return;
       const s = h.totals[name];
       if(!bests[h.game]){
@@ -15723,12 +16715,17 @@ ${isDealer
     };
     let stats={};
     history.forEach(h=>{
+      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
       const playersInMatch=getRecordedPlayers(h);
       const sorted=sortPlayersByTotal(playersInMatch, h.totals, cfg);
       if(!sorted.length)return;
       const lastScore=h.totals[sorted[sorted.length-1]];
       const lastPlayers=sorted.filter(p=>h.totals[p]===lastScore);
+      const assisted=BPGScorebook.isAssistedMatch(h);
+      if(!r._coverage) r._coverage={};
+      if(!r._coverage[h.game]) r._coverage[h.game]={assisted:0,unassisted:0};
+      r._coverage[h.game][assisted?'assisted':'unassisted']++;
 
       playersInMatch.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
@@ -15740,8 +16737,8 @@ ${isDealer
       // Per-match totals: only if player has at least one LEGIT (non-joinBonus) round
       playersInMatch.forEach(p=>{
         const score=h.totals[p];
-        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]));
-        if(!hasLegit) return;
+        const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
+        if(!hasLegit || assisted) return;
         if(isHighScoreGame(h.game)){
           if(score>r[h.game].bestScore){r[h.game].bestScore=score;r[h.game].bestPlayer=p;}
           if(score<r[h.game].worstScore){r[h.game].worstScore=score;r[h.game].worstPlayer=p;}
@@ -15766,8 +16763,10 @@ ${isDealer
         let ms={};
         playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0});
         h.rounds.forEach(round=>{
-          if(!round.scores)return;
-          Object.entries(round.scores).forEach(([p,score])=>{
+          if(!round.scores || BPGScorebook.isSyntheticAdjustmentRound(round))return;
+          Object.entries(round.scores).forEach(([p,rawScore])=>{
+            const score=BPGScorebook.historyScoreOrNull(rawScore);
+            if(score==null)return;
             if(!playersInMatch.includes(p))return;
             if(round.joinBonus?.[p])return; // exclude join-bonus scores
             if(!ms[p])ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0};
@@ -15783,12 +16782,16 @@ ${isDealer
             if(h.game==='Wizard'){
               if(score>r.Wizard.bestRound){r.Wizard.bestRound=score;r.Wizard.bestRoundPlayer=p;}
               if(score<r.Wizard.worstRound){r.Wizard.worstRound=score;r.Wizard.worstRoundPlayer=p;}
-              if(score>0)ms[p].exacts++; else ms[p].busted++;
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(bidResult==='exact')ms[p].exacts++;
+              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='818'){
               if(score>r['818'].bestRound){r['818'].bestRound=score;r['818'].bestRoundPlayer=p;}
               if(score<r['818'].worstRound){r['818'].worstRound=score;r['818'].worstRoundPlayer=p;}
-              if(is818ExactRound(round,p,score))ms[p].exacts++; else ms[p].busted++;
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(bidResult==='exact')ms[p].exacts++;
+              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='Flip 7 Vengeance'){
               if(score>r['Flip 7 Vengeance'].bestRound){r['Flip 7 Vengeance'].bestRound=score;r['Flip 7 Vengeance'].bestRoundPlayer=p;}
@@ -15839,7 +16842,7 @@ ${isDealer
     } else {
       _matchAllTimeRecordsSnap = null;
     }
-    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
+    const completed = history.filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
     const chrono = completed.slice().sort((a,b)=>(a.id||0)-(b.id||0));
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
     const players = {};
@@ -15922,6 +16925,10 @@ ${isDealer
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
       const winners = (h.winners||[]).filter(p=>sorted.includes(p));
+      const assisted = BPGScorebook.isAssistedMatch(h);
+      if(!games._coverage) games._coverage={};
+      if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
+      games._coverage[h.game][assisted?'assisted':'unassisted']++;
       sorted.forEach((p,idx)=>{
         const ps = ensurePlayer(p);
         const won = winners.includes(p), last = lastPlayers.includes(p), pos = idx+1;
@@ -15940,9 +16947,11 @@ ${isDealer
         update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
         bg.games++; bg.wins += won?1:0; bg.posSum += pos;
-        const scoreEntry = entry(p,h.totals[p],h);
-        if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
-        if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+        if(!assisted){
+          const scoreEntry = entry(p,h.totals[p],h);
+          if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
+          if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
+        }
       });
 
       for(let i=0;i<sorted.length;i++){
@@ -15984,8 +16993,8 @@ ${isDealer
       const gameRecords = games[h.game];
       if(gameRecords){
         sorted.forEach(p=>{
-          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p]);
-          if(!hasLegit) return;
+          const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p] && !BPGScorebook.isSyntheticAdjustmentRound(r));
+          if(!hasLegit || assisted) return;
           const finalEntry = entry(p,h.totals[p],h);
           if(cfg.winLow){
             update(gameRecords,'bestGame',finalEntry,betterLow);
@@ -16039,11 +17048,14 @@ ${isDealer
       const scoringRounds = h.rounds.filter(r=>!r.hailMaryBonus);
       const finalScoringRound = scoringRounds[scoringRounds.length-1] || null;
       h.rounds.forEach(r=>{
-        Object.entries(r.scores||{}).forEach(([p,score])=>{
+        if(BPGScorebook.isSyntheticAdjustmentRound(r)) return;
+        Object.entries(r.scores||{}).forEach(([p,rawScore])=>{
+          const score=BPGScorebook.historyScoreOrNull(rawScore);
+          if(score==null)return;
           if(!perMatch[p] || r.joinBonus?.[p]) return;
           perMatch[p].roundScores.push(score);
           if(h.game==='Five Crowns'){
-            if(score!==0) update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round}),betterLow);
+            update(games["Five Crowns"],'bestRound',entry(p,score,h,{round:r.round,label:`R${r.round}`}),betterLow);
             update(games["Five Crowns"],'worstRound',entry(p,score,h,{round:r.round}),betterHigh);
             if(score===0) perMatch[p].zeros++;
           }
@@ -16056,10 +17068,11 @@ ${isDealer
             update(games['818'],'bestRound',entry(p,score,h,{round:r.round}),betterHigh);
             update(games['818'],'worstRound',entry(p,score,h,{round:r.round}),betterLow);
             const bid = r.bids?.[p], actual = r.actuals?.[p];
-            perMatch[p].eight18BidTotal++;
-            if(is818ExactRound(r,p,score)) perMatch[p].exacts++;
-            else perMatch[p].busted++;
-            if(bid!==undefined && actual!==undefined){
+            const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+            if(bidResult==='exact') perMatch[p].exacts++;
+            else if(bidResult==='miss') perMatch[p].busted++;
+            if(bidResult) perMatch[p].eight18BidTotal++;
+            if(bidResult&&bid!==undefined&&actual!==undefined){
               const miss=Math.abs(Number(actual)-Number(bid));
               if(miss>0) update(games['818'],'biggestMiss',entry(p,miss,h,{round:r.round,label:`Bid ${bid}, took ${actual}`}),betterHigh);
               update(games['818'],'mostTricksRound',entry(p,actual,h,{round:r.round,label:`${actual} tricks`}),betterHigh);
@@ -16072,11 +17085,12 @@ ${isDealer
               update(games.Wizard,'biggestFinalRoundSwing',entry(p,score,h,{round:r.round,label:`${score >= 0 ? '+' : ''}${score} in final round`}),betterHigh);
             }
             const bid = r.bids?.[p], actual = r.actuals?.[p];
-            if(bid!==undefined && actual!==undefined){
+            const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+            if(bidResult){
               if(!wizardBidStats[p]) wizardBidStats[p]={exact:0,total:0,busted:0};
               wizardBidStats[p].total++;
               perMatch[p].wizardBidTotal++;
-              if(bid===actual){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
+              if(bidResult==='exact'){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
               else { wizardBidStats[p].busted++; perMatch[p].busted++; }
               if(Number(bid)===0&&Number(actual)===0) perMatch[p].zeroBidsHit++;
               if(actual<bid) update(games.Wizard,'biggestOverbid',entry(p,bid-actual,h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
@@ -16113,16 +17127,18 @@ ${isDealer
             const v = variance(m.roundScores);
             update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Variance ${v.toFixed(1)}`}),betterLow);
           }
-          if(m.roundScores.length){
+          if(!assisted && m.roundScores.length){
             const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
             const avg=total/m.roundScores.length;
             update(games["Five Crowns"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} avg · ${total} over ${m.roundScores.length} hands`}),betterLow);
           }
         }
         if(h.game==='Beat the Heat'&&m.roundScores.length){
-          const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
-          const avg=total/m.roundScores.length;
-          update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
+          if(!assisted){
+            const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
+            const avg=total/m.roundScores.length;
+            update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
+          }
           if(m.zeros>0) update(games["Beat the Heat"],'mostIceRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero-heat rounds`}),betterHigh);
         }
         if(h.game==='818'){
@@ -16231,12 +17247,24 @@ ${isDealer
       <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
       <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
     </div>`;
-    const recordCard = (title,r,pos=true) => {
-      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="font-bold mt-2" style="color:var(--muted);">No qualifying history</div></div>`;
+    const recordCard = (title,r,pos=true,note='',emptyText='No qualifying history') => {
+      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
+      const roundBit=Number.isFinite(r?.round)?` · R${r.round}`:'';
+      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="font-bold mt-2" style="color:var(--muted);">${emptyText}</div></div>`;
       return `<div class="surface p-5 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div><div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.label&&Number.isFinite(r.round)?'':roundBit}${r.date?` · ${r.date}`:''}</div></div></div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${Number.isFinite(r.value)?(Number.isInteger(r.value)?r.value:r.value.toFixed(1)):(r.value??'—')}</div>
       </div>`;
+    };
+    const UNASSISTED='Unassisted matches only';
+    const scoreRecord=(gameName,record)=>{
+      const row=data.games._coverage?.[gameName];
+      if(row && row.assisted>0 && row.unassisted===0) return {record:null, note:UNASSISTED, empty:'No unassisted matches yet'};
+      return {record, note:UNASSISTED, empty:'No qualifying history'};
+    };
+    const unassistedCard=(gameName,title,record,pos)=> {
+      const shown=scoreRecord(gameName,record);
+      return recordCard(title, shown.record, pos, shown.note, shown.empty);
     };
     const section = (id,title,body) => `<section id="${id}" class="space-y-4"><h2 class="font-display text-3xl border-b-2 hairline pb-3">${title}</h2>${body}</section>`;
     const gameSection = (name,items) => `<div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">${configs[name]?.emoji||''} ${name}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${items.join('')}</div></div>`;
@@ -16257,26 +17285,26 @@ ${isDealer
     </div>`;
 
     const wizardBestGameCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
-      recordCard(`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
+      unassistedCard('Wizard',`Best ${count}-Player Game`,data.games.Wizard.bestGameByPlayerCount[count],true)
     );
     const wizardExactCountCards = WIZARD_RECORD_PLAYER_COUNTS.map(count=>
       recordCard(`Most Exact Bids · ${count}P`,data.games.Wizard.mostExactByPlayerCount[count],true)
     );
     const perGameHtml = [
       gameSection('Five Crowns',[
-        recordCard('Best Game Ever',data.games["Five Crowns"].bestGame,true),
-        recordCard('Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
+        unassistedCard('Five Crowns','Best Game Ever',data.games["Five Crowns"].bestGame,true),
+        unassistedCard('Five Crowns','Disaster Award: Worst Game Ever',data.games["Five Crowns"].worstGame,false),
         recordCard('Best Single Round Ever',data.games["Five Crowns"].bestRound,true),
         recordCard('Crash and Burn: Worst Round',data.games["Five Crowns"].worstRound,false),
         recordCard('Most Perfect Rounds In One Game',data.games["Five Crowns"].mostPerfectRounds,true),
-        recordCard('Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
+        unassistedCard('Five Crowns','Cleanest Game By Average',data.games["Five Crowns"].cleanestGame,true),
         recordCard('Most Consistent Game',data.games["Five Crowns"].mostConsistent,true),
         recordCard('Closest Margin Of Victory',data.games["Five Crowns"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Five Crowns"].mostLopsided,true)
       ]),
       gameSection('Wizard',[
         ...wizardBestGameCards,
-        recordCard('Worst Game Ever',data.games.Wizard.worstGame,false),
+        unassistedCard('Wizard','Worst Game Ever',data.games.Wizard.worstGame,false),
         recordCard('Best Single Round',data.games.Wizard.bestRound,true),
         recordCard('Worst Single Round',data.games.Wizard.worstRound,false),
         recordCard('Best Career Exact Bid Percentage',data.games.Wizard.bestExactBidPct,true),
@@ -16290,8 +17318,8 @@ ${isDealer
         recordCard('Most Tricks Won In One Round',data.games.Wizard.mostTricksRound,true)
       ]),
       gameSection('818',[
-        recordCard('Best Game Ever',data.games['818'].bestGame,true),
-        recordCard('Worst Game Ever',data.games['818'].worstGame,false),
+        unassistedCard('818','Best Game Ever',data.games['818'].bestGame,true),
+        unassistedCard('818','Worst Game Ever',data.games['818'].worstGame,false),
         recordCard('Best Single Round',data.games['818'].bestRound,true),
         recordCard('Worst Single Round',data.games['818'].worstRound,false),
         recordCard('Most Exact Bids In One Game',data.games['818'].mostExactSingleGame,true),
@@ -16302,28 +17330,28 @@ ${isDealer
         recordCard('Closest Margin Of Victory',data.games['818'].closestMargin,true)
       ]),
       gameSection('Flip 7 Vengeance',[
-        recordCard('Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
-        recordCard('Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
+        unassistedCard('Flip 7 Vengeance','Best Game Ever',data.games["Flip 7 Vengeance"].bestGame,true),
+        unassistedCard('Flip 7 Vengeance','Worst Game Ever',data.games["Flip 7 Vengeance"].worstGame,false),
         recordCard('Best Single Round',data.games["Flip 7 Vengeance"].bestRound,true),
         recordCard('Worst Single Round',data.games["Flip 7 Vengeance"].worstRound,false),
         recordCard('Most Zero Rounds In One Game',data.games["Flip 7 Vengeance"].mostZeroRounds,false),
         recordCard('Closest Margin Of Victory',data.games["Flip 7 Vengeance"].closestMargin,true)
       ]),
       gameSection('Beat the Heat',[
-        recordCard('Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
-        recordCard('Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
+        unassistedCard('Beat the Heat','Coolest Game Ever',data.games["Beat the Heat"].bestGame,true),
+        unassistedCard('Beat the Heat','Hottest Game Ever',data.games["Beat the Heat"].worstGame,false),
         recordCard('Coolest Single Round',data.games["Beat the Heat"].bestRound,true),
         recordCard('Hottest Single Round',data.games["Beat the Heat"].worstRound,false),
         recordCard('Most Ice-Cold Rounds',data.games["Beat the Heat"].mostIceRounds,true),
-        recordCard('Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
+        unassistedCard('Beat the Heat','Cleanest Heat Average',data.games["Beat the Heat"].cleanestGame,true),
         recordCard('Closest Finish To 66',data.games["Beat the Heat"].closestFinish,true),
         recordCard('Closest Margin Of Victory',data.games["Beat the Heat"].closestMargin,true),
         recordCard('Most Lopsided Game Ever',data.games["Beat the Heat"].mostLopsided,false),
         recordCard('Longest Match',data.games["Beat the Heat"].longestMatch,true)
       ]),
       gameSection('Rook',[
-        recordCard('Best Game Ever',data.games.Rook.bestGame,true),
-        recordCard('Worst Game Ever',data.games.Rook.worstGame,false),
+        unassistedCard('Rook','Best Game Ever',data.games.Rook.bestGame,true),
+        unassistedCard('Rook','Worst Game Ever',data.games.Rook.worstGame,false),
         recordCard('Most Successful Bids In One Game',data.games.Rook.mostSuccessfulBids,true),
         recordCard('Highest Bid Ever Made',data.games.Rook.highestBidMade,true),
         recordCard('Biggest Set Ever',data.games.Rook.biggestSet,false),
@@ -16389,6 +17417,7 @@ ${isDealer
     if(!history.length){
       c.classList.remove('grid');
       c.innerHTML=`<div class="surface p-10 text-center font-bold max-w-xl mx-auto w-full" style="color:var(--muted);">Play games to unlock Records.</div>`;
+      if(window.BPGSlice2) window.BPGSlice2.refresh('records');
       return;
     }
     c.classList.add('grid');
@@ -16401,65 +17430,78 @@ ${isDealer
         <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-shame" style="color:var(--rose);">Hall of Shame</h2>
         <div id="shame-content" class="space-y-3"></div>
       </div>`;
-    const fmt=(ttl,val,player,pos,sfx='')=>{
+    const UNASSISTED='Unassisted matches only';
+    const fameScore=(gameName,value,player)=>{
+      const row=r._coverage?.[gameName];
+      if(row && row.assisted>0 && row.unassisted===0) return {value:NaN, player:'No unassisted matches yet'};
+      return {value, player};
+    };
+    const fmt=(ttl,val,player,pos,sfx='',note='')=>{
       const cleanVal=Number.isFinite(val)&&!Number.isInteger(val)?val.toFixed(1):val;
-      const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':cleanVal+sfx;
+      const dv=(!Number.isFinite(val)||(val===0&&player==='-'))?'—':cleanVal+sfx;
       const col=pos?'var(--emerald)':'var(--rose)';
+      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
       return `<div class="surface p-5 flex justify-between items-center">
         <div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-1" style="color:var(--muted);">${ttl}</div>
+          ${noteHtml}
           <div class="player-name-label text-xl">${player}</div>
         </div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${col};">${dv}</div>
       </div>`;
     };
+    const fameLine=(title,gameName,value,player,pos)=>{
+      const shown=fameScore(gameName,value,player);
+      return fmt(title,shown.value,shown.player,pos,'',UNASSISTED);
+    };
     const wizardScoreRows = WIZARD_RECORD_PLAYER_COUNTS.map(count=>{
       const bucket=r.Wizard.bestScoreByPlayerCount?.[count];
-      return fmt(`Wizard: ${count}P High Score`,bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
+      return fameLine(`Wizard: ${count}P High Score`,'Wizard',bucket?.bestScore??-Infinity,bucket?.bestPlayer||'-',true);
     });
     document.getElementById('fame-content').innerHTML=[
       fmt('Most Matches',r.Overall.mostGames,r.Overall.mostGamesPlayer,true),
       fmt('Best Win Rate (Min 3)',r.Overall.bestWinRate,r.Overall.bestWinRatePlayer,true,'%'),
-      fmt('Five Crowns: Best Score',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
+      fameLine('Five Crowns: Best Score','Five Crowns',r['Five Crowns'].bestScore,r['Five Crowns'].bestPlayer,true),
       fmt('Five Crowns: Perfect Hands',r['Five Crowns'].mostZeros,r['Five Crowns'].mostZerosPlayer,true),
-      fmt('Five Crowns: Cleanest Game',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
+      fameLine('Five Crowns: Cleanest Game','Five Crowns',deepRecords.games['Five Crowns'].cleanestGame?.value??Infinity,deepRecords.games['Five Crowns'].cleanestGame?.player||'-',true),
       ...wizardScoreRows,
       fmt('Wizard: Best Bid Round',r.Wizard.bestRound,r.Wizard.bestRoundPlayer,true),
       fmt('Wizard: The Clairvoyant',r.Wizard.mostExactBids,r.Wizard.mostExactBidsPlayer,true),
       fmt('Wizard: Zero-Bid Specialist',deepRecords.games.Wizard.mostZeroBidsHit?.value??0,deepRecords.games.Wizard.mostZeroBidsHit?.player||'-',true),
-      fmt('818: Best Score',r['818'].bestScore,r['818'].bestPlayer,true),
+      fameLine('818: Best Score','818',r['818'].bestScore,r['818'].bestPlayer,true),
       fmt('818: Best Bid Round',r['818'].bestRound,r['818'].bestRoundPlayer,true),
       fmt('818: Exact Bids',r['818'].mostExactBids,r['818'].mostExactBidsPlayer,true),
-      fmt('Flip 7: Best Score',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
+      fameLine('Flip 7: Best Score','Flip 7 Vengeance',r['Flip 7 Vengeance'].bestScore,r['Flip 7 Vengeance'].bestPlayer,true),
       fmt('Flip 7: High Roller',r['Flip 7 Vengeance'].bestRound,r['Flip 7 Vengeance'].bestRoundPlayer,true),
-      fmt('Beat the Heat: Coolest Score',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
+      fameLine('Beat the Heat: Coolest Score','Beat the Heat',r['Beat the Heat'].bestScore,r['Beat the Heat'].bestPlayer,true),
       fmt('Beat the Heat: Ice Rounds',r['Beat the Heat'].mostZeros,r['Beat the Heat'].mostZerosPlayer,true),
-      fmt('Beat the Heat: Cleanest Game',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
+      fameLine('Beat the Heat: Cleanest Game','Beat the Heat',deepRecords.games['Beat the Heat'].cleanestGame?.value??Infinity,deepRecords.games['Beat the Heat'].cleanestGame?.player||'-',true),
       fmt('Beat the Heat: Closest To 66',deepRecords.games['Beat the Heat'].closestFinish?.value??Infinity,deepRecords.games['Beat the Heat'].closestFinish?.player||'-',true),
       fmt('Comeback Extra: Most In One Game',r.Overall.mostComebackExtras,r.Overall.mostComebackExtrasPlayer,true),
       fmt('Comeback Extra: Biggest Help',r.Overall.biggestComebackExtra,r.Overall.biggestComebackExtraPlayer,true),
-      fmt('Rook: Best Score',r.Rook.bestScore,r.Rook.bestPlayer,true),
+      fameLine('Rook: Best Score','Rook',r.Rook.bestScore,r.Rook.bestPlayer,true),
       fmt('Rook: Most Bids Won',r.Rook.mostBids,r.Rook.mostBidsPlayer,true),
     ].join('');
     document.getElementById('shame-content').innerHTML=[
       fmt('Bronze Medal (Dead Lasts)',r.Overall.mostLastPlace,r.Overall.mostLastPlacePlayer,false),
-      fmt('Five Crowns: Worst Score',r['Five Crowns'].worstScore,r['Five Crowns'].worstPlayer,false),
+      fameLine('Five Crowns: Worst Score','Five Crowns',r['Five Crowns'].worstScore,r['Five Crowns'].worstPlayer,false),
       fmt('Five Crowns: Massive Penalty',r['Five Crowns'].worstRound,r['Five Crowns'].worstRoundPlayer,false),
-      fmt('Wizard: Catastrophic Failure',r.Wizard.worstScore,r.Wizard.worstPlayer,false),
+      fameLine('Wizard: Catastrophic Failure','Wizard',r.Wizard.worstScore,r.Wizard.worstPlayer,false),
       fmt('Wizard: Worst Busted Bid',r.Wizard.worstRound,r.Wizard.worstRoundPlayer,false),
       fmt('Wizard: Blind Seer',r.Wizard.mostBustedBids,r.Wizard.mostBustedBidsPlayer,false),
-      fmt('818: Worst Score',r['818'].worstScore,r['818'].worstPlayer,false),
+      fameLine('818: Worst Score','818',r['818'].worstScore,r['818'].worstPlayer,false),
       fmt('818: Worst Bid Round',r['818'].worstRound,r['818'].worstRoundPlayer,false),
       fmt('818: Most Missed Bids',r['818'].mostMissedBids,r['818'].mostMissedBidsPlayer,false),
-      fmt('Flip 7: Bottom of Barrel',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
+      fameLine('Flip 7: Bottom of Barrel','Flip 7 Vengeance',r['Flip 7 Vengeance'].worstScore,r['Flip 7 Vengeance'].worstPlayer,false),
       fmt('Flip 7: Coldest Round',r['Flip 7 Vengeance'].worstRound,r['Flip 7 Vengeance'].worstRoundPlayer,false),
       fmt('Flip 7: Most Zero Rounds',deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.value??0,deepRecords.games['Flip 7 Vengeance'].mostZeroRounds?.player||'-',false),
-      fmt('Beat the Heat: Hottest Score',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
+      fameLine('Beat the Heat: Hottest Score','Beat the Heat',r['Beat the Heat'].worstScore,r['Beat the Heat'].worstPlayer,false),
       fmt('Beat the Heat: Hottest Round',r['Beat the Heat'].worstRound,r['Beat the Heat'].worstRoundPlayer,false),
       fmt('Beat the Heat: Most Lopsided',deepRecords.games['Beat the Heat'].mostLopsided?.value??0,deepRecords.games['Beat the Heat'].mostLopsided?.player||'-',false),
-      fmt('Rook: Worst Score',r.Rook.worstScore,r.Rook.worstPlayer,false),
+      fameLine('Rook: Worst Score','Rook',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
     ].join('');
+    if(window.BPGSlice2) window.BPGSlice2.refresh('records');
   }
 
   function handleOrientation(){
@@ -16553,7 +17595,67 @@ ${isDealer
     };
   }
 
+  function backfillStableGameIds(){
+    if(!window.BPGScorebook||typeof BPGScorebook.ensureGameId!=='function')return;
+    let changed=false;
+    const stamp=game=>{
+      if(!game||typeof game!=='object')return;
+      const hadGameId=game.gameId!=null&&game.gameId!=='';
+      const hadId=game.id!=null&&game.id!=='';
+      BPGScorebook.ensureGameId(game);
+      if(!hadGameId||!hadId)changed=true;
+    };
+    stamp(currentGame);
+    (history||[]).forEach(stamp);
+    if(changed) _persistGamenightState({fullPersist:true, syncCold:true});
+  }
+
   /* ═══ BOOT ═══ */
+  window.BPGDemoLiveGame=function(){return currentGame;};
+  async function bootDemoSeedIfRequested(){
+    const params=new URLSearchParams(location.search);
+    const host=window.__GN_DEMO_HOST_OVERRIDE__||location.hostname;
+    const allowed=host==='localhost'||host==='127.0.0.1'||host==='::1'||/^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(host);
+    if(!params.has('demo')){
+      document.documentElement.classList.remove('gn-demo-pending');
+      return null;
+    }
+    if(!allowed||host==='cardknight.vercel.app'){
+      document.body.dataset.gnDemoReady='ignored';
+      document.documentElement.classList.remove('gn-demo-pending');
+      return null;
+    }
+    try{
+    const {bootDemoSeed}=await import('./assets/demo-seed.mjs');
+    return await bootDemoSeed({
+      hostname:host,
+      search:location.search,
+      storage:localStorage,
+      applyState(data){
+        const fixture=data||{};
+        allPlayers=Array.isArray(fixture.allPlayers)?fixture.allPlayers.slice():[];
+        players=Array.isArray(fixture.players)?fixture.players.slice():[];
+        history=Array.isArray(fixture.history)?JSON.parse(JSON.stringify(fixture.history)):[];
+        playerProfiles=fixture.playerProfiles&&typeof fixture.playerProfiles==='object'?JSON.parse(JSON.stringify(fixture.playerProfiles)):{};
+        currentGame=fixture.currentGame?JSON.parse(JSON.stringify(fixture.currentGame)):null;
+        if(currentGame&&(!currentGame.name||!Array.isArray(currentGame.originalRoster))) currentGame=null;
+        if(currentGame?.name==='Rook'&&currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
+        markHistoryChanged();
+      },
+      skipPersist(on){ window.__GN_DEMO_SKIP_PERSIST=!!on; },
+      ready(status, view){
+        document.body.dataset.gnDemoReady=status||'';
+        document.body.dataset.gnDemoView=view||'';
+        document.documentElement.classList.remove('gn-demo-pending');
+      }
+    });
+    }catch(error){
+      console.warn('TEMP demo seed skipped', error);
+      document.body.dataset.gnDemoReady='error';
+      document.documentElement.classList.remove('gn-demo-pending');
+      return null;
+    }
+  }
   window.onload=async function(){
     gnPerfInit();
     document.getElementById('html-root')?.classList.remove('dark');
@@ -16562,11 +17664,11 @@ ${isDealer
     initPwaUpdates();
     handleOrientation();
     updateNavButton();
-    if(canPorchCloud()&&getPorchKey()){
-      await pullPorchCloud();
-    }
+    const demoBoot=await bootDemoSeedIfRequested();
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+    backfillStableGameIds();
+    if(demoBoot&&typeof demoBoot.open==='function') demoBoot.open();
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');
@@ -16578,6 +17680,7 @@ ${isDealer
     }
   };
   </script>
+  <script src="./assets/slice2.js"></script>
   <canvas id="postgame-confetti-canvas" width="2" height="2" aria-hidden="true"></canvas>
 </body>
 </html>

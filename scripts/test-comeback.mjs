@@ -632,9 +632,9 @@ test('Wizard, 818, and Flip 7 turbo ladder fixtures show each game\'s scale', ()
   assertTurboLadder('wizard-turbo-ladder', {
     Matt: 0,
     Cat: 0,
-    Megan: 5,
-    Michelle: 10,
-    Mike: 15,
+    Megan: 0,
+    Michelle: 0,
+    Mike: 10,
     Vikki: 20,
     Linda: 20,
     Duke: 20
@@ -645,8 +645,8 @@ test('Wizard, 818, and Flip 7 turbo ladder fixtures show each game\'s scale', ()
   assertTurboLadder('eight18-turbo-ladder', {
     Matt: 0,
     Cat: 0,
-    Megan: 8,
-    Michelle: 9,
+    Megan: 2,
+    Michelle: 4,
     Mike: 10,
     Vikki: 10,
     Linda: 10,

@@ -1,14 +1,16 @@
-const CACHE_NAME = 'back-porch-shell-prod-1786902600001';
+const CACHE_NAME = 'back-porch-shell-local-1793113777997';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './assets/app-utilities.css',
   './assets/fonts.css',
+  './assets/slice2.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
   './assets/life-preserver-logic.js',
   './assets/scorebook.js',
+  './assets/slice2.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
   './bp-apple-touch-icon.png'

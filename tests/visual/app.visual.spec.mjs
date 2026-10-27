@@ -284,6 +284,7 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
 });
 
 test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-runtime-state',async({page})=>{
+  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel and the pace toggle.');
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -345,6 +346,7 @@ test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-r
 });
 
 test('record-chase-preview keeps real player history and aligned metrics',async({page})=>{
+  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel.');
   await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -417,6 +419,7 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
 });
 
 test('beat-the-heat pace still opens the best finished scorecard',async({page})=>{
+  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel.');
   await page.goto('/?gnqa=1&gallery=0&scenario=beat-the-heat-pace&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -439,6 +442,7 @@ test('beat-the-heat pace still opens the best finished scorecard',async({page})=
 });
 
 test('late eight-player five crowns shows five rounds beside Best Avg Worst',async({page},testInfo)=>{
+  test.skip(true,'Obsolete View Pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name!=='laptop-chromium','Check the late eight-player pace layout once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-late-8&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
@@ -484,8 +488,8 @@ test('late five-crowns totals stay centered and names stay whole',async({page})=
   expect(totals.every(row=>row.totalCenterGap<=2),'three-digit totals should stay centered in the Total column').toBe(true);
   expect(totals.find(row=>row.name==='Michelle')?.nameFits,'Michelle should not be clipped').toBe(true);
 
-  await page.locator('#scorecard-view-pace-toggle').click();
-  await expect(page.locator('#record-chase-panel')).toBeHidden();
+  await expect(page.locator('#record-chase-panel')).toHaveCount(0);
+  await expect(page.locator('#scorecard-view-pace-toggle')).toHaveCount(0);
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))));
   const namesAfter=await page.evaluate(()=>[...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map(name=>{
     const label=name.querySelector('.dealer-player-label')||name;
@@ -584,13 +588,10 @@ test('five-crowns first round uses compact avatar-led player identities',async({
 
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
   const selectors={
-    brand:'#top-nav .bp-brand-main',
-    brandGames:'#top-nav .bp-brand-games',
-    nav:'#top-nav .nav-btn',
-    game:'#game-title',
-    round:'#round-intel',
+    board:'#slice2-board-line',
+    enter:'#slice2-enter-btn',
     actions:'#actions-btn',
-    save:'#game-screen .active-match-banner .match-end-btn'
+    save:'#slice2-board-bar .match-end-btn'
   };
   const readSizes=()=>page.evaluate(entries=>Object.fromEntries(Object.entries(entries).map(([key,selector])=>[
     key,
@@ -814,12 +815,24 @@ test('score-entry acknowledgement handles explicit zero and blank Next',async({p
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   const firstRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
   const firstRow=page.locator(`#${firstRowId}`);
+  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Blank');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(firstRow.locator('.score-entry-confirm-status')).not.toContainText('Suggested');
+  await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.getByRole('button',{name:'Next',exact:true}).click();
-  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 scores entered');
-  await expect(firstRow).toHaveClass(/is-complete/);
-  await expect(firstRow.locator('.score-entry-value')).toHaveText('0');
-  await firstRow.click();
-  await expect(firstRow).toHaveClass(/is-complete/);
+  await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
+  await expect(firstRow).toHaveClass(/is-empty/);
+  await expect(firstRow).not.toHaveClass(/is-complete/);
+  await expect(firstRow.locator('.score-entry-value')).toHaveText('');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Blank');
+  const blank=await page.evaluate(rowId=>{
+    const player=rowId.replace('score-entry-row-','');
+    return {
+      value:scoreEntryModalState.values[player],
+      acknowledged:!!scoreEntryModalState.acknowledged[player]
+    };
+  }, firstRowId);
+  expect(blank).toEqual({value:'', acknowledged:false});
 });
 
 test('score-entry Next acknowledges prefilled values without changing them',async({page})=>{
@@ -829,10 +842,13 @@ test('score-entry Next acknowledges prefilled values without changing them',asyn
 
   const prefilledRow=page.locator('#score-entry-row-Matt');
   await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('Suggested: 1');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('tap Next to confirm');
   await prefilledRow.click();
   await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(prefilledRow).toHaveClass(/is-complete/);
   await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('Confirmed: 1');
   await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 tricks entered · Tricks: 1 / 1');
 });
 
@@ -850,6 +866,17 @@ test('Wizard rejects bids outside the available trick range',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=entry-bids',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await page.getByRole('button',{name:'9',exact:true}).click();
+  await page.evaluate(()=>{
+    const state=scoreEntryModalState;
+    const players=state.tablePlayers||state.players;
+    players.forEach(player=>{
+      if(state.acknowledged[player]) return;
+      state.values[player]='0';
+      state.acknowledged[player]=true;
+      updateScoreEntryRowState(player);
+    });
+    updateScoreEntryProgress();
+  });
   let message='';
   page.once('dialog',async dialog=>{
     message=dialog.message();
@@ -889,7 +916,6 @@ test('active scorecard columns and panels stay geometrically aligned',async({pag
     const nav=document.querySelector('#top-nav');
     const banner=document.querySelector('#game-screen .active-match-banner');
     const actions=[
-      document.querySelector('#scorecard-view-toggle-wrap'),
       document.querySelector('#actions-btn'),
       document.querySelector('.match-end-btn')
     ].map(element=>element?.getBoundingClientRect());
@@ -962,8 +988,8 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   await expect(page.locator('#game-screen:not(.hidden)')).toBeVisible();
   expect(await page.locator('#sudden-death-modal').count(),'the removed tiebreaker UI should not exist').toBe(0);
 
-  page.once('dialog',dialog=>dialog.accept());
   await page.getByRole('button',{name:'Save & End',exact:true}).click();
+  await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#victory-names')).toContainText('Alex');
   await expect(page.locator('#victory-names')).toContainText('Blair');
@@ -971,6 +997,7 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
 });
 
 test('undo last Five Crowns hand keeps Comeback chips on stranded players',async({page})=>{
+  test.skip(true,'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
@@ -1013,6 +1040,8 @@ test('starting another game preserves and resumes Wizard and 818 entry state',as
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await page.evaluate(()=>startGame('818'));
   await page.evaluate(()=>{
+    const names=getActivePlayers(currentGame);
+    currentGame.currentBids=Object.fromEntries(names.map(name=>[name,1]));
     submitRound({skipConfirm:true});
     Object.assign(ensureCurrentScoreDrafts(),{Megan:3,Matt:2});
     saveData();
@@ -1079,19 +1108,24 @@ test('all six game types reach their first scoring surface',async({page})=>{
     localStorage.setItem('gn_pref_dealerroll','0');
   });
   const games=[
-    {button:'Five Crowns',title:'Five Crowns',action:'Log Scores'},
-    {button:'Wizard',title:'Wizard',action:'Log Bids'},
-    {button:'818',title:'818',action:'Log Bids'},
-    {button:'Flip 7',title:'Flip 7 Vengeance',action:'Log Scores'},
-    {button:'Beat the Heat',title:'Beat the Heat',action:'Log Heat'},
-    {button:'Rook',title:'Rook',action:'Trump & partner card →',rook:true}
+    {id:'Five Crowns',title:'Five Crowns'},
+    {id:'Wizard',title:'Wizard'},
+    {id:'818',title:'818'},
+    {id:'Flip 7 Vengeance',title:'Flip 7'},
+    {id:'Beat the Heat',title:'Beat the Heat'},
+    {id:'Rook',title:'Rook',rook:true}
   ];
+  page.on('dialog',dialog=>dialog.accept());
   for(const game of games){
     await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
     await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-    await page.getByRole('button',{name:game.button,exact:true}).click();
-    if(game.rook)await page.getByRole('button',{name:'Start Match →',exact:true}).click();
-    await expect(page.locator('#game-title')).toHaveText(game.title);
-    await expect(page.getByRole('button',{name:game.action,exact:true})).toBeVisible();
+    await page.locator(`[data-s2-action="pick-game"][data-s2-game="${game.id}"]`).click();
+    await page.locator('#slice2-start-btn').click();
+    if(game.rook){
+      const start=page.getByRole('button',{name:/Start Match/});
+      if(await start.count()) await start.click();
+    }
+    await expect(page.locator('#slice2-board-line')).toContainText(game.title);
+    await expect(page.locator('#slice2-enter-btn')).toBeVisible();
   }
 });

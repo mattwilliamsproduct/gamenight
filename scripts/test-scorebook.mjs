@@ -53,7 +53,7 @@ test('a Life Preserver before the first hand sits beside Total', () => {
   assert.equal(Scorebook.lifePreserverHidden(rounds, [1], 'Matt'), 20);
 });
 
-test('merging a Wizard name keeps bids, tricks, and the Life Preserver with the points', () => {
+test('a same-match Wizard merge is refused and leaves bids, tricks, and the Life Preserver alone', () => {
   const game = {
     name: 'Wizard',
     originalRoster: ['Matt', 'Linda'],
@@ -74,27 +74,11 @@ test('merging a Wizard name keeps bids, tricks, and the Life Preserver with the 
       { round: 0, hailMaryBonus: true, scores: { Linda: 40 } }
     ]
   };
-
+  const before = JSON.parse(JSON.stringify(game));
+  const shared = Scorebook.findSharedMatch([game], 'Linda', 'Matt');
+  assert.equal(shared, game);
   Scorebook.applyPlayerNameOnGame(game, 'Linda', 'Matt', true);
-
-  assert.equal(game.totals.Matt, 70);
-  assert.equal(game.totals.Linda, undefined);
-  assert.equal(game.rounds[0].scores.Matt, 30);
-  assert.equal(game.rounds[0].scores.Linda, undefined);
-  assert.equal(game.rounds[0].bids.Matt, 3);
-  assert.equal(game.rounds[0].bids.Linda, undefined);
-  assert.equal(game.rounds[0].actuals.Matt, 1);
-  assert.equal(game.rounds[0].actuals.Linda, undefined);
-  assert.equal(game.rounds[1].scores.Matt, 40);
-  assert.equal(game.rounds[1].scores.Linda, undefined);
-  assert.deepEqual(game.hailMaryUsed, ['Matt']);
-  assert.deepEqual(game.lifePreserverHeld, ['Matt']);
-  assert.deepEqual(game.originalRoster, ['Matt']);
-  assert.deepEqual(game.retired, ['Matt']);
-  assert.deepEqual(game.winners, ['Matt']);
-  assert.equal(game.currentBids.Matt, 4);
-  assert.equal(game.currentBids.Linda, undefined);
-  assert.equal(game.currentScoreDrafts.Matt, 2);
+  assert.deepEqual(game, before);
 });
 
 test('a unique rename moves the Wizard round and Life Preserver together', () => {
@@ -156,7 +140,7 @@ test('a Life Preserver does not leak onto the next hand, and a zero spin adds no
   assert.equal(Scorebook.lifePreserverHidden(rounds, [2], 'Linda'), -30);
 });
 
-test('merging numeric strings keeps the bid with the points', () => {
+test('numeric strings in the same match are not added together', () => {
   const game = {
     totals: { Sam: '40', Alex: 10 },
     hailMaryUsed: ['Sam'],
@@ -164,13 +148,9 @@ test('merging numeric strings keeps the bid with the points', () => {
       { round: 1, scores: { Sam: '40', Alex: '10' }, bids: { Sam: '2', Alex: '1' }, actuals: { Sam: 2, Alex: 1 } }
     ]
   };
+  const before = JSON.parse(JSON.stringify(game));
   Scorebook.applyPlayerNameOnGame(game, 'Sam', 'Alex', true);
-  assert.equal(game.totals.Alex, 50);
-  assert.equal(game.rounds[0].scores.Alex, 50);
-  assert.equal(game.rounds[0].bids.Alex, 3);
-  assert.equal(game.rounds[0].actuals.Alex, 3);
-  assert.equal(game.rounds[0].bids.Sam, undefined);
-  assert.deepEqual(game.hailMaryUsed, ['Alex']);
+  assert.deepEqual(game, before);
 });
 
 test('a name with no rounds still keeps the Life Preserver flag', () => {

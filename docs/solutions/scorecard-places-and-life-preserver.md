@@ -4,4 +4,4 @@ What broke: the scorecard hides round columns to fit the screen. A Life Preserve
 
 What fixed it: trimmed columns copy their Life Preserver onto Total, and a narrow window keeps that Total column on screen. `competitionPlaces` compares finite numbers. Merges add finite numbers, including numeric strings, and leave booleans such as `joinBonus` alone.
 
-What not to repeat: do not treat `display: none` on a round column as “this hand has no bonus.” Do not use `===` for places after a numeric sort. Do not drop a field on merge just because it was stored as `"40"` instead of `40`.
+What not to repeat: do not treat `display: none` on a round column as “this hand has no bonus.” Do not use `===` for places after a numeric sort. Do not drop a field on merge just because it was stored as `"40"` instead of `40`. Do not shrink the place badge to a 24px number Matt cannot read. Places paint as `1st` / `2nd` / `3rd` using `competitionPlaces`. Ties share the ordinal (`4th` and `4th`, then `6th`), with no `T-` prefix. Round 1 still hides places until scores exist.

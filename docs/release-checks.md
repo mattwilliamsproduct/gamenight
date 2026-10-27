@@ -3,7 +3,7 @@
 Run these after UI-affecting work and before a production push:
 
 1. Run `npm run build && npm run check`.
-2. Run `npm run test:functional` and `npm run test:porch-night`. Pull-request CI runs both automatically (syntax, unit checks, then laptop Chromium Playwright). Functional covers Wizard 6→7 rounds, Michelle name fit, the Actions menu, porch 818 Life Preserver +20, Beat the Heat staying open below 66, shared Wizard places, and a Life Preserver mark on the card or beside Total. Porch-night walks home-party, wizard-scoring-8, five-crowns-name-fit-7, eight18-porch-lp, Beat the Heat close/over, postgame-race, and a localStorage refresh. Neither takes screenshots. Keep the CI job under 15 minutes.
+2. Run `npm run test:functional` and `npm run test:porch-night`. Pull-request CI runs both automatically (syntax, unit checks, then laptop Chromium Playwright). Functional covers Wizard 6→7 rounds, Michelle name fit, the Actions menu, porch 818 Life Preserver +20, Beat the Heat staying open below 66, shared Wizard places, a Life Preserver mark on the card or beside Total, and `tests/functional/data-integrity.spec.mjs` (prefill replacement, a blank score submitting as 0, trick bounds, historical corrections including a retired 818 seat, incomplete Resume Match, legacy `gameId` backfill, assisted records, and same-match rename refusal). Porch-night walks home-party, wizard-scoring-8, five-crowns-name-fit-7, eight18-porch-lp, Beat the Heat close/over, postgame-race, and a localStorage refresh. Neither takes screenshots. Keep the CI job under 15 minutes.
 3. Run `npm run test:visual`. It compares Home, scorecards, bid/score entry, Settings, Profiles, the Actions menu, WHAMMY, and Nolie against approved screenshots at iPad, laptop, and 1080p TV sizes. Keep this local; the full snapshot matrix is not on CI.
 4. When an intentional visual change is correct, run `npm run test:visual:update`, inspect the changed baselines, then rerun `npm run test:visual`.
 5. For manual scenario review, run `npm run qa:gallery` and open `http://127.0.0.1:4173/?gnqa=1`. The gallery only starts on localhost and does not save fixture data.
@@ -15,7 +15,7 @@ Production loads Life Preserver (`public/assets/life-preserver-logic.js`) and mu
 
 The service worker that ships is whatever `npm run build` writes from `src/service-worker.js`. After a worker edit, run the build and confirm the generated `public/sw.js` precache list matches the scripts in `index.html`. `npm run check` also fails if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
 
-Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) also assert:
+Comeback UI checks (in `tests/visual/comeback-ui.spec.mjs`) are skipped on RC1. Production does not load `comeback-logic.js`. Those files used to assert:
 
 - both blowout players who cannot catch first get chips
 - extras sit inside the round-score box, not floating under it

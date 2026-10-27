@@ -1,11 +1,11 @@
 import {expect,test} from '@playwright/test';
-import {openScenario} from '../helpers/qa.mjs';
+import {enterRoundButton, openScenario} from '../helpers/qa.mjs';
 
 test('Beat the Heat stays open below 66 heat', async ({page})=>{
   await openScenario(page,{scenario:'beat-the-heat-close'});
 
-  await expect(page.locator('#round-intel')).toHaveText('R4 · Ends at 66');
-  await expect(page.locator('#submit-action-btn')).toBeVisible();
+  await expect(page.locator('#slice2-board-line')).toContainText(/Beat the Heat · Round 4/);
+  await expect(enterRoundButton(page)).toBeVisible();
   await expect(page.locator('#game-over-section')).toBeHidden();
 
   await page.evaluate(()=>{
@@ -13,8 +13,8 @@ test('Beat the Heat stays open below 66 heat', async ({page})=>{
     submitRound({skipConfirm:true});
   });
 
-  await expect(page.locator('#round-intel')).toHaveText('R5 · Ends at 66');
-  await expect(page.locator('#submit-section')).toBeVisible();
+  await expect(page.locator('#slice2-board-line')).toContainText(/Beat the Heat · Round 5/);
+  await expect(enterRoundButton(page)).toBeVisible();
   await expect(page.locator('#game-over-section')).toBeHidden();
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(65);
 });
@@ -22,7 +22,7 @@ test('Beat the Heat stays open below 66 heat', async ({page})=>{
 test('Beat the Heat shows Match Complete when a player already has 66+ heat', async ({page})=>{
   await openScenario(page,{scenario:'beat-the-heat-over'});
 
-  await expect(page.locator('#round-intel')).toHaveText('Final Scores');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Beat the Heat/);
   await expect(page.locator('#game-over-section')).toBeVisible();
   await expect(page.locator('#game-over-copy')).toHaveText('Someone reached 66 heat. The match is over.');
   await expect(page.locator('#submit-section')).toBeHidden();

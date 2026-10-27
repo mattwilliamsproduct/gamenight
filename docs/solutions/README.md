@@ -13,3 +13,19 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md) — Vercel ships `src/service-worker.js`, not the committed `public/sw.js`.
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.
+
+Standing trap: [data-integrity-records.md](data-integrity-records.md) — bid accuracy comes from bids and actuals, a historical round keeps its own roster, and a Life Preserver flag follows the spins that remain.
+
+Standing trap: [slice2-phone-scorekeeper.md](slice2-phone-scorekeeper.md) — Slice 2 still needs a scrollable phone roster above the keypad; do not port #59 welcome/sample work onto that preview.
+
+Standing trap: [rc1-one-skin.md](rc1-one-skin.md) — Warm Porch Ledger is the only skin; 818 / Wizard gallery rows must be rule-valid, including dealer law.
+
+Standing trap: [rc1-phone-p1.md](rc1-phone-p1.md) — one shared NAME-FIT size, Saved is not a nav slot, and Life Preserver header copy states the real spin range.
+
+Standing trap: [rc1-local-only.md](rc1-local-only.md) — this release does not call `/api/sync`; Redis stays an untouched backup.
+
+Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves a live match; it does not end it.
+
+Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.
+
+Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Preserver labels stay inside every slice; equal-ish pockets stay accurate-ish, and the draw still uses the live table.

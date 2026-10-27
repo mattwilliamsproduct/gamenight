@@ -11,11 +11,12 @@ test('one laptop porch night walks the shelf, scoring, places, and a local refre
   // 1. home-party
   await openScenario(page,{scenario:'home-party',surface:'home'});
   await expect(page.locator('#home-screen')).toBeVisible();
-  for(const game of ['Five Crowns','Wizard','818','Flip 7','Beat the Heat','Rook']){
-    await expect(page.getByRole('button',{name:new RegExp(game)})).toBeVisible();
+  for(const [label, id] of [['Five Crowns','Five Crowns'],['Wizard','Wizard'],['818','818'],['Flip 7','Flip 7 Vengeance'],['Beat the Heat','Beat the Heat'],['Rook','Rook']]){
+    await expect(page.locator(`[data-s2-action="pick-game"][data-s2-game="${id}"]`)).toBeVisible();
+    await expect(page.locator(`[data-s2-action="pick-game"][data-s2-game="${id}"]`)).toContainText(label);
   }
   const home=await page.evaluate(()=>({
-    seated:[...document.querySelectorAll('#roster-list .roster-name, #home-roster .player-name, .home-player-name')].map(el=>el.textContent.trim()).filter(Boolean),
+    seated:[...document.querySelectorAll('.s2-seat-name, #roster-list .roster-name, #home-roster .player-name, .home-player-name')].map(el=>el.textContent.trim()).filter(Boolean),
     players:(typeof players!=='undefined'?players.slice():[]),
     turboScript:!!document.querySelector('script[src*="comeback-logic"]'),
     comebackWrites:!!(typeof currentGame!=='undefined'&&currentGame?.rounds?.some(round=>round.comeback))
@@ -27,7 +28,7 @@ test('one laptop porch night walks the shelf, scoring, places, and a local refre
   // 2. wizard-scoring-8
   await openScenario(page,{scenario:'wizard-scoring-8'});
   await expect(page.locator('#scorecard-body tr')).toHaveCount(8);
-  await expect(page.locator('#round-intel')).toContainText('R1');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Round 1/);
   const wizard=await page.evaluate(()=>({
     name:currentGame.name,
     phase:currentGame.wizardPhase,
@@ -71,12 +72,12 @@ test('one laptop porch night walks the shelf, scoring, places, and a local refre
 
   // 5. beat-the-heat-close and beat-the-heat-over
   await openScenario(page,{scenario:'beat-the-heat-close'});
-  await expect(page.locator('#round-intel')).toHaveText('R4 · Ends at 66');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Beat the Heat · Round 4/);
   await expect(page.locator('#game-over-section')).toBeHidden();
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(55);
 
   await openScenario(page,{scenario:'beat-the-heat-over'});
-  await expect(page.locator('#round-intel')).toHaveText('Final Scores');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Beat the Heat/);
   await expect(page.locator('#game-over-section')).toBeVisible();
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(67);
 
