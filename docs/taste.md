@@ -62,6 +62,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Edit Seating plus Earlier/Later when the Home list can reorder in place.
 - A second ranking function for Recent nights, or a podium on an Incomplete night.
 - Adding Canasta to the game registry or Home picker from this art pass.
+- Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.
 
 ## Prefer
 

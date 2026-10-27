@@ -22,7 +22,7 @@ v2 tiles live at `public/assets/art/dusk/<slug>.webp`. Later passes replace thos
 
 The five mapped v2 binaries did not mount in this environment. Those committed WebPs reconstruct the tighter frames so crop and slugs can be judged. Overwrite the same files with the original rasters.
 
-Mapped slugs: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`. `canasta.webp` is sheet-only: cream heart stack (hand) and a teal back (foot). The official 960×540 attachment did not mount at `back-porch/art/dusk-v2/canasta.webp`; the committed file reconstructs that frame at the same cover crop. Rook keeps `public/theme/game-card-rook-thumb.jpg`.
+Mapped slugs: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`. `canasta.webp` is the approved 960×540 raster, copied byte-for-byte. Sheet-only: cream heart stack (hand) and a teal back (foot). Do not re-encode it. Rook keeps `public/theme/game-card-rook-thumb.jpg`.
 
 Tile CSS: `background-size: cover` and `background-position: 50% 55%`. Wizard is `50% 46%` so the hat tip stays in the crop. Cropping the small lamp is fine. Do not letterbox.
 
