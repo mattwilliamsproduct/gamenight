@@ -1054,6 +1054,49 @@ test('data-driven pocket layout works for current and proposed tables', () => {
     { table: 'current', help: 0.80, zero: 0.12, bad: 0.08 },
     { table: 'proposed', help: 0.75, zero: 0.10, bad: 0.15 }
   ];
+  const altOutcomes = LP.layoutRoulettePockets([
+    { adjustment: -25, weight: 0.20, kind: 'good', band: 'reallyGood' },
+    { adjustment: -10, weight: 0.55, kind: 'good', band: 'good' },
+    { adjustment: 0, weight: 0.10, kind: 'zero', band: 'noChange' },
+    { adjustment: 5, weight: 0.15, kind: 'bad', band: 'smallSetback' }
+  ], { pocketCount: 40 });
+  const altSlices = altOutcomes.flatMap((item) => {
+    const n = Math.max(1, Number(item.pocketCount) || 1);
+    return Array.from({ length: n }, (_, index) => ({
+      adjustment: item.adjustment,
+      kind: item.kind,
+      band: item.band,
+      weight: item.weight / n,
+      displayWeight: item.displayWeight / n,
+      pocketCount: 1,
+      segmentIndex: index
+    }));
+  });
+  const altTable = LP.describePocketTable(altSlices);
+  assert.ok(altSlices.length >= 20 && altSlices.length <= 40, `20/55 pockets ${altSlices.length}`);
+  altTable.outcomes.forEach((outcome) => {
+    assert.ok(outcome.segments >= 1, `20/55 ${outcome.label} missing pocket`);
+    assert.ok(
+      Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+      `20/55 ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+    );
+  });
+  const altHelp = altTable.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(altHelp - 0.75) < 1e-9, `20/55 help ${altHelp}`);
+  LP.attachSliceArcs(altSlices);
+  const altGeo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+  altSlices.forEach((slice, index) => {
+    const layout = LP.labelLayout(slice, altGeo);
+    assert.ok(layout.insideSegment, `20/55 slice ${index} ${layout.text} left its pocket`);
+  });
+  const altRandom = mulberry32(203);
+  for (let seed = 0; seed < 40; seed++) {
+    const pick = LP.pickWeightedSlice(altSlices, altRandom);
+    const degrees = LP.landingDegreesForSlice(pick, altRandom);
+    const angle = LP.wheelAngleFromDegrees(degrees);
+    const hit = altSlices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+    assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), '20/55 landing mismatch');
+  }
   for (const item of cases) {
     const slices = LP.buildSlices(20, 10, true, 5, {
       remainingRounds: 4,

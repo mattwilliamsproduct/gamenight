@@ -5,7 +5,8 @@ Comparison only. Live reward math stays 45/30/5/12/8. Wheel visuals stay equal-i
 ## Spec
 
 - **Current:** 45% small / 30% medium / 5% big / 12% no change / 8% setback. Amounts from one strong remaining unit, then clamped.
-- **Proposed:** gap to 1st. 30% really good (45-65% of that gap) / 45% good (20-40%) / 10% no change / 15% small setback. Best is 65% of the gap, then the per-game cap and the never-tie-or-pass-1st rule. Setbacks stay small and are not gap-scaled. No late-game boost. No leapfrog cap in this candidate.
+- **Proposed:** gap to 1st. 30% really good (45-65% of that gap) / 45% good (20-40%) / 10% no change / 15% small setback. Best is 65% of the gap, then the per-game cap and the never-tie-or-pass-1st rule. Setbacks stay small and are not gap-scaled. No late-game boost. No leapfrog cap in this candidate. Good-band pick: 20 / 30 / 40% of the gap (the middle of 25-35%).
+- **Layout fixture only:** a 20/55/10/15 split still relayouts the wheel in tests. It is not live and not the TEMP Proposed wheel.
 - **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If that gap is smaller than one game increment, Proposed falls back to one increment of modest help. Resulting rank is whatever the rounded, capped points produce.
 - **Ties:** the current leader score is the tied 1st score. A spin still cannot match it. Tied non-leaders share a place the same way the scorecard does (two 4ths, then 6th).
 - **Leapfrog:** this candidate has no non-leader leapfrog cap. A rescue may pass as many non-leaders as the points allow. It still cannot tie or pass 1st. If a game cap or the leader rule stops a 65% rescue from reaching 3rd, that row is flagged.
