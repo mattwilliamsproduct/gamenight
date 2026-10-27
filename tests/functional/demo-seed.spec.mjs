@@ -219,31 +219,50 @@ test.describe('TEMP demo seed views', () => {
     ['wizard', /Wizard/],
     ['flip7', /Flip 7/],
     ['beat-the-heat', /Beat the Heat/],
-    ['rook', /Rook/]
+    ['hand-and-foot', /Canasta/]
   ]) {
     test(`preview host opens view=game&game=${game}`, async ({page}) => {
       test.setTimeout(45000);
       await openDemo(page, 'game', {host: PREVIEW, extra: {game}});
       await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', 'game');
       await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
-      if (game === 'rook') {
-        await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
-        await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
-      } else {
-        await expect(page.locator('#slice2-board, #game-screen')).toContainText(label);
-      }
+      await expect(page.locator('#slice2-board, #game-screen')).toContainText(label);
     });
   }
 
-  test('preview host opens view=game&game=hand-and-foot without crashing', async ({page}) => {
+  test('preview host opens view=game&game=hand-and-foot as in-progress Canasta', async ({page}) => {
+    test.setTimeout(45000);
     await openDemo(page, 'game', {host: PREVIEW, extra: {game: 'hand-and-foot'}});
-    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', /seeded|empty/);
-    const visible = await page.evaluate(() => {
-      const home = document.getElementById('home-screen');
-      const game = document.getElementById('game-screen');
-      return !home?.classList.contains('hidden') || !game?.classList.contains('hidden');
-    });
-    expect(visible).toBe(true);
+    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', /seeded/);
+    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', 'game');
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#game-screen')).toHaveAttribute('data-game', 'Hand and Foot');
+    await expect(page.locator('#slice2-board, #game-screen')).toContainText(/Canasta/);
+    await expect(page.locator('#scorecard-body')).toContainText('3695');
+    await expect(page.locator('#scorecard-body')).toContainText(/Megan|Matt/);
+    const live = await page.evaluate(() => (typeof window.BPGDemoLiveGame === 'function' && window.BPGDemoLiveGame()) || null);
+    expect(live?.name).toBe('Hand and Foot');
+    expect(live?.rounds).toHaveLength(2);
+    expect(live?.handFoot?.sides).toHaveLength(2);
+    expect(live?.rounds[0]?.handFootParts?.Megan?.sevensCanastas).toBe(1);
+    expect(live?.rounds[0]?.handFootParts?.Megan?.redThrees).toBe(4);
+  });
+
+  test('preview host opens view=game&game=rook&games=rook', async ({page}) => {
+    test.setTimeout(45000);
+    await openDemo(page, 'game', {host: PREVIEW, extra: {game: 'rook', games: 'rook'}});
+    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', 'game');
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
+  });
+
+  test('Rook stays off the demo picker without games=rook', async ({page}) => {
+    test.setTimeout(45000);
+    await openDemo(page, 'home', {host: PREVIEW});
+    await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toContainText('Canasta');
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
   });
 
   test('cardknight.vercel.app ignores ?demo and writes nothing', async ({page}) => {

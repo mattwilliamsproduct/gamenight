@@ -69,7 +69,8 @@ const GAME_SCENARIO = {
   '818': 'demo-818',
   flip7: 'demo-flip7',
   beattheheat: 'beat-the-heat-close',
-  rook: 'rook-bid-setup'
+  rook: 'rook-bid-setup',
+  handandfoot: 'demo-canasta'
 };
 
 function previewHostPattern(){
@@ -497,6 +498,9 @@ export async function bootDemoSeed(api){
     storage: api.storage
   });
   const req = parseDemoRequest(api.search, api.hostname);
+  if (typeof window !== 'undefined' && window.BPGGames && typeof window.BPGGames.rememberDemoGames === 'function') {
+    window.BPGGames.rememberDemoGames(api.search);
+  }
   if (req.lpTable === 'proposed' && typeof window !== 'undefined') {
     window.BPG_LP_TABLE = 'proposed';
   }

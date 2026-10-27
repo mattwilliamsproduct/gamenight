@@ -11,6 +11,8 @@ One static site. `public/` is the deploy. `npm run build` writes CSS, vendor cop
 | `public/index.html` | Shell, theme, and the match state machine. |
 | `public/assets/life-preserver-logic.js` | Pure Life Preserver rules. Loaded in production. |
 | `public/assets/scorebook.js` | Places, Life Preserver marks, name merges, and golden Wizard / 818 / Rook scoring. Loaded in production. |
+| `public/assets/hand-foot-logic.js` | Canasta (Hand and Foot) scoring. `CANASTA_RULES` is the one house-rules object. Loaded in production. |
+| `public/assets/game-registry.js` | Shelf ids, display names, win direction, and the Rook `hidden` flag. Loaded in production. |
 | `public/assets/backup.js` | Pure backup merge. Loaded in production. |
 | `public/assets/slice2.css` / `slice2.js` | Warm Porch Ledger skin. Always loaded and precached. |
 | `public/assets/comeback-logic.js` | Old Turbo rules. Must not load. Kept so old `round.comeback` rows stay defined. |
@@ -84,6 +86,8 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - A rename onto a name that already played the same match is refused. The check looks through the live match and every saved match: roster, retired seats, totals, round scores, bids, actuals, and Rook bidder and partner. Disjoint aliases can still merge. A new unused name renames in place.
 - Each match has a stable `gameId`. A legacy row that already has `id` keeps that value as `gameId`. A row with neither gets one id, stored on both fields, on boot before the gallery hydrates. Reload keeps that same id. Saved matches live in `gn_history`. The live table is `gn_current`. `(gameId, currentRound, phase)` is the match cursor. Phase is `wizardPhase`, `eight18Phase`, `rookPhase`, or `scoring`. History buttons pass the id through `jsAttrArg` so a minted id still opens Scorecard, Resume, and Correct.
 - Shelf labels may say Flip 7. Stored game name is `Flip 7 Vengeance`.
+- Shelf labels say Canasta. Stored game name is `Hand and Foot`.
+- Rook stays registered with `hidden: true`. The picker shows it only on `?demo&games=rook`. History still opens a saved Rook match.
 - Home-screen short name is Back Porch. Manifest name is Back Porch Games.
 - Cloud sync is off this release. The Redis function stays shipped and unused.
 - `npm run check` fails if `index.html` loads `comeback-logic.js`, if the worker template disagrees with the scripts the page loads, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
@@ -99,6 +103,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Wizard: `wizardPhase`, `currentBids`
 - 818: `eight18Phase`, `currentBids`
 - Rook: `rookConfig`, `rookPhase`, bid winner, trump, called card, partner, drafts
+- Canasta / Hand and Foot: `handFoot` (format and sides), `handFootParts` on each round
 
 A round is `{ round, scores, bids?, actuals?, comeback?, joinBonus?, hailMaryBonus?, rook* }`.
 

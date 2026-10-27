@@ -21,7 +21,7 @@ The production look is Warm Porch Ledger. It is not behind a flag. Home with a l
 
 ## Supported games
 
-The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math lives in that file. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
+The shelf is the game tiles in `public/assets/game-registry.js` (`startGame`). Scoring math for Canasta lives in `public/assets/hand-foot-logic.js`. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
 
 | Game | Wins | Length | What the app calculates | What a human enters |
 | --- | --- | --- | --- | --- |
@@ -30,14 +30,17 @@ The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math 
 | 818 | High score | 15 rounds: 8-7-6-5-4-3-2-1-2-3-4-5-6-7-8 | Tricks taken, plus 10 for an exact bid. Dealer may not bid the number that makes the table total equal the tricks. | Bid, then tricks |
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
+| Canasta | High score | 4 rounds | Clean × 500 + dirty × 300 + sevens × 1,500 (instead of the clean 500) + red 3s (100 each for 1–3, 200 each from 4 on) + going out 100 + card points − cards left. Rates live in `CANASTA_RULES`. | Clean, dirty, sevens, red 3s, going out, card points, cards left |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
 
 House notes already in the rules cards (`gameRulesText`):
 
 - Wizard does **not** block the dealer from making bids sum to the tricks. 818 does. Leave Wizard that way unless the porch asks.
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
+- Canasta is the shelf label. The saved game id is `Hand and Foot`.
+- Rook stays in code. The picker hides it unless the URL is `?demo&games=rook`. Saved Rook nights still open.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
-- Life Preserver needs 4 active players and is off for Rook and Beat the Heat.
+- Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Canasta.
 
 ## Core flows
 

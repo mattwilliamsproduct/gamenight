@@ -63,17 +63,20 @@ test('no demo param keeps the current Home tiles and logo', async () => {
   assert.ok(themeSlugs.includes('rook'), 'Rook stays on the default shelf');
   assert.equal(DUSK_TILE_SLUGS.rook, undefined, 'Rook is not in the dusk mapping');
   assert.doesNotMatch(duskCss, /art\/dusk\/rook\.webp/);
-  assert.deepEqual(Object.values(DUSK_TILE_SLUGS).sort(), themeSlugs.filter((slug) => slug !== 'rook').sort());
+  assert.deepEqual(
+    Object.values(DUSK_TILE_SLUGS).filter((slug) => slug !== 'canasta').sort(),
+    themeSlugs.filter((slug) => slug !== 'rook').sort()
+  );
   for (const slug of Object.values(DUSK_TILE_SLUGS)) {
     const file = `public/assets/art/dusk/${slug}.webp`;
     await access(join(root, file));
     assert.match(duskCss, new RegExp(`url\\("\\./art/dusk/${slug}\\.webp"\\)`));
   }
   assert.deepEqual(DUSK_SHEET_SLUGS, ['five-crowns', '818', 'wizard', 'flip7', 'beat-heat', 'canasta']);
-  assert.equal(DUSK_TILE_SLUGS.canasta, undefined, 'Canasta is sheet-only');
-  assert.doesNotMatch(duskCss, /art\/dusk\/canasta\.webp/);
+  assert.equal(DUSK_TILE_SLUGS.canasta, 'canasta');
+  assert.match(duskCss, /art\/dusk\/canasta\.webp/);
   assert.doesNotMatch(index, /startGame\('Canasta'/);
-  assert.doesNotMatch(index, /Hand and Foot/);
+  assert.match(index, /Hand and Foot/);
   for (const slug of DUSK_SHEET_SLUGS) {
     await access(join(root, `public/assets/art/dusk/${slug}.webp`));
   }

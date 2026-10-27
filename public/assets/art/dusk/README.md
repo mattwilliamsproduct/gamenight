@@ -11,7 +11,7 @@ v2 files live at `public/assets/art/dusk/<slug>.webp`. Replace in place for a la
 | Wizard | `wizard` | `wizard.webp` | Yes |
 | Flip 7 | `flip7` | `flip7.webp` | Yes |
 | Beat the Heat | `beat-heat` | `beat-heat.webp` | Yes |
-| Canasta | `canasta` | `canasta.webp` | No (comparison sheet only) |
+| Canasta | `canasta` | `canasta.webp` | Yes (dusk tile used in both art sets; a beach tile is a Matt taste call) |
 | Rook | — | — | Keeps the current thumb |
 
 Tile CSS uses `background-size: cover` and `background-position: 50% 55%`. Wizard uses `50% 46%` so the hat tip stays in the crop. Cropping the small lamp is fine. Do not letterbox.

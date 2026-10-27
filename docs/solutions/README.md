@@ -34,10 +34,12 @@ Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Pre
 
 Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport.
 
-Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus a Canasta sheet tile. Rook keeps the current beach thumb.
+Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus Canasta. Rook keeps the current beach thumb.
 
 Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — laptop Home columns stretch even; extra height goes into seats and game art, not padding. Recent nights stays full width. Phone stays Table, Start, nights.
 
 Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights podiums reuse Records ranking. Incomplete nights have no podium. Rook partners share a place from the stored totals.
 
 Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
+
+Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook is hidden unless `?demo&games=rook`.

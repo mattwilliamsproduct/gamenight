@@ -30,6 +30,10 @@ html.slice2-tv[data-bp-art="dusk"] .s2-art-heat {
   background-image: url("./art/dusk/beat-heat.webp");
 }
 
+html.slice2-tv[data-bp-art="dusk"] .s2-art-canasta {
+  background-image: url("./art/dusk/canasta.webp");
+}
+
 html.slice2-tv[data-bp-art="dusk"] .s2-game-copy {
   background: #fffdf8;
 }

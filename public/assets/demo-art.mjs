@@ -19,7 +19,8 @@ export const DUSK_TILE_SLUGS = {
   818: '818',
   wizard: 'wizard',
   flip7: 'flip7',
-  heat: 'beat-heat'
+  heat: 'beat-heat',
+  canasta: 'canasta'
 };
 
 export const DUSK_SHEET_SLUGS = [

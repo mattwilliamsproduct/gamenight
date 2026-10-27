@@ -337,6 +337,24 @@ html.slice2-tv .s2-nights-head {
   margin-bottom: 12px;
 }
 
+html.slice2-tv .s2-rules-picker {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-rules-select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0.4rem 0.7rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--s2-line);
+  background: var(--s2-card);
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
 html.slice2-tv .s2-panel h2 {
   font-size: clamp(1.35rem, 2vw, 1.8rem);
 }
@@ -597,6 +615,11 @@ html.slice2-tv .s2-art-wizard { background-image: url("../theme/game-card-wizard
 html.slice2-tv .s2-art-flip7 { background-image: url("../theme/game-card-flip7-thumb.jpg"); }
 html.slice2-tv .s2-art-heat { background-image: url("../theme/game-card-beat-heat-thumb.jpg"); }
 html.slice2-tv .s2-art-rook { background-image: url("../theme/game-card-rook-thumb.jpg"); }
+html.slice2-tv .s2-art-canasta {
+  background-image: url("../art/dusk/canasta.webp");
+  background-size: cover;
+  background-position: center;
+}
 
 html.slice2-tv .s2-game-copy {
   display: flex;

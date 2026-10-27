@@ -3,7 +3,7 @@
 ## What this product is
 
 Back Porch Games is the human scorekeeper for porch game night. People play the cards; the app tracks the table.
-Shelf: Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Rook. Hand and Foot may be in flight on another PR.
+Shelf: Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Canasta (saved as Hand and Foot). Rook stays in code and is hidden from the picker unless `?demo&games=rook`.
 Production host: https://cardknight.vercel.app (home-screen name is Back Porch; the repo is `gamenight`).
 
 ## Commands
