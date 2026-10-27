@@ -700,15 +700,22 @@ html.slice2-tv .s2-now-bid {
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now,
 html.slice2-tv #scorecard-capture td.scorecard-col-now {
-  width: 3.6rem;
-  min-width: 3.4rem;
+  width: 4.6rem;
   max-width: 5.6rem;
 }
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now {
   white-space: nowrap;
   line-height: 1.1;
-  letter-spacing: 0.04em !important;
+}
+
+@media (max-width: 767px) {
+  html.slice2-tv #scorecard-capture th.scorecard-col-now,
+  html.slice2-tv #scorecard-capture td.scorecard-col-now {
+    width: 3.5rem;
+    min-width: 3.3rem;
+    max-width: 4rem;
+  }
 }
 
 html.slice2-tv #scorecard-capture {
