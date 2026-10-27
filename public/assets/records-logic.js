@@ -512,7 +512,7 @@
     return `<div class="s2-segment" role="tablist" aria-label="Records">
       ${tab('slice2-show-fame', 'show-fame', 'Overview', pane === 'overview')}
       ${tab('slice2-show-shame', 'show-shame', 'Explore<span class="s2-tab-rest"> records</span>', pane === 'explore')}
-      ${tab('slice2-show-nights', 'show-nights', 'Past<span class="s2-tab-rest"> nights</span>', pane === 'nights')}
+      ${tab('slice2-show-nights', 'show-nights', '<span class="s2-tab-rest">Past </span>nights', pane === 'nights')}
     </div>`;
   }
 
