@@ -16,6 +16,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
 - Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
+- Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 
 ## Kills
 
@@ -43,3 +44,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Silently dropping retired seats from Records.
 - Exact bid chrome on Rook or any game that does not bid.
 - A Life Preserver wheel that paints helpful low-score slices red because they are negative.
+- A settings gear on the scorecard match header, or phone History sitting outside Actions.
