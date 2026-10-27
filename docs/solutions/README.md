@@ -31,3 +31,5 @@ Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Pre
 Standing trap: [rc1-records-restore.md](rc1-records-restore.md) — Records keeps the full book; Shame is not capped at 5, and completed nights do not show Resume.
 
 Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk WebP slugs match `game-card-<slug>-thumb.jpg` so a v2 can replace the files in place.
+
+Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — at 861px and up, Recent nights sits under Tonight's Table in the left column. Phone stays Table, Start, nights.

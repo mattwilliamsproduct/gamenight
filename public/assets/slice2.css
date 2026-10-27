@@ -297,6 +297,32 @@ html.slice2-tv .s2-home-grid {
   align-items: start;
 }
 
+html.slice2-tv .s2-home-table {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html.slice2-tv .s2-nights {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+html.slice2-tv .s2-home-start {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+html.slice2-tv .s2-home-start .s2-game-grid {
+  flex: 0 1 auto;
+}
+
+html.slice2-tv .s2-home-start .s2-startbar {
+  margin-top: auto;
+}
+
 html.slice2-tv .s2-panel {
   padding: 16px;
   min-width: 0;
@@ -542,6 +568,12 @@ html.slice2-tv .s2-night-list {
   gap: 8px;
 }
 
+html.slice2-tv .s2-nights .s2-night-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
 html.slice2-tv .s2-night {
   padding: 10px 12px;
   border-radius: 14px;
@@ -549,10 +581,41 @@ html.slice2-tv .s2-night {
   border: 1px solid var(--s2-line);
 }
 
+html.slice2-tv .s2-nights .s2-night {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 0.9fr);
+  align-items: baseline;
+  gap: 8px 12px;
+  padding: 8px 10px;
+}
+
 html.slice2-tv .s2-night strong {
   display: block;
   font-family: "Nunito Sans", sans-serif;
   color: var(--s2-ink);
+}
+
+html.slice2-tv .s2-nights .s2-night strong {
+  min-width: 0;
+}
+
+html.slice2-tv .s2-nights .s2-night-date {
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+html.slice2-tv .s2-nights .s2-night-who {
+  min-width: 0;
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── TV scoreboard ── */
@@ -1366,6 +1429,49 @@ html.slice2-tv .s2-rival {
   html.slice2-tv .s2-night-list,
   html.slice2-tv .s2-ledger-grid {
     grid-template-columns: 1fr;
+  }
+
+  html.slice2-tv .s2-home-table,
+  html.slice2-tv .s2-home-start,
+  html.slice2-tv .s2-nights {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  html.slice2-tv .s2-home-table { order: 1; }
+  html.slice2-tv .s2-home-start { order: 2; }
+  html.slice2-tv .s2-nights { order: 3; }
+
+  html.slice2-tv .s2-home-start {
+    display: block;
+  }
+
+  html.slice2-tv .s2-nights .s2-night {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 0;
+    padding: 10px 12px;
+  }
+
+  html.slice2-tv .s2-nights .s2-night strong {
+    flex: 1 0 100%;
+  }
+
+  html.slice2-tv .s2-nights .s2-night-who {
+    text-align: left;
+  }
+
+  html.slice2-tv .s2-nights .s2-night-date:not(:empty)::after {
+    content: " · ";
+  }
+
+  html.slice2-tv .s2-nights .s2-night-date,
+  html.slice2-tv .s2-nights .s2-night-who {
+    display: inline;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
   }
 
   html.slice2-tv .s2-game-grid {

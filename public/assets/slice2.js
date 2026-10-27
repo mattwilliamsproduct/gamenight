@@ -243,15 +243,16 @@
       const winner = (match.winners && match.winners[0]) || 'Tied';
       const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const status = incomplete ? 'Incomplete' : (winner ? winner : '');
+      const who = incomplete ? 'Incomplete' : (winner || '');
       return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
         <strong>${escapeHtml(label)}</strong>
-        <span>${escapeHtml(match.date || '')}${status ? ` · ${escapeHtml(status)}` : ''}</span>
+        <span class="s2-night-date">${escapeHtml(match.date || '')}</span>
+        <span class="s2-night-who">${escapeHtml(who)}</span>
       </button>`;
     }).join('');
     root.innerHTML = `${banner}
       <div class="s2-home-grid">
-        <section class="s2-panel" aria-label="Tonight's table">
+        <section class="s2-panel s2-home-table" aria-label="Tonight's table">
           <div class="s2-panel-head">
             <div>
               <h2>Tonight's Table · ${seated} Seated</h2>
@@ -266,7 +267,8 @@
             <button type="submit" class="s2-btn s2-btn-primary">Add Player</button>
           </form>
         </section>
-        <section class="s2-panel" aria-label="Start a new match">
+        ${nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : ''}
+        <section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
               <h2>Start a New Match</h2>
@@ -279,8 +281,7 @@
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game">Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>
-      </div>
-      ${nights ? `<section class="s2-nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : ''}`;
+      </div>`;
   }
 
   function paintBoard() {

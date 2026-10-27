@@ -51,3 +51,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A setback callout that clips the + so +10 reads as 10 or as help.
 - A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
 - Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
+- A dead block between Tonight's Table and Recent nights on laptop Home, or Recent nights sitting full-width under the two-column picker.

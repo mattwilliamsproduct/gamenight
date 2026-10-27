@@ -58,3 +58,4 @@ The table starts with a header and one example row. The example is the format. I
 | 2026-10-27 | demo-art-dusk | taste_ui. Raster dusk tiles at theme slugs, cover 50% 62%, chair mark from mark-2. | 2 | n/a | fallback | Gate C. Conservative. npm run check pass. Phone and laptop Home looked. Draft only. Do not undraft or merge. |
 | 2026-10-27 | demo-art-dusk | taste_ui. Dusk v2 rasters, cover 50% 55%, wizard 50% 46% for hat tip. | 2 | n/a | fallback | Gate B. Same draft. Do not undraft or merge. |
 | 2026-10-27 | demo-art-dusk | taste_ui. Dusk v2 rasters, cover 50% 55%, wizard 50% 46% for hat tip. | 2 | n/a | fallback | Gate C. Conservative. npm run check pass. Wizard hat tip clear at 375 and 1440. Draft only. Do not undraft or merge. |
+| 2026-10-27 | home-nights-col | taste_ui. Recent nights under Tonight's Table at 861px+. Compact game/date/winner rows. | 2 | n/a | fallback | Gate B. Same dusk draft. Do not undraft or merge. |
