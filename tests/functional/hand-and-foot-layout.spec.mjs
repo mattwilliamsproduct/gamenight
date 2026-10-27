@@ -59,7 +59,7 @@ async function entryProblems(page){
       if(parseFloat(getComputedStyle(document.querySelector('#score-entry-modal .score-entry-panel > .border-t button')).fontSize)<12) problems.push('footer font');
     });
     const labels=[...document.querySelectorAll('#score-entry-modal .hf-field .score-entry-meta-label')].map(el=>el.textContent.trim());
-    ['Clean','Dirty','Red 3s','Going out','Card points','Cards left'].forEach(label=>{
+    ['Clean','Dirty','Sevens','Red 3s','Going out','Card points','Cards left'].forEach(label=>{
       if(!labels.includes(label)) problems.push(`missing label ${label}`);
     });
     return problems;
@@ -78,7 +78,7 @@ async function activeRowProblems(page){
     if(!active||!keypad||!view||!panel) return ['missing active row, keypad, or list'];
     const hit=(a,b)=>a.width>0 && b.width>0 && a.x<b.right-0.5 && a.right>b.x+0.5 && a.y<b.bottom-0.5 && a.bottom>b.y+0.5;
     const fields=[...active.querySelectorAll('.hf-field, .hf-round')];
-    if(fields.filter(el=>el.classList.contains('hf-field')).length<6) problems.push('active row has fewer than 6 inputs');
+    if(fields.filter(el=>el.classList.contains('hf-field')).length<7) problems.push('active row has fewer than 7 inputs');
     fields.forEach(el=>{
       const r=el.getBoundingClientRect();
       const label=(el.querySelector('.score-entry-meta-label')?.textContent||'').trim()||'field';
@@ -201,7 +201,6 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     if(viewport.name==='phone'){
       await freshTable(page);
       await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'singles'});
-      await page.getByRole('button', {name:/Start Match/}).click();
       await openScoreEntry(page);
       const scroll=await page.evaluate(()=>{
         const scroller=document.getElementById('score-entry-rows');

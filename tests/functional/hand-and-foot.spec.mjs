@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {
   editFirstRoundCardsLeft,
   freshTable,
+  endMatch,
   playFourRounds,
   playRound,
   readGame,
@@ -57,7 +58,7 @@ test('a 2-player Hand and Foot match scores four rounds, survives reload, and la
   await expect(page.locator('#game-over-section')).toBeVisible();
   await expect(page.locator('#game-over-section')).toContainText('Match Complete');
 
-  await page.getByRole('button', {name:/End Match/}).click();
+  await endMatch(page);
   await expect(page.locator('#victory-names')).toContainText('Ann');
   const history=await readHistory(page);
   const match=history.find(item=>item.game==='Hand and Foot' && item.originalRoster?.includes('Ann'));
@@ -91,7 +92,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   await playRound(page, [['1','0','0','0','0','0'], ['0','0','0','0','10','0']]);
   await playRound(page, [['0','0','1','0','0','0'], ['0','0','0','0','0','0']]);
   await expect(page.locator('#game-over-section')).toBeVisible();
-  await page.getByRole('button', {name:/End Match/}).click();
+  await endMatch(page);
   await expect(page.locator('#victory-names')).toBeVisible();
   let history=await readHistory(page);
   expect(history.some(item=>item.game==='Hand and Foot' && item.handFoot?.format==='teams' && item.rounds.length===4)).toBe(true);
@@ -105,7 +106,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   game=await readGame(page);
   expect(Object.keys(game.rounds[0].scores).sort()).toEqual(['Ann','Bo','Cy','Dee']);
   expect(game.rounds).toHaveLength(4);
-  await page.getByRole('button', {name:/End Match/}).click();
+  await endMatch(page);
   await expect(page.locator('#victory-names')).toContainText('Ann');
 
   await freshTable(page);
@@ -125,7 +126,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   game=await readGame(page);
   expect(game.currentRound).toBe(5);
   await expect(page.locator('#game-over-section')).toBeVisible();
-  await page.getByRole('button', {name:/End Match/}).click();
+  await endMatch(page);
   history=await readHistory(page);
   const six=history.find(item=>item.originalRoster?.length===6 && item.game==='Hand and Foot');
   expect(six?.rounds).toHaveLength(4);
@@ -139,7 +140,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   game=await readGame(page);
   expect(Object.keys(game.rounds[3].scores).sort()).toEqual(['Ann','Bo','Cy','Dee','Eve','Fay']);
   expect(game.rounds).toHaveLength(4);
-  await page.getByRole('button', {name:/End Match/}).click();
+  await endMatch(page);
   await expect(page.locator('#victory-names')).toContainText('Ann');
   history=await readHistory(page);
   expect(history.filter(item=>item.game==='Hand and Foot' && item.handFoot?.format==='singles' && item.originalRoster?.length===6)).toHaveLength(1);

@@ -45,15 +45,14 @@ export async function freshTable(page){
 
 export async function seatPlayers(page, names){
   for(const name of names){
-    const field=page.locator('#slice2-add-name, #quick-add-player').first();
-    await field.fill(name);
-    await page.getByRole('button', {name:/^Add( Player)?$/}).click();
-    await expect(page.locator('.s2-seat-name, #lineup-list')).toContainText(name);
+    await page.locator('#slice2-add-name').fill(name);
+    await page.locator('#slice2-home button[type="submit"]').click();
+    await expect(page.locator('#slice2-home .s2-seat-name').filter({hasText:name})).toBeVisible();
   }
 }
 
 export async function openHandFootSetup(page){
-  const tile=page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"], button.bp-hand-foot').first();
+  const tile=page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]');
   await tile.click();
   const start=page.locator('#slice2-start-btn');
   if(await start.count()) await start.click();
@@ -159,6 +158,13 @@ export async function startHandFoot(page, {names, format}){
 export async function playFourRounds(page, kind){
   const sides=roundsFor(kind);
   for(let round=0; round<4; round++) await playRound(page, sides);
+}
+
+export async function endMatch(page){
+  await page.getByRole('button', {name:/End Match/}).click();
+  const confirm=page.locator('#end-match-confirm');
+  await expect(confirm).toBeVisible();
+  await confirm.click();
 }
 
 export async function editFirstRoundCardsLeft(page, cellId){
