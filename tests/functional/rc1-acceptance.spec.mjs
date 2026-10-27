@@ -115,7 +115,7 @@ for (const size of SIZES) {
       const afterEnter = await page.evaluate(() => Number(currentGame.totals.Megan) || 0);
       expect(afterEnter, `${size.name} Megan total after entering eight scores`).toBe(before + 5);
 
-      const visibleCell = page.locator('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input').first();
+      const visibleCell = page.locator('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input').locator('visible=true').first();
       if (await visibleCell.count()) {
         await visibleCell.click();
       } else {
