@@ -11,7 +11,10 @@
 
   let editing = false;
   let selected = 'Five Crowns';
-  let shamePane = false;
+  let recordsPane = 'overview';
+  let recordsGameFilter = '';
+  let recordsPlayerFilter = '';
+  const expandedNights = new Set();
   let wired = false;
 
   function state() {
@@ -342,115 +345,44 @@
   }
 
   function scoreText(value, unit) {
-    if (!finite(value)) return '—';
+    if (!finite(value)) return '-';
     return `${value} ${unit}`;
+  }
+
+  function recordsCompact() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
+  }
+
+  function setRecordsPane(pane) {
+    if (pane === 'explore' || pane === 'nights' || pane === 'overview') recordsPane = pane;
+    else recordsPane = 'overview';
+    paintRecords();
   }
 
   function paintRecords() {
     const view = document.getElementById('hall-of-fame-view');
     if (!view || typeof getHallOfFame !== 'function') return;
     const table = state();
-    const hidden = view.classList.contains('hidden');
-    if (!table.history.length) {
-      view.className = `s2-ledger${hidden ? ' hidden' : ''}`;
-      view.innerHTML = '<section class="s2-panel"><h2>Hall of Fame</h2><p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p><p class="s2-sub">Play a few nights to fill the ledger.</p></section>';
-      return;
+    if (window.BPGRecords && typeof BPGRecords.paint === 'function') {
+      BPGRecords.paint({
+        view,
+        table,
+        pane: recordsPane,
+        hall: table.history.length ? getHallOfFame() : null,
+        data: table.history.length ? getAllTimeRecords() : null,
+        scorebook: window.BPGScorebook,
+        configs,
+        getDisplayPlayers,
+        sortPlayersByTotal,
+        competitionPlaces,
+        escapeHtml,
+        getAvatarImg,
+        compact: recordsCompact(),
+        gameFilter: recordsGameFilter,
+        playerFilter: recordsPlayerFilter,
+        expandedNights
+      });
     }
-    const hall = getHallOfFame();
-    const data = getAllTimeRecords();
-    const wins = data.allTime?.mostWins?.[0];
-    const rate = data.allTime?.bestWinRate?.[0];
-    const streak = data.allTime?.longestWinningStreak;
-    const rateFallback = !rate && hall.Overall?.bestWinRatePlayer && hall.Overall.bestWinRatePlayer !== '-'
-      ? { player: hall.Overall.bestWinRatePlayer, value: hall.Overall.bestWinRate, label: 'Best win rate' }
-      : rate;
-    const podium = [
-      wins ? { kicker: 'Most wins', value: String(wins.value), name: wins.player, sub: 'porch titles' } : null,
-      rateFallback ? { kicker: 'Win rate', value: `${rateFallback.value}%`, name: rateFallback.player, sub: rateFallback.label || '' } : null,
-      streak ? { kicker: 'Win streak', value: `${streak.value}W`, name: streak.player, sub: streak.label || 'in a row' } : null
-    ].filter(Boolean);
-    const shelf = [
-      ['Five Crowns', 'Five Crowns', 'pts', 'five'],
-      ['818', '818', 'pts', '818'],
-      ['Wizard', 'Wizard', 'pts', 'wizard'],
-      ['Flip 7 Vengeance', 'Flip 7', 'pts', 'flip7'],
-      ['Beat the Heat', 'Beat the Heat', 'heat', 'heat'],
-      ['Rook', 'Rook', 'pts', 'rook']
-    ];
-    const rows = shelf.map(([id, title, unit, art]) => {
-      const card = hall[id] || {};
-      const round = data.games?.[id]?.bestRound;
-      const coverage = hall._coverage?.[id];
-      const noUnassisted = !!(coverage && coverage.assisted > 0 && coverage.unassisted === 0);
-      const matchValue = noUnassisted ? '—' : scoreText(card.bestScore, unit);
-      const matchWho = noUnassisted ? 'No unassisted matches yet' : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : '');
-      const roundValue = round && finite(round.value) ? scoreText(round.value, unit) : '—';
-      const roundWho = round?.player || '';
-      return `<div class="s2-ledger-row">
-        <div class="s2-ledger-game"><span class="s2-ledger-mark s2-art-${art}" aria-hidden="true"></span><div><strong>${escapeHtml(title)}</strong></div></div>
-        <div class="s2-ledger-stat"><strong>${escapeHtml(matchValue)}</strong><small>${escapeHtml(matchWho)}</small></div>
-        <div class="s2-ledger-stat"><strong>${escapeHtml(roundValue)}</strong><small>${escapeHtml(roundWho)}</small></div>
-      </div>`;
-    }).join('');
-    const shameNames = new Set(['The Disaster Award', 'The Crash and Burn', 'The 818 Brick', 'The Meltdown', 'The Overconfident', 'The Invisible Man', 'The Slow Learner']);
-    const shame = (data.shameAwards || []).filter((award) => award.record && shameNames.has(award.name)).slice(0, 5).map((award) => {
-      const record = award.record;
-      const detail = typeof award.stat === 'function' ? award.stat(record) : (record.label || '');
-      return `<article class="s2-shame-card">
-        ${getAvatarImg(record.player || '', 'avatar-img')}
-        <div><b>${escapeHtml(award.name)}</b><p>${escapeHtml(detail)}</p><small>${escapeHtml(record.player || '')}</small></div>
-        <strong>${escapeHtml(finite(record.value) ? String(record.value) : '—')}</strong>
-      </article>`;
-    }).join('');
-    const rival = data.rivalries?.top?.[0];
-    const rivalText = rival
-      ? `${rival.a} vs ${rival.b} · ${rival.edgePlayer && rival.edgePlayer !== 'Even' ? `${rival.edgePlayer} leads ${Math.max(rival.aWins, rival.bWins)}–${Math.min(rival.aWins, rival.bWins)}` : 'Even'} · ${rival.together} nights`
-      : '';
-    const nightsHtml = table.history.map((match) => {
-      const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
-      const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const assisted = window.BPGScorebook && BPGScorebook.isAssistedMatch(match);
-      const bits = [match.date || ''];
-      if (incomplete) bits.push('Incomplete');
-      if (assisted) bits.push('Assisted');
-      const retired = (match.retired || []).filter(Boolean);
-      if (retired.length) bits.push(`Retired · ${retired.join(', ')}`);
-      return `<article class="s2-night"${assisted ? ' data-assisted-match="true"' : ''}>
-        <div>
-          <strong>${escapeHtml(label)}</strong>
-          <span>${escapeHtml(bits.filter(Boolean).join(' · '))}</span>
-        </div>
-        <div class="s2-night-actions">
-          <button type="button" class="s2-btn" data-s2-action="night-scorecard" data-s2-id="${escapeHtml(String(match.id || ''))}">Scorecard</button>
-          <button type="button" class="s2-btn" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
-        </div>
-      </article>`;
-    }).join('');
-    view.className = `s2-ledger${shamePane ? ' s2-pane-shame' : ''}${hidden ? ' hidden' : ''}`;
-    view.innerHTML = `<div class="s2-segment" role="tablist" aria-label="Records">
-        <button type="button" class="s2-btn${shamePane ? '' : ' is-on'}" id="slice2-show-fame" data-s2-action="show-fame">Hall of Fame</button>
-        <button type="button" class="s2-btn${shamePane ? ' is-on' : ''}" id="slice2-show-shame" data-s2-action="show-shame">Shame & Rivalries</button>
-      </div>
-      <div class="s2-ledger-grid">
-        <section class="s2-panel s2-fame-col">
-          <div class="s2-podium">${podium.map((card) => `<article><small>${escapeHtml(card.kicker)}</small><strong>${escapeHtml(card.value)}</strong><span>${escapeHtml(card.name)}</span><small>${escapeHtml(card.sub)}</small>${getAvatarImg(card.name, 'avatar-img')}</article>`).join('')}</div>
-          <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${table.history.length} nights</span></div>
-          <div class="s2-ledger-table">
-            <div class="s2-ledger-row is-head"><span>Game</span><span>Best match <small class="s2-unassisted-note">Unassisted matches only</small></span><span>Best round</span></div>
-            ${rows}
-          </div>
-        </section>
-        <section class="s2-panel s2-shame-col">
-          <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
-          ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
-          ${rivalText ? `<article class="s2-rival"><small class="s2-kicker">Head-to-head</small><p class="s2-sub">${escapeHtml(rivalText)}</p></article>` : ''}
-        </section>
-      </div>
-      <section class="s2-panel s2-nights-col">
-        <div class="s2-panel-head"><h2>Past nights</h2></div>
-        <p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p>
-        <div class="s2-night-list">${nightsHtml || '<p class="s2-sub">No nights saved yet.</p>'}</div>
-      </section>`;
     if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
   }
 
@@ -585,9 +517,15 @@
       openAuditLog();
     } else if (action === 'enter-round') {
       enterRound();
-    } else if (action === 'show-fame' || action === 'show-shame') {
-      shamePane = action === 'show-shame';
+    } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
+      setRecordsPane(action === 'show-shame' ? 'explore' : (action === 'show-nights' ? 'nights' : 'overview'));
+    } else if (action === 'night-expand') {
+      const id = String(target.dataset.s2Id || '');
+      if (id) expandedNights.add(id);
       paintRecords();
+    } else if (action === 'open-profile') {
+      const name = target.dataset.s2Player || '';
+      if (name && typeof openProfileDetail === 'function') openProfileDetail(name);
     }
   }
 
@@ -603,13 +541,30 @@
     field.value = '';
   }
 
+  function onChange(event) {
+    const target = event.target.closest?.('[data-s2-action]');
+    if (!target) return;
+    const action = target.dataset.s2Action;
+    if (action === 'filter-game') {
+      recordsGameFilter = target.value || '';
+      paintRecords();
+    } else if (action === 'filter-player') {
+      recordsPlayerFilter = target.value || '';
+      paintRecords();
+    }
+  }
+
   function wire() {
     if (wired) return;
     wired = true;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
+    document.addEventListener('change', onChange);
     if (window.matchMedia) {
-      window.matchMedia('(max-width: 760px)').addEventListener('change', () => paintNav());
+      window.matchMedia('(max-width: 760px)').addEventListener('change', () => {
+        paintNav();
+        paintRecords();
+      });
     }
   }
 
@@ -661,7 +616,7 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator };
+  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

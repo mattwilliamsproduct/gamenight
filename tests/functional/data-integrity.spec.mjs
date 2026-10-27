@@ -1514,10 +1514,11 @@ test('boot backfills a legacy match that has no id and no gameId', async ({page}
   expect(first.cloud).toBe(false);
   expect(first.porch).toBeNull();
   await page.evaluate(()=>showHistory());
-  const resume=page.locator('#hall-of-fame-view [data-s2-action="night-resume"]').first();
-  await expect(resume).toBeVisible();
-  const resumeId=await resume.getAttribute('data-s2-id');
-  expect(String(resumeId)).toBe(String(first.storedGameId));
+  const scorecard=page.locator('#hall-of-fame-view [data-s2-action="night-scorecard"]').first();
+  await expect(scorecard).toBeVisible();
+  const scorecardId=await scorecard.getAttribute('data-s2-id');
+  expect(String(scorecardId)).toBe(String(first.storedGameId));
+  await expect(page.locator('#hall-of-fame-view [data-s2-action="night-resume"]')).toHaveCount(0);
   await page.reload();
   await page.waitForFunction(gameId=>{
     const rows=JSON.parse(localStorage.getItem('gn_history')||'[]');
@@ -1633,7 +1634,8 @@ test('an incomplete history match stays out of the book until Resume Match is co
   await expect(heat).toContainText('Incomplete');
   await expect(heat.locator('[data-s2-action="night-resume"]')).toBeVisible();
   await expect(wizard).not.toContainText('Incomplete');
-  await expect(wizard.locator('[data-s2-action="night-resume"]')).toBeVisible();
+  await expect(wizard.locator('[data-s2-action="night-resume"]')).toHaveCount(0);
+  await expect(wizard.locator('[data-s2-action="night-scorecard"]')).toBeVisible();
   await heat.screenshot({path:`${ARTIFACTS}/slice1-incomplete-resume.png`});
   await heat.locator('[data-s2-action="night-resume"]').click();
   expect(messages).toEqual(['Save the game on the table and resume this match?']);

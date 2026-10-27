@@ -27,3 +27,5 @@ Standing trap: [rc1-local-only.md](rc1-local-only.md) — this release does not 
 Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves a live match; it does not end it.
 
 Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.
+
+Standing trap: [rc1-records-restore.md](rc1-records-restore.md) — Records keeps the full book; Shame is not capped at 5, and completed nights do not show Resume.

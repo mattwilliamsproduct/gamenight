@@ -772,6 +772,29 @@ function demo818Live(){
   });
 }
 
+function demoIncompleteNight(){
+  const roster=NAMES.slice(0,6);
+  const rounds=[
+    scoreRound(1,roster,[4,8,6,10,12,15]),
+    scoreRound(2,roster,[5,3,9,7,11,14])
+  ];
+  const match=finishedNight(1784566800000,'Five Crowns','10/21/2026',roster,rounds,{
+    completed:false,
+    winners:[],
+    currentRound:3,
+    maxRounds:11
+  });
+  return match;
+}
+
+function demoJointWinNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  return finishedNight(1784390400001,'Flip 7 Vengeance','10/18/2026',roster,[
+    scoreRound(1,roster,[20,20,8,11]),
+    scoreRound(2,roster,[15,15,12,9])
+  ]);
+}
+
 function demoHistory(){
   const fc6=NAMES.slice(0,6);
   const fc5=NAMES.slice(0,5);
@@ -869,7 +892,9 @@ function demoHistory(){
       wizardHand(4,NAMES.slice(0,7),{Megan:[2,2],Matt:[0,0],Cat:[0,1],Mike:[1,1],Vikki:[0,0],Duke:[1,0],Brick:[0,0]})
     ]),
     rookFinishedNight(),
-    recordsAssisted818Match()
+    recordsAssisted818Match(),
+    demoIncompleteNight(),
+    demoJointWinNight()
   ];
 }
 
@@ -946,6 +971,7 @@ export const QA_SURFACES = [
   {id:'actions',label:'Actions menu'},
   {id:'settings',label:'Settings'},
   {id:'profiles',label:'Profiles'},
+  {id:'records',label:'Records'},
   {id:'whammy',label:'WHAMMY'},
   {id:'nolie',label:'Nolie'},
   {id:'race',label:'Path replay'}
@@ -1197,9 +1223,15 @@ export const QA_SCENARIOS = {
   },
   'demo-seed':{
     label:'TEMP Demo Seed',
-    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, and a Rook night with contracts.',
+    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, one incomplete night, one joint win, and a Rook night with contracts.',
     defaultSurface:'home',
     data:demoTable(demoCrownsGame())
+  },
+  'records-book':{
+    label:'Records book',
+    description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match and a joint win.',
+    defaultSurface:'records',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
   },
   'demo-wizard':{
     label:'TEMP Demo Wizard',
