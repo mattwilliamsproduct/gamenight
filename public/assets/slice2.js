@@ -249,10 +249,11 @@
       </button>`;
     }).join('');
     const nights = table.history.slice(0, 4).map((match) => {
-      const winner = (match.winners && match.winners[0]) || 'Tied';
+      const winners = (match.winners || []).filter(Boolean);
+      const winner = winners[0] || 'Tied';
       const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const who = incomplete ? 'Incomplete' : (winner || '');
+      const who = incomplete ? 'Incomplete' : (winners.length > 1 ? 'Tied' : (winner || ''));
       return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
         <span class="s2-night-copy">
           <strong>${escapeHtml(label)}</strong>

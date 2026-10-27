@@ -715,35 +715,35 @@ html.slice2-tv .s2-podium-face {
 }
 
 html.slice2-tv .s2-podium-face + .s2-podium-face {
-  margin-left: -8px;
+  margin-left: -6px;
 }
 
 html.slice2-tv .s2-podium-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: 2px solid #fffdf9;
   box-shadow: 0 0 0 1px var(--s2-line);
 }
 
 html.slice2-tv .s2-podium-place[data-place="1"] .s2-podium-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
 }
 
 html.slice2-tv .s2-podium-badge {
   position: absolute;
-  right: -3px;
-  bottom: -3px;
-  min-width: 16px;
-  height: 16px;
+  right: -4px;
+  bottom: -4px;
+  min-width: 18px;
+  height: 18px;
   padding: 0 4px;
   border-radius: 999px;
   background: var(--s2-teal-deep);
   color: #fff;
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  line-height: 16px;
+  line-height: 18px;
   text-align: center;
 }
 
@@ -1573,6 +1573,15 @@ html.slice2-tv .s2-rival {
     display: block;
   }
 
+  html.slice2-tv .s2-seat-grid {
+    flex: 0 0 auto;
+    grid-auto-rows: minmax(44px, auto);
+  }
+
+  html.slice2-tv .s2-home-start .s2-game-art {
+    flex: 0 0 auto;
+  }
+
   html.slice2-tv .s2-nights .s2-night-list {
     grid-template-columns: 1fr;
   }
@@ -1632,6 +1641,29 @@ html.slice2-tv .s2-rival {
 }
 
 @media (max-width: 420px) {
+  html.slice2-tv .s2-seat {
+    grid-template-columns: 1.15rem 28px minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 4px 6px;
+  }
+
+  html.slice2-tv .s2-seat .avatar-img {
+    width: 28px;
+    height: 28px;
+  }
+
+  html.slice2-tv .s2-seat-who {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  html.slice2-tv .s2-seat-nudge,
+  html.slice2-tv .s2-seat-out,
+  html.slice2-tv .s2-seat-handle {
+    width: 28px;
+    height: 28px;
+  }
+
   html.slice2-tv #top-nav .bp-brand-copy {
     display: none;
   }
