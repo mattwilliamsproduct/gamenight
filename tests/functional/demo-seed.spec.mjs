@@ -222,9 +222,9 @@ test.describe('TEMP demo seed views', () => {
     await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#game-screen')).toHaveAttribute('data-game', 'Hand and Foot');
     await expect(page.locator('#slice2-board, #game-screen')).toContainText(/Canasta/);
-    await expect(page.locator('#scorecard-body, #game-screen')).toContainText('3220');
-    await expect(page.locator('#scorecard-body, #game-screen')).toContainText(/Megan|Matt/);
-    const live = await page.evaluate(() => JSON.parse(localStorage.getItem('gn_current') || 'null'));
+    await expect(page.locator('#scorecard-body')).toContainText('3695');
+    await expect(page.locator('#scorecard-body')).toContainText(/Megan|Matt/);
+    const live = await page.evaluate(() => (typeof window.BPGDemoLiveGame === 'function' && window.BPGDemoLiveGame()) || null);
     expect(live?.name).toBe('Hand and Foot');
     expect(live?.rounds).toHaveLength(2);
     expect(live?.handFoot?.sides).toHaveLength(2);

@@ -25,7 +25,10 @@ export async function silencePorchPrompts(page){
   page.on('dialog', dialog=>dialog.accept());
   await page.addInitScript(()=>{
     const wipe=new URLSearchParams(location.search).get('wipe')==='1';
-    if(wipe && sessionStorage.getItem('hf-cleared')!=='1') localStorage.clear();
+    if(wipe && sessionStorage.getItem('hf-cleared')!=='1'){
+      localStorage.clear();
+      sessionStorage.removeItem('gn_demo_games');
+    }
     const set=(key, value)=>{ if(localStorage.getItem(key)==null) localStorage.setItem(key, value); };
     set('gn_pref_lineupintro', '0');
     set('gn_pref_statmontage', '0');

@@ -23,6 +23,7 @@ test('Rook appears when the URL has ?demo&games=rook', () => {
   const ids = Games.visibleGames('?demo&games=rook').map((game) => game.id);
   assert.ok(ids.includes('Rook'));
   assert.ok(ids.includes('Hand and Foot'));
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), ''), false);
 });
 
 test('old Rook history still has a registry row and high-score win direction', () => {
