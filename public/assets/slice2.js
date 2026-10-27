@@ -515,38 +515,44 @@
   }
 
   function paintWoodBowl(context, cx, cy, radius) {
-    const wood = context.createRadialGradient(cx - radius * 0.18, cy - radius * 0.22, radius * 0.08, cx, cy, radius);
-    wood.addColorStop(0, '#7a5130');
-    wood.addColorStop(0.38, '#5a3820');
-    wood.addColorStop(0.72, '#3d2616');
-    wood.addColorStop(0.88, '#c4a36a');
-    wood.addColorStop(0.94, '#8a6a3c');
-    wood.addColorStop(1, '#2b1a10');
+    const wood = context.createRadialGradient(cx - radius * 0.22, cy - radius * 0.28, radius * 0.05, cx, cy, radius);
+    wood.addColorStop(0, '#8b5a33');
+    wood.addColorStop(0.32, '#6a4024');
+    wood.addColorStop(0.68, '#3f2716');
+    wood.addColorStop(0.86, '#d2b57a');
+    wood.addColorStop(0.91, '#9a7340');
+    wood.addColorStop(0.96, '#4a3018');
+    wood.addColorStop(1, '#1d120a');
     context.beginPath();
     context.arc(cx, cy, radius, 0, Math.PI * 2);
     context.fillStyle = wood;
     context.fill();
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 9; i++) {
       context.beginPath();
-      context.arc(cx, cy, radius * (0.805 + i * 0.026), 0, Math.PI * 2);
-      context.strokeStyle = `rgba(28, 16, 8, ${0.06 + i * 0.015})`;
-      context.lineWidth = 4;
+      context.arc(cx, cy, radius * (0.8 + i * 0.02), 0, Math.PI * 2);
+      context.strokeStyle = `rgba(20, 10, 4, ${0.05 + i * 0.012})`;
+      context.lineWidth = 3;
       context.stroke();
     }
+    context.beginPath();
+    context.arc(cx, cy, radius * 0.835, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+    context.lineWidth = 10;
+    context.stroke();
     [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((angle) => {
-      const r = radius * 0.905;
+      const r = radius * 0.91;
       const x = cx + Math.cos(angle) * r;
       const y = cy + Math.sin(angle) * r;
       context.save();
       context.translate(x, y);
       context.rotate(angle);
       context.beginPath();
-      context.moveTo(0, -7);
-      context.lineTo(5, 0);
-      context.lineTo(0, 7);
-      context.lineTo(-5, 0);
+      context.moveTo(0, -8);
+      context.lineTo(6, 0);
+      context.lineTo(0, 8);
+      context.lineTo(-6, 0);
       context.closePath();
-      context.fillStyle = '#f3ead8';
+      context.fillStyle = '#f7efe0';
       context.fill();
       context.restore();
     });
@@ -571,28 +577,35 @@
   }
 
   function paintTurret(context, cx, cy, hub) {
-    const metal = context.createRadialGradient(cx - hub * 0.25, cy - hub * 0.3, hub * 0.1, cx, cy, hub);
-    metal.addColorStop(0, '#d7c6a4');
-    metal.addColorStop(0.45, '#8f7a55');
-    metal.addColorStop(1, '#3d3222');
-    context.beginPath();
-    context.arc(cx, cy, hub, 0, Math.PI * 2);
-    context.fillStyle = metal;
-    context.fill();
-    context.beginPath();
-    context.arc(cx, cy, hub * 0.78, 0, Math.PI * 2);
-    context.fillStyle = '#1c2927';
-    context.fill();
     for (let i = 0; i < 3; i++) {
       const angle = -Math.PI / 2 + i * ((Math.PI * 2) / 3);
       context.beginPath();
-      context.moveTo(cx + Math.cos(angle) * hub * 0.2, cy + Math.sin(angle) * hub * 0.2);
-      context.lineTo(cx + Math.cos(angle) * hub * 1.35, cy + Math.sin(angle) * hub * 1.35);
-      context.strokeStyle = 'rgba(215, 198, 164, 0.7)';
-      context.lineWidth = 7;
+      context.moveTo(cx + Math.cos(angle) * hub * 0.15, cy + Math.sin(angle) * hub * 0.15);
+      context.lineTo(cx + Math.cos(angle) * hub * 1.55, cy + Math.sin(angle) * hub * 1.55);
+      context.strokeStyle = 'rgba(40, 28, 16, 0.55)';
+      context.lineWidth = 16;
+      context.lineCap = 'round';
+      context.stroke();
+      context.beginPath();
+      context.moveTo(cx + Math.cos(angle) * hub * 0.15, cy + Math.sin(angle) * hub * 0.15);
+      context.lineTo(cx + Math.cos(angle) * hub * 1.52, cy + Math.sin(angle) * hub * 1.52);
+      context.strokeStyle = 'rgba(214, 196, 160, 0.92)';
+      context.lineWidth = 9;
       context.lineCap = 'round';
       context.stroke();
     }
+    const metal = context.createRadialGradient(cx - hub * 0.25, cy - hub * 0.3, hub * 0.1, cx, cy, hub * 1.05);
+    metal.addColorStop(0, '#efe2c6');
+    metal.addColorStop(0.4, '#b39968');
+    metal.addColorStop(1, '#3d3222');
+    context.beginPath();
+    context.arc(cx, cy, hub * 1.08, 0, Math.PI * 2);
+    context.fillStyle = metal;
+    context.fill();
+    context.beginPath();
+    context.arc(cx, cy, hub * 0.82, 0, Math.PI * 2);
+    context.fillStyle = '#14201e';
+    context.fill();
   }
 
   function paintWheel() {
