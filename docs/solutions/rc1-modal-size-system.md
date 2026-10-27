@@ -15,3 +15,20 @@ Classes: `bp-modal-panel`, `bp-modal-panel--form`, `bp-modal-panel--confirm`, pl
 The past-night `#scorecard-modal` is the content-heavy case. Sticky name column and header stay on that table. Esc and a Tab trap stay on the top open shell.
 
 Rook results stays a phone bottom sheet and does not opt into the wide panel.
+
+## Inventory (laptop 1024 unless noted)
+
+| Modal | Before | After |
+| --- | --- | --- |
+| Past-night scorecard | `max-w-5xl` (1024px, 71% at 1440) | `min(92vw, 1200px)`: 942px / 92% at 1024, 1200px / 83% at 1440, 359px / 96% at 375 |
+| Life Preserver wheel | leftover `min(96vw, 100dvh-8px)` | same leftover tokens, 874px square at 1440 |
+| Add Player | `max-w-md` ~448px | confirm 412px; suggestions stay visible |
+| Save & End | `max-w-md` ~448px | form 589px |
+| Audit log | `max-w-lg` ~512px | form 589px |
+| LP picker | `max-w-md` ~448px | form 589px |
+| Settings | `max-w-md` ~448px | form 40rem |
+| Rules / LP rules | `max-w-5xl` | wide 1200 |
+| Score entry | leftover 980px | wide token |
+| Dealer / retire / color | `max-w-sm` / `max-w-md` | confirm 28rem |
+| Victory / loser | `max-w-lg` | form 40rem |
+| Rook results | phone bottom sheet | unchanged |

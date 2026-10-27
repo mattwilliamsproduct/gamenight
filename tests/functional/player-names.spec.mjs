@@ -72,4 +72,9 @@ test('mid-game Add Player typing m only suggests Michelle', async ({page}) => {
   const names = await page.locator('#midgame-player-suggestions .player-suggest-option .player-name-label').allTextContents();
   expect(names.map((name) => name.trim())).toEqual(['Michelle']);
   expect(names.some((name) => name.includes(','))).toBe(false);
+  const option = page.locator('#midgame-player-suggestions .player-suggest-option').first();
+  await expect(option).toBeVisible();
+  const box = await option.boundingBox();
+  expect(box, 'Michelle suggestion should not be clipped').not.toBeNull();
+  expect(box.height).toBeGreaterThan(20);
 });
