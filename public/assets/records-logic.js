@@ -427,7 +427,12 @@
 
   function scoreLabel(value, unit) {
     if (!finite(value)) return '-';
+    if (unit === '%') return `${value}%`;
     return unit ? `${value} ${unit}` : String(value);
+  }
+
+  function formatStatValue(value, label) {
+    return scoreLabel(value, label && /\brate\b/i.test(label) ? '%' : '');
   }
 
   function escapeAttr(value) {
@@ -612,7 +617,7 @@
         <p>${esc(detail)}</p>
         <small>${esc(record.player || '')}</small>
       </div>
-      <strong>${esc(finite(record.value) ? String(record.value) : '-')}</strong>
+      <strong>${esc(formatStatValue(record.value, award.name))}</strong>
     </article>`;
   }
 
@@ -672,7 +677,7 @@
     return `<div class="s2-book-row">
       <span>${esc(label)}${noteHtml}</span>
       <span class="s2-book-who">${esc(names)}${extra ? ` · ${esc(extra)}` : ''}${record.date ? ` · ${esc(record.date)}` : ''}</span>
-      <strong>${esc(scoreLabel(record.value))}</strong>
+      <strong>${esc(formatStatValue(record.value, label))}</strong>
     </div>`;
   }
 
@@ -963,6 +968,8 @@
     winRateEligible,
     formatWinRate,
     formatWinRateDenom,
+    formatStatValue,
+    scoreLabel,
     rankWinRates,
     formatTiedNames,
     keepBestWithTies,

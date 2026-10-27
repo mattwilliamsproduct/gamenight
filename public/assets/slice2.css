@@ -2594,6 +2594,10 @@ html.slice2-tv .s2-night-day {
     grid-column: 1 / -1;
   }
 
+  html.slice2-tv .s2-night-standings {
+    max-width: 26rem;
+  }
+
   html.slice2-tv #hall-of-fame-view .player-name-label,
   html.slice2-tv #hall-of-fame-view .s2-player-link .player-name-label,
   html.slice2-tv #hall-of-fame-view .s2-night-finish .player-name-label,

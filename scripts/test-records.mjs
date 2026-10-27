@@ -153,6 +153,13 @@ test('comeback stats stay off without stored round.comeback data', () => {
   assert.equal(Records.shouldShowComebackStats([{rounds: [{comeback: {Matt: 8}}]}]), true);
 });
 
+test('exact-bid rates print a percent sign', () => {
+  assert.equal(Records.formatStatValue(100, 'Best career exact-bid rate'), '100%');
+  assert.equal(Records.formatStatValue(67, 'Best single-match exact rate'), '67%');
+  assert.equal(Records.formatStatValue(4, 'Most exact bids · Wizard'), '4');
+  assert.equal(Records.scoreLabel(100, '%'), '100%');
+});
+
 test('818 Brick is retired as a primary Shame label', () => {
   const brick = Records.SHAME_CATALOG.find((row) => row.oldName === 'The 818 Brick');
   assert.ok(brick);
