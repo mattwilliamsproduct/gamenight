@@ -105,15 +105,19 @@ for (const size of proposedSizes) {
     const dialog = page.locator('#wheel-modal .life-preserver-dialog');
     await dialog.screenshot({path: `${OUT}/${size.name}-${item.id}-pre.png`});
     await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-${item.id}-pre.png`});
-    if (size.name === '390' || size.name === '1440') {
-      await page.emulateMedia({reducedMotion: 'reduce'});
-      await page.locator('#btn-spin').click();
-      await page.locator('#wheel-result').waitFor({state: 'visible', timeout: 4000});
-      const post = await page.evaluate(() => BPGSlice2.wheelLabelReport());
-      measures.push({size: size.name, case: item.id, phase: 'reveal', ...post});
-      await dialog.screenshot({path: `${OUT}/${size.name}-${item.id}-reveal.png`});
-      await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-${item.id}-reveal.png`});
-    }
+    await page.emulateMedia({reducedMotion: 'reduce'});
+    await page.locator('#btn-spin').click();
+    await page.locator('#wheel-result').waitFor({state: 'visible', timeout: 4000});
+    await page.evaluate(() => document.getElementById('wheel-result')?.classList.add('hidden'));
+    const landed = await page.evaluate(() => BPGSlice2.wheelLabelReport());
+    measures.push({size: size.name, case: item.id, phase: 'landed', ...landed});
+    await dialog.screenshot({path: `${OUT}/${size.name}-${item.id}-landed.png`});
+    await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-${item.id}-landed.png`});
+    await page.evaluate(() => document.getElementById('wheel-result')?.classList.remove('hidden'));
+    const reveal = await page.evaluate(() => BPGSlice2.wheelLabelReport());
+    measures.push({size: size.name, case: item.id, phase: 'reveal', ...reveal});
+    await dialog.screenshot({path: `${OUT}/${size.name}-${item.id}-reveal.png`});
+    await dialog.screenshot({path: `/opt/cursor/artifacts/screenshots/${size.name}-${item.id}-reveal.png`});
     await page.close();
   }
 }

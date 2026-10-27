@@ -542,6 +542,16 @@
     noChange: 0.10,
     smallSetback: 0.15
   });
+  const PROPOSED_HELP_FRACTIONS = Object.freeze({
+    reallyGood: Object.freeze([0.45, 0.55, 0.65]),
+    good: Object.freeze([0.20, 0.30, 0.40])
+  });
+  const PROPOSED_SETBACK_MAX = Object.freeze({
+    '818': 4,
+    Wizard: 15,
+    'Five Crowns': 10,
+    'Flip 7 Vengeance': 5
+  });
   const EQUAL_POCKET_OPTION = Object.freeze({
     pockets: 40,
     unit: 0.025,
@@ -1135,8 +1145,9 @@
     const modest = uniquePositive([step, step * 2]).filter((value) => value <= maxHelpful);
     if (role === 'setback') return [];
     if (gap < step) return modest.slice(0, 1);
-    const fractions = role === 'reallyGood' ? [0.45, 0.55, 0.65] : [0.20, 0.30, 0.40];
+    const fractions = PROPOSED_HELP_FRACTIONS[role] || PROPOSED_HELP_FRACTIONS.good;
     const capFrac = role === 'reallyGood' ? 0.65 : 0.40;
+    // Discrete pockets, equally likely inside the band, floored to the game increment.
     const values = uniquePositive(fractions.map((frac) => (
       floorToIncrement(Math.min(gap * frac, gap * capFrac, maxHelpful), step)
     ))).filter((value) => value >= step && value <= maxHelpful && value < gap);
@@ -1419,7 +1430,11 @@
       });
     }
 
-    const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
+    let maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
+    if (opts.table === 'proposed') {
+      const proposedSetback = PROPOSED_SETBACK_MAX[game.name] || (cfg.increment * 2);
+      maxSetback = Math.max(cfg.increment, floorToIncrement(proposedSetback, cfg.increment));
+    }
     let wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
     if (wheelHelp < cfg.increment) {
       return ineligible('no-legal-help', {
@@ -1553,6 +1568,8 @@
     scoringRounds,
     OUTCOME_TABLE,
     PROPOSED_OUTCOME_TABLE,
+    PROPOSED_HELP_FRACTIONS,
+    PROPOSED_SETBACK_MAX,
     COLORS,
     ROULETTE_UNIT,
     TARGET_POCKETS,

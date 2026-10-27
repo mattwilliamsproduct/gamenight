@@ -1152,3 +1152,88 @@ test('in-slice label fonts grow with the wheel', () => {
   const largeFont = LP.labelLayout(pick(largeSlices), large).cssFont;
   assert.ok(largeFont > smallFont + 3, `rim font ${smallFont} -> ${largeFont}`);
 });
+
+test('default offer stays on the live 45/30/5/12/8 table', () => {
+  const live = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
+    roundCount: 9,
+    spread: 8,
+    currentRound: 10,
+    player: 'Duke'
+  });
+  assert.equal(live.eligible, true);
+  assert.equal(live.table, 'current');
+  const table = LP.describePocketTable(live.slices);
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+  const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(help - 0.80) < 1e-9, `live help ${help}`);
+  assert.ok(Math.abs(zero - 0.12) < 1e-9, `live zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.08) < 1e-9, `live bad ${bad}`);
+});
+
+test('proposed TEMP table matches 30/45/10/15, lands in the locked pocket, and stays inside labels', () => {
+  const proposed = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
+    roundCount: 9,
+    spread: 8,
+    currentRound: 10,
+    player: 'Duke',
+    extra: { table: 'proposed', pocketCount: 40 }
+  });
+  assert.equal(proposed.eligible, true);
+  assert.equal(proposed.table, 'proposed');
+  assert.equal(proposed.maxSetback, LP.PROPOSED_SETBACK_MAX['Five Crowns']);
+  const table = LP.describePocketTable(proposed.slices);
+  assert.ok(table.pockets >= 20 && table.pockets <= 40, `proposed pockets ${table.pockets}`);
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+  const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(help - 0.75) < 1e-9, `proposed help ${help}`);
+  assert.ok(Math.abs(zero - 0.10) < 1e-9, `proposed zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.15) < 1e-9, `proposed bad ${bad}`);
+  table.outcomes.forEach((outcome) => {
+    assert.ok(outcome.segments >= 1, `proposed ${outcome.label} missing pocket`);
+    assert.ok(
+      Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+      `proposed ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+    );
+  });
+  const gap = proposed.leaderGap;
+  const inc = proposed.scoreIncrement;
+  const floorTo = (value) => Math.floor(value / inc) * inc;
+  const expected = new Set([
+    ...LP.PROPOSED_HELP_FRACTIONS.good.map((frac) => -floorTo(Math.min(gap * frac, proposed.maxSafeAdjustment))),
+    ...LP.PROPOSED_HELP_FRACTIONS.reallyGood.map((frac) => -floorTo(Math.min(gap * frac, proposed.maxSafeAdjustment))),
+    0,
+    5,
+    10
+  ].filter((value) => value !== 0 || true));
+  const amounts = new Set(proposed.slices.map((slice) => Number(slice.adjustment)));
+  amounts.forEach((amount) => {
+    assert.ok(proposed.slices.some((slice) => Number(slice.adjustment) === amount));
+  });
+  [...expected].filter((value) => value !== 0 || amounts.has(0)).forEach((amount) => {
+    if (amount < 0 && Math.abs(amount) > proposed.maxSafeAdjustment) return;
+    if (amount > 0 && amount > proposed.maxSetback) return;
+    assert.ok(amounts.has(amount), `proposed missing pocket ${amount}`);
+  });
+  const slices = LP.attachSliceArcs(proposed.slices);
+  const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+  slices.forEach((slice, index) => {
+    const layout = LP.labelLayout(slice, geo);
+    assert.ok(layout.insideSegment, `proposed slice ${index} ${layout.text} left its pocket`);
+  });
+  const n = 20000;
+  const counts = { good: 0, zero: 0, bad: 0 };
+  const random = mulberry32(20261027);
+  for (let i = 0; i < n; i++) {
+    const pick = LP.pickWeightedSlice(slices, random);
+    counts[pick.kind === 'good' ? 'good' : pick.kind === 'bad' ? 'bad' : 'zero'] += 1;
+    const degrees = LP.landingDegreesForSlice(pick, random);
+    const angle = LP.wheelAngleFromDegrees(degrees);
+    const hit = slices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+    assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), `proposed landing ${LP.outcomeKey(pick)} -> ${hit && LP.outcomeKey(hit)}`);
+  }
+  assert.ok(Math.abs(counts.good / n - 0.30 - 0.45) < 0.02, `proposed sim help ${counts.good / n}`);
+  assert.ok(Math.abs(counts.zero / n - 0.10) < 0.02, `proposed sim zero ${counts.zero / n}`);
+  assert.ok(Math.abs(counts.bad / n - 0.15) < 0.02, `proposed sim bad ${counts.bad / n}`);
+});
