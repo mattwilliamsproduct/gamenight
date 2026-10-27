@@ -1016,7 +1016,7 @@ test('in-slice label boxes stay inside their roulette segments', () => {
       assert.equal(layout.text, LP.formatSignedPoints(slice.adjustment));
       assert.ok(layout.insidePie, `${item.label} slice ${index} ${layout.text} left the pie`);
       assert.ok(layout.insideSegment, `${item.label} slice ${index} ${layout.text} left its segment`);
-      assert.ok(layout.cssFont >= 10, `${item.label} ${layout.text} font ${layout.cssFont}`);
+      assert.ok(layout.cssFont >= 9, `${item.label} ${layout.text} font ${layout.cssFont}`);
     });
   }
 });

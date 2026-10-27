@@ -516,6 +516,7 @@
   }
 
   const ROULETTE_UNIT = 0.025;
+  const MIN_SEGMENT_FRAC = 0.04;
   const WHEEL_OUTER_FRAC = 0.96;
   const WHEEL_INNER_FRAC = 0.18;
 
@@ -526,7 +527,9 @@
   function segmentCountFor(weight) {
     const value = Number(weight) || 0;
     if (value <= 0) return 0;
-    return Math.max(1, Math.round(value / ROULETTE_UNIT));
+    let n = Math.max(1, Math.round(value / ROULETTE_UNIT));
+    while (n > 1 && value / n < MIN_SEGMENT_FRAC - 1e-9) n -= 1;
+    return n;
   }
 
   function mergeEqualOutcomes(slices) {
@@ -720,14 +723,14 @@
     const scale = canvasWidth / cssWidth;
     const chord = 2 * Math.sin(arc / 2) * midR;
     const radial = Math.max(outer - inner, 1);
-    const radialMode = chord < Math.max(40 * scale, signed.length * 18 * scale);
+    const radialMode = chord < Math.max(48 * scale, signed.length * 20 * scale);
     const chordCss = chord / scale;
     const radialCss = radial / scale;
-    const targetCss = Math.max(11, Math.min(cssWidth * 0.055, radialCss * 0.2, radialMode ? chordCss * 0.72 : chordCss * 0.42));
-    const cssFont = Math.max(10, Math.min(targetCss, radialMode ? chordCss * 0.78 : chordCss * 0.48));
+    const targetCss = Math.max(10, Math.min(cssWidth * 0.06, radialCss * 0.22, radialMode ? chordCss * 0.58 : chordCss * 0.36));
+    const cssFont = Math.max(9, Math.min(targetCss, radialMode ? chordCss * 0.62 : chordCss * 0.4));
     const canvasFont = cssFont * scale;
-    const textW = signed.length * canvasFont * 0.62;
-    const textH = canvasFont;
+    const textW = signed.length * canvasFont * 0.52;
+    const textH = canvasFont * 0.86;
     const x = cx + Math.cos(mid) * midR;
     const y = cy + Math.sin(mid) * midR;
     let rotation = 0;
@@ -1311,6 +1314,7 @@
     OUTCOME_TABLE,
     COLORS,
     ROULETTE_UNIT,
+    MIN_SEGMENT_FRAC,
     WHEEL_OUTER_FRAC,
     WHEEL_INNER_FRAC,
     sliceArcs,
