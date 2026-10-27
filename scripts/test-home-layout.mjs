@@ -12,6 +12,7 @@ test('laptop Home stretches equal columns and keeps Recent nights full width', a
   assert.match(js, /s2-home-grid">\$\{tableBlock\}\$\{startBlock\}<\/div>\$\{nightsBlock\}/);
   assert.doesNotMatch(js, /homeLayout/);
   assert.match(js, /s2-night-podium/);
+  assert.match(js, /s2-podium-faces[\s\S]*s2-podium-badge/);
   assert.doesNotMatch(js, /edit-seating/);
   assert.doesNotMatch(js, /Edit Seating/);
 

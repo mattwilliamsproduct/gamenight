@@ -25,6 +25,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
 - Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
+- Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
 
 ### Kills
 
@@ -58,6 +59,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
 - Edit Seating plus Earlier/Later when the Home list can reorder in place.
+- A second ranking function for Recent nights, or a podium on an Incomplete night.
 
 ## Prefer
 

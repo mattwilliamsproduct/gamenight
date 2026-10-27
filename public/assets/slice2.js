@@ -315,14 +315,19 @@
       scorebook: window.BPGScorebook
     });
     if (!podium || podium.incomplete || !podium.places.length) return '';
-    return `<span class="s2-night-podium" aria-label="Top three">
+    const spoken = podium.places.map((slot) => {
+      const names = slot.people.map((person) => person.name).join(' and ');
+      const rank = slot.place === 1 ? 'first' : slot.place === 2 ? 'second' : 'third';
+      return `${names} ${rank}`;
+    }).join(', ');
+    return `<span class="s2-night-podium" aria-label="Top three: ${escapeHtml(spoken)}">
       ${podium.places.map((slot) => `<span class="s2-podium-place" data-place="${slot.place}">
         <span class="s2-podium-faces">
           ${slot.people.map((person) => `<span class="s2-podium-face" title="${escapeHtml(person.name)}">
             ${getStreakAvatarHtml(person.name, 'avatar-img s2-podium-avatar')}
-            <span class="s2-podium-badge" aria-hidden="true">${slot.place}</span>
           </span>`).join('')}
         </span>
+        <span class="s2-podium-badge" aria-hidden="true">${slot.place}</span>
       </span>`).join('')}
     </span>`;
   }

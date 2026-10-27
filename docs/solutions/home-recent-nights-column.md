@@ -10,7 +10,7 @@ Seating is one player per row: seat number, avatar, name, dealer badge, up/down,
 
 Home reorder only writes the `players` lineup. It does not change `currentGame.originalRoster` or the live dealer rotation.
 
-Phone stays Table, then Start, then nights. Seat rows stay compact on phone.
+Phone stays Table, then Start, then nights. Seat rows stay compact on phone. Recent nights cards add a small podium. See [home-night-podium.md](home-night-podium.md).
 
 ## Measured (even stretch)
 

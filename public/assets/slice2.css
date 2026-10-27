@@ -674,9 +674,11 @@ html.slice2-tv .s2-nights .s2-night {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 10px;
+  padding: 12px 14px 14px;
   text-align: left;
   width: 100%;
+  overflow: visible;
   cursor: pointer;
 }
 
@@ -710,12 +712,15 @@ html.slice2-tv .s2-night-podium {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 10px 14px;
+  gap: 8px 16px;
+  padding-top: 2px;
 }
 
 html.slice2-tv .s2-podium-place {
+  position: relative;
   display: flex;
   align-items: flex-end;
+  padding: 0 6px 4px 0;
 }
 
 html.slice2-tv .s2-podium-faces {
@@ -726,38 +731,42 @@ html.slice2-tv .s2-podium-faces {
 html.slice2-tv .s2-podium-face {
   position: relative;
   display: inline-flex;
+  z-index: 1;
 }
 
 html.slice2-tv .s2-podium-face + .s2-podium-face {
-  margin-left: -6px;
+  margin-left: -4px;
+  z-index: 2;
 }
 
 html.slice2-tv .s2-podium-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: 2px solid #fffdf9;
   box-shadow: 0 0 0 1px var(--s2-line);
 }
 
 html.slice2-tv .s2-podium-place[data-place="1"] .s2-podium-avatar {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
 }
 
 html.slice2-tv .s2-podium-badge {
   position: absolute;
-  right: -4px;
-  bottom: -4px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 2px solid #fffdf9;
   border-radius: 999px;
   background: var(--s2-teal-deep);
   color: #fff;
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  line-height: 18px;
+  line-height: 16px;
   text-align: center;
 }
 
@@ -1616,6 +1625,16 @@ html.slice2-tv .s2-rival {
 
   html.slice2-tv .s2-nights .s2-night-list {
     grid-template-columns: 1fr;
+  }
+
+  html.slice2-tv .s2-podium-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  html.slice2-tv .s2-podium-place[data-place="1"] .s2-podium-avatar {
+    width: 36px;
+    height: 36px;
   }
 
   html.slice2-tv .s2-game-grid {

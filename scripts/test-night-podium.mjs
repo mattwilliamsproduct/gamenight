@@ -147,6 +147,15 @@ test('incomplete nights have no podium', () => {
   assert.deepEqual(podium.places, []);
 });
 
+test('home nights podium fixture shows a tie and an incomplete night', async () => {
+  const {QA_SCENARIOS} = await import('../public/qa/fixtures.mjs');
+  const history = (QA_SCENARIOS['home-nights-podium'].data.history || []).slice(0, 4);
+  const incomplete = history.filter((match) => match.completed === false);
+  const ties = history.filter((match) => (match.winners || []).length > 1);
+  assert.ok(incomplete.length >= 1, 'first four nights should include Incomplete');
+  assert.ok(ties.length >= 1, 'first four nights should include a joint win');
+});
+
 test('Rook podium uses player totals so the winning partners share 1st', () => {
   const match = {
     game: 'Rook',

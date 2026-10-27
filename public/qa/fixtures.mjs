@@ -1227,6 +1227,12 @@ export const QA_SCENARIOS = {
     defaultSurface:'home',
     data:demoTable(demoCrownsGame())
   },
+  'home-nights-podium':{
+    label:'Home · Recent nights podium',
+    description:'Home Recent nights with an incomplete night, a joint win, and a Rook team finish so the podium and Incomplete label are visible.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,8),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
+  },
   'records-book':{
     label:'Records book',
     description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match and a joint win.',
