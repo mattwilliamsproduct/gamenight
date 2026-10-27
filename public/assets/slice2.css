@@ -259,6 +259,11 @@ html.slice2-tv .s2-board-actions .match-end-btn {
   font-weight: 800;
 }
 
+html.slice2-tv .s2-board-actions .match-end-btn {
+  background: transparent;
+  border-color: var(--s2-ink);
+}
+
 html.slice2-tv .s2-btn {
   appearance: none;
   border: 1.5px solid var(--s2-line);
@@ -554,16 +559,73 @@ html.slice2-tv .s2-night strong {
 html.slice2-tv #slice2-board-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   width: min(1440px, 100%);
   margin: 0 auto 8px;
   padding: 10px 4px 0;
 }
 
+html.slice2-tv .s2-board-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+html.slice2-tv .s2-table-btn {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--s2-muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+html.slice2-tv .s2-table-btn:hover,
+html.slice2-tv .s2-table-btn:focus-visible {
+  color: var(--s2-ink);
+  background: var(--s2-card);
+  border-color: var(--s2-line);
+}
+
 html.slice2-tv .s2-board-copy {
   min-width: 0;
   flex: 1 1 auto;
+}
+
+html.slice2-tv #slice2-lp-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+html.slice2-tv #slice2-lp-wrap[hidden] {
+  display: none !important;
+}
+
+html.slice2-tv #slice2-lp-explain {
+  margin: 0;
+  max-width: 16rem;
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+html.slice2-tv #slice2-lp-explain[hidden] {
+  display: none !important;
+}
+
+html.slice2-tv .s2-board-actions .match-end-btn {
+  background: transparent;
+  border: 1.5px solid var(--s2-ink);
+  color: var(--s2-ink);
 }
 
 html.slice2-tv #slice2-board-line {
@@ -1132,23 +1194,9 @@ html.slice2-tv .s2-rival {
   }
 
   html.slice2-tv .s2-banner,
-  html.slice2-tv .s2-startbar,
-  html.slice2-tv #slice2-board-bar {
+  html.slice2-tv .s2-startbar {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  html.slice2-tv .s2-board-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  html.slice2-tv .s2-board-actions .active-match-actions {
-    grid-column: 1 / -1;
-  }
-
-  html.slice2-tv #slice2-enter-btn {
-    grid-column: 1 / -1;
   }
 
   html.slice2-tv #scorecard-capture td.scorecard-col-player,
@@ -1278,6 +1326,84 @@ html.slice2-tv button.scoreboard-rank-badge {
 
   html.slice2-tv .s2-game-copy strong {
     font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 767px) {
+  html.slice2-tv #slice2-board-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  html.slice2-tv .s2-board-identity {
+    align-items: center;
+    gap: 8px;
+  }
+
+  html.slice2-tv .s2-table-btn {
+    min-height: 40px;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.9rem;
+    color: var(--s2-ink);
+    background: var(--s2-card);
+    border-color: var(--s2-line);
+  }
+
+  html.slice2-tv #slice2-board-line {
+    font-size: 0.88rem;
+  }
+
+  html.slice2-tv .s2-board-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  html.slice2-tv #slice2-enter-btn {
+    flex: 1 1 100%;
+    order: -1;
+    min-height: 48px;
+    font-size: 1.05rem;
+  }
+
+  html.slice2-tv .s2-board-actions .active-match-actions {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+  }
+
+  html.slice2-tv #slice2-lp-wrap {
+    flex: 1 1 auto;
+  }
+
+  html.slice2-tv #slice2-lp-btn {
+    min-height: 40px;
+    font-size: 0.85rem;
+  }
+
+  html.slice2-tv #slice2-lp-explain,
+  html.slice2-tv #slice2-history-btn {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  html.slice2-tv .s2-table-btn {
+    min-height: 36px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  html.slice2-tv .s2-board-actions #actions-btn,
+  html.slice2-tv .s2-board-actions .match-end-btn,
+  html.slice2-tv .s2-board-actions .s2-btn {
+    min-height: 40px;
+    font-size: 0.9rem;
+  }
+
+  html.slice2-tv #slice2-enter-btn {
+    min-height: 44px;
   }
 }
 

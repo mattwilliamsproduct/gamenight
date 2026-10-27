@@ -19,6 +19,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
 - When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
 - Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
+- Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
 
 ### Kills
 
@@ -44,6 +45,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A browser `alert()` for score-entry or Restore errors.
 - Silently dropping retired seats from Records.
 - Exact bid chrome on Rook or any game that does not bid.
+- A Life Preserver wheel that paints helpful low-score slices red because they are negative.
 
 ## Prefer
 

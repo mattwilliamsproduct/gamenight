@@ -988,8 +988,8 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   await expect(page.locator('#game-screen:not(.hidden)')).toBeVisible();
   expect(await page.locator('#sudden-death-modal').count(),'the removed tiebreaker UI should not exist').toBe(0);
 
-  page.once('dialog',dialog=>dialog.accept());
   await page.getByRole('button',{name:'Save & End',exact:true}).click();
+  await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#victory-names')).toContainText('Alex');
   await expect(page.locator('#victory-names')).toContainText('Blair');

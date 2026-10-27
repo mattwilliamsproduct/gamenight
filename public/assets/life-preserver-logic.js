@@ -252,11 +252,18 @@
     const rangeMax = adjustments.length
       ? Math.max(...adjustments)
       : Math.max(sign * maxSafe, (-sign) * (Number(offer.maxSetback) || 0), 0);
-    const wheelLine = `${player} is ${leaderGap} behind 1st. Spin range ${formatSignedPoints(rangeMin)} to ${formatSignedPoints(rangeMax)}.`;
+    const bestAdj = sign * maxSafe;
+    const worstAdj = adjustments.length
+      ? (winLow ? Math.max(...adjustments) : Math.min(...adjustments.filter((value) => value < 0), rangeMin))
+      : (-sign) * (Number(offer.maxSetback) || 0);
+    const worstShown = adjustments.length
+      ? (sign > 0 ? Math.min(...adjustments) : Math.max(...adjustments))
+      : worstAdj;
+    const wheelLine = `${player} is ${leaderGap} behind 1st. Best: ${formatSignedPoints(bestAdj)} · Worst: ${formatSignedPoints(worstShown)}.`;
     const bullets = [];
 
-    if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points.`);
-    else bullets.push(`${gameName} scores high, so a good spin adds points.`);
+    if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points. Best: ${formatSignedPoints(bestAdj)} · Worst: ${formatSignedPoints(worstShown)}.`);
+    else bullets.push(`${gameName} scores high, so a good spin adds points. Best: ${formatSignedPoints(bestAdj)} · Worst: ${formatSignedPoints(worstShown)}.`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
       bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
@@ -267,13 +274,13 @@
     }
 
     if (binding === 'rank') {
-      bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
+      bullets.push(`Best is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
-      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
+      bullets.push(`Best is ${bestShort} — ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
     } else if (binding === 'rescue') {
-      bullets.push(`The biggest help is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
+      bullets.push(`Best is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
-      bullets.push(`The biggest help is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
+      bullets.push(`Best is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
     }
 
     const lesser = [...new Set((offer.slices || [])
@@ -284,7 +291,7 @@
       .filter(magnitude => magnitude !== maxSafe)
       .map(magnitude => formatSignedPoints(sign * magnitude));
     if (lesser.length) {
-      bullets.push(`The other helpful slices are smaller shares of that same number: ${joinEnglish(lesser)}.`);
+      bullets.push(`Most helpful slices are small (${joinEnglish(lesser.slice(0, 2))}); a few are larger shares of the same best.`);
     }
     const setbacks = [...new Set((offer.slices || [])
       .filter(slice => (Number(slice.adjustment) || 0) * sign < 0)
@@ -452,6 +459,7 @@
   }
 
   function wheelSliceKind(slice) {
+    if (slice.kind === 'good' || slice.kind === 'bad' || slice.kind === 'zero') return slice.kind;
     if (slice._wheelKind) return slice._wheelKind;
     if (!slice.adjustment) return 'zero';
     return slice._wheelBad ? 'bad' : 'good';
@@ -459,7 +467,31 @@
 
   function stripWheelMeta(slice) {
     const { _wheelBad, _wheelKind, ...rest } = slice;
-    return rest;
+    return {
+      ...rest,
+      kind: slice.kind || _wheelKind || wheelSliceKind(slice)
+    };
+  }
+
+  function sliceArcs(slices) {
+    const total = (slices || []).reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
+    let angle = -Math.PI / 2;
+    return (slices || []).map((slice) => {
+      const fraction = (Number(slice.weight) || 0) / total;
+      const arc = fraction * Math.PI * 2;
+      const start = angle;
+      const end = angle + arc;
+      angle = end;
+      return {
+        adjustment: Number(slice.adjustment) || 0,
+        weight: Number(slice.weight) || 0,
+        kind: wheelSliceKind(slice),
+        fraction,
+        start,
+        end,
+        arc
+      };
+    });
   }
 
   function alternateMagnitudes(slices) {
@@ -545,67 +577,67 @@
     return Math.max(increment, raw);
   }
 
-  function helpfulWeightFor(recoveryLoad) {
-    if (recoveryLoad >= 1) return 85;
-    if (recoveryLoad >= 0.55) return 75;
-    return 68;
+  function uniquePositive(values) {
+    return [...new Set(values.filter((value) => Number.isFinite(value) && value > 0))];
   }
 
-  function splitHelpfulWeights(helpfulWeight) {
-    const parts = [0.26, 0.22, 0.18, 0.21];
-    const weights = parts.map(part => Math.max(1, Math.round(helpfulWeight * part)));
-    weights.push(Math.max(1, helpfulWeight - weights.reduce((sum, weight) => sum + weight, 0)));
-    return weights;
+  function makeSlice(adjustment, kind, color) {
+    return {
+      label: formatPointLabel(adjustment),
+      color,
+      adjustment,
+      weight: 1,
+      kind
+    };
   }
 
-  function splitWeight(totalWeight) {
-    if (totalWeight <= 1) return [Math.max(0, totalWeight)];
-    const first = Math.ceil(totalWeight / 2);
-    return [first, totalWeight - first];
-  }
-
-  function buildSlices(maxHelpful, maxSetback, winLow, increment, recoveryLoad) {
+  function buildSlices(maxHelpful, maxSetback, winLow, increment) {
     const sign = helpfulSign(winLow);
-    const helpful = [0.25, 0.5, 0.5, 0.75, 1].map(percent => percentMagnitude(maxHelpful, percent, increment));
-    const setback = Math.max(increment, floorToIncrement(maxSetback, increment));
-    const smallSetback = Math.max(increment, floorToIncrement(setback / 2, increment));
-    const signedHelpful = helpful.map(magnitude => sign * magnitude);
-    const helpfulWeight = helpfulWeightFor(recoveryLoad);
-    const setbackWeight = recoveryLoad >= 1 ? 8 : 10;
-    const zeroWeight = Math.max(6, 100 - helpfulWeight - setbackWeight);
-    const helpfulWeights = splitHelpfulWeights(helpfulWeight);
-    const raw = [];
+    const maxH = Math.max(increment, floorToIncrement(maxHelpful, increment));
+    const small = increment;
+    const ten = floorToIncrement(10, increment);
+    const five = floorToIncrement(5, increment);
+    const smallPlus = uniquePositive([five, ten, small + increment]).find((value) => value > small && value <= maxH) || small;
 
-    splitWeight(setbackWeight).forEach((weight, index) => {
-      const magnitude = index === 0 && smallSetback !== setback ? smallSetback : setback;
-      const adjustment = -sign * magnitude;
-      raw.push({
-        label: formatPointLabel(adjustment),
-        color: index === 0 && smallSetback !== setback ? COLORS.badSoft : COLORS.badStrong,
-        adjustment,
-        weight,
-        _wheelKind: 'bad'
-      });
-    });
-    splitWeight(zeroWeight).forEach(weight => {
-      raw.push({
-        label: '0 Pts',
-        color: COLORS.zero,
-        adjustment: 0,
-        weight,
-        _wheelKind: 'zero'
-      });
-    });
-    const helpfulColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodMid, COLORS.goodStrong, COLORS.goodStrong];
-    signedHelpful.forEach((adjustment, index) => {
-      raw.push({
-        label: formatPointLabel(adjustment),
-        color: helpfulColors[index],
-        adjustment,
-        weight: helpfulWeights[index],
-        _wheelKind: 'good'
-      });
-    });
+    const mediums = uniquePositive([30, 40, 50, 60].map((value) => floorToIncrement(value, increment)))
+      .filter((value) => value > smallPlus && value < maxH);
+
+    const rawSetback = Math.max(increment, floorToIncrement(maxSetback, increment));
+    const badSmall = increment;
+    const badPlus = rawSetback > increment
+      ? Math.max(increment, Math.min(rawSetback, floorToIncrement(Math.min(10, rawSetback), increment) || increment))
+      : increment;
+
+    const raw = [];
+    const pushGood = (magnitude, color) => {
+      if (magnitude >= increment && magnitude <= maxH) raw.push(makeSlice(sign * magnitude, 'good', color));
+    };
+
+    // 12 small helpful slices: about 5 or 10, or the game increment when the cap is tight.
+    for (let i = 0; i < 12; i++) {
+      const magnitude = (i % 3 === 2 && smallPlus !== small) ? smallPlus : small;
+      pushGood(magnitude, magnitude === small ? COLORS.goodSoft : COLORS.goodMid);
+    }
+
+    mediums.slice(0, 3).forEach((magnitude) => pushGood(magnitude, COLORS.goodMid));
+    pushGood(maxH, COLORS.goodStrong);
+
+    raw.push(makeSlice(0, 'zero', COLORS.zero));
+    raw.push(makeSlice(0, 'zero', COLORS.zero));
+    raw.push(makeSlice(-sign * badSmall, 'bad', COLORS.badSoft));
+    if (badPlus !== badSmall) {
+      raw.push(makeSlice(-sign * badPlus, 'bad', COLORS.badStrong));
+      const badCount = raw.filter((slice) => slice.kind === 'bad').length;
+      if (badCount / raw.length > 0.10) raw.pop();
+    }
+
+    const good = raw.filter((slice) => slice.kind === 'good').length;
+    const total = raw.length;
+    if (total && good / total < 0.75) {
+      while (raw.filter((slice) => slice.kind === 'good').length / raw.length < 0.75) {
+        pushGood(small, COLORS.goodSoft);
+      }
+    }
     return arrangeWheelSlices(raw);
   }
 
@@ -918,7 +950,9 @@
     capLifePreserverAdjustment,
     rankWithScore,
     bestAllowedRankFor,
-    scoringRounds
+    scoringRounds,
+    sliceArcs,
+    wheelSliceKind
   };
 
   root.BPGLifePreserver = api;

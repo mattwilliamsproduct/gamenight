@@ -469,7 +469,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#scorecard-capture').screenshot({path:`${ARTIFACTS}/slice1-score-edit-15-to-3.png`});
   await page.locator('#actions-btn').click();
-  await page.getByRole('button',{name:'Round History / Audit Log'}).click();
+  await page.getByRole('button',{name:'Audit Log'}).click();
   await expect(page.locator('#audit-modal')).toBeVisible();
   await expect(page.locator('#audit-list')).toContainText('R1 Score Edited');
   await expect(page.locator('#audit-list')).toContainText('Matt: 15 -> 3');

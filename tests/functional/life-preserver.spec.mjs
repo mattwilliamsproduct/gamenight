@@ -37,3 +37,30 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   expect(table.Vikki.maxSafe).toBe(20);
   expect(table.Brick.maxSafe).toBe(20);
 });
+
+test('drawn Life Preserver angles match slice weights', async ({page}) => {
+  await openScenario(page, {scenario: 'five-crowns-preservers', surface: 'scorecard'});
+  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  const compared = await page.evaluate(() => {
+    const slices = getWheelSlices();
+    const total = slices.reduce((sum, slice) => sum + slice.weight, 0);
+    return slices.map((slice) => ({
+      weight: slice.weight,
+      kind: slice.kind,
+      expected: slice.weight / total,
+      drawn: (slice._end - slice._start) / (Math.PI * 2)
+    }));
+  });
+  expect(compared.length).toBeGreaterThanOrEqual(12);
+  compared.forEach((slice) => {
+    expect(Math.abs(slice.drawn - slice.expected)).toBeLessThan(0.0001);
+  });
+  const goods = compared.filter((slice) => slice.kind === 'good');
+  const bads = compared.filter((slice) => slice.kind === 'bad');
+  const goodWeight = goods.reduce((sum, slice) => sum + slice.weight, 0);
+  const badWeight = bads.reduce((sum, slice) => sum + slice.weight, 0);
+  const total = compared.reduce((sum, slice) => sum + slice.weight, 0);
+  expect(goodWeight / total).toBeGreaterThanOrEqual(0.75);
+  expect(badWeight / total).toBeLessThanOrEqual(0.10);
+});

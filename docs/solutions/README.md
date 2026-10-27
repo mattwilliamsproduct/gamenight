@@ -23,3 +23,7 @@ Standing trap: [rc1-one-skin.md](rc1-one-skin.md) — Warm Porch Ledger is the o
 Standing trap: [rc1-phone-p1.md](rc1-phone-p1.md) — one shared NAME-FIT size, Saved is not a nav slot, and Life Preserver header copy states the real spin range.
 
 Standing trap: [rc1-local-only.md](rc1-local-only.md) — this release does not call `/api/sync`; Redis stays an untouched backup.
+
+Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves a live match; it does not end it.
+
+Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.

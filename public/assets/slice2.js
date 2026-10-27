@@ -100,12 +100,41 @@
     return `Enter Round ${round} Scores`;
   }
 
-  function firstEligible() {
+  function eligibleLifePreserverPlayers() {
     const { currentGame } = state();
-    if (!currentGame) return null;
+    if (!currentGame) return [];
     const table = getActivePlayers(currentGame);
-    const over = isMatchOver(currentGame);
-    return table.find((player) => isHailMaryEligible(currentGame, player, table, { gameOver: over }) && !(currentGame.hailMaryUsed || []).includes(player)) || null;
+    if (isMatchOver(currentGame)) return [];
+    return table.filter((player) => isHailMaryEligible(currentGame, player, table, { gameOver: false }));
+  }
+
+  function firstEligible() {
+    return eligibleLifePreserverPlayers()[0] || null;
+  }
+
+  function andList(names) {
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+  }
+
+  function boardBarMarkup() {
+    return `<div class="s2-board-identity">
+        <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">← Table</button>
+        <div class="s2-board-copy">
+          <p id="slice2-board-line"></p>
+          <p id="slice2-score-legend"></p>
+          <p id="slice2-score-note"></p>
+        </div>
+      </div>
+      <div class="s2-board-actions">
+        <div id="slice2-lp-wrap" hidden>
+          <button type="button" class="s2-btn" id="slice2-lp-btn" data-s2-action="life-preserver">Life Preserver</button>
+          <p id="slice2-lp-explain"></p>
+        </div>
+        <button type="button" class="s2-btn" id="slice2-history-btn" data-s2-action="history">Audit Log</button>
+        <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
+      </div>`;
   }
 
   function paintNav() {
@@ -247,24 +276,18 @@
     const { currentGame } = state();
     if (!screen || !currentGame) return;
     let bar = document.getElementById('slice2-board-bar');
+    const cluster = document.querySelector('#game-screen .active-match-actions');
     if (!bar) {
       bar = document.createElement('div');
       bar.id = 'slice2-board-bar';
-      bar.innerHTML = `<div class="s2-board-copy">
-          <p id="slice2-board-line"></p>
-          <p id="slice2-score-legend"></p>
-          <p id="slice2-score-note"></p>
-        </div>
-        <div class="s2-board-actions">
-          <button type="button" class="s2-btn" id="slice2-lp-btn" data-s2-action="life-preserver">Life Preserver</button>
-          <button type="button" class="s2-btn" id="slice2-history-btn" data-s2-action="history">History</button>
-          <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
-        </div>`;
       screen.insertBefore(bar, screen.firstChild);
     }
-    const cluster = document.querySelector('#game-screen .active-match-actions');
+    if (!bar.querySelector('#slice2-table-btn')) {
+      bar.innerHTML = boardBarMarkup();
+    }
     const dest = bar.querySelector('.s2-board-actions');
-    if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, dest.firstChild);
+    const enter = document.getElementById('slice2-enter-btn');
+    if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, enter || null);
     const copy = bar.querySelector('.s2-board-copy');
     const line = document.getElementById('slice2-board-line');
     if (copy && line) {
@@ -278,8 +301,10 @@
     }
     parkSaveIndicator();
     const legend = document.getElementById('slice2-score-legend');
-    const enter = document.getElementById('slice2-enter-btn');
     const historyButton = document.getElementById('slice2-history-btn');
+    const lpWrap = document.getElementById('slice2-lp-wrap');
+    const lpBtn = document.getElementById('slice2-lp-btn');
+    const lpExplain = document.getElementById('slice2-lp-explain');
     if (line) line.textContent = boardLine(currentGame);
     if (legend) {
       const showExact = isBidTrickGame(currentGame);
@@ -294,7 +319,21 @@
     }
     if (historyButton) {
       const count = (currentGame.auditLog || []).length || (currentGame.rounds || []).length;
-      historyButton.textContent = count ? `History (${count})` : 'History';
+      historyButton.textContent = count ? `Audit Log (${count})` : 'Audit Log';
+    }
+    const eligible = eligibleLifePreserverPlayers();
+    if (lpWrap) lpWrap.hidden = eligible.length === 0;
+    if (lpBtn) {
+      lpBtn.hidden = eligible.length === 0;
+      lpBtn.textContent = eligible.length
+        ? `Life Preserver · ${eligible.length} eligible`
+        : 'Life Preserver';
+    }
+    if (lpExplain) {
+      lpExplain.hidden = eligible.length === 0;
+      lpExplain.textContent = eligible.length
+        ? `${andList(eligible)} can spin. One spin per player per match.`
+        : '';
     }
   }
 
@@ -445,14 +484,16 @@
     let angle = -Math.PI / 2;
     slices.forEach((slice) => {
       const arc = (slice.weight / total) * Math.PI * 2;
-      const kind = slice._wheelKind || (slice.adjustment > 0 ? 'good' : (slice.adjustment < 0 ? 'bad' : 'zero'));
+      const kind = (window.BPGLifePreserver && typeof BPGLifePreserver.wheelSliceKind === 'function')
+        ? BPGLifePreserver.wheelSliceKind(slice)
+        : (slice.kind || (slice.adjustment === 0 ? 'zero' : 'good'));
       context.beginPath();
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
-      context.fillStyle = kind === 'good' ? '#d7efe6' : (kind === 'bad' ? '#f8e0d8' : '#f6f1e6');
+      context.fillStyle = slice.color || (kind === 'good' ? '#34d399' : (kind === 'bad' ? '#dc2626' : '#c4b8ae'));
       context.fill();
-      context.strokeStyle = 'rgba(138, 106, 50, 0.72)';
+      context.strokeStyle = 'rgba(8, 87, 79, 0.35)';
       context.lineWidth = 2;
       context.beginPath();
       context.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
@@ -461,11 +502,11 @@
       const mid = angle + arc / 2;
       const radius = (inner + outer) / 2;
       const text = String(slice.label || '').replace(/\s*pts/ig, '').trim() || '0';
-      context.fillStyle = kind === 'bad' ? '#9a3412' : (kind === 'good' ? '#0a5c54' : '#5e584f');
-      context.font = `800 ${Math.max(13, Math.min(28, arc * 78))}px "Nunito Sans", sans-serif`;
+      context.fillStyle = kind === 'bad' ? '#fff7f4' : (kind === 'good' ? '#04332e' : '#3f3a36');
+      context.font = `800 ${Math.max(11, Math.min(22, arc * 64))}px "Nunito Sans", sans-serif`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      if (arc >= 0.11) context.fillText(text, cx + Math.cos(mid) * radius, cy + Math.sin(mid) * radius);
+      if (arc >= 0.18) context.fillText(text, cx + Math.cos(mid) * radius, cy + Math.sin(mid) * radius);
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
@@ -534,6 +575,8 @@
     } else if (action === 'night-resume') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof resumeMatch === 'function') resumeMatch(id);
+    } else if (action === 'table') {
+      if (typeof leaveMatchToTable === 'function') leaveMatchToTable();
     } else if (action === 'life-preserver') {
       const player = firstEligible();
       if (player) authorizeHailMary(player);

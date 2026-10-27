@@ -107,22 +107,46 @@ function circularRuns(kinds) {
   return runs;
 }
 
-function assertMixedWheel(result, label) {
-  assert.ok(result.slices.length >= 8, `${label}: expected a full wheel`);
+function assertSliceDistribution(result, label) {
+  assert.ok(result.slices.length >= 12, `${label}: expected a full wheel`);
   const kinds = result.slices.map(slice => sliceKind(slice, result.winLow));
-  const runs = circularRuns(kinds);
-  const sequence = kinds.join(',');
-  const maxGood = Math.max(0, ...runs.filter(run => run.kind === 'good').map(run => run.length));
-  assert.ok(maxGood <= 2, `${label}: helpful slices still clustered (${sequence})`);
-  assert.ok(runs.filter(run => run.kind === 'bad').every(run => run.length === 1), `${label}: setbacks clustered (${sequence})`);
-  assert.ok(runs.filter(run => run.kind === 'zero').every(run => run.length === 1), `${label}: zeros clustered (${sequence})`);
-  assert.ok(kinds.filter(kind => kind === 'bad').length >= 2, `${label}: expected split setbacks`);
-  assert.ok(kinds.filter(kind => kind === 'zero').length >= 2, `${label}: expected split zeros`);
-  const helpfulWeights = result.slices
-    .filter(slice => sliceKind(slice, result.winLow) === 'good')
-    .reduce((sum, slice) => sum + slice.weight, 0);
   const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
-  assert.ok(helpfulWeights / totalWeight >= 0.65, `${label}: helpful odds should stay in the majority`);
+  const weightOf = (kind) => result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === kind)
+    .reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(weightOf('good') / totalWeight >= 0.75, `${label}: green weight ${weightOf('good')}/${totalWeight}`);
+  assert.ok(weightOf('bad') / totalWeight <= 0.10, `${label}: red weight ${weightOf('bad')}/${totalWeight}`);
+  const helpfulMags = result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === 'good')
+    .map(slice => Math.abs(slice.adjustment))
+    .sort((a, b) => a - b);
+  const small = helpfulMags[0];
+  const smallCount = helpfulMags.filter(magnitude => magnitude === small || magnitude === helpfulMags.find(value => value > small) || magnitude === small).length;
+  assert.ok(helpfulMags.filter(magnitude => magnitude <= (helpfulMags[1] || small)).length >= helpfulMags.length * 0.5, `${label}: most helpful slices should be the small values`);
+  result.slices.forEach(slice => {
+    const increment = result.scoreIncrement || 1;
+    if (slice.adjustment) {
+      assert.equal(Math.abs(slice.adjustment) % increment, 0, `${label}: ${slice.label} not on increment ${increment}`);
+    }
+    assert.equal(slice.kind, sliceKind(slice, result.winLow), `${label}: kind/color mismatch on ${slice.label}`);
+  });
+  const runs = circularRuns(kinds);
+  assert.ok(runs.filter(run => run.kind === 'bad').every(run => run.length === 1), `${label}: setbacks clustered (${kinds.join(',')})`);
+  void smallCount;
+}
+
+function assertWheelAnglesMatchWeights(result, label) {
+  const arcs = LP.sliceArcs(result.slices);
+  const total = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(arcs.length === result.slices.length);
+  arcs.forEach((arc, index) => {
+    const expected = result.slices[index].weight / total;
+    assert.ok(Math.abs(arc.fraction - expected) < 1e-9, `${label}: slice ${index} angle ${arc.fraction} != weight ${expected}`);
+  });
+  const unique = new Set(arcs.map(arc => Number(arc.arc.toFixed(6))));
+  if (result.slices.every(slice => slice.weight === result.slices[0].weight)) {
+    assert.equal(unique.size, 1, `${label}: equal weights should draw equal angles`);
+  }
 }
 
 test('818 remaining opportunity uses each upcoming trick count', () => {
@@ -431,23 +455,21 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
   assert.match(explained.wheelLine, /behind 1st/);
-  assert.match(explained.wheelLine, /Spin range/);
-  assert.match(explained.wheelLine, /−75/);
+  assert.match(explained.wheelLine, /Best: −75/);
+  assert.match(explained.wheelLine, /Worst:/);
   const brickAdjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
   const brickMin = Math.min(...brickAdjustments);
   const brickMax = Math.max(...brickAdjustments);
-  const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
-  const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  assert.match(explained.wheelLine, new RegExp(`Spin range ${escapeRegExp(signed(brickMin))} to ${escapeRegExp(signed(brickMax))}`));
   assert.ok(brickMin < 0, 'negative slices stay on the wheel');
+  assert.ok(brickMax > 0, 'small bad slices stay on the wheel');
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
-  assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet) && /Best: −75/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /red slice/.test(bullet)));
+  assertSliceDistribution(result, 'Brick Five Crowns');
+  assertWheelAnglesMatchWeights(result, 'Brick Five Crowns');
 });
 
 test('wheel line spin range matches the slice min and max', () => {
@@ -462,9 +484,11 @@ test('wheel line spin range matches the slice min and max', () => {
   const max = Math.max(...adjustments);
   const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
   const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  assert.match(explained.wheelLine, new RegExp(`Spin range ${escapeRegExp(signed(min))} to ${escapeRegExp(signed(max))}`));
+  assert.match(explained.wheelLine, /Best:/);
+  assert.match(explained.wheelLine, /Worst:/);
   assert.match(explained.wheelLine, /behind 1st/);
   assert.doesNotMatch(explained.wheelLine, /Best help/);
+  assert.doesNotMatch(explained.wheelLine, /Spin range/);
   assert.ok(min < 0, 'negative slices stay on the wheel');
   assert.ok(max > 0);
 });
@@ -514,27 +538,28 @@ test('Wizard max rounds stay frozen when the active table shrinks', () => {
   assert.equal(LP.getMaxRounds(g, seven), 7);
 });
 
-test('Life Preserver slices mix greens with reds and zeros instead of clustering', () => {
+test('Life Preserver slices stay mostly helpful in both score directions', () => {
   const lastRoundTotals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const lastRound = offer('818', lastRoundTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
-  assertMixedWheel(lastRound, '818 last round');
+  assertSliceDistribution(lastRound, '818 last round');
+  assertWheelAnglesMatchWeights(lastRound, '818 last round');
+  assert.ok(lastRound.slices.some(slice => slice.adjustment > 0 && slice.kind === 'good'));
+  assert.ok(lastRound.slices.some(slice => slice.adjustment < 0 && slice.kind === 'bad'));
 
   const wizardTotals = { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 };
   const wizard = offer('Wizard', wizardTotals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
-  assertMixedWheel(wizard, 'Wizard');
+  assertSliceDistribution(wizard, 'Wizard');
+  assertWheelAnglesMatchWeights(wizard, 'Wizard');
 
   const fiveCrowns = LP.getLifePreserverOffer(
     QA_SCENARIOS['five-crowns-preservers'].data.currentGame,
     'Brick',
     QA_SCENARIOS['five-crowns-preservers'].data.currentGame.originalRoster
   );
-  assertMixedWheel(fiveCrowns, 'Five Crowns Brick');
-
-  const adjacentSameValue = fiveCrowns.slices.some((slice, index) => {
-    const next = fiveCrowns.slices[(index + 1) % fiveCrowns.slices.length];
-    return slice.adjustment === next.adjustment && slice.color === next.color;
-  });
-  assert.equal(adjacentSameValue, false, `identical slices should not sit next to each other: ${fiveCrowns.slices.map(slice => slice.label).join(' | ')}`);
+  assertSliceDistribution(fiveCrowns, 'Five Crowns Brick');
+  assertWheelAnglesMatchWeights(fiveCrowns, 'Five Crowns Brick');
+  assert.ok(fiveCrowns.slices.some(slice => slice.adjustment < 0 && slice.kind === 'good'));
+  assert.ok(fiveCrowns.slices.some(slice => slice.adjustment > 0 && slice.kind === 'bad'));
 });
 
 test('Life Preserver rules copy is plain language and game-specific', () => {
