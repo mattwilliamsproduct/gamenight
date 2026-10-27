@@ -14,38 +14,41 @@ On localhost or `*-mattwilliamsproducts-projects.vercel.app`:
 - `?demo&logo=dusk` — nav mark
 - Combine them. `art` / `logo` without `demo` does nothing.
 
-`scripts/test-demo-art.mjs` locks the no-param path.
+`scripts/test-demo-art.mjs` locks the no-param path and the six WebP slugs.
 
-## Drop-in rasters
+## Raster paths
 
-Matt is painting the six tiles. Put WebP at `public/assets/art/dusk/<slug>.webp`. The stand-ins are SVG until those files land. After they land, set `html.dataset.bpArtRaster = '1'` (or add the files and switch the CSS) so the tiles use cover-cropped rasters.
+v1 tiles live at `public/assets/art/dusk/<slug>.webp`. A tighter v2 replaces those files in place. Do not rename the slugs.
 
-Slugs: `five-crowns`, `wizard`, `818`, `flip-7`, `beat-the-heat`, `rook`.
+The attached v1 binaries did not mount in this environment. The committed WebPs reconstruct those six compositions so crop and slugs can be judged. Overwrite the same files with the original rasters or v2.
 
-## Motifs (from this repo, not invented box art)
+Slugs match `public/theme/game-card-<slug>-thumb.jpg`: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`, `rook`.
 
-- **Five Crowns** — five crown suits; rummy; 11 hands; low wins.
-- **Wizard** — Wizard card / hat; exact-bid tricks.
-- **818** — house 8-1-8 bid/trick race. This repo has no published 818 box. The stand-in is an hourglass of cards (wide-narrow-wide). No giant 818 numerals.
-- **Flip 7** — flip, bank, bust. One 7 card. The current flamingo is porch decor, not the game.
-- **Beat the Heat** — pepper heat; ends at 66. One chili.
-- **Rook** — call-your-partner Rook; bird / Rook card. A bird on the rail, not a chess piece.
+Tile CSS: `background-size: cover` and `background-position: 50% 62%`. Subjects sit in the lower middle. Cropping the lantern is fine. Do not letterbox.
+
+## Motifs
+
+- **Five Crowns** — five cards (star, heart, club, spade, diamond) plus a small crown.
+- **818** — three cards reading 8, 1, 8. The numerals are the subject, not a title baked over a beach.
+- **Wizard** — one hat, one card, one candle.
+- **Flip 7** — one 7 flipping off a deck.
+- **Beat the Heat** — one chili on a short card fan.
+- **Rook** — one bird on a deck, not a chess piece.
 
 ## Logo
 
-One option: a flat lantern mark (`public/assets/logo/dusk-mark.svg`) plus the existing Pacifico "Back Porch" wordmark. "Games" stays secondary. The mark uses three colors (`#073f3b`, `#f4efe6`, `#e76f51`) so it stays crisp at 32px. The full lockup is `public/assets/logo/dusk.svg`.
+On-brand pick is mark-2: a flat teal rocking chair plus a coral card. The hand-built SVG is `public/assets/logo/dusk-mark.svg`. The light variant for dark fields is `public/assets/logo/dusk-mark-light.svg`. The earlier lantern SVG stays at `public/assets/logo/dusk-mark-lantern.svg` for the compare sheet only. The lockup is `public/assets/logo/dusk.svg`: chair mark, Pacifico "Back Porch", small secondary "Games".
 
 Pacifico stays. It is the current nav face. A new display face would be a second taste call.
-
-Honest bar on the SVG stand-ins: they fix the “same beach” problem and drop the baked 818 numerals, but they are flat icons, not finished dusk paintings. Flip 7 / Wizard / Rook / Heat read at 1440. Five Crowns is weaker at 375. 818 is a card fan, not yet an 8-1-8. Do not treat these as the ship art. Wait for the painted WebPs.
 
 ## Kill criteria
 
 - A missing `?demo` changes tiles or the logo.
-- Baked-in title text on a tile.
+- Baked-in title text on a tile (818 numerals as the card subject are the motif, not a title overlay).
 - Six scenes that still look like the same beach.
 - A mark that turns to mud at 32px or 40px.
 - Edits to Life Preserver, the scorecard header, or Records files.
+- Renaming the dusk WebP slugs so a v2 cannot drop in.
 
 ## Density / NAME-FIT / gallery
 

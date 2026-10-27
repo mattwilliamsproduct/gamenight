@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {access, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import test from 'node:test';
 import {
   DEFAULT_LOGO_IMAGE,
   DEFAULT_TILE_IMAGES,
+  DUSK_TILE_SLUGS,
   applyDemoChrome,
   parseDemoChrome
 } from '../public/assets/demo-art.mjs';
@@ -46,6 +47,25 @@ test('no demo param keeps the current Home tiles and logo', async () => {
     assert.match(block, /\[data-bp-art="dusk"\]/, 'dusk tile image leaked outside the demo attr');
   });
   assert.match(duskCss, /\[data-bp-logo="dusk"\]/);
+  assert.match(duskCss, /background-size:\s*cover/);
+  assert.match(duskCss, /background-position:\s*50%\s*62%/);
+  assert.doesNotMatch(duskCss, /background-size:\s*contain/);
+  assert.doesNotMatch(duskCss, /background-size:\s*100%\s*100%/);
+
+  const themeSlugs = Object.values(DEFAULT_TILE_IMAGES).map((url) => {
+    const match = url.match(/game-card-([a-z0-9-]+)-thumb\.jpg$/);
+    assert.ok(match, `theme slug missing from ${url}`);
+    return match[1];
+  });
+  assert.deepEqual(Object.values(DUSK_TILE_SLUGS).sort(), [...themeSlugs].sort());
+  for (const slug of themeSlugs) {
+    const file = `public/assets/art/dusk/${slug}.webp`;
+    await access(join(root, file));
+    assert.match(duskCss, new RegExp(`url\\("\\./art/dusk/${slug}\\.webp"\\)`));
+  }
+  await access(join(root, 'public/assets/logo/dusk-mark.svg'));
+  await access(join(root, 'public/assets/logo/dusk-mark-light.svg'));
+  assert.match(duskCss, /url\("\.\/logo\/dusk-mark\.svg"\)/);
 });
 
 test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => {

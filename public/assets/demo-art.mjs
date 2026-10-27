@@ -18,8 +18,8 @@ export const DUSK_TILE_SLUGS = {
   five: 'five-crowns',
   818: '818',
   wizard: 'wizard',
-  flip7: 'flip-7',
-  heat: 'beat-the-heat',
+  flip7: 'flip7',
+  heat: 'beat-heat',
   rook: 'rook'
 };
 

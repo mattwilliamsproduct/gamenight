@@ -54,7 +54,7 @@ for (const size of SIZES) {
   }
 }
 
-await page.setViewportSize({width: 1100, height: 720});
+await page.setViewportSize({width: 1280, height: 980});
 await page.setContent(`<!doctype html>
 <html><head>
 <link rel="stylesheet" href="${LOCAL}/assets/fonts.css">
@@ -68,31 +68,39 @@ await page.setContent(`<!doctype html>
   .row { display: flex; align-items: flex-end; gap: 28px; margin-bottom: 28px; }
   figure { margin: 0; text-align: center; }
   figcaption { margin-top: 8px; font-size: 12px; font-weight: 700; }
-  .mark { background: #073f3b url("${LOCAL}/assets/logo/dusk-mark.svg") center / 100% 100% no-repeat; border-radius: 8px; }
+  .mark { background: #fffdf8 url("${LOCAL}/assets/logo/dusk-mark.svg") center / 78% 78% no-repeat; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(7,63,59,0.12); }
+  .mark-light { background: #073f3b url("${LOCAL}/assets/logo/dusk-mark-light.svg") center / 78% 78% no-repeat; border-radius: 8px; }
+  .lantern { background: #073f3b url("${LOCAL}/assets/logo/dusk-mark-lantern.svg") center / 100% 100% no-repeat; border-radius: 8px; }
   .s40 { width: 40px; height: 40px; border-radius: 10px; }
   .s180 { width: 180px; height: 180px; border-radius: 40px; }
   .s32 { width: 32px; height: 32px; border-radius: 8px; }
   .lockup { height: 48px; }
-  .photo { background: #073f3b url("${LOCAL}/theme/back-porch-mark.jpg") center / cover no-repeat; }
-  .teal .photo, .teal .mark { box-shadow: 0 0 0 1px rgba(244,239,230,0.25); }
+  .photo { background: #073f3b url("${LOCAL}/theme/back-porch-mark.jpg") center / cover no-repeat; border-radius: 8px; }
+  .teal .photo, .teal .lantern, .teal .mark-light { box-shadow: 0 0 0 1px rgba(244,239,230,0.25); }
 </style></head>
 <body>
 <div class="sheet">
   <section class="cream">
-    <h1>Dusk lantern on cream</h1>
+    <h1>Chair mark (pick) on cream</h1>
     <div class="row">
       <figure><div class="mark s40"></div><figcaption>40px nav</figcaption></figure>
       <figure><div class="mark s180"></div><figcaption>180px icon</figcaption></figure>
       <figure><div class="mark s32"></div><figcaption>32px icon</figcaption></figure>
     </div>
-    <figure><img class="lockup" src="${LOCAL}/assets/logo/dusk.svg" alt="Back Porch lockup"><figcaption>Lockup · Pacifico wordmark</figcaption></figure>
+    <h1>Earlier lantern SVG</h1>
+    <div class="row">
+      <figure><div class="lantern s40"></div><figcaption>40px</figcaption></figure>
+      <figure><div class="lantern s180"></div><figcaption>180px</figcaption></figure>
+      <figure><div class="lantern s32"></div><figcaption>32px</figcaption></figure>
+    </div>
+    <figure><img class="lockup" src="${LOCAL}/assets/logo/dusk.svg" alt="Back Porch lockup"><figcaption>Lockup · chair + Pacifico + Games</figcaption></figure>
   </section>
   <section class="teal">
-    <h1>Dusk lantern on teal</h1>
+    <h1>Chair light variant on teal</h1>
     <div class="row">
-      <figure><div class="mark s40"></div><figcaption>40px nav</figcaption></figure>
-      <figure><div class="mark s180"></div><figcaption>180px icon</figcaption></figure>
-      <figure><div class="mark s32"></div><figcaption>32px icon</figcaption></figure>
+      <figure><div class="mark-light s40"></div><figcaption>40px nav</figcaption></figure>
+      <figure><div class="mark-light s180"></div><figcaption>180px icon</figcaption></figure>
+      <figure><div class="mark-light s32"></div><figcaption>32px icon</figcaption></figure>
     </div>
     <h1 style="margin-top:24px">Current photo mark (control)</h1>
     <div class="row">
@@ -118,10 +126,10 @@ await writeFile(`${OUT}/compare-375.html`, `<!doctype html>
   img{width:100%;display:block}
   figcaption{padding:10px 12px;font-weight:800}
 </style>
-<h1>Home tiles 375 · current vs dusk</h1>
+<h1>Home 375 · current vs dusk</h1>
 <div class="row">
-  <figure><img src="tiles-current-375.png" alt="current"><figcaption>Current</figcaption></figure>
-  <figure><img src="tiles-art-dusk-375.png" alt="dusk"><figcaption>Dusk stand-ins</figcaption></figure>
+  <figure><img src="home-current-375.png" alt="current"><figcaption>Current</figcaption></figure>
+  <figure><img src="home-both-375.png" alt="dusk"><figcaption>Dusk art + chair logo</figcaption></figure>
 </div>`);
 await writeFile(`${OUT}/compare-1440.html`, `<!doctype html>
 <meta charset="utf-8">
@@ -134,17 +142,17 @@ await writeFile(`${OUT}/compare-1440.html`, `<!doctype html>
   img{width:100%;display:block}
   figcaption{padding:10px 12px;font-weight:800}
 </style>
-<h1>Home tiles 1440 · current vs dusk</h1>
+<h1>Home 1440 · current vs dusk</h1>
 <div class="row">
-  <figure><img src="tiles-current-1440.png" alt="current"><figcaption>Current</figcaption></figure>
-  <figure><img src="tiles-art-dusk-1440.png" alt="dusk"><figcaption>Dusk stand-ins</figcaption></figure>
+  <figure><img src="home-current-1440.png" alt="current"><figcaption>Current</figcaption></figure>
+  <figure><img src="home-both-1440.png" alt="dusk"><figcaption>Dusk art + chair logo</figcaption></figure>
 </div>`);
 
 const compare = await browser.newPage();
 await compare.setViewportSize({width: 1400, height: 900});
 await compare.goto(`file://${OUT}/compare-375.html`, {waitUntil: 'networkidle'});
 await compare.screenshot({path: `${OUT}/compare-375.png`, fullPage: true});
-await compare.setViewportSize({width: 1800, height: 900});
+await compare.setViewportSize({width: 1800, height: 1100});
 await compare.goto(`file://${OUT}/compare-1440.html`, {waitUntil: 'networkidle'});
 await compare.screenshot({path: `${OUT}/compare-1440.png`, fullPage: true});
 console.log(`${OUT}/compare-375.png`);

@@ -1,9 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="Back Porch lantern">
-  <rect width="32" height="32" rx="8" fill="#073f3b"/>
-  <path d="M16 3.4v2.6" stroke="#f4efe6" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M11.4 8.2 L16 6.2 L20.6 8.2 Z" fill="#f4efe6"/>
-  <path d="M11.2 8.8h9.6l1.1 2.2v11.2a2 2 0 0 1-2 2H12.1a2 2 0 0 1-2-2V11Z" fill="#f4efe6"/>
-  <rect x="12.4" y="12.6" width="7.2" height="8.4" rx="1" fill="#073f3b"/>
-  <path d="M16 13.8c1.2 1.4 1.8 2.5 1.8 3.6a1.8 1.8 0 1 1-3.6 0c0-1.1.6-2.2 1.8-3.6Z" fill="#e76f51"/>
-  <path d="M12.4 22.4h7.2" stroke="#073f3b" stroke-width="1.1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Back Porch rocking chair">
+  <g fill="none" stroke="#073f3b" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.8 7.6 L26.6 35.8"/>
+    <path d="M24.2 35.8 H47.4"/>
+    <path d="M26.6 35.8 L22.8 49"/>
+    <path d="M47.4 35.8 L45.6 49"/>
+    <path d="M11.2 48 Q18.4 57.4 30 51.2"/>
+    <path d="M35.6 51.2 Q47.4 57.4 55.8 48"/>
+  </g>
+  <rect x="29.2" y="19.2" width="13.4" height="16.6" rx="2.1" fill="#e76f51"/>
 </svg>
