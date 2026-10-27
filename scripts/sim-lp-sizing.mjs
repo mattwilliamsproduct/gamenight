@@ -164,6 +164,8 @@ function num(value) {
 
 const PLAYERS_FC = ['Ann', 'Bea', 'Cal', 'Dee', 'Duke'];
 const PLAYERS_818 = ['Ann', 'Bea', 'Cal', 'Dee', 'Cat'];
+const PLAYERS_WIZ = ['Ann', 'Bea', 'Cal', 'Dee', 'Pat'];
+const PLAYERS_FLIP = ['Ann', 'Bea', 'Cal', 'Dee', 'Pat'];
 
 const SCENARIOS = [
   {
@@ -274,6 +276,102 @@ const SCENARIOS = [
       retired: ['Dee']
     }),
     player: 'Duke'
+  },
+  {
+    id: 'fc-final',
+    title: 'Five Crowns final round · Duke still 50 behind',
+    game: makeGame({
+      name: 'Five Crowns',
+      players: PLAYERS_FC,
+      totals: { Ann: 40, Bea: 52, Cal: 61, Dee: 74, Duke: 90 },
+      roundCount: 10,
+      currentRound: 11
+    }),
+    player: 'Duke'
+  },
+  {
+    id: '818-final',
+    title: '818 final round · Cat last on the last 8-trick hand',
+    game: makeGame({
+      name: '818',
+      players: PLAYERS_818,
+      totals: { Ann: 168, Bea: 150, Cal: 132, Dee: 118, Cat: 84 },
+      roundCount: 14,
+      currentRound: 15
+    }),
+    player: 'Cat'
+  },
+  {
+    id: 'wiz-early',
+    title: 'Wizard early · Pat far back after 4',
+    game: makeGame({
+      name: 'Wizard',
+      players: PLAYERS_WIZ,
+      totals: { Ann: 220, Bea: 180, Cal: 150, Dee: 120, Pat: 40 },
+      roundCount: 4,
+      currentRound: 5
+    }),
+    player: 'Pat'
+  },
+  {
+    id: 'wiz-mid',
+    title: 'Wizard middle · Pat 160 behind after 7',
+    game: makeGame({
+      name: 'Wizard',
+      players: PLAYERS_WIZ,
+      totals: { Ann: 360, Bea: 310, Cal: 270, Dee: 230, Pat: 200 },
+      roundCount: 7,
+      currentRound: 8
+    }),
+    player: 'Pat'
+  },
+  {
+    id: 'wiz-late',
+    title: 'Wizard late · Pat 180 behind with 2 rounds left',
+    game: makeGame({
+      name: 'Wizard',
+      players: PLAYERS_WIZ,
+      totals: { Ann: 520, Bea: 470, Cal: 420, Dee: 380, Pat: 340 },
+      roundCount: 10,
+      currentRound: 11
+    }),
+    player: 'Pat'
+  },
+  {
+    id: 'flip-early',
+    title: 'Flip 7 early · Pat cooked after 4 banks',
+    game: makeGame({
+      name: 'Flip 7 Vengeance',
+      players: PLAYERS_FLIP,
+      totals: { Ann: 90, Bea: 74, Cal: 58, Dee: 44, Pat: 12 },
+      roundCount: 4,
+      currentRound: 5
+    }),
+    player: 'Pat'
+  },
+  {
+    id: 'flip-mid',
+    title: 'Flip 7 middle · Pat 80 behind after 8',
+    game: makeGame({
+      name: 'Flip 7 Vengeance',
+      players: PLAYERS_FLIP,
+      totals: { Ann: 160, Bea: 138, Cal: 120, Dee: 96, Pat: 80 },
+      roundCount: 8,
+      currentRound: 9
+    }),
+    player: 'Pat'
+  },
+  {
+    id: 'flip-late',
+    title: 'Flip 7 late · Pat 95 behind after 12',
+    game: makeGame({
+      name: 'Flip 7 Vengeance',
+      players: PLAYERS_FLIP,
+      totals: { Ann: 240, Bea: 210, Cal: 188, Dee: 160, Pat: 145 },
+      roundCount: 12,
+      currentRound: 13
+    }),
+    player: 'Pat'
   }
 ];
 
@@ -298,9 +396,9 @@ parts.push('- **Current:** 45% small / 30% medium / 5% big / 12% no change / 8% 
 parts.push('- **Proposed:** gap to 1st. 30% really good (45-65% of that gap) / 45% good (20-40%) / 10% no change / 15% small setback. Best is 65% of the gap, then the per-game cap and the never-tie-or-pass-1st rule. Setbacks stay small and are not gap-scaled. No late-game boost. No leapfrog cap in this candidate.');
 parts.push('- **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If the gap is smaller than one game increment, Proposed falls back to one increment of modest help.');
 parts.push('- **Ties:** the current leader score is the tied 1st score. A spin still cannot match it.');
-parts.push('- **Rounding:** each game increment (Five Crowns and Wizard 5s, 818 1s).');
+parts.push('- **Rounding:** each game increment (Five Crowns, Wizard, and Flip 7 in 5s; 818 in 1s).');
 parts.push('');
-parts.push('Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10`; 818 rounds score a made bid 62% of the time (`+10` plus 0-5 tricks) otherwise 0-4. Same model for Current and Proposed.');
+parts.push('Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10`; 818 rounds score a made bid 62% of the time (`+10` plus 0-5 tricks) otherwise 0-4; Wizard and Flip 7 add `5 × (2..7)` per remaining round (Flip 7 models 3 more banks). Same model for Current and Proposed.');
 parts.push('');
 parts.push('## Tables');
 parts.push('');

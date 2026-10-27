@@ -8,9 +8,9 @@ Comparison only. Live reward math is unchanged. The Proposed wheel is TEMP behin
 - **Proposed:** gap to 1st. 30% really good (45-65% of that gap) / 45% good (20-40%) / 10% no change / 15% small setback. Best is 65% of the gap, then the per-game cap and the never-tie-or-pass-1st rule. Setbacks stay small and are not gap-scaled. No late-game boost. No leapfrog cap in this candidate.
 - **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If the gap is smaller than one game increment, Proposed falls back to one increment of modest help.
 - **Ties:** the current leader score is the tied 1st score. A spin still cannot match it.
-- **Rounding:** each game increment (Five Crowns and Wizard 5s, 818 1s).
+- **Rounding:** each game increment (Five Crowns, Wizard, and Flip 7 in 5s; 818 in 1s).
 
-Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10`; 818 rounds score a made bid 62% of the time (`+10` plus 0-5 tricks) otherwise 0-4. Same model for Current and Proposed.
+Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10`; 818 rounds score a made bid 62% of the time (`+10` plus 0-5 tricks) otherwise 0-4; Wizard and Flip 7 add `5 × (2..7)` per remaining round (Flip 7 models 3 more banks). Same model for Current and Proposed.
 
 ## Tables
 
@@ -254,6 +254,233 @@ Proposed pockets after caps:
 | 0 | 4 | 0 | setback-or-zero | no |
 | 5 | 4 | 0 | setback-or-zero | no |
 | 10 | 4 | 0 | setback-or-zero | no |
+
+### Five Crowns final round · Duke still 50 behind
+
+Player **Duke**. Gap to 1st 50, gap to 3rd 29, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 25 | 30 |
+| Largest setback | 10 | 10 |
+| Odds of help | 80.1% | 75.9% |
+| Average help (when it helps) | 8.6 | 19.0 |
+| Average help as % of gap to 3rd | 29.8% | 65.5% |
+| Expected net (incl. zeros and setbacks) | 6.3 | 13.3 |
+| Immediate top-3 chance | 0.0% | 10.2% |
+| Top 3 by the end (model) | 17.2% | 29.0% |
+| Leapfrog rate (passes a non-leader) | 5.2% | 45.4% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -30 | 3 | 2 | band+leader-or-game-cap | no |
+| -25 | 4 | 1 | band | yes |
+| -20 | 4 | 1 | band | yes |
+| -15 | 5 | 0 | band | yes |
+| -10 | 5 | 0 | band | yes |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 5 | 5 | 0 | setback-or-zero | no |
+| 10 | 5 | 0 | setback-or-zero | no |
+
+### 818 final round · Cat last on the last 8-trick hand
+
+Player **Cat**. Gap to 1st 84, gap to 3rd 48, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 20 | 20 |
+| Largest setback | 4 | 4 |
+| Odds of help | 80.4% | 74.8% |
+| Average help (when it helps) | 4.5 | 18.8 |
+| Average help as % of gap to 3rd | 9.4% | 39.2% |
+| Expected net (incl. zeros and setbacks) | 3.5 | 13.8 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 0.0% | 0.0% |
+| Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -2 | 5 | 0 | setback-or-zero | no |
+| -1 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 16 | 5 | 0 | band | yes |
+| 20 | 5 | 0 | game-cap | yes |
+
+### Wizard early · Pat far back after 4
+
+Player **Pat**. Gap to 1st 180, gap to 3rd 110, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 35 | 60 |
+| Largest setback | 15 | 15 |
+| Odds of help | 79.7% | 74.8% |
+| Average help (when it helps) | 17.5 | 53.0 |
+| Average help as % of gap to 3rd | 15.9% | 48.2% |
+| Expected net (incl. zeros and setbacks) | 13.4 | 38.5 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 0.1% | 2.3% |
+| Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -10 | 5 | 0 | setback-or-zero | no |
+| -5 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 35 | 5 | 0 | band | yes |
+| 50 | 5 | 0 | band | yes |
+| 60 | 5 | 0 | game-cap | yes |
+
+### Wizard middle · Pat 160 behind after 7
+
+Player **Pat**. Gap to 1st 160, gap to 3rd 70, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 50 | 60 |
+| Largest setback | 25 | 25 |
+| Odds of help | 79.7% | 74.9% |
+| Average help (when it helps) | 20.3 | 51.2 |
+| Average help as % of gap to 3rd | 29.0% | 73.1% |
+| Expected net (incl. zeros and setbacks) | 15.6 | 37.2 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 3.2% | 17.2% |
+| Leapfrog rate (passes a non-leader) | 19.4% | 60.4% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -10 | 5 | 0 | setback-or-zero | no |
+| -5 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 30 | 5 | 0 | band | yes |
+| 45 | 4 | 1 | band | yes |
+| 60 | 4 | 1 | game-cap | yes |
+
+### Wizard late · Pat 180 behind with 2 rounds left
+
+Player **Pat**. Gap to 1st 180, gap to 3rd 80, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 60 | 60 |
+| Largest setback | 30 | 30 |
+| Odds of help | 79.8% | 75.0% |
+| Average help (when it helps) | 20.9 | 53.0 |
+| Average help as % of gap to 3rd | 26.1% | 66.2% |
+| Expected net (incl. zeros and setbacks) | 16.1 | 38.7 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 0.4% | 4.7% |
+| Leapfrog rate (passes a non-leader) | 4.7% | 59.9% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -10 | 5 | 0 | setback-or-zero | no |
+| -5 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 35 | 5 | 0 | band | yes |
+| 50 | 4 | 1 | band | yes |
+| 60 | 4 | 1 | game-cap | yes |
+
+### Flip 7 early · Pat cooked after 4 banks
+
+Player **Pat**. Gap to 1st 78, gap to 3rd 46, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 40 | 40 |
+| Largest setback | 5 | 5 |
+| Odds of help | 79.6% | 74.4% |
+| Average help (when it helps) | 18.0 | 27.8 |
+| Average help as % of gap to 3rd | 39.2% | 60.5% |
+| Expected net (incl. zeros and setbacks) | 13.9 | 20.0 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 7.7% | 13.0% |
+| Leapfrog rate (passes a non-leader) | 4.9% | 29.3% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -5 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 15 | 5 | 0 | band | yes |
+| 20 | 5 | 0 | band | yes |
+| 30 | 5 | 0 | band | yes |
+| 35 | 4 | 1 | band | yes |
+| 40 | 4 | 1 | game-cap | yes |
+
+### Flip 7 middle · Pat 80 behind after 8
+
+Player **Pat**. Gap to 1st 80, gap to 3rd 40, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 40 | 40 |
+| Largest setback | 5 | 5 |
+| Odds of help | 80.0% | 75.8% |
+| Average help (when it helps) | 17.7 | 28.0 |
+| Average help as % of gap to 3rd | 44.2% | 70.0% |
+| Expected net (incl. zeros and setbacks) | 13.7 | 20.5 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 13.0% | 20.4% |
+| Leapfrog rate (passes a non-leader) | 34.1% | 60.6% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -5 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 15 | 5 | 0 | band | yes |
+| 20 | 4 | 1 | band | yes |
+| 30 | 4 | 1 | band | yes |
+| 35 | 4 | 1 | band | yes |
+| 40 | 4 | 1 | game-cap | yes |
+
+### Flip 7 late · Pat 95 behind after 12
+
+Player **Pat**. Gap to 1st 95, gap to 3rd 43, now 5th.
+
+| Metric | Current | Proposed |
+| --- | --- | --- |
+| Eligible | yes | yes |
+| Best help | 40 | 40 |
+| Largest setback | 5 | 5 |
+| Odds of help | 80.1% | 74.8% |
+| Average help (when it helps) | 18.0 | 31.0 |
+| Average help as % of gap to 3rd | 41.9% | 72.1% |
+| Expected net (incl. zeros and setbacks) | 14.0 | 22.4 |
+| Immediate top-3 chance | 0.0% | 0.0% |
+| Top 3 by the end (model) | 12.2% | 22.9% |
+| Leapfrog rate (passes a non-leader) | 35.1% | 60.0% |
+
+Proposed pockets after caps:
+
+| Amount | Resulting rank | Non-leaders passed | Binding rule | 65% blocked? |
+| --- | --- | --- | --- | --- |
+| -5 | 5 | 0 | setback-or-zero | no |
+| 0 | 5 | 0 | setback-or-zero | no |
+| 15 | 5 | 0 | band | yes |
+| 25 | 4 | 1 | band | yes |
+| 35 | 4 | 1 | band | yes |
+| 40 | 4 | 1 | game-cap | yes |
 
 ## Several eligible players, one after another
 

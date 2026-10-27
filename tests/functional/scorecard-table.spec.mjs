@@ -199,6 +199,29 @@ test('laptop scorecard keeps a Table button and a one-line title', async ({page}
   expect(aligned.right).toBeLessThanOrEqual(2);
 });
 
+test('phone scorecard header stays compact and does not leave a tall empty gap', async ({page}) => {
+  await page.setViewportSize({width: 375, height: 667});
+  await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
+  const gap = await page.evaluate(() => {
+    const bar = document.getElementById('slice2-board-bar');
+    const line = document.getElementById('slice2-board-line');
+    const enter = document.getElementById('slice2-enter-btn');
+    const table = document.getElementById('scorecard-capture') || document.getElementById('scorecard-live-layout');
+    if (!bar || !line || !enter || !table) return {ok: false};
+    return {
+      ok: true,
+      barHeight: Math.round(bar.getBoundingClientRect().height),
+      lineToEnter: Math.round(enter.getBoundingClientRect().top - line.getBoundingClientRect().bottom),
+      barToTable: Math.round(table.getBoundingClientRect().top - bar.getBoundingClientRect().bottom)
+    };
+  });
+  expect(gap.ok).toBe(true);
+  expect(gap.barHeight, `phone header ${gap.barHeight}px tall`).toBeLessThanOrEqual(168);
+  expect(gap.lineToEnter, `title-to-enter gap ${gap.lineToEnter}px`).toBeLessThanOrEqual(120);
+  expect(gap.barToTable).toBeGreaterThanOrEqual(-2);
+  expect(gap.barToTable).toBeLessThanOrEqual(24);
+});
+
 test('Life Preserver picker opens from Actions and a badge goes straight to that player', async ({page}) => {
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   await page.locator('#actions-btn').click();
