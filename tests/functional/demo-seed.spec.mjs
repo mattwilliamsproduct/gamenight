@@ -211,7 +211,8 @@ test.describe('TEMP demo seed views', () => {
       await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', 'game');
       await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
       if (game === 'rook') {
-        await expect(page.locator('#rook-bid-amount-input, #game-screen')).toBeVisible();
+        await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
+        await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
       } else {
         await expect(page.locator('#slice2-board, #game-screen')).toContainText(label);
       }
@@ -221,7 +222,12 @@ test.describe('TEMP demo seed views', () => {
   test('preview host opens view=game&game=hand-and-foot without crashing', async ({page}) => {
     await openDemo(page, 'game', {host: PREVIEW, extra: {game: 'hand-and-foot'}});
     await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', /seeded|empty/);
-    await expect(page.locator('#home-screen, #game-screen')).not.toHaveClass(/hidden/);
+    const visible = await page.evaluate(() => {
+      const home = document.getElementById('home-screen');
+      const game = document.getElementById('game-screen');
+      return !home?.classList.contains('hidden') || !game?.classList.contains('hidden');
+    });
+    expect(visible).toBe(true);
   });
 
   test('cardknight.vercel.app ignores ?demo and writes nothing', async ({page}) => {
