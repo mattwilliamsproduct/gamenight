@@ -12,6 +12,17 @@ Home reorder only writes the `players` lineup. It does not change `currentGame.o
 
 Phone stays Table, then Start, then nights. Seat rows stay compact on phone.
 
+## Measured (even stretch)
+
+| Size | Roster | Table | Start | Bottom delta | Seat row | Avatar |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1024×650 | 8 seated | 872.3px | 872.3px | 0px | 66px | 44px |
+| 1024×650 | 4 seated | 622.4px | 622.4px | 0px | 66px | 44px |
+| 1440×900 | 8 seated | 794.7px | 794.7px | 0px | 62px | 44px |
+| 1440×900 | 4 seated | 619.1px | 619.1px | 0px | 76.6px | 44px |
+
+Seat-grid bottom matches the last seat. Extra space under the list is On Deck and Add Player, not empty padding. At 8 seated the taller table stretches Start and the game tiles. Phone 375 and 390 stay stacked (Table, then Start, then nights).
+
 ## Kill
 
 Dead leftover height between the two Home columns, empty padding inside those cards, or a 15 percent cap after Matt dropped it.
