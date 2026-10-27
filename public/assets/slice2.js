@@ -533,7 +533,10 @@
       const clustered = callouts.some((other, otherIndex) => (
         otherIndex !== index && Math.abs(Math.atan2(Math.sin(other.mid - item.mid), Math.cos(other.mid - item.mid))) < 0.28
       ));
-      const mid = item.mid + ((index % 2) ? 0.06 : -0.04);
+      const top = -Math.PI / 2;
+      const fromTop = Math.atan2(Math.sin(item.mid - top), Math.cos(item.mid - top));
+      let mid = item.mid + ((index % 2) ? 0.06 : -0.04);
+      if (Math.abs(fromTop) < 0.36) mid = top + (fromTop >= 0 ? 0.44 : -0.44);
       const labelR = cx * (clustered && index % 2 ? 0.96 : 0.91);
       const innerPt = { x: cx + Math.cos(item.mid) * (outer - 8), y: cy + Math.sin(item.mid) * (outer - 8) };
       context.font = `800 ${item.font}px "Nunito Sans", sans-serif`;

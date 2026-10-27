@@ -3576,15 +3576,16 @@ button.dealer-name-indicator {
     }
     .wheel-mode-label {
       font-family: "Bree Serif", Georgia, serif;
-      font-size: 1.2rem;
+      font-size: clamp(1.05rem, 4.4vw, 1.35rem);
       font-weight: 800;
       line-height: 1.25;
-      margin: 0 2.75rem 0.55rem;
+      margin: 0.1rem 2.4rem 0.55rem;
       color: var(--ink);
+      white-space: nowrap;
     }
     #wheel-modal.wheel-has-result .wheel-mode-label {
-      font-size: 1.45rem;
-      margin: 0.15rem 2.75rem 0.9rem;
+      font-size: clamp(1.1rem, 4.8vw, 1.45rem);
+      margin: 0.15rem 2.4rem 0.85rem;
     }
     .wheel-legend {
       display: flex;
