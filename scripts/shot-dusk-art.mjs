@@ -126,10 +126,10 @@ await writeFile(`${OUT}/compare-375.html`, `<!doctype html>
   img{width:100%;display:block}
   figcaption{padding:10px 12px;font-weight:800}
 </style>
-<h1>Home 375 · current vs dusk</h1>
+<h1>Home tiles 375 · current vs dusk</h1>
 <div class="row">
-  <figure><img src="home-current-375.png" alt="current"><figcaption>Current</figcaption></figure>
-  <figure><img src="home-both-375.png" alt="dusk"><figcaption>Dusk art + chair logo</figcaption></figure>
+  <figure><img src="tiles-current-375.png" alt="current"><figcaption>Current</figcaption></figure>
+  <figure><img src="tiles-both-375.png" alt="dusk"><figcaption>Dusk art + chair logo</figcaption></figure>
 </div>`);
 await writeFile(`${OUT}/compare-1440.html`, `<!doctype html>
 <meta charset="utf-8">
