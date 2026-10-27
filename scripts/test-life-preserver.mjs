@@ -575,6 +575,8 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
   assert.ok(eight18.how.some(line => /One spin per player per match/.test(line)));
   assert.ok(eight18.wheel.some(line => /Cannot tie or pass the leader/.test(line)));
+  assert.ok(eight18.wheel.some(line => /45% small help/.test(line) && /12% no change/.test(line)));
+  assert.ok(!eight18.wheel.some(line => /perfectly proportional/i.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
   assert.ok(wizard.how.some(line => /50 to 90/.test(line)));

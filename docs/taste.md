@@ -26,12 +26,14 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A Life Preserver modal that uses the leftover viewport so the wheel and slice numbers can get big. Use Your One Spin stays on screen.
 - A Life Preserver that reads as a roulette bowl: narrow pockets, numbered rim, frets, turret, and a ball that settles.
 - A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
+- Scorecard places read as 1st, 2nd, 3rd in a real pill, not a faint 24px number.
 
 ### Kills
 
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
 - Overlap, uneven gaps, truncated text, or clipped menus.
+- A place badge so small Matt cannot see the number.
 - A keypad covering a row, a name cut off, or Actions clipped by the match banner.
 - Truncated player names, or a control that no longer hugs the glyphs it labels.
 - Porch Club redesign work without Matt's visual sign-off.

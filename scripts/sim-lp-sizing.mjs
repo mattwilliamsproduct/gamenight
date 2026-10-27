@@ -58,13 +58,23 @@ function podiumGap(game, player) {
   ));
   const third = sorted[Math.min(2, sorted.length - 1)];
   const first = sorted[0];
-  const sign = cfg.winLow ? 1 : -1;
+  const second = sorted[Math.min(1, sorted.length - 1)];
+  const maxR = LP.getMaxRounds(game, players);
+  const done = LP.scoringRounds(game).length;
+  const gap = (leader) => (
+    cfg.winLow
+      ? (game.totals[player] || 0) - (game.totals[leader] || 0)
+      : (game.totals[leader] || 0) - (game.totals[player] || 0)
+  );
   return {
     first: first,
+    second,
     third,
-    gapFirst: cfg.winLow ? (game.totals[player] || 0) - (game.totals[first] || 0) : (game.totals[first] || 0) - (game.totals[player] || 0),
-    gapThird: cfg.winLow ? (game.totals[player] || 0) - (game.totals[third] || 0) : (game.totals[third] || 0) - (game.totals[player] || 0),
-    rank: sorted.indexOf(player) + 1
+    gapFirst: gap(first),
+    gapSecond: gap(second),
+    gapThird: gap(third),
+    rank: sorted.indexOf(player) + 1,
+    roundsLeft: game.name === 'Flip 7 Vengeance' ? 3 : Math.max(0, maxR - done)
   };
 }
 
@@ -412,8 +422,9 @@ parts.push('## Spec');
 parts.push('');
 parts.push('- **Current:** 45% small / 30% medium / 5% big / 12% no change / 8% setback. Amounts from one strong remaining unit, then clamped.');
 parts.push('- **Proposed:** gap to 1st. 30% really good (45-65% of that gap) / 45% good (20-40%) / 10% no change / 15% small setback. Best is 65% of the gap, then the per-game cap and the never-tie-or-pass-1st rule. Setbacks stay small and are not gap-scaled. No late-game boost. No leapfrog cap in this candidate.');
-parts.push('- **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If the gap is smaller than one game increment, Proposed falls back to one increment of modest help.');
-parts.push('- **Ties:** the current leader score is the tied 1st score. A spin still cannot match it.');
+parts.push('- **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If that gap is smaller than one game increment, Proposed falls back to one increment of modest help. Resulting rank is whatever the rounded, capped points produce.');
+parts.push('- **Ties:** the current leader score is the tied 1st score. A spin still cannot match it. Tied non-leaders share a place the same way the scorecard does (two 4ths, then 6th).');
+parts.push('- **Leapfrog:** this candidate has no non-leader leapfrog cap. A rescue may pass as many non-leaders as the points allow. It still cannot tie or pass 1st. If a game cap or the leader rule stops a 65% rescue from reaching 3rd, that row is flagged.');
 parts.push('- **Rounding:** each game increment (Five Crowns, Wizard, and Flip 7 in 5s; 818 in 1s).');
 parts.push('');
 parts.push('Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10`; 818 rounds score a made bid 62% of the time (`+10` plus 0-5 tricks) otherwise 0-4; Wizard and Flip 7 add `5 × (2..7)` per remaining round (Flip 7 models 3 more banks). Same model for Current and Proposed.');
@@ -427,7 +438,7 @@ for (const row of rows) {
   const stand = cur.standing || prop.standing;
   parts.push(`### ${row.item.title}`);
   parts.push('');
-  parts.push(`Player **${row.item.player}**. Gap to 1st ${stand.gapFirst}, gap to 3rd ${stand.gapThird}, now ${stand.rank}${stand.rank === 1 ? 'st' : stand.rank === 2 ? 'nd' : stand.rank === 3 ? 'rd' : 'th'}.`);
+  parts.push(`Player **${row.item.player}**. Gap to 1st ${stand.gapFirst}, gap to 2nd ${stand.gapSecond}, gap to 3rd ${stand.gapThird}, now ${stand.rank}${stand.rank === 1 ? 'st' : stand.rank === 2 ? 'nd' : stand.rank === 3 ? 'rd' : 'th'}. Rounds left: ${stand.roundsLeft}.`);
   parts.push('');
   if (!cur.eligible && !prop.eligible) {
     parts.push(`Not eligible (${cur.reason || prop.reason}).`);

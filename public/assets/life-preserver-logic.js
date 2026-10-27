@@ -355,6 +355,7 @@
     let timing = `Once 4 ${unit} are scored.`;
     let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
+      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.',
       'Most slices help. Some do nothing. A few hurt a little.',
       'Cannot tie or pass the leader.'
     ];

@@ -6,8 +6,9 @@ Comparison only. Live reward math stays 45/30/5/12/8. Wheel visuals stay equal-i
 
 - **Current:** 45% small / 30% medium / 5% big / 12% no change / 8% setback. Amounts from one strong remaining unit, then clamped.
 - **Proposed:** gap to 1st. 30% really good (45-65% of that gap) / 45% good (20-40%) / 10% no change / 15% small setback. Best is 65% of the gap, then the per-game cap and the never-tie-or-pass-1st rule. Setbacks stay small and are not gap-scaled. No late-game boost. No leapfrog cap in this candidate.
-- **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If the gap is smaller than one game increment, Proposed falls back to one increment of modest help.
-- **Ties:** the current leader score is the tied 1st score. A spin still cannot match it.
+- **Already in the top 3:** 2nd and 3rd still have a gap to 1st, so they use that gap. If that gap is smaller than one game increment, Proposed falls back to one increment of modest help. Resulting rank is whatever the rounded, capped points produce.
+- **Ties:** the current leader score is the tied 1st score. A spin still cannot match it. Tied non-leaders share a place the same way the scorecard does (two 4ths, then 6th).
+- **Leapfrog:** this candidate has no non-leader leapfrog cap. A rescue may pass as many non-leaders as the points allow. It still cannot tie or pass 1st. If a game cap or the leader rule stops a 65% rescue from reaching 3rd, that row is flagged.
 - **Rounding:** each game increment (Five Crowns, Wizard, and Flip 7 in 5s; 818 in 1s).
 
 Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10`; 818 rounds score a made bid 62% of the time (`+10` plus 0-5 tricks) otherwise 0-4; Wizard and Flip 7 add `5 × (2..7)` per remaining round (Flip 7 models 3 more banks). Same model for Current and Proposed.
@@ -16,13 +17,13 @@ Remaining-round model for end-of-game top-3: Five Crowns hands score `5 × 0..10
 
 ### Five Crowns early · Dee cooked after 4 hands
 
-Player **Dee**. Gap to 1st 52, gap to 3rd 42, now 5th.
+Player **Dee**. Gap to 1st 52, gap to 2nd 48, gap to 3rd 42, now 5th. Rounds left: 7.
 
 Not eligible (recovery-load).
 
 ### Five Crowns middle · Dee 40 behind 1st
 
-Player **Dee**. Gap to 1st 40, gap to 3rd 25, now 5th.
+Player **Dee**. Gap to 1st 40, gap to 2nd 32, gap to 3rd 25, now 5th. Rounds left: 4.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -56,7 +57,7 @@ Proposed pockets after caps:
 
 ### Five Crowns late · Duke-style 51 behind 1st, best current is −20
 
-Player **Duke**. Gap to 1st 51, gap to 3rd 32, now 5th.
+Player **Duke**. Gap to 1st 51, gap to 2nd 38, gap to 3rd 32, now 5th. Rounds left: 2.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -90,7 +91,7 @@ Proposed pockets after caps:
 
 ### Five Crowns packed table · Dee just barely eligible
 
-Player **Dee**. Gap to 1st 38, gap to 3rd 28, now 5th.
+Player **Dee**. Gap to 1st 38, gap to 2nd 32, gap to 3rd 28, now 5th. Rounds left: 4.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -123,7 +124,7 @@ Proposed pockets after caps:
 
 ### 818 early · Cat far back after 4
 
-Player **Cat**. Gap to 1st 62, gap to 3rd 42, now 5th.
+Player **Cat**. Gap to 1st 62, gap to 2nd 54, gap to 3rd 42, now 5th. Rounds left: 11.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -155,7 +156,7 @@ Proposed pockets after caps:
 
 ### 818 middle · Cat 39 behind (porch-like)
 
-Player **Cat**. Gap to 1st 39, gap to 3rd 14, now 5th.
+Player **Cat**. Gap to 1st 39, gap to 2nd 29, gap to 3rd 14, now 5th. Rounds left: 7.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -189,7 +190,7 @@ Proposed pockets after caps:
 
 ### 818 late · Cat last with 3 rounds left
 
-Player **Cat**. Gap to 1st 80, gap to 3rd 50, now 5th.
+Player **Cat**. Gap to 1st 80, gap to 2nd 68, gap to 3rd 50, now 5th. Rounds left: 3.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -220,7 +221,7 @@ Proposed pockets after caps:
 
 ### Five Crowns tied leaders · Duke last
 
-Player **Duke**. Gap to 1st 52, gap to 3rd 34, now 5th.
+Player **Duke**. Gap to 1st 52, gap to 2nd 52, gap to 3rd 34, now 5th. Rounds left: 3.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -254,7 +255,7 @@ Proposed pockets after caps:
 
 ### Five Crowns with a retired seat · Duke last of the active four
 
-Player **Duke**. Gap to 1st 60, gap to 3rd 44, now 4th.
+Player **Duke**. Gap to 1st 60, gap to 2nd 52, gap to 3rd 44, now 4th. Rounds left: 3.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -289,7 +290,7 @@ Proposed pockets after caps:
 
 ### Five Crowns final round · Duke still 50 behind
 
-Player **Duke**. Gap to 1st 50, gap to 3rd 29, now 5th.
+Player **Duke**. Gap to 1st 50, gap to 2nd 38, gap to 3rd 29, now 5th. Rounds left: 1.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -323,7 +324,7 @@ Proposed pockets after caps:
 
 ### 818 final round · Cat last on the last 8-trick hand
 
-Player **Cat**. Gap to 1st 84, gap to 3rd 48, now 5th.
+Player **Cat**. Gap to 1st 84, gap to 2nd 66, gap to 3rd 48, now 5th. Rounds left: 1.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -354,7 +355,7 @@ Proposed pockets after caps:
 
 ### Wizard early · Pat far back after 4
 
-Player **Pat**. Gap to 1st 180, gap to 3rd 110, now 5th.
+Player **Pat**. Gap to 1st 180, gap to 2nd 140, gap to 3rd 110, now 5th. Rounds left: 8.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -386,7 +387,7 @@ Proposed pockets after caps:
 
 ### Wizard middle · Pat 160 behind after 7
 
-Player **Pat**. Gap to 1st 160, gap to 3rd 70, now 5th.
+Player **Pat**. Gap to 1st 160, gap to 2nd 110, gap to 3rd 70, now 5th. Rounds left: 5.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -418,7 +419,7 @@ Proposed pockets after caps:
 
 ### Wizard late · Pat 180 behind with 2 rounds left
 
-Player **Pat**. Gap to 1st 180, gap to 3rd 80, now 5th.
+Player **Pat**. Gap to 1st 180, gap to 2nd 130, gap to 3rd 80, now 5th. Rounds left: 2.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -450,7 +451,7 @@ Proposed pockets after caps:
 
 ### Flip 7 early · Pat cooked after 4 banks
 
-Player **Pat**. Gap to 1st 78, gap to 3rd 46, now 5th.
+Player **Pat**. Gap to 1st 78, gap to 2nd 62, gap to 3rd 46, now 5th. Rounds left: 3.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -483,7 +484,7 @@ Proposed pockets after caps:
 
 ### Flip 7 middle · Pat 80 behind after 8
 
-Player **Pat**. Gap to 1st 80, gap to 3rd 40, now 5th.
+Player **Pat**. Gap to 1st 80, gap to 2nd 58, gap to 3rd 40, now 5th. Rounds left: 3.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |
@@ -516,7 +517,7 @@ Proposed pockets after caps:
 
 ### Flip 7 late · Pat 95 behind after 12
 
-Player **Pat**. Gap to 1st 95, gap to 3rd 43, now 5th.
+Player **Pat**. Gap to 1st 95, gap to 2nd 65, gap to 3rd 43, now 5th. Rounds left: 3.
 
 | Metric | Current | Proposed |
 | --- | --- | --- |

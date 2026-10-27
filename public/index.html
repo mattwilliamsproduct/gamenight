@@ -3474,14 +3474,40 @@ button.dealer-name-indicator {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 1.72rem;
-      height: 1.72rem;
-      border-radius: 9px;
+      min-width: 2.35rem;
+      height: auto;
+      min-height: 1.55rem;
+      padding: 0.14rem 0.42rem;
+      border-radius: 999px;
       border: 1px solid rgba(6,78,59,0.16);
       background: rgba(236,253,245,0.68);
       color: var(--emerald);
-      font-size: 0.78rem;
-      font-weight: 900;
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .scoreboard-rank-badge.is-place-1 {
+      background: #f3e0a8;
+      border-color: #c9a24a;
+      color: #6a4a12;
+    }
+    .scoreboard-rank-badge.is-place-2 {
+      background: #e4e0d6;
+      border-color: #b0aaa0;
+      color: #4a4741;
+    }
+    .scoreboard-rank-badge.is-place-3 {
+      background: #f0cfc0;
+      border-color: #d07a68;
+      color: #6a3328;
+    }
+    .scoreboard-rank-badge.is-place-rest {
+      background: #eef4f1;
+      border-color: #c5d4ce;
+      color: #1f4a44;
     }
     html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
 
@@ -3705,8 +3731,10 @@ button.dealer-name-indicator {
       border: 2px solid rgba(255, 248, 232, 0.9);
     }
     .scorecard-life-preserver-rank {
-      width: 2.1rem;
-      height: 2.1rem;
+      min-width: 2.4rem;
+      width: auto;
+      height: auto;
+      min-height: 1.7rem;
       border-radius: 999px !important;
       border: 3px solid transparent !important;
       background:
@@ -8536,6 +8564,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
               <li>Cannot tie or pass the leader.</li>
               <li>You always finish at least one scoring step behind 1st.</li>
+              <li>The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.</li>
               <li>Most slices help. Some do nothing. A few slightly hurt.</li>
               <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
             </ul>
@@ -14372,9 +14401,11 @@ ${isDealer
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const placeNum=places?places[p]:ri+1;
+      const placeLabel=ordinalLive(placeNum);
+      const placeTone=placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${placeNum}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${placeNum}</span>`);
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank${placeTone} shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)}, ${placeLabel} — tap to spin">${placeLabel}</button>`
+        : `<span class="scoreboard-rank-badge${placeTone}${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used, '+placeLabel+'"':` aria-label="${placeLabel}"`}>${placeLabel}</span>`);
 
       const retiredTag=retiredBadgeMarkup(currentGame,p);
 
