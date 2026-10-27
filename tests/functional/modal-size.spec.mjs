@@ -1,0 +1,104 @@
+import {expect, test} from '@playwright/test';
+import {nextPaint, openScenario} from '../helpers/qa.mjs';
+
+function longFiveCrownsMatch() {
+  const players = ['Megan', 'Matt', 'Cat', 'Mike', 'Vikki', 'Duke', 'Brick', 'Linda'];
+  const rounds = Array.from({length: 11}, (_, index) => ({
+    round: index + 1,
+    scores: Object.fromEntries(players.map((name, playerIndex) => [name, (index + 1) * 3 + playerIndex]))
+  }));
+  const totals = Object.fromEntries(players.map((name, playerIndex) => [
+    name,
+    rounds.reduce((sum, round) => sum + round.scores[name], 0) + playerIndex
+  ]));
+  return {
+    id: 1784391110001,
+    game: 'Five Crowns',
+    date: '10/26/2026',
+    totals,
+    winners: ['Megan'],
+    rounds,
+    originalRoster: players,
+    currentRound: 12,
+    hailMaryUsed: [],
+    retired: []
+  };
+}
+
+async function measureScorecardModal(page) {
+  return page.evaluate(() => {
+    const shell = document.getElementById('scorecard-modal');
+    const panel = shell?.querySelector('.bp-modal-panel, .surface-raised');
+    const close = shell?.querySelector('button');
+    const wrap = shell?.querySelector('.scorecard-table-wrap');
+    const panelBox = panel?.getBoundingClientRect();
+    const closeBox = close?.getBoundingClientRect();
+    return {
+      viewport: {width: window.innerWidth, height: window.innerHeight},
+      panel: panelBox ? {width: panelBox.width, height: panelBox.height, top: panelBox.top, left: panelBox.left} : null,
+      close: closeBox ? {top: closeBox.top, right: closeBox.right, bottom: closeBox.bottom, left: closeBox.left} : null,
+      wrap: wrap ? {scrollHeight: wrap.scrollHeight, clientHeight: wrap.clientHeight, scrollWidth: wrap.scrollWidth, clientWidth: wrap.clientWidth} : null,
+      bodyOverflow: getComputedStyle(document.body).overflow,
+      clipped: !!(panelBox && (panelBox.right > window.innerWidth + 2 || panelBox.bottom > window.innerHeight + 2 || panelBox.left < -2 || panelBox.top < -2))
+    };
+  });
+}
+
+async function openPastNight(page) {
+  await openScenario(page, {scenario: 'home-party', surface: 'home'});
+  await page.evaluate((match) => {
+    if (!Array.isArray(history)) return;
+    if (!history.some((item) => item.id === match.id)) history.unshift(match);
+    if (typeof renderHistoryList === 'function') renderHistoryList();
+    if (window.BPGSlice2) window.BPGSlice2.refresh('home');
+  }, longFiveCrownsMatch());
+  await nextPaint(page);
+  const clicked = await page.locator('[data-s2-action="night-scorecard"], [data-s2-action="night-open"]').first().count();
+  if (clicked) {
+    await page.locator('[data-s2-action="night-scorecard"], [data-s2-action="night-open"]').first().click();
+  } else {
+    await page.evaluate(() => openScorecard(1784391110001));
+  }
+  await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
+}
+
+test('past-night scorecard uses most of the viewport at 1024 and 1440', async ({page}) => {
+  for (const size of [{width: 1024, height: 650}, {width: 1440, height: 900}]) {
+    await page.setViewportSize(size);
+    await openPastNight(page);
+    const measure = await measureScorecardModal(page);
+    expect(measure.panel, `${size.width} panel`).not.toBeNull();
+    expect(measure.panel.width / measure.viewport.width, `${size.width} width share`).toBeGreaterThanOrEqual(0.8);
+    expect(measure.clipped, `${size.width} clipped`).toBe(false);
+    expect(measure.close.top).toBeGreaterThanOrEqual(0);
+    expect(measure.close.right).toBeLessThanOrEqual(size.width + 2);
+    expect(measure.bodyOverflow).toMatch(/hidden/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#scorecard-modal')).toHaveClass(/hidden/);
+  }
+});
+
+test('past-night scorecard is near full-width on 375', async ({page}) => {
+  await page.setViewportSize({width: 375, height: 667});
+  await openPastNight(page);
+  const measure = await measureScorecardModal(page);
+  expect(measure.panel.width / measure.viewport.width).toBeGreaterThanOrEqual(0.9);
+  expect(measure.clipped).toBe(false);
+  expect(measure.close.top).toBeGreaterThanOrEqual(0);
+  expect(measure.close.bottom).toBeLessThanOrEqual(667 + 2);
+});
+
+test('a long Five Crowns scorecard scrolls inside the modal', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 650});
+  await openPastNight(page);
+  const before = await measureScorecardModal(page);
+  expect(before.wrap.scrollHeight, 'long table should overflow').toBeGreaterThan(before.wrap.clientHeight);
+  const scrolled = await page.evaluate(() => {
+    const wrap = document.querySelector('#scorecard-modal .scorecard-table-wrap');
+    wrap.scrollTop = 80;
+    return wrap.scrollTop;
+  });
+  expect(scrolled).toBeGreaterThan(0);
+  const pageScroll = await page.evaluate(() => document.documentElement.scrollTop + document.body.scrollTop);
+  expect(pageScroll).toBe(0);
+});

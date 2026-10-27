@@ -61,8 +61,12 @@
     return bits.join(' · ');
   }
 
+  function boardTitle(game) {
+    return game.name === 'Flip 7 Vengeance' ? 'Flip 7' : game.name;
+  }
+
   function boardLine(game) {
-    const bits = [game.name === 'Flip 7 Vengeance' ? 'Flip 7' : game.name];
+    const bits = [boardTitle(game)];
     const maxR = getMaxRoundsForGame(game);
     if (isEight18Game(game)) {
       const tricks = getRoundTrickCount(game);
@@ -133,18 +137,15 @@
     return `<div class="s2-board-identity">
         <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">← Table</button>
         <div class="s2-board-copy">
-          <p id="slice2-board-line"></p>
-          <p id="slice2-board-sub"></p>
+          <div class="s2-board-title-row">
+            <p id="slice2-board-line"></p>
+            <p id="slice2-board-sub"></p>
+          </div>
           <p id="slice2-score-legend"></p>
           <p id="slice2-score-note"></p>
         </div>
       </div>
       <div class="s2-board-actions">
-        <div id="slice2-lp-wrap" hidden>
-          <button type="button" class="s2-btn" id="slice2-lp-btn" data-s2-action="life-preserver">Life Preserver</button>
-          <p id="slice2-lp-explain"></p>
-        </div>
-        <button type="button" class="s2-btn" id="slice2-history-btn" data-s2-action="history">Audit Log</button>
         <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
       </div>`;
   }
@@ -294,7 +295,7 @@
       bar.id = 'slice2-board-bar';
       screen.insertBefore(bar, screen.firstChild);
     }
-    if (!bar.querySelector('#slice2-table-btn')) {
+    if (!bar.querySelector('#slice2-table-btn') || !bar.querySelector('.s2-board-title-row')) {
       bar.innerHTML = boardBarMarkup();
     }
     const dest = bar.querySelector('.s2-board-actions');
@@ -307,17 +308,22 @@
       if (!row) {
         row = document.createElement('div');
         row.className = 's2-board-line-row';
-        copy.insertBefore(row, line);
-        row.appendChild(line);
+        const titleRow = bar.querySelector('.s2-board-title-row') || line;
+        copy.insertBefore(row, titleRow);
+        row.appendChild(titleRow);
       }
     }
     parkSaveIndicator();
     const legend = document.getElementById('slice2-score-legend');
-    const historyButton = document.getElementById('slice2-history-btn');
-    const lpWrap = document.getElementById('slice2-lp-wrap');
-    const lpBtn = document.getElementById('slice2-lp-btn');
-    const lpExplain = document.getElementById('slice2-lp-explain');
-    if (line) line.textContent = boardLine(currentGame);
+    if (line) {
+      const full = boardLine(currentGame);
+      const title = boardTitle(currentGame);
+      const rest = full.startsWith(`${title} · `) ? full.slice(title.length + 3) : full;
+      const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => (
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])
+      ));
+      line.innerHTML = `<strong class="s2-board-title">${esc(title)}</strong><span class="s2-board-round"> · ${esc(rest)}</span>`;
+    }
     const sub = document.getElementById('slice2-board-sub');
     if (sub) {
       const wild = boardSubLine(currentGame);
@@ -335,23 +341,12 @@
       enter.textContent = enterLabel(currentGame);
       enter.disabled = !!isMatchOver(currentGame);
     }
-    if (historyButton) {
-      const count = (currentGame.auditLog || []).length || (currentGame.rounds || []).length;
-      historyButton.textContent = count ? `Audit Log (${count})` : 'Audit Log';
-    }
     const eligible = eligibleLifePreserverPlayers();
-    if (lpWrap) lpWrap.hidden = eligible.length === 0;
-    if (lpBtn) {
-      lpBtn.hidden = eligible.length === 0;
-      lpBtn.textContent = eligible.length
-        ? `Life Preserver · ${eligible.length} eligible`
-        : 'Life Preserver';
-    }
-    if (lpExplain) {
-      lpExplain.hidden = eligible.length === 0;
-      lpExplain.textContent = eligible.length
-        ? `${andList(eligible)} can spin. One spin per player per match.`
-        : '';
+    const lpAction = document.getElementById('actions-life-preserver-btn');
+    if (lpAction) {
+      const label = lpAction.querySelector('span:last-child') || lpAction;
+      if (eligible.length) label.textContent = 'Life Preserver…';
+      else label.textContent = 'Life Preserver';
     }
   }
 
@@ -401,244 +396,356 @@
     if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
   }
 
-  function placeWheelCallouts(canvas, context, callouts, outer) {
-    let layer = document.getElementById('wheel-callouts');
-    if (!layer && canvas.parentElement) {
-      layer = document.createElement('div');
-      layer.id = 'wheel-callouts';
-      layer.className = 'wheel-callouts';
-      canvas.parentElement.appendChild(layer);
-    }
-    if (!layer) return;
-    layer.replaceChildren();
-    if (!callouts.length) return;
-    const shellW = canvas.clientWidth;
-    const shellH = canvas.clientHeight;
-    if (!shellW || !shellH || shellW < 80) {
-      if (!placeWheelCallouts._retry) {
-        placeWheelCallouts._retry = true;
-        requestAnimationFrame(() => {
-          placeWheelCallouts._retry = false;
-          placeWheelCallouts(canvas, context, callouts, outer);
-        });
-      }
-      return;
-    }
-    const shell = canvas.parentElement;
-    const layerW = (shell && shell.clientWidth) || shellW;
-    const layerH = (shell && shell.clientHeight) || shellH;
-    const canvasLeft = canvas.offsetLeft || 0;
-    const canvasTop = canvas.offsetTop || 0;
-    const cssCx = canvasLeft + shellW / 2;
-    const cssCy = canvasTop + shellH / 2;
-    const scale = canvas.width / shellW;
-    const bandR = (outer / canvas.width) * shellW;
-    const pad = 6;
-    const boxes = [];
-    const clamp = (value, min, max) => {
-      if (min > max) return (min + max) / 2;
-      return Math.min(max, Math.max(min, value));
-    };
-    const overlap = (a, b) => (
-      a.x < b.x + b.w + 6 && a.x + a.w + 6 > b.x && a.y < b.y + b.h + 6 && a.y + a.h + 6 > b.y
-    );
-    const shellBox = (shell && shell.getBoundingClientRect()) || canvas.getBoundingClientRect();
-    const pointerEl = (shell && shell.querySelector('.wheel-pointer')) || document.querySelector('.wheel-pointer');
-    const pointerPad = 10;
-    let pointerBox = { x: cssCx - 22, y: -4, w: 44, h: 40 };
-    if (pointerEl) {
-      const pointer = pointerEl.getBoundingClientRect();
-      pointerBox = {
-        x: pointer.left - shellBox.left - pointerPad,
-        y: pointer.top - shellBox.top - pointerPad,
-        w: pointer.width + pointerPad * 2,
-        h: pointer.height + pointerPad * 2
-      };
-    }
-    const hitsPointer = (box) => overlap(box, pointerBox);
-    callouts.forEach((item, index) => {
-      const el = document.createElement('span');
-      el.className = `wheel-callout is-${item.kind || 'zero'}`;
-      el.textContent = item.signed;
-      layer.appendChild(el);
-      const bw = Math.max(el.getBoundingClientRect().width, el.offsetWidth, 36);
-      const bh = Math.max(el.getBoundingClientRect().height, el.offsetHeight, 20);
-      const minX = pad + bw / 2;
-      const maxX = layerW - pad - bw / 2;
-      const minY = pad + bh / 2;
-      const maxY = layerH - pad - bh / 2;
-      const left = Math.cos(item.mid) < -0.18;
-      const right = Math.cos(item.mid) > 0.18;
-      const low = Math.sin(item.mid) > 0.12;
-      const high = Math.sin(item.mid) < -0.12;
-      const topCone = Math.sin(item.mid) < -0.55;
-      const gutter = bandR + 10 + Math.max(bw, bh) / 2;
-      const stack = index * (bh + 8);
-      const side = Math.cos(item.mid) >= 0 ? 1 : -1;
-      const candidates = [];
-      if (topCone || high) {
-        candidates.push(
-          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
-          { x: clamp(cssCx - side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
-          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + bh + 12 }
-        );
-      }
-      if (left) {
-        candidates.push({ x: minX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
-      }
-      if (right) {
-        candidates.push({ x: maxX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
-      }
-      [gutter, gutter + 8, gutter + 16].forEach((radius) => {
-        const ang = topCone ? item.mid + side * 0.55 : item.mid;
-        candidates.push({
-          x: cssCx + Math.cos(ang) * radius,
-          y: cssCy + Math.sin(ang) * radius
-        });
-      });
-      let chosen = {
-        x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX),
-        y: topCone ? minY + 4 : clamp(cssCy, minY, maxY)
-      };
-      candidates.some((spot) => {
-        const x = clamp(spot.x, minX, maxX);
-        const y = clamp(spot.y, minY, maxY);
-        const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
-        const onBand = Math.hypot(x - cssCx, y - cssCy) < bandR + 4;
-        if (onBand || hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
-        chosen = { x, y };
-        return true;
-      });
-      chosen.x = clamp(chosen.x, minX, maxX);
-      chosen.y = clamp(chosen.y, minY, maxY);
-      const nudges = [
-        { x: chosen.x + 36, y: chosen.y },
-        { x: chosen.x - 36, y: chosen.y },
-        { x: chosen.x, y: chosen.y + 28 },
-        { x: chosen.x, y: chosen.y - 28 },
-        { x: chosen.x + 48, y: chosen.y + 20 },
-        { x: chosen.x - 48, y: chosen.y + 20 }
-      ];
-      let safe = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh };
-      if (hitsPointer(safe) || boxes.some((other) => overlap(safe, other))) {
-        nudges.some((spot) => {
-          const x = clamp(spot.x, minX, maxX);
-          const y = clamp(spot.y, minY, maxY);
-          const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
-          if (hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
-          chosen = { x, y };
-          return true;
-        });
-      }
-      el.style.left = `${chosen.x}px`;
-      el.style.top = `${chosen.y}px`;
-      const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };
-      boxes.push(box);
-      const fromX = (canvas.width / 2) + Math.cos(item.mid) * (outer - 4);
-      const fromY = (canvas.height / 2) + Math.sin(item.mid) * (outer - 4);
-      const toX = (box.cx - canvasLeft) * scale;
-      const toY = (box.cy - canvasTop) * scale;
-      const dx = toX - fromX;
-      const dy = toY - fromY;
-      const dist = Math.hypot(dx, dy) || 1;
-      const stop = ((Math.min(bw, bh) / 2) + 10) * scale;
-      const t = Math.max(0, (dist - stop) / dist);
-      if (t > 0.08) {
-        context.beginPath();
-        context.moveTo(fromX, fromY);
-        context.lineTo(fromX + dx * t, fromY + dy * t);
-        context.strokeStyle = 'rgba(8, 87, 79, 0.4)';
-        context.lineWidth = 2;
-        context.stroke();
-      }
+  function clearWheelCallouts() {
+    const layer = document.getElementById('wheel-callouts');
+    if (layer) layer.replaceChildren();
+  }
+
+  function sizeLifePreserverModal() {
+    const modal = document.getElementById('wheel-modal');
+    const dialog = modal?.querySelector('.life-preserver-dialog');
+    const shell = dialog?.querySelector('.wheel-shell');
+    if (!modal || !dialog || !shell || modal.classList.contains('hidden')) return null;
+    shell.style.width = '';
+    shell.style.height = '';
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const gutter = 8;
+    const landscape = vw > vh;
+    const dialogW = Math.floor(landscape ? Math.min(vw - gutter, vh - gutter) : vw - gutter);
+    const dialogH = Math.floor(vh - gutter);
+    dialog.style.width = `${dialogW}px`;
+    dialog.style.maxWidth = `${dialogW}px`;
+    dialog.style.maxHeight = `${dialogH}px`;
+    dialog.style.minHeight = landscape ? `${dialogH}px` : '';
+    const cs = getComputedStyle(dialog);
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    let chrome = padY;
+    [...dialog.children].forEach((el) => {
+      if (el === shell || el.id === 'life-preserver-help') return;
+      if (el.classList.contains('hidden')) return;
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return;
+      if (style.position === 'absolute' || style.position === 'fixed') return;
+      const box = el.getBoundingClientRect();
+      if (box.height < 1) return;
+      chrome += box.height;
+      chrome += (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
+    });
+    const availW = Math.max(168, dialogW - padX);
+    const availH = Math.max(168, dialogH - chrome);
+    const size = Math.floor(Math.min(availW, availH));
+    shell.style.width = `${size}px`;
+    shell.style.height = `${size}px`;
+    return { size, chrome, vw, vh, availW, availH, dialogW, dialogH };
+  }
+
+  function paintWoodBowl(context, cx, cy, radius) {
+    const wood = context.createRadialGradient(cx - radius * 0.2, cy - radius * 0.24, radius * 0.08, cx, cy, radius);
+    wood.addColorStop(0, '#f6e7c8');
+    wood.addColorStop(0.38, '#e8c992');
+    wood.addColorStop(0.72, '#d3a86a');
+    wood.addColorStop(0.88, '#f3e6c8');
+    wood.addColorStop(0.95, '#c9955c');
+    wood.addColorStop(1, '#8d6236');
+    context.beginPath();
+    context.arc(cx, cy, radius, 0, Math.PI * 2);
+    context.fillStyle = wood;
+    context.fill();
+    context.beginPath();
+    context.arc(cx, cy, radius * 0.985, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(143, 98, 52, 0.35)';
+    context.lineWidth = 10;
+    context.stroke();
+    context.beginPath();
+    context.arc(cx, cy, radius * 0.91, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(255, 248, 232, 0.7)';
+    context.lineWidth = 14;
+    context.stroke();
+    [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((angle) => {
+      const r = radius * 0.955;
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+      context.save();
+      context.translate(x, y);
+      context.rotate(angle);
+      context.beginPath();
+      context.roundRect(-7, -5, 14, 10, 4);
+      context.fillStyle = '#fff8ea';
+      context.fill();
+      context.restore();
     });
   }
 
+  function paintCone(context, cx, cy, inner, hub) {
+    const cone = context.createRadialGradient(cx - hub * 0.28, cy - hub * 0.3, hub * 0.2, cx, cy, inner);
+    cone.addColorStop(0, '#fff7ea');
+    cone.addColorStop(0.55, '#f0ddb8');
+    cone.addColorStop(1, '#e2c48d');
+    context.beginPath();
+    context.arc(cx, cy, inner, 0, Math.PI * 2);
+    context.fillStyle = cone;
+    context.fill();
+    [0.56, 0.44].forEach((frac, index) => {
+      context.beginPath();
+      context.arc(cx, cy, cx * frac, 0, Math.PI * 2);
+      context.strokeStyle = index ? 'rgba(201, 149, 86, 0.35)' : 'rgba(138, 106, 50, 0.28)';
+      context.lineWidth = index ? 3 : 5;
+      context.stroke();
+    });
+  }
+
+  function paintTurret(context, cx, cy, hub) {
+    for (let i = 0; i < 3; i++) {
+      const angle = -Math.PI / 2 + i * ((Math.PI * 2) / 3);
+      context.beginPath();
+      context.moveTo(cx + Math.cos(angle) * hub * 0.18, cy + Math.sin(angle) * hub * 0.18);
+      context.lineTo(cx + Math.cos(angle) * hub * 1.42, cy + Math.sin(angle) * hub * 1.42);
+      context.strokeStyle = 'rgba(143, 98, 52, 0.35)';
+      context.lineWidth = 14;
+      context.lineCap = 'round';
+      context.stroke();
+    }
+    const wood = context.createRadialGradient(cx - hub * 0.25, cy - hub * 0.3, hub * 0.1, cx, cy, hub * 1.05);
+    wood.addColorStop(0, '#fff6e4');
+    wood.addColorStop(0.45, '#e8c992');
+    wood.addColorStop(1, '#b88448');
+    context.beginPath();
+    context.arc(cx, cy, hub * 1.08, 0, Math.PI * 2);
+    context.fillStyle = wood;
+    context.fill();
+    context.beginPath();
+    context.arc(cx, cy, hub * 0.82, 0, Math.PI * 2);
+    context.fillStyle = '#0e7468';
+    context.fill();
+  }
+
   function paintWheel() {
+    sizeLifePreserverModal();
     const canvas = document.getElementById('wheel-canvas');
     const live = (typeof getWheelSlices === 'function' ? getWheelSlices() : []) || [];
     const slices = live.length ? live : (paintWheel.lastSlices || []);
     if (!canvas) return slices;
     const context = canvas.getContext('2d');
+    clearWheelCallouts();
     if (!slices.length) {
       context.clearRect(0, 0, canvas.width, canvas.height);
-      const empty = document.getElementById('wheel-callouts');
-      if (empty) empty.replaceChildren();
+      paintWheel.lastLabels = [];
       return slices;
     }
     paintWheel.lastSlices = slices;
-    const total = slices.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
+    const LP = window.BPGLifePreserver || {};
+    const displayOf = (slice) => {
+      if (typeof LP.sliceDisplayWeight === 'function') return LP.sliceDisplayWeight(slice);
+      const display = Number(slice.displayWeight);
+      return Number.isFinite(display) && display > 0 ? display : (Number(slice.weight) || 0);
+    };
+    const total = slices.reduce((sum, slice) => sum + displayOf(slice), 0) || 1;
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const scale = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
-    const outer = cx * 0.70;
-    const inner = cx * 0.14;
-    const midR = (inner + outer) / 2;
+    const bowl = cx * (Number(LP.WHEEL_BOWL_FRAC) || 1);
+    const outer = cx * (Number(LP.WHEEL_OUTER_FRAC) || 0.88);
+    const inner = cx * (Number(LP.WHEEL_INNER_FRAC) || 0.7);
+    const fretInner = cx * (Number(LP.WHEEL_FRET_INNER_FRAC) || 0.36);
+    const hubR = cx * (Number(LP.WHEEL_HUB_FRAC) || 0.22);
+    const cssWidth = canvas.clientWidth || canvas.width;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.beginPath();
-    context.arc(cx, cy, cx * 0.98, 0, Math.PI * 2);
-    context.fillStyle = '#f4efe4';
-    context.fill();
+    paintWoodBowl(context, cx, cy, bowl);
+    paintCone(context, cx, cy, inner, hubR);
     let angle = -Math.PI / 2;
-    const callouts = [];
+    const labels = [];
+    const highlightKey = paintWheel.highlightKey;
     slices.forEach((slice) => {
-      const arc = ((Number(slice.weight) || 0) / total) * Math.PI * 2;
-      const kind = (window.BPGLifePreserver && typeof BPGLifePreserver.wheelSliceKind === 'function')
-        ? BPGLifePreserver.wheelSliceKind(slice)
+      const arc = (displayOf(slice) / total) * Math.PI * 2;
+      const kind = typeof LP.wheelSliceKind === 'function'
+        ? LP.wheelSliceKind(slice)
         : (slice.kind || (slice.adjustment === 0 ? 'zero' : 'good'));
+      const key = typeof LP.outcomeKey === 'function' ? LP.outcomeKey(slice) : `${kind}:${slice.adjustment}`;
       context.beginPath();
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
-      context.fillStyle = slice.color || (kind === 'good' ? '#34d399' : (kind === 'bad' ? '#f0a394' : '#c4b8ae'));
+      context.fillStyle = slice.color || (kind === 'good' ? '#1a8a7a' : (kind === 'bad' ? '#d07a68' : '#8a8278'));
       context.fill();
-      context.strokeStyle = 'rgba(8, 87, 79, 0.35)';
-      context.lineWidth = 3;
-      context.beginPath();
-      context.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
-      context.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
-      context.stroke();
-      const mid = angle + arc / 2;
-      const signed = (window.BPGLifePreserver && typeof BPGLifePreserver.formatSignedPoints === 'function')
-        ? BPGLifePreserver.formatSignedPoints(slice.adjustment)
-        : String(slice.adjustment || '0');
-      const chord = 2 * Math.sin(arc / 2) * midR;
-      const font = Math.max(34, Math.min(52, 18 * scale, chord * 0.5));
-      context.font = `800 ${font}px "Nunito Sans", sans-serif`;
-      const textW = context.measureText(signed).width;
-      const roomy = kind !== 'bad' && arc >= Math.PI * 2 * 0.10 && textW < chord * 0.78;
-      context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      if (roomy) {
-        context.fillText(signed, cx + Math.cos(mid) * midR, cy + Math.sin(mid) * midR);
-      } else {
-        callouts.push({ mid, signed, kind, font: Math.max(32, 16 * scale) });
+      if (highlightKey && key === highlightKey) {
+        context.save();
+        context.fillStyle = 'rgba(255, 248, 232, 0.32)';
+        context.fill();
+        context.strokeStyle = 'rgba(255, 246, 228, 0.95)';
+        context.lineWidth = 7;
+        context.stroke();
+        context.restore();
       }
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
     });
-    placeWheelCallouts(canvas, context, callouts, outer);
+    angle = -Math.PI / 2;
+    slices.forEach((slice) => {
+      const arc = (displayOf(slice) / total) * Math.PI * 2;
+      const x1 = cx + Math.cos(angle) * fretInner;
+      const y1 = cy + Math.sin(angle) * fretInner;
+      const x2 = cx + Math.cos(angle) * (outer + 3);
+      const y2 = cy + Math.sin(angle) * (outer + 3);
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.strokeStyle = 'rgba(143, 98, 52, 0.28)';
+      context.lineWidth = 4;
+      context.stroke();
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.strokeStyle = 'rgba(255, 248, 232, 0.88)';
+      context.lineWidth = 2;
+      context.stroke();
+      angle += arc;
+    });
     context.beginPath();
-    context.arc(cx, cy, outer, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(138, 106, 50, 0.7)';
-    context.lineWidth = 3;
+    context.arc(cx, cy, outer + 2, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(255, 246, 228, 0.95)';
+    context.lineWidth = 8;
     context.stroke();
     context.beginPath();
-    context.arc(cx, cy, inner - 2, 0, Math.PI * 2);
-    context.fillStyle = '#f7f3ea';
-    context.fill();
-    context.strokeStyle = 'rgba(138, 106, 50, 0.4)';
-    context.lineWidth = 4;
+    context.arc(cx, cy, inner, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(143, 98, 52, 0.28)';
+    context.lineWidth = 5;
     context.stroke();
+    slices.forEach((slice) => {
+      const layout = typeof LP.labelLayout === 'function'
+        ? LP.labelLayout(slice, {
+          cx,
+          cy,
+          outer,
+          inner,
+          cssWidth,
+          canvasWidth: canvas.width
+        })
+        : null;
+      if (!layout) return;
+      labels.push(layout);
+      context.save();
+      context.translate(layout.x, layout.y);
+      context.rotate(layout.rotation);
+      context.font = `900 ${layout.canvasFont}px "Nunito Sans", sans-serif`;
+      context.fillStyle = '#fff8ea';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(layout.text, 0, 0);
+      context.restore();
+    });
+    paintTurret(context, cx, cy, hubR);
     const hub = document.querySelector('.wheel-spinner-hub');
     const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
     if (hub) hub.textContent = resultOpen ? '' : 'SPIN';
     const mode = document.getElementById('wheel-mode-label');
     if (mode && !resultOpen) mode.textContent = 'Life Preserver';
     canvas.dataset.slice2Wheel = '1';
+    paintWheel.lastLabels = labels;
+    paintWheel.lastGeometry = { cx, cy, outer, inner, cssWidth, canvasWidth: canvas.width, bowl, hubR };
+    if (paintWheel.ballReady == null) {
+      placeLifePreserverBall(0, 46, 1);
+      paintWheel.ballReady = true;
+    }
     return slices;
+  }
+
+  function ballNodes() {
+    return {
+      orbit: document.getElementById('wheel-ball-orbit'),
+      ball: document.getElementById('wheel-ball')
+    };
+  }
+
+  function placeLifePreserverBall(angleDeg, radiusPct, opacity) {
+    const { orbit, ball } = ballNodes();
+    if (!orbit || !ball) return;
+    orbit.style.transform = `rotate(${angleDeg}deg)`;
+    ball.style.top = `calc(50% - ${radiusPct}%)`;
+    ball.style.opacity = String(opacity);
+    paintWheel.ballAngle = angleDeg;
+    paintWheel.ballRadius = radiusPct;
+  }
+
+  function animateLifePreserverBall(landingDeg, options) {
+    const { orbit, ball } = ballNodes();
+    if (!orbit || !ball) return Promise.resolve();
+    const reduce = !!(options && options.reduced);
+    const end = Number(landingDeg) || 0;
+    if (reduce) {
+      orbit.style.transition = 'none';
+      ball.style.transition = 'opacity 180ms ease-out';
+      placeLifePreserverBall(end, 39, 0);
+      ball.offsetHeight;
+      placeLifePreserverBall(end, 39, 1);
+      paintWheel.ballParked = true;
+      return Promise.resolve();
+    }
+    const start = Number(paintWheel.ballAngle) || 0;
+    const turns = 360 * 3 + end;
+    orbit.style.transition = 'transform 2.2s cubic-bezier(0.18, 0.82, 0.22, 1)';
+    ball.style.transition = 'top 0.85s cubic-bezier(0.22, 0.9, 0.28, 1), opacity 120ms linear';
+    placeLifePreserverBall(start, 46, 1);
+    orbit.offsetHeight;
+    placeLifePreserverBall(turns, 46, 1);
+    window.setTimeout(() => {
+      placeLifePreserverBall(turns, 39, 1);
+      paintWheel.ballParked = true;
+    }, 1680);
+    return Promise.resolve();
+  }
+
+  function resetLifePreserverBall() {
+    const { orbit, ball } = ballNodes();
+    if (orbit) orbit.style.transition = 'none';
+    if (ball) ball.style.transition = 'none';
+    paintWheel.ballParked = false;
+    paintWheel.ballReady = true;
+    paintWheel.highlightKey = null;
+    placeLifePreserverBall(0, 46, 1);
+  }
+
+  function highlightLifePreserverPocket(slice) {
+    const LP = window.BPGLifePreserver || {};
+    paintWheel.highlightKey = slice && typeof LP.outcomeKey === 'function'
+      ? LP.outcomeKey(slice)
+      : (slice ? `${slice.kind}:${slice.adjustment}` : null);
+    paintWheel();
+  }
+
+  function wheelLabelReport() {
+    const canvas = document.getElementById('wheel-canvas');
+    const shell = document.querySelector('.wheel-shell');
+    const spin = document.getElementById('btn-spin');
+    const labels = paintWheel.lastLabels || [];
+    const sized = sizeLifePreserverModal();
+    const shellBox = shell?.getBoundingClientRect();
+    const spinBox = spin?.getBoundingClientRect();
+    return {
+      callouts: document.querySelectorAll('.wheel-callout').length,
+      calloutLayer: document.querySelectorAll('#wheel-callouts > *').length,
+      labels: labels.map((item) => ({
+        text: item.text,
+        cssFont: item.cssFont,
+        radialMode: item.radialMode,
+        insideSegment: item.insideSegment,
+        insidePie: item.insidePie
+      })),
+      wheel: shellBox ? Math.round(Math.min(shellBox.width, shellBox.height)) : 0,
+      font: labels.length ? Math.round(Math.min(...labels.map((item) => item.cssFont)) * 10) / 10 : 0,
+      maxFont: labels.length ? Math.round(Math.max(...labels.map((item) => item.cssFont)) * 10) / 10 : 0,
+      chrome: sized?.chrome || 0,
+      dialog: sized ? { width: sized.dialogW, height: sized.dialogH } : null,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      spinInView: !!(spinBox && spinBox.top >= -1 && spinBox.bottom <= window.innerHeight + 1 && spinBox.left >= -1 && spinBox.right <= window.innerWidth + 1 && spinBox.width > 8),
+      diameterShare: sized && sized.size
+        ? sized.size / Math.min(window.innerWidth, window.innerHeight - sized.chrome)
+        : 0,
+      pockets: labels.length,
+      ball: !!(document.getElementById('wheel-ball')),
+      ballRadius: paintWheel.ballRadius || 0
+    };
   }
 
   function enterRound() {
@@ -688,9 +795,8 @@
     } else if (action === 'table') {
       if (typeof leaveMatchToTable === 'function') leaveMatchToTable();
     } else if (action === 'life-preserver') {
-      const player = firstEligible();
-      if (player) authorizeHailMary(player);
-      else openLifePreserverRules();
+      if (typeof openLifePreserverEntry === 'function') openLifePreserverEntry();
+      else if (typeof openLifePreserverRules === 'function') openLifePreserverRules();
     } else if (action === 'history') {
       openAuditLog();
     } else if (action === 'enter-round') {
@@ -744,6 +850,11 @@
         paintRecords();
       });
     }
+    window.addEventListener('resize', () => {
+      if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
+      sizeLifePreserverModal();
+      paintWheel();
+    });
   }
 
   function refresh(which) {
@@ -794,7 +905,18 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane };
+  window.BPGSlice2 = {
+    refresh,
+    paintWheel,
+    parkSaveIndicator,
+    setRecordsPane,
+    sizeLifePreserverModal,
+    wheelLabelReport,
+    animateLifePreserverBall,
+    resetLifePreserverBall,
+    placeLifePreserverBall,
+    highlightLifePreserverPocket
+  };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

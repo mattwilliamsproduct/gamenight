@@ -22,12 +22,19 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
+- A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.
+- A Life Preserver modal that uses the leftover viewport so the wheel and slice numbers can get big. Use Your One Spin stays on screen.
+- A Life Preserver that reads as a roulette bowl: narrow pockets, numbered rim, frets, turret, and a ball that settles.
+- A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
+- Scorecard places read as 1st, 2nd, 3rd in a real pill, not a faint 24px number.
+- Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
 
 ### Kills
 
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
 - Overlap, uneven gaps, truncated text, or clipped menus.
+- A place badge so small Matt cannot see the number.
 - A keypad covering a row, a name cut off, or Actions clipped by the match banner.
 - Truncated player names, or a control that no longer hugs the glyphs it labels.
 - Porch Club redesign work without Matt's visual sign-off.
@@ -52,6 +59,10 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
 - A setback callout that clips the + so +10 reads as 10 or as help.
 - A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
+- Life Preserver labels outside the pie, callout pills, or leader lines.
+- A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
+- A Life Preserver that still looks like a pie chart with extra wedges.
+- A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
 
 ## Prefer
 

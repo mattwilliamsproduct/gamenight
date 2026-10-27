@@ -57,12 +57,12 @@
   };
 
   const COLORS = {
-    badStrong: '#c47a6a',
-    badSoft: '#e4b4a6',
-    goodStrong: '#0f766e',
-    goodMid: '#2a9d8f',
-    goodSoft: '#7bc9b7',
-    zero: '#b4a89c'
+    badStrong: '#b85a4c',
+    badSoft: '#d07a68',
+    goodStrong: '#0a5c54',
+    goodMid: '#0e7468',
+    goodSoft: '#1a8a7a',
+    zero: '#8a8278'
   };
 
   // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
@@ -355,6 +355,7 @@
     let timing = `Once 4 ${unit} are scored.`;
     let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
+      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.',
       'Most slices help. Some do nothing. A few hurt a little.',
       'Cannot tie or pass the leader.'
     ];
@@ -494,11 +495,17 @@
     };
   }
 
+  function sliceDisplayWeight(slice) {
+    const display = Number(slice?.displayWeight);
+    if (Number.isFinite(display) && display > 0) return display;
+    return Number(slice?.weight) || 0;
+  }
+
   function sliceArcs(slices) {
-    const total = (slices || []).reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
+    const total = (slices || []).reduce((sum, slice) => sum + sliceDisplayWeight(slice), 0) || 1;
     let angle = -Math.PI / 2;
     return (slices || []).map((slice) => {
-      const fraction = (Number(slice.weight) || 0) / total;
+      const fraction = sliceDisplayWeight(slice) / total;
       const arc = fraction * Math.PI * 2;
       const start = angle;
       const end = angle + arc;
@@ -506,6 +513,7 @@
       return {
         adjustment: Number(slice.adjustment) || 0,
         weight: Number(slice.weight) || 0,
+        displayWeight: sliceDisplayWeight(slice),
         kind: wheelSliceKind(slice),
         fraction,
         start,
@@ -515,48 +523,458 @@
     });
   }
 
-  function alternateMagnitudes(slices) {
-    const sorted = [...slices].sort((a, b) => (
-      Math.abs(a.adjustment) - Math.abs(b.adjustment) || a.weight - b.weight
-    ));
+  const ROULETTE_UNIT = 0.025;
+  const TARGET_POCKETS = 40;
+  const MIN_POCKETS = 20;
+  const MAX_POCKETS = 40;
+  const POCKET_WIDTH_SLOP = 0.25;
+  const VISUAL_SHARE_TOLERANCE = 0.03;
+  const MIN_SEGMENT_FRAC = ROULETTE_UNIT * (1 - POCKET_WIDTH_SLOP);
+  const WHEEL_BOWL_FRAC = 1;
+  const WHEEL_TRACK_FRAC = 0.93;
+  const WHEEL_OUTER_FRAC = 0.88;
+  const WHEEL_INNER_FRAC = 0.70;
+  const WHEEL_FRET_INNER_FRAC = 0.36;
+  const WHEEL_HUB_FRAC = 0.22;
+  const PROPOSED_OUTCOME_TABLE = Object.freeze({
+    reallyGood: 0.30,
+    good: 0.45,
+    noChange: 0.10,
+    smallSetback: 0.15
+  });
+  const PROPOSED_HELP_FRACTIONS = Object.freeze({
+    reallyGood: Object.freeze([0.45, 0.55, 0.65]),
+    good: Object.freeze([0.20, 0.30, 0.40])
+  });
+  const PROPOSED_SETBACK_MAX = Object.freeze({
+    '818': 4,
+    Wizard: 15,
+    'Five Crowns': 10,
+    'Flip 7 Vengeance': 5
+  });
+  const EQUAL_POCKET_OPTION = Object.freeze({
+    pockets: 40,
+    unit: 0.025,
+    counts: Object.freeze({
+      smallHelp: 18,
+      mediumHelp: 12,
+      bigHelp: 2,
+      noChange: 5,
+      smallSetback: 3
+    }),
+    implied: Object.freeze({
+      smallHelp: 0.45,
+      mediumHelp: 0.30,
+      bigHelp: 0.05,
+      noChange: 0.125,
+      smallSetback: 0.075
+    }),
+    live: OUTCOME_TABLE,
+    note: 'Default visual plan. Category shares stay exact via subtle pocket widths (neutral a hair narrower, setback a hair wider). The draw still uses 12% and 8%.'
+  });
+
+  function outcomeKey(slice) {
+    return `${wheelSliceKind(slice)}:${Number(slice.adjustment) || 0}`;
+  }
+
+  function choosePocketCount(options) {
+    const explicit = Number(options?.pocketCount);
+    if (Number.isFinite(explicit) && explicit >= MIN_POCKETS && explicit <= MAX_POCKETS) {
+      return Math.round(explicit);
+    }
+    const css = Number(options?.cssWidth);
+    if (Number.isFinite(css) && css > 0 && css < 340) return 24;
+    return TARGET_POCKETS;
+  }
+
+  function pocketCountFor(weight, target) {
+    const goal = Number(target) || TARGET_POCKETS;
+    const value = Number(weight) || 0;
+    if (value <= 0) return 0;
+    return Math.max(1, Math.round(value * goal));
+  }
+
+  function segmentCountFor(weight) {
+    return pocketCountFor(weight, TARGET_POCKETS);
+  }
+
+  function largestRemainderCounts(weights, total, minEach) {
+    const values = (weights || []).map((value) => Math.max(0, Number(value) || 0));
+    const sum = values.reduce((acc, value) => acc + value, 0) || 1;
+    const mins = values.map((value) => (value > 0 ? Math.max(1, Number(minEach) || 1) : 0));
+    let counts = values.map((value, index) => {
+      if (value <= 0) return 0;
+      return Math.max(mins[index], Math.floor((value / sum) * total));
+    });
+    let used = counts.reduce((acc, value) => acc + value, 0);
+    const remainders = values.map((value, index) => ({
+      index,
+      rem: value > 0 ? ((value / sum) * total) - counts[index] : -1
+    })).sort((a, b) => b.rem - a.rem);
+    let guard = 0;
+    while (used < total && remainders.length && guard < 80) {
+      const next = remainders[guard % remainders.length];
+      if (values[next.index] > 0) {
+        counts[next.index] += 1;
+        used += 1;
+      }
+      guard += 1;
+    }
+    values.forEach((value, index) => {
+      if (value > 0 && counts[index] < 1) counts[index] = 1;
+    });
+    return counts;
+  }
+
+  function outcomeSpec(options) {
+    if (options?.table === 'proposed') {
+      return {
+        id: 'proposed',
+        oddsLine: '75% help · 10% no change · 15% small setback',
+        table: PROPOSED_OUTCOME_TABLE,
+        bands: [
+          { key: 'reallyGood', weight: PROPOSED_OUTCOME_TABLE.reallyGood, kind: 'good', role: 'reallyGood' },
+          { key: 'good', weight: PROPOSED_OUTCOME_TABLE.good, kind: 'good', role: 'good' },
+          { key: 'noChange', weight: PROPOSED_OUTCOME_TABLE.noChange, kind: 'zero', role: 'zero' },
+          { key: 'smallSetback', weight: PROPOSED_OUTCOME_TABLE.smallSetback, kind: 'bad', role: 'setback' }
+        ]
+      };
+    }
+    return {
+      id: 'current',
+      oddsLine: 'Most slices help. Some do nothing. A few hurt a little.',
+      table: OUTCOME_TABLE,
+      bands: [
+        { key: 'smallHelp', weight: OUTCOME_TABLE.smallHelp, kind: 'good', role: 'small' },
+        { key: 'mediumHelp', weight: OUTCOME_TABLE.mediumHelp, kind: 'good', role: 'medium' },
+        { key: 'bigHelp', weight: OUTCOME_TABLE.bigHelp, kind: 'good', role: 'big' },
+        { key: 'noChange', weight: OUTCOME_TABLE.noChange, kind: 'zero', role: 'zero' },
+        { key: 'smallSetback', weight: OUTCOME_TABLE.smallSetback, kind: 'bad', role: 'setback' }
+      ]
+    };
+  }
+
+  function layoutRoulettePockets(outcomes, options) {
+    const target = choosePocketCount(options);
+    const list = (outcomes || []).filter((item) => (Number(item.weight) || 0) > 0);
+    const groups = new Map();
+    list.forEach((item) => {
+      const band = item.band || wheelSliceKind(item);
+      if (!groups.has(band)) groups.set(band, { band, weight: 0, items: [] });
+      const group = groups.get(band);
+      group.weight += Number(item.weight) || 0;
+      group.items.push(item);
+    });
+    const bands = [...groups.values()];
+    const bandCounts = largestRemainderCounts(bands.map((band) => band.weight), target, 0);
+    bands.forEach((band, index) => {
+      band.pocketCount = Math.max(band.items.length, bandCounts[index] || 0);
+    });
+    return bands.flatMap((band) => {
+      const amountCounts = largestRemainderCounts(
+        band.items.map((item) => item.weight),
+        band.pocketCount,
+        1
+      );
+      const used = amountCounts.reduce((sum, value) => sum + value, 0) || 1;
+      return band.items.map((item, index) => {
+        const pockets = Math.max(1, amountCounts[index] || 1);
+        return {
+          ...item,
+          pocketCount: pockets,
+          displayWeight: (pockets / used) * band.weight,
+          band: band.band
+        };
+      });
+    });
+  }
+
+  function mergeEqualOutcomes(slices) {
+    const map = new Map();
+    (slices || []).forEach((slice) => {
+      const key = outcomeKey(slice);
+      if (!map.has(key)) {
+        map.set(key, {
+          ...stripWheelMeta(slice),
+          weight: 0,
+          outcomeKey: key
+        });
+      }
+      map.get(key).weight += Number(slice.weight) || 0;
+    });
+    return [...map.values()].filter((slice) => slice.weight > 0);
+  }
+
+  function assignOutcomeColors(outcomes) {
+    const goods = outcomes.filter((slice) => wheelSliceKind(slice) === 'good')
+      .sort((a, b) => Math.abs(a.adjustment) - Math.abs(b.adjustment));
+    const bads = outcomes.filter((slice) => wheelSliceKind(slice) === 'bad')
+      .sort((a, b) => Math.abs(a.adjustment) - Math.abs(b.adjustment));
+    const goodColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodStrong];
+    const badColors = [COLORS.badSoft, COLORS.badStrong];
+    goods.forEach((slice, index) => {
+      slice.color = goodColors[Math.min(index, goodColors.length - 1)];
+    });
+    bads.forEach((slice, index) => {
+      slice.color = badColors[Math.min(index, badColors.length - 1)];
+    });
+    outcomes.forEach((slice) => {
+      if (wheelSliceKind(slice) === 'zero') slice.color = COLORS.zero;
+    });
+    return outcomes;
+  }
+
+  function summarizeWheelOutcomes(slices) {
+    const merged = mergeEqualOutcomes(slices);
+    const total = merged.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
+    const visualTotal = (slices || []).reduce((sum, slice) => sum + sliceDisplayWeight(slice), 0) || 1;
+    return merged.map((slice) => {
+      const matching = (slices || []).filter((item) => outcomeKey(item) === slice.outcomeKey);
+      const segments = matching.length || Number(slice.pocketCount) || segmentCountFor(slice.weight);
+      const visual = matching.reduce((sum, item) => sum + sliceDisplayWeight(item), 0);
+      const probability = (Number(slice.weight) || 0) / total;
+      const visualShare = visual / visualTotal;
+      return {
+        outcomeKey: slice.outcomeKey,
+        adjustment: Number(slice.adjustment) || 0,
+        kind: wheelSliceKind(slice),
+        band: slice.band || matching[0]?.band || null,
+        label: formatSignedPoints(slice.adjustment),
+        probability,
+        visualShare,
+        visualDelta: visualShare - probability,
+        weight: Number(slice.weight) || 0,
+        segments,
+        pocketWidth: segments ? visualShare / segments : 0,
+        arcDegrees: visualShare * 360
+      };
+    }).sort((a, b) => a.adjustment - b.adjustment || a.kind.localeCompare(b.kind));
+  }
+
+  function describePocketTable(slices) {
+    const outcomes = summarizeWheelOutcomes(slices);
+    const totalPockets = outcomes.reduce((sum, outcome) => sum + outcome.segments, 0);
+    const avg = totalPockets ? 1 / totalPockets : 0;
+    const bands = new Map();
+    outcomes.forEach((outcome) => {
+      const key = outcome.band || outcome.kind;
+      if (!bands.has(key)) bands.set(key, { band: key, probability: 0, visualShare: 0, pockets: 0 });
+      const row = bands.get(key);
+      row.probability += outcome.probability;
+      row.visualShare += outcome.visualShare;
+      row.pockets += outcome.segments;
+    });
+    return {
+      pockets: totalPockets,
+      averageWidth: avg,
+      equalOption: EQUAL_POCKET_OPTION,
+      bands: [...bands.values()],
+      outcomes: outcomes.map((outcome) => ({
+        ...outcome,
+        widthEach: outcome.pocketWidth,
+        widthVsAverage: avg ? outcome.pocketWidth / avg - 1 : 0
+      }))
+    };
+  }
+
+  function arrangeRouletteSegments(outcomes) {
+    const bags = (outcomes || []).map((outcome) => {
+      const n = Math.max(1, Number(outcome.pocketCount) || segmentCountFor(outcome.weight));
+      return {
+        outcome,
+        key: outcome.outcomeKey || outcomeKey(outcome),
+        kind: wheelSliceKind(outcome),
+        color: outcome.color,
+        left: n,
+        n,
+        each: n ? (Number(outcome.weight) || 0) / n : 0,
+        eachDisplay: n ? (Number(outcome.displayWeight) || Number(outcome.weight) || 0) / n : 0
+      };
+    }).filter((bag) => bag.n > 0);
+    const total = bags.reduce((sum, bag) => sum + bag.n, 0);
     const out = [];
-    let low = 0;
-    let high = sorted.length - 1;
-    while (low <= high) {
-      out.push(sorted[low++]);
-      if (low <= high) out.push(sorted[high--]);
+    const remaining = () => bags.reduce((sum, bag) => sum + bag.left, 0);
+    const score = (bag, last) => {
+      if (bag.left <= 0) return -1e9;
+      const placed = total - remaining();
+      const expected = bag.n * (placed + 1) / Math.max(total, 1);
+      const already = bag.n - bag.left;
+      let value = (expected - already) * 12;
+      if (last) {
+        if (bag.key === last.outcomeKey) value -= 90;
+        if (bag.color === last.color) value -= 22;
+        if (bag.kind === last.kind) value -= 8;
+        if (last.kind === 'bad' && bag.kind === 'bad') value -= 400;
+      }
+      return value;
+    };
+    for (let i = 0; i < total; i++) {
+      const last = out[out.length - 1];
+      let best = null;
+      let bestScore = -1e12;
+      bags.forEach((bag) => {
+        const value = score(bag, last);
+        if (value > bestScore) {
+          bestScore = value;
+          best = bag;
+        }
+      });
+      best.left -= 1;
+      const slice = makeSlice(best.outcome.adjustment, best.kind, best.color, best.each);
+      slice.displayWeight = best.eachDisplay;
+      slice.band = best.outcome.band || null;
+      slice.outcomeKey = best.key;
+      slice.segmentIndex = best.n - best.left - 1;
+      slice.segmentCount = best.n;
+      out.push(slice);
+    }
+    if (out.length > 2) {
+      const first = out[0];
+      const last = out[out.length - 1];
+      const wrapClash = first.outcomeKey === last.outcomeKey
+        || (first.kind === 'bad' && last.kind === 'bad');
+      if (wrapClash) {
+        for (let i = 1; i < out.length - 1; i++) {
+          const candidate = out[i];
+          const prev = out[i - 1];
+          const next = out[i + 1];
+          if (candidate.outcomeKey === first.outcomeKey) continue;
+          if (candidate.kind === 'bad' && last.kind === 'bad') continue;
+          if (prev.kind === 'bad' && last.kind === 'bad') continue;
+          if (next.kind === 'bad' && first.kind === 'bad') continue;
+          out[i] = last;
+          out[out.length - 1] = candidate;
+          break;
+        }
+      }
     }
     return out;
   }
 
-  // Spread red/gray spacers around the wheel so helpful greens do not form one
-  // Pac-Man wedge. With more greens than spacers, one pair of greens may touch.
-  function arrangeWheelSlices(slices) {
-    const groups = { bad: [], zero: [], good: [] };
-    slices.forEach(slice => {
-      groups[wheelSliceKind(slice)].push(slice);
+  function attachSliceArcs(slices) {
+    const arcs = sliceArcs(slices);
+    (slices || []).forEach((slice, index) => {
+      slice._start = arcs[index].start;
+      slice._end = arcs[index].end;
     });
-    groups.good = alternateMagnitudes(groups.good);
-    groups.bad = alternateMagnitudes(groups.bad);
+    return slices || [];
+  }
 
-    const spacers = [];
-    const spacerTurns = Math.max(groups.bad.length, groups.zero.length);
-    for (let i = 0; i < spacerTurns; i++) {
-      if (i < groups.bad.length) spacers.push(groups.bad[i]);
-      if (i < groups.zero.length) spacers.push(groups.zero[i]);
-    }
-    if (!spacers.length) return groups.good.map(stripWheelMeta);
+  function landingDegreesForSlice(slice, random) {
+    if (!slice || !Number.isFinite(slice._start) || !Number.isFinite(slice._end)) return 0;
+    const span = slice._end - slice._start;
+    if (span <= 0) return rotationDegreesForSlice(slice);
+    const inset = Math.min(Math.max(span * 0.18, span * 0.08), span * 0.35);
+    const lo = slice._start + inset;
+    const hi = slice._end - inset;
+    const draw = typeof random === 'function' ? Number(random()) : 0.5;
+    const t = Number.isFinite(draw) ? Math.min(Math.max(draw, 0), 1) : 0.5;
+    const angle = lo + (hi - lo) * t;
+    return ((angle + Math.PI / 2) * 180) / Math.PI;
+  }
 
-    const n = slices.length;
-    const placed = new Array(n).fill(null);
-    for (let i = 0; i < spacers.length; i++) {
-      placed[Math.floor((i * n) / spacers.length)] = spacers[i];
+  function wheelAngleFromDegrees(degrees) {
+    return ((Number(degrees) || 0) * Math.PI) / 180 - Math.PI / 2;
+  }
+
+  function angleInArc(angle, start, end) {
+    const twoPi = Math.PI * 2;
+    let a = angle;
+    let s = start;
+    let e = end;
+    while (s < 0) {
+      s += twoPi;
+      a += twoPi;
+      e += twoPi;
     }
-    let gi = 0;
-    for (let i = 0; i < n; i++) {
-      if (!placed[i]) placed[i] = groups.good[gi++];
-    }
-    return placed.map(stripWheelMeta);
+    while (a < s) a += twoPi;
+    return a <= e + 1e-6;
+  }
+
+  function pointInSlice(x, y, cx, cy, inner, outer, start, end, pad) {
+    const dx = x - cx;
+    const dy = y - cy;
+    const radius = Math.hypot(dx, dy);
+    const slack = Number.isFinite(pad) ? pad : 1.5;
+    if (radius < inner - slack || radius > outer + slack) return false;
+    return angleInArc(Math.atan2(dy, dx), start, end);
+  }
+
+  function labelLayout(slice, geometry) {
+    const geo = geometry || {};
+    const cx = Number(geo.cx) || 0;
+    const cy = Number(geo.cy) || 0;
+    const outer = Number(geo.outer) || 0;
+    const inner = Number(geo.inner) || 0;
+    const cssWidth = Number(geo.cssWidth) || outer * 2 || 1;
+    const canvasWidth = Number(geo.canvasWidth) || cssWidth;
+    const start = Number.isFinite(slice?._start) ? slice._start : -Math.PI / 2;
+    const end = Number.isFinite(slice?._end) ? slice._end : start;
+    const arc = Math.max(end - start, 0);
+    const mid = start + arc / 2;
+    const midR = (inner + outer) / 2;
+    const signed = formatSignedPoints(slice?.adjustment);
+    const scale = canvasWidth / cssWidth;
+    const chord = 2 * Math.sin(arc / 2) * midR;
+    const radial = Math.max(outer - inner, 1);
+    const radialMode = false;
+    const tangentialMode = true;
+    const chordCss = chord / scale;
+    const radialCss = radial / scale;
+    const targetCss = Math.max(8, Math.min(
+      cssWidth * 0.046,
+      radialCss * 0.62,
+      chordCss * (signed.length > 2 ? 0.58 : 0.68)
+    ));
+    const cssFont = Math.max(8, Math.min(targetCss, chordCss * 0.7));
+    const canvasFont = cssFont * scale;
+    const textW = signed.length * canvasFont * 0.52;
+    const textH = canvasFont * 0.86;
+    const x = cx + Math.cos(mid) * midR;
+    const y = cy + Math.sin(mid) * midR;
+    const rotation = mid + Math.PI / 2;
+    const hw = textW / 2;
+    const hh = textH / 2;
+    const corners = [
+      { x: -hw, y: -hh },
+      { x: hw, y: -hh },
+      { x: hw, y: hh },
+      { x: -hw, y: hh }
+    ].map((point) => {
+      const cos = Math.cos(rotation);
+      const sin = Math.sin(rotation);
+      return {
+        x: x + point.x * cos - point.y * sin,
+        y: y + point.x * sin + point.y * cos
+      };
+    });
+    const pad = Math.max(1.25 * scale, 1);
+    const insideSegment = corners.every((point) => (
+      pointInSlice(point.x, point.y, cx, cy, inner, outer, start, end, pad)
+    ));
+    const insidePie = corners.every((point) => {
+      const radius = Math.hypot(point.x - cx, point.y - cy);
+      return radius <= outer + pad && radius >= Math.max(0, inner - pad);
+    });
+    return {
+      text: signed,
+      x,
+      y,
+      mid,
+      midR,
+      arc,
+      rotation,
+      radialMode,
+      tangentialMode,
+      canvasFont,
+      cssFont,
+      textW,
+      textH,
+      corners,
+      insideSegment,
+      insidePie,
+      kind: wheelSliceKind(slice || {})
+    };
   }
 
   function bestAllowedRankFor(_playerCount, _currentRank) {
@@ -721,46 +1139,88 @@
     return [0];
   }
 
-  function slicesForBand(values, weight, kind, sign, colorFn) {
+  function proposedHelpMagnitudes(role, increment, maxHelpful, leaderGap) {
+    const step = Math.max(1, increment);
+    const gap = Math.max(0, Number(leaderGap) || 0);
+    const modest = uniquePositive([step, step * 2]).filter((value) => value <= maxHelpful);
+    if (role === 'setback') return [];
+    if (gap < step) return modest.slice(0, 1);
+    const fractions = PROPOSED_HELP_FRACTIONS[role] || PROPOSED_HELP_FRACTIONS.good;
+    const capFrac = role === 'reallyGood' ? 0.65 : 0.40;
+    // Discrete pockets, equally likely inside the band, floored to the game increment.
+    const values = uniquePositive(fractions.map((frac) => (
+      floorToIncrement(Math.min(gap * frac, gap * capFrac, maxHelpful), step)
+    ))).filter((value) => value >= step && value <= maxHelpful && value < gap);
+    return values.length ? values : modest.filter((value) => value < gap || gap < step);
+  }
+
+  function slicesForBand(values, weight, kind, sign, colorFn, band) {
     if (!values.length || weight <= 0) return [];
     const each = weight / values.length;
     return values.map((magnitude, index) => {
       const adjustment = kind === 'zero' ? 0 : (kind === 'bad' ? -sign * magnitude : sign * magnitude);
-      return makeSlice(adjustment, kind, colorFn(index), each);
+      const slice = makeSlice(adjustment, kind, colorFn(index), each);
+      slice.band = band;
+      return slice;
     });
   }
 
   function buildSlices(maxHelpful, maxSetback, winLow, increment, options) {
+    const opts = options || {};
+    const spec = outcomeSpec(opts);
     const sign = helpfulSign(winLow);
     const maxH = Math.max(increment, floorToIncrement(maxHelpful, increment));
     const maxB = Math.max(increment, floorToIncrement(maxSetback, increment));
-    const stretch = rewardStretch({ ...options, increment });
-    const small = bandMagnitudes('small', increment, maxH, maxB, stretch);
-    const medium = bandMagnitudes('medium', increment, maxH, maxB, stretch);
-    const big = bandMagnitudes('big', increment, maxH, maxB, stretch);
-    const setbacks = bandMagnitudes('setback', increment, maxH, maxB, stretch);
+    const stretch = rewardStretch({ ...opts, increment });
+    const gap = Number(opts.leaderGap);
+    const magnitudes = {};
+    spec.bands.forEach((band) => {
+      if (band.role === 'zero') {
+        magnitudes[band.key] = [0];
+        return;
+      }
+      if (spec.id === 'proposed' && (band.role === 'good' || band.role === 'reallyGood')) {
+        magnitudes[band.key] = proposedHelpMagnitudes(band.role, increment, maxH, gap);
+        return;
+      }
+      if (band.role === 'setback') {
+        magnitudes[band.key] = bandMagnitudes('setback', increment, maxH, maxB, stretch);
+        return;
+      }
+      magnitudes[band.key] = bandMagnitudes(band.role, increment, maxH, maxB, stretch);
+    });
 
-    let smallP = OUTCOME_TABLE.smallHelp;
-    let mediumP = OUTCOME_TABLE.mediumHelp;
-    let bigP = OUTCOME_TABLE.bigHelp;
-    if (!medium.length) {
-      smallP += mediumP;
-      mediumP = 0;
-    }
-    if (!big.length) {
-      if (medium.length) mediumP += bigP;
-      else smallP += bigP;
-      bigP = 0;
+    const bands = spec.bands.map((band) => ({ ...band }));
+    const helpBands = bands.filter((band) => band.kind === 'good');
+    for (let i = helpBands.length - 1; i >= 0; i--) {
+      if ((magnitudes[helpBands[i].key] || []).length) continue;
+      const foldInto = [...helpBands.slice(0, i)].reverse()
+        .find((band) => (magnitudes[band.key] || []).length);
+      if (foldInto) {
+        foldInto.weight += helpBands[i].weight;
+        helpBands[i].weight = 0;
+      }
     }
 
-    const raw = [
-      ...slicesForBand(small, smallP, 'good', sign, () => COLORS.goodSoft),
-      ...slicesForBand(medium, mediumP, 'good', sign, () => COLORS.goodMid),
-      ...slicesForBand(big, bigP, 'good', sign, (index) => (index ? COLORS.goodStrong : COLORS.goodMid)),
-      ...slicesForBand([0], OUTCOME_TABLE.noChange, 'zero', sign, () => COLORS.zero),
-      ...slicesForBand(setbacks, OUTCOME_TABLE.smallSetback, 'bad', sign, (index) => (index ? COLORS.badStrong : COLORS.badSoft))
-    ];
-    return arrangeWheelSlices(raw);
+    const colorFor = (band, index) => {
+      if (band.kind === 'zero') return COLORS.zero;
+      if (band.kind === 'bad') return index ? COLORS.badStrong : COLORS.badSoft;
+      if (band.role === 'reallyGood' || band.role === 'big') return index ? COLORS.goodStrong : COLORS.goodMid;
+      if (band.role === 'medium' || band.role === 'good') return COLORS.goodMid;
+      return COLORS.goodSoft;
+    };
+
+    const raw = bands.flatMap((band) => slicesForBand(
+      magnitudes[band.key] || [],
+      band.weight,
+      band.kind,
+      sign,
+      (index) => colorFor(band, index),
+      band.key
+    ));
+    const merged = assignOutcomeColors(mergeEqualOutcomes(raw));
+    const laid = layoutRoulettePockets(merged, opts);
+    return arrangeRouletteSegments(laid);
   }
 
   function ineligible(reason, extras) {
@@ -970,8 +1430,12 @@
       });
     }
 
-    const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
-    const wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
+    let maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
+    if (opts.table === 'proposed') {
+      const proposedSetback = PROPOSED_SETBACK_MAX[game.name] || (cfg.increment * 2);
+      maxSetback = Math.max(cfg.increment, floorToIncrement(proposedSetback, cfg.increment));
+    }
+    let wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
     if (wheelHelp < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,
@@ -987,11 +1451,19 @@
       });
     }
     const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
+    const spec = outcomeSpec(opts);
+    if (opts.table === 'proposed') {
+      const gapHelp = floorToIncrement(Math.min((Number(leaderGap) || 0) * 0.65, cfg.rescueMax, rankCap), cfg.increment);
+      wheelHelp = Math.max(cfg.increment, Math.min(gapHelp || cfg.increment, rankCap || gapHelp || cfg.increment));
+    }
     const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, {
       recoveryLoad,
       leaderGap,
       remainingRounds,
-      oneStrongRound
+      oneStrongRound,
+      table: opts.table,
+      pocketCount: opts.pocketCount,
+      cssWidth: opts.cssWidth
     });
     const bestPlaceAfter = rankWithScore(
       player,
@@ -1034,6 +1506,12 @@
       slices
     };
     offer.bindingLimit = resolveBindingLimit(offer);
+    offer.table = spec.id;
+    offer.oddsLine = spec.oddsLine;
+    if (opts.table === 'proposed') {
+      offer.maxSafeAdjustment = wheelHelp;
+      offer.proposed = true;
+    }
     return offer;
   }
 
@@ -1089,12 +1567,49 @@
     bestAllowedRankFor,
     scoringRounds,
     OUTCOME_TABLE,
+    PROPOSED_OUTCOME_TABLE,
+    PROPOSED_HELP_FRACTIONS,
+    PROPOSED_SETBACK_MAX,
+    COLORS,
+    ROULETTE_UNIT,
+    TARGET_POCKETS,
+    MIN_POCKETS,
+    MAX_POCKETS,
+    POCKET_WIDTH_SLOP,
+    VISUAL_SHARE_TOLERANCE,
+    MIN_SEGMENT_FRAC,
+    EQUAL_POCKET_OPTION,
+    WHEEL_BOWL_FRAC,
+    WHEEL_TRACK_FRAC,
+    WHEEL_OUTER_FRAC,
+    WHEEL_INNER_FRAC,
+    WHEEL_FRET_INNER_FRAC,
+    WHEEL_HUB_FRAC,
     sliceArcs,
+    sliceDisplayWeight,
+    attachSliceArcs,
     wheelSliceKind,
+    outcomeKey,
+    choosePocketCount,
+    pocketCountFor,
+    segmentCountFor,
+    largestRemainderCounts,
+    outcomeSpec,
+    layoutRoulettePockets,
+    proposedHelpMagnitudes,
+    mergeEqualOutcomes,
+    summarizeWheelOutcomes,
+    describePocketTable,
     pickWeightedSlice,
     buildLockedOutcome,
     describeLifePreserverResult,
     rotationDegreesForSlice,
+    landingDegreesForSlice,
+    wheelAngleFromDegrees,
+    angleInArc,
+    pointInSlice,
+    labelLayout,
+    buildSlices,
     formatWheelLabel,
     formatSignedPoints
   };

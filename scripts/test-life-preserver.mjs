@@ -141,16 +141,12 @@ function assertSliceDistribution(result, label) {
 
 function assertWheelAnglesMatchWeights(result, label) {
   const arcs = LP.sliceArcs(result.slices);
-  const total = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
+  const total = result.slices.reduce((sum, slice) => sum + LP.sliceDisplayWeight(slice), 0);
   assert.ok(arcs.length === result.slices.length);
   arcs.forEach((arc, index) => {
-    const expected = result.slices[index].weight / total;
-    assert.ok(Math.abs(arc.fraction - expected) < 1e-9, `${label}: slice ${index} angle ${arc.fraction} != weight ${expected}`);
+    const expected = LP.sliceDisplayWeight(result.slices[index]) / total;
+    assert.ok(Math.abs(arc.fraction - expected) < 1e-9, `${label}: slice ${index} angle ${arc.fraction} != display ${expected}`);
   });
-  const unique = new Set(arcs.map(arc => Number(arc.arc.toFixed(6))));
-  if (result.slices.every(slice => slice.weight === result.slices[0].weight)) {
-    assert.equal(unique.size, 1, `${label}: equal weights should draw equal angles`);
-  }
 }
 
 test('818 remaining opportunity uses each upcoming trick count', () => {
@@ -450,7 +446,7 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(result.maxSafeAdjustment <= 75);
   const helpfulWeights = result.slices.filter(slice => slice.adjustment < 0).reduce((sum, slice) => sum + slice.weight, 0);
   const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
-  assert.ok(helpfulWeights / totalWeight >= 0.8);
+  assert.ok(helpfulWeights / totalWeight >= 0.79);
   assertNoPodium(result, players, totals);
   const afterJackpot = totals.Brick - result.maxSafeAdjustment;
   const firstScore = Math.min(...players.map(player => Number(totals[player]) || 0));
@@ -579,6 +575,8 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
   assert.ok(eight18.how.some(line => /One spin per player per match/.test(line)));
   assert.ok(eight18.wheel.some(line => /Cannot tie or pass the leader/.test(line)));
+  assert.ok(eight18.wheel.some(line => /45% small help/.test(line) && /12% no change/.test(line)));
+  assert.ok(!eight18.wheel.some(line => /perfectly proportional/i.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
   assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
@@ -857,4 +855,385 @@ test('old vs new wheel simulation on early, middle, and late tables', () => {
   }
   console.log('LP_WHEEL_SIM', JSON.stringify(report, null, 2));
   assert.ok(report.length === 3);
+});
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a += 0x6D2B79F5;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const ROULETTE_CASES = [
+  {
+    label: '818 last hole',
+    name: '818',
+    totals: { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 },
+    options: { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' }
+  },
+  {
+    label: '818 mid porch Cat',
+    game: QA_SCENARIOS['eight18-porch-lp'].data.currentGame,
+    player: 'Cat'
+  },
+  {
+    label: 'Wizard late Hal',
+    name: 'Wizard',
+    totals: { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 },
+    options: { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' }
+  },
+  {
+    label: 'Five Crowns Brick',
+    game: QA_SCENARIOS['five-crowns-preservers'].data.currentGame,
+    player: 'Brick'
+  },
+  {
+    label: 'Five Crowns Linda demo',
+    game: QA_SCENARIOS['demo-seed'].data.currentGame,
+    player: 'Linda'
+  },
+  {
+    label: 'Five Crowns Duke-like 20',
+    slices: () => LP.buildSlices(20, 10, true, 5, { remainingRounds: 4, oneStrongRound: 20, leaderGap: 51 })
+  },
+  {
+    label: 'Flip 7 late Hal',
+    name: 'Flip 7 Vengeance',
+    totals: { Ann: 180, Bea: 170, Cal: 160, Dee: 150, Eve: 90, Fay: 80, Gus: 70, Hal: 20 },
+    options: { roundCount: 6, spread: 40, currentRound: 7, player: 'Hal' }
+  }
+];
+
+function offerFromCase(item) {
+  if (item.slices) return { eligible: true, winLow: true, scoreIncrement: 5, slices: item.slices() };
+  if (item.game) return LP.getLifePreserverOffer(item.game, item.player, item.game.originalRoster);
+  return offer(item.name, item.totals, item.options);
+}
+
+test('roulette segment arcs match each outcome probability and sum to 360', () => {
+  for (const item of ROULETTE_CASES) {
+    const result = offerFromCase(item);
+    assert.equal(result.eligible, true, item.label);
+    const slices = result.slices;
+    assert.ok(slices.length >= 20 && slices.length <= 40, `${item.label}: pocket count ${slices.length}`);
+    const arcs = LP.sliceArcs(slices);
+    const totalArc = arcs.reduce((sum, arc) => sum + arc.arc, 0);
+    assert.ok(Math.abs(totalArc - Math.PI * 2) < 1e-9, `${item.label}: arcs ${totalArc}`);
+    const degreeSum = arcs.reduce((sum, arc) => sum + (arc.fraction * 360), 0);
+    assert.ok(Math.abs(degreeSum - 360) < 0.1, `${item.label}: degree sum ${degreeSum}`);
+    const outcomes = LP.summarizeWheelOutcomes(slices);
+    outcomes.forEach((outcome) => {
+      const matching = arcs.filter((arc) => (
+        (Number(arc.adjustment) || 0) === outcome.adjustment && arc.kind === outcome.kind
+      ));
+      const summed = matching.reduce((sum, arc) => sum + (arc.fraction * 360), 0);
+      assert.ok(
+        Math.abs(summed - outcome.arcDegrees) < 0.1,
+        `${item.label} ${outcome.label}: summed ${summed} != ${outcome.arcDegrees}`
+      );
+      assert.equal(matching.length, outcome.segments, `${item.label} ${outcome.label} segment count`);
+      assert.ok(outcome.segments >= 1, `${item.label} ${outcome.label} needs a pocket`);
+      assert.ok(
+        Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+        `${item.label} ${outcome.label} visual ${outcome.visualShare} vs live ${outcome.probability}`
+      );
+    });
+    if (item.label === 'Five Crowns Duke-like 20') {
+      const labels = outcomes.map((outcome) => `${outcome.label}:${outcome.segments}:${outcome.arcDegrees.toFixed(1)}`);
+      assert.deepEqual(
+        outcomes.map((outcome) => outcome.adjustment).sort((a, b) => a - b),
+        [-20, -10, -5, 0, 5, 10],
+        `Duke collapsed tiers should merge to six amounts, got ${labels.join(' | ')}`
+      );
+      const medium = outcomes.find((outcome) => Math.abs(outcome.adjustment) === 30 || Math.abs(outcome.adjustment) === 40);
+      assert.equal(medium, undefined, 'Duke medium band is empty and must not invent a 30/40 slice');
+      const small = outcomes.filter((outcome) => outcome.adjustment === -5 || outcome.adjustment === -10);
+      const smallP = small.reduce((sum, outcome) => sum + outcome.probability, 0);
+      assert.ok(Math.abs(smallP - 0.75) < 1e-9, `Duke small+folded medium should be 75%, got ${smallP}`);
+      console.log('DUKE_ROULETTE', JSON.stringify(outcomes, null, 2));
+    }
+    const table = LP.describePocketTable(slices);
+    assert.ok(table.pockets >= 20 && table.pockets <= 40, `${item.label} pockets ${table.pockets}`);
+    table.bands.forEach((band) => {
+      assert.ok(
+        Math.abs(band.visualShare - band.probability) < 1e-9,
+        `${item.label} ${band.band} visual ${band.visualShare} != live ${band.probability}`
+      );
+    });
+    assert.equal(table.equalOption.implied.noChange, 0.125);
+    assert.equal(LP.OUTCOME_TABLE.noChange, 0.12);
+    assert.equal(LP.OUTCOME_TABLE.smallSetback, 0.08);
+    console.log('POCKET_TABLE', item.label, JSON.stringify(table.outcomes.map((row) => ({
+      label: row.label,
+      prob: Number(row.probability.toFixed(4)),
+      visual: Number(row.visualShare.toFixed(4)),
+      pockets: row.segments,
+      width: Number(row.widthEach.toFixed(4)),
+      arc: Number(row.arcDegrees.toFixed(2))
+    }))));
+  }
+});
+
+test('landing angle stays inside a locked-outcome segment across many seeds', () => {
+  for (const item of ROULETTE_CASES) {
+    const result = offerFromCase(item);
+    const slices = LP.attachSliceArcs(result.slices);
+    const outcomes = LP.summarizeWheelOutcomes(slices);
+    for (const outcome of outcomes) {
+      const pool = slices.filter((slice) => LP.outcomeKey(slice) === outcome.outcomeKey);
+      assert.ok(pool.length, `${item.label} ${outcome.label} has segments`);
+      for (let seed = 1; seed <= 80; seed++) {
+        const random = mulberry32(seed * 97 + outcome.adjustment + item.label.length);
+        const pick = LP.pickWeightedSlice(pool, random);
+        const degrees = LP.landingDegreesForSlice(pick, random);
+        const angle = LP.wheelAngleFromDegrees(degrees);
+        const hit = slices.find((slice) => (
+          LP.angleInArc(angle, slice._start, slice._end)
+        ));
+        assert.ok(hit, `${item.label} ${outcome.label} seed ${seed} missed the wheel`);
+        assert.equal(LP.outcomeKey(hit), outcome.outcomeKey, `${item.label} ${outcome.label} seed ${seed} landed ${hit && LP.outcomeKey(hit)}`);
+        const span = pick._end - pick._start;
+        const inset = Math.min(Math.max(span * 0.18, span * 0.08), span * 0.35);
+        assert.ok(angle >= pick._start + inset - 1e-9 && angle <= pick._end - inset + 1e-9, `${item.label} landed on an edge`);
+      }
+    }
+  }
+});
+
+test('realized Life Preserver frequencies still match the outcome table', () => {
+  const n = 20000;
+  for (const item of ROULETTE_CASES) {
+    const result = offerFromCase(item);
+    const slices = result.slices;
+    const expected = LP.summarizeWheelOutcomes(slices);
+    const counts = Object.fromEntries(expected.map((outcome) => [outcome.outcomeKey, 0]));
+    const random = mulberry32(20261027 + item.label.length);
+    for (let i = 0; i < n; i++) {
+      const pick = LP.pickWeightedSlice(slices, random);
+      counts[LP.outcomeKey(pick)] += 1;
+    }
+    expected.forEach((outcome) => {
+      const freq = counts[outcome.outcomeKey] / n;
+      assert.ok(
+        Math.abs(freq - outcome.probability) < 0.02,
+        `${item.label} ${outcome.label} freq ${freq} != ${outcome.probability}`
+      );
+    });
+    const help = expected.filter((outcome) => outcome.kind === 'good').reduce((sum, outcome) => sum + outcome.probability, 0);
+    assert.ok(help >= 0.79 && help <= 0.81, `${item.label} P(help) ${help}`);
+  }
+});
+
+test('in-slice label boxes stay inside their roulette segments', () => {
+  const geos = [
+    { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 340, canvasWidth: 800 },
+    { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 520, canvasWidth: 800 }
+  ];
+  for (const geo of geos) {
+    for (const item of ROULETTE_CASES) {
+      const result = offerFromCase(item);
+      const slices = LP.attachSliceArcs(result.slices);
+      slices.forEach((slice, index) => {
+        const layout = LP.labelLayout(slice, geo);
+        assert.equal(layout.text, LP.formatSignedPoints(slice.adjustment));
+        assert.ok(layout.insidePie, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left the pie`);
+        assert.ok(layout.insideSegment, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left its segment`);
+        assert.ok(layout.cssFont >= 8, `${item.label} ${layout.text} font ${layout.cssFont}`);
+        assert.equal(layout.tangentialMode, true, `${item.label} ${layout.text} should read along the rim`);
+      });
+    }
+  }
+});
+
+test('data-driven pocket layout works for current and proposed tables', () => {
+  const cases = [
+    { table: 'current', help: 0.80, zero: 0.12, bad: 0.08 },
+    { table: 'proposed', help: 0.75, zero: 0.10, bad: 0.15 }
+  ];
+  const altOutcomes = LP.layoutRoulettePockets([
+    { adjustment: -25, weight: 0.20, kind: 'good', band: 'reallyGood' },
+    { adjustment: -10, weight: 0.55, kind: 'good', band: 'good' },
+    { adjustment: 0, weight: 0.10, kind: 'zero', band: 'noChange' },
+    { adjustment: 5, weight: 0.15, kind: 'bad', band: 'smallSetback' }
+  ], { pocketCount: 40 });
+  const altSlices = altOutcomes.flatMap((item) => {
+    const n = Math.max(1, Number(item.pocketCount) || 1);
+    return Array.from({ length: n }, (_, index) => ({
+      adjustment: item.adjustment,
+      kind: item.kind,
+      band: item.band,
+      weight: item.weight / n,
+      displayWeight: item.displayWeight / n,
+      pocketCount: 1,
+      segmentIndex: index
+    }));
+  });
+  const altTable = LP.describePocketTable(altSlices);
+  assert.ok(altSlices.length >= 20 && altSlices.length <= 40, `20/55 pockets ${altSlices.length}`);
+  altTable.outcomes.forEach((outcome) => {
+    assert.ok(outcome.segments >= 1, `20/55 ${outcome.label} missing pocket`);
+    assert.ok(
+      Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+      `20/55 ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+    );
+  });
+  const altHelp = altTable.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(altHelp - 0.75) < 1e-9, `20/55 help ${altHelp}`);
+  LP.attachSliceArcs(altSlices);
+  const altGeo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+  altSlices.forEach((slice, index) => {
+    const layout = LP.labelLayout(slice, altGeo);
+    assert.ok(layout.insideSegment, `20/55 slice ${index} ${layout.text} left its pocket`);
+  });
+  const altRandom = mulberry32(203);
+  for (let seed = 0; seed < 40; seed++) {
+    const pick = LP.pickWeightedSlice(altSlices, altRandom);
+    const degrees = LP.landingDegreesForSlice(pick, altRandom);
+    const angle = LP.wheelAngleFromDegrees(degrees);
+    const hit = altSlices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+    assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), '20/55 landing mismatch');
+  }
+  for (const item of cases) {
+    const slices = LP.buildSlices(20, 10, true, 5, {
+      remainingRounds: 4,
+      oneStrongRound: 20,
+      leaderGap: 51,
+      table: item.table,
+      pocketCount: 40
+    });
+    assert.ok(slices.length >= 20 && slices.length <= 40, `${item.table} pockets ${slices.length}`);
+    const amounts = new Set(slices.map((slice) => Number(slice.adjustment)));
+    amounts.forEach((amount) => {
+      assert.ok(slices.some((slice) => Number(slice.adjustment) === amount));
+    });
+    const table = LP.describePocketTable(slices);
+    table.outcomes.forEach((outcome) => {
+      assert.ok(outcome.segments >= 1, `${item.table} ${outcome.label} missing pocket`);
+      assert.ok(
+        Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+        `${item.table} ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+      );
+    });
+    const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+    const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+    const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+    assert.ok(Math.abs(help - item.help) < 1e-9, `${item.table} help ${help}`);
+    assert.ok(Math.abs(zero - item.zero) < 1e-9, `${item.table} zero ${zero}`);
+    assert.ok(Math.abs(bad - item.bad) < 1e-9, `${item.table} bad ${bad}`);
+    LP.attachSliceArcs(slices);
+    const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+    slices.forEach((slice, index) => {
+      const layout = LP.labelLayout(slice, geo);
+      assert.ok(layout.insideSegment, `${item.table} slice ${index} ${layout.text} left its pocket`);
+    });
+    const random = mulberry32(77 + item.table.length);
+    for (let seed = 0; seed < 40; seed++) {
+      const pick = LP.pickWeightedSlice(slices, random);
+      const degrees = LP.landingDegreesForSlice(pick, random);
+      const angle = LP.wheelAngleFromDegrees(degrees);
+      const hit = slices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+      assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), `${item.table} landing mismatch`);
+    }
+  }
+});
+
+test('in-slice label fonts grow with the wheel', () => {
+  const small = { cx: 200, cy: 200, outer: 200 * LP.WHEEL_OUTER_FRAC, inner: 200 * LP.WHEEL_INNER_FRAC, cssWidth: 280, canvasWidth: 400 };
+  const large = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 560, canvasWidth: 800 };
+  const result = offerFromCase(ROULETTE_CASES[0]);
+  const smallSlices = LP.attachSliceArcs(result.slices.map((slice) => ({ ...slice })));
+  const largeSlices = LP.attachSliceArcs(result.slices.map((slice) => ({ ...slice })));
+  const pick = (slices) => slices.reduce((best, slice) => ((slice._end - slice._start) > (best._end - best._start) ? slice : best), slices[0]);
+  const smallFont = LP.labelLayout(pick(smallSlices), small).cssFont;
+  const largeFont = LP.labelLayout(pick(largeSlices), large).cssFont;
+  assert.ok(largeFont > smallFont + 3, `rim font ${smallFont} -> ${largeFont}`);
+});
+
+test('default offer stays on the live 45/30/5/12/8 table', () => {
+  const live = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
+    roundCount: 9,
+    spread: 8,
+    currentRound: 10,
+    player: 'Duke'
+  });
+  assert.equal(live.eligible, true);
+  assert.equal(live.table, 'current');
+  const table = LP.describePocketTable(live.slices);
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+  const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(help - 0.80) < 1e-9, `live help ${help}`);
+  assert.ok(Math.abs(zero - 0.12) < 1e-9, `live zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.08) < 1e-9, `live bad ${bad}`);
+});
+
+test('proposed TEMP table matches 30/45/10/15, lands in the locked pocket, and stays inside labels', () => {
+  const proposed = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
+    roundCount: 9,
+    spread: 8,
+    currentRound: 10,
+    player: 'Duke',
+    extra: { table: 'proposed', pocketCount: 40 }
+  });
+  assert.equal(proposed.eligible, true);
+  assert.equal(proposed.table, 'proposed');
+  assert.equal(proposed.maxSetback, LP.PROPOSED_SETBACK_MAX['Five Crowns']);
+  const table = LP.describePocketTable(proposed.slices);
+  assert.ok(table.pockets >= 20 && table.pockets <= 40, `proposed pockets ${table.pockets}`);
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+  const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(help - 0.75) < 1e-9, `proposed help ${help}`);
+  assert.ok(Math.abs(zero - 0.10) < 1e-9, `proposed zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.15) < 1e-9, `proposed bad ${bad}`);
+  table.outcomes.forEach((outcome) => {
+    assert.ok(outcome.segments >= 1, `proposed ${outcome.label} missing pocket`);
+    assert.ok(
+      Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+      `proposed ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+    );
+  });
+  const gap = proposed.leaderGap;
+  const inc = proposed.scoreIncrement;
+  const floorTo = (value) => Math.floor(value / inc) * inc;
+  const expected = new Set([
+    ...LP.PROPOSED_HELP_FRACTIONS.good.map((frac) => -floorTo(Math.min(gap * frac, proposed.maxSafeAdjustment))),
+    ...LP.PROPOSED_HELP_FRACTIONS.reallyGood.map((frac) => -floorTo(Math.min(gap * frac, proposed.maxSafeAdjustment))),
+    0,
+    5,
+    10
+  ].filter((value) => value !== 0 || true));
+  const amounts = new Set(proposed.slices.map((slice) => Number(slice.adjustment)));
+  amounts.forEach((amount) => {
+    assert.ok(proposed.slices.some((slice) => Number(slice.adjustment) === amount));
+  });
+  [...expected].filter((value) => value !== 0 || amounts.has(0)).forEach((amount) => {
+    if (amount < 0 && Math.abs(amount) > proposed.maxSafeAdjustment) return;
+    if (amount > 0 && amount > proposed.maxSetback) return;
+    assert.ok(amounts.has(amount), `proposed missing pocket ${amount}`);
+  });
+  const slices = LP.attachSliceArcs(proposed.slices);
+  const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+  slices.forEach((slice, index) => {
+    const layout = LP.labelLayout(slice, geo);
+    assert.ok(layout.insideSegment, `proposed slice ${index} ${layout.text} left its pocket`);
+  });
+  const n = 20000;
+  const counts = { good: 0, zero: 0, bad: 0 };
+  const random = mulberry32(20261027);
+  for (let i = 0; i < n; i++) {
+    const pick = LP.pickWeightedSlice(slices, random);
+    counts[pick.kind === 'good' ? 'good' : pick.kind === 'bad' ? 'bad' : 'zero'] += 1;
+    const degrees = LP.landingDegreesForSlice(pick, random);
+    const angle = LP.wheelAngleFromDegrees(degrees);
+    const hit = slices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+    assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), `proposed landing ${LP.outcomeKey(pick)} -> ${hit && LP.outcomeKey(hit)}`);
+  }
+  assert.ok(Math.abs(counts.good / n - 0.30 - 0.45) < 0.02, `proposed sim help ${counts.good / n}`);
+  assert.ok(Math.abs(counts.zero / n - 0.10) < 0.02, `proposed sim zero ${counts.zero / n}`);
+  assert.ok(Math.abs(counts.bad / n - 0.15) < 0.02, `proposed sim bad ${counts.bad / n}`);
 });

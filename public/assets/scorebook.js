@@ -66,6 +66,75 @@
     return total;
   }
 
+  function isUsablePlayerName(name) {
+    return typeof name === 'string' && name.trim() !== '' && !name.includes(',');
+  }
+
+  function knownPlayerNames(allPlayers, profiles) {
+    const seen = new Set();
+    const names = [];
+    const raw = [...(Array.isArray(allPlayers) ? allPlayers : []), ...Object.keys(profiles || {})];
+    raw.forEach((item) => {
+      const name = typeof item === 'string' ? item.trim() : '';
+      if (!isUsablePlayerName(name)) return;
+      const key = name.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      names.push(name);
+    });
+    return names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  }
+
+  function playerSuggestionMatches(allPlayers, profiles, query, seated) {
+    const q = String(query || '').trim().toLowerCase();
+    if (!q) return [];
+    const skip = new Set((seated || []).map((name) => String(name || '').toLowerCase()));
+    return knownPlayerNames(allPlayers, profiles)
+      .filter((name) => !skip.has(name.toLowerCase()))
+      .filter((name) => name.toLowerCase().startsWith(q))
+      .slice(0, 8);
+  }
+
+  function isCommaJoinedGhost(name, realNames) {
+    if (typeof name !== 'string' || !name.includes(',')) return false;
+    const parts = name.split(',').map((part) => part.trim()).filter(Boolean);
+    if (!parts.length) return false;
+    const reals = new Set((realNames || []).map((item) => String(item || '').toLowerCase()));
+    return parts.every((part) => reals.has(part.toLowerCase()));
+  }
+
+  function cleanupCommaJoinedGhosts(state) {
+    const allPlayers = Array.isArray(state?.allPlayers) ? state.allPlayers.slice() : [];
+    const players = Array.isArray(state?.players) ? state.players.slice() : [];
+    const playerProfiles = state?.playerProfiles && typeof state.playerProfiles === 'object'
+      ? { ...state.playerProfiles }
+      : {};
+    const realNames = [...allPlayers, ...players, ...Object.keys(playerProfiles)]
+      .filter((name) => typeof name === 'string' && name.trim() && !name.includes(','));
+    const kept = [];
+    let changed = false;
+    const dropIfGhost = (name) => {
+      if (isCommaJoinedGhost(name, realNames)) {
+        changed = true;
+        return false;
+      }
+      if (typeof name === 'string' && name.includes(',')) kept.push(name);
+      return true;
+    };
+    const nextAll = allPlayers.filter(dropIfGhost);
+    const nextPlayers = players.filter(dropIfGhost);
+    Object.keys(playerProfiles).forEach((name) => {
+      if (!dropIfGhost(name)) delete playerProfiles[name];
+    });
+    return {
+      changed,
+      allPlayers: nextAll,
+      players: nextPlayers,
+      playerProfiles,
+      kept: [...new Set(kept)]
+    };
+  }
+
   function replaceName(list, oldName, newName) {
     if (!Array.isArray(list)) return list;
     const next = [];
@@ -915,6 +984,11 @@
   }
 
   const api = {
+    isUsablePlayerName,
+    knownPlayerNames,
+    playerSuggestionMatches,
+    isCommaJoinedGhost,
+    cleanupCommaJoinedGhosts,
     competitionPlaces,
     isScoringRound,
     scoringRoundCount,

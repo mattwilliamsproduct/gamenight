@@ -86,6 +86,13 @@
       --shadow-sm: 0 2px 8px rgba(7,63,59,0.06), 0 5px 14px -8px rgba(87,54,38,0.12);
       --shadow-md: 0 3px 12px rgba(7,63,59,0.08), 0 14px 30px -18px rgba(87,54,38,0.22);
       --shadow-lg: 0 5px 18px rgba(7,63,59,0.1), 0 28px 54px -28px rgba(87,54,38,0.3);
+      --bp-modal-gutter: 16px;
+      --bp-modal-wide: min(92vw, 1200px);
+      --bp-modal-form: min(92vw, 40rem);
+      --bp-modal-confirm: min(92vw, 28rem);
+      --bp-modal-max-h: 90vh;
+      --bp-modal-type: 1rem;
+      --bp-modal-btn-min: 44px;
     }
     html.dark {
       --bg: #092d2b;
@@ -123,6 +130,98 @@
       --shadow-lg: 0 2px 4px rgba(0,0,0,0.3), 0 20px 48px -12px rgba(0,0,0,0.6);
     }
 
+    @media (max-width: 640px) {
+      :root {
+        --bp-modal-gutter: 8px;
+        --bp-modal-wide: calc(100vw - 16px);
+        --bp-modal-form: calc(100vw - 16px);
+        --bp-modal-confirm: calc(100vw - 16px);
+        --bp-modal-max-h: calc(100dvh - 16px);
+      }
+    }
+    html.bp-modal-open,
+    html.bp-modal-open body {
+      overflow: hidden !important;
+      overscroll-behavior: none;
+    }
+    .bp-modal-panel {
+      width: var(--bp-modal-wide);
+      max-width: var(--bp-modal-wide);
+      max-height: var(--bp-modal-max-h);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+      font-size: max(16px, var(--bp-modal-type));
+    }
+    .bp-modal-panel--form {
+      width: var(--bp-modal-form);
+      max-width: var(--bp-modal-form);
+    }
+    .bp-modal-panel--confirm {
+      width: var(--bp-modal-confirm);
+      max-width: var(--bp-modal-confirm);
+    }
+    .bp-modal-panel--form,
+    .bp-modal-panel--confirm {
+      overflow-y: auto;
+    }
+    #add-player-modal .bp-modal-panel,
+    #rename-modal .bp-modal-panel {
+      overflow: visible;
+    }
+    .bp-modal-head {
+      flex: 0 0 auto;
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      padding-right: 2.5rem;
+    }
+    .bp-modal-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+    }
+    .bp-modal-foot {
+      flex: 0 0 auto;
+      position: sticky;
+      bottom: 0;
+      z-index: 4;
+    }
+    .bp-modal-panel .btn-primary,
+    .bp-modal-panel .btn-ghost,
+    .bp-modal-panel button[type="button"]:not(.round-correct-btn) {
+      min-height: var(--bp-modal-btn-min);
+    }
+    #scorecard-modal .scorecard-table-wrap {
+      overflow: auto;
+      overscroll-behavior: contain;
+    }
+    #scorecard-modal .scorecard-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    #scorecard-modal .scorecard-table thead th.scorecard-col-player,
+    #scorecard-modal .scorecard-table tbody td.scorecard-col-player {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+    }
+    #scorecard-modal .scorecard-table thead th.scorecard-col-player {
+      z-index: 4;
+    }
+    #scorecard-modal .scorecard-col-player {
+      width: clamp(7.5rem, 22vw, 16rem);
+      max-width: clamp(7.5rem, 22vw, 16rem);
+    }
+    #scorecard-modal .scorecard-table td,
+    #scorecard-modal .scorecard-table .tv-stat-num,
+    #scorecard-modal .scorecard-table .tv-round-cell-num {
+      font-size: max(16px, 1.05rem);
+    }
     * { -webkit-tap-highlight-color: transparent; }
 
     /* Lock viewport / block rubber-band overscroll (iOS Safari & home-screen PWA) */
@@ -1174,9 +1273,9 @@
       gap: 0;
       width: clamp(3rem, 4vw, 4rem);
       max-width: 100%;
-      min-height: 2.4rem;
+      min-height: 2.7rem;
       margin: 0 auto;
-      padding: 0.12rem 0.15rem 0.16rem;
+      padding: 0.16rem 0.18rem 0.2rem;
       background: var(--bg-2);
       border: 1.5px solid transparent;
       border-radius: 10px;
@@ -1222,8 +1321,8 @@
       font-size: 0.82em;
       font-weight: 400;
       color: #0c4a6e;
-      line-height: 1;
-      margin: 0;
+      line-height: 1.05;
+      margin: 0.12rem 0 0;
       padding: 0;
       white-space: nowrap;
     }
@@ -3177,9 +3276,12 @@ button.dealer-name-indicator {
         line-height: 1.05 !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
-        width: var(--scorecard-rank-size) !important;
-        height: var(--scorecard-rank-size) !important;
-        font-size: var(--scorecard-rank-font) !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 2.2rem !important;
+        min-height: 1.45rem !important;
+        padding: 0.12rem 0.4rem !important;
+        font-size: max(0.88rem, var(--scorecard-rank-font, 0.88rem)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-dealer-avatar-badge {
         font-size: var(--scorecard-dealer-font) !important;
@@ -3474,14 +3576,40 @@ button.dealer-name-indicator {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 1.72rem;
-      height: 1.72rem;
-      border-radius: 9px;
+      min-width: 2.35rem;
+      height: auto;
+      min-height: 1.55rem;
+      padding: 0.14rem 0.42rem;
+      border-radius: 999px;
       border: 1px solid rgba(6,78,59,0.16);
       background: rgba(236,253,245,0.68);
       color: var(--emerald);
-      font-size: 0.78rem;
-      font-weight: 900;
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .scoreboard-rank-badge.is-place-1 {
+      background: #f3e0a8;
+      border-color: #c9a24a;
+      color: #6a4a12;
+    }
+    .scoreboard-rank-badge.is-place-2 {
+      background: #e4e0d6;
+      border-color: #b0aaa0;
+      color: #4a4741;
+    }
+    .scoreboard-rank-badge.is-place-3 {
+      background: #f0cfc0;
+      border-color: #d07a68;
+      color: #6a3328;
+    }
+    .scoreboard-rank-badge.is-place-rest {
+      background: #eef4f1;
+      border-color: #c5d4ce;
+      color: #1f4a44;
     }
     html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
 
@@ -3491,7 +3619,7 @@ button.dealer-name-indicator {
         radial-gradient(circle at 50% 12%, rgba(255,250,241,0.98), rgba(247,238,228,0.98) 58%, rgba(232,246,240,0.96)),
         var(--surface);
       box-shadow: 0 34px 90px -36px rgba(0,29,27,0.82), inset 0 4px 0 rgba(231,115,88,0.72);
-      max-height: calc(100dvh - 32px);
+      max-height: calc(100dvh - 8px);
       overflow: hidden;
     }
     .life-preserver-help {
@@ -3576,23 +3704,23 @@ button.dealer-name-indicator {
     }
     .wheel-mode-label {
       font-family: "Bree Serif", Georgia, serif;
-      font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
       font-weight: 800;
       line-height: 1.25;
-      margin: 0.1rem 2.4rem 0.55rem;
+      margin: 0.05rem 2.2rem 0.25rem;
       color: var(--ink);
       white-space: nowrap;
     }
     #wheel-modal.wheel-has-result .wheel-mode-label {
-      font-size: clamp(1.1rem, 4.8vw, 1.45rem);
-      margin: 0.15rem 2.4rem 0.85rem;
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      margin: 0.08rem 2.2rem 0.3rem;
     }
     .wheel-legend {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 0.55rem 0.85rem;
-      margin: 0 0 1rem;
+      gap: 0.4rem 0.7rem;
+      margin: 0.2rem 0 0.45rem;
     }
     .wheel-legend-chip {
       display: inline-flex;
@@ -3612,32 +3740,24 @@ button.dealer-name-indicator {
     .wheel-legend-chip.is-setback::before { background: #f0a394; }
     .wheel-shell {
       position: relative;
-      width: min(26rem, 72vw, calc(100dvh - 22rem));
-      height: min(26rem, 72vw, calc(100dvh - 22rem));
+      width: min(calc(100vw - 1.5rem), calc(100dvh - 10rem));
+      height: min(calc(100vw - 1.5rem), calc(100dvh - 10rem));
       flex: 0 1 auto;
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.35rem;
+      overflow: hidden;
     }
     .wheel-shell::before {
       content: '';
       position: absolute;
-      inset: -14px;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
       border-radius: 999px;
-      background: conic-gradient(
-        from -20deg,
-        #fffaf1 0deg 38deg,
-        #e76f51 38deg 58deg,
-        #fffaf1 58deg 128deg,
-        #e76f51 128deg 148deg,
-        #fffaf1 148deg 218deg,
-        #e76f51 218deg 238deg,
-        #fffaf1 238deg 308deg,
-        #e76f51 308deg 328deg,
-        #fffaf1 328deg 360deg
-      );
-      box-shadow: 0 18px 36px -28px rgba(0,45,42,0.9), inset 0 0 0 3px rgba(7,63,59,0.35);
+      background: transparent;
+      box-shadow: inset 0 0 0 3px rgba(138, 106, 50, 0.55);
     }
+    .wheel-callouts,
+    .wheel-callout { display: none !important; }
     .wheel-shell canvas {
       position: relative;
       z-index: 1;
@@ -3678,19 +3798,45 @@ button.dealer-name-indicator {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 54px;
-      height: 54px;
+      width: 18%;
+      height: 18%;
       transform: translate(-50%,-50%);
-      z-index: 12;
+      z-index: 15;
       border-radius: 999px;
-      border: 4px solid #fffaf1;
-      background: radial-gradient(circle at 35% 30%, #6ee7b7, #0a4f49 70%);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.35);
+      border: 3px solid #d7c6a4;
+      background: radial-gradient(circle at 35% 30%, #2a403c, #13201e 70%);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.18);
+      color: #f6efe2;
+      font-family: "Nunito Sans", sans-serif;
+      font-weight: 800;
+      font-size: clamp(0.62rem, 2.2vw, 0.85rem);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .wheel-ball-orbit {
+      position: absolute;
+      inset: 0;
+      z-index: 14;
       pointer-events: none;
+      transform-origin: 50% 50%;
+    }
+    .wheel-ball {
+      position: absolute;
+      left: 50%;
+      top: calc(50% - 46%);
+      width: 7.2%;
+      height: 7.2%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 26%, #fffdf6, #f4e4c4 58%, #d7b07a 100%);
+      box-shadow: 0 3px 6px rgba(80, 48, 16, 0.28), inset 0 2px 0 rgba(255,255,255,0.9);
+      border: 2px solid rgba(255, 248, 232, 0.9);
     }
     .scorecard-life-preserver-rank {
-      width: 2.1rem;
-      height: 2.1rem;
+      min-width: 2.4rem;
+      width: auto;
+      height: auto;
+      min-height: 1.7rem;
       border-radius: 999px !important;
       border: 3px solid transparent !important;
       background:
@@ -4598,7 +4744,7 @@ button.dealer-name-indicator .dealer-player-label {
       max-width: none !important;
       max-height: none !important;
       margin: 0 !important;
-      padding: 16px !important;
+      padding: var(--bp-modal-gutter) !important;
     }
     .bp-modal-viewport-shell:not(.hidden) {
       display: flex !important;
@@ -4608,7 +4754,7 @@ button.dealer-name-indicator .dealer-player-label {
     #dealer-modal > .surface-raised,
     #retire-player-modal > .surface-raised,
     #reorder-players-modal > .surface-raised {
-      max-height: calc(100dvh - 32px);
+      max-height: var(--bp-modal-max-h);
       overflow-y: auto;
     }
     .font-display { letter-spacing: 0; }
@@ -5599,7 +5745,7 @@ button.dealer-name-indicator .dealer-player-label {
       max-width: none !important;
       max-height: none !important;
       margin: 0 !important;
-      padding: 16px !important;
+      padding: var(--bp-modal-gutter) !important;
     }
     .bp-modal-viewport-shell:not(.hidden) {
       display: flex !important;
@@ -5609,7 +5755,7 @@ button.dealer-name-indicator .dealer-player-label {
     #dealer-modal > .surface-raised,
     #retire-player-modal > .surface-raised,
     #reorder-players-modal > .surface-raised {
-      max-height: calc(100dvh - 32px);
+      max-height: var(--bp-modal-max-h);
       overflow-y: auto;
     }
     .font-display { letter-spacing: 0; }
@@ -7666,7 +7812,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   <!-- Dealer Dice Roll Modal -->
   <div id="dealer-roll-modal" class="hidden bp-modal-viewport-shell">
-    <div class="dice-dialog">
+    <div class="dice-dialog bp-modal-panel bp-modal-panel--confirm">
       <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Pre-Game</div>
       <h3 class="font-display text-3xl">Roll for First Dealer</h3>
       <div class="die" id="dealer-die">?</div>
@@ -7710,7 +7856,7 @@ button.dealer-name-indicator .dealer-player-label {
   <!-- Audit Log Modal -->
   <div id="audit-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
     <div onclick="closeAuditLog()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-    <div class="surface-raised w-full max-w-lg p-7 relative max-h-[85vh] flex flex-col pop-in">
+    <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
       <button onclick="closeAuditLog()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
       <div class="mb-5">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">This match</div>
@@ -7771,6 +7917,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
+        <p id="home-player-name-error" class="inline-form-error text-sm font-semibold mb-4" style="color:var(--rose);"></p>
         <div class="bp-roster-columns">
           <div class="bp-roster-column bp-on-deck-zone">
             <div class="flex items-center justify-between mb-3 px-1">
@@ -7875,15 +8022,15 @@ button.dealer-name-indicator .dealer-player-label {
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 6 6v1"></path></svg></span>
                   <span>Undo Last Round</span>
                 </button>
-                <button onclick="openAuditLog();closeActionsMenu();" class="actions-menu-item">
+                <button onclick="openAuditLog();closeActionsMenu();" class="actions-menu-item" id="actions-audit-log-btn">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="14" height="18" x="5" y="3" rx="2"></rect><path d="M9 3h6v4H9z"></path><path d="M9 12h6"></path><path d="M9 16h6"></path></svg></span>
-                  <span>History</span>
+                  <span>Audit Log</span>
                 </button>
                 <button onclick="openRules();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H2"></path><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3h7"></path></svg></span>
                   <span>Rules</span>
                 </button>
-                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverRules();closeActionsMenu();" class="actions-menu-item">
+                <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverEntry();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.25"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg></span>
                   <span>Life Preserver</span>
                 </button>
@@ -8073,7 +8220,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Avatar -->
     <div id="avatar-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAvatarPicker()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-2xl p-7 relative flex flex-col items-center text-center pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative flex flex-col items-center text-center pop-in">
         <button onclick="closeAvatarPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Select Icon</div>
         <h2 class="font-display text-3xl mb-1">Choose Avatar</h2>
@@ -8085,7 +8232,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Color Picker -->
     <div id="color-modal" class="hidden fixed inset-0 flex items-center justify-center z-[125] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeColorPicker()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
         <button onclick="closeColorPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Signature Color</div>
@@ -8109,7 +8256,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- ═══ ROOK: Setup Modal ═══ -->
     <div id="rook-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
         <div class="text-center mb-6">
           <div class="text-5xl mb-3">🐦</div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--blue);">Game Setup</div>
@@ -8155,7 +8302,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- ═══ ROOK: Trump & Partner Call Modal ═══ -->
     <div id="rook-call-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
         <div class="text-center mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--blue);">Trump &amp; partner</div>
           <h3 class="player-name-label text-3xl" id="rook-call-bidder-name"></h3>
@@ -8288,7 +8435,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Rename Player -->
     <div id="rename-modal" class="hidden fixed inset-0 flex items-center justify-center z-[130] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRenameModal()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
         <button onclick="closeRenameModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--blue);">Fix Typo</div>
@@ -8299,6 +8446,7 @@ button.dealer-name-indicator .dealer-player-label {
           onkeypress="if(event.key==='Enter')doRenamePlayer()"
           class="w-full rounded-xl px-4 py-3 text-base font-bold outline-none border hairline mb-3"
           style="background:var(--bg-2);color:var(--ink);">
+        <p id="rename-player-name-error" class="inline-form-error text-sm font-semibold mb-3" style="color:var(--rose);"></p>
         <p class="text-xs font-semibold mb-4 leading-relaxed" style="color:var(--muted);">All match history, stats, avatar, color, and profile data will carry over to the new name.</p>
         <div class="flex gap-2">
           <button onclick="closeRenameModal()" class="btn-ghost flex-1 py-3 text-sm">Cancel</button>
@@ -8342,7 +8490,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Historical Wizard / 818 round correction -->
     <div id="round-correction-modal" class="hidden fixed inset-0 z-[160] flex items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelRoundCorrection()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised relative w-full max-w-lg p-5 md:p-6 pop-in" role="dialog" aria-labelledby="round-correction-title">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form relative p-5 md:p-6 pop-in" role="dialog" aria-labelledby="round-correction-title">
         <div id="round-correction-title" class="font-display text-3xl"></div>
         <div id="round-correction-limit" class="mt-1 text-sm font-extrabold" style="color:var(--muted);"></div>
         <div id="round-correction-sum" class="text-sm font-extrabold"></div>
@@ -8371,7 +8519,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Focused Score Entry Modal -->
     <div id="score-entry-modal" class="hidden fixed inset-0 z-[155] items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelScoreEntryModal()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="score-entry-panel relative flex flex-col p-5 md:p-7">
+      <div class="score-entry-panel bp-modal-panel relative flex flex-col p-5 md:p-7">
         <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b hairline">
           <div class="score-entry-heading min-w-0">
             <div id="score-entry-game" class="font-display text-4xl md:text-5xl leading-tight"></div>
@@ -8431,7 +8579,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Add Player Mid-Game -->
     <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAddPlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
         <button onclick="closeAddPlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5 pr-8">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Mid-Game Add</div>
@@ -8452,20 +8600,22 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-base">Add</button>
         </div>
+        <p id="midgame-player-name-error" class="inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
       </div>
     </div>
 
 
     <!-- Life Preserver Wheel -->
-    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+    <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-1 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+      <div class="surface-raised life-preserver-dialog bp-modal-panel p-5 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
         <div id="wheel-mode-label" class="wheel-mode-label">Life Preserver</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
         <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
         <p id="wheel-commit-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);">Best help and largest setback show after the table is ready.</p>
+        <p id="wheel-odds-line" class="hidden text-sm md:text-base font-extrabold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
         <p id="wheel-best-place" class="hidden text-sm md:text-base font-semibold mb-3 max-w-md leading-snug" style="color:var(--ink-2);"></p>
         <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell">
@@ -8473,8 +8623,11 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="wheel-spinner" class="wheel-spinner">
             <div class="wheel-pointer" aria-hidden="true"></div>
           </div>
-          <div class="wheel-spinner-hub"></div>
-          <div id="wheel-callouts" class="wheel-callouts"></div>
+          <div id="wheel-ball-orbit" class="wheel-ball-orbit" aria-hidden="true">
+            <div id="wheel-ball" class="wheel-ball"></div>
+          </div>
+          <button type="button" class="wheel-spinner-hub" onclick="spinWheel()" aria-label="Use your one spin">SPIN</button>
+          <div id="wheel-callouts" class="wheel-callouts" hidden></div>
         </div>
         <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
           <span class="wheel-legend-chip is-help">Help</span>
@@ -8516,6 +8669,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
               <li>Cannot tie or pass the leader.</li>
               <li>You always finish at least one scoring step behind 1st.</li>
+              <li>The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.</li>
               <li>Most slices help. Some do nothing. A few slightly hurt.</li>
               <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
             </ul>
@@ -8528,21 +8682,32 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Rules -->
     <div id="rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-5xl p-8 md:p-12 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
+      <div class="surface-raised bp-modal-panel p-8 md:p-12 relative">
         <button onclick="closeRules()" class="absolute top-6 right-8 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Quick Reference</div>
           <h3 class="font-display text-4xl md:text-5xl" id="rules-title"></h3>
         </div>
-        <div id="rules-content" class="overflow-y-auto pr-3 text-base md:text-lg font-medium leading-relaxed p-6 md:p-8 rounded-2xl border hairline" style="background:var(--bg-2);color:var(--ink-2);"></div>
+        <div id="rules-content" class="bp-modal-body overflow-y-auto pr-3 text-base md:text-lg font-medium leading-relaxed p-6 md:p-8 rounded-2xl border hairline" style="background:var(--bg-2);color:var(--ink-2);"></div>
       </div>
     </div>
 
 
+    <div id="lp-picker-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeLifePreserverPicker()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Life Preserver</div>
+        <h3 class="font-display text-3xl mb-2">Who spins?</h3>
+        <p class="text-sm font-semibold mb-4" style="color:var(--ink-2);">Pick a player. Cancel spends nothing.</p>
+        <div id="lp-picker-list" class="flex flex-col gap-2 mb-4"></div>
+        <button type="button" onclick="closeLifePreserverPicker()" class="btn-ghost w-full py-3">Cancel</button>
+      </div>
+    </div>
+
     <!-- End match confirm -->
     <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Save &amp; End</div>
         <h3 class="font-display text-3xl mb-3" id="end-match-title">End this match now?</h3>
         <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy"></p>
@@ -8556,33 +8721,33 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Life Preserver rules -->
     <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeLifePreserverRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised life-preserver-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
+      <div class="surface-raised life-preserver-rules-card bp-modal-panel p-7 md:p-10 relative">
         <button type="button" onclick="closeLifePreserverRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5 pr-8">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">🛟 Life Preserver</div>
           <h3 class="font-display text-4xl md:text-5xl leading-tight" id="life-preserver-rules-title">How you get one</h3>
         </div>
-        <div id="life-preserver-rules-content" class="life-preserver-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
+        <div id="life-preserver-rules-content" class="life-preserver-rules-body bp-modal-body overflow-y-auto pr-1 text-sm md:text-base"></div>
       </div>
     </div>
 
     <!-- Comeback rules -->
     <div id="comeback-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeComebackRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised comeback-rules-card w-full p-7 md:p-10 relative flex flex-col max-h-[90vh] md:max-h-[85vh]">
+      <div class="surface-raised comeback-rules-card bp-modal-panel p-7 md:p-10 relative">
         <button type="button" onclick="closeComebackRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5 pr-8">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Turbo</div>
           <h3 class="font-display text-4xl md:text-5xl leading-tight" id="comeback-rules-title">How Turbos work</h3>
         </div>
-        <div id="comeback-rules-content" class="comeback-rules-body overflow-y-auto pr-1 text-sm md:text-base"></div>
+        <div id="comeback-rules-content" class="comeback-rules-body bp-modal-body overflow-y-auto pr-1 text-sm md:text-base"></div>
       </div>
     </div>
 
     <!-- Comeback explain -->
     <div id="comeback-explain-modal" class="hidden fixed inset-0 flex items-center justify-center z-[95] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeComebackExplain()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised comeback-rules-card w-full max-w-md p-7 relative flex flex-col">
+      <div class="surface-raised comeback-rules-card bp-modal-panel bp-modal-panel--confirm p-7 relative">
         <button type="button" onclick="closeComebackExplain()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Turbo</div>
         <h3 class="font-display text-3xl mb-3 pr-8" id="comeback-explain-title">Why this extra</h3>
@@ -8594,7 +8759,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Settings -->
     <div id="settings-modal" class="hidden fixed inset-0 flex items-center justify-center z-[180] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeSettings()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-8 relative max-h-[90vh] overflow-y-auto">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-8 relative">
         <button onclick="closeSettings()" class="absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--muted);">App Management</div>
@@ -8682,7 +8847,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Performance Report -->
     <div id="perf-report-modal" class="hidden fixed inset-0 flex items-center justify-center z-[170] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closePerfReport()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-5xl p-6 md:p-8 relative max-h-[90vh] flex flex-col">
+      <div class="surface-raised bp-modal-panel p-6 md:p-8 relative">
         <button onclick="closePerfReport()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="mb-5 pr-10">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--emerald);">Diagnostics</div>
@@ -8702,15 +8867,15 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Scorecard Modal -->
     <div id="scorecard-modal" class="hidden fixed inset-0 flex items-center justify-center z-[80] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeScorecard()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-5xl p-6 relative flex flex-col max-h-[90vh]">
+      <div class="surface-raised bp-modal-panel p-6 relative">
         <button onclick="closeScorecard()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
-        <div class="mb-5">
+        <div class="bp-modal-head mb-5">
           <div id="modal-game-name" class="font-display text-3xl"></div>
           <div id="modal-game-date" class="text-[10px] font-extrabold uppercase tracking-[0.18em] mt-1" style="color:var(--muted);"></div>
         </div>
         <div id="modal-scorecard-block" class="overflow-hidden rounded-2xl border hairline flex-1 min-h-0 flex flex-col">
           <div id="modal-scorecard-rounds-hint" class="scorecard-rounds-hint scorecard-hidden-rounds-hint hidden text-center py-1.5 px-2 text-[10px] font-extrabold tracking-wide select-none" style="color:var(--muted);background:var(--surface-2);"></div>
-          <div class="scorecard-table-wrap flex-1 min-h-0 overflow-x-hidden overflow-y-auto">
+          <div class="scorecard-table-wrap bp-modal-body flex-1 min-h-0">
             <table class="text-left scorecard-table"><thead id="modal-scorecard-head"></thead><tbody id="modal-scorecard-body" class="divide-y hairline"></tbody></table>
           </div>
         </div>
@@ -8720,7 +8885,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- WHAMMY Round Celebration -->
     <div id="whammy-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="hideWhammyModal()" class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
-      <div class="whammy-card relative flex flex-col items-center text-center rounded-[28px]">
+      <div class="whammy-card bp-modal-panel bp-modal-panel--form relative flex flex-col items-center text-center rounded-[28px]">
         <div class="whammy-header">
           <div class="whammy-heading">
             <div class="whammy-round-label font-extrabold uppercase mb-2">Round <span id="whammy-round-label"></span></div>
@@ -8737,7 +8902,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Victory -->
     <div id="victory-modal" class="hidden fixed inset-0 flex items-center justify-center z-[210] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
-      <div class="surface-raised postgame-card postgame-victory-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+      <div class="surface-raised postgame-card postgame-victory-card bp-modal-panel bp-modal-panel--form p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🌅</div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Sunset Champion</div>
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
@@ -8755,7 +8920,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Loser -->
     <div id="loser-modal" class="hidden fixed inset-0 flex items-center justify-center z-[220] p-4 bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
-      <div class="surface-raised postgame-card postgame-loser-card w-full max-w-lg p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+      <div class="surface-raised postgame-card postgame-loser-card bp-modal-panel bp-modal-panel--form p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🌊</div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--blue);">Low Tide</div>
         <h3 id="loser-names" class="font-display text-3xl sm:text-4xl mb-3 leading-tight"></h3>
@@ -8767,7 +8932,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Dealer Override -->
     <div id="dealer-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeDealerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-sm p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
         <button onclick="closeDealerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Dealer Override</div>
@@ -8780,7 +8945,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Leave Match Modal -->
     <div id="retire-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRetirePlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-sm p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
         <button onclick="closeRetirePlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--rose);">Leaving the Table</div>
@@ -8794,7 +8959,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Reorder Players (mid-game seating / deal order) -->
     <div id="reorder-players-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeReorderPlayersModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-md p-7 relative pop-in flex flex-col max-h-[90vh]">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
         <button onclick="closeReorderPlayersModal()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-4 pr-8">
           <h3 class="font-display text-3xl">Reorder Players</h3>
@@ -8835,6 +9000,20 @@ button.dealer-name-indicator .dealer-player-label {
   let players    = safeGetArray('gn_players_v2').filter(p=>p&&typeof p==='string'&&p.trim());
   let history    = safeGetArray('gn_history');
   let playerProfiles = safeGetObject('gn_profiles');
+  if(window.BPGScorebook&&typeof BPGScorebook.cleanupCommaJoinedGhosts==='function'){
+    const _cleanedNames=BPGScorebook.cleanupCommaJoinedGhosts({allPlayers,players,playerProfiles});
+    (_cleanedNames.kept||[]).forEach((name)=>console.warn('Kept a player name that contains commas:', name));
+    if(_cleanedNames.changed){
+      allPlayers=_cleanedNames.allPlayers;
+      players=_cleanedNames.players;
+      playerProfiles=_cleanedNames.playerProfiles;
+      try{
+        localStorage.setItem('gn_all_players',JSON.stringify(allPlayers));
+        localStorage.setItem('gn_players_v2',JSON.stringify(players));
+        localStorage.setItem('gn_profiles',JSON.stringify(playerProfiles));
+      }catch(e){}
+    }
+  }
 
   let currentGame = null;
   let recordChaseVisible = false;
@@ -9713,8 +9892,61 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   /* ═══ MODAL HELPERS ═══ */
-  function openModal(id){ const m=document.getElementById(id); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
-  function closeModal(id){ const m=document.getElementById(id); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),280); }
+  function syncModalScrollLock(){
+    const open=document.querySelector('.bp-modal-viewport-shell:not(.hidden)');
+    document.documentElement.classList.toggle('bp-modal-open', !!open);
+  }
+  function modalFocusables(modal){
+    return [...(modal?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')||[])]
+      .filter(el=>!el.disabled && el.offsetParent!==null);
+  }
+  function openModal(id){
+    const m=document.getElementById(id);
+    if(!m) return;
+    m.classList.remove('hidden');
+    setTimeout(()=>{
+      m.classList.remove('opacity-0');
+      const first=modalFocusables(m)[0];
+      if(first) first.focus();
+    },10);
+    syncModalScrollLock();
+  }
+  function closeModal(id){
+    const m=document.getElementById(id);
+    if(!m) return;
+    m.classList.add('opacity-0');
+    setTimeout(()=>{
+      m.classList.add('hidden');
+      syncModalScrollLock();
+    },280);
+  }
+  const MODAL_CLOSE_BY_ID={
+    'scorecard-modal':'closeScorecard',
+    'wheel-modal':'closeWheel',
+    'audit-modal':'closeAuditLog',
+    'settings-modal':'closeSettings',
+    'add-player-modal':'closeAddPlayerModal',
+    'lp-picker-modal':'closeLifePreserverPicker',
+    'end-match-modal':'closeEndMatchModal',
+    'rules-modal':'closeRules',
+    'life-preserver-rules-modal':'closeLifePreserverRules',
+    'comeback-rules-modal':'closeComebackRules',
+    'comeback-explain-modal':'closeComebackExplain',
+    'rename-modal':'closeRenameModal',
+    'avatar-modal':'closeAvatarPicker',
+    'color-modal':'closeColorPicker',
+    'dealer-modal':'closeDealerModal',
+    'retire-player-modal':'closeRetirePlayerModal',
+    'reorder-players-modal':'closeReorderPlayersModal',
+    'perf-report-modal':'closePerfReport',
+    'round-correction-modal':'cancelRoundCorrection',
+    'score-entry-modal':'cancelScoreEntryModal',
+    'whammy-modal':'hideWhammyModal'
+  };
+  function topOpenModalShell(){
+    const open=[...document.querySelectorAll('.bp-modal-viewport-shell:not(.hidden)')];
+    return open[open.length-1]||null;
+  }
   function refreshBackupSummary(){
     const summary=document.getElementById('backup-device-summary');
     const hint=document.getElementById('backup-empty-hint');
@@ -10023,6 +10255,39 @@ button.dealer-name-indicator .dealer-player-label {
     }
     return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
   }
+  function eligibleLifePreserverNames(){
+    if(!currentGame) return [];
+    const table=getActivePlayers(currentGame);
+    if(isMatchOver(currentGame)) return [];
+    return table.filter((player)=>isHailMaryEligible(currentGame, player, table, {gameOver:false}));
+  }
+  function closeLifePreserverPicker(){
+    closeModal('lp-picker-modal');
+  }
+  function openLifePreserverPicker(){
+    const names=eligibleLifePreserverNames();
+    const list=document.getElementById('lp-picker-list');
+    if(list){
+      list.innerHTML=names.map((name)=>`<button type="button" class="btn-ghost w-full py-3 text-left font-extrabold lp-picker-item" data-lp-player="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join('');
+    }
+    openModal('lp-picker-modal');
+  }
+  function openLifePreserverEntry(player){
+    if(player){
+      authorizeHailMary(player);
+      return;
+    }
+    const names=eligibleLifePreserverNames();
+    if(names.length===1){
+      authorizeHailMary(names[0]);
+      return;
+    }
+    if(names.length>1){
+      openLifePreserverPicker();
+      return;
+    }
+    openLifePreserverRules();
+  }
   function openLifePreserverRules(){
     if(!currentGame)return;
     const players=getActivePlayers(currentGame);
@@ -10110,6 +10375,15 @@ button.dealer-name-indicator .dealer-player-label {
     if(commit){
       const range=explained.rangeLine||'Best help and largest setback show after the table is ready.';
       commit.innerHTML=range.replace(/ · /g,'<br>');
+    }
+    const odds=document.getElementById('wheel-odds-line');
+    if(odds){
+      const proposed=lifePreserverTableMode()==='proposed';
+      const spec=(window.BPGLifePreserver&&typeof BPGLifePreserver.outcomeSpec==='function')
+        ? BPGLifePreserver.outcomeSpec({table:lifePreserverTableMode()})
+        : null;
+      odds.textContent=proposed && spec?.oddsLine ? spec.oddsLine : '';
+      odds.classList.toggle('hidden', !(proposed && spec?.oddsLine));
     }
     const bestPlace=document.getElementById('wheel-best-place');
     if(bestPlace){
@@ -10415,6 +10689,13 @@ button.dealer-name-indicator .dealer-player-label {
     if(btn && btn.contains(e.target)) return;
     closeActionsMenu();
   });
+  document.addEventListener('click', (e) => {
+    const pick = e.target.closest?.('[data-lp-player]');
+    if(!pick) return;
+    const player = pick.getAttribute('data-lp-player');
+    closeLifePreserverPicker();
+    if(player) authorizeHailMary(player);
+  });
 
   /* ═══ EXPORT / IMPORT ═══ */
   function currentBackupState(){
@@ -10442,6 +10723,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     if(added.games) markHistoryChanged();
     if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
+    applyCommaJoinedGhostCleanup();
     saveData({ fullPersist: true, syncCold: true });
     const now=added.device?.line || BPGBackup.summarizeHistory(history).line;
     toast(`Merged ${added.games} new game${added.games===1?'':'s'}. ${now}`, 'default');
@@ -11045,6 +11327,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!oldName) return;
     const newName = (document.getElementById('rename-input').value || '').trim();
     if(!newName){ alert('Please enter a name.'); return; }
+    if(rejectUnusablePlayerName(newName,'rename-player-name-error')) return;
     if(newName === oldName){ closeRenameModal(); return; }
     if(playerNameIsTaken(newName)){
       if(!confirm(`A player named "${newName}" already exists. Merge "${oldName}" into "${newName}"? All history will combine.`)){
@@ -11122,12 +11405,23 @@ button.dealer-name-indicator .dealer-player-label {
   function lifePreserverSpinDuration(){
     if(GN_QA_MODE) return 80;
     const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    return reduce ? 80 : 3000;
+    return reduce ? 80 : 2400;
+  }
+
+  function lifePreserverTableMode(){
+    if(typeof window!=='undefined' && window.BPG_LP_TABLE==='proposed') return 'proposed';
+    try{
+      const params=new URLSearchParams(location.search);
+      if(params.get('lp')==='proposed') return 'proposed';
+    }catch(err){}
+    return 'current';
   }
 
   function getLifePreserverOfferForPlayer(player, activePlayers, extra){
     if(!window.BPGLifePreserver)return {eligible:false,reason:'missing-engine',slices:[]};
-    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
+    return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, Object.assign({
+      table: lifePreserverTableMode()
+    }, extra||{}));
   }
 
   function offerSlicesForPlayer(player){
@@ -11204,7 +11498,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(adjEl) adjEl.textContent=described.headline||`${detail.adj>0?'+':''}${detail.adj}`;
     if(totalEl) totalEl.textContent=described.totals||`New total: ${detail.total}`;
     if(standEl) standEl.textContent=described.standing||'';
-    ['wheel-game-line','wheel-player-meta','wheel-best-place','wheel-why-line'].forEach((id)=>{
+    ['wheel-game-line','wheel-player-meta','wheel-best-place','wheel-why-line','wheel-odds-line'].forEach((id)=>{
       document.getElementById(id)?.classList.add('hidden');
     });
     if(commit) commit.classList.add('hidden');
@@ -11309,13 +11603,19 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.offsetHeight;
       spinner.style.transition='';
     }
+    if(window.BPGSlice2&&typeof BPGSlice2.resetLifePreserverBall==='function'){
+      BPGSlice2.resetLifePreserverBall();
+    }
     hideLifePreserverHelp();
     cancelLifePreserverSpin();
     _lifePreserverCommitted=false;
     resetLifePreserverResultPanel();
     renderLifePreserverExplanation();
-    drawWheel();
     openModal('wheel-modal');
+    if(window.BPGSlice2&&typeof BPGSlice2.sizeLifePreserverModal==='function'){
+      BPGSlice2.sizeLifePreserverModal();
+    }
+    drawWheel();
   }
 
   function applyLifePreserverResult(player, proposedAdj, liveOffer){
@@ -11405,14 +11705,21 @@ button.dealer-name-indicator .dealer-player-label {
     _lifePreserverCommitted=true;
     saveData();
     scheduleRender();
-    const landing=(window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function')
-      ? BPGLifePreserver.rotationDegreesForSlice(win)
-      : 0;
+    const landing=(window.BPGLifePreserver&&typeof BPGLifePreserver.landingDegreesForSlice==='function')
+      ? BPGLifePreserver.landingDegreesForSlice(win)
+      : ((window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function')
+        ? BPGLifePreserver.rotationDegreesForSlice(win)
+        : 0);
     const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(spinner){
-      spinner.style.transition=reduce?'transform 180ms ease-out':'transform 3s cubic-bezier(0.12, 0.7, 0.2, 1)';
-      currentWheelRotation=(reduce?0:360*6)+landing;
-      spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+    currentWheelRotation=landing;
+    if(window.BPGSlice2&&typeof BPGSlice2.animateLifePreserverBall==='function'){
+      BPGSlice2.animateLifePreserverBall(landing,{reduced:reduce});
+    }else if(spinner){
+      spinner.style.transition=reduce?'transform 180ms ease-out':'transform 2.2s cubic-bezier(0.18, 0.82, 0.22, 1)';
+      spinner.style.transform=`rotate(${(reduce?0:360*3)+landing}deg)`;
+    }
+    if(window.BPGSlice2&&typeof BPGSlice2.highlightLifePreserverPocket==='function'){
+      BPGSlice2.highlightLifePreserverPocket(win);
     }
     haptic([60, 80, 60, 80, 120]);
     _lifePreserverSpinTimer=setTimeout(()=>{
@@ -11431,16 +11738,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   const playerSuggestHideTimers={};
   function getKnownPlayerNames(){
-    const seen=new Set(), names=[];
-    [...allPlayers,Object.keys(playerProfiles||{})].forEach(raw=>{
-      const name=String(raw||'').trim();
-      if(!name)return;
-      const key=name.toLowerCase();
-      if(seen.has(key))return;
-      seen.add(key);
-      names.push(name);
-    });
-    return names.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+    return BPGScorebook.knownPlayerNames(allPlayers, playerProfiles);
   }
   function getPlayerSuggestEls(scope){
     const isMid=scope==='midgame';
@@ -11453,13 +11751,30 @@ button.dealer-name-indicator .dealer-player-label {
     const {input}=getPlayerSuggestEls(scope);
     const q=(input?.value||'').trim().toLowerCase();
     if(!q)return [];
-    const ineligible=new Set(scope==='midgame'
-      ? (currentGame?.originalRoster||[]).map(p=>p.toLowerCase())
-      : players.map(p=>p.toLowerCase()));
-    return getKnownPlayerNames()
-      .filter(name=>!ineligible.has(name.toLowerCase()))
-      .filter(name=>name.toLowerCase().startsWith(q))
-      .slice(0,8);
+    return BPGScorebook.playerSuggestionMatches(
+      allPlayers,
+      playerProfiles,
+      q,
+      scope==='midgame' ? (currentGame?.originalRoster||[]) : players
+    );
+  }
+  function rejectUnusablePlayerName(name, errorId){
+    if(BPGScorebook.isUsablePlayerName(name)){
+      showFormError(errorId, '');
+      return false;
+    }
+    showFormError(errorId, 'Use a single name with no commas.');
+    return true;
+  }
+  function applyCommaJoinedGhostCleanup(){
+    if(!window.BPGScorebook||typeof BPGScorebook.cleanupCommaJoinedGhosts!=='function') return false;
+    const cleaned=BPGScorebook.cleanupCommaJoinedGhosts({allPlayers,players,playerProfiles});
+    (cleaned.kept||[]).forEach((name)=>console.warn('Kept a player name that contains commas:', name));
+    if(!cleaned.changed) return false;
+    allPlayers=cleaned.allPlayers;
+    players=cleaned.players;
+    playerProfiles=cleaned.playerProfiles;
+    return true;
   }
   function updatePlayerSuggestions(scope){
     const {input,menu}=getPlayerSuggestEls(scope);
@@ -11545,6 +11860,7 @@ button.dealer-name-indicator .dealer-player-label {
   function addPlayerToAll(selectedName){
     const input=document.getElementById('quick-add-player');
     const name=(selectedName||input.value).trim(); if(!name)return;
+    if(rejectUnusablePlayerName(name,'home-player-name-error')) return;
     if(!allPlayers.includes(name)) allPlayers.push(name);
     if(!players.includes(name)) players.push(name);
     input.value='';
@@ -13680,8 +13996,8 @@ ${isDealer
         root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,rowHeight*0.14)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-rank-size',`${Math.max(12,Math.min(42,28*scale)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.4,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-rank-size',`${Math.max(22,Math.min(42,28*scale)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.88,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.36,Math.min(0.95,0.72*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-size',`${Math.max(11,Math.min(30,22*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
@@ -14269,9 +14585,11 @@ ${isDealer
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const placeNum=places?places[p]:ri+1;
+      const placeLabel=ordinalLive(placeNum);
+      const placeTone=placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
       const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank font-mono-num shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)} — tap to spin">${placeNum}</button>`
-        : `<span class="scoreboard-rank-badge${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} font-mono-num shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used"':''}>${placeNum}</span>`);
+        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank${placeTone} shrink-0" title="Life Preserver available — tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)}, ${placeLabel} — tap to spin">${placeLabel}</button>`
+        : `<span class="scoreboard-rank-badge${placeTone}${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used, '+placeLabel+'"':` aria-label="${placeLabel}"`}>${placeLabel}</span>`);
 
       const retiredTag=retiredBadgeMarkup(currentGame,p);
 
@@ -15463,6 +15781,7 @@ ${isDealer
     const input=document.getElementById('midgame-add-player-input');
     const name=(selectedName||input?.value||'').trim();
     if(!name){alert('Invalid name.');return;}
+    if(rejectUnusablePlayerName(name,'midgame-player-name-error')) return;
     if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
     closeAddPlayerModal();
       if(!players.includes(name))players.push(name);
@@ -16169,6 +16488,29 @@ ${isDealer
     if(activeInputContext&&activeInputContext.roundIndex!=='current'&&pad&&!pad.classList.contains('hidden')){
       event.preventDefault();
       cancelPastNumpad();
+      return;
+    }
+    const shell=topOpenModalShell();
+    if(!shell) return;
+    const closer=MODAL_CLOSE_BY_ID[shell.id];
+    if(typeof window[closer]==='function'){
+      event.preventDefault();
+      window[closer]();
+    }
+  });
+  document.addEventListener('keydown', event=>{
+    if(event.key!=='Tab') return;
+    const shell=topOpenModalShell();
+    if(!shell) return;
+    const nodes=modalFocusables(shell);
+    if(!nodes.length) return;
+    const first=nodes[0], last=nodes[nodes.length-1];
+    if(event.shiftKey && document.activeElement===first){
+      event.preventDefault();
+      last.focus();
+    }else if(!event.shiftKey && document.activeElement===last){
+      event.preventDefault();
+      first.focus();
     }
   });
 
@@ -17510,9 +17852,10 @@ ${isDealer
         markHistoryChanged();
       },
       skipPersist(on){ window.__GN_DEMO_SKIP_PERSIST=!!on; },
-      ready(status, view){
+      ready(status, view, game){
         document.body.dataset.gnDemoReady=status||'';
         document.body.dataset.gnDemoView=view||'';
+        document.body.dataset.gnDemoGame=game||'';
         document.documentElement.classList.remove('gn-demo-pending');
       }
     });

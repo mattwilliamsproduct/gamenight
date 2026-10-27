@@ -3,14 +3,19 @@ import {DEMO_VIEW_IDS} from '../../public/assets/demo-seed.mjs';
 
 const PREVIEW = 'gamenight-git-cursor-relea-23a825-mattwilliamsproducts-projects.vercel.app';
 
-async function openDemo(page, view, {host} = {}) {
+async function openDemo(page, view, {host, extra} = {}) {
   if (host) {
     await page.addInitScript((value) => {
       window.__GN_DEMO_HOST_OVERRIDE__ = value;
     }, host);
   }
-  const path = view ? `/?demo&view=${encodeURIComponent(view)}` : '/?demo';
-  await page.goto(path, {waitUntil: 'domcontentloaded'});
+  const params = new URLSearchParams();
+  params.set('demo', '');
+  if (view) params.set('view', view);
+  Object.entries(extra || {}).forEach(([key, value]) => {
+    if (value != null && value !== '') params.set(key, value);
+  });
+  await page.goto(`/?${params.toString()}`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => !!document.body.dataset.gnDemoReady, null, {timeout: 20000});
 }
 
@@ -21,6 +26,9 @@ function hidden(page, id) {
 const VIEW_ASSERT = {
   home: async (page) => {
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-home')).toContainText(/Tonight's Table/);
+    await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
+    await expect(page.locator('#slice2-home')).toContainText(/Recent nights/);
     await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
   },
   'active-match': async (page) => {
@@ -162,6 +170,28 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
     await expect(page.locator('#score-entry-error')).toContainText(/0 or more/);
+  },
+  game: async (page) => {
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-board, #game-screen')).toContainText(/Five Crowns|Wizard|818|Flip 7|Beat the Heat|Rook|Hand and Foot/);
+  },
+  'bids-wizard': async (page) => {
+    await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#score-entry-modal')).toContainText(/Wizard|Bid|bid/i);
+  },
+  'podium-tie': async (page) => {
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#scorecard-body, #slice2-board')).toContainText(/4th|T4|tied|Matt|Megan/i);
+  },
+  'past-night': async (page) => {
+    await expect(hidden(page, 'scorecard-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#scorecard-modal button').first()).toBeVisible();
+  },
+  'add-player-m': async (page) => {
+    await expect(hidden(page, 'add-player-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#midgame-add-player-input')).toHaveValue('m');
+    const names = await page.locator('#midgame-player-suggestions .player-name-label').allTextContents();
+    expect(names.map((name) => name.trim())).toEqual(['Michelle']);
   }
 };
 
@@ -182,6 +212,39 @@ test.describe('TEMP demo seed views', () => {
       await VIEW_ASSERT[view](page);
     });
   }
+
+  for (const [game, label] of [
+    ['five-crowns', /Five Crowns/],
+    ['818', /818/],
+    ['wizard', /Wizard/],
+    ['flip7', /Flip 7/],
+    ['beat-the-heat', /Beat the Heat/],
+    ['rook', /Rook/]
+  ]) {
+    test(`preview host opens view=game&game=${game}`, async ({page}) => {
+      test.setTimeout(45000);
+      await openDemo(page, 'game', {host: PREVIEW, extra: {game}});
+      await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', 'game');
+      await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+      if (game === 'rook') {
+        await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
+        await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
+      } else {
+        await expect(page.locator('#slice2-board, #game-screen')).toContainText(label);
+      }
+    });
+  }
+
+  test('preview host opens view=game&game=hand-and-foot without crashing', async ({page}) => {
+    await openDemo(page, 'game', {host: PREVIEW, extra: {game: 'hand-and-foot'}});
+    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', /seeded|empty/);
+    const visible = await page.evaluate(() => {
+      const home = document.getElementById('home-screen');
+      const game = document.getElementById('game-screen');
+      return !home?.classList.contains('hidden') || !game?.classList.contains('hidden');
+    });
+    expect(visible).toBe(true);
+  });
 
   test('cardknight.vercel.app ignores ?demo and writes nothing', async ({page}) => {
     await openDemo(page, 'home', {host: 'cardknight.vercel.app'});

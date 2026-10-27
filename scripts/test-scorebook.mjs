@@ -204,6 +204,50 @@ test('Rook made and set split the hand the same way the table does', () => {
   assert.deepEqual(set.scores, { Ann: -80, Bea: 110, Cal: -80, Dee: 110 });
 });
 
+test('Add Player suggestions spread profile names and drop comma ghosts', () => {
+  const allPlayers = ['Megan', 'Matt', 'Mike', 'Michelle'];
+  const profiles = {
+    Megan: {},
+    Matt: {},
+    Mike: {},
+    Cat: {},
+    Michelle: {},
+    'MEGAN,MATT,CAT,MIKE': {}
+  };
+  const mid = Scorebook.playerSuggestionMatches(allPlayers, profiles, 'm', ['Megan', 'Matt', 'Mike']);
+  assert.deepEqual(mid, ['Michelle']);
+  assert.equal(mid.some((name) => name.includes(',')), false);
+  const home = Scorebook.playerSuggestionMatches(allPlayers, profiles, 'm', ['Megan', 'Matt']);
+  assert.deepEqual(home, ['Michelle', 'Mike']);
+  assert.equal(home.some((name) => name.includes(',')), false);
+  assert.equal(Scorebook.isUsablePlayerName('MEGAN,MATT,CAT,MIKE'), false);
+  assert.equal(Scorebook.isUsablePlayerName('Michelle'), true);
+});
+
+test('comma-joined ghost cleanup is idempotent and leaves history alone', () => {
+  const history = [{ id: 1, originalRoster: ['Megan', 'Matt'], totals: { Megan: 10, Matt: 12 } }];
+  const first = Scorebook.cleanupCommaJoinedGhosts({
+    allPlayers: ['Megan', 'Matt', 'Mike', 'Cat', 'MEGAN,MATT,CAT,MIKE'],
+    players: ['Megan', 'Matt', 'MEGAN,MATT,CAT,MIKE'],
+    playerProfiles: { Megan: {}, Matt: {}, Mike: {}, Cat: {}, 'MEGAN,MATT,CAT,MIKE': { avatar: 'x' } }
+  });
+  assert.equal(first.changed, true);
+  assert.deepEqual(first.allPlayers, ['Megan', 'Matt', 'Mike', 'Cat']);
+  assert.deepEqual(first.players, ['Megan', 'Matt']);
+  assert.equal(first.playerProfiles['MEGAN,MATT,CAT,MIKE'], undefined);
+  assert.equal(history[0].originalRoster.includes('MEGAN,MATT,CAT,MIKE'), false);
+  const second = Scorebook.cleanupCommaJoinedGhosts(first);
+  assert.equal(second.changed, false);
+  assert.deepEqual(second.allPlayers, first.allPlayers);
+  const odd = Scorebook.cleanupCommaJoinedGhosts({
+    allPlayers: ['Smith, John'],
+    players: [],
+    playerProfiles: { 'Smith, John': {} }
+  });
+  assert.equal(odd.changed, false);
+  assert.deepEqual(odd.kept, ['Smith, John']);
+});
+
 test('the live page still uses the same Wizard, 818, and Rook formulas', async () => {
   const { readFile } = await import('node:fs/promises');
   const { join } = await import('node:path');

@@ -1,5 +1,5 @@
 /* TEMP: demo seed (remove before merge). Preview and localhost only. */
-import {cloneScenario} from '../qa/fixtures.mjs';
+import {cloneScenario, QA_SCENARIOS} from '../qa/fixtures.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
 export const DEMO_VERSION = '4';
@@ -37,7 +37,12 @@ export const DEMO_VIEW_IDS = [
   'profiles',
   'empty-home',
   'empty-records',
-  'error-entry'
+  'error-entry',
+  'game',
+  'bids-wizard',
+  'podium-tie',
+  'past-night',
+  'add-player-m'
 ];
 
 const WRITE_VIEWS = new Set([
@@ -146,6 +151,7 @@ export function stripDemoSearch(href){
   const url = new URL(href, 'http://local.test');
   url.searchParams.delete('demo');
   url.searchParams.delete('view');
+  url.searchParams.delete('game');
   const search = url.searchParams.toString();
   return url.pathname + (search ? `?${search}` : '') + url.hash;
 }
@@ -155,6 +161,9 @@ export function parseDemoRequest(search, hostname){
   return {
     wantsDemo: params.has('demo'),
     view: params.get('view') || 'home',
+    game: params.get('game') || '',
+    games: params.get('games') || '',
+    lpTable: params.get('lp') || '',
     allowed: demoHostAllowed(hostname)
   };
 }
@@ -175,7 +184,38 @@ function gameKey(raw){
   if (key === 'flip7' || key === 'flip7vengeance') return 'flip7';
   if (key === 'beattheheat' || key === 'heat') return 'beattheheat';
   if (key === 'rook') return 'rook';
+  if (key === 'handandfoot' || key === 'canasta' || key === 'handfoot') return 'handandfoot';
+  return key || '';
+}
+
+function displayGameName(key){
+  return {
+    fivecrowns: 'Five Crowns',
+    wizard: 'Wizard',
+    '818': '818',
+    flip7: 'Flip 7 Vengeance',
+    beattheheat: 'Beat the Heat',
+    rook: 'Rook',
+    handandfoot: 'Hand and Foot'
+  }[key] || '';
+}
+
+function scenarioIdForGame(key){
+  if (GAME_SCENARIO[key]) return GAME_SCENARIO[key];
+  const wanted = displayGameName(key).replace(/\s+/g, '').toLowerCase();
+  if (!wanted) return '';
+  for (const [id, scenario] of Object.entries(QA_SCENARIOS || {})) {
+    const live = scenario?.data?.currentGame;
+    const name = String(live?.name || live?.game || '').replace(/\s+/g, '').toLowerCase();
+    if (name && name === wanted) return id;
+  }
   return '';
+}
+
+function payloadForGame(key){
+  const id = scenarioIdForGame(key);
+  if (id) return scenarioData(id);
+  return null;
 }
 
 function parseTypedView(view){
@@ -238,7 +278,7 @@ function applyRookEntryState(data){
   return data;
 }
 
-function payloadForView(view, base){
+function payloadForView(view, base, gameRaw){
   const typed = parseTypedView(view);
   if (view === 'empty-home' || view === 'empty-records') return emptyPayload();
   if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('demo-seed');
@@ -247,6 +287,13 @@ function payloadForView(view, base){
   if (view === 'lifepreserver-low') return scenarioData('demo-seed');
   if (view === 'rook-contract') return scenarioData('rook-bid-setup');
   if (view === 'rook-call') return applyRookCallState(scenarioData('rook-bid-setup'));
+  if (view === 'bids-wizard') return scenarioData('demo-wizard');
+  if (view === 'podium-tie') return scenarioData('wizard-tied-places');
+  if (view === 'past-night') return scenarioData('home-party');
+  if (view === 'add-player-m') return scenarioData('five-crowns-comeback');
+  if (view === 'game' || typed.kind === 'game') {
+    return payloadForGame(gameKey(gameRaw) || 'fivecrowns') || cloneData(base);
+  }
   if (typed.kind === 'scorecard' && GAME_SCENARIO[typed.game]) return scenarioData(GAME_SCENARIO[typed.game]);
   if (typed.kind === 'entry' && typed.game === 'rook') return applyRookEntryState(scenarioData('rook-bid-setup'));
   if (typed.kind === 'entry' && GAME_SCENARIO[typed.game]) return scenarioData(GAME_SCENARIO[typed.game]);
@@ -337,6 +384,38 @@ function openDemoView(view){
     if (typeof authorizeHailMary === 'function') authorizeHailMary('Linda');
     return;
   }
+  if (view === 'bids-wizard') {
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+    const game = readLiveGame();
+    if (game) game.wizardPhase = 'bidding';
+    if (typeof openScoreEntryModal === 'function') openScoreEntryModal();
+    return;
+  }
+  if (view === 'podium-tie') {
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+    document.documentElement.classList.add('s2-standings-only');
+    return;
+  }
+  if (view === 'past-night') {
+    if (typeof goHome === 'function') goHome();
+    const match = (typeof history !== 'undefined' && Array.isArray(history)) ? history[0] : null;
+    if (match && typeof openScorecard === 'function') openScorecard(match.id);
+    return;
+  }
+  if (view === 'add-player-m') {
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+    if (typeof addPlayerMidGame === 'function') addPlayerMidGame();
+    const input = document.getElementById('midgame-add-player-input');
+    if (input) {
+      input.value = 'm';
+      if (typeof updatePlayerSuggestions === 'function') updatePlayerSuggestions('midgame');
+    }
+    return;
+  }
+  if (view === 'game') {
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+    return;
+  }
   if (view === 'lifepreserver-after') {
     if (typeof goActiveMatch === 'function') goActiveMatch();
     if (typeof authorizeHailMary === 'function') authorizeHailMary('Cat');
@@ -386,10 +465,10 @@ export function decideDemoAction({hostname, search, storage}){
       playerProfiles: readJson(storage, 'gn_profiles') || {},
       currentGame: readJson(storage, 'gn_current')
     };
-    return {status: 'seeded', view, persist: false, blocked: false, payload: payloadForView(view, live)};
+    return {status: 'seeded', view, persist: false, blocked: false, payload: payloadForView(view, live, req.game), game: req.game};
   }
   const base = buildDemoPayload();
-  return {status: 'seeded', view, persist: true, blocked: false, payload: payloadForView(view, base), seed: base};
+  return {status: 'seeded', view, persist: true, blocked: false, payload: payloadForView(view, base, req.game), seed: base, game: req.game};
 }
 
 function viewUsesLiveSeed(view){
@@ -412,8 +491,12 @@ export async function bootDemoSeed(api){
     search: api.search,
     storage: api.storage
   });
+  const req = parseDemoRequest(api.search, api.hostname);
+  if (req.lpTable === 'proposed' && typeof window !== 'undefined') {
+    window.BPG_LP_TABLE = 'proposed';
+  }
   if (action.status === 'idle' || action.status === 'ignored') {
-    api.ready?.(action.status, action.view || '');
+    api.ready?.(action.status, action.view || '', action.game || req.game || '');
     return action;
   }
 
@@ -437,7 +520,7 @@ export async function bootDemoSeed(api){
     } else {
       openDemoView(action.view);
     }
-    api.ready?.(action.status, action.view);
+    api.ready?.(action.status, action.view, action.game || '');
   };
   return action;
 }
