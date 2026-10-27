@@ -390,8 +390,9 @@ html.slice2-tv .s2-seat.is-drop-after {
 
 html.slice2-tv .s2-seat-who {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   min-width: 0;
 }
 
