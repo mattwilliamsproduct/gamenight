@@ -67,6 +67,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
 - A Life Preserver that still looks like a pie chart with extra wedges.
 - A 4-digit Canasta cell that clips to `322(`, or 2-team rows stretched to ~135px with 120px avatars.
+- Canasta Each clean / Each dirty / Each red 3 chips on Five Crowns or Wizard entry.
 - A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
 - Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.

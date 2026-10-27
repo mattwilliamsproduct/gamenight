@@ -14,6 +14,7 @@ Matt gave the go to preview Hand and Foot on the release candidate as **Canasta*
 - Score cells never clip. 4-digit and 5-digit totals fit at 375 / 390 / 1024 / 1440. Two-team rows skip TV fit-row stretch so they keep Five Crowns density. Team identity is two overlapped avatars plus a two-line name (`Megan &` / `Matt`) with no ellipsis.
 - Picker tile art uses `public/assets/art/dusk/canasta.webp` in both the default and dusk art sets, cover-cropped. A beach-style Canasta tile is a Matt taste call.
 - Canasta rules open from slice2 Game Instructions and from in-game Actions. The sheet title is Canasta.
+- `.hf-rate-bar { display:grid }` beats Tailwind `.hidden`. Keep `.hf-rate-bar.hidden { display: none !important; }` so Five Crowns and Wizard entry never show Canasta rate chips.
 
 ## Do not
 
