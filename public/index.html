@@ -8814,6 +8814,7 @@ button.dealer-name-indicator .dealer-player-label {
   <script src="./assets/backup.js"></script>
   <script src="./assets/life-preserver-logic.js"></script>
   <script src="./assets/scorebook.js"></script>
+  <script src="./assets/records-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -17030,8 +17031,10 @@ ${isDealer
     });
 
     const playerList = Object.values(players);
-    allTime.mostWins = playerList.slice().sort((a,b)=>b.wins-a.wins||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.wins,label:`${p.wins} wins`}));
-    allTime.bestWinRate = playerList.filter(p=>p.games>=5).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.wins-a.wins).slice(0,10).map(p=>({player:p.name,value:Math.round(p.wins/p.games*100),label:`${p.wins}-${p.games-p.wins}`}));
+    // Career wins and win rate count completed matches. Win rate always stores
+    // the fraction so the UI can print "45% · 9 of 20". Leaders need 5 games.
+    allTime.mostWins = playerList.slice().sort((a,b)=>b.wins-a.wins||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.wins,wins:p.wins,games:p.games,label:`${p.wins} wins · ${p.games} games`}));
+    allTime.bestWinRate = playerList.filter(p=>p.games>=(window.BPGRecords?BPGRecords.WIN_RATE_MIN_GAMES:5)).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.wins-a.wins).slice(0,10).map(p=>({player:p.name,value:Math.round(p.wins/p.games*100),wins:p.wins,games:p.games,label:window.BPGRecords?BPGRecords.formatWinRate(p.wins,p.games):`${Math.round(p.wins/p.games*100)}% · ${p.wins} of ${p.games}`}));
     allTime.mostGames = playerList.slice().sort((a,b)=>b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.games,label:`${p.games} games`}));
     allTime.mostLasts = playerList.slice().sort((a,b)=>b.lasts-a.lasts||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.lasts,label:`${p.lasts} last-place finishes`}));
     Object.entries(wizardBidStats).forEach(([p,s])=>{
@@ -17080,19 +17083,19 @@ ${isDealer
     });
     const topRivalries = rivalries.slice().sort((a,b)=>b.together-a.together).slice(0,5);
     const lopsidedRivalries = rivalries.slice().sort((a,b)=>b.edgePct-a.edgePct||b.together-a.together).slice(0,5);
-    const shameAwards = [
-      {emoji:'🏴',name:'The Disaster Award',record:games["Five Crowns"].worstGame,stat:r=>`${r.value} in Five Crowns`},
-      {emoji:'💀',name:'The Crash and Burn',record:games["Five Crowns"].worstRound,stat:r=>`${r.value} points in one round`},
-      {emoji:'🛡️',name:'The 818 Brick',record:games['818'].worstGame,stat:r=>`${r.value} in 818`},
-      {emoji:'🌶️',name:'The Meltdown',record:games["Beat the Heat"].worstGame,stat:r=>`${r.value} heat in Beat the Heat`},
-      {emoji:'🎰',name:'The Overconfident',record:Object.entries(wizardBidStats).map(([p,s])=>({player:p,value:s.busted,label:`${s.busted} busted bids`,date:'Career',game:'Wizard'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
-      {emoji:'👻',name:'The Invisible Man',record:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0] ? {player:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].name,value:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].games,label:`${playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].games} games, 0 wins`,date:'Career'} : null,stat:r=>r.label},
-      {emoji:'🐢',name:'The Slow Learner',record:playerList.map(p=>({player:p.name,value:p.longestLast,label:`${p.longestLast} straight last-place finishes`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
-      {emoji:'🎯',name:'The Sharp Shooter',record:games.Wizard.bestExactBidPct,stat:r=>r.label},
-      {emoji:'👑',name:'The Comeback Kid',record:Object.entries(comebackWins).map(([p,v])=>({player:p,value:v,label:`${v} wins from a halftime deficit`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
-      {emoji:'🔥',name:'The Streaker',record:allTime.longestWinningStreak,stat:r=>`${r.value} wins in a row`}
-    ];
-    const _atr = {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries},shameAwards};
+    const showComeback = window.BPGRecords ? BPGRecords.shouldShowComebackStats(completed) : false;
+    if(!showComeback){
+      allTime.biggestComeback = null;
+      allTime.mostComebackExtras = null;
+      allTime.biggestComebackExtra = null;
+    }
+    const shameAwards = window.BPGRecords
+      ? BPGRecords.buildShameAwards({games,allTime}, playerList, wizardBidStats, comebackWins, showComeback)
+      : [];
+    const lifePreserver = window.BPGRecords
+      ? BPGRecords.lifePreserverEvents(history, {configs,getDisplayPlayers,sortPlayersByTotal,competitionPlaces,scorebook:BPGScorebook})
+      : [];
+    const _atr = {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries,all:rivalries},shameAwards,lifePreserver,hasComebackData:showComeback};
     if(currentGame) _matchAllTimeRecordsSnap = _atr;
     return _atr;
   }
@@ -17421,6 +17424,8 @@ ${isDealer
           goHome();
         }else if(surface==='profiles'){
           showProfiles();
+        }else if(surface==='records'){
+          showHistory();
         }else if(surface==='race'){
           goHome();
           const match=history[0];

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Back Porch review gallery</title>
+  <link rel="stylesheet" href="./review.css">
+</head>
+<body>
+  <header class="review-top">
+    <p class="review-kicker">Preview only · never on cardknight.vercel.app</p>
+    <div class="review-title-row">
+      <h1>Review gallery</h1>
+      <p id="review-meta" class="review-meta">Loading catalog…</p>
+    </div>
+    <p class="review-lead">One tile per screen and size. Open live uses the same view id the tile was captured from.</p>
+    <form class="review-filters" id="review-filters">
+      <label class="review-field">
+        <span>Screen</span>
+        <select id="filter-screen" name="screen">
+          <option value="">All screens</option>
+        </select>
+      </label>
+      <fieldset class="review-sizes">
+        <legend>Size</legend>
+        <label><input type="radio" name="size" value="" checked> All</label>
+        <label><input type="radio" name="size" value="phone"> Phone 390</label>
+        <label><input type="radio" name="size" value="tablet"> Tablet 768</label>
+        <label><input type="radio" name="size" value="laptop"> Laptop 1440</label>
+      </fieldset>
+    </form>
+  </header>
+  <main id="review-grid" class="review-grid" aria-live="polite"></main>
+  <dialog id="review-lightbox" class="review-lightbox">
+    <div class="review-lightbox-bar">
+      <p id="lightbox-label"></p>
+      <div class="review-lightbox-actions">
+        <a id="lightbox-live" href="#" target="_blank" rel="noopener">Open live</a>
+        <button type="button" id="lightbox-close">Close</button>
+      </div>
+    </div>
+    <div id="lightbox-stage" class="review-lightbox-stage"></div>
+  </dialog>
+  <script type="module" src="./review.js"></script>
+</body>
+</html>

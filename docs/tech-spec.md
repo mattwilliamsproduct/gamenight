@@ -87,6 +87,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Home-screen short name is Back Porch. Manifest name is Back Porch Games.
 - Cloud sync is off this release. The Redis function stays shipped and unused.
 - `npm run check` fails if `index.html` loads `comeback-logic.js`, if the worker template disagrees with the scripts the page loads, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.
+- `/review` is a preview-only visual gallery. Production builds (`VERCEL_ENV=production`) must emit no `public/review/` files. `middleware.js` 404s `/review` on production and `cardknight.vercel.app`. The worker template must not precache it. `npm run test:review-gate` locks that gate. See [review-gallery-preview-only.md](solutions/review-gallery-preview-only.md).
 
 ## Data the match must round-trip
 

@@ -17,7 +17,7 @@ A game night on the iPad (landscape) or the TV succeeds when these are true. The
 
 Portrait is a podium, not the scoring surface. Rotate back for the card.
 
-The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records show Fame / Shame and past nights, not the old Timeline / HOF / Records tabs.
+The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records is one destination with Overview, Explore records, and Past nights. Completed nights do not offer Resume. Metric definitions live in [release/records-metrics.md](release/records-metrics.md).
 
 ## Supported games
 
@@ -111,6 +111,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 - The Porch Club night redesign (PR #44) until Matt signs the preview.
 - Splitting `public/index.html` as a project of its own. Fix the stacked theme CSS when a visual bug requires it. Do not boil the ocean first.
 - Per-player accounts. One porch, one password, one scorebook.
+- A `/review` gallery on production. That page is a preview-only Matt browse tool. It must 404 on `cardknight.vercel.app`.
 
 ## Known bugs
 

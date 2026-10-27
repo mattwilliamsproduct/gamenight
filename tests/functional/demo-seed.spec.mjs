@@ -107,7 +107,23 @@ const VIEW_ASSERT = {
   records: async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
-    await expect(page.locator('.s2-fame-col')).toContainText(/Most wins|Five Crowns|Unassisted matches only/);
+    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Five Crowns|Unassisted matches only/);
+  },
+  'records-overview': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Unassisted matches only/);
+  },
+  'records-explore': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-shame')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-explore-col')).toContainText(/Explore records|Most games without a win|Most consecutive last-place finishes/);
+  },
+  'records-nights': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-nights')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Incomplete/);
+    await expect(page.locator('.s2-night-winner', {hasText: / and /}).first()).toBeVisible();
   },
   'records-shame': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);

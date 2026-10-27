@@ -44,6 +44,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A browser `alert()` for score-entry or Restore errors.
 - Silently dropping retired seats from Records.
 - Exact bid chrome on Rook or any game that does not bid.
+- A review tile whose iframe is not the named width × height. Scale the frame; do not shrink the page.
 - A Life Preserver wheel that paints helpful low-score slices red because they are negative.
 - A settings gear on the scorecard match header, or phone History sitting outside Actions.
 - A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.

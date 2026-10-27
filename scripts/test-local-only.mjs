@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const slice2 = readFileSync(new URL('../public/assets/slice2.js', import.meta.url), 'utf8');
+const records = readFileSync(new URL('../public/assets/records-logic.js', import.meta.url), 'utf8');
 const sync = readFileSync(new URL('../api/sync.js', import.meta.url), 'utf8');
 
 test('the client never fetches /api/sync and leaves the Redis function in place', () => {
@@ -20,6 +21,6 @@ test('the client never fetches /api/sync and leaves the Redis function in place'
 
 test('Settings and Records keep the local-storage sentence', () => {
   assert.match(html, /Scores and history are saved in this browser on this device\./);
-  assert.match(slice2, /Scores and history are saved in this browser on this device\./);
+  assert.match(records, /Scores and history are saved in this browser on this device\./);
   assert.match(html, /Saved on this device/);
 });

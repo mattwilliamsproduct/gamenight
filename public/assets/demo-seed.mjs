@@ -2,7 +2,7 @@
 import {cloneScenario} from '../qa/fixtures.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
-export const DEMO_VERSION = '3';
+export const DEMO_VERSION = '4';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
 
 export const DEMO_VIEW_IDS = [
@@ -25,6 +25,9 @@ export const DEMO_VIEW_IDS = [
   'lifepreserver-after',
   'lifepreserver-low',
   'records',
+  'records-overview',
+  'records-explore',
+  'records-nights',
   'records-shame',
   'rook-contract',
   'rook-call',
@@ -250,13 +253,14 @@ function payloadForView(view, base){
   return cloneData(base);
 }
 
-function clickShame(){
-  const btn = document.getElementById('slice2-show-shame');
-  if (btn) btn.click();
-}
-
-function openRecordsFame(){
+function openRecordsPane(pane){
   if (typeof showHistory === 'function') showHistory();
+  if (window.BPGSlice2 && typeof window.BPGSlice2.setRecordsPane === 'function') {
+    window.BPGSlice2.setRecordsPane(pane);
+    return;
+  }
+  const ids = {overview: 'slice2-show-fame', explore: 'slice2-show-shame', nights: 'slice2-show-nights'};
+  document.getElementById(ids[pane] || ids.overview)?.click();
 }
 
 function readLiveGame(){
@@ -269,13 +273,16 @@ function openDemoView(view){
     if (typeof goHome === 'function') goHome();
     return;
   }
-  if (view === 'empty-records' || view === 'records') {
-    openRecordsFame();
+  if (view === 'empty-records' || view === 'records' || view === 'records-overview') {
+    openRecordsPane('overview');
     return;
   }
-  if (view === 'records-shame') {
-    openRecordsFame();
-    clickShame();
+  if (view === 'records-shame' || view === 'records-explore') {
+    openRecordsPane('explore');
+    return;
+  }
+  if (view === 'records-nights') {
+    openRecordsPane('nights');
     return;
   }
   if (view === 'history') {
@@ -389,6 +396,9 @@ function viewUsesLiveSeed(view){
   return view === 'home'
     || view === 'active-match'
     || view === 'records'
+    || view === 'records-overview'
+    || view === 'records-explore'
+    || view === 'records-nights'
     || view === 'records-shame'
     || view === 'history'
     || view === 'profiles'

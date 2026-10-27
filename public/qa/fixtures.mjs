@@ -532,6 +532,41 @@ const porch818Game=makeCurrentGame('818',porch818Players,porch818Rounds,{
   currentScoreDrafts:{},
   maxRounds:15
 });
+const porch818AfterRounds=[...porch818Rounds,{round:0,hailMaryBonus:true,scores:{Cat:20}}];
+const porch818AfterGame=makeCurrentGame('818',porch818Players,porch818AfterRounds,{
+  eight18Phase:'bidding',
+  currentBids:{},
+  currentScoreDrafts:{},
+  maxRounds:15,
+  hailMaryUsed:['Cat'],
+  assistedMatch:true
+});
+const rookReviewPlayers=NAMES.slice(0,4);
+const rookMidRounds=[{
+  round:1,
+  scores:{Megan:90,Matt:90,Cat:110,Mike:110},
+  rookBid:90,
+  rookBidder:'Megan',
+  rookPartner:'Matt',
+  rookMadeIt:true
+}];
+const rookMidGame=makeCurrentGame('Rook',rookReviewPlayers,rookMidRounds,{
+  currentRound:2,
+  rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+  rookPhase:'results',
+  rookHighBidder:'Megan',
+  rookHighBid:90,
+  rookTrump:'Red',
+  rookCalledCard:'Rook',
+  rookPartner:'Matt'
+});
+const rookCallingGame=makeCurrentGame('Rook',rookReviewPlayers,rookMidRounds,{
+  currentRound:2,
+  rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+  rookPhase:'calling',
+  rookHighBidder:'Megan',
+  rookHighBid:90
+});
 const wizardThresholdRounds=[
   {round:1,bids:{Matt:1,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:1},actuals:{Matt:1,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:30,Cat:20,Megan:20,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-10}},
   {round:2,bids:{Matt:2,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:2},actuals:{Matt:2,Cat:0,Megan:0,Michelle:0,Mike:0,Vikki:0,Linda:0,Duke:0},scores:{Matt:40,Cat:20,Megan:20,Michelle:20,Mike:20,Vikki:20,Linda:20,Duke:-20}},
@@ -772,6 +807,29 @@ function demo818Live(){
   });
 }
 
+function demoIncompleteNight(){
+  const roster=NAMES.slice(0,6);
+  const rounds=[
+    scoreRound(1,roster,[4,8,6,10,12,15]),
+    scoreRound(2,roster,[5,3,9,7,11,14])
+  ];
+  const match=finishedNight(1784566800000,'Five Crowns','10/21/2026',roster,rounds,{
+    completed:false,
+    winners:[],
+    currentRound:3,
+    maxRounds:11
+  });
+  return match;
+}
+
+function demoJointWinNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  return finishedNight(1784390400001,'Flip 7 Vengeance','10/18/2026',roster,[
+    scoreRound(1,roster,[20,20,8,11]),
+    scoreRound(2,roster,[15,15,12,9])
+  ]);
+}
+
 function demoHistory(){
   const fc6=NAMES.slice(0,6);
   const fc5=NAMES.slice(0,5);
@@ -869,7 +927,9 @@ function demoHistory(){
       wizardHand(4,NAMES.slice(0,7),{Megan:[2,2],Matt:[0,0],Cat:[0,1],Mike:[1,1],Vikki:[0,0],Duke:[1,0],Brick:[0,0]})
     ]),
     rookFinishedNight(),
-    recordsAssisted818Match()
+    recordsAssisted818Match(),
+    demoIncompleteNight(),
+    demoJointWinNight()
   ];
 }
 
@@ -946,6 +1006,7 @@ export const QA_SURFACES = [
   {id:'actions',label:'Actions menu'},
   {id:'settings',label:'Settings'},
   {id:'profiles',label:'Profiles'},
+  {id:'records',label:'Records'},
   {id:'whammy',label:'WHAMMY'},
   {id:'nolie',label:'Nolie'},
   {id:'race',label:'Path replay'}
@@ -1195,11 +1256,53 @@ export const QA_SCENARIOS = {
       currentGame:null
     }
   },
+  'empty-table':{
+    label:'Empty porch',
+    description:'No seated players, no history, and no live match.',
+    defaultSurface:'home',
+    data:{allPlayers:[],players:[],history:[],playerProfiles:{},currentGame:null}
+  },
+  'eight18-porch-lp-after':{
+    label:'818 · Porch Life Preserver After',
+    description:'Same porch 818 table after Cat’s +20 Life Preserver (Hail Mary) spin.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...porch818Players],history:sharedHistory,playerProfiles:profiles(),currentGame:porch818AfterGame}
+  },
+  'rook-midgame':{
+    label:'Rook · Midgame',
+    description:'Four-player Rook after one made bid so the scorecard and results modal have numbers.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...NAMES],
+      players:[...rookReviewPlayers],
+      history:sharedHistory,
+      playerProfiles:profiles(),
+      currentGame:rookMidGame
+    }
+  },
+  'rook-calling':{
+    label:'Rook · Trump and partner',
+    description:'Four-player Rook after the bid, ready to name trump and the called card.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:[...NAMES],
+      players:[...rookReviewPlayers],
+      history:sharedHistory,
+      playerProfiles:profiles(),
+      currentGame:rookCallingGame
+    }
+  },
   'demo-seed':{
     label:'TEMP Demo Seed',
-    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, and a Rook night with contracts.',
+    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, one incomplete night, one joint win, and a Rook night with contracts.',
     defaultSurface:'home',
     data:demoTable(demoCrownsGame())
+  },
+  'records-book':{
+    label:'Records book',
+    description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match and a joint win.',
+    defaultSurface:'records',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
   },
   'demo-wizard':{
     label:'TEMP Demo Wizard',
