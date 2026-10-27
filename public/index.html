@@ -4541,13 +4541,6 @@ button.dealer-name-indicator .dealer-player-label {
       text-overflow: clip;
       font-size: clamp(0.95rem, 1.5vw, 1.2rem) !important;
     }
-    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
-    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell {
-      min-width: 5.5rem !important;
-      width: 5.75rem !important;
-      max-width: 6.25rem !important;
-      overflow: hidden;
-    }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value {
       display: block;
       max-width: 100%;
@@ -4556,11 +4549,20 @@ button.dealer-name-indicator .dealer-player-label {
       font-variant-numeric: tabular-nums;
       font-size: clamp(1.05rem, 1.8vw, 1.45rem) !important;
     }
-    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-th,
-    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-td {
-      width: 5.5rem;
-      max-width: 5.5rem;
-      min-width: 4.75rem;
+    @media (min-width: 1024px) {
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell {
+        min-width: 5.5rem !important;
+        width: 5.75rem !important;
+        max-width: 6.25rem !important;
+        overflow: hidden;
+      }
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-th,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-td {
+        width: 5.5rem;
+        max-width: 5.5rem;
+        min-width: 4.75rem;
+      }
     }
     .hf-setup-side {
       border: 1.5px solid var(--hairline);
@@ -4840,9 +4842,11 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-roomy-identity .scorecard-live-layout.record-chase-active .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-        width: 2.9rem !important;
-        min-width: 2.9rem !important;
-        max-width: 2.9rem !important;
+        width: 3.5rem !important;
+        min-width: 3.5rem !important;
+        max-width: 3.5rem !important;
+        padding-left: 0.12rem !important;
+        padding-right: 0.12rem !important;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-rank-badge {
         width: 1.3rem !important;
