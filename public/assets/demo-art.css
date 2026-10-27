@@ -1,0 +1,68 @@
+/* Preview-only Home chrome. Rules apply only when ?demo set data-bp-art / data-bp-logo. */
+
+html[data-bp-art="dusk"] .s2-game-art {
+  opacity: 1;
+  height: 108px;
+  background-color: #f3ebe3;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+html[data-bp-art="dusk"] .s2-art-five {
+  background-image: url("./art/dusk/five-crowns.webp"), url("./art/dusk/five-crowns.svg");
+  background-position: center 42%;
+}
+
+html[data-bp-art="dusk"] .s2-art-818 {
+  background-image: url("./art/dusk/818.webp"), url("./art/dusk/818.svg");
+  background-position: center 48%;
+}
+
+html[data-bp-art="dusk"] .s2-art-wizard {
+  background-image: url("./art/dusk/wizard.webp"), url("./art/dusk/wizard.svg");
+  background-position: center 38%;
+}
+
+html[data-bp-art="dusk"] .s2-art-flip7 {
+  background-image: url("./art/dusk/flip-7.webp"), url("./art/dusk/flip-7.svg");
+  background-position: center 45%;
+}
+
+html[data-bp-art="dusk"] .s2-art-heat {
+  background-image: url("./art/dusk/beat-the-heat.webp"), url("./art/dusk/beat-the-heat.svg");
+  background-position: center 48%;
+}
+
+html[data-bp-art="dusk"] .s2-art-rook {
+  background-image: url("./art/dusk/rook.webp"), url("./art/dusk/rook.svg");
+  background-position: 58% 40%;
+}
+
+html[data-bp-art="dusk"] .s2-game-copy {
+  background: #fffdf8;
+}
+
+html[data-bp-art="dusk"] .s2-game-copy strong {
+  color: #073f3b;
+}
+
+@media (min-width: 1200px) {
+  html[data-bp-art="dusk"] .s2-game-art {
+    height: 148px;
+  }
+}
+
+@media (max-width: 420px) {
+  html[data-bp-art="dusk"] .s2-game-art {
+    height: 88px;
+  }
+}
+
+html[data-bp-logo="dusk"] .bp-brand-mark {
+  background: #073f3b url("./logo/dusk-mark.svg") center / 100% 100% no-repeat;
+  box-shadow: 0 6px 16px -12px rgba(7, 63, 59, 0.7), inset 0 1px 0 rgba(255, 253, 249, 0.28);
+}
+
+html[data-bp-logo="dusk"] #top-nav .bp-brand-mark {
+  background: #073f3b url("./logo/dusk-mark.svg") center / 100% 100% no-repeat;
+}

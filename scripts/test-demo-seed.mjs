@@ -134,4 +134,5 @@ test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.ok(DEMO_VIEW_IDS.includes('records-nights'));
   assert.equal(stripDemoSearch('https://example.test/?demo&view=home'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
+  assert.equal(stripDemoSearch('https://example.test/?demo&art=dusk&logo=dusk'), '/?demo&art=dusk&logo=dusk');
 });

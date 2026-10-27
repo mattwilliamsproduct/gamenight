@@ -18,6 +18,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
+- Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 
 ## Kills
 
@@ -49,3 +50,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
 - A setback callout that clips the + so +10 reads as 10 or as help.
 - A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
+- Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.

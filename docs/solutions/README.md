@@ -29,3 +29,5 @@ Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves
 Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.
 
 Standing trap: [rc1-records-restore.md](rc1-records-restore.md) — Records keeps the full book; Shame is not capped at 5, and completed nights do not show Resume.
+
+Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the lantern logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets.

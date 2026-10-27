@@ -1,5 +1,6 @@
 /* TEMP: demo seed (remove before merge). Preview and localhost only. */
 import {cloneScenario} from '../qa/fixtures.mjs';
+import {applyDemoChrome, keepDemoSearchForChrome} from './demo-art.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
 export const DEMO_VERSION = '4';
@@ -144,9 +145,11 @@ export function writeDemoPayload(storage, data){
 
 export function stripDemoSearch(href){
   const url = new URL(href, 'http://local.test');
+  const keepDemo = url.searchParams.has('demo') && keepDemoSearchForChrome(url.search);
   url.searchParams.delete('demo');
   url.searchParams.delete('view');
-  const search = url.searchParams.toString();
+  const rest = url.searchParams.toString();
+  const search = [keepDemo ? 'demo' : '', rest].filter(Boolean).join('&');
   return url.pathname + (search ? `?${search}` : '') + url.hash;
 }
 
@@ -407,6 +410,7 @@ function viewUsesLiveSeed(view){
 }
 
 export async function bootDemoSeed(api){
+  applyDemoChrome(api.document || (typeof document !== 'undefined' ? document : null), api.search, api.hostname);
   const action = decideDemoAction({
     hostname: api.hostname,
     search: api.search,
