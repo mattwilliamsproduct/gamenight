@@ -4789,11 +4789,13 @@ button.dealer-name-indicator .dealer-player-label {
         line-height: 1.05;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-th,
+      #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-td,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-round-label {
         font-size: 12px !important;
         white-space: normal !important;
         padding-left: 0 !important;
         padding-right: 1px !important;
+        min-width: 0 !important;
       }
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .score-cell-input,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value,
@@ -15057,7 +15059,10 @@ ${isDealer
   }
   function scorecardRoundColsTooTight(root){
     const raw=parseFloat(root?.style.getPropertyValue('--scorecard-round-col')||'');
-    return Number.isFinite(raw)&&raw<32;
+    if(!Number.isFinite(raw)) return false;
+    const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
+      || root?.classList.contains('scorecard-hand-foot');
+    return raw<(handFoot?24:32);
   }
   function fitActiveScorecardColumns(root){
     const host=root||document.getElementById('scorecard-capture');
@@ -15078,7 +15083,9 @@ ${isDealer
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
     const available=Math.max(0,wrap.clientWidth-leadW-6);
-    const col=Math.max(28,Math.min(72,available/visible.length));
+    const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
+      || host.classList.contains('scorecard-hand-foot');
+    const col=Math.max(handFoot?24:28,Math.min(72,available/visible.length));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
     const font=Math.max(13,Math.min(28,col*0.4));
