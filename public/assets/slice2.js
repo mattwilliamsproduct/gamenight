@@ -516,6 +516,7 @@
     const dialog = modal?.querySelector('.life-preserver-dialog');
     const shell = dialog?.querySelector('.wheel-shell');
     if (!modal || !dialog || !shell || modal.classList.contains('hidden')) return null;
+    const previous = parseFloat(shell.style.height);
     shell.style.width = '';
     shell.style.height = '';
     const vw = window.innerWidth;
@@ -545,9 +546,30 @@
     });
     const availW = Math.max(168, dialogW - padX);
     const availH = Math.max(168, dialogH - chrome);
-    const size = Math.floor(Math.min(availW, availH));
+    let size = Math.floor(Math.min(availW, availH));
+    if (Number.isFinite(previous) && previous > 0) size = Math.min(size, previous);
     shell.style.width = `${size}px`;
     shell.style.height = `${size}px`;
+    const contentOverflow = () => {
+      const limit = Math.min(vh - 8, dialog.getBoundingClientRect().bottom - 6);
+      let extra = 0;
+      [...dialog.children].forEach((el) => {
+        if (el.id === 'life-preserver-help' || el.classList.contains('hidden')) return;
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return;
+        if (style.position === 'absolute' || style.position === 'fixed') return;
+        extra = Math.max(extra, el.getBoundingClientRect().bottom - limit);
+      });
+      return extra;
+    };
+    for (let i = 0; i < 8; i++) {
+      const overflow = contentOverflow();
+      if (overflow <= 0) break;
+      size = Math.max(168, size - Math.ceil(overflow + 4));
+      shell.style.width = `${size}px`;
+      shell.style.height = `${size}px`;
+      chrome += overflow + 4;
+    }
     return { size, chrome, vw, vh, availW, availH, dialogW, dialogH };
   }
 
@@ -633,6 +655,18 @@
 
   function paintWheel() {
     sizeLifePreserverModal();
+    paintWheel._fitGen = (paintWheel._fitGen || 0) + 1;
+    const fitGen = paintWheel._fitGen;
+    const refit = () => {
+      if (fitGen !== paintWheel._fitGen) return;
+      if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
+      sizeLifePreserverModal();
+    };
+    requestAnimationFrame(() => {
+      requestAnimationFrame(refit);
+    });
+    window.setTimeout(refit, 80);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit).catch(() => {});
     const canvas = document.getElementById('wheel-canvas');
     const live = (typeof getWheelSlices === 'function' ? getWheelSlices() : []) || [];
     const slices = live.length ? live : (paintWheel.lastSlices || []);
@@ -1038,6 +1072,14 @@
       sizeLifePreserverModal();
       paintWheel();
     });
+    const dialog = document.querySelector('#wheel-modal .life-preserver-dialog');
+    if (dialog && typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(() => {
+        if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
+        sizeLifePreserverModal();
+      });
+      ro.observe(dialog);
+    }
   }
 
   function refresh(which) {
