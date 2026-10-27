@@ -2595,7 +2595,16 @@ html.slice2-tv .s2-night-day {
   }
 
   html.slice2-tv .s2-night-standings {
-    max-width: 26rem;
+    max-width: 22rem;
+  }
+
+  html.slice2-tv .s2-night-finish {
+    grid-template-columns: 1.6rem auto minmax(0, max-content) 4.5rem;
+    justify-content: start;
+  }
+
+  html.slice2-tv .s2-night-finish strong {
+    text-align: right;
   }
 
   html.slice2-tv #hall-of-fame-view .player-name-label,
