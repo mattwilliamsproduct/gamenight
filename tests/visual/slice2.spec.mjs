@@ -53,16 +53,15 @@ test('Warm Porch Ledger is the default skin', async ({page}) => {
   expect(urls.some((url) => url.includes('slice2.css'))).toBe(true);
 });
 
-test('home has the table, games, and one seating control', async ({page}) => {
+test('home has the table, games, and inline seating', async ({page}) => {
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2&slice2view=home', {waitUntil: 'networkidle'});
   await ready(page);
   await expect(page.locator('html')).toHaveClass(/slice2-tv/);
   await expect(page.locator('#slice2-home')).toBeVisible();
   await expect(page.locator('.s2-seat')).toHaveCount(6);
   await expect(page.locator('.s2-game')).toHaveCount(6);
-  await expect(page.locator('.s2-seat-actions')).toHaveCount(0);
-  await page.locator('#slice2-edit-seating').click();
-  await expect(page.locator('.s2-seat-actions')).toHaveCount(6);
+  await expect(page.locator('#slice2-edit-seating')).toHaveCount(0);
+  await expect(page.locator('.s2-seat-handle')).toHaveCount(6);
   const before = await page.locator('.s2-seat-name').allTextContents();
   await page.locator('[data-s2-action="seat-down"]').first().click();
   const after = await page.locator('.s2-seat-name').allTextContents();

@@ -16,6 +16,10 @@
         document.documentElement.dataset.gnDemoIgnored='1';
         return;
       }
+      var demoArt=(demoParams.get('art')||'').toLowerCase();
+      var demoLogo=(demoParams.get('logo')||'').toLowerCase();
+      if(demoArt==='dusk') document.documentElement.dataset.bpArt='dusk';
+      if(demoLogo==='dusk') document.documentElement.dataset.bpLogo='dusk';
       document.documentElement.classList.add('gn-demo-pending');
       var demoStyle=document.createElement('style');
       demoStyle.textContent='html.gn-demo-pending body{visibility:hidden}';
@@ -45,6 +49,7 @@
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./assets/app-utilities.css">
   <link rel="stylesheet" href="./assets/slice2.css">
+  <link rel="stylesheet" href="./assets/demo-art.css">
 
   <style>
     /* ════════ TOKENS ════════ */
@@ -11871,11 +11876,17 @@ button.dealer-name-indicator .dealer-player-label {
   function moveToBench(n){ players=players.filter(p=>p!==n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
   function slice2TableState(){ return {players, allPlayers, history, currentGame}; }
   function slice2ReorderSeat(index, dir){
-    const next=index+dir;
-    if(next<0||next>=players.length)return;
-    const tmp=players[index];
-    players[index]=players[next];
-    players[next]=tmp;
+    slice2MoveSeat(index, index+dir);
+  }
+  function slice2MoveSeat(from, to){
+    const next=window.BPGSlice2 && typeof window.BPGSlice2.moveSeatList==='function'
+      ? window.BPGSlice2.moveSeatList(players, from, to)
+      : players.slice();
+    if(!next.length || next===players) return;
+    let same=next.length===players.length;
+    if(same) for(let i=0;i<next.length;i++) if(next[i]!==players[i]){ same=false; break; }
+    if(same) return;
+    players=next;
     saveData({ fullPersist: true, syncCold: true });
     renderRoster();
   }

@@ -24,6 +24,11 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
 - Scorecard places read as 1st, 2nd, 3rd in a real pill, not a faint 24px number.
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
+- Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
+- One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
+- Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
+- Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
+- Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 
 ## Kills
 
@@ -60,3 +65,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
 - A Life Preserver that still looks like a pie chart with extra wedges.
 - A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
+- Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
+- Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
+- Edit Seating plus Earlier/Later when the Home list can reorder in place.
+- A second ranking function for Recent nights, or a podium on an Incomplete night.
+- Adding Canasta to the game registry or Home picker from this art pass.
+- Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.

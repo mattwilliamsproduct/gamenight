@@ -30,7 +30,7 @@ Still one flag. `?slice2` (or `localStorage['bpg-slice2-tv']='1'`) adds `html.sl
 
 - **Skin.** Cream paper and a 6px coastal strip replace the resort photo only while the flag is on. Numbers stay tabular.
 - **TV scoreboard.** Names and totals use Nunito Sans at weight 800. Those rules carry `!important` and a more specific selector than the production `font-weight: 400 !important` lock, so the heavier weight actually wins. The fit engine still shrinks the size for 8–10 players. Exact bids keep the emerald dot. Misses stay quiet. One header line. Actions are Life Preserver, History, and Enter Round.
-- **Home.** Active-match banner, seat pills with one Edit Seating control, the six real games, and recent nights. Phone stacks the cards. No "Roll d20".
+- **Home.** Active-match banner, one player per seat row with in-list reorder, the six real games, and recent nights full width below. Phone stacks the cards. No "Roll d20".
 - **Entry and history editor.** The existing sheets are restyled. Lock Bids, Review Scores, Next, and the validation stay as they are. Blank scores still count as 0 when Next fills them.
 - **Life Preserver.** Ivory rim, teal track, brass dividers, upright labels, pocket widths from the real weights. Spin is about 3 seconds, 80ms when motion is reduced or the gallery is open. The result still applies by itself. There is no confirm step.
 - **Records.** Hall of Fame and Hall of Shame read `getHallOfFame()` and `getAllTimeRecords()`. Phones switch them with a segmented control.

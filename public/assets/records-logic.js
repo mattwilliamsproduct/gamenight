@@ -308,6 +308,30 @@
     }));
   }
 
+  function nightPodium(match, helpers) {
+    const incomplete = !isCompletedMatch(match, helpers && helpers.scorebook);
+    if (incomplete) return { incomplete: true, places: [] };
+    const grouped = new Map();
+    nightStandings(match, helpers).forEach((row) => {
+      const place = Number(row.place);
+      if (!Number.isFinite(place) || place < 1 || place > 3) return;
+      if (!grouped.has(place)) grouped.set(place, []);
+      grouped.get(place).push({
+        name: row.name,
+        score: row.score,
+        retired: !!row.retired,
+        isWinner: !!row.isWinner
+      });
+    });
+    return {
+      incomplete: false,
+      places: [...grouped.keys()].sort((a, b) => a - b).map((place) => ({
+        place,
+        people: grouped.get(place)
+      }))
+    };
+  }
+
   function winnerText(winners, standings) {
     const fromList = (standings || []).filter((row) => row.isWinner).map((row) => row.name);
     const names = fromList.length ? fromList : (winners || []).filter(Boolean);
@@ -983,6 +1007,8 @@
     isCompletedMatch,
     scoringRoundCount,
     nightCardModel,
+    nightStandings,
+    nightPodium,
     matchHasComebackData,
     shouldShowComebackStats,
     lifePreserverEvents,
