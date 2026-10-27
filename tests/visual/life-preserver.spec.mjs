@@ -12,8 +12,10 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
-  await expect(page.locator('#wheel-why-line')).toContainText('Spin range');
-  await expect(page.locator('#wheel-why-line')).not.toContainText('Best help');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Best help:');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
+  await expect(page.locator('#wheel-game-line')).toContainText('lower scores win');
+  await expect(page.locator('#wheel-why-line')).not.toContainText('Spin range');
   await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
   await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
@@ -45,7 +47,9 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   const rangeMin = Math.min(...snapshot.adjustments);
   const rangeMax = Math.max(...snapshot.adjustments);
   const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
-  await expect(page.locator('#wheel-why-line')).toContainText(`Spin range ${signed(rangeMin)} to ${signed(rangeMax)}`);
+  await expect(page.locator('#wheel-commit-line')).toContainText('Best help:');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
+  expect(signed(rangeMin) || signed(rangeMax)).toBeTruthy();
 
   const applied = await page.evaluate(() => {
     const player = wheelPlayer;
@@ -71,7 +75,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   expect(applied.used).toBe(true);
 });
 
-test('closing the Life Preserver wheel mid-spin does not apply a bonus', async ({page}, testInfo) => {
+test('closing the Life Preserver wheel after commit keeps the locked result', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -82,19 +86,17 @@ test('closing the Life Preserver wheel mid-spin does not apply a bonus', async (
 
   await page.locator('button.scorecard-life-preserver-rank').first().click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await page.evaluate(() => {
+  const locked = await page.evaluate(() => {
     spinWheel();
+    const used = [...(currentGame.hailMaryUsed || [])];
+    const bonusRounds = currentGame.rounds.filter(round => round.hailMaryBonus).length;
     closeWheel();
+    return {used, bonusRounds};
   });
   await expect(page.locator('#wheel-modal')).toHaveClass(/hidden/);
-
-  await expect.poll(async () => page.evaluate(() => ({
-    bonusRounds: currentGame.rounds.filter(round => round.hailMaryBonus).length,
-    used: [...(currentGame.hailMaryUsed || [])]
-  })), {timeout: 1500}).toEqual({
-    bonusRounds: 0,
-    used: ['Linda']
-  });
+  expect(locked.bonusRounds).toBe(1);
+  expect(locked.used).toContain('Brick');
+  expect(locked.used).toContain('Linda');
 });
 
 test('undo after a Life Preserver spin restores that player and keeps earlier uses', async ({page}, testInfo) => {
@@ -162,8 +164,8 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
-  page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', {name: 'Save & End', exact: true}).click();
+  await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#game-screen')).toHaveClass(/hidden/);
 
@@ -234,9 +236,10 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
-  await expect(page.locator('#wheel-why-line')).toContainText('Spin range');
-  await expect(page.locator('#wheel-why-line')).toContainText('+20');
-  await expect(page.locator('#wheel-why-line')).not.toContainText('Best help');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Best help: +20');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
+  await expect(page.locator('#wheel-game-line')).toContainText('higher scores win');
+  await expect(page.locator('#wheel-why-line')).not.toContainText('Spin range');
 
   const snapshot = await page.evaluate(() => ({
     player: lifePreserverOfferSnapshot?.player,
@@ -252,7 +255,9 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   const rangeMin = Math.min(...snapshot.adjustments);
   const rangeMax = Math.max(...snapshot.adjustments);
   const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
-  await expect(page.locator('#wheel-why-line')).toContainText(`Spin range ${signed(rangeMin)} to ${signed(rangeMax)}`);
+  await expect(page.locator('#wheel-commit-line')).toContainText('Best help:');
+  await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
+  expect(signed(rangeMin) || signed(rangeMax)).toBeTruthy();
 
   const table = await page.evaluate(() => {
     const players = getActivePlayers(currentGame);

@@ -10,6 +10,7 @@ const APP_SHELL = [
   './assets/backup.js',
   './assets/life-preserver-logic.js',
   './assets/scorebook.js',
+  './assets/records-logic.js',
   './assets/slice2.js',
   './bp-icon-192.png',
   './bp-icon-512.png',

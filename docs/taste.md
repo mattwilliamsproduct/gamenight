@@ -19,6 +19,9 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
 - When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
 - Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
+- Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
+- Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
+- Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 
 ### Kills
 
@@ -45,6 +48,11 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Silently dropping retired seats from Records.
 - Exact bid chrome on Rook or any game that does not bid.
 - A review tile whose iframe is not the named width × height. Scale the frame; do not shrink the page.
+- A Life Preserver wheel that paints helpful low-score slices red because they are negative.
+- A settings gear on the scorecard match header, or phone History sitting outside Actions.
+- A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
+- A setback callout that clips the + so +10 reads as 10 or as help.
+- A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
 
 ## Prefer
 

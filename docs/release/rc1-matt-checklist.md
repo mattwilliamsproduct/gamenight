@@ -22,4 +22,17 @@ Required before undraft or merge: revert the TEMP demo seed commit and confirm `
 5. Rook contract editor at 390 and 1440: nothing clipped. No Exact bid legend. The legend is Wizard / 818 only.
 6. Entry and Restore errors are an inline message, not a browser `alert()`.
 
+## Scorecard exit
+
+1. Live scorecard has `← Table` at every size. It goes Home without ending the match. Unfinished score-entry drafts survive Table → Records → Resume and Table → Settings → Resume.
+2. iPhone standalone (no browser back) can leave on Table and return on Resume.
+3. Save & End is an outlined secondary. If the match is unfinished, confirm explains that ending writes current standings to Records and clears the live table. Cancel changes nothing. Table never opens this confirm.
+4. Phone: Table + match identity on one row. Enter Round is the primary. Actions and Save & End stay secondary. History lives in the Actions menu. Tablet and up can show an Audit Log header shortcut.
+5. Life Preserver header control reads `Life Preserver · N eligible` only when someone can spin. Hidden otherwise. Tablet and up may add one short line (who can spin, one spin per player). Explanation stays in Actions / How it works.
+
+## Life Preserver wheel
+
+1. The drawn wheel is mostly helpful (green). Color is by benefit, not by sign: negatives are green in Five Crowns.
+2. Range copy is `Best help: … · Largest setback: …` and matches the commit line. Small bad slices stay. Color is by benefit, not by sign.
+
 Kill the release if a keypad key is clipped, a name is cut off, a spin can be taken twice, or any device hits `/api/sync`.

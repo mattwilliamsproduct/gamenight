@@ -28,14 +28,17 @@ test('review catalog covers every required screen at three sizes', () => {
     'home', 'active-match', 'scorecard-fivecrowns', 'entry-fivecrowns', 'scorecard-wizard', 'entry-wizard',
     'scorecard-818', 'entry-818', 'scorecard-flip7', 'entry-flip7', 'scorecard-beattheheat',
     'entry-beattheheat', 'scorecard-rook', 'entry-rook', 'keypad-8p', 'lifepreserver',
-    'lifepreserver-after', 'records', 'records-shame', 'rook-contract', 'rook-call',
+    'lifepreserver-after', 'lifepreserver-low', 'active-match',
+    'records', 'records-overview', 'records-explore', 'records-nights', 'records-shame',
+    'rook-contract', 'rook-call',
     'settings', 'settings-backup', 'history', 'profiles', 'empty-home', 'empty-records', 'error-entry'
   ]) {
     assert.ok(ids.includes(needed), `missing screen ${needed}`);
   }
+  assert.equal(ids.includes('view-pace'), false);
   assert.equal(REVIEW_SIZES.length, 3);
-  assert.deepEqual(REVIEW_SIZES.map((size) => `${size.width}x${size.height}`), ['390x844', '768x1024', '1440x900']);
-  assert.equal(REVIEW_SCREENS.length * REVIEW_SIZES.length, 84);
+  assert.deepEqual(REVIEW_SIZES.map((size) => `${size.id}:${size.width}x${size.height}`), ['phone:390x844', 'tablet:768x1024', 'laptop:1440x900']);
+  assert.equal(REVIEW_SCREENS.length * REVIEW_SIZES.length, DEMO_VIEW_IDS.length * REVIEW_SIZES.length);
 });
 
 test('live paths prefer demo views and keep gnqa fallbacks', () => {
@@ -74,9 +77,9 @@ test('preview emit writes the catalog and source files', async () => {
     publicReviewDir
   });
   assert.equal(result.emitted, true);
-  assert.equal(result.tileCount, 84);
+  assert.equal(result.tileCount, DEMO_VIEW_IDS.length * REVIEW_SIZES.length);
   const catalog = JSON.parse(await readFile(join(publicReviewDir, 'catalog.json'), 'utf8'));
-  assert.equal(catalog.tileCount, 84);
+  assert.equal(catalog.tileCount, DEMO_VIEW_IDS.length * REVIEW_SIZES.length);
   assert.equal(catalog.commit, 'deadbeef');
   await access(join(publicReviewDir, 'index.html'));
   await access(join(publicReviewDir, 'review.js'));

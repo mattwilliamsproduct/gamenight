@@ -115,15 +115,18 @@ for (const size of SIZES) {
       const afterEnter = await page.evaluate(() => Number(currentGame.totals.Megan) || 0);
       expect(afterEnter, `${size.name} Megan total after entering eight scores`).toBe(before + 5);
 
-      const visibleCell = page.locator('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input').first();
-      if (await visibleCell.count()) {
-        await visibleCell.click();
-      } else {
-        await page.evaluate(() => {
-          const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+      await page.evaluate(() => {
+        const cell = [...document.querySelectorAll('#scorecard-body td:not(.scorecard-round--hidden) .score-cell-input')]
+          .find((el) => el.getClientRects().length && el.getBoundingClientRect().width > 8);
+        if (cell) {
+          cell.click();
+          return;
+        }
+        const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+        if (typeof openPastScoreCell === 'function' && last >= 0) {
           openPastScoreCell(currentGame.originalRoster[0], last);
-        });
-      }
+        }
+      });
       const editor = page.locator('#custom-numpad, #numpad, #score-entry-modal, #round-correction-modal');
       await expect(editor.first()).toBeVisible({timeout: 5000});
       await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
@@ -146,13 +149,13 @@ for (const size of SIZES) {
       if (await chip.count()) await chip.click();
       else await page.locator('#slice2-lp-btn').click();
       await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-      await expect(page.locator('#wheel-commit-line')).toContainText(/applies immediately/);
+      await expect(page.locator('#wheel-commit-line')).toContainText(/Best help:/);
       await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
       await page.locator('#btn-spin').click();
       await expect(page.locator('#wheel-result')).toBeVisible({timeout: 6000});
       await expect(page.locator('#wheel-result-adjustment')).not.toHaveText('');
-      await expect(page.locator('#wheel-result-total')).toContainText(/New total/);
-      await expect(page.locator('#wheel-result-standing')).toContainText(/Standing/);
+      await expect(page.locator('#wheel-result-total')).toContainText(/→/);
+      await expect(page.locator('#wheel-result-standing')).not.toHaveText('');
       await expect(page.getByRole('button', {name: 'Back to scorecard'})).toBeVisible();
       await expect(page.getByRole('button', {name: /^Apply$/i})).toHaveCount(0);
       await page.getByRole('button', {name: 'Back to scorecard'}).click();
@@ -242,7 +245,8 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
   expect(scorecard.width, `Saved chip has a box ${JSON.stringify(scorecard)}`).toBeGreaterThan(20);
   expect(scorecard.height, 'Saved chip has height').toBeGreaterThan(10);
   expect(scorecard.overlapsText, 'Saved does not cover header text').toBe(false);
-  expect(scorecard.lineText, 'board line keeps the dealer').toMatch(/Dealer:/);
+  const dealerLine = await page.locator('#slice2-board-line, #slice2-board-sub').allTextContents();
+  expect(dealerLine.join(' '), 'header keeps the dealer').toMatch(/Dealer:/);
   expect(await page.locator('#save-indicator').textContent(), 'Saved names this device').toMatch(/Saved on this device/);
 
   await page.setViewportSize({width: 375, height: 667});

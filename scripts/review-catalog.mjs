@@ -9,7 +9,7 @@ import {DEMO_VIEW_IDS} from '../public/assets/demo-seed.mjs';
 export const REVIEW_SIZES = [
   {id: 'phone', label: 'Phone', width: 390, height: 844},
   {id: 'tablet', label: 'Tablet', width: 768, height: 1024},
-  {id: 'tv', label: 'TV', width: 1440, height: 900}
+  {id: 'laptop', label: 'Laptop', width: 1440, height: 900}
 ];
 
 const gnqa = (scenario, surface, slice2view) => ({scenario, surface, slice2view});
@@ -32,7 +32,11 @@ const SCREEN_META = {
   'keypad-8p': {label: '8-player keypad', group: 'entry', fallback: gnqa('five-crowns-comeback', 'entry-scores')},
   lifepreserver: {label: 'Life Preserver (Hail Mary) before', group: 'lifepreserver', fallback: gnqa('eight18-porch-lp', 'scorecard', 'wheel')},
   'lifepreserver-after': {label: 'Life Preserver (Hail Mary) after', group: 'lifepreserver', fallback: gnqa('eight18-porch-lp-after', 'scorecard', 'wheel-after')},
-  records: {label: 'Records Fame', group: 'records', fallback: gnqa('home-party', 'home', 'records')},
+  'lifepreserver-low': {label: 'Life Preserver low-score offer', group: 'lifepreserver', fallback: gnqa('eight18-porch-lp', 'scorecard', 'wheel')},
+  records: {label: 'Records', group: 'records', fallback: gnqa('home-party', 'home', 'records')},
+  'records-overview': {label: 'Records Overview', group: 'records', fallback: gnqa('home-party', 'home', 'records')},
+  'records-explore': {label: 'Records Explore', group: 'records', fallback: gnqa('home-party', 'home', 'records-shame')},
+  'records-nights': {label: 'Records Past nights', group: 'records', fallback: gnqa('home-party', 'home', 'records')},
   'records-shame': {label: 'Records Shame', group: 'records', fallback: gnqa('home-party', 'home', 'records-shame')},
   'rook-contract': {label: 'Rook contract editor', group: 'rook', fallback: gnqa('rook-bid-setup', 'scorecard', 'rook-contract')},
   'rook-call': {label: 'Rook trump / partner', group: 'rook', fallback: gnqa('rook-calling', 'scorecard', 'rook-call')},

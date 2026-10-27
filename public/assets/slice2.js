@@ -11,7 +11,10 @@
 
   let editing = false;
   let selected = 'Five Crowns';
-  let shamePane = false;
+  let recordsPane = 'overview';
+  let recordsGameFilter = '';
+  let recordsPlayerFilter = '';
+  const expandedNights = new Set();
   let wired = false;
 
   function state() {
@@ -67,16 +70,12 @@
     } else if (game.name === 'Wizard') {
       bits.push(`Round ${game.currentRound} of ${maxR}`);
     } else if (game.name === 'Five Crowns') {
-      const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-      const wild = wilds[(game.currentRound || 1) - 1];
-      bits.push(`Round ${game.currentRound} of ${maxR}${wild ? ` · ${wild}s Wild` : ''}`);
+      bits.push(`Round ${game.currentRound} of ${maxR}`);
     } else if (maxR && maxR < 900) {
       bits.push(`Round ${game.currentRound} of ${maxR}`);
     } else {
       bits.push(`Round ${game.currentRound}`);
     }
-    const dealer = getCurrentDealerName(game);
-    if (dealer) bits.push(`Dealer: ${dealer}`);
     if (isBidTrickGame(game) && !isMatchOver(game)) {
       const phase = getBidTrickPhase(game);
       const tricks = getRoundTrickCount(game);
@@ -91,6 +90,18 @@
     return bits.join(' · ');
   }
 
+  function boardSubLine(game) {
+    const bits = [];
+    if (game.name === 'Five Crowns') {
+      const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const wild = wilds[(game.currentRound || 1) - 1];
+      if (wild) bits.push(`${wild}s\u00a0Wild`);
+    }
+    const dealer = getCurrentDealerName(game);
+    if (dealer) bits.push(`Dealer:\u00a0${dealer}`);
+    return bits.join(' · ');
+  }
+
   function enterLabel(game) {
     const round = game.currentRound;
     if (isMatchOver(game)) return 'Match complete';
@@ -100,12 +111,42 @@
     return `Enter Round ${round} Scores`;
   }
 
-  function firstEligible() {
+  function eligibleLifePreserverPlayers() {
     const { currentGame } = state();
-    if (!currentGame) return null;
+    if (!currentGame) return [];
     const table = getActivePlayers(currentGame);
-    const over = isMatchOver(currentGame);
-    return table.find((player) => isHailMaryEligible(currentGame, player, table, { gameOver: over }) && !(currentGame.hailMaryUsed || []).includes(player)) || null;
+    if (isMatchOver(currentGame)) return [];
+    return table.filter((player) => isHailMaryEligible(currentGame, player, table, { gameOver: false }));
+  }
+
+  function firstEligible() {
+    return eligibleLifePreserverPlayers()[0] || null;
+  }
+
+  function andList(names) {
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+  }
+
+  function boardBarMarkup() {
+    return `<div class="s2-board-identity">
+        <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">← Table</button>
+        <div class="s2-board-copy">
+          <p id="slice2-board-line"></p>
+          <p id="slice2-board-sub"></p>
+          <p id="slice2-score-legend"></p>
+          <p id="slice2-score-note"></p>
+        </div>
+      </div>
+      <div class="s2-board-actions">
+        <div id="slice2-lp-wrap" hidden>
+          <button type="button" class="s2-btn" id="slice2-lp-btn" data-s2-action="life-preserver">Life Preserver</button>
+          <p id="slice2-lp-explain"></p>
+        </div>
+        <button type="button" class="s2-btn" id="slice2-history-btn" data-s2-action="history">Audit Log</button>
+        <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
+      </div>`;
   }
 
   function paintNav() {
@@ -247,24 +288,18 @@
     const { currentGame } = state();
     if (!screen || !currentGame) return;
     let bar = document.getElementById('slice2-board-bar');
+    const cluster = document.querySelector('#game-screen .active-match-actions');
     if (!bar) {
       bar = document.createElement('div');
       bar.id = 'slice2-board-bar';
-      bar.innerHTML = `<div class="s2-board-copy">
-          <p id="slice2-board-line"></p>
-          <p id="slice2-score-legend"></p>
-          <p id="slice2-score-note"></p>
-        </div>
-        <div class="s2-board-actions">
-          <button type="button" class="s2-btn" id="slice2-lp-btn" data-s2-action="life-preserver">Life Preserver</button>
-          <button type="button" class="s2-btn" id="slice2-history-btn" data-s2-action="history">History</button>
-          <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
-        </div>`;
       screen.insertBefore(bar, screen.firstChild);
     }
-    const cluster = document.querySelector('#game-screen .active-match-actions');
+    if (!bar.querySelector('#slice2-table-btn')) {
+      bar.innerHTML = boardBarMarkup();
+    }
     const dest = bar.querySelector('.s2-board-actions');
-    if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, dest.firstChild);
+    const enter = document.getElementById('slice2-enter-btn');
+    if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, enter || null);
     const copy = bar.querySelector('.s2-board-copy');
     const line = document.getElementById('slice2-board-line');
     if (copy && line) {
@@ -278,9 +313,17 @@
     }
     parkSaveIndicator();
     const legend = document.getElementById('slice2-score-legend');
-    const enter = document.getElementById('slice2-enter-btn');
     const historyButton = document.getElementById('slice2-history-btn');
+    const lpWrap = document.getElementById('slice2-lp-wrap');
+    const lpBtn = document.getElementById('slice2-lp-btn');
+    const lpExplain = document.getElementById('slice2-lp-explain');
     if (line) line.textContent = boardLine(currentGame);
+    const sub = document.getElementById('slice2-board-sub');
+    if (sub) {
+      const wild = boardSubLine(currentGame);
+      sub.textContent = wild;
+      sub.hidden = !wild;
+    }
     if (legend) {
       const showExact = isBidTrickGame(currentGame);
       legend.hidden = !showExact;
@@ -294,7 +337,21 @@
     }
     if (historyButton) {
       const count = (currentGame.auditLog || []).length || (currentGame.rounds || []).length;
-      historyButton.textContent = count ? `History (${count})` : 'History';
+      historyButton.textContent = count ? `Audit Log (${count})` : 'Audit Log';
+    }
+    const eligible = eligibleLifePreserverPlayers();
+    if (lpWrap) lpWrap.hidden = eligible.length === 0;
+    if (lpBtn) {
+      lpBtn.hidden = eligible.length === 0;
+      lpBtn.textContent = eligible.length
+        ? `Life Preserver · ${eligible.length} eligible`
+        : 'Life Preserver';
+    }
+    if (lpExplain) {
+      lpExplain.hidden = eligible.length === 0;
+      lpExplain.textContent = eligible.length
+        ? `${andList(eligible)} can spin. One spin per player per match.`
+        : '';
     }
   }
 
@@ -303,189 +360,283 @@
   }
 
   function scoreText(value, unit) {
-    if (!finite(value)) return '—';
+    if (!finite(value)) return '-';
     return `${value} ${unit}`;
+  }
+
+  function recordsCompact() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
+  }
+
+  function setRecordsPane(pane) {
+    if (pane === 'explore' || pane === 'nights' || pane === 'overview') recordsPane = pane;
+    else recordsPane = 'overview';
+    paintRecords();
   }
 
   function paintRecords() {
     const view = document.getElementById('hall-of-fame-view');
     if (!view || typeof getHallOfFame !== 'function') return;
     const table = state();
-    const hidden = view.classList.contains('hidden');
-    if (!table.history.length) {
-      view.className = `s2-ledger${hidden ? ' hidden' : ''}`;
-      view.innerHTML = '<section class="s2-panel"><h2>Hall of Fame</h2><p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p><p class="s2-sub">Play a few nights to fill the ledger.</p></section>';
+    if (window.BPGRecords && typeof BPGRecords.paint === 'function') {
+      BPGRecords.paint({
+        view,
+        table,
+        pane: recordsPane,
+        hall: table.history.length ? getHallOfFame() : null,
+        data: table.history.length ? getAllTimeRecords() : null,
+        scorebook: window.BPGScorebook,
+        configs,
+        getDisplayPlayers,
+        sortPlayersByTotal,
+        competitionPlaces,
+        escapeHtml,
+        getAvatarImg,
+        compact: recordsCompact(),
+        gameFilter: recordsGameFilter,
+        playerFilter: recordsPlayerFilter,
+        expandedNights
+      });
+    }
+    if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
+  }
+
+  function placeWheelCallouts(canvas, context, callouts, outer) {
+    let layer = document.getElementById('wheel-callouts');
+    if (!layer && canvas.parentElement) {
+      layer = document.createElement('div');
+      layer.id = 'wheel-callouts';
+      layer.className = 'wheel-callouts';
+      canvas.parentElement.appendChild(layer);
+    }
+    if (!layer) return;
+    layer.replaceChildren();
+    if (!callouts.length) return;
+    const shellW = canvas.clientWidth;
+    const shellH = canvas.clientHeight;
+    if (!shellW || !shellH || shellW < 80) {
+      if (!placeWheelCallouts._retry) {
+        placeWheelCallouts._retry = true;
+        requestAnimationFrame(() => {
+          placeWheelCallouts._retry = false;
+          placeWheelCallouts(canvas, context, callouts, outer);
+        });
+      }
       return;
     }
-    const hall = getHallOfFame();
-    const data = getAllTimeRecords();
-    const wins = data.allTime?.mostWins?.[0];
-    const rate = data.allTime?.bestWinRate?.[0];
-    const streak = data.allTime?.longestWinningStreak;
-    const rateFallback = !rate && hall.Overall?.bestWinRatePlayer && hall.Overall.bestWinRatePlayer !== '-'
-      ? { player: hall.Overall.bestWinRatePlayer, value: hall.Overall.bestWinRate, label: 'Best win rate' }
-      : rate;
-    const podium = [
-      wins ? { kicker: 'Most wins', value: String(wins.value), name: wins.player, sub: 'porch titles' } : null,
-      rateFallback ? { kicker: 'Win rate', value: `${rateFallback.value}%`, name: rateFallback.player, sub: rateFallback.label || '' } : null,
-      streak ? { kicker: 'Win streak', value: `${streak.value}W`, name: streak.player, sub: streak.label || 'in a row' } : null
-    ].filter(Boolean);
-    const shelf = [
-      ['Five Crowns', 'Five Crowns', 'pts', 'five'],
-      ['818', '818', 'pts', '818'],
-      ['Wizard', 'Wizard', 'pts', 'wizard'],
-      ['Flip 7 Vengeance', 'Flip 7', 'pts', 'flip7'],
-      ['Beat the Heat', 'Beat the Heat', 'heat', 'heat'],
-      ['Rook', 'Rook', 'pts', 'rook']
-    ];
-    const rows = shelf.map(([id, title, unit, art]) => {
-      const card = hall[id] || {};
-      const round = data.games?.[id]?.bestRound;
-      const coverage = hall._coverage?.[id];
-      const noUnassisted = !!(coverage && coverage.assisted > 0 && coverage.unassisted === 0);
-      const matchValue = noUnassisted ? '—' : scoreText(card.bestScore, unit);
-      const matchWho = noUnassisted ? 'No unassisted matches yet' : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : '');
-      const roundValue = round && finite(round.value) ? scoreText(round.value, unit) : '—';
-      const roundWho = round?.player || '';
-      return `<div class="s2-ledger-row">
-        <div class="s2-ledger-game"><span class="s2-ledger-mark s2-art-${art}" aria-hidden="true"></span><div><strong>${escapeHtml(title)}</strong></div></div>
-        <div class="s2-ledger-stat"><strong>${escapeHtml(matchValue)}</strong><small>${escapeHtml(matchWho)}</small></div>
-        <div class="s2-ledger-stat"><strong>${escapeHtml(roundValue)}</strong><small>${escapeHtml(roundWho)}</small></div>
-      </div>`;
-    }).join('');
-    const shameNames = new Set(['The Disaster Award', 'The Crash and Burn', 'The 818 Brick', 'The Meltdown', 'The Overconfident', 'The Invisible Man', 'The Slow Learner']);
-    const shame = (data.shameAwards || []).filter((award) => award.record && shameNames.has(award.name)).slice(0, 5).map((award) => {
-      const record = award.record;
-      const detail = typeof award.stat === 'function' ? award.stat(record) : (record.label || '');
-      return `<article class="s2-shame-card">
-        ${getAvatarImg(record.player || '', 'avatar-img')}
-        <div><b>${escapeHtml(award.name)}</b><p>${escapeHtml(detail)}</p><small>${escapeHtml(record.player || '')}</small></div>
-        <strong>${escapeHtml(finite(record.value) ? String(record.value) : '—')}</strong>
-      </article>`;
-    }).join('');
-    const rival = data.rivalries?.top?.[0];
-    const rivalText = rival
-      ? `${rival.a} vs ${rival.b} · ${rival.edgePlayer && rival.edgePlayer !== 'Even' ? `${rival.edgePlayer} leads ${Math.max(rival.aWins, rival.bWins)}–${Math.min(rival.aWins, rival.bWins)}` : 'Even'} · ${rival.together} nights`
-      : '';
-    const nightsHtml = table.history.map((match) => {
-      const label = match.game === 'Flip 7 Vengeance' ? 'Flip 7' : (match.game || 'Match');
-      const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const assisted = window.BPGScorebook && BPGScorebook.isAssistedMatch(match);
-      const bits = [match.date || ''];
-      if (incomplete) bits.push('Incomplete');
-      if (assisted) bits.push('Assisted');
-      const retired = (match.retired || []).filter(Boolean);
-      if (retired.length) bits.push(`Retired · ${retired.join(', ')}`);
-      return `<article class="s2-night"${assisted ? ' data-assisted-match="true"' : ''}>
-        <div>
-          <strong>${escapeHtml(label)}</strong>
-          <span>${escapeHtml(bits.filter(Boolean).join(' · '))}</span>
-        </div>
-        <div class="s2-night-actions">
-          <button type="button" class="s2-btn" data-s2-action="night-scorecard" data-s2-id="${escapeHtml(String(match.id || ''))}">Scorecard</button>
-          <button type="button" class="s2-btn" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
-        </div>
-      </article>`;
-    }).join('');
-    view.className = `s2-ledger${shamePane ? ' s2-pane-shame' : ''}${hidden ? ' hidden' : ''}`;
-    view.innerHTML = `<div class="s2-segment" role="tablist" aria-label="Records">
-        <button type="button" class="s2-btn${shamePane ? '' : ' is-on'}" id="slice2-show-fame" data-s2-action="show-fame">Hall of Fame</button>
-        <button type="button" class="s2-btn${shamePane ? ' is-on' : ''}" id="slice2-show-shame" data-s2-action="show-shame">Shame & Rivalries</button>
-      </div>
-      <div class="s2-ledger-grid">
-        <section class="s2-panel s2-fame-col">
-          <div class="s2-podium">${podium.map((card) => `<article><small>${escapeHtml(card.kicker)}</small><strong>${escapeHtml(card.value)}</strong><span>${escapeHtml(card.name)}</span><small>${escapeHtml(card.sub)}</small>${getAvatarImg(card.name, 'avatar-img')}</article>`).join('')}</div>
-          <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${table.history.length} nights</span></div>
-          <div class="s2-ledger-table">
-            <div class="s2-ledger-row is-head"><span>Game</span><span>Best match <small class="s2-unassisted-note">Unassisted matches only</small></span><span>Best round</span></div>
-            ${rows}
-          </div>
-        </section>
-        <section class="s2-panel s2-shame-col">
-          <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
-          ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
-          ${rivalText ? `<article class="s2-rival"><small class="s2-kicker">Head-to-head</small><p class="s2-sub">${escapeHtml(rivalText)}</p></article>` : ''}
-        </section>
-      </div>
-      <section class="s2-panel s2-nights-col">
-        <div class="s2-panel-head"><h2>Past nights</h2></div>
-        <p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p>
-        <div class="s2-night-list">${nightsHtml || '<p class="s2-sub">No nights saved yet.</p>'}</div>
-      </section>`;
-    if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
+    const shell = canvas.parentElement;
+    const layerW = (shell && shell.clientWidth) || shellW;
+    const layerH = (shell && shell.clientHeight) || shellH;
+    const canvasLeft = canvas.offsetLeft || 0;
+    const canvasTop = canvas.offsetTop || 0;
+    const cssCx = canvasLeft + shellW / 2;
+    const cssCy = canvasTop + shellH / 2;
+    const scale = canvas.width / shellW;
+    const bandR = (outer / canvas.width) * shellW;
+    const pad = 6;
+    const boxes = [];
+    const clamp = (value, min, max) => {
+      if (min > max) return (min + max) / 2;
+      return Math.min(max, Math.max(min, value));
+    };
+    const overlap = (a, b) => (
+      a.x < b.x + b.w + 6 && a.x + a.w + 6 > b.x && a.y < b.y + b.h + 6 && a.y + a.h + 6 > b.y
+    );
+    const shellBox = (shell && shell.getBoundingClientRect()) || canvas.getBoundingClientRect();
+    const pointerEl = (shell && shell.querySelector('.wheel-pointer')) || document.querySelector('.wheel-pointer');
+    const pointerPad = 10;
+    let pointerBox = { x: cssCx - 22, y: -4, w: 44, h: 40 };
+    if (pointerEl) {
+      const pointer = pointerEl.getBoundingClientRect();
+      pointerBox = {
+        x: pointer.left - shellBox.left - pointerPad,
+        y: pointer.top - shellBox.top - pointerPad,
+        w: pointer.width + pointerPad * 2,
+        h: pointer.height + pointerPad * 2
+      };
+    }
+    const hitsPointer = (box) => overlap(box, pointerBox);
+    callouts.forEach((item, index) => {
+      const el = document.createElement('span');
+      el.className = `wheel-callout is-${item.kind || 'zero'}`;
+      el.textContent = item.signed;
+      layer.appendChild(el);
+      const bw = Math.max(el.getBoundingClientRect().width, el.offsetWidth, 36);
+      const bh = Math.max(el.getBoundingClientRect().height, el.offsetHeight, 20);
+      const minX = pad + bw / 2;
+      const maxX = layerW - pad - bw / 2;
+      const minY = pad + bh / 2;
+      const maxY = layerH - pad - bh / 2;
+      const left = Math.cos(item.mid) < -0.18;
+      const right = Math.cos(item.mid) > 0.18;
+      const low = Math.sin(item.mid) > 0.12;
+      const high = Math.sin(item.mid) < -0.12;
+      const topCone = Math.sin(item.mid) < -0.55;
+      const gutter = bandR + 10 + Math.max(bw, bh) / 2;
+      const stack = index * (bh + 8);
+      const side = Math.cos(item.mid) >= 0 ? 1 : -1;
+      const candidates = [];
+      if (topCone || high) {
+        candidates.push(
+          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
+          { x: clamp(cssCx - side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
+          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + bh + 12 }
+        );
+      }
+      if (left) {
+        candidates.push({ x: minX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
+      }
+      if (right) {
+        candidates.push({ x: maxX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
+      }
+      [gutter, gutter + 8, gutter + 16].forEach((radius) => {
+        const ang = topCone ? item.mid + side * 0.55 : item.mid;
+        candidates.push({
+          x: cssCx + Math.cos(ang) * radius,
+          y: cssCy + Math.sin(ang) * radius
+        });
+      });
+      let chosen = {
+        x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX),
+        y: topCone ? minY + 4 : clamp(cssCy, minY, maxY)
+      };
+      candidates.some((spot) => {
+        const x = clamp(spot.x, minX, maxX);
+        const y = clamp(spot.y, minY, maxY);
+        const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
+        const onBand = Math.hypot(x - cssCx, y - cssCy) < bandR + 4;
+        if (onBand || hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
+        chosen = { x, y };
+        return true;
+      });
+      chosen.x = clamp(chosen.x, minX, maxX);
+      chosen.y = clamp(chosen.y, minY, maxY);
+      const nudges = [
+        { x: chosen.x + 36, y: chosen.y },
+        { x: chosen.x - 36, y: chosen.y },
+        { x: chosen.x, y: chosen.y + 28 },
+        { x: chosen.x, y: chosen.y - 28 },
+        { x: chosen.x + 48, y: chosen.y + 20 },
+        { x: chosen.x - 48, y: chosen.y + 20 }
+      ];
+      let safe = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh };
+      if (hitsPointer(safe) || boxes.some((other) => overlap(safe, other))) {
+        nudges.some((spot) => {
+          const x = clamp(spot.x, minX, maxX);
+          const y = clamp(spot.y, minY, maxY);
+          const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
+          if (hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
+          chosen = { x, y };
+          return true;
+        });
+      }
+      el.style.left = `${chosen.x}px`;
+      el.style.top = `${chosen.y}px`;
+      const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };
+      boxes.push(box);
+      const fromX = (canvas.width / 2) + Math.cos(item.mid) * (outer - 4);
+      const fromY = (canvas.height / 2) + Math.sin(item.mid) * (outer - 4);
+      const toX = (box.cx - canvasLeft) * scale;
+      const toY = (box.cy - canvasTop) * scale;
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const dist = Math.hypot(dx, dy) || 1;
+      const stop = ((Math.min(bw, bh) / 2) + 10) * scale;
+      const t = Math.max(0, (dist - stop) / dist);
+      if (t > 0.08) {
+        context.beginPath();
+        context.moveTo(fromX, fromY);
+        context.lineTo(fromX + dx * t, fromY + dy * t);
+        context.strokeStyle = 'rgba(8, 87, 79, 0.4)';
+        context.lineWidth = 2;
+        context.stroke();
+      }
+    });
   }
 
   function paintWheel() {
     const canvas = document.getElementById('wheel-canvas');
-    const slices = getWheelSlices();
+    const live = (typeof getWheelSlices === 'function' ? getWheelSlices() : []) || [];
+    const slices = live.length ? live : (paintWheel.lastSlices || []);
     if (!canvas) return slices;
     const context = canvas.getContext('2d');
     if (!slices.length) {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      const empty = document.getElementById('wheel-callouts');
+      if (empty) empty.replaceChildren();
       return slices;
     }
-    const total = slices.reduce((sum, slice) => sum + slice.weight, 0);
+    paintWheel.lastSlices = slices;
+    const total = slices.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const rim = cx * 0.97;
-    const trackOuter = cx * 0.9;
-    const outer = cx * 0.84;
-    const inner = cx * 0.66;
-    const trackInner = cx * 0.58;
+    const scale = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
+    const outer = cx * 0.70;
+    const inner = cx * 0.14;
+    const midR = (inner + outer) / 2;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
-    context.arc(cx, cy, rim, 0, Math.PI * 2);
+    context.arc(cx, cy, cx * 0.98, 0, Math.PI * 2);
     context.fillStyle = '#f4efe4';
     context.fill();
-    context.beginPath();
-    context.arc(cx, cy, trackOuter, 0, Math.PI * 2);
-    context.arc(cx, cy, trackInner, 0, Math.PI * 2, true);
-    context.fillStyle = '#08574f';
-    context.fill();
     let angle = -Math.PI / 2;
+    const callouts = [];
     slices.forEach((slice) => {
-      const arc = (slice.weight / total) * Math.PI * 2;
-      const kind = slice._wheelKind || (slice.adjustment > 0 ? 'good' : (slice.adjustment < 0 ? 'bad' : 'zero'));
+      const arc = ((Number(slice.weight) || 0) / total) * Math.PI * 2;
+      const kind = (window.BPGLifePreserver && typeof BPGLifePreserver.wheelSliceKind === 'function')
+        ? BPGLifePreserver.wheelSliceKind(slice)
+        : (slice.kind || (slice.adjustment === 0 ? 'zero' : 'good'));
       context.beginPath();
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
-      context.fillStyle = kind === 'good' ? '#d7efe6' : (kind === 'bad' ? '#f8e0d8' : '#f6f1e6');
+      context.fillStyle = slice.color || (kind === 'good' ? '#34d399' : (kind === 'bad' ? '#f0a394' : '#c4b8ae'));
       context.fill();
-      context.strokeStyle = 'rgba(138, 106, 50, 0.72)';
-      context.lineWidth = 2;
+      context.strokeStyle = 'rgba(8, 87, 79, 0.35)';
+      context.lineWidth = 3;
       context.beginPath();
       context.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
       context.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
       context.stroke();
       const mid = angle + arc / 2;
-      const radius = (inner + outer) / 2;
-      const text = String(slice.label || '').replace(/\s*pts/ig, '').trim() || '0';
-      context.fillStyle = kind === 'bad' ? '#9a3412' : (kind === 'good' ? '#0a5c54' : '#5e584f');
-      context.font = `800 ${Math.max(13, Math.min(28, arc * 78))}px "Nunito Sans", sans-serif`;
+      const signed = (window.BPGLifePreserver && typeof BPGLifePreserver.formatSignedPoints === 'function')
+        ? BPGLifePreserver.formatSignedPoints(slice.adjustment)
+        : String(slice.adjustment || '0');
+      const chord = 2 * Math.sin(arc / 2) * midR;
+      const font = Math.max(34, Math.min(52, 18 * scale, chord * 0.5));
+      context.font = `800 ${font}px "Nunito Sans", sans-serif`;
+      const textW = context.measureText(signed).width;
+      const roomy = kind !== 'bad' && arc >= Math.PI * 2 * 0.10 && textW < chord * 0.78;
+      context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      if (arc >= 0.11) context.fillText(text, cx + Math.cos(mid) * radius, cy + Math.sin(mid) * radius);
+      if (roomy) {
+        context.fillText(signed, cx + Math.cos(mid) * midR, cy + Math.sin(mid) * midR);
+      } else {
+        callouts.push({ mid, signed, kind, font: Math.max(32, 16 * scale) });
+      }
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
     });
+    placeWheelCallouts(canvas, context, callouts, outer);
     context.beginPath();
-    context.arc(cx, cy, trackOuter, 0, Math.PI * 2);
+    context.arc(cx, cy, outer, 0, Math.PI * 2);
     context.strokeStyle = 'rgba(138, 106, 50, 0.7)';
     context.lineWidth = 3;
     context.stroke();
     context.beginPath();
-    context.arc(cx, cy, inner - 4, 0, Math.PI * 2);
+    context.arc(cx, cy, inner - 2, 0, Math.PI * 2);
     context.fillStyle = '#f7f3ea';
     context.fill();
     context.strokeStyle = 'rgba(138, 106, 50, 0.4)';
-    context.lineWidth = 5;
+    context.lineWidth = 4;
     context.stroke();
     const hub = document.querySelector('.wheel-spinner-hub');
-    if (hub) hub.textContent = 'SPIN';
+    const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
+    if (hub) hub.textContent = resultOpen ? '' : 'SPIN';
     const mode = document.getElementById('wheel-mode-label');
-    if (mode) mode.textContent = 'Life Preserver';
+    if (mode && !resultOpen) mode.textContent = 'Life Preserver';
     canvas.dataset.slice2Wheel = '1';
     return slices;
   }
@@ -534,6 +685,8 @@
     } else if (action === 'night-resume') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof resumeMatch === 'function') resumeMatch(id);
+    } else if (action === 'table') {
+      if (typeof leaveMatchToTable === 'function') leaveMatchToTable();
     } else if (action === 'life-preserver') {
       const player = firstEligible();
       if (player) authorizeHailMary(player);
@@ -542,9 +695,15 @@
       openAuditLog();
     } else if (action === 'enter-round') {
       enterRound();
-    } else if (action === 'show-fame' || action === 'show-shame') {
-      shamePane = action === 'show-shame';
+    } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
+      setRecordsPane(action === 'show-shame' ? 'explore' : (action === 'show-nights' ? 'nights' : 'overview'));
+    } else if (action === 'night-expand') {
+      const id = String(target.dataset.s2Id || '');
+      if (id) expandedNights.add(id);
       paintRecords();
+    } else if (action === 'open-profile') {
+      const name = target.dataset.s2Player || '';
+      if (name && typeof openProfileDetail === 'function') openProfileDetail(name);
     }
   }
 
@@ -560,13 +719,30 @@
     field.value = '';
   }
 
+  function onChange(event) {
+    const target = event.target.closest?.('[data-s2-action]');
+    if (!target) return;
+    const action = target.dataset.s2Action;
+    if (action === 'filter-game') {
+      recordsGameFilter = target.value || '';
+      paintRecords();
+    } else if (action === 'filter-player') {
+      recordsPlayerFilter = target.value || '';
+      paintRecords();
+    }
+  }
+
   function wire() {
     if (wired) return;
     wired = true;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
+    document.addEventListener('change', onChange);
     if (window.matchMedia) {
-      window.matchMedia('(max-width: 760px)').addEventListener('change', () => paintNav());
+      window.matchMedia('(max-width: 760px)').addEventListener('change', () => {
+        paintNav();
+        paintRecords();
+      });
     }
   }
 
@@ -653,7 +829,7 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator };
+  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

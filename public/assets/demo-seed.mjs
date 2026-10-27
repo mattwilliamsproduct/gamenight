@@ -2,6 +2,7 @@
 import {cloneScenario} from '../qa/fixtures.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
+export const DEMO_VERSION = '4';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
 
 export const DEMO_VIEW_IDS = [
@@ -22,7 +23,11 @@ export const DEMO_VIEW_IDS = [
   'keypad-8p',
   'lifepreserver',
   'lifepreserver-after',
+  'lifepreserver-low',
   'records',
+  'records-overview',
+  'records-explore',
+  'records-nights',
   'records-shame',
   'rook-contract',
   'rook-call',
@@ -45,6 +50,7 @@ const WRITE_VIEWS = new Set([
   'keypad-8p',
   'lifepreserver',
   'lifepreserver-after',
+  'lifepreserver-low',
   'rook-contract',
   'rook-call',
   'settings-backup',
@@ -52,10 +58,10 @@ const WRITE_VIEWS = new Set([
 ]);
 
 const GAME_SCENARIO = {
-  fivecrowns: 'five-crowns-comeback',
-  wizard: 'wizard-scoring-8',
-  '818': 'eight18-porch-lp',
-  flip7: 'flip7-turbo-ladder',
+  fivecrowns: 'demo-seed',
+  wizard: 'demo-wizard',
+  '818': 'demo-818',
+  flip7: 'demo-flip7',
   beattheheat: 'beat-the-heat-close',
   rook: 'rook-bid-setup'
 };
@@ -87,11 +93,43 @@ export function deviceHasSavedData(storage){
 }
 
 export function isDemoSeeded(storage){
-  return storage.getItem(DEMO_FLAG) === '1';
+  return storage.getItem(DEMO_FLAG) === DEMO_VERSION;
+}
+
+const NEUTRAL_AVATARS = [
+  'neutral-01.svg',
+  'neutral-02.svg',
+  'neutral-03.svg',
+  'neutral-04.svg',
+  'neutral-05.svg',
+  'neutral-06.svg',
+  'neutral-07.svg',
+  'neutral-08.svg',
+  'neutral-09.svg',
+  'neutral-10.svg',
+  'neutral-11.svg',
+  'neutral-12.svg'
+];
+
+export function applyNeutralDemoProfiles(data){
+  if (!data) return data;
+  const names = [...new Set([
+    ...(data.allPlayers || []),
+    ...(data.players || []),
+    ...Object.keys(data.playerProfiles || {})
+  ])].filter(Boolean);
+  data.playerProfiles = Object.fromEntries(names.map((name, index) => {
+    const prev = data.playerProfiles?.[name] || {};
+    return [name, {
+      avatar: NEUTRAL_AVATARS[index % NEUTRAL_AVATARS.length],
+      color: prev.color || ((index % 8) + 1)
+    }];
+  }));
+  return data;
 }
 
 export function buildDemoPayload(){
-  return cloneScenario('demo-seed').data;
+  return applyNeutralDemoProfiles(cloneScenario('demo-seed').data);
 }
 
 export function writeDemoPayload(storage, data){
@@ -101,7 +139,7 @@ export function writeDemoPayload(storage, data){
   storage.setItem('gn_profiles', JSON.stringify(data.playerProfiles || {}));
   if (data.currentGame) storage.setItem('gn_current', JSON.stringify(data.currentGame));
   else storage.removeItem('gn_current');
-  storage.setItem(DEMO_FLAG, '1');
+  storage.setItem(DEMO_FLAG, DEMO_VERSION);
 }
 
 export function stripDemoSearch(href){
@@ -126,7 +164,7 @@ function cloneData(data){
 }
 
 function scenarioData(id){
-  return cloneData(cloneScenario(id).data);
+  return applyNeutralDemoProfiles(cloneData(cloneScenario(id).data));
 }
 
 function gameKey(raw){
@@ -200,23 +238,13 @@ function applyRookEntryState(data){
   return data;
 }
 
-function applyLifePreserverAfter(data){
-  const game = data.currentGame;
-  if (!game || !window.BPGScorebook) return data;
-  const player = 'Cat';
-  window.BPGScorebook.recordLifePreserverSpin(game, player, 20);
-  if (window.BPGLifePreserver && typeof window.BPGLifePreserver.markLifePreserverUsed === 'function') {
-    window.BPGLifePreserver.markLifePreserverUsed(game, player);
-  }
-  return data;
-}
-
 function payloadForView(view, base){
   const typed = parseTypedView(view);
   if (view === 'empty-home' || view === 'empty-records') return emptyPayload();
-  if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('five-crowns-comeback');
+  if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('demo-seed');
   if (view === 'lifepreserver') return scenarioData('eight18-porch-lp');
-  if (view === 'lifepreserver-after') return applyLifePreserverAfter(scenarioData('eight18-porch-lp'));
+  if (view === 'lifepreserver-after') return scenarioData('eight18-porch-lp');
+  if (view === 'lifepreserver-low') return scenarioData('demo-seed');
   if (view === 'rook-contract') return scenarioData('rook-bid-setup');
   if (view === 'rook-call') return applyRookCallState(scenarioData('rook-bid-setup'));
   if (typed.kind === 'scorecard' && GAME_SCENARIO[typed.game]) return scenarioData(GAME_SCENARIO[typed.game]);
@@ -225,13 +253,14 @@ function payloadForView(view, base){
   return cloneData(base);
 }
 
-function clickShame(){
-  const btn = document.getElementById('slice2-show-shame');
-  if (btn) btn.click();
-}
-
-function openRecordsFame(){
+function openRecordsPane(pane){
   if (typeof showHistory === 'function') showHistory();
+  if (window.BPGSlice2 && typeof window.BPGSlice2.setRecordsPane === 'function') {
+    window.BPGSlice2.setRecordsPane(pane);
+    return;
+  }
+  const ids = {overview: 'slice2-show-fame', explore: 'slice2-show-shame', nights: 'slice2-show-nights'};
+  document.getElementById(ids[pane] || ids.overview)?.click();
 }
 
 function readLiveGame(){
@@ -244,13 +273,16 @@ function openDemoView(view){
     if (typeof goHome === 'function') goHome();
     return;
   }
-  if (view === 'empty-records' || view === 'records') {
-    openRecordsFame();
+  if (view === 'empty-records' || view === 'records' || view === 'records-overview') {
+    openRecordsPane('overview');
     return;
   }
-  if (view === 'records-shame') {
-    openRecordsFame();
-    clickShame();
+  if (view === 'records-shame' || view === 'records-explore') {
+    openRecordsPane('explore');
+    return;
+  }
+  if (view === 'records-nights') {
+    openRecordsPane('nights');
     return;
   }
   if (view === 'history') {
@@ -300,16 +332,29 @@ function openDemoView(view){
     if (typeof authorizeHailMary === 'function') authorizeHailMary('Cat');
     return;
   }
+  if (view === 'lifepreserver-low') {
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+    if (typeof authorizeHailMary === 'function') authorizeHailMary('Linda');
+    return;
+  }
   if (view === 'lifepreserver-after') {
     if (typeof goActiveMatch === 'function') goActiveMatch();
+    if (typeof authorizeHailMary === 'function') authorizeHailMary('Cat');
     if (typeof showLifePreserverResult === 'function') {
       const game = readLiveGame();
+      const before = Number(game?.totals?.Cat);
+      const beforeTotal = Number.isFinite(before) ? before : 41;
       showLifePreserverResult({
         player: 'Cat',
-        label: '+20',
+        label: '+20 · Help',
         adj: 20,
-        total: game?.totals?.Cat,
-        place: 2
+        beforeTotal,
+        total: beforeTotal + 20,
+        beforePlace: 3,
+        place: 2,
+        winLow: false,
+        leaderGapBefore: 39,
+        leaderGapAfter: 19
       });
     }
     if (typeof openModal === 'function') openModal('wheel-modal');
@@ -328,8 +373,9 @@ export function decideDemoAction({hostname, search, storage}){
     return {status: 'empty', view, persist: false, blocked: false, payload: emptyPayload()};
   }
   const seeded = isDemoSeeded(storage);
+  const demoDevice = !!storage.getItem(DEMO_FLAG);
   const hasData = deviceHasSavedData(storage);
-  if (hasData && !seeded) {
+  if (hasData && !demoDevice) {
     return {status: 'blocked', view, persist: false, blocked: true, payload: null};
   }
   if (seeded && hasData) {
@@ -350,6 +396,9 @@ function viewUsesLiveSeed(view){
   return view === 'home'
     || view === 'active-match'
     || view === 'records'
+    || view === 'records-overview'
+    || view === 'records-explore'
+    || view === 'records-nights'
     || view === 'records-shame'
     || view === 'history'
     || view === 'profiles'

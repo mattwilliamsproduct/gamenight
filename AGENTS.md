@@ -12,14 +12,14 @@ Exact scripts from `package.json`:
 
 - `npm install`
 - `npm run build` — `build:styles`, then `build:vendor` (minified CSS, vendor copies, and `public/sw.js`), then `build:review` (preview-only `/review` when `VERCEL_ENV !== 'production'`)
-- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:local-only`, `test:scorebook`, `test:data-integrity`, `test:fixture-rules`, `test:review-gate`, `test:demo-seed`, then `git diff --check`
+- `npm run check` — `check:syntax`, `check:production-assets`, `test:comeback`, `test:life-preserver`, `test:backup`, `test:local-only`, `test:scorebook`, `test:data-integrity`, `test:fixture-rules`, `test:review-gate`, `test:demo-seed`, `test:records`, then `git diff --check`
 - `npm run qa:gallery` — serve `public/` for QA (`node scripts/serve-public.mjs`, localhost port 4173)
 - `npm run test:functional` — Playwright laptop functional pack
 - `npm run test:porch-night` — one laptop Chromium walk of the porch-night gallery fixtures
 - `npm run test:visual` — Playwright
 - `npm run test:visual:update` — `playwright test --update-snapshots`
 
-Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:local-only`, `npm run test:scorebook`, `npm run test:data-integrity`, `npm run test:fixture-rules`, `npm run test:review-gate`, `npm run test:demo-seed`, `npm run test:functional`, `npm run test:porch-night`.
+Same checks alone: `npm run check:syntax`, `npm run check:production-assets`, `npm run test:comeback`, `npm run test:life-preserver`, `npm run test:backup`, `npm run test:local-only`, `npm run test:scorebook`, `npm run test:data-integrity`, `npm run test:fixture-rules`, `npm run test:review-gate`, `npm run test:demo-seed`, `npm run test:records`, `npm run test:functional`, `npm run test:porch-night`.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ North star: crush requirements so one-shots get better every correction.
 
 - Turbo stays unloaded unless Matt explicitly asks. Production must not load `comeback-logic.js`. `npm run check` still runs the Turbo unit tests so old `round.comeback` history stays defined. Comeback chip / Turbo Instructions Playwright checks are obsolete; skip or delete them rather than loading the script.
 - Warm Porch Ledger is the only production skin. Do not reintroduce `?slice2` / `GN_SLICE2_TV` forks. Gallery 818 and Wizard rows must be legal bids, actuals, and scores, including 818 dealer law. A desired Life Preserver gap does not license impossible totals. See `docs/solutions/rc1-one-skin.md`.
-- The worker that Vercel ships is `src/service-worker.js` copied over `public/sw.js` by `npm run build`. That template must precache the scripts the page loads (`life-preserver-logic.js`, `backup.js`, `scorebook.js`) and must not list `comeback-logic.js`. `npm run check` fails if they disagree, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix. Do not treat the committed `public/sw.js` as what production serves after a build.
+- The worker that Vercel ships is `src/service-worker.js` copied over `public/sw.js` by `npm run build`. That template must precache the scripts the page loads (`life-preserver-logic.js`, `backup.js`, `scorebook.js`, `records-logic.js`) and must not list `comeback-logic.js`. `npm run check` fails if they disagree, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix. Do not treat the committed `public/sw.js` as what production serves after a build.
 - A hidden scorecard column is not a deleted hand. If Pace or the column trim removes the hand a Life Preserver followed, the mark sits with Total. Place ties use the same numeric comparison as the sort, including numeric strings. See `docs/solutions/scorecard-places-and-life-preserver.md`.
 - NAME-FIT uses one shared column size. Shrink for a long name. Do not grow a short name past that size. Saved is not a nav slot. Life Preserver header copy states the computed spin range; negative slices stay.
 - Bid accuracy uses the stored bid and actual on a played round. A missing bid or actual is unknown, not a guess from the score. A Life Preserver, including a zero-point spin, marks the match assisted until undo removes the last spin. A historical trick correction uses that round's players and must not replace a different live match. See `docs/solutions/data-integrity-records.md`.

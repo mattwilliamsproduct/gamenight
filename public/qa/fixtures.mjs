@@ -1,4 +1,4 @@
-import {legalEight18Rounds, wizardScore} from './fixture-rules.mjs';
+import {eight18Score, eight18Tricks, legalEight18Rounds, wizardScore} from './fixture-rules.mjs';
 
 const NAMES = ['Megan','Matt','Cat','Mike','Vikki','Duke','Brick','Linda','Michelle','Alexis','Ethan','Diana'];
 const AVATARS = ['meg.png','dwight-wig.png','joker-cards.png','neo.png','belle.png','mario.png','frankenstein.png','jasmine.png','leia.png','toothless.png','ironman.png','barbie-beach.png'];
@@ -657,40 +657,293 @@ function recordsHealPlainMatch(){
   };
 }
 
-function rookFinishedNight(){
+function finishedNight(id,game,date,roster,rounds,extra={}){
+  const totals=totalRounds(roster,rounds);
+  const played=rounds.filter(round=>!round.hailMaryBonus).length;
   return {
-    id:1784390000001,
-    game:'Rook',
-    date:'10/20/2026',
-    originalRoster:['Megan','Matt','Cat','Mike'],
-    retired:['Mike'],
-    totals:{Megan:90,Matt:90,Cat:110,Mike:40},
-    winners:['Cat'],
+    id,
+    game,
+    date,
+    totals,
+    winners:winnersFor(game,totals),
+    rounds,
+    originalRoster:[...roster],
+    currentRound:played+1,
+    hailMaryUsed:extra.hailMaryUsed||[],
+    retired:extra.retired||[],
     completed:true,
-    currentRound:2,
-    rounds:[{round:1,scores:{Megan:90,Matt:90,Cat:110,Mike:40},rookBid:90,rookBidder:'Megan',rookPartner:'Matt',rookMadeIt:true}]
+    assistedMatch:!!extra.assistedMatch,
+    ...extra
   };
+}
+
+function scoreRound(round,players,values){
+  return {round,scores:Object.fromEntries(players.map((player,index)=>[player,values[index]]))};
+}
+
+function wizardHand(round,players,pairs){
+  const bids={},actuals={},scores={};
+  players.forEach(player=>{
+    const [bid,actual]=pairs[player];
+    bids[player]=bid;
+    actuals[player]=actual;
+    scores[player]=wizardScore(bid,actual);
+  });
+  return {round,bids,actuals,scores};
+}
+
+function eight18Hand(round,players,pairs,offset=0){
+  const bids={},actuals={},scores={};
+  players.forEach(player=>{
+    const [bid,actual]=pairs[player];
+    bids[player]=bid;
+    actuals[player]=actual;
+  });
+  const tricks=eight18Tricks(round);
+  const dealer=players[((round-1+offset)%players.length+players.length)%players.length];
+  const others=players.filter(player=>player!==dealer).reduce((sum,player)=>sum+bids[player],0);
+  const forbidden=tricks-others;
+  if(Number.isInteger(forbidden)&&forbidden>=0&&forbidden<=tricks&&bids[dealer]===forbidden){
+    bids[dealer]=forbidden===0?Math.min(1,tricks):0;
+  }
+  players.forEach(player=>{scores[player]=eight18Score(bids[player],actuals[player]);});
+  return {round,bids,actuals,scores};
+}
+
+function demoFiveCrownsLiveRounds(players){
+  // One go-out per hand. Leftovers sit in the 3-22 range those seats already score.
+  const perRound=[
+    [0,4,7,5,8,11,15,18],
+    [5,0,6,8,4,12,16,20],
+    [3,6,0,9,7,10,14,19],
+    [4,3,8,0,11,9,17,15],
+    [6,5,4,7,0,13,18,21],
+    [2,4,9,6,8,0,16,22],
+    [5,3,6,8,10,12,0,19],
+    [8,0,6,11,5,9,14,16]
+  ];
+  return perRound.map((values,index)=>scoreRound(index+1,players,values));
+}
+
+function rookFinishedNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const rounds=[{
+    round:1,
+    scores:{Megan:110,Matt:110,Cat:90,Mike:90},
+    rookBid:90,
+    rookBidder:'Megan',
+    rookPartner:'Matt',
+    rookTrump:'Red',
+    rookCalledCard:'14 Green',
+    rookBidderCounters:110,
+    rookOppCounters:90,
+    rookMadeIt:true
+  }];
+  return finishedNight(1784390000001,'Rook','10/20/2026',roster,rounds,{retired:['Mike']});
 }
 
 function recordsAssisted818Match(){
   const roster=['Megan','Matt','Cat','Mike','Duke'];
-  const rounds=legalEight18Rounds(roster,Object.fromEntries(roster.map((player,index)=>[player,36+index*7])),5);
-  rounds.push({round:0,hailMaryBonus:true,scores:{Duke:12}});
-  const totals=totalRounds(roster,rounds);
-  return {
-    id:1785200000003,
-    game:'818',
-    date:'10/19/2026',
-    totals,
-    winners:winnersFor('818',totals),
-    rounds,
-    originalRoster:[...roster],
-    currentRound:6,
-    maxRounds:15,
+  const rounds=[
+    eight18Hand(1,roster,{Megan:[2,2],Matt:[1,1],Cat:[0,0],Mike:[3,2],Duke:[2,3]}),
+    eight18Hand(2,roster,{Megan:[1,0],Matt:[2,2],Cat:[1,1],Mike:[0,0],Duke:[3,4]}),
+    eight18Hand(3,roster,{Megan:[0,0],Matt:[1,1],Cat:[2,2],Mike:[2,1],Duke:[1,2]}),
+    eight18Hand(4,roster,{Megan:[1,1],Matt:[0,0],Cat:[0,1],Mike:[2,2],Duke:[1,1]}),
+    eight18Hand(5,roster,{Megan:[0,0],Matt:[1,2],Cat:[1,0],Mike:[0,0],Duke:[2,2]}),
+    {round:0,hailMaryBonus:true,scores:{Duke:12}}
+  ];
+  return finishedNight(1785200000003,'818','10/19/2026',roster,rounds,{
     hailMaryUsed:['Duke'],
     assistedMatch:true,
-    retired:[],
-    completed:true
+    maxRounds:15,
+    dealerOffset:0
+  });
+}
+
+function demoWizardLive(){
+  const players=NAMES.slice(0,6);
+  const rounds=[
+    wizardHand(1,players,{Megan:[1,1],Matt:[0,0],Cat:[0,0],Mike:[0,0],Vikki:[0,0],Duke:[0,0]}),
+    wizardHand(2,players,{Megan:[0,0],Matt:[2,2],Cat:[0,0],Mike:[0,0],Vikki:[0,0],Duke:[0,0]}),
+    wizardHand(3,players,{Megan:[1,1],Matt:[0,0],Cat:[1,0],Mike:[0,1],Vikki:[1,1],Duke:[0,0]}),
+    wizardHand(4,players,{Megan:[0,1],Matt:[1,1],Cat:[2,2],Mike:[0,0],Vikki:[0,0],Duke:[1,0]}),
+    wizardHand(5,players,{Megan:[2,2],Matt:[1,0],Cat:[0,1],Mike:[1,1],Vikki:[0,0],Duke:[1,1]})
+  ];
+  return makeCurrentGame('Wizard',players,rounds,{
+    wizardPhase:'bidding',
+    currentBids:{},
+    currentScoreDrafts:{}
+  });
+}
+
+function demoFlip7Live(){
+  const players=NAMES.slice(0,6);
+  const rounds=[
+    [15,11,8,21,0,14],
+    [0,19,12,6,18,9],
+    [22,8,16,0,10,13],
+    [8,14,0,17,7,21],
+    [18,10,21,9,15,0]
+  ].map((values,index)=>scoreRound(index+1,players,values));
+  return makeCurrentGame('Flip 7 Vengeance',players,rounds);
+}
+
+function demo818Live(){
+  const players=['Duke','Mike','Megan','Brick','Cat','Vikki'];
+  const rounds=[
+    eight18Hand(1,players,{Duke:[2,2],Mike:[1,1],Megan:[0,0],Brick:[1,0],Cat:[2,3],Vikki:[1,2]}),
+    eight18Hand(2,players,{Duke:[1,1],Mike:[2,1],Megan:[1,1],Brick:[0,0],Cat:[1,2],Vikki:[2,2]}),
+    eight18Hand(3,players,{Duke:[0,0],Mike:[2,2],Megan:[1,1],Brick:[2,1],Cat:[0,0],Vikki:[1,2]}),
+    eight18Hand(4,players,{Duke:[1,1],Mike:[0,0],Megan:[2,2],Brick:[1,1],Cat:[0,0],Vikki:[1,1]}),
+    eight18Hand(5,players,{Duke:[0,1],Mike:[1,1],Megan:[0,0],Brick:[2,2],Cat:[1,0],Vikki:[0,0]}),
+    eight18Hand(6,players,{Duke:[1,1],Mike:[0,0],Megan:[1,0],Brick:[0,1],Cat:[1,1],Vikki:[0,0]})
+  ];
+  return makeCurrentGame('818',players,rounds,{
+    eight18Phase:'bidding',
+    currentBids:{},
+    currentScoreDrafts:{},
+    maxRounds:15,
+    dealerOffset:0
+  });
+}
+
+function demoIncompleteNight(){
+  const roster=NAMES.slice(0,6);
+  const rounds=[
+    scoreRound(1,roster,[4,8,6,10,12,15]),
+    scoreRound(2,roster,[5,3,9,7,11,14])
+  ];
+  const match=finishedNight(1784566800000,'Five Crowns','10/21/2026',roster,rounds,{
+    completed:false,
+    winners:[],
+    currentRound:3,
+    maxRounds:11
+  });
+  return match;
+}
+
+function demoJointWinNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  return finishedNight(1784390400001,'Flip 7 Vengeance','10/18/2026',roster,[
+    scoreRound(1,roster,[20,20,8,11]),
+    scoreRound(2,roster,[15,15,12,9])
+  ]);
+}
+
+function demoHistory(){
+  const fc6=NAMES.slice(0,6);
+  const fc5=NAMES.slice(0,5);
+  const fc8=NAMES.slice(0,8);
+  const wz6=NAMES.slice(0,6);
+  const wz5=NAMES.slice(0,5);
+  const e6=['Megan','Matt','Cat','Mike','Vikki','Duke'];
+  const e5=['Megan','Matt','Cat','Mike','Duke'];
+  const f6=NAMES.slice(0,6);
+  const h4=['Megan','Matt','Cat','Mike'];
+  const h5=['Megan','Matt','Cat','Mike','Brick'];
+  return [
+    finishedNight(1784390400000,'Five Crowns','10/18/2026',fc6,[
+      scoreRound(1,fc6,[0,5,8,6,11,14]),
+      scoreRound(2,fc6,[4,0,7,9,6,15]),
+      scoreRound(3,fc6,[6,8,0,5,12,10]),
+      scoreRound(4,fc6,[3,4,9,0,8,16]),
+      scoreRound(5,fc6,[7,2,5,8,0,13]),
+      scoreRound(6,fc6,[5,6,4,7,10,0])
+    ]),
+    finishedNight(1784304000000,'Wizard','10/17/2026',wz6,[
+      wizardHand(1,wz6,{Megan:[1,1],Matt:[0,0],Cat:[0,0],Mike:[0,0],Vikki:[0,0],Duke:[0,0]}),
+      wizardHand(2,wz6,{Megan:[0,0],Matt:[1,0],Cat:[1,1],Mike:[0,1],Vikki:[0,0],Duke:[0,0]}),
+      wizardHand(3,wz6,{Megan:[1,0],Matt:[1,1],Cat:[0,0],Mike:[0,0],Vikki:[1,1],Duke:[1,1]}),
+      wizardHand(4,wz6,{Megan:[0,0],Matt:[2,2],Cat:[1,1],Mike:[1,0],Vikki:[0,1],Duke:[0,0]}),
+      wizardHand(5,wz6,{Megan:[2,1],Matt:[0,0],Cat:[1,2],Mike:[1,1],Vikki:[0,0],Duke:[1,1]})
+    ]),
+    finishedNight(1784217600000,'818','10/16/2026',e6,[
+      eight18Hand(1,e6,{Megan:[2,1],Matt:[1,1],Cat:[0,0],Mike:[2,3],Vikki:[1,1],Duke:[2,2]}),
+      eight18Hand(2,e6,{Megan:[1,1],Matt:[0,0],Cat:[2,2],Mike:[1,0],Vikki:[2,2],Duke:[1,2]}),
+      eight18Hand(3,e6,{Megan:[0,0],Matt:[2,2],Cat:[1,1],Mike:[1,1],Vikki:[0,0],Duke:[2,2]}),
+      eight18Hand(4,e6,{Megan:[1,2],Matt:[1,1],Cat:[0,0],Mike:[2,1],Vikki:[1,1],Duke:[0,0]}),
+      eight18Hand(5,e6,{Megan:[0,0],Matt:[1,0],Cat:[1,1],Mike:[0,1],Vikki:[1,1],Duke:[1,1]})
+    ],{dealerOffset:0}),
+    finishedNight(1784131200000,'Flip 7 Vengeance','10/15/2026',f6,[
+      scoreRound(1,f6,[12,18,0,21,9,14]),
+      scoreRound(2,f6,[19,0,16,8,22,11]),
+      scoreRound(3,f6,[7,15,21,0,10,18]),
+      scoreRound(4,f6,[24,11,8,17,0,13])
+    ]),
+    finishedNight(1784044800000,'Beat the Heat','10/14/2026',h4,[
+      scoreRound(1,h4,[8,5,12,3]),
+      scoreRound(2,h4,[11,9,6,4]),
+      scoreRound(3,h4,[7,14,8,2]),
+      scoreRound(4,h4,[15,6,9,5]),
+      scoreRound(5,h4,[10,8,4,7])
+    ]),
+    finishedNight(1783958400000,'Five Crowns','10/12/2026',fc5,[
+      scoreRound(1,fc5,[3,0,8,12,17]),
+      scoreRound(2,fc5,[0,6,5,9,21]),
+      scoreRound(3,fc5,[7,4,0,14,11]),
+      scoreRound(4,fc5,[5,8,10,0,16]),
+      scoreRound(5,fc5,[4,3,6,8,0]),
+      scoreRound(6,fc5,[9,2,11,7,13]),
+      scoreRound(7,fc5,[6,5,4,23,18])
+    ]),
+    finishedNight(1783872000000,'Wizard','10/11/2026',wz5,[
+      wizardHand(1,wz5,{Megan:[0,0],Matt:[1,1],Cat:[0,0],Mike:[0,0],Vikki:[0,0]}),
+      wizardHand(2,wz5,{Megan:[1,1],Matt:[0,0],Cat:[1,0],Mike:[0,1],Vikki:[0,0]}),
+      wizardHand(3,wz5,{Megan:[0,0],Matt:[1,1],Cat:[0,1],Mike:[2,1],Vikki:[0,0]}),
+      wizardHand(4,wz5,{Megan:[2,2],Matt:[0,0],Cat:[1,1],Mike:[0,0],Vikki:[1,1]}),
+      wizardHand(5,wz5,{Megan:[1,0],Matt:[2,2],Cat:[0,0],Mike:[1,2],Vikki:[1,1]}),
+      wizardHand(6,wz5,{Megan:[0,1],Matt:[1,1],Cat:[2,0],Mike:[1,1],Vikki:[2,3]})
+    ]),
+    finishedNight(1783785600000,'818','10/10/2026',e5,[
+      eight18Hand(1,e5,{Megan:[1,0],Matt:[2,2],Cat:[0,1],Mike:[3,3],Duke:[2,2]}),
+      eight18Hand(2,e5,{Megan:[0,0],Matt:[1,1],Cat:[2,1],Mike:[1,2],Duke:[2,3]}),
+      eight18Hand(3,e5,{Megan:[2,2],Matt:[0,0],Cat:[1,1],Mike:[1,0],Duke:[2,3]}),
+      eight18Hand(4,e5,{Megan:[1,1],Matt:[1,0],Cat:[0,0],Mike:[2,3],Duke:[1,1]})
+    ],{dealerOffset:0}),
+    finishedNight(1783699200000,'Flip 7 Vengeance','10/9/2026',NAMES.slice(0,5),[
+      scoreRound(1,NAMES.slice(0,5),[9,14,21,0,16]),
+      scoreRound(2,NAMES.slice(0,5),[18,7,0,22,11]),
+      scoreRound(3,NAMES.slice(0,5),[6,20,15,8,0]),
+      scoreRound(4,NAMES.slice(0,5),[13,0,19,12,24]),
+      scoreRound(5,NAMES.slice(0,5),[21,16,8,10,7])
+    ]),
+    finishedNight(1783612800000,'Beat the Heat','10/8/2026',h5,[
+      scoreRound(1,h5,[6,4,9,3,12]),
+      scoreRound(2,h5,[8,7,5,2,14]),
+      scoreRound(3,h5,[4,11,8,6,10]),
+      scoreRound(4,h5,[9,3,7,5,12])
+    ]),
+    finishedNight(1783526400000,'Five Crowns','10/5/2026',fc8,[
+      scoreRound(1,fc8,[0,6,8,5,10,13,18,21]),
+      scoreRound(2,fc8,[7,0,5,9,8,12,20,17]),
+      scoreRound(3,fc8,[4,8,0,6,11,9,16,22]),
+      scoreRound(4,fc8,[5,3,9,0,7,14,19,15]),
+      scoreRound(5,fc8,[8,6,4,10,0,11,23,18])
+    ]),
+    finishedNight(1783440000000,'Wizard','10/4/2026',NAMES.slice(0,7),[
+      wizardHand(1,NAMES.slice(0,7),{Megan:[0,0],Matt:[0,0],Cat:[1,1],Mike:[0,0],Vikki:[0,0],Duke:[0,0],Brick:[0,0]}),
+      wizardHand(2,NAMES.slice(0,7),{Megan:[1,0],Matt:[1,1],Cat:[0,0],Mike:[0,1],Vikki:[0,0],Duke:[0,0],Brick:[0,0]}),
+      wizardHand(3,NAMES.slice(0,7),{Megan:[0,0],Matt:[1,1],Cat:[1,1],Mike:[0,0],Vikki:[1,0],Duke:[0,1],Brick:[0,0]}),
+      wizardHand(4,NAMES.slice(0,7),{Megan:[2,2],Matt:[0,0],Cat:[0,1],Mike:[1,1],Vikki:[0,0],Duke:[1,0],Brick:[0,0]})
+    ]),
+    rookFinishedNight(),
+    recordsAssisted818Match(),
+    demoIncompleteNight(),
+    demoJointWinNight()
+  ];
+}
+
+function demoCrownsGame(){
+  return makeCurrentGame('Five Crowns',NAMES.slice(0,8),demoFiveCrownsLiveRounds(NAMES.slice(0,8)));
+}
+
+function demoTable(currentGame){
+  return {
+    allPlayers:[...NAMES],
+    players:[...(currentGame.originalRoster||NAMES.slice(0,6))],
+    history:demoHistory(),
+    playerProfiles:profiles(),
+    currentGame
   };
 }
 
@@ -753,6 +1006,7 @@ export const QA_SURFACES = [
   {id:'actions',label:'Actions menu'},
   {id:'settings',label:'Settings'},
   {id:'profiles',label:'Profiles'},
+  {id:'records',label:'Records'},
   {id:'whammy',label:'WHAMMY'},
   {id:'nolie',label:'Nolie'},
   {id:'race',label:'Path replay'}
@@ -1040,15 +1294,33 @@ export const QA_SCENARIOS = {
   },
   'demo-seed':{
     label:'TEMP Demo Seed',
-    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, and a Rook night with contracts.',
+    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, one incomplete night, one joint win, and a Rook night with contracts.',
     defaultSurface:'home',
-    data:{
-      allPlayers:[...NAMES],
-      players:[...crownsPlayers],
-      history:[...sharedHistory,rookFinishedNight(),recordsAssisted818Match()],
-      playerProfiles:profiles(),
-      currentGame:JSON.parse(JSON.stringify(crownsGame))
-    }
+    data:demoTable(demoCrownsGame())
+  },
+  'records-book':{
+    label:'Records book',
+    description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match and a joint win.',
+    defaultSurface:'records',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
+  },
+  'demo-wizard':{
+    label:'TEMP Demo Wizard',
+    description:'Preview-only mid-game Wizard with mixed makes and misses.',
+    defaultSurface:'scorecard',
+    data:demoTable(demoWizardLive())
+  },
+  'demo-flip7':{
+    label:'TEMP Demo Flip 7',
+    description:'Preview-only Flip 7 with mixed banks and busts.',
+    defaultSurface:'scorecard',
+    data:demoTable(demoFlip7Live())
+  },
+  'demo-818':{
+    label:'TEMP Demo 818',
+    description:'Preview-only mid-game 818 with mixed bids.',
+    defaultSurface:'scorecard',
+    data:demoTable(demo818Live())
   }
 };
 

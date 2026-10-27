@@ -81,11 +81,49 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#wheel-result')).not.toHaveClass(/hidden/);
     await expect(page.locator('#btn-spin')).toBeHidden();
+    await expect(page.locator('#wheel-mode-label')).toHaveText('Life Preserver Unlocked');
+    await expect(page.locator('#wheel-result-adjustment')).toContainText('+20 points');
+    await expect(page.locator('#wheel-result-total')).toContainText('41 → 61');
+    await expect(page.locator('#wheel-result-standing')).toContainText('3rd → 2nd');
+    await expect(page.locator('#wheel-legend')).toBeVisible();
+    const painted = await page.evaluate(() => {
+      const canvas = document.getElementById('wheel-canvas');
+      const context = canvas.getContext('2d');
+      const {data} = context.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < data.length; i += 16) {
+        const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+        if (a > 200 && (g > r + 20 || r > g + 20 || (r > 140 && g < 180 && b < 180))) return true;
+      }
+      return false;
+    });
+    expect(painted).toBe(true);
+  },
+  'lifepreserver-low': async (page) => {
+    await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#wheel-player-name')).toHaveText('Linda');
+    await expect(page.locator('#btn-spin')).toBeEnabled();
+    await expect(page.locator('#wheel-commit-line')).toContainText(/Best help:|Largest setback:/);
   },
   records: async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
-    await expect(page.locator('.s2-fame-col')).toContainText(/Most wins|Five Crowns|Unassisted matches only/);
+    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Five Crowns|Unassisted matches only/);
+  },
+  'records-overview': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Unassisted matches only/);
+  },
+  'records-explore': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-shame')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-explore-col')).toContainText(/Explore records|Most games without a win|Most consecutive last-place finishes/);
+  },
+  'records-nights': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-nights')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Incomplete/);
+    await expect(page.locator('.s2-night-winner', {hasText: / and /}).first()).toBeVisible();
   },
   'records-shame': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);

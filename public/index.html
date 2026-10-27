@@ -3309,8 +3309,8 @@ button.dealer-name-indicator {
         max-width: none;
       }
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-        width: 4.8rem;
-        min-width: 4.4rem;
+        width: 5.15rem;
+        min-width: 4.9rem;
       }
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
@@ -3574,12 +3574,48 @@ button.dealer-name-indicator {
       color: var(--ink);
       font-weight: 800;
     }
+    .wheel-mode-label {
+      font-family: "Bree Serif", Georgia, serif;
+      font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+      font-weight: 800;
+      line-height: 1.25;
+      margin: 0.1rem 2.4rem 0.55rem;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    #wheel-modal.wheel-has-result .wheel-mode-label {
+      font-size: clamp(1.1rem, 4.8vw, 1.45rem);
+      margin: 0.15rem 2.4rem 0.85rem;
+    }
+    .wheel-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.55rem 0.85rem;
+      margin: 0 0 1rem;
+    }
+    .wheel-legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+    .wheel-legend-chip::before {
+      content: "";
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+    }
+    .wheel-legend-chip.is-help::before { background: #34d399; }
+    .wheel-legend-chip.is-zero::before { background: #c4b8ae; }
+    .wheel-legend-chip.is-setback::before { background: #f0a394; }
     .wheel-shell {
       position: relative;
       width: min(26rem, 72vw, calc(100dvh - 22rem));
       height: min(26rem, 72vw, calc(100dvh - 22rem));
       flex: 0 1 auto;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.85rem;
     }
     .wheel-shell::before {
       content: '';
@@ -7677,7 +7713,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div class="surface-raised w-full max-w-lg p-7 relative max-h-[85vh] flex flex-col pop-in">
       <button onclick="closeAuditLog()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
       <div class="mb-5">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Round History</div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">This match</div>
         <h3 class="font-display text-3xl">Audit Log</h3>
         <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Life Preserver, and retirement — for settling disputes.</p>
       </div>
@@ -7841,7 +7877,7 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
                 <button onclick="openAuditLog();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="14" height="18" x="5" y="3" rx="2"></rect><path d="M9 3h6v4H9z"></path><path d="M9 12h6"></path><path d="M9 16h6"></path></svg></span>
-                  <span>Round History / Audit Log</span>
+                  <span>History</span>
                 </button>
                 <button onclick="openRules();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H2"></path><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3h7"></path></svg></span>
@@ -7875,7 +7911,7 @@ button.dealer-name-indicator .dealer-player-label {
               </div>
             </div>
           </div>
-          <button onclick="endGame()" class="btn-ghost match-end-btn px-4 py-2.5 text-sm">Save &amp; End</button>
+          <button type="button" onclick="requestEndGame()" class="btn-ghost match-end-btn px-4 py-2.5 text-sm">Save &amp; End</button>
         </div>
       </div>
 
@@ -7908,7 +7944,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
             <h3 class="font-display text-3xl" style="color:var(--emerald);">Match Complete!</h3>
             <p id="game-over-copy" class="font-bold" style="color:var(--emerald);">You've reached the final round.</p>
-            <button onclick="endGame()" class="btn-primary px-12 py-4 text-xl">End Match &amp; See Winner</button>
+            <button type="button" onclick="requestEndGame()" class="btn-primary px-12 py-4 text-xl">End Match &amp; See Winner</button>
           </div>
         </div>
       </div>
@@ -8425,22 +8461,33 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);" id="wheel-mode-label">🛟 Life Preserver Unlocked</div>
+        <div id="wheel-mode-label" class="wheel-mode-label">Life Preserver</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
-        <p class="text-xs font-bold mb-2 max-w-md" style="color:var(--muted);">Bigger waves are more common. Tiny tides bring the drama.</p>
-        <p id="wheel-commit-line" class="text-sm md:text-base font-semibold mb-3 max-w-md leading-snug" style="color:var(--ink-2);">The result applies immediately and marks this match assisted.</p>
+        <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
+        <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-commit-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);">Best help and largest setback show after the table is ready.</p>
+        <p id="wheel-best-place" class="hidden text-sm md:text-base font-semibold mb-3 max-w-md leading-snug" style="color:var(--ink-2);"></p>
         <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
-          <div id="wheel-spinner" class="wheel-spinner"></div>
+          <div id="wheel-spinner" class="wheel-spinner">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+          </div>
           <div class="wheel-spinner-hub"></div>
+          <div id="wheel-callouts" class="wheel-callouts"></div>
+        </div>
+        <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
+          <span class="wheel-legend-chip is-help">Help</span>
+          <span class="wheel-legend-chip is-zero">No change</span>
+          <span class="wheel-legend-chip is-setback">Setback</span>
         </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl shrink-0">Use your one spin</button>
         <div id="wheel-result" class="hidden w-full mt-4 p-5 text-left rounded-2xl" style="background:var(--emerald-bg);border:1px solid var(--emerald-border);">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--emerald);">Landed result · Locked</div>
-          <p id="wheel-result-adjustment" class="font-display text-3xl md:text-4xl leading-tight" style="color:var(--ink);"></p>
-          <p id="wheel-result-total" class="text-lg md:text-xl font-extrabold mt-2" style="color:var(--ink);"></p>
-          <p id="wheel-result-standing" class="text-lg md:text-xl font-extrabold mt-1" style="color:var(--ink);"></p>
+          <p id="wheel-result-player" class="player-name-label text-2xl md:text-3xl leading-tight" style="color:var(--ink);"></p>
+          <p id="wheel-result-adjustment" class="font-display text-3xl md:text-5xl leading-tight" style="color:var(--ink);"></p>
+          <p id="wheel-result-total" class="text-lg md:text-2xl font-extrabold mt-2 font-mono-num" style="color:var(--ink);"></p>
+          <p id="wheel-result-standing" class="text-lg md:text-2xl font-extrabold mt-1" style="color:var(--ink);"></p>
           <button type="button" onclick="closeWheel()" class="btn-primary w-full mt-4 py-4 font-display text-xl">Back to scorecard</button>
         </div>
         <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold shrink-0">How Life Preserver works</button>
@@ -8491,6 +8538,20 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
+
+    <!-- End match confirm -->
+    <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised w-full max-w-md p-7 relative pop-in">
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Save &amp; End</div>
+        <h3 class="font-display text-3xl mb-3" id="end-match-title">End this match now?</h3>
+        <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy"></p>
+        <div class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+          <button type="button" id="end-match-cancel" onclick="closeEndMatchModal()" class="btn-ghost px-5 py-3 text-sm">Cancel</button>
+          <button type="button" id="end-match-confirm" onclick="confirmEndMatch()" class="btn-primary px-5 py-3 text-sm">Save &amp; End</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Life Preserver rules -->
     <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
@@ -8753,6 +8814,7 @@ button.dealer-name-indicator .dealer-player-label {
   <script src="./assets/backup.js"></script>
   <script src="./assets/life-preserver-logic.js"></script>
   <script src="./assets/scorebook.js"></script>
+  <script src="./assets/records-logic.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -9574,6 +9636,19 @@ button.dealer-name-indicator .dealer-player-label {
     closeNumpad();
   }
   function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
+  function leaveMatchToTable(){
+    gnPerfAction('clicked Table');
+    if(typeof closeActionsMenu==='function') closeActionsMenu();
+    if(typeof closeEndMatchModal==='function') closeEndMatchModal();
+    if(typeof scoreEntryModalState!=='undefined' && scoreEntryModalState){
+      saveOpenScoreEntryModalDrafts();
+      saveData();
+      closeScoreEntryModalOnly();
+    } else if(currentGame){
+      saveData();
+    }
+    goHome();
+  }
   function goActiveMatch(){ if(currentGame){navigateTo('game-screen');renderGame();}else{goHome();} }
   function showHistory(){ gnPerfAction('opened History'); navigateTo('history-screen'); const t=gnPerfStart('GN renderHallOfFame'); try{renderHallOfFame();}finally{gnPerfEnd(t);} switchTab('hall-of-fame-view'); }
   function showProfiles(){ gnPerfAction('opened Profiles'); navigateTo('profiles-screen'); const t=gnPerfStart('GN renderProfiles'); try{renderProfilesGrid();}finally{gnPerfEnd(t);} }
@@ -9983,11 +10058,11 @@ button.dealer-name-indicator .dealer-player-label {
     }
     _lifePreserverSpinToken++;
     const btn=document.getElementById('btn-spin');
-    if(btn){
+    if(btn && !_lifePreserverCommitted){
       btn.disabled=false;
       btn.textContent=LP_SPIN_COPY.ready;
     }
-    if(wasSpinning&&notify) toast('Life Preserver not applied', 'warning');
+    if(wasSpinning&&notify&&!_lifePreserverCommitted) toast('Life Preserver not applied', 'warning');
     return wasSpinning;
   }
   function closeWheel(){
@@ -10012,8 +10087,34 @@ button.dealer-name-indicator .dealer-player-label {
       : {summary:'',wheelLine:'',bullets:[]};
     const line=document.getElementById('wheel-why-line');
     if(line){
-      line.textContent=explained.wheelLine||'';
-      line.classList.toggle('hidden', !explained.wheelLine);
+      line.textContent='';
+      line.classList.add('hidden');
+    }
+    const meta=document.getElementById('wheel-player-meta');
+    if(meta){
+      const offer=lifePreserverOfferSnapshot;
+      if(offer&&offer.eligible){
+        const score=Number.isFinite(offer.playerScore)?offer.playerScore:'';
+        const gap=Math.round(Number(offer.leaderGap)||0);
+        meta.textContent=score===''?`${gap} behind 1st`:`Current total ${score} · ${gap} behind 1st`;
+      }else{
+        meta.textContent='';
+      }
+    }
+    const gameLine=document.getElementById('wheel-game-line');
+    if(gameLine){
+      gameLine.textContent=explained.gameLine||'';
+      gameLine.classList.toggle('hidden', !explained.gameLine);
+    }
+    const commit=document.getElementById('wheel-commit-line');
+    if(commit){
+      const range=explained.rangeLine||'Best help and largest setback show after the table is ready.';
+      commit.innerHTML=range.replace(/ · /g,'<br>');
+    }
+    const bestPlace=document.getElementById('wheel-best-place');
+    if(bestPlace){
+      bestPlace.textContent=explained.bestPlaceLine||'';
+      bestPlace.classList.toggle('hidden', !explained.bestPlaceLine);
     }
     const card=document.getElementById('life-preserver-why');
     const lead=document.getElementById('life-preserver-why-lead');
@@ -11017,7 +11118,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
-  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0;
+  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0, _lifePreserverCommitted=false;
   function lifePreserverSpinDuration(){
     if(GN_QA_MODE) return 80;
     const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -11029,13 +11130,37 @@ button.dealer-name-indicator .dealer-player-label {
     return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
   }
 
-  function getWheelSlices(){
-    const activePlayers=getActivePlayers(currentGame);
-    if(!wheelPlayer||!activePlayers.includes(wheelPlayer))return [];
-    if(lifePreserverOfferSnapshot?.player===wheelPlayer&&Array.isArray(lifePreserverOfferSnapshot.slices)){
-      return lifePreserverOfferSnapshot.slices;
+  function offerSlicesForPlayer(player){
+    if(!currentGame||!player) return lifePreserverOfferSnapshot||{slices:[]};
+    if(lifePreserverOfferSnapshot?.player===player&&lifePreserverOfferSnapshot.slices?.length){
+      return lifePreserverOfferSnapshot;
     }
-    return getLifePreserverOfferForPlayer(wheelPlayer, activePlayers).slices||[];
+    const activePlayers=getActivePlayers(currentGame);
+    let offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    if(offer.slices?.length) return offer;
+    const used=currentGame.hailMaryUsed||[];
+    if(!used.includes(player)) return offer;
+    currentGame.hailMaryUsed=used.filter((name)=>name!==player);
+    offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    currentGame.hailMaryUsed=used;
+    return offer;
+  }
+
+  function getWheelSlices(){
+    const player=wheelPlayer
+      || currentGame?.lifePreserverLastResult?.player
+      || document.getElementById('wheel-result-player')?.textContent
+      || '';
+    const activePlayers=currentGame?getActivePlayers(currentGame):[];
+    if(!player||(activePlayers.length&&!activePlayers.includes(player))){
+      return lifePreserverOfferSnapshot?.slices||[];
+    }
+    const offer=offerSlicesForPlayer(player);
+    if(offer.slices?.length){
+      wheelPlayer=player;
+      lifePreserverOfferSnapshot=offer;
+    }
+    return offer.slices||lifePreserverOfferSnapshot?.slices||[];
   }
 
   function resetLifePreserverResultPanel(){
@@ -11047,6 +11172,8 @@ button.dealer-name-indicator .dealer-player-label {
     if(commit) commit.classList.remove('hidden');
     if(spin) spin.classList.remove('hidden');
     if(help) help.classList.remove('hidden');
+    document.getElementById('wheel-modal')?.classList.remove('wheel-has-result');
+    document.getElementById('wheel-player-name')?.classList.remove('hidden');
   }
 
   function showLifePreserverResult(detail){
@@ -11054,20 +11181,53 @@ button.dealer-name-indicator .dealer-player-label {
     const commit=document.getElementById('wheel-commit-line');
     const spin=document.getElementById('btn-spin');
     const help=document.getElementById('btn-life-preserver-help');
+    const playerEl=document.getElementById('wheel-result-player');
     const adjEl=document.getElementById('wheel-result-adjustment');
     const totalEl=document.getElementById('wheel-result-total');
     const standEl=document.getElementById('wheel-result-standing');
     const adj=Number(detail.adj)||0;
-    const adjText=`${adj>0?'+':''}${adj}`;
-    if(adjEl) adjEl.textContent=`${detail.player}: ${detail.label||adjText} (${adjText})`;
-    if(totalEl) totalEl.textContent=`New total: ${detail.total}`;
-    const place=Number(detail.place)||0;
-    const suffix=place===1?'st':place===2?'nd':place===3?'rd':'th';
-    if(standEl) standEl.textContent=place?`Standing: ${place}${suffix}`:`Standing updated`;
+    const afterTotal=Number.isFinite(detail.total)?detail.total:adj;
+    const beforeTotal=Number.isFinite(detail.beforeTotal)?detail.beforeTotal:afterTotal-adj;
+    const described=(window.BPGLifePreserver&&typeof BPGLifePreserver.describeLifePreserverResult==='function')
+      ? BPGLifePreserver.describeLifePreserverResult({
+        adjustment:adj,
+        beforeTotal,
+        afterTotal,
+        beforeRank:detail.beforePlace,
+        afterRank:detail.place,
+        leaderGapBefore:detail.leaderGapBefore,
+        leaderGapAfter:detail.leaderGapAfter,
+        winLow:detail.winLow
+      })
+      : {headline:'',totals:'',standing:''};
+    if(playerEl) playerEl.textContent=detail.player||'';
+    if(adjEl) adjEl.textContent=described.headline||`${detail.adj>0?'+':''}${detail.adj}`;
+    if(totalEl) totalEl.textContent=described.totals||`New total: ${detail.total}`;
+    if(standEl) standEl.textContent=described.standing||'';
+    ['wheel-game-line','wheel-player-meta','wheel-best-place','wheel-why-line'].forEach((id)=>{
+      document.getElementById(id)?.classList.add('hidden');
+    });
     if(commit) commit.classList.add('hidden');
     if(spin) spin.classList.add('hidden');
     if(help) help.classList.add('hidden');
     if(result) result.classList.remove('hidden');
+    document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
+    const mode=document.getElementById('wheel-mode-label');
+    if(mode) mode.textContent='Life Preserver Unlocked';
+    document.getElementById('wheel-player-name')?.classList.add('hidden');
+    if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
+    const slices=(typeof getWheelSlices==='function'?getWheelSlices():[])||[];
+    const landed=slices.find((slice)=>Number(slice.adjustment)===adj);
+    const spinner=document.getElementById('wheel-spinner');
+    if(spinner&&landed&&window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function'){
+      const landing=BPGLifePreserver.rotationDegreesForSlice(landed);
+      if(Math.abs(currentWheelRotation||0)<1){
+        spinner.style.transition='none';
+        currentWheelRotation=landing;
+        spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+      }
+    }
+    drawWheel();
   }
 
   function drawWheel(){
@@ -11138,7 +11298,7 @@ button.dealer-name-indicator .dealer-player-label {
     wheelPlayer=p;
     lifePreserverOfferSnapshot=offer;
     document.getElementById('wheel-player-name').textContent=p;
-    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='🛟 Life Preserver Unlocked';
+    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='Life Preserver';
     document.getElementById('btn-spin').disabled=false;
     document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
     const spinner=document.getElementById('wheel-spinner');
@@ -11151,6 +11311,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     hideLifePreserverHelp();
     cancelLifePreserverSpin();
+    _lifePreserverCommitted=false;
     resetLifePreserverResultPanel();
     renderLifePreserverExplanation();
     drawWheel();
@@ -11179,68 +11340,85 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function spinWheel(){
+    if(_lifePreserverCommitted)return;
     cancelLifePreserverSpin();
-    const spinToken=_lifePreserverSpinToken;
+    const spinToken=++_lifePreserverSpinToken;
     document.getElementById('btn-spin').disabled=true;
     document.getElementById('btn-spin').textContent=LP_SPIN_COPY.spinning;
     const spinner=document.getElementById('wheel-spinner');
     const slices=drawWheel();
-    const deg=Math.floor(Math.random()*360);
-    currentWheelRotation += 360*7 + deg;
-    if(spinner)spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+    if(!currentGame||!wheelPlayer||!slices.length){
+      document.getElementById('btn-spin').disabled=false;
+      document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
+      return;
+    }
+    const alreadySpun=!!(currentGame.hailMaryUsed||[]).includes(wheelPlayer)
+      || (currentGame.rounds||[]).some(round=>round&&round.hailMaryBonus&&round.scores&&Object.prototype.hasOwnProperty.call(round.scores,wheelPlayer));
+    if(alreadySpun){
+      toast('This Life Preserver is already locked', 'warning');
+      closeWheel();
+      return;
+    }
+    const activePlayers=getActivePlayers(currentGame);
+    const over=isMatchOver(currentGame);
+    const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
+    if(!live.eligible){
+      toast('Life Preserver is no longer available', 'warning');
+      document.getElementById('btn-spin').disabled=false;
+      document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
+      closeWheel();
+      return;
+    }
+    const win=(window.BPGLifePreserver&&typeof BPGLifePreserver.pickWeightedSlice==='function')
+      ? BPGLifePreserver.pickWeightedSlice(slices)
+      : slices[0];
+    const proposed=Number(win?.adjustment)||0;
+    const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
+    if(proposed!==0&&adj===0){
+      toast('Life Preserver cannot be applied safely now', 'warning');
+      closeWheel();
+      return;
+    }
+    const beforeTotal=Number(currentGame.totals?.[wheelPlayer])||0;
+    const beforePlaces=competitionPlaces(activePlayers, currentGame.totals);
+    const locked=(window.BPGLifePreserver&&typeof BPGLifePreserver.buildLockedOutcome==='function')
+      ? BPGLifePreserver.buildLockedOutcome(live, Object.assign({}, win, {adjustment:adj}), currentGame.totals, activePlayers)
+      : null;
+    BPGScorebook.recordLifePreserverSpin(currentGame, wheelPlayer, adj);
+    if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
+      BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
+    }
+    syncCurrentLifePreserverHolds({gameOver:over});
+    addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win&&win.label||adj}" → ${adj>=0?'+':''}${adj}`);
+    currentGame.lifePreserverLastResult={
+      player:wheelPlayer,
+      adj,
+      beforeTotal,
+      total:currentGame.totals[wheelPlayer],
+      beforePlace:beforePlaces[wheelPlayer],
+      place:competitionPlaces(getActivePlayers(currentGame), currentGame.totals)[wheelPlayer],
+      leaderGapBefore:live.leaderGap,
+      leaderGapAfter:locked&&locked.leaderGapAfter,
+      winLow:!!live.winLow,
+      label:win&&win.label
+    };
+    _lifePreserverCommitted=true;
+    saveData();
+    scheduleRender();
+    const landing=(window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function')
+      ? BPGLifePreserver.rotationDegreesForSlice(win)
+      : 0;
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(spinner){
+      spinner.style.transition=reduce?'transform 180ms ease-out':'transform 3s cubic-bezier(0.12, 0.7, 0.2, 1)';
+      currentWheelRotation=(reduce?0:360*6)+landing;
+      spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
+    }
+    haptic([60, 80, 60, 80, 120]);
     _lifePreserverSpinTimer=setTimeout(()=>{
       _lifePreserverSpinTimer=null;
       if(spinToken!==_lifePreserverSpinToken)return;
-      if(!currentGame||!wheelPlayer)return;
-      const rotRad=((currentWheelRotation%360)*Math.PI)/180;
-      let pa=-Math.PI/2+rotRad;
-      while(pa<-Math.PI)pa+=2*Math.PI; while(pa>Math.PI)pa-=2*Math.PI;
-      let win=slices.find(s=>pa>=s._start&&pa<=s._end);
-      if(!win){const alt=pa+2*Math.PI; win=slices.find(s=>alt>=s._start&&alt<=s._end);}
-      if(!win)win=slices[0];
-      const activePlayers=getActivePlayers(currentGame);
-      const over=isMatchOver(currentGame);
-      const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
-      const proposed=Number(win?.adjustment)||0;
-      if(!live.eligible){
-        toast('Life Preserver is no longer available', 'warning');
-        document.getElementById('btn-spin').disabled=false;
-        document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
-        closeWheel();
-        return;
-      }
-      const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
-      if(proposed!==0&&adj===0){
-        toast('Life Preserver cannot be applied safely now', 'warning');
-        closeWheel();
-        return;
-      }
-      if(spinToken!==_lifePreserverSpinToken||!currentGame||!wheelPlayer)return;
-      const alreadySpun=!!(currentGame.hailMaryUsed||[]).includes(wheelPlayer)
-        || (currentGame.rounds||[]).some(round=>round&&round.hailMaryBonus&&round.scores&&Object.prototype.hasOwnProperty.call(round.scores,wheelPlayer));
-      if(alreadySpun){
-        toast('This Life Preserver is already locked', 'warning');
-        closeWheel();
-        return;
-      }
-      BPGScorebook.recordLifePreserverSpin(currentGame, wheelPlayer, adj);
-      if(window.BPGLifePreserver&&typeof BPGLifePreserver.markLifePreserverUsed==='function'){
-        BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
-      }
-      syncCurrentLifePreserverHolds({gameOver:over});
-      addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win.label}" → ${adj>=0?'+':''}${adj}`);
-      haptic([60, 80, 60, 80, 120]);
-      const table=getActivePlayers(currentGame);
-      const places=competitionPlaces(table, currentGame.totals);
-      showLifePreserverResult({
-        player:wheelPlayer,
-        label:win.label,
-        adj,
-        total:currentGame.totals[wheelPlayer],
-        place:places[wheelPlayer]
-      });
-      saveData();
-      scheduleRender();
+      showLifePreserverResult(currentGame.lifePreserverLastResult);
     },lifePreserverSpinDuration());
   }
 
@@ -12017,7 +12195,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(winners_.length>0){
       const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
       if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
-        endGame(false);
+        commitEndGame(false);
       }
     }
     scheduleRender();
@@ -13414,14 +13592,17 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
+      const keepLastPast=(wrap.clientWidth||0)>=700;
       fitActiveScorecardColumns(root);
       while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<roundIdxs.length){
+        if(keepLastPast&&hidden===roundIdxs.length-1) break;
         hidden++;
         applyHidden(hidden);
         fitActiveScorecardColumns(root);
       }
       if(options?.hideUntilLeadFits){
         while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
+          if(keepLastPast&&hidden===roundIdxs.length-1) break;
           hidden++;
           applyHidden(hidden);
           fitActiveScorecardColumns(root);
@@ -14041,7 +14222,10 @@ ${isDealer
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{ head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">R${r.round}</th>`; });
-    if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">R${currentGame.currentRound} · Now</th>`;
+    const nowLabel=window.matchMedia('(max-width: 760px)').matches
+      ? `R${currentGame.currentRound}`
+      : `R${currentGame.currentRound}\u00a0·\u00a0Now`;
+    if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
     try{
@@ -15447,17 +15631,43 @@ ${isDealer
     }, 4300);
   }
 
+  function endMatchCopy(over){
+    if(over){
+      return 'This writes the final standings to Records and clears the live table. Cancel keeps you on the scorecard.';
+    }
+    return 'This match is still in progress. Ending now writes the current standings to Records as a finished night and clears the live table. Home will no longer show Resume for this match. Cancel keeps you on the scorecard and does not change scores.';
+  }
+  function requestEndGame(){
+    if(!currentGame)return;
+    if(typeof closeActionsMenu==='function') closeActionsMenu();
+    const over=isMatchOver(currentGame);
+    const title=document.getElementById('end-match-title');
+    const copy=document.getElementById('end-match-copy');
+    if(title) title.textContent=over?'Save this match to Records?':'End this match now?';
+    if(copy) copy.textContent=endMatchCopy(over);
+    openModal('end-match-modal');
+  }
+  function closeEndMatchModal(){
+    closeModal('end-match-modal');
+  }
+  function confirmEndMatch(){
+    closeEndMatchModal();
+    commitEndGame(false);
+  }
   function endGame(silent=false){
     if(!currentGame)return;
-    if(!silent&&!confirm('Save match to records?'))return;
+    if(!silent){ requestEndGame(); return; }
+    commitEndGame(true);
+  }
+  function commitEndGame(silent=false){
+    if(!currentGame)return;
     const cfg=configs[currentGame.name];
     // Exclude retired players from winner consideration.
     const keys=getRecordedPlayers(currentGame);
     if(!keys.length){currentGame=null;saveData();goHome();return;}
     const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
     const topScore=currentGame.totals[sorted[0]];
-      const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
-
+    const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
     const data=createSavedMatchSnapshot(currentGame,tied);
     finishMatch(data, silent);
   }
@@ -16821,8 +17031,10 @@ ${isDealer
     });
 
     const playerList = Object.values(players);
-    allTime.mostWins = playerList.slice().sort((a,b)=>b.wins-a.wins||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.wins,label:`${p.wins} wins`}));
-    allTime.bestWinRate = playerList.filter(p=>p.games>=5).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.wins-a.wins).slice(0,10).map(p=>({player:p.name,value:Math.round(p.wins/p.games*100),label:`${p.wins}-${p.games-p.wins}`}));
+    // Career wins and win rate count completed matches. Win rate always stores
+    // the fraction so the UI can print "45% · 9 of 20". Leaders need 5 games.
+    allTime.mostWins = playerList.slice().sort((a,b)=>b.wins-a.wins||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.wins,wins:p.wins,games:p.games,label:`${p.wins} wins · ${p.games} games`}));
+    allTime.bestWinRate = playerList.filter(p=>p.games>=(window.BPGRecords?BPGRecords.WIN_RATE_MIN_GAMES:5)).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.wins-a.wins).slice(0,10).map(p=>({player:p.name,value:Math.round(p.wins/p.games*100),wins:p.wins,games:p.games,label:window.BPGRecords?BPGRecords.formatWinRate(p.wins,p.games):`${Math.round(p.wins/p.games*100)}% · ${p.wins} of ${p.games}`}));
     allTime.mostGames = playerList.slice().sort((a,b)=>b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.games,label:`${p.games} games`}));
     allTime.mostLasts = playerList.slice().sort((a,b)=>b.lasts-a.lasts||b.games-a.games).slice(0,10).map(p=>({player:p.name,value:p.lasts,label:`${p.lasts} last-place finishes`}));
     Object.entries(wizardBidStats).forEach(([p,s])=>{
@@ -16871,19 +17083,19 @@ ${isDealer
     });
     const topRivalries = rivalries.slice().sort((a,b)=>b.together-a.together).slice(0,5);
     const lopsidedRivalries = rivalries.slice().sort((a,b)=>b.edgePct-a.edgePct||b.together-a.together).slice(0,5);
-    const shameAwards = [
-      {emoji:'🏴',name:'The Disaster Award',record:games["Five Crowns"].worstGame,stat:r=>`${r.value} in Five Crowns`},
-      {emoji:'💀',name:'The Crash and Burn',record:games["Five Crowns"].worstRound,stat:r=>`${r.value} points in one round`},
-      {emoji:'🛡️',name:'The 818 Brick',record:games['818'].worstGame,stat:r=>`${r.value} in 818`},
-      {emoji:'🌶️',name:'The Meltdown',record:games["Beat the Heat"].worstGame,stat:r=>`${r.value} heat in Beat the Heat`},
-      {emoji:'🎰',name:'The Overconfident',record:Object.entries(wizardBidStats).map(([p,s])=>({player:p,value:s.busted,label:`${s.busted} busted bids`,date:'Career',game:'Wizard'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
-      {emoji:'👻',name:'The Invisible Man',record:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0] ? {player:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].name,value:playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].games,label:`${playerList.filter(p=>p.wins===0).sort((a,b)=>b.games-a.games)[0].games} games, 0 wins`,date:'Career'} : null,stat:r=>r.label},
-      {emoji:'🐢',name:'The Slow Learner',record:playerList.map(p=>({player:p.name,value:p.longestLast,label:`${p.longestLast} straight last-place finishes`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
-      {emoji:'🎯',name:'The Sharp Shooter',record:games.Wizard.bestExactBidPct,stat:r=>r.label},
-      {emoji:'👑',name:'The Comeback Kid',record:Object.entries(comebackWins).map(([p,v])=>({player:p,value:v,label:`${v} wins from a halftime deficit`,date:'Career'})).sort((a,b)=>b.value-a.value)[0]||null,stat:r=>r.label},
-      {emoji:'🔥',name:'The Streaker',record:allTime.longestWinningStreak,stat:r=>`${r.value} wins in a row`}
-    ];
-    const _atr = {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries},shameAwards};
+    const showComeback = window.BPGRecords ? BPGRecords.shouldShowComebackStats(completed) : false;
+    if(!showComeback){
+      allTime.biggestComeback = null;
+      allTime.mostComebackExtras = null;
+      allTime.biggestComebackExtra = null;
+    }
+    const shameAwards = window.BPGRecords
+      ? BPGRecords.buildShameAwards({games,allTime}, playerList, wizardBidStats, comebackWins, showComeback)
+      : [];
+    const lifePreserver = window.BPGRecords
+      ? BPGRecords.lifePreserverEvents(history, {configs,getDisplayPlayers,sortPlayersByTotal,competitionPlaces,scorebook:BPGScorebook})
+      : [];
+    const _atr = {completed,allTime,games,playerCards,rivalries:{top:topRivalries,lopsided:lopsidedRivalries,all:rivalries},shameAwards,lifePreserver,hasComebackData:showComeback};
     if(currentGame) _matchAllTimeRecordsSnap = _atr;
     return _atr;
   }
@@ -17212,6 +17424,8 @@ ${isDealer
           goHome();
         }else if(surface==='profiles'){
           showProfiles();
+        }else if(surface==='records'){
+          showHistory();
         }else if(surface==='race'){
           goHome();
           const match=history[0];
