@@ -27,3 +27,5 @@ Standing trap: [rc1-local-only.md](rc1-local-only.md) — this release does not 
 Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves a live match; it does not end it.
 
 Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.
+
+Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Preserver labels stay inside every slice; split outcomes into interleaved segments whose arcs still match the 45/30/5/12/8 table.

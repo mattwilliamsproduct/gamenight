@@ -469,229 +469,113 @@
     if (!document.getElementById('history-screen')?.classList.contains('hidden')) switchTab('hall-of-fame-view');
   }
 
-  function placeWheelCallouts(canvas, context, callouts, outer) {
-    let layer = document.getElementById('wheel-callouts');
-    if (!layer && canvas.parentElement) {
-      layer = document.createElement('div');
-      layer.id = 'wheel-callouts';
-      layer.className = 'wheel-callouts';
-      canvas.parentElement.appendChild(layer);
-    }
-    if (!layer) return;
-    layer.replaceChildren();
-    if (!callouts.length) return;
-    const shellW = canvas.clientWidth;
-    const shellH = canvas.clientHeight;
-    if (!shellW || !shellH || shellW < 80) {
-      if (!placeWheelCallouts._retry) {
-        placeWheelCallouts._retry = true;
-        requestAnimationFrame(() => {
-          placeWheelCallouts._retry = false;
-          placeWheelCallouts(canvas, context, callouts, outer);
-        });
-      }
-      return;
-    }
-    const shell = canvas.parentElement;
-    const layerW = (shell && shell.clientWidth) || shellW;
-    const layerH = (shell && shell.clientHeight) || shellH;
-    const canvasLeft = canvas.offsetLeft || 0;
-    const canvasTop = canvas.offsetTop || 0;
-    const cssCx = canvasLeft + shellW / 2;
-    const cssCy = canvasTop + shellH / 2;
-    const scale = canvas.width / shellW;
-    const bandR = (outer / canvas.width) * shellW;
-    const pad = 6;
-    const boxes = [];
-    const clamp = (value, min, max) => {
-      if (min > max) return (min + max) / 2;
-      return Math.min(max, Math.max(min, value));
-    };
-    const overlap = (a, b) => (
-      a.x < b.x + b.w + 6 && a.x + a.w + 6 > b.x && a.y < b.y + b.h + 6 && a.y + a.h + 6 > b.y
-    );
-    const shellBox = (shell && shell.getBoundingClientRect()) || canvas.getBoundingClientRect();
-    const pointerEl = (shell && shell.querySelector('.wheel-pointer')) || document.querySelector('.wheel-pointer');
-    const pointerPad = 10;
-    let pointerBox = { x: cssCx - 22, y: -4, w: 44, h: 40 };
-    if (pointerEl) {
-      const pointer = pointerEl.getBoundingClientRect();
-      pointerBox = {
-        x: pointer.left - shellBox.left - pointerPad,
-        y: pointer.top - shellBox.top - pointerPad,
-        w: pointer.width + pointerPad * 2,
-        h: pointer.height + pointerPad * 2
-      };
-    }
-    const hitsPointer = (box) => overlap(box, pointerBox);
-    callouts.forEach((item, index) => {
-      const el = document.createElement('span');
-      el.className = `wheel-callout is-${item.kind || 'zero'}`;
-      el.textContent = item.signed;
-      layer.appendChild(el);
-      const bw = Math.max(el.getBoundingClientRect().width, el.offsetWidth, 36);
-      const bh = Math.max(el.getBoundingClientRect().height, el.offsetHeight, 20);
-      const minX = pad + bw / 2;
-      const maxX = layerW - pad - bw / 2;
-      const minY = pad + bh / 2;
-      const maxY = layerH - pad - bh / 2;
-      const left = Math.cos(item.mid) < -0.18;
-      const right = Math.cos(item.mid) > 0.18;
-      const low = Math.sin(item.mid) > 0.12;
-      const high = Math.sin(item.mid) < -0.12;
-      const topCone = Math.sin(item.mid) < -0.55;
-      const gutter = bandR + 10 + Math.max(bw, bh) / 2;
-      const stack = index * (bh + 8);
-      const side = Math.cos(item.mid) >= 0 ? 1 : -1;
-      const candidates = [];
-      if (topCone || high) {
-        candidates.push(
-          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
-          { x: clamp(cssCx - side * Math.max(52, bw + 18), minX, maxX), y: minY + 4 },
-          { x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX), y: minY + bh + 12 }
-        );
-      }
-      if (left) {
-        candidates.push({ x: minX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
-      }
-      if (right) {
-        candidates.push({ x: maxX, y: clamp(cssCy + (low ? 28 + stack : high ? -28 - stack : (index % 2 ? 22 : -22)), minY, maxY) });
-      }
-      [gutter, gutter + 8, gutter + 16].forEach((radius) => {
-        const ang = topCone ? item.mid + side * 0.55 : item.mid;
-        candidates.push({
-          x: cssCx + Math.cos(ang) * radius,
-          y: cssCy + Math.sin(ang) * radius
-        });
-      });
-      let chosen = {
-        x: clamp(cssCx + side * Math.max(52, bw + 18), minX, maxX),
-        y: topCone ? minY + 4 : clamp(cssCy, minY, maxY)
-      };
-      candidates.some((spot) => {
-        const x = clamp(spot.x, minX, maxX);
-        const y = clamp(spot.y, minY, maxY);
-        const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
-        const onBand = Math.hypot(x - cssCx, y - cssCy) < bandR + 4;
-        if (onBand || hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
-        chosen = { x, y };
-        return true;
-      });
-      chosen.x = clamp(chosen.x, minX, maxX);
-      chosen.y = clamp(chosen.y, minY, maxY);
-      const nudges = [
-        { x: chosen.x + 36, y: chosen.y },
-        { x: chosen.x - 36, y: chosen.y },
-        { x: chosen.x, y: chosen.y + 28 },
-        { x: chosen.x, y: chosen.y - 28 },
-        { x: chosen.x + 48, y: chosen.y + 20 },
-        { x: chosen.x - 48, y: chosen.y + 20 }
-      ];
-      let safe = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh };
-      if (hitsPointer(safe) || boxes.some((other) => overlap(safe, other))) {
-        nudges.some((spot) => {
-          const x = clamp(spot.x, minX, maxX);
-          const y = clamp(spot.y, minY, maxY);
-          const box = { x: x - bw / 2, y: y - bh / 2, w: bw, h: bh };
-          if (hitsPointer(box) || boxes.some((other) => overlap(box, other))) return false;
-          chosen = { x, y };
-          return true;
-        });
-      }
-      el.style.left = `${chosen.x}px`;
-      el.style.top = `${chosen.y}px`;
-      const box = { x: chosen.x - bw / 2, y: chosen.y - bh / 2, w: bw, h: bh, cx: chosen.x, cy: chosen.y };
-      boxes.push(box);
-      const fromX = (canvas.width / 2) + Math.cos(item.mid) * (outer - 4);
-      const fromY = (canvas.height / 2) + Math.sin(item.mid) * (outer - 4);
-      const toX = (box.cx - canvasLeft) * scale;
-      const toY = (box.cy - canvasTop) * scale;
-      const dx = toX - fromX;
-      const dy = toY - fromY;
-      const dist = Math.hypot(dx, dy) || 1;
-      const stop = ((Math.min(bw, bh) / 2) + 10) * scale;
-      const t = Math.max(0, (dist - stop) / dist);
-      if (t > 0.08) {
-        context.beginPath();
-        context.moveTo(fromX, fromY);
-        context.lineTo(fromX + dx * t, fromY + dy * t);
-        context.strokeStyle = 'rgba(8, 87, 79, 0.4)';
-        context.lineWidth = 2;
-        context.stroke();
-      }
+  function clearWheelCallouts() {
+    const layer = document.getElementById('wheel-callouts');
+    if (layer) layer.replaceChildren();
+  }
+
+  function sizeLifePreserverModal() {
+    const modal = document.getElementById('wheel-modal');
+    const dialog = modal?.querySelector('.life-preserver-dialog');
+    const shell = dialog?.querySelector('.wheel-shell');
+    if (!modal || !dialog || !shell || modal.classList.contains('hidden')) return null;
+    shell.style.width = '';
+    shell.style.height = '';
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const cs = getComputedStyle(dialog);
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    let chrome = padY;
+    [...dialog.children].forEach((el) => {
+      if (el === shell || el.id === 'life-preserver-help') return;
+      if (el.classList.contains('hidden')) return;
+      chrome += el.getBoundingClientRect().height;
+      const style = getComputedStyle(el);
+      chrome += (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
     });
+    const availW = Math.max(176, Math.min(vw - 16, dialog.clientWidth || vw) - padX);
+    const availH = Math.max(176, vh - 16 - chrome);
+    const size = Math.floor(Math.min(availW, availH));
+    shell.style.width = `${size}px`;
+    shell.style.height = `${size}px`;
+    return { size, chrome, vw, vh, availW, availH };
   }
 
   function paintWheel() {
+    sizeLifePreserverModal();
     const canvas = document.getElementById('wheel-canvas');
     const live = (typeof getWheelSlices === 'function' ? getWheelSlices() : []) || [];
     const slices = live.length ? live : (paintWheel.lastSlices || []);
     if (!canvas) return slices;
     const context = canvas.getContext('2d');
+    clearWheelCallouts();
     if (!slices.length) {
       context.clearRect(0, 0, canvas.width, canvas.height);
-      const empty = document.getElementById('wheel-callouts');
-      if (empty) empty.replaceChildren();
+      paintWheel.lastLabels = [];
       return slices;
     }
     paintWheel.lastSlices = slices;
+    const LP = window.BPGLifePreserver || {};
     const total = slices.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const scale = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
-    const outer = cx * 0.70;
-    const inner = cx * 0.14;
-    const midR = (inner + outer) / 2;
+    const outerFrac = Number(LP.WHEEL_OUTER_FRAC) || 0.96;
+    const innerFrac = Number(LP.WHEEL_INNER_FRAC) || 0.18;
+    const outer = cx * outerFrac;
+    const inner = cx * innerFrac;
+    const cssWidth = canvas.clientWidth || canvas.width;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.beginPath();
-    context.arc(cx, cy, cx * 0.98, 0, Math.PI * 2);
-    context.fillStyle = '#f4efe4';
-    context.fill();
     let angle = -Math.PI / 2;
-    const callouts = [];
+    const labels = [];
     slices.forEach((slice) => {
       const arc = ((Number(slice.weight) || 0) / total) * Math.PI * 2;
-      const kind = (window.BPGLifePreserver && typeof BPGLifePreserver.wheelSliceKind === 'function')
-        ? BPGLifePreserver.wheelSliceKind(slice)
+      const kind = typeof LP.wheelSliceKind === 'function'
+        ? LP.wheelSliceKind(slice)
         : (slice.kind || (slice.adjustment === 0 ? 'zero' : 'good'));
       context.beginPath();
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
-      context.fillStyle = slice.color || (kind === 'good' ? '#34d399' : (kind === 'bad' ? '#f0a394' : '#c4b8ae'));
+      context.fillStyle = slice.color || (kind === 'good' ? '#2a9d8f' : (kind === 'bad' ? '#e4b4a6' : '#b4a89c'));
       context.fill();
-      context.strokeStyle = 'rgba(8, 87, 79, 0.35)';
-      context.lineWidth = 3;
+      context.strokeStyle = 'rgba(8, 87, 79, 0.28)';
+      context.lineWidth = 2;
       context.beginPath();
       context.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
       context.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
       context.stroke();
-      const mid = angle + arc / 2;
-      const signed = (window.BPGLifePreserver && typeof BPGLifePreserver.formatSignedPoints === 'function')
-        ? BPGLifePreserver.formatSignedPoints(slice.adjustment)
-        : String(slice.adjustment || '0');
-      const chord = 2 * Math.sin(arc / 2) * midR;
-      const font = Math.max(34, Math.min(52, 18 * scale, chord * 0.5));
-      context.font = `800 ${font}px "Nunito Sans", sans-serif`;
-      const textW = context.measureText(signed).width;
-      const roomy = kind !== 'bad' && arc >= Math.PI * 2 * 0.10 && textW < chord * 0.78;
-      context.fillStyle = kind === 'bad' ? '#3b1410' : (kind === 'good' ? '#04332e' : '#3f3a36');
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      if (roomy) {
-        context.fillText(signed, cx + Math.cos(mid) * midR, cy + Math.sin(mid) * midR);
-      } else {
-        callouts.push({ mid, signed, kind, font: Math.max(32, 16 * scale) });
-      }
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
     });
-    placeWheelCallouts(canvas, context, callouts, outer);
+    slices.forEach((slice) => {
+      const layout = typeof LP.labelLayout === 'function'
+        ? LP.labelLayout(slice, {
+          cx,
+          cy,
+          outer,
+          inner,
+          cssWidth,
+          canvasWidth: canvas.width
+        })
+        : null;
+      if (!layout) return;
+      labels.push(layout);
+      context.save();
+      context.translate(layout.x, layout.y);
+      context.rotate(layout.rotation);
+      context.font = `800 ${layout.canvasFont}px "Nunito Sans", sans-serif`;
+      context.fillStyle = layout.kind === 'bad' ? '#3b1410' : (layout.kind === 'good' ? '#04332e' : '#3f3a36');
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(layout.text, 0, 0);
+      context.restore();
+    });
     context.beginPath();
     context.arc(cx, cy, outer, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(138, 106, 50, 0.7)';
-    context.lineWidth = 3;
+    context.strokeStyle = 'rgba(138, 106, 50, 0.75)';
+    context.lineWidth = 5;
     context.stroke();
     context.beginPath();
     context.arc(cx, cy, inner - 2, 0, Math.PI * 2);
@@ -706,7 +590,39 @@
     const mode = document.getElementById('wheel-mode-label');
     if (mode && !resultOpen) mode.textContent = 'Life Preserver';
     canvas.dataset.slice2Wheel = '1';
+    paintWheel.lastLabels = labels;
+    paintWheel.lastGeometry = { cx, cy, outer, inner, cssWidth, canvasWidth: canvas.width };
     return slices;
+  }
+
+  function wheelLabelReport() {
+    const canvas = document.getElementById('wheel-canvas');
+    const shell = document.querySelector('.wheel-shell');
+    const spin = document.getElementById('btn-spin');
+    const labels = paintWheel.lastLabels || [];
+    const sized = sizeLifePreserverModal();
+    const shellBox = shell?.getBoundingClientRect();
+    const spinBox = spin?.getBoundingClientRect();
+    return {
+      callouts: document.querySelectorAll('.wheel-callout').length,
+      calloutLayer: document.querySelectorAll('#wheel-callouts > *').length,
+      labels: labels.map((item) => ({
+        text: item.text,
+        cssFont: item.cssFont,
+        radialMode: item.radialMode,
+        insideSegment: item.insideSegment,
+        insidePie: item.insidePie
+      })),
+      wheel: shellBox ? Math.round(Math.min(shellBox.width, shellBox.height)) : 0,
+      font: labels.length ? Math.round(Math.min(...labels.map((item) => item.cssFont)) * 10) / 10 : 0,
+      maxFont: labels.length ? Math.round(Math.max(...labels.map((item) => item.cssFont)) * 10) / 10 : 0,
+      chrome: sized?.chrome || 0,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      spinInView: !!(spinBox && spinBox.top >= -1 && spinBox.bottom <= window.innerHeight + 1 && spinBox.width > 8),
+      diameterShare: sized && sized.size
+        ? sized.size / Math.min(window.innerWidth, window.innerHeight - sized.chrome)
+        : 0
+    };
   }
 
   function enterRound() {
@@ -789,6 +705,11 @@
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => paintNav());
     }
+    window.addEventListener('resize', () => {
+      if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
+      sizeLifePreserverModal();
+      paintWheel();
+    });
   }
 
   function refresh(which) {
@@ -839,7 +760,7 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator };
+  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, sizeLifePreserverModal, wheelLabelReport };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

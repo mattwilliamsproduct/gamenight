@@ -920,9 +920,10 @@ html.slice2-tv #audit-modal {
 }
 
 html.slice2-tv #wheel-modal .life-preserver-dialog {
-  width: min(640px, 100%);
-  max-height: calc(100dvh - 12px);
-  overflow: auto;
+  width: min(96vw, 56rem);
+  max-width: min(96vw, 56rem);
+  max-height: calc(100dvh - 8px);
+  overflow: hidden;
 }
 
 html.slice2-tv #wheel-commit-line {
@@ -938,44 +939,15 @@ html.slice2-tv #wheel-modal .life-preserver-dialog > p.text-xs {
 html.slice2-tv .wheel-shell {
   position: relative;
   flex: 0 0 auto;
-  width: min(28rem, 86vw, max(260px, 48dvh));
-  height: min(28rem, 86vw, max(260px, 48dvh));
-  margin-top: 0.35rem;
-  overflow: visible;
+  width: min(28rem, 86vw, 52dvh);
+  height: min(28rem, 86vw, 52dvh);
+  margin-top: 0.2rem;
+  overflow: hidden;
 }
 
-html.slice2-tv .wheel-callouts {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-}
-
+html.slice2-tv .wheel-callouts,
 html.slice2-tv .wheel-callout {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-  min-width: 2.15rem;
-  padding: 0.16rem 0.42rem;
-  border-radius: 999px;
-  background: #f7f3ea;
-  border: 1px solid rgba(8, 87, 79, 0.3);
-  color: var(--s2-ink);
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 0.8rem;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: 0;
-  overflow: visible;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-html.slice2-tv .wheel-callout.is-bad {
-  color: #3b1410;
-}
-
-html.slice2-tv .wheel-callout.is-good {
-  color: #04332e;
+  display: none !important;
 }
 
 @media (max-height: 700px) {
@@ -986,16 +958,14 @@ html.slice2-tv .wheel-callout.is-good {
   }
 
   html.slice2-tv .wheel-shell {
-    width: min(22rem, 72vw, max(260px, 42dvh));
-    height: min(22rem, 72vw, max(260px, 42dvh));
-    margin-top: 0.45rem;
-    margin-bottom: 0.55rem;
+    margin-top: 0.2rem;
+    margin-bottom: 0.35rem;
   }
 
   html.slice2-tv #wheel-modal .life-preserver-dialog {
     max-height: calc(100dvh - 8px);
-    overflow-y: auto;
-    padding: 0.85rem 1.1rem 0.75rem !important;
+    overflow: hidden;
+    padding: 0.7rem 1rem 0.65rem !important;
   }
 
   html.slice2-tv #wheel-player-name {
@@ -1029,12 +999,11 @@ html.slice2-tv .wheel-callout.is-good {
 }
 
 html.slice2-tv .wheel-shell::before {
-  background: #f4efe4 !important;
+  inset: 0 !important;
+  background: transparent !important;
   box-shadow:
-    0 14px 28px -22px rgba(20, 49, 46, 0.55),
-    inset 0 0 0 10px #f7f1e6,
-    inset 0 0 0 13px rgba(138, 106, 50, 0.45),
-    inset 0 8px 16px rgba(255, 255, 255, 0.35) !important;
+    0 10px 22px -18px rgba(20, 49, 46, 0.45),
+    inset 0 0 0 3px rgba(138, 106, 50, 0.55) !important;
 }
 
 html.slice2-tv #wheel-canvas {
@@ -1119,15 +1088,15 @@ html.slice2-tv .wheel-legend-chip::before {
 }
 
 html.slice2-tv .wheel-legend-chip.is-help::before {
-  background: #34d399;
+  background: #2a9d8f;
 }
 
 html.slice2-tv .wheel-legend-chip.is-zero::before {
-  background: #c4b8ae;
+  background: #b4a89c;
 }
 
 html.slice2-tv .wheel-legend-chip.is-setback::before {
-  background: #f0a394;
+  background: #e4b4a6;
 }
 
 html.slice2-tv .wheel-spinner-hub {

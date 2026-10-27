@@ -3612,32 +3612,24 @@ button.dealer-name-indicator {
     .wheel-legend-chip.is-setback::before { background: #f0a394; }
     .wheel-shell {
       position: relative;
-      width: min(26rem, 72vw, calc(100dvh - 22rem));
-      height: min(26rem, 72vw, calc(100dvh - 22rem));
+      width: min(26rem, 86vw, calc(100dvh - 18rem));
+      height: min(26rem, 86vw, calc(100dvh - 18rem));
       flex: 0 1 auto;
       margin-bottom: 0.85rem;
+      overflow: hidden;
     }
     .wheel-shell::before {
       content: '';
       position: absolute;
-      inset: -14px;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
       border-radius: 999px;
-      background: conic-gradient(
-        from -20deg,
-        #fffaf1 0deg 38deg,
-        #e76f51 38deg 58deg,
-        #fffaf1 58deg 128deg,
-        #e76f51 128deg 148deg,
-        #fffaf1 148deg 218deg,
-        #e76f51 218deg 238deg,
-        #fffaf1 238deg 308deg,
-        #e76f51 308deg 328deg,
-        #fffaf1 328deg 360deg
-      );
-      box-shadow: 0 18px 36px -28px rgba(0,45,42,0.9), inset 0 0 0 3px rgba(7,63,59,0.35);
+      background: transparent;
+      box-shadow: inset 0 0 0 3px rgba(138, 106, 50, 0.55);
     }
+    .wheel-callouts,
+    .wheel-callout { display: none !important; }
     .wheel-shell canvas {
       position: relative;
       z-index: 1;
@@ -8459,7 +8451,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Life Preserver Wheel -->
     <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      <div class="surface-raised life-preserver-dialog w-full max-w-3xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
+      <div class="surface-raised life-preserver-dialog w-full max-w-5xl p-7 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
         <div id="wheel-mode-label" class="wheel-mode-label">Life Preserver</div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
@@ -8474,7 +8466,7 @@ button.dealer-name-indicator .dealer-player-label {
             <div class="wheel-pointer" aria-hidden="true"></div>
           </div>
           <div class="wheel-spinner-hub"></div>
-          <div id="wheel-callouts" class="wheel-callouts"></div>
+          <div id="wheel-callouts" class="wheel-callouts" hidden></div>
         </div>
         <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
           <span class="wheel-legend-chip is-help">Help</span>
@@ -11313,8 +11305,11 @@ button.dealer-name-indicator .dealer-player-label {
     _lifePreserverCommitted=false;
     resetLifePreserverResultPanel();
     renderLifePreserverExplanation();
-    drawWheel();
     openModal('wheel-modal');
+    if(window.BPGSlice2&&typeof BPGSlice2.sizeLifePreserverModal==='function'){
+      BPGSlice2.sizeLifePreserverModal();
+    }
+    drawWheel();
   }
 
   function applyLifePreserverResult(player, proposedAdj, liveOffer){
@@ -11404,9 +11399,11 @@ button.dealer-name-indicator .dealer-player-label {
     _lifePreserverCommitted=true;
     saveData();
     scheduleRender();
-    const landing=(window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function')
-      ? BPGLifePreserver.rotationDegreesForSlice(win)
-      : 0;
+    const landing=(window.BPGLifePreserver&&typeof BPGLifePreserver.landingDegreesForSlice==='function')
+      ? BPGLifePreserver.landingDegreesForSlice(win)
+      : ((window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function')
+        ? BPGLifePreserver.rotationDegreesForSlice(win)
+        : 0);
     const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(spinner){
       spinner.style.transition=reduce?'transform 180ms ease-out':'transform 3s cubic-bezier(0.12, 0.7, 0.2, 1)';

@@ -22,6 +22,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
+- A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.
 
 ### Kills
 
@@ -52,6 +53,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
 - A setback callout that clips the + so +10 reads as 10 or as help.
 - A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
+- Life Preserver labels outside the pie, callout pills, or leader lines.
 
 ## Prefer
 

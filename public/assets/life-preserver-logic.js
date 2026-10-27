@@ -515,48 +515,267 @@
     });
   }
 
-  function alternateMagnitudes(slices) {
-    const sorted = [...slices].sort((a, b) => (
-      Math.abs(a.adjustment) - Math.abs(b.adjustment) || a.weight - b.weight
-    ));
+  const ROULETTE_UNIT = 0.025;
+  const WHEEL_OUTER_FRAC = 0.96;
+  const WHEEL_INNER_FRAC = 0.18;
+
+  function outcomeKey(slice) {
+    return `${wheelSliceKind(slice)}:${Number(slice.adjustment) || 0}`;
+  }
+
+  function segmentCountFor(weight) {
+    const value = Number(weight) || 0;
+    if (value <= 0) return 0;
+    return Math.max(1, Math.round(value / ROULETTE_UNIT));
+  }
+
+  function mergeEqualOutcomes(slices) {
+    const map = new Map();
+    (slices || []).forEach((slice) => {
+      const key = outcomeKey(slice);
+      if (!map.has(key)) {
+        map.set(key, {
+          ...stripWheelMeta(slice),
+          weight: 0,
+          outcomeKey: key
+        });
+      }
+      map.get(key).weight += Number(slice.weight) || 0;
+    });
+    return [...map.values()].filter((slice) => slice.weight > 0);
+  }
+
+  function assignOutcomeColors(outcomes) {
+    const goods = outcomes.filter((slice) => wheelSliceKind(slice) === 'good')
+      .sort((a, b) => Math.abs(a.adjustment) - Math.abs(b.adjustment));
+    const bads = outcomes.filter((slice) => wheelSliceKind(slice) === 'bad')
+      .sort((a, b) => Math.abs(a.adjustment) - Math.abs(b.adjustment));
+    const goodColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodStrong];
+    const badColors = [COLORS.badSoft, COLORS.badStrong];
+    goods.forEach((slice, index) => {
+      slice.color = goodColors[Math.min(index, goodColors.length - 1)];
+    });
+    bads.forEach((slice, index) => {
+      slice.color = badColors[Math.min(index, badColors.length - 1)];
+    });
+    outcomes.forEach((slice) => {
+      if (wheelSliceKind(slice) === 'zero') slice.color = COLORS.zero;
+    });
+    return outcomes;
+  }
+
+  function summarizeWheelOutcomes(slices) {
+    const merged = mergeEqualOutcomes(slices);
+    const total = merged.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
+    return merged.map((slice) => {
+      const segments = (slices || []).filter((item) => outcomeKey(item) === slice.outcomeKey).length
+        || segmentCountFor(slice.weight);
+      return {
+        outcomeKey: slice.outcomeKey,
+        adjustment: Number(slice.adjustment) || 0,
+        kind: wheelSliceKind(slice),
+        label: formatSignedPoints(slice.adjustment),
+        probability: (Number(slice.weight) || 0) / total,
+        weight: Number(slice.weight) || 0,
+        segments,
+        arcDegrees: ((Number(slice.weight) || 0) / total) * 360
+      };
+    }).sort((a, b) => a.adjustment - b.adjustment || a.kind.localeCompare(b.kind));
+  }
+
+  function arrangeRouletteSegments(outcomes) {
+    const bags = (outcomes || []).map((outcome) => {
+      const n = segmentCountFor(outcome.weight);
+      return {
+        outcome,
+        key: outcome.outcomeKey || outcomeKey(outcome),
+        kind: wheelSliceKind(outcome),
+        color: outcome.color,
+        left: n,
+        n,
+        each: n ? (Number(outcome.weight) || 0) / n : 0
+      };
+    }).filter((bag) => bag.n > 0);
+    const total = bags.reduce((sum, bag) => sum + bag.n, 0);
     const out = [];
-    let low = 0;
-    let high = sorted.length - 1;
-    while (low <= high) {
-      out.push(sorted[low++]);
-      if (low <= high) out.push(sorted[high--]);
+    const remaining = () => bags.reduce((sum, bag) => sum + bag.left, 0);
+    const score = (bag, last) => {
+      if (bag.left <= 0) return -1e9;
+      const placed = total - remaining();
+      const expected = bag.n * (placed + 1) / Math.max(total, 1);
+      const already = bag.n - bag.left;
+      let value = (expected - already) * 12;
+      if (last) {
+        if (bag.key === last.outcomeKey) value -= 90;
+        if (bag.color === last.color) value -= 22;
+        if (bag.kind === last.kind) value -= 8;
+        if (last.kind === 'bad' && bag.kind === 'bad') value -= 400;
+      }
+      return value;
+    };
+    for (let i = 0; i < total; i++) {
+      const last = out[out.length - 1];
+      let best = null;
+      let bestScore = -1e12;
+      bags.forEach((bag) => {
+        const value = score(bag, last);
+        if (value > bestScore) {
+          bestScore = value;
+          best = bag;
+        }
+      });
+      best.left -= 1;
+      const slice = makeSlice(best.outcome.adjustment, best.kind, best.color, best.each);
+      slice.outcomeKey = best.key;
+      slice.segmentIndex = best.n - best.left - 1;
+      slice.segmentCount = best.n;
+      out.push(slice);
+    }
+    if (out.length > 2) {
+      const first = out[0];
+      const last = out[out.length - 1];
+      const wrapClash = first.outcomeKey === last.outcomeKey
+        || (first.kind === 'bad' && last.kind === 'bad');
+      if (wrapClash) {
+        for (let i = 1; i < out.length - 1; i++) {
+          const candidate = out[i];
+          const prev = out[i - 1];
+          const next = out[i + 1];
+          if (candidate.outcomeKey === first.outcomeKey) continue;
+          if (candidate.kind === 'bad' && last.kind === 'bad') continue;
+          if (prev.kind === 'bad' && last.kind === 'bad') continue;
+          if (next.kind === 'bad' && first.kind === 'bad') continue;
+          out[i] = last;
+          out[out.length - 1] = candidate;
+          break;
+        }
+      }
     }
     return out;
   }
 
-  // Spread red/gray spacers around the wheel so helpful greens do not form one
-  // Pac-Man wedge. With more greens than spacers, one pair of greens may touch.
-  function arrangeWheelSlices(slices) {
-    const groups = { bad: [], zero: [], good: [] };
-    slices.forEach(slice => {
-      groups[wheelSliceKind(slice)].push(slice);
+  function attachSliceArcs(slices) {
+    const arcs = sliceArcs(slices);
+    (slices || []).forEach((slice, index) => {
+      slice._start = arcs[index].start;
+      slice._end = arcs[index].end;
     });
-    groups.good = alternateMagnitudes(groups.good);
-    groups.bad = alternateMagnitudes(groups.bad);
+    return slices || [];
+  }
 
-    const spacers = [];
-    const spacerTurns = Math.max(groups.bad.length, groups.zero.length);
-    for (let i = 0; i < spacerTurns; i++) {
-      if (i < groups.bad.length) spacers.push(groups.bad[i]);
-      if (i < groups.zero.length) spacers.push(groups.zero[i]);
-    }
-    if (!spacers.length) return groups.good.map(stripWheelMeta);
+  function landingDegreesForSlice(slice, random) {
+    if (!slice || !Number.isFinite(slice._start) || !Number.isFinite(slice._end)) return 0;
+    const span = slice._end - slice._start;
+    if (span <= 0) return rotationDegreesForSlice(slice);
+    const inset = Math.min(Math.max(span * 0.18, span * 0.08), span * 0.35);
+    const lo = slice._start + inset;
+    const hi = slice._end - inset;
+    const draw = typeof random === 'function' ? Number(random()) : 0.5;
+    const t = Number.isFinite(draw) ? Math.min(Math.max(draw, 0), 1) : 0.5;
+    const angle = lo + (hi - lo) * t;
+    return ((angle + Math.PI / 2) * 180) / Math.PI;
+  }
 
-    const n = slices.length;
-    const placed = new Array(n).fill(null);
-    for (let i = 0; i < spacers.length; i++) {
-      placed[Math.floor((i * n) / spacers.length)] = spacers[i];
+  function wheelAngleFromDegrees(degrees) {
+    return ((Number(degrees) || 0) * Math.PI) / 180 - Math.PI / 2;
+  }
+
+  function angleInArc(angle, start, end) {
+    const twoPi = Math.PI * 2;
+    let a = angle;
+    let s = start;
+    let e = end;
+    while (s < 0) {
+      s += twoPi;
+      a += twoPi;
+      e += twoPi;
     }
-    let gi = 0;
-    for (let i = 0; i < n; i++) {
-      if (!placed[i]) placed[i] = groups.good[gi++];
+    while (a < s) a += twoPi;
+    return a <= e + 1e-6;
+  }
+
+  function pointInSlice(x, y, cx, cy, inner, outer, start, end, pad) {
+    const dx = x - cx;
+    const dy = y - cy;
+    const radius = Math.hypot(dx, dy);
+    const slack = Number.isFinite(pad) ? pad : 1.5;
+    if (radius < inner - slack || radius > outer + slack) return false;
+    return angleInArc(Math.atan2(dy, dx), start, end);
+  }
+
+  function labelLayout(slice, geometry) {
+    const geo = geometry || {};
+    const cx = Number(geo.cx) || 0;
+    const cy = Number(geo.cy) || 0;
+    const outer = Number(geo.outer) || 0;
+    const inner = Number(geo.inner) || 0;
+    const cssWidth = Number(geo.cssWidth) || outer * 2 || 1;
+    const canvasWidth = Number(geo.canvasWidth) || cssWidth;
+    const start = Number.isFinite(slice?._start) ? slice._start : -Math.PI / 2;
+    const end = Number.isFinite(slice?._end) ? slice._end : start;
+    const arc = Math.max(end - start, 0);
+    const mid = start + arc / 2;
+    const midR = (inner + outer) / 2;
+    const signed = formatSignedPoints(slice?.adjustment);
+    const scale = canvasWidth / cssWidth;
+    const chord = 2 * Math.sin(arc / 2) * midR;
+    const radial = Math.max(outer - inner, 1);
+    const radialMode = chord < Math.max(40 * scale, signed.length * 18 * scale);
+    const chordCss = chord / scale;
+    const radialCss = radial / scale;
+    const targetCss = Math.max(11, Math.min(cssWidth * 0.055, radialCss * 0.2, radialMode ? chordCss * 0.72 : chordCss * 0.42));
+    const cssFont = Math.max(10, Math.min(targetCss, radialMode ? chordCss * 0.78 : chordCss * 0.48));
+    const canvasFont = cssFont * scale;
+    const textW = signed.length * canvasFont * 0.62;
+    const textH = canvasFont;
+    const x = cx + Math.cos(mid) * midR;
+    const y = cy + Math.sin(mid) * midR;
+    let rotation = 0;
+    if (radialMode) {
+      rotation = mid;
+      if (Math.cos(mid) < 0) rotation += Math.PI;
     }
-    return placed.map(stripWheelMeta);
+    const hw = textW / 2;
+    const hh = textH / 2;
+    const corners = [
+      { x: -hw, y: -hh },
+      { x: hw, y: -hh },
+      { x: hw, y: hh },
+      { x: -hw, y: hh }
+    ].map((point) => {
+      const cos = Math.cos(rotation);
+      const sin = Math.sin(rotation);
+      return {
+        x: x + point.x * cos - point.y * sin,
+        y: y + point.x * sin + point.y * cos
+      };
+    });
+    const pad = Math.max(1.25 * scale, 1);
+    const insideSegment = corners.every((point) => (
+      pointInSlice(point.x, point.y, cx, cy, inner, outer, start, end, pad)
+    ));
+    const insidePie = corners.every((point) => {
+      const radius = Math.hypot(point.x - cx, point.y - cy);
+      return radius <= outer + pad && radius >= Math.max(0, inner - pad);
+    });
+    return {
+      text: signed,
+      x,
+      y,
+      mid,
+      midR,
+      arc,
+      rotation,
+      radialMode,
+      canvasFont,
+      cssFont,
+      textW,
+      textH,
+      corners,
+      insideSegment,
+      insidePie,
+      kind: wheelSliceKind(slice || {})
+    };
   }
 
   function bestAllowedRankFor(_playerCount, _currentRank) {
@@ -760,7 +979,8 @@
       ...slicesForBand([0], OUTCOME_TABLE.noChange, 'zero', sign, () => COLORS.zero),
       ...slicesForBand(setbacks, OUTCOME_TABLE.smallSetback, 'bad', sign, (index) => (index ? COLORS.badStrong : COLORS.badSoft))
     ];
-    return arrangeWheelSlices(raw);
+    const merged = assignOutcomeColors(mergeEqualOutcomes(raw));
+    return arrangeRouletteSegments(merged);
   }
 
   function ineligible(reason, extras) {
@@ -1089,12 +1309,27 @@
     bestAllowedRankFor,
     scoringRounds,
     OUTCOME_TABLE,
+    COLORS,
+    ROULETTE_UNIT,
+    WHEEL_OUTER_FRAC,
+    WHEEL_INNER_FRAC,
     sliceArcs,
+    attachSliceArcs,
     wheelSliceKind,
+    outcomeKey,
+    segmentCountFor,
+    mergeEqualOutcomes,
+    summarizeWheelOutcomes,
     pickWeightedSlice,
     buildLockedOutcome,
     describeLifePreserverResult,
     rotationDegreesForSlice,
+    landingDegreesForSlice,
+    wheelAngleFromDegrees,
+    angleInArc,
+    pointInSlice,
+    labelLayout,
+    buildSlices,
     formatWheelLabel,
     formatSignedPoints
   };
