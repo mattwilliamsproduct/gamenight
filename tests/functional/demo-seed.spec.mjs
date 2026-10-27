@@ -81,7 +81,10 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#wheel-result')).not.toHaveClass(/hidden/);
     await expect(page.locator('#btn-spin')).toBeHidden();
+    await expect(page.locator('#wheel-mode-label')).toHaveText('Life Preserver Unlocked');
     await expect(page.locator('#wheel-result-adjustment')).toContainText('+20 points');
+    await expect(page.locator('#wheel-result-total')).toContainText('41 → 61');
+    await expect(page.locator('#wheel-result-standing')).toContainText('3rd → 2nd');
     await expect(page.locator('#wheel-legend')).toBeVisible();
     const painted = await page.evaluate(() => {
       const canvas = document.getElementById('wheel-canvas');

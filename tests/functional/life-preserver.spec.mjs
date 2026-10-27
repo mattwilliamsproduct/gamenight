@@ -65,6 +65,118 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   expect(badWeight / total).toBeLessThanOrEqual(0.10);
 });
 
+test('Life Preserver callouts stay signed and inside the wheel', async ({page}) => {
+  for (const width of [375, 390, 1440]) {
+    await page.setViewportSize({width, height: width === 1440 ? 900 : 844});
+    await page.goto(`/?demo&view=lifepreserver-low`, {waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+    await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+    await page.locator('.wheel-callout').first().waitFor({state: 'visible', timeout: 5000});
+    await page.waitForFunction(() => {
+      const shell = document.querySelector('.wheel-shell')?.getBoundingClientRect();
+      const chips = [...document.querySelectorAll('.wheel-callout')];
+      return !!(shell && chips.length && chips.every((el) => {
+        const box = el.getBoundingClientRect();
+        return box.width > 8 && box.left >= shell.left - 1 && box.right <= shell.right + 1 && box.top >= shell.top - 1 && box.bottom <= shell.bottom + 1;
+      }));
+    }, null, {timeout: 4000});
+    const report = await page.evaluate(() => {
+      const hits = (a, b) => !!(a && b && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
+      const shell = document.querySelector('.wheel-shell')?.getBoundingClientRect();
+      const modal = document.querySelector('#wheel-modal .life-preserver-dialog')?.getBoundingClientRect();
+      const pointer = document.querySelector('.wheel-pointer')?.getBoundingClientRect();
+      const chips = [...document.querySelectorAll('.wheel-callout')].map((el) => {
+        const box = el.getBoundingClientRect();
+        return {
+          text: (el.textContent || '').trim(),
+          width: box.width,
+          unclipped: el.scrollWidth <= el.clientWidth + 1,
+          insideShell: !!(shell && box.left >= shell.left - 1 && box.top >= shell.top - 1 && box.right <= shell.right + 1 && box.bottom <= shell.bottom + 1),
+          insideModal: !!(modal && box.left >= modal.left - 1 && box.top >= modal.top - 1 && box.right <= modal.right + 1 && box.bottom <= modal.bottom + 1),
+          missesPointer: !hits(box, pointer)
+        };
+      });
+      return chips;
+    });
+    expect(report.length).toBeGreaterThan(0);
+    report.forEach((chip) => {
+      expect(chip.text, `${width} callout stays signed ${JSON.stringify(chip)}`).toMatch(/^(0|[+\u2212\-]\d+)$/);
+      expect(chip.unclipped, `${width} ${chip.text} text stays inside its chip`).toBe(true);
+      expect(chip.insideShell, `${width} ${chip.text} stays in the wheel ${JSON.stringify(chip)}`).toBe(true);
+      expect(chip.insideModal, `${width} ${chip.text} stays in the modal`).toBe(true);
+      expect(chip.missesPointer, `${width} ${chip.text} stays off the pointer ${JSON.stringify(chip)}`).toBe(true);
+    });
+    expect(report.some((chip) => chip.text === '+10'), `${width} shows a full +10 setback`).toBe(true);
+  }
+});
+
+test('Life Preserver result callouts stay off the landed pointer', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.emulateMedia({reducedMotion: 'reduce'});
+  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  await page.locator('#btn-spin').click();
+  await expect(page.locator('#wheel-result')).toBeVisible({timeout: 4000});
+  await page.locator('.wheel-callout').first().waitFor({state: 'visible', timeout: 5000});
+  const report = await page.evaluate(() => {
+    const hits = (a, b) => !!(a && b && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
+    const pointer = document.querySelector('.wheel-pointer')?.getBoundingClientRect();
+    return [...document.querySelectorAll('.wheel-callout')].map((el) => {
+      const box = el.getBoundingClientRect();
+      return {
+        text: (el.textContent || '').trim(),
+        missesPointer: !hits(box, pointer),
+        pointer
+      };
+    });
+  });
+  expect(report.length).toBeGreaterThan(0);
+  report.forEach((chip) => {
+    expect(chip.missesPointer, `result ${chip.text} stays off the pointer ${JSON.stringify(chip)}`).toBe(true);
+  });
+});
+
+test('Life Preserver dialog stays usable at a short laptop height', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 640});
+  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  await page.locator('.wheel-callout').first().waitFor({state: 'visible', timeout: 5000});
+  const fit = await page.evaluate(() => {
+    const hits = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
+    const dialog = document.querySelector('#wheel-modal .life-preserver-dialog');
+    const shell = document.querySelector('.wheel-shell');
+    const pointer = document.querySelector('.wheel-pointer');
+    const help = document.getElementById('btn-life-preserver-help');
+    if (!dialog || !shell) return {ok: false};
+    const dialogBox = dialog.getBoundingClientRect();
+    const shellBox = shell.getBoundingClientRect();
+    const pointerBox = pointer?.getBoundingClientRect();
+    const copy = ['wheel-mode-label', 'wheel-player-name', 'wheel-player-meta', 'wheel-game-line', 'wheel-commit-line', 'wheel-best-place']
+      .map((id) => document.getElementById(id))
+      .filter((el) => el && !el.classList.contains('hidden'))
+      .map((el) => ({id: el.id, box: el.getBoundingClientRect(), text: (el.textContent || '').trim()}));
+    const chips = [...document.querySelectorAll('.wheel-callout')].map((el) => {
+      const box = el.getBoundingClientRect();
+      return {text: (el.textContent || '').trim(), missesPointer: !hits(box, pointerBox)};
+    });
+    const overlapCopy = copy.filter((item) => hits(item.box, shellBox));
+    return {
+      ok: shellBox.width >= 259 && overlapCopy.length === 0 && chips.every((chip) => chip.missesPointer),
+      wheel: Math.round(shellBox.width),
+      overlapCopy,
+      chips,
+      helpInDialog: !!(help && help.getBoundingClientRect().bottom <= dialogBox.bottom + 2),
+      canScroll: dialog.scrollHeight > dialog.clientHeight - 1 || dialogBox.bottom <= window.innerHeight + 2
+    };
+  });
+  expect(fit.wheel, `short laptop keeps the wheel at least 260px ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(260);
+  expect(fit.overlapCopy, `short laptop copy stays off the wheel ${JSON.stringify(fit.overlapCopy)}`).toEqual([]);
+  fit.chips.forEach((chip) => {
+    expect(chip.missesPointer, `short laptop ${chip.text} stays off the pointer`).toBe(true);
+  });
+  expect(fit.canScroll || fit.helpInDialog, 'short laptop modal fits or scrolls').toBe(true);
+});
+
 test('Life Preserver locks the outcome before the reveal and blocks a second spin', async ({page}) => {
   await openScenario(page, {scenario: 'five-crowns-preservers', surface: 'scorecard'});
   await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();

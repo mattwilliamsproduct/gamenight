@@ -3576,11 +3576,16 @@ button.dealer-name-indicator {
     }
     .wheel-mode-label {
       font-family: "Bree Serif", Georgia, serif;
-      font-size: 1.15rem;
+      font-size: clamp(1.05rem, 4.4vw, 1.35rem);
       font-weight: 800;
-      line-height: 1.2;
-      margin: 0 2.5rem 0.45rem;
+      line-height: 1.25;
+      margin: 0.1rem 2.4rem 0.55rem;
       color: var(--ink);
+      white-space: nowrap;
+    }
+    #wheel-modal.wheel-has-result .wheel-mode-label {
+      font-size: clamp(1.1rem, 4.8vw, 1.45rem);
+      margin: 0.15rem 2.4rem 0.85rem;
     }
     .wheel-legend {
       display: flex;
@@ -8465,8 +8470,11 @@ button.dealer-name-indicator .dealer-player-label {
         <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
-          <div id="wheel-spinner" class="wheel-spinner"></div>
+          <div id="wheel-spinner" class="wheel-spinner">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+          </div>
           <div class="wheel-spinner-hub"></div>
+          <div id="wheel-callouts" class="wheel-callouts"></div>
         </div>
         <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
           <span class="wheel-legend-chip is-help">Help</span>
@@ -10100,7 +10108,8 @@ button.dealer-name-indicator .dealer-player-label {
     }
     const commit=document.getElementById('wheel-commit-line');
     if(commit){
-      commit.textContent=explained.rangeLine||'Best help and largest setback show after the table is ready.';
+      const range=explained.rangeLine||'Best help and largest setback show after the table is ready.';
+      commit.innerHTML=range.replace(/ · /g,'<br>');
     }
     const bestPlace=document.getElementById('wheel-best-place');
     if(bestPlace){
@@ -11204,10 +11213,10 @@ button.dealer-name-indicator .dealer-player-label {
     if(result) result.classList.remove('hidden');
     document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
     const mode=document.getElementById('wheel-mode-label');
-    if(mode) mode.textContent='Life Preserver';
+    if(mode) mode.textContent='Life Preserver Unlocked';
     document.getElementById('wheel-player-name')?.classList.add('hidden');
     if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
-    const slices=drawWheel();
+    const slices=(typeof getWheelSlices==='function'?getWheelSlices():[])||[];
     const landed=slices.find((slice)=>Number(slice.adjustment)===adj);
     const spinner=document.getElementById('wheel-spinner');
     if(spinner&&landed&&window.BPGLifePreserver&&typeof BPGLifePreserver.rotationDegreesForSlice==='function'){
@@ -11218,6 +11227,7 @@ button.dealer-name-indicator .dealer-player-label {
         spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
       }
     }
+    drawWheel();
   }
 
   function drawWheel(){
@@ -13582,14 +13592,17 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
+      const keepLastPast=(wrap.clientWidth||0)>=700;
       fitActiveScorecardColumns(root);
       while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<roundIdxs.length){
+        if(keepLastPast&&hidden===roundIdxs.length-1) break;
         hidden++;
         applyHidden(hidden);
         fitActiveScorecardColumns(root);
       }
       if(options?.hideUntilLeadFits){
         while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
+          if(keepLastPast&&hidden===roundIdxs.length-1) break;
           hidden++;
           applyHidden(hidden);
           fitActiveScorecardColumns(root);
