@@ -121,7 +121,17 @@ function analyze(game, player, table, seed) {
   const help = samples.filter((row) => row.kind === 'good');
   const bad = samples.filter((row) => row.kind === 'bad');
   const avg = (list, fn) => list.reduce((sum, row) => sum + fn(row), 0) / Math.max(list.length, 1);
+  const median = (list, fn) => {
+    const values = list.map(fn).sort((a, b) => a - b);
+    if (!values.length) return null;
+    return values[Math.floor(values.length / 2)];
+  };
   const endTop3 = samples.filter((row) => simulateRemaining(game, player, row.after, random) <= 3).length / N;
+  const gapAfter = (afterScore, afterRank) => {
+    const firstScore = game.totals[standing.first] || 0;
+    const sign = offer.winLow ? 1 : -1;
+    return Math.max(0, sign * (afterScore - firstScore));
+  };
   const adjustments = [...new Set(slices.map((slice) => Number(slice.adjustment)))].sort((a, b) => a - b);
   const per = adjustments.map((adj) => {
     const next = (Number(offer.playerScore) || 0) + adj;
@@ -141,11 +151,19 @@ function analyze(game, player, table, seed) {
     helpOdds: help.length / N,
     avgHelp: avg(help, (row) => Math.abs(row.adj)),
     avgHelpGap: standing.gapThird ? avg(help, (row) => Math.abs(row.adj)) / standing.gapThird : null,
+    setbackOdds: bad.length / N,
+    avgSetback: avg(bad, (row) => Math.abs(row.adj)),
     largestSetback: Math.max(0, ...bad.map((row) => Math.abs(row.adj))),
     expectedNet: avg(samples, (row) => row.adj * (offer.winLow ? -1 : 1)),
     podiumNow: samples.filter((row) => row.afterRank <= 3).length / N,
     endTop3,
     leapRate: samples.filter((row) => row.leap > 0).length / N,
+    typicalRank: median(samples, (row) => row.afterRank),
+    typicalGap: median(samples, (row) => gapAfter(row.after, row.afterRank)),
+    bestRank: Math.min(...samples.map((row) => row.afterRank)),
+    worstRank: Math.max(...samples.map((row) => row.afterRank)),
+    bestGap: Math.min(...samples.map((row) => gapAfter(row.after, row.afterRank))),
+    worstGap: Math.max(...samples.map((row) => gapAfter(row.after, row.afterRank))),
     avgLeap: avg(samples, (row) => row.leap),
     best: offer.maxSafeAdjustment,
     worst: offer.maxSetback,
@@ -388,7 +406,7 @@ function rowLine(label, cur, prop, fn) {
 const parts = [];
 parts.push('# Life Preserver help sizing');
 parts.push('');
-parts.push('Comparison only. Live reward math is unchanged. The Proposed wheel is TEMP behind `?demo&lp=proposed`.');
+parts.push('Comparison only. Live reward math stays 45/30/5/12/8. Wheel visuals stay equal-ish 40 pockets. The Proposed wheel is TEMP behind `?demo&lp=proposed`.');
 parts.push('');
 parts.push('## Spec');
 parts.push('');
@@ -424,7 +442,11 @@ for (const row of rows) {
   parts.push(rowLine('Odds of help', cur, prop, (x) => x.eligible ? pct(x.helpOdds) : '—'));
   parts.push(rowLine('Average help (when it helps)', cur, prop, (x) => x.eligible ? num(x.avgHelp) : '—'));
   parts.push(rowLine('Average help as % of gap to 3rd', cur, prop, (x) => x.eligible && x.avgHelpGap != null ? pct(x.avgHelpGap) : '—'));
+  parts.push(rowLine('Odds of a setback', cur, prop, (x) => x.eligible ? pct(x.setbackOdds) : '—'));
+  parts.push(rowLine('Average setback (when it hurts)', cur, prop, (x) => x.eligible ? num(x.avgSetback) : '—'));
   parts.push(rowLine('Expected net (incl. zeros and setbacks)', cur, prop, (x) => x.eligible ? num(x.expectedNet) : '—'));
+  parts.push(rowLine('Best / typical / worst rank', cur, prop, (x) => x.eligible ? `${x.bestRank} / ${x.typicalRank} / ${x.worstRank}` : '—'));
+  parts.push(rowLine('Best / typical / worst gap to 1st', cur, prop, (x) => x.eligible ? `${num(x.bestGap)} / ${num(x.typicalGap)} / ${num(x.worstGap)}` : '—'));
   parts.push(rowLine('Immediate top-3 chance', cur, prop, (x) => x.eligible ? pct(x.podiumNow) : '—'));
   parts.push(rowLine('Top 3 by the end (model)', cur, prop, (x) => x.eligible ? pct(x.endTop3) : '—'));
   parts.push(rowLine('Leapfrog rate (passes a non-leader)', cur, prop, (x) => x.eligible ? pct(x.leapRate) : '—'));

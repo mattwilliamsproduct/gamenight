@@ -1,6 +1,6 @@
 # Life Preserver help sizing
 
-Comparison only. Live reward math is unchanged. The Proposed wheel is TEMP behind `?demo&lp=proposed`.
+Comparison only. Live reward math stays 45/30/5/12/8. Wheel visuals stay equal-ish 40 pockets. The Proposed wheel is TEMP behind `?demo&lp=proposed`.
 
 ## Spec
 
@@ -32,7 +32,11 @@ Player **Dee**. Gap to 1st 40, gap to 3rd 25, now 5th.
 | Odds of help | 80.1% | 75.0% |
 | Average help (when it helps) | 8.2 | 13.9 |
 | Average help as % of gap to 3rd | 32.9% | 55.6% |
+| Odds of a setback | 8.2% | 15.4% |
+| Average setback (when it hurts) | 7.5 | 7.5 |
 | Expected net (incl. zeros and setbacks) | 6.0 | 9.3 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 5 / 5 |
+| Best / typical / worst gap to 1st | 20.0 / 35.0 / 50.0 | 15.0 / 30.0 / 50.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 36.4% | 40.0% |
 | Leapfrog rate (passes a non-leader) | 4.7% | 19.6% |
@@ -62,7 +66,11 @@ Player **Duke**. Gap to 1st 51, gap to 3rd 32, now 5th.
 | Odds of help | 80.0% | 74.4% |
 | Average help (when it helps) | 8.6 | 19.0 |
 | Average help as % of gap to 3rd | 26.9% | 59.4% |
+| Odds of a setback | 7.9% | 15.0% |
+| Average setback (when it hurts) | 7.5 | 7.5 |
 | Expected net (incl. zeros and setbacks) | 6.3 | 13.0 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 5 / 5 |
+| Best / typical / worst gap to 1st | 26.0 / 46.0 / 61.0 | 21.0 / 36.0 / 61.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 22.3% | 30.9% |
 | Leapfrog rate (passes a non-leader) | 5.1% | 19.6% |
@@ -92,7 +100,11 @@ Player **Dee**. Gap to 1st 38, gap to 3rd 28, now 5th.
 | Odds of help | 80.1% | 74.4% |
 | Average help (when it helps) | 8.3 | 13.0 |
 | Average help as % of gap to 3rd | 29.7% | 46.3% |
+| Odds of a setback | 8.1% | 15.4% |
+| Average setback (when it hurts) | 7.6 | 7.6 |
 | Expected net (incl. zeros and setbacks) | 6.0 | 8.5 |
+| Best / typical / worst rank | 5 / 5 / 5 | 5 / 5 / 5 |
+| Best / typical / worst gap to 1st | 18.0 / 33.0 / 48.0 | 18.0 / 28.0 / 48.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 35.2% | 38.5% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
@@ -121,7 +133,11 @@ Player **Cat**. Gap to 1st 62, gap to 3rd 42, now 5th.
 | Odds of help | 80.1% | 74.6% |
 | Average help (when it helps) | 4.6 | 18.0 |
 | Average help as % of gap to 3rd | 11.0% | 42.8% |
+| Odds of a setback | 7.6% | 15.1% |
+| Average setback (when it hurts) | 1.5 | 1.5 |
 | Expected net (incl. zeros and setbacks) | 3.6 | 13.2 |
+| Best / typical / worst rank | 5 / 5 / 5 | 5 / 5 / 5 |
+| Best / typical / worst gap to 1st | 42.0 / 60.0 / 64.0 | 42.0 / 44.0 / 64.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 3.9% | 10.8% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
@@ -149,7 +165,11 @@ Player **Cat**. Gap to 1st 39, gap to 3rd 14, now 5th.
 | Odds of help | 79.8% | 76.0% |
 | Average help (when it helps) | 4.6 | 14.1 |
 | Average help as % of gap to 3rd | 32.6% | 100.4% |
+| Odds of a setback | 8.2% | 14.1% |
+| Average setback (when it hurts) | 1.5 | 1.5 |
 | Expected net (incl. zeros and setbacks) | 3.5 | 10.5 |
+| Best / typical / worst rank | 3 / 5 / 5 | 3 / 4 / 5 |
+| Best / typical / worst gap to 1st | 19.0 / 37.0 / 41.0 | 19.0 / 28.0 / 41.0 |
 | Immediate top-3 chance | 4.7% | 45.9% |
 | Top 3 by the end (model) | 24.6% | 39.4% |
 | Leapfrog rate (passes a non-leader) | 20.3% | 76.0% |
@@ -179,7 +199,11 @@ Player **Cat**. Gap to 1st 80, gap to 3rd 50, now 5th.
 | Odds of help | 79.9% | 75.2% |
 | Average help (when it helps) | 4.5 | 18.8 |
 | Average help as % of gap to 3rd | 9.1% | 37.6% |
+| Odds of a setback | 7.9% | 15.0% |
+| Average setback (when it hurts) | 1.5 | 1.5 |
 | Expected net (incl. zeros and setbacks) | 3.5 | 13.9 |
+| Best / typical / worst rank | 5 / 5 / 5 | 5 / 5 / 5 |
+| Best / typical / worst gap to 1st | 60.0 / 78.0 / 82.0 | 60.0 / 60.0 / 82.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 0.0% | 0.1% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
@@ -206,7 +230,11 @@ Player **Duke**. Gap to 1st 52, gap to 3rd 34, now 5th.
 | Odds of help | 80.5% | 74.8% |
 | Average help (when it helps) | 8.3 | 19.1 |
 | Average help as % of gap to 3rd | 24.3% | 56.1% |
+| Odds of a setback | 8.0% | 15.6% |
+| Average setback (when it hurts) | 7.6 | 7.5 |
 | Expected net (incl. zeros and setbacks) | 6.0 | 13.1 |
+| Best / typical / worst rank | 5 / 5 / 5 | 4 / 5 / 5 |
+| Best / typical / worst gap to 1st | 32.0 / 47.0 / 62.0 | 22.0 / 37.0 / 62.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 23.1% | 31.1% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 20.2% |
@@ -236,7 +264,11 @@ Player **Duke**. Gap to 1st 60, gap to 3rd 44, now 4th.
 | Odds of help | 79.8% | 75.0% |
 | Average help (when it helps) | 8.8 | 21.0 |
 | Average help as % of gap to 3rd | 20.0% | 47.7% |
+| Odds of a setback | 8.5% | 15.0% |
+| Average setback (when it hurts) | 7.4 | 7.5 |
 | Expected net (incl. zeros and setbacks) | 6.4 | 14.6 |
+| Best / typical / worst rank | 4 / 4 / 4 | 4 / 4 / 4 |
+| Best / typical / worst gap to 1st | 30.0 / 55.0 / 70.0 | 25.0 / 45.0 / 70.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 27.1% | 36.5% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
@@ -267,7 +299,11 @@ Player **Duke**. Gap to 1st 50, gap to 3rd 29, now 5th.
 | Odds of help | 80.1% | 75.9% |
 | Average help (when it helps) | 8.6 | 19.0 |
 | Average help as % of gap to 3rd | 29.8% | 65.5% |
+| Odds of a setback | 8.4% | 14.2% |
+| Average setback (when it hurts) | 7.4 | 7.5 |
 | Expected net (incl. zeros and setbacks) | 6.3 | 13.3 |
+| Best / typical / worst rank | 4 / 5 / 5 | 3 / 5 / 5 |
+| Best / typical / worst gap to 1st | 25.0 / 45.0 / 60.0 | 20.0 / 35.0 / 60.0 |
 | Immediate top-3 chance | 0.0% | 10.2% |
 | Top 3 by the end (model) | 17.2% | 29.0% |
 | Leapfrog rate (passes a non-leader) | 5.2% | 45.4% |
@@ -297,7 +333,11 @@ Player **Cat**. Gap to 1st 84, gap to 3rd 48, now 5th.
 | Odds of help | 80.4% | 74.8% |
 | Average help (when it helps) | 4.5 | 18.8 |
 | Average help as % of gap to 3rd | 9.4% | 39.2% |
+| Odds of a setback | 7.6% | 15.3% |
+| Average setback (when it hurts) | 1.5 | 1.5 |
 | Expected net (incl. zeros and setbacks) | 3.5 | 13.8 |
+| Best / typical / worst rank | 5 / 5 / 5 | 5 / 5 / 5 |
+| Best / typical / worst gap to 1st | 64.0 / 82.0 / 86.0 | 64.0 / 64.0 / 86.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 0.0% | 0.0% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
@@ -324,7 +364,11 @@ Player **Pat**. Gap to 1st 180, gap to 3rd 110, now 5th.
 | Odds of help | 79.7% | 74.8% |
 | Average help (when it helps) | 17.5 | 53.0 |
 | Average help as % of gap to 3rd | 15.9% | 48.2% |
+| Odds of a setback | 8.0% | 15.3% |
+| Average setback (when it hurts) | 7.6 | 7.6 |
 | Expected net (incl. zeros and setbacks) | 13.4 | 38.5 |
+| Best / typical / worst rank | 5 / 5 / 5 | 5 / 5 / 5 |
+| Best / typical / worst gap to 1st | 145.0 / 170.0 / 190.0 | 120.0 / 130.0 / 190.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 0.1% | 2.3% |
 | Leapfrog rate (passes a non-leader) | 0.0% | 0.0% |
@@ -352,7 +396,11 @@ Player **Pat**. Gap to 1st 160, gap to 3rd 70, now 5th.
 | Odds of help | 79.7% | 74.9% |
 | Average help (when it helps) | 20.3 | 51.2 |
 | Average help as % of gap to 3rd | 29.0% | 73.1% |
+| Odds of a setback | 8.3% | 15.1% |
+| Average setback (when it hurts) | 7.4 | 7.4 |
 | Expected net (incl. zeros and setbacks) | 15.6 | 37.2 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 4 / 5 |
+| Best / typical / worst gap to 1st | 110.0 / 150.0 / 170.0 | 100.0 / 115.0 / 170.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 3.2% | 17.2% |
 | Leapfrog rate (passes a non-leader) | 19.4% | 60.4% |
@@ -380,7 +428,11 @@ Player **Pat**. Gap to 1st 180, gap to 3rd 80, now 5th.
 | Odds of help | 79.8% | 75.0% |
 | Average help (when it helps) | 20.9 | 53.0 |
 | Average help as % of gap to 3rd | 26.1% | 66.2% |
+| Odds of a setback | 8.0% | 14.9% |
+| Average setback (when it hurts) | 7.5 | 7.4 |
 | Expected net (incl. zeros and setbacks) | 16.1 | 38.7 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 4 / 5 |
+| Best / typical / worst gap to 1st | 120.0 / 170.0 / 190.0 | 120.0 / 130.0 / 190.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 0.4% | 4.7% |
 | Leapfrog rate (passes a non-leader) | 4.7% | 59.9% |
@@ -408,7 +460,11 @@ Player **Pat**. Gap to 1st 78, gap to 3rd 46, now 5th.
 | Odds of help | 79.6% | 74.4% |
 | Average help (when it helps) | 18.0 | 27.8 |
 | Average help as % of gap to 3rd | 39.2% | 60.5% |
+| Odds of a setback | 8.1% | 14.8% |
+| Average setback (when it hurts) | 5.0 | 5.0 |
 | Expected net (incl. zeros and setbacks) | 13.9 | 20.0 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 5 / 5 |
+| Best / typical / worst gap to 1st | 38.0 / 68.0 / 83.0 | 38.0 / 58.0 / 83.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 7.7% | 13.0% |
 | Leapfrog rate (passes a non-leader) | 4.9% | 29.3% |
@@ -437,7 +493,11 @@ Player **Pat**. Gap to 1st 80, gap to 3rd 40, now 5th.
 | Odds of help | 80.0% | 75.8% |
 | Average help (when it helps) | 17.7 | 28.0 |
 | Average help as % of gap to 3rd | 44.2% | 70.0% |
+| Odds of a setback | 8.4% | 14.3% |
+| Average setback (when it hurts) | 5.0 | 5.0 |
 | Expected net (incl. zeros and setbacks) | 13.7 | 20.5 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 4 / 5 |
+| Best / typical / worst gap to 1st | 40.0 / 70.0 / 85.0 | 40.0 / 60.0 / 85.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 13.0% | 20.4% |
 | Leapfrog rate (passes a non-leader) | 34.1% | 60.6% |
@@ -466,7 +526,11 @@ Player **Pat**. Gap to 1st 95, gap to 3rd 43, now 5th.
 | Odds of help | 80.1% | 74.8% |
 | Average help (when it helps) | 18.0 | 31.0 |
 | Average help as % of gap to 3rd | 41.9% | 72.1% |
+| Odds of a setback | 8.5% | 14.9% |
+| Average setback (when it hurts) | 5.0 | 5.0 |
 | Expected net (incl. zeros and setbacks) | 14.0 | 22.4 |
+| Best / typical / worst rank | 4 / 5 / 5 | 4 / 4 / 5 |
+| Best / typical / worst gap to 1st | 55.0 / 85.0 / 100.0 | 55.0 / 70.0 / 100.0 |
 | Immediate top-3 chance | 0.0% | 0.0% |
 | Top 3 by the end (model) | 12.2% | 22.9% |
 | Leapfrog rate (passes a non-leader) | 35.1% | 60.0% |
