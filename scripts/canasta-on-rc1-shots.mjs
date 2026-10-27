@@ -55,10 +55,19 @@ for (const shot of SHOT_LIST) {
     await page.waitForSelector('#rook-bid-amount-input', {timeout: 15000});
   }
   if (shot.after === 'rules') {
-    await page.evaluate(() => {
-      if (typeof openGameRules === 'function') openGameRules('Hand and Foot');
+    const opened = await page.evaluate(() => {
+      if (typeof openGameRules === 'function') {
+        openGameRules('Hand and Foot');
+        return true;
+      }
+      return false;
     });
-    await page.waitForSelector('#rules-modal:not(.hidden)', {timeout: 8000});
+    if (opened) {
+      await page.waitForFunction(() => {
+        const modal = document.getElementById('rules-modal');
+        return !!modal && !modal.classList.contains('hidden');
+      }, null, {timeout: 8000}).catch(() => {});
+    }
   }
 
   const dest = `${OUT}/${shot.name}.png`;

@@ -9,6 +9,7 @@ Matt gave the go to preview Hand and Foot on the release candidate as **Canasta*
 - Rook stays in code. `game-registry.js` marks it `hidden: true`. It appears on `?demo&games=rook`. Saved Rook nights still open. `?demo&view=game&game=rook&games=rook` still opens the Rook table.
 - TEMP-demo `?demo&view=game&game=hand-and-foot` opens an in-progress Canasta scorecard (two teams, two rounds, sevens + 4 red 3s).
 - Team helpers used by Canasta stay available when Rook is hidden.
+- Live four-round Canasta scorecards keep R1–R4 on a 390-wide table. RC1 trim still applies to longer history cards. Phone entry uses a 3-column grid so the sevens field and round total stay above the keypad. End Match goes through RC1 Save & End.
 
 ## Do not
 
