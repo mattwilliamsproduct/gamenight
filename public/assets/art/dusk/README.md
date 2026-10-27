@@ -2,9 +2,7 @@
 
 Quiet back-porch vignettes for `?demo&art=dusk`. Default Home still uses `public/theme/game-card-*-thumb.jpg`.
 
-Paths stay stable so a tighter v2 can replace the files in place:
-
-`public/assets/art/dusk/<slug>.webp`
+v2 files live at `public/assets/art/dusk/<slug>.webp`. Replace in place for a later pass.
 
 Slugs match `public/theme/game-card-<slug>-thumb.jpg`.
 
@@ -17,4 +15,4 @@ Slugs match `public/theme/game-card-<slug>-thumb.jpg`.
 | Beat the Heat | `beat-heat` | `beat-heat.webp` |
 | Rook | `rook` | `rook.webp` |
 
-Tile CSS uses `background-size: cover` and `background-position: 50% 62%` so the lower-middle subject reads larger. Cropping the lantern is fine. Do not letterbox.
+Tile CSS uses `background-size: cover` and `background-position: 50% 55%`. Wizard uses `50% 46%` so the hat tip stays in the crop. Cropping the small lamp is fine. Do not letterbox.

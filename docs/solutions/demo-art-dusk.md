@@ -18,13 +18,13 @@ On localhost or `*-mattwilliamsproducts-projects.vercel.app`:
 
 ## Raster paths
 
-v1 tiles live at `public/assets/art/dusk/<slug>.webp`. A tighter v2 replaces those files in place. Do not rename the slugs.
+v2 tiles live at `public/assets/art/dusk/<slug>.webp`. Later passes replace those files in place. Do not rename the slugs.
 
-The attached v1 binaries did not mount in this environment. The committed WebPs reconstruct those six compositions so crop and slugs can be judged. Overwrite the same files with the original rasters or v2.
+The attached v2 binaries did not mount in this environment. The committed WebPs reconstruct those six tighter frames so crop and slugs can be judged. Overwrite the same files with the original rasters.
 
 Slugs match `public/theme/game-card-<slug>-thumb.jpg`: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`, `rook`.
 
-Tile CSS: `background-size: cover` and `background-position: 50% 62%`. Subjects sit in the lower middle. Cropping the lantern is fine. Do not letterbox.
+Tile CSS: `background-size: cover` and `background-position: 50% 55%`. Wizard is `50% 46%` so the hat tip stays in the crop. Cropping the small lamp is fine. Do not letterbox.
 
 ## Motifs
 

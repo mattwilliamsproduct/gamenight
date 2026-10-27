@@ -6,7 +6,7 @@ html.slice2-tv[data-bp-art="dusk"] .s2-game-art {
   background-color: #efe6d8;
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: 50% 62%;
+  background-position: 50% 55%;
 }
 
 html.slice2-tv[data-bp-art="dusk"] .s2-art-five {
@@ -19,6 +19,7 @@ html.slice2-tv[data-bp-art="dusk"] .s2-art-818 {
 
 html.slice2-tv[data-bp-art="dusk"] .s2-art-wizard {
   background-image: url("./art/dusk/wizard.webp");
+  background-position: 50% 46%;
 }
 
 html.slice2-tv[data-bp-art="dusk"] .s2-art-flip7 {

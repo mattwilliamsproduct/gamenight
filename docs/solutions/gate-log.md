@@ -56,3 +56,4 @@ The table starts with a header and one example row. The example is the format. I
 | 2026-10-27 | demo-art-dusk | taste_ui. One dusk Home-art direction and lantern logo, preview params only. | 2 | n/a | fallback | Gate C. Conservative. npm run check pass. SVG stand-ins are clearer IDs, not finished art. Wait for painted rasters. Do not undraft or merge. |
 | 2026-10-27 | demo-art-dusk | taste_ui. Raster dusk tiles at theme slugs, cover 50% 62%, chair mark from mark-2. | 2 | n/a | fallback | Gate B. Same draft. Do not undraft or merge. |
 | 2026-10-27 | demo-art-dusk | taste_ui. Raster dusk tiles at theme slugs, cover 50% 62%, chair mark from mark-2. | 2 | n/a | fallback | Gate C. Conservative. npm run check pass. Phone and laptop Home looked. Draft only. Do not undraft or merge. |
+| 2026-10-27 | demo-art-dusk | taste_ui. Dusk v2 rasters, cover 50% 55%, wizard 50% 46% for hat tip. | 2 | n/a | fallback | Gate B. Same draft. Do not undraft or merge. |

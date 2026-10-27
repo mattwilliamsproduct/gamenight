@@ -48,7 +48,8 @@ test('no demo param keeps the current Home tiles and logo', async () => {
   });
   assert.match(duskCss, /\[data-bp-logo="dusk"\]/);
   assert.match(duskCss, /background-size:\s*cover/);
-  assert.match(duskCss, /background-position:\s*50%\s*62%/);
+  assert.match(duskCss, /background-position:\s*50%\s*55%/);
+  assert.match(duskCss, /\.s2-art-wizard\s*\{[^}]*background-position:\s*50%\s*46%/);
   assert.doesNotMatch(duskCss, /background-size:\s*contain/);
   assert.doesNotMatch(duskCss, /background-size:\s*100%\s*100%/);
 
