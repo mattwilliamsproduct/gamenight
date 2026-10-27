@@ -5,25 +5,27 @@ import test from 'node:test';
 
 const root = process.cwd();
 
-test('laptop Home keeps Recent nights full width under both columns', async () => {
+test('default Home keeps Recent nights full width and does not stretch columns', async () => {
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
   const css = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
 
-  const gridOpen = js.indexOf('<div class="s2-home-grid">');
-  const nights = js.indexOf('class="s2-nights"');
-  const start = js.indexOf('class="s2-panel s2-home-start"');
-  assert.ok(gridOpen > 0, 'home grid missing');
-  assert.ok(start > gridOpen && start < nights, 'Start a New Match stays in the two-column grid');
-  assert.match(js, /<\/section>\s*<\/div>\s*\$\{nights/, 'Recent nights stays full width after the home grid');
-  assert.match(js, /s2-home-table/);
+  assert.match(js, /function homeLayout\(/);
+  assert.match(js, /homeLayout\(\) === 'b'/);
+  assert.match(js, /s2-home-grid">\$\{tableBlock\}\$\{startBlock\}<\/div>\$\{nightsBlock\}/);
+  assert.match(js, /s2-home-grid">\$\{tableBlock\}\$\{startBlock\}\$\{nightsBlock\}<\/div>/);
   assert.match(js, /s2-night-podium/);
   assert.doesNotMatch(js, /edit-seating/);
   assert.doesNotMatch(js, /Edit Seating/);
 
-  assert.match(css, /\.s2-home-grid\s*\{[\s\S]*align-items:\s*stretch;/);
+  const defaultGrid = css.match(/html\.slice2-tv \.s2-home-grid\s*\{[^}]+\}/);
+  assert.ok(defaultGrid, 'default home grid missing');
+  assert.match(defaultGrid[0], /align-items:\s*start/);
+  assert.doesNotMatch(defaultGrid[0], /align-items:\s*stretch/);
+  assert.match(css, /\[data-bp-home="a"\] \.s2-home-grid[\s\S]*align-items:\s*stretch/);
+  assert.match(css, /\[data-bp-home="a"\] \.s2-add\s*\{[\s\S]*margin-top:\s*auto/);
+  assert.match(css, /\[data-bp-home="b"\] \.s2-nights\s*\{[\s\S]*grid-column:\s*1;/);
+  assert.match(css, /\[data-bp-home="b"\] \.s2-home-start\s*\{[\s\S]*grid-column:\s*2;/);
   assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*grid-template-columns:\s*1fr;/);
   assert.match(css, /\.s2-seat-handle\s*\{[\s\S]*touch-action:\s*none;/);
   assert.match(css, /@media \(max-width:\s*860px\)/);
-  assert.doesNotMatch(css, /\.s2-home-grid:has\(\.s2-nights\)/);
-  assert.doesNotMatch(css, /\.s2-nights\s*\{\s*grid-column:\s*1;/);
 });

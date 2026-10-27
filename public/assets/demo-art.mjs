@@ -2,6 +2,7 @@
 
 export const DEMO_ART_VALUES = ['dusk'];
 export const DEMO_LOGO_VALUES = ['dusk'];
+export const DEMO_HOME_VALUES = ['a', 'b'];
 
 export const DEFAULT_TILE_IMAGES = {
   five: '../theme/game-card-five-crowns-thumb.jpg',
@@ -50,25 +51,28 @@ function token(value, allowed){
 export function parseDemoChrome(search, hostname){
   const params = new URLSearchParams(search || '');
   const allowed = demoChromeHostAllowed(hostname) && params.has('demo');
-  if (!allowed) return {art: '', logo: ''};
+  if (!allowed) return {art: '', logo: '', home: ''};
   return {
     art: token(params.get('art'), DEMO_ART_VALUES),
-    logo: token(params.get('logo'), DEMO_LOGO_VALUES)
+    logo: token(params.get('logo'), DEMO_LOGO_VALUES),
+    home: token(params.get('home'), DEMO_HOME_VALUES)
   };
 }
 
 export function applyDemoChrome(root, search, hostname){
   const doc = root && (root.documentElement || root);
-  if (!doc || !doc.dataset) return {art: '', logo: ''};
+  if (!doc || !doc.dataset) return {art: '', logo: '', home: ''};
   const chrome = parseDemoChrome(search, hostname);
   if (chrome.art) doc.dataset.bpArt = chrome.art;
   else delete doc.dataset.bpArt;
   if (chrome.logo) doc.dataset.bpLogo = chrome.logo;
   else delete doc.dataset.bpLogo;
+  if (chrome.home) doc.dataset.bpHome = chrome.home;
+  else delete doc.dataset.bpHome;
   return chrome;
 }
 
 export function keepDemoSearchForChrome(search){
   const params = new URLSearchParams(search || '');
-  return params.has('art') || params.has('logo');
+  return params.has('art') || params.has('logo') || params.has('home');
 }

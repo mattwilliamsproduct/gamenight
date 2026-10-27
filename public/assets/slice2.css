@@ -294,32 +294,98 @@ html.slice2-tv .s2-home-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.86fr) minmax(0, 1.25fr);
   gap: 16px;
+  align-items: start;
+}
+
+html.slice2-tv[data-bp-home="a"] .s2-home-grid,
+html.slice2-tv[data-bp-home="b"] .s2-home-grid {
   align-items: stretch;
 }
 
-html.slice2-tv .s2-home-table,
-html.slice2-tv .s2-home-start {
+html.slice2-tv[data-bp-home="a"] .s2-home-table,
+html.slice2-tv[data-bp-home="a"] .s2-home-start,
+html.slice2-tv[data-bp-home="b"] .s2-home-start {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
 }
 
-html.slice2-tv .s2-home-start .s2-game-grid {
+html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-game-grid,
+html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-game-grid {
   flex: 1 1 auto;
   align-content: stretch;
 }
 
-html.slice2-tv .s2-home-start .s2-game {
+html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-game,
+html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-game {
   height: 100%;
 }
 
-html.slice2-tv .s2-home-start .s2-game-art {
+html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-game-art,
+html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-game-art {
   flex: 1 1 auto;
   min-height: 72px;
 }
 
-html.slice2-tv .s2-home-start .s2-startbar {
+html.slice2-tv[data-bp-home="a"] .s2-home-start .s2-startbar,
+html.slice2-tv[data-bp-home="b"] .s2-home-start .s2-startbar {
   margin-top: auto;
+}
+
+html.slice2-tv[data-bp-home="a"] .s2-add {
+  margin-top: auto;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-home-table {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-home-start {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night-list {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 8px 10px;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night-copy {
+  flex-wrap: nowrap;
+  gap: 2px 8px;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights .s2-night-podium {
+  gap: 6px 8px;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights .s2-podium-avatar {
+  width: 28px;
+  height: 28px;
+}
+
+html.slice2-tv[data-bp-home="b"] .s2-nights .s2-podium-place[data-place="1"] .s2-podium-avatar {
+  width: 32px;
+  height: 32px;
 }
 
 html.slice2-tv .s2-panel {
@@ -349,6 +415,10 @@ html.slice2-tv .s2-game-grid {
 
 html.slice2-tv .s2-seat-grid {
   grid-template-columns: 1fr;
+  grid-auto-rows: minmax(44px, auto);
+}
+
+html.slice2-tv[data-bp-home="a"] .s2-seat-grid {
   flex: 1 1 auto;
   align-content: stretch;
   grid-auto-rows: minmax(44px, 1fr);
@@ -1571,6 +1641,15 @@ html.slice2-tv .s2-rival {
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
     display: block;
+    height: auto;
+  }
+
+  html.slice2-tv[data-bp-home="b"] .s2-home-table,
+  html.slice2-tv[data-bp-home="b"] .s2-home-start,
+  html.slice2-tv[data-bp-home="b"] .s2-nights {
+    grid-column: 1;
+    grid-row: auto;
+    height: auto;
   }
 
   html.slice2-tv .s2-seat-grid {

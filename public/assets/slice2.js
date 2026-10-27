@@ -181,6 +181,13 @@
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
+  function homeLayout() {
+    const raw = document.documentElement && document.documentElement.dataset
+      ? String(document.documentElement.dataset.bpHome || '').toLowerCase()
+      : '';
+    return raw === 'a' || raw === 'b' ? raw : '';
+  }
+
   function paintHome() {
     const home = document.getElementById('home-screen');
     if (!home) return;
@@ -263,9 +270,7 @@
         ${nightPodiumMarkup(match)}
       </button>`;
     }).join('');
-    root.innerHTML = `${banner}
-      <div class="s2-home-grid">
-        <section class="s2-panel s2-home-table" aria-label="Tonight's table">
+    const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
           <div class="s2-panel-head">
             <div>
               <h2>Tonight's Table · ${seated} Seated</h2>
@@ -279,8 +284,8 @@
             <input id="slice2-add-name" type="text" placeholder="Add a player" autocomplete="off" aria-label="Add a player">
             <button type="submit" class="s2-btn s2-btn-primary">Add Player</button>
           </form>
-        </section>
-        <section class="s2-panel s2-home-start" aria-label="Start a new match">
+        </section>`;
+    const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
               <h2>Start a New Match</h2>
@@ -292,9 +297,11 @@
             <p id="slice2-start-summary">${escapeHtml(meta.title)} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${escapeHtml(meta.detail(seated))}</p>
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game">Start ${escapeHtml(meta.title)}</button>
           </div>
-        </section>
-      </div>
-      ${nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : ''}`;
+        </section>`;
+    const nightsBlock = nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : '';
+    root.innerHTML = homeLayout() === 'b'
+      ? `${banner}<div class="s2-home-grid">${tableBlock}${startBlock}${nightsBlock}</div>`
+      : `${banner}<div class="s2-home-grid">${tableBlock}${startBlock}</div>${nightsBlock}`;
     restoreSeatGrab(root);
   }
 
@@ -955,7 +962,7 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane, moveSeatList };
+  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane, moveSeatList, homeLayout };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

@@ -7,6 +7,7 @@ import {
   DEFAULT_TILE_IMAGES,
   DUSK_SHEET_SLUGS,
   DUSK_TILE_SLUGS,
+  DEMO_HOME_VALUES,
   applyDemoChrome,
   parseDemoChrome
 } from '../public/assets/demo-art.mjs';
@@ -22,14 +23,15 @@ function fakeDocument(start = {}){
 }
 
 test('no demo param keeps the current Home tiles and logo', async () => {
-  assert.deepEqual(parseDemoChrome('', 'localhost'), {art: '', logo: ''});
-  assert.deepEqual(parseDemoChrome('?art=dusk&logo=dusk', 'localhost'), {art: '', logo: ''});
-  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', 'cardknight.vercel.app'), {art: '', logo: ''});
+  assert.deepEqual(parseDemoChrome('', 'localhost'), {art: '', logo: '', home: ''});
+  assert.deepEqual(parseDemoChrome('?art=dusk&logo=dusk&home=a', 'localhost'), {art: '', logo: '', home: ''});
+  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk&home=b', 'cardknight.vercel.app'), {art: '', logo: '', home: ''});
 
   const idle = fakeDocument();
-  assert.deepEqual(applyDemoChrome(idle, '', 'localhost'), {art: '', logo: ''});
+  assert.deepEqual(applyDemoChrome(idle, '', 'localhost'), {art: '', logo: '', home: ''});
   assert.equal(idle.documentElement.dataset.bpArt, undefined);
   assert.equal(idle.documentElement.dataset.bpLogo, undefined);
+  assert.equal(idle.documentElement.dataset.bpHome, undefined);
 
   const slice2 = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
   const index = await readFile(join(root, 'public/index.html'), 'utf8');
@@ -85,10 +87,10 @@ test('no demo param keeps the current Home tiles and logo', async () => {
 
 test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => {
   const preview = 'gamenight-git-cursor-art-logo-dusk-640a-mattwilliamsproducts-projects.vercel.app';
-  assert.deepEqual(parseDemoChrome('?demo&art=dusk', 'localhost'), {art: 'dusk', logo: ''});
-  assert.deepEqual(parseDemoChrome('?demo&logo=dusk', '127.0.0.1'), {art: '', logo: 'dusk'});
-  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', preview), {art: 'dusk', logo: 'dusk'});
-  assert.deepEqual(parseDemoChrome('?demo&art=A&logo=1', 'localhost'), {art: '', logo: ''});
+  assert.deepEqual(parseDemoChrome('?demo&art=dusk', 'localhost'), {art: 'dusk', logo: '', home: ''});
+  assert.deepEqual(parseDemoChrome('?demo&logo=dusk', '127.0.0.1'), {art: '', logo: 'dusk', home: ''});
+  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', preview), {art: 'dusk', logo: 'dusk', home: ''});
+  assert.deepEqual(parseDemoChrome('?demo&art=A&logo=1', 'localhost'), {art: '', logo: '', home: ''});
 
   const doc = fakeDocument({bpArt: 'stale', bpLogo: 'stale'});
   applyDemoChrome(doc, '?demo&art=dusk&logo=dusk', 'localhost');
@@ -97,4 +99,21 @@ test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => 
   applyDemoChrome(doc, '', 'localhost');
   assert.equal(doc.documentElement.dataset.bpArt, undefined);
   assert.equal(doc.documentElement.dataset.bpLogo, undefined);
+});
+
+test('preview ?demo&home=a and ?demo&home=b stay off production and off without demo', () => {
+  assert.deepEqual(DEMO_HOME_VALUES, ['a', 'b']);
+  assert.deepEqual(parseDemoChrome('?demo&home=a', 'localhost'), {art: '', logo: '', home: 'a'});
+  assert.deepEqual(parseDemoChrome('?demo&home=b', '127.0.0.1'), {art: '', logo: '', home: 'b'});
+  assert.deepEqual(parseDemoChrome('?demo&home=c', 'localhost'), {art: '', logo: '', home: ''});
+  assert.deepEqual(parseDemoChrome('?home=a', 'localhost'), {art: '', logo: '', home: ''});
+  assert.deepEqual(parseDemoChrome('?demo&home=a', 'cardknight.vercel.app'), {art: '', logo: '', home: ''});
+
+  const doc = fakeDocument({bpHome: 'stale'});
+  applyDemoChrome(doc, '?demo&home=a', 'localhost');
+  assert.equal(doc.documentElement.dataset.bpHome, 'a');
+  applyDemoChrome(doc, '?demo&home=b', 'localhost');
+  assert.equal(doc.documentElement.dataset.bpHome, 'b');
+  applyDemoChrome(doc, '?demo', 'localhost');
+  assert.equal(doc.documentElement.dataset.bpHome, undefined);
 });
