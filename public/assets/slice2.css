@@ -294,7 +294,7 @@ html.slice2-tv .s2-home-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.86fr) minmax(0, 1.25fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 
 html.slice2-tv .s2-home-table,
@@ -302,6 +302,25 @@ html.slice2-tv .s2-home-start {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
+}
+
+html.slice2-tv .s2-home-start .s2-game-grid {
+  flex: 1 1 auto;
+  align-content: stretch;
+}
+
+html.slice2-tv .s2-home-start .s2-game {
+  height: 100%;
+}
+
+html.slice2-tv .s2-home-start .s2-game-art {
+  flex: 1 1 auto;
+  min-height: 72px;
+}
+
+html.slice2-tv .s2-home-start .s2-startbar {
+  margin-top: auto;
 }
 
 html.slice2-tv .s2-panel {
@@ -331,8 +350,10 @@ html.slice2-tv .s2-game-grid {
 
 html.slice2-tv .s2-seat-grid {
   grid-template-columns: 1fr;
+  flex: 1 1 auto;
+  align-content: stretch;
   gap: 10px;
-  grid-auto-rows: minmax(50px, auto);
+  grid-auto-rows: minmax(50px, 1fr);
 }
 
 html.slice2-tv .s2-seat,
@@ -344,11 +365,11 @@ html.slice2-tv .s2-night {
 
 html.slice2-tv .s2-seat {
   display: grid;
-  grid-template-columns: 1.65rem 42px minmax(0, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: 1.75rem 44px minmax(0, 1fr) auto;
+  gap: 10px;
   align-items: center;
   min-height: 50px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 16px;
   border: 1.5px solid var(--s2-line);
   background: #fffaf4;
@@ -443,13 +464,13 @@ html.slice2-tv .s2-seat-num {
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 1.04rem;
+  font-size: 1.08rem;
   font-variant-numeric: tabular-nums;
 }
 
 html.slice2-tv .s2-seat .avatar-img {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -476,7 +497,7 @@ html.slice2-tv .s2-shame-card p {
 html.slice2-tv .s2-seat-name {
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 1.04rem;
+  font-size: 1.08rem;
   color: var(--s2-ink);
 }
 

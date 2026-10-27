@@ -32,4 +32,4 @@ Standing trap: [rc1-records-restore.md](rc1-records-restore.md) — Records keep
 
 Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus a Canasta sheet tile. Rook keeps the current beach thumb.
 
-Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — Tonight's Table grows about 15 percent into bigger seat cards. Do not silently stretch it to match Start a New Match. Recent nights stays full width. Phone stays Table, Start, nights.
+Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — laptop Home columns stretch even; extra height goes into seats and game art, not padding. Recent nights stays full width. Phone stays Table, Start, nights.

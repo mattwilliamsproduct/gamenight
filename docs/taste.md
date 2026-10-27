@@ -24,7 +24,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
-- Tonight's Table can grow about 15 percent into bigger seat cards. Do not silently close the rest of the leftover under Start a New Match.
+- Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
 
 ### Kills
 
