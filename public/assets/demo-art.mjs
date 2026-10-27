@@ -19,9 +19,17 @@ export const DUSK_TILE_SLUGS = {
   818: '818',
   wizard: 'wizard',
   flip7: 'flip7',
-  heat: 'beat-heat',
-  rook: 'rook'
+  heat: 'beat-heat'
 };
+
+export const DUSK_SHEET_SLUGS = [
+  'five-crowns',
+  '818',
+  'wizard',
+  'flip7',
+  'beat-heat',
+  'canasta'
+];
 
 function previewHostPattern(){
   return /^.+-mattwilliamsproducts-projects\.vercel\.app$/;

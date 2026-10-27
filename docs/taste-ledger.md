@@ -19,6 +19,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
+- One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
 
 ## Kills
 
@@ -51,4 +52,5 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A setback callout that clips the + so +10 reads as 10 or as help.
 - A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
 - Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
-- A dead block between Tonight's Table and Recent nights on laptop Home, or Recent nights sitting full-width under the two-column picker.
+- Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
+- Edit Seating plus Earlier/Later when the Home list can reorder in place.

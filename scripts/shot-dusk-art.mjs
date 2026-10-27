@@ -115,6 +115,35 @@ await page.waitForTimeout(300);
 await page.screenshot({path: `${OUT}/logo-sheet.png`, fullPage: true});
 console.log(`${OUT}/logo-sheet.png`);
 
+await page.setViewportSize({width: 1440, height: 900});
+await page.setContent(`<!doctype html>
+<html><head>
+<link rel="stylesheet" href="${LOCAL}/assets/fonts.css">
+<style>
+  body { margin: 0; background: #f4efe6; color: #073f3b; font-family: "Nunito Sans", system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 20px 28px 8px; }
+  p { margin: 0 28px 18px; font-weight: 700; color: #5e584f; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0 28px 28px; }
+  figure { margin: 0; background: #fffdf8; border: 1px solid #e4d8cc; border-radius: 18px; overflow: hidden; }
+  img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 55%; display: block; }
+  figcaption { padding: 10px 12px; font-weight: 800; }
+</style></head>
+<body>
+<h1>Dusk tiles</h1>
+<p>Five Crowns, 818, Wizard, Flip 7, Beat the Heat, Canasta. Rook is not in this set.</p>
+<div class="grid">
+  <figure><img src="${LOCAL}/assets/art/dusk/five-crowns.webp" alt="Five Crowns"><figcaption>Five Crowns</figcaption></figure>
+  <figure><img src="${LOCAL}/assets/art/dusk/818.webp" alt="818"><figcaption>818</figcaption></figure>
+  <figure><img src="${LOCAL}/assets/art/dusk/wizard.webp" alt="Wizard"><figcaption>Wizard</figcaption></figure>
+  <figure><img src="${LOCAL}/assets/art/dusk/flip7.webp" alt="Flip 7"><figcaption>Flip 7</figcaption></figure>
+  <figure><img src="${LOCAL}/assets/art/dusk/beat-heat.webp" alt="Beat the Heat"><figcaption>Beat the Heat</figcaption></figure>
+  <figure><img src="${LOCAL}/assets/art/dusk/canasta.webp" alt="Canasta"><figcaption>Canasta</figcaption></figure>
+</div>
+</body></html>`, {waitUntil: 'networkidle'});
+await page.waitForTimeout(300);
+await page.screenshot({path: `${OUT}/dusk-six-tiles.png`, fullPage: true});
+console.log(`${OUT}/dusk-six-tiles.png`);
+
 await writeFile(`${OUT}/compare-375.html`, `<!doctype html>
 <meta charset="utf-8">
 <title>Current vs dusk 375</title>

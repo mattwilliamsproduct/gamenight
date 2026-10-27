@@ -9,13 +9,14 @@
     { id: 'Rook', title: 'Rook', art: 'rook', line: 'Highest total wins · Teams', detail: () => 'Teams' }
   ];
 
-  let editing = false;
   let selected = 'Five Crowns';
   let recordsPane = 'overview';
   let recordsGameFilter = '';
   let recordsPlayerFilter = '';
   const expandedNights = new Set();
   let wired = false;
+  let seatPointer = null;
+  let seatGrab = null;
 
   function state() {
     return slice2TableState();
@@ -213,18 +214,26 @@
       </section>`;
     })() : '';
     const seats = table.players.map((player, index) => {
-      const controls = editing ? `<div class="s2-seat-actions">
-        <button type="button" class="s2-btn" data-s2-action="seat-up" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} earlier">Earlier</button>
-        <button type="button" class="s2-btn" data-s2-action="seat-down" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} later">Later</button>
-        <button type="button" class="s2-btn" data-s2-action="seat-out" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} to on deck">Remove</button>
-      </div>` : '';
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
-      return `<article class="s2-seat">
+      return `<article class="s2-seat" data-s2-index="${index}" data-s2-player="${escapeHtml(player)}">
         <span class="s2-seat-num">${index + 1}</span>
         ${getStreakAvatarHtml(player, 'avatar-img')}
-        <span class="s2-seat-name">${escapeHtml(player)}</span>
-        ${tag}
-        ${controls}
+        <span class="s2-seat-who">
+          <span class="s2-seat-name">${escapeHtml(player)}</span>
+          ${tag}
+        </span>
+        <div class="s2-seat-tools">
+          <button type="button" class="s2-seat-nudge" data-s2-action="seat-up" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} up"${index === 0 ? ' disabled' : ''}>
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 8l4-5 4 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="s2-seat-nudge" data-s2-action="seat-down" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} down"${index === table.players.length - 1 ? ' disabled' : ''}>
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} to on deck">×</button>
+          <button type="button" class="s2-seat-handle" data-s2-action="seat-handle" data-s2-index="${index}" aria-label="Reorder ${escapeHtml(player)}">
+            <svg viewBox="0 0 12 16" aria-hidden="true"><circle cx="4" cy="3" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="4" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="4" cy="13" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>
+          </button>
+        </div>
       </article>`;
     }).join('') || '<p class="s2-sub">Add players to fill tonight\'s table.</p>';
     const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
@@ -245,9 +254,12 @@
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
       const who = incomplete ? 'Incomplete' : (winner || '');
       return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
-        <strong>${escapeHtml(label)}</strong>
-        <span class="s2-night-date">${escapeHtml(match.date || '')}</span>
-        <span class="s2-night-who">${escapeHtml(who)}</span>
+        <span class="s2-night-copy">
+          <strong>${escapeHtml(label)}</strong>
+          <span class="s2-night-date">${escapeHtml(match.date || '')}</span>
+          <span class="s2-night-who">${escapeHtml(who)}</span>
+        </span>
+        ${nightPodiumMarkup(match)}
       </button>`;
     }).join('');
     root.innerHTML = `${banner}
@@ -258,8 +270,8 @@
               <h2>Tonight's Table · ${seated} Seated</h2>
               <p class="s2-sub">${dealer ? escapeHtml(dealer) + (table.currentGame ? ' is dealing' : ' deals first') : 'In dealing order'}</p>
             </div>
-            <button type="button" class="s2-btn" id="slice2-edit-seating" data-s2-action="edit-seating">${editing ? 'Done' : 'Edit Seating'}</button>
           </div>
+          <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
           <div class="s2-seat-grid">${seats}</div>
           <div class="s2-deck">${chips}</div>
           <form class="s2-add" data-s2-action="add-form">
@@ -267,7 +279,6 @@
             <button type="submit" class="s2-btn s2-btn-primary">Add Player</button>
           </form>
         </section>
-        ${nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : ''}
         <section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
@@ -281,7 +292,84 @@
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game">Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>
-      </div>`;
+      </div>
+      ${nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : ''}`;
+    restoreSeatGrab(root);
+  }
+
+  function moveSeatList(list, from, to) {
+    const next = Array.isArray(list) ? list.slice() : [];
+    if (!Number.isInteger(from) || !Number.isInteger(to)) return next;
+    if (from === to || from < 0 || to < 0 || from >= next.length || to >= next.length) return next;
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    return next;
+  }
+
+  function nightPodiumMarkup(match) {
+    if (!window.BPGRecords || typeof BPGRecords.nightPodium !== 'function') return '';
+    const podium = BPGRecords.nightPodium(match, {
+      configs,
+      getDisplayPlayers,
+      sortPlayersByTotal,
+      competitionPlaces,
+      scorebook: window.BPGScorebook
+    });
+    if (!podium || podium.incomplete || !podium.places.length) return '';
+    return `<span class="s2-night-podium" aria-label="Top three">
+      ${podium.places.map((slot) => `<span class="s2-podium-place" data-place="${slot.place}">
+        <span class="s2-podium-faces">
+          ${slot.people.map((person) => `<span class="s2-podium-face" title="${escapeHtml(person.name)}">
+            ${getStreakAvatarHtml(person.name, 'avatar-img s2-podium-avatar')}
+            <span class="s2-podium-badge" aria-hidden="true">${slot.place}</span>
+          </span>`).join('')}
+        </span>
+      </span>`).join('')}
+    </span>`;
+  }
+
+  function seatLive(text) {
+    const el = document.getElementById('slice2-seat-live');
+    if (el) el.textContent = text || '';
+  }
+
+  function restoreSeatGrab(root) {
+    if (!seatGrab || !root) return;
+    const handle = root.querySelector(`.s2-seat[data-s2-index="${seatGrab.index}"] .s2-seat-handle`);
+    if (!handle) return;
+    handle.classList.add('is-grabbed');
+    handle.focus();
+    const table = state();
+    const name = table.players[seatGrab.index] || seatGrab.name || 'Player';
+    seatLive(`${name} is seat ${seatGrab.index + 1} of ${table.players.length}.`);
+  }
+
+  function clearSeatDragStyles() {
+    document.querySelectorAll('#slice2-home .s2-seat.is-dragging, #slice2-home .s2-seat.is-drop-before, #slice2-home .s2-seat.is-drop-after').forEach((el) => {
+      el.classList.remove('is-dragging', 'is-drop-before', 'is-drop-after');
+    });
+  }
+
+  function seatIndexFromPoint(clientY) {
+    const seats = [...document.querySelectorAll('#slice2-home .s2-seat')];
+    if (!seats.length) return -1;
+    for (const seat of seats) {
+      const box = seat.getBoundingClientRect();
+      if (clientY < box.top + box.height / 2) return Number(seat.dataset.s2Index);
+    }
+    return Number(seats[seats.length - 1].dataset.s2Index);
+  }
+
+  function persistSeatMove(from, to) {
+    if (typeof slice2MoveSeat === 'function') slice2MoveSeat(from, to);
+    else if (typeof slice2ReorderSeat === 'function') {
+      const dir = to > from ? 1 : -1;
+      let cursor = from;
+      while (cursor !== to) {
+        slice2ReorderSeat(cursor, dir);
+        cursor += dir;
+      }
+    }
   }
 
   function paintBoard() {
@@ -662,11 +750,9 @@
     const target = event.target.closest?.('[data-s2-action]');
     if (!target) return;
     const action = target.dataset.s2Action;
-    if (action === 'edit-seating') {
-      editing = !editing;
-      paintHome();
-    } else if (action === 'seat-up' || action === 'seat-down') {
-      slice2ReorderSeat(Number(target.dataset.s2Index), action === 'seat-up' ? -1 : 1);
+    if (action === 'seat-up' || action === 'seat-down') {
+      const from = Number(target.dataset.s2Index);
+      persistSeatMove(from, from + (action === 'seat-up' ? -1 : 1));
     } else if (action === 'seat-out') {
       const table = state();
       const player = table.players[Number(target.dataset.s2Index)];
@@ -733,12 +819,85 @@
     }
   }
 
+  function onPointerDown(event) {
+    const handle = event.target.closest?.('.s2-seat-handle');
+    if (!handle || !handle.closest('#slice2-home')) return;
+    const seat = handle.closest('.s2-seat');
+    const from = Number(seat?.dataset.s2Index);
+    if (!Number.isInteger(from)) return;
+    event.preventDefault();
+    if (handle.setPointerCapture) handle.setPointerCapture(event.pointerId);
+    seatPointer = { from, over: from, pointerId: event.pointerId, startY: event.clientY, active: false };
+  }
+
+  function onPointerMove(event) {
+    if (!seatPointer || event.pointerId !== seatPointer.pointerId) return;
+    if (!seatPointer.active && Math.abs(event.clientY - seatPointer.startY) < 8) return;
+    seatPointer.active = true;
+    const over = seatIndexFromPoint(event.clientY);
+    if (!Number.isInteger(over) || over < 0) return;
+    seatPointer.over = over;
+    clearSeatDragStyles();
+    const seats = document.querySelectorAll('#slice2-home .s2-seat');
+    seats[seatPointer.from]?.classList.add('is-dragging');
+    if (over !== seatPointer.from) {
+      seats[over]?.classList.add(over < seatPointer.from ? 'is-drop-before' : 'is-drop-after');
+    }
+  }
+
+  function onPointerUp(event) {
+    if (!seatPointer || event.pointerId !== seatPointer.pointerId) return;
+    const { from, over, active } = seatPointer;
+    seatPointer = null;
+    clearSeatDragStyles();
+    if (active && Number.isInteger(over) && over !== from) persistSeatMove(from, over);
+  }
+
+  function onKeyDown(event) {
+    const handle = event.target.closest?.('.s2-seat-handle');
+    if (!handle || !handle.closest('#slice2-home')) return;
+    const seat = handle.closest('.s2-seat');
+    const index = Number(seat?.dataset.s2Index);
+    const table = state();
+    const name = table.players[index] || 'Player';
+    if (event.key === ' ' || event.key === 'Enter') {
+      event.preventDefault();
+      if (!seatGrab) {
+        seatGrab = { index, name };
+        handle.classList.add('is-grabbed');
+        seatLive(`Grabbed ${name}. Use arrows to move, Space to drop, Escape to cancel.`);
+        return;
+      }
+      const from = seatGrab.index;
+      seatGrab = null;
+      if (from !== index) persistSeatMove(from, index);
+      else seatLive(`Cancelled moving ${name}.`);
+    } else if (event.key === 'Escape' && seatGrab) {
+      event.preventDefault();
+      seatGrab = null;
+      handle.classList.remove('is-grabbed');
+      seatLive(`Cancelled moving ${name}.`);
+    } else if ((event.key === 'ArrowUp' || event.key === 'ArrowDown') && seatGrab) {
+      event.preventDefault();
+      const next = seatGrab.index + (event.key === 'ArrowUp' ? -1 : 1);
+      if (next < 0 || next >= table.players.length) return;
+      const from = seatGrab.index;
+      seatGrab = { index: next, name: table.players[from] };
+      persistSeatMove(from, next);
+    }
+  }
+
   function wire() {
     if (wired) return;
     wired = true;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
     document.addEventListener('change', onChange);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerUp);
+    document.addEventListener('keydown', onKeyDown);
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => {
         paintNav();
@@ -795,7 +954,7 @@
     refresh('all');
   }
 
-  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane };
+  window.BPGSlice2 = { refresh, paintWheel, parkSaveIndicator, setRecordsPane, moveSeatList };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
 })();

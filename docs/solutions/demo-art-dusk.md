@@ -14,7 +14,7 @@ On localhost or `*-mattwilliamsproducts-projects.vercel.app`:
 - `?demo&logo=dusk` — nav mark
 - Combine them. `art` / `logo` without `demo` does nothing.
 
-`scripts/test-demo-art.mjs` locks the no-param path and the six WebP slugs.
+`scripts/test-demo-art.mjs` locks the no-param path and the five mapped dusk tiles plus the Canasta comparison tile. Rook is not in the dusk map.
 
 ## Raster paths
 
@@ -22,7 +22,7 @@ v2 tiles live at `public/assets/art/dusk/<slug>.webp`. Later passes replace thos
 
 The attached v2 binaries did not mount in this environment. The committed WebPs reconstruct those six tighter frames so crop and slugs can be judged. Overwrite the same files with the original rasters.
 
-Slugs match `public/theme/game-card-<slug>-thumb.jpg`: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`, `rook`.
+Mapped slugs: `five-crowns`, `818`, `wizard`, `flip7`, `beat-heat`. `canasta.webp` is sheet-only. Rook keeps `public/theme/game-card-rook-thumb.jpg`.
 
 Tile CSS: `background-size: cover` and `background-position: 50% 55%`. Wizard is `50% 46%` so the hat tip stays in the crop. Cropping the small lamp is fine. Do not letterbox.
 
@@ -33,7 +33,8 @@ Tile CSS: `background-size: cover` and `background-position: 50% 55%`. Wizard is
 - **Wizard** — one hat, one card, one candle.
 - **Flip 7** — one 7 flipping off a deck.
 - **Beat the Heat** — one chili on a short card fan.
-- **Rook** — one bird on a deck, not a chess piece.
+- **Canasta** — two small stacks (hand and foot) on the porch table. Not a picker game on this branch.
+- **Rook** — keeps the current beach thumb. No dusk Rook on this branch.
 
 ## Logo
 

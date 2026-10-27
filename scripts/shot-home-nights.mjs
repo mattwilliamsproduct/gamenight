@@ -21,17 +21,14 @@ async function ready() {
   await page.waitForTimeout(250);
 }
 
-async function applyState({banner, nights}) {
-  await page.evaluate(({banner, nights}) => {
+async function applyState({nights, seats}) {
+  await page.evaluate(({nights, seats}) => {
     const table = typeof slice2TableState === 'function' ? slice2TableState() : null;
     if (!table) return;
-    if (Array.isArray(table.history) && Number.isFinite(nights)) {
-      table.history.splice(nights);
-    }
-    if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') {
-      window.BPGSlice2.refresh('home');
-    }
-  }, {banner, nights});
+    if (Array.isArray(table.history) && Number.isFinite(nights)) table.history.splice(nights);
+    if (Array.isArray(table.players) && Number.isFinite(seats)) table.players.splice(seats);
+    if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh('home');
+  }, {nights, seats});
   await page.waitForTimeout(200);
 }
 
@@ -49,26 +46,36 @@ async function metrics() {
     const t = box(table);
     const s = box(start);
     const n = box(nights);
+    const seats = [...(home?.querySelectorAll('.s2-seat') || [])].map((el) => el.getBoundingClientRect());
+    const twoCol = t && s ? Math.abs(t.x - s.x) > 40 : false;
     return {
       banner: !!home?.querySelector('.s2-banner'),
       nightCount: nights?.querySelectorAll('.s2-night').length || 0,
+      podiumCount: nights?.querySelectorAll('.s2-night-podium').length || 0,
+      seatCount: seats.length,
+      seatCols: seats.length > 1 && Math.abs(seats[0].x - seats[1].x) < 20 ? 1 : (seats.length ? 2 : 0),
+      handles: home?.querySelectorAll('.s2-seat-handle').length || 0,
+      editSeating: !!home?.querySelector('#slice2-edit-seating'),
       table: t,
       start: s,
       nights: n,
-      leftGap: t && n ? n.y - t.bottom : null,
-      columnDelta: t && s ? Math.abs((n ? n.bottom : t.bottom) - s.bottom) : null
+      twoCol,
+      columnDelta: t && s ? Math.abs(t.bottom - s.bottom) : null,
+      nightsBelow: t && s && n ? n.y >= Math.max(t.bottom, s.bottom) - 2 : null
     };
   });
 }
 
 const states = [
-  {id: 'banner-4', query: '?demo&view=home', banner: true, nights: 4},
-  {id: 'banner-2', query: '?demo&view=home', banner: true, nights: 2},
-  {id: 'banner-0', query: '?demo&view=home', banner: true, nights: 0},
-  {id: 'nobanner-4', query: '?gnqa=1&gallery=0&scenario=home-party', banner: false, nights: 4},
-  {id: 'nobanner-0', query: '?gnqa=1&gallery=0&scenario=home-party', banner: false, nights: 0}
+  {id: 'banner-8-4', query: '?demo&view=home', nights: 4, seats: 8},
+  {id: 'banner-8-2', query: '?demo&view=home', nights: 2, seats: 8},
+  {id: 'banner-8-0', query: '?demo&view=home', nights: 0, seats: 8},
+  {id: 'banner-4-4', query: '?demo&view=home', nights: 4, seats: 4},
+  {id: 'nobanner-6-4', query: '?gnqa=1&gallery=0&scenario=home-party', nights: 4, seats: 6},
+  {id: 'nobanner-6-0', query: '?gnqa=1&gallery=0&scenario=home-party', nights: 0, seats: 6}
 ];
 
+const report = [];
 for (const size of SIZES) {
   await page.setViewportSize({width: size.width, height: size.height});
   for (const state of states) {
@@ -77,36 +84,57 @@ for (const size of SIZES) {
     await applyState(state);
     await ready();
     const path = `${OUT}/after-${state.id}-${size.name}.png`;
-    await page.screenshot({path, fullPage: size.height <= 844});
-    const info = await metrics();
-    console.log(JSON.stringify({size: size.name, state: state.id, ...info, path}));
+    await page.screenshot({path, fullPage: size.width < 800});
+    const measure = await metrics();
+    report.push({size: size.name, state: state.id, ...measure, path});
+    console.log(JSON.stringify({size: size.name, state: state.id, columnDelta: measure.columnDelta, nightsBelow: measure.nightsBelow, seats: measure.seatCount, cols: measure.seatCols, podiums: measure.podiumCount}));
   }
 }
 
+await page.setViewportSize({width: 375, height: 667});
+await page.goto(`${LOCAL}/?demo&view=home`, {waitUntil: 'domcontentloaded'});
+await ready();
+const handle = page.locator('.s2-seat-handle').first();
+const box = await handle.boundingBox();
+if (box) {
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y + 90, {steps: 8});
+  await page.waitForTimeout(200);
+  await page.screenshot({path: `${OUT}/mid-drag-375.png`});
+  await page.mouse.up();
+}
+
+const compareRows = SIZES.map((size) => {
+  const before = `before-${size.name}.png`;
+  const after = `after-banner-8-4-${size.name}.png`;
+  return `<figure><img src="${before}" alt="before ${size.name}"><figcaption>Before ${size.name}</figcaption></figure>
+  <figure><img src="${after}" alt="after ${size.name}"><figcaption>After ${size.name}</figcaption></figure>`;
+}).join('\n');
 await writeFile(`${OUT}/compare-layout.html`, `<!doctype html>
 <meta charset="utf-8">
-<title>Home nights before / after</title>
+<title>Home layout before / after</title>
 <style>
   body{margin:0;background:#f4efe6;color:#073f3b;font-family:Nunito Sans,system-ui,sans-serif}
-  h1{font-size:22px;margin:18px 24px 8px}
-  h2{font-size:16px;margin:0 24px 12px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 28px}
+  h1{font-size:22px;margin:18px 24px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 24px}
   figure{margin:0;background:#fffdf8;border:1px solid #e4d8cc;border-radius:16px;overflow:hidden}
   img{width:100%;display:block}
   figcaption{padding:10px 12px;font-weight:800}
 </style>
-<h1>Home layout · Recent nights under Tonight's Table</h1>
-${SIZES.map((size) => `
-  <h2>${size.width}×${size.height}</h2>
-  <div class="row">
-    <figure><img src="before-${size.name}.png" alt="before ${size.name}"><figcaption>Before</figcaption></figure>
-    <figure><img src="after-banner-4-${size.name}.png" alt="after ${size.name}"><figcaption>After · banner + 4 nights</figcaption></figure>
-  </div>`).join('')}
-`);
-
+<h1>Home before / after</h1>
+<div class="row">${compareRows}</div>`);
 const compare = await browser.newPage();
-await compare.setViewportSize({width: 1600, height: 1100});
+await compare.setViewportSize({width: 1600, height: 1200});
 await compare.goto(`file://${OUT}/compare-layout.html`, {waitUntil: 'networkidle'});
 await compare.screenshot({path: `${OUT}/compare-layout.png`, fullPage: true});
-console.log(`${OUT}/compare-layout.png`);
+
+await writeFile(`${OUT}/metrics.json`, JSON.stringify(report, null, 2));
+await writeFile(`${OUT}/README.md`, `Home layout shots. Default layout, not ?art=dusk.
+
+Queries:
+- /?demo&view=home
+- /?gnqa=1&gallery=0&scenario=home-party
+`);
+
 await browser.close();

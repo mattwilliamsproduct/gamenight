@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   DEFAULT_LOGO_IMAGE,
   DEFAULT_TILE_IMAGES,
+  DUSK_SHEET_SLUGS,
   DUSK_TILE_SLUGS,
   applyDemoChrome,
   parseDemoChrome
@@ -42,7 +43,7 @@ test('no demo param keeps the current Home tiles and logo', async () => {
   });
 
   const duskRules = duskCss.split('}').filter((block) => block.includes('background-image'));
-  assert.ok(duskRules.length >= 6, 'dusk tile rules missing');
+  assert.ok(duskRules.length >= 5, 'dusk tile rules missing');
   duskRules.forEach((block) => {
     assert.match(block, /\[data-bp-art="dusk"\]/, 'dusk tile image leaked outside the demo attr');
   });
@@ -58,11 +59,24 @@ test('no demo param keeps the current Home tiles and logo', async () => {
     assert.ok(match, `theme slug missing from ${url}`);
     return match[1];
   });
-  assert.deepEqual(Object.values(DUSK_TILE_SLUGS).sort(), [...themeSlugs].sort());
-  for (const slug of themeSlugs) {
+  assert.ok(themeSlugs.includes('rook'), 'Rook stays on the default shelf');
+  assert.equal(DUSK_TILE_SLUGS.rook, undefined, 'Rook is not in the dusk mapping');
+  assert.doesNotMatch(duskCss, /art\/dusk\/rook\.webp/);
+  assert.deepEqual(Object.values(DUSK_TILE_SLUGS).sort(), themeSlugs.filter((slug) => slug !== 'rook').sort());
+  for (const slug of Object.values(DUSK_TILE_SLUGS)) {
     const file = `public/assets/art/dusk/${slug}.webp`;
     await access(join(root, file));
     assert.match(duskCss, new RegExp(`url\\("\\./art/dusk/${slug}\\.webp"\\)`));
+  }
+  assert.deepEqual(DUSK_SHEET_SLUGS, ['five-crowns', '818', 'wizard', 'flip7', 'beat-heat', 'canasta']);
+  for (const slug of DUSK_SHEET_SLUGS) {
+    await access(join(root, `public/assets/art/dusk/${slug}.webp`));
+  }
+  try {
+    await access(join(root, 'public/assets/art/dusk/rook.webp'));
+    assert.fail('dusk rook.webp should be gone');
+  } catch (error) {
+    assert.equal(error.code, 'ENOENT');
   }
   await access(join(root, 'public/assets/logo/dusk-mark.svg'));
   await access(join(root, 'public/assets/logo/dusk-mark-light.svg'));

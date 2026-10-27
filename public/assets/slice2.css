@@ -294,29 +294,28 @@ html.slice2-tv .s2-home-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.86fr) minmax(0, 1.25fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 
-html.slice2-tv .s2-home-table {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-html.slice2-tv .s2-nights {
-  grid-column: 1;
-  grid-row: 2;
-}
-
+html.slice2-tv .s2-home-table,
 html.slice2-tv .s2-home-start {
-  grid-column: 2;
-  grid-row: 1 / -1;
-  align-self: stretch;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 html.slice2-tv .s2-home-start .s2-game-grid {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
+  align-content: stretch;
+}
+
+html.slice2-tv .s2-home-start .s2-game {
+  height: 100%;
+}
+
+html.slice2-tv .s2-home-start .s2-game-art {
+  flex: 1 1 auto;
+  min-height: 72px;
 }
 
 html.slice2-tv .s2-home-start .s2-startbar {
@@ -349,7 +348,10 @@ html.slice2-tv .s2-game-grid {
 }
 
 html.slice2-tv .s2-seat-grid {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
+  flex: 1 1 auto;
+  align-content: stretch;
+  grid-auto-rows: minmax(44px, 1fr);
 }
 
 html.slice2-tv .s2-seat,
@@ -361,13 +363,98 @@ html.slice2-tv .s2-night {
 
 html.slice2-tv .s2-seat {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: 1.5rem 36px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
-  padding: 10px;
-  border-radius: 16px;
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: 14px;
   border: 1.5px solid var(--s2-line);
   background: #fffaf4;
+}
+
+html.slice2-tv .s2-seat.is-dragging {
+  opacity: 0.55;
+  box-shadow: 0 10px 22px -16px rgba(20, 49, 46, 0.7);
+}
+
+html.slice2-tv .s2-seat.is-drop-before {
+  box-shadow: inset 0 3px 0 var(--s2-teal);
+}
+
+html.slice2-tv .s2-seat.is-drop-after {
+  box-shadow: inset 0 -3px 0 var(--s2-teal);
+}
+
+html.slice2-tv .s2-seat-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-seat-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+html.slice2-tv .s2-seat-nudge,
+html.slice2-tv .s2-seat-out,
+html.slice2-tv .s2-seat-handle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--s2-muted);
+  cursor: pointer;
+}
+
+html.slice2-tv .s2-seat-nudge svg,
+html.slice2-tv .s2-seat-handle svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+html.slice2-tv .s2-seat-nudge:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+html.slice2-tv .s2-seat-handle {
+  touch-action: none;
+  cursor: grab;
+  color: var(--s2-ink);
+}
+
+html.slice2-tv .s2-seat-handle.is-grabbed,
+html.slice2-tv .s2-seat-handle:focus-visible {
+  outline: 2px solid var(--s2-teal);
+  outline-offset: 1px;
+  cursor: grabbing;
+}
+
+html.slice2-tv .s2-seat-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+html.slice2-tv .s2-home-table {
+  position: relative;
 }
 
 html.slice2-tv .s2-seat-num {
@@ -380,8 +467,8 @@ html.slice2-tv .s2-seat-num {
 html.slice2-tv .s2-seat .avatar-img,
 html.slice2-tv .s2-podium .avatar-img,
 html.slice2-tv .s2-shame-card .avatar-img {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -400,31 +487,25 @@ html.slice2-tv .s2-shame-card p {
 html.slice2-tv .s2-seat-name {
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   color: var(--s2-ink);
 }
 
 html.slice2-tv .s2-dealer-tag {
-  grid-column: 2 / -1;
-  justify-self: start;
+  flex: 0 0 auto;
   color: var(--s2-teal-deep);
   background: var(--s2-good-bg);
   border-radius: 999px;
   padding: 0.1rem 0.45rem;
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 html.slice2-tv .s2-seat-actions {
-  grid-column: 1 / -1;
-}
-
-html.slice2-tv .s2-seat-actions .s2-btn {
-  flex: 1 1 0;
-  padding-inline: 0.4rem;
+  display: none;
 }
 
 html.slice2-tv .s2-deck {
@@ -562,16 +643,10 @@ html.slice2-tv .s2-nights {
   padding: 16px;
 }
 
-html.slice2-tv .s2-night-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
 html.slice2-tv .s2-nights .s2-night-list {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 html.slice2-tv .s2-night {
@@ -582,11 +657,13 @@ html.slice2-tv .s2-night {
 }
 
 html.slice2-tv .s2-nights .s2-night {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 0.9fr);
-  align-items: baseline;
-  gap: 8px 12px;
-  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
 }
 
 html.slice2-tv .s2-night strong {
@@ -595,27 +672,87 @@ html.slice2-tv .s2-night strong {
   color: var(--s2-ink);
 }
 
-html.slice2-tv .s2-nights .s2-night strong {
-  min-width: 0;
+html.slice2-tv .s2-night-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
 }
 
-html.slice2-tv .s2-nights .s2-night-date {
+html.slice2-tv .s2-nights .s2-night-date,
+html.slice2-tv .s2-nights .s2-night-who {
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 html.slice2-tv .s2-nights .s2-night-who {
-  min-width: 0;
   color: var(--s2-ink);
-  font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+html.slice2-tv .s2-night-podium {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+}
+
+html.slice2-tv .s2-podium-place {
+  display: flex;
+  align-items: flex-end;
+}
+
+html.slice2-tv .s2-podium-faces {
+  display: flex;
+  align-items: flex-end;
+}
+
+html.slice2-tv .s2-podium-face {
+  position: relative;
+  display: inline-flex;
+}
+
+html.slice2-tv .s2-podium-face + .s2-podium-face {
+  margin-left: -8px;
+}
+
+html.slice2-tv .s2-podium-avatar {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #fffdf9;
+  box-shadow: 0 0 0 1px var(--s2-line);
+}
+
+html.slice2-tv .s2-podium-place[data-place="1"] .s2-podium-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+html.slice2-tv .s2-podium-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--s2-teal-deep);
+  color: #fff;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+}
+
+html.slice2-tv .s2-podium-place[data-place="2"] .s2-podium-badge {
+  background: var(--s2-brass);
+}
+
+html.slice2-tv .s2-podium-place[data-place="3"] .s2-podium-badge {
+  background: var(--s2-coral);
 }
 
 /* ── TV scoreboard ── */
@@ -1432,46 +1569,12 @@ html.slice2-tv .s2-rival {
   }
 
   html.slice2-tv .s2-home-table,
-  html.slice2-tv .s2-home-start,
-  html.slice2-tv .s2-nights {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
-  html.slice2-tv .s2-home-table { order: 1; }
-  html.slice2-tv .s2-home-start { order: 2; }
-  html.slice2-tv .s2-nights { order: 3; }
-
   html.slice2-tv .s2-home-start {
     display: block;
   }
 
-  html.slice2-tv .s2-nights .s2-night {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 2px 0;
-    padding: 10px 12px;
-  }
-
-  html.slice2-tv .s2-nights .s2-night strong {
-    flex: 1 0 100%;
-  }
-
-  html.slice2-tv .s2-nights .s2-night-who {
-    text-align: left;
-  }
-
-  html.slice2-tv .s2-nights .s2-night-date:not(:empty)::after {
-    content: " · ";
-  }
-
-  html.slice2-tv .s2-nights .s2-night-date,
-  html.slice2-tv .s2-nights .s2-night-who {
-    display: inline;
-    overflow: visible;
-    text-overflow: unset;
-    white-space: normal;
+  html.slice2-tv .s2-nights .s2-night-list {
+    grid-template-columns: 1fr;
   }
 
   html.slice2-tv .s2-game-grid {

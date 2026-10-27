@@ -807,6 +807,9 @@ function demoHistory(){
   const h4=['Megan','Matt','Cat','Mike'];
   const h5=['Megan','Matt','Cat','Mike','Brick'];
   return [
+    demoIncompleteNight(),
+    demoJointWinNight(),
+    rookFinishedNight(),
     finishedNight(1784390400000,'Five Crowns','10/18/2026',fc6,[
       scoreRound(1,fc6,[0,5,8,6,11,14]),
       scoreRound(2,fc6,[4,0,7,9,6,15]),
@@ -891,10 +894,7 @@ function demoHistory(){
       wizardHand(3,NAMES.slice(0,7),{Megan:[0,0],Matt:[1,1],Cat:[1,1],Mike:[0,0],Vikki:[1,0],Duke:[0,1],Brick:[0,0]}),
       wizardHand(4,NAMES.slice(0,7),{Megan:[2,2],Matt:[0,0],Cat:[0,1],Mike:[1,1],Vikki:[0,0],Duke:[1,0],Brick:[0,0]})
     ]),
-    rookFinishedNight(),
-    recordsAssisted818Match(),
-    demoIncompleteNight(),
-    demoJointWinNight()
+    recordsAssisted818Match()
   ];
 }
 
