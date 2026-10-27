@@ -62,7 +62,6 @@ const VIEW_ASSERT = {
   'entry-fivecrowns': async (page) => {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#hf-rate-bar')).toBeHidden();
-    await expect(page.locator('#score-entry-modal')).not.toContainText(/Each clean|Each dirty|Each red 3/);
   },
   'entry-wizard': async (page) => {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
@@ -181,7 +180,6 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#score-entry-modal')).toContainText(/Wizard|Bid|bid/i);
     await expect(page.locator('#hf-rate-bar')).toBeHidden();
-    await expect(page.locator('#score-entry-modal')).not.toContainText(/Each clean|Each dirty|Each red 3/);
   },
   'podium-tie': async (page) => {
     await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);

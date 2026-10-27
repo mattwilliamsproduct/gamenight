@@ -616,7 +616,7 @@ html.slice2-tv .s2-art-flip7 { background-image: url("../theme/game-card-flip7-t
 html.slice2-tv .s2-art-heat { background-image: url("../theme/game-card-beat-heat-thumb.jpg"); }
 html.slice2-tv .s2-art-rook { background-image: url("../theme/game-card-rook-thumb.jpg"); }
 html.slice2-tv .s2-art-canasta {
-  background-image: url("../art/dusk/canasta.webp");
+  background-image: url("./art/dusk/canasta.webp");
   background-size: cover;
   background-position: center;
 }

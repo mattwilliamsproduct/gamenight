@@ -75,6 +75,8 @@ test('no demo param keeps the current Home tiles and logo', async () => {
   assert.deepEqual(DUSK_SHEET_SLUGS, ['five-crowns', '818', 'wizard', 'flip7', 'beat-heat', 'canasta']);
   assert.equal(DUSK_TILE_SLUGS.canasta, 'canasta');
   assert.match(duskCss, /art\/dusk\/canasta\.webp/);
+  assert.match(slice2, /\.s2-art-canasta[\s\S]*?url\("\.\/art\/dusk\/canasta\.webp"\)/);
+  await access(join(root, 'public/assets/art/dusk/canasta.webp'));
   assert.doesNotMatch(index, /startGame\('Canasta'/);
   assert.match(index, /Hand and Foot/);
   for (const slug of DUSK_SHEET_SLUGS) {
