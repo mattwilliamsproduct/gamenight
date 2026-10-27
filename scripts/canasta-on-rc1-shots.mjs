@@ -31,7 +31,8 @@ async function waitReady(page, demo) {
 async function waitRulesOpen(page) {
   await page.waitForFunction(() => {
     const modal = document.getElementById('rules-modal');
-    return !!modal && !modal.classList.contains('hidden') && !modal.classList.contains('opacity-0');
+    if (!modal || modal.classList.contains('hidden') || modal.classList.contains('opacity-0')) return false;
+    return parseFloat(getComputedStyle(modal).opacity) > 0.95;
   }, null, {timeout: 8000});
 }
 

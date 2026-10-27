@@ -332,7 +332,8 @@ test('Canasta rules open from Game Instructions and in-game Actions', async ({pa
   await page.locator('.s2-rules-select').selectOption('Hand and Foot');
   await page.waitForFunction(() => {
     const modal = document.getElementById('rules-modal');
-    return !!modal && !modal.classList.contains('hidden') && !modal.classList.contains('opacity-0');
+    if (!modal || modal.classList.contains('hidden') || modal.classList.contains('opacity-0')) return false;
+    return parseFloat(getComputedStyle(modal).opacity) > 0.95;
   });
   await expect(page.locator('#rules-title')).toHaveText('Canasta');
   await expect(page.locator('#rules-content')).toContainText('Clean canastas');
@@ -343,7 +344,8 @@ test('Canasta rules open from Game Instructions and in-game Actions', async ({pa
   await page.getByRole('button', {name: /^Rules$/}).click();
   await page.waitForFunction(() => {
     const modal = document.getElementById('rules-modal');
-    return !!modal && !modal.classList.contains('hidden') && !modal.classList.contains('opacity-0');
+    if (!modal || modal.classList.contains('hidden') || modal.classList.contains('opacity-0')) return false;
+    return parseFloat(getComputedStyle(modal).opacity) > 0.95;
   });
   await expect(page.locator('#rules-title')).toHaveText('Canasta');
   await expect(page.locator('#rules-content')).toContainText('sevens');
