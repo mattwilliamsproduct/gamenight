@@ -7818,6 +7818,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
+        <p id="home-player-name-error" class="inline-form-error text-sm font-semibold mb-4" style="color:var(--rose);"></p>
         <div class="bp-roster-columns">
           <div class="bp-roster-column bp-on-deck-zone">
             <div class="flex items-center justify-between mb-3 px-1">
@@ -8346,6 +8347,7 @@ button.dealer-name-indicator .dealer-player-label {
           onkeypress="if(event.key==='Enter')doRenamePlayer()"
           class="w-full rounded-xl px-4 py-3 text-base font-bold outline-none border hairline mb-3"
           style="background:var(--bg-2);color:var(--ink);">
+        <p id="rename-player-name-error" class="inline-form-error text-sm font-semibold mb-3" style="color:var(--rose);"></p>
         <p class="text-xs font-semibold mb-4 leading-relaxed" style="color:var(--muted);">All match history, stats, avatar, color, and profile data will carry over to the new name.</p>
         <div class="flex gap-2">
           <button onclick="closeRenameModal()" class="btn-ghost flex-1 py-3 text-sm">Cancel</button>
@@ -8499,6 +8501,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-base">Add</button>
         </div>
+        <p id="midgame-player-name-error" class="inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
       </div>
     </div>
 
@@ -8897,6 +8900,20 @@ button.dealer-name-indicator .dealer-player-label {
   let players    = safeGetArray('gn_players_v2').filter(p=>p&&typeof p==='string'&&p.trim());
   let history    = safeGetArray('gn_history');
   let playerProfiles = safeGetObject('gn_profiles');
+  if(window.BPGScorebook&&typeof BPGScorebook.cleanupCommaJoinedGhosts==='function'){
+    const _cleanedNames=BPGScorebook.cleanupCommaJoinedGhosts({allPlayers,players,playerProfiles});
+    (_cleanedNames.kept||[]).forEach((name)=>console.warn('Kept a player name that contains commas:', name));
+    if(_cleanedNames.changed){
+      allPlayers=_cleanedNames.allPlayers;
+      players=_cleanedNames.players;
+      playerProfiles=_cleanedNames.playerProfiles;
+      try{
+        localStorage.setItem('gn_all_players',JSON.stringify(allPlayers));
+        localStorage.setItem('gn_players_v2',JSON.stringify(players));
+        localStorage.setItem('gn_profiles',JSON.stringify(playerProfiles));
+      }catch(e){}
+    }
+  }
 
   let currentGame = null;
   let recordChaseVisible = false;
@@ -10553,6 +10570,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     if(added.games) markHistoryChanged();
     if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
+    applyCommaJoinedGhostCleanup();
     saveData({ fullPersist: true, syncCold: true });
     const now=added.device?.line || BPGBackup.summarizeHistory(history).line;
     toast(`Merged ${added.games} new game${added.games===1?'':'s'}. ${now}`, 'default');
@@ -11156,6 +11174,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!oldName) return;
     const newName = (document.getElementById('rename-input').value || '').trim();
     if(!newName){ alert('Please enter a name.'); return; }
+    if(rejectUnusablePlayerName(newName,'rename-player-name-error')) return;
     if(newName === oldName){ closeRenameModal(); return; }
     if(playerNameIsTaken(newName)){
       if(!confirm(`A player named "${newName}" already exists. Merge "${oldName}" into "${newName}"? All history will combine.`)){
@@ -11566,16 +11585,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   const playerSuggestHideTimers={};
   function getKnownPlayerNames(){
-    const seen=new Set(), names=[];
-    [...allPlayers,Object.keys(playerProfiles||{})].forEach(raw=>{
-      const name=String(raw||'').trim();
-      if(!name)return;
-      const key=name.toLowerCase();
-      if(seen.has(key))return;
-      seen.add(key);
-      names.push(name);
-    });
-    return names.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+    return BPGScorebook.knownPlayerNames(allPlayers, playerProfiles);
   }
   function getPlayerSuggestEls(scope){
     const isMid=scope==='midgame';
@@ -11588,13 +11598,30 @@ button.dealer-name-indicator .dealer-player-label {
     const {input}=getPlayerSuggestEls(scope);
     const q=(input?.value||'').trim().toLowerCase();
     if(!q)return [];
-    const ineligible=new Set(scope==='midgame'
-      ? (currentGame?.originalRoster||[]).map(p=>p.toLowerCase())
-      : players.map(p=>p.toLowerCase()));
-    return getKnownPlayerNames()
-      .filter(name=>!ineligible.has(name.toLowerCase()))
-      .filter(name=>name.toLowerCase().startsWith(q))
-      .slice(0,8);
+    return BPGScorebook.playerSuggestionMatches(
+      allPlayers,
+      playerProfiles,
+      q,
+      scope==='midgame' ? (currentGame?.originalRoster||[]) : players
+    );
+  }
+  function rejectUnusablePlayerName(name, errorId){
+    if(BPGScorebook.isUsablePlayerName(name)){
+      showFormError(errorId, '');
+      return false;
+    }
+    showFormError(errorId, 'Use a single name with no commas.');
+    return true;
+  }
+  function applyCommaJoinedGhostCleanup(){
+    if(!window.BPGScorebook||typeof BPGScorebook.cleanupCommaJoinedGhosts!=='function') return false;
+    const cleaned=BPGScorebook.cleanupCommaJoinedGhosts({allPlayers,players,playerProfiles});
+    (cleaned.kept||[]).forEach((name)=>console.warn('Kept a player name that contains commas:', name));
+    if(!cleaned.changed) return false;
+    allPlayers=cleaned.allPlayers;
+    players=cleaned.players;
+    playerProfiles=cleaned.playerProfiles;
+    return true;
   }
   function updatePlayerSuggestions(scope){
     const {input,menu}=getPlayerSuggestEls(scope);
@@ -11680,6 +11707,7 @@ button.dealer-name-indicator .dealer-player-label {
   function addPlayerToAll(selectedName){
     const input=document.getElementById('quick-add-player');
     const name=(selectedName||input.value).trim(); if(!name)return;
+    if(rejectUnusablePlayerName(name,'home-player-name-error')) return;
     if(!allPlayers.includes(name)) allPlayers.push(name);
     if(!players.includes(name)) players.push(name);
     input.value='';
@@ -15600,6 +15628,7 @@ ${isDealer
     const input=document.getElementById('midgame-add-player-input');
     const name=(selectedName||input?.value||'').trim();
     if(!name){alert('Invalid name.');return;}
+    if(rejectUnusablePlayerName(name,'midgame-player-name-error')) return;
     if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
     closeAddPlayerModal();
       if(!players.includes(name))players.push(name);

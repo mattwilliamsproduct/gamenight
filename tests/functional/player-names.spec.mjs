@@ -61,3 +61,15 @@ test('390 scorecard names share one column size', async ({page})=>{
   expect(fit.boxes.every(row=>row.fits),'every name stays inside its cell').toBe(true);
   expect(fit.min,'shared name size stays readable').toBeGreaterThanOrEqual(12);
 });
+
+test('mid-game Add Player typing m only suggests Michelle', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 650});
+  await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
+  await page.locator('#actions-btn').click();
+  await page.getByRole('button', {name: /Add Player Mid-Game/}).click();
+  await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
+  await page.locator('#midgame-add-player-input').fill('m');
+  const names = await page.locator('#midgame-player-suggestions .player-suggest-option .player-name-label').allTextContents();
+  expect(names.map((name) => name.trim())).toEqual(['Michelle']);
+  expect(names.some((name) => name.includes(','))).toBe(false);
+});
