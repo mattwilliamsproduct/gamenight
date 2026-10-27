@@ -857,8 +857,9 @@ html.slice2-tv #wheel-modal .life-preserver-dialog {
 }
 
 html.slice2-tv #score-entry-modal .score-entry-panel {
-  width: min(980px, 100%);
-  max-height: calc(100dvh - 16px);
+  width: var(--bp-modal-wide);
+  max-width: var(--bp-modal-wide);
+  max-height: var(--bp-modal-max-h);
   overflow: auto;
 }
 

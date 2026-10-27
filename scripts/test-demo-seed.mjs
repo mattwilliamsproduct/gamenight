@@ -127,6 +127,39 @@ test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.ok(DEMO_VIEW_IDS.includes('lifepreserver-after'));
   assert.ok(DEMO_VIEW_IDS.includes('lifepreserver-low'));
   assert.ok(DEMO_VIEW_IDS.includes('empty-records'));
+  assert.ok(DEMO_VIEW_IDS.includes('game'));
+  assert.ok(DEMO_VIEW_IDS.includes('bids-wizard'));
+  assert.ok(DEMO_VIEW_IDS.includes('podium-tie'));
+  assert.ok(DEMO_VIEW_IDS.includes('past-night'));
+  assert.ok(DEMO_VIEW_IDS.includes('add-player-m'));
   assert.equal(stripDemoSearch('https://example.test/?demo&view=home'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
+  assert.equal(stripDemoSearch('https://example.test/?demo&view=game&game=818'), '/');
+});
+
+test('view=game&game= picks the in-progress scorecard for that shelf game', () => {
+  const storage = memoryStorage();
+  for (const [game, name] of [
+    ['five-crowns', 'Five Crowns'],
+    ['818', '818'],
+    ['wizard', 'Wizard'],
+    ['flip7', 'Flip 7 Vengeance'],
+    ['beat-the-heat', 'Beat the Heat'],
+    ['rook', 'Rook']
+  ]) {
+    const action = decideDemoAction({
+      hostname: 'localhost',
+      search: `?demo&view=game&game=${game}`,
+      storage
+    });
+    assert.equal(action.status, 'seeded', game);
+    assert.equal(action.payload.currentGame?.name, name, game);
+  }
+  const missing = decideDemoAction({
+    hostname: 'localhost',
+    search: '?demo&view=game&game=hand-and-foot',
+    storage
+  });
+  assert.equal(missing.status, 'seeded');
+  assert.ok(missing.payload);
 });
