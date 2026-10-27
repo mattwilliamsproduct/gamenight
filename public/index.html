@@ -3576,11 +3576,15 @@ button.dealer-name-indicator {
     }
     .wheel-mode-label {
       font-family: "Bree Serif", Georgia, serif;
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       font-weight: 800;
-      line-height: 1.2;
-      margin: 0 2.5rem 0.45rem;
+      line-height: 1.25;
+      margin: 0 2.75rem 0.55rem;
       color: var(--ink);
+    }
+    #wheel-modal.wheel-has-result .wheel-mode-label {
+      font-size: 1.45rem;
+      margin: 0.15rem 2.75rem 0.9rem;
     }
     .wheel-legend {
       display: flex;
@@ -11203,7 +11207,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(result) result.classList.remove('hidden');
     document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
     const mode=document.getElementById('wheel-mode-label');
-    if(mode) mode.textContent='Life Preserver';
+    if(mode) mode.textContent='Life Preserver Unlocked';
     document.getElementById('wheel-player-name')?.classList.add('hidden');
     if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
     const slices=drawWheel();
@@ -13581,14 +13585,17 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
+      const keepLastPast=(wrap.clientWidth||0)>=700;
       fitActiveScorecardColumns(root);
       while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<roundIdxs.length){
+        if(keepLastPast&&hidden===roundIdxs.length-1) break;
         hidden++;
         applyHidden(hidden);
         fitActiveScorecardColumns(root);
       }
       if(options?.hideUntilLeadFits){
         while(hidden<roundIdxs.length&&scorecardLeadStillOverflows(table)){
+          if(keepLastPast&&hidden===roundIdxs.length-1) break;
           hidden++;
           applyHidden(hidden);
           fitActiveScorecardColumns(root);

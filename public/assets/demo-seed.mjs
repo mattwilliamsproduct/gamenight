@@ -335,13 +335,14 @@ function openDemoView(view){
     if (typeof authorizeHailMary === 'function') authorizeHailMary('Cat');
     if (typeof showLifePreserverResult === 'function') {
       const game = readLiveGame();
-      const total = Number(game?.totals?.Cat) || 61;
+      const before = Number(game?.totals?.Cat);
+      const beforeTotal = Number.isFinite(before) ? before : 41;
       showLifePreserverResult({
         player: 'Cat',
         label: '+20 · Help',
         adj: 20,
-        beforeTotal: total - 20,
-        total,
+        beforeTotal,
+        total: beforeTotal + 20,
         beforePlace: 3,
         place: 2,
         winLow: false,

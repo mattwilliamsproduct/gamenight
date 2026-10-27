@@ -482,7 +482,7 @@
     const cy = canvas.height / 2;
     const scale = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
     const outer = cx * 0.84;
-    const inner = cx * 0.28;
+    const inner = cx * 0.16;
     const midR = (inner + outer) / 2;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
@@ -513,7 +513,7 @@
         ? BPGLifePreserver.formatSignedPoints(slice.adjustment)
         : String(slice.adjustment || '0');
       const chord = 2 * Math.sin(arc / 2) * midR;
-      const font = Math.max(30, Math.min(46, (16 * scale), chord * 0.55));
+      const font = Math.max(34, Math.min(52, 18 * scale, chord * 0.5));
       context.font = `800 ${font}px "Nunito Sans", sans-serif`;
       const textW = context.measureText(signed).width;
       const roomy = arc >= Math.PI * 2 * 0.08 && textW < chord * 0.82;
@@ -523,29 +523,49 @@
       if (roomy) {
         context.fillText(signed, cx + Math.cos(mid) * midR, cy + Math.sin(mid) * midR);
       } else {
-        callouts.push({ mid, signed, kind, font: Math.max(28, 14 * scale) });
+        callouts.push({ mid, signed, kind, font: Math.max(32, 16 * scale) });
       }
       slice._start = angle;
       slice._end = angle + arc;
       angle += arc;
     });
     callouts.forEach((item, index) => {
-      const nudge = (index - (callouts.length - 1) / 2) * 0.08;
-      const mid = item.mid + nudge;
-      const innerPt = { x: cx + Math.cos(item.mid) * (outer - 10), y: cy + Math.sin(item.mid) * (outer - 10) };
-      const labelR = cx * 0.93;
-      const label = { x: cx + Math.cos(mid) * labelR, y: cy + Math.sin(mid) * labelR };
+      const clustered = callouts.some((other, otherIndex) => (
+        otherIndex !== index && Math.abs(Math.atan2(Math.sin(other.mid - item.mid), Math.cos(other.mid - item.mid))) < 0.28
+      ));
+      const mid = item.mid + ((index % 2) ? 0.06 : -0.04);
+      const labelR = cx * (clustered && index % 2 ? 0.96 : 0.91);
+      const innerPt = { x: cx + Math.cos(item.mid) * (outer - 8), y: cy + Math.sin(item.mid) * (outer - 8) };
+      context.font = `800 ${item.font}px "Nunito Sans", sans-serif`;
+      const textW = context.measureText(item.signed).width;
+      const padX = Math.max(8, item.font * 0.28);
+      const padY = Math.max(5, item.font * 0.22);
+      let x = cx + Math.cos(mid) * labelR;
+      let y = cy + Math.sin(mid) * labelR;
+      x = Math.min(canvas.width - textW / 2 - padX - 6, Math.max(textW / 2 + padX + 6, x));
+      y = Math.min(canvas.height - item.font / 2 - padY - 6, Math.max(item.font / 2 + padY + 6, y));
+      const boxW = textW + padX * 2;
+      const boxH = item.font + padY * 2;
+      const boxX = x - boxW / 2;
+      const boxY = y - boxH / 2;
       context.beginPath();
       context.moveTo(innerPt.x, innerPt.y);
-      context.lineTo(label.x, label.y);
-      context.strokeStyle = 'rgba(8, 87, 79, 0.55)';
+      context.lineTo(x, y);
+      context.strokeStyle = 'rgba(8, 87, 79, 0.5)';
       context.lineWidth = 2;
       context.stroke();
-      context.font = `800 ${item.font}px "Nunito Sans", sans-serif`;
+      context.beginPath();
+      if (typeof context.roundRect === 'function') context.roundRect(boxX, boxY, boxW, boxH, 10);
+      else context.rect(boxX, boxY, boxW, boxH);
+      context.fillStyle = '#f7f3ea';
+      context.fill();
+      context.strokeStyle = 'rgba(8, 87, 79, 0.28)';
+      context.lineWidth = 1.5;
+      context.stroke();
       context.fillStyle = item.kind === 'bad' ? '#3b1410' : (item.kind === 'good' ? '#04332e' : '#3f3a36');
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      context.fillText(item.signed, label.x, label.y);
+      context.fillText(item.signed, x, y);
     });
     context.beginPath();
     context.arc(cx, cy, outer, 0, Math.PI * 2);

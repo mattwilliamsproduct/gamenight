@@ -700,6 +700,18 @@ test('pickWeightedSlice follows slice weights and lock is independent of animati
   const described = LP.describeLifePreserverResult(locked);
   assert.match(described.headline, /\+20 points/);
   assert.match(described.totals, /40 → 60/);
+  assert.match(described.standing, /2nd → 2nd|Stays 2nd/);
+  const high = LP.describeLifePreserverResult({
+    adjustment: 20,
+    beforeTotal: 41,
+    afterTotal: 61,
+    beforeRank: 3,
+    afterRank: 2,
+    winLow: false
+  });
+  assert.match(high.headline, /\+20 points/);
+  assert.match(high.totals, /41 → 61/);
+  assert.match(high.standing, /3rd → 2nd place/);
   const low = LP.describeLifePreserverResult({
     adjustment: -20,
     beforeTotal: 150,
@@ -710,6 +722,7 @@ test('pickWeightedSlice follows slice weights and lock is independent of animati
   });
   assert.match(low.headline, /20 points off/);
   assert.match(low.totals, /150 → 130/);
+  assert.match(low.standing, /8th → 7th place/);
 });
 
 test('a landed Life Preserver is locked, persists, blocks a second spin, and marks assisted', () => {
