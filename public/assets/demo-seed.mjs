@@ -238,23 +238,12 @@ function applyRookEntryState(data){
   return data;
 }
 
-function applyLifePreserverAfter(data){
-  const game = data.currentGame;
-  if (!game || !window.BPGScorebook) return data;
-  const player = 'Cat';
-  window.BPGScorebook.recordLifePreserverSpin(game, player, 20);
-  if (window.BPGLifePreserver && typeof window.BPGLifePreserver.markLifePreserverUsed === 'function') {
-    window.BPGLifePreserver.markLifePreserverUsed(game, player);
-  }
-  return data;
-}
-
 function payloadForView(view, base){
   const typed = parseTypedView(view);
   if (view === 'empty-home' || view === 'empty-records') return emptyPayload();
   if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('demo-seed');
   if (view === 'lifepreserver') return scenarioData('eight18-porch-lp');
-  if (view === 'lifepreserver-after') return applyLifePreserverAfter(scenarioData('eight18-porch-lp'));
+  if (view === 'lifepreserver-after') return scenarioData('eight18-porch-lp');
   if (view === 'lifepreserver-low') return scenarioData('demo-seed');
   if (view === 'rook-contract') return scenarioData('rook-bid-setup');
   if (view === 'rook-call') return applyRookCallState(scenarioData('rook-bid-setup'));

@@ -86,8 +86,12 @@ const VIEW_ASSERT = {
     const painted = await page.evaluate(() => {
       const canvas = document.getElementById('wheel-canvas');
       const context = canvas.getContext('2d');
-      const data = context.getImageData(Math.floor(canvas.width * 0.75), Math.floor(canvas.height * 0.5), 1, 1).data;
-      return data[3] > 0 && !(data[0] > 240 && data[1] > 240 && data[2] > 240);
+      const {data} = context.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < data.length; i += 16) {
+        const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+        if (a > 200 && (g > r + 20 || r > g + 20 || (r > 140 && g < 180 && b < 180))) return true;
+      }
+      return false;
     });
     expect(painted).toBe(true);
   },

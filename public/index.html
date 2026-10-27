@@ -11121,6 +11121,22 @@ button.dealer-name-indicator .dealer-player-label {
     return BPGLifePreserver.getLifePreserverOffer(currentGame, player, activePlayers, extra||{});
   }
 
+  function offerSlicesForPlayer(player){
+    if(!currentGame||!player) return lifePreserverOfferSnapshot||{slices:[]};
+    if(lifePreserverOfferSnapshot?.player===player&&lifePreserverOfferSnapshot.slices?.length){
+      return lifePreserverOfferSnapshot;
+    }
+    const activePlayers=getActivePlayers(currentGame);
+    let offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    if(offer.slices?.length) return offer;
+    const used=currentGame.hailMaryUsed||[];
+    if(!used.includes(player)) return offer;
+    currentGame.hailMaryUsed=used.filter((name)=>name!==player);
+    offer=getLifePreserverOfferForPlayer(player, activePlayers);
+    currentGame.hailMaryUsed=used;
+    return offer;
+  }
+
   function getWheelSlices(){
     const player=wheelPlayer
       || currentGame?.lifePreserverLastResult?.player
@@ -11130,12 +11146,11 @@ button.dealer-name-indicator .dealer-player-label {
     if(!player||(activePlayers.length&&!activePlayers.includes(player))){
       return lifePreserverOfferSnapshot?.slices||[];
     }
-    if(lifePreserverOfferSnapshot?.player===player&&Array.isArray(lifePreserverOfferSnapshot.slices)){
-      return lifePreserverOfferSnapshot.slices;
+    const offer=offerSlicesForPlayer(player);
+    if(offer.slices?.length){
+      wheelPlayer=player;
+      lifePreserverOfferSnapshot=offer;
     }
-    if(!currentGame) return lifePreserverOfferSnapshot?.slices||[];
-    const offer=getLifePreserverOfferForPlayer(player, activePlayers);
-    if(offer.slices?.length) lifePreserverOfferSnapshot=offer;
     return offer.slices||lifePreserverOfferSnapshot?.slices||[];
   }
 
