@@ -44,11 +44,17 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   const compared = await page.evaluate(() => {
     const slices = getWheelSlices();
-    const total = slices.reduce((sum, slice) => sum + slice.weight, 0);
+    const displayOf = (slice) => {
+      if (window.BPGLifePreserver?.sliceDisplayWeight) return BPGLifePreserver.sliceDisplayWeight(slice);
+      return Number(slice.displayWeight) || Number(slice.weight) || 0;
+    };
+    const total = slices.reduce((sum, slice) => sum + displayOf(slice), 0);
+    const weightTotal = slices.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0);
     return slices.map((slice) => ({
       weight: slice.weight,
       kind: slice.kind,
-      expected: slice.weight / total,
+      expected: displayOf(slice) / total,
+      weightShare: (Number(slice.weight) || 0) / weightTotal,
       drawn: (slice._end - slice._start) / (Math.PI * 2)
     }));
   });
@@ -89,8 +95,8 @@ test('Life Preserver roulette labels stay inside their slices', async ({page}) =
       expect(label.insidePie, `${viewport.width} ${label.text} stays in the pie`).toBe(true);
     });
     expect(report.labels.some((label) => label.text === '+10'), `${viewport.width} shows +10`).toBe(true);
-    expect(report.pockets, `${viewport.width} pocket count ${report.pockets}`).toBeGreaterThanOrEqual(36);
-    expect(report.pockets, `${viewport.width} pocket count ${report.pockets}`).toBeLessThanOrEqual(44);
+    expect(report.pockets, `${viewport.width} pocket count ${report.pockets}`).toBeGreaterThanOrEqual(20);
+    expect(report.pockets, `${viewport.width} pocket count ${report.pockets}`).toBeLessThanOrEqual(40);
     expect(report.ball, `${viewport.width} paints a ball`).toBe(true);
     expect(report.spinInView, `${viewport.width} keeps Use Your One Spin on screen ${JSON.stringify(report)}`).toBe(true);
     expect(report.diameterShare, `${viewport.width} wheel fill ${JSON.stringify(report)}`).toBeGreaterThanOrEqual(0.70);

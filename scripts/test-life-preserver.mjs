@@ -141,16 +141,12 @@ function assertSliceDistribution(result, label) {
 
 function assertWheelAnglesMatchWeights(result, label) {
   const arcs = LP.sliceArcs(result.slices);
-  const total = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
+  const total = result.slices.reduce((sum, slice) => sum + LP.sliceDisplayWeight(slice), 0);
   assert.ok(arcs.length === result.slices.length);
   arcs.forEach((arc, index) => {
-    const expected = result.slices[index].weight / total;
-    assert.ok(Math.abs(arc.fraction - expected) < 1e-9, `${label}: slice ${index} angle ${arc.fraction} != weight ${expected}`);
+    const expected = LP.sliceDisplayWeight(result.slices[index]) / total;
+    assert.ok(Math.abs(arc.fraction - expected) < 1e-9, `${label}: slice ${index} angle ${arc.fraction} != display ${expected}`);
   });
-  const unique = new Set(arcs.map(arc => Number(arc.arc.toFixed(6))));
-  if (result.slices.every(slice => slice.weight === result.slices[0].weight)) {
-    assert.equal(unique.size, 1, `${label}: equal weights should draw equal angles`);
-  }
 }
 
 test('818 remaining opportunity uses each upcoming trick count', () => {
@@ -921,7 +917,7 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
     const result = offerFromCase(item);
     assert.equal(result.eligible, true, item.label);
     const slices = result.slices;
-    assert.ok(slices.length >= 36 && slices.length <= 44, `${item.label}: pocket count ${slices.length}`);
+    assert.ok(slices.length >= 20 && slices.length <= 40, `${item.label}: pocket count ${slices.length}`);
     const arcs = LP.sliceArcs(slices);
     const totalArc = arcs.reduce((sum, arc) => sum + arc.arc, 0);
     assert.ok(Math.abs(totalArc - Math.PI * 2) < 1e-9, `${item.label}: arcs ${totalArc}`);
@@ -938,6 +934,11 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
         `${item.label} ${outcome.label}: summed ${summed} != ${outcome.arcDegrees}`
       );
       assert.equal(matching.length, outcome.segments, `${item.label} ${outcome.label} segment count`);
+      assert.ok(outcome.segments >= 1, `${item.label} ${outcome.label} needs a pocket`);
+      assert.ok(
+        Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+        `${item.label} ${outcome.label} visual ${outcome.visualShare} vs live ${outcome.probability}`
+      );
     });
     if (item.label === 'Five Crowns Duke-like 20') {
       const labels = outcomes.map((outcome) => `${outcome.label}:${outcome.segments}:${outcome.arcDegrees.toFixed(1)}`);
@@ -954,11 +955,11 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
       console.log('DUKE_ROULETTE', JSON.stringify(outcomes, null, 2));
     }
     const table = LP.describePocketTable(slices);
-    assert.ok(table.pockets >= 36 && table.pockets <= 44, `${item.label} pockets ${table.pockets}`);
-    table.outcomes.forEach((outcome) => {
+    assert.ok(table.pockets >= 20 && table.pockets <= 40, `${item.label} pockets ${table.pockets}`);
+    table.bands.forEach((band) => {
       assert.ok(
-        Math.abs(outcome.widthVsAverage) <= 0.26,
-        `${item.label} ${outcome.label} width ${outcome.widthEach} vs avg ${table.averageWidth}`
+        Math.abs(band.visualShare - band.probability) < 1e-9,
+        `${item.label} ${band.band} visual ${band.visualShare} != live ${band.probability}`
       );
     });
     assert.equal(table.equalOption.implied.noChange, 0.125);
@@ -967,6 +968,7 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
     console.log('POCKET_TABLE', item.label, JSON.stringify(table.outcomes.map((row) => ({
       label: row.label,
       prob: Number(row.probability.toFixed(4)),
+      visual: Number(row.visualShare.toFixed(4)),
       pockets: row.segments,
       width: Number(row.widthEach.toFixed(4)),
       arc: Number(row.arcDegrees.toFixed(2))
@@ -1041,6 +1043,55 @@ test('in-slice label boxes stay inside their roulette segments', () => {
         assert.ok(layout.cssFont >= 8, `${item.label} ${layout.text} font ${layout.cssFont}`);
         assert.equal(layout.tangentialMode, true, `${item.label} ${layout.text} should read along the rim`);
       });
+    }
+  }
+});
+
+test('data-driven pocket layout works for current and proposed tables', () => {
+  const cases = [
+    { table: 'current', help: 0.80, zero: 0.12, bad: 0.08 },
+    { table: 'proposed', help: 0.75, zero: 0.10, bad: 0.15 }
+  ];
+  for (const item of cases) {
+    const slices = LP.buildSlices(20, 10, true, 5, {
+      remainingRounds: 4,
+      oneStrongRound: 20,
+      leaderGap: 51,
+      table: item.table,
+      pocketCount: 40
+    });
+    assert.ok(slices.length >= 20 && slices.length <= 40, `${item.table} pockets ${slices.length}`);
+    const amounts = new Set(slices.map((slice) => Number(slice.adjustment)));
+    amounts.forEach((amount) => {
+      assert.ok(slices.some((slice) => Number(slice.adjustment) === amount));
+    });
+    const table = LP.describePocketTable(slices);
+    table.outcomes.forEach((outcome) => {
+      assert.ok(outcome.segments >= 1, `${item.table} ${outcome.label} missing pocket`);
+      assert.ok(
+        Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+        `${item.table} ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+      );
+    });
+    const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+    const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+    const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+    assert.ok(Math.abs(help - item.help) < 1e-9, `${item.table} help ${help}`);
+    assert.ok(Math.abs(zero - item.zero) < 1e-9, `${item.table} zero ${zero}`);
+    assert.ok(Math.abs(bad - item.bad) < 1e-9, `${item.table} bad ${bad}`);
+    LP.attachSliceArcs(slices);
+    const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+    slices.forEach((slice, index) => {
+      const layout = LP.labelLayout(slice, geo);
+      assert.ok(layout.insideSegment, `${item.table} slice ${index} ${layout.text} left its pocket`);
+    });
+    const random = mulberry32(77 + item.table.length);
+    for (let seed = 0; seed < 40; seed++) {
+      const pick = LP.pickWeightedSlice(slices, random);
+      const degrees = LP.landingDegreesForSlice(pick, random);
+      const angle = LP.wheelAngleFromDegrees(degrees);
+      const hit = slices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+      assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), `${item.table} landing mismatch`);
     }
   }
 });

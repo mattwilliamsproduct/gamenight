@@ -152,6 +152,7 @@ export function parseDemoRequest(search, hostname){
   return {
     wantsDemo: params.has('demo'),
     view: params.get('view') || 'home',
+    lpTable: params.get('lp') || '',
     allowed: demoHostAllowed(hostname)
   };
 }
@@ -402,6 +403,10 @@ export async function bootDemoSeed(api){
     search: api.search,
     storage: api.storage
   });
+  const req = parseDemoRequest(api.search, api.hostname);
+  if (req.lpTable === 'proposed' && typeof window !== 'undefined') {
+    window.BPG_LP_TABLE = 'proposed';
+  }
   if (action.status === 'idle' || action.status === 'ignored') {
     api.ready?.(action.status, action.view || '');
     return action;

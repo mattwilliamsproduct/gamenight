@@ -563,7 +563,7 @@ html.slice2-tv #slice2-board-bar {
   gap: 12px;
   width: min(1440px, 100%);
   margin: 0 auto 8px;
-  padding: 10px 4px 0;
+  padding: 10px 0 0;
 }
 
 html.slice2-tv .s2-board-identity {
@@ -633,8 +633,35 @@ html.slice2-tv #slice2-board-line {
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
-  line-height: 1.3;
+  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  line-height: 1.25;
+}
+
+html.slice2-tv .s2-board-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  min-width: 0;
+}
+
+html.slice2-tv #slice2-board-line .s2-board-title {
+  font-family: "Bree Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: 1.05em;
+}
+
+html.slice2-tv #slice2-board-line .s2-board-round {
+  font-weight: 800;
+  color: var(--s2-teal-deep);
+}
+
+html.slice2-tv #slice2-board-sub {
+  margin: 0;
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.88em;
+  font-weight: 700;
 }
 
 html.slice2-tv #slice2-board-sub {
@@ -976,10 +1003,23 @@ html.slice2-tv #wheel-player-name {
 
 html.slice2-tv #wheel-player-meta,
 html.slice2-tv #wheel-commit-line,
+html.slice2-tv #wheel-odds-line,
 html.slice2-tv #wheel-game-line,
 html.slice2-tv #wheel-best-place {
   margin-bottom: 0.12rem !important;
-  font-size: clamp(0.78rem, 1.5vw, 0.95rem) !important;
+  font-size: clamp(0.86rem, 1.7vw, 1.08rem) !important;
+}
+
+html.slice2-tv #wheel-odds-line {
+  color: var(--s2-teal-deep) !important;
+}
+
+html.slice2-tv .wheel-legend-chip {
+  font-size: 0.95rem;
+}
+
+html.slice2-tv #btn-life-preserver-help {
+  font-size: 0.95rem !important;
 }
 
 html.slice2-tv .wheel-legend {
@@ -1147,19 +1187,19 @@ html.slice2-tv .wheel-legend-chip.is-setback::before {
 }
 
 html.slice2-tv .wheel-spinner-hub {
-  width: 18%;
-  height: 18%;
+  width: 20%;
+  height: 20%;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: radial-gradient(circle at 35% 30%, #2a403c, #13201e 72%) !important;
-  border: 3px solid #d7c6a4 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 16px -12px rgba(20, 49, 46, 0.55) !important;
-  color: #f6efe2 !important;
+  background: radial-gradient(circle at 35% 30%, #1a8a7a, #0a5c54 72%) !important;
+  border: 3px solid #fff4df !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -12px rgba(20, 49, 46, 0.4) !important;
+  color: #fff8ea !important;
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: clamp(0.6rem, 2vw, 0.82rem);
+  font-size: clamp(0.62rem, 2vw, 0.88rem);
   letter-spacing: 0.08em;
   pointer-events: auto;
   cursor: pointer;
@@ -1566,10 +1606,10 @@ html.slice2-tv button.scoreboard-rank-badge {
   }
 
   html.slice2-tv #slice2-enter-btn {
-    flex: 1 1 100%;
-    order: -1;
-    min-height: 48px;
-    font-size: 1.05rem;
+    flex: 0 1 auto;
+    order: 3;
+    min-height: 40px;
+    font-size: 0.95rem;
   }
 
   html.slice2-tv .s2-board-actions .active-match-actions {
@@ -1606,6 +1646,11 @@ html.slice2-tv button.scoreboard-rank-badge {
 
   html.slice2-tv #slice2-board-line {
     white-space: nowrap;
+  }
+
+  html.slice2-tv .s2-board-title-row {
+    flex-wrap: nowrap;
+    align-items: baseline;
   }
 
   html.slice2-tv .s2-board-line-row {
@@ -1651,19 +1696,21 @@ html.slice2-tv button.scoreboard-rank-badge {
   html.slice2-tv .s2-board-actions .match-end-btn,
   html.slice2-tv .s2-board-actions .s2-btn,
   html.slice2-tv .s2-board-actions .active-match-actions button,
-  html.slice2-tv #slice2-history-btn,
-  html.slice2-tv #slice2-lp-btn {
-    min-height: 40px;
-    height: 40px;
-    padding: 0.35rem 0.8rem;
-    font-size: 0.86rem;
+  html.slice2-tv #slice2-enter-btn,
+  html.slice2-tv #slice2-table-btn {
+    min-height: 44px;
+    height: 44px;
+    padding: 0.4rem 0.95rem;
+    font-size: 0.92rem;
     line-height: 1;
     white-space: nowrap;
+    text-transform: none;
+    letter-spacing: 0;
   }
 
   html.slice2-tv #slice2-enter-btn {
-    flex: 1 1 100%;
-    height: auto;
+    flex: 0 0 auto;
+    height: 44px;
     min-height: 44px;
   }
 }

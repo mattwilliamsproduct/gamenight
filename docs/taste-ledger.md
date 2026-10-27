@@ -21,6 +21,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.
 - A Life Preserver modal that uses the leftover viewport so the wheel and slice numbers can get big. Use Your One Spin stays on screen.
 - A Life Preserver that reads as a roulette bowl: narrow pockets, numbered rim, frets, turret, and a ball that settles.
+- A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
 
 ## Kills
 
@@ -55,3 +56,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Life Preserver labels outside the pie, callout pills, or leader lines.
 - A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
 - A Life Preserver that still looks like a pie chart with extra wedges.
+- A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.

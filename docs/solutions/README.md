@@ -28,4 +28,4 @@ Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves
 
 Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.
 
-Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Preserver labels stay inside every slice; split outcomes into interleaved segments whose arcs still match the 45/30/5/12/8 table.
+Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Preserver labels stay inside every slice; equal-ish pockets stay accurate-ish, and the draw still uses the live table.

@@ -157,6 +157,14 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
 });
 
 test('laptop scorecard keeps a Table button and a one-line title', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 650});
+  await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
+  const titleWraps1024 = await page.locator('#slice2-board-line').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return style.whiteSpace !== 'nowrap' || el.getClientRects().length > 1;
+  });
+  expect(titleWraps1024, 'title wraps at 1024').toBe(false);
+
   await page.setViewportSize({width: 1440, height: 900});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
   await expect(page.locator('#slice2-table-btn')).toBeVisible();
@@ -172,20 +180,59 @@ test('laptop scorecard keeps a Table button and a one-line title', async ({page}
   expect(titleWraps).toBe(false);
   await expect(page.locator('#slice2-board-line')).not.toContainText(/Dealer/);
   const heights = await page.evaluate(() => {
-    const ids = ['slice2-table-btn', 'slice2-history-btn', 'actions-btn'];
+    const ids = ['slice2-table-btn', 'slice2-enter-btn', 'actions-btn'];
     return ids.map((id) => Math.round(document.getElementById(id)?.getBoundingClientRect().height || 0));
   });
-  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(8);
+  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(2);
+  const aligned = await page.evaluate(() => {
+    const bar = document.getElementById('slice2-board-bar');
+    const table = document.getElementById('scorecard-capture') || document.getElementById('scorecard-live-layout');
+    if (!bar || !table) return {ok: false};
+    return {
+      ok: true,
+      left: Math.abs(bar.getBoundingClientRect().left - table.getBoundingClientRect().left),
+      right: Math.abs(bar.getBoundingClientRect().right - table.getBoundingClientRect().right)
+    };
+  });
+  expect(aligned.ok).toBe(true);
+  expect(aligned.left).toBeLessThanOrEqual(2);
+  expect(aligned.right).toBeLessThanOrEqual(2);
 });
 
-test('Life Preserver header control shows only when someone can spin', async ({page}) => {
+test('Life Preserver picker opens from Actions and a badge goes straight to that player', async ({page}) => {
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
-  await expect(page.locator('#slice2-lp-wrap')).toBeHidden();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-life-preserver-btn').click();
+  await expect(page.locator('#life-preserver-rules-modal, #lp-picker-modal, #wheel-modal')).not.toHaveClass(/hidden/);
 
   await openScenario(page, {scenario: 'eight18-porch-lp', surface: 'scorecard'});
-  await expect(page.locator('#slice2-lp-wrap')).toBeVisible();
-  await expect(page.locator('#slice2-lp-btn')).toHaveText(/Life Preserver · \d+ eligible/);
-  const count = await page.locator('#slice2-lp-btn').innerText();
-  const n = Number((count.match(/(\d+) eligible/) || [])[1]);
-  expect(n).toBeGreaterThan(0);
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-life-preserver-btn').click();
+  await expect(page.locator('#lp-picker-modal')).not.toHaveClass(/hidden/);
+  await page.locator('#lp-picker-modal [data-lp-player="Vikki"]').click();
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#wheel-player-name')).toHaveText('Vikki');
+  await page.locator('#btn-spin').click();
+  await expect(page.locator('#wheel-result')).toBeVisible({timeout: 4000});
+  const afterVikki = await page.evaluate(() => ({
+    used: [...(currentGame.hailMaryUsed || [])],
+    totals: {...currentGame.totals}
+  }));
+  expect(afterVikki.used).toContain('Vikki');
+  expect(afterVikki.used).not.toContain('Cat');
+
+  await page.getByRole('button', {name: 'Back to scorecard'}).click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-life-preserver-btn').click();
+  await expect(page.locator('#lp-picker-modal')).not.toHaveClass(/hidden/);
+  await page.getByRole('button', {name: 'Cancel'}).click();
+  await expect(page.locator('#lp-picker-modal')).toHaveClass(/hidden/);
+  const afterCancel = await page.evaluate(() => [...(currentGame.hailMaryUsed || [])]);
+  expect(afterCancel).toContain('Vikki');
+  expect(afterCancel).not.toContain('Cat');
+  expect(afterCancel).not.toContain('Brick');
+
+  await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#wheel-player-name')).toHaveText('Cat');
 });

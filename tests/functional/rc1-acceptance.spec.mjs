@@ -147,7 +147,12 @@ for (const size of SIZES) {
       await openScenario(page, {scenario: 'eight18-porch-lp', surface: 'scorecard'});
       const chip = page.getByRole('button', {name: /Life Preserver available/}).first();
       if (await chip.count()) await chip.click();
-      else await page.locator('#slice2-lp-btn').click();
+      else {
+        await page.locator('#actions-btn').click();
+        await page.locator('#actions-life-preserver-btn').click();
+        const pick = page.locator('#lp-picker-modal [data-lp-player]').first();
+        if (await pick.count()) await pick.click();
+      }
       await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
       await expect(page.locator('#wheel-commit-line')).toContainText(/Best help:/);
       await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
