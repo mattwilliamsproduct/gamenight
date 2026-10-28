@@ -2309,18 +2309,23 @@
       --se-fit-key-font: 32px;
       --se-fit-next-font: 23px;
     }
+    #score-entry-modal.score-entry-managed-fit .score-entry-list {
+      min-height: 0;
+      overflow: hidden;
+    }
     #score-entry-modal.score-entry-managed-fit .score-entry-rows {
       display: flex;
       flex-direction: column;
       gap: var(--se-fit-row-gap) !important;
-      overflow: hidden !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
       padding-right: 0 !important;
     }
     #score-entry-modal.score-entry-managed-fit .score-entry-row,
     #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
-      flex: 1 1 0 !important;
-      min-height: 0 !important;
-      height: var(--se-fit-row-height);
+      flex: 0 0 auto !important;
+      min-height: 44px !important;
+      height: auto !important;
       gap: var(--se-fit-col-gap) !important;
       grid-template-columns: minmax(0, 1fr) var(--se-fit-input-col) !important;
       align-items: stretch;
@@ -2387,14 +2392,26 @@
     #score-entry-modal.score-entry-managed-fit .score-entry-chip {
       font-size: var(--se-fit-chip-font) !important;
     }
+    #score-entry-modal.score-entry-managed-fit .score-entry-side {
+      flex: 0 0 auto;
+      min-height: 0;
+    }
     #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+      flex: 0 0 auto !important;
       gap: var(--se-fit-key-gap) !important;
       padding: var(--se-fit-key-pad) !important;
-      overflow: hidden;
+      overflow: visible !important;
     }
     #score-entry-modal.score-entry-managed-fit .score-entry-key {
-      min-height: 0 !important;
+      min-height: 44px !important;
+      min-width: 44px !important;
       font-size: var(--se-fit-key-font) !important;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel > .border-t {
+      flex: 0 0 auto;
+    }
+    #score-entry-modal.score-entry-managed-fit .score-entry-panel > .border-t button {
+      min-height: 44px;
     }
     #score-entry-modal.score-entry-managed-fit .score-entry-key.next {
       font-size: var(--se-fit-next-font) !important;
@@ -4748,7 +4765,7 @@ button.dealer-name-indicator .dealer-player-label {
       text-overflow: clip !important;
       line-height: 1.05 !important;
     }
-    @media (max-width: 1023px) {
+    @media (max-width: 1023px), (min-width: 1024px) and (max-height: 820px) {
       #score-entry-modal.score-entry-hand-foot {
         padding: 8px !important;
         align-items: stretch !important;
@@ -16489,10 +16506,10 @@ ${isDealer
     const rowArea=Math.max(0,rows.getBoundingClientRect().height);
     const tightWidth=(window.visualViewport?.width||window.innerWidth||0)<1180;
     const shortHeight=(window.visualViewport?.height||window.innerHeight||0)<820;
-    // Smaller tables have room for a clearer visual lane between each player.
-    // Larger tables stay compact so every player still fits without scrolling.
-    const rowGap=count<=5?(shortHeight?12:14):count>=8?3:count>=6?5:7;
-    const rowHeight=Math.max(42,Math.floor((rowArea-(rowGap*(count-1)))/count));
+    // Rows stay at least 44px and the list scrolls. The keypad and footer stay reserved.
+    const rowGap=count<=5?(shortHeight?10:12):count>=8?6:8;
+    const preferredRow=count<=5?56:48;
+    const rowHeight=Math.max(44, preferredRow);
     const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
     const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
     const name=Math.floor(clamp(18,rowHeight*0.42,tightWidth?28:34));
@@ -16524,7 +16541,7 @@ ${isDealer
     const keyArea=Math.max(0,keypad.getBoundingClientRect().height);
     const keyGap=Math.floor(clamp(4,keyArea*0.018,9));
     const keyPad=Math.floor(clamp(5,keyArea*0.022,9));
-    const keyHeight=Math.max(34,(keyArea-(keyPad*2)-(keyGap*3))/4);
+    const keyHeight=Math.max(44,(keyArea-(keyPad*2)-(keyGap*3))/4);
     panel.style.setProperty('--se-fit-key-gap',`${keyGap}px`);
     panel.style.setProperty('--se-fit-key-pad',`${keyPad}px`);
     panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
