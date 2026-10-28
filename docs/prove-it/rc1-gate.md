@@ -103,3 +103,31 @@ See `docs/decisions-for-matt.md`. Section F stays OPEN. Sample night on producti
 ## Interview stories
 
 None forced. Write only where a real decision and real evidence exist at freeze.
+
+## Artifact paths (captured from the a859377 UI; docs-only HEAD on top)
+
+Recaptured 5:08 AM ET. 50/50 matrix shots. Game tiles below the fold on phone Home are scroll, not a P0. No blocker.
+
+### Contact sheets (one per size)
+
+- `/opt/cursor/artifacts/screenshots/visual-matrix/contact-375x667.png`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/contact-390x844.png`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/contact-768x1024.png`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/contact-1440x900.png`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/contact-1920x1080.png`
+
+### Per-size frames (Home, Table/scorecard, end, discard, leave, past-night, LP wheel, Records, Canasta)
+
+Each size folder: `home.png`, `scorecard.png`, `end-match.png`, `discard-actions.png`, `leave-table.png`, `past-night.png`, `lp-wheel.png`, `records.png`, `canasta-scorecard.png`, `canasta-entry.png`
+
+- `/opt/cursor/artifacts/screenshots/visual-matrix/375x667/`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/390x844/`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/768x1024/`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/1440x900/`
+- `/opt/cursor/artifacts/screenshots/visual-matrix/1920x1080/`
+
+### 90-second demo strip (fixed fixture `/?demo&view=demo-path`)
+
+- `/opt/cursor/artifacts/screenshots/demo-rehearse/strip-390x844.png` (required)
+- `/opt/cursor/artifacts/screenshots/demo-rehearse/strip-375x667.png`
+- Key frames: `/opt/cursor/artifacts/screenshots/demo-path/390-01-resume.png`, `390-02-mistake.png`, `390-03-corrected.png`, `390-04-victory.png`, `390-05-records.png`
