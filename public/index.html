@@ -257,6 +257,23 @@
       width: clamp(7.5rem, 22vw, 16rem);
       max-width: clamp(7.5rem, 22vw, 16rem);
     }
+    #scorecard-modal .scorecard-col-total {
+      width: 5.5rem;
+      min-width: 5rem;
+      max-width: 6.25rem;
+    }
+    @media (max-width: 760px) {
+      #scorecard-modal .scorecard-col-player {
+        width: min(6.75rem, 34vw);
+        min-width: 5.5rem;
+        max-width: min(7rem, 36vw);
+      }
+      #scorecard-modal .scorecard-col-total {
+        width: 4.5rem;
+        min-width: 4.25rem;
+        max-width: 4.75rem;
+      }
+    }
     #scorecard-modal .scorecard-table td,
     #scorecard-modal .scorecard-table .tv-stat-num,
     #scorecard-modal .scorecard-table .tv-round-cell-num {

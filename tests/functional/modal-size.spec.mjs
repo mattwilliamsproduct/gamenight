@@ -79,6 +79,27 @@ test('past-night scorecard uses most of the viewport at 1024, 1440, and 1920', a
   }
 });
 
+test('390 past-night scorecard keeps more than one round readable', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openPastNight(page);
+  const cols = await page.evaluate(() => {
+    const ths = [...document.querySelectorAll('#scorecard-modal thead th.scorecard-round-th')]
+      .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'))
+      .map((el) => ({
+        text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        width: el.getBoundingClientRect().width
+      }));
+    const body = (document.getElementById('modal-scorecard-body')?.innerText || '').replace(/\s+/g, ' ');
+    return {ths, body};
+  });
+  expect(cols.ths.length, JSON.stringify(cols.ths)).toBeGreaterThanOrEqual(2);
+  cols.ths.forEach((box) => {
+    expect(box.width, box.text).toBeGreaterThanOrEqual(32);
+    expect(box.text).toMatch(/^R\d+$/);
+  });
+  expect(cols.body, cols.body).toMatch(/Megan/i);
+});
+
 test('past-night scorecard is near full-screen on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await openPastNight(page);
