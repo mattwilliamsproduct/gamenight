@@ -2457,6 +2457,25 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 }
 
+@media (max-width: 400px) {
+  html.slice2-tv #scorecard-capture .scorecard-table thead th.scorecard-round-th {
+    letter-spacing: 0 !important;
+    font-size: 0.68rem !important;
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
+    min-width: 2.5rem !important;
+    max-width: none !important;
+  }
+
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
+    min-width: 2.25rem;
+  }
+}
+
 @media (max-width: 760px) and (max-height: 700px) {
   html.slice2-tv #score-entry-modal {
     padding: 6px !important;

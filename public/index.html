@@ -15289,7 +15289,8 @@ ${isDealer
     if(!Number.isFinite(raw)) return false;
     const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
       || root?.classList.contains('scorecard-hand-foot');
-    return raw<(handFoot?24:32);
+    const phoneNarrow=window.innerWidth<=400;
+    return raw<(handFoot?24:phoneNarrow?44:32);
   }
   function fitActiveScorecardColumns(root){
     const host=root||document.getElementById('scorecard-capture');
