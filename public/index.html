@@ -7515,6 +7515,7 @@ button.dealer-name-indicator .dealer-player-label {
     .profile-card-avatar-action {
       position: relative;
       flex-shrink: 0;
+      padding-bottom: 12px;
     }
     .profile-passport-card .avatar-img-lg {
       width: 82px;
@@ -7527,18 +7528,23 @@ button.dealer-name-indicator .dealer-player-label {
     .profile-avatar-quick-btn {
       position: absolute;
       left: 50%;
-      bottom: -9px;
+      bottom: 0;
       transform: translateX(-50%);
       border: 1px solid rgba(8,118,108,0.24);
       border-radius: 999px;
       background: rgba(255,250,241,0.96);
       color: var(--emerald);
       box-shadow: 0 8px 18px -14px rgba(6,77,72,0.85);
-      font-size: 0.58rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      font-size: max(13px, 0.8rem);
       font-weight: 900;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       line-height: 1;
-      padding: 0.34rem 0.48rem;
+      padding: 0.4rem 0.65rem;
       text-transform: uppercase;
       white-space: nowrap;
       transition: transform 0.12s ease, background 0.12s ease;
