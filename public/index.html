@@ -8277,13 +8277,17 @@ button.dealer-name-indicator .dealer-player-label {
       /* Actions opens downward from the banner, inside the phone width. */
       .active-match-actions > .relative { position: static; }
       #actions-menu {
+        position: fixed !important;
         left: 0.5rem !important;
         right: 0.5rem !important;
         width: auto !important;
         max-width: none !important;
-        max-height: calc(100dvh - 8rem);
+        max-height: calc(100dvh - 6.5rem);
+        overflow-x: hidden;
         overflow-y: auto;
       }
+      .actions-menu-item { min-height: 44px; padding: 0.35rem 0.64rem; }
+      .actions-menu-section { padding: 0.38rem; }
       #game-screen #actions-btn,
       #game-screen .active-match-banner .match-end-btn {
         min-height: 44px;
@@ -11480,6 +11484,31 @@ button.dealer-name-indicator .dealer-player-label {
     if(isOpen) closeActionsMenu();
     else openActionsMenu();
   }
+  function pinActionsMenuToViewport(){
+    const m = document.getElementById('actions-menu');
+    const btn = document.getElementById('actions-btn');
+    if(!m) return;
+    if(!btn || window.innerWidth > 760){
+      m.style.top = '';
+      m.style.maxHeight = '';
+      return;
+    }
+    const place = () => {
+      const box = btn.getBoundingClientRect();
+      const reserve = 10;
+      let top = Math.round(box.bottom + 6);
+      let maxH = window.innerHeight - top - reserve;
+      const needed = Math.ceil(m.scrollHeight);
+      if(needed > maxH){
+        top = Math.max(8, top - (needed - maxH));
+        maxH = window.innerHeight - top - reserve;
+      }
+      m.style.top = top + 'px';
+      m.style.maxHeight = Math.max(160, maxH) + 'px';
+    };
+    place();
+    requestAnimationFrame(place);
+  }
   function openActionsMenu(){
     const m = document.getElementById('actions-menu');
     const caret = document.getElementById('actions-caret');
@@ -11487,6 +11516,7 @@ button.dealer-name-indicator .dealer-player-label {
     const banner = actionsMenuBanner();
     if(!m) return;
     m.classList.remove('hidden');
+    pinActionsMenuToViewport();
     if(caret) caret.textContent = '▴';
     if(btn) btn.setAttribute('aria-expanded','true');
     if(banner) banner.classList.add('actions-menu-open');
@@ -11496,7 +11526,11 @@ button.dealer-name-indicator .dealer-player-label {
     const caret = document.getElementById('actions-caret');
     const btn = document.getElementById('actions-btn');
     const banner = actionsMenuBanner();
-    if(m) m.classList.add('hidden');
+    if(m){
+      m.classList.add('hidden');
+      m.style.top = '';
+      m.style.maxHeight = '';
+    }
     if(caret) caret.textContent = '▾';
     if(btn) btn.setAttribute('aria-expanded','false');
     if(banner) banner.classList.remove('actions-menu-open');

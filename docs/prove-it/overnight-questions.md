@@ -70,7 +70,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 5b | Spacing / alignment / no orphans? | FOUND-BUG (header 12 of 11) fixed; board wrap logged | `facb8d1`. 390 bar wraps Table / Actions / Save & End. Not a redesign. |
 | 5c | Cream/teal, teal for action? | OK / DECISION on tokens | No token hex changes (F). |
 | 5d | Type limited and meaningful? | UNVERIFIED as a redesign | No type scale rewrite. |
-| 5e | 375–1920 no clip? | FOUND-BUG then fixed at 200% / 390 | `demo-path-390-200pct-after.png` keeps 1st–4th + totals in view. Visual snapshot matrix UNVERIFIED. |
+| 5e | 375–1920 no clip? | FOUND-BUG then fixed at 200% / 390; FOUND-BUG Actions Scratch clipped on 375/390 | Matrix at 375/390/768/1440/1920. Scratch was cut off by `#game-screen` overflow. Home game tiles below the fold are scroll, not clip. |
 | 5f | Internal jargon on screen? | OK on demo | “Sample night” / “Save & End” / “Scratch Match (discard)”. “Championship Ledger” is the records title (settled B). “Warm Porch Ledger” not on screen. |
 | 5g | Pressed / focus / disabled? | UNVERIFIED | Bonus territory if no blocker. |
 | 5h | Design-lead proud? | DECISION | Matt’s morning look. |
@@ -93,7 +93,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 7c | 44px targets, contrast, labels? | OK targets on demo board after 40→44; contrast UNVERIFIED | `phone-conditions.spec.mjs`. Before/after: `demo-board-390-before.png` / `-after.png`. |
 | 7d | Console errors on demo path? | OK | `phone-conditions.spec.mjs` pageerror list empty. |
 | 7e | Empty home / empty records / first run? | OK | `edge-states.spec.mjs`. Empty records: “Hall of Fame stays empty until a night is saved.” |
-| 7f | Storage full / blocked? | FOUND-BUG | `persistJsonIfChanged` does not catch `QuotaExceededError`. No toast. Not fixed tonight (storage behavior). |
+| 7f | Storage full / blocked? | FOUND-BUG / DECISION | `persistJsonIfChanged` does not catch `QuotaExceededError`. No toast. Code left alone. Rec on the decision list: catch + keep RAM + toast after gate. |
 | 7g | 1 player / emoji / duplicate names? | FOUND-BUG then fixed (emoji); OK 1p + duplicate | Emoji crashed avatar URI. 1-player Five Crowns starts. Second add of the same name stays one seat. |
 
 ## 8. Interview lens

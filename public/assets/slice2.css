@@ -2333,6 +2333,27 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     overflow: hidden;
   }
 
+  /* Fixed so Scratch is not clipped by #game-screen overflow:hidden. */
+  html.slice2-tv body.active-match-view #actions-menu {
+    position: fixed !important;
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    width: auto !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    z-index: 500 !important;
+  }
+
+  html.slice2-tv body.active-match-view .actions-menu-item {
+    min-height: 44px;
+    padding: 0.35rem 0.64rem;
+  }
+
+  html.slice2-tv body.active-match-view .actions-menu-section {
+    padding: 0.38rem;
+  }
+
   html.slice2-tv body.active-match-view #slice2-board-bar {
     flex: 0 0 auto;
   }

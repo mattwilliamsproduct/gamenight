@@ -93,6 +93,26 @@ test('1920 scoreboard keeps names and totals in layout (readability judged separ
   expect(totals.some((text) => text.includes('38') || text.includes('36'))).toBe(true);
 });
 
+test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    await page.locator('#actions-btn').click();
+    const scratch = page.locator('#actions-menu .actions-menu-item--danger');
+    await expect(scratch, `${size.width} Scratch visible`).toBeVisible();
+    const box = await scratch.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return {top: r.top, bottom: r.bottom, height: r.height};
+    });
+    expect(box.height, `${size.width} Scratch height`).toBeGreaterThan(20);
+    expect(box.top, `${size.width} Scratch top`).toBeGreaterThanOrEqual(-1);
+    expect(box.bottom, `${size.width} Scratch bottom`).toBeLessThanOrEqual(size.height + 2);
+    await expect(scratch).toContainText(/Scratch Match/i);
+    await page.screenshot({path: `${SHOT}/discard-actions-${size.width}-after.png`, fullPage: false});
+    await page.evaluate(() => closeActionsMenu());
+  }
+});
+
 test('demo path has no pageerror', async ({page}) => {
   const errors = [];
   page.on('pageerror', (err) => errors.push(String(err)));
