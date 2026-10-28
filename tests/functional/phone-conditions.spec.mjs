@@ -191,8 +191,17 @@ test('Match Complete on 375 and 390 keeps June through Hank whole', async ({page
   }
 });
 
-test('Standings updated toast does not cover Save & End or Match complete', async ({page}) => {
-  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+const TOAST_SIZES = [
+  {width: 768, height: 1024},
+  {width: 1024, height: 768},
+  {width: 1920, height: 1080},
+  {width: 390, height: 844},
+  {width: 375, height: 667}
+];
+
+test('Standings updated toast does not cover totals or Save & End at 5 sizes', async ({page}) => {
+  test.setTimeout(180000);
+  for (const size of TOAST_SIZES) {
     await page.setViewportSize(size);
     await openDemoPath(page);
     await enterDemoLastHand(page);
@@ -217,17 +226,85 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
       const toast = document.querySelector('#toast-container .toast')?.getBoundingClientRect();
       const end = document.querySelector('.match-end-btn')?.getBoundingClientRect();
       const pill = document.getElementById('slice2-enter-btn')?.getBoundingClientRect();
+      const totals = [...document.querySelectorAll('#scorecard-body .scorecard-total-value')]
+        .map((el) => el.getBoundingClientRect());
       return {
         hitsEnd: hits(toast, end),
         hitsPill: hits(toast, pill),
+        hitsTotal: totals.some((box) => hits(toast, box)),
         toastTop: toast?.top || 0,
         toastBottom: toast?.bottom || 0
       };
     });
-    await page.screenshot({path: `${SHOT}/toast-clear-${size.width}.png`, fullPage: false});
-    expect(overlap.hitsEnd, `${size.width} toast vs Save & End`).toBe(false);
-    expect(overlap.hitsPill, `${size.width} toast vs Match complete`).toBe(false);
+    await page.screenshot({path: `${SHOT}/toast-clear-${size.width}x${size.height}.png`, fullPage: false});
+    expect(overlap.hitsEnd, `${size.width}x${size.height} toast vs Save & End`).toBe(false);
+    expect(overlap.hitsPill, `${size.width}x${size.height} toast vs Match complete`).toBe(false);
+    expect(overlap.hitsTotal, `${size.width}x${size.height} toast vs totals`).toBe(false);
   }
+});
+
+test('Standings updated toast clears when navigating to Records', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemoPath(page);
+  await enterDemoLastHand(page);
+  await page.evaluate(() => {
+    const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+    openPastScoreCell('June', last);
+  });
+  const pad = page.locator('#custom-numpad');
+  await pad.waitFor({state: 'visible', timeout: 5000});
+  const back = pad.locator('button[onclick="numpadPress(\'backspace\')"]');
+  await back.click();
+  await back.click();
+  await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
+  await page.getByRole('button', {name: /Close Keypad/i}).click();
+  await pad.waitFor({state: 'hidden', timeout: 5000});
+  await page.waitForFunction(() => {
+    const toast = document.querySelector('#toast-container .toast');
+    return !!(toast && /Standings updated/i.test(toast.textContent || ''));
+  }, null, {timeout: 4000});
+  await page.evaluate(() => {
+    if (typeof showHistory === 'function') showHistory();
+  });
+  const leftover = await page.evaluate(() => {
+    const toast = document.querySelector('#toast-container .toast');
+    return toast ? (toast.textContent || '').trim() : '';
+  });
+  await page.screenshot({path: `${SHOT}/toast-cleared-records-390.png`, fullPage: false});
+  expect(leftover, 'toast is gone on Records').toBe('');
+});
+
+test('Records ledger prints 1 night and 2 nights', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2view=records', {waitUntil: 'networkidle'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  const one = await page.evaluate(() => {
+    const keep = history.slice(0, 1);
+    history.splice(0, history.length, ...keep);
+    if (typeof renderHallOfFame === 'function') renderHallOfFame();
+    const head = [...document.querySelectorAll('.s2-panel-head')].find((el) => /Championship Ledger/i.test(el.textContent || ''));
+    return (head?.querySelector('.s2-sub')?.textContent || '').trim();
+  });
+  await page.screenshot({path: `${SHOT}/nights-1-390.png`, fullPage: false});
+  expect(one).toBe('1 night');
+  const two = await page.evaluate(() => {
+    const extra = {
+      id: 909001,
+      game: 'Five Crowns',
+      date: '10/2/2026',
+      completed: true,
+      winners: ['Matt'],
+      originalRoster: ['Megan', 'Matt'],
+      totals: {Megan: 20, Matt: 10},
+      rounds: [{round: 1, scores: {Megan: 20, Matt: 10}}]
+    };
+    history.push(extra);
+    if (typeof renderHallOfFame === 'function') renderHallOfFame();
+    const head = [...document.querySelectorAll('.s2-panel-head')].find((el) => /Championship Ledger/i.test(el.textContent || ''));
+    return (head?.querySelector('.s2-sub')?.textContent || '').trim();
+  });
+  await page.screenshot({path: `${SHOT}/nights-2-390.png`, fullPage: false});
+  expect(two).toBe('2 nights');
 });
 
 test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {

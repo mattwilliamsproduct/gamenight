@@ -1847,11 +1847,11 @@ html.slice2-tv #toast-container {
   max-width: 90vw;
 }
 
-/* Phone board: keep Standings updated off Save & End and the Match complete pill. */
+/* Phone board: keep Standings updated off Save & End, Match complete, and the totals. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #toast-container {
-    top: auto;
-    bottom: max(9.5rem, 38vh);
+    top: 13.25rem;
+    bottom: auto;
     transform: translateX(-50%);
   }
 }

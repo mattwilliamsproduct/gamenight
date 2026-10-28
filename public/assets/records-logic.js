@@ -108,6 +108,11 @@
     return (Number(games) || 0) >= (min == null ? WIN_RATE_MIN_GAMES : min);
   }
 
+  function formatNightCount(n) {
+    const count = Math.max(0, Number(n) || 0);
+    return count === 1 ? '1 night' : `${count} nights`;
+  }
+
   function formatWinRate(wins, games) {
     const played = Number(games) || 0;
     const taken = Number(wins) || 0;
@@ -611,7 +616,7 @@
           ${playerLink(card.name, esc, avatar)}
           <small>${esc(card.sub)}</small>
         </article>`).join('')}</div>
-        <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${table.history.length} nights</span></div>
+        <div class="s2-panel-head"><h2>Game Championship Ledger</h2><span class="s2-sub">${formatNightCount(table.history.length)}</span></div>
         <div class="s2-ledger-table">
           <p class="s2-sub s2-unassisted-note">Unassisted matches only on best final.</p>
           <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
@@ -994,6 +999,7 @@
     sortNights,
     groupNightsByEvening,
     winRateEligible,
+    formatNightCount,
     formatWinRate,
     formatWinRateDenom,
     formatStatValue,

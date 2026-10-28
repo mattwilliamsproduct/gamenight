@@ -4116,8 +4116,8 @@ button.dealer-name-indicator .dealer-player-label {
     }
     @media (max-width: 760px) {
       body.active-match-view #toast-container {
-        top: auto;
-        bottom: max(9.5rem, 38vh);
+        top: 13.25rem;
+        bottom: auto;
       }
     }
     .toast {
@@ -10406,6 +10406,10 @@ button.dealer-name-indicator .dealer-player-label {
     c.appendChild(t);
     setTimeout(()=>{ if(t.parentNode) t.remove(); }, 3700);
   }
+  function clearToasts(){
+    const c = document.getElementById('toast-container');
+    if(c) c.replaceChildren();
+  }
 
   /* ═══ LOCAL OPTIONAL ASSETS ═══ */
   const optionalAssetUrls={
@@ -10727,6 +10731,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.body.classList.toggle('active-match-view', id==='game-screen');
     window.scrollTo({top:0,behavior:'auto'});
     closeNumpad();
+    clearToasts();
   }
   function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
   function leaveMatchToTable(){
