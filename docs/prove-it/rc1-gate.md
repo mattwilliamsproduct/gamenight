@@ -47,6 +47,15 @@ Classified from this branch's own docs and a first look, not from memory. Untest
 - Isolation: `persist: false`, `skipPersist`, does not write `gn_*` or `gn_demo_seeded`. Existing personal history is left on disk. Banner: "Sample night · Five Crowns · not saved on this device".
 - Production "Try a sample night" on an empty book is **not** offered. Decision list.
 
+## Freeze procedure (run ~6:30 AM ET; do not execute early)
+
+1. Stop product edits on `cursor/rc1-records` unless a true blocker.
+2. `npm run check` + `npm run test:functional` + `demo-path` + `phone-conditions` + `life-preserver-visible`.
+3. Tag `rc1-candidate-20261028-<HHMM>` on the freeze sha. Push the tag.
+4. Read GitHub Preview deployment statuses for that sha. Pin `gamenight-<hash>-mattwilliamsproducts-projects.vercel.app` (not the git-branch alias).
+5. Write `FROZEN at <sha>, <time ET>` and status `automated verification passed; physical Safari approval pending`.
+6. Branch `cursor/rc1-bonus` from the tag for spacing/alignment/wording/focus/readability only.
+
 ## Freeze block (fill at freeze; do not invent a pinned URL)
 
 | Field | Value |
