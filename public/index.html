@@ -2397,14 +2397,21 @@
       min-height: 0;
     }
     #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      grid-template-rows: repeat(4, minmax(0, 1fr)) !important;
       flex: 0 0 auto !important;
       gap: var(--se-fit-key-gap) !important;
       padding: var(--se-fit-key-pad) !important;
-      overflow: visible !important;
+      overflow: hidden !important;
+      height: var(--se-fit-keypad-height, auto);
+      max-height: var(--se-fit-keypad-height, none);
     }
-    #score-entry-modal.score-entry-managed-fit .score-entry-key {
-      min-height: 44px !important;
-      min-width: 44px !important;
+    #score-entry-modal.score-entry-managed-fit .score-entry-key,
+    html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
+      min-height: 0 !important;
+      min-width: 0 !important;
+      height: auto !important;
       font-size: var(--se-fit-key-font) !important;
     }
     #score-entry-modal.score-entry-managed-fit .score-entry-panel > .border-t {
@@ -8480,11 +8487,11 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
         flex: 0 0 auto;
-        overflow: visible;
+        overflow: hidden;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-key {
-        min-height: 44px !important;
-        min-width: 44px !important;
+        min-height: 0 !important;
+        min-width: 0 !important;
       }
       button.dealer-name-indicator {
         min-width: 44px;
@@ -16710,27 +16717,36 @@ ${isDealer
     const panelBudget=Math.max(0, vh-modalPad);
     const layoutBudget=Math.max(0, panelBudget-panelPad-headerH-footerH);
     const minKeypadH=176;
+    const footerTop=footer?footer.getBoundingClientRect().top:vh;
+    let roomAboveFooter=Math.floor(footerTop-keypad.getBoundingClientRect().top-8);
+    if(!landscapeSplit && selected && roomAboveFooter<minKeypadH){
+      panel.style.setProperty('--se-fit-selected-pad','4px');
+      panel.style.setProperty('--se-fit-selected-avatar','40px');
+      panel.style.setProperty('--se-fit-selected-name','20px');
+      roomAboveFooter=Math.floor(footerTop-keypad.getBoundingClientRect().top-8);
+    }
     let keypadBudget;
     if(landscapeSplit){
-      keypadBudget=Math.max(minKeypadH, layoutBudget-layoutPad-selectedH-sideGap);
+      keypadBudget=Math.min(layoutBudget-layoutPad-selectedH-sideGap, roomAboveFooter);
+      keypadBudget=Math.max(minKeypadH, keypadBudget);
     } else {
-      const current=Math.max(0, keypad.getBoundingClientRect().height);
-      keypadBudget=current>0?current:minKeypadH;
+      keypadBudget=Math.max(144, roomAboveFooter);
     }
-    if(landscapeSplit){
-      keypad.style.height=`${keypadBudget}px`;
-      panel.style.setProperty('--se-fit-keypad-height',`${keypadBudget}px`);
-    } else {
-      keypad.style.height='';
-      panel.style.removeProperty('--se-fit-keypad-height');
-    }
+    keypad.style.height=`${keypadBudget}px`;
+    panel.style.setProperty('--se-fit-keypad-height',`${keypadBudget}px`);
+    keypad.querySelectorAll('.score-entry-key').forEach((key)=>{
+      key.style.setProperty('min-height','0','important');
+      key.style.setProperty('min-width','0','important');
+      key.style.setProperty('height','auto','important');
+    });
 
-    const keyArea=Math.max(minKeypadH, keypadBudget);
-    const keyGap=Math.floor(clamp(4,keyArea*0.018,9));
-    const keyPad=Math.floor(clamp(5,keyArea*0.022,9));
-    const keyHeight=Math.max(44,(keyArea-(keyPad*2)-(keyGap*3))/4);
+    const keyArea=Math.max(144, keypadBudget);
+    const keyGap=Math.floor(clamp(3,keyArea*0.016,9));
+    const keyPad=Math.floor(clamp(4,keyArea*0.02,9));
+    const keyHeight=Math.max(36,(keyArea-(keyPad*2)-(keyGap*3))/4);
     panel.style.setProperty('--se-fit-key-gap',`${keyGap}px`);
     panel.style.setProperty('--se-fit-key-pad',`${keyPad}px`);
+    panel.style.setProperty('--se-fit-key-min',`${Math.floor(keyHeight)}px`);
     panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
     panel.style.setProperty('--se-fit-next-font',`${Math.floor(clamp(18,keyHeight*0.34,25))}px`);
 

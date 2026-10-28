@@ -421,7 +421,7 @@ test('every keypad key and Submit stay inside the viewport at 5 sizes for Five C
         await expect(page.locator('#custom-numpad.is-open')).toBeVisible();
         await assertKeypadFullyUsable(page, label, '#custom-numpad .numpad-btn');
         const confirm = await page.evaluate(() => {
-          const el = document.querySelector('.rook-command-center .btn-primary');
+          const el = [...document.querySelectorAll('#custom-numpad button')].find((btn) => /Close Keypad/i.test(btn.textContent || ''));
           if (!el) return null;
           const box = el.getBoundingClientRect();
           const vw = window.innerWidth;
@@ -433,8 +433,8 @@ test('every keypad key and Submit stay inside the viewport at 5 sizes for Five C
             bottom: box.bottom
           };
         });
-        expect(confirm, `${label} Rook confirm exists`).toBeTruthy();
-        expect(confirm.inView, `${label} Rook confirm in view ${JSON.stringify(confirm)}`).toBe(true);
+        expect(confirm, `${label} Rook keypad Close exists`).toBeTruthy();
+        expect(confirm.inView, `${label} Rook keypad Close in view ${JSON.stringify(confirm)}`).toBe(true);
       } else {
         await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
         await page.evaluate(() => {
