@@ -2417,6 +2417,61 @@
       font-size: var(--se-fit-next-font) !important;
     }
 
+    /* iPad landscape: player list left, selected + full keypad right. Footer stays on screen. */
+    #score-entry-modal.score-entry-landscape-split .score-entry-layout,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 38%) !important;
+      grid-template-rows: minmax(0, 1fr) !important;
+      flex-direction: unset !important;
+      align-items: stretch !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+    #score-entry-modal.score-entry-landscape-split .score-entry-list,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-list {
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      flex: unset !important;
+    }
+    #score-entry-modal.score-entry-landscape-split .score-entry-rows,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-rows {
+      overflow-y: auto !important;
+      min-height: 0 !important;
+    }
+    #score-entry-modal.score-entry-landscape-split .score-entry-side,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-side {
+      display: flex !important;
+      flex-direction: column !important;
+      grid-template-columns: none !important;
+      width: auto !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      flex: unset !important;
+      align-self: stretch !important;
+    }
+    #score-entry-modal.score-entry-landscape-split .score-entry-selected-card,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-selected-card {
+      display: block !important;
+      flex: 0 0 auto !important;
+      padding: 8px !important;
+    }
+    #score-entry-modal.score-entry-landscape-split .score-entry-keypad,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-keypad {
+      flex: 1 1 auto !important;
+      width: auto !important;
+      min-height: 0 !important;
+      height: var(--se-fit-keypad-height, auto) !important;
+      max-height: var(--se-fit-keypad-height, none) !important;
+      overflow: hidden !important;
+    }
+    #score-entry-modal.score-entry-landscape-split .score-entry-panel > .border-t,
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-panel > .border-t {
+      flex: 0 0 auto !important;
+    }
+
     /* ════════ DRAG & DROP (Round 1 reorder) ════════ */
     .drag-handle {
       display: inline-flex;
@@ -3584,9 +3639,12 @@ button.dealer-name-indicator {
     @media (min-width: 761px) {
       #scorecard-capture th.scorecard-col-now {
         white-space: nowrap;
-        min-width: 6rem;
-        padding-left: 0.4rem;
-        padding-right: 0.4rem;
+        min-width: 7.5rem;
+        padding-left: 0.55rem;
+        padding-right: 0.7rem;
+      }
+      #scorecard-capture .scorecard-table-wrap {
+        padding-right: 0.5rem;
       }
     }
     td.score-cell.scorecard-round-td .score-cell-input {
@@ -4731,6 +4789,11 @@ button.dealer-name-indicator .dealer-player-label {
     #custom-numpad.numpad-no-minus button[onclick="numpadPress('-')"] {
       visibility: hidden;
       pointer-events: none;
+    }
+    #custom-numpad.is-open {
+      display: block !important;
+      transform: none !important;
+      visibility: visible;
     }
     #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('-')"],
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"] {
@@ -13254,6 +13317,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function openRookBidNumpad(){
     if(!currentGame||currentGame.rookPhase!=='bidSetup')return;
+    if(_numpadCloseTimer){clearTimeout(_numpadCloseTimer);_numpadCloseTimer=null;}
     if(activeInputId&&activeInputId!=='rook-bid-amount-input') closeNumpad({render:false});
     activeInputContext={player:currentGame.rookHighBidder||'',roundIndex:'rook-bid'};
     activeInputId='rook-bid-amount-input';
@@ -13264,9 +13328,8 @@ button.dealer-name-indicator .dealer-player-label {
     setNumpadError('');
     document.getElementById('numpad-context')?.classList.add('hidden');
     const np=document.getElementById('custom-numpad');
-    np.classList.add('numpad-no-minus');
-    np.classList.remove('hidden');
-    requestAnimationFrame(()=>np.classList.remove('translate-y-full'));
+    np.classList.add('numpad-no-minus','is-open');
+    np.classList.remove('hidden','translate-y-full');
   }
 
   function rookConfirmBidSetup(){
@@ -13779,7 +13842,7 @@ ${isDealer
         <div class="flex items-center justify-center gap-2 mb-5">
           <button type="button" onclick="rookBidSetupAmountAdj(-5)" class="w-11 h-11 rounded-xl font-extrabold border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−5</button>
           <input id="rook-bid-amount-input" type="text" inputmode="none" readonly min="${cfg.minBid}" max="999" value="${bidAmt}"
-            onclick="openRookBidNumpad()"
+            onclick="openRookBidNumpad()" onpointerdown="openRookBidNumpad()"
             class="rook-bid-amount-input flex-1 min-w-0 max-w-[9rem] text-center font-extrabold rounded-xl py-2.5 border-2 outline-none font-mono-num cursor-pointer"
             style="background:var(--bg-2);color:var(--ink);border-color:var(--hairline);">
           <button type="button" onclick="rookBidSetupAmountAdj(5)" class="w-11 h-11 rounded-xl font-extrabold border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+5</button>
@@ -15379,7 +15442,7 @@ ${isDealer
       },0);
     const nowTh=table.querySelector('thead th.scorecard-col-now');
     const nowW=((window.innerWidth||0)>=761 && nowTh)
-      ? Math.max(nowTh.getBoundingClientRect().width, 96)
+      ? Math.max(nowTh.getBoundingClientRect().width, 120)
       : 0;
     const available=Math.max(0,wrap.clientWidth-leadW-nowW-6);
     const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/visible.length));
@@ -16560,6 +16623,13 @@ ${isDealer
     });
   }
 
+  function scoreEntryViewportSize(){
+    return {
+      vw:window.visualViewport?.width||window.innerWidth||0,
+      vh:window.visualViewport?.height||window.innerHeight||0
+    };
+  }
+
   function fitScoreEntryModalLayout(){
     if(!scoreEntryModalState)return;
     const modal=document.getElementById('score-entry-modal');
@@ -16572,9 +16642,12 @@ ${isDealer
     const count=Math.max(1,players.length);
     modal.classList.add('score-entry-managed-fit');
 
-    const rowArea=Math.max(0,rows.getBoundingClientRect().height);
-    const tightWidth=(window.visualViewport?.width||window.innerWidth||0)<1180;
-    const shortHeight=(window.visualViewport?.height||window.innerHeight||0)<820;
+    const {vw,vh}=scoreEntryViewportSize();
+    const landscapeSplit=vw>=761 && vw>vh;
+    modal.classList.toggle('score-entry-landscape-split', landscapeSplit);
+
+    const tightWidth=vw<1180;
+    const shortHeight=vh<820;
     // Rows stay at least 44px and the list scrolls. The keypad and footer stay reserved.
     const rowGap=count<=5?(shortHeight?10:12):count>=8?6:8;
     const preferredRow=count<=5?56:48;
@@ -16607,7 +16680,48 @@ ${isDealer
     panel.style.setProperty('--se-fit-value-height',`${valueHeight}px`);
     panel.style.setProperty('--se-fit-value-font',`${valueFont}px`);
 
-    const keyArea=Math.max(0,keypad.getBoundingClientRect().height);
+    const compactSelected=landscapeSplit && shortHeight;
+    const selectedAvatar=Math.floor(compactSelected?48:clamp(48,70,76));
+    panel.style.setProperty('--se-fit-selected-pad', compactSelected?'6px':'12px');
+    panel.style.setProperty('--se-fit-selected-avatar',`${selectedAvatar}px`);
+    panel.style.setProperty('--se-fit-selected-gap',`${Math.floor(colGap*1.1)}px`);
+    panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
+    panel.style.setProperty('--se-fit-selected-name', compactSelected?'22px':'30px');
+    panel.style.setProperty('--se-fit-chip-font', compactSelected?'9px':'11px');
+
+    const header=panel.querySelector(':scope > .border-b');
+    const footer=panel.querySelector(':scope > .border-t');
+    const selected=panel.querySelector('.score-entry-selected-card');
+    const layout=panel.querySelector('.score-entry-layout');
+    const side=panel.querySelector('.score-entry-side');
+    const modalPad=(parseFloat(getComputedStyle(modal).paddingTop)||0)+(parseFloat(getComputedStyle(modal).paddingBottom)||0);
+    const panelPad=(parseFloat(getComputedStyle(panel).paddingTop)||0)+(parseFloat(getComputedStyle(panel).paddingBottom)||0);
+    const headerH=header?header.getBoundingClientRect().height:0;
+    const footerH=footer?footer.getBoundingClientRect().height:0;
+    const layoutStyle=layout?getComputedStyle(layout):null;
+    const layoutPad=layoutStyle?(parseFloat(layoutStyle.paddingTop)||0)+(parseFloat(layoutStyle.paddingBottom)||0):0;
+    const sideGap=side?(parseFloat(getComputedStyle(side).rowGap||getComputedStyle(side).gap)||0):0;
+    const selectedVisible=!!(selected && getComputedStyle(selected).display!=='none');
+    const selectedH=selectedVisible?selected.getBoundingClientRect().height:0;
+    const panelBudget=Math.max(0, vh-modalPad);
+    const layoutBudget=Math.max(0, panelBudget-panelPad-headerH-footerH);
+    const minKeypadH=176;
+    let keypadBudget;
+    if(landscapeSplit){
+      keypadBudget=Math.max(minKeypadH, layoutBudget-layoutPad-selectedH-sideGap);
+    } else {
+      const current=Math.max(0, keypad.getBoundingClientRect().height);
+      keypadBudget=current>0?current:minKeypadH;
+    }
+    if(landscapeSplit){
+      keypad.style.height=`${keypadBudget}px`;
+      panel.style.setProperty('--se-fit-keypad-height',`${keypadBudget}px`);
+    } else {
+      keypad.style.height='';
+      panel.style.removeProperty('--se-fit-keypad-height');
+    }
+
+    const keyArea=Math.max(minKeypadH, keypadBudget);
     const keyGap=Math.floor(clamp(4,keyArea*0.018,9));
     const keyPad=Math.floor(clamp(5,keyArea*0.022,9));
     const keyHeight=Math.max(44,(keyArea-(keyPad*2)-(keyGap*3))/4);
@@ -16615,14 +16729,6 @@ ${isDealer
     panel.style.setProperty('--se-fit-key-pad',`${keyPad}px`);
     panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
     panel.style.setProperty('--se-fit-next-font',`${Math.floor(clamp(18,keyHeight*0.34,25))}px`);
-
-    const selectedAvatar=Math.floor(clamp(48,keyHeight*0.95,76));
-    panel.style.setProperty('--se-fit-selected-pad',`${Math.floor(clamp(9,keyHeight*0.2,16))}px`);
-    panel.style.setProperty('--se-fit-selected-avatar',`${selectedAvatar}px`);
-    panel.style.setProperty('--se-fit-selected-gap',`${Math.floor(colGap*1.1)}px`);
-    panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
-    panel.style.setProperty('--se-fit-selected-name',`${Math.floor(clamp(24,keyHeight*0.52,36))}px`);
-    panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
 
     rows.style.maxHeight='';
   }
@@ -16705,8 +16811,11 @@ ${isDealer
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       modal.classList.remove('score-entry-managed-fit');
+      modal.classList.remove('score-entry-landscape-split');
       modal.classList.remove('score-entry-hand-foot');
       modal.classList.remove('hf-cards-left','hf-no-minus','score-entry-no-minus');
+      const keypad=modal.querySelector('.score-entry-keypad');
+      if(keypad) keypad.style.height='';
     },160);
     scoreEntryModalState=null;
   }
@@ -18393,9 +18502,9 @@ ${isDealer
       updateNumpadContext(player,roundIndex);
       document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
       const np=document.getElementById('custom-numpad');
-      np.classList.remove('hidden');
+      np.classList.add('is-open');
+      np.classList.remove('hidden','translate-y-full');
       syncNumpadMinusKey();
-      setTimeout(()=>np.classList.remove('translate-y-full'),10);
     } finally {
       gnPerfEnd(timer);
     }
@@ -18552,7 +18661,7 @@ ${isDealer
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
-    const np=document.getElementById('custom-numpad'); np.classList.add('translate-y-full'); np.classList.remove('numpad-no-minus');
+    const np=document.getElementById('custom-numpad'); np.classList.add('translate-y-full'); np.classList.remove('numpad-no-minus','is-open');
     _numpadCloseTimer=setTimeout(()=>{
       _numpadCloseTimer=null;
       np.classList.add('hidden');
