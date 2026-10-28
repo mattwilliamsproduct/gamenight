@@ -690,6 +690,74 @@ function demoFiveCrownsLiveRounds(players){
   return perRound.map((values,index)=>scoreRound(index+1,players,values));
 }
 
+function canastaHouseParts(spec){
+  const rates={
+    cleanCanastaEach:500,
+    dirtyCanastaEach:300,
+    sevensCanastaEach:1500,
+    redThreeEachLow:100,
+    redThreeEachHigh:200,
+    redThreeHighAt:4,
+    goingOutBonus:100
+  };
+  const reds=spec.redThrees||0;
+  const redScore=reds>=rates.redThreeHighAt?reds*rates.redThreeEachHigh:reds*rates.redThreeEachLow;
+  const going=spec.goingOut?rates.goingOutBonus:0;
+  const roundScore=(spec.cleanCanastas||0)*rates.cleanCanastaEach
+    +(spec.dirtyCanastas||0)*rates.dirtyCanastaEach
+    +(spec.sevensCanastas||0)*rates.sevensCanastaEach
+    +redScore
+    +going
+    +(spec.cardPoints||0)
+    -(spec.cardsLeft||0);
+  return {...rates,...spec,roundScore};
+}
+
+function canastaTeamRound(round,hot,quiet,hotNames,quietNames){
+  const scores={};
+  const handFootParts={};
+  hotNames.forEach((name)=>{scores[name]=hot.roundScore;handFootParts[name]={...hot};});
+  quietNames.forEach((name)=>{scores[name]=quiet.roundScore;handFootParts[name]={...quiet};});
+  return {round,scores,handFootParts};
+}
+
+function canastaHouseRound(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const hot=canastaHouseParts({cleanCanastas:1,dirtyCanastas:1,sevensCanastas:1,redThrees:4,goingOut:1,cardPoints:40,cardsLeft:20});
+  const quiet=canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:2,goingOut:0,cardPoints:15,cardsLeft:10});
+  const round=canastaTeamRound(1,hot,quiet,['Megan','Matt'],['Cat','Mike']);
+  return makeCurrentGame('Hand and Foot',roster,[round],{
+    id:1785600000001,
+    gameId:1785600000001,
+    maxRounds:4,
+    handFoot:{format:'teams', sides}
+  });
+}
+
+function demoCanastaLive(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const r1Hot=canastaHouseParts({cleanCanastas:1,dirtyCanastas:1,sevensCanastas:1,redThrees:4,goingOut:1,cardPoints:40,cardsLeft:20});
+  const r1Quiet=canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:2,goingOut:0,cardPoints:15,cardsLeft:10});
+  const r2Hot=canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:1,goingOut:0,cardPoints:80,cardsLeft:5});
+  const r2Quiet=canastaHouseParts({cleanCanastas:1,dirtyCanastas:0,sevensCanastas:0,redThrees:3,goingOut:1,cardPoints:25,cardsLeft:0});
+  const rounds=[
+    canastaTeamRound(1,r1Hot,r1Quiet,['Megan','Matt'],['Cat','Mike']),
+    canastaTeamRound(2,r2Hot,r2Quiet,['Megan','Matt'],['Cat','Mike'])
+  ];
+  return makeCurrentGame('Hand and Foot',roster,rounds,{
+    maxRounds:4,
+    handFoot:{format:'teams', sides}
+  });
+}
+
 function rookFinishedNight(){
   const roster=['Megan','Matt','Cat','Mike'];
   const rounds=[{
@@ -772,6 +840,29 @@ function demo818Live(){
   });
 }
 
+function demoIncompleteNight(){
+  const roster=NAMES.slice(0,6);
+  const rounds=[
+    scoreRound(1,roster,[4,8,6,10,12,15]),
+    scoreRound(2,roster,[5,3,9,7,11,14])
+  ];
+  const match=finishedNight(1784566800000,'Five Crowns','10/21/2026',roster,rounds,{
+    completed:false,
+    winners:[],
+    currentRound:3,
+    maxRounds:11
+  });
+  return match;
+}
+
+function demoJointWinNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  return finishedNight(1784390400001,'Flip 7 Vengeance','10/18/2026',roster,[
+    scoreRound(1,roster,[20,20,8,11]),
+    scoreRound(2,roster,[15,15,12,9])
+  ]);
+}
+
 function demoHistory(){
   const fc6=NAMES.slice(0,6);
   const fc5=NAMES.slice(0,5);
@@ -784,6 +875,9 @@ function demoHistory(){
   const h4=['Megan','Matt','Cat','Mike'];
   const h5=['Megan','Matt','Cat','Mike','Brick'];
   return [
+    demoIncompleteNight(),
+    demoJointWinNight(),
+    rookFinishedNight(),
     finishedNight(1784390400000,'Five Crowns','10/18/2026',fc6,[
       scoreRound(1,fc6,[0,5,8,6,11,14]),
       scoreRound(2,fc6,[4,0,7,9,6,15]),
@@ -868,13 +962,56 @@ function demoHistory(){
       wizardHand(3,NAMES.slice(0,7),{Megan:[0,0],Matt:[1,1],Cat:[1,1],Mike:[0,0],Vikki:[1,0],Duke:[0,1],Brick:[0,0]}),
       wizardHand(4,NAMES.slice(0,7),{Megan:[2,2],Matt:[0,0],Cat:[0,1],Mike:[1,1],Vikki:[0,0],Duke:[1,0],Brick:[0,0]})
     ]),
-    rookFinishedNight(),
     recordsAssisted818Match()
   ];
 }
 
 function demoCrownsGame(){
   return makeCurrentGame('Five Crowns',NAMES.slice(0,8),demoFiveCrownsLiveRounds(NAMES.slice(0,8)));
+}
+
+// Isolated 90-second demo: last Five Crowns hand still open. After 10 hands
+// Theo leads 36–38. A mistaken 12 on June's last hand leaves Theo first;
+// correcting it to 0 gives June the night. Completing hand 11 finishes the match.
+export const DEMO_PATH_PLAYERS = Object.freeze(['June', 'Theo', 'Rosa', 'Hank']);
+export const DEMO_PATH_LAST_ROUND = Object.freeze({mistake: [12, 5, 8, 4], correct: [0, 5, 8, 4]});
+export const DEMO_PATH_AFTER_10 = Object.freeze({June: 38, Theo: 36, Rosa: 52, Hank: 71});
+
+function demoPathLiveRounds(){
+  const players = [...DEMO_PATH_PLAYERS];
+  const perRound = [
+    [0, 5, 8, 12],
+    [6, 0, 7, 10],
+    [4, 8, 0, 9],
+    [5, 3, 6, 0],
+    [0, 4, 9, 11],
+    [7, 0, 5, 8],
+    [3, 6, 0, 10],
+    [8, 2, 10, 0],
+    [0, 4, 7, 5],
+    [5, 4, 0, 6]
+  ];
+  return perRound.map((values, index) => scoreRound(index + 1, players, values));
+}
+
+function demoPathLive(){
+  return makeCurrentGame('Five Crowns', [...DEMO_PATH_PLAYERS], demoPathLiveRounds(), {maxRounds: 11});
+}
+
+export function demoPathTable(){
+  const players = [...DEMO_PATH_PLAYERS];
+  return {
+    allPlayers: players,
+    players,
+    history: [],
+    playerProfiles: {
+      June: {color: 2},
+      Theo: {color: 6},
+      Rosa: {color: 8},
+      Hank: {color: 4}
+    },
+    currentGame: demoPathLive()
+  };
 }
 
 function demoTable(currentGame){
@@ -946,6 +1083,7 @@ export const QA_SURFACES = [
   {id:'actions',label:'Actions menu'},
   {id:'settings',label:'Settings'},
   {id:'profiles',label:'Profiles'},
+  {id:'records',label:'Records'},
   {id:'whammy',label:'WHAMMY'},
   {id:'nolie',label:'Nolie'},
   {id:'race',label:'Path replay'}
@@ -1166,6 +1304,18 @@ export const QA_SCENARIOS = {
       currentGame:lifePreserverVisibleGame
     }
   },
+  'canasta-house-round':{
+    label:'Canasta · House rules round',
+    description:'Hand and Foot saved as Canasta. Round 1 has a sevens canasta and 4 red 3s (800). Highest wins.',
+    defaultSurface:'scorecard',
+    data:{
+      allPlayers:['Megan','Matt','Cat','Mike'],
+      players:['Megan','Matt','Cat','Mike'],
+      history:[],
+      playerProfiles:profiles(),
+      currentGame:canastaHouseRound()
+    }
+  },
   'rook-bid-setup':{
     label:'Rook · Bid setup',
     description:'Four-player Rook at the contract editor, plus one finished night with a retired seat.',
@@ -1197,9 +1347,21 @@ export const QA_SCENARIOS = {
   },
   'demo-seed':{
     label:'TEMP Demo Seed',
-    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, and a Rook night with contracts.',
+    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, one incomplete night, one joint win, and a Rook night with contracts.',
     defaultSurface:'home',
     data:demoTable(demoCrownsGame())
+  },
+  'home-nights-podium':{
+    label:'Home · Recent nights podium',
+    description:'Home Recent nights with an incomplete night, a joint win, and a Rook team finish so the podium and Incomplete label are visible.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,8),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
+  },
+  'records-book':{
+    label:'Records book',
+    description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match and a joint win.',
+    defaultSurface:'records',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
   },
   'demo-wizard':{
     label:'TEMP Demo Wizard',
@@ -1218,6 +1380,18 @@ export const QA_SCENARIOS = {
     description:'Preview-only mid-game 818 with mixed bids.',
     defaultSurface:'scorecard',
     data:demoTable(demo818Live())
+  },
+  'demo-canasta':{
+    label:'TEMP Demo Canasta',
+    description:'Preview-only in-progress Canasta (Hand and Foot). Two teams, two rounds, including a sevens canasta and 4 red 3s.',
+    defaultSurface:'scorecard',
+    data:demoTable(demoCanastaLive())
+  },
+  'demo-path':{
+    label:'TEMP Demo Path · last Five Crowns hand',
+    description:'Isolated sample night. Four players, ten hands in. A last-hand correction changes the winner, then the match completes.',
+    defaultSurface:'scorecard',
+    data:demoPathTable()
   }
 };
 

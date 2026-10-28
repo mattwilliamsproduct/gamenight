@@ -1,0 +1,67 @@
+/* Preview-only Home chrome. Rules apply only when ?demo set data-bp-art / data-bp-logo. */
+
+html.slice2-tv[data-bp-art="dusk"] .s2-game-art {
+  opacity: 1;
+  height: 108px;
+  background-color: #efe6d8;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% 55%;
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-art-five {
+  background-image: url("./art/dusk/five-crowns.webp");
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-art-818 {
+  background-image: url("./art/dusk/818.webp");
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-art-wizard {
+  background-image: url("./art/dusk/wizard.webp");
+  background-position: 50% 46%;
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-art-flip7 {
+  background-image: url("./art/dusk/flip7.webp");
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-art-heat {
+  background-image: url("./art/dusk/beat-heat.webp");
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-art-canasta {
+  background-image: url("./art/dusk/canasta.webp");
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-game-copy {
+  background: #fffdf8;
+}
+
+html.slice2-tv[data-bp-art="dusk"] .s2-game-copy strong {
+  color: #073f3b;
+}
+
+@media (min-width: 1200px) {
+  html.slice2-tv[data-bp-art="dusk"] .s2-game-art {
+    height: 156px;
+  }
+}
+
+@media (max-width: 420px) {
+  html.slice2-tv[data-bp-art="dusk"] .s2-game-art {
+    height: 96px;
+  }
+}
+
+html.slice2-tv[data-bp-logo="dusk"] .bp-brand-mark,
+html.slice2-tv[data-bp-logo="dusk"] #top-nav .bp-brand-mark {
+  background: #fffdf8 url("./logo/dusk-mark.svg") center / 78% 78% no-repeat;
+  box-shadow: none;
+  border-color: rgba(7, 63, 59, 0.14) !important;
+}
+
+html.slice2-tv[data-bp-logo="dusk"] .bp-brand-games::before,
+html.slice2-tv[data-bp-logo="dusk"] .bp-brand-games::after {
+  content: none;
+}
