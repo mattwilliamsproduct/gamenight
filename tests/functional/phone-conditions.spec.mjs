@@ -217,9 +217,12 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
       const toast = document.querySelector('#toast-container .toast')?.getBoundingClientRect();
       const end = document.querySelector('.match-end-btn')?.getBoundingClientRect();
       const pill = document.getElementById('slice2-enter-btn')?.getBoundingClientRect();
+      const totals = [...document.querySelectorAll('#scorecard-body .scorecard-total-value')]
+        .map((el) => el.getBoundingClientRect());
       return {
         hitsEnd: hits(toast, end),
         hitsPill: hits(toast, pill),
+        hitsTotal: totals.some((box) => hits(toast, box)),
         toastTop: toast?.top || 0,
         toastBottom: toast?.bottom || 0
       };
@@ -227,6 +230,7 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
     await page.screenshot({path: `${SHOT}/toast-clear-${size.width}.png`, fullPage: false});
     expect(overlap.hitsEnd, `${size.width} toast vs Save & End`).toBe(false);
     expect(overlap.hitsPill, `${size.width} toast vs Match complete`).toBe(false);
+    expect(overlap.hitsTotal, `${size.width} toast vs totals`).toBe(false);
   }
 });
 
