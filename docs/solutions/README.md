@@ -43,3 +43,5 @@ Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights po
 Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
 
 Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook is hidden unless `?demo&games=rook`. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
+
+Standing trap: [first-click-sample-night.md](first-click-sample-night.md) — empty-device first click starts a live Five Crowns sample so the 90-second phone path can enter, edit, and finish.
