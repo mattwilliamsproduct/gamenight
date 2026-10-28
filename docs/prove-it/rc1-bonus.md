@@ -14,10 +14,14 @@ Frozen candidate stays PR #73. Pin: `gamenight-7voetuyns-mattwilliamsproducts-pr
 ## Not landed
 
 - Laptop look of the bonus toast
-- Full `npm run check` / functional on this branch (phone-conditions toast case passed)
-- Bonus preview pin (pending this branch’s Preview deployment)
+- Full `test:functional` on this branch (check pass; phone-conditions 12/12; demo-path 2/2)
 - Fold-in to the frozen candidate
+
+## Preview
+
+Pinned bonus app (toast commit `f8ee3ac`, GitHub deployment 7381950912): `gamenight-47taq5jg2-mattwilliamsproducts-projects.vercel.app`  
+Not the git-branch alias. Docs-only `039cf49` does not change the app.
 
 ## Status at last edit
 
-Bonus still open until ~9:15 AM ET. Addendum + pinned bonus URL at close.
+Bonus still open until ~9:15 AM ET. Final addendum at close.
