@@ -121,9 +121,7 @@ test('Canasta entry shows four-digit team totals on 375', async ({page}) => {
   await page.screenshot({path: `${SHOT}/canasta-entry-375-after.png`, fullPage: false});
 });
 
-test('Match Complete on 375 keeps June through Hank above the banner', async ({page}) => {
-  await page.setViewportSize({width: 375, height: 667});
-  await openDemoPath(page);
+async function enterDemoLastHand(page) {
   await page.locator('#slice2-enter-btn, #submit-action-btn').first().click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   const next = page.locator('#score-entry-modal .score-entry-key.next');
@@ -136,29 +134,61 @@ test('Match Complete on 375 keeps June through Hank above the banner', async ({p
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/, {timeout: 8000});
   await expect(page.locator('#game-over-section')).not.toHaveClass(/hidden/);
-  const fit = await page.evaluate(() => {
-    const vh = window.innerHeight;
-    const banner = document.getElementById('game-over-section')?.getBoundingClientRect();
-    const names = [...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map((el) => {
-      const box = el.getBoundingClientRect();
-      return {
-        text: (el.textContent || '').trim(),
-        inView: box.top >= 0 && box.bottom <= vh + 2 && box.width > 8,
-        aboveBanner: !banner || box.bottom <= banner.top + 2
-      };
+}
+
+function readScorecardNameFit() {
+  const vh = window.innerHeight;
+  const banner = document.getElementById('game-over-section')?.getBoundingClientRect();
+  return [...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map((el) => {
+    const cell = el.closest('td, th');
+    const chip = el.querySelector('.dealer-player-label') || el;
+    const slot = el.closest('.scorecard-player-name-slot');
+    const cellBox = cell?.getBoundingClientRect();
+    const slotBox = slot?.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    let glyph = null;
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(chip);
+      glyph = range.getBoundingClientRect();
+    } catch (err) {
+      glyph = chip.getBoundingClientRect();
+    }
+    return {
+      text: (el.textContent || '').trim(),
+      fontPx: parseFloat(getComputedStyle(el).fontSize) || 0,
+      fits: el.scrollWidth <= el.clientWidth + 2,
+      slotFits: !slot || el.scrollWidth <= slot.clientWidth + 2,
+      glyphInCell: !cellBox || (glyph.right <= cellBox.right + 1.5 && glyph.left >= cellBox.left - 1.5),
+      glyphInSlot: !slotBox || glyph.right <= slotBox.right + 1.5,
+      inView: box.top >= 0 && box.bottom <= vh + 2 && box.width > 8,
+      aboveBanner: !banner || box.bottom <= banner.top + 2
+    };
+  });
+}
+
+test('Match Complete on 375 and 390 keeps June through Hank whole', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    await enterDemoLastHand(page);
+    const fit = await page.evaluate(readScorecardNameFit);
+    await page.screenshot({path: `${SHOT}/complete-${size.width}-after.png`, fullPage: false});
+    const texts = fit.map((row) => row.text);
+    expect(texts.some((text) => /^June/.test(text)), `${size.width} June whole`).toBe(true);
+    expect(texts.some((text) => /^Theo/.test(text)), `${size.width} Theo whole`).toBe(true);
+    expect(texts.some((text) => /^Rosa/.test(text)), `${size.width} Rosa whole`).toBe(true);
+    expect(texts.some((text) => /^Hank/.test(text)), `${size.width} Hank whole`).toBe(true);
+    fit.forEach((row) => {
+      expect(row.inView, `${size.width} ${row.text} in view`).toBe(true);
+      expect(row.aboveBanner, `${size.width} ${row.text} above Match Complete`).toBe(true);
+      expect(row.fits, `${size.width} ${row.text} NAME-FIT`).toBe(true);
+      expect(row.slotFits, `${size.width} ${row.text} slot NAME-FIT`).toBe(true);
+      expect(row.glyphInCell, `${size.width} ${row.text} glyph in player cell`).toBe(true);
+      expect(row.glyphInSlot, `${size.width} ${row.text} glyph in name slot`).toBe(true);
+      expect(row.fontPx, `${size.width} ${row.text} name size stays readable, not a leftover-height blow-up`).toBeLessThanOrEqual(23);
     });
-    return {names, bannerTop: banner?.top || 0};
-  });
-  await page.screenshot({path: `${SHOT}/complete-375-after.png`, fullPage: false});
-  const texts = fit.names.map((row) => row.text);
-  expect(texts.some((text) => /June/.test(text)), 'June whole').toBe(true);
-  expect(texts.some((text) => /Theo/.test(text)), 'Theo whole').toBe(true);
-  expect(texts.some((text) => /Rosa/.test(text)), 'Rosa whole').toBe(true);
-  expect(texts.some((text) => /Hank/.test(text)), 'Hank whole').toBe(true);
-  fit.names.forEach((row) => {
-    expect(row.inView, `${row.text} in view`).toBe(true);
-    expect(row.aboveBanner, `${row.text} above Match Complete`).toBe(true);
-  });
+  }
 });
 
 test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {

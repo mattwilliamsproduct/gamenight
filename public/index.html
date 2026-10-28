@@ -15031,12 +15031,12 @@ ${isDealer
       let rowHeight=targetRow;
       const applyFit=()=>{
         const phone=window.innerWidth<=760;
-        const playerFont=Math.max(18,Math.min(phone?34:116,rowHeight*0.66));
+        const playerFont=Math.max(18,Math.min(phone?22:116,rowHeight*0.66));
         const totalFont=Math.max(18,Math.min(phone?40:110,rowHeight*0.62));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
-        root.style.setProperty('--scorecard-avatar-size',`${Math.max(22,Math.min(rowHeight-6,164)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-avatar-size',`${Math.max(22,Math.min(rowHeight-6,phone?28:164)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${(handFoot?Math.min(totalFont,36):totalFont).toFixed(1)}px`);
         root.style.setProperty('--scorecard-input-height',`${Math.max(24,Math.min(64,rowHeight-8)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
@@ -15133,14 +15133,23 @@ ${isDealer
       name.style.removeProperty('font-size');
       return Math.max(12,Math.min(maximum,size));
     };
-    if(available<=0){
+    const slot=name.closest('.scorecard-player-name-slot');
+    const slotBox=slot?.getBoundingClientRect();
+    const slotOverflow=!!(slot&&(
+      name.scrollWidth>slot.clientWidth+1||
+      chip.scrollWidth>slot.clientWidth+1||
+      (slotBox&&chipBox.right>slotBox.right+1)
+    ));
+    if(available<=0||slotOverflow){
       let lo=12,hi=maximum,best=12;
       for(let i=0;i<12;i++){
 
         const mid=(lo+hi)/2;
         name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
         const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
-        if(fittedBox.right<=cellBox.right-1){
+        const fittedSlot=name.closest('.scorecard-player-name-slot');
+        const slotOk=!fittedSlot||name.scrollWidth<=fittedSlot.clientWidth+1;
+        if(fittedBox.right<=cellBox.right-1&&slotOk){
           best=mid;
           lo=mid;
         }else{

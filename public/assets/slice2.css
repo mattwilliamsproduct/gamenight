@@ -2333,6 +2333,15 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     flex: 1 1 auto !important;
   }
 
+  /* Leftover row height after Match complete must not blow names past the player column. */
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
+    font-size: min(1.375rem, var(--scorecard-player-font, 1.375rem)) !important;
+  }
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
+    width: min(28px, var(--scorecard-avatar-size, 28px)) !important;
+    height: min(28px, var(--scorecard-avatar-size, 28px)) !important;
+  }
+
   html.slice2-tv #slice2-board-line,
   html.slice2-tv #slice2-board-sub {
     font-size: min(0.88rem, 15px);
