@@ -3093,6 +3093,9 @@ html.slice2-tv .s2-night-finish.is-winner strong {
 
 html.slice2-tv .s2-night-more {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: none;
