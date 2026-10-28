@@ -111,6 +111,18 @@ test('past-night scorecard is near full-screen on 375', async ({page}) => {
   expect(measure.close.bottom).toBeLessThanOrEqual(667 + 2);
   const dateSize = await page.locator('#modal-game-date').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
   expect(dateSize, `date ${dateSize}px`).toBeGreaterThanOrEqual(16);
+  const closeFit = await page.evaluate(() => {
+    const name = document.getElementById('modal-game-name')?.getBoundingClientRect();
+    const close = document.querySelector('#scorecard-modal .bp-modal-panel > button')?.getBoundingClientRect();
+    return {
+      w: close?.width || 0,
+      h: close?.height || 0,
+      overlap: !!(name && close && name.right > close.left && name.left < close.right && name.top < close.bottom && name.bottom > close.top)
+    };
+  });
+  expect(closeFit.w, `close w ${closeFit.w}`).toBeGreaterThanOrEqual(44);
+  expect(closeFit.h, `close h ${closeFit.h}`).toBeGreaterThanOrEqual(44);
+  expect(closeFit.overlap, 'close overlaps title').toBe(false);
 });
 
 async function measureAddPlayer(page) {
