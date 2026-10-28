@@ -11,7 +11,7 @@ Legend: OK / FOUND-BUG / DECISION / UNVERIFIED
 | Older night / profiles / backup / records survive? | OK (automated) | `docs/prove-it/fixtures/older-night-from-main.json` built with `origin/main` backup.js. `npm run test:older-night` 3/3. Playwright `older-night.spec.mjs` passed. Rook stays Rook. |
 | Canasta variant, team vs player, entry, corrections, completion, records? | UNVERIFIED tonight beyond existing unit/functional files | `scripts/test-hand-foot.mjs` on `npm run check`. Functional pack running. |
 | Historical Rook identity preserved (hide switch does not hide past nights)? | OK (automated) | game-registry + older-night merge + Records card title Rook. |
-| Interrupted entry: refresh / Table / modal / double Submit / reopen? | OK (automated, partial) | `data-integrity.spec.mjs` 24/24. Corrections commit once; cancel writes nothing; reopen parks the other live match. No dedicated double-Submit or Table-and-back case. |
+| Interrupted entry: refresh / Table / modal / double Submit / reopen? | OK (automated) | `data-integrity.spec.mjs` 24/24 plus `interrupted-entry.spec.mjs` 2/2 (Table and back; double-tap Submit). |
 | Real phone: long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | UNVERIFIED | rc1-acceptance covers 8-player enter/correct/resume at 5 sizes. 200% / keyboard still UNVERIFIED. |
 | First-timer: Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Save & End and Actions were in a `display:none` banner. Parked on the board bar (`c47d12e`). Table title: leaves without ending. Save & End: writes Records. Scratch (discard) stays in Actions. Physical look still PENDING. |
 
