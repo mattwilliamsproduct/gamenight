@@ -74,7 +74,7 @@ Mark untested UNVERIFIED. Never green without evidence.
 | Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
 | Historical Rook identity preserved | OK (automated) | older-night + canasta-rook-flag + game-registry. |
-| Interrupted entry (refresh, Table, modal, double Submit) | UNVERIFIED | data-integrity pack not fully re-walked this hour. |
+| Interrupted entry (refresh, Table, modal, double Submit) | OK (automated, partial) | `data-integrity.spec.mjs` 24/24: corrections commit once, cancel writes nothing, reopen parks the other match, legacy id backfill, incomplete stays out of the book. Double-tap Submit and Table-and-back not a dedicated case. |
 | Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | UNVERIFIED | 8-player keypad + retired records covered in rc1-acceptance. 200% / keyboard UNVERIFIED. |
 | Understandability: Table vs End vs Scratch | OK (automated) | Board-bar park. Physical look PENDING. |
 | 90s isolated demo path | OK (automated) | `demo-path.spec.mjs` 2/2. `demo-seed` view `demo-path` 1/1 after locator fix. |
