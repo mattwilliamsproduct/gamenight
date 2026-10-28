@@ -271,6 +271,9 @@ test('Add Player suggestions spread profile names and drop comma ghosts', () => 
   assert.equal(home.some((name) => name.includes(',')), false);
   assert.equal(Scorebook.isUsablePlayerName('MEGAN,MATT,CAT,MIKE'), false);
   assert.equal(Scorebook.isUsablePlayerName('Michelle'), true);
+  assert.equal(Scorebook.isUsablePlayerName('🔥June'), true);
+  assert.equal(Scorebook.isUsablePlayerName('June June'), true);
+  assert.equal(Scorebook.isUsablePlayerName(''), false);
 });
 
 test('comma-joined ghost cleanup is idempotent and leaves history alone', () => {

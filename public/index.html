@@ -10653,11 +10653,17 @@ button.dealer-name-indicator .dealer-player-label {
     return c > 0 ? `color-ring-${c}` : '';
   }
   function getAvatarFallback(name){
-    const i=(name&&typeof name==='string')?name.charAt(0).toUpperCase():'?';
-    // Simple SVG — no single quotes, so URL-encoded form is safe to embed in attributes.
-    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#e4e2dc" width="100" height="100"/><text fill="#78716c" x="50" y="58" font-size="46" font-weight="800" text-anchor="middle" font-family="sans-serif">${i}</text></svg>`;
-    // Additionally encode any residual single-quote chars so onerror attribute remains well-formed.
-    return ('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)).replace(/'/g,'%27');
+    const raw=(name&&typeof name==='string')?name.trim():'';
+    // charAt(0) splits an emoji surrogate pair and encodeURIComponent then throws.
+    const first=raw?[...raw][0]:'?';
+    const initial=first&&first.length===1&&/[a-z]/i.test(first)?first.toUpperCase():(first||'?');
+    const safe=String(initial).replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#e4e2dc" width="100" height="100"/><text fill="#78716c" x="50" y="58" font-size="46" font-weight="800" text-anchor="middle" font-family="sans-serif">${safe}</text></svg>`;
+    try{
+      return ('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)).replace(/'/g,'%27');
+    }catch(e){
+      return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="#e4e2dc" width="100" height="100"/></svg>');
+    }
   }
   function getAvatarSrc(name){
     const f = playerProfiles[name]?.avatar || '';

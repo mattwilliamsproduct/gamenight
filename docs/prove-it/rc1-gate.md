@@ -1,7 +1,7 @@
 # RC1 combined candidate — gate report
 
 **Status:** in progress (baseline recorded; isolated demo and older-night green; not frozen)  
-**HEAD while writing this update:** `fe450e5`
+**HEAD while writing this update:** `7c7c80b`
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
 **Draft PR:** #73 (draft only; no undraft / merge / deploy)
