@@ -318,41 +318,43 @@ test('768 home nav stays on one row', async ({page}) => {
   expect(nav.btns.some((b) => /Settings/i.test(b.text)), 'long Settings label stays off 768').toBe(false);
 });
 
-test('375 demo scorecard keeps round headers from colliding', async ({page}) => {
-  await page.setViewportSize({width: 375, height: 667});
-  await openDemoPath(page);
-  const cols = await page.evaluate(() => {
-    const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
-      .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
-    const boxes = ths.map((el) => {
-      const r = el.getBoundingClientRect();
-      return {text: (el.textContent || '').replace(/\s+/g, ' ').trim(), left: r.left, right: r.right, width: r.width};
-    });
-    const collide = boxes.some((a, i) => boxes.some((b, j) => (
-      j > i && a.left < b.right - 1 && a.right > b.left + 1
-    )));
-    const cells = [...document.querySelectorAll('#scorecard-body td.scorecard-round-td')]
-      .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'))
-      .map((el) => {
-        const input = el.querySelector('.score-cell-input') || el;
-        const box = input.getBoundingClientRect();
-        return {w: box.width, text: (input.value || input.textContent || '').trim()};
+test('375 and 390 demo scorecards keep round cells readable', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    const cols = await page.evaluate(() => {
+      const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
+      const boxes = ths.map((el) => {
+        const r = el.getBoundingClientRect();
+        return {text: (el.textContent || '').replace(/\s+/g, ' ').trim(), left: r.left, right: r.right, width: r.width};
       });
-    return {
-      boxes,
-      collide,
-      minCol: boxes.length ? Math.min(...boxes.map((b) => b.width)) : 0,
-      minCell: cells.length ? Math.min(...cells.map((cell) => cell.w)) : 0
-    };
-  });
-  await page.screenshot({path: `${SHOT}/rounds-375-open.png`, fullPage: false});
-  expect(cols.collide, JSON.stringify(cols.boxes)).toBe(false);
-  expect(cols.boxes.length, 'at least one visible round').toBeGreaterThanOrEqual(1);
-  cols.boxes.forEach((box) => {
-    expect(box.text, JSON.stringify(box)).toMatch(/^R\d+$/);
-  });
-  expect(cols.minCol, JSON.stringify(cols.boxes)).toBeGreaterThanOrEqual(32);
-  expect(cols.minCell, 'round cell readable').toBeGreaterThanOrEqual(28);
+      const collide = boxes.some((a, i) => boxes.some((b, j) => (
+        j > i && a.left < b.right - 1 && a.right > b.left + 1
+      )));
+      const cells = [...document.querySelectorAll('#scorecard-body td.scorecard-round-td')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'))
+        .map((el) => {
+          const input = el.querySelector('.score-cell-input') || el;
+          const box = input.getBoundingClientRect();
+          return {w: box.width, text: (input.value || input.textContent || '').trim()};
+        });
+      return {
+        boxes,
+        collide,
+        minCol: boxes.length ? Math.min(...boxes.map((b) => b.width)) : 0,
+        minCell: cells.length ? Math.min(...cells.map((cell) => cell.w)) : 0
+      };
+    });
+    await page.screenshot({path: `${SHOT}/rounds-${size.width}-open.png`, fullPage: false});
+    expect(cols.collide, `${size.width} ${JSON.stringify(cols.boxes)}`).toBe(false);
+    expect(cols.boxes.length, `${size.width} at least one visible round`).toBeGreaterThanOrEqual(1);
+    cols.boxes.forEach((box) => {
+      expect(box.text, `${size.width} ${JSON.stringify(box)}`).toMatch(/^R\d+$/);
+    });
+    expect(cols.minCol, `${size.width} ${JSON.stringify(cols.boxes)}`).toBeGreaterThanOrEqual(32);
+    expect(cols.minCell, `${size.width} round cell readable`).toBeGreaterThanOrEqual(28);
+  }
 });
 
 test('demo path has no pageerror', async ({page}) => {

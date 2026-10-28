@@ -15289,13 +15289,27 @@ ${isDealer
         valueBox.left<totalBox.left-1.5;
     });
   }
+  function scorecardNowColWidth(table){
+    const now=table?.querySelector('thead th.scorecard-col-now');
+    if(!now||now.classList.contains('scorecard-round--hidden')) return 0;
+    if(getComputedStyle(now).display==='none'||getComputedStyle(now).visibility==='hidden') return 0;
+    const painted=now.getBoundingClientRect().width;
+    return painted>0?painted:56;
+  }
   function scorecardRoundColsTooTight(root){
+    const table=root?.querySelector('table.scorecard-table');
     const raw=parseFloat(root?.style.getPropertyValue('--scorecard-round-col')||'');
-    if(!Number.isFinite(raw)) return false;
     const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
       || root?.classList.contains('scorecard-hand-foot');
     const phoneNarrow=window.innerWidth<=400;
-    return raw<(handFoot?24:phoneNarrow?44:32);
+    const floor=handFoot?24:phoneNarrow?44:32;
+    if(Number.isFinite(raw)&&raw<floor) return true;
+    if(!table||!phoneNarrow||handFoot) return false;
+    const painted=[...table.querySelectorAll('thead th.scorecard-round-th, td.scorecard-round-td')]
+      .filter(el=>!el.classList.contains('scorecard-round--hidden')&&getComputedStyle(el).display!=='none')
+      .map(el=>el.getBoundingClientRect().width)
+      .filter(width=>width>0);
+    return painted.length>0&&Math.min(...painted)<40;
   }
   function fitActiveScorecardColumns(root){
     const host=root||document.getElementById('scorecard-capture');
@@ -15323,7 +15337,7 @@ ${isDealer
         // Fixed tables ignore max-width and pour leftover space into Total while round columns are still 1px. Measure the cap, or every phone Hand and Foot history card looks too tight and hides R1–R3.
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
-    const available=Math.max(0,wrap.clientWidth-leadW-6);
+    const available=Math.max(0,wrap.clientWidth-leadW-scorecardNowColWidth(table)-6);
     const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/visible.length));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
