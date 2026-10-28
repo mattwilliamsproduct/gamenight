@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="Wizard reconstruction">
+  <rect x="2" y="2" width="246" height="346" rx="24" fill="#f4f1ea"/>
+  <rect x="10" y="10" width="230" height="330" rx="18" fill="#0d2048"/>
+  <rect x="18" y="18" width="214" height="314" rx="14" fill="none" stroke="#f4f1ea" stroke-width="5"/>
+  <path d="M125 58 L208 175 L125 292 L42 175 Z" fill="#d12a2a" stroke="#f4f1ea" stroke-width="8"/>
+  <text transform="translate(125 175) rotate(-90)" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700" fill="#f4d24a">WIZARD</text>
+</svg>

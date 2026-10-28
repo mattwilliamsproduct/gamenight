@@ -217,8 +217,9 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
-  await (await entryKey(page,'-')).click();
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('-1');
+  await expect(await entryKey(page,'-')).toBeHidden();
+  await (await entryKey(page,'5')).click();
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('5');
   await page.locator('#score-entry-row-Bob .score-entry-name').click();
   await (await entryKey(page,'3')).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('3');
@@ -336,9 +337,9 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   const mattRow=page.locator('#score-entry-row-Matt');
   await mattRow.locator('.score-entry-row-status').click();
   await expect(mattRow).toHaveClass(/is-empty/);
-  await (await entryKey(page,'-')).click();
+  await expect(await entryKey(page,'-')).toBeHidden();
   await (await entryKey(page,'5')).click();
-  await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
+  await expect(page.locator('#score-entry-value-Matt')).toHaveText('5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const catRow=page.locator('#score-entry-row-Cat');
   await expect(catRow).toHaveClass(/is-empty/);
@@ -352,18 +353,18 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   }));
   expect(catBlank).toEqual({value:'', acknowledged:false});
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
-  await page.locator('#score-entry-primary-btn').click();
-  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
-  await expect(page.locator('#score-entry-error')).toHaveText('Five Crowns scores must be whole numbers, 0 or higher. Check Matt.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
   const model=await page.evaluate(()=>({
+    five:BPGScorebook.validateEntries({game:'Five Crowns', kind:'scores', roundNumber:1, players:['Matt'], values:{Matt:'-5'}}),
     flip:BPGScorebook.validateEntries({game:'Flip 7 Vengeance', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-15'}}),
     heat:BPGScorebook.validateEntries({game:'Beat the Heat', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-15'}}),
     wizard:BPGScorebook.validateEntries({game:'Wizard', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-10'}}),
     rook:BPGScorebook.validateEntries({game:'Rook', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-70'}})
   }));
+  expect(model.five.ok).toBe(false);
+  expect(model.five.message).toContain('Five Crowns');
   expect(model.flip.ok).toBe(false);
   expect(model.flip.message).toContain('Flip 7');
   expect(model.heat.ok).toBe(false);
@@ -416,20 +417,19 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   expect(afterNoop.saved).toBe(beforeNoop.saved);
 
   await cell.click();
-  await (await padKey(page,'-')).click();
-  await expect(cell).toHaveValue('-15');
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
-  await expect(page.locator('#numpad-error')).toBeVisible();
-  await expect(page.locator('#numpad-error')).toContainText('0 or higher');
-  await expect(page.locator('#numpad-error')).toContainText('Matt');
-  const rejected=await page.evaluate(()=>({
-    score:currentGame.rounds[0].scores.Matt,
-    total:currentGame.totals.Matt,
-    winners:[...currentGame.winners],
-    audit:currentGame.auditLog.length
-  }));
-  expect(rejected).toEqual({score:15, total:15, winners:['Cat'], audit:1});
-  await expect(page.locator('#custom-numpad')).toBeVisible();
+  await expect(await padKey(page,'-')).toBeHidden();
+  const rejected=await page.evaluate(()=>{
+    const check=BPGScorebook.validateEntries({game:'Five Crowns', kind:'scores', roundNumber:1, players:['Matt'], values:{Matt:'-15'}});
+    return {
+      ok:check.ok,
+      score:currentGame.rounds[0].scores.Matt,
+      total:currentGame.totals.Matt,
+      winners:[...currentGame.winners],
+      audit:currentGame.auditLog.length
+    };
+  });
+  expect(rejected.ok).toBe(false);
+  expect(rejected).toMatchObject({score:15, total:15, winners:['Cat'], audit:1});
   await page.locator('#numpad-cancel').click();
   await expect(cell).toHaveValue('15');
 
@@ -707,7 +707,7 @@ test('P0-06 history scorecard Correct updates a finished Wizard without a live t
     saveData({fullPersist:true, syncCold:true});
     showHistory();
   });
-  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.getByRole('button',{name:/View scorecard|Scorecard/}).first().click();
   await page.locator('.round-correct-btn').click();
   await expect(page.locator('#round-correction-modal')).toBeVisible();
   await correctionKey(page,'1').click();
@@ -790,7 +790,8 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
   await expect(page.locator('#hall-of-fame-view')).toContainText('Matt');
   await expect(page.locator('#hall-of-fame-view')).toContainText('4 pts');
-  await expect(page.locator('#hall-of-fame-view')).not.toContainText('-18');
+  await expect(page.locator('.s2-ledger-table')).not.toContainText('-18');
+  await expect(page.locator('.s2-night-card[data-assisted-match="true"]')).toContainText('-18');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-hall-of-fame-unassisted.png`});
   await shot(page,'slice1-records-best-single-round-viewport');
@@ -1392,7 +1393,7 @@ test('retired 818 seats keep Cara in the correction and leave Dan out', async ({
     saveData({fullPersist:true, syncCold:true});
     showHistory();
   });
-  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.getByRole('button',{name:/View scorecard|Scorecard/}).first().click();
   await page.locator('.round-correct-btn').click();
   await expect(page.locator('#round-correction-modal')).toBeVisible();
   await expect(page.locator('.round-correction-row')).toHaveCount(3);
@@ -1437,7 +1438,7 @@ test('retired 818 seats keep Cara in the correction and leave Dan out', async ({
     saveData({fullPersist:true, syncCold:true});
     showHistory();
   });
-  await page.getByRole('button',{name:'Scorecard', exact:true}).click();
+  await page.getByRole('button',{name:/View scorecard|Scorecard/}).first().click();
   await page.locator('.round-correct-btn').click();
   await expect(page.locator('.round-correction-row')).toHaveCount(3);
   await expect(page.locator('.round-correction-row[data-player="Dan"]')).toHaveCount(0);
@@ -1514,10 +1515,11 @@ test('boot backfills a legacy match that has no id and no gameId', async ({page}
   expect(first.cloud).toBe(false);
   expect(first.porch).toBeNull();
   await page.evaluate(()=>showHistory());
-  const resume=page.locator('#hall-of-fame-view [data-s2-action="night-resume"]').first();
-  await expect(resume).toBeVisible();
-  const resumeId=await resume.getAttribute('data-s2-id');
-  expect(String(resumeId)).toBe(String(first.storedGameId));
+  const scorecard=page.locator('#hall-of-fame-view [data-s2-action="night-scorecard"]').first();
+  await expect(scorecard).toBeVisible();
+  const scorecardId=await scorecard.getAttribute('data-s2-id');
+  expect(String(scorecardId)).toBe(String(first.storedGameId));
+  await expect(page.locator('#hall-of-fame-view [data-s2-action="night-resume"]')).toHaveCount(0);
   await page.reload();
   await page.waitForFunction(gameId=>{
     const rows=JSON.parse(localStorage.getItem('gn_history')||'[]');
@@ -1633,7 +1635,8 @@ test('an incomplete history match stays out of the book until Resume Match is co
   await expect(heat).toContainText('Incomplete');
   await expect(heat.locator('[data-s2-action="night-resume"]')).toBeVisible();
   await expect(wizard).not.toContainText('Incomplete');
-  await expect(wizard.locator('[data-s2-action="night-resume"]')).toBeVisible();
+  await expect(wizard.locator('[data-s2-action="night-resume"]')).toHaveCount(0);
+  await expect(wizard.locator('[data-s2-action="night-scorecard"]')).toBeVisible();
   await heat.screenshot({path:`${ARTIFACTS}/slice1-incomplete-resume.png`});
   await heat.locator('[data-s2-action="night-resume"]').click();
   expect(messages).toEqual(['Save the game on the table and resume this match?']);

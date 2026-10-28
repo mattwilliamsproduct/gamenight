@@ -211,7 +211,7 @@
     if (Array.isArray(game.winners)) game.winners = replaceName(game.winners, oldName, newName);
     (game.rounds || []).forEach(round => {
       if (!round) return;
-      ['scores', 'bids', 'actuals', 'joinBonus', 'comeback'].forEach(key => {
+      ['scores', 'bids', 'actuals', 'joinBonus', 'comeback', 'handFootParts'].forEach(key => {
         moveOrMergeField(round[key], oldName, newName, combining);
       });
       if (round.rookBidder === oldName) round.rookBidder = newName;
@@ -282,6 +282,7 @@
   function entryGameLabel(game) {
     const name = gameName(game);
     if (name === 'Flip 7 Vengeance' || name === 'Flip 7') return 'Flip 7';
+    if (name === 'Hand and Foot') return 'Canasta';
     return name || 'Score';
   }
 
@@ -539,6 +540,24 @@
   function isCompletedHistoryMatch(match) {
     if (!match || typeof match !== 'object') return false;
     return match.completed !== false;
+  }
+
+  function countsTowardCareer(match) {
+    return isCompletedHistoryMatch(match);
+  }
+
+  function matchWinners(match) {
+    if (!match || typeof match !== 'object') return [];
+    if (!countsTowardCareer(match)) return [];
+    const stored = Array.isArray(match.winners)
+      ? match.winners.filter((name) => !!name)
+      : [];
+    if (stored.length) return stored.slice();
+    return leadersOf(match);
+  }
+
+  function playerWonMatch(match, name) {
+    return !!name && matchWinners(match).includes(name);
   }
 
   function syncAssistedMatch(game) {
@@ -1024,6 +1043,9 @@
     scoreEntryStatus,
     confirmScoreEntryOnNext,
     isCompletedHistoryMatch,
+    countsTowardCareer,
+    matchWinners,
+    playerWonMatch,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
     isAssistedMatch,

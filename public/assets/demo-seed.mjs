@@ -1,9 +1,11 @@
 /* TEMP: demo seed (remove before merge). Preview and localhost only. */
 import {cloneScenario, QA_SCENARIOS} from '../qa/fixtures.mjs';
+import {applyDemoChrome, keepDemoSearchForChrome} from './demo-art.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
-export const DEMO_VERSION = '3';
+export const DEMO_VERSION = '5';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
+export const DEMO_PATH_COPY = 'Sample night · not saved on this device';
 
 export const DEMO_VIEW_IDS = [
   'home',
@@ -25,6 +27,9 @@ export const DEMO_VIEW_IDS = [
   'lifepreserver-after',
   'lifepreserver-low',
   'records',
+  'records-overview',
+  'records-explore',
+  'records-nights',
   'records-shame',
   'rook-contract',
   'rook-call',
@@ -39,7 +44,8 @@ export const DEMO_VIEW_IDS = [
   'bids-wizard',
   'podium-tie',
   'past-night',
-  'add-player-m'
+  'add-player-m',
+  'demo-path'
 ];
 
 const WRITE_VIEWS = new Set([
@@ -65,7 +71,8 @@ const GAME_SCENARIO = {
   '818': 'demo-818',
   flip7: 'demo-flip7',
   beattheheat: 'beat-the-heat-close',
-  rook: 'rook-bid-setup'
+  rook: 'rook-bid-setup',
+  handandfoot: 'demo-canasta'
 };
 
 function previewHostPattern(){
@@ -146,10 +153,13 @@ export function writeDemoPayload(storage, data){
 
 export function stripDemoSearch(href){
   const url = new URL(href, 'http://local.test');
+  const keepDemo = url.searchParams.has('demo') && keepDemoSearchForChrome(url.search);
   url.searchParams.delete('demo');
   url.searchParams.delete('view');
   url.searchParams.delete('game');
-  const search = url.searchParams.toString();
+  url.searchParams.delete('home');
+  const rest = url.searchParams.toString();
+  const search = [keepDemo ? 'demo' : '', rest].filter(Boolean).join('&');
   return url.pathname + (search ? `?${search}` : '') + url.hash;
 }
 
@@ -231,13 +241,14 @@ function ensureBannerStyle(){
   const style = document.createElement('style');
   style.id = 'demo-seed-style';
   style.textContent = `
-    #demo-seed-msg{position:sticky;top:0;z-index:240;margin:0;padding:0.7rem 1rem;background:#7a1f1f;color:#fff7ed;font:700 0.92rem/1.35 "Plus Jakarta Sans",sans-serif;text-align:center}
+    #demo-seed-msg{position:sticky;top:0;z-index:240;margin:0;padding:0.55rem 0.85rem;background:#7a1f1f;color:#fff7ed;font-weight:700;font-size:min(0.92rem,18px);line-height:1.35;font-family:"Plus Jakarta Sans",sans-serif;text-align:center;overflow-wrap:anywhere}
+    #demo-seed-msg[data-demo-kind="sample"]{background:#e8efe8;color:#14312e;border-bottom:1px solid #8aa89a}
     html.gn-demo-pending body{visibility:hidden}
   `;
   document.head.appendChild(style);
 }
 
-export function showDemoBlockedMessage(){
+function demoBanner(kind, copy){
   ensureBannerStyle();
   let el = document.getElementById('demo-seed-msg');
   if (!el) {
@@ -246,8 +257,17 @@ export function showDemoBlockedMessage(){
     el.setAttribute('role', 'status');
     document.body.prepend(el);
   }
-  el.textContent = DEMO_BLOCKED_COPY;
+  el.dataset.demoKind = kind || 'blocked';
+  el.textContent = copy;
   el.hidden = false;
+}
+
+export function showDemoBlockedMessage(){
+  demoBanner('blocked', DEMO_BLOCKED_COPY);
+}
+
+export function showDemoPathBanner(){
+  demoBanner('sample', DEMO_PATH_COPY);
 }
 
 function stripDemoFromLocation(){
@@ -297,13 +317,14 @@ function payloadForView(view, base, gameRaw){
   return cloneData(base);
 }
 
-function clickShame(){
-  const btn = document.getElementById('slice2-show-shame');
-  if (btn) btn.click();
-}
-
-function openRecordsFame(){
+function openRecordsPane(pane){
   if (typeof showHistory === 'function') showHistory();
+  if (window.BPGSlice2 && typeof window.BPGSlice2.setRecordsPane === 'function') {
+    window.BPGSlice2.setRecordsPane(pane);
+    return;
+  }
+  const ids = {overview: 'slice2-show-fame', explore: 'slice2-show-shame', nights: 'slice2-show-nights'};
+  document.getElementById(ids[pane] || ids.overview)?.click();
 }
 
 function readLiveGame(){
@@ -316,13 +337,16 @@ function openDemoView(view){
     if (typeof goHome === 'function') goHome();
     return;
   }
-  if (view === 'empty-records' || view === 'records') {
-    openRecordsFame();
+  if (view === 'empty-records' || view === 'records' || view === 'records-overview') {
+    openRecordsPane('overview');
     return;
   }
-  if (view === 'records-shame') {
-    openRecordsFame();
-    clickShame();
+  if (view === 'records-shame' || view === 'records-explore') {
+    openRecordsPane('explore');
+    return;
+  }
+  if (view === 'records-nights') {
+    openRecordsPane('nights');
     return;
   }
   if (view === 'history') {
@@ -342,7 +366,7 @@ function openDemoView(view){
     }
     return;
   }
-  if (view === 'active-match' || typed.kind === 'scorecard' || view === 'rook-contract') {
+  if (view === 'active-match' || view === 'demo-path' || typed.kind === 'scorecard' || view === 'rook-contract') {
     if (typeof goActiveMatch === 'function') goActiveMatch();
     return;
   }
@@ -444,6 +468,16 @@ export function decideDemoAction({hostname, search, storage}){
   if (isolatedEmpty) {
     return {status: 'empty', view, persist: false, blocked: false, payload: emptyPayload()};
   }
+  if (view === 'demo-path') {
+    return {
+      status: 'seeded',
+      view,
+      persist: false,
+      blocked: false,
+      isolated: true,
+      payload: scenarioData('demo-path')
+    };
+  }
   const seeded = isDemoSeeded(storage);
   const demoDevice = !!storage.getItem(DEMO_FLAG);
   const hasData = deviceHasSavedData(storage);
@@ -468,6 +502,9 @@ function viewUsesLiveSeed(view){
   return view === 'home'
     || view === 'active-match'
     || view === 'records'
+    || view === 'records-overview'
+    || view === 'records-explore'
+    || view === 'records-nights'
     || view === 'records-shame'
     || view === 'history'
     || view === 'profiles'
@@ -476,12 +513,16 @@ function viewUsesLiveSeed(view){
 }
 
 export async function bootDemoSeed(api){
+  applyDemoChrome(api.document || (typeof document !== 'undefined' ? document : null), api.search, api.hostname);
   const action = decideDemoAction({
     hostname: api.hostname,
     search: api.search,
     storage: api.storage
   });
   const req = parseDemoRequest(api.search, api.hostname);
+  if (typeof window !== 'undefined' && window.BPGGames && typeof window.BPGGames.rememberDemoGames === 'function') {
+    window.BPGGames.rememberDemoGames(api.search);
+  }
   if (req.lpTable === 'proposed' && typeof window !== 'undefined') {
     window.BPG_LP_TABLE = 'proposed';
   }
@@ -501,6 +542,7 @@ export async function bootDemoSeed(api){
     api.applyState(action.payload);
   }
 
+  if (action.isolated) showDemoPathBanner();
   if (action.blocked) showDemoBlockedMessage();
   stripDemoFromLocation();
 

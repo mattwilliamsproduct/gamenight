@@ -8,12 +8,14 @@ const SIZES = [
   {name: 'tv', width: 1920, height: 1080}
 ];
 
-async function keypadKeys(page) {
-  return page.evaluate(() => {
+async function keypadKeys(page, selector = '#score-entry-modal .score-entry-key') {
+  return page.evaluate((sel) => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const inset = 2;
-    return [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
+    return [...document.querySelectorAll(sel)].map((el) => {
+      const style = getComputedStyle(el);
+      const interactive = style.visibility !== 'hidden' && style.pointerEvents !== 'none' && style.display !== 'none';
       const box = el.getBoundingClientRect();
       const points = [
         ['center', box.left + box.width / 2, box.top + box.height / 2],
@@ -39,24 +41,80 @@ async function keypadKeys(page) {
         bottom: box.bottom,
         left: box.left,
         right: box.right,
+        interactive,
         visible: box.width > 8 && box.height > 8 && box.bottom > 0 && box.top < vh && box.right > 0 && box.left < vw,
         inView: box.top >= -1 && box.left >= -1 && box.bottom <= vh + 1 && box.right <= vw + 1,
+        textFits: el.scrollWidth <= el.clientWidth + 1,
+        height: box.height,
         hits,
         hit: hits.every((point) => point.ok),
         vw,
         vh
       };
-    });
-  });
+    }).filter((key) => key.interactive);
+  }, selector);
 }
 
-async function assertKeypadFullyUsable(page, sizeName) {
-  const keys = await keypadKeys(page);
+async function assertKeypadFullyUsable(page, sizeName, selector) {
+  const keys = await keypadKeys(page, selector);
   expect(keys.length, `${sizeName} keypad key count`).toBeGreaterThanOrEqual(12);
+  expect(keys.some((key) => /Next/i.test(key.label)), `${sizeName} Next key present`).toBe(true);
   keys.forEach((key) => {
     expect(key.visible, `${sizeName} ${key.label} visible`).toBe(true);
     expect(key.inView, `${sizeName} ${key.label} fully in view ${JSON.stringify(key)}`).toBe(true);
+    if (/Next/i.test(key.label)) {
+      expect(key.textFits, `${sizeName} ${key.label} text fits inside the key ${JSON.stringify(key)}`).toBe(true);
+    }
     expect(key.hit, `${sizeName} ${key.label} unobstructed at center and four corners ${JSON.stringify(key.hits)}`).toBe(true);
+  });
+}
+
+async function assertTabletKeypadScale(page, sizeName) {
+  const scale = await page.evaluate(() => {
+    const modal = document.getElementById('score-entry-modal');
+    const panel = modal?.querySelector('.score-entry-panel');
+    const keypad = modal?.querySelector('.score-entry-keypad');
+    const keys = [...(modal?.querySelectorAll('.score-entry-key') || [])];
+    const next = modal?.querySelector('.score-entry-key.next');
+    if (!modal || !panel || !keypad || !keys.length) return null;
+    const panelBox = panel.getBoundingClientRect();
+    const keypadBox = keypad.getBoundingClientRect();
+    return {
+      panelW: panelBox.width,
+      keypadW: keypadBox.width,
+      ratio: keypadBox.width / Math.max(1, panelBox.width),
+      minKeyH: Math.min(...keys.map((el) => el.getBoundingClientRect().height)),
+      nextFont: next ? parseFloat(getComputedStyle(next).fontSize) : 0,
+      nextFits: next ? next.scrollWidth <= next.clientWidth + 1 : false
+    };
+  });
+  expect(scale, `${sizeName} keypad scale`).toBeTruthy();
+  expect(scale.minKeyH, `${sizeName} keys at least 56px ${JSON.stringify(scale)}`).toBeGreaterThanOrEqual(56);
+  expect(scale.ratio, `${sizeName} keypad at least 60% of modal content ${JSON.stringify(scale)}`).toBeGreaterThanOrEqual(0.6);
+  expect(scale.nextFont, `${sizeName} Next at least 20px ${JSON.stringify(scale)}`).toBeGreaterThanOrEqual(20);
+  expect(scale.nextFits, `${sizeName} Next fits ${JSON.stringify(scale)}`).toBe(true);
+}
+
+async function assertFooterButtonsInView(page, sizeName) {
+  const footer = await page.evaluate(() => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const buttons = [...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')];
+    return buttons.map((el) => {
+      const box = el.getBoundingClientRect();
+      return {
+        label: (el.textContent || '').trim(),
+        top: box.top,
+        bottom: box.bottom,
+        left: box.left,
+        right: box.right,
+        inView: box.top >= -1 && box.left >= -1 && box.bottom <= vh + 1 && box.right <= vw + 1
+      };
+    });
+  });
+  expect(footer.length, `${sizeName} footer buttons`).toBeGreaterThanOrEqual(3);
+  footer.forEach((btn) => {
+    expect(btn.inView, `${sizeName} ${btn.label} in view ${JSON.stringify(btn)}`).toBe(true);
   });
 }
 
@@ -362,6 +420,64 @@ test('every keypad key is fully visible and unobstructed at 375 and 390 for 8 pl
     expect(players, `${size.width}x${size.height} eight-player roster`).toBe(8);
     await assertKeypadFullyUsable(page, `${size.width}x${size.height}`);
     await assertEntryFooterLayout(page, `${size.width}x${size.height}`);
+  }
+});
+
+const KEYPAD_MATRIX = [
+  {name: 'ipad-portrait', width: 768, height: 1024},
+  {name: 'ipad-landscape', width: 1024, height: 768},
+  {name: 'tv', width: 1920, height: 1080},
+  {name: 'phone-390', width: 390, height: 844},
+  {name: 'phone-375', width: 375, height: 667}
+];
+
+const KEYPAD_GAMES = [
+  {game: 'Five Crowns', scenario: 'five-crowns-comeback', surface: 'entry-scores', kind: 'entry'},
+  {game: 'Canasta', scenario: 'canasta-house-round', surface: 'entry-scores', kind: 'entry'},
+  {game: 'Wizard', scenario: 'wizard-scoring-8', surface: 'entry-scores', kind: 'entry'},
+  {game: 'Rook', scenario: 'rook-bid-setup', surface: 'scorecard', kind: 'rook'}
+];
+
+test('every keypad key and Submit stay inside the viewport at 5 sizes for Five Crowns, Canasta, Wizard, and Rook', async ({page}) => {
+  test.setTimeout(180000);
+  for (const size of KEYPAD_MATRIX) {
+    await page.setViewportSize({width: size.width, height: size.height});
+    for (const game of KEYPAD_GAMES) {
+      const label = `${size.name} ${size.width}x${size.height} ${game.game}`;
+      await openScenario(page, {scenario: game.scenario, surface: game.surface});
+      if (game.kind === 'rook') {
+        await page.evaluate(() => {
+          if (typeof openRookBidNumpad === 'function') openRookBidNumpad();
+        });
+        await expect(page.locator('#custom-numpad.is-open')).toBeVisible();
+        await assertKeypadFullyUsable(page, label, '#custom-numpad .numpad-btn');
+        const confirm = await page.evaluate(() => {
+          const el = [...document.querySelectorAll('#custom-numpad button')].find((btn) => /Close Keypad/i.test(btn.textContent || ''));
+          if (!el) return null;
+          const box = el.getBoundingClientRect();
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          return {
+            label: (el.textContent || '').trim(),
+            inView: box.top >= -1 && box.left >= -1 && box.bottom <= vh + 1 && box.right <= vw + 1,
+            top: box.top,
+            bottom: box.bottom
+          };
+        });
+        expect(confirm, `${label} Rook keypad Close exists`).toBeTruthy();
+        expect(confirm.inView, `${label} Rook keypad Close in view ${JSON.stringify(confirm)}`).toBe(true);
+      } else {
+        await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+        await page.evaluate(() => {
+          if (typeof fitScoreEntryModalLayout === 'function') fitScoreEntryModalLayout();
+        });
+        await assertKeypadFullyUsable(page, label);
+        await assertFooterButtonsInView(page, label);
+        if (size.width === 768 || size.width === 1024) {
+          await assertTabletKeypadScale(page, label);
+        }
+      }
+    }
   }
 });
 

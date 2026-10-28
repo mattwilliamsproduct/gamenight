@@ -14,6 +14,10 @@ Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.
 
+Standing trap: [scorecard-visible-lead.md](scorecard-visible-lead.md) — a name that fits its cell can still sit off the phone viewport; row-fit must use the visible remainder, and phone Slice 2 must apply the fit-row height.
+
+Standing trap: [emoji-avatar-fallback.md](emoji-avatar-fallback.md) — `charAt(0)` on an emoji name throws inside the avatar data URI.
+
 Standing trap: [data-integrity-records.md](data-integrity-records.md) — bid accuracy comes from bids and actuals, a historical round keeps its own roster, and a Life Preserver flag follows the spins that remain.
 
 Standing trap: [slice2-phone-scorekeeper.md](slice2-phone-scorekeeper.md) — Slice 2 still needs a scrollable phone roster above the keypad; do not port #59 welcome/sample work onto that preview.
@@ -28,6 +32,20 @@ Standing trap: [rc1-scorecard-table.md](rc1-scorecard-table.md) — Table leaves
 
 Standing trap: [rc1-lp-wheel-color.md](rc1-lp-wheel-color.md) — color Life Preserver slices by benefit, never by numeric sign.
 
+Standing trap: [rc1-records-restore.md](rc1-records-restore.md) — Records keeps the full book; Shame is not capped at 5, and completed nights do not show Resume.
+
 Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Preserver labels stay inside every slice; equal-ish pockets stay accurate-ish, and the draw still uses the live table.
 
-Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport.
+Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport. Add Player is form, not confirm.
+
+Standing trap: [picker-logo-flip7-badge.md](picker-logo-flip7-badge.md) — picker B/C Flip 7 is a quiet retro 7 on a card fan. No baked-in box text. Flip 7 rules stay OPEN until Matt answers.
+
+Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus Canasta. Rook keeps the current beach thumb.
+
+Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — laptop Home columns stretch even; extra height goes into seats and game art, not padding. Recent nights stays full width. Phone stays Table, Start, nights.
+
+Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights podiums reuse Records ranking. Incomplete nights have no podium. Rook partners share a place from the stored totals.
+
+Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
+
+Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook is hidden unless `?demo&games=rook`. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.

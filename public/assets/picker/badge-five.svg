@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Five Crowns">
+  <circle cx="32" cy="32" r="30.2" fill="#f6efe4" stroke="#0a5c54" stroke-width="1.8"/>
+  <path d="M12 38 L16 22 L24 32 L32 14 L40 32 L48 22 L52 38 Z" fill="#0a5c54"/>
+  <rect x="12" y="37" width="40" height="7" rx="1.8" fill="#c45c3a"/>
+  <circle cx="16" cy="22" r="2" fill="#c45c3a"/>
+  <circle cx="32" cy="14" r="2.2" fill="#c45c3a"/>
+  <circle cx="48" cy="22" r="2" fill="#c45c3a"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="Rook stand-in">
+  <rect width="250" height="350" rx="22" fill="#f6efe4"/>
+  <rect x="8" y="8" width="234" height="334" rx="16" fill="none" stroke="#d47a2c" stroke-width="12"/>
+  <g fill="#d47a2c">
+    <ellipse cx="88" cy="140" rx="36" ry="24"/>
+    <path d="M60 138 C48 108 74 86 98 112 L88 138"/>
+    <circle cx="106" cy="134" r="5" fill="#f6efe4"/>
+    <ellipse cx="162" cy="176" rx="40" ry="26"/>
+    <path d="M132 174 C118 140 150 118 172 146 L162 174"/>
+    <circle cx="182" cy="170" r="5" fill="#f6efe4"/>
+  </g>
+  <text x="125" y="286" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="700" fill="#d47a2c">R</text>
+</svg>

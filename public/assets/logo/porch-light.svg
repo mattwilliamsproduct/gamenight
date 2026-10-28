@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Porch light">
+  <rect width="64" height="64" rx="16" fill="#f6efe4"/>
+  <path d="M32 8 V16" stroke="#073f3b" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M20 20 H44 L39 40 H25 Z" fill="#fff4df" stroke="#073f3b" stroke-width="2.8" stroke-linejoin="round"/>
+  <circle cx="32" cy="28" r="5" fill="#c45c3a"/>
+  <path d="M32 40 V50" stroke="#073f3b" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M23 50 H41" stroke="#073f3b" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M18 57 H46" stroke="#0a5c54" stroke-width="3.4" stroke-linecap="round"/>
+</svg>

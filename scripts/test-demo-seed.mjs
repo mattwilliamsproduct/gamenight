@@ -43,6 +43,8 @@ test('demo-seed gallery fixture is rule-valid and covers all six games', () => {
   assert.ok(history.some((match) => match.game === '818' && match.assistedMatch === true), 'assisted 818 missing');
   assert.ok(history.some((match) => (match.retired || []).includes('Mike')), 'retired Mike missing');
   assert.ok(history.some((match) => match.game === 'Rook' && match.rounds?.[0]?.rookBid === 90), 'Rook contracts missing');
+  assert.ok(history.some((match) => match.completed === false), 'incomplete night missing');
+  assert.ok(history.some((match) => (match.winners || []).length > 1), 'joint win missing');
   assert.equal(QA_SCENARIOS['demo-seed'].data.currentGame?.name, 'Five Crowns');
   const remapped = applyNeutralDemoProfiles(JSON.parse(JSON.stringify(QA_SCENARIOS['demo-seed'].data)));
   Object.values(remapped.playerProfiles).forEach((profile) => {
@@ -127,14 +129,20 @@ test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.ok(DEMO_VIEW_IDS.includes('lifepreserver-after'));
   assert.ok(DEMO_VIEW_IDS.includes('lifepreserver-low'));
   assert.ok(DEMO_VIEW_IDS.includes('empty-records'));
+  assert.ok(DEMO_VIEW_IDS.includes('records-overview'));
+  assert.ok(DEMO_VIEW_IDS.includes('records-explore'));
+  assert.ok(DEMO_VIEW_IDS.includes('records-nights'));
   assert.ok(DEMO_VIEW_IDS.includes('game'));
   assert.ok(DEMO_VIEW_IDS.includes('bids-wizard'));
   assert.ok(DEMO_VIEW_IDS.includes('podium-tie'));
   assert.ok(DEMO_VIEW_IDS.includes('past-night'));
   assert.ok(DEMO_VIEW_IDS.includes('add-player-m'));
+  assert.ok(DEMO_VIEW_IDS.includes('demo-path'));
   assert.equal(stripDemoSearch('https://example.test/?demo&view=home'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=game&game=818'), '/');
+  assert.equal(stripDemoSearch('https://example.test/?demo&art=dusk&logo=dusk'), '/?demo&art=dusk&logo=dusk');
+  assert.equal(stripDemoSearch('https://example.test/?demo&home=a'), '/');
 });
 
 test('view=game&game= picks the in-progress scorecard for that shelf game', () => {
@@ -145,21 +153,65 @@ test('view=game&game= picks the in-progress scorecard for that shelf game', () =
     ['wizard', 'Wizard'],
     ['flip7', 'Flip 7 Vengeance'],
     ['beat-the-heat', 'Beat the Heat'],
-    ['rook', 'Rook']
+    ['rook', 'Rook'],
+    ['hand-and-foot', 'Hand and Foot'],
+    ['canasta', 'Hand and Foot']
   ]) {
+    const extra = game === 'rook' ? '&games=rook' : '';
     const action = decideDemoAction({
       hostname: 'localhost',
-      search: `?demo&view=game&game=${game}`,
+      search: `?demo&view=game&game=${game}${extra}`,
       storage
     });
     assert.equal(action.status, 'seeded', game);
     assert.equal(action.payload.currentGame?.name, name, game);
   }
-  const missing = decideDemoAction({
+  const canasta = decideDemoAction({
     hostname: 'localhost',
     search: '?demo&view=game&game=hand-and-foot',
     storage
   });
-  assert.equal(missing.status, 'seeded');
-  assert.ok(missing.payload);
+  assert.equal(canasta.status, 'seeded');
+  assert.equal(canasta.payload.currentGame?.name, 'Hand and Foot');
+  assert.equal(canasta.payload.currentGame?.handFoot?.format, 'teams');
+  assert.equal(canasta.payload.currentGame?.handFoot?.sides?.length, 2);
+  assert.equal(canasta.payload.currentGame?.rounds?.length, 2);
+  assert.equal(canasta.payload.currentGame?.currentRound, 3);
+  const r1 = canasta.payload.currentGame.rounds[0].handFootParts.Megan;
+  assert.equal(r1.sevensCanastas, 1);
+  assert.equal(r1.redThrees, 4);
+  assert.equal(r1.roundScore, 3220);
+});
+
+test('demo-path is isolated: no persist, no block, no write into a real book', () => {
+  const empty = memoryStorage();
+  const open = decideDemoAction({
+    hostname: 'localhost',
+    search: '?demo&view=demo-path',
+    storage: empty
+  });
+  assert.equal(open.status, 'seeded');
+  assert.equal(open.persist, false);
+  assert.equal(open.isolated, true);
+  assert.equal(open.payload.currentGame?.name, 'Five Crowns');
+  assert.equal(open.payload.currentGame?.currentRound, 11);
+  assert.deepEqual(open.payload.currentGame?.totals, {June: 38, Theo: 36, Rosa: 52, Hank: 71});
+  assert.equal(open.payload.history.length, 0);
+  assert.equal(empty.getItem('gn_history'), null);
+  assert.equal(empty.getItem(DEMO_FLAG), null);
+
+  const real = memoryStorage({
+    gn_history: JSON.stringify([{id: 9, game: 'Wizard', date: '1/1/2026', totals: {Matt: 10}, winners: ['Matt'], rounds: [], originalRoster: ['Matt']}]),
+    gn_current: null
+  });
+  const beside = decideDemoAction({
+    hostname: '127.0.0.1',
+    search: '?demo&view=demo-path',
+    storage: real
+  });
+  assert.equal(beside.status, 'seeded');
+  assert.equal(beside.persist, false);
+  assert.equal(beside.blocked, false);
+  assert.equal(JSON.parse(real.getItem('gn_history'))[0].id, 9);
+  assert.equal(real.getItem(DEMO_FLAG), null);
 });

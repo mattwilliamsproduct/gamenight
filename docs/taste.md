@@ -10,6 +10,10 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- Flip 7 on picker B/C takes the standard box cue: bold retro type and a fan of cards, quiet cream/teal/coral, no baked-in box text.
+- Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
+- Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
+- Add Player, Save & End, Audit, and the LP picker use the form modal token (`min(92vw, 46rem)`), 18px inputs, and 56px suggestion rows.
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
 - A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
 - Specs plus prove-it. Open the gallery scenarios that exercise the slice.
@@ -28,9 +32,15 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
 - Scorecard places read as 1st, 2nd, 3rd in a real pill, not a faint 24px number.
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
+- Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
+- One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
+- Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
+- Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
+- Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 
 ### Kills
 
+- A Flip 7 B/C badge that is only a timid 7, or that bakes in box slogans (Vengeance, Greatest Card Game).
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
 - Overlap, uneven gaps, truncated text, or clipped menus.
@@ -62,7 +72,17 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Life Preserver labels outside the pie, callout pills, or leader lines.
 - A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
 - A Life Preserver that still looks like a pie chart with extra wedges.
+- A 4-digit Canasta cell that clips to `322(`, or 2-team rows stretched to ~135px with 120px avatars.
+- `Megan` clipped to `Mega` on a 390 Canasta card.
+- Add Player as a 412px chip on a laptop, or a tiny card on a phone.
+- Canasta Each clean / Each dirty / Each red 3 chips on Five Crowns or Wizard entry.
 - A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
+- Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
+- Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
+- Edit Seating plus Earlier/Later when the Home list can reorder in place.
+- A second ranking function for Recent nights, or a podium on an Incomplete night.
+- Adding Canasta to the game registry or Home picker from this art pass.
+- Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.
 
 ## Prefer
 

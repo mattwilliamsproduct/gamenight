@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="818 reconstruction">
+  <rect x="2" y="2" width="246" height="346" rx="24" fill="#2d0d46"/>
+  <rect x="12" y="12" width="226" height="326" rx="18" fill="#351056"/>
+  <rect x="20" y="20" width="210" height="310" rx="14" fill="none" stroke="#f4f1ea" stroke-width="4"/>
+  <g fill="none" stroke="#c8e04a" stroke-width="3.2" stroke-linecap="round">
+    <circle cx="125" cy="142" r="58"/>
+    <circle cx="125" cy="142" r="38"/>
+    <circle cx="125" cy="142" r="16"/>
+    <path d="M125 76 V208 M67 142 H183"/>
+    <path d="M84 96 L166 188 M166 96 L84 188"/>
+    <path d="M99 82 L151 202 M151 82 L99 202"/>
+  </g>
+  <text x="125" y="276" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" fill="#ffffff" stroke="#c8e04a" stroke-width="3.5">818</text>
+</svg>

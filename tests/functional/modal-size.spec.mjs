@@ -88,6 +88,52 @@ test('past-night scorecard is near full-width on 375', async ({page}) => {
   expect(measure.close.bottom).toBeLessThanOrEqual(667 + 2);
 });
 
+async function measureAddPlayer(page) {
+  return page.evaluate(() => {
+    const shell = document.getElementById('add-player-modal');
+    const panel = shell?.querySelector('.bp-modal-panel');
+    const input = document.getElementById('midgame-add-player-input');
+    const option = shell?.querySelector('.player-suggest-option');
+    const panelBox = panel?.getBoundingClientRect();
+    const optionBox = option?.getBoundingClientRect();
+    return {
+      viewport: {width: window.innerWidth, height: window.innerHeight},
+      panel: panelBox ? {width: panelBox.width, height: panelBox.height} : null,
+      inputFont: input ? parseFloat(getComputedStyle(input).fontSize) : 0,
+      optionHeight: optionBox ? optionBox.height : 0,
+      formClass: !!(panel && panel.classList.contains('bp-modal-panel--form'))
+    };
+  });
+}
+
+async function openAddPlayerDemo(page) {
+  await page.addInitScript(() => {
+    window.__GN_DEMO_HOST_OVERRIDE__ = 'localhost';
+  });
+  await page.goto('/?demo&view=add-player-m', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded' || document.body.dataset.gnDemoReady === 'skipped', null, {timeout: 20000});
+  await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
+}
+
+test('Add Player uses the form modal size at 1440 and a near-full sheet on 375', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 900});
+  await openAddPlayerDemo(page);
+  const laptop = await measureAddPlayer(page);
+  expect(laptop.panel, '1440 panel').not.toBeNull();
+  expect(laptop.formClass, 'form class').toBe(true);
+  expect(laptop.panel.width / laptop.viewport.width, '1440 width share').toBeGreaterThanOrEqual(0.5);
+  expect(laptop.inputFont, `1440 input ${laptop.inputFont}`).toBeGreaterThanOrEqual(18);
+  expect(laptop.optionHeight, `1440 option ${laptop.optionHeight}`).toBeGreaterThanOrEqual(56);
+
+  await page.setViewportSize({width: 375, height: 667});
+  await openAddPlayerDemo(page);
+  const phone = await measureAddPlayer(page);
+  expect(phone.panel.width / phone.viewport.width, '375 width share').toBeGreaterThanOrEqual(0.9);
+  expect(phone.panel.height / phone.viewport.height, '375 height share').toBeGreaterThanOrEqual(0.8);
+  expect(phone.inputFont, `375 input ${phone.inputFont}`).toBeGreaterThanOrEqual(18);
+  expect(phone.optionHeight, `375 option ${phone.optionHeight}`).toBeGreaterThanOrEqual(56);
+});
+
 test('a long Five Crowns scorecard scrolls inside the modal', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 650});
   await openPastNight(page);
