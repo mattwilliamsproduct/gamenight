@@ -3581,6 +3581,14 @@ button.dealer-name-indicator {
     }
     .scorecard-round-th { font-size: clamp(0.55rem, 1vw, 0.72rem) !important; letter-spacing: 0.06em; }
     .scorecard-round--hidden { display: none !important; }
+    @media (min-width: 761px) {
+      #scorecard-capture th.scorecard-col-now {
+        white-space: nowrap;
+        min-width: 6rem;
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+      }
+    }
     td.score-cell.scorecard-round-td .score-cell-input {
       width: var(--scorecard-round-input, clamp(3.25rem, 4.2vw, 4.4rem));
       min-width: var(--scorecard-round-input-min, 3.25rem);
@@ -4718,8 +4726,16 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #score-entry-modal.score-entry-hand-foot .score-entry-rows { overflow-y: auto !important; }
     #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('-')"],
+    #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"],
+    #score-entry-modal.score-entry-no-minus button[onclick="scoreEntryKey('-')"],
+    #custom-numpad.numpad-no-minus button[onclick="numpadPress('-')"] {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('-')"],
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"] {
-      opacity: 0.35;
+      visibility: hidden;
+      opacity: 0;
       pointer-events: none;
     }
     #hand-foot-setup-modal .hf-setup-card {
@@ -13236,6 +13252,22 @@ button.dealer-name-indicator .dealer-player-label {
     const v=parseInt(inp.value,10);
     if(!Number.isNaN(v))currentGame.rookBidAmountDraft=v;
   }
+  function openRookBidNumpad(){
+    if(!currentGame||currentGame.rookPhase!=='bidSetup')return;
+    if(activeInputId&&activeInputId!=='rook-bid-amount-input') closeNumpad({render:false});
+    activeInputContext={player:currentGame.rookHighBidder||'',roundIndex:'rook-bid'};
+    activeInputId='rook-bid-amount-input';
+    numpadEntryAcknowledged=true;
+    const label=document.getElementById('numpad-label');
+    if(label) label.textContent='Bid amount';
+    document.getElementById('numpad-cancel')?.classList.add('hidden');
+    setNumpadError('');
+    document.getElementById('numpad-context')?.classList.add('hidden');
+    const np=document.getElementById('custom-numpad');
+    np.classList.add('numpad-no-minus');
+    np.classList.remove('hidden');
+    requestAnimationFrame(()=>np.classList.remove('translate-y-full'));
+  }
 
   function rookConfirmBidSetup(){
     if(!currentGame||currentGame.rookPhase!=='bidSetup')return;
@@ -13746,9 +13778,9 @@ ${isDealer
         <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">They won with</div>
         <div class="flex items-center justify-center gap-2 mb-5">
           <button type="button" onclick="rookBidSetupAmountAdj(-5)" class="w-11 h-11 rounded-xl font-extrabold border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">−5</button>
-          <input id="rook-bid-amount-input" type="number" min="${cfg.minBid}" max="999" value="${bidAmt}"
-            oninput="rookBidAmountDraftSync()"
-            class="rook-bid-amount-input flex-1 min-w-0 max-w-[9rem] text-center font-extrabold rounded-xl py-2.5 border-2 outline-none font-mono-num"
+          <input id="rook-bid-amount-input" type="text" inputmode="none" readonly min="${cfg.minBid}" max="999" value="${bidAmt}"
+            onclick="openRookBidNumpad()"
+            class="rook-bid-amount-input flex-1 min-w-0 max-w-[9rem] text-center font-extrabold rounded-xl py-2.5 border-2 outline-none font-mono-num cursor-pointer"
             style="background:var(--bg-2);color:var(--ink);border-color:var(--hairline);">
           <button type="button" onclick="rookBidSetupAmountAdj(5)" class="w-11 h-11 rounded-xl font-extrabold border hairline hover:opacity-70 transition-opacity shrink-0" style="background:var(--bg-2);">+5</button>
         </div>
@@ -16304,6 +16336,30 @@ ${isDealer
     }
     return null;
   }
+  function scoreEntryMinusAllowed(){
+    if(!currentGame||!scoreEntryModalState) return false;
+    const kind=scoreEntryModalState.mode?.kind;
+    if(kind==='wizard-bids'||kind==='wizard-tricks'||kind==='818-bids'||kind==='818-tricks') return false;
+    if(kind==='hand-foot'){
+      const field=scoreEntryModalState.activeField||'cleanCanastas';
+      if(HAND_FOOT_NO_MINUS.includes(field)) return false;
+      return HAND_FOOT_RATE_FIELDS.includes(field);
+    }
+    return !(window.BPGScorebook&&BPGScorebook.playedScoreMustBeNonNegative(currentGame));
+  }
+  function syncScoreEntryMinusKey(){
+    const modal=document.getElementById('score-entry-modal');
+    modal?.classList.toggle('score-entry-no-minus', !scoreEntryMinusAllowed());
+  }
+  function numpadMinusAllowed(){
+    if(!currentGame) return false;
+    if(activeInputContext?.roundIndex==='rook-bid') return false;
+    if(isBidTrickGame(currentGame)&&activeInputContext?.roundIndex==='current') return false;
+    return !(window.BPGScorebook&&BPGScorebook.playedScoreMustBeNonNegative(currentGame));
+  }
+  function syncNumpadMinusKey(){
+    document.getElementById('custom-numpad')?.classList.toggle('numpad-no-minus', !numpadMinusAllowed());
+  }
 
   function getScoreEntryRoundContext(mode){
     if(!currentGame||!mode)return '';
@@ -16626,6 +16682,7 @@ ${isDealer
     modal.classList.toggle('score-entry-hand-foot', mode.kind==='hand-foot');
     modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', mode.kind!=='hand-foot' && players.length>=6);
     modal.classList.add('score-entry-managed-fit');
+    syncScoreEntryMinusKey();
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     requestAnimationFrame(()=>{
@@ -16809,9 +16866,11 @@ ${isDealer
       modal?.classList.toggle('hf-no-minus', HAND_FOOT_NO_MINUS.includes(field));
       modal?.classList.remove('hf-cards-left');
       syncHandFootRateBar();
+      syncScoreEntryMinusKey();
       return;
     }
     modal?.classList.remove('hf-cards-left','hf-no-minus');
+    syncScoreEntryMinusKey();
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
@@ -16887,6 +16946,7 @@ ${isDealer
   function scoreEntryKey(v){
     return gnRunNumpadHotPath('modal digit press',()=>{
       if(!scoreEntryModalState)return;
+      if(v==='-'&&!scoreEntryMinusAllowed())return;
       if(scoreEntryModalState.mode?.kind==='hand-foot'){
         const p=scoreEntryModalState.activePlayer;
         const field=scoreEntryModalState.activeField||'cleanCanastas';
@@ -18274,6 +18334,10 @@ ${isDealer
     try{
       if(!activeInputId||!activeInputContext)return;
       const el=document.getElementById(activeInputId); if(!el)return;
+      if(activeInputContext.roundIndex==='rook-bid'){
+        rookBidAmountDraftSync();
+        return;
+      }
       let v=parseInt(el.value); if(isNaN(v))v=0;
         if(activeInputContext.roundIndex!=='current'){
           if(currentGame&&BPGScorebook.playedScoreMustBeNonNegative(currentGame)) return commitPastScoreFromInput();
@@ -18330,6 +18394,7 @@ ${isDealer
       document.getElementById('main-body').classList.add('md:pr-[370px]','pb-72');
       const np=document.getElementById('custom-numpad');
       np.classList.remove('hidden');
+      syncNumpadMinusKey();
       setTimeout(()=>np.classList.remove('translate-y-full'),10);
     } finally {
       gnPerfEnd(timer);
@@ -18339,6 +18404,7 @@ ${isDealer
   function numpadPress(v){
     const run=()=>{
       if(!activeInputId)return;
+      if(v==='-'&&!numpadMinusAllowed())return;
       gnPerfAction('numpad press', v);
       const el=document.getElementById(activeInputId); if(!el)return;
       const pastScore=activeInputContext?.roundIndex!=='current' && currentGame && BPGScorebook.playedScoreMustBeNonNegative(currentGame);
@@ -18486,7 +18552,7 @@ ${isDealer
     document.querySelectorAll('.score-cell-active').forEach(e=>e.classList.remove('score-cell-active'));
     activeInputId=null; activeInputContext=null;
     document.getElementById('main-body').classList.remove('md:pr-[370px]','pb-72');
-    const np=document.getElementById('custom-numpad'); np.classList.add('translate-y-full');
+    const np=document.getElementById('custom-numpad'); np.classList.add('translate-y-full'); np.classList.remove('numpad-no-minus');
     _numpadCloseTimer=setTimeout(()=>{
       _numpadCloseTimer=null;
       np.classList.add('hidden');

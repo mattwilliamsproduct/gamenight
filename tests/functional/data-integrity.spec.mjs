@@ -217,8 +217,9 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
-  await (await entryKey(page,'-')).click();
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('-1');
+  await expect(await entryKey(page,'-')).toBeHidden();
+  await (await entryKey(page,'5')).click();
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('5');
   await page.locator('#score-entry-row-Bob .score-entry-name').click();
   await (await entryKey(page,'3')).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('3');
@@ -336,9 +337,9 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   const mattRow=page.locator('#score-entry-row-Matt');
   await mattRow.locator('.score-entry-row-status').click();
   await expect(mattRow).toHaveClass(/is-empty/);
-  await (await entryKey(page,'-')).click();
+  await expect(await entryKey(page,'-')).toBeHidden();
   await (await entryKey(page,'5')).click();
-  await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
+  await expect(page.locator('#score-entry-value-Matt')).toHaveText('5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const catRow=page.locator('#score-entry-row-Cat');
   await expect(catRow).toHaveClass(/is-empty/);
@@ -352,18 +353,18 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   }));
   expect(catBlank).toEqual({value:'', acknowledged:false});
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
-  await page.locator('#score-entry-primary-btn').click();
-  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
-  await expect(page.locator('#score-entry-error')).toHaveText('Five Crowns scores must be whole numbers, 0 or higher. Check Matt.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
   const model=await page.evaluate(()=>({
+    five:BPGScorebook.validateEntries({game:'Five Crowns', kind:'scores', roundNumber:1, players:['Matt'], values:{Matt:'-5'}}),
     flip:BPGScorebook.validateEntries({game:'Flip 7 Vengeance', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-15'}}),
     heat:BPGScorebook.validateEntries({game:'Beat the Heat', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-15'}}),
     wizard:BPGScorebook.validateEntries({game:'Wizard', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-10'}}),
     rook:BPGScorebook.validateEntries({game:'Rook', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-70'}})
   }));
+  expect(model.five.ok).toBe(false);
+  expect(model.five.message).toContain('Five Crowns');
   expect(model.flip.ok).toBe(false);
   expect(model.flip.message).toContain('Flip 7');
   expect(model.heat.ok).toBe(false);
