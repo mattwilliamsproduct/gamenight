@@ -11827,7 +11827,7 @@ button.dealer-name-indicator .dealer-player-label {
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const rank=competitionPlaces(sorted, h.totals)[name]||0;
       const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
-      const won=!!h.winners?.includes(name);
+      const won=BPGScorebook.playerWonMatch(h,name);
       const s=summary.gameStats[h.game]||(summary.gameStats[h.game]={games:0,wins:0,lasts:0,posSum:0,best:null,worst:null,lastScore:null});
       summary.games++;
       summary.wins += won?1:0;
@@ -11851,10 +11851,10 @@ button.dealer-name-indicator .dealer-player-label {
       .filter(([_,s])=>s.games>=2 || s.wins>0)
       .sort((a,b)=>(b[1].wins/b[1].games)-(a[1].wins/a[1].games)||b[1].wins-a[1].wins||b[1].games-a[1].games)[0]||null;
     if(matches.length){
-      const recentType=matches[matches.length-1].winners?.includes(name)?'W':'L';
+      const recentType=BPGScorebook.playerWonMatch(matches[matches.length-1],name)?'W':'L';
       let count=0;
       for(let i=matches.length-1;i>=0;i--){
-        const type=matches[i].winners?.includes(name)?'W':'L';
+        const type=BPGScorebook.playerWonMatch(matches[i],name)?'W':'L';
         if(type!==recentType)break;
         count++;
       }
@@ -12089,7 +12089,7 @@ button.dealer-name-indicator .dealer-player-label {
     let games=0,wins=0,lasts=0,labels=[],data=[];
     history.slice().reverse().forEach(h=>{
       if(!BPGScorebook.isCompletedHistoryMatch(h)||!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
-      games++; if(h.winners?.includes(name))wins++;
+      games++; if(BPGScorebook.playerWonMatch(h,name))wins++;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(h.totals[name]===h.totals[sorted[sorted.length-1]])lasts++;
@@ -14113,8 +14113,7 @@ ${isDealer
       labels.push(`R${round.round}`);
     });
     const sortedFinal=sortPlayersByTotal(players, gameData.totals||totals, cfg);
-    const winners=(gameData.winners||[]).filter(p=>players.includes(p));
-    const winnerSet=winners.length?winners:[sortedFinal[0]].filter(Boolean);
+    const winnerSet=BPGScorebook.matchWinners(gameData).filter(p=>players.includes(p));
     const lastScore=sortedFinal.length?gameData.totals[sortedFinal[sortedFinal.length-1]]:null;
     const losers=sortedFinal.filter(p=>gameData.totals[p]===lastScore && !winnerSet.includes(p));
     return {
@@ -14151,7 +14150,7 @@ ${isDealer
     let n=0;
     for(const h of history){
       if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
-      const won=!!h.winners?.includes(name);
+      const won=BPGScorebook.playerWonMatch(h,name);
       if(wantWin?won:!won) n++;
       else break;
     }
@@ -14161,12 +14160,12 @@ ${isDealer
   function snappedLosingStreak(name, matchId){
     const start=history.findIndex(h=>h && h.id===matchId);
     if(start<0) return 0;
-    if(!history[start]?.winners?.includes(name)) return 0;
+    if(!BPGScorebook.playerWonMatch(history[start],name)) return 0;
     let losses=0;
     for(let i=start+1;i<history.length;i++){
       const h=history[i];
       if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
-      if(h.winners?.includes(name)) break;
+      if(BPGScorebook.playerWonMatch(h,name)) break;
       losses++;
     }
     return losses;
@@ -18682,7 +18681,7 @@ ${isDealer
       const sorted=sortPlayersByTotal(getDisplayPlayers(h), h.totals, cfg);
       const places=competitionPlaces(sorted, h.totals);
       const rows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}${retiredBadgeMarkup(h,p)}</span></div>
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${BPGScorebook.playerWonMatch(h,p)?'leader-text':''}">${BPGScorebook.playerWonMatch(h,p)?'🏆 ':''}${p}${retiredBadgeMarkup(h,p)}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
@@ -18735,7 +18734,7 @@ ${isDealer
     document.getElementById('modal-scorecard-head').innerHTML=head;
     let body='';
     sorted.forEach(p=>{
-      const w=g.winners?.includes(p);
+      const w=BPGScorebook.playerWonMatch(g,p);
       body+=`<tr class="${w?'leader-row':''}">
         <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}${retiredBadgeMarkup(g,p)}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span>${hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
@@ -18875,7 +18874,7 @@ ${isDealer
       playersInMatch.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
         stats[p].games++;
-        if(h.winners?.includes(p))stats[p].wins++;
+        if(BPGScorebook.playerWonMatch(h,p))stats[p].wins++;
         if(lastPlayers.includes(p))stats[p].lasts++;
       });
 
@@ -19074,7 +19073,7 @@ ${isDealer
       const sorted = sortedFor(h);
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
-      const winners = (h.winners||[]).filter(p=>sorted.includes(p));
+      const winners = BPGScorebook.matchWinners(h).filter(p=>sorted.includes(p));
       const assisted = BPGScorebook.isAssistedMatch(h);
       if(!games._coverage) games._coverage={};
       if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};

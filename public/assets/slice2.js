@@ -287,11 +287,12 @@
       </button>`;
     }).join('');
     const nights = table.history.slice(0, 4).map((match) => {
-      const winners = (match.winners || []).filter(Boolean);
-      const winner = winners[0] || 'Tied';
+      const winners = window.BPGScorebook && typeof BPGScorebook.matchWinners === 'function'
+        ? BPGScorebook.matchWinners(match)
+        : (match.winners || []).filter(Boolean);
       const label = displayGameName(match.game);
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const who = incomplete ? 'Incomplete' : (winners.length > 1 ? 'Tied' : (winner || ''));
+      const who = incomplete ? 'Incomplete' : (winners.length > 1 ? 'Tied' : (winners[0] || ''));
       return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
         <span class="s2-night-copy">
           <strong>${escapeHtml(label)}</strong>

@@ -542,6 +542,24 @@
     return match.completed !== false;
   }
 
+  function countsTowardCareer(match) {
+    return isCompletedHistoryMatch(match);
+  }
+
+  function matchWinners(match) {
+    if (!match || typeof match !== 'object') return [];
+    if (!countsTowardCareer(match)) return [];
+    const stored = Array.isArray(match.winners)
+      ? match.winners.filter((name) => !!name)
+      : [];
+    if (stored.length) return stored.slice();
+    return leadersOf(match);
+  }
+
+  function playerWonMatch(match, name) {
+    return !!name && matchWinners(match).includes(name);
+  }
+
   function syncAssistedMatch(game) {
     if (!game || typeof game !== 'object') return false;
     game.assistedMatch = appliedLifePreserverRemains(game);
@@ -1025,6 +1043,9 @@
     scoreEntryStatus,
     confirmScoreEntryOnNext,
     isCompletedHistoryMatch,
+    countsTowardCareer,
+    matchWinners,
+    playerWonMatch,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
     isAssistedMatch,

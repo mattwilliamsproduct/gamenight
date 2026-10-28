@@ -298,12 +298,14 @@
     const players = helpers.getDisplayPlayers(match);
     const sorted = helpers.sortPlayersByTotal(players, match.totals || {}, cfg);
     const places = helpers.competitionPlaces(sorted, match.totals || {});
-    const winners = match.winners || [];
+    const scorebook = helpers.scorebook;
     return sorted.map((name) => ({
       name,
       score: match.totals ? match.totals[name] : undefined,
       place: places[name],
-      isWinner: winners.includes(name),
+      isWinner: scorebook && typeof scorebook.playerWonMatch === 'function'
+        ? scorebook.playerWonMatch(match, name)
+        : !!(match.winners || []).includes(name),
       retired: (match.retired || []).includes(name)
     }));
   }
@@ -344,7 +346,9 @@
     const scorebook = helpers.scorebook;
     const incomplete = !isCompletedMatch(match, scorebook);
     const assisted = isAssistedMatch(match, scorebook);
-    const winners = incomplete ? [] : (match.winners || []).filter(Boolean);
+    const winners = scorebook && typeof scorebook.matchWinners === 'function'
+      ? scorebook.matchWinners(match)
+      : (incomplete ? [] : (match.winners || []).filter(Boolean));
     const standings = nightStandings(match, helpers);
     const rounds = scoringRoundCount(match, scorebook);
     return {
