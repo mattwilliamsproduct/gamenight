@@ -269,7 +269,7 @@ test.describe('TEMP demo seed views', () => {
     await openDemo(page, 'home', {host: PREVIEW});
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
-    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toContainText('Canasta');
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
   });
 

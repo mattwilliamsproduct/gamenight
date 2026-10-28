@@ -1,14 +1,15 @@
-/* Home card picker: shared 5:7 portrait faces. */
+/* Home card picker: shared 5:7 faces, no under-card labels. */
 
 html.slice2-tv {
   --bp-card-radius: 10px;
+  --bp-card-max: 220px;
 }
 
 html.slice2-tv .s2-home-start .s2-game-grid {
   align-content: start;
   justify-content: center;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px 8px;
+  gap: 12px 10px;
 }
 
 html.slice2-tv .s2-home-start .s2-game {
@@ -16,7 +17,7 @@ html.slice2-tv .s2-home-start .s2-game {
   align-items: stretch;
   height: auto;
   min-height: 0;
-  padding: 0 0 6px;
+  padding: 0;
   gap: 0;
   background: transparent;
   border: 0;
@@ -28,7 +29,7 @@ html.slice2-tv .s2-home-start .s2-game {
 html.slice2-tv .s2-home-start .s2-game-art {
   flex: 0 0 auto;
   width: 100%;
-  max-width: 125px;
+  max-width: var(--bp-card-max);
   height: auto;
   min-height: 0;
   aspect-ratio: 5 / 7;
@@ -41,6 +42,10 @@ html.slice2-tv .s2-home-start .s2-game-art {
   box-shadow: 0 1px 0 rgba(7, 63, 59, 0.08);
 }
 
+html.slice2-tv .s2-home-start .s2-game-copy {
+  display: none;
+}
+
 html.slice2-tv .s2-home-start .s2-art-five { background-image: url("./cards/five-crowns.webp"); }
 html.slice2-tv .s2-home-start .s2-art-818 { background-image: url("./cards/818.webp"); }
 html.slice2-tv .s2-home-start .s2-art-wizard { background-image: url("./cards/wizard.webp"); }
@@ -49,51 +54,29 @@ html.slice2-tv .s2-home-start .s2-art-canasta { background-image: url("./cards/c
 html.slice2-tv .s2-home-start .s2-art-heat { background-image: url("./cards/beat-the-heat.webp"); }
 html.slice2-tv .s2-home-start .s2-art-rook { background-image: url("./cards/rook.webp"); }
 
-/* Taller than 5:7: contain, centered, white frame matching the card border. */
+/* Taller than 5:7: contain on white so the card border is the frame. */
 html.slice2-tv .s2-home-start .s2-art-rook,
-html.slice2-tv .s2-home-start .s2-art-heat {
+html.slice2-tv .s2-home-start .s2-art-heat,
+html.slice2-tv .s2-home-start .s2-art-818 {
   background-color: #fff;
   background-size: contain;
-}
-
-html.slice2-tv .s2-home-start .s2-game-copy {
-  padding: 7px 4px 0;
-  text-align: center;
-  background: transparent;
-}
-
-html.slice2-tv .s2-home-start .s2-game-copy strong {
-  font-family: "Londrina Solid", "Bree Serif", Georgia, serif;
-  font-size: 17px;
-  font-weight: 400;
-  line-height: 1.1;
-}
-
-html.slice2-tv .s2-home-start .s2-game-copy em {
-  font-size: 0.64rem;
-  line-height: 1.2;
-  white-space: normal;
 }
 
 html.slice2-tv .s2-home-start .s2-game.is-selected {
   background: transparent;
   border: 0;
   box-shadow: none;
-  transform: translateY(-4px);
+  transform: none;
 }
 
 html.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-art {
-  outline: 2px solid #9bd7c8;
-  outline-offset: 3px;
+  outline: 3px solid #9bd7c8;
+  outline-offset: 4px;
 }
 
 html.slice2-tv .s2-home-start .s2-game:active .s2-game-art,
 html.slice2-tv .s2-home-start .s2-game.is-pressed .s2-game-art {
   transform: translateY(2px) scale(0.98);
-}
-
-html.slice2-tv .s2-home-start .s2-selected-pill {
-  align-self: center;
 }
 
 html.slice2-tv .s2-home-start .s2-btn-primary,
@@ -105,17 +88,15 @@ html.slice2-tv #slice2-start-btn {
 
 @media (min-width: 1600px) {
   html.slice2-tv .s2-home-start .s2-game-grid {
-    grid-template-columns: repeat(4, 168px);
-    gap: 14px 12px;
+    grid-template-columns: repeat(4, var(--bp-card-max));
+    gap: 16px 14px;
   }
   html.slice2-tv .s2-home-start .s2-game-art {
-    max-width: 168px;
+    max-width: var(--bp-card-max);
   }
-  html.slice2-tv .s2-home-start .s2-game-copy strong {
-    font-size: 28px;
-  }
-  html.slice2-tv .s2-home-start .s2-game-copy em {
-    font-size: 0.78rem;
+  html.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-art {
+    outline-width: 4px;
+    outline-offset: 5px;
   }
 }
 
@@ -128,11 +109,5 @@ html.slice2-tv #slice2-start-btn {
 @media (max-width: 520px) {
   html.slice2-tv .s2-home-start .s2-game-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  html.slice2-tv .s2-home-start .s2-game-art {
-    max-width: 108px;
-  }
-  html.slice2-tv .s2-home-start .s2-game-copy strong {
-    font-size: 15px;
   }
 }

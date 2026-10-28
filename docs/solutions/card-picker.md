@@ -1,19 +1,18 @@
 # Home card picker
 
-Matt asked for upright literal 5:7 card backs on Home, not the old beach tiles. All seven shelf games show, including Rook.
+Matt's Home picker is seven upright 5:7 card backs. The cards speak for themselves.
 
 ## What landed
 
-- Faces live in `public/assets/cards/*.webp`. Outer size and ~10px radius are shared. CSS is `public/assets/card-picker.css`.
-- Rook is `rook-card.png` (822×1348, even white border). Not the earlier `rook.png`.
-- Beat the Heat is `beattheheat-card.png` (1580×2512, Matt's own deck). Not a flame placeholder.
-- Both are taller than 5:7 (~0.61 and ~0.63). Fit them with `contain`, centered, on `#fff` so the white card border is the frame. Do not stretch. Do not `cover`.
-- Canasta stays `canasta-card.png` → `canasta.webp`.
-- Flip 7 is the flat Vengeance box at about 2×. Soft on TV.
-- Default: select, then Start under the grid (iPad slip-starts). `?demo&tapstart=1` on localhost or a preview host starts the tapped card.
+- Faces live in `public/assets/cards/*.webp`. Shared outer size, 10px radius, max 220px wide (TV).
+- No name or rule line under the cards. Accessible names stay on `aria-label`. The Start bar still says `Five Crowns · 6 players · 11 rounds`.
+- Select, then Start. There is no tap-to-start flag.
+- Rook (`rook-card.png`, 822×1348), Beat the Heat (whitened `beattheheat-card.png`, 1580×2512), and 818 (cleaned `818-card.png`, 1424×2078) are taller than 5:7: `contain` on `#fff`.
+- Canasta is the approved vector `canasta-card.png` (1500×2100, exact 5:7, bigger type).
+- Flip 7 is the flat Vengeance box. Five Crowns and Wizard are the approved portraits.
 
 ## Do not
 
-- Do not hide Rook again unless Matt asks.
-- Do not upscale Flip 7 past ~2× unless a flat official box-front ≥800px shows up. The theop 3000px 3D pack shot is not a card face.
-- Do not apply the 5:7 card faces to Records ledger marks. Scope Home art to `.s2-home-start`.
+- Do not put labels back under the cards.
+- Do not reintroduce `?demo&tapstart=1`.
+- Do not stretch Rook, Heat, or 818.

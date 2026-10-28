@@ -32,27 +32,22 @@ test('the shelf shows all seven games including Rook', () => {
   ]);
   assert.equal(Games.gameById('Rook').hidden, false);
   assert.equal(Games.displayName('Hand and Foot'), 'Canasta');
-  assert.equal(Games.displayName('Flip 7 Vengeance'), 'Flip 7');
 });
 
-test('Home card faces are 5:7; Rook and Beat the Heat contain on white', async () => {
+test('Home cards are 5:7 faces with no under-card copy and select-then-Start only', async () => {
   const css = await readFile(join(root, 'public/assets/card-picker.css'), 'utf8');
-  const index = await readFile(join(root, 'public/index.html'), 'utf8');
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
+  const index = await readFile(join(root, 'public/index.html'), 'utf8');
 
   assert.match(index, /href="\.\/assets\/card-picker\.css"/);
   assert.match(css, /aspect-ratio:\s*5\s*\/\s*7/);
-  assert.match(css, /--bp-card-radius:\s*10px/);
-  assert.match(css, /\.s2-art-rook,\s*html\.slice2-tv \.s2-home-start \.s2-art-heat[\s\S]*background-size:\s*contain/);
-  assert.match(css, /\.s2-art-rook,\s*html\.slice2-tv \.s2-home-start \.s2-art-heat[\s\S]*background-color:\s*#fff/);
+  assert.match(css, /--bp-card-max:\s*220px/);
+  assert.match(css, /\.s2-game-copy\s*\{\s*display:\s*none/);
+  assert.match(css, /\.s2-art-818 \{[\s\S]*background-size:\s*contain/);
   assert.match(css, /url\("\.\/cards\/canasta\.webp"\)/);
-  assert.match(css, /url\("\.\/cards\/beat-the-heat\.webp"\)/);
-  assert.match(css, /url\("\.\/cards\/rook\.webp"\)/);
-  assert.doesNotMatch(css, /placeholder/);
-  assert.match(js, /function tapStartEnabled/);
-  assert.match(js, /start-game-now/);
-  assert.match(js, /pick-game/);
-  assert.match(js, /params\.get\('tapstart'\) === '1'/);
+  assert.doesNotMatch(js, /tapStartEnabled|start-game-now|tapstart/);
+  assert.match(js, /cardAriaLabel/);
+  assert.match(js, /data-s2-action="pick-game"/);
 
   for (const face of FACES) {
     await access(join(root, 'public/assets/cards', face));

@@ -4,16 +4,16 @@
     return (window.BPGGames && BPGGames.visibleGames()) || [];
   }
 
-  function tapStartEnabled() {
-    try {
-      const params = new URLSearchParams(location.search);
-      const host = window.__GN_DEMO_HOST_OVERRIDE__ || location.hostname;
-      const allowed = host === 'localhost' || host === '127.0.0.1' || host === '::1'
-        || /^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(host);
-      return allowed && params.has('demo') && params.get('tapstart') === '1';
-    } catch (error) {
-      return false;
-    }
+  function cardAriaLabel(game, seated, selected) {
+    const title = game.title || game.id;
+    const detail = String(game.detail(seated) || '').toLowerCase();
+    let summary;
+    if (game.id === 'Beat the Heat') summary = `lowest heat wins, ${detail}`;
+    else if (game.id === 'Rook') summary = 'highest total wins, teams';
+    else if (game.id === 'Flip 7 Vengeance') summary = 'highest total wins, open match';
+    else if (game.winLow) summary = `lowest total wins, ${detail}`;
+    else summary = `highest total wins, ${detail}`;
+    return `${title}, ${summary}${selected ? ', selected' : ''}`;
   }
 
   function displayGameName(id) {
@@ -287,18 +287,10 @@
       </article>`;
     }).join('') || '<p class="s2-sub">Add players to fill tonight\'s table.</p>';
     const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
-    const startNow = tapStartEnabled();
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
-      const rule = game.id === 'Wizard' ? `${game.detail(seated)} · Highest total wins` : game.line;
-      const action = startNow ? 'start-game-now' : 'pick-game';
-      return `<button type="button" class="s2-game${on && !startNow ? ' is-selected' : ''}" data-s2-action="${action}" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on && !startNow}" aria-label="${escapeHtml(game.title)}. ${escapeHtml(rule)}${on && !startNow ? '. Selected' : ''}">
+      return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
         <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
-        <span class="s2-game-copy">
-          <strong>${escapeHtml(game.title)}</strong>
-          <em>${escapeHtml(rule)}</em>
-          ${on && !startNow ? '<span class="s2-selected-pill">Selected</span>' : ''}
-        </span>
       </button>`;
     }).join('');
     const nights = table.history.slice(0, 4).map((match) => {
@@ -984,10 +976,6 @@
     } else if (action === 'pick-game') {
       selected = target.dataset.s2Game || selected;
       paintHome();
-    } else if (action === 'start-game-now') {
-      selected = target.dataset.s2Game || selected;
-      target.classList.add('is-pressed');
-      startGame(selected);
     } else if (action === 'start-game') {
       startGame(selected);
     } else if (action === 'resume' || action === 'scorecard') {
