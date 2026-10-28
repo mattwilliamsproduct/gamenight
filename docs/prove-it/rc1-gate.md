@@ -68,7 +68,7 @@ Mark untested UNVERIFIED. Never green without evidence.
 
 | Gate item | Result | Evidence |
 | --- | --- | --- |
-| Combined RC (Slice 1 + Slice 2 + responsive + flags) | UNVERIFIED | Flag settings recorded. Visual matrix not re-run. |
+| Combined RC (Slice 1 + Slice 2 + responsive + flags) | UNVERIFIED (visual) / OK (porch-night walk) | `test:porch-night` 2/2. Visual snapshot matrix not re-run. |
 | Classify all test failures | UNVERIFIED | `npm run check` pass. Functional pack below. Visual UNVERIFIED. |
 | Task-completion acceptance (8 players, correct past, resume) | OK (automated) | `rc1-acceptance.spec.mjs` passed in the 64/65 pack (the one fail was the demo-path locator, now fixed). |
 | Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
