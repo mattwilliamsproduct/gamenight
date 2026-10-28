@@ -98,6 +98,13 @@ test('390 past-night scorecard keeps more than one round readable', async ({page
     expect(box.text).toMatch(/^R\d+$/);
   });
   expect(cols.body, cols.body).toMatch(/Megan/i);
+  const hint = await page.locator('#modal-scorecard-rounds-hint').evaluate((el) => ({
+    fs: parseFloat(getComputedStyle(el).fontSize),
+    hidden: el.classList.contains('hidden'),
+    text: (el.textContent || '').trim()
+  }));
+  expect(hint.hidden, JSON.stringify(hint)).toBe(false);
+  expect(hint.fs, `hint ${hint.fs}px`).toBeGreaterThanOrEqual(13);
 });
 
 test('past-night scorecard is near full-screen on 375', async ({page}) => {
