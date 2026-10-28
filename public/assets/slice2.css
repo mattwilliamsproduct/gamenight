@@ -2094,6 +2094,15 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
 
 /* iPad portrait sits just above the phone breakpoint and wrapped Settings. */
 @media (min-width: 761px) and (max-width: 1023px) {
+  html.slice2-tv #slice2-board-line {
+    white-space: normal;
+  }
+
+  html.slice2-tv .s2-board-title-row,
+  html.slice2-tv .s2-board-line-row {
+    flex-wrap: wrap;
+  }
+
   html.slice2-tv #top-nav > div,
   html.slice2-tv #top-nav > div > div:last-child {
     flex-wrap: nowrap !important;
