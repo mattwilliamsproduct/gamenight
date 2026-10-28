@@ -181,6 +181,34 @@ test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({pa
   }
 });
 
+test('768 home nav stays on one row', async ({page}) => {
+  await page.setViewportSize({width: 768, height: 1024});
+  await page.addInitScript(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.goto('/?demo&view=home', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => {
+    const ready = document.body.dataset.gnDemoReady;
+    return ready === 'seeded' || ready === 'empty' || ready === 'skipped';
+  });
+  const nav = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll('#top-nav .nav-btn')].filter((el) => {
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden';
+    }).map((el) => {
+      const r = el.getBoundingClientRect();
+      return {text: (el.textContent || '').replace(/\s+/g, ' ').trim(), top: Math.round(r.top), bottom: Math.round(r.bottom)};
+    });
+    const tops = [...new Set(btns.map((b) => b.top))];
+    return {btns, rows: tops.length};
+  });
+  await page.screenshot({path: `${SHOT}/768-nav-one-row.png`, fullPage: false});
+  expect(nav.rows, JSON.stringify(nav.btns)).toBe(1);
+  expect(nav.btns.some((b) => /Settings/i.test(b.text)), 'long Settings label stays off 768').toBe(false);
+});
+
 test('demo path has no pageerror', async ({page}) => {
   const errors = [];
   page.on('pageerror', (err) => errors.push(String(err)));
