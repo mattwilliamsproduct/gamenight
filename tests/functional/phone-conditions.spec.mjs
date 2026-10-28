@@ -234,6 +234,42 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
   }
 });
 
+test('Standings updated toast leaves when Records opens', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    await enterDemoLastHand(page);
+    await page.evaluate(() => {
+      const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+      openPastScoreCell('June', last);
+    });
+    const pad = page.locator('#custom-numpad');
+    await pad.waitFor({state: 'visible', timeout: 5000});
+    const back = pad.locator('button[onclick="numpadPress(\'backspace\')"]');
+    await back.click();
+    await back.click();
+    await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
+    await page.getByRole('button', {name: /Close Keypad/i}).click();
+    await pad.waitFor({state: 'hidden', timeout: 5000});
+    await page.waitForFunction(() => {
+      const toast = document.querySelector('#toast-container .toast');
+      return !!(toast && /Standings updated/i.test(toast.textContent || ''));
+    }, null, {timeout: 4000});
+    await page.evaluate(() => {
+      document.getElementById('victory-modal')?.classList.add('hidden');
+      document.getElementById('loser-modal')?.classList.add('hidden');
+      if (typeof resetPostgameConfetti === 'function') resetPostgameConfetti();
+      if (typeof showHistory === 'function') showHistory();
+    });
+    const leftover = await page.evaluate(() => {
+      const toast = document.querySelector('#toast-container .toast');
+      return toast ? (toast.textContent || '').trim() : '';
+    });
+    await page.screenshot({path: `${SHOT}/records-toast-clear-${size.width}.png`, fullPage: false});
+    expect(leftover, `${size.width} Records has no leftover toast`).toBe('');
+  }
+});
+
 test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
