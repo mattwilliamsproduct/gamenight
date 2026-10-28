@@ -5,17 +5,65 @@ Draft PR: #77. **Do not fold into #73 unless Matt asks.**
 
 Frozen candidate stays PR #73. Pin: `gamenight-7voetuyns-mattwilliamsproducts-projects.vercel.app`.
 
-Bonus app head: `bcc63f4`. Docs may sit on a later sha; they do not change the app.
+Matt checked the earlier bonus after-shots: toast stays in the header band, names are whole, frame 05 is clean, and it reads `1 night`. Dealer explanation is fine, no change.
+
+This addendum is the in-progress packet. Final `npm run check` / `test:functional` / `test:porch-night` and the PINNED per-deployment URL land at ~9:15 AM ET on the then-current head.
+
+## Leftover past-night (requested)
+
+The wide token capped at 1200px and the panel shrank to the table, so 1440 read as 1200×577 (83%×64%) and 1920 as 1200×577 (62.5%×53%) — a small centered card.
+
+The wheel leftover is a **square** (`min(96vw, 100dvh − 8px)`). A square on 1920 landscape is worse for a table. CSS-only leftover for this sheet is rectangular tokens, same leftover idea:
+
+- `--bp-modal-leftover-w` / `--bp-modal-leftover-h`: `min(96vw/96vh, 100vw/dvh − 2×gutter)`
+- Phone: `calc(100vw/dvh − 16px)`
+- Panel is opaque `#fffaf1` so leftover fill is not Home showing through
+
+After leftover (`e80b9ff`):
+
+| Size | Panel | Share |
+| --- | --- | --- |
+| 390×844 | 374×828 | 96% × 98% |
+| 1440×900 | 1382×864 | 96% × 96% |
+| 1920×1080 | 1843×1037 | 96% × 96% |
+
+375 is near-full. Long 8-player / 11-round Five Crowns at 1440/1920 shows **R1–R11** (`leftover-long/past-night-1440-11r.png`; `modal-size` lock on `72f9c29`). Long tables scroll inside `.scorecard-table-wrap`.
+
+### End match stays form
+
+Save & End confirm is a short question (“End this match now?”) plus two buttons. Taste already likes `--bp-modal-form` (`min(92vw, 46rem)`) for that copy. Wheel leftover is a square and would swallow the laptop. Making it leftover would break the form / confirm / leftover split in `docs/solutions/rc1-modal-size-system.md`. Leave it.
+
+Matrix 1440 End match: `/opt/cursor/artifacts/screenshots/visual-matrix/1440x900/end-match.png`.
 
 ## Landed
 
 | SHA | Problem | Benefit | Verify | Before / after |
 | --- | --- | --- | --- | --- |
-| `f8ee3ac` | Standings updated sat on Rosa/Hank totals after the freeze park | Toast in the header band, misses totals | phone-conditions toast vs totals | freeze strip 03–04 vs bonus `03-corrected` |
-| `a929a71` | Toast still on Records frame 05 | `clearToasts()` on `navigateTo` | phone-conditions “toast leaves when Records opens”; reshot 05 | `bonus-fixes/before/05-records-{390,375}.png` / `after/05-records-{390,375}.png` and rehearse `05-records.png` |
-| `3ea2375` | Ledger said `1 nights` | `formatNightCount` → `1 night` / `N nights` | `test-records` golden 0/1/2/11 | same 05 pair: “1 nights” → “1 night” |
-| `7942378` + `20c6adf` | 390 frame 01 R9/R10/R11 cells clipped | Now column shares leftover width; keep one past hand on phone | phone-conditions 375+390 round cells | `before/01-open-390.png` (R9–R11 squeezed) / `after/01-open-390.png` (R10+R11 readable) |
-| `bcc63f4` | Keeping that last past hand left Mike’s +40 on a 43px cell | Park LP on Total when the followed cell is under 44px | `life-preserver-visible` 5/5 | same park-on-Total rule, floor matches the phone round column |
+| `f8ee3ac` | Standings updated sat on Rosa/Hank totals | Toast in the header band | phone-conditions toast vs totals | freeze strip 03–04 vs bonus `03-corrected` |
+| `a929a71` | Toast still on Records frame 05 | `clearToasts()` on `navigateTo` | phone-conditions toast-dismiss; reshot 05 | `bonus-fixes/before/05-records-{390,375}.png` / `after/05-records-{390,375}.png` |
+| `3ea2375` | Ledger said `1 nights` | `formatNightCount` → `1 night` / `N nights` | `test-records` golden 0/1/2/11 | same 05 pair |
+| `7942378` + `20c6adf` | 390 frame 01 R9/R10/R11 clipped | Now column shares leftover; keep one past hand | phone-conditions 375+390 | `before/01-open-390.png` / `after/01-open-390.png` |
+| `bcc63f4` | Last past hand left Mike’s +40 on a 43px cell | Park LP on Total under 44px | `life-preserver-visible` 5/5 | same park-on-Total rule |
+| `e80b9ff` | 1440/1920 past-night was a small card | Rectangular leftover 96% sheet | `modal-size` ≥90% w / ≥85% h at 1024/1440/1920; 375 near-full | `bonus-fixes/modal-before/past-night-{390,1440,1920}.png` / `modal-after/past-night-{390,1440,1920}.png` |
+| `9ff92b6` | Leftover 390 still hid R1–R2 (Total matched Player ~132px) | Cap modal Total so two last-hand columns stay | `390 past-night` ≥2 rounds, Megan present | `modal-rounds-before-390.png` (R3 only) / `modal-rounds-after-390.png` (R2+R3, Total 75px) |
+| `a6635ee` | Leftover date stayed 10px | Date 16px (modal body floor) | `modal-size` date ≥16 | `date-before/date-{390,1440}.png` / `date-after/date-{390,1440}.png` |
+| `b0fa847` | Leftover × was 22×36 | 44px close, title clear | `modal-size` close ≥44, no overlap | `close-before/close-390.png` / `close-after/past-night-390.png` |
+| `9edc615` | Hidden-rounds hint was 10px | Hint 13px on leftover and live | `390 past-night` hint ≥13 | `hint-before/hint-modal-390.png` / `hint-after/hint-modal-390.png` |
+| `6fc6db1` | Leftover PLAYER/TOTAL/R2 were 10px | Headers 13px | `390 past-night` still ≥2 rounds | `thead-before/past-night-390.png` / `thead-after/thead-390.png` |
+| `f45a56e` | Resume / Enter Round used 42% teal outline on teal fill | Cream `#fff8ee` focus ring | Tab to Resume/Enter; outline `rgb(255, 248, 238)` | `focus-before/resume-1440.png` + `enter-390.png` / `focus-after/resume-1440.png` + `enter-390.png` |
+| `837f2fd` | Past nights View scorecard / Resume were 36px | 44px tap targets | measure 133×44 / 83×44 | `nights-btn-before/past-nights-390.png` / `nights-btn-after/past-nights-390.png` |
+| `4ead7ff` | Show all was 20px tall | 44px hit area, text-link look | measure 66×44 | `show-all-before/past-nights-390.png` / `show-all-after/past-nights-390.png` |
+| `09e4705` | Leftover laptop/TV headers stayed 13px next to large totals | 16px from 1024 up | measure 16 at 1440/1920; 13.6 at 390 | `thead-tv-before/past-night-1440.png` / `thead-tv-after/thead-1440.png` |
+| `e706823` | Leftover title stayed 30px on 1920 | Clamp 1.875–2.75rem (30 / 37 / 44) | measure title 30/37/44 | `title-before/past-night-{390,1440,1920}.png` / `title-after/past-night-{390,1440,1920}.png` |
+| `efcaf5f` | Leftover laptop/TV date stayed 16px | 18px from 1024 up | measure 16 at 390, 18 at 1440 | `date-tv-before/past-night-1440.png` / `date-tv-after/date-1440.png` |
+| `59cf5f0` | 768 board sub clipped to `Ks` | Wrap title row through 1023; 1024+ one line | `scorecard-table` one-line title; 768 nav one row | `768-banner-before/scorecard-768.png` / `768-banner-after/scorecard-768.png` |
+| `26e4f3f` | Explore All games / All players were 34px / 11px | 44px / 16px selects | measure 44 / 16 at 390 and 1440 | `explore-before/explore-390.png` / `explore-after/explore-390.png` |
+| `43c18c8` | Settings and other form × stayed 22×36 | Shared `.bp-modal-panel > button.absolute` 44px | Settings close 44; leftover still 44, no overlap | `settings-close-before/settings-390.png` / `settings-close-after/settings-390.png` |
+| `8d89ea8` | Settings App Management / Appearance were 10px | Section labels 13px | measure 13 | `settings-kicker-before/settings-390.png` / `settings-kicker-after/settings-390.png` |
+| `72f9c29` | Leftover 1440/1920 could hide rounds later | Lock all 11 Five Crowns rounds | `modal-size` 1440/1920 roundCount === 11 | `leftover-long/past-night-1440-11r.png` |
+| `4148487` | Profiles Search / Sort / Game were 10px | Filter labels 13px | measure 13 | `profiles-before/profiles-390.png` / `profiles-after/profiles-390.png` |
+
+Artifact root: `/opt/cursor/artifacts/screenshots/bonus-fixes/`.
 
 ## Dealer on frame 01 (no CSS change)
 
@@ -23,38 +71,38 @@ Hank’s outlined name pill is the **dealer chip**, not leftover focus.
 
 - Header: `Dealer: Hank`
 - `button.dealer-name-indicator` + `.dealer-player-label` emerald inset ring
-- Avatar `D` badge (`scorecard-dealer-avatar-badge`)
-- `nameFocused: false` in the probe
-- Taste already says the dealer chip hugs the letters. Adding the word “dealer” next to Hank would fight NAME-FIT, so the chip stayed as-is.
+- Avatar `D` badge
+- `nameFocused: false`
+- Taste already says the dealer chip hugs the letters. Adding “dealer” next to Hank would fight NAME-FIT.
 
-The outlined/dashed **4th** is `.scorecard-life-preserver-rank` (Life Preserver available candy-stripe), plus `.is-place-rest`. Not `:focus`. Not the dealer mark.
+The outlined/dashed **4th** is `.scorecard-life-preserver-rank` (Life Preserver available), plus `.is-place-rest`.
 
-Before/after: `bonus-fixes/before/01-open-{390,375}.png` and `after/01-open-{390,375}.png`. The pill and 4th stripe are unchanged; 390 after only drops R9 so the last-hand cells read.
+## Not landed / unfinished
 
-## Not landed / candidate
-
-- **1440 past-night + End match look like small centered boxes.** End match already uses the form token (`min(92vw, 46rem)`) — taste like and `rc1-modal-size-system`. Past-night already uses `--bp-modal-wide` and `modal-size.spec.mjs` asserts ≥80% width at 1024/1440. Making End match wheel-wide would break the form/confirm/wide split. Height fill is more than modal sizing. **Leave on the candidate list; no bonus CSS.**
 - Laptop look of the bonus toast
-- Fold-in to the frozen candidate
+- Fold-in to the frozen candidate (#73)
+- Final pin for this head (stale pin below is `bcc63f4`)
+- Final `check` / `functional` / `porch-night` on the 9:15 head
+- Physical Safari PENDING
+- 768 live scorecard still hides R1–R9 (column fit, not leftover). Not this CSS pass.
+- Home “Start a New Match” below the fold on 8-seat 768 — scroll, already noted
+- Seat nudge / × stay 32px on 8-seat Home — density, not this pass
 
-## Verify on this branch (`bcc63f4`)
+## Verify (latest mid-run)
 
-- `npm run check` pass
-- `test:functional` **153/153** (toast-dismiss case added)
-- `phone-conditions` 13/13
-- `demo-path` 2/2 (inside functional)
-- `life-preserver-visible` 5/5
-- `test:porch-night` 2/2
-- Demo rehearse 390×3 + 375×3, all June 38 / Theo 41, frame 05 toast-free, “1 night”
+- `npm run check` pass after leftover + matrix CSS (`8d89ea8` era)
+- `modal-size` 5/5 including leftover fill, 390 ≥2 rounds, date ≥16, close ≥44, 1440/1920 all 11 rounds
+- `scorecard-table` one-line title at 1024/1440 still pass after 768 wrap
+- `phone-conditions` 768 nav one row pass
+- Earlier on `bcc63f4`: `test:functional` 153/153, `porch-night` 2/2, phone-conditions 13/13
 
-Strips: `/opt/cursor/artifacts/screenshots/demo-rehearse-bonus/strip-390x844.png` and `strip-375x667.png`.  
-Frame 05 prove-it: `/opt/cursor/artifacts/screenshots/bonus-fixes/after/05-records-390.png` and `05-records-375.png`.
+Rerun of `check` + `functional` + `porch-night` is the 9:15 gate.
 
 ## Preview
 
 Pinned bonus app (`bcc63f4`, GitHub deployment 7382362075): `gamenight-biidur5p2-mattwilliamsproducts-projects.vercel.app`  
-Not the git-branch alias. SSO 302. Earlier toast-only pin `gamenight-47taq5jg2-...` is stale.
+Not the git-branch alias. SSO 302. **Stale vs leftover head.** New pin at 9:15.
 
 ## Status
 
-Bonus still open until ~9:15 AM ET if more small items land. These two requested items (toast dismiss + dealer diagnosis) are in. Candidate tag untouched.
+Draft only. Candidate tag / PR #73 untouched. Do not close PR #76. Bonus still open until ~9:15 AM ET.
