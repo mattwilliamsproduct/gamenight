@@ -21,7 +21,7 @@ test('laptop Home stretches equal columns and keeps Recent nights full width', a
   assert.match(defaultGrid[0], /align-items:\s*stretch/);
   assert.match(css, /\.s2-home-table,\s*html\.slice2-tv \.s2-home-start\s*\{[\s\S]*height:\s*100%/);
   assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*flex:\s*1 1 auto;/);
-  assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*grid-auto-rows:\s*minmax\(50px, 1fr\)/);
+  assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*grid-auto-rows:\s*auto/);
   assert.match(css, /\.s2-seat \.avatar-img\s*\{[\s\S]*width:\s*44px/);
   assert.match(css, /\.s2-seat-name\s*\{[\s\S]*font-size:\s*1\.08rem/);
   assert.match(css, /\.s2-seat-handle\s*\{[\s\S]*touch-action:\s*none;/);

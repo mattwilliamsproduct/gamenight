@@ -1,5 +1,15 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
+  const CARD_FACES = {
+    five: './assets/cards/five-crowns.webp',
+    '818': './assets/cards/818.webp',
+    wizard: './assets/cards/wizard.webp',
+    flip7: './assets/cards/flip7.webp',
+    heat: './assets/cards/beat-the-heat.webp',
+    canasta: './assets/cards/canasta.webp',
+    rook: './assets/cards/rook.webp'
+  };
+
   function registryGames() {
     return (window.BPGGames && BPGGames.visibleGames()) || [];
   }
@@ -295,8 +305,8 @@
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
-        <span class="s2-card-frame s2-art-${game.art}">
-          <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
+        <span class="s2-card-frame">
+          <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
       </button>`;
     }).join('');

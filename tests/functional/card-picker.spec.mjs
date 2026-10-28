@@ -64,10 +64,10 @@ test('Home shows seven equal 5:7 cards with no labels; select then Start opens t
     expect(card.inside, 'card stays inside the Start panel').toBe(true);
   }
 
-  const arts = page.locator('.s2-home-start .s2-game-art');
-  await expect(arts).toHaveCount(7);
+  const photos = page.locator('.s2-home-start .s2-card-photo');
+  await expect(photos).toHaveCount(7);
   for (let i = 0; i < 7; i += 1) {
-    await expect(arts.nth(i)).toHaveCSS('background-size', 'contain');
+    await expect(photos.nth(i)).toHaveCSS('object-fit', 'cover');
   }
 
   const wizard = page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Wizard"]');
@@ -120,6 +120,8 @@ test('1920 TV cards stay inside Start a New Match and stay identical', async ({p
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.widths)).toBeLessThanOrEqual(220);
+  expect(layout.widths[0] / layout.heights[0]).toBeGreaterThan(0.704);
+  expect(layout.widths[0] / layout.heights[0]).toBeLessThan(0.724);
 });
 
 test('1024 landscape fills the start panel and Saved misses Game Instructions', async ({page}) => {
@@ -140,4 +142,38 @@ test('1024 landscape fills the start panel and Saved misses Game Instructions', 
   expect(layout.band, `dead band between cards and Start ${layout.band}px`).toBeLessThanOrEqual(36);
   expect(layout.toastHitsRules, 'Saved does not cover Game Instructions').toBe(false);
   expect(layout.toastText).toMatch(/^✓?\s*Saved$/);
+  expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(124);
+});
+
+test('1024 seat rows keep their height and do not stack', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await freshTable(page);
+  await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee', 'Eli', 'Fay', 'Gus', 'Matt']);
+  const seats = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('.s2-home-table .s2-seat')].map((node) => {
+      const box = node.getBoundingClientRect();
+      const dealer = node.querySelector('.s2-dealer-tag');
+      const dealerBox = dealer?.getBoundingClientRect();
+      return {
+        top: box.top,
+        bottom: box.bottom,
+        height: box.height,
+        dealerVisible: !dealer || (dealerBox.height > 8 && dealerBox.bottom <= box.bottom + 1)
+      };
+    });
+    const overlap = rows.some((row, index) => index > 0 && row.top < rows[index - 1].bottom - 1);
+    const start = document.querySelector('#slice2-start-btn')?.getBoundingClientRect();
+    return {
+      count: rows.length,
+      overlap,
+      minHeight: Math.min(...rows.map((row) => row.height)),
+      dealerVisible: rows.every((row) => row.dealerVisible),
+      startOnScreen: !!(start && start.top >= 0 && start.bottom <= window.innerHeight + 1)
+    };
+  });
+  expect(seats.count).toBe(8);
+  expect(seats.overlap, 'seat rows overlap').toBe(false);
+  expect(seats.minHeight).toBeGreaterThanOrEqual(44);
+  expect(seats.dealerVisible, 'dealer pill stays inside its row').toBe(true);
+  expect(seats.startOnScreen, 'Start stays on screen').toBe(true);
 });

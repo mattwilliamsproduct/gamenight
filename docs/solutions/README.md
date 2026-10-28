@@ -48,4 +48,4 @@ Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder wri
 
 Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
 
-Standing trap: [card-picker.md](card-picker.md) — One shared 5:7 frame, art contained, grid inside the Start panel. 1024 landscape and 1920 are the primary layouts. Do not stretch Rook or Heat. Select then Start.
+Standing trap: [card-picker.md](card-picker.md) — Exact 5:7 faces with cover. No leftover porch tiles. Seat rows keep their height and scroll. 1024 landscape and 1920 are the primary layouts. Select then Start.

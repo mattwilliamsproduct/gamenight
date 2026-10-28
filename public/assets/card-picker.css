@@ -1,9 +1,9 @@
-/* Home card picker: one shared 5:7 frame. Art is contained. No under-card labels. */
+/* Home card picker: exact 5:7 faces, cover, no leftover tile art. */
 
 html.slice2-tv {
   --bp-card-radius: 10px;
   --bp-card-max: 220px;
-  --bp-card-fill: #1a1030;
+  --bp-card-fill: #f6f1e7;
 }
 
 html.slice2-tv .s2-home-start {
@@ -13,13 +13,13 @@ html.slice2-tv .s2-home-start {
 html.slice2-tv .s2-home-start .s2-game-grid {
   flex: 1 1 auto;
   align-content: start;
-  justify-content: center;
-  justify-items: center;
+  justify-content: start;
+  justify-items: stretch;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px 10px;
   width: 100%;
   min-width: 0;
-  min-height: 0;
+  min-height: min-content;
   padding: 8px;
   box-sizing: border-box;
 }
@@ -27,11 +27,12 @@ html.slice2-tv .s2-home-start .s2-game-grid {
 html.slice2-tv .s2-home-start .s2-game {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: start;
+  align-self: start;
   width: 100%;
   max-width: var(--bp-card-max);
-  height: auto;
+  height: auto !important;
   min-width: 0;
   min-height: 0;
   padding: 0;
@@ -45,48 +46,35 @@ html.slice2-tv .s2-home-start .s2-game {
 
 html.slice2-tv .s2-home-start .s2-card-frame {
   display: block;
-  width: min(100%, var(--bp-card-max));
+  width: 100%;
+  height: auto !important;
+  flex: 0 0 auto;
   aspect-ratio: 5 / 7;
   border-radius: var(--bp-card-radius);
   overflow: hidden;
   background-color: var(--bp-card-fill);
+  background-image: none !important;
   box-shadow: 0 1px 0 rgba(7, 63, 59, 0.08);
 }
 
-html.slice2-tv .s2-home-start .s2-game-art {
+html.slice2-tv .s2-home-start .s2-card-photo {
   display: block;
-  flex: none;
   width: 100%;
   height: 100%;
-  min-height: 0;
-  margin: 0;
-  border-radius: 0;
-  opacity: 1;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+  object-fit: cover;
+  object-position: center;
+  border: 0;
+}
+
+html.slice2-tv .s2-home-start .s2-game-art,
+html.slice2-tv .s2-home-start .s2-game-copy,
+html.slice2-tv .s2-home-start [class*="s2-art-"] {
+  background-image: none !important;
 }
 
 html.slice2-tv .s2-home-start .s2-game-copy {
   display: none;
 }
-
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-five { --bp-card-fill: #33026e; }
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-818 { --bp-card-fill: #3f1f71; }
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-wizard { --bp-card-fill: #0f2458; }
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-flip7 { --bp-card-fill: #f4edd0; }
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-canasta { --bp-card-fill: #ce2228; }
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-heat { --bp-card-fill: #b1130b; }
-html.slice2-tv .s2-home-start .s2-card-frame.s2-art-rook { --bp-card-fill: #3db7d8; }
-
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-five { background-image: url("./cards/five-crowns.webp"); }
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-818 { background-image: url("./cards/818.webp"); }
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-wizard { background-image: url("./cards/wizard.webp"); }
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-flip7 { background-image: url("./cards/flip7.webp"); }
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-canasta { background-image: url("./cards/canasta.webp"); }
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-heat { background-image: url("./cards/beat-the-heat.webp"); }
-html.slice2-tv .s2-home-start .s2-game-art.s2-art-rook { background-image: url("./cards/rook.webp"); }
 
 html.slice2-tv .s2-home-start .s2-game.is-selected {
   background: transparent;
@@ -112,21 +100,35 @@ html.slice2-tv #slice2-start-btn {
   color: #fff;
 }
 
-/* iPad landscape + TV: grow cards to fill the start column down to Start. */
+html.slice2-tv .s2-seat-grid {
+  align-content: start;
+  grid-auto-rows: auto;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* iPad landscape + TV: start column gets the width; cards fill their cells. */
 @media (min-width: 861px) {
   html.slice2-tv .s2-home-grid {
-    grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.45fr);
+    grid-template-rows: minmax(min-content, auto);
   }
 
   html.slice2-tv .s2-home-start {
-    container-type: size;
-    container-name: start;
+    height: auto;
+    min-height: min-content;
+  }
+
+  html.slice2-tv .s2-home-table {
+    height: 100%;
+    min-height: 0;
   }
 
   html.slice2-tv .s2-home-start .s2-game-grid {
     flex: 1 1 auto;
     align-content: start;
-    justify-content: center;
+    justify-content: start;
+    min-height: min-content;
   }
 
   html.slice2-tv .s2-home-start .s2-game {
@@ -134,22 +136,27 @@ html.slice2-tv #slice2-start-btn {
   }
 
   html.slice2-tv .s2-home-start .s2-card-frame {
-    width: min(100%, var(--bp-card-max), calc((100cqh - 10.25rem) * 5 / 14));
+    width: min(100%, var(--bp-card-max));
   }
 }
 
-/* Short landscape: both card rows and Start stay on screen. */
+/* Short landscape: natural seat rows that scroll; cards grow but Start stays on screen. */
 @media (min-width: 861px) and (max-height: 820px) {
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    max-height: calc(100dvh - 16.75rem);
+    max-height: calc(100dvh - 14.5rem);
     min-height: 0;
   }
 
   html.slice2-tv .s2-seat-grid {
     min-height: 0;
     overflow: auto;
-    grid-auto-rows: minmax(36px, 1fr);
+    align-content: start;
+    grid-auto-rows: auto;
+  }
+
+  html.slice2-tv .s2-home-start .s2-card-frame {
+    width: min(100%, var(--bp-card-max));
   }
 }
 
@@ -159,13 +166,17 @@ html.slice2-tv #slice2-start-btn {
   }
 
   html.slice2-tv .s2-home-grid {
-    grid-template-columns: minmax(280px, 0.62fr) minmax(0, 1.5fr);
+    grid-template-columns: minmax(280px, 0.58fr) minmax(0, 1.55fr);
   }
 
-  html.slice2-tv .s2-home-table,
-  html.slice2-tv .s2-home-start {
+  html.slice2-tv .s2-home-table {
     max-height: calc(100dvh - 16rem);
     min-height: 0;
+  }
+
+  html.slice2-tv .s2-home-start {
+    max-height: calc(100dvh - 16rem);
+    min-height: min-content;
   }
 
   html.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {

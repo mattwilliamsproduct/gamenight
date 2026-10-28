@@ -4,15 +4,18 @@ Matt's Home picker is seven upright 5:7 card backs. The cards speak for themselv
 
 ## What landed
 
-- One shared `.s2-card-frame`: same 5:7 box, 10px radius, max 220px. Art is `contain` on a matched fill. No under-card labels.
+- One shared `.s2-card-frame`: same 5:7 box, 10px radius, max 220px. Faces are exact 5:7 webps (`scripts/fit-card-faces.py`) drawn with `object-fit: cover`. No under-card labels.
+- The frame does not carry `s2-art-*`. Old porch/tropical tile backgrounds stay off the picker.
 - Faces live in `public/assets/cards/*.webp`. Select, then Start.
 - iPad landscape 1024×768 and TV 1920×1080 are the primary layouts (landscape iPad mirrored to TV). Portrait and phone must not break.
-- The 4-up grid stays inside Start a New Match with even gutters. Cards grow to fill the start column down to the Start bar so 1024 has no dead band.
-- Home Saved chip says `✓ Saved` and sits top-left so it never covers Game Instructions.
+- 1024 is 4+3. Cards fill their cells up to 220px. Start stays on screen. No dead band under the cards.
+- Tonight's Table rows keep their natural height. If the list needs to scroll, it scrolls. It never compresses.
+- Home Saved chip says `✓ Saved` and sits in Tonight's Table so it never covers Game Instructions.
 
 ## Do not
 
 - Do not put labels back under the cards.
 - Do not reintroduce `?demo&tapstart=1`.
 - Do not use fixed 220px columns that overflow the Start panel.
-- Do not stretch Rook, Heat, or 818. Contain them in the shared frame.
+- Do not let theme thumbs or dusk tiles show through beside a card face.
+- Do not shrink seat rows with `1fr` so they overlap.

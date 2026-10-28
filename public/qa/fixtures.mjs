@@ -1098,9 +1098,15 @@ export const QA_SCENARIOS = {
   },
   'card-picker':{
     label:'Home · Card picker',
-    description:'Four seated players and the seven 5:7 Home card faces, including Rook and Beat the Heat contained on white.',
+    description:'Four seated players and the seven 5:7 Home card faces. No leftover porch tiles.',
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,4),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
+  },
+  'card-picker-8':{
+    label:'Home · Card picker · 8 seated',
+    description:'Eight seated players for the 1024 seat-row and card-size look.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,8),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
   },
   'wizard-10':{
     label:'Wizard · 10 Players',
