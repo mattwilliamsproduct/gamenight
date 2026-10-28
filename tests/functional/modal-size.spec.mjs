@@ -74,6 +74,11 @@ test('past-night scorecard uses most of the viewport at 1024, 1440, and 1920', a
     expect(measure.close.top).toBeGreaterThanOrEqual(0);
     expect(measure.close.right).toBeLessThanOrEqual(size.width + 2);
     expect(measure.bodyOverflow).toMatch(/hidden/);
+    if (size.width >= 1440) {
+      const roundCount = await page.evaluate(() => [...document.querySelectorAll('#scorecard-modal thead th.scorecard-round-th')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden')).length);
+      expect(roundCount, `${size.width} visible rounds`).toBe(11);
+    }
     await page.keyboard.press('Escape');
     await expect(page.locator('#scorecard-modal')).toHaveClass(/hidden/);
   }
