@@ -4,15 +4,15 @@ Matt's Home picker is seven upright 5:7 card backs. The cards speak for themselv
 
 ## What landed
 
-- Faces live in `public/assets/cards/*.webp`. Shared outer size, 10px radius, max 220px wide (TV).
-- No name or rule line under the cards. Accessible names stay on `aria-label`. The Start bar still says `Five Crowns · 6 players · 11 rounds`.
-- Select, then Start. There is no tap-to-start flag.
-- Rook (`rook-card.png`, 822×1348), Beat the Heat (whitened `beattheheat-card.png`, 1580×2512), and 818 (cleaned `818-card.png`, 1424×2078) are taller than 5:7: `contain` on `#fff`.
-- Canasta is the approved vector `canasta-card.png` (1500×2100, exact 5:7, bigger type).
-- Flip 7 is the flat Vengeance box. Five Crowns and Wizard are the approved portraits.
+- One shared `.s2-card-frame`: same 5:7 box, 10px radius, max 220px. Art is `contain` on a matched fill. No under-card labels.
+- Faces live in `public/assets/cards/*.webp`. Select, then Start.
+- iPad landscape 1024×768 and TV 1920×1080 are the primary layouts (landscape iPad mirrored to TV). Portrait and phone must not break.
+- The 4-up grid stays inside Start a New Match with even gutters. Cards grow to fill the start column down to the Start bar so 1024 has no dead band.
+- Home Saved chip says `✓ Saved` and sits top-left so it never covers Game Instructions.
 
 ## Do not
 
 - Do not put labels back under the cards.
 - Do not reintroduce `?demo&tapstart=1`.
-- Do not stretch Rook, Heat, or 818.
+- Do not use fixed 220px columns that overflow the Start panel.
+- Do not stretch Rook, Heat, or 818. Contain them in the shared frame.

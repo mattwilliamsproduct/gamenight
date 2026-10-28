@@ -310,7 +310,7 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
   expect(scorecard.overlapsText, 'Saved does not cover header text').toBe(false);
   const dealerLine = await page.locator('#slice2-board-line, #slice2-board-sub').allTextContents();
   expect(dealerLine.join(' '), 'header keeps the dealer').toMatch(/Dealer:/);
-  expect(await page.locator('#save-indicator').textContent(), 'Saved names this device').toMatch(/Saved on this device/);
+  expect(await page.locator('#save-indicator').textContent(), 'Saved chip stays short').toMatch(/^\s*✓?\s*Saved\s*$/);
 
   await page.setViewportSize({width: 375, height: 667});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});

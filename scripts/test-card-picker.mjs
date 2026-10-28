@@ -42,12 +42,16 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.match(index, /href="\.\/assets\/card-picker\.css"/);
   assert.match(css, /aspect-ratio:\s*5\s*\/\s*7/);
   assert.match(css, /--bp-card-max:\s*220px/);
+  assert.match(css, /\.s2-card-frame/);
+  assert.match(css, /background-size:\s*contain/);
   assert.match(css, /\.s2-game-copy\s*\{\s*display:\s*none/);
-  assert.match(css, /\.s2-art-818 \{[\s\S]*background-size:\s*contain/);
+  assert.doesNotMatch(css, /repeat\(4,\s*var\(--bp-card-max\)\)/);
   assert.match(css, /url\("\.\/cards\/canasta\.webp"\)/);
+  assert.match(js, /s2-card-frame/);
   assert.doesNotMatch(js, /tapStartEnabled|start-game-now|tapstart/);
   assert.match(js, /cardAriaLabel/);
   assert.match(js, /data-s2-action="pick-game"/);
+  assert.match(index, /id="save-indicator">✓ Saved</);
 
   for (const face of FACES) {
     await access(join(root, 'public/assets/cards', face));

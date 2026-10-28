@@ -1,21 +1,38 @@
-/* Home card picker: shared 5:7 faces, no under-card labels. */
+/* Home card picker: one shared 5:7 frame. Art is contained. No under-card labels. */
 
 html.slice2-tv {
   --bp-card-radius: 10px;
   --bp-card-max: 220px;
+  --bp-card-fill: #1a1030;
+}
+
+html.slice2-tv .s2-home-start {
+  min-width: 0;
 }
 
 html.slice2-tv .s2-home-start .s2-game-grid {
+  flex: 1 1 auto;
   align-content: start;
   justify-content: center;
+  justify-items: center;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 html.slice2-tv .s2-home-start .s2-game {
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: var(--bp-card-max);
   height: auto;
+  min-width: 0;
   min-height: 0;
   padding: 0;
   gap: 0;
@@ -26,41 +43,50 @@ html.slice2-tv .s2-home-start .s2-game {
   overflow: visible;
 }
 
-html.slice2-tv .s2-home-start .s2-game-art {
-  flex: 0 0 auto;
-  width: 100%;
-  max-width: var(--bp-card-max);
-  height: auto;
-  min-height: 0;
+html.slice2-tv .s2-home-start .s2-card-frame {
+  display: block;
+  width: min(100%, var(--bp-card-max));
   aspect-ratio: 5 / 7;
-  margin: 0 auto;
   border-radius: var(--bp-card-radius);
-  background-color: #fff;
+  overflow: hidden;
+  background-color: var(--bp-card-fill);
+  box-shadow: 0 1px 0 rgba(7, 63, 59, 0.08);
+}
+
+html.slice2-tv .s2-home-start .s2-game-art {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  border-radius: 0;
+  opacity: 1;
+  background-color: transparent;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: cover;
-  box-shadow: 0 1px 0 rgba(7, 63, 59, 0.08);
+  background-size: contain;
 }
 
 html.slice2-tv .s2-home-start .s2-game-copy {
   display: none;
 }
 
-html.slice2-tv .s2-home-start .s2-art-five { background-image: url("./cards/five-crowns.webp"); }
-html.slice2-tv .s2-home-start .s2-art-818 { background-image: url("./cards/818.webp"); }
-html.slice2-tv .s2-home-start .s2-art-wizard { background-image: url("./cards/wizard.webp"); }
-html.slice2-tv .s2-home-start .s2-art-flip7 { background-image: url("./cards/flip7.webp"); }
-html.slice2-tv .s2-home-start .s2-art-canasta { background-image: url("./cards/canasta.webp"); }
-html.slice2-tv .s2-home-start .s2-art-heat { background-image: url("./cards/beat-the-heat.webp"); }
-html.slice2-tv .s2-home-start .s2-art-rook { background-image: url("./cards/rook.webp"); }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-five { --bp-card-fill: #33026e; }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-818 { --bp-card-fill: #3f1f71; }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-wizard { --bp-card-fill: #0f2458; }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-flip7 { --bp-card-fill: #f4edd0; }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-canasta { --bp-card-fill: #ce2228; }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-heat { --bp-card-fill: #b1130b; }
+html.slice2-tv .s2-home-start .s2-card-frame.s2-art-rook { --bp-card-fill: #3db7d8; }
 
-/* Taller than 5:7: contain on white so the card border is the frame. */
-html.slice2-tv .s2-home-start .s2-art-rook,
-html.slice2-tv .s2-home-start .s2-art-heat,
-html.slice2-tv .s2-home-start .s2-art-818 {
-  background-color: #fff;
-  background-size: contain;
-}
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-five { background-image: url("./cards/five-crowns.webp"); }
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-818 { background-image: url("./cards/818.webp"); }
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-wizard { background-image: url("./cards/wizard.webp"); }
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-flip7 { background-image: url("./cards/flip7.webp"); }
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-canasta { background-image: url("./cards/canasta.webp"); }
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-heat { background-image: url("./cards/beat-the-heat.webp"); }
+html.slice2-tv .s2-home-start .s2-game-art.s2-art-rook { background-image: url("./cards/rook.webp"); }
 
 html.slice2-tv .s2-home-start .s2-game.is-selected {
   background: transparent;
@@ -69,13 +95,13 @@ html.slice2-tv .s2-home-start .s2-game.is-selected {
   transform: none;
 }
 
-html.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-art {
+html.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   outline: 3px solid #9bd7c8;
-  outline-offset: 4px;
+  outline-offset: 3px;
 }
 
-html.slice2-tv .s2-home-start .s2-game:active .s2-game-art,
-html.slice2-tv .s2-home-start .s2-game.is-pressed .s2-game-art {
+html.slice2-tv .s2-home-start .s2-game:active .s2-card-frame,
+html.slice2-tv .s2-home-start .s2-game.is-pressed .s2-card-frame {
   transform: translateY(2px) scale(0.98);
 }
 
@@ -86,17 +112,65 @@ html.slice2-tv #slice2-start-btn {
   color: #fff;
 }
 
-@media (min-width: 1600px) {
+/* iPad landscape + TV: grow cards to fill the start column down to Start. */
+@media (min-width: 861px) {
+  html.slice2-tv .s2-home-grid {
+    grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.25fr);
+  }
+
+  html.slice2-tv .s2-home-start {
+    container-type: size;
+    container-name: start;
+  }
+
   html.slice2-tv .s2-home-start .s2-game-grid {
-    grid-template-columns: repeat(4, var(--bp-card-max));
-    gap: 16px 14px;
+    flex: 1 1 auto;
+    align-content: start;
+    justify-content: center;
   }
-  html.slice2-tv .s2-home-start .s2-game-art {
-    max-width: var(--bp-card-max);
+
+  html.slice2-tv .s2-home-start .s2-game {
+    height: auto;
   }
-  html.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-art {
+
+  html.slice2-tv .s2-home-start .s2-card-frame {
+    width: min(100%, var(--bp-card-max), calc((100cqh - 10.25rem) * 5 / 14));
+  }
+}
+
+/* Short landscape: both card rows and Start stay on screen. */
+@media (min-width: 861px) and (max-height: 820px) {
+  html.slice2-tv .s2-home-table,
+  html.slice2-tv .s2-home-start {
+    max-height: calc(100dvh - 16.75rem);
+    min-height: 0;
+  }
+
+  html.slice2-tv .s2-seat-grid {
+    min-height: 0;
+    overflow: auto;
+    grid-auto-rows: minmax(36px, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  html.slice2-tv .s2-home {
+    width: min(1400px, calc(100% - 24px));
+  }
+
+  html.slice2-tv .s2-home-grid {
+    grid-template-columns: minmax(280px, 0.62fr) minmax(0, 1.5fr);
+  }
+
+  html.slice2-tv .s2-home-table,
+  html.slice2-tv .s2-home-start {
+    max-height: calc(100dvh - 16rem);
+    min-height: 0;
+  }
+
+  html.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
     outline-width: 4px;
-    outline-offset: 5px;
+    outline-offset: 4px;
   }
 }
 
@@ -110,4 +184,25 @@ html.slice2-tv #slice2-start-btn {
   html.slice2-tv .s2-home-start .s2-game-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* Home: Saved sits in Tonight's Table, never on Game Instructions. */
+html.slice2-tv .s2-home-table .s2-panel-head {
+  position: relative;
+}
+
+html.slice2-tv .s2-home-table .s2-panel-head #save-indicator,
+html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
+  position: static;
+  top: auto;
+  right: auto;
+  left: auto;
+  display: inline-flex;
+  opacity: 1;
+  transform: none;
+  margin: 0 0 0 auto;
+  max-width: 6.5rem;
+  white-space: nowrap;
+  text-align: right;
+  pointer-events: none;
 }

@@ -22,5 +22,5 @@ test('the client never fetches /api/sync and leaves the Redis function in place'
 test('Settings and Records keep the local-storage sentence', () => {
   assert.match(html, /Scores and history are saved in this browser on this device\./);
   assert.match(records, /Scores and history are saved in this browser on this device\./);
-  assert.match(html, /Saved on this device/);
+  assert.match(html, /id="save-indicator">✓ Saved</);
 });

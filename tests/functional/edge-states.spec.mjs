@@ -69,7 +69,7 @@ test('one seated player can start Five Crowns without a pageerror', async ({page
   await openDemo(page, 'empty-home');
   await page.locator('#slice2-add-name').fill('Solo');
   await page.locator('#slice2-add-name').press('Enter');
-  await page.locator('#slice2-home .s2-game', {hasText: /Five Crowns/i}).first().click();
+  await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Five Crowns"]').click();
   await page.locator('#slice2-start-btn').click();
   await page.screenshot({path: `${SHOT}/one-player-390.png`, fullPage: false});
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);

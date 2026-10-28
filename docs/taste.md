@@ -10,7 +10,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
-- Rook uses the even-border 822×1348 `rook-card.png` re-crop; Beat the Heat uses Matt's own-deck `beattheheat-card.png`. Both sit contained in the shared 5:7 frame on white so the card border is the frame, not a letterbox.
+- Home picker: one shared 5:7 frame for all seven games, art contained, grid inside the Start panel. 1024 landscape and 1920 TV are the layouts that matter. Saved is the chip; it never covers Game Instructions.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
 - Add Player, Save & End, Audit, and the LP picker use the form modal token (`min(92vw, 46rem)`), 18px inputs, and 56px suggestion rows.
@@ -40,6 +40,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Kills
 
+- A Home picker grid that overflows Start a New Match, or a dead band between the cards and Start at 1024 landscape.
 - Stretching or covering a taller-than-5:7 Rook or Beat the Heat face, or swapping in the earlier `rook.png` / Heat placeholder.
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).

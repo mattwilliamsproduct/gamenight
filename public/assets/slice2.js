@@ -226,6 +226,11 @@
       if (el.parentElement !== row) row.appendChild(el);
       return;
     }
+    const tableHead = document.querySelector('#slice2-home .s2-home-table .s2-panel-head');
+    if (tableHead) {
+      if (el.parentElement !== tableHead) tableHead.appendChild(el);
+      return;
+    }
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
@@ -290,7 +295,9 @@
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
-        <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
+        <span class="s2-card-frame s2-art-${game.art}">
+          <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
+        </span>
       </button>`;
     }).join('');
     const nights = table.history.slice(0, 4).map((match) => {
@@ -344,8 +351,11 @@
           </div>
         </section>`;
     const nightsBlock = nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : '';
+    const saved = document.getElementById('save-indicator');
+    if (saved && root.contains(saved)) document.body.appendChild(saved);
     root.innerHTML = `${banner}<div class="s2-home-grid">${tableBlock}${startBlock}</div>${nightsBlock}`;
     restoreSeatGrab(root);
+    parkSaveIndicator();
   }
 
   function moveSeatList(list, from, to) {
