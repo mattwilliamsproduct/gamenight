@@ -2078,6 +2078,29 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 }
 
+/* iPad portrait sits just above the phone breakpoint and wrapped Settings. */
+@media (min-width: 761px) and (max-width: 1023px) {
+  html.slice2-tv #top-nav > div,
+  html.slice2-tv #top-nav > div > div:last-child {
+    flex-wrap: nowrap !important;
+  }
+
+  html.slice2-tv #top-nav > div {
+    gap: 0.35rem;
+  }
+
+  html.slice2-tv #nav-active-btn {
+    display: none !important;
+  }
+
+  html.slice2-tv #top-nav .nav-btn {
+    padding: 0.36rem 0.55rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+}
+
 @media (max-width: 760px) {
   html.slice2-tv .s2-board-line-row {
     justify-content: flex-start;
