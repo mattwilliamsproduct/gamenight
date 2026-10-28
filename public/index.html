@@ -1471,7 +1471,7 @@
       background: var(--surface);
       box-shadow: var(--shadow-lg);
       --score-entry-avatar-col: 64px;
-      --score-entry-total-col: 72px;
+      --score-entry-total-col: 6.25rem;
       --score-entry-context-col: 72px;
       --score-entry-input-col: 118px;
       --score-entry-row-gap: 0.8rem;
@@ -1711,6 +1711,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .score-entry-total .score-entry-meta-value {
+      overflow: visible;
+      text-overflow: clip;
+      font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+    }
     .score-entry-input-cell {
       min-width: 0;
       text-align: center;
@@ -1837,7 +1842,7 @@
     .score-entry-key.next { background: var(--emerald); color: #fff; grid-row: span 2; font-size: clamp(1.25rem, 2.25vw, 1.7rem); }
     .score-entry-panel.score-entry-many-players {
       --score-entry-avatar-col: 48px;
-      --score-entry-total-col: 64px;
+      --score-entry-total-col: 5.75rem;
       --score-entry-context-col: 64px;
       --score-entry-input-col: 104px;
       --score-entry-row-gap: 0.5rem;

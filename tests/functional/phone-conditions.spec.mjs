@@ -93,6 +93,18 @@ test('1920 scoreboard keeps names and totals in layout (readability judged separ
   expect(totals.some((text) => text.includes('38') || text.includes('36'))).toBe(true);
 });
 
+test('Canasta entry shows four-digit team totals on 375', async ({page}) => {
+  await page.setViewportSize({width: 375, height: 667});
+  await page.goto('/?demo&view=game&game=hand-and-foot', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded');
+  await page.locator('#slice2-enter-btn, #submit-action-btn').first().click();
+  const modal = page.locator('#score-entry-modal');
+  await expect(modal).not.toHaveClass(/hidden/);
+  await expect(modal).toContainText('3695');
+  await expect(modal).toContainText('1430');
+  await page.screenshot({path: `${SHOT}/canasta-entry-375-after.png`, fullPage: false});
+});
+
 test('Match Complete on 375 keeps June through Hank above the banner', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await openDemoPath(page);
