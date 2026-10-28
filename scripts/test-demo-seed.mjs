@@ -142,7 +142,7 @@ test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=game&game=818'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&art=dusk&logo=dusk'), '/?demo&art=dusk&logo=dusk');
-  assert.equal(stripDemoSearch('https://example.test/?demo&cardfill=1'), '/?demo&cardfill=1');
+  assert.equal(stripDemoSearch('https://example.test/?demo&cardfill=1'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&home=a'), '/');
 });
 

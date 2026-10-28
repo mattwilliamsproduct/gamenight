@@ -1,27 +1,13 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
-  function cardFillOn() {
-    try {
-      const params = new URLSearchParams(location.search);
-      if (!params.has('cardfill')) return false;
-      const host = location.hostname || '';
-      if (host === 'cardknight.vercel.app') return false;
-      return host === 'localhost' || host === '127.0.0.1' || host === '::1'
-        || /^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(host);
-    } catch (error) {
-      return false;
-    }
-  }
-
-  const CARD_FILL = cardFillOn();
   const CARD_FACES = {
     five: './assets/cards/five-crowns.webp',
     '818': './assets/cards/818.webp',
     wizard: './assets/cards/wizard.webp',
     flip7: './assets/cards/flip7.webp',
-    heat: CARD_FILL ? './assets/cards/fill/beat-the-heat.webp' : './assets/cards/beat-the-heat.webp',
+    heat: './assets/cards/beat-the-heat.webp',
     canasta: './assets/cards/canasta.webp',
-    rook: CARD_FILL ? './assets/cards/fill/rook.webp' : './assets/cards/rook.webp'
+    rook: './assets/cards/rook.webp'
   };
 
   function registryGames() {

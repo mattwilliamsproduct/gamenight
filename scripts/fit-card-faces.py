@@ -94,7 +94,7 @@ def pad_to_target(im, fill, cover=False):
 
 FACE_OPTS = {
     "wizard.webp": {"body": "navy", "cover": True, "fill": (8, 18, 72, 255)},
-    "five-crowns.webp": {"extra_inset": (0, 0, 14, 0), "fill": (95, 47, 130, 255)},
+    "five-crowns.webp": {"designed": True},
 }
 
 
@@ -108,6 +108,11 @@ def main():
         im = Image.open(src)
         print(f"{name:22} in {im.size[0]}x{im.size[1]} {im.mode}")
         opts = FACE_OPTS.get(name, {})
+        if opts.get("designed"):
+            if im.size != TARGET:
+                raise SystemExit(f"{name} designed face is {im.size}, expected {TARGET}")
+            print(f"{name:22} designed {im.size[0]}x{im.size[1]} (no trim)")
+            continue
         trimmed = trim_card(
             im,
             keep_white=bool(opts.get("keep_white")),

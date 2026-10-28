@@ -72,5 +72,5 @@ export function applyDemoChrome(root, search, hostname){
 
 export function keepDemoSearchForChrome(search){
   const params = new URLSearchParams(search || '');
-  return params.has('art') || params.has('logo') || params.has('cardfill');
+  return params.has('art') || params.has('logo');
 }

@@ -61,11 +61,9 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   for (const face of FACES) {
     await access(join(root, 'public/assets/cards', face));
   }
-  await access(join(root, 'public/assets/cards/fill/rook.webp'));
-  await access(join(root, 'public/assets/cards/fill/beat-the-heat.webp'));
-  assert.match(js, /cardFillOn|CARD_FILL/);
-  assert.match(js, /assets\/cards\/fill\/rook\.webp/);
-  assert.match(js, /assets\/cards\/fill\/beat-the-heat\.webp/);
-  assert.match(js, /CARD_FILL \? '\.\/assets\/cards\/fill\/rook\.webp' : '\.\/assets\/cards\/rook\.webp'/);
-  assert.match(js, /CARD_FILL \? '\.\/assets\/cards\/fill\/beat-the-heat\.webp' : '\.\/assets\/cards\/beat-the-heat\.webp'/);
+  await access(join(root, 'public/assets/cards/five-crowns.svg'));
+  assert.doesNotMatch(js, /cardFillOn|CARD_FILL|cards\/fill\//);
+  assert.match(js, /assets\/cards\/rook\.webp/);
+  assert.match(js, /assets\/cards\/beat-the-heat\.webp/);
+  assert.match(js, /assets\/cards\/five-crowns\.webp/);
 });

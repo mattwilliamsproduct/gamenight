@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Extend Rook / Beat the Heat to a full 5:7 face without stretching.
 
-Keeps the default padded webps. Writes preview-only fills to public/assets/cards/fill/.
-Rook tiles the teal clover from a clean top sample. Heat continues edge color and grain.
+Writes cleaned 700x980 defaults. Uses only background pixels on the pads
+so subject bits (crow tail, pepper flame) do not repeat at the edge.
 """
 
 from pathlib import Path
@@ -10,7 +10,7 @@ from PIL import Image
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1] / "public/assets/cards"
-OUT = ROOT / "fill"
+OUT = ROOT
 TARGET = (700, 980)
 
 SPECS = {
@@ -94,15 +94,16 @@ def inpaint(img, mask, radius=10, passes=3):
 
 
 def rook_bg(img):
-    lum = img.mean(axis=2)
     rgb = img.astype(np.int16)
-    dark = lum < 78
-    yellow = (rgb[:, :, 0] > 168) & (rgb[:, :, 1] > 138) & (rgb[:, :, 0] > rgb[:, :, 2] + 24)
-    return ~(dark | yellow)
+    r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+    teal = (g > r + 28) & (b > r + 36) & (g > 90) & (b > 120)
+    return teal
 
 
 def heat_bg(img):
-    return ~near_white(img, floor=210, spread=36)
+    lum = img.mean(axis=2)
+    subject = near_white(img, floor=188, spread=55) | (lum > 178)
+    return ~subject
 
 
 def fill_corners(content, radius, white_floor):
@@ -147,8 +148,8 @@ def extend_rook(content, src_l, src_r, period):
     canvas[:, src_l:src_r] = content
     bg = rook_bg(content)
     for y in range(h):
-        left = clean_strip(content[y, :110], bg[y, :110])
-        right = clean_strip(content[y, w - 42 :], bg[y, w - 42 :])
+        left = clean_strip(content[y, :80], bg[y, :80])
+        right = clean_strip(content[y, w - 36 :], bg[y, w - 36 :])
         extend_from_strip(canvas, y, left, 0, src_l, seam_on_right=False)
         extend_from_strip(canvas, y, right, src_r, TARGET[0], seam_on_right=True)
     return canvas
@@ -160,8 +161,8 @@ def extend_heat(content, src_l, src_r, band=20):
     canvas[:, src_l:src_r] = content
     bg = heat_bg(content)
     for y in range(h):
-        left = clean_strip(content[y, :28], bg[y, :28])
-        right = clean_strip(content[y, w - 28 :], bg[y, w - 28 :])
+        left = clean_strip(content[y, :22], bg[y, :22])
+        right = clean_strip(content[y, w - 22 :], bg[y, w - 22 :])
         extend_from_strip(canvas, y, left, 0, src_l, seam_on_right=False)
         extend_from_strip(canvas, y, right, src_r, TARGET[0], seam_on_right=True)
     return canvas
@@ -174,9 +175,20 @@ def extend(arr, spec):
     content = fill_corners(arr[top:bot, src_l:src_r].copy(), spec["radius"], spec["white_floor"])
     if spec["kind"] == "rook":
         canvas = extend_rook(content, src_l, src_r, spec["period"])
+        canvas = scrub_pad(canvas, src_l, src_r, rook_bg)
     else:
         canvas = extend_heat(content, src_l, src_r, spec["period"])
+        canvas = scrub_pad(canvas, src_l, src_r, heat_bg)
     return canvas, (src_l, src_r)
+
+
+def scrub_pad(canvas, src_l, src_r, bg_fn):
+    """Replace leftover subject pixels in the side pads with nearby background."""
+    bg = bg_fn(canvas)
+    pad = np.zeros(bg.shape, dtype=bool)
+    pad[:, :src_l] = True
+    pad[:, src_r:] = True
+    return inpaint(canvas, pad & ~bg, radius=14, passes=4)
 
 
 def save_debug(name, before, after, seams):

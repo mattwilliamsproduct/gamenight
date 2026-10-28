@@ -158,6 +158,7 @@ export function stripDemoSearch(href){
   url.searchParams.delete('view');
   url.searchParams.delete('game');
   url.searchParams.delete('home');
+  url.searchParams.delete('cardfill');
   const rest = url.searchParams.toString();
   const search = [keepDemo ? 'demo' : '', rest].filter(Boolean).join('&');
   return url.pathname + (search ? `?${search}` : '') + url.hash;

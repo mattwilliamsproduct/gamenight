@@ -89,7 +89,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Shelf labels may say Flip 7. Stored game name is `Flip 7 Vengeance`.
 - Shelf labels say Canasta. Stored game name is `Hand and Foot`.
 - Rook is on the shelf (`hidden: false`). History still opens a saved Rook match.
-- Home picker faces live in `public/assets/cards/*.webp`. Shared outer size is 5:7 with a 10px radius and a 220px TV cap. Faces use `object-fit: cover`. Extended Rook / Beat the Heat fills live in `public/assets/cards/fill/` and load only when `cardfill` is on a localhost or preview host. Select then Start. No name under the cards.
+- Home picker faces live in `public/assets/cards/*.webp`. Shared outer size is 5:7 with a 10px radius and a 220px TV cap. Faces use `object-fit: cover`. Rook and Beat the Heat defaults are the edge-filled faces. Five Crowns is rasterized from `public/assets/cards/five-crowns.svg`. Select then Start. No name under the cards.
 - Home-screen short name is Back Porch. Manifest name is Back Porch Games.
 - Cloud sync is off this release. The Redis function stays shipped and unused.
 - `npm run check` fails if `index.html` loads `comeback-logic.js`, if the worker template disagrees with the scripts the page loads, or if the template `CACHE_NAME` loses `__BACK_PORCH_RELEASE__` or the `back-porch-shell-` prefix.

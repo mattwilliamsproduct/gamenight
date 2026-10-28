@@ -110,9 +110,9 @@ test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => 
   assert.equal(doc.documentElement.dataset.bpLogo, undefined);
 });
 
-test('?demo&cardfill=1 keeps demo on preview chrome', () => {
-  assert.equal(keepDemoSearchForChrome('?demo&cardfill=1'), true);
-  assert.equal(keepDemoSearchForChrome('?cardfill=1'), true);
+test('preview chrome keep is art or logo only', () => {
+  assert.equal(keepDemoSearchForChrome('?demo&cardfill=1'), false);
+  assert.equal(keepDemoSearchForChrome('?cardfill=1'), false);
   assert.equal(keepDemoSearchForChrome('?demo'), false);
   assert.equal(keepDemoSearchForChrome('?demo&art=dusk'), true);
 });
