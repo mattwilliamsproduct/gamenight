@@ -3,7 +3,7 @@
 ## What this product is
 
 Back Porch Games is the human scorekeeper for porch game night. People play the cards; the app tracks the table.
-Shelf: Five Crowns, Wizard, 818, Flip 7, Beat the Heat, and Canasta (saved as Hand and Foot). Rook stays in code and is hidden from the picker unless `?demo&games=rook`.
+Shelf: Five Crowns, Wizard, 818, Flip 7, Beat the Heat, Canasta (saved as Hand and Foot), and Rook.
 Production host: https://cardknight.vercel.app (home-screen name is Back Porch; the repo is `gamenight`).
 
 ## Commands
@@ -44,6 +44,7 @@ North star: crush requirements so one-shots get better every correction.
 - A hidden scorecard column is not a deleted hand. If Pace or the column trim removes the hand a Life Preserver followed, the mark sits with Total. Place ties use the same numeric comparison as the sort, including numeric strings. See `docs/solutions/scorecard-places-and-life-preserver.md`.
 - Life Preserver labels stay inside every slice. About 20-40 equal-ish pockets. Category shares stay exact via subtle widths; the draw still uses the live 45/30/5/12/8 table. No callouts, leader lines, or casino red/black. Cute cream/teal toy roulette, not casino chrome. Size the modal from leftover viewport so Use Your One Spin stays on screen. Proposed 30/45/10/15 amounts stay behind `?demo&lp=proposed`. See `docs/solutions/rc1-lp-roulette-wheel.md`.
 - Laptop Home columns stretch to the same height. Seats are one per row and reorder in the list. Recent nights stays full width. Home reorder writes `players` only; it does not restack an active match. See `docs/solutions/home-recent-nights-column.md`.
+- Home picker faces are upright 5:7 cards with one shared outer size and ~10px radius. Rook (`rook-card.png`, 822×1348) and Beat the Heat (`beattheheat-card.png`, 1580×2512) are taller than 5:7: contain, centered, white frame matching the card border. Do not stretch. Canasta stays `canasta-card.png`. Default interaction is select, then Start; `?demo&tapstart=1` is tap-to-start. See `docs/solutions/card-picker.md`.
 - NAME-FIT uses one shared column size. Shrink for a long name. Do not grow a short name past that size. Saved is not a nav slot. Life Preserver header copy states the computed spin range; negative slices stay.
 - Bid accuracy uses the stored bid and actual on a played round. A missing bid or actual is unknown, not a guess from the score. A Life Preserver, including a zero-point spin, marks the match assisted until undo removes the last spin. A historical trick correction uses that round's players and must not replace a different live match. See `docs/solutions/data-integrity-records.md`.
 - A cloud revision or sync redesign waits for a named ticket or PR intent. This release is local-only: the client does not call `/api/sync`. `api/sync.js` and Redis `gamenight:backup:v1` stay untouched. `#37` stays parked. See `docs/solutions/rc1-local-only.md`.

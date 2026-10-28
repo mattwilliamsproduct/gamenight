@@ -4,6 +4,18 @@
     return (window.BPGGames && BPGGames.visibleGames()) || [];
   }
 
+  function tapStartEnabled() {
+    try {
+      const params = new URLSearchParams(location.search);
+      const host = window.__GN_DEMO_HOST_OVERRIDE__ || location.hostname;
+      const allowed = host === 'localhost' || host === '127.0.0.1' || host === '::1'
+        || /^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(host);
+      return allowed && params.has('demo') && params.get('tapstart') === '1';
+    } catch (error) {
+      return false;
+    }
+  }
+
   function displayGameName(id) {
     if (window.BPGGames && typeof BPGGames.displayName === 'function') return BPGGames.displayName(id);
     if (id === 'Hand and Foot') return 'Canasta';
@@ -275,14 +287,17 @@
       </article>`;
     }).join('') || '<p class="s2-sub">Add players to fill tonight\'s table.</p>';
     const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
+    const startNow = tapStartEnabled();
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
-      return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}">
+      const rule = game.id === 'Wizard' ? `${game.detail(seated)} · Highest total wins` : game.line;
+      const action = startNow ? 'start-game-now' : 'pick-game';
+      return `<button type="button" class="s2-game${on && !startNow ? ' is-selected' : ''}" data-s2-action="${action}" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on && !startNow}" aria-label="${escapeHtml(game.title)}. ${escapeHtml(rule)}${on && !startNow ? '. Selected' : ''}">
         <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
         <span class="s2-game-copy">
           <strong>${escapeHtml(game.title)}</strong>
-          <em>${escapeHtml(game.id === 'Wizard' ? `${game.detail(seated)} · Highest total wins` : game.line)}</em>
-          ${on ? '<span class="s2-selected-pill">Selected</span>' : ''}
+          <em>${escapeHtml(rule)}</em>
+          ${on && !startNow ? '<span class="s2-selected-pill">Selected</span>' : ''}
         </span>
       </button>`;
     }).join('');
@@ -969,6 +984,10 @@
     } else if (action === 'pick-game') {
       selected = target.dataset.s2Game || selected;
       paintHome();
+    } else if (action === 'start-game-now') {
+      selected = target.dataset.s2Game || selected;
+      target.classList.add('is-pressed');
+      startGame(selected);
     } else if (action === 'start-game') {
       startGame(selected);
     } else if (action === 'resume' || action === 'scorecard') {

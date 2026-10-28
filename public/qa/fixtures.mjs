@@ -1096,6 +1096,12 @@ export const QA_SCENARIOS = {
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
   },
+  'card-picker':{
+    label:'Home · Card picker',
+    description:'Four seated players and the seven 5:7 Home card faces, including Rook and Beat the Heat contained on white.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,4),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
+  },
   'wizard-10':{
     label:'Wizard · 10 Players',
     description:'A nearly full Wizard scorecard with bidding and scoring entry states.',

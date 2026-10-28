@@ -6,24 +6,23 @@ const require = createRequire(import.meta.url);
 const Games = require('../public/assets/game-registry.js');
 const Scorebook = require('../public/assets/scorebook.js');
 
-test('Rook is hidden by default and Canasta is on the picker', () => {
+test('Rook and Canasta are both on the picker', () => {
   const visible = Games.visibleGames('');
   const ids = visible.map((game) => game.id);
   assert.ok(ids.includes('Hand and Foot'));
   assert.equal(Games.displayName('Hand and Foot'), 'Canasta');
   assert.equal(Games.winLow('Hand and Foot'), false);
-  assert.equal(ids.includes('Rook'), false);
-  assert.equal(Games.gameById('Rook').hidden, true);
+  assert.ok(ids.includes('Rook'));
+  assert.equal(Games.gameById('Rook').hidden, false);
 });
 
-test('Rook appears when the URL has ?demo&games=rook', () => {
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo'), false);
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?games=rook'), false);
+test('the hidden-game flag still honors ?demo&games= for a hidden row', () => {
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), ''), true);
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo'), true);
   assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo&games=rook'), true);
   const ids = Games.visibleGames('?demo&games=rook').map((game) => game.id);
   assert.ok(ids.includes('Rook'));
   assert.ok(ids.includes('Hand and Foot'));
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), ''), false);
 });
 
 test('old Rook history still has a registry row and high-score win direction', () => {

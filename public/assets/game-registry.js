@@ -8,7 +8,7 @@
     Object.freeze({ id: 'Flip 7 Vengeance', title: 'Flip 7', art: 'flip7', line: 'Highest total wins · Open match', detail: function () { return 'Open match'; }, winLow: false, hidden: false }),
     Object.freeze({ id: 'Beat the Heat', title: 'Beat the Heat', art: 'heat', line: 'Lowest heat wins · Ends at 66', detail: function () { return 'Ends at 66'; }, winLow: true, hidden: false }),
     Object.freeze({ id: 'Hand and Foot', title: 'Canasta', art: 'canasta', line: '4 rounds · Highest total wins', detail: function () { return '4 rounds'; }, winLow: false, hidden: false, demoKey: 'canasta' }),
-    Object.freeze({ id: 'Rook', title: 'Rook', art: 'rook', line: 'Highest total wins · Teams', detail: function () { return 'Teams'; }, winLow: false, hidden: true, demoKey: 'rook' })
+    Object.freeze({ id: 'Rook', title: 'Rook', art: 'rook', line: 'Highest total wins · Teams', detail: function () { return 'Teams'; }, winLow: false, hidden: false, demoKey: 'rook' })
   ]);
 
   const DEMO_GAMES_KEY = 'gn_demo_games';

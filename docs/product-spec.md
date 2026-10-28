@@ -38,7 +38,7 @@ House notes already in the rules cards (`gameRulesText`):
 - Wizard does **not** block the dealer from making bids sum to the tricks. 818 does. Leave Wizard that way unless the porch asks.
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Canasta is the shelf label. The saved game id is `Hand and Foot`.
-- Rook stays in code. The picker hides it unless the URL is `?demo&games=rook`. Saved Rook nights still open.
+- Rook is on the Home picker with the other six. Saved Rook nights still open.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
 - Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Canasta.
 
@@ -46,7 +46,7 @@ House notes already in the rules cards (`gameRulesText`):
 
 ### Score a round
 
-1. Home: On Deck → Tonight's Table → a game card. Tonight's Table is one player per row. Reorder in the list. At laptop width the two Home columns stretch to the same height. Extra height goes into roomier seats and game art. Recent nights stays full width below. Each recent night shows a small 1st / 2nd / 3rd podium from the same ranking helper as Records. Incomplete nights stay labeled Incomplete and have no podium. Phone stays Table, then Start a New Match, then nights.
+1. Home: On Deck → Tonight's Table → a game card. Tonight's Table is one player per row. Reorder in the list. At laptop width the two Home columns stretch to the same height. Extra height goes into roomier seats. The seven game faces are upright 5:7 cards; tap selects, Start under the grid begins the match (`?demo&tapstart=1` starts on tap). Recent nights stays full width below. Each recent night shows a small 1st / 2nd / 3rd podium from the same ranking helper as Records. Incomplete nights stay labeled Incomplete and have no podium. Phone stays Table, then Start a New Match, then nights.
 2. Optional dealer roll and lineup intro (Settings; dealer roll defaults off).
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player. Next on an empty row leaves that draft empty and moves on. The modal says `Blank scores count as 0`. Submit stores a blank score as `0`. A locked Wizard or 818 bid stays `Suggested: N (tap Next to confirm)` until Next or the row check marks `✓ Confirmed: N`, and that suggestion stays distinct from a blank cell. The first digit on a suggestion replaces it. A blank Wizard or 818 trick becomes `0`, and the round is saved only when those tricks add up to the round size. A blank bid is still rejected. A `null` already stored for a retired player who was not in the hand stays `null`. Rook still needs a bidder, a bid, a trump, a called card, a partner, and bid-team counters.

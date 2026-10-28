@@ -264,13 +264,13 @@ test.describe('TEMP demo seed views', () => {
     await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
   });
 
-  test('Rook stays off the demo picker without games=rook', async ({page}) => {
+  test('Rook is on the demo picker', async ({page}) => {
     test.setTimeout(45000);
     await openDemo(page, 'home', {host: PREVIEW});
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toContainText('Canasta');
-    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
   });
 
   test('cardknight.vercel.app ignores ?demo and writes nothing', async ({page}) => {
