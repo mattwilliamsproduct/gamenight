@@ -44,6 +44,7 @@ async function keypadKeys(page, selector = '#score-entry-modal .score-entry-key'
         interactive,
         visible: box.width > 8 && box.height > 8 && box.bottom > 0 && box.top < vh && box.right > 0 && box.left < vw,
         inView: box.top >= -1 && box.left >= -1 && box.bottom <= vh + 1 && box.right <= vw + 1,
+        textFits: el.scrollWidth <= el.clientWidth + 1,
         hits,
         hit: hits.every((point) => point.ok),
         vw,
@@ -60,6 +61,9 @@ async function assertKeypadFullyUsable(page, sizeName, selector) {
   keys.forEach((key) => {
     expect(key.visible, `${sizeName} ${key.label} visible`).toBe(true);
     expect(key.inView, `${sizeName} ${key.label} fully in view ${JSON.stringify(key)}`).toBe(true);
+    if (/Next/i.test(key.label)) {
+      expect(key.textFits, `${sizeName} ${key.label} text fits inside the key ${JSON.stringify(key)}`).toBe(true);
+    }
     expect(key.hit, `${sizeName} ${key.label} unobstructed at center and four corners ${JSON.stringify(key.hits)}`).toBe(true);
   });
 }
