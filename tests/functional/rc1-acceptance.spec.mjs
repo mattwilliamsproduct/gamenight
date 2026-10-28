@@ -45,6 +45,7 @@ async function keypadKeys(page, selector = '#score-entry-modal .score-entry-key'
         visible: box.width > 8 && box.height > 8 && box.bottom > 0 && box.top < vh && box.right > 0 && box.left < vw,
         inView: box.top >= -1 && box.left >= -1 && box.bottom <= vh + 1 && box.right <= vw + 1,
         textFits: el.scrollWidth <= el.clientWidth + 1,
+        height: box.height,
         hits,
         hit: hits.every((point) => point.ok),
         vw,
@@ -66,6 +67,32 @@ async function assertKeypadFullyUsable(page, sizeName, selector) {
     }
     expect(key.hit, `${sizeName} ${key.label} unobstructed at center and four corners ${JSON.stringify(key.hits)}`).toBe(true);
   });
+}
+
+async function assertTabletKeypadScale(page, sizeName) {
+  const scale = await page.evaluate(() => {
+    const modal = document.getElementById('score-entry-modal');
+    const panel = modal?.querySelector('.score-entry-panel');
+    const keypad = modal?.querySelector('.score-entry-keypad');
+    const keys = [...(modal?.querySelectorAll('.score-entry-key') || [])];
+    const next = modal?.querySelector('.score-entry-key.next');
+    if (!modal || !panel || !keypad || !keys.length) return null;
+    const panelBox = panel.getBoundingClientRect();
+    const keypadBox = keypad.getBoundingClientRect();
+    return {
+      panelW: panelBox.width,
+      keypadW: keypadBox.width,
+      ratio: keypadBox.width / Math.max(1, panelBox.width),
+      minKeyH: Math.min(...keys.map((el) => el.getBoundingClientRect().height)),
+      nextFont: next ? parseFloat(getComputedStyle(next).fontSize) : 0,
+      nextFits: next ? next.scrollWidth <= next.clientWidth + 1 : false
+    };
+  });
+  expect(scale, `${sizeName} keypad scale`).toBeTruthy();
+  expect(scale.minKeyH, `${sizeName} keys at least 56px ${JSON.stringify(scale)}`).toBeGreaterThanOrEqual(56);
+  expect(scale.ratio, `${sizeName} keypad at least 60% of modal content ${JSON.stringify(scale)}`).toBeGreaterThanOrEqual(0.6);
+  expect(scale.nextFont, `${sizeName} Next at least 20px ${JSON.stringify(scale)}`).toBeGreaterThanOrEqual(20);
+  expect(scale.nextFits, `${sizeName} Next fits ${JSON.stringify(scale)}`).toBe(true);
 }
 
 async function assertFooterButtonsInView(page, sizeName) {
@@ -446,6 +473,9 @@ test('every keypad key and Submit stay inside the viewport at 5 sizes for Five C
         });
         await assertKeypadFullyUsable(page, label);
         await assertFooterButtonsInView(page, label);
+        if (size.width === 768 || size.width === 1024) {
+          await assertTabletKeypadScale(page, label);
+        }
       }
     }
   }

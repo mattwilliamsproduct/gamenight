@@ -2436,7 +2436,7 @@
     html.slice2-tv #score-entry-modal.score-entry-landscape-split .score-entry-layout,
     html.slice2-tv #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout {
       display: grid !important;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 38%) !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) !important;
       grid-template-rows: minmax(0, 1fr) !important;
       flex-direction: unset !important;
       align-items: stretch !important;
@@ -2474,10 +2474,13 @@
       padding: 8px !important;
     }
     #score-entry-modal.score-entry-landscape-split .score-entry-keypad,
-    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-keypad {
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-keypad,
+    html.slice2-tv #score-entry-modal.score-entry-landscape-split .score-entry-keypad,
+    html.slice2-tv #score-entry-modal.score-entry-managed-fit.score-entry-landscape-split .score-entry-keypad {
       flex: 1 1 auto !important;
-      width: auto !important;
-      min-height: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      min-height: 248px !important;
       height: var(--se-fit-keypad-height, auto) !important;
       max-height: var(--se-fit-keypad-height, none) !important;
       overflow: hidden !important;
@@ -2485,6 +2488,59 @@
     #score-entry-modal.score-entry-landscape-split .score-entry-panel > .border-t,
     #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-panel > .border-t {
       flex: 0 0 auto !important;
+    }
+
+    /* iPad portrait: selected card + keypad share one row and fill the width. */
+    #score-entry-modal.score-entry-portrait-fill .score-entry-layout,
+    #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-layout,
+    html.slice2-tv #score-entry-modal.score-entry-portrait-fill .score-entry-layout,
+    html.slice2-tv #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-layout {
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 0 !important;
+    }
+    #score-entry-modal.score-entry-portrait-fill .score-entry-list,
+    #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-list {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+    }
+    #score-entry-modal.score-entry-portrait-fill .score-entry-side,
+    #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-side,
+    html.slice2-tv #score-entry-modal.score-entry-portrait-fill .score-entry-side,
+    html.slice2-tv #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-side {
+      display: grid !important;
+      grid-template-columns: minmax(148px, 28%) minmax(0, 1fr) !important;
+      align-items: stretch !important;
+      width: 100% !important;
+      flex: 0 0 auto !important;
+      gap: 10px !important;
+    }
+    #score-entry-modal.score-entry-portrait-fill .score-entry-selected-card,
+    #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-selected-card {
+      min-width: 0 !important;
+      padding: 8px !important;
+    }
+    #score-entry-modal.score-entry-portrait-fill .score-entry-keypad,
+    #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-keypad,
+    html.slice2-tv #score-entry-modal.score-entry-portrait-fill .score-entry-keypad,
+    html.slice2-tv #score-entry-modal.score-entry-managed-fit.score-entry-portrait-fill .score-entry-keypad {
+      width: 100% !important;
+      max-width: none !important;
+      min-height: 248px !important;
+    }
+    #score-entry-modal.score-entry-hand-foot.score-entry-portrait-fill .score-entry-keypad {
+      grid-column: 1 / -1 !important;
+    }
+    #score-entry-modal.score-entry-portrait-fill .score-entry-key,
+    #score-entry-modal.score-entry-landscape-split .score-entry-key,
+    html.slice2-tv #score-entry-modal.score-entry-managed-fit.score-entry-portrait-fill .score-entry-key,
+    html.slice2-tv #score-entry-modal.score-entry-managed-fit.score-entry-landscape-split .score-entry-key {
+      min-height: 56px !important;
+      min-width: 0 !important;
+    }
+    #score-entry-modal.score-entry-portrait-fill .score-entry-key.next,
+    #score-entry-modal.score-entry-landscape-split .score-entry-key.next {
+      font-size: var(--se-fit-next-font, 20px) !important;
     }
 
     /* ════════ DRAG & DROP (Round 1 reorder) ════════ */
@@ -16661,15 +16717,23 @@ ${isDealer
     modal.classList.add('score-entry-managed-fit');
 
     const {vw,vh}=scoreEntryViewportSize();
-    const landscapeSplit=vw>=761 && vw>vh;
+    const tablet=vw>=761;
+    const landscapeSplit=tablet && vw>vh;
+    const portraitFill=tablet && !landscapeSplit;
     modal.classList.toggle('score-entry-landscape-split', landscapeSplit);
+    modal.classList.toggle('score-entry-portrait-fill', portraitFill);
     const layoutEl=panel.querySelector('.score-entry-layout');
     if(layoutEl){
       if(landscapeSplit){
         layoutEl.style.setProperty('display','grid','important');
-        layoutEl.style.setProperty('grid-template-columns','minmax(0, 1fr) minmax(280px, 38%)','important');
+        layoutEl.style.setProperty('grid-template-columns','minmax(0, 1fr) minmax(0, 2fr)','important');
         layoutEl.style.setProperty('grid-template-rows','minmax(0, 1fr)','important');
         layoutEl.style.setProperty('flex-direction','unset','important');
+      } else if(portraitFill){
+        layoutEl.style.setProperty('display','flex','important');
+        layoutEl.style.setProperty('flex-direction','column','important');
+        layoutEl.style.removeProperty('grid-template-columns');
+        layoutEl.style.removeProperty('grid-template-rows');
       } else {
         layoutEl.style.removeProperty('display');
         layoutEl.style.removeProperty('grid-template-columns');
@@ -16712,13 +16776,13 @@ ${isDealer
     panel.style.setProperty('--se-fit-value-height',`${valueHeight}px`);
     panel.style.setProperty('--se-fit-value-font',`${valueFont}px`);
 
-    const compactSelected=landscapeSplit && shortHeight;
-    const selectedAvatar=Math.floor(compactSelected?48:clamp(48,70,76));
-    panel.style.setProperty('--se-fit-selected-pad', compactSelected?'6px':'12px');
+    const compactSelected=tablet || (landscapeSplit && shortHeight);
+    const selectedAvatar=Math.floor(portraitFill?44:compactSelected?48:clamp(48,70,76));
+    panel.style.setProperty('--se-fit-selected-pad', portraitFill?'8px':(compactSelected?'6px':'12px'));
     panel.style.setProperty('--se-fit-selected-avatar',`${selectedAvatar}px`);
     panel.style.setProperty('--se-fit-selected-gap',`${Math.floor(colGap*1.1)}px`);
     panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
-    panel.style.setProperty('--se-fit-selected-name', compactSelected?'22px':'30px');
+    panel.style.setProperty('--se-fit-selected-name', portraitFill?'20px':(compactSelected?'22px':'30px'));
     panel.style.setProperty('--se-fit-chip-font', compactSelected?'9px':'11px');
 
     const header=panel.querySelector(':scope > .border-b');
@@ -16734,58 +16798,83 @@ ${isDealer
     const layoutPad=layoutStyle?(parseFloat(layoutStyle.paddingTop)||0)+(parseFloat(layoutStyle.paddingBottom)||0):0;
     const sideGap=side?(parseFloat(getComputedStyle(side).rowGap||getComputedStyle(side).gap)||0):0;
     const selectedVisible=!!(selected && getComputedStyle(selected).display!=='none');
-    const selectedH=selectedVisible?selected.getBoundingClientRect().height:0;
     const panelBudget=Math.max(0, vh-modalPad);
     const layoutBudget=Math.max(0, panelBudget-panelPad-headerH-footerH);
-    const minKeypadH=176;
+    const minKey=tablet?56:36;
+    const keyGap=tablet?8:Math.floor(clamp(3,144*0.016,9));
+    const keyPad=tablet?8:Math.floor(clamp(4,144*0.02,9));
+    const minKeypadH=minKey*4+keyGap*3+keyPad*2;
+    const minListH=rowHeight*3+rowGap*2;
     const footerTop=footer?footer.getBoundingClientRect().top:vh;
-    let roomAboveFooter=Math.floor(footerTop-keypad.getBoundingClientRect().top-8);
-    if(!landscapeSplit && selected && roomAboveFooter<minKeypadH){
-      panel.style.setProperty('--se-fit-selected-pad','4px');
-      panel.style.setProperty('--se-fit-selected-avatar','40px');
-      panel.style.setProperty('--se-fit-selected-name','20px');
-      roomAboveFooter=Math.floor(footerTop-keypad.getBoundingClientRect().top-8);
-    }
+
     let keypadBudget;
-    if(landscapeSplit){
-      keypadBudget=Math.min(layoutBudget-layoutPad-selectedH-sideGap, roomAboveFooter);
-      keypadBudget=Math.max(minKeypadH, keypadBudget);
+    if(portraitFill){
+      const leftover=Math.max(minKeypadH, layoutBudget-layoutPad-minListH-sideGap);
+      const comfortable=minKey*4+keyGap*3+keyPad*2+24;
+      keypadBudget=Math.max(minKeypadH, Math.min(leftover, comfortable));
+    } else if(landscapeSplit){
+      if(selected){
+        panel.style.setProperty('--se-fit-selected-pad','6px');
+        panel.style.setProperty('--se-fit-selected-avatar','44px');
+        panel.style.setProperty('--se-fit-selected-name','20px');
+      }
+      const selectedH=selectedVisible?selected.getBoundingClientRect().height:0;
+      const roomAboveFooter=Math.floor(footerTop-keypad.getBoundingClientRect().top-8);
+      keypadBudget=Math.max(minKeypadH, Math.min(layoutBudget-layoutPad-selectedH-sideGap, roomAboveFooter));
     } else {
+      const roomAboveFooter=Math.floor(footerTop-keypad.getBoundingClientRect().top-8);
       keypadBudget=Math.max(144, roomAboveFooter);
     }
     keypad.style.height=`${keypadBudget}px`;
     panel.style.setProperty('--se-fit-keypad-height',`${keypadBudget}px`);
     keypad.querySelectorAll('.score-entry-key').forEach((key)=>{
-      key.style.setProperty('min-height','0','important');
-      key.style.setProperty('min-width','0','important');
+      if(tablet){
+        key.style.setProperty('min-height',`${minKey}px`,'important');
+        key.style.removeProperty('min-width');
+      } else {
+        key.style.setProperty('min-height','0','important');
+        key.style.setProperty('min-width','0','important');
+      }
       key.style.setProperty('height','auto','important');
     });
 
-    const keyArea=Math.max(144, keypadBudget);
-    const keyGap=Math.floor(clamp(3,keyArea*0.016,9));
-    const keyPad=Math.floor(clamp(4,keyArea*0.02,9));
-    const keyHeight=Math.max(36,(keyArea-(keyPad*2)-(keyGap*3))/4);
+    const keyArea=Math.max(minKeypadH, keypadBudget);
+    const keyHeight=Math.max(minKey,(keyArea-(keyPad*2)-(keyGap*3))/4);
     panel.style.setProperty('--se-fit-key-gap',`${keyGap}px`);
     panel.style.setProperty('--se-fit-key-pad',`${keyPad}px`);
     panel.style.setProperty('--se-fit-key-min',`${Math.floor(keyHeight)}px`);
-    panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
+    panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(tablet?22:18,keyHeight*0.42,34))}px`);
     const nextKey=keypad.querySelector('.score-entry-key.next');
     if(nextKey){
       const nextBox=nextKey.getBoundingClientRect();
-      const nextRoom=Math.max(28, nextBox.width-10);
-      let nextSize=Math.max(13, Math.min(Math.floor(nextRoom/3.4), Math.floor(clamp(13,keyHeight*0.28,20))));
+      const nextRoom=Math.max(tablet?56:28, nextBox.width-8);
+      const nextFloor=tablet?20:11;
+      const nextSize=Math.max(nextFloor, Math.min(Math.floor(nextRoom/3.6), Math.floor(keyHeight*0.38), tablet?28:18));
       nextKey.style.setProperty('font-size',`${nextSize}px`,'important');
-      nextKey.style.setProperty('padding-left','4px','important');
-      nextKey.style.setProperty('padding-right','4px','important');
+      nextKey.style.setProperty('padding-left','6px','important');
+      nextKey.style.setProperty('padding-right','6px','important');
       nextKey.style.setProperty('text-transform','none','important');
-      for(let i=0;i<12 && nextKey.scrollWidth>nextKey.clientWidth+1 && nextSize>12;i++){
-        nextSize-=1;
-        nextKey.style.setProperty('font-size',`${nextSize}px`,'important');
-      }
       panel.style.setProperty('--se-fit-next-font',`${nextSize}px`);
     }
 
-    rows.style.maxHeight='';
+    if(portraitFill){
+      const listEl=panel.querySelector('.score-entry-list');
+      const listMax=Math.max(minListH, layoutBudget-layoutPad-keypadBudget-sideGap);
+      if(listEl){
+        listEl.style.minHeight=`${minListH}px`;
+        listEl.style.maxHeight=`${Math.floor(listMax)}px`;
+      }
+      rows.style.minHeight=`${minListH}px`;
+      rows.style.maxHeight=`${Math.floor(listMax)}px`;
+    } else {
+      const listEl=panel.querySelector('.score-entry-list');
+      if(listEl){
+        listEl.style.removeProperty('min-height');
+        listEl.style.removeProperty('max-height');
+      }
+      rows.style.minHeight='';
+      rows.style.maxHeight='';
+    }
   }
 
   function scrollScoreEntryActiveIntoView(){
@@ -16867,6 +16956,7 @@ ${isDealer
       modal.classList.remove('flex');
       modal.classList.remove('score-entry-managed-fit');
       modal.classList.remove('score-entry-landscape-split');
+      modal.classList.remove('score-entry-portrait-fill');
       modal.classList.remove('score-entry-hand-foot');
       modal.classList.remove('hf-cards-left','hf-no-minus','score-entry-no-minus');
       const keypad=modal.querySelector('.score-entry-keypad');
@@ -16884,6 +16974,16 @@ ${isDealer
         layoutEl.style.removeProperty('grid-template-columns');
         layoutEl.style.removeProperty('grid-template-rows');
         layoutEl.style.removeProperty('flex-direction');
+      }
+      const listEl=modal.querySelector('.score-entry-list');
+      if(listEl){
+        listEl.style.removeProperty('min-height');
+        listEl.style.removeProperty('max-height');
+      }
+      const rowsEl=document.getElementById('score-entry-rows');
+      if(rowsEl){
+        rowsEl.style.minHeight='';
+        rowsEl.style.maxHeight='';
       }
     },160);
     scoreEntryModalState=null;
