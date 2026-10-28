@@ -1,6 +1,7 @@
 # RC1 combined candidate — gate report
 
-**Status:** in progress (baseline recorded; verification not finished)  
+**Status:** in progress (baseline recorded; isolated demo and older-night green; not frozen)  
+**HEAD while writing this update:** `fe450e5`
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
 **Draft PR:** #73 (draft only; no undraft / merge / deploy)
@@ -67,16 +68,16 @@ Mark untested UNVERIFIED. Never green without evidence.
 
 | Gate item | Result | Evidence |
 | --- | --- | --- |
-| Combined RC (Slice 1 + Slice 2 + responsive + flags) | UNVERIFIED | |
-| Classify all test failures | UNVERIFIED | |
-| Task-completion acceptance (8 players, correct past, resume) | UNVERIFIED | `tests/functional/rc1-acceptance.spec.mjs` |
-| Older saved data + backup/restore | UNVERIFIED | `docs/prove-it/fixtures/older-night-from-main.json`, `npm run test:older-night`, `tests/functional/older-night.spec.mjs` |
-| Canasta variant / team scoring / records | UNVERIFIED | |
-| Historical Rook identity preserved | UNVERIFIED | older-night + game-registry tests |
-| Interrupted entry (refresh, Table, modal, double Submit) | UNVERIFIED | |
-| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | UNVERIFIED | |
-| Understandability: Table vs End vs Scratch | UNVERIFIED | board-bar park |
-| 90s isolated demo path | UNVERIFIED | `tests/functional/demo-path.spec.mjs` |
+| Combined RC (Slice 1 + Slice 2 + responsive + flags) | UNVERIFIED | Flag settings recorded. Visual matrix not re-run. |
+| Classify all test failures | UNVERIFIED | `npm run check` pass. Functional pack below. Visual UNVERIFIED. |
+| Task-completion acceptance (8 players, correct past, resume) | OK (automated) | `rc1-acceptance.spec.mjs` passed in the 64/65 pack (the one fail was the demo-path locator, now fixed). |
+| Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
+| Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
+| Historical Rook identity preserved | OK (automated) | older-night + canasta-rook-flag + game-registry. |
+| Interrupted entry (refresh, Table, modal, double Submit) | UNVERIFIED | data-integrity pack not fully re-walked this hour. |
+| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | UNVERIFIED | 8-player keypad + retired records covered in rc1-acceptance. 200% / keyboard UNVERIFIED. |
+| Understandability: Table vs End vs Scratch | OK (automated) | Board-bar park. Physical look PENDING. |
+| 90s isolated demo path | OK (automated) | `demo-path.spec.mjs` 2/2. `demo-seed` view `demo-path` 1/1 after locator fix. |
 | Physical iPhone Safari | PENDING | Matt only |
 | Post-deploy smoke + rollback | PENDING | |
 | Art / logo live swap | not in candidate | dusk stays behind `?demo` |
