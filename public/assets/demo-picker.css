@@ -114,22 +114,16 @@ html.slice2-tv[data-bp-picker="C"] .s2-art-five::after { content: "5"; font-size
 html.slice2-tv[data-bp-picker="C"] .s2-art-818::after { content: "818"; font-size: calc(var(--bp-picker-size) * 0.28); letter-spacing: 0.02em; }
 html.slice2-tv[data-bp-picker="C"] .s2-art-wizard::after { content: "W"; font-size: calc(var(--bp-picker-size) * 0.46); }
 html.slice2-tv[data-bp-picker="C"] .s2-art-flip7 {
-  overflow: visible;
+  background-image: url("./picker/badge-flip7.svg") !important;
+  background-color: transparent;
+  background-size: 100% 100%;
+  border: 0;
+  overflow: hidden;
 }
-html.slice2-tv[data-bp-picker="C"] .s2-art-flip7::before {
-  content: "";
-  position: absolute;
-  width: 38%;
-  height: 46%;
-  left: 18%;
-  top: 28%;
-  border: 1.5px solid #0a5c54;
-  border-radius: 3px;
-  background: #fffdf8;
-  transform: rotate(-16deg);
-  box-shadow: 16px -4px 0 -1px #fffdf8, 16px -4px 0 0 #0a5c54, 30px 2px 0 -1px #fffdf8, 30px 2px 0 0 #0a5c54;
+html.slice2-tv[data-bp-picker="C"] .s2-art-flip7::before,
+html.slice2-tv[data-bp-picker="C"] .s2-art-flip7::after {
+  content: none;
 }
-html.slice2-tv[data-bp-picker="C"] .s2-art-flip7::after { content: "7"; font-size: calc(var(--bp-picker-size) * 0.42); color: #c45c3a; }
 html.slice2-tv[data-bp-picker="C"] .s2-art-heat::after { content: "66"; font-size: calc(var(--bp-picker-size) * 0.34); }
 html.slice2-tv[data-bp-picker="C"] .s2-art-canasta::after { content: "C"; font-size: calc(var(--bp-picker-size) * 0.46); }
 

@@ -10,6 +10,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- Flip 7 on picker B/C takes the standard box cue: bold retro type and a fan of cards, quiet cream/teal/coral, no baked-in box text.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
 - Add Player, Save & End, Audit, and the LP picker use the form modal token (`min(92vw, 46rem)`), 18px inputs, and 56px suggestion rows.
@@ -39,6 +40,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Kills
 
+- A Flip 7 B/C badge that is only a timid 7, or that bakes in box slogans (Vengeance, Greatest Card Game).
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
 - Overlap, uneven gaps, truncated text, or clipped menus.

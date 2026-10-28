@@ -102,6 +102,13 @@ test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', async 
   assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', preview), {...emptyChrome, art: 'dusk', logo: 'dusk'});
   assert.deepEqual(parseDemoChrome('?demo&art=A&logo=1', 'localhost'), {...emptyChrome, logo: '1'});
   assert.deepEqual(parseDemoChrome('?demo&picker=B&logo=sheet', 'localhost'), {...emptyChrome, logo: 'sheet', picker: 'B'});
+  const flip7Badge = await readFile(join(root, 'public/assets/picker/badge-flip7.svg'), 'utf8');
+  const pickerCss = await readFile(join(root, 'public/assets/demo-picker.css'), 'utf8');
+  assert.doesNotMatch(flip7Badge, /VENGEANCE|GREATEST|WITH A/i);
+  assert.doesNotMatch(flip7Badge, /<text[\s>]/);
+  assert.match(flip7Badge, /rotate\(-40 32 38\)/);
+  assert.match(pickerCss, /\[data-bp-picker="B"\][\s\S]*badge-flip7\.svg/);
+  assert.match(pickerCss, /\[data-bp-picker="C"\][\s\S]*\.s2-art-flip7[\s\S]*badge-flip7\.svg/);
   assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').picker, 'D');
   assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').five, 'faithful');
   assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').wiz, 'homage');

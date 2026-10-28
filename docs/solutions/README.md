@@ -38,6 +38,8 @@ Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Pre
 
 Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport. Add Player is form, not confirm.
 
+Standing trap: [picker-logo-flip7-badge.md](picker-logo-flip7-badge.md) — picker B/C Flip 7 is a quiet retro 7 on a card fan. No baked-in box text. Flip 7 rules stay OPEN until Matt answers.
+
 Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus Canasta. Rook keeps the current beach thumb.
 
 Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — laptop Home columns stretch even; extra height goes into seats and game art, not padding. Recent nights stays full width. Phone stays Table, Start, nights.
