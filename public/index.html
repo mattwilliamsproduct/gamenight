@@ -281,15 +281,17 @@
       overflow: auto;
       overscroll-behavior: contain;
     }
-    #scorecard-modal .scorecard-table thead th {
+    #scorecard-modal .scorecard-table thead th,
+    #scorecard-modal .scorecard-table thead th.scorecard-round-th {
       position: sticky;
       top: 0;
       z-index: 3;
-      font-size: max(13px, 0.85rem);
+      font-size: max(13px, 0.85rem) !important;
     }
     @media (min-width: 1024px) {
-      #scorecard-modal .scorecard-table thead th {
-        font-size: max(16px, 1rem);
+      #scorecard-modal .scorecard-table thead th,
+      #scorecard-modal .scorecard-table thead th.scorecard-round-th {
+        font-size: max(16px, 1rem) !important;
       }
     }
     #scorecard-modal .scorecard-table thead th.scorecard-col-player,
