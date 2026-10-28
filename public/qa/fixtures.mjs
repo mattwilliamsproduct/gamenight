@@ -970,6 +970,50 @@ function demoCrownsGame(){
   return makeCurrentGame('Five Crowns',NAMES.slice(0,8),demoFiveCrownsLiveRounds(NAMES.slice(0,8)));
 }
 
+// Isolated 90-second demo: last Five Crowns hand still open. After 10 hands
+// Theo leads 36–38. A mistaken 12 on June's last hand leaves Theo first;
+// correcting it to 0 gives June the night. Completing hand 11 finishes the match.
+export const DEMO_PATH_PLAYERS = Object.freeze(['June', 'Theo', 'Rosa', 'Hank']);
+export const DEMO_PATH_LAST_ROUND = Object.freeze({mistake: [12, 5, 8, 4], correct: [0, 5, 8, 4]});
+export const DEMO_PATH_AFTER_10 = Object.freeze({June: 38, Theo: 36, Rosa: 52, Hank: 71});
+
+function demoPathLiveRounds(){
+  const players = [...DEMO_PATH_PLAYERS];
+  const perRound = [
+    [0, 5, 8, 12],
+    [6, 0, 7, 10],
+    [4, 8, 0, 9],
+    [5, 3, 6, 0],
+    [0, 4, 9, 11],
+    [7, 0, 5, 8],
+    [3, 6, 0, 10],
+    [8, 2, 10, 0],
+    [0, 4, 7, 5],
+    [5, 4, 0, 6]
+  ];
+  return perRound.map((values, index) => scoreRound(index + 1, players, values));
+}
+
+function demoPathLive(){
+  return makeCurrentGame('Five Crowns', [...DEMO_PATH_PLAYERS], demoPathLiveRounds(), {maxRounds: 11});
+}
+
+export function demoPathTable(){
+  const players = [...DEMO_PATH_PLAYERS];
+  return {
+    allPlayers: players,
+    players,
+    history: [],
+    playerProfiles: {
+      June: {color: 2},
+      Theo: {color: 6},
+      Rosa: {color: 8},
+      Hank: {color: 4}
+    },
+    currentGame: demoPathLive()
+  };
+}
+
 function demoTable(currentGame){
   return {
     allPlayers:[...NAMES],
@@ -1342,6 +1386,12 @@ export const QA_SCENARIOS = {
     description:'Preview-only in-progress Canasta (Hand and Foot). Two teams, two rounds, including a sevens canasta and 4 red 3s.',
     defaultSurface:'scorecard',
     data:demoTable(demoCanastaLive())
+  },
+  'demo-path':{
+    label:'TEMP Demo Path · last Five Crowns hand',
+    description:'Isolated sample night. Four players, ten hands in. A last-hand correction changes the winner, then the match completes.',
+    defaultSurface:'scorecard',
+    data:demoPathTable()
   }
 };
 

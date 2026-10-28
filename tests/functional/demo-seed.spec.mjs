@@ -194,6 +194,12 @@ const VIEW_ASSERT = {
     await expect(page.locator('#midgame-add-player-input')).toHaveValue('m');
     const names = await page.locator('#midgame-player-suggestions .player-name-label').allTextContents();
     expect(names.map((name) => name.trim())).toEqual(['Michelle']);
+  },
+  'demo-path': async (page) => {
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-board-line, #game-screen')).toContainText(/Five Crowns/);
+    await expect(page.locator('#scorecard-body')).toContainText('June');
+    await expect(page.locator('#demo-seed-msg')).toContainText(/Sample night/);
   }
 };
 

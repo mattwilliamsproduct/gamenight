@@ -5,6 +5,7 @@ import {applyDemoChrome, keepDemoSearchForChrome} from './demo-art.mjs';
 export const DEMO_FLAG = 'gn_demo_seeded';
 export const DEMO_VERSION = '5';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
+export const DEMO_PATH_COPY = 'Sample night · Five Crowns · not saved on this device';
 
 export const DEMO_VIEW_IDS = [
   'home',
@@ -43,7 +44,8 @@ export const DEMO_VIEW_IDS = [
   'bids-wizard',
   'podium-tie',
   'past-night',
-  'add-player-m'
+  'add-player-m',
+  'demo-path'
 ];
 
 const WRITE_VIEWS = new Set([
@@ -240,12 +242,13 @@ function ensureBannerStyle(){
   style.id = 'demo-seed-style';
   style.textContent = `
     #demo-seed-msg{position:sticky;top:0;z-index:240;margin:0;padding:0.7rem 1rem;background:#7a1f1f;color:#fff7ed;font:700 0.92rem/1.35 "Plus Jakarta Sans",sans-serif;text-align:center}
+    #demo-seed-msg[data-demo-kind="sample"]{background:#e8efe8;color:#14312e;border-bottom:1px solid #8aa89a}
     html.gn-demo-pending body{visibility:hidden}
   `;
   document.head.appendChild(style);
 }
 
-export function showDemoBlockedMessage(){
+function demoBanner(kind, copy){
   ensureBannerStyle();
   let el = document.getElementById('demo-seed-msg');
   if (!el) {
@@ -254,8 +257,17 @@ export function showDemoBlockedMessage(){
     el.setAttribute('role', 'status');
     document.body.prepend(el);
   }
-  el.textContent = DEMO_BLOCKED_COPY;
+  el.dataset.demoKind = kind || 'blocked';
+  el.textContent = copy;
   el.hidden = false;
+}
+
+export function showDemoBlockedMessage(){
+  demoBanner('blocked', DEMO_BLOCKED_COPY);
+}
+
+export function showDemoPathBanner(){
+  demoBanner('sample', DEMO_PATH_COPY);
 }
 
 function stripDemoFromLocation(){
@@ -354,7 +366,7 @@ function openDemoView(view){
     }
     return;
   }
-  if (view === 'active-match' || typed.kind === 'scorecard' || view === 'rook-contract') {
+  if (view === 'active-match' || view === 'demo-path' || typed.kind === 'scorecard' || view === 'rook-contract') {
     if (typeof goActiveMatch === 'function') goActiveMatch();
     return;
   }
@@ -456,6 +468,16 @@ export function decideDemoAction({hostname, search, storage}){
   if (isolatedEmpty) {
     return {status: 'empty', view, persist: false, blocked: false, payload: emptyPayload()};
   }
+  if (view === 'demo-path') {
+    return {
+      status: 'seeded',
+      view,
+      persist: false,
+      blocked: false,
+      isolated: true,
+      payload: scenarioData('demo-path')
+    };
+  }
   const seeded = isDemoSeeded(storage);
   const demoDevice = !!storage.getItem(DEMO_FLAG);
   const hasData = deviceHasSavedData(storage);
@@ -520,6 +542,7 @@ export async function bootDemoSeed(api){
     api.applyState(action.payload);
   }
 
+  if (action.isolated) showDemoPathBanner();
   if (action.blocked) showDemoBlockedMessage();
   stripDemoFromLocation();
 

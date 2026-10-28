@@ -137,6 +137,7 @@ test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.ok(DEMO_VIEW_IDS.includes('podium-tie'));
   assert.ok(DEMO_VIEW_IDS.includes('past-night'));
   assert.ok(DEMO_VIEW_IDS.includes('add-player-m'));
+  assert.ok(DEMO_VIEW_IDS.includes('demo-path'));
   assert.equal(stripDemoSearch('https://example.test/?demo&view=home'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=game&game=818'), '/');
@@ -180,4 +181,37 @@ test('view=game&game= picks the in-progress scorecard for that shelf game', () =
   assert.equal(r1.sevensCanastas, 1);
   assert.equal(r1.redThrees, 4);
   assert.equal(r1.roundScore, 3220);
+});
+
+test('demo-path is isolated: no persist, no block, no write into a real book', () => {
+  const empty = memoryStorage();
+  const open = decideDemoAction({
+    hostname: 'localhost',
+    search: '?demo&view=demo-path',
+    storage: empty
+  });
+  assert.equal(open.status, 'seeded');
+  assert.equal(open.persist, false);
+  assert.equal(open.isolated, true);
+  assert.equal(open.payload.currentGame?.name, 'Five Crowns');
+  assert.equal(open.payload.currentGame?.currentRound, 11);
+  assert.deepEqual(open.payload.currentGame?.totals, {June: 38, Theo: 36, Rosa: 52, Hank: 71});
+  assert.equal(open.payload.history.length, 0);
+  assert.equal(empty.getItem('gn_history'), null);
+  assert.equal(empty.getItem(DEMO_FLAG), null);
+
+  const real = memoryStorage({
+    gn_history: JSON.stringify([{id: 9, game: 'Wizard', date: '1/1/2026', totals: {Matt: 10}, winners: ['Matt'], rounds: [], originalRoster: ['Matt']}]),
+    gn_current: null
+  });
+  const beside = decideDemoAction({
+    hostname: '127.0.0.1',
+    search: '?demo&view=demo-path',
+    storage: real
+  });
+  assert.equal(beside.status, 'seeded');
+  assert.equal(beside.persist, false);
+  assert.equal(beside.blocked, false);
+  assert.equal(JSON.parse(real.getItem('gn_history'))[0].id, 9);
+  assert.equal(real.getItem(DEMO_FLAG), null);
 });
