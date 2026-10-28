@@ -11,10 +11,16 @@ Frozen candidate stays PR #73. Pin: `gamenight-7voetuyns-mattwilliamsproducts-pr
 | --- | --- | --- |
 | `f8ee3ac` | Toast off phone totals | Freeze parked Standings updated off Save & End; on 375 it still covered Theo’s total. Header band. Assert misses totals. |
 
+## Verify on this branch
+
+- `npm run check` pass
+- `test:functional` **152/152**
+- `phone-conditions` 12/12
+- `demo-path` 2/2
+
 ## Not landed
 
 - Laptop look of the bonus toast
-- Laptop look of the bonus toast (phone 390/375 looked)
 - Fold-in to the frozen candidate
 
 ## Preview
