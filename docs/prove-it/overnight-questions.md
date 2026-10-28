@@ -14,7 +14,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK; FOUND-BUG then fixed (entry totals) | Sevens 1500 / red 3s 100→200 at 4+. Entry showed 3695 as “3…”. Widened Total column `2740f11`. After: 3695 and 1430 whole on 375/390/1440. |
 | P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
 | P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
-| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200%; complete banner; Canasta 3695); OK 44px + 8-player | `phone-conditions.spec.mjs` 8/8. Retired Hank shows RETIRED and drops out of `getRecordedPlayers`. FC negatives rejected. Wizard miss negatives stay on `data-integrity`. OS keyboard UNVERIFIED. |
+| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200%; complete banner; Canasta 3695); OK 44px + 8-player | `phone-conditions.spec.mjs` 8/8. Retired Hank shows RETIRED and drops out of `getRecordedPlayers`. FC negatives rejected. Wizard miss negatives stay on `data-integrity`. Simulated 380px entry keeps Submit; physical OS keyboard UNVERIFIED. |
 | P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Scratch was clipped on 375/390; pinned `4a2f666`. End copy distinguishes unfinished. Discard is native `confirm`. Physical PENDING. |
 
 ---
@@ -60,7 +60,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 4c | End conditions shown? | OK | Five Crowns 11 hands. Heat 66. Demo header clamped when over (`facb8d1`). |
 | 4d | Trick/contract errors explain the fix? | OK | data-integrity Wizard/818 correction copy. |
 | 4e | Property tests for totals/winners/ties/edits? | OK; FOUND-BUG then fixed for emoji add | `test:scorebook` accepts `🔥June`. Avatar `charAt(0)` threw; fixed. `edge-states.spec.mjs` seats the emoji once. |
-| 4f | UI-stuck statechart states? | UNVERIFIED | No new statechart walk tonight. |
+| 4f | UI-stuck statechart states? | OK on the walked paths | End Cancel returns to the card (close fades 280ms). Table → Resume returns to Enter Round 11. Settings close and LP close use the shared modal map. Escape on Actions is not a separate path (tap away). Full statechart still not drawn. |
 
 ## 5. Visual quality
 
@@ -70,9 +70,9 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 5b | Spacing / alignment / no orphans? | FOUND-BUG (header 12 of 11) fixed; board wrap logged | `facb8d1`. 390 bar wraps Table / Actions / Save & End. Not a redesign. |
 | 5c | Cream/teal, teal for action? | OK / DECISION on tokens | No token hex changes (F). |
 | 5d | Type limited and meaningful? | UNVERIFIED as a redesign | No type scale rewrite. |
-| 5e | 375–1920 no clip? | FOUND-BUG then fixed | Matrix 375/390/768/1440/1920 + contact sheets. Scratch clipped on phone Actions (`4a2f666`). Match Complete covered 3rd/4th on 375 (`95513b5`). Canasta entry ellipsized 3695 (`2740f11`). Home tiles below the fold are scroll. |
+| 5e | 375–1920 no clip? | FOUND-BUG then fixed | Matrix 375/390/768/1440/1920 + contact sheets. Scratch clipped on phone Actions (`4a2f666`). Match Complete covered 3rd/4th on 375 (`95513b5`). Canasta entry ellipsized 3695 (`2740f11`). 768 nav wrapped Settings; compact labels through 1023px. Home tiles below the fold are scroll. |
 | 5f | Internal jargon on screen? | OK on demo | “Sample night” / “Save & End” / “Scratch Match (discard)”. “Championship Ledger” is the records title (settled B). “Warm Porch Ledger” not on screen. |
-| 5g | Pressed / focus / disabled? | UNVERIFIED | Bonus territory if no blocker. |
+| 5g | Pressed / focus / disabled? | OK focus on board Enter; pressed/disabled UNVERIFIED | `#slice2-enter-btn` focus-visible is a 3px teal outline (`390-focus-enter.png`). Full pressed/disabled pass is bonus. |
 | 5h | Design-lead proud? | DECISION | Matt’s morning look. |
 
 ## 6. Delight
@@ -111,7 +111,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | Id | Question | Answer | Evidence |
 | --- | --- | --- | --- |
 | 9a | What to remove? | DECISION | Sample persist already removed. Wheel out of 90s. |
-| 9b | Settings that exist because they were easy? | UNVERIFIED | Not audited as a kill list tonight. |
+| 9b | Settings that exist because they were easy? | OK inventory; DECISION on extras | 375 settings scrolls (`overflow-y: auto`); Backup/Restore reachable after scroll. Keep: text size, Roll for Dealer, Backup, Restore, device copy. Already absent: porch password / cloud. Hidden: Perf unless `?gnperf=1`. Decision-list extras: Lineup Intro, Post-Game Path Replay, Paste JSON. Not removed tonight. |
 | 9c | Screen a new user never misses? | DECISION | Profiles / Explore depth. Not removed. |
 
 ## Rubric F

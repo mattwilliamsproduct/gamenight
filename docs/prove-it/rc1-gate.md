@@ -1,7 +1,7 @@
 # RC1 combined candidate — gate report
 
-**Status:** in progress (visual matrix + 90s rehearsals recorded; not frozen)  
-**HEAD while writing this update:** `2740f11`
+**Status:** in progress (visual matrix + 90s rehearsals recorded; 768 nav wrap fixed; not frozen)  
+**HEAD while writing this update:** `46c1cd5` (nav wrap uncommitted while writing)
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
 **Draft PR:** #73 (draft only; no undraft / merge / deploy)
