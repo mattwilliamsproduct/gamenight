@@ -109,6 +109,8 @@ test('past-night scorecard is near full-screen on 375', async ({page}) => {
   expect(measure.clipped).toBe(false);
   expect(measure.close.top).toBeGreaterThanOrEqual(0);
   expect(measure.close.bottom).toBeLessThanOrEqual(667 + 2);
+  const dateSize = await page.locator('#modal-game-date').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(dateSize, `date ${dateSize}px`).toBeGreaterThanOrEqual(16);
 });
 
 async function measureAddPlayer(page) {
