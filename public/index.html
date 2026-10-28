@@ -15378,8 +15378,9 @@ ${isDealer
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
     const nowTh=table.querySelector('thead th.scorecard-col-now');
-    const nowMin=(window.innerWidth||0)>=761?96:40;
-    const nowW=nowTh?Math.max(nowTh.getBoundingClientRect().width, nowMin):0;
+    const nowW=((window.innerWidth||0)>=761 && nowTh)
+      ? Math.max(nowTh.getBoundingClientRect().width, 96)
+      : 0;
     const available=Math.max(0,wrap.clientWidth-leadW-nowW-6);
     const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/visible.length));
     const pad=col<42?2:col<56?3:5;
@@ -16342,8 +16343,7 @@ ${isDealer
     if(kind==='wizard-bids'||kind==='wizard-tricks'||kind==='818-bids'||kind==='818-tricks') return false;
     if(kind==='hand-foot'){
       const field=scoreEntryModalState.activeField||'cleanCanastas';
-      if(HAND_FOOT_NO_MINUS.includes(field)) return false;
-      return HAND_FOOT_RATE_FIELDS.includes(field);
+      return !HAND_FOOT_NO_MINUS.includes(field);
     }
     return !(window.BPGScorebook&&BPGScorebook.playedScoreMustBeNonNegative(currentGame));
   }
@@ -16699,14 +16699,14 @@ ${isDealer
     const modal=document.getElementById('score-entry-modal');
     if(!modal)return;
     modal.classList.add('opacity-0');
-    modal.classList.remove('hf-cards-left','hf-no-minus');
+    modal.classList.remove('hf-cards-left','hf-no-minus','score-entry-no-minus');
     document.getElementById('hf-rate-bar')?.classList.add('hidden');
     setTimeout(()=>{
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       modal.classList.remove('score-entry-managed-fit');
       modal.classList.remove('score-entry-hand-foot');
-      modal.classList.remove('hf-cards-left','hf-no-minus');
+      modal.classList.remove('hf-cards-left','hf-no-minus','score-entry-no-minus');
     },160);
     scoreEntryModalState=null;
   }

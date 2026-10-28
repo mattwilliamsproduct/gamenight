@@ -417,20 +417,19 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   expect(afterNoop.saved).toBe(beforeNoop.saved);
 
   await cell.click();
-  await (await padKey(page,'-')).click();
-  await expect(cell).toHaveValue('-15');
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
-  await expect(page.locator('#numpad-error')).toBeVisible();
-  await expect(page.locator('#numpad-error')).toContainText('0 or higher');
-  await expect(page.locator('#numpad-error')).toContainText('Matt');
-  const rejected=await page.evaluate(()=>({
-    score:currentGame.rounds[0].scores.Matt,
-    total:currentGame.totals.Matt,
-    winners:[...currentGame.winners],
-    audit:currentGame.auditLog.length
-  }));
-  expect(rejected).toEqual({score:15, total:15, winners:['Cat'], audit:1});
-  await expect(page.locator('#custom-numpad')).toBeVisible();
+  await expect(await padKey(page,'-')).toBeHidden();
+  const rejected=await page.evaluate(()=>{
+    const check=BPGScorebook.validateEntries({game:'Five Crowns', kind:'scores', roundNumber:1, players:['Matt'], values:{Matt:'-15'}});
+    return {
+      ok:check.ok,
+      score:currentGame.rounds[0].scores.Matt,
+      total:currentGame.totals.Matt,
+      winners:[...currentGame.winners],
+      audit:currentGame.auditLog.length
+    };
+  });
+  expect(rejected.ok).toBe(false);
+  expect(rejected).toMatchObject({score:15, total:15, winners:['Cat'], audit:1});
   await page.locator('#numpad-cancel').click();
   await expect(cell).toHaveValue('15');
 
