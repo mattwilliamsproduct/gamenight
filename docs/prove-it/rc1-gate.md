@@ -69,7 +69,7 @@ Mark untested UNVERIFIED. Never green without evidence.
 | Gate item | Result | Evidence |
 | --- | --- | --- |
 | Combined RC (Slice 1 + Slice 2 + responsive + flags) | OK (automated visual matrix + porch-night) | 5-size matrix 375/390/768/1440/1920 with contact sheets. `test:porch-night` 2/2. Physical Safari PENDING. |
-| Classify all test failures | OK (this pack) | `npm run check` pass at `2740f11`. Playwright phone-conditions 8/8 + demo-path 2/2. `test:visual` Playwright baselines still stale / not the overnight matrix. |
+| Classify all test failures | OK (this pack) | `npm run check` pass at `2740f11`. `test:functional` **149/149** at `8c0e9ab`. `test:visual` Playwright baselines still stale / not the overnight matrix. |
 | Task-completion acceptance (8 players, correct past, resume) | OK (automated) | `rc1-acceptance.spec.mjs` passed in the 64/65 pack (the one fail was the demo-path locator, now fixed). |
 | Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |

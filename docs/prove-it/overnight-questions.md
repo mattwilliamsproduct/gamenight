@@ -89,7 +89,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | Id | Question | Answer | Evidence |
 | --- | --- | --- | --- |
 | 7a | Lighthouse mobile? | UNVERIFIED on preview (SSO 302). Local 4173: P **0.59** / A11y **0.84** / BP **1.00**. | Preview requires Vercel SSO. Local fails: `target-size` (12), `meta-viewport` user-scalable, unlabeled inputs. Viewport lock not changed (product). |
-| 7b | Wheel jank / layout shift? | UNVERIFIED | Wheel out of core demo. |
+| 7b | Wheel jank / layout shift? | OK layout at 5 sizes; jank UNVERIFIED | Matrix LP wheel shots: Spin + How it works in view on 375–1920. Motion jank not measured. |
 | 7c | 44px targets, contrast, labels? | OK targets; OK contrast (Lighthouse); labels mixed | Board 44px. Local Lighthouse `color-contrast` 1.00. `label` audit 0 (unlabeled inputs). `target-size` 0 leftover 12. |
 | 7d | Console errors on demo path? | OK | `phone-conditions.spec.mjs` pageerror list empty. |
 | 7e | Empty home / empty records / first run? | OK | `edge-states.spec.mjs`. Empty records: “Hall of Fame stays empty until a night is saved.” |
