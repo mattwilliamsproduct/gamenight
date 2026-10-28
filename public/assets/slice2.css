@@ -186,9 +186,9 @@ html.slice2-tv .s2-kicker {
   gap: 0.4rem;
   color: var(--s2-teal);
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.72rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
