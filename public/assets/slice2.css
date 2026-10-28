@@ -2195,9 +2195,9 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv .s2-night-actions .s2-btn {
-    min-height: 36px;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.82rem;
+    min-height: 44px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.88rem;
   }
 
   html.slice2-tv .toast {
