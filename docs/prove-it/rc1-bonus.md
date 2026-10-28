@@ -14,7 +14,7 @@ Frozen candidate stays PR #73. Pin: `gamenight-7voetuyns-mattwilliamsproducts-pr
 ## Not landed
 
 - Laptop look of the bonus toast
-- Full `test:functional` on this branch (check pass; phone-conditions 12/12; demo-path 2/2)
+- Laptop look of the bonus toast (phone 390/375 looked)
 - Fold-in to the frozen candidate
 
 ## Preview
