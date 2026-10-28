@@ -1497,7 +1497,7 @@ html.slice2-tv #hall-of-fame-view {
 
 html.slice2-tv .s2-unassisted-note {
   display: block;
-  font-size: 0.68rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 700;
   color: var(--s2-muted);
   letter-spacing: 0.02em;
