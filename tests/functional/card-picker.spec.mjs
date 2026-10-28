@@ -145,6 +145,44 @@ test('1024 landscape fills the start panel and Saved misses Game Instructions', 
   expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(124);
 });
 
+async function home1024Fit(page) {
+  return page.evaluate(() => {
+    const panel = document.querySelector('.s2-home-start');
+    const table = document.querySelector('.s2-home-table');
+    const nights = document.querySelector('.s2-nights');
+    const start = document.querySelector('#slice2-start-btn');
+    const bar = document.querySelector('.s2-home-start .s2-startbar');
+    const names = [...document.querySelectorAll('.s2-home-table .s2-seat-name')];
+    const chips = [...document.querySelectorAll('.s2-home-table .s2-chip')].map((node) => node.getBoundingClientRect());
+    const add = document.querySelector('.s2-home-table .s2-add')?.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    const tableBox = table.getBoundingClientRect();
+    const startBox = start.getBoundingClientRect();
+    const barBox = bar.getBoundingClientRect();
+    const nightsBox = nights?.getBoundingClientRect();
+    const pad = getComputedStyle(panel);
+    const inset = {
+      left: panelBox.left + parseFloat(pad.paddingLeft),
+      right: panelBox.right - parseFloat(pad.paddingRight),
+      top: panelBox.top + parseFloat(pad.paddingTop),
+      bottom: panelBox.bottom - parseFloat(pad.paddingBottom)
+    };
+    const hits = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
+    return {
+      startInside: startBox.left >= inset.left - 1 && startBox.right <= inset.right + 1 && startBox.top >= inset.top - 1 && startBox.bottom <= inset.bottom + 1,
+      barInside: barBox.left >= panelBox.left - 1 && barBox.right <= panelBox.right + 1 && barBox.top >= panelBox.top - 1 && barBox.bottom <= panelBox.bottom + 1,
+      nightsOverlapStart: hits(nightsBox, startBox),
+      nightsGap: nightsBox ? Math.round(nightsBox.top - panelBox.bottom) : null,
+      columnDelta: Math.round(Math.abs(tableBox.bottom - panelBox.bottom)),
+      tableWidth: Math.round(tableBox.width),
+      namesTruncated: names.filter((node) => node.scrollWidth > node.clientWidth + 1).map((node) => node.textContent.trim()),
+      nameTexts: names.map((node) => node.textContent.trim()),
+      chipsClipped: chips.filter((box) => box.bottom > tableBox.bottom + 1).length,
+      addClipped: !!(add && add.bottom > tableBox.bottom + 1)
+    };
+  });
+}
+
 test('1024 seat rows keep their height and do not stack', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await freshTable(page);
@@ -192,4 +230,36 @@ test('1024 seat rows keep their height and do not stack', async ({page}) => {
   expect(seats.minHeight).toBeGreaterThanOrEqual(44);
   expect(seats.dealerVisible, 'dealer pill stays inside its row').toBe(true);
   expect(seats.startOnScreen, 'Start stays on screen').toBe(true);
+});
+
+test('1024 with 4 seated keeps Start inside the panel and names whole', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await freshTable(page);
+  await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
+  const fit = await home1024Fit(page);
+  expect(fit.tableWidth, `table column too narrow ${fit.tableWidth}`).toBeGreaterThanOrEqual(330);
+  expect(fit.startInside, 'Start button sits inside the picker panel').toBe(true);
+  expect(fit.barInside, 'Start bar sits inside the picker panel').toBe(true);
+  expect(fit.nightsOverlapStart, 'Recent nights overlaps Start').toBe(false);
+  if (fit.nightsGap != null) expect(fit.nightsGap, `nights gap ${fit.nightsGap}`).toBeGreaterThanOrEqual(8);
+  expect(fit.columnDelta, `columns end unevenly ${fit.columnDelta}`).toBeLessThanOrEqual(2);
+  expect(fit.namesTruncated, `truncated names ${fit.namesTruncated.join(', ')}`).toEqual([]);
+  expect(fit.nameTexts).toEqual(['Ada', 'Bea', 'Cal', 'Dee']);
+  expect(fit.chipsClipped, '4 seated chips stay visible').toBe(0);
+  expect(fit.addClipped, 'Add Player stays visible with 4 seated').toBe(false);
+});
+
+test('1024 with 8 seated keeps Start inside the panel and names whole', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await freshTable(page);
+  await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee', 'Eli', 'Fay', 'Gus', 'Matt']);
+  const fit = await home1024Fit(page);
+  expect(fit.tableWidth, `table column too narrow ${fit.tableWidth}`).toBeGreaterThanOrEqual(330);
+  expect(fit.startInside, 'Start button sits inside the picker panel').toBe(true);
+  expect(fit.barInside, 'Start bar sits inside the picker panel').toBe(true);
+  expect(fit.nightsOverlapStart, 'Recent nights overlaps Start').toBe(false);
+  if (fit.nightsGap != null) expect(fit.nightsGap, `nights gap ${fit.nightsGap}`).toBeGreaterThanOrEqual(8);
+  expect(fit.columnDelta, `columns end unevenly ${fit.columnDelta}`).toBeLessThanOrEqual(2);
+  expect(fit.namesTruncated, `truncated names ${fit.namesTruncated.join(', ')}`).toEqual([]);
+  expect(fit.nameTexts).toEqual(['Ada', 'Bea', 'Cal', 'Dee', 'Eli', 'Fay', 'Gus', 'Matt']);
 });

@@ -19,7 +19,7 @@ html.slice2-tv .s2-home-start .s2-game-grid {
   gap: 12px 10px;
   width: 100%;
   min-width: 0;
-  min-height: min-content;
+  min-height: 0;
   padding: 8px;
   box-sizing: border-box;
 }
@@ -108,32 +108,54 @@ html.slice2-tv .s2-seat-grid {
   min-height: min-content;
 }
 
-/* iPad landscape + TV: start column gets the width; cards fill their cells. */
+/* Columns first. Cards take leftover height. Start bar stays inside the panel. */
 @media (min-width: 861px) {
   html.slice2-tv .s2-home-grid {
-    grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.45fr);
-    grid-template-rows: minmax(min-content, auto);
+    grid-template-columns: minmax(348px, 360px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, auto);
+    align-items: stretch;
   }
 
+  html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    height: auto;
-    min-height: min-content;
-    align-self: start;
+    min-height: 0;
+    align-self: stretch;
   }
 
   html.slice2-tv .s2-home-table {
     height: auto;
-    max-height: calc(100dvh - 14.5rem);
-    min-height: 0;
+    max-height: calc(100dvh - 8.75rem);
+  }
+
+  html.slice2-tv .s2-home-start {
+    height: 100%;
+    max-height: calc(100dvh - 8.75rem);
+  }
+
+  html.slice2-tv .s2-home-table {
     overflow: auto;
-    align-self: start;
+  }
+
+  html.slice2-tv .s2-home-start {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.slice2-tv .s2-home-start .s2-panel-head,
+  html.slice2-tv .s2-home-start .s2-startbar {
+    flex: 0 0 auto;
+  }
+
+  html.slice2-tv .s2-home-start .s2-startbar {
+    margin-top: 10px;
   }
 
   html.slice2-tv .s2-home-start .s2-game-grid {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    min-height: 0;
     align-content: start;
     justify-content: start;
-    min-height: min-content;
   }
 
   html.slice2-tv .s2-home-start .s2-game {
@@ -143,31 +165,49 @@ html.slice2-tv .s2-seat-grid {
   html.slice2-tv .s2-home-start .s2-card-frame {
     width: min(100%, var(--bp-card-max));
   }
+
+  html.slice2-tv .s2-home-table .s2-seat {
+    grid-template-columns: 1.4rem 36px minmax(6.75rem, 1fr) auto;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat .avatar-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat-nudge,
+  html.slice2-tv .s2-home-table .s2-seat-out,
+  html.slice2-tv .s2-home-table .s2-seat-handle {
+    width: 26px;
+    height: 26px;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat-name {
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
 }
 
-/* Short landscape: natural seat rows that scroll; cards grow but Start stays on screen. */
 @media (min-width: 861px) and (max-height: 820px) {
-  html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    max-height: calc(100dvh - 14.5rem);
-    min-height: 0;
+    padding: 12px;
   }
 
-  html.slice2-tv .s2-home-table {
-    overflow: auto;
-    align-self: start;
+  html.slice2-tv .s2-home-start .s2-panel-head {
+    margin-bottom: 8px;
   }
 
-  html.slice2-tv .s2-home-start {
-    align-self: start;
+  html.slice2-tv .s2-home-start .s2-game-grid {
+    padding: 4px;
+    gap: 8px;
   }
 
-  html.slice2-tv .s2-seat-grid {
-    flex: 0 0 auto;
-    min-height: min-content;
-    overflow: visible;
-    align-content: start;
-    grid-auto-rows: auto;
+  html.slice2-tv .s2-home-start .s2-startbar {
+    margin-top: 8px;
+    padding-top: 8px;
   }
 
   html.slice2-tv .s2-home-start .s2-card-frame {
@@ -181,20 +221,31 @@ html.slice2-tv .s2-seat-grid {
   }
 
   html.slice2-tv .s2-home-grid {
-    grid-template-columns: minmax(280px, 0.58fr) minmax(0, 1.55fr);
+    grid-template-columns: minmax(348px, 400px) minmax(0, 1fr);
   }
 
-  html.slice2-tv .s2-home-table {
-    max-height: calc(100dvh - 16rem);
-    min-height: 0;
-    overflow: auto;
-    align-self: start;
-  }
-
+  html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
+    height: calc(100dvh - 16rem);
     max-height: calc(100dvh - 16rem);
-    min-height: min-content;
-    align-self: start;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat {
+    grid-template-columns: 1.75rem 44px minmax(7rem, 1fr) auto;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat .avatar-img {
+    width: 44px;
+    height: 44px;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat-nudge,
+  html.slice2-tv .s2-home-table .s2-seat-out,
+  html.slice2-tv .s2-home-table .s2-seat-handle {
+    width: 32px;
+    height: 32px;
   }
 
   html.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {

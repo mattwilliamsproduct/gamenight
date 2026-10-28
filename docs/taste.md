@@ -42,7 +42,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 - A Home picker grid that overflows Start a New Match, or a dead band between the cards and Start at 1024 landscape.
 - Old porch or tropical tiles showing through beside a picker face, or a white sliver on Five Crowns.
-- Tonight's Table seat rows that compress, overlap, clip the dealer pill, or hide seated people behind chips.
+- Tonight's Table seat rows that compress, overlap, clip the dealer pill, hide seated people behind chips, or truncate names to an initial.
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
 - Overlap, uneven gaps, truncated text, or clipped menus.

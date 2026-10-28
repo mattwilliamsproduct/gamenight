@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Trim each Home picker face to the real card edge and pad to exact 5:7."""
 
+import sys
 from pathlib import Path
 from PIL import Image
 import numpy as np
@@ -20,30 +21,42 @@ FACES = [
 ]
 
 
-def empty_mask(arr):
+def empty_mask(arr, keep_white=False):
     rgb = arr[:, :, :3].astype(np.int16)
     alpha = arr[:, :, 3]
-    near_white = (rgb.min(axis=2) >= 236) & ((rgb.max(axis=2) - rgb.min(axis=2)) <= 18)
     transparent = alpha < 24
+    if keep_white:
+        return transparent
+    near_white = (rgb.min(axis=2) >= 236) & ((rgb.max(axis=2) - rgb.min(axis=2)) <= 18)
     return near_white | transparent
 
 
-def trim_card(im):
+def trim_card(im, keep_white=False, extra_inset=(0, 0, 0, 0), body=None):
     arr = np.array(im.convert("RGBA"))
-    empty = empty_mask(arr)
-    content = ~empty
+    if body == "navy":
+        rgb = arr[:, :, :3].astype(np.int16)
+        content = (rgb[:, :, 2] > 70) & (rgb[:, :, 0] < 90) & (rgb[:, :, 1] < 90)
+    else:
+        content = ~empty_mask(arr, keep_white=keep_white)
     if not content.any():
         return im.convert("RGBA")
     rows = np.where(content.any(axis=1))[0]
     cols = np.where(content.any(axis=0))[0]
     top, bot = int(rows[0]), int(rows[-1]) + 1
     left, right = int(cols[0]), int(cols[-1]) + 1
-    # Drop a 1px anti-alias fringe when the crop is not already tight to the bitmap.
-    if bot - top > 8 and right - left > 8:
+    if body == "navy":
+        pass
+    elif bot - top > 8 and right - left > 8:
         top = min(top + 1, bot - 4)
         left = min(left + 1, right - 4)
         bot = max(bot - 1, top + 4)
         right = max(right - 1, left + 4)
+    left += extra_inset[0]
+    top += extra_inset[1]
+    right -= extra_inset[2]
+    bot -= extra_inset[3]
+    if right - left < 8 or bot - top < 8:
+        return im.convert("RGBA")
     return Image.fromarray(arr[top:bot, left:right], "RGBA")
 
 
@@ -64,27 +77,47 @@ def edge_fill(im):
     return (int(med[0]), int(med[1]), int(med[2]), 255)
 
 
-def pad_to_target(im, fill):
+def pad_to_target(im, fill, cover=False):
     im = im.convert("RGBA")
-    scale = min(TARGET[0] / im.width, TARGET[1] / im.height)
+    if cover:
+        scale = max(TARGET[0] / im.width, TARGET[1] / im.height)
+    else:
+        scale = min(TARGET[0] / im.width, TARGET[1] / im.height)
     new_size = (max(1, round(im.width * scale)), max(1, round(im.height * scale)))
     resized = im.resize(new_size, Image.Resampling.LANCZOS)
     canvas = Image.new("RGBA", TARGET, fill)
-    canvas.paste(resized, ((TARGET[0] - new_size[0]) // 2, (TARGET[1] - new_size[1]) // 2), resized)
+    x = (TARGET[0] - new_size[0]) // 2
+    y = (TARGET[1] - new_size[1]) // 2
+    canvas.paste(resized, (x, y), resized)
     return canvas.convert("RGB")
+
+
+FACE_OPTS = {
+    "wizard.webp": {"body": "navy", "cover": True, "fill": (8, 18, 72, 255)},
+    "five-crowns.webp": {"extra_inset": (0, 0, 14, 0), "fill": (95, 47, 130, 255)},
+}
 
 
 def main():
     ROOT.mkdir(parents=True, exist_ok=True)
+    only = set(sys.argv[1:])
     for name in FACES:
+        if only and name not in only and name.removesuffix(".webp") not in only:
+            continue
         src = ROOT / name
         im = Image.open(src)
         print(f"{name:22} in {im.size[0]}x{im.size[1]} {im.mode}")
-        trimmed = trim_card(im)
-        fill = edge_fill(trimmed)
+        opts = FACE_OPTS.get(name, {})
+        trimmed = trim_card(
+            im,
+            keep_white=bool(opts.get("keep_white")),
+            extra_inset=opts.get("extra_inset", (0, 0, 0, 0)),
+            body=opts.get("body"),
+        )
+        fill = opts.get("fill") or edge_fill(trimmed)
         if fill[3] < 80:
             fill = CREAM
-        out = pad_to_target(trimmed, fill)
+        out = pad_to_target(trimmed, fill, cover=bool(opts.get("cover")))
         out.save(src, "WEBP", quality=90, method=6)
         print(f"{name:22} out {out.size[0]}x{out.size[1]} fill {fill} trim {trimmed.size}")
 
