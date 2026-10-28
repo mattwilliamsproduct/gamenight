@@ -322,6 +322,11 @@ test('375 and 390 demo scorecards keep round cells readable', async ({page}) => 
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
     await openDemoPath(page);
+    await page.waitForFunction(() => {
+      const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
+      return ths.length >= 1 && ths.every((el) => el.getBoundingClientRect().width >= 20);
+    }, null, {timeout: 4000});
     const cols = await page.evaluate(() => {
       const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
         .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
