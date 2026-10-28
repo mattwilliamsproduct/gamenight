@@ -22,6 +22,13 @@ const helpers = {
   scorebook: Scorebook
 };
 
+test('ledger night count is singular for one night', () => {
+  assert.equal(Records.formatNightCount(1), '1 night');
+  assert.equal(Records.formatNightCount(0), '0 nights');
+  assert.equal(Records.formatNightCount(2), '2 nights');
+  assert.equal(Records.formatNightCount(11), '11 nights');
+});
+
 test('win rate always prints the denominator and hides thin samples from the lead', () => {
   assert.equal(Records.formatWinRate(9, 20), '45% · 9 of 20');
   assert.equal(Records.formatWinRateDenom(9, 20), '9 of 20');

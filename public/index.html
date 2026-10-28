@@ -96,6 +96,8 @@
       --bp-modal-form: min(92vw, 46rem);
       --bp-modal-confirm: min(92vw, 28rem);
       --bp-modal-max-h: 90vh;
+      --bp-modal-leftover-w: min(96vw, calc(100vw - (var(--bp-modal-gutter) * 2)));
+      --bp-modal-leftover-h: min(96vh, calc(100dvh - (var(--bp-modal-gutter) * 2)));
       --bp-modal-type: 1rem;
       --bp-modal-btn-min: 44px;
     }
@@ -142,6 +144,8 @@
         --bp-modal-form: calc(100vw - 16px);
         --bp-modal-confirm: calc(100vw - 16px);
         --bp-modal-max-h: calc(100dvh - 16px);
+        --bp-modal-leftover-w: calc(100vw - 16px);
+        --bp-modal-leftover-h: calc(100dvh - 16px);
       }
     }
     html.bp-modal-open,
@@ -224,14 +228,71 @@
     .bp-modal-panel button[type="button"]:not(.round-correct-btn) {
       min-height: var(--bp-modal-btn-min);
     }
+    .bp-modal-panel > button.absolute {
+      top: 8px;
+      right: 8px;
+      min-width: var(--bp-modal-btn-min);
+      min-height: var(--bp-modal-btn-min);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #settings-modal .text-\[10px\],
+    #settings-modal .text-\[11px\] {
+      font-size: max(13px, 0.8rem);
+    }
+    #scorecard-modal .bp-modal-panel {
+      width: var(--bp-modal-leftover-w);
+      max-width: var(--bp-modal-leftover-w);
+      height: var(--bp-modal-leftover-h);
+      max-height: var(--bp-modal-leftover-h);
+      background: var(--surface);
+    }
+    #scorecard-modal #modal-game-name {
+      font-size: clamp(1.875rem, 2.6vw, 2.75rem);
+    }
+    #scorecard-modal #modal-game-date {
+      font-size: max(16px, 1rem);
+      letter-spacing: 0.08em;
+      line-height: 1.35;
+    }
+    @media (min-width: 768px) {
+      #scorecard-modal #modal-game-date {
+        font-size: max(18px, 1.125rem);
+      }
+    }
+    #scorecard-modal .bp-modal-head {
+      padding-right: 3rem;
+    }
+    #scorecard-modal .bp-modal-panel > button {
+      top: 8px;
+      right: 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .scorecard-rounds-hint.scorecard-hidden-rounds-hint {
+      font-size: max(13px, 0.8rem);
+      letter-spacing: 0.06em;
+    }
     #scorecard-modal .scorecard-table-wrap {
       overflow: auto;
       overscroll-behavior: contain;
     }
-    #scorecard-modal .scorecard-table thead th {
+    #scorecard-modal .scorecard-table thead th,
+    #scorecard-modal .scorecard-table thead th.scorecard-round-th {
       position: sticky;
       top: 0;
       z-index: 3;
+      font-size: max(13px, 0.85rem) !important;
+    }
+    @media (min-width: 768px) {
+      #scorecard-modal .scorecard-table thead th,
+      #scorecard-modal .scorecard-table thead th.scorecard-round-th {
+        font-size: max(16px, 1rem) !important;
+      }
     }
     #scorecard-modal .scorecard-table thead th.scorecard-col-player,
     #scorecard-modal .scorecard-table tbody td.scorecard-col-player {
@@ -246,10 +307,34 @@
       width: clamp(7.5rem, 22vw, 16rem);
       max-width: clamp(7.5rem, 22vw, 16rem);
     }
+    #scorecard-modal .scorecard-col-total {
+      width: 5.5rem;
+      min-width: 5rem;
+      max-width: 6.25rem;
+    }
+    @media (max-width: 760px) {
+      #scorecard-modal .scorecard-col-player {
+        width: min(6.75rem, 34vw);
+        min-width: 5.5rem;
+        max-width: min(7rem, 36vw);
+      }
+      #scorecard-modal .scorecard-col-total {
+        width: 4.5rem;
+        min-width: 4.25rem;
+        max-width: 4.75rem;
+      }
+    }
     #scorecard-modal .scorecard-table td,
     #scorecard-modal .scorecard-table .tv-stat-num,
     #scorecard-modal .scorecard-table .tv-round-cell-num {
       font-size: max(16px, 1.05rem);
+    }
+    @media (min-width: 1440px) {
+      #scorecard-modal .scorecard-table td,
+      #scorecard-modal .scorecard-table .tv-stat-num,
+      #scorecard-modal .scorecard-table .tv-round-cell-num {
+        font-size: max(20px, 1.25rem);
+      }
     }
     * { -webkit-tap-highlight-color: transparent; }
 
@@ -505,6 +590,10 @@
     }
     .btn-primary:hover { opacity: 0.88; }
     .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:focus-visible {
+      outline: 3px solid #fff8ee;
+      outline-offset: 3px;
+    }
 
     .btn-ghost {
       background: var(--surface);
@@ -4033,8 +4122,8 @@ button.dealer-name-indicator .dealer-player-label {
     }
     @media (max-width: 760px) {
       body.active-match-view #toast-container {
-        top: auto;
-        bottom: max(9.5rem, 38vh);
+        top: 13.25rem;
+        bottom: auto;
       }
     }
     .toast {
@@ -4066,7 +4155,7 @@ button.dealer-name-indicator .dealer-player-label {
       border: 1px solid var(--hairline);
       border-radius: 999px;
       padding: 0.35rem 0.8rem;
-      font-size: 0.68rem;
+      font-size: max(13px, 0.8rem);
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -4955,7 +5044,10 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #scorecard-modal.scorecard-modal-hand-foot > .surface-raised {
         padding: 12px 10px !important;
-        max-height: calc(100dvh - 16px);
+        width: var(--bp-modal-leftover-w);
+        max-width: var(--bp-modal-leftover-w);
+        height: var(--bp-modal-leftover-h);
+        max-height: var(--bp-modal-leftover-h);
       }
       #modal-scorecard-block.scorecard-hand-foot .scorecard-table {
         width: 100%;
@@ -7364,9 +7456,9 @@ button.dealer-name-indicator .dealer-player-label {
     .profile-control-wrap span,
     .profile-avatar-filter span {
       color: var(--muted);
-      font-size: 0.64rem;
+      font-size: max(13px, 0.8rem);
       font-weight: 900;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
     .profile-search-wrap input,
@@ -7432,6 +7524,7 @@ button.dealer-name-indicator .dealer-player-label {
     .profile-card-avatar-action {
       position: relative;
       flex-shrink: 0;
+      padding-bottom: 12px;
     }
     .profile-passport-card .avatar-img-lg {
       width: 82px;
@@ -7444,18 +7537,23 @@ button.dealer-name-indicator .dealer-player-label {
     .profile-avatar-quick-btn {
       position: absolute;
       left: 50%;
-      bottom: -9px;
+      bottom: 0;
       transform: translateX(-50%);
       border: 1px solid rgba(8,118,108,0.24);
       border-radius: 999px;
       background: rgba(255,250,241,0.96);
       color: var(--emerald);
       box-shadow: 0 8px 18px -14px rgba(6,77,72,0.85);
-      font-size: 0.58rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      font-size: max(13px, 0.8rem);
       font-weight: 900;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       line-height: 1;
-      padding: 0.34rem 0.48rem;
+      padding: 0.4rem 0.65rem;
       text-transform: uppercase;
       white-space: nowrap;
       transition: transform 0.12s ease, background 0.12s ease;
@@ -7474,9 +7572,9 @@ button.dealer-name-indicator .dealer-player-label {
     .profile-passport-sub {
       margin-top: 0.38rem;
       color: var(--muted);
-      font-size: 0.68rem;
+      font-size: max(13px, 0.8rem);
       font-weight: 900;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
     .profile-card-stat-row {
@@ -7493,15 +7591,23 @@ button.dealer-name-indicator .dealer-player-label {
       padding: 0.65rem;
       min-width: 0;
     }
+    .profile-mini-stat {
+      padding-left: 0.4rem;
+      padding-right: 0.4rem;
+    }
     .profile-mini-stat span,
     .profile-big-stat span {
       display: block;
       color: var(--muted);
-      font-size: 0.58rem;
+      font-size: max(13px, 0.8rem);
       font-weight: 900;
-      letter-spacing: 0.13em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       white-space: nowrap;
+    }
+    .profile-mini-stat span {
+      letter-spacing: 0.04em;
+      overflow: visible;
     }
     .profile-mini-stat strong,
     .profile-big-stat strong {
@@ -7666,6 +7772,9 @@ button.dealer-name-indicator .dealer-player-label {
       border-radius: 26px;
       background: rgba(255,250,241,0.985);
       box-shadow: 0 30px 80px -36px rgba(0,36,33,0.8), inset 0 4px 0 rgba(231,115,88,0.58);
+    }
+    #scorecard-modal .bp-modal-panel.surface-raised {
+      background: #fffaf1;
     }
     #lineup-intro {
       background: #063f3a url('./theme/back-porch-resort.png') center / cover no-repeat;
@@ -10310,6 +10419,10 @@ button.dealer-name-indicator .dealer-player-label {
     c.appendChild(t);
     setTimeout(()=>{ if(t.parentNode) t.remove(); }, 3700);
   }
+  function clearToasts(){
+    const c = document.getElementById('toast-container');
+    if(c) c.replaceChildren();
+  }
 
   /* ═══ LOCAL OPTIONAL ASSETS ═══ */
   const optionalAssetUrls={
@@ -10631,6 +10744,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.body.classList.toggle('active-match-view', id==='game-screen');
     window.scrollTo({top:0,behavior:'auto'});
     closeNumpad();
+    clearToasts();
   }
   function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
   function leaveMatchToTable(){
@@ -14951,7 +15065,7 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
-      const keepLastPast=(wrap.clientWidth||0)>=700;
+      const keepLastPast=(wrap.clientWidth||0)>=700||window.innerWidth<=400;
       const keepOneRound=(root.id==='scorecard-capture'&&document.getElementById('game-screen')?.dataset.game==='Hand and Foot')||root.classList.contains('scorecard-hand-foot');
       const keepAllHandFoot=keepOneRound && root.id==='scorecard-capture' && roundIdxs.length<=4;
       const hideLimit=keepAllHandFoot?0:keepOneRound?Math.max(0,roundIdxs.length-1):roundIdxs.length;
@@ -15284,6 +15398,13 @@ ${isDealer
         valueBox.left<totalBox.left-1.5;
     });
   }
+  function scorecardNowColWidth(table){
+    const now=table?.querySelector('thead th.scorecard-col-now');
+    if(!now||now.classList.contains('scorecard-round--hidden')) return 0;
+    if(getComputedStyle(now).display==='none'||getComputedStyle(now).visibility==='hidden') return 0;
+    const painted=now.getBoundingClientRect().width;
+    return painted>0?painted:56;
+  }
   function scorecardRoundColsTooTight(root){
     const raw=parseFloat(root?.style.getPropertyValue('--scorecard-round-col')||'');
     if(!Number.isFinite(raw)) return false;
@@ -15319,7 +15440,8 @@ ${isDealer
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
     const available=Math.max(0,wrap.clientWidth-leadW-6);
-    const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/visible.length));
+    const nowExtra=(!handFoot&&scorecardNowColWidth(table)>0)?1:0;
+    const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/Math.max(1,visible.length+nowExtra)));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
     const font=Math.max(13,Math.min(28,col*0.4));
@@ -15910,7 +16032,7 @@ ${isDealer
         if(!trimmed){
           el.removeAttribute('hidden');
           const cellW=cell.clientWidth||cell.getBoundingClientRect().width;
-          clipped=cellW>0&&cellW<40;
+          clipped=cellW>0&&cellW<44;
           if(clipped) el.setAttribute('hidden','');
         }
         if(!trimmed&&!clipped) return sum;

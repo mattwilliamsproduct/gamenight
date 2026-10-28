@@ -217,9 +217,12 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
       const toast = document.querySelector('#toast-container .toast')?.getBoundingClientRect();
       const end = document.querySelector('.match-end-btn')?.getBoundingClientRect();
       const pill = document.getElementById('slice2-enter-btn')?.getBoundingClientRect();
+      const totals = [...document.querySelectorAll('#scorecard-body .scorecard-total-value')]
+        .map((el) => el.getBoundingClientRect());
       return {
         hitsEnd: hits(toast, end),
         hitsPill: hits(toast, pill),
+        hitsTotal: totals.some((box) => hits(toast, box)),
         toastTop: toast?.top || 0,
         toastBottom: toast?.bottom || 0
       };
@@ -227,6 +230,43 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
     await page.screenshot({path: `${SHOT}/toast-clear-${size.width}.png`, fullPage: false});
     expect(overlap.hitsEnd, `${size.width} toast vs Save & End`).toBe(false);
     expect(overlap.hitsPill, `${size.width} toast vs Match complete`).toBe(false);
+    expect(overlap.hitsTotal, `${size.width} toast vs totals`).toBe(false);
+  }
+});
+
+test('Standings updated toast leaves when Records opens', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    await enterDemoLastHand(page);
+    await page.evaluate(() => {
+      const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+      openPastScoreCell('June', last);
+    });
+    const pad = page.locator('#custom-numpad');
+    await pad.waitFor({state: 'visible', timeout: 5000});
+    const back = pad.locator('button[onclick="numpadPress(\'backspace\')"]');
+    await back.click();
+    await back.click();
+    await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
+    await page.getByRole('button', {name: /Close Keypad/i}).click();
+    await pad.waitFor({state: 'hidden', timeout: 5000});
+    await page.waitForFunction(() => {
+      const toast = document.querySelector('#toast-container .toast');
+      return !!(toast && /Standings updated/i.test(toast.textContent || ''));
+    }, null, {timeout: 4000});
+    await page.evaluate(() => {
+      document.getElementById('victory-modal')?.classList.add('hidden');
+      document.getElementById('loser-modal')?.classList.add('hidden');
+      if (typeof resetPostgameConfetti === 'function') resetPostgameConfetti();
+      if (typeof showHistory === 'function') showHistory();
+    });
+    const leftover = await page.evaluate(() => {
+      const toast = document.querySelector('#toast-container .toast');
+      return toast ? (toast.textContent || '').trim() : '';
+    });
+    await page.screenshot({path: `${SHOT}/records-toast-clear-${size.width}.png`, fullPage: false});
+    expect(leftover, `${size.width} Records has no leftover toast`).toBe('');
   }
 });
 
@@ -278,41 +318,48 @@ test('768 home nav stays on one row', async ({page}) => {
   expect(nav.btns.some((b) => /Settings/i.test(b.text)), 'long Settings label stays off 768').toBe(false);
 });
 
-test('375 demo scorecard keeps round headers from colliding', async ({page}) => {
-  await page.setViewportSize({width: 375, height: 667});
-  await openDemoPath(page);
-  const cols = await page.evaluate(() => {
-    const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
-      .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
-    const boxes = ths.map((el) => {
-      const r = el.getBoundingClientRect();
-      return {text: (el.textContent || '').replace(/\s+/g, ' ').trim(), left: r.left, right: r.right, width: r.width};
-    });
-    const collide = boxes.some((a, i) => boxes.some((b, j) => (
-      j > i && a.left < b.right - 1 && a.right > b.left + 1
-    )));
-    const cells = [...document.querySelectorAll('#scorecard-body td.scorecard-round-td')]
-      .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'))
-      .map((el) => {
-        const input = el.querySelector('.score-cell-input') || el;
-        const box = input.getBoundingClientRect();
-        return {w: box.width, text: (input.value || input.textContent || '').trim()};
+test('375 and 390 demo scorecards keep round cells readable', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    await page.waitForFunction(() => {
+      const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
+      return ths.length >= 1 && ths.every((el) => el.getBoundingClientRect().width >= 20);
+    }, null, {timeout: 4000});
+    const cols = await page.evaluate(() => {
+      const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th, #scorecard-capture thead th.scorecard-col-now')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
+      const boxes = ths.map((el) => {
+        const r = el.getBoundingClientRect();
+        return {text: (el.textContent || '').replace(/\s+/g, ' ').trim(), left: r.left, right: r.right, width: r.width};
       });
-    return {
-      boxes,
-      collide,
-      minCol: boxes.length ? Math.min(...boxes.map((b) => b.width)) : 0,
-      minCell: cells.length ? Math.min(...cells.map((cell) => cell.w)) : 0
-    };
-  });
-  await page.screenshot({path: `${SHOT}/rounds-375-open.png`, fullPage: false});
-  expect(cols.collide, JSON.stringify(cols.boxes)).toBe(false);
-  expect(cols.boxes.length, 'at least one visible round').toBeGreaterThanOrEqual(1);
-  cols.boxes.forEach((box) => {
-    expect(box.text, JSON.stringify(box)).toMatch(/^R\d+$/);
-  });
-  expect(cols.minCol, JSON.stringify(cols.boxes)).toBeGreaterThanOrEqual(32);
-  expect(cols.minCell, 'round cell readable').toBeGreaterThanOrEqual(28);
+      const collide = boxes.some((a, i) => boxes.some((b, j) => (
+        j > i && a.left < b.right - 1 && a.right > b.left + 1
+      )));
+      const cells = [...document.querySelectorAll('#scorecard-body td.scorecard-round-td')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'))
+        .map((el) => {
+          const input = el.querySelector('.score-cell-input') || el;
+          const box = input.getBoundingClientRect();
+          return {w: box.width, text: (input.value || input.textContent || '').trim()};
+        });
+      return {
+        boxes,
+        collide,
+        minCol: boxes.length ? Math.min(...boxes.map((b) => b.width)) : 0,
+        minCell: cells.length ? Math.min(...cells.map((cell) => cell.w)) : 0
+      };
+    });
+    await page.screenshot({path: `${SHOT}/rounds-${size.width}-open.png`, fullPage: false});
+    expect(cols.collide, `${size.width} ${JSON.stringify(cols.boxes)}`).toBe(false);
+    expect(cols.boxes.length, `${size.width} at least one visible round`).toBeGreaterThanOrEqual(1);
+    cols.boxes.forEach((box) => {
+      expect(box.text, `${size.width} ${JSON.stringify(box)}`).toMatch(/^R\d+$/);
+    });
+    expect(cols.minCol, `${size.width} ${JSON.stringify(cols.boxes)}`).toBeGreaterThanOrEqual(32);
+    expect(cols.minCell, `${size.width} round cell readable`).toBeGreaterThanOrEqual(28);
+  }
 });
 
 test('demo path has no pageerror', async ({page}) => {

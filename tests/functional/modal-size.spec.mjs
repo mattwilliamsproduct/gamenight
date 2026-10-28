@@ -62,30 +62,79 @@ async function openPastNight(page) {
   await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
 }
 
-test('past-night scorecard uses most of the viewport at 1024 and 1440', async ({page}) => {
-  for (const size of [{width: 1024, height: 650}, {width: 1440, height: 900}]) {
+test('past-night scorecard uses most of the viewport at 1024, 1440, and 1920', async ({page}) => {
+  for (const size of [{width: 1024, height: 650}, {width: 1440, height: 900}, {width: 1920, height: 1080}]) {
     await page.setViewportSize(size);
     await openPastNight(page);
     const measure = await measureScorecardModal(page);
     expect(measure.panel, `${size.width} panel`).not.toBeNull();
-    expect(measure.panel.width / measure.viewport.width, `${size.width} width share`).toBeGreaterThanOrEqual(0.8);
+    expect(measure.panel.width / measure.viewport.width, `${size.width} width share`).toBeGreaterThanOrEqual(0.9);
+    expect(measure.panel.height / measure.viewport.height, `${size.width} height share`).toBeGreaterThanOrEqual(0.85);
     expect(measure.clipped, `${size.width} clipped`).toBe(false);
     expect(measure.close.top).toBeGreaterThanOrEqual(0);
     expect(measure.close.right).toBeLessThanOrEqual(size.width + 2);
     expect(measure.bodyOverflow).toMatch(/hidden/);
+    if (size.width >= 1440) {
+      const roundCount = await page.evaluate(() => [...document.querySelectorAll('#scorecard-modal thead th.scorecard-round-th')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden')).length);
+      expect(roundCount, `${size.width} visible rounds`).toBe(11);
+    }
     await page.keyboard.press('Escape');
     await expect(page.locator('#scorecard-modal')).toHaveClass(/hidden/);
   }
 });
 
-test('past-night scorecard is near full-width on 375', async ({page}) => {
+test('390 past-night scorecard keeps more than one round readable', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openPastNight(page);
+  const cols = await page.evaluate(() => {
+    const ths = [...document.querySelectorAll('#scorecard-modal thead th.scorecard-round-th')]
+      .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'))
+      .map((el) => ({
+        text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        width: el.getBoundingClientRect().width
+      }));
+    const body = (document.getElementById('modal-scorecard-body')?.innerText || '').replace(/\s+/g, ' ');
+    return {ths, body};
+  });
+  expect(cols.ths.length, JSON.stringify(cols.ths)).toBeGreaterThanOrEqual(2);
+  cols.ths.forEach((box) => {
+    expect(box.width, box.text).toBeGreaterThanOrEqual(32);
+    expect(box.text).toMatch(/^R\d+$/);
+  });
+  expect(cols.body, cols.body).toMatch(/Megan/i);
+  const hint = await page.locator('#modal-scorecard-rounds-hint').evaluate((el) => ({
+    fs: parseFloat(getComputedStyle(el).fontSize),
+    hidden: el.classList.contains('hidden'),
+    text: (el.textContent || '').trim()
+  }));
+  expect(hint.hidden, JSON.stringify(hint)).toBe(false);
+  expect(hint.fs, `hint ${hint.fs}px`).toBeGreaterThanOrEqual(13);
+});
+
+test('past-night scorecard is near full-screen on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await openPastNight(page);
   const measure = await measureScorecardModal(page);
   expect(measure.panel.width / measure.viewport.width).toBeGreaterThanOrEqual(0.9);
+  expect(measure.panel.height / measure.viewport.height).toBeGreaterThanOrEqual(0.85);
   expect(measure.clipped).toBe(false);
   expect(measure.close.top).toBeGreaterThanOrEqual(0);
   expect(measure.close.bottom).toBeLessThanOrEqual(667 + 2);
+  const dateSize = await page.locator('#modal-game-date').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(dateSize, `date ${dateSize}px`).toBeGreaterThanOrEqual(16);
+  const closeFit = await page.evaluate(() => {
+    const name = document.getElementById('modal-game-name')?.getBoundingClientRect();
+    const close = document.querySelector('#scorecard-modal .bp-modal-panel > button')?.getBoundingClientRect();
+    return {
+      w: close?.width || 0,
+      h: close?.height || 0,
+      overlap: !!(name && close && name.right > close.left && name.left < close.right && name.top < close.bottom && name.bottom > close.top)
+    };
+  });
+  expect(closeFit.w, `close w ${closeFit.w}`).toBeGreaterThanOrEqual(44);
+  expect(closeFit.h, `close h ${closeFit.h}`).toBeGreaterThanOrEqual(44);
+  expect(closeFit.overlap, 'close overlaps title').toBe(false);
 });
 
 async function measureAddPlayer(page) {
@@ -135,7 +184,7 @@ test('Add Player uses the form modal size at 1440 and a near-full sheet on 375',
 });
 
 test('a long Five Crowns scorecard scrolls inside the modal', async ({page}) => {
-  await page.setViewportSize({width: 1024, height: 650});
+  await page.setViewportSize({width: 1024, height: 480});
   await openPastNight(page);
   const before = await measureScorecardModal(page);
   expect(before.wrap.scrollHeight, 'long table should overflow').toBeGreaterThan(before.wrap.clientHeight);
