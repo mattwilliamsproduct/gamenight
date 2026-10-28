@@ -1,7 +1,7 @@
 # RC1 combined candidate — gate report
 
-**Status:** in progress (visual matrix + 90s rehearsals recorded; 768 nav wrap fixed; not frozen)  
-**HEAD while writing this update:** `46c1cd5` (nav wrap uncommitted while writing)
+**Status:** verification only (5:00 AM ET). Automated suites passed at `a859377`. Not frozen.  
+**HEAD while writing this update:** `a859377`
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
 **Draft PR:** #73 (draft only; no undraft / merge / deploy)
@@ -60,12 +60,12 @@ Classified from this branch's own docs and a first look, not from memory. Untest
 
 | Field | Value |
 | --- | --- |
-| FROZEN at | *(not yet)* |
+| FROZEN at | *(not yet — freeze ~6:30 AM ET)* |
 | Tag | *(not yet)* |
-| HEAD sha | |
-| Commands + pass counts | |
+| HEAD sha | `a859377` |
+| Commands + pass counts | 5:00 AM ET verify: `npm run check` pass. `test:functional` **150/150**. `demo-path` 2/2. `phone-conditions` 10/10. `life-preserver-visible` 5/5. `test:porch-night` 2/2. CI `check` success on `a859377`. |
 | Demo fixture | `/?demo&view=demo-path` |
-| Pinned preview | Latest HEAD `c198572` Preview: `gamenight-mx8i6pgnm-mattwilliamsproducts-projects.vercel.app` (deployment 7377617974, success). Earlier `79fed74`: `gamenight-ffz6ubdwy-mattwilliamsproducts-projects.vercel.app`. Curl hits Vercel SSO (302). Not the git-branch alias. Not frozen. Re-pin at freeze for the freeze sha. |
+| Pinned preview | Ready to pin for `a859377`: `gamenight-qog1ihhtz-mattwilliamsproducts-projects.vercel.app` (GitHub deployment 7377955702, Preview success). Curl hits Vercel SSO (302). Not the git-branch alias. Not frozen. Re-confirm at freeze. |
 | Status wording | *(exactly one of: BLOCKED \<reasons\> / automated verification passed; physical Safari approval pending)* |
 | Physical iPhone Safari | PENDING (Matt only) |
 | Post-deploy smoke / rollback | PENDING |
@@ -78,7 +78,7 @@ Mark untested UNVERIFIED. Never green without evidence.
 | Gate item | Result | Evidence |
 | --- | --- | --- |
 | Combined RC (Slice 1 + Slice 2 + responsive + flags) | OK (automated visual matrix + porch-night) | 5-size matrix 375/390/768/1440/1920 with contact sheets. `test:porch-night` 2/2. Physical Safari PENDING. |
-| Classify all test failures | OK (this pack) | `npm run check` pass at `2740f11`. `test:functional` **149/149** at `8c0e9ab`. `test:visual` Playwright baselines still stale / not the overnight matrix. |
+| Classify all test failures | OK (this pack) | `npm run check` pass at `a859377` (5:00 AM ET). `test:functional` **150/150**. CI check success on `a859377`. `test:visual` Playwright baselines still stale / not the overnight matrix. |
 | Task-completion acceptance (8 players, correct past, resume) | OK (automated) | `rc1-acceptance.spec.mjs` passed in the 64/65 pack (the one fail was the demo-path locator, now fixed). |
 | Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
