@@ -7,7 +7,9 @@ Frozen candidate stays PR #73. Pin: `gamenight-7voetuyns-mattwilliamsproducts-pr
 
 Matt checked the earlier bonus after-shots: toast stays in the header band, names are whole, frame 05 is clean, and it reads `1 night`. Dealer explanation is fine, no change.
 
-This addendum is the in-progress packet. Final `npm run check` / `test:functional` / `test:porch-night` and the PINNED per-deployment URL land at ~9:15 AM ET on the then-current head.
+Finalized early (~7:25 AM ET) after running out of **safe** CSS-only matrix items. Remaining leftovers are column-fit, wrap, dealer, or density — labeled unfinished, not forced.
+
+Final head: `4f52faa`.
 
 ## Leftover past-night (requested)
 
@@ -24,10 +26,11 @@ After leftover (`e80b9ff`):
 | Size | Panel | Share |
 | --- | --- | --- |
 | 390×844 | 374×828 | 96% × 98% |
+| 768×1024 | 736×983 | 96% × 96% |
 | 1440×900 | 1382×864 | 96% × 96% |
 | 1920×1080 | 1843×1037 | 96% × 96% |
 
-375 is near-full. Long 8-player / 11-round Five Crowns at 1440/1920 shows **R1–R11** (`leftover-long/past-night-1440-11r.png`; `modal-size` lock on `72f9c29`). Long tables scroll inside `.scorecard-table-wrap`.
+375 is near-full. Long 8-player / 11-round Five Crowns at 1440/1920 shows **R1–R11** (`leftover-long/past-night-1440-11r.png`; `modal-size` lock on `72f9c29`, still 5/5 on `4f52faa`). Long tables scroll inside `.scorecard-table-wrap`.
 
 ### End match stays form
 
@@ -62,6 +65,21 @@ Matrix 1440 End match: `/opt/cursor/artifacts/screenshots/visual-matrix/1440x900
 | `8d89ea8` | Settings App Management / Appearance were 10px | Section labels 13px | measure 13 | `settings-kicker-before/settings-390.png` / `settings-kicker-after/settings-390.png` |
 | `72f9c29` | Leftover 1440/1920 could hide rounds later | Lock all 11 Five Crowns rounds | `modal-size` 1440/1920 roundCount === 11 | `leftover-long/past-night-1440-11r.png` |
 | `4148487` | Profiles Search / Sort / Game were 10px | Filter labels 13px | measure 13 | `profiles-before/profiles-390.png` / `profiles-after/profiles-390.png` |
+| `3b21c67` | Settings helper “Adjust for the iPad…” was 11px | Helper copy 13px | measure 13 | `settings-helper-before/settings-390.png` / `settings-helper-after/settings-390.png` |
+| `e74a9be` | Profiles Photo was 9px / 22px tall | 13px / 44px tap, no name overlap | measure 74×44, font 13 | `photo-before/profiles-{390,1440}.png` / `photo-after/profiles-{390,1440}.png` |
+| `3373320` | Games / Wins / Favorite Game were 9px | Labels 13px; mini-stat side pad so Games stays whole on 1440 four-up | measure 13, clip false | `stat-label-before/profiles-{390,1440}.png` / `stat-label-after/card-{390,1440}.png` |
+| `0aaaa65` | Explore GAME / PLAYER kickers were 11.5px | Labels 13px; selects stay 44 / 16 | measure 13 / 44 | `explore-label-before/filters-390.png` / `explore-label-after/filters-390.png` |
+| `ab6d9a7` | Best final / Best round were 11.5px | Laptop heads + phone `::before` 13px | measure 13 | `ledger-before/records-{390,1440}.png` / `ledger-after/records-{390,1440}.png` |
+| `bcd032a` | 818 · Played was 11px | Last-played line 13px, wraps on 1440 | measure 13, clip false | `sub-before/card-{390,1440}.png` / `sub-after/card-{390,1440}.png` |
+| `4eb01b3` | Active match / Head-to-head were 11.5px | Kickers 13px | measure 13 | `kicker-before/home-kicker-390.png` / `kicker-after/home-kicker-390.png` |
+| `68f3a3c` | Home Saved chip was 11px | 13px; board-line Saved stays 0.62rem | measure 13; scorecard no dealer overlap | `saved-before/home-390.png` / `saved-after/home-390.png` + `chip-390.png` |
+| `5961d41` | Unassisted matches note was 11px | Footnote 13px | measure 13 | `unassisted-before/records-390.png` / `unassisted-after/note-390.png` |
+| `237b940` | Career wins / Win rate were 11.5px | Headline labels 13px | measure 13, clip false | `headline-before/records-390.png` / `headline-after/card-{390,1440}.png` |
+| `74e13db` | Home Selected pill was 11px | Selected 13px | measure 13 | `selected-before/home-1440.png` / `selected-after/card-1440.png` |
+| `f6f2fc9` | Leftover R heads were 27px vs Player/Total 16px | One size: 13.6 phone / 16 laptop | measure all th; 390 still R2+R3 | `thead-unify-before/past-night-{390,1440,1920}.png` / `thead-unify-after/past-night-{390,1440,1920}.png` |
+| `7916714` | 768 leftover heads stayed 13.6px | 16px from 768; 390 stays 13.6 | measure 16 at 768; all 3 rounds | `thead-768-before/past-night-768.png` / `thead-768-after/past-night-768.png` |
+| `a3dc942` | 768 leftover date stayed 16px | 18px from 768; 390 stays 16 | measure 18 at 768, 16 at 390 | `date-768-before/past-night-768.png` / `date-768-after/date-768.png` |
+| `4f52faa` | Leftover laptop/TV names stayed 16.8px | 20px from 1440; 390 stays 16.8 | names whole; `modal-size` 11-round still 5/5 | `leftover-body-before/past-night-{390,1440,1920}.png` / `leftover-body-after/past-night-{390,1440,1920}.png` |
 
 Artifact root: `/opt/cursor/artifacts/screenshots/bonus-fixes/`.
 
@@ -79,30 +97,32 @@ The outlined/dashed **4th** is `.scorecard-life-preserver-rank` (Life Preserver 
 
 ## Not landed / unfinished
 
+- **PINNED URL for `4f52faa`:** Vercel Preview is rate-limited (`Deployment rate limited — retry in 24 hours`). No per-deployment host for this head. Last successful Preview is `237b940` (below).
 - Laptop look of the bonus toast
 - Fold-in to the frozen candidate (#73)
-- Final pin for this head (stale pin below is `bcc63f4`)
-- Final `check` / `functional` / `porch-night` on the 9:15 head
 - Physical Safari PENDING
 - 768 live scorecard still hides R1–R9 (column fit, not leftover). Not this CSS pass.
+- Live laptop/TV thead stays 11.5px. `R11 · Now` already clips at 74px; raising heads would clip more. Not this pass.
 - Home “Start a New Match” below the fold on 8-seat 768 — scroll, already noted
 - Seat nudge / × stay 32px on 8-seat Home — density, not this pass
+- Records Overview / Explore / Past nights stay 11.5px so the phone segment does not wrap
+- Phone nav stays 11.8px so Table / Records / Profiles / gear stay one row
+- Leftover Canasta 1440 inject did not open; live Canasta 390/1440 names and 4-digit totals were already whole
 
-## Verify (latest mid-run)
+## Verify (final head `4f52faa`)
 
-- `npm run check` pass after leftover + matrix CSS (`8d89ea8` era)
-- `modal-size` 5/5 including leftover fill, 390 ≥2 rounds, date ≥16, close ≥44, 1440/1920 all 11 rounds
+- `npm run check` pass
+- `npm run test:functional` **154/154**
+- `npm run test:porch-night` **2/2**
+- `modal-size` 5/5 including leftover fill, 390 ≥2 rounds, date ≥16, close ≥44, 1440/1920 all 11 rounds (re-run after body scale)
 - `scorecard-table` one-line title at 1024/1440 still pass after 768 wrap
-- `phone-conditions` 768 nav one row pass
-- Earlier on `bcc63f4`: `test:functional` 153/153, `porch-night` 2/2, phone-conditions 13/13
-
-Rerun of `check` + `functional` + `porch-night` is the 9:15 gate.
+- `phone-conditions` 768 nav one row; toast dismiss; 390 rounds
 
 ## Preview
 
-Pinned bonus app (`bcc63f4`, GitHub deployment 7382362075): `gamenight-biidur5p2-mattwilliamsproducts-projects.vercel.app`  
-Not the git-branch alias. SSO 302. **Stale vs leftover head.** New pin at 9:15.
+Last successful PINNED bonus app (`237b940`, GitHub deployment 7383764135): `gamenight-6fciotfhj-mattwilliamsproducts-projects.vercel.app`  
+Not the git-branch alias. SSO 302. **Missing `74e13db`…`4f52faa`** (Selected pill, leftover thead unify, 768 thead/date, leftover 20px names). Final head `4f52faa` has no Preview host until the rate limit lifts.
 
 ## Status
 
-Draft only. Candidate tag / PR #73 untouched. Do not close PR #76. Bonus still open until ~9:15 AM ET.
+Draft only. Candidate tag / PR #73 untouched. Do not close PR #76. Bonus CSS pass stopped: out of safe items.
