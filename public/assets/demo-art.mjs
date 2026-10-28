@@ -86,8 +86,8 @@ export function applyDemoChrome(root, search, hostname){
   else delete doc.dataset.bpPicker;
   if (chrome.wiz) doc.dataset.bpWiz = chrome.wiz;
   else delete doc.dataset.bpWiz;
-  if (chrome.eight18) doc.dataset.bp818 = chrome.eight18;
-  else delete doc.dataset.bp818;
+  if (chrome.eight18) doc.dataset.bpEight = chrome.eight18;
+  else delete doc.dataset.bpEight;
   if (chrome.five) doc.dataset.bpFive = chrome.five;
   else delete doc.dataset.bpFive;
   if (chrome.tap) doc.dataset.bpTap = chrome.tap;

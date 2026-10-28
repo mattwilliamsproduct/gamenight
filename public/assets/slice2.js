@@ -8,7 +8,7 @@
     const d = (typeof document !== 'undefined' && document.documentElement.dataset) || {};
     return {
       wiz: d.bpWiz || 'homage',
-      eight18: d.bp818 || 'homage',
+      eight18: d.bpEight || 'homage',
       five: d.bpFive || 'faithful',
       tap: d.bpTap || 'start'
     };

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="Canasta stand-in">
-  <rect x="3" y="3" width="244" height="344" rx="22" fill="#f6efe4"/>
-  <rect x="12" y="12" width="226" height="326" rx="16" fill="none" stroke="#6b3d6a" stroke-width="10"/>
-  <g fill="#fffdf8" stroke="#6b3d6a" stroke-width="3">
-    <rect x="58" y="92" width="54" height="80" rx="6" transform="rotate(-20 85 132)"/>
-    <rect x="98" y="84" width="54" height="80" rx="6"/>
-    <rect x="138" y="92" width="54" height="80" rx="6" transform="rotate(20 165 132)"/>
+  <rect width="250" height="350" rx="22" fill="#f6efe4"/>
+  <rect x="8" y="8" width="234" height="334" rx="16" fill="none" stroke="#6b3d6a" stroke-width="12"/>
+  <g fill="#fffdf8" stroke="#6b3d6a" stroke-width="4">
+    <rect x="48" y="78" width="64" height="96" rx="8" transform="rotate(-18 80 126)"/>
+    <rect x="93" y="68" width="64" height="96" rx="8"/>
+    <rect x="138" y="78" width="64" height="96" rx="8" transform="rotate(18 170 126)"/>
   </g>
-  <path d="M125 118c6-8 18-2 14 8-3 8-14 16-14 16s-11-8-14-16c-4-10 8-16 14-8z" fill="#c45c3a"/>
-  <text x="125" y="248" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="#6b3d6a">CANASTA</text>
+  <path d="M125 108c8-10 24-2 18 12-4 10-18 22-18 22s-14-12-18-22c-6-14 10-22 18-12z" fill="#c45c3a"/>
+  <text x="125" y="246" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-weight="700" fill="#6b3d6a">CANASTA</text>
 </svg>
