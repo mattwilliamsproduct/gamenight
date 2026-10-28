@@ -27,7 +27,7 @@ Classified from this branch's own docs and a first look, not from memory. Untest
 | --- | --- | --- | --- |
 | B-scorecard-nav | Slice 2 board bar never parked Save & End / Actions; CSS already expected them in `.s2-board-actions`. Banner is `display:none` on `html.slice2-tv`. | P1 | Settled B: visible ← Table, outlined Save & End, History in Actions. First-timer cannot tell leave vs end vs discard. Fix on this pass. |
 | visual-stale | `docs/SLICE2-ARCHITECTURE-PLAN.md` | UNVERIFIED tonight until `test:visual` runs | Prior laptop/TV snapshot set had ~26 fails (stale + Comeback UI that production does not load). |
-| keypad-8p | `docs/solutions/canasta-on-rc1.md` | UNVERIFIED | 8-player Five Crowns Next-corner failures noted on RC1 `7a1b1a6` in that environment. |
+| keypad-8p | `docs/solutions/canasta-on-rc1.md` | OK layout this pass | 8-player Next is in view on 375 (84px tall) and 390. Shots: `visual-matrix/375x667/keypad-8p.png`. Old Next-corner fails were environmental on `7a1b1a6`. |
 | F items | Rubric §F | OPEN | Not decided tonight. See `docs/decisions-for-matt.md`. |
 
 ## Production flag settings (portfolio RC)
@@ -56,7 +56,7 @@ Classified from this branch's own docs and a first look, not from memory. Untest
 | HEAD sha | |
 | Commands + pass counts | |
 | Demo fixture | `/?demo&view=demo-path` |
-| Pinned preview | `gamenight-ffz6ubdwy-mattwilliamsproducts-projects.vercel.app` (GitHub Preview deployment for `79fed74`, state success). This agent’s curl hit Vercel SSO (302). Not the git-branch alias. Not frozen. |
+| Pinned preview | Latest HEAD `c198572` Preview: `gamenight-mx8i6pgnm-mattwilliamsproducts-projects.vercel.app` (deployment 7377617974, success). Earlier `79fed74`: `gamenight-ffz6ubdwy-mattwilliamsproducts-projects.vercel.app`. Curl hits Vercel SSO (302). Not the git-branch alias. Not frozen. Re-pin at freeze for the freeze sha. |
 | Status wording | *(exactly one of: BLOCKED \<reasons\> / automated verification passed; physical Safari approval pending)* |
 | Physical iPhone Safari | PENDING (Matt only) |
 | Post-deploy smoke / rollback | PENDING |

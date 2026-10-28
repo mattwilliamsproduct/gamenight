@@ -93,6 +93,22 @@ test('1920 scoreboard keeps names and totals in layout (readability judged separ
   expect(totals.some((text) => text.includes('38') || text.includes('36'))).toBe(true);
 });
 
+test('8-player keypad Next stays on 375', async ({page}) => {
+  await page.setViewportSize({width: 375, height: 667});
+  await page.goto('/?demo&view=keypad-8p', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded');
+  const next = page.locator('#score-entry-modal .score-entry-key.next');
+  await expect(next).toBeVisible();
+  const box = await next.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return {top: r.top, bottom: r.bottom, height: r.height};
+  });
+  expect(box.top, 'Next top').toBeGreaterThanOrEqual(0);
+  expect(box.bottom, 'Next bottom').toBeLessThanOrEqual(669);
+  expect(box.height, 'Next height').toBeGreaterThan(40);
+  await page.screenshot({path: `${SHOT}/keypad-8p-375.png`, fullPage: false});
+});
+
 test('Canasta entry shows four-digit team totals on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await page.goto('/?demo&view=game&game=hand-and-foot', {waitUntil: 'domcontentloaded'});
