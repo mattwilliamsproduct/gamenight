@@ -62,13 +62,14 @@ async function openPastNight(page) {
   await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
 }
 
-test('past-night scorecard uses most of the viewport at 1024 and 1440', async ({page}) => {
-  for (const size of [{width: 1024, height: 650}, {width: 1440, height: 900}]) {
+test('past-night scorecard uses most of the viewport at 1024, 1440, and 1920', async ({page}) => {
+  for (const size of [{width: 1024, height: 650}, {width: 1440, height: 900}, {width: 1920, height: 1080}]) {
     await page.setViewportSize(size);
     await openPastNight(page);
     const measure = await measureScorecardModal(page);
     expect(measure.panel, `${size.width} panel`).not.toBeNull();
-    expect(measure.panel.width / measure.viewport.width, `${size.width} width share`).toBeGreaterThanOrEqual(0.8);
+    expect(measure.panel.width / measure.viewport.width, `${size.width} width share`).toBeGreaterThanOrEqual(0.9);
+    expect(measure.panel.height / measure.viewport.height, `${size.width} height share`).toBeGreaterThanOrEqual(0.85);
     expect(measure.clipped, `${size.width} clipped`).toBe(false);
     expect(measure.close.top).toBeGreaterThanOrEqual(0);
     expect(measure.close.right).toBeLessThanOrEqual(size.width + 2);
@@ -78,11 +79,12 @@ test('past-night scorecard uses most of the viewport at 1024 and 1440', async ({
   }
 });
 
-test('past-night scorecard is near full-width on 375', async ({page}) => {
+test('past-night scorecard is near full-screen on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await openPastNight(page);
   const measure = await measureScorecardModal(page);
   expect(measure.panel.width / measure.viewport.width).toBeGreaterThanOrEqual(0.9);
+  expect(measure.panel.height / measure.viewport.height).toBeGreaterThanOrEqual(0.85);
   expect(measure.clipped).toBe(false);
   expect(measure.close.top).toBeGreaterThanOrEqual(0);
   expect(measure.close.bottom).toBeLessThanOrEqual(667 + 2);
@@ -135,7 +137,7 @@ test('Add Player uses the form modal size at 1440 and a near-full sheet on 375',
 });
 
 test('a long Five Crowns scorecard scrolls inside the modal', async ({page}) => {
-  await page.setViewportSize({width: 1024, height: 650});
+  await page.setViewportSize({width: 1024, height: 480});
   await openPastNight(page);
   const before = await measureScorecardModal(page);
   expect(before.wrap.scrollHeight, 'long table should overflow').toBeGreaterThan(before.wrap.clientHeight);

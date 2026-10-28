@@ -96,6 +96,8 @@
       --bp-modal-form: min(92vw, 46rem);
       --bp-modal-confirm: min(92vw, 28rem);
       --bp-modal-max-h: 90vh;
+      --bp-modal-leftover-w: min(96vw, calc(100vw - (var(--bp-modal-gutter) * 2)));
+      --bp-modal-leftover-h: min(96vh, calc(100dvh - (var(--bp-modal-gutter) * 2)));
       --bp-modal-type: 1rem;
       --bp-modal-btn-min: 44px;
     }
@@ -142,6 +144,8 @@
         --bp-modal-form: calc(100vw - 16px);
         --bp-modal-confirm: calc(100vw - 16px);
         --bp-modal-max-h: calc(100dvh - 16px);
+        --bp-modal-leftover-w: calc(100vw - 16px);
+        --bp-modal-leftover-h: calc(100dvh - 16px);
       }
     }
     html.bp-modal-open,
@@ -223,6 +227,13 @@
     .bp-modal-panel .btn-ghost,
     .bp-modal-panel button[type="button"]:not(.round-correct-btn) {
       min-height: var(--bp-modal-btn-min);
+    }
+    #scorecard-modal .bp-modal-panel {
+      width: var(--bp-modal-leftover-w);
+      max-width: var(--bp-modal-leftover-w);
+      height: var(--bp-modal-leftover-h);
+      max-height: var(--bp-modal-leftover-h);
+      background: var(--surface);
     }
     #scorecard-modal .scorecard-table-wrap {
       overflow: auto;
@@ -4955,7 +4966,10 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #scorecard-modal.scorecard-modal-hand-foot > .surface-raised {
         padding: 12px 10px !important;
-        max-height: calc(100dvh - 16px);
+        width: var(--bp-modal-leftover-w);
+        max-width: var(--bp-modal-leftover-w);
+        height: var(--bp-modal-leftover-h);
+        max-height: var(--bp-modal-leftover-h);
       }
       #modal-scorecard-block.scorecard-hand-foot .scorecard-table {
         width: 100%;
@@ -7666,6 +7680,9 @@ button.dealer-name-indicator .dealer-player-label {
       border-radius: 26px;
       background: rgba(255,250,241,0.985);
       box-shadow: 0 30px 80px -36px rgba(0,36,33,0.8), inset 0 4px 0 rgba(231,115,88,0.58);
+    }
+    #scorecard-modal .bp-modal-panel.surface-raised {
+      background: #fffaf1;
     }
     #lineup-intro {
       background: #063f3a url('./theme/back-porch-resort.png') center / cover no-repeat;
