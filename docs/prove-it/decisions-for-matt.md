@@ -10,3 +10,4 @@ Canonical table: [`docs/decisions-for-matt.md`](../decisions-for-matt.md). Secti
 | 6b-shame | Shame playful not mean? | Leave Overview / Explore split. | F. |
 | 200pct-avatars | Hide scorecard avatars at 200% so June/Theo stay whole words? | Leave avatars. 200% now keeps places + totals + name glyphs in view. | Density vs identity. |
 | 9c-profiles | Drop Profiles / Explore for a first-timer? | Leave them. | Subtraction. |
+| 7f-quota | Storage full / blocked (`QuotaExceededError`) has no toast; persist throws through. | **No code change on this candidate.** After gate: catch around `localStorage.setItem`, keep RAM state, toast that the browser is out of room. Do not prune history automatically. | Storage path. Plan revision: leave persist/backup compatibility alone. |
