@@ -84,7 +84,7 @@ Mark untested UNVERIFIED. Never green without evidence.
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
 | Historical Rook identity preserved | OK (automated) | older-night + canasta-rook-flag + game-registry. |
 | Interrupted entry (refresh, Table, modal, double Submit) | OK (automated) | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2: Table and back keeps the same hand; double-tap Submit adds one round. |
-| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player + 200% + Scratch + complete banner + Canasta 3695 | `phone-conditions.spec.mjs` 8/8. Keyboard-open UNVERIFIED. FC negatives rejected (`data-integrity` P1-05). |
+| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player + 200% + Scratch + complete banner + Canasta 3695 + 768 nav | `phone-conditions.spec.mjs` 10/10. Keyboard-open UNVERIFIED. FC negatives rejected (`data-integrity` P1-05). |
 | Understandability: Table vs End vs Scratch | OK (automated + matrix) | `← Table` leaves (no modal, Resume stays). Save & End confirm: “End this match now?” Scratch is “Scratch Match (discard)” on the phone Actions menu (`4a2f666`) then native confirm. Physical PENDING. |
 | 90s isolated demo path | OK (automated, 6 rehearsals) | `demo-path.spec.mjs` 2/2. Rehearse 390×3 and 375×3, all June 38 / Theo 41. Strips: `demo-rehearse/strip-390x844.png`, `strip-375x667.png`. |
 | Physical iPhone Safari | PENDING | Matt only |

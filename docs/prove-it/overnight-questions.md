@@ -44,7 +44,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 
 | Id | Question | Answer | Evidence |
 | --- | --- | --- | --- |
-| 3a | Fix a past score in two taps; totals obvious? | OK | Demo June 12→0, 50→38, first flips. |
+| 3a | Fix a past score in two taps; totals obvious? | OK | Demo June 12→0, 50→38, first flips. Wizard correction modal: Save Round in view on 375/390 (`375-wizard-correction.png`). |
 | 3b | Undo / confirm where loss is real? | OK | Scratch and Save & End confirm. End copy distinguishes unfinished vs complete. |
 | 3c | Accidental end recoverable? | OK confirm; DECISION on undo-end | Confirm on Save & End. No “undo end match”. Recover via Resume only if they Cancel. Once confirmed, night is finished. |
 | 3d | Refresh / lock / tab close keeps the live match? | OK on real book; OK isolation on demo | Persist for real books. Isolated demo does **not** persist (labeled). |
@@ -72,7 +72,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 5d | Type limited and meaningful? | UNVERIFIED as a redesign | No type scale rewrite. |
 | 5e | 375–1920 no clip? | FOUND-BUG then fixed | Matrix 375/390/768/1440/1920 + contact sheets. Scratch clipped on phone Actions (`4a2f666`). Match Complete covered 3rd/4th on 375 (`95513b5`). Canasta entry ellipsized 3695 (`2740f11`). 768 nav wrapped Settings; compact labels through 1023px. Home tiles below the fold are scroll. |
 | 5f | Internal jargon on screen? | OK on demo | “Sample night” / “Save & End” / “Scratch Match (discard)”. “Championship Ledger” is the records title (settled B). “Warm Porch Ledger” not on screen. |
-| 5g | Pressed / focus / disabled? | OK focus on board Enter; pressed/disabled UNVERIFIED | `#slice2-enter-btn` focus-visible is a 3px teal outline (`390-focus-enter.png`). Full pressed/disabled pass is bonus. |
+| 5g | Pressed / focus / disabled? | OK focus on board Enter; pressed CSS present; Start-on-empty is an alert, not disabled | `#slice2-enter-btn` focus-visible is a 3px teal outline. Primary/keys use `:active` scale. Empty-home Start is enabled and alerts “Add players…”. Full pressed pass is bonus. |
 | 5h | Design-lead proud? | DECISION | Matt’s morning look. |
 
 ## 6. Delight
