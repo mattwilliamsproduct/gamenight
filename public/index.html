@@ -2426,7 +2426,8 @@
       padding-right: 4px !important;
       overflow: hidden;
       line-height: 1;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
+      text-transform: none;
     }
 
     /* iPad landscape: player list left, selected + full keypad right. Footer stays on screen. */
@@ -7869,7 +7870,6 @@ button.dealer-name-indicator .dealer-player-label {
       font-feature-settings: 'tnum';
       letter-spacing: 0;
     }
-    .score-entry-key.next,
     .numpad-btn:not(.font-mono-num) {
       text-transform: uppercase;
     }
@@ -16770,11 +16770,20 @@ ${isDealer
     panel.style.setProperty('--se-fit-key-min',`${Math.floor(keyHeight)}px`);
     panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
     const nextKey=keypad.querySelector('.score-entry-key.next');
-    const nextBox=nextKey?nextKey.getBoundingClientRect():null;
-    const nextRoom=nextBox?Math.max(28, nextBox.width-8):64;
-    const nextByWidth=Math.floor(nextRoom/3.7);
-    const nextByHeight=Math.floor(clamp(12,keyHeight*0.26,20));
-    panel.style.setProperty('--se-fit-next-font',`${Math.max(12, Math.min(nextByWidth, nextByHeight))}px`);
+    if(nextKey){
+      const nextBox=nextKey.getBoundingClientRect();
+      const nextRoom=Math.max(28, nextBox.width-10);
+      let nextSize=Math.max(13, Math.min(Math.floor(nextRoom/3.4), Math.floor(clamp(13,keyHeight*0.28,20))));
+      nextKey.style.setProperty('font-size',`${nextSize}px`,'important');
+      nextKey.style.setProperty('padding-left','4px','important');
+      nextKey.style.setProperty('padding-right','4px','important');
+      nextKey.style.setProperty('text-transform','none','important');
+      for(let i=0;i<12 && nextKey.scrollWidth>nextKey.clientWidth+1 && nextSize>12;i++){
+        nextSize-=1;
+        nextKey.style.setProperty('font-size',`${nextSize}px`,'important');
+      }
+      panel.style.setProperty('--se-fit-next-font',`${nextSize}px`);
+    }
 
     rows.style.maxHeight='';
   }
@@ -16862,6 +16871,13 @@ ${isDealer
       modal.classList.remove('hf-cards-left','hf-no-minus','score-entry-no-minus');
       const keypad=modal.querySelector('.score-entry-keypad');
       if(keypad) keypad.style.height='';
+      const nextKey=modal.querySelector('.score-entry-key.next');
+      if(nextKey){
+        nextKey.style.removeProperty('font-size');
+        nextKey.style.removeProperty('padding-left');
+        nextKey.style.removeProperty('padding-right');
+        nextKey.style.removeProperty('text-transform');
+      }
       const layoutEl=modal.querySelector('.score-entry-layout');
       if(layoutEl){
         layoutEl.style.removeProperty('display');
