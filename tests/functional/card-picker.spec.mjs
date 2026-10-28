@@ -148,7 +148,23 @@ test('1024 landscape fills the start panel and Saved misses Game Instructions', 
 test('1024 seat rows keep their height and do not stack', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await freshTable(page);
-  await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee', 'Eli', 'Fay', 'Gus', 'Matt']);
+  await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
+  const four = await page.evaluate(() => {
+    const table = document.querySelector('.s2-home-table')?.getBoundingClientRect();
+    const rows = [...document.querySelectorAll('.s2-home-table .s2-seat')].map((node) => node.getBoundingClientRect());
+    return {
+      count: rows.length,
+      visible: rows.filter((box) => table && box.top >= table.top - 1 && box.bottom <= table.bottom + 1).length,
+      overlap: rows.some((box, index) => index > 0 && box.top < rows[index - 1].bottom - 1),
+      minHeight: Math.min(...rows.map((box) => box.height))
+    };
+  });
+  expect(four.count).toBe(4);
+  expect(four.visible, 'four seated rows stay in Tonight\'s Table').toBe(4);
+  expect(four.overlap, 'seat rows overlap').toBe(false);
+  expect(four.minHeight).toBeGreaterThanOrEqual(44);
+
+  await seatPlayers(page, ['Eli', 'Fay', 'Gus', 'Matt']);
   const seats = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('.s2-home-table .s2-seat')].map((node) => {
       const box = node.getBoundingClientRect();

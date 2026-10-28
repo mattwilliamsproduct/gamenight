@@ -368,12 +368,12 @@ html.slice2-tv .s2-game-grid {
 
 html.slice2-tv .s2-seat-grid {
   grid-template-columns: 1fr;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   align-content: start;
   gap: 10px;
   grid-auto-rows: auto;
-  min-height: 0;
-  overflow: auto;
+  min-height: min-content;
+  overflow: visible;
 }
 
 html.slice2-tv .s2-seat,
@@ -478,6 +478,7 @@ html.slice2-tv .s2-seat-live {
 
 html.slice2-tv .s2-home-table {
   position: relative;
+  overflow: auto;
 }
 
 html.slice2-tv .s2-seat-num {

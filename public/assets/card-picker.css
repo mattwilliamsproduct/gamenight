@@ -101,10 +101,11 @@ html.slice2-tv #slice2-start-btn {
 }
 
 html.slice2-tv .s2-seat-grid {
+  flex: 0 0 auto;
   align-content: start;
   grid-auto-rows: auto;
-  overflow: auto;
-  min-height: 0;
+  overflow: visible;
+  min-height: min-content;
 }
 
 /* iPad landscape + TV: start column gets the width; cards fill their cells. */
@@ -117,11 +118,15 @@ html.slice2-tv .s2-seat-grid {
   html.slice2-tv .s2-home-start {
     height: auto;
     min-height: min-content;
+    align-self: start;
   }
 
   html.slice2-tv .s2-home-table {
-    height: 100%;
+    height: auto;
+    max-height: calc(100dvh - 14.5rem);
     min-height: 0;
+    overflow: auto;
+    align-self: start;
   }
 
   html.slice2-tv .s2-home-start .s2-game-grid {
@@ -148,9 +153,19 @@ html.slice2-tv .s2-seat-grid {
     min-height: 0;
   }
 
-  html.slice2-tv .s2-seat-grid {
-    min-height: 0;
+  html.slice2-tv .s2-home-table {
     overflow: auto;
+    align-self: start;
+  }
+
+  html.slice2-tv .s2-home-start {
+    align-self: start;
+  }
+
+  html.slice2-tv .s2-seat-grid {
+    flex: 0 0 auto;
+    min-height: min-content;
+    overflow: visible;
     align-content: start;
     grid-auto-rows: auto;
   }
@@ -172,11 +187,14 @@ html.slice2-tv .s2-seat-grid {
   html.slice2-tv .s2-home-table {
     max-height: calc(100dvh - 16rem);
     min-height: 0;
+    overflow: auto;
+    align-self: start;
   }
 
   html.slice2-tv .s2-home-start {
     max-height: calc(100dvh - 16rem);
     min-height: min-content;
+    align-self: start;
   }
 
   html.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {

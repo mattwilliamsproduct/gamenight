@@ -34,6 +34,7 @@ function metrics(page) {
     const start = document.querySelector('#slice2-start-btn');
     const frames = [...document.querySelectorAll('.s2-home-start .s2-card-frame')];
     const photos = [...document.querySelectorAll('.s2-home-start .s2-card-photo')];
+    const tableBox = document.querySelector('.s2-home-table')?.getBoundingClientRect();
     const seats = [...document.querySelectorAll('.s2-home-table .s2-seat')].map((node) => node.getBoundingClientRect());
     const boxes = frames.map((node) => node.getBoundingClientRect());
     const panelBox = panel?.getBoundingClientRect();
@@ -47,6 +48,7 @@ function metrics(page) {
     return {
       count: boxes.length,
       seated: seats.length,
+      visibleSeats: seats.filter((box) => tableBox && box.top >= tableBox.top - 1 && box.bottom <= tableBox.bottom + 1).length,
       face: boxes[0] ? {w: Math.round(boxes[0].width), h: Math.round(boxes[0].height)} : null,
       spread: boxes.length ? {
         w: Math.round(Math.max(...boxes.map((box) => box.width)) - Math.min(...boxes.map((box) => box.width))),
