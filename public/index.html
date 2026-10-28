@@ -4031,6 +4031,12 @@ button.dealer-name-indicator .dealer-player-label {
       pointer-events: none;
       max-width: 90vw;
     }
+    @media (max-width: 760px) {
+      body.active-match-view #toast-container {
+        top: auto;
+        bottom: max(9.5rem, 38vh);
+      }
+    }
     .toast {
       background: var(--ink); color: var(--bg);
       padding: 0.8rem 1.3rem;

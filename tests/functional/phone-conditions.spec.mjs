@@ -191,6 +191,45 @@ test('Match Complete on 375 and 390 keeps June through Hank whole', async ({page
   }
 });
 
+test('Standings updated toast does not cover Save & End or Match complete', async ({page}) => {
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openDemoPath(page);
+    await enterDemoLastHand(page);
+    await page.evaluate(() => {
+      const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+      openPastScoreCell('June', last);
+    });
+    const pad = page.locator('#custom-numpad');
+    await pad.waitFor({state: 'visible', timeout: 5000});
+    const back = pad.locator('button[onclick="numpadPress(\'backspace\')"]');
+    await back.click();
+    await back.click();
+    await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
+    await page.getByRole('button', {name: /Close Keypad/i}).click();
+    await pad.waitFor({state: 'hidden', timeout: 5000});
+    await page.waitForFunction(() => {
+      const toast = document.querySelector('#toast-container .toast');
+      return !!(toast && /Standings updated/i.test(toast.textContent || ''));
+    }, null, {timeout: 4000});
+    const overlap = await page.evaluate(() => {
+      const hits = (a, b) => !!(a && b && a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1);
+      const toast = document.querySelector('#toast-container .toast')?.getBoundingClientRect();
+      const end = document.querySelector('.match-end-btn')?.getBoundingClientRect();
+      const pill = document.getElementById('slice2-enter-btn')?.getBoundingClientRect();
+      return {
+        hitsEnd: hits(toast, end),
+        hitsPill: hits(toast, pill),
+        toastTop: toast?.top || 0,
+        toastBottom: toast?.bottom || 0
+      };
+    });
+    await page.screenshot({path: `${SHOT}/toast-clear-${size.width}.png`, fullPage: false});
+    expect(overlap.hitsEnd, `${size.width} toast vs Save & End`).toBe(false);
+    expect(overlap.hitsPill, `${size.width} toast vs Match complete`).toBe(false);
+  }
+});
+
 test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
