@@ -197,7 +197,7 @@ const VIEW_ASSERT = {
   },
   'demo-path': async (page) => {
     await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
-    await expect(page.locator('#slice2-board-line, #game-screen')).toContainText(/Five Crowns/);
+    await expect(page.locator('#slice2-board-line')).toContainText(/Five Crowns/);
     await expect(page.locator('#scorecard-body')).toContainText('June');
     await expect(page.locator('#demo-seed-msg')).toContainText(/Sample night/);
   }
