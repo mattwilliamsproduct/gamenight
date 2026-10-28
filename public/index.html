@@ -14968,13 +14968,22 @@ ${isDealer
       applyHidden(0);
       let hidden=0;
       const fudge=4;
+      const vw=window.innerWidth||wrap.clientWidth||0;
       const keepLastPast=(wrap.clientWidth||0)>=700;
       const keepOneRound=(root.id==='scorecard-capture'&&document.getElementById('game-screen')?.dataset.game==='Hand and Foot')||root.classList.contains('scorecard-hand-foot');
       const keepAllHandFoot=keepOneRound && root.id==='scorecard-capture' && roundIdxs.length<=4;
-      const hideLimit=keepAllHandFoot?0:keepOneRound?Math.max(0,roundIdxs.length-1):roundIdxs.length;
+      const ipadLive=root.id==='scorecard-capture' && vw>=768 && vw<1920;
+      const tvLive=root.id==='scorecard-capture' && vw>=1920;
+      const hideLimit=keepAllHandFoot?0
+        :keepOneRound?Math.max(0,roundIdxs.length-1)
+        :tvLive?0
+        :ipadLive?Math.max(0,roundIdxs.length-5)
+        :roundIdxs.length;
+      const ipadKeepMin=ipadLive?4:0;
       fitActiveScorecardColumns(root);
       while((wrap.scrollWidth>wrap.clientWidth+fudge||scorecardRoundColsTooTight(root))&&hidden<hideLimit){
         if(!keepOneRound&&keepLastPast&&hidden===roundIdxs.length-1) break;
+        if(ipadKeepMin && (roundIdxs.length-hidden)<=ipadKeepMin) break;
 
         hidden++;
         applyHidden(hidden);
@@ -14983,6 +14992,7 @@ ${isDealer
       if(options?.hideUntilLeadFits){
         while(hidden<hideLimit&&scorecardLeadStillOverflows(table)){
           if(!keepOneRound&&keepLastPast&&hidden===roundIdxs.length-1) break;
+          if(ipadKeepMin && (roundIdxs.length-hidden)<=ipadKeepMin) break;
 
           hidden++;
           applyHidden(hidden);
@@ -15335,7 +15345,10 @@ ${isDealer
         // Fixed tables ignore max-width and pour leftover space into Total while round columns are still 1px. Measure the cap, or every phone Hand and Foot history card looks too tight and hides R1–R3.
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
-    const available=Math.max(0,wrap.clientWidth-leadW-6);
+    const nowTh=table.querySelector('thead th.scorecard-col-now');
+    const nowMin=(window.innerWidth||0)>=761?96:40;
+    const nowW=nowTh?Math.max(nowTh.getBoundingClientRect().width, nowMin):0;
+    const available=Math.max(0,wrap.clientWidth-leadW-nowW-6);
     const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/visible.length));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
