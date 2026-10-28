@@ -48,6 +48,19 @@ test('emoji name seats once; a second add does not duplicate the row', async ({p
   expect(texts.length, 'one seated emoji name').toBe(1);
 });
 
+test('Start with 0 players stays on home after the add-players alert', async ({page}) => {
+  let message = '';
+  page.on('dialog', async (dialog) => {
+    message = dialog.message();
+    await dialog.accept();
+  });
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemo(page, 'empty-home');
+  await page.locator('#slice2-start-btn').click();
+  await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
+  expect(message).toMatch(/Add players/i);
+});
+
 test('one seated player can start Five Crowns without a pageerror', async ({page}) => {
   const errors = [];
   page.on('dialog', (dialog) => dialog.accept());

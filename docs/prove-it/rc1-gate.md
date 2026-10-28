@@ -1,7 +1,7 @@
 # RC1 combined candidate — gate report
 
 **Status:** in progress (baseline recorded; isolated demo and older-night green; not frozen)  
-**HEAD while writing this update:** `7c7c80b`
+**HEAD while writing this update:** `79fed74`
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
 **Draft PR:** #73 (draft only; no undraft / merge / deploy)
@@ -56,7 +56,7 @@ Classified from this branch's own docs and a first look, not from memory. Untest
 | HEAD sha | |
 | Commands + pass counts | |
 | Demo fixture | `/?demo&view=demo-path` |
-| Pinned preview | *(per-deployment `gamenight-<hash>-mattwilliamsproducts-projects.vercel.app` only; branch alias is not evidence)* |
+| Pinned preview | `gamenight-ffz6ubdwy-mattwilliamsproducts-projects.vercel.app` (GitHub Preview deployment for `79fed74`, state success). This agent’s curl hit Vercel SSO (302). Not the git-branch alias. Not frozen. |
 | Status wording | *(exactly one of: BLOCKED \<reasons\> / automated verification passed; physical Safari approval pending)* |
 | Physical iPhone Safari | PENDING (Matt only) |
 | Post-deploy smoke / rollback | PENDING |

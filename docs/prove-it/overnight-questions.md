@@ -14,7 +14,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK | `test-hand-foot.mjs` (sevens 1500 not stacked on clean 500; red 3s 100 / 200 at 4+). `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` + porch-night Canasta walk. |
 | P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
 | P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
-| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200% lead); OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs` 5/5. Before/after: `demo-path-390-200pct-before.png` / `-after.png`. Keyboard-open still UNVERIFIED. |
+| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200% lead); OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs` 5/5. Before/after: `demo-path-390-200pct-before.png` / `-after.png`. Entry uses the custom keypad. OS keyboard covering the card is UNVERIFIED on a physical phone. |
 | P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Physical look PENDING. |
 
 ---
@@ -27,7 +27,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 1b | One obvious primary on Home? | OK during a live match (Resume). DECISION on empty home | Settled B: Resume is the single primary during an active match. Empty home has Start + add player. Sample CTA off. |
 | 1c | First-time user with no history sees a sample night? | DECISION | Not on production. `/?demo&view=demo-path` only. |
 | 1d | Logo and title read as a real product? | UNVERIFIED (physical) | Not restyled. Art/logo dusk stays behind `?demo`. |
-| 1e | Taps from cold open to first score? | OK on demo (1 tap: Enter). Empty home is add players → pick game → Start → Enter | Demo path designed so completion is the 11th hand. |
+| 1e | Taps from cold open to first score? | OK on demo (1 tap: Enter). Empty home is add players → pick game → Start → Enter | Demo path designed so completion is the 11th hand. 0-player Start alerts “Add players to the Lineup first!” (`edge-states`). |
 
 ## 2. Running a game night
 
@@ -37,7 +37,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 2b | One-hand phone, thumb-reachable? | OK (automated targets) | Primary board controls ≥44px in `phone-conditions.spec.mjs`. Physical PENDING. |
 | 2c | Keypad matches number type; negatives where legal? | OK | Custom keypad. Negatives rejected for FC/Flip7/Heat (`data-integrity` P1-05). Wizard/818 miss scores can be negative by formula. |
 | 2d | After a round, clear who’s winning? | OK | Demo 390 strip: places + totals update. |
-| 2e | TV 10-foot: names + totals largest? | UNVERIFIED as a couch judgment | 1920 layout shot is layout-only. Readability judged separately at freeze. |
+| 2e | TV 10-foot: names + totals largest? | OK layout; DECISION as a couch read | `demo-path-1920-layout.png`: June/Theo/Rosa/Hank and 36/38/52/71 dominate. Board bar is one tight row. Matt judges 10-foot. |
 | 2f | Remembers usual players for next night? | OK | Roster + profiles persist locally. `test:local-only`. Cloud off. |
 
 ## 3. Mistakes and trust
