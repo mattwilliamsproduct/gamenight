@@ -2426,7 +2426,9 @@
 
     /* iPad landscape: player list left, selected + full keypad right. Footer stays on screen. */
     #score-entry-modal.score-entry-landscape-split .score-entry-layout,
-    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout {
+    #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout,
+    html.slice2-tv #score-entry-modal.score-entry-landscape-split .score-entry-layout,
+    html.slice2-tv #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout {
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) minmax(280px, 38%) !important;
       grid-template-rows: minmax(0, 1fr) !important;
@@ -16656,6 +16658,20 @@ ${isDealer
     const {vw,vh}=scoreEntryViewportSize();
     const landscapeSplit=vw>=761 && vw>vh;
     modal.classList.toggle('score-entry-landscape-split', landscapeSplit);
+    const layoutEl=panel.querySelector('.score-entry-layout');
+    if(layoutEl){
+      if(landscapeSplit){
+        layoutEl.style.setProperty('display','grid','important');
+        layoutEl.style.setProperty('grid-template-columns','minmax(0, 1fr) minmax(280px, 38%)','important');
+        layoutEl.style.setProperty('grid-template-rows','minmax(0, 1fr)','important');
+        layoutEl.style.setProperty('flex-direction','unset','important');
+      } else {
+        layoutEl.style.removeProperty('display');
+        layoutEl.style.removeProperty('grid-template-columns');
+        layoutEl.style.removeProperty('grid-template-rows');
+        layoutEl.style.removeProperty('flex-direction');
+      }
+    }
 
     const tightWidth=vw<1180;
     const shortHeight=vh<820;
@@ -16836,6 +16852,13 @@ ${isDealer
       modal.classList.remove('hf-cards-left','hf-no-minus','score-entry-no-minus');
       const keypad=modal.querySelector('.score-entry-keypad');
       if(keypad) keypad.style.height='';
+      const layoutEl=modal.querySelector('.score-entry-layout');
+      if(layoutEl){
+        layoutEl.style.removeProperty('display');
+        layoutEl.style.removeProperty('grid-template-columns');
+        layoutEl.style.removeProperty('grid-template-rows');
+        layoutEl.style.removeProperty('flex-direction');
+      }
     },160);
     scoreEntryModalState=null;
   }
