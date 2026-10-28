@@ -15155,7 +15155,7 @@ ${isDealer
         const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
         const fittedSlot=name.closest('.scorecard-player-name-slot');
         const slotOk=!fittedSlot||name.scrollWidth<=fittedSlot.clientWidth+1;
-        if(fittedBox.right<=cellBox.right-1&&slotOk){
+        if(fittedBox.right<=cellBox.right - 1&&slotOk){
           best=mid;
           lo=mid;
         }else{
