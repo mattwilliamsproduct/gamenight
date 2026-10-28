@@ -2443,6 +2443,14 @@
       min-height: 0 !important;
       overflow: hidden !important;
     }
+    @media (min-width: 1180px) {
+      #score-entry-modal.score-entry-landscape-split .score-entry-layout,
+      #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout,
+      html.slice2-tv #score-entry-modal.score-entry-landscape-split .score-entry-layout,
+      html.slice2-tv #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-layout {
+        grid-template-columns: minmax(0, 1.15fr) minmax(420px, 1fr) !important;
+      }
+    }
     #score-entry-modal.score-entry-landscape-split .score-entry-list,
     #score-entry-modal.score-entry-hand-foot.score-entry-landscape-split .score-entry-list {
       display: flex !important;
@@ -16726,7 +16734,7 @@ ${isDealer
     if(layoutEl){
       if(landscapeSplit){
         layoutEl.style.setProperty('display','grid','important');
-        layoutEl.style.setProperty('grid-template-columns','minmax(0, 1fr) minmax(0, 2fr)','important');
+        layoutEl.style.setProperty('grid-template-columns', vw<1180?'minmax(0, 1fr) minmax(0, 2fr)':'minmax(0, 1.15fr) minmax(420px, 1fr)','important');
         layoutEl.style.setProperty('grid-template-rows','minmax(0, 1fr)','important');
         layoutEl.style.setProperty('flex-direction','unset','important');
       } else if(portraitFill){
