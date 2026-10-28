@@ -2939,7 +2939,7 @@ html.slice2-tv .s2-records-filters label {
   gap: 4px;
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.72rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
