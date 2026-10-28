@@ -39,24 +39,32 @@ test('200% root font still shows June whole and the running total', async ({page
   await page.evaluate(() => {
     document.documentElement.style.fontSize = '32px';
   });
-  await page.screenshot({path: `${SHOT}/demo-path-390-200pct.png`, fullPage: false});
+  await page.screenshot({path: `${SHOT}/demo-path-390-200pct-after.png`, fullPage: false});
   const fit = await page.evaluate(() => {
     const june = [...document.querySelectorAll('#scorecard-body .scoreboard-player-name')]
       .find((el) => (el.textContent || '').includes('June'));
     const total = document.querySelector('#scorecard-body .scorecard-total-value');
     const juneBox = june?.getBoundingClientRect();
+    const totalBox = total?.getBoundingClientRect();
     const cell = june?.closest('td, th');
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const inView = (box) => !!(box && box.left >= -2 && box.right <= vw + 2 && box.top >= 0 && box.bottom <= vh + 2 && box.width > 8 && box.height > 8);
     return {
       name: (june?.textContent || '').trim(),
       nameFits: june && cell ? june.scrollWidth <= june.clientWidth + 2 : false,
-      totalVisible: !!(total && total.getClientRects().length),
+      nameInView: inView(juneBox),
+      totalInView: inView(totalBox),
       totalText: (total?.textContent || '').trim(),
-      juneHeight: juneBox?.height || 0
+      juneBox,
+      playerWidth: cell?.getBoundingClientRect().width || 0
     };
   });
   expect(fit.name).toMatch(/June/);
   expect(fit.nameFits, 'June stays whole at 200%').toBe(true);
-  expect(fit.totalVisible, 'a total stays on screen at 200%').toBe(true);
+  expect(fit.nameInView, 'June stays in the 390 viewport at 200%').toBe(true);
+  expect(fit.totalInView, 'a total stays in the 390 viewport at 200%').toBe(true);
+  expect(fit.playerWidth, 'player column does not collapse to the badge').toBeGreaterThan(80);
 });
 
 test('8-player long names stay whole on 390 Five Crowns', async ({page}) => {

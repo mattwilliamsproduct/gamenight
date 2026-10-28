@@ -2281,8 +2281,89 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv #scorecard-capture td.scorecard-col-player,
-  html.slice2-tv #scorecard-capture th.scorecard-col-player {
+  html.slice2-tv #scorecard-capture th.scorecard-col-player,
+  html.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+  html.slice2-tv #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+    min-width: min(11.5rem, 42vw) !important;
+    max-width: 48vw !important;
+    width: min(11.5rem, 42vw) !important;
+  }
+
+  html.slice2-tv #scorecard-capture td.scorecard-total-cell,
+  html.slice2-tv #scorecard-capture th.scorecard-col-total,
+  html.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+    width: min(5rem, 24vw) !important;
+    min-width: min(4.4rem, 20vw) !important;
+    max-width: min(5.4rem, 26vw) !important;
+  }
+
+  html.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+    flex: 1 1 auto;
+    min-width: 3.25rem;
+    overflow: hidden;
+  }
+
+  html.slice2-tv #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name,
+  html.slice2-tv #scorecard-capture .scorecard-player-name-slot button.dealer-name-indicator {
     min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+
+  html.slice2-tv #slice2-board-line,
+  html.slice2-tv #slice2-board-sub {
+    font-size: min(0.88rem, 15px);
+  }
+
+  html.slice2-tv #slice2-enter-btn {
+    font-size: min(0.95rem, 17px);
+    white-space: nowrap;
+  }
+
+  html.slice2-tv .s2-board-actions #actions-btn,
+  html.slice2-tv .s2-board-actions .match-end-btn,
+  html.slice2-tv .s2-table-btn {
+    font-size: min(0.9rem, 15px);
+  }
+
+  html.slice2-tv body.active-match-view #game-screen {
+    display: flex;
+    flex-direction: column;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-board-bar {
+    flex: 0 0 auto;
+  }
+
+  html.slice2-tv body.active-match-view #game-screen .landscape-only {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0.4rem !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-main,
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-table-wrap {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
+    height: var(--scorecard-row-height, 48px) !important;
+    max-height: var(--scorecard-row-height, 48px);
+    overflow: hidden;
   }
 
   html.slice2-tv #scorecard-capture .scoreboard-rank-badge,

@@ -14,6 +14,8 @@ Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.
 
+Standing trap: [scorecard-visible-lead.md](scorecard-visible-lead.md) — a name that fits its cell can still sit off the phone viewport; row-fit must use the visible remainder, and phone Slice 2 must apply the fit-row height.
+
 Standing trap: [data-integrity-records.md](data-integrity-records.md) — bid accuracy comes from bids and actuals, a historical round keeps its own roster, and a Life Preserver flag follows the spins that remain.
 
 Standing trap: [slice2-phone-scorekeeper.md](slice2-phone-scorekeeper.md) — Slice 2 still needs a scrollable phone roster above the keypad; do not port #59 welcome/sample work onto that preview.

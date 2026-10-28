@@ -14967,10 +14967,14 @@ ${isDealer
       if(handFoot&&window.innerWidth<1280)return;
       const overEl=document.getElementById('game-over-section');
       const boardEl=wrap.closest('.tournament-scoreboard');
+      // Row-fit must use the on-screen remainder. wrap.clientHeight follows the
+      // table, so large type was sizing 132px rows that painted below the fold.
+      const wrapBox=wrap.getBoundingClientRect();
+      const visibleWrap=Math.max(80,Math.min(wrap.clientHeight,Math.floor(window.innerHeight - wrapBox.top - 8)));
       // The final footer is taller than Log Scores. Keep the player column at the in-progress size.
       const fitHeight=handFoot&&overEl&&!overEl.classList.contains('hidden')&&boardEl
-        ? Math.max(wrap.clientHeight, boardEl.clientHeight-97)
-        : wrap.clientHeight;
+        ? Math.max(visibleWrap, Math.min(boardEl.clientHeight-97, visibleWrap))
+        : visibleWrap;
       const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
       // Two team rows must not eat the leftover viewport. Size them like an 8-player Five Crowns card.

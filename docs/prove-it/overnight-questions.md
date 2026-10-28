@@ -14,7 +14,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK | `test-hand-foot.mjs` (sevens 1500 not stacked on clean 500; red 3s 100 / 200 at 4+). `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` + porch-night Canasta walk. |
 | P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
 | P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
-| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG 200% names off viewport; OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs`. 200% frame: `demo-path-390-200pct.png` (Player column left of viewport; Total/R11 remain). Keyboard-open still UNVERIFIED. |
+| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200% lead); OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs` 5/5. Before/after: `demo-path-390-200pct-before.png` / `-after.png`. Keyboard-open still UNVERIFIED. |
 | P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Physical look PENDING. |
 
 ---
@@ -70,7 +70,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 5b | Spacing / alignment / no orphans? | FOUND-BUG (header 12 of 11) fixed; board wrap logged | `facb8d1`. 390 bar wraps Table / Actions / Save & End. Not a redesign. |
 | 5c | Cream/teal, teal for action? | OK / DECISION on tokens | No token hex changes (F). |
 | 5d | Type limited and meaningful? | UNVERIFIED as a redesign | No type scale rewrite. |
-| 5e | 375–1920 no clip? | FOUND-BUG at 200% / 390 | `demo-path-390-200pct.png`. NAME-FIT in-cell still true; names leave the viewport. Visual snapshot matrix UNVERIFIED. |
+| 5e | 375–1920 no clip? | FOUND-BUG then fixed at 200% / 390 | `demo-path-390-200pct-after.png` keeps 1st–4th + totals in view. Visual snapshot matrix UNVERIFIED. |
 | 5f | Internal jargon on screen? | OK on demo | “Sample night” / “Save & End” / “Scratch Match (discard)”. “Championship Ledger” is the records title (settled B). “Warm Porch Ledger” not on screen. |
 | 5g | Pressed / focus / disabled? | UNVERIFIED | Bonus territory if no blocker. |
 | 5h | Design-lead proud? | DECISION | Matt’s morning look. |

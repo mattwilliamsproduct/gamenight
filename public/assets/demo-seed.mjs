@@ -241,7 +241,7 @@ function ensureBannerStyle(){
   const style = document.createElement('style');
   style.id = 'demo-seed-style';
   style.textContent = `
-    #demo-seed-msg{position:sticky;top:0;z-index:240;margin:0;padding:0.7rem 1rem;background:#7a1f1f;color:#fff7ed;font:700 0.92rem/1.35 "Plus Jakarta Sans",sans-serif;text-align:center}
+    #demo-seed-msg{position:sticky;top:0;z-index:240;margin:0;padding:0.55rem 0.85rem;background:#7a1f1f;color:#fff7ed;font-weight:700;font-size:min(0.92rem,18px);line-height:1.35;font-family:"Plus Jakarta Sans",sans-serif;text-align:center;overflow-wrap:anywhere}
     #demo-seed-msg[data-demo-kind="sample"]{background:#e8efe8;color:#14312e;border-bottom:1px solid #8aa89a}
     html.gn-demo-pending body{visibility:hidden}
   `;
