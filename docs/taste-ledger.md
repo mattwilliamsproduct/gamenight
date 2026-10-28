@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- A picker face fills the 5:7 frame edge to edge like a real card back. If the art is narrower, extend the repeating pattern or gradient — do not stretch, and do not leave a solid side strip. The frame radius is the only corner.
 - Home picker faces are exact 5:7 cards with cover, and nothing from the old porch tiles peeks beside them. Seat rows keep their height and scroll. 1024 landscape and 1920 TV are the layouts that matter.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
@@ -37,6 +38,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 ## Kills
 
 - A Home picker grid that overflows Start a New Match, or a dead band between the cards and Start at 1024 landscape.
+- A solid-color side pad or the source card's own white rounded corners showing inside the picker frame (Rook / Beat the Heat). Extend the background; do not stretch.
 - Old porch or tropical tiles showing through beside a picker face, or a white sliver on Five Crowns.
 - Tonight's Table seat rows that compress, overlap, clip the dealer pill, hide seated people behind chips, or truncate names to an initial.
 - Calling ready without opening the real UI.

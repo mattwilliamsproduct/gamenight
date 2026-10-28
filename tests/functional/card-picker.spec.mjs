@@ -249,6 +249,27 @@ test('1024 with 4 seated keeps Start inside the panel and names whole', async ({
   expect(fit.addClipped, 'Add Player stays visible with 4 seated').toBe(false);
 });
 
+test('Rook and Beat the Heat edge-fill stay behind cardfill=1', async ({page}) => {
+  await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
+  await expect(page.locator('#home-screen')).toBeVisible();
+  const defaults = await page.locator('.s2-home-start .s2-card-photo').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
+  expect(defaults).toEqual(expect.arrayContaining([
+    './assets/cards/rook.webp',
+    './assets/cards/beat-the-heat.webp'
+  ]));
+  expect(defaults.some((src) => src && src.includes('/fill/'))).toBe(false);
+
+  await page.goto('/?wipe=1&cardfill=1', {waitUntil: 'domcontentloaded'});
+  await expect(page.locator('#home-screen')).toBeVisible();
+  const filled = await page.locator('.s2-home-start .s2-card-photo').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
+  expect(filled).toEqual(expect.arrayContaining([
+    './assets/cards/fill/rook.webp',
+    './assets/cards/fill/beat-the-heat.webp',
+    './assets/cards/five-crowns.webp',
+    './assets/cards/wizard.webp'
+  ]));
+});
+
 test('1024 with 8 seated keeps Start inside the panel and names whole', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await freshTable(page);

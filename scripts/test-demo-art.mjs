@@ -8,6 +8,7 @@ import {
   DUSK_SHEET_SLUGS,
   DUSK_TILE_SLUGS,
   applyDemoChrome,
+  keepDemoSearchForChrome,
   parseDemoChrome
 } from '../public/assets/demo-art.mjs';
 
@@ -107,6 +108,13 @@ test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => 
   applyDemoChrome(doc, '', 'localhost');
   assert.equal(doc.documentElement.dataset.bpArt, undefined);
   assert.equal(doc.documentElement.dataset.bpLogo, undefined);
+});
+
+test('?demo&cardfill=1 keeps demo on preview chrome', () => {
+  assert.equal(keepDemoSearchForChrome('?demo&cardfill=1'), true);
+  assert.equal(keepDemoSearchForChrome('?cardfill=1'), true);
+  assert.equal(keepDemoSearchForChrome('?demo'), false);
+  assert.equal(keepDemoSearchForChrome('?demo&art=dusk'), true);
 });
 
 test('preview home flags are gone', () => {
