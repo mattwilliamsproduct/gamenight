@@ -1,30 +1,115 @@
 # Overnight inspection (expert questions + rubric)
 
-Inspection checklist only. Not permission for 50 improvements. Answers from this pass. Untested stays UNVERIFIED.
+Plan revision wins: this is an inspection checklist, not a license for 50 improvements. Fix only P0/P1 plus clear demo-path defects. Taste/product calls go to `docs/decisions-for-matt.md`. Section F stays OPEN.
 
-Legend: OK / FOUND-BUG / DECISION / UNVERIFIED
+Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
+
+---
 
 ## Plan-revision extras
 
-| Question | Answer | Evidence |
-| --- | --- | --- |
-| Older night / profiles / backup / records survive? | OK (automated) | `docs/prove-it/fixtures/older-night-from-main.json` built with `origin/main` backup.js. `npm run test:older-night` 3/3. Playwright `older-night.spec.mjs` passed. Rook stays Rook. |
-| Canasta variant, team vs player, entry, corrections, completion, records? | UNVERIFIED tonight beyond existing unit/functional files | `scripts/test-hand-foot.mjs` on `npm run check`. Functional pack running. |
-| Historical Rook identity preserved (hide switch does not hide past nights)? | OK (automated) | game-registry + older-night merge + Records card title Rook. |
-| Interrupted entry: refresh / Table / modal / double Submit / reopen? | OK (automated) | `data-integrity.spec.mjs` 24/24 plus `interrupted-entry.spec.mjs` 2/2 (Table and back; double-tap Submit). |
-| Real phone: long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | UNVERIFIED | rc1-acceptance covers 8-player enter/correct/resume at 5 sizes. 200% / keyboard still UNVERIFIED. |
-| First-timer: Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Save & End and Actions were in a `display:none` banner. Parked on the board bar (`c47d12e`). Table title: leaves without ending. Save & End: writes Records. Scratch (discard) stays in Actions. Physical look still PENDING. |
-
-## Expert bank (skim)
-
-| # | Question | Answer | Evidence |
+| Id | Question | Answer | Evidence |
 | --- | --- | --- | --- |
-| 1 | What is this / what to tap first? | UNVERIFIED on empty production home | Isolated demo has one primary: Enter Round 11. Production empty home is the normal table/start grid. Sample persist on empty home is DECISION (off). |
-| 1 | Sample night on empty home? | DECISION | Not offered on production. `/?demo&view=demo-path` only. |
-| 3 | Fix a wrong score; totals obvious? | OK (automated + 390 strip) | June 12→0, 50→38, Theo loses first. Records June 38. `demo-path.spec.mjs`. |
-| 3 | Refresh mid-demo persists? | OK isolation | Isolated session does not write `gn_*`. Personal Wizard night left on disk. |
-| 5 | Hierarchy / clipping on demo card? | FOUND-BUG (header) then fixed | "Round 12 of 11" after the last hand. Clamped when match is over (`facb8d1`). Board bar is tight on 390 (Table / Actions / Save & End wrap). Not a redesign. |
-| 8 | 90s demo shows judgment? | OK path exists | Link, fixture, taps in `docs/prove-it/demo-path.md`. Timed ~6s automated; human walk still PENDING. |
+| P-older | Older night / profiles / backup / records survive? | OK | Fixture from `origin/main` backup.js. `test:older-night` 3/3. `older-night.spec.mjs` 1/1. Rook stays Rook. |
+| P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK | `test-hand-foot.mjs` (sevens 1500 not stacked on clean 500; red 3s 100 / 200 at 4+). `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` + porch-night Canasta walk. |
+| P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
+| P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
+| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG 200% names off viewport; OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs`. 200% frame: `demo-path-390-200pct.png` (Player column left of viewport; Total/R11 remain). Keyboard-open still UNVERIFIED. |
+| P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Physical look PENDING. |
+
+---
+
+## 1. First 10 seconds
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 1a | Stranger tell what this is and what to tap first? | OK on isolated demo; UNVERIFIED as a physical cold open | Demo: one primary “Enter Round 11 Scores”. Empty production home is the table + Start grid (no sample CTA — DECISION). |
+| 1b | One obvious primary on Home? | OK during a live match (Resume). DECISION on empty home | Settled B: Resume is the single primary during an active match. Empty home has Start + add player. Sample CTA off. |
+| 1c | First-time user with no history sees a sample night? | DECISION | Not on production. `/?demo&view=demo-path` only. |
+| 1d | Logo and title read as a real product? | UNVERIFIED (physical) | Not restyled. Art/logo dusk stays behind `?demo`. |
+| 1e | Taps from cold open to first score? | OK on demo (1 tap: Enter). Empty home is add players → pick game → Start → Enter | Demo path designed so completion is the 11th hand. |
+
+## 2. Running a game night
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 2a | Enter a round in shuffle time? | OK | Demo enter-mistake 1.3s automated. Human table still PENDING. |
+| 2b | One-hand phone, thumb-reachable? | OK (automated targets) | Primary board controls ≥44px in `phone-conditions.spec.mjs`. Physical PENDING. |
+| 2c | Keypad matches number type; negatives where legal? | OK | Custom keypad. Negatives rejected for FC/Flip7/Heat (`data-integrity` P1-05). Wizard/818 miss scores can be negative by formula. |
+| 2d | After a round, clear who’s winning? | OK | Demo 390 strip: places + totals update. |
+| 2e | TV 10-foot: names + totals largest? | UNVERIFIED as a couch judgment | 1920 layout shot is layout-only. Readability judged separately at freeze. |
+| 2f | Remembers usual players for next night? | OK | Roster + profiles persist locally. `test:local-only`. Cloud off. |
+
+## 3. Mistakes and trust
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 3a | Fix a past score in two taps; totals obvious? | OK | Demo June 12→0, 50→38, first flips. |
+| 3b | Undo / confirm where loss is real? | OK | Scratch and Save & End confirm. End copy distinguishes unfinished vs complete. |
+| 3c | Accidental end recoverable? | OK confirm; DECISION on undo-end | Confirm on Save & End. No “undo end match”. Recover via Resume only if they Cancel. Once confirmed, night is finished. |
+| 3d | Refresh / lock / tab close keeps the live match? | OK on real book; OK isolation on demo | Persist for real books. Isolated demo does **not** persist (labeled). |
+| 3e | Records / Fame / Shame agree with history? | OK on demo + records tests | Demo Records June 38. `test:records`. |
+| 3f | Blanks, ties, retired, reopened same everywhere? | OK | data-integrity + scorebook + night-podium. Shared places. Incomplete out of completed records. |
+
+## 4. Game logic
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 4a | Five Crowns / Wizard / 818 / Flip 7 / Heat match the spec? | OK | `test:scorebook`, `test:fixture-rules`, `test:data-integrity`, porch-night. |
+| 4b | Canasta: sevens 1500 replaces clean 500; red 3s 100 or 200 at 4+; one config? | OK | `HF.CANASTA_RULES.sevensCanastaEach === 1500`. `redThreesScore(3)=300`, `(4)=800`. `test-hand-foot.mjs`. |
+| 4c | End conditions shown? | OK | Five Crowns 11 hands. Heat 66. Demo header clamped when over (`facb8d1`). |
+| 4d | Trick/contract errors explain the fix? | OK | data-integrity Wizard/818 correction copy. |
+| 4e | Property tests for totals/winners/ties/edits? | OK | check suite. Not every emoji-name path. |
+| 4f | UI-stuck statechart states? | UNVERIFIED | No new statechart walk tonight. |
+
+## 5. Visual quality
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 5a | One hierarchy per screen? | OK on demo card | Totals + places first. Board bar is tight on 390. |
+| 5b | Spacing / alignment / no orphans? | FOUND-BUG (header 12 of 11) fixed; board wrap logged | `facb8d1`. 390 bar wraps Table / Actions / Save & End. Not a redesign. |
+| 5c | Cream/teal, teal for action? | OK / DECISION on tokens | No token hex changes (F). |
+| 5d | Type limited and meaningful? | UNVERIFIED as a redesign | No type scale rewrite. |
+| 5e | 375–1920 no clip? | FOUND-BUG at 200% / 390 | `demo-path-390-200pct.png`. NAME-FIT in-cell still true; names leave the viewport. Visual snapshot matrix UNVERIFIED. |
+| 5f | Internal jargon on screen? | OK on demo | “Sample night” / “Save & End” / “Scratch Match (discard)”. “Championship Ledger” is the records title (settled B). “Warm Porch Ledger” not on screen. |
+| 5g | Pressed / focus / disabled? | UNVERIFIED | Bonus territory if no blocker. |
+| 5h | Design-lead proud? | DECISION | Matt’s morning look. |
+
+## 6. Delight
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 6a | Winner celebration earned? | OK | Victory “June Wins!” on demo. Wheel left out of 90s. |
+| 6b | Shame playful not mean? | DECISION | F. Shame on Overview / fun subtitles. |
+| 6c | Life Preserver commit-then-spin? | OK (existing) | rc1-acceptance spin path. Odds table not changed (F). |
+| 6d | One “oh, nice”? | DECISION | Demo is the correction flip, not the wheel. |
+
+## 7. Performance and robustness
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 7a | Lighthouse mobile? | UNVERIFIED | Not run. |
+| 7b | Wheel jank / layout shift? | UNVERIFIED | Wheel out of core demo. |
+| 7c | 44px targets, contrast, labels? | OK targets on demo board after 40→44; contrast UNVERIFIED | `phone-conditions.spec.mjs`. Before/after: `demo-board-390-before.png` / `-after.png`. |
+| 7d | Console errors on demo path? | see test | `phone-conditions.spec.mjs` pageerror list. |
+
+## 8. Interview lens
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 8a | 90s shows judgment? | OK path exists | Isolated correction walk. Human PENDING. |
+| 8b | Visible decisions explainable? | OK | Blank=0, incomplete out of records, pre-spin LP — settled. Not forced as three stories until evidence + Matt. |
+| 8c | Unfinished / copied undercut? | FOUND-BUG then fixed | Hidden End/Scratch; “Round 12 of 11”; save-chip vs sample banner. |
+| 8d | Honest boundary (directed agents, not the code)? | DECISION / not in the app | Resume line is off until gate. |
+| 8e | What a hiring manager asks next? | DECISION | Case study after gate. |
+
+## 9. Subtraction
+
+| Id | Question | Answer | Evidence |
+| --- | --- | --- | --- |
+| 9a | What to remove? | DECISION | Sample persist already removed. Wheel out of 90s. |
+| 9b | Settings that exist because they were easy? | UNVERIFIED | Not audited as a kill list tonight. |
+| 9c | Screen a new user never misses? | DECISION | Profiles / Explore depth. Not removed. |
 
 ## Rubric F
 

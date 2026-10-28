@@ -75,7 +75,7 @@ Mark untested UNVERIFIED. Never green without evidence.
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
 | Historical Rook identity preserved | OK (automated) | older-night + canasta-rook-flag + game-registry. |
 | Interrupted entry (refresh, Table, modal, double Submit) | OK (automated) | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2: Table and back keeps the same hand; double-tap Submit adds one round. |
-| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | UNVERIFIED | 8-player keypad + retired records covered in rc1-acceptance. 200% / keyboard UNVERIFIED. |
+| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player names; FOUND-BUG 200% names off viewport | `phone-conditions.spec.mjs` 5/5 after 44px bump. 8-player NAME-FIT holds. 200% shot shows Player scrolled off (`demo-path-390-200pct.png`) — clip still open. Keyboard-open UNVERIFIED. |
 | Understandability: Table vs End vs Scratch | OK (automated) | Board-bar park. Physical look PENDING. |
 | 90s isolated demo path | OK (automated) | `demo-path.spec.mjs` 2/2. `demo-seed` view `demo-path` 1/1 after locator fix. |
 | Physical iPhone Safari | PENDING | Matt only |

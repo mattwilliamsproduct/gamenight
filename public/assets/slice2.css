@@ -822,7 +822,7 @@ html.slice2-tv .s2-board-identity {
 
 html.slice2-tv .s2-table-btn {
   flex: 0 0 auto;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0.4rem 0.75rem;
   font-size: 0.9rem;
   color: var(--s2-ink);
@@ -1934,7 +1934,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv .s2-table-btn {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.4rem 0.7rem;
     font-size: 0.9rem;
     color: var(--s2-ink);
@@ -1956,7 +1956,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv #slice2-enter-btn {
     flex: 0 1 auto;
     order: 3;
-    min-height: 40px;
+    min-height: 44px;
     font-size: 0.95rem;
   }
 
@@ -2016,7 +2016,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv .s2-table-btn {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.4rem 0.75rem;
     font-size: 0.9rem;
     color: var(--s2-ink);
