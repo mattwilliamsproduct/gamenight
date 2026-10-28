@@ -1,10 +1,13 @@
 # RC1 combined candidate — gate report
 
-**Status:** verification only (5:00 AM ET). Automated suites passed at `a859377`. Not frozen.  
-**HEAD while writing this update:** `a859377`
+**Status:** automated verification passed; physical Safari approval pending  
+**FROZEN at** `c4841e3`, 5:38 AM ET  
+**HEAD:** `c4841e3` — Rebuild app utilities after the phone name-fit scan.  
+**Code:** three demo-path CSS fixes on `a859377` / `a507208` (`4515594`, `2389a2b`, `c8ad40c`, plus utilities `c4841e3`).  
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
-**Draft PR:** #73 (draft only; no undraft / merge / deploy)
+**Draft PR:** #73 (draft only; no undraft / merge / deploy)  
+**Tag:** `rc1-candidate-20261028-0538`
 
 Do not write "approved". Physical iPhone Safari, post-deploy smoke, and rollback stay PENDING.
 
@@ -60,13 +63,13 @@ Classified from this branch's own docs and a first look, not from memory. Untest
 
 | Field | Value |
 | --- | --- |
-| FROZEN at | *(not yet — freeze ~6:30 AM ET)* |
-| Tag | *(not yet)* |
-| HEAD sha | `a859377` |
-| Commands + pass counts | 5:00 AM ET verify: `npm run check` pass. `test:functional` **150/150**. `demo-path` 2/2. `phone-conditions` 10/10. `life-preserver-visible` 5/5. `test:porch-night` 2/2. CI `check` success on `a859377`. |
+| FROZEN at | `c4841e3`, 5:38 AM ET |
+| Tag | `rc1-candidate-20261028-0538` |
+| HEAD sha | `c4841e3` |
+| Commands + pass counts | 5:34 AM ET: `npm run check` pass. `test:functional` **152/152**. `demo-path` 2/2. `phone-conditions` 12/12 (match-complete NAME-FIT, toast clear, 375 headers). `life-preserver-visible` 5/5. `test:porch-night` 2/2. Demo rehearse 390×3 + 375×3, all June 38 / Theo 41. |
 | Demo fixture | `/?demo&view=demo-path` |
-| Pinned preview | Ready to pin for `a859377`: `gamenight-qog1ihhtz-mattwilliamsproducts-projects.vercel.app` (GitHub deployment 7377955702, Preview success). Curl hits Vercel SSO (302). Not the git-branch alias. Not frozen. Re-confirm at freeze. |
-| Status wording | *(exactly one of: BLOCKED \<reasons\> / automated verification passed; physical Safari approval pending)* |
+| Pinned preview | `gamenight-7voetuyns-mattwilliamsproducts-projects.vercel.app` (GitHub deployment 7381820408, Preview success on `c4841e3`). Not the git-branch alias. Curl hits Vercel SSO (302). |
+| Status wording | automated verification passed; physical Safari approval pending |
 | Physical iPhone Safari | PENDING (Matt only) |
 | Post-deploy smoke / rollback | PENDING |
 | TV-distance 1920×1080 | layout check only; readability judged separately |
@@ -78,15 +81,15 @@ Mark untested UNVERIFIED. Never green without evidence.
 | Gate item | Result | Evidence |
 | --- | --- | --- |
 | Combined RC (Slice 1 + Slice 2 + responsive + flags) | OK (automated visual matrix + porch-night) | 5-size matrix 375/390/768/1440/1920 with contact sheets. `test:porch-night` 2/2. Physical Safari PENDING. |
-| Classify all test failures | OK (this pack) | `npm run check` pass at `a859377` (5:00 AM ET). `test:functional` **150/150**. CI check success on `a859377`. `test:visual` Playwright baselines still stale / not the overnight matrix. |
+| Classify all test failures | OK (this pack) | `npm run check` pass at `c4841e3` (5:34 AM ET). `test:functional` **152/152**. `test:visual` Playwright baselines still stale / not the overnight matrix. |
 | Task-completion acceptance (8 players, correct past, resume) | OK (automated) | `rc1-acceptance.spec.mjs` passed in the 64/65 pack (the one fail was the demo-path locator, now fixed). |
 | Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
 | Historical Rook identity preserved | OK (automated) | older-night + canasta-rook-flag + game-registry. |
 | Interrupted entry (refresh, Table, modal, double Submit) | OK (automated) | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2: Table and back keeps the same hand; double-tap Submit adds one round. |
-| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player + 200% + Scratch + complete banner + Canasta 3695 + 768 nav | `phone-conditions.spec.mjs` 10/10. Keyboard-open UNVERIFIED. FC negatives rejected (`data-integrity` P1-05). |
+| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player + 200% + Scratch + complete NAME-FIT + toast + 375 rounds + Canasta 3695 + 768 nav | `phone-conditions.spec.mjs` 12/12. Keyboard-open UNVERIFIED. FC negatives rejected (`data-integrity` P1-05). |
 | Understandability: Table vs End vs Scratch | OK (automated + matrix) | `← Table` leaves (no modal, Resume stays). Save & End confirm: “End this match now?” Scratch is “Scratch Match (discard)” on the phone Actions menu (`4a2f666`) then native confirm. Physical PENDING. |
-| 90s isolated demo path | OK (automated, 6 rehearsals) | `demo-path.spec.mjs` 2/2. Rehearse 390×3 and 375×3, all June 38 / Theo 41. Strips: `demo-rehearse/strip-390x844.png`, `strip-375x667.png`. |
+| 90s isolated demo path | OK (automated, 6 rehearsals, reshot after CSS fixes) | `demo-path.spec.mjs` 2/2. Rehearse 390×3 and 375×3, all June 38 / Theo 41. Strips: `demo-rehearse/strip-390x844.png`, `strip-375x667.png`. |
 | Physical iPhone Safari | PENDING | Matt only |
 | Post-deploy smoke + rollback | PENDING | |
 | Art / logo live swap | not in candidate | dusk stays behind `?demo` |
@@ -104,7 +107,17 @@ See `docs/decisions-for-matt.md`. Section F stays OPEN. Sample night on producti
 
 None forced. Write only where a real decision and real evidence exist at freeze.
 
-## Artifact paths (captured from the a859377 UI; docs-only HEAD on top)
+## Known P1 — demo-path name clipping (fixed on this freeze)
+
+Matt caught it on the 390/375 strips before freeze. After the last hand, leftover row height blew `--scorecard-player-font` to 34px so Theo/June/Rosa/Hank clipped (`Thec`/`The`, `Junc`, `Rosi`/`Ros`, `Han`). The mid-game NAME-FIT check did not cover match-complete. Listed here either way per the freeze brief.
+
+| Item | Result | SHA | Before / after |
+| --- | --- | --- | --- |
+| Name clip on match-complete (375 + 390) | Fixed. Phone name size capped; NAME-FIT asserted on match-complete. | `4515594` | `demo-fixes/names-before/` · `demo-fixes/names-after/` |
+| Standings updated toast on Save & End / Match complete | Fixed. Toast parked in the scorecard band. | `2389a2b` | `demo-fixes/toast-before/` · `demo-fixes/toast-after/` |
+| 375 R9/R10 collision | Fixed. Fewer round columns; R10 and R11 stay apart. | `c8ad40c` | `demo-fixes/rounds-before/` · `demo-fixes/rounds-after/` |
+
+## Artifact paths (matrix from a859377 UI; demo strips reshot on `c4841e3`)
 
 Recaptured 5:08 AM ET. 50/50 matrix shots. Game tiles below the fold on phone Home are scroll, not a P0. No blocker.
 

@@ -40,5 +40,7 @@ Leave the wheel out of these 90 seconds.
 
 `npx playwright test --config=playwright.functional.config.mjs tests/functional/demo-path.spec.mjs`
 
-Frame strip: `/opt/cursor/artifacts/screenshots/demo-rehearse/strip-390x844.png`  
-Key frames: `/opt/cursor/artifacts/screenshots/demo-path/390-01-resume.png` … `390-05-records.png`
+Frame strip (reshot on freeze `c4841e3`): `/opt/cursor/artifacts/screenshots/demo-rehearse/strip-390x844.png`  
+375 strip: `/opt/cursor/artifacts/screenshots/demo-rehearse/strip-375x667.png`  
+Key frames: `/opt/cursor/artifacts/screenshots/demo-path/390-01-resume.png` … `390-05-records.png`  
+Rehearse 6/6: June 38 / Theo 41 after the correction.

@@ -14,7 +14,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK; FOUND-BUG then fixed (entry totals) | Sevens 1500 / red 3s 100→200 at 4+. Entry showed 3695 as “3…”. Widened Total column `2740f11`. After: 3695 and 1430 whole on 375/390/1440. |
 | P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
 | P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
-| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200%; complete banner; Canasta 3695); OK 44px + 8-player | `phone-conditions.spec.mjs` 10/10. Retired Hank shows RETIRED and drops out of `getRecordedPlayers`. FC negatives rejected. Wizard miss negatives stay on `data-integrity`. Simulated 380px entry keeps Submit; physical OS keyboard UNVERIFIED. |
+| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200%; complete banner; Canasta 3695; match-complete NAME-FIT; 375 R9/R10) | `phone-conditions.spec.mjs` 12/12. Retired Hank shows RETIRED and drops out of `getRecordedPlayers`. FC negatives rejected. Wizard miss negatives stay on `data-integrity`. Simulated 380px entry keeps Submit; physical OS keyboard UNVERIFIED. |
 | P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Scratch was clipped on 375/390; pinned `4a2f666`. End copy distinguishes unfinished. Discard is native `confirm`. Physical PENDING. |
 
 ---
