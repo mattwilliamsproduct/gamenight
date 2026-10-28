@@ -5,7 +5,7 @@ import {applyDemoChrome, keepDemoSearchForChrome} from './demo-art.mjs';
 export const DEMO_FLAG = 'gn_demo_seeded';
 export const DEMO_VERSION = '5';
 export const DEMO_BLOCKED_COPY = 'This device already has history. Demo data was not loaded.';
-export const DEMO_PATH_COPY = 'Sample night · Five Crowns · not saved on this device';
+export const DEMO_PATH_COPY = 'Sample night · not saved on this device';
 
 export const DEMO_VIEW_IDS = [
   'home',

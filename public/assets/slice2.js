@@ -69,20 +69,26 @@
     return displayGameName(game.name);
   }
 
+  function shownRound(game, maxR) {
+    if (typeof isMatchOver === 'function' && isMatchOver(game) && maxR && maxR < 900) return maxR;
+    return game.currentRound;
+  }
+
   function boardLine(game) {
     const bits = [boardTitle(game)];
     const maxR = getMaxRoundsForGame(game);
+    const round = shownRound(game, maxR);
     if (isEight18Game(game)) {
       const tricks = getRoundTrickCount(game);
-      bits.push(`Round ${game.currentRound} of ${maxR} (${tricks} trick${tricks === 1 ? '' : 's'})`);
+      bits.push(`Round ${round} of ${maxR} (${tricks} trick${tricks === 1 ? '' : 's'})`);
     } else if (game.name === 'Wizard') {
-      bits.push(`Round ${game.currentRound} of ${maxR}`);
+      bits.push(`Round ${round} of ${maxR}`);
     } else if (game.name === 'Five Crowns') {
-      bits.push(`Round ${game.currentRound} of ${maxR}`);
+      bits.push(`Round ${round} of ${maxR}`);
     } else if (maxR && maxR < 900) {
-      bits.push(`Round ${game.currentRound} of ${maxR}`);
+      bits.push(`Round ${round} of ${maxR}`);
     } else {
-      bits.push(`Round ${game.currentRound}`);
+      bits.push(`Round ${round}`);
     }
     if (isBidTrickGame(game) && !isMatchOver(game)) {
       const phase = getBidTrickPhase(game);
@@ -196,6 +202,11 @@
   function parkSaveIndicator() {
     const el = document.getElementById('save-indicator');
     if (!el) return;
+    if (window.__GN_DEMO_SKIP_PERSIST) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
     const game = document.getElementById('game-screen');
     const row = document.querySelector('#slice2-board-bar .s2-board-line-row');
     const onBoard = !!(game && !game.classList.contains('hidden') && row);

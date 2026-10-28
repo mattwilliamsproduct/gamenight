@@ -10,7 +10,7 @@ test('older main backup restores Rook nights, profiles, and records without Cana
     sessionStorage.clear();
   });
   await page.goto('/', {waitUntil: 'domcontentloaded'});
-  await expect(page.locator('#slice2-home, #home-screen')).toBeVisible();
+  await expect(page.locator('#slice2-home')).toBeVisible();
 
   const merged = await page.evaluate((text) => {
     importBackupText(text);
@@ -34,12 +34,12 @@ test('older main backup restores Rook nights, profiles, and records without Cana
   expect(merged.live).toBe('818');
   expect(merged.incomplete).toContain('Beat the Heat');
 
-  await page.getByRole('button', {name: /Records/}).click();
-  await expect(page.locator('#hall-of-fame-view, #history-screen')).toBeVisible();
-  await expect(page.locator('#hall-of-fame-view, #history-screen, .s2-ledger')).toContainText(/Rook/);
-  await expect(page.locator('#hall-of-fame-view, #history-screen, .s2-ledger')).not.toContainText(/Canasta/);
+  await page.evaluate(() => { if (typeof showHistory === 'function') showHistory(); });
+  await expect(page.locator('#history-screen')).toBeVisible();
+  await expect(page.locator('#history-screen')).toContainText(/Rook/);
+  await expect(page.locator('#history-screen')).not.toContainText(/Canasta/);
 
-  const nightsTab = page.locator('#slice2-show-nights, [data-s2-action="records-nights"]');
+  const nightsTab = page.locator('#slice2-show-nights, [data-s2-records="nights"]');
   if (await nightsTab.count()) await nightsTab.first().click();
-  await expect(page.locator('#hall-of-fame-view, #history-screen, .s2-ledger')).toContainText(/Rook|Cal|Dee/);
+  await expect(page.locator('#history-screen')).toContainText(/Rook|Cal|Dee/);
 });

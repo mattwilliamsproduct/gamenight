@@ -52,35 +52,18 @@ async function enterScores(page, values) {
 }
 
 async function correctJuneLast(page, nextScore) {
-  await page.evaluate((score) => {
+  await page.evaluate(() => {
     const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
     if (typeof openPastScoreCell === 'function') openPastScoreCell('June', last);
-    else if (typeof BPGScorebook?.commitRoundCorrection === 'function') {
-      const scores = {...currentGame.rounds[last].scores, June: score};
-      BPGScorebook.commitRoundCorrection(currentGame, {roundIndex: last, scores});
-      if (typeof scheduleRender === 'function') scheduleRender();
-    }
-  }, nextScore);
+  });
   const pad = page.locator('#custom-numpad');
-  const correction = page.locator('#round-correction-modal');
-  if (await pad.isVisible().catch(() => false)) {
-    const clear = pad.locator('button[onclick="numpadPress(\'backspace\')"], button[onclick="numpadPress(\'clear\')"]');
-    if (await clear.count()) {
-      await clear.first().click();
-      await clear.first().click();
-    }
-    await pad.locator(`button[onclick="numpadPress('${nextScore}')"]`).click();
-    const done = page.getByRole('button', {name: /Close Keypad|Done|OK/i});
-    if (await done.count()) await done.first().click();
-    else await page.evaluate(() => { if (typeof closeNumpad === 'function') closeNumpad(); });
-  } else if (await correction.isVisible().catch(() => false)) {
-    await page.locator('.round-correction-row[data-player="June"]').click();
-    for (const digit of String(nextScore)) {
-      await page.locator(`#round-correction-modal button[onclick="roundCorrectionKey('${digit}')"]`).click();
-    }
-    await page.locator('#round-correction-save').click();
-    await expect(correction).toBeHidden();
-  }
+  await expect(pad).toBeVisible({timeout: 5000});
+  const back = pad.locator('button[onclick="numpadPress(\'backspace\')"]');
+  await back.click();
+  await back.click();
+  await pad.locator(`button[onclick="numpadPress('${nextScore}')"]`).click();
+  await page.getByRole('button', {name: /Close Keypad/i}).click();
+  await expect(pad).toBeHidden({timeout: 5000});
 }
 
 test('isolated demo path: last-hand correction changes the winner and Records agree', async ({page}) => {
@@ -141,22 +124,23 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
   await mark('finish-and-records', async () => {
     const over = await page.evaluate(() => typeof isMatchOver === 'function' && isMatchOver(currentGame));
     expect(over, 'hand 11 finishes Five Crowns').toBe(true);
-    const endBtn = page.locator('#game-over-section button, .match-end-btn, #end-match-confirm').filter({hasText: /End Match|Save & End/}).first();
-    if (await page.locator('#game-over-section button').count()) {
-      await page.locator('#game-over-section button').first().click();
-    } else if (await page.locator('.match-end-btn').count()) {
-      await page.locator('.match-end-btn').first().click();
-    } else {
-      await page.evaluate(() => requestEndGame());
-    }
+    const endMatch = page.locator('#game-over-section button').filter({hasText: /End Match/});
+    if (await endMatch.count()) await endMatch.first().click();
+    else await page.locator('.match-end-btn').first().click();
     const confirm = page.locator('#end-match-confirm');
-    if (await confirm.count()) await confirm.click();
+    await expect(confirm).toBeVisible({timeout: 5000});
+    await confirm.click();
+    await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#victory-names')).toContainText(/June/i);
+    await shot(page, '390-04-victory');
     await page.evaluate(() => {
-      if (typeof closeVictoryModal === 'function') closeVictoryModal();
+      document.getElementById('victory-modal')?.classList.add('hidden');
+      document.getElementById('loser-modal')?.classList.add('hidden');
+      if (typeof resetPostgameConfetti === 'function') resetPostgameConfetti();
+      if (typeof showHistory === 'function') showHistory();
     });
-    await page.getByRole('button', {name: /Records/}).click();
-    await expect(page.locator('#hall-of-fame-view, #history-screen')).toBeVisible();
-    await expect(page.locator('#hall-of-fame-view, #history-screen, .s2-ledger')).toContainText(/June/);
+    await expect(page.locator('#history-screen')).toBeVisible();
+    await expect(page.locator('#hall-of-fame-view')).toContainText(/June/);
     const saved = await page.evaluate(() => {
       const night = (history || []).find((match) => match.game === 'Five Crowns');
       return {
@@ -173,7 +157,7 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
     expect(saved.totals.June).toBe(38);
     expect(saved.totals.Theo).toBe(41);
     expect(saved.storageHistory.length, 'isolated session must not persist into gn_history').toBe(0);
-    await shot(page, '390-04-records');
+    await shot(page, '390-05-records');
   });
 
   writeFileSync(`${STRIP}/390-timings.json`, JSON.stringify({

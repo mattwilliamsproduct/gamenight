@@ -19,7 +19,7 @@ Allowed hosts: localhost, 127.0.0.1, and `*-mattwilliamsproducts-projects.vercel
 
 ## Taps (same every time)
 
-1. Open the link on a 390×844 phone. Banner reads "Sample night · Five Crowns · not saved on this device."
+1. Open the link on a 390×844 phone. Banner reads "Sample night · not saved on this device."
 2. Confirm the card: June 38, Theo 36.
 3. Enter scores → last hand, in seat order: **12, 5, 8, 4** (June's 12 is the obvious mistake).
 4. Totals become June **50**, Theo **41**. Theo still first.
