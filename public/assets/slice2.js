@@ -154,6 +154,27 @@
       </div>`;
   }
 
+  function parkBoardChrome() {
+    const actions = document.querySelector('#slice2-board-bar .s2-board-actions');
+    const table = document.getElementById('slice2-table-btn');
+    if (table) {
+      table.title = 'Leave the scorecard. The match stays on Resume.';
+      table.setAttribute('aria-label', 'Back to Table. Leaves the scorecard without ending the match.');
+    }
+    const endBtn = document.querySelector('#game-screen .match-end-btn');
+    if (endBtn) {
+      endBtn.title = 'Save the standings to Records and clear the live table.';
+    }
+    const scratch = document.querySelector('#actions-menu button[onclick*="scratchMatch"] span:last-child');
+    if (scratch && !/discard/i.test(scratch.textContent || '')) {
+      scratch.textContent = 'Scratch Match (discard)';
+    }
+    if (!actions) return;
+    const menuWrap = document.querySelector('#game-screen .active-match-actions');
+    if (menuWrap && menuWrap.parentElement !== actions) actions.appendChild(menuWrap);
+    if (endBtn && endBtn.parentElement !== actions) actions.appendChild(endBtn);
+  }
+
   function paintNav() {
     const table = state();
     const row = document.querySelector('#top-nav > div');
@@ -435,6 +456,7 @@
       }
     }
     parkSaveIndicator();
+    parkBoardChrome();
     const legend = document.getElementById('slice2-score-legend');
     if (line) {
       const full = boardLine(currentGame);
@@ -1152,6 +1174,7 @@
     refresh,
     paintWheel,
     parkSaveIndicator,
+    parkBoardChrome,
     setRecordsPane,
     moveSeatList,
     sizeLifePreserverModal,
