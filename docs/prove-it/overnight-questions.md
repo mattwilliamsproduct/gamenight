@@ -14,7 +14,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK; FOUND-BUG then fixed (entry totals) | Sevens 1500 / red 3s 100→200 at 4+. Entry showed 3695 as “3…”. Widened Total column `2740f11`. After: 3695 and 1430 whole on 375/390/1440. |
 | P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
 | P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
-| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200% lead); OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs` 5/5. Before/after: `demo-path-390-200pct-before.png` / `-after.png`. Entry uses the custom keypad. OS keyboard covering the card is UNVERIFIED on a physical phone. |
+| P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200%; complete banner; Canasta 3695); OK 44px + 8-player | `phone-conditions.spec.mjs` 8/8. Retired Hank shows RETIRED and drops out of `getRecordedPlayers`. FC negatives rejected. Wizard miss negatives stay on `data-integrity`. OS keyboard UNVERIFIED. |
 | P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Scratch was clipped on 375/390; pinned `4a2f666`. End copy distinguishes unfinished. Discard is native `confirm`. Physical PENDING. |
 
 ---
@@ -90,7 +90,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | --- | --- | --- | --- |
 | 7a | Lighthouse mobile? | UNVERIFIED on preview (SSO 302). Local 4173: P **0.59** / A11y **0.84** / BP **1.00**. | Preview requires Vercel SSO. Local fails: `target-size` (12), `meta-viewport` user-scalable, unlabeled inputs. Viewport lock not changed (product). |
 | 7b | Wheel jank / layout shift? | UNVERIFIED | Wheel out of core demo. |
-| 7c | 44px targets, contrast, labels? | OK targets on demo board after 40→44; contrast UNVERIFIED | `phone-conditions.spec.mjs`. Before/after: `demo-board-390-before.png` / `-after.png`. |
+| 7c | 44px targets, contrast, labels? | OK targets; OK contrast (Lighthouse); labels mixed | Board 44px. Local Lighthouse `color-contrast` 1.00. `label` audit 0 (unlabeled inputs). `target-size` 0 leftover 12. |
 | 7d | Console errors on demo path? | OK | `phone-conditions.spec.mjs` pageerror list empty. |
 | 7e | Empty home / empty records / first run? | OK | `edge-states.spec.mjs`. Empty records: “Hall of Fame stays empty until a night is saved.” |
 | 7f | Storage full / blocked? | FOUND-BUG / DECISION | `persistJsonIfChanged` does not catch `QuotaExceededError`. No toast. Code left alone. Rec on the decision list: catch + keep RAM + toast after gate. |

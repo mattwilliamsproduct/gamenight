@@ -15888,7 +15888,16 @@ ${isDealer
     table.querySelectorAll('tbody tr').forEach(row=>{
       const hiddenSum=[...row.querySelectorAll('.score-cell-life-preserver')].reduce((sum,el)=>{
         const cell=el.closest('[data-sc-round]');
-        if(!cell||!cell.classList.contains('scorecard-round--hidden')) return sum;
+        if(!cell) return sum;
+        const trimmed=cell.classList.contains('scorecard-round--hidden');
+        let clipped=false;
+        if(!trimmed){
+          el.removeAttribute('hidden');
+          const cellW=cell.clientWidth||cell.getBoundingClientRect().width;
+          clipped=cellW>0&&cellW<40;
+          if(clipped) el.setAttribute('hidden','');
+        }
+        if(!trimmed&&!clipped) return sum;
         return sum+(Number(el.dataset.lp)||0);
       },0);
       const totalCell=row.querySelector('.scorecard-total-cell');
