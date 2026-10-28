@@ -2947,12 +2947,14 @@ html.slice2-tv .s2-records-filters label {
 
 html.slice2-tv .s2-records-filters select {
   min-width: 10rem;
+  min-height: 44px;
   padding: 0.45rem 0.7rem;
   border: 1px solid var(--s2-line);
   border-radius: 10px;
   background: #fffaf4;
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
+  font-size: 1rem;
   font-weight: 700;
 }
 
