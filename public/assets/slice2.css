@@ -285,6 +285,11 @@ html.slice2-tv .s2-btn-primary {
   color: #fff;
 }
 
+html.slice2-tv .s2-btn-primary:focus-visible {
+  outline: 3px solid #fff8ee;
+  outline-offset: 3px;
+}
+
 html.slice2-tv .s2-btn:disabled {
   opacity: 0.45;
   cursor: default;
