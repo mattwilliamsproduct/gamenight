@@ -1601,7 +1601,7 @@ html.slice2-tv .s2-ledger-row.is-head {
   border-top: 0;
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.72rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3197,7 +3197,7 @@ html.slice2-tv .s2-records-filters select:focus {
     content: attr(data-label);
     color: var(--s2-muted);
     font-family: "Nunito Sans", sans-serif;
-    font-size: 0.72rem;
+    font-size: max(13px, 0.8rem);
     font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
