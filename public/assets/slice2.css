@@ -2354,6 +2354,20 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     padding: 0.38rem;
   }
 
+  html.slice2-tv body.active-match-view #game-over-section {
+    padding: 0.85rem 1rem !important;
+    gap: 0.55rem !important;
+  }
+
+  html.slice2-tv body.active-match-view #game-over-section h3 {
+    font-size: 1.45rem;
+  }
+
+  html.slice2-tv body.active-match-view #game-over-section .btn-primary {
+    padding: 0.7rem 1.25rem;
+    font-size: 1rem;
+  }
+
   html.slice2-tv body.active-match-view #slice2-board-bar {
     flex: 0 0 auto;
   }

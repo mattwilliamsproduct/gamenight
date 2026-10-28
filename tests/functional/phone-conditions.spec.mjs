@@ -93,6 +93,46 @@ test('1920 scoreboard keeps names and totals in layout (readability judged separ
   expect(totals.some((text) => text.includes('38') || text.includes('36'))).toBe(true);
 });
 
+test('Match Complete on 375 keeps June through Hank above the banner', async ({page}) => {
+  await page.setViewportSize({width: 375, height: 667});
+  await openDemoPath(page);
+  await page.locator('#slice2-enter-btn, #submit-action-btn').first().click();
+  await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+  const next = page.locator('#score-entry-modal .score-entry-key.next');
+  for (const value of [12, 5, 8, 4]) {
+    for (const digit of String(value).split('')) {
+      await page.locator('#score-entry-modal .score-entry-key', {hasText: digit}).first().click();
+    }
+    if (value !== 4) await next.click();
+  }
+  await page.locator('#score-entry-primary-btn').click();
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/, {timeout: 8000});
+  await expect(page.locator('#game-over-section')).not.toHaveClass(/hidden/);
+  const fit = await page.evaluate(() => {
+    const vh = window.innerHeight;
+    const banner = document.getElementById('game-over-section')?.getBoundingClientRect();
+    const names = [...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map((el) => {
+      const box = el.getBoundingClientRect();
+      return {
+        text: (el.textContent || '').trim(),
+        inView: box.top >= 0 && box.bottom <= vh + 2 && box.width > 8,
+        aboveBanner: !banner || box.bottom <= banner.top + 2
+      };
+    });
+    return {names, bannerTop: banner?.top || 0};
+  });
+  await page.screenshot({path: `${SHOT}/complete-375-after.png`, fullPage: false});
+  const texts = fit.names.map((row) => row.text);
+  expect(texts.some((text) => /June/.test(text)), 'June whole').toBe(true);
+  expect(texts.some((text) => /Theo/.test(text)), 'Theo whole').toBe(true);
+  expect(texts.some((text) => /Rosa/.test(text)), 'Rosa whole').toBe(true);
+  expect(texts.some((text) => /Hank/.test(text)), 'Hank whole').toBe(true);
+  fit.names.forEach((row) => {
+    expect(row.inView, `${row.text} in view`).toBe(true);
+    expect(row.aboveBanner, `${row.text} above Match Complete`).toBe(true);
+  });
+});
+
 test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);

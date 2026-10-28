@@ -15006,15 +15006,14 @@ ${isDealer
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
       if(handFoot&&window.innerWidth<1280)return;
       const overEl=document.getElementById('game-over-section');
-      const boardEl=wrap.closest('.tournament-scoreboard');
+      const overVisible=!!(overEl&&!overEl.classList.contains('hidden'));
       // Row-fit must use the on-screen remainder. wrap.clientHeight follows the
-      // table, so large type was sizing 132px rows that painted below the fold.
+      // table, so large type was sizing rows that painted through Match Complete.
       const wrapBox=wrap.getBoundingClientRect();
-      const visibleWrap=Math.max(80,Math.min(wrap.clientHeight,Math.floor(window.innerHeight - wrapBox.top - 8)));
-      // The final footer is taller than Log Scores. Keep the player column at the in-progress size.
-      const fitHeight=handFoot&&overEl&&!overEl.classList.contains('hidden')&&boardEl
-        ? Math.max(visibleWrap, Math.min(boardEl.clientHeight-97, visibleWrap))
-        : visibleWrap;
+      const overTop=overVisible?overEl.getBoundingClientRect().top:window.innerHeight;
+      const bottomLimit=Math.min(window.innerHeight, overTop) - 8;
+      const visibleWrap=Math.max(80,Math.min(wrap.clientHeight,Math.floor(bottomLimit - wrapBox.top)));
+      const fitHeight=visibleWrap;
       const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
       // Two team rows must not eat the leftover viewport. Size them like an 8-player Five Crowns card.
@@ -15026,8 +15025,9 @@ ${isDealer
       let scale=Math.max(0.3,targetRow/currentRow);
       let rowHeight=targetRow;
       const applyFit=()=>{
-        const playerFont=Math.max(22,Math.min(116,rowHeight*0.66));
-        const totalFont=Math.max(20,Math.min(110,rowHeight*0.62));
+        const phone=window.innerWidth<=760;
+        const playerFont=Math.max(18,Math.min(phone?34:116,rowHeight*0.66));
+        const totalFont=Math.max(18,Math.min(phone?40:110,rowHeight*0.62));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
