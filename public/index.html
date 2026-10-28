@@ -18,8 +18,14 @@
       }
       var demoArt=(demoParams.get('art')||'').toLowerCase();
       var demoLogo=(demoParams.get('logo')||'').toLowerCase();
+      var demoPicker=(demoParams.get('picker')||'').toUpperCase();
       if(demoArt==='dusk') document.documentElement.dataset.bpArt='dusk';
-      if(demoLogo==='dusk') document.documentElement.dataset.bpLogo='dusk';
+      if(demoLogo==='dusk'||demoLogo==='1'||demoLogo==='2'||demoLogo==='3'||demoLogo==='sheet'){
+        document.documentElement.dataset.bpLogo=demoLogo;
+      }
+      if(demoPicker==='A'||demoPicker==='B'||demoPicker==='C'){
+        document.documentElement.dataset.bpPicker=demoPicker;
+      }
       document.documentElement.classList.add('gn-demo-pending');
       var demoStyle=document.createElement('style');
       demoStyle.textContent='html.gn-demo-pending body{visibility:hidden}';
@@ -8726,6 +8732,46 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
       </div>
     </div>
+
+    <aside id="bp-logo-sheet" class="bp-logo-sheet" hidden>
+      <p class="bp-logo-sheet-kicker">Demo only · dusk porch</p>
+      <h2>Logo and name</h2>
+      <div class="bp-logo-sheet-grid">
+        <figure class="bp-logo-sheet-card" data-logo-ref="now">
+          <figcaption>Current</figcaption>
+          <div class="bp-logo-sheet-header">
+            <span class="bp-logo-sheet-mark bp-logo-mark-now" aria-hidden="true"></span>
+            <span class="bp-logo-sheet-words"><b>Back Porch</b><i>Games</i></span>
+          </div>
+          <div class="bp-logo-sheet-icon bp-logo-mark-now" aria-hidden="true"></div>
+        </figure>
+        <figure class="bp-logo-sheet-card" data-logo-ref="1">
+          <figcaption>1 · porch light</figcaption>
+          <div class="bp-logo-sheet-header">
+            <span class="bp-logo-sheet-mark bp-logo-mark-1" aria-hidden="true"></span>
+            <span class="bp-logo-sheet-words bp-logo-words-1"><b>Back Porch</b><i>Games</i></span>
+          </div>
+          <div class="bp-logo-sheet-icon bp-logo-mark-1" aria-hidden="true"></div>
+        </figure>
+        <figure class="bp-logo-sheet-card" data-logo-ref="2">
+          <figcaption>2 · type + monogram</figcaption>
+          <div class="bp-logo-sheet-header">
+            <span class="bp-logo-sheet-mark bp-logo-mark-2" aria-hidden="true"></span>
+            <span class="bp-logo-sheet-words bp-logo-words-2"><b>BACK PORCH</b><i>GAMES</i></span>
+          </div>
+          <div class="bp-logo-sheet-icon bp-logo-mark-2" aria-hidden="true"></div>
+        </figure>
+        <figure class="bp-logo-sheet-card" data-logo-ref="3">
+          <figcaption>3 · name variants</figcaption>
+          <div class="bp-logo-sheet-names">
+            <span class="bp-logo-sheet-header"><span class="bp-logo-sheet-mark bp-logo-mark-1"></span><span class="bp-logo-sheet-words bp-logo-words-1"><b>Back Porch</b></span></span>
+            <span class="bp-logo-sheet-header"><span class="bp-logo-sheet-mark bp-logo-mark-1"></span><span class="bp-logo-sheet-words bp-logo-words-1"><b>Porch Night</b></span></span>
+            <span class="bp-logo-sheet-header"><span class="bp-logo-sheet-mark bp-logo-mark-1"></span><span class="bp-logo-sheet-words bp-logo-words-1"><b>Back Porch Scorebook</b></span></span>
+          </div>
+          <div class="bp-logo-sheet-icon bp-logo-mark-1" aria-hidden="true"></div>
+        </figure>
+      </div>
+    </aside>
 
     <!-- ═══ HOME ═══ -->
     <div id="home-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -19956,6 +20002,27 @@ ${isDealer
     if(changed) _persistGamenightState({fullPersist:true, syncCold:true});
   }
 
+  function applyDemoPickerLogoChrome(){
+    const logo=document.documentElement.dataset.bpLogo||'';
+    const main=document.querySelector('#top-nav .bp-brand-main');
+    const games=document.querySelector('#top-nav .bp-brand-games');
+    if(logo==='1'){
+      if(main) main.textContent='Back Porch';
+      if(games) games.textContent='Games';
+    }else if(logo==='2'){
+      if(main) main.textContent='BACK PORCH';
+      if(games) games.textContent='GAMES';
+    }else if(logo==='3'){
+      if(main) main.textContent='Porch Night';
+      if(games) games.textContent='';
+    }
+    const sheet=document.getElementById('bp-logo-sheet');
+    if(sheet && logo==='sheet'){
+      sheet.hidden=false;
+      document.body.classList.add('bp-logo-sheet-only');
+    }
+  }
+
   /* ═══ BOOT ═══ */
   window.BPGDemoLiveGame=function(){return currentGame;};
   async function bootDemoSeedIfRequested(){
@@ -19994,6 +20061,7 @@ ${isDealer
         document.body.dataset.gnDemoView=view||'';
         document.body.dataset.gnDemoGame=game||'';
         document.documentElement.classList.remove('gn-demo-pending');
+        applyDemoPickerLogoChrome();
       }
     });
     }catch(error){
