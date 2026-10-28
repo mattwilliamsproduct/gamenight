@@ -1,0 +1,642 @@
+/* Demo-only picker A/B/C/D and logo 1/2/3/sheet. */
+
+/* ── Demo picker A/B/C: compact circular games (fallbacks) ── */
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) {
+  --bp-picker-size: 72px;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-home-start .s2-game-grid {
+  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-home-start .s2-game,
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-game {
+  flex-direction: row;
+  align-items: center;
+  height: auto;
+  min-height: 0;
+  padding: 10px 12px;
+  gap: 12px;
+  background: #fffdf8;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-home-start .s2-game-art,
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-game-art {
+  flex: 0 0 var(--bp-picker-size);
+  width: var(--bp-picker-size);
+  height: var(--bp-picker-size);
+  min-height: 0;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1.5px rgba(7, 63, 59, 0.16);
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-game-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-game-copy strong {
+  font-size: 1.08rem;
+  line-height: 1.15;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-game-copy em {
+  white-space: nowrap;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-game.is-selected {
+  background: #e8f4f1;
+  border-color: #b7ddd4;
+  box-shadow: none;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-selected-pill {
+  background: transparent;
+  color: #0a5c54;
+}
+
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-home-start .s2-btn-primary,
+html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) #slice2-start-btn {
+  background: var(--s2-teal-deep);
+  border-color: var(--s2-teal-deep);
+  color: #fff;
+}
+
+html.slice2-tv[data-bp-picker="A"] .s2-game-art { background-size: 175%; }
+html.slice2-tv[data-bp-picker="A"] .s2-art-five { background-size: 190%; background-position: 48% 26%; }
+html.slice2-tv[data-bp-picker="A"] .s2-art-818 { background-size: 165%; background-position: 50% 38%; }
+html.slice2-tv[data-bp-picker="A"] .s2-art-wizard { background-size: 220%; background-position: 76% 24%; }
+html.slice2-tv[data-bp-picker="A"] .s2-art-flip7 { background-size: 230%; background-position: 10% 48%; }
+html.slice2-tv[data-bp-picker="A"] .s2-art-heat { background-size: 210%; background-position: 54% 22%; }
+html.slice2-tv[data-bp-picker="A"] .s2-art-canasta { background-size: 160%; background-position: 38% 56%; }
+
+html.slice2-tv[data-bp-picker="B"] .s2-game-art {
+  background-color: #f6efe4;
+  background-size: 100% 100%;
+  background-position: center;
+  box-shadow: none;
+}
+
+html.slice2-tv[data-bp-picker="B"] .s2-art-five { background-image: url("./picker/badge-five.svg"); }
+html.slice2-tv[data-bp-picker="B"] .s2-art-818 { background-image: url("./picker/badge-818.svg"); }
+html.slice2-tv[data-bp-picker="B"] .s2-art-wizard { background-image: url("./picker/badge-wizard.svg"); }
+html.slice2-tv[data-bp-picker="B"] .s2-art-flip7 { background-image: url("./picker/badge-flip7.svg"); }
+html.slice2-tv[data-bp-picker="B"] .s2-art-heat { background-image: url("./picker/badge-heat.svg"); }
+html.slice2-tv[data-bp-picker="B"] .s2-art-canasta { background-image: url("./picker/badge-canasta.svg"); }
+
+html.slice2-tv[data-bp-picker="C"] .s2-game-art {
+  background-image: none !important;
+  background-color: #f6efe4;
+  border: 1.5px solid #0a5c54;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+html.slice2-tv[data-bp-picker="C"] .s2-game-art::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: "Bree Serif", Georgia, serif;
+  font-weight: 400;
+  color: #073f3b;
+  line-height: 1;
+}
+
+html.slice2-tv[data-bp-picker="C"] .s2-art-five::after { content: "5"; font-size: calc(var(--bp-picker-size) * 0.46); }
+html.slice2-tv[data-bp-picker="C"] .s2-art-818::after { content: "818"; font-size: calc(var(--bp-picker-size) * 0.28); letter-spacing: 0.02em; }
+html.slice2-tv[data-bp-picker="C"] .s2-art-wizard::after { content: "W"; font-size: calc(var(--bp-picker-size) * 0.46); }
+html.slice2-tv[data-bp-picker="C"] .s2-art-flip7 {
+  overflow: visible;
+}
+html.slice2-tv[data-bp-picker="C"] .s2-art-flip7::before {
+  content: "";
+  position: absolute;
+  width: 38%;
+  height: 46%;
+  left: 18%;
+  top: 28%;
+  border: 1.5px solid #0a5c54;
+  border-radius: 3px;
+  background: #fffdf8;
+  transform: rotate(-16deg);
+  box-shadow: 16px -4px 0 -1px #fffdf8, 16px -4px 0 0 #0a5c54, 30px 2px 0 -1px #fffdf8, 30px 2px 0 0 #0a5c54;
+}
+html.slice2-tv[data-bp-picker="C"] .s2-art-flip7::after { content: "7"; font-size: calc(var(--bp-picker-size) * 0.42); color: #c45c3a; }
+html.slice2-tv[data-bp-picker="C"] .s2-art-heat::after { content: "66"; font-size: calc(var(--bp-picker-size) * 0.34); }
+html.slice2-tv[data-bp-picker="C"] .s2-art-canasta::after { content: "C"; font-size: calc(var(--bp-picker-size) * 0.46); }
+
+@media (min-width: 1600px) {
+  html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) {
+    --bp-picker-size: 88px;
+  }
+  html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-home-start .s2-game-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) {
+    --bp-picker-size: 64px;
+  }
+  html.slice2-tv:is([data-bp-picker="A"], [data-bp-picker="B"], [data-bp-picker="C"]) .s2-home-start .s2-game-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Demo logos 1 / 2 / 3 ── */
+html.slice2-tv[data-bp-logo="1"] #top-nav .bp-brand-mark,
+html.slice2-tv[data-bp-logo="3"] #top-nav .bp-brand-mark {
+  background: #f6efe4 url("./logo/porch-light.svg") center / cover no-repeat;
+  border-color: rgba(7, 63, 59, 0.16) !important;
+  box-shadow: none;
+  border-radius: 14px;
+}
+
+html.slice2-tv[data-bp-logo="2"] #top-nav .bp-brand-mark {
+  background: #073f3b url("./logo/monogram-bp.svg") center / cover no-repeat;
+  border-color: #073f3b !important;
+  box-shadow: none;
+  border-radius: 14px;
+}
+
+html.slice2-tv[data-bp-logo="1"] .bp-brand-main,
+html.slice2-tv[data-bp-logo="3"] .bp-brand-main {
+  font-family: "Bree Serif", Georgia, serif;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-size: 1.35rem;
+}
+
+html.slice2-tv[data-bp-logo="1"] .bp-brand-games,
+html.slice2-tv[data-bp-logo="3"] .bp-brand-games {
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+}
+
+html.slice2-tv[data-bp-logo="2"] .bp-brand-main {
+  font-family: "Nunito Sans", sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.92rem;
+}
+
+html.slice2-tv[data-bp-logo="2"] .bp-brand-games {
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  font-size: 0.58rem;
+}
+
+html.slice2-tv[data-bp-logo="1"] .bp-brand-games::before,
+html.slice2-tv[data-bp-logo="1"] .bp-brand-games::after,
+html.slice2-tv[data-bp-logo="2"] .bp-brand-games::before,
+html.slice2-tv[data-bp-logo="2"] .bp-brand-games::after,
+html.slice2-tv[data-bp-logo="3"] .bp-brand-games::before,
+html.slice2-tv[data-bp-logo="3"] .bp-brand-games::after {
+  content: none;
+}
+
+html.slice2-tv[data-bp-logo="1"] .brand-name,
+html.slice2-tv[data-bp-logo="2"] .brand-name,
+html.slice2-tv[data-bp-logo="3"] .brand-name {
+  font-style: normal;
+}
+
+.bp-logo-sheet[hidden] { display: none !important; }
+
+html.slice2-tv[data-bp-logo] .bp-logo-sheet:not([hidden]) {
+  margin: 0 1rem 1.25rem;
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1.5px solid #dfd3c7;
+  border-radius: 18px;
+  background: #fffdf8;
+  color: #073f3b;
+}
+
+.bp-logo-sheet-kicker {
+  margin: 0 0 0.2rem;
+  font: 800 0.68rem/1 "Nunito Sans", sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #746d67;
+}
+
+.bp-logo-sheet h2 {
+  margin: 0 0 0.85rem;
+  font: 400 1.5rem/1.1 "Bree Serif", Georgia, serif;
+}
+
+.bp-logo-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bp-logo-sheet-card {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #e6d9cc;
+  border-radius: 14px;
+  background: #f8f3ec;
+  min-width: 0;
+}
+
+.bp-logo-sheet-card figcaption {
+  margin-bottom: 10px;
+  font: 800 0.72rem/1 "Nunito Sans", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #746d67;
+}
+
+.bp-logo-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.bp-logo-sheet-mark,
+.bp-logo-sheet-icon {
+  display: block;
+  flex: 0 0 auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.bp-logo-sheet-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid rgba(7, 63, 59, 0.14);
+}
+
+.bp-logo-sheet-icon {
+  width: 72px;
+  height: 72px;
+  margin-top: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(7, 63, 59, 0.14);
+}
+
+.bp-logo-mark-now {
+  background: #073f3b url("../theme/back-porch-mark.jpg") center / cover no-repeat;
+}
+
+.bp-logo-mark-1 {
+  background: #f6efe4 url("./logo/porch-light.svg") center / cover no-repeat;
+}
+
+.bp-logo-mark-2 {
+  background: #073f3b url("./logo/monogram-bp.svg") center / cover no-repeat;
+}
+
+.bp-logo-sheet-words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bp-logo-sheet-words b,
+.bp-logo-sheet-words i {
+  font-style: normal;
+}
+
+.bp-logo-sheet-words b {
+  font: 400 1.15rem/1.05 "Bree Serif", Georgia, serif;
+  color: #073f3b;
+}
+
+.bp-logo-sheet-words i {
+  font: 800 0.58rem/1.2 "Nunito Sans", sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #285b57;
+}
+
+.bp-logo-words-2 b {
+  font: 800 0.92rem/1.05 "Nunito Sans", sans-serif;
+  letter-spacing: 0.12em;
+}
+
+.bp-logo-sheet-names {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.bp-logo-sheet-only .bp-app-shell > :not(#top-nav):not(#bp-logo-sheet),
+body.bp-logo-sheet-only #home-screen,
+body.bp-logo-sheet-only .s2-root {
+  display: none !important;
+}
+
+body.bp-logo-sheet-only #bp-logo-sheet {
+  margin: 1.5rem auto;
+  max-width: 1180px;
+}
+
+@media (max-width: 900px) {
+  .bp-logo-sheet-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── Direction D: literal cards (lead) ── */
+html.slice2-tv[data-bp-picker="D"] .s2-home-start .s2-game-grid {
+  align-content: start;
+  justify-content: center;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 8px;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-home-start .s2-game,
+html.slice2-tv[data-bp-picker="D"] .s2-card {
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+  min-height: 0;
+  padding: 0 0 8px;
+  gap: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-face {
+  display: block;
+  width: 100%;
+  max-width: 125px;
+  aspect-ratio: 526 / 815;
+  margin: 0 auto;
+  border-radius: 10px;
+  background-color: #f6efe4;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 1px 0 rgba(7, 63, 59, 0.08);
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-banner {
+  display: block;
+  margin: 7px 2px 0;
+  text-align: center;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-banner strong {
+  display: block;
+  font-family: "Londrina Solid", "Bree Serif", Georgia, serif;
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  color: #073f3b;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-rule {
+  display: block;
+  margin: 2px 2px 0;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #746d67;
+  text-align: center;
+  white-space: nowrap;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-standin {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  padding: 2px 4px;
+  border-radius: 999px;
+  background: rgba(246, 239, 228, 0.92);
+  color: #5a4336;
+  font: 800 0.52rem/1 "Nunito Sans", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-face {
+  position: relative;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card.is-selected {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  transform: translateY(-4px);
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card.is-selected .s2-card-face {
+  outline: 2px solid #9bd7c8;
+  outline-offset: 3px;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card:active,
+html.slice2-tv[data-bp-picker="D"] .s2-card.is-pressed {
+  transform: translateY(2px) scale(0.98);
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-card-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto 0;
+  padding: 0.35rem 0.7rem;
+  min-height: 32px;
+  border-radius: 999px;
+  background: var(--s2-teal-deep);
+  color: #fff;
+  font: 800 0.72rem/1 "Nunito Sans", sans-serif;
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-startbar {
+  display: none;
+}
+
+html.slice2-tv[data-bp-five="faithful"] .s2-art-five,
+.bp-d-face-five-faithful {
+  background-image: url("./picker/faces/five-crowns.png");
+}
+
+html.slice2-tv[data-bp-five="homage"] .s2-art-five,
+.bp-d-face-five-homage {
+  background-image: url("./picker/faces/five-crowns-tribute.svg");
+}
+
+html.slice2-tv[data-bp-wiz="faithful"] .s2-art-wizard,
+.bp-d-face-wizard-faithful {
+  background-image: url("./picker/faces/wizard-faithful.svg");
+}
+
+html.slice2-tv[data-bp-wiz="homage"] .s2-art-wizard,
+.bp-d-face-wizard-homage {
+  background-image: url("./picker/faces/wizard-homage.svg");
+}
+
+html.slice2-tv[data-bp-818="faithful"] .s2-art-818,
+.bp-d-face-818-faithful {
+  background-image: url("./picker/faces/818-faithful.svg");
+}
+
+html.slice2-tv[data-bp-818="homage"] .s2-art-818,
+.bp-d-face-818-homage {
+  background-image: url("./picker/faces/818-homage.svg");
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-art-flip7 {
+  background-image: url("./picker/faces/flip7.svg");
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-art-heat {
+  background-image: url("./picker/faces/heat.svg");
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-art-canasta {
+  background-image: url("./picker/faces/canasta.svg");
+}
+
+html.slice2-tv[data-bp-picker="D"] .s2-art-rook {
+  background-image: url("./picker/faces/rook.svg");
+}
+
+@media (min-width: 1600px) {
+  html.slice2-tv[data-bp-picker="D"] .s2-home-start .s2-game-grid {
+    grid-template-columns: repeat(4, minmax(0, 220px));
+    justify-content: center;
+    gap: 14px 12px;
+  }
+  html.slice2-tv[data-bp-picker="D"] .s2-card-face {
+    max-width: 220px;
+  }
+  html.slice2-tv[data-bp-picker="D"] .s2-card-banner strong {
+    font-size: 28px;
+  }
+  html.slice2-tv[data-bp-picker="D"] .s2-card-rule {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 860px) {
+  html.slice2-tv[data-bp-picker="D"] .s2-home-start .s2-game-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  html.slice2-tv[data-bp-picker="D"] .s2-home-start .s2-game-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  html.slice2-tv[data-bp-picker="D"] .s2-card-face {
+    max-width: 110px;
+  }
+  html.slice2-tv[data-bp-picker="D"] .s2-card-banner strong {
+    font-size: 15px;
+  }
+  html.slice2-tv[data-bp-picker="D"] .s2-card-rule {
+    white-space: normal;
+  }
+}
+
+.bp-d-sheet[hidden] { display: none !important; }
+
+html.slice2-tv[data-bp-faces="sheet"] .bp-d-sheet:not([hidden]) {
+  margin: 0 1rem 1.25rem;
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1.5px solid #dfd3c7;
+  border-radius: 18px;
+  background: #fffdf8;
+  color: #073f3b;
+}
+
+.bp-d-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.bp-d-sheet-card {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #e6d9cc;
+  border-radius: 14px;
+  background: #f8f3ec;
+  min-width: 0;
+  text-align: center;
+}
+
+.bp-d-sheet-card figcaption {
+  margin-bottom: 8px;
+  font: 800 0.68rem/1.2 "Nunito Sans", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #746d67;
+}
+
+.bp-d-sheet-face {
+  width: 125px;
+  aspect-ratio: 526 / 815;
+  margin: 0 auto;
+  border-radius: 10px;
+  background: #f6efe4 center / cover no-repeat;
+}
+
+.bp-d-sheet-face.is-tv {
+  width: 220px;
+}
+
+.bp-d-sheet-zoom {
+  width: 125px;
+  height: 125px;
+  margin: 8px auto 0;
+  border-radius: 8px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 220%;
+}
+
+body.bp-d-sheet-only .bp-app-shell > :not(#top-nav):not(#bp-d-sheet),
+body.bp-d-sheet-only #home-screen,
+body.bp-d-sheet-only .s2-root {
+  display: none !important;
+}
+
+body.bp-d-sheet-only #bp-d-sheet {
+  margin: 1.5rem auto;
+  max-width: 1280px;
+}
+
+@media (max-width: 1100px) {
+  .bp-d-sheet-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

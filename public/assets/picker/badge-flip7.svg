@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Flip 7">
   <circle cx="32" cy="32" r="30.2" fill="#f6efe4" stroke="#0a5c54" stroke-width="1.8"/>
-  <text x="32" y="43" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="32" font-weight="700" fill="#0a5c54">7</text>
+  <g fill="#fffdf8" stroke="#0a5c54" stroke-width="1.4">
+    <rect x="14" y="20" width="14" height="20" rx="2" transform="rotate(-18 21 30)"/>
+    <rect x="25" y="18" width="14" height="20" rx="2"/>
+    <rect x="36" y="20" width="14" height="20" rx="2" transform="rotate(18 43 30)"/>
+  </g>
+  <text x="32" y="40" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" font-weight="700" fill="#c45c3a">7</text>
 </svg>

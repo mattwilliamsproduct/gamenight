@@ -23,9 +23,21 @@
       if(demoLogo==='dusk'||demoLogo==='1'||demoLogo==='2'||demoLogo==='3'||demoLogo==='sheet'){
         document.documentElement.dataset.bpLogo=demoLogo;
       }
-      if(demoPicker==='A'||demoPicker==='B'||demoPicker==='C'){
+      if(demoPicker==='A'||demoPicker==='B'||demoPicker==='C'||demoPicker==='D'){
         document.documentElement.dataset.bpPicker=demoPicker;
       }
+      var demoWiz=(demoParams.get('wiz')||'').toLowerCase();
+      var demo818=(demoParams.get('818')||'').toLowerCase();
+      var demoFive=(demoParams.get('five')||'').toLowerCase();
+      var demoTap=(demoParams.get('tap')||'').toLowerCase();
+      var demoFaces=(demoParams.get('faces')||'').toLowerCase();
+      if(demoPicker==='D'){
+        document.documentElement.dataset.bpWiz=(demoWiz==='faithful'||demoWiz==='homage')?demoWiz:'homage';
+        document.documentElement.dataset.bp818=(demo818==='faithful'||demo818==='homage')?demo818:'homage';
+        document.documentElement.dataset.bpFive=(demoFive==='faithful'||demoFive==='homage')?demoFive:'faithful';
+        document.documentElement.dataset.bpTap=(demoTap==='start'||demoTap==='confirm')?demoTap:'start';
+      }
+      if(demoFaces==='sheet') document.documentElement.dataset.bpFaces='sheet';
       document.documentElement.classList.add('gn-demo-pending');
       var demoStyle=document.createElement('style');
       demoStyle.textContent='html.gn-demo-pending body{visibility:hidden}';
@@ -56,6 +68,7 @@
   <link rel="stylesheet" href="./assets/app-utilities.css">
   <link rel="stylesheet" href="./assets/slice2.css">
   <link rel="stylesheet" href="./assets/demo-art.css">
+  <link rel="stylesheet" href="./assets/demo-picker.css">
 
   <style>
     /* ════════ TOKENS ════════ */
@@ -8769,6 +8782,51 @@ button.dealer-name-indicator .dealer-player-label {
             <span class="bp-logo-sheet-header"><span class="bp-logo-sheet-mark bp-logo-mark-1"></span><span class="bp-logo-sheet-words bp-logo-words-1"><b>Back Porch Scorebook</b></span></span>
           </div>
           <div class="bp-logo-sheet-icon bp-logo-mark-1" aria-hidden="true"></div>
+        </figure>
+      </div>
+    </aside>
+
+    <aside id="bp-d-sheet" class="bp-d-sheet" hidden>
+      <p class="bp-logo-sheet-kicker">Demo only · Direction D faces</p>
+      <h2>Faithful vs tribute</h2>
+      <div class="bp-d-sheet-grid">
+        <figure class="bp-d-sheet-card">
+          <figcaption>Five Crowns · faithful PNG</figcaption>
+          <div class="bp-d-sheet-face bp-d-face-five-faithful"></div>
+          <div class="bp-d-sheet-zoom bp-d-face-five-faithful" title="1x crop"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>Five Crowns · tribute SVG</figcaption>
+          <div class="bp-d-sheet-face bp-d-face-five-homage"></div>
+          <div class="bp-d-sheet-zoom bp-d-face-five-homage" title="1x crop"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>Wizard · faithful reconstruction</figcaption>
+          <div class="bp-d-sheet-face bp-d-face-wizard-faithful"></div>
+          <div class="bp-d-sheet-zoom bp-d-face-wizard-faithful"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>Wizard · homage</figcaption>
+          <div class="bp-d-sheet-face bp-d-face-wizard-homage"></div>
+          <div class="bp-d-sheet-zoom bp-d-face-wizard-homage"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>818 · faithful reconstruction</figcaption>
+          <div class="bp-d-sheet-face bp-d-face-818-faithful"></div>
+          <div class="bp-d-sheet-zoom bp-d-face-818-faithful"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>818 · homage</figcaption>
+          <div class="bp-d-sheet-face bp-d-face-818-homage"></div>
+          <div class="bp-d-sheet-zoom bp-d-face-818-homage"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>Five Crowns · TV 220</figcaption>
+          <div class="bp-d-sheet-face is-tv bp-d-face-five-faithful"></div>
+        </figure>
+        <figure class="bp-d-sheet-card">
+          <figcaption>Wizard homage · TV 220</figcaption>
+          <div class="bp-d-sheet-face is-tv bp-d-face-wizard-homage"></div>
         </figure>
       </div>
     </aside>
@@ -20020,6 +20078,11 @@ ${isDealer
     if(sheet && logo==='sheet'){
       sheet.hidden=false;
       document.body.classList.add('bp-logo-sheet-only');
+    }
+    const faces=document.getElementById('bp-d-sheet');
+    if(faces && document.documentElement.dataset.bpFaces==='sheet'){
+      faces.hidden=false;
+      document.body.classList.add('bp-d-sheet-only');
     }
   }
 

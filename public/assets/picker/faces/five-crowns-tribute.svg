@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="Five Crowns tribute">
+  <rect x="3" y="3" width="244" height="344" rx="22" fill="#4a2c86"/>
+  <rect x="14" y="14" width="222" height="322" rx="16" fill="none" stroke="#f0d48a" stroke-width="3"/>
+  <path d="M48 168 L70 92 L104 138 L125 78 L146 138 L180 92 L202 168 Z" fill="#e6c15a"/>
+  <path d="M56 168 H194" stroke="#c9a23a" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="70" cy="92" r="6" fill="#f7e7a8"/>
+  <circle cx="125" cy="78" r="7" fill="#f7e7a8"/>
+  <circle cx="180" cy="92" r="6" fill="#f7e7a8"/>
+  <path d="M125 198 L132 214 H118 Z" fill="#f0d48a"/>
+  <path d="M72 236 L78 248 H66 Z" fill="#f6efe4"/>
+  <path d="M178 236 C182 230 190 236 184 242 C180 246 178 248 178 248 S176 246 172 242 C166 236 174 230 178 236 Z" fill="#e07a6a"/>
+  <circle cx="125" cy="258" r="7" fill="none" stroke="#f6efe4" stroke-width="2.4"/>
+  <path d="M125 251 V265 M118 258 H132" stroke="#f6efe4" stroke-width="2.2"/>
+  <path d="M72 280 L78 286 L72 292 L66 286 Z" fill="#89c4d4"/>
+  <text x="125" y="318" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#f0d48a">5</text>
+</svg>

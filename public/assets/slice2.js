@@ -1,7 +1,26 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
+  function pickerMode() {
+    return (typeof document !== 'undefined' && document.documentElement.dataset.bpPicker) || '';
+  }
+
+  function dChrome() {
+    const d = (typeof document !== 'undefined' && document.documentElement.dataset) || {};
+    return {
+      wiz: d.bpWiz || 'homage',
+      eight18: d.bp818 || 'homage',
+      five: d.bpFive || 'faithful',
+      tap: d.bpTap || 'start'
+    };
+  }
+
   function registryGames() {
-    return (window.BPGGames && BPGGames.visibleGames()) || [];
+    const games = (window.BPGGames && BPGGames.visibleGames()) || [];
+    if (pickerMode() === 'D' && window.BPGGames) {
+      const rook = window.BPGGames.gameById('Rook');
+      if (rook && !games.some((game) => game.id === 'Rook')) return games.concat([rook]);
+    }
+    return games;
   }
 
   function displayGameName(id) {
@@ -277,11 +296,32 @@
     const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
+      const mode = pickerMode();
+      const compactPicker = mode === 'A' || mode === 'B' || mode === 'C';
+      const rule = compactPicker
+        ? (game.id === 'Beat the Heat' ? 'Lowest heat wins' : (game.winLow ? 'Lowest total wins' : 'Highest total wins'))
+        : (game.id === 'Wizard' ? `${game.detail(seated)} · Highest total wins` : game.line);
+      if (mode === 'D') {
+        const chrome = dChrome();
+        const standin = game.id === 'Beat the Heat' || game.id === 'Hand and Foot' || game.id === 'Rook';
+        const startNow = chrome.tap !== 'confirm';
+        const startChip = !startNow && on
+          ? `<button type="button" class="s2-card-start" data-s2-action="start-game" data-s2-game="${escapeHtml(game.id)}">Start ${escapeHtml(game.title)}</button>`
+          : '';
+        return `<div class="s2-card-wrap">
+          <button type="button" class="s2-game s2-card${on && !startNow ? ' is-selected' : ''}${standin ? ' is-standin' : ''}" data-s2-action="${startNow ? 'start-game-now' : 'pick-game'}" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on && !startNow}">
+            <span class="s2-card-face s2-art-${game.art}" aria-hidden="true">${standin ? '<span class="s2-card-standin">Tribute stand-in</span>' : ''}</span>
+            <span class="s2-card-banner"><strong>${escapeHtml(game.title)}</strong></span>
+            <em class="s2-card-rule">${escapeHtml(rule)}</em>
+          </button>
+          ${startChip}
+        </div>`;
+      }
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}">
         <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
         <span class="s2-game-copy">
           <strong>${escapeHtml(game.title)}</strong>
-          <em>${escapeHtml(game.id === 'Wizard' ? `${game.detail(seated)} · Highest total wins` : game.line)}</em>
+          <em>${escapeHtml(rule)}</em>
           ${on ? '<span class="s2-selected-pill">Selected</span>' : ''}
         </span>
       </button>`;
@@ -969,7 +1009,12 @@
     } else if (action === 'pick-game') {
       selected = target.dataset.s2Game || selected;
       paintHome();
+    } else if (action === 'start-game-now') {
+      selected = target.dataset.s2Game || selected;
+      target.classList.add('is-pressed');
+      startGame(selected);
     } else if (action === 'start-game') {
+      selected = target.dataset.s2Game || selected;
       startGame(selected);
     } else if (action === 'resume' || action === 'scorecard') {
       goActiveMatch();

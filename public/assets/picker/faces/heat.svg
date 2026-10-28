@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="Beat the Heat stand-in">
+  <rect x="3" y="3" width="244" height="344" rx="22" fill="#f6efe4"/>
+  <rect x="12" y="12" width="226" height="326" rx="16" fill="none" stroke="#b85a32" stroke-width="10"/>
+  <path d="M125 86c22 36 48 56 34 98-10 30-52 38-66 8-12-26 8-60 28-80 2 20 14 28 18 16z" fill="#d46532"/>
+  <path d="M118 78c12 0 20 12 14 24" fill="none" stroke="#3d5a3a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M92 214c8-18 28-8 24 10-3 14-18 20-26 8-6-10 0-22 8-28 0 10 6 14 8 8z" fill="#c45c3a"/>
+  <text x="125" y="292" text-anchor="middle" font-family="Georgia, serif" font-size="28" fill="#b85a32">66</text>
+</svg>

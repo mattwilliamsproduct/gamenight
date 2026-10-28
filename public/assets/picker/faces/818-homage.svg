@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="818 homage">
+  <rect x="3" y="3" width="244" height="344" rx="22" fill="#3b1458"/>
+  <rect x="16" y="16" width="218" height="318" rx="16" fill="none" stroke="#f4f1ea" stroke-width="5"/>
+  <g fill="none" stroke="#c6de3a" stroke-width="5" stroke-linecap="round">
+    <circle cx="125" cy="150" r="46"/>
+    <circle cx="125" cy="150" r="22"/>
+    <path d="M125 96 L125 204 M79 150 H171 M93 112 L157 188 M157 112 L93 188"/>
+  </g>
+  <text x="125" y="268" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="54" font-weight="700" fill="#f4f1ea" stroke="#c6de3a" stroke-width="3">818</text>
+</svg>

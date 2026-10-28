@@ -21,13 +21,15 @@ function fakeDocument(start = {}){
   };
 }
 
+const emptyChrome = {art: '', logo: '', picker: '', wiz: '', eight18: '', five: '', tap: '', faces: ''};
+
 test('no demo param keeps the current Home tiles and logo', async () => {
-  assert.deepEqual(parseDemoChrome('', 'localhost'), {art: '', logo: ''});
-  assert.deepEqual(parseDemoChrome('?art=dusk&logo=dusk', 'localhost'), {art: '', logo: ''});
-  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', 'cardknight.vercel.app'), {art: '', logo: ''});
+  assert.deepEqual(parseDemoChrome('', 'localhost'), emptyChrome);
+  assert.deepEqual(parseDemoChrome('?art=dusk&logo=dusk', 'localhost'), emptyChrome);
+  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', 'cardknight.vercel.app'), emptyChrome);
 
   const idle = fakeDocument();
-  assert.deepEqual(applyDemoChrome(idle, '', 'localhost'), {art: '', logo: ''});
+  assert.deepEqual(applyDemoChrome(idle, '', 'localhost'), emptyChrome);
   assert.equal(idle.documentElement.dataset.bpArt, undefined);
   assert.equal(idle.documentElement.dataset.bpLogo, undefined);
   assert.equal(idle.documentElement.dataset.bpHome, undefined);
@@ -93,12 +95,22 @@ test('no demo param keeps the current Home tiles and logo', async () => {
   assert.match(duskCss, /url\("\.\/logo\/dusk-mark\.svg"\)/);
 });
 
-test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', () => {
+test('allowed preview ?demo&art=dusk and ?demo&logo=dusk apply together', async () => {
   const preview = 'gamenight-git-cursor-art-logo-dusk-640a-mattwilliamsproducts-projects.vercel.app';
-  assert.deepEqual(parseDemoChrome('?demo&art=dusk', 'localhost'), {art: 'dusk', logo: ''});
-  assert.deepEqual(parseDemoChrome('?demo&logo=dusk', '127.0.0.1'), {art: '', logo: 'dusk'});
-  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', preview), {art: 'dusk', logo: 'dusk'});
-  assert.deepEqual(parseDemoChrome('?demo&art=A&logo=1', 'localhost'), {art: '', logo: ''});
+  assert.deepEqual(parseDemoChrome('?demo&art=dusk', 'localhost'), {...emptyChrome, art: 'dusk'});
+  assert.deepEqual(parseDemoChrome('?demo&logo=dusk', '127.0.0.1'), {...emptyChrome, logo: 'dusk'});
+  assert.deepEqual(parseDemoChrome('?demo&art=dusk&logo=dusk', preview), {...emptyChrome, art: 'dusk', logo: 'dusk'});
+  assert.deepEqual(parseDemoChrome('?demo&art=A&logo=1', 'localhost'), {...emptyChrome, logo: '1'});
+  assert.deepEqual(parseDemoChrome('?demo&picker=B&logo=sheet', 'localhost'), {...emptyChrome, logo: 'sheet', picker: 'B'});
+  assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').picker, 'D');
+  assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').five, 'faithful');
+  assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').wiz, 'homage');
+  assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').eight18, 'homage');
+  assert.equal(parseDemoChrome('?demo&picker=D', 'localhost').tap, 'start');
+  assert.equal(parseDemoChrome('?demo&picker=D&five=homage&wiz=faithful&818=faithful&tap=confirm', 'localhost').five, 'homage');
+  assert.equal(parseDemoChrome('?demo&picker=D&faces=sheet', 'localhost').faces, 'sheet');
+  await access(join(root, 'public/assets/picker/faces/five-crowns.png'));
+  await access(join(root, 'public/assets/picker/faces/five-crowns-tribute.svg'));
 
   const doc = fakeDocument({bpArt: 'stale', bpLogo: 'stale'});
   applyDemoChrome(doc, '?demo&art=dusk&logo=dusk', 'localhost');

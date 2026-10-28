@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" role="img" aria-label="Wizard homage">
+  <rect x="3" y="3" width="244" height="344" rx="22" fill="#f7f4ee"/>
+  <rect x="12" y="12" width="226" height="326" rx="16" fill="#13285a"/>
+  <rect x="22" y="22" width="206" height="306" rx="12" fill="none" stroke="#f7f4ee" stroke-width="4"/>
+  <path d="M125 70 L200 175 L125 280 L50 175 Z" fill="#c43b3b" stroke="#f7f4ee" stroke-width="7"/>
+  <text x="125" y="198" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#f2d25a">W</text>
+</svg>
