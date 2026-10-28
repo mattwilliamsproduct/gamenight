@@ -1,7 +1,7 @@
 # RC1 combined candidate — gate report
 
-**Status:** in progress (baseline recorded; isolated demo and older-night green; not frozen)  
-**HEAD while writing this update:** `79fed74`
+**Status:** in progress (visual matrix + 90s rehearsals recorded; not frozen)  
+**HEAD while writing this update:** `2740f11`
 **Branch:** `cursor/rc1-records`  
 **Base:** `cursor/release-candidate-1`  
 **Draft PR:** #73 (draft only; no undraft / merge / deploy)
@@ -68,16 +68,16 @@ Mark untested UNVERIFIED. Never green without evidence.
 
 | Gate item | Result | Evidence |
 | --- | --- | --- |
-| Combined RC (Slice 1 + Slice 2 + responsive + flags) | UNVERIFIED (visual) / OK (porch-night walk) | `test:porch-night` 2/2. Visual snapshot matrix not re-run. |
-| Classify all test failures | UNVERIFIED | `npm run check` pass. Functional pack below. Visual UNVERIFIED. |
+| Combined RC (Slice 1 + Slice 2 + responsive + flags) | OK (automated visual matrix + porch-night) | 5-size matrix 375/390/768/1440/1920 with contact sheets. `test:porch-night` 2/2. Physical Safari PENDING. |
+| Classify all test failures | OK (this pack) | `npm run check` pass at `2740f11`. Playwright phone-conditions 8/8 + demo-path 2/2. `test:visual` Playwright baselines still stale / not the overnight matrix. |
 | Task-completion acceptance (8 players, correct past, resume) | OK (automated) | `rc1-acceptance.spec.mjs` passed in the 64/65 pack (the one fail was the demo-path locator, now fixed). |
 | Older saved data + backup/restore | OK (automated) | `test:older-night` 3/3. `older-night.spec.mjs` 1/1. |
 | Canasta variant / team scoring / records | OK (automated, this pack) | `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` passed. |
 | Historical Rook identity preserved | OK (automated) | older-night + canasta-rook-flag + game-registry. |
 | Interrupted entry (refresh, Table, modal, double Submit) | OK (automated) | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2: Table and back keeps the same hand; double-tap Submit adds one round. |
-| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player + 200% lead in view | `phone-conditions.spec.mjs` 5/5. 200% before/after: `demo-path-390-200pct-before.png` / `-after.png`. Keyboard-open UNVERIFIED. |
-| Understandability: Table vs End vs Scratch | OK (automated) | Board-bar park. Physical look PENDING. |
-| 90s isolated demo path | OK (automated) | `demo-path.spec.mjs` 2/2. `demo-seed` view `demo-path` 1/1 after locator fix. |
+| Phone conditions (long names, 8 players, retired, large totals, negatives, 200% text, keyboard) | OK targets + 8-player + 200% + Scratch + complete banner + Canasta 3695 | `phone-conditions.spec.mjs` 8/8. Keyboard-open UNVERIFIED. FC negatives rejected (`data-integrity` P1-05). |
+| Understandability: Table vs End vs Scratch | OK (automated + matrix) | `← Table` leaves (no modal, Resume stays). Save & End confirm: “End this match now?” Scratch is “Scratch Match (discard)” on the phone Actions menu (`4a2f666`) then native confirm. Physical PENDING. |
+| 90s isolated demo path | OK (automated, 6 rehearsals) | `demo-path.spec.mjs` 2/2. Rehearse 390×3 and 375×3, all June 38 / Theo 41. Strips: `demo-rehearse/strip-390x844.png`, `strip-375x667.png`. |
 | Physical iPhone Safari | PENDING | Matt only |
 | Post-deploy smoke + rollback | PENDING | |
 | Art / logo live swap | not in candidate | dusk stays behind `?demo` |

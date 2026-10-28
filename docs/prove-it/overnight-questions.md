@@ -11,11 +11,11 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | Id | Question | Answer | Evidence |
 | --- | --- | --- | --- |
 | P-older | Older night / profiles / backup / records survive? | OK | Fixture from `origin/main` backup.js. `test:older-night` 3/3. `older-night.spec.mjs` 1/1. Rook stays Rook. |
-| P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK | `test-hand-foot.mjs` (sevens 1500 not stacked on clean 500; red 3s 100 / 200 at 4+). `hand-and-foot.spec.mjs` + `canasta-rook-flag.spec.mjs` + porch-night Canasta walk. |
+| P-canasta | Canasta variant, team vs player, entry, corrections, completion, records? | OK; FOUND-BUG then fixed (entry totals) | Sevens 1500 / red 3s 100→200 at 4+. Entry showed 3695 as “3…”. Widened Total column `2740f11`. After: 3695 and 1430 whole on 375/390/1440. |
 | P-rook | Historical Rook identity preserved? | OK | Hide switch does not rewrite history. older-night + game-registry + canasta-rook-flag. |
 | P-interrupt | Refresh / Table / modal / double Submit / reopen? | OK | `data-integrity.spec.mjs` 24/24. `interrupted-entry.spec.mjs` 2/2. |
 | P-phone | Long names, 8 players, retired, large totals, negatives, 200% text, keyboard? | FOUND-BUG then fixed (200% lead); OK 44px + 8-player NAME-FIT | `phone-conditions.spec.mjs` 5/5. Before/after: `demo-path-390-200pct-before.png` / `-after.png`. Entry uses the custom keypad. OS keyboard covering the card is UNVERIFIED on a physical phone. |
-| P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Physical look PENDING. |
+| P-understand | Table vs End vs Scratch without experimenting? | FOUND-BUG then fixed | Board-bar park `c47d12e`. Scratch was clipped on 375/390; pinned `4a2f666`. End copy distinguishes unfinished. Discard is native `confirm`. Physical PENDING. |
 
 ---
 
@@ -70,7 +70,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 | 5b | Spacing / alignment / no orphans? | FOUND-BUG (header 12 of 11) fixed; board wrap logged | `facb8d1`. 390 bar wraps Table / Actions / Save & End. Not a redesign. |
 | 5c | Cream/teal, teal for action? | OK / DECISION on tokens | No token hex changes (F). |
 | 5d | Type limited and meaningful? | UNVERIFIED as a redesign | No type scale rewrite. |
-| 5e | 375–1920 no clip? | FOUND-BUG then fixed at 200% / 390; FOUND-BUG Actions Scratch clipped on 375/390 | Matrix at 375/390/768/1440/1920. Scratch was cut off by `#game-screen` overflow. Home game tiles below the fold are scroll, not clip. |
+| 5e | 375–1920 no clip? | FOUND-BUG then fixed | Matrix 375/390/768/1440/1920 + contact sheets. Scratch clipped on phone Actions (`4a2f666`). Match Complete covered 3rd/4th on 375 (`95513b5`). Canasta entry ellipsized 3695 (`2740f11`). Home tiles below the fold are scroll. |
 | 5f | Internal jargon on screen? | OK on demo | “Sample night” / “Save & End” / “Scratch Match (discard)”. “Championship Ledger” is the records title (settled B). “Warm Porch Ledger” not on screen. |
 | 5g | Pressed / focus / disabled? | UNVERIFIED | Bonus territory if no blocker. |
 | 5h | Design-lead proud? | DECISION | Matt’s morning look. |
@@ -88,7 +88,7 @@ Legend: **OK** / **FOUND-BUG** / **DECISION** / **UNVERIFIED**
 
 | Id | Question | Answer | Evidence |
 | --- | --- | --- | --- |
-| 7a | Lighthouse mobile? | UNVERIFIED | Not run. |
+| 7a | Lighthouse mobile? | UNVERIFIED on preview (SSO 302). Local 4173: P **0.59** / A11y **0.84** / BP **1.00**. | Preview requires Vercel SSO. Local fails: `target-size` (12), `meta-viewport` user-scalable, unlabeled inputs. Viewport lock not changed (product). |
 | 7b | Wheel jank / layout shift? | UNVERIFIED | Wheel out of core demo. |
 | 7c | 44px targets, contrast, labels? | OK targets on demo board after 40→44; contrast UNVERIFIED | `phone-conditions.spec.mjs`. Before/after: `demo-board-390-before.png` / `-after.png`. |
 | 7d | Console errors on demo path? | OK | `phone-conditions.spec.mjs` pageerror list empty. |
