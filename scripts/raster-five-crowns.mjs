@@ -6,14 +6,14 @@ const require = createRequire(import.meta.url);
 const {readFileSync} = require('node:fs');
 
 const svg = readFileSync(new URL('../public/assets/cards/five-crowns.svg', import.meta.url), 'utf8');
-const font = readFileSync('/usr/share/fonts/truetype/macos/Inter-Bold.ttf').toString('base64');
+const font = readFileSync('/usr/share/fonts/truetype/noto/NotoSerif-Bold.ttf').toString('base64');
 
 const browser = await chromium.launch({headless: true});
 const page = await browser.newPage({viewport: {width: 700, height: 980}, deviceScaleFactor: 2});
 await page.setContent(`<!doctype html>
 <html><head>
 <style>
-@font-face { font-family: Inter; src: url(data:font/ttf;base64,${font}) format('truetype'); font-weight: 700; }
+@font-face { font-family: "Noto Serif"; src: url(data:font/ttf;base64,${font}) format('truetype'); font-weight: 700; }
 html, body { margin: 0; width: 700px; height: 980px; overflow: hidden; background: #2a0a5c; }
 svg { display: block; width: 700px; height: 980px; }
 </style>

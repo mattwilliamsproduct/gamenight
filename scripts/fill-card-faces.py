@@ -179,7 +179,32 @@ def extend(arr, spec):
     else:
         canvas = extend_heat(content, src_l, src_r, spec["period"])
         canvas = scrub_pad(canvas, src_l, src_r, heat_bg)
+        canvas = soften_heat_pads(canvas, src_l, src_r)
     return canvas, (src_l, src_r)
+
+
+def soften_heat_pads(canvas, src_l, src_r, depth=32):
+    """Horizontal blend on the side pads so a short wrap does not tile as streaks."""
+    out = canvas.astype(np.float32)
+    white = near_white(canvas, floor=188, spread=55)
+    kernel = np.array([1, 2, 3, 4, 3, 2, 1], dtype=np.float32)
+    kernel /= kernel.sum()
+
+    def blur_span(x0, x1):
+        region = out[:, x0:x1]
+        pad_l = np.repeat(region[:, :1], 3, axis=1)
+        pad_r = np.repeat(region[:, -1:], 3, axis=1)
+        ext = np.concatenate([pad_l, region, pad_r], axis=1)
+        mixed = np.zeros_like(region)
+        for i, k in enumerate(kernel):
+            mixed += ext[:, i : i + region.shape[1]] * k
+        keep = ~white[:, x0:x1]
+        region[keep] = mixed[keep] * 0.72 + region[keep] * 0.28
+        out[:, x0:x1] = region
+
+    blur_span(0, min(depth, src_l))
+    blur_span(max(src_r, canvas.shape[1] - depth), canvas.shape[1])
+    return np.clip(out, 0, 255).astype(np.uint8)
 
 
 def scrub_pad(canvas, src_l, src_r, bg_fn):

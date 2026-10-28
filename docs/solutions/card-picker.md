@@ -8,7 +8,7 @@ Matt's Home picker is seven upright 5:7 card backs. The cards speak for themselv
 - The frame does not carry `s2-art-*`. Old porch/tropical tile backgrounds stay off the picker.
 - Faces live in `public/assets/cards/*.webp`. Select, then Start.
 - Rook and Beat the Heat defaults are the edge-filled 5:7 faces. Pads use background only (teal clover / Heat field). Do not stretch. The frame radius is the only corner.
-- Five Crowns is a designed 700×980 SVG raster (`five-crowns.svg` → `five-crowns.webp`), drawn from Matt's photo: purple lattice, gold-edged band, sideways gold-and-red FIVE CROWNS mark, no copyright. Do not retouch the photo.
+- Five Crowns is a designed 700×980 SVG raster (`five-crowns.svg` → `five-crowns.webp`), drawn from Matt's photo: purple lattice, gold-edged band, stepped gold-and-red FIVE CROWNS mark with one jeweled crown, no copyright. Do not retouch the photo.
 - iPad landscape 1024×768 and TV 1920×1080 are the primary layouts (landscape iPad mirrored to TV). Portrait and phone must not break.
 - Columns first, then cards. Tonight's Table is 348–360px at 1024 so first names stay whole. The seven 5:7 cards take leftover space (4+3). The Start bar stays inside Start a New Match.
 - Tonight's Table rows keep their natural height. The table scrolls when the list is long. Four seated shows every chip. The seat grid never shrinks behind chips and never uses `1fr` rows.

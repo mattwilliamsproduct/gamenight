@@ -62,6 +62,12 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
     await access(join(root, 'public/assets/cards', face));
   }
   await access(join(root, 'public/assets/cards/five-crowns.svg'));
+  const svg = await readFile(join(root, 'public/assets/cards/five-crowns.svg'), 'utf8');
+  assert.match(svg, /CROWNS/);
+  assert.match(svg, /FIVE/);
+  assert.match(svg, /Noto Serif/);
+  assert.match(svg, /#2f7d3a/);
+  assert.doesNotMatch(svg, /THE GAME ISN|KINGS GO WILD|Cannei/);
   assert.doesNotMatch(js, /cardFillOn|CARD_FILL|cards\/fill\//);
   assert.match(js, /assets\/cards\/rook\.webp/);
   assert.match(js, /assets\/cards\/beat-the-heat\.webp/);
