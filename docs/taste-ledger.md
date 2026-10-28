@@ -32,6 +32,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
 - Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
 - Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
+- A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
+- One saved night reads `1 night`.
+- The dealer chip hugs the letters and stays a dealer mark, not a selected state. The candy-stripe 4th is Life Preserver available.
 
 ## Kills
 
@@ -52,6 +55,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
+- `1 nights` on a single saved night.
+- Standings updated still sitting on Records after Save & End.
 - Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
 - SELECTED PLAYER crowding the Scoring pill on phone entry.
 - A porch password or cloud sync control in Settings this release.
