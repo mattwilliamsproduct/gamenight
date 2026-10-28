@@ -7582,15 +7582,23 @@ button.dealer-name-indicator .dealer-player-label {
       padding: 0.65rem;
       min-width: 0;
     }
+    .profile-mini-stat {
+      padding-left: 0.4rem;
+      padding-right: 0.4rem;
+    }
     .profile-mini-stat span,
     .profile-big-stat span {
       display: block;
       color: var(--muted);
-      font-size: 0.58rem;
+      font-size: max(13px, 0.8rem);
       font-weight: 900;
-      letter-spacing: 0.13em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       white-space: nowrap;
+    }
+    .profile-mini-stat span {
+      letter-spacing: 0.04em;
+      overflow: visible;
     }
     .profile-mini-stat strong,
     .profile-big-stat strong {
