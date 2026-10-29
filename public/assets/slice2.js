@@ -119,8 +119,11 @@
       if (phase === 'scoring') {
         const sum = table.reduce((total, player) => total + (parseInt(game.currentBids?.[player], 10) || 0), 0);
         const delta = sum - tricks;
-        const note = delta === 0 ? 'exact' : (delta > 0 ? `+${delta} over` : `${delta} under`);
-        bits.push(`Bids ${sum}/${tricks} (${note})`);
+        let note;
+        if (delta === 0) note = 'exact';
+        else if (delta > 0) note = `${delta} over`;
+        else note = `${Math.abs(delta)} under`;
+        bits.push(`Bids add up to ${sum} of ${tricks} tricks (${note})`);
       }
     }
     return bits.join(' · ');

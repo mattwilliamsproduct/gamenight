@@ -3675,23 +3675,43 @@ button.dealer-name-indicator {
       max-width: 100%;
       overflow: hidden;
     }
-    .left-early-host { margin-top: 0.2rem; min-height: 0; }
+    .left-early-host {
+      margin: 0.35rem 0 0.55rem;
+      min-height: 0;
+      width: 100%;
+    }
     .left-early-host[hidden] { display: none !important; }
     .left-early-disclosure {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.2rem 0.55rem;
+      padding: 0.35rem 0.7rem;
       border-radius: 999px;
-      border: 1px solid rgba(15, 76, 70, 0.18);
-      background: rgba(15, 76, 70, 0.06);
-      color: var(--muted);
-      font-size: 12px;
+      border: 1px solid rgba(15, 76, 70, 0.28);
+      background: rgba(15, 76, 70, 0.08);
+      color: var(--ink-2);
+      font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.02em;
       text-transform: none;
-      cursor: help;
+      cursor: pointer;
     }
+    .left-early-disclosure[aria-expanded="true"] {
+      background: rgba(15, 76, 70, 0.14);
+      border-color: rgba(15, 76, 70, 0.4);
+    }
+    .left-early-names {
+      margin: 0.35rem 0 0;
+      padding: 0.45rem 0.7rem;
+      border-radius: 12px;
+      border: 1px solid rgba(15, 76, 70, 0.18);
+      background: rgba(255, 253, 248, 0.92);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .left-early-names[hidden] { display: none !important; }
     .retired-badge {
       display: inline-flex;
       align-items: center;
@@ -4924,6 +4944,46 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"],
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('00')"] {
       display: none;
+    }
+    /* Phone order when - and 00 are omitted: 789 / 456 / 123 / 0 */
+    #score-entry-modal.hf-no-minus .score-entry-keypad,
+    #score-entry-modal.hf-cards-left .score-entry-keypad {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-areas:
+        "k7 k8 k9 bk"
+        "k4 k5 k6 nx"
+        "k1 k2 k3 nx"
+        "k0 k0 k0 nx";
+    }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('7')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('7')"] { grid-area: k7; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('8')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('8')"] { grid-area: k8; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('9')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('9')"] { grid-area: k9; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('backspace')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('backspace')"] { grid-area: bk; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('4')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('4')"] { grid-area: k4; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('5')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('5')"] { grid-area: k5; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('6')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('6')"] { grid-area: k6; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('1')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('1')"] { grid-area: k1; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('2')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('2')"] { grid-area: k2; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('3')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('0')"],
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
+      grid-area: k0;
+      grid-column: auto;
+    }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button.score-entry-key.next,
+    #score-entry-modal.hf-cards-left .score-entry-keypad button.score-entry-key.next {
+      grid-area: nx;
+      grid-row: auto;
     }
     #hand-foot-setup-modal .hf-setup-card {
       max-height: min(100%, calc(100dvh - 2rem));
@@ -10341,6 +10401,15 @@ button.dealer-name-indicator .dealer-player-label {
     const totals=gameData?.totals||{};
     return (gameData?.originalRoster||Object.keys(totals)).filter(p=>p&&!retired.includes(p)&&totals[p]!==undefined);
   }
+  function toggleLeftEarlyDisclosure(){
+    const btn=document.getElementById('left-early-disclosure');
+    const names=document.getElementById('left-early-names');
+    if(!btn||!names)return;
+    const open=btn.getAttribute('aria-expanded')==='true';
+    btn.setAttribute('aria-expanded', open?'false':'true');
+    names.hidden=open;
+  }
+
   function getDisplayPlayers(gameData){
     const seen=new Set();
     const named=[];
@@ -15961,28 +16030,27 @@ ${isDealer
 
     let gamePlayers=isHandFootGame(currentGame)?getHandFootColumns(currentGame):[...getRecordedPlayers(currentGame)];
     const leftEarlyNames=(currentGame.retired||[]).filter(Boolean);
+    const leftEarlyOpen=!!document.getElementById('left-early-disclosure')?.getAttribute('aria-expanded')?.includes('true');
     const leftEarlyNote=leftEarlyNames.length
-      ? `<button type="button" id="left-early-disclosure" class="left-early-disclosure" title="${escapeHtml(leftEarlyNames.join(', '))}">${leftEarlyNames.length} player${leftEarlyNames.length===1?'':'s'} left early</button>`
+      ? `<button type="button" id="left-early-disclosure" class="left-early-disclosure" aria-expanded="${leftEarlyOpen?'true':'false'}" aria-controls="left-early-names" onclick="toggleLeftEarlyDisclosure()">${leftEarlyNames.length} player${leftEarlyNames.length===1?'':'s'} left early</button>
+         <div id="left-early-names" class="left-early-names" ${leftEarlyOpen?'':'hidden'}>Left early: ${escapeHtml(leftEarlyNames.join(', '))}</div>`
       : '';
     let leftEarlyHost=document.getElementById('left-early-host');
-    const boardCopy=document.querySelector('#slice2-board-bar .s2-board-copy');
-    if(!leftEarlyHost && boardCopy){
+    const scorecardMount=document.getElementById('scorecard-capture')
+      || document.querySelector('#game-screen .scorecard-live-layout')
+      || document.getElementById('scorecard-body')?.closest('.overflow-x-auto, .scorecard-scroll, .card, section, div');
+    if(!leftEarlyHost){
       leftEarlyHost=document.createElement('div');
       leftEarlyHost.id='left-early-host';
       leftEarlyHost.className='left-early-host';
-      boardCopy.appendChild(leftEarlyHost);
     }
-    if(!leftEarlyHost){
+    if(scorecardMount && leftEarlyHost.parentElement!==scorecardMount.parentElement){
+      scorecardMount.parentElement?.insertBefore(leftEarlyHost, scorecardMount);
+    } else if(!leftEarlyHost.parentElement){
       const wrap=document.getElementById('round-intel')?.parentElement;
-      if(wrap){
-        leftEarlyHost=document.createElement('div');
-        leftEarlyHost.id='left-early-host';
-        leftEarlyHost.className='left-early-host';
-        wrap.appendChild(leftEarlyHost);
-      }
+      if(wrap) wrap.appendChild(leftEarlyHost);
     }
     if(leftEarlyHost){
-      if(boardCopy && leftEarlyHost.parentElement!==boardCopy) boardCopy.appendChild(leftEarlyHost);
       leftEarlyHost.innerHTML=leftEarlyNote;
       leftEarlyHost.hidden=!leftEarlyNote;
     }
@@ -16016,8 +16084,8 @@ ${isDealer
     const submittedBidRound=showSubmittedBids?getRoundTrickCount(currentGame):0;
     let head=`<tr>
       <th data-sc-part="lead" class="scorecard-col-player px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
-      ${showSubmittedBids?`<th data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard px-2 py-3 text-center" aria-label="BID ${submittedBidTotal} of ${submittedBidRound}">
-        <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">BID</span><span class="scorecard-bid-header-fraction">${submittedBidTotal}/${submittedBidRound}</span></span>
+      ${showSubmittedBids?`<th data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard px-2 py-3 text-center" aria-label="Bids ${submittedBidTotal} of ${submittedBidRound} tricks">
+        <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">Bids</span><span class="scorecard-bid-header-fraction">${submittedBidTotal} of ${submittedBidRound}</span></span>
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
@@ -16751,7 +16819,10 @@ ${isDealer
   function getScoreEntryEnteredCount(){
     if(!scoreEntryModalState)return 0;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    return players.filter(p=>scoreEntryStatusFor(p).state==='confirmed').length;
+    return players.filter(p=>{
+      const state=scoreEntryStatusFor(p).state;
+      return state==='confirmed'||state==='entered'||state==='suggested';
+    }).length;
   }
 
   function scoreEntryStatusFor(player){

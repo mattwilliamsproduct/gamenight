@@ -45,6 +45,20 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   expect(minusVisible).toBe(false);
   expect(dblVisible).toBe(false);
 
+  const digitOrder = await page.evaluate(() => {
+    const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-keypad .score-entry-key')]
+      .filter((el) => getComputedStyle(el).display !== 'none')
+      .map((el) => ({
+        text: (el.textContent || '').trim(),
+        top: Math.round(el.getBoundingClientRect().top),
+        left: Math.round(el.getBoundingClientRect().left)
+      }))
+      .filter((item) => /^[0-9]$/.test(item.text));
+    keys.sort((a, b) => (a.top - b.top) || (a.left - b.left));
+    return keys.map((item) => item.text);
+  });
+  expect(digitOrder, JSON.stringify(digitOrder)).toEqual(['7','8','9','4','5','6','1','2','3','0']);
+
   // Clear first row if needed, confirm Not entered
   await page.locator('#score-entry-modal .score-entry-row').first().click();
   for (let i = 0; i < 4; i++) {
@@ -55,10 +69,12 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   const completeAfterClear = await page.locator('#score-entry-modal .score-entry-row').first().evaluate((el) => el.classList.contains('is-complete'));
   expect(completeAfterClear).toBe(false);
 
-  // Enter 0 and confirm -> Entered 0 then Confirmed
+  // Enter 0 and confirm -> Entered 0 then Confirmed; header counts Entered 0
   await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]').click();
   let status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Entered 0/i);
+  const progressAfterZero = await page.locator('#score-entry-progress').textContent();
+  expect(progressAfterZero, progressAfterZero).toMatch(/1 of 8 bids entered/i);
   await page.locator('#score-entry-modal button.score-entry-key.next').click();
   status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Confirmed:\s*0/i);
@@ -87,11 +103,18 @@ test('Departed player leaves live scorecard with disclosure', async ({page}) => 
     if (!currentGame.retired) currentGame.retired = [];
     if (!currentGame.retired.includes(name)) currentGame.retired.push(name);
     renderGame();
+    const disc = document.getElementById('left-early-disclosure');
+    const box = disc ? disc.getBoundingClientRect() : null;
+    const inView = !!(box && box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.width > 0 && box.height > 0);
     return {
       name,
       beforeRows,
       afterRows: document.querySelectorAll('#scorecard-body tr').length,
-      disclosure: (document.getElementById('left-early-disclosure') || {}).textContent || '',
+      disclosure: disc ? disc.textContent || '' : '',
+      inView,
+      box: box ? {top: box.top, bottom: box.bottom, height: box.height} : null,
+      boardLine: (document.getElementById('slice2-board-line') || {}).textContent || '',
+      bidHeader: (document.querySelector('.scorecard-bid-header') || {}).textContent || '',
       retiredRows: document.querySelectorAll('#scorecard-body tr.row-retired').length,
       recorded: typeof getRecordedPlayers === 'function' ? getRecordedPlayers(currentGame) : null
     };
@@ -99,6 +122,12 @@ test('Departed player leaves live scorecard with disclosure', async ({page}) => 
   expect(result.afterRows, JSON.stringify(result)).toBe(result.beforeRows - 1);
   expect(result.retiredRows).toBe(0);
   expect(result.disclosure).toMatch(/1 player left early/i);
+  expect(result.inView, JSON.stringify(result.box)).toBe(true);
+  expect(result.boardLine).toMatch(/Bids add up to \d+ of \d+ tricks/i);
+  expect(result.bidHeader).toMatch(/Bids\s*\d+ of \d+/i);
+  await page.locator('#left-early-disclosure').click();
+  await expect(page.locator('#left-early-names')).toBeVisible();
+  await expect(page.locator('#left-early-names')).toContainText(result.name);
 });
 
 test('Start confirm parks live match incomplete', async ({page}) => {
