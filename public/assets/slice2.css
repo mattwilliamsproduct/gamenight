@@ -3264,7 +3264,7 @@ html.slice2-tv .s2-records-filters select:focus {
   outline-offset: 2px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 900px) {
   html.slice2-tv .s2-fame-col,
   html.slice2-tv .s2-explore-grid {
     grid-template-columns: 1fr;
@@ -3659,18 +3659,45 @@ html.slice2-tv body.active-match-view #actions-menu {
   width: min(24rem, calc(100vw - 1.5rem));
 }
 
-html.slice2-tv .s2-book-row {
+html.slice2-tv .s2-book-row:not(.s2-leader-row) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label value"
+    "who who"
+    "note note";
+  column-gap: 12px;
+  row-gap: 2px;
   align-items: start;
 }
-html.slice2-tv .s2-book-row > span:first-child {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+html.slice2-tv .s2-book-row .s2-book-label {
+  grid-area: label;
+  font-weight: 800;
+}
+html.slice2-tv .s2-book-row .s2-book-value,
+html.slice2-tv .s2-book-row > strong {
+  grid-area: value;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  justify-self: end;
+  text-align: right;
+}
+html.slice2-tv .s2-book-row .s2-book-who {
+  grid-area: who;
+  color: var(--s2-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+html.slice2-tv .s2-book-row .s2-book-empty {
+  grid-area: value;
+  justify-self: end;
+  color: var(--s2-muted);
 }
 html.slice2-tv .s2-book-row .s2-unassisted-note,
 html.slice2-tv .s2-ledger-stat .s2-unassisted-note {
+  grid-area: note;
   display: block;
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
   color: var(--s2-muted);
   font-style: normal;
   font-size: 0.72rem;
@@ -3678,8 +3705,16 @@ html.slice2-tv .s2-ledger-stat .s2-unassisted-note {
   letter-spacing: 0.02em;
   text-transform: none;
 }
-html.slice2-tv .s2-book-row strong {
-  font-size: 1.15rem;
+html.slice2-tv .s2-explore-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+html.slice2-tv .s2-board-round {
+  white-space: nowrap;
+}
+@media (max-width: 1023px) {
+  html.slice2-tv .s2-board-round {
+    white-space: normal;
+  }
 }
 
 /* rc3: Table stays visible outside Actions */

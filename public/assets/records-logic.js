@@ -532,7 +532,18 @@
   }
 
   function formatStatValue(value, label) {
-    return scoreLabel(value, label && /\brate\b/i.test(label) ? '%' : '');
+    const text = String(label || '');
+    let unit = '';
+    if (/\brate\b/i.test(text)) unit = '%';
+    else if (/\bheat\b/i.test(text)) unit = 'heat';
+    else if (/\btrick/i.test(text)) unit = Number(value) === 1 ? 'trick' : 'tricks';
+    else if (/\bbid/i.test(text) && !/exact-bid rate/i.test(text)) unit = Number(value) === 1 ? 'bid' : 'bids';
+    else if (/\bstreak|consecutive|without a win|without last/i.test(text)) unit = Number(value) === 1 ? 'match' : 'matches';
+    else if (/\bwin\b|wins\b/i.test(text)) unit = Number(value) === 1 ? 'win' : 'wins';
+    else if (/\bscore|points|final|round|margin|lopsided|disaster|coolest|cleanest|avg|average/i.test(text)) {
+      unit = Number(value) === 1 ? 'pt' : 'pts';
+    }
+    return scoreLabel(value, unit);
   }
 
   function escapeAttr(value) {
@@ -698,7 +709,7 @@
           ${(card.people || []).map((row) => playerLink(row.player || row.name, esc, avatar)).join('')}
           <small>${esc(card.sub)}</small>
         </article>`).join('')}</div>
-        <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${formatCompletedMatches((data.completed || []).length)}</span></div>
+        <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
         <div class="s2-ledger-table">
           <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
           ${rows}
@@ -735,6 +746,15 @@
     </article>`;
   }
 
+
+  function recordsCountSubtitle(data, table) {
+    const completed = (data && data.completed) ? data.completed.length : 0;
+    const nights = table && Array.isArray(table.history) ? table.history.length : completed;
+    const completedLabel = formatCompletedMatches(completed);
+    if (nights > completed) return `${completedLabel} · ${nights} nights saved`;
+    return completedLabel;
+  }
+
   function exploreHtml(hall, data, table, helpers, ctx, compact) {
     const esc = ctx.escapeHtml;
     const avatar = ctx.getAvatarImg;
@@ -764,7 +784,7 @@
     sections.push(explorePlayers(data, playerFilter, esc, avatar));
     return `<div class="s2-records-pane s2-shame-col s2-explore-col" data-pane="explore">
       <section class="s2-panel">
-        <div class="s2-panel-head"><h2>Explore records</h2><span class="s2-sub">${formatCompletedMatches((data.completed || []).length)}</span></div>
+        <div class="s2-panel-head"><h2>Explore records</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
         <div class="s2-records-filters">
           <label>Game <select id="s2-records-game" data-s2-action="filter-game">${gameOptions}</select></label>
           <label>Player <select id="s2-records-player" data-s2-action="filter-player">${playerOptions}</select></label>
@@ -783,15 +803,16 @@
     if (!record) {
       const empty = note === 'No unassisted matches yet' ? note : 'No qualifying history';
       const noteHtml = note && note !== 'No unassisted matches yet' ? `<small class="s2-unassisted-note">${esc(note)}</small>` : '';
-      return `<div class="s2-book-row"><span>${esc(label)}${noteHtml}</span><span class="s2-book-empty">${esc(empty)}</span></div>`;
+      return `<div class="s2-book-row"><span class="s2-book-label">${esc(label)}</span><span class="s2-book-empty">${esc(empty)}</span>${noteHtml}</div>`;
     }
     const names = recordHolderText(record);
     const extra = record.label || (finite(record.round) ? `R${record.round}` : '');
     const noteHtml = note ? `<small class="s2-unassisted-note">${esc(note)}</small>` : '';
     return `<div class="s2-book-row">
-      <span>${esc(label)}${noteHtml}</span>
+      <span class="s2-book-label">${esc(label)}</span>
+      <strong class="s2-book-value">${esc(formatStatValue(record.value, label))}</strong>
       <span class="s2-book-who">${esc(names)}${extra ? ` · ${esc(extra)}` : ''}${record.date ? ` · ${esc(record.date)}` : ''}</span>
-      <strong>${esc(formatStatValue(record.value, label))}</strong>
+      ${noteHtml}
     </div>`;
   }
 
@@ -1017,7 +1038,6 @@
         : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
       model.assisted ? '<span class="s2-night-badge">Assisted match</span>' : '',
-      model.endedEarly ? '<span class="s2-night-badge">Ended early</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
     const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
@@ -1037,11 +1057,10 @@
     </li>`).join('')
       : '';
     const rows = rankedHtml + leftHtml;
+    // Meta already sits in the header once. Do not repeat Incomplete / Ended early below.
     const winner = model.incomplete
-      ? `<p class="s2-night-status">${esc(meta)}</p>`
-      : (model.endedEarly
-        ? `<p class="s2-night-status">${esc(meta)}</p><p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`
-        : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`);
+      ? ''
+      : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`;
     const expand = more > 0
       ? `<button type="button" class="s2-night-more" data-s2-action="night-expand" data-s2-id="${id}">Show all ${model.standings.length}</button>`
       : '';

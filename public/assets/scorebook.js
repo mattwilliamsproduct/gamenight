@@ -448,14 +448,21 @@
     const digit = /^[0-9]+$/.test(token);
     const mode = source.mode || '';
     const deferAck = !!source.deferAck || mode === 'bids' || mode === 'tricks' || mode === 'bid' || mode === 'trick';
+    // Pending "-" must not be wiped by the next digit. scoreEntryValueIsBlank
+    // treats "-" as blank for status, but the replace branch would turn "-"+5 into 5.
     if (!acknowledged && digit) {
+      if (String(value).trim() === '-') {
+        return { value: '-' + token, acknowledged: deferAck ? false : true, replaced: false };
+      }
       return { value: token, acknowledged: deferAck ? false : true, replaced: true };
     }
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
     else if (digit && value === '0' && token !== '0' && token !== '00') value = token;
     else if (digit && value.length < 5) value += token;
-    if (scoreEntryValueIsBlank(value)) {
+    if (String(value).trim() === '-') {
+      acknowledged = deferAck ? false : true;
+    } else if (scoreEntryValueIsBlank(value)) {
       acknowledged = false;
     } else if (digit || token === 'backspace' || token === '-') {
       acknowledged = deferAck ? false : true;
@@ -619,7 +626,10 @@
       return Object.keys(totals).some(player => !retired.has(player) && (Number(totals[player]) || 0) >= target);
     }
     if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
-      return match.completed === true;
+      const retired = new Set(match.retired || []);
+      const totals = match.totals || {};
+      // Matt 7:26 PM: full game when any stored total reaches 200+.
+      return Object.keys(totals).some((player) => !retired.has(player) && (Number(totals[player]) || 0) >= 200);
     }
     return match.completed === true;
   }
@@ -629,7 +639,6 @@
     if (match.completed === false) return false;
     if (match.endedEarly === true) return true;
     const name = gameName(match);
-    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') return false;
     if (name === 'Rook') {
       const target = Number(match.rookConfig && match.rookConfig.winTarget);
       if (!(Number.isFinite(target) && target > 0)) return false;

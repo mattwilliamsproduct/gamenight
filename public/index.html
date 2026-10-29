@@ -16086,8 +16086,8 @@ ${isDealer
     const submittedBidRound=showSubmittedBids?getRoundTrickCount(currentGame):0;
     let head=`<tr>
       <th data-sc-part="lead" class="scorecard-col-player px-5 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th>
-      ${showSubmittedBids?`<th data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard px-2 py-3 text-center" aria-label="Bids ${submittedBidTotal} of ${submittedBidRound} tricks">
-        <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">Bids</span><span class="scorecard-bid-header-fraction">${submittedBidTotal} of ${submittedBidRound}</span></span>
+      ${showSubmittedBids?`<th data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard px-2 py-3 text-center" aria-label="Bids total ${submittedBidTotal} of ${submittedBidRound} tricks">
+        <span class="scorecard-bid-header"><span class="scorecard-bid-header-label">Bids</span></span>
       </th>`:''}
       <th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{

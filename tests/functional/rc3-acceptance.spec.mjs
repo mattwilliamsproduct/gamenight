@@ -123,9 +123,8 @@ test('Departed player leaves live scorecard with disclosure', async ({page}) => 
   expect(result.retiredRows).toBe(0);
   expect(result.disclosure).toMatch(/1 player left early/i);
   expect(result.inView, JSON.stringify(result.box)).toBe(true);
-  expect(result.boardLine).toMatch(/Bids add up to \d+ of \d+ tricks/i);
-  expect(result.boardLine).not.toMatch(/\(exact\)/i);
-  expect(result.bidHeader).toMatch(/Bids\s*\d+ of \d+/i);
+  expect(result.boardLine).toMatch(/Round \d+ of \d+ · \d+ tricks? · bids total \d+ \((exact|\d+ over|\d+ under)\)/i);
+  expect(result.bidHeader).toMatch(/^\s*Bids\s*$/i);
   await page.locator('#left-early-disclosure').click();
   await expect(page.locator('#left-early-names')).toBeVisible();
   await expect(page.locator('#left-early-names')).toContainText(result.name);

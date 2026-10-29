@@ -399,5 +399,43 @@ test('isFullGame derives from stored rounds and does not guess Rook targets', ()
   };
   assert.equal(Scorebook.isFullGame(flipMissing), false);
   assert.equal(Scorebook.isEndedEarlyMatch(flipMissing), false);
-  assert.equal(Scorebook.isFullGame({ ...flipMissing, completed: true }), true);
+
+  const flipUnder = {
+    game: 'Flip 7 Vengeance',
+    completed: true,
+    endedEarly: false,
+    totals: { Matt: 180, Cat: 150 },
+    rounds: [{ round: 1, scores: { Matt: 180, Cat: 150 } }],
+    originalRoster: ['Matt', 'Cat']
+  };
+  assert.equal(Scorebook.isFullGame(flipUnder), false, 'everyone under 200 is not a full Flip 7');
+  assert.equal(Scorebook.isEndedEarlyMatch(flipUnder), true);
+
+  const flipHit = {
+    game: 'Flip 7 Vengeance',
+    completed: true,
+    endedEarly: false,
+    totals: { Matt: 210, Cat: 150 },
+    rounds: [{ round: 1, scores: { Matt: 210, Cat: 150 } }],
+    originalRoster: ['Matt', 'Cat']
+  };
+  assert.equal(Scorebook.isFullGame(flipHit), true, '200+ total qualifies as a full Flip 7');
+  assert.equal(Scorebook.isEndedEarlyMatch(flipHit), false);
+
+  const flipRetiredOnly = {
+    game: 'Flip 7 Vengeance',
+    completed: true,
+    totals: { Matt: 50, Cat: 220 },
+    retired: ['Cat'],
+    rounds: [{ round: 1, scores: { Matt: 50, Cat: 220 } }],
+    originalRoster: ['Matt', 'Cat']
+  };
+  assert.equal(Scorebook.isFullGame(flipRetiredOnly), false, 'retired 200+ does not qualify');
+});
+
+test('score entry pending minus then digit keeps the sign on scores', () => {
+  let next = Scorebook.applyScoreEntryKey({ value: '', acknowledged: false, mode: 'scores' }, '-');
+  assert.equal(next.value, '-');
+  next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'scores' }, '5');
+  assert.equal(next.value, '-5');
 });

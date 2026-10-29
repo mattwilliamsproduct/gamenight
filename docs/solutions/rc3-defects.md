@@ -26,7 +26,7 @@ Do not guess. Do not rewrite old rows. Do not hide a real low (or high) full-gam
 | Canasta (`Hand and Foot`) | 4 rounds or stored `maxRounds` | scoring rounds ≥ that count | Same | — |
 | Beat the Heat | someone reaches stored `endScore` or 66 | an active total ≥ the line | Derive from stored totals vs 66 | — |
 | Rook | someone reaches stored `rookConfig.winTarget` | an active total ≥ that target | If no target is stored, that night is not a full game | Rook final-score rows stay visible when any night has a stored target. Nights without a target are skipped, not guessed at 300. |
-| Flip 7 | the table ends the match | `completed === true` (End now is the end; there is no target or round count) | Cannot derive. Night is not a full game and is not labeled Ended early. | Category stays up. Only explicit `completed === true` nights qualify. |
+| Flip 7 | someone reaches 200 points | an active stored total ≥ 200 (from `totals`, not only `completed === true`) | Derive from stored totals vs 200. `completed === true` alone is not enough. | Category stays up. Nights where every total stays under 200 are not full games (Ended early if completed). |
 
 `completed === false` is Incomplete (Resume). End now before the real end stores `completed: true` and `endedEarly: true`, labeled Ended early, no Resume. Wins and streaks still use `completed !== false`. Tied winners each still get a win.
 
@@ -36,7 +36,8 @@ Final-score / average gates: `bestGame`, `worstGame`, `bestGameByPlayerCount`, `
 
 When two numbers can differ, the label says what it counted.
 
-- Hall of Fame / Explore: `N completed matches` (`completed !== false`, includes Ended early).
+- Hall of Fame / Explore: `N completed matches` (`completed !== false`, includes Ended early). When nights saved > completed, subtitle adds `· M nights saved`.
+- Nav `Records (M)`: every saved night, including Incomplete.
 - Past nights: every saved night, including Incomplete.
 - Best final / average / listed final-score comparisons: full games only, plus Unassisted where that already applied.
 
@@ -54,7 +55,7 @@ Land only if done and safe. Otherwise leave open.
 
 ## Open treatments
 
-- Flip 7 nights with no `completed` flag are excluded from final-score records and are not labeled Ended early. Documented above. No invented flag.
+- Flip 7 full games require an active stored total ≥ 200. A completed night where everyone stays under 200 is Ended early and skips final-score records. Matt approved this rule 7:26 PM ET Oct 29.
 - Rook nights with no stored `winTarget` are excluded from final-score records. Default 300 is not assumed for old rows.
 - `qa-hf-entry` / `qa-retired` stay off this branch unless they already exist here.
 
@@ -101,3 +102,9 @@ Source: `/workspace/back-porch/rc2/settings-demo-audit.md` (PROD `39e6b51`, LAUN
 | Appearance + animation prefs | On | On (remapped keys) |
 | Data Vault / Porch Cloud | On | Hidden and blocked |
 | About / sample notice | Absent | Injected by try-demo.js |
+
+## Gate fixture notes (Oct 29 evening)
+
+- **P0-03 / records-assisted-heal:** The unassisted Five Crowns night is a full 11-hand match so `bestGame` qualifies under `isFullGame`. Totals stay Matt 4 / field 10. Reason: final-score records require full games; the old 1-round plain match correctly stopped qualifying after item 16, so the fixture was expanded rather than weakening `isFullGame`.
+- **records-labels historical edit:** Full 11-hand Ada/Bea nights with Bea’s fat round 2. Correcting that round to Ada 40 / Bea 0 flips the match to Bea and makes `afterBest` Bea (19) while Ada keeps other nights at 20. Reason: after expanding to full games, a tiny Bea delta could not beat Ada’s remaining bests.
+- **P1-05 minus:** Regression vs freeze `5e57d50`. Pending `-` was treated as blank and the next digit replaced the value. `applyScoreEntryKey` now keeps a pending minus when the following key is a digit. Minus stays hidden only for Wizard bids/tricks.

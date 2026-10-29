@@ -602,8 +602,17 @@ function recordsHealAssistedMatch(){
   };
 }
 function recordsHealPlainMatch(){
-  const played=Object.fromEntries(recordsHealPlayers.map(player=>[player,player==='Matt'?4:10]));
-  const rounds=[{round:1,scores:played}];
+  // Full 11-hand Five Crowns so final-score records qualify under isFullGame.
+  // Matt keeps best final 4; everyone else finishes at 10. Round records still
+  // prefer Brick's 0 on the assisted night (round records are not full-game gated).
+  const rounds=[];
+  for(let r=1;r<=11;r+=1){
+    const scores=Object.fromEntries(recordsHealPlayers.map(player=>[
+      player,
+      player==='Matt' ? (r===1 ? 4 : 0) : (r===1 ? 10 : 0)
+    ]));
+    rounds.push({round:r,scores});
+  }
   const totals=totalRounds(recordsHealPlayers,rounds);
   return {
     id:1785200000002,
@@ -613,12 +622,13 @@ function recordsHealPlainMatch(){
     winners:['Matt'],
     rounds,
     originalRoster:[...recordsHealPlayers],
-    currentRound:2,
+    currentRound:12,
     maxRounds:11,
     hailMaryUsed:[],
     assistedMatch:false,
     retired:[],
-    completed:true
+    completed:true,
+    endedEarly:false
   };
 }
 

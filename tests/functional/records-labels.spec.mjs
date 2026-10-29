@@ -101,9 +101,13 @@ test('editing a historical Five Crowns round updates winners, streaks, rivalries
   const result = await page.evaluate(() => {
     const nights = [];
     for (let i = 0; i < 5; i += 1) {
+      // Full 11-hand nights. Bea carries one fat round 2 so a correction that
+      // zeros it can drop her below Ada's remaining bests and flip bestGame.
       const rounds = [];
       for (let r = 1; r <= 11; r += 1) {
-        rounds.push({round: r, scores: {Ada: r === 11 ? 0 : 2, Bea: r === 11 ? 10 : 3}});
+        if (r === 2) rounds.push({round: r, scores: {Ada: 2, Bea: 25}});
+        else if (r === 11) rounds.push({round: r, scores: {Ada: 0, Bea: 10}});
+        else rounds.push({round: r, scores: {Ada: 2, Bea: 1}});
       }
       nights.push({
         id: 8100 + i,
@@ -113,7 +117,7 @@ test('editing a historical Five Crowns round updates winners, streaks, rivalries
         endedEarly: false,
         maxRounds: 11,
         originalRoster: ['Ada', 'Bea'],
-        totals: {Ada: 20, Bea: 40},
+        totals: {Ada: 20, Bea: 44},
         winners: ['Ada'],
         rounds
       });

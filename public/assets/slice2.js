@@ -104,7 +104,10 @@
       const tricks = getRoundTrickCount(game);
       bits.push(`Round ${round} of ${maxR} (${tricks} trick${tricks === 1 ? '' : 's'})`);
     } else if (game.name === 'Wizard') {
-      bits.push(`Round ${round} of ${maxR}`);
+      // Round line filled below when bids are in for a short single header.
+      if (!(isBidTrickGame(game) && !isMatchOver(game) && getBidTrickPhase(game) === 'scoring')) {
+        bits.push(`Round ${round} of ${maxR}`);
+      }
     } else if (game.name === 'Five Crowns') {
       bits.push(`Round ${round} of ${maxR}`);
     } else if (maxR && maxR < 900) {
@@ -119,11 +122,16 @@
       if (phase === 'scoring') {
         const sum = table.reduce((total, player) => total + (parseInt(game.currentBids?.[player], 10) || 0), 0);
         const delta = sum - tricks;
+        const trickWord = tricks === 1 ? 'trick' : 'tricks';
         let note;
-        if (delta === 0) note = 'they match the tricks';
-        else if (delta > 0) note = `${delta} more than the tricks`;
-        else note = `${Math.abs(delta)} fewer than the tricks`;
-        bits.push(`Bids add up to ${sum} of ${tricks} tricks · ${note}`);
+        if (delta === 0) note = 'exact';
+        else if (delta > 0) note = `${delta} over`;
+        else note = `${Math.abs(delta)} under`;
+        if (game.name === 'Wizard') {
+          bits.push(`Round ${round} of ${maxR} · ${tricks} ${trickWord} · bids total ${sum} (${note})`);
+        } else {
+          bits.push(`${tricks} ${trickWord} · bids total ${sum} (${note})`);
+        }
       }
     }
     return bits.join(' · ');
@@ -523,7 +531,10 @@
       sub.hidden = !wild;
     }
     if (legend) {
-      const showExact = isBidTrickGame(currentGame);
+      const bidTrick = isBidTrickGame(currentGame);
+      const scoring = bidTrick && getBidTrickPhase(currentGame) === 'scoring' && !isMatchOver(currentGame);
+      // During scoring the board line already carries exact/over/under — no duplicate chip.
+      const showExact = bidTrick && !scoring;
       legend.hidden = !showExact;
       legend.textContent = showExact
         ? (isEight18Game(currentGame) ? 'Exact bid · +10 bonus' : 'Exact bid')
