@@ -74,3 +74,30 @@ Confirm or add coverage for:
 ## Checkpoint / handoff language
 
 Do not write "Ready for Matt's review". Write **implementation complete; final checks pending** only after the one candidate commit, one preview of that commit, the regression-vs-live table, and the five-minute walkthrough are in the PR.
+
+## 15. Settings retained / removed / missing
+
+Source: `/workspace/back-porch/rc2/settings-demo-audit.md` (PROD `39e6b51`, LAUNCH `5e57d50`, DEMO `c17f52c`). No new Settings features added in rc3.
+
+### Retained (still in Settings)
+- Text Size A− / A+ (`adjustUI`, `gn_ui_scale`)
+- Lineup Intro, Post-Game Path Replay, Roll for Dealer prefs
+- Porch Cloud Save & Sync (password + `/api/sync`) outside demo
+- Export Backup File / Import Backup File / Paste & Merge outside demo
+- Performance Report (gated by `?gnperf=1`)
+- Close chrome (backdrop + ×)
+
+### Removed or never on launch vs older prod
+- No separate "About" shell on prod; demo injects About only while sample is on
+- No new Settings toggles in rc3
+
+### Missing vs demo audit expectations (documented, not built)
+- Settings does not gain a permanent Try a demo entry in this candidate (demo banner Exit / Reset cover that; see item 5)
+- Backup / restore / sync stay off while demo is active (hidden + blocked)
+
+### Demo vs live Settings behavior
+| Surface | Live | Demo active |
+| --- | --- | --- |
+| Appearance + animation prefs | On | On (remapped keys) |
+| Data Vault / Porch Cloud | On | Hidden and blocked |
+| About / sample notice | Absent | Injected by try-demo.js |

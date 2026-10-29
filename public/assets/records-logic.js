@@ -853,7 +853,7 @@
       if (game.id === 'Five Crowns') {
         push('Most perfect rounds in one match', rec.mostPerfectRounds);
         push('Cleanest game', rec.cleanestGame, unassisted);
-        push('Most consistent match', rec.mostConsistent);
+        push('Steadiest scores (lowest spread)', rec.mostConsistent);
         push('Closest margin of victory', rec.closestMargin);
         push('Most lopsided match', rec.mostLopsided);
       }
@@ -1051,7 +1051,7 @@
     return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.winners.length > 1 ? ' is-joint' : ''}"${model.assisted ? ' data-assisted-match="true"' : ''} data-s2-action="night-open" data-s2-id="${id}">
       <header class="s2-night-head">
         <strong>${esc(model.gameTitle)}</strong>
-        <span>${esc(model.date)}${model.incomplete ? '' : ` · ${esc(meta)}`}</span>
+        <span>${esc(meta)}</span>
         ${badges}
       </header>
       ${winner}

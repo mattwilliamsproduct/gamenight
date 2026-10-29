@@ -1,6 +1,6 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
-  const CARD_FACES = {
+  const CARD_FACES = (window.BPGGames && BPGGames.CARD_FACES) || {
     five: './assets/cards/five-crowns.webp',
     '818': './assets/cards/818.webp',
     wizard: './assets/cards/wizard.webp',

@@ -12163,13 +12163,13 @@ button.dealer-name-indicator .dealer-player-label {
       d.className='profile-passport-card';
       d.style.setProperty('--profile-accent', accent);
       d.onclick=()=>openProfileDetail(p);
-      const fav=s.favoriteGame?profileGameLabel(s.favoriteGame[0]):'No favorite yet';
+      const fav=s.favoriteGame?profileGameLabel(s.favoriteGame[0]):'No games yet';
       const best=s.bestGame?`${profileGameLabel(s.bestGame[0])} · ${Math.round(s.bestGame[1].wins/s.bestGame[1].games*100)}%`:'Building history';
       const recent=s.recent?`${profileGameLabel(s.recent.game)} · ${s.recent.won?'Won':'Played'} ${s.recent.date||''}`:'Ready for first match';
       const badges=[
         s.currentStreak!=='New'?renderProfileBadge(s.currentStreak.startsWith('W')?'🔥':'🌧', s.currentStreak, s.currentStreak.startsWith('W')?'hot':'storm'):'',
-        s.specialTotals.whammy?renderProfileBadge('WHAMMY', s.specialTotals.whammy, 'hot'):'',
-        s.specialTotals.nolie?renderProfileBadge('Nolie', s.specialTotals.nolie, 'good'):'',
+        s.specialTotals.whammy?renderProfileBadge('All scored', s.specialTotals.whammy, 'hot'):'',
+        s.specialTotals.nolie?renderProfileBadge('Everyone hit bid', s.specialTotals.nolie, 'good'):'',
         s.specialTotals.cami?renderProfileBadge('Cami', s.specialTotals.cami, 'storm'):'',
         s.needsAvatar?renderProfileBadge('Needs avatar', undefined, 'neutral'):''
       ].filter(Boolean).slice(0,4).join('');
@@ -12189,7 +12189,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="profile-mini-stat"><span>Wins</span><strong>${s.wins}</strong></div>
           <div class="profile-mini-stat"><span>Win %</span><strong>${s.games?s.winRate:'-'}</strong></div>
         </div>
-        <div class="profile-big-stat"><span>Favorite Game</span><strong>${escapeHtml(fav)}</strong></div>
+        <div class="profile-big-stat"><span>Most played</span><strong>${escapeHtml(fav)}</strong></div>
         <div class="profile-big-stat"><span>Best Game</span><strong>${escapeHtml(best)}</strong></div>
         <div class="profile-badge-row">${badges||renderProfileBadge('New passport')}</div>`;
       d.querySelector('.profile-avatar-quick-btn')?.addEventListener('click', event=>openAvatarPickerForProfile(p,event));
@@ -12341,7 +12341,7 @@ button.dealer-name-indicator .dealer-player-label {
     });
     const favoriteGame=summary.favoriteGame;
     const strongestGame=summary.bestGame;
-    const favChip=favoriteGame?`<span class="chip">Favorite <strong class="ml-1">${profileGameLabel(favoriteGame[0])}</strong></span>`:'';
+    const favChip=favoriteGame?`<span class="chip">Most played <strong class="ml-1">${profileGameLabel(favoriteGame[0])}</strong></span>`:'';
     const strongChip=strongestGame?`<span class="chip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Best Game ${profileGameLabel(strongestGame[0])} · ${Math.round(strongestGame[1].wins/strongestGame[1].games*100)}%</span>`:'';
     const wr=games>0?Math.round(wins/games*100):0;
     document.getElementById('detail-quick-stats').innerHTML=`
@@ -15368,19 +15368,21 @@ ${isDealer
       const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
       // Two team rows must not eat the leftover viewport. Size them like an 8-player Five Crowns card.
+      // Cap row height so leftover space stays below the table (no tall empty rows / dead strip).
       const rowSlots=handFoot?8:rows.length;
-      const targetRow=Math.floor(availableRowsHeight/rowSlots);
+      const comfortMax = window.innerWidth <= 760 ? 56 : (window.innerWidth <= 1180 ? 64 : 72);
+      const targetRow=Math.min(comfortMax, Math.floor(availableRowsHeight/rowSlots));
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
       root.classList.add('scorecard-fit-rows');
-      let scale=Math.max(0.3,targetRow/currentRow);
+      let scale=Math.max(0.55, Math.min(1, targetRow/currentRow));
       let rowHeight=targetRow;
       const applyFit=()=>{
         const phone=window.innerWidth<=760;
         const tablet=window.innerWidth<=1180;
         const nameCap=phone?22:tablet?38:42;
         const avatarCap=phone?28:64;
-        const playerFont=Math.max(16,Math.min(nameCap,rowHeight*0.36));
+        const playerFont=Math.max(17,Math.min(nameCap,rowHeight*0.38));
         const totalFont=Math.max(18,Math.min(phone?40:96,rowHeight*0.62));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
@@ -19565,7 +19567,7 @@ ${isDealer
           update(games["Five Crowns"],'mostPerfectRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero rounds`}),betterHigh);
           if(m.roundScores.length>=5){
             const v = variance(m.roundScores);
-            update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Variance ${v.toFixed(1)}`}),betterLow);
+            update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Steadiest scores · spread ${v.toFixed(1)}`}),betterLow);
           }
           if(!assisted && m.roundScores.length){
             const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
@@ -19812,7 +19814,7 @@ ${isDealer
       <div class="surface p-5 space-y-4">
         <div class="flex items-center gap-3">${getAvatarImg(card.player,'avatar-img')}<div><h3 class="font-display text-2xl leading-tight">${card.player}</h3><div class="text-xs font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${window.BPGRecords?BPGRecords.formatWinsGames(card.wins,card.games):`${card.wins} win${card.wins===1?'':'s'} · ${card.games} game${card.games===1?'':'s'}`} · ${card.winRate}%</div></div></div>
         <div class="grid grid-cols-2 gap-2 text-sm font-bold">
-          <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Favorite</div>${card.favorite}</div>
+          <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Most played</div>${card.favorite}</div>
           <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Current Streak</div>${card.currentStreak}</div>
           <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Best Type</div>${card.bestGameType}</div>
           <div class="p-3 rounded-xl" style="background:var(--bg-2);"><div style="color:var(--muted);" class="text-[10px] uppercase tracking-widest">Nemesis Game</div>${card.nemesisGame}</div>

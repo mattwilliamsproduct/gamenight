@@ -87,8 +87,24 @@
     return id === 'Five Crowns' || id === 'Beat the Heat';
   }
 
+  const CARD_FACES = Object.freeze({
+    five: './assets/cards/five-crowns.webp',
+    '818': './assets/cards/818.webp',
+    wizard: './assets/cards/wizard.webp',
+    flip7: './assets/cards/flip7.webp',
+    heat: './assets/cards/beat-the-heat.webp',
+    canasta: './assets/cards/canasta.webp',
+    rook: './assets/cards/rook.webp'
+  });
+
+  function cardFace(art) {
+    return CARD_FACES[art] || '';
+  }
+
   const api = {
     GAMES,
+    CARD_FACES,
+    cardFace,
     gameById,
     visibleGames,
     isHiddenGameVisible,

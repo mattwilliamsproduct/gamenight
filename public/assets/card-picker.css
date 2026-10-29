@@ -111,6 +111,7 @@ html.slice2-tv .s2-seat-grid {
 /* Columns first. Cards take leftover height. Start bar stays inside the panel. */
 @media (min-width: 861px) {
   html.slice2-tv .s2-home-grid {
+    /* rc3: panels size to content; avoid stretch fill */
     grid-template-columns: minmax(348px, 360px) minmax(0, 1fr);
     grid-template-rows: auto;
     align-items: start;
