@@ -1,4 +1,4 @@
-import {QA_SCENARIOS,QA_SURFACES,cloneScenario} from './fixtures.mjs?v=j145-scorebook-20260928';
+import {QA_SCENARIOS,QA_SURFACES,QA_LINKS,cloneScenario} from './fixtures.mjs?v=j145-scorebook-20260928';
 
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
@@ -64,6 +64,82 @@ function assertRecordChasePreview(scenarioId,scenario){
   }
 }
 
+function paintQaIndex(){
+  let panel=document.getElementById('gn-qa-index');
+  if(!panel){
+    panel=document.createElement('section');
+    panel.id='gn-qa-index';
+    panel.setAttribute('aria-label','QA deep links');
+    document.body.appendChild(panel);
+  }
+  const style=document.getElementById('gn-qa-index-style')||document.createElement('style');
+  style.id='gn-qa-index-style';
+  style.textContent=`
+    #gn-qa-index{position:fixed;inset:0;z-index:80;overflow:auto;padding:28px 22px 48px;background:#fffdf8;color:#14312e;font-family:"Nunito Sans",sans-serif}
+    #gn-qa-index h1{font-family:"Fraunces",Georgia,serif;font-size:2rem;margin:0 0 8px}
+    #gn-qa-index .gn-qa-index-lead{color:#5e584f;margin:0 0 22px;max-width:42rem}
+    #gn-qa-index a{display:block;padding:12px 14px;margin:0 0 8px;border:1px solid #e4ddd2;border-radius:12px;background:#fff;color:#0a5c54;text-decoration:none;font-weight:800}
+    #gn-qa-index a small{display:block;margin-top:4px;color:#5e584f;font-weight:600}
+  `;
+  document.head.appendChild(style);
+  const origin=location.origin;
+  panel.innerHTML=`<h1>QA deep links</h1><p class="gn-qa-index-lead">Fictional porch cast. Each link hydrates this tab only and does not save. Gallery chrome stays hidden.</p>${QA_LINKS.map((link)=>{
+    const href=`${origin}/?gnqa=1&scenario=${encodeURIComponent(link.id)}&surface=${encodeURIComponent(link.surface)}&gallery=0`;
+    return `<a href="${href}"><span>${link.label}</span><small>${link.blurb}</small></a>`;
+  }).join('')}`;
+}
+
+function appSurfaceFor(surface){
+  if(surface==='index') return 'home';
+  if(surface==='records-overview'||surface==='records-explore'||surface==='records-nights'||surface==='fame'||surface==='shame') return 'records';
+  if(surface==='lifepreserver'||surface==='lifepreserver-result') return 'scorecard';
+  return surface;
+}
+
+function openQaLifePreserver(wantResult){
+  const names=typeof eligibleLifePreserverNames==='function'?eligibleLifePreserverNames():[];
+  const player=names[0]||null;
+  if(player&&typeof authorizeHailMary==='function') authorizeHailMary(player);
+  if(!wantResult||!player||typeof showLifePreserverResult!=='function') return;
+  const slices=typeof getWheelSlices==='function'?getWheelSlices():[];
+  const help=(slices||[]).find((slice)=>Number(slice.adjustment));
+  const adj=Number(help?.adjustment);
+  const used=Number.isFinite(adj)?adj:-5;
+  const meta=document.getElementById('wheel-player-meta')?.textContent||'';
+  const scoreMatch=meta.match(/Current total (-?\d+)/);
+  const before=scoreMatch?Number(scoreMatch[1]):0;
+  showLifePreserverResult({
+    player,
+    adj:used,
+    total:before+used,
+    beforeTotal:before,
+    winLow:true
+  });
+}
+
+function applyQaDeepLink(surface){
+  document.getElementById('gn-qa-index')?.remove();
+  if(surface==='index'){
+    paintQaIndex();
+    return;
+  }
+  if(window.BPGSlice2&&typeof BPGSlice2.setRecordsPane==='function'){
+    if(surface==='records-explore') BPGSlice2.setRecordsPane('explore');
+    else if(surface==='records-nights') BPGSlice2.setRecordsPane('nights');
+    else if(surface==='records'||surface==='records-overview'||surface==='fame'||surface==='shame'){
+      BPGSlice2.setRecordsPane('overview');
+    }
+  }
+  if(surface==='shame'){
+    requestAnimationFrame(()=>{
+      document.querySelector('#hall-of-fame-view .s2-shame-panel, .s2-shame-panel')?.scrollIntoView({block:'start',behavior:'instant'});
+    });
+  }
+  if(surface==='lifepreserver'||surface==='lifepreserver-result'){
+    openQaLifePreserver(surface==='lifepreserver-result');
+  }
+}
+
 export async function bootQaGallery(api){
   if(!api)throw new Error('QA API is unavailable.');
   injectGalleryStyles();
@@ -71,7 +147,8 @@ export async function bootQaGallery(api){
   let scenarioId=QA_SCENARIOS[params.get('scenario')]?params.get('scenario'):'home-party';
   let scenario=cloneScenario(scenarioId);
   let surface=params.get('surface')||scenario.defaultSurface;
-  const hideGallery=params.get('gallery')==='0';
+  const hideGallery=params.get('gallery')==='0'||scenarioId.startsWith('qa-');
+  if(scenarioId.startsWith('qa-')) window.__GN_DEMO_SKIP_PERSIST=true;
   const panel=makeGallery(scenarioId,surface);
   if(hideGallery)panel.hidden=true;
 
@@ -84,10 +161,13 @@ export async function bootQaGallery(api){
     assertRecordChasePreview(scenarioId,scenario);
     description.textContent=scenario.description;
     surfaceButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.surface===surface)));
+    if(scenarioId.startsWith('qa-')) window.__GN_DEMO_SKIP_PERSIST=true;
     api.hydrate(scenario.data);
-    api.showSurface(surface,scenario);
+    api.showSurface(appSurfaceFor(surface),scenario);
+    applyQaDeepLink(surface);
     if(surface==='whammy'||surface==='nolie')await new Promise(resolve=>setTimeout(resolve,550));
     if(surface==='race')await new Promise(resolve=>setTimeout(resolve,800));
+    if(surface==='lifepreserver'||surface==='lifepreserver-result')await new Promise(resolve=>setTimeout(resolve,400));
     await waitForStableImages();
     api.setReady();
   };

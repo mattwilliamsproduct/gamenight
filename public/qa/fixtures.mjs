@@ -1041,6 +1041,50 @@ function demoTable(currentGame){
   };
 }
 
+function qaCanastaNight(){
+  const live=demoCanastaLive();
+  return finishedNight(1783300000000,'Hand and Foot','10/2/2026',live.originalRoster,live.rounds,{
+    handFoot:live.handFoot
+  });
+}
+
+function qaBook(currentGame=null, seated=8){
+  const liveRoster=currentGame?.originalRoster;
+  return {
+    allPlayers:[...NAMES],
+    players:liveRoster?.length?[...liveRoster]:NAMES.slice(0, seated),
+    history:[...demoHistory(), qaCanastaNight()],
+    playerProfiles:profiles(),
+    currentGame
+  };
+}
+
+function qa818AfterBids(){
+  const game=demo818Live();
+  game.eight18Phase='scoring';
+  game.currentBids=Object.fromEntries((game.originalRoster||[]).map((player,index)=>[player, index%2]));
+  return game;
+}
+
+export const QA_CAST = Object.freeze([...NAMES]);
+
+export const QA_LINKS = [
+  {id:'qa-index', surface:'index', label:'QA link index', blurb:'All Batch 1 deep links on one page.'},
+  {id:'qa-home-live', surface:'home', label:'Home · live match', blurb:'Eight seated. Five Crowns in progress on the table. Full book behind Resume.'},
+  {id:'qa-home-seated', surface:'home', label:'Home · seated, no match', blurb:'Eight seated. No live match. Records and recent nights are full.'},
+  {id:'qa-records', surface:'records-overview', label:'Records · Overview', blurb:'Career wins, win rate, streak, and the championship ledger.'},
+  {id:'qa-records-explore', surface:'records-explore', label:'Records · Explore', blurb:'Explore records across the six games.'},
+  {id:'qa-records-nights', surface:'records-nights', label:'Records · Past nights', blurb:'Past nights including an incomplete match and a joint win.'},
+  {id:'qa-fame', surface:'fame', label:'Hall of Fame', blurb:'Overview ledger: best finals and best rounds.'},
+  {id:'qa-shame', surface:'shame', label:'Hall of Shame', blurb:'Overview scrolled to Shame: worst nights and blowups.'},
+  {id:'qa-lp-ready', surface:'lifepreserver', label:'Life Preserver · ready to spin', blurb:'Duke is eligible. Wheel open on Use your one spin.'},
+  {id:'qa-lp-result', surface:'lifepreserver-result', label:'Life Preserver · result', blurb:'Same table after a canned helpful spin, result card showing.'},
+  {id:'qa-wizard-bids', surface:'entry-bids', label:'Wizard · bid entry', blurb:'Eight-player Wizard, bidding the next hand.'},
+  {id:'qa-wizard-scores', surface:'entry-scores', label:'Wizard · score entry after bids', blurb:'Eight-player Wizard. Bids are in. Score entry is next.'},
+  {id:'qa-818-bids', surface:'entry-bids', label:'818 · bid entry', blurb:'Six-player 818 mid-match, bidding the next hand.'},
+  {id:'qa-818-scores', surface:'entry-scores', label:'818 · score entry after bids', blurb:'Same 818 table after bids, ready to log tricks.'}
+];
+
 // 818 bid-accuracy fixtures.
 // Legacy/inconsistent-score fixtures store a score that is not the shelf formula.
 // Bid accuracy ignores that score and compares bid with actual.
@@ -1421,6 +1465,90 @@ export const QA_SCENARIOS = {
     description:'Isolated sample night. Four players, ten hands in. A last-hand correction changes the winner, then the match completes.',
     defaultSurface:'scorecard',
     data:demoPathTable()
+  },
+  'qa-index':{
+    label:'QA · Link index',
+    description:'Batch 1 deep-link index. Fictional porch cast. Nothing saves.',
+    defaultSurface:'index',
+    data:qaBook(null, 8)
+  },
+  'qa-home-live':{
+    label:'QA · Home live match',
+    description:'Eight seated. Late Five Crowns on the table. Full fictional book.',
+    defaultSurface:'home',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-home-seated':{
+    label:'QA · Home seated',
+    description:'Eight seated. No live match. Full fictional book.',
+    defaultSurface:'home',
+    data:qaBook(null, 8)
+  },
+  'qa-records':{
+    label:'QA · Records overview',
+    description:'Records Overview with the fictional championship ledger.',
+    defaultSurface:'records-overview',
+    data:qaBook(null, 8)
+  },
+  'qa-records-explore':{
+    label:'QA · Records explore',
+    description:'Records Explore across the six games.',
+    defaultSurface:'records-explore',
+    data:qaBook(null, 8)
+  },
+  'qa-records-nights':{
+    label:'QA · Records past nights',
+    description:'Past nights with an incomplete match and a joint win.',
+    defaultSurface:'records-nights',
+    data:qaBook(null, 8)
+  },
+  'qa-fame':{
+    label:'QA · Hall of Fame',
+    description:'Overview ledger: career wins and best unassisted finals.',
+    defaultSurface:'fame',
+    data:qaBook(null, 8)
+  },
+  'qa-shame':{
+    label:'QA · Hall of Shame',
+    description:'Overview scrolled to Hall of Shame.',
+    defaultSurface:'shame',
+    data:qaBook(null, 8)
+  },
+  'qa-lp-ready':{
+    label:'QA · Life Preserver ready',
+    description:'Eight-player Five Crowns. Brick still holds a Life Preserver. Wheel open.',
+    defaultSurface:'lifepreserver',
+    data:qaBook(crownsPreserverGame, 8)
+  },
+  'qa-lp-result':{
+    label:'QA · Life Preserver result',
+    description:'Same Life Preserver table with the result card showing.',
+    defaultSurface:'lifepreserver-result',
+    data:qaBook(crownsPreserverGame, 8)
+  },
+  'qa-wizard-bids':{
+    label:'QA · Wizard bid entry',
+    description:'Eight-player Wizard after two hands, bidding the next round.',
+    defaultSurface:'entry-bids',
+    data:qaBook(wizardEarlyGame, 8)
+  },
+  'qa-wizard-scores':{
+    label:'QA · Wizard scores after bids',
+    description:'Eight-player Wizard. Bids locked. Score entry is open.',
+    defaultSurface:'entry-scores',
+    data:qaBook(wizardEarlyGame, 8)
+  },
+  'qa-818-bids':{
+    label:'QA · 818 bid entry',
+    description:'Six-player 818 mid-match, bidding the next hand.',
+    defaultSurface:'entry-bids',
+    data:qaBook(demo818Live(), 6)
+  },
+  'qa-818-scores':{
+    label:'QA · 818 scores after bids',
+    description:'Six-player 818 after bids, score entry open.',
+    defaultSurface:'entry-scores',
+    data:qaBook(qa818AfterBids(), 6)
   }
 };
 
