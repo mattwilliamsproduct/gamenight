@@ -170,7 +170,8 @@ test('Add Player uses the form modal size at 1440 and a near-full sheet on 375',
   const laptop = await measureAddPlayer(page);
   expect(laptop.panel, '1440 panel').not.toBeNull();
   expect(laptop.formClass, 'form class').toBe(true);
-  expect(laptop.panel.width / laptop.viewport.width, '1440 width share').toBeGreaterThanOrEqual(0.5);
+  expect(laptop.panel.width / laptop.viewport.width, '1440 width share').toBeGreaterThanOrEqual(0.58);
+  expect(laptop.panel.width / laptop.viewport.width, '1440 not leftover').toBeLessThanOrEqual(0.75);
   expect(laptop.inputFont, `1440 input ${laptop.inputFont}`).toBeGreaterThanOrEqual(18);
   expect(laptop.optionHeight, `1440 option ${laptop.optionHeight}`).toBeGreaterThanOrEqual(56);
 
@@ -181,6 +182,29 @@ test('Add Player uses the form modal size at 1440 and a near-full sheet on 375',
   expect(phone.panel.height / phone.viewport.height, '375 height share').toBeGreaterThanOrEqual(0.8);
   expect(phone.inputFont, `375 input ${phone.inputFont}`).toBeGreaterThanOrEqual(18);
   expect(phone.optionHeight, `375 option ${phone.optionHeight}`).toBeGreaterThanOrEqual(56);
+});
+
+test('Settings form at 1440 keeps Backup and Restore on screen', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 900});
+  await openScenario(page, {scenario: 'home-party', surface: 'home'});
+  await page.evaluate(() => {
+    if (typeof openSettings === 'function') openSettings();
+  });
+  await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
+  const fit = await page.evaluate(() => {
+    const panel = document.querySelector('#settings-modal .bp-modal-panel')?.getBoundingClientRect();
+    const backup = [...document.querySelectorAll('#settings-modal button')].find((el) => (el.textContent || '').trim() === 'Backup')?.getBoundingClientRect();
+    const restore = [...document.querySelectorAll('#settings-modal button')].find((el) => (el.textContent || '').trim() === 'Restore')?.getBoundingClientRect();
+    return {
+      wpct: panel ? panel.width / innerWidth : 0,
+      backupOn: !!(backup && backup.top >= 0 && backup.bottom <= innerHeight + 2),
+      restoreOn: !!(restore && restore.top >= 0 && restore.bottom <= innerHeight + 2)
+    };
+  });
+  expect(fit.wpct).toBeGreaterThanOrEqual(0.58);
+  expect(fit.wpct).toBeLessThanOrEqual(0.75);
+  expect(fit.backupOn, 'Backup off screen').toBe(true);
+  expect(fit.restoreOn, 'Restore off screen').toBe(true);
 });
 
 test('a long Five Crowns scorecard scrolls inside the modal', async ({page}) => {

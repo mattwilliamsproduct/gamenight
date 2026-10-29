@@ -92,13 +92,13 @@
       --shadow-md: 0 3px 12px rgba(7,63,59,0.08), 0 14px 30px -18px rgba(87,54,38,0.22);
       --shadow-lg: 0 5px 18px rgba(7,63,59,0.1), 0 28px 54px -28px rgba(87,54,38,0.3);
       --bp-modal-gutter: 16px;
-      --bp-modal-wide: min(92vw, 1200px);
-      --bp-modal-form: min(92vw, 46rem);
+      --bp-modal-wide: min(88vw, 68rem);
+      --bp-modal-form: clamp(46rem, 62vw, 58rem);
       --bp-modal-confirm: min(92vw, 28rem);
-      --bp-modal-max-h: 90vh;
+      --bp-modal-max-h: min(90vh, calc(100dvh - (var(--bp-modal-gutter) * 2)));
+      --bp-modal-type: clamp(1rem, 1.1vw, 1.125rem);
       --bp-modal-leftover-w: min(96vw, calc(100vw - (var(--bp-modal-gutter) * 2)));
       --bp-modal-leftover-h: min(96vh, calc(100dvh - (var(--bp-modal-gutter) * 2)));
-      --bp-modal-type: 1rem;
       --bp-modal-btn-min: 44px;
     }
     html.dark {
@@ -172,9 +172,14 @@
       width: var(--bp-modal-confirm);
       max-width: var(--bp-modal-confirm);
     }
-    .bp-modal-panel--form,
+    .bp-modal-panel--form {
+      overflow: hidden;
+    }
     .bp-modal-panel--confirm {
       overflow-y: auto;
+    }
+    #settings-modal .bp-modal-panel {
+      max-height: var(--bp-modal-max-h);
     }
     #rename-modal .bp-modal-panel {
       overflow: visible;
@@ -9576,10 +9581,11 @@ button.dealer-name-indicator .dealer-player-label {
       <div onclick="closeSettings()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-8 relative">
         <button onclick="closeSettings()" class="absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
-        <div class="text-center mb-6">
+        <div class="bp-modal-head text-center mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--muted);">App Management</div>
           <h3 class="font-display text-3xl">Settings</h3>
         </div>
+        <div class="bp-modal-body">
 
         <!-- Appearance -->
         <div class="mb-6">
@@ -9634,26 +9640,29 @@ button.dealer-name-indicator .dealer-player-label {
             <p class="local-storage-statement text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Scores and history are saved in this browser on this device.</p>
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
             <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
-            <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Backup</div>
-              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Save a file of the games, players, and the match on this table.</p>
-              <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Backup</button>
-            </div>
-            <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
-              <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Restore</div>
-              <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds games and players this device does not already have. Finished games already here stay as they are. If the file has a match in progress, that match replaces the one on this table. Player photos and text-size settings in the file overwrite the ones here.</p>
-              <p class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
-              <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
-              <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
-              <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
-              <details class="rounded-2xl border hairline p-3" style="background:var(--bg-2);">
-                <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
-                <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
-                <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--surface);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
-                <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Paste &amp; Restore</button>
-              </details>
-            </div>
+            <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds games and players this device does not already have. Finished games already here stay as they are. If the file has a match in progress, that match replaces the one on this table. Player photos and text-size settings in the file overwrite the ones here.</p>
+            <p class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
+            <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
+            <details class="rounded-2xl border hairline p-3" style="background:var(--bg-2);">
+              <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
+              <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
+              <textarea id="import-text" rows="3" class="w-full rounded-xl p-3 text-xs font-mono mb-3 outline-none border hairline" style="background:var(--surface);color:var(--ink-2);" placeholder='Paste {"allPlayers":... here…'></textarea>
+              <button type="button" onclick="importDataFromText()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Paste &amp; Restore</button>
+            </details>
             <button id="settings-perf-report-btn" onclick="openPerfReport()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">⚡ Performance Report</button>
+          </div>
+        </div>
+        </div>
+        <div class="bp-modal-foot pt-4 mt-4 border-t hairline grid gap-3 sm:grid-cols-2">
+          <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Backup</div>
+            <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Save a file of the games, players, and the match on this table.</p>
+            <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Backup</button>
+          </div>
+          <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Restore</div>
+            <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
+            <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
           </div>
         </div>
       </div>

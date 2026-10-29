@@ -12,7 +12,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
-- Add Player, Save & End, Audit, and the LP picker use the form modal token (`min(92vw, 46rem)`), 18px inputs, and 56px suggestion rows.
+- Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
 - A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
 - Specs plus prove-it. Open the gallery scenarios that exercise the slice.
