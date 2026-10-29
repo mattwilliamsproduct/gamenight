@@ -45,6 +45,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
 - Championship Ledger hides Rook while Rook is hidden from the shelf.
 - The 1024 match header is two clean rows. Saved sits on its own row and does not collide with wild or dealer copy.
+- Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
+- A first-use empty table that says add a name, pick a game, then tap Start.
 
 ### Kills
 
@@ -94,6 +96,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
 - Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
+- A 1024 Home Start button below the fold with 6 seated, or an 8-player 1024 entry that hides rows behind a stacked keypad.
 - Edit Seating plus Earlier/Later when the Home list can reorder in place.
 - A second ranking function for Recent nights, or a podium on an Incomplete night.
 - Adding Canasta to the game registry or Home picker from this art pass.

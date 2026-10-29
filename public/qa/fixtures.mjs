@@ -1363,6 +1363,18 @@ export const QA_SCENARIOS = {
     defaultSurface:'records',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
   },
+  'empty-home':{
+    label:'Empty first start',
+    description:'Clean first-use Home: no seated players, no nights, no sample data.',
+    defaultSurface:'home',
+    data:{allPlayers:[],players:[],history:[],playerProfiles:{},currentGame:null}
+  },
+  'empty-records':{
+    label:'Empty Records',
+    description:'Clean first-use Records with no saved nights.',
+    defaultSurface:'records',
+    data:{allPlayers:[],players:[],history:[],playerProfiles:{},currentGame:null}
+  },
   'demo-wizard':{
     label:'TEMP Demo Wizard',
     description:'Preview-only mid-game Wizard with mixed makes and misses.',

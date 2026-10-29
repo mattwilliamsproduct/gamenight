@@ -1,7 +1,29 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
+  const CARD_FACES = {
+    five: './assets/cards/five-crowns.webp',
+    '818': './assets/cards/818.webp',
+    wizard: './assets/cards/wizard.webp',
+    flip7: './assets/cards/flip7.webp',
+    heat: './assets/cards/beat-the-heat.webp',
+    canasta: './assets/cards/canasta.webp',
+    rook: './assets/cards/rook.webp'
+  };
+
   function registryGames() {
     return (window.BPGGames && BPGGames.visibleGames()) || [];
+  }
+
+  function cardAriaLabel(game, seated, selected) {
+    const title = game.title || game.id;
+    const detail = String(game.detail(seated) || '').toLowerCase();
+    let summary;
+    if (game.id === 'Beat the Heat') summary = `lowest heat wins, ${detail}`;
+    else if (game.id === 'Rook') summary = 'highest total wins, teams';
+    else if (game.id === 'Flip 7 Vengeance') summary = 'highest total wins, open match';
+    else if (game.winLow) summary = `lowest total wins, ${detail}`;
+    else summary = `highest total wins, ${detail}`;
+    return `${title}, ${summary}${selected ? ', selected' : ''}`;
   }
 
   function displayGameName(id) {
@@ -199,9 +221,18 @@
     parkSaveIndicator();
   }
 
+  function ensureSaveIndicator() {
+    let el = document.getElementById('save-indicator');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'save-indicator';
+    el.textContent = '✓ Saved on this device';
+    document.body.appendChild(el);
+    return el;
+  }
+
   function parkSaveIndicator() {
-    const el = document.getElementById('save-indicator');
-    if (!el) return;
+    const el = ensureSaveIndicator();
     if (window.__GN_DEMO_SKIP_PERSIST) {
       el.hidden = true;
       return;
@@ -212,6 +243,11 @@
     const onBoard = !!(game && !game.classList.contains('hidden') && row);
     if (onBoard) {
       if (el.parentElement !== row) row.appendChild(el);
+      return;
+    }
+    const tableHead = document.querySelector('#slice2-home .s2-home-table .s2-panel-head');
+    if (tableHead) {
+      if (el.parentElement !== tableHead) tableHead.appendChild(el);
       return;
     }
     if (el.parentElement !== document.body) document.body.appendChild(el);
@@ -273,16 +309,13 @@
           </button>
         </div>
       </article>`;
-    }).join('') || '<p class="s2-sub">Add players to fill tonight\'s table.</p>';
+    }).join('') || '<p class="s2-sub" id="slice2-empty-table">Add a name to seat tonight\'s table. Then pick a game and tap Start.</p>';
     const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
-      return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}">
-        <span class="s2-game-art s2-art-${game.art}" aria-hidden="true"></span>
-        <span class="s2-game-copy">
-          <strong>${escapeHtml(game.title)}</strong>
-          <em>${escapeHtml(game.id === 'Wizard' ? `${game.detail(seated)} · Highest total wins` : game.line)}</em>
-          ${on ? '<span class="s2-selected-pill">Selected</span>' : ''}
+      return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
+        <span class="s2-card-frame">
+          <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
       </button>`;
     }).join('');
@@ -320,7 +353,7 @@
           <div class="s2-panel-head">
             <div>
               <h2>Start a New Match</h2>
-              <p class="s2-sub">Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}</p>
+              <p class="s2-sub">${seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start'}</p>
             </div>
             <label class="s2-rules-picker">
               <select class="s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
@@ -338,6 +371,7 @@
     const nightsBlock = nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : '';
     root.innerHTML = `${banner}<div class="s2-home-grid">${tableBlock}${startBlock}</div>${nightsBlock}`;
     restoreSeatGrab(root);
+    parkSaveIndicator();
   }
 
   function moveSeatList(list, from, to) {

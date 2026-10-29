@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./assets/app-utilities.css">
   <link rel="stylesheet" href="./assets/slice2.css">
+  <link rel="stylesheet" href="./assets/card-picker.css">
   <link rel="stylesheet" href="./assets/demo-art.css">
 
   <style>
@@ -2512,6 +2513,19 @@
       grid-template-columns: minmax(280px, 1fr) minmax(380px, 1.15fr) !important;
       align-items: stretch;
     }
+    #score-entry-modal.score-entry-tablet-land #score-entry-game {
+      font-size: clamp(1.55rem, 3vw, 2rem) !important;
+    }
+    #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-b {
+      gap: 8px;
+      padding-bottom: 8px !important;
+    }
+    #score-entry-modal.score-entry-tablet-land .score-entry-list,
+    #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
     #score-entry-modal.score-entry-tablet-land .score-entry-lane-label {
       display: none;
     }
@@ -2525,18 +2539,23 @@
     }
     #score-entry-modal.score-entry-tablet-land .score-entry-keypad {
       flex: 1 1 auto;
-      min-height: 220px;
+      min-height: 0;
       width: 100%;
     }
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
       overflow-y: auto !important;
-      gap: 0.4rem !important;
+      gap: var(--se-fit-row-gap, 2px) !important;
+      height: 100%;
     }
-    #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row,
-    #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+    #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row {
       flex: 0 0 auto !important;
       min-height: 56px !important;
       height: auto !important;
+    }
+    #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+      flex: 0 0 auto !important;
+      min-height: 0 !important;
+      height: var(--se-fit-row-height) !important;
     }
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-player-card,
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card {
@@ -16703,8 +16722,12 @@ ${isDealer
     const shortHeight=vh<820;
     // Smaller tables have room for a clearer visual lane between each player.
     // Larger tables stay compact so every player still fits without scrolling.
-    const rowGap=count<=5?(shortHeight?12:14):count>=8?3:count>=6?5:7;
-    const rowHeight=Math.max(tabletLand?56:42,Math.floor((rowArea-(rowGap*(count-1)))/count));
+    const rowGap=count<=5?(shortHeight?12:14):count>=8?2:count>=6?5:7;
+    const fitted=Math.floor((rowArea-(rowGap*(count-1)))/count);
+    const tabletMin=tabletLand?(count>=7?44:56):42;
+    const rowHeight=tabletLand&&count>=7
+      ? Math.max(40, Math.min(fitted || 44, 52))
+      : Math.max(tabletMin, fitted);
     const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
     const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
     const name=Math.floor(clamp(18,rowHeight*0.42,tightWidth?28:34));

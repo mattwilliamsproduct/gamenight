@@ -29,10 +29,8 @@ Isolated Playwright profile. The app does not boot `?demo`.
 - `rehearsal-03-corrected.png` June 12 changed to 0
 - `rehearsal-05-records.png` June won with 38
 
-## Card picker (does not hold release)
+## Card picker
 
-`card-picker-1024.png` Side by side. No pick.
+Folded into this candidate from `cursor/card-picker` `f08750b`. Six 5:7 faces. Select then Start. Rook stays hidden. Beat the Heat keeps its edge-filled face.
 
-- Five Crowns A: launch photo tile. B: card-picker stepped vector.
-- Rook A: launch thumb. B: card-picker fill.
-- Beat the Heat A: launch thumb. B: card-picker fill.
+Look shots for this freeze live under `/opt/cursor/artifacts/screenshots/rc2-look/`.

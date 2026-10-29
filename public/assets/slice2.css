@@ -1669,21 +1669,63 @@ html.slice2-tv .s2-rival {
 }
 
 @media (max-width: 1100px) {
-  html.slice2-tv #score-entry-modal .score-entry-layout {
+  html.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-layout {
     grid-template-columns: minmax(0, 1fr) !important;
     overflow: auto !important;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-side {
+  html.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-side {
     display: flex !important;
     flex-direction: column;
     width: 100%;
     overflow: visible !important;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-keypad {
+  html.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-keypad {
     max-width: 420px;
   }
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-layout {
+  grid-template-columns: minmax(280px, 1fr) minmax(380px, 1.15fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-side {
+  display: flex !important;
+  flex-direction: column !important;
+  width: auto;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-keypad {
+  max-width: none;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-key,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-key {
+  min-height: 48px !important;
 }
 
 @media (max-width: 860px) {
@@ -3304,4 +3346,68 @@ html.slice2-tv .s2-records-footer {
     padding: 0.4rem 0.28rem;
     letter-spacing: 0;
   }
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-b {
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: 8px !important;
+  padding-bottom: 6px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-game {
+  font-size: 1.45rem !important;
+  line-height: 1.1 !important;
+  padding: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players #score-entry-context {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-context {
+  margin-top: 0 !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-unconfirmed {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-progress {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-t {
+  padding-top: 8px !important;
+  gap: 8px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-t button {
+  min-height: 44px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+  min-height: 0 !important;
+  height: var(--se-fit-row-height) !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-dealer-badge {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-layout {
+  gap: 8px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
 }

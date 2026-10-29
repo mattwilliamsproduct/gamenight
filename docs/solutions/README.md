@@ -51,3 +51,5 @@ Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, sa
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
 
 Standing trap: [rc2-look-fixes.md](rc2-look-fixes.md) — iPad 1024 score entry cannot use managed-fit `flex: 1 1 0` on player rows. A 100% scorecard table that stays 5px over a fudge of 4 will hide every past round. Settings body with flex-basis 0 collapses Appearance behind the foot.
+
+Standing trap: [card-picker.md](card-picker.md) — Home uses 5:7 card faces and select-then-Start. Do not import the card-picker demo seed. 1024 Start stays in the viewport. Tablet-land entry stays two-column.

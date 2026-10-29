@@ -54,6 +54,7 @@ test('first-time empty home and Records are understandable', async ({page}) => {
   await openTestView(page, 'empty-home');
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
+  await expect(page.locator('#slice2-empty-table')).toContainText(/Add a name to seat tonight's table/);
   await expect(page.locator('#slice2-home')).not.toContainText(/Try a sample night/i);
   await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toHaveCount(0);
   await page.evaluate(() => {

@@ -6,6 +6,7 @@ const APP_SHELL = [
   './assets/app-utilities.css',
   './assets/fonts.css',
   './assets/slice2.css',
+  './assets/card-picker.css',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
   './assets/game-registry.js',
