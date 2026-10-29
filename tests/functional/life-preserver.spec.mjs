@@ -1,5 +1,6 @@
 import {expect,test} from '@playwright/test';
 import {openScenario} from '../helpers/qa.mjs';
+import {openTestView} from '../helpers/inject-book.mjs';
 
 test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({page})=>{
   await openScenario(page,{scenario:'eight18-porch-lp'});
@@ -81,8 +82,7 @@ test('Life Preserver roulette labels stay inside their slices', async ({page}) =
   ];
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
-    await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+    await openTestView(page, 'lifepreserver-low');
     await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
     await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
     const report = await page.evaluate(() => BPGSlice2.wheelLabelReport());
@@ -103,55 +103,28 @@ test('Life Preserver roulette labels stay inside their slices', async ({page}) =
   }
 });
 
-test('Proposed TEMP wheel uses 30/45/10/15 and keeps the spin button on screen', async ({page}) => {
-  const viewports = [
-    {width: 375, height: 667},
-    {width: 390, height: 844},
-    {width: 1024, height: 650},
-    {width: 1440, height: 900}
-  ];
-  for (const viewport of viewports) {
-    await page.setViewportSize(viewport);
-    await page.goto('/?demo&view=lifepreserver-low&lp=proposed', {waitUntil: 'domcontentloaded'});
-    await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
-    await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-    await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
-    await expect(page.locator('#wheel-odds-line')).toBeVisible();
-    await expect(page.locator('#wheel-odds-line')).toContainText('75% help · 10% no change · 15% small setback');
-    await expect(page.locator('#wheel-commit-line')).toContainText(/Best help/i);
-    await expect(page.locator('#wheel-commit-line')).toContainText(/Largest setback/i);
-    const report = await page.evaluate(() => {
-      const table = BPGLifePreserver.describePocketTable(getWheelSlices());
-      const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
-      const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
-      const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
-      return {
-        ...BPGSlice2.wheelLabelReport(),
-        help,
-        zero,
-        bad,
-        everyValueHasPocket: table.outcomes.every((row) => row.segments >= 1)
-      };
-    });
-    expect(report.callouts, `${viewport.width} proposed has no callouts`).toBe(0);
-    expect(report.pockets, `${viewport.width} proposed pockets ${report.pockets}`).toBeGreaterThanOrEqual(20);
-    expect(report.pockets, `${viewport.width} proposed pockets ${report.pockets}`).toBeLessThanOrEqual(40);
-    expect(report.spinInView, `${viewport.width} proposed keeps Use Your One Spin on screen ${JSON.stringify(report)}`).toBe(true);
-    expect(report.help).toBeCloseTo(0.75, 5);
-    expect(report.zero).toBeCloseTo(0.10, 5);
-    expect(report.bad).toBeCloseTo(0.15, 5);
-    expect(report.everyValueHasPocket, `${viewport.width} every proposed value needs a pocket`).toBe(true);
-    report.labels.forEach((label) => {
-      expect(label.insideSegment, `${viewport.width} proposed ${label.text} stays in its segment`).toBe(true);
-    });
-  }
+test('?lp=proposed and BPG_LP_TABLE no longer switch the live wheel', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.addInitScript(() => { window.BPG_LP_TABLE = 'proposed'; });
+  await openTestView(page, 'lifepreserver-low', {path: '/?lp=proposed'});
+  await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
+  await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
+  const mode = await page.evaluate(() => ({
+    table: typeof lifePreserverTableMode === 'function' ? lifePreserverTableMode() : 'missing',
+    hook: window.BPG_LP_TABLE || '',
+    search: location.search
+  }));
+  expect(mode.table).toBe('current');
+  expect(mode.search).toContain('lp=proposed');
+  const table = await page.evaluate(() => BPGLifePreserver.describePocketTable(getWheelSlices()));
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  expect(help, 'live table stays 45/30/5, not proposed 75/10/15').toBeCloseTo(0.80, 5);
 });
 
 test('Life Preserver reduced-motion result keeps labels inside slices', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.emulateMedia({reducedMotion: 'reduce'});
-  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  await openTestView(page, 'lifepreserver-low');
   await page.locator('#btn-spin').click();
   await expect(page.locator('#wheel-result')).toBeVisible({timeout: 4000});
   const report = await page.evaluate(() => BPGSlice2.wheelLabelReport());
@@ -165,8 +138,7 @@ test('Life Preserver reduced-motion result keeps labels inside slices', async ({
 
 test('Life Preserver dialog stays usable at a short laptop height', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 650});
-  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  await openTestView(page, 'lifepreserver-low');
   await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
   const fit = await page.evaluate(() => {
     const hits = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));

@@ -82,8 +82,8 @@ html.slice2-tv .s2-board-line-row {
 }
 
 html.slice2-tv .s2-board-line-row #slice2-board-line {
-  flex: 1 1 auto;
-  min-width: max-content;
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 html.slice2-tv .s2-board-line-row #save-indicator,
@@ -140,6 +140,12 @@ html.slice2-tv body.active-match-view #game-screen {
   padding: 0 0.75rem 0.75rem;
 }
 
+@media (min-width: 1024px) {
+  html.slice2-tv body.active-match-view #game-screen {
+    padding: 0 1.25rem 0.75rem;
+  }
+}
+
 html.slice2-tv #scorecard-live-layout.record-chase-active > .scorecard-live-main {
   width: 100% !important;
   flex: 1 1 auto !important;
@@ -186,9 +192,9 @@ html.slice2-tv .s2-kicker {
   gap: 0.4rem;
   color: var(--s2-teal);
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.72rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -285,6 +291,11 @@ html.slice2-tv .s2-btn-primary {
   color: #fff;
 }
 
+html.slice2-tv .s2-btn-primary:focus-visible {
+  outline: 3px solid #fff8ee;
+  outline-offset: 3px;
+}
+
 html.slice2-tv .s2-btn:disabled {
   opacity: 0.45;
   cursor: default;
@@ -294,7 +305,33 @@ html.slice2-tv .s2-home-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.86fr) minmax(0, 1.25fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
+}
+
+html.slice2-tv .s2-home-table,
+html.slice2-tv .s2-home-start {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+html.slice2-tv .s2-home-start .s2-game-grid {
+  flex: 1 1 auto;
+  align-content: stretch;
+}
+
+html.slice2-tv .s2-home-start .s2-game {
+  height: 100%;
+}
+
+html.slice2-tv .s2-home-start .s2-game-art {
+  flex: 1 1 auto;
+  min-height: 72px;
+}
+
+html.slice2-tv .s2-home-start .s2-startbar {
+  margin-top: auto;
 }
 
 html.slice2-tv .s2-panel {
@@ -311,6 +348,24 @@ html.slice2-tv .s2-nights-head {
   margin-bottom: 12px;
 }
 
+html.slice2-tv .s2-rules-picker {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-rules-select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0.4rem 0.7rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--s2-line);
+  background: var(--s2-card);
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
 html.slice2-tv .s2-panel h2 {
   font-size: clamp(1.35rem, 2vw, 1.8rem);
 }
@@ -323,7 +378,11 @@ html.slice2-tv .s2-game-grid {
 }
 
 html.slice2-tv .s2-seat-grid {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
+  flex: 1 1 auto;
+  align-content: stretch;
+  gap: 10px;
+  grid-auto-rows: minmax(50px, 1fr);
 }
 
 html.slice2-tv .s2-seat,
@@ -335,27 +394,120 @@ html.slice2-tv .s2-night {
 
 html.slice2-tv .s2-seat {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: 1.75rem 44px minmax(0, 1fr) auto;
+  gap: 10px;
   align-items: center;
-  padding: 10px;
+  min-height: 50px;
+  padding: 8px 12px;
   border-radius: 16px;
   border: 1.5px solid var(--s2-line);
   background: #fffaf4;
+}
+
+html.slice2-tv .s2-seat.is-dragging {
+  opacity: 0.55;
+  box-shadow: 0 10px 22px -16px rgba(20, 49, 46, 0.7);
+}
+
+html.slice2-tv .s2-seat.is-drop-before {
+  box-shadow: inset 0 3px 0 var(--s2-teal);
+}
+
+html.slice2-tv .s2-seat.is-drop-after {
+  box-shadow: inset 0 -3px 0 var(--s2-teal);
+}
+
+html.slice2-tv .s2-seat-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-seat-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+html.slice2-tv .s2-seat-nudge,
+html.slice2-tv .s2-seat-out,
+html.slice2-tv .s2-seat-handle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--s2-muted);
+  cursor: pointer;
+}
+
+html.slice2-tv .s2-seat-nudge svg,
+html.slice2-tv .s2-seat-handle svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+html.slice2-tv .s2-seat-nudge:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+html.slice2-tv .s2-seat-handle {
+  touch-action: none;
+  cursor: grab;
+  color: var(--s2-ink);
+}
+
+html.slice2-tv .s2-seat-handle.is-grabbed,
+html.slice2-tv .s2-seat-handle:focus-visible {
+  outline: 2px solid var(--s2-teal);
+  outline-offset: 1px;
+  cursor: grabbing;
+}
+
+html.slice2-tv .s2-seat-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+html.slice2-tv .s2-home-table {
+  position: relative;
 }
 
 html.slice2-tv .s2-seat-num {
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
+  font-size: 1.08rem;
   font-variant-numeric: tabular-nums;
 }
 
-html.slice2-tv .s2-seat .avatar-img,
+html.slice2-tv .s2-seat .avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 html.slice2-tv .s2-podium .avatar-img,
 html.slice2-tv .s2-shame-card .avatar-img {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -374,38 +526,32 @@ html.slice2-tv .s2-shame-card p {
 html.slice2-tv .s2-seat-name {
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   color: var(--s2-ink);
 }
 
 html.slice2-tv .s2-dealer-tag {
-  grid-column: 2 / -1;
-  justify-self: start;
+  flex: 0 0 auto;
   color: var(--s2-teal-deep);
   background: var(--s2-good-bg);
   border-radius: 999px;
   padding: 0.1rem 0.45rem;
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 html.slice2-tv .s2-seat-actions {
-  grid-column: 1 / -1;
-}
-
-html.slice2-tv .s2-seat-actions .s2-btn {
-  flex: 1 1 0;
-  padding-inline: 0.4rem;
+  display: none;
 }
 
 html.slice2-tv .s2-deck {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 html.slice2-tv .s2-chip {
@@ -413,8 +559,8 @@ html.slice2-tv .s2-chip {
   background: var(--s2-card);
   color: var(--s2-ink);
   border-radius: 999px;
-  min-height: 36px;
-  padding: 0.35rem 0.75rem;
+  min-height: 40px;
+  padding: 0.45rem 0.9rem;
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
   cursor: pointer;
@@ -423,8 +569,8 @@ html.slice2-tv .s2-chip {
 html.slice2-tv .s2-add {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 html.slice2-tv .s2-add input,
@@ -439,6 +585,10 @@ html.slice2-tv #score-entry-modal input {
   padding: 0.4rem 0.75rem;
   font-family: "Nunito Sans", sans-serif;
   font-weight: 700;
+}
+
+html.slice2-tv .s2-add input {
+  min-height: 48px;
 }
 
 html.slice2-tv .s2-game-grid {
@@ -476,6 +626,11 @@ html.slice2-tv .s2-art-wizard { background-image: url("../theme/game-card-wizard
 html.slice2-tv .s2-art-flip7 { background-image: url("../theme/game-card-flip7-thumb.jpg"); }
 html.slice2-tv .s2-art-heat { background-image: url("../theme/game-card-beat-heat-thumb.jpg"); }
 html.slice2-tv .s2-art-rook { background-image: url("../theme/game-card-rook-thumb.jpg"); }
+html.slice2-tv .s2-art-canasta {
+  background-image: url("./art/dusk/canasta.webp");
+  background-size: cover;
+  background-position: center;
+}
 
 html.slice2-tv .s2-game-copy {
   display: flex;
@@ -508,7 +663,7 @@ html.slice2-tv .s2-selected-pill {
   margin-top: 4px;
   color: var(--s2-teal-deep);
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.68rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -536,10 +691,10 @@ html.slice2-tv .s2-nights {
   padding: 16px;
 }
 
-html.slice2-tv .s2-night-list {
+html.slice2-tv .s2-nights .s2-night-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 html.slice2-tv .s2-night {
@@ -549,10 +704,112 @@ html.slice2-tv .s2-night {
   border: 1px solid var(--s2-line);
 }
 
+html.slice2-tv .s2-nights .s2-night {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  text-align: left;
+  width: 100%;
+  overflow: visible;
+  cursor: pointer;
+}
+
 html.slice2-tv .s2-night strong {
   display: block;
   font-family: "Nunito Sans", sans-serif;
   color: var(--s2-ink);
+}
+
+html.slice2-tv .s2-night-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+
+html.slice2-tv .s2-nights .s2-night-date,
+html.slice2-tv .s2-nights .s2-night-who {
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+html.slice2-tv .s2-nights .s2-night-who {
+  color: var(--s2-ink);
+  font-weight: 800;
+}
+
+html.slice2-tv .s2-night-podium {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 16px;
+  padding-top: 2px;
+}
+
+html.slice2-tv .s2-podium-place {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 6px 4px 0;
+}
+
+html.slice2-tv .s2-podium-faces {
+  display: flex;
+  align-items: flex-end;
+}
+
+html.slice2-tv .s2-podium-face {
+  position: relative;
+  display: inline-flex;
+  z-index: 1;
+}
+
+html.slice2-tv .s2-podium-face + .s2-podium-face {
+  margin-left: -4px;
+  z-index: 2;
+}
+
+html.slice2-tv .s2-podium-avatar {
+  width: 34px;
+  height: 34px;
+  border: 2px solid #fffdf9;
+  box-shadow: 0 0 0 1px var(--s2-line);
+}
+
+html.slice2-tv .s2-podium-place[data-place="1"] .s2-podium-avatar {
+  width: 38px;
+  height: 38px;
+}
+
+html.slice2-tv .s2-podium-badge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 2px solid #fffdf9;
+  border-radius: 999px;
+  background: var(--s2-teal-deep);
+  color: #fff;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+}
+
+html.slice2-tv .s2-podium-place[data-place="2"] .s2-podium-badge {
+  background: var(--s2-brass);
+}
+
+html.slice2-tv .s2-podium-place[data-place="3"] .s2-podium-badge {
+  background: var(--s2-coral);
 }
 
 /* ── TV scoreboard ── */
@@ -564,6 +821,7 @@ html.slice2-tv #slice2-board-bar {
   width: min(1440px, 100%);
   margin: 0 auto 8px;
   padding: 10px 0 0;
+  font-size: 16px;
 }
 
 html.slice2-tv .s2-board-identity {
@@ -576,7 +834,7 @@ html.slice2-tv .s2-board-identity {
 
 html.slice2-tv .s2-table-btn {
   flex: 0 0 auto;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0.4rem 0.75rem;
   font-size: 0.9rem;
   color: var(--s2-ink);
@@ -633,7 +891,7 @@ html.slice2-tv #slice2-board-line {
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  font-size: clamp(17px, 1.8vw, 23px);
   line-height: 1.25;
 }
 
@@ -727,13 +985,21 @@ html.slice2-tv .s2-now-bid {
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now,
 html.slice2-tv #scorecard-capture td.scorecard-col-now {
-  width: 4.6rem;
-  max-width: 5.6rem;
+  width: var(--scorecard-now-col, 4.6rem);
+  min-width: var(--scorecard-now-col, 4.4rem);
+  max-width: var(--scorecard-now-col, 5.6rem);
+  box-sizing: border-box;
 }
 
 html.slice2-tv #scorecard-capture th.scorecard-col-now {
   white-space: nowrap;
   line-height: 1.1;
+}
+
+@media (min-width: 761px) {
+  html.slice2-tv #scorecard-capture th.scorecard-col-now {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1245,11 +1511,18 @@ html.slice2-tv #hall-of-fame-view {
 }
 
 html.slice2-tv .s2-unassisted-note {
-  display: block;
-  font-size: 0.68rem;
+  display: inline;
+  margin-left: 0.45em;
+  font-size: max(12px, 0.74rem);
   font-weight: 700;
   color: var(--s2-muted);
   letter-spacing: 0.02em;
+  font-style: normal;
+}
+
+html.slice2-tv .s2-ledger-stat .s2-unassisted-note {
+  display: block;
+  margin: 2px 0 0;
 }
 
 html.slice2-tv .s2-nights-col {
@@ -1259,7 +1532,8 @@ html.slice2-tv .s2-nights-col {
 html.slice2-tv .s2-night-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 html.slice2-tv #history-screen .bp-view-tabs .nav-btn {
@@ -1269,7 +1543,7 @@ html.slice2-tv #history-screen .bp-view-tabs .nav-btn {
 }
 
 html.slice2-tv .s2-segment {
-  display: none;
+  display: flex;
   gap: 6px;
   padding: 4px;
   margin: 0 0 12px;
@@ -1280,6 +1554,7 @@ html.slice2-tv .s2-segment {
 
 html.slice2-tv .s2-segment .s2-btn {
   flex: 1;
+  min-width: 0;
   border: 0;
   background: transparent;
 }
@@ -1348,7 +1623,7 @@ html.slice2-tv .s2-ledger-row.is-head {
   border-top: 0;
   color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif;
-  font-size: 0.72rem;
+  font-size: max(13px, 0.8rem);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1415,21 +1690,63 @@ html.slice2-tv .s2-rival {
 }
 
 @media (max-width: 1100px) {
-  html.slice2-tv #score-entry-modal .score-entry-layout {
+  html.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-layout {
     grid-template-columns: minmax(0, 1fr) !important;
     overflow: auto !important;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-side {
+  html.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-side {
     display: flex !important;
     flex-direction: column;
     width: 100%;
     overflow: visible !important;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-keypad {
+  html.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-keypad {
     max-width: 420px;
   }
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-layout {
+  grid-template-columns: minmax(280px, 1fr) minmax(380px, 1.15fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-side {
+  display: flex !important;
+  flex-direction: column !important;
+  width: auto;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-keypad {
+  max-width: none;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-key,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-key {
+  min-height: 48px !important;
 }
 
 @media (max-width: 860px) {
@@ -1437,6 +1754,52 @@ html.slice2-tv .s2-rival {
   html.slice2-tv .s2-night-list,
   html.slice2-tv .s2-ledger-grid {
     grid-template-columns: 1fr;
+  }
+
+  html.slice2-tv .s2-home-table,
+  html.slice2-tv .s2-home-start {
+    display: block;
+    height: auto;
+  }
+
+  html.slice2-tv .s2-seat-grid {
+    flex: 0 0 auto;
+    gap: 10px;
+    grid-auto-rows: minmax(44px, auto);
+  }
+
+  html.slice2-tv .s2-seat {
+    grid-template-columns: 1.5rem 36px minmax(0, 1fr) auto;
+    min-height: 44px;
+    padding: 4px 8px;
+  }
+
+  html.slice2-tv .s2-seat .avatar-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  html.slice2-tv .s2-seat-name,
+  html.slice2-tv .s2-seat-num {
+    font-size: 0.98rem;
+  }
+
+  html.slice2-tv .s2-home-start .s2-game-art {
+    flex: 0 0 auto;
+  }
+
+  html.slice2-tv .s2-nights .s2-night-list {
+    grid-template-columns: 1fr;
+  }
+
+  html.slice2-tv .s2-podium-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  html.slice2-tv .s2-podium-place[data-place="1"] .s2-podium-avatar {
+    width: 36px;
+    height: 36px;
   }
 
   html.slice2-tv .s2-game-grid {
@@ -1481,15 +1844,43 @@ html.slice2-tv .s2-rival {
 
   html.slice2-tv .s2-segment {
     display: flex;
+    flex-wrap: wrap;
   }
 
-  html.slice2-tv .s2-pane-shame .s2-fame-col,
-  html.slice2-tv .s2-ledger:not(.s2-pane-shame) .s2-shame-col {
-    display: none;
+  html.slice2-tv .s2-headline {
+    grid-template-columns: 1fr;
+  }
+
+  html.slice2-tv .s2-explore-grid,
+  html.slice2-tv .s2-overview-split {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 420px) {
+  html.slice2-tv .s2-seat {
+    grid-template-columns: 1.15rem 28px minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 4px 6px;
+  }
+
+  html.slice2-tv .s2-seat .avatar-img {
+    width: 28px;
+    height: 28px;
+  }
+
+  html.slice2-tv .s2-seat-who {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  html.slice2-tv .s2-seat-nudge,
+  html.slice2-tv .s2-seat-out,
+  html.slice2-tv .s2-seat-handle {
+    width: 28px;
+    height: 28px;
+  }
+
   html.slice2-tv #top-nav .bp-brand-copy {
     display: none;
   }
@@ -1523,6 +1914,15 @@ html.slice2-tv body {
 html.slice2-tv #toast-container {
   width: max-content;
   max-width: 90vw;
+}
+
+/* Phone board: keep Standings updated off Save & End, Match complete, and the totals. */
+@media (max-width: 760px) {
+  html.slice2-tv body.active-match-view #toast-container {
+    top: 13.25rem;
+    bottom: auto;
+    transform: translateX(-50%);
+  }
 }
 
 html.slice2-tv .s2-chip {
@@ -1612,7 +2012,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv .s2-table-btn {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.4rem 0.7rem;
     font-size: 0.9rem;
     color: var(--s2-ink);
@@ -1634,7 +2034,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv #slice2-enter-btn {
     flex: 0 1 auto;
     order: 3;
-    min-height: 40px;
+    min-height: 44px;
     font-size: 0.95rem;
   }
 
@@ -1689,12 +2089,12 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     max-width: none;
     margin-left: 0.45rem;
     white-space: nowrap;
-    font-size: 0.62rem;
+    font-size: 10px;
     padding: 0.18rem 0.5rem;
   }
 
   html.slice2-tv .s2-table-btn {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.4rem 0.75rem;
     font-size: 0.9rem;
     color: var(--s2-ink);
@@ -1742,7 +2142,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     min-height: 44px;
     height: 44px;
     padding: 0.4rem 0.95rem;
-    font-size: 0.92rem;
+    font-size: 15px;
     line-height: 1;
     white-space: nowrap;
     text-transform: none;
@@ -1752,6 +2152,51 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv #slice2-enter-btn {
     flex: 0 0 auto;
     height: 44px;
+    min-height: 44px;
+  }
+}
+
+/* iPad 1024 and below: two clean header rows, no save-pill collision. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  html.slice2-tv #slice2-board-line {
+    white-space: normal;
+  }
+
+  html.slice2-tv .s2-board-title-row,
+  html.slice2-tv .s2-board-line-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  html.slice2-tv .s2-board-line-row #slice2-board-line {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  html.slice2-tv .s2-board-line-row #save-indicator.show,
+  html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator.show {
+    margin-left: auto;
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  html.slice2-tv #top-nav > div,
+  html.slice2-tv #top-nav > div > div:last-child {
+    flex-wrap: nowrap !important;
+  }
+
+  html.slice2-tv #top-nav > div {
+    gap: 0.35rem;
+  }
+
+  html.slice2-tv #nav-active-btn {
+    display: none !important;
+  }
+
+  html.slice2-tv #top-nav .nav-btn {
+    padding: 0.36rem 0.55rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
     min-height: 44px;
   }
 }
@@ -1836,9 +2281,9 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv .s2-night-actions .s2-btn {
-    min-height: 36px;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.82rem;
+    min-height: 44px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.88rem;
   }
 
   html.slice2-tv .toast {
@@ -1873,21 +2318,21 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv #score-entry-modal .score-entry-list {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 8.5rem;
+    flex: 1 1 0;
+    min-height: 9.75rem;
     overflow: hidden;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     overflow-y: auto !important;
     min-height: 0;
-    padding-top: 16px;
+    padding-top: 4px;
     padding-right: 8px;
-    padding-bottom: 8px;
-    scroll-padding-top: 16px;
-    scroll-padding-bottom: 8px;
+    padding-bottom: 10px;
+    scroll-padding-top: 4px;
+    scroll-padding-bottom: 10px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row,
@@ -1896,8 +2341,8 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     flex: 0 0 auto !important;
     min-height: 44px !important;
     height: auto !important;
-    scroll-margin-top: 16px;
-    scroll-margin-bottom: 8px;
+    scroll-margin-top: 4px;
+    scroll-margin-bottom: 4px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-player-card {
@@ -1916,10 +2361,24 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     display: flex !important;
     flex-direction: column !important;
     overflow: visible !important;
+    position: relative;
+    z-index: 5;
+    background: var(--s2-card);
+    box-shadow: 0 -1.75rem 0 var(--s2-card);
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-row .score-entry-input-cell,
+  html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-input-cell {
+    z-index: 0;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-selected-card {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 3;
+    margin-top: 0;
     padding: 4px 8px !important;
+    background: var(--s2-card);
   }
 
   html.slice2-tv #score-entry-modal .score-entry-selected-card > :first-child,
@@ -1959,8 +2418,133 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv #scorecard-capture td.scorecard-col-player,
-  html.slice2-tv #scorecard-capture th.scorecard-col-player {
+  html.slice2-tv #scorecard-capture th.scorecard-col-player,
+  html.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+  html.slice2-tv #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+    min-width: min(11.5rem, 42vw) !important;
+    max-width: 48vw !important;
+    width: min(11.5rem, 42vw) !important;
+  }
+
+  html.slice2-tv #scorecard-capture td.scorecard-total-cell,
+  html.slice2-tv #scorecard-capture th.scorecard-col-total,
+  html.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
+    width: min(5rem, 24vw) !important;
+    min-width: min(4.4rem, 20vw) !important;
+    max-width: min(5.4rem, 26vw) !important;
+  }
+
+  html.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+    flex: 1 1 auto;
+    min-width: 3.25rem;
+    overflow: hidden;
+  }
+
+  html.slice2-tv #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name,
+  html.slice2-tv #scorecard-capture .scorecard-player-name-slot button.dealer-name-indicator {
     min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Leftover row height after Match complete must not blow names past the player column. */
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
+    font-size: min(1.375rem, var(--scorecard-player-font, 1.375rem)) !important;
+  }
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
+    width: min(28px, var(--scorecard-avatar-size, 28px)) !important;
+    height: min(28px, var(--scorecard-avatar-size, 28px)) !important;
+  }
+
+  html.slice2-tv #slice2-board-line,
+  html.slice2-tv #slice2-board-sub {
+    font-size: min(0.88rem, 15px);
+  }
+
+  html.slice2-tv #slice2-enter-btn {
+    font-size: min(0.95rem, 17px);
+    white-space: nowrap;
+  }
+
+  html.slice2-tv .s2-board-actions #actions-btn,
+  html.slice2-tv .s2-board-actions .match-end-btn,
+  html.slice2-tv .s2-table-btn {
+    font-size: min(0.9rem, 15px);
+  }
+
+  html.slice2-tv body.active-match-view #game-screen {
+    display: flex;
+    flex-direction: column;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Fixed so Scratch is not clipped by #game-screen overflow:hidden. */
+  html.slice2-tv body.active-match-view #actions-menu {
+    position: fixed !important;
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    width: auto !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    z-index: 500 !important;
+  }
+
+  html.slice2-tv body.active-match-view .actions-menu-item {
+    min-height: 44px;
+    padding: 0.35rem 0.64rem;
+  }
+
+  html.slice2-tv body.active-match-view .actions-menu-section {
+    padding: 0.38rem;
+  }
+
+  html.slice2-tv body.active-match-view #game-over-section {
+    padding: 0.85rem 1rem !important;
+    gap: 0.55rem !important;
+  }
+
+  html.slice2-tv body.active-match-view #game-over-section h3 {
+    font-size: 1.45rem;
+  }
+
+  html.slice2-tv body.active-match-view #game-over-section .btn-primary {
+    padding: 0.7rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-board-bar {
+    flex: 0 0 auto;
+  }
+
+  html.slice2-tv body.active-match-view #game-screen .landscape-only {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0.4rem !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-main,
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-table-wrap {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
+    height: var(--scorecard-row-height, 48px) !important;
+    max-height: var(--scorecard-row-height, 48px);
+    overflow: hidden;
   }
 
   html.slice2-tv #scorecard-capture .scoreboard-rank-badge,
@@ -1978,7 +2562,26 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 }
 
-@media (max-width: 760px) and (max-height: 700px) {
+@media (max-width: 400px) {
+  html.slice2-tv #scorecard-capture .scorecard-table thead th.scorecard-round-th {
+    letter-spacing: 0 !important;
+    font-size: 0.68rem !important;
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
+    min-width: 2.5rem !important;
+    max-width: none !important;
+  }
+
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
+    min-width: 2.25rem;
+  }
+}
+
+@media (max-width: 760px) {
   html.slice2-tv #score-entry-modal {
     padding: 6px !important;
   }
@@ -1990,17 +2593,18 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv #score-entry-modal .score-entry-list {
-    flex: 1 1 auto;
-    min-height: 3.75rem;
+    flex: 1 1 0;
+    min-height: 9.75rem;
     max-height: none;
+    overflow: hidden;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    padding-top: 8px;
-    padding-right: 10px;
+    padding-top: 4px;
+    padding-right: 8px;
     padding-bottom: 4px;
-    scroll-padding-top: 8px;
+    scroll-padding-top: 4px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row,
@@ -2057,7 +2661,28 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
 
   html.slice2-tv #score-entry-modal .score-entry-key,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
-    min-height: 40px !important;
+    min-height: 44px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-progress {
+    margin-top: 0.2rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-avatar,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-value,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-value {
+    min-height: 2.25rem !important;
+    font-size: 1.35rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-player-card,
+  html.slice2-tv #score-entry-modal .score-entry-row.no-context .score-entry-player-card {
+    grid-template-columns: 40px minmax(0, 1fr) 56px !important;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-panel > .border-t {
@@ -2126,16 +2751,19 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
 
 @media (max-width: 760px) {
   html.slice2-tv #score-entry-modal .score-entry-list {
-    flex: 1 1 auto;
-    min-height: 3.75rem;
+    flex: 1 1 0;
+    min-height: 9.75rem;
     height: auto;
+    overflow: hidden;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     height: auto;
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-keypad,
@@ -2231,4 +2859,772 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
   html.slice2-tv #score-entry-modal #score-entry-game {
     font-size: 1.45rem !important;
   }
+}
+
+/* ── Records restore: ledger, not a tile wall ── */
+html.slice2-tv .s2-ledger {
+  min-width: 0;
+}
+
+html.slice2-tv .s2-headline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+html.slice2-tv .s2-headline-card {
+  min-width: 0;
+  padding: 4px 2px 8px;
+}
+
+html.slice2-tv .s2-headline-card small {
+  display: block;
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: max(13px, 0.8rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html.slice2-tv .s2-headline-card strong {
+  display: block;
+  margin: 4px 0;
+  color: var(--s2-teal);
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+html.slice2-tv .s2-fame-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+  gap: 20px;
+  align-items: start;
+}
+
+html.slice2-tv .s2-overview-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-player-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+html.slice2-tv #hall-of-fame-view .player-name-label,
+html.slice2-tv #hall-of-fame-view .s2-player-link .player-name-label,
+html.slice2-tv #hall-of-fame-view .s2-night-finish .player-name-label,
+html.slice2-tv #hall-of-fame-view .s2-shame-row small,
+html.slice2-tv #hall-of-fame-view .s2-ledger-stat small {
+  font-family: "Nunito Sans", sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  font-size: 1rem !important;
+  color: var(--s2-ink);
+}
+
+html.slice2-tv .s2-mini-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 1100px) {
+  html.slice2-tv .s2-shame-row .s2-mini-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+html.slice2-tv .s2-book,
+html.slice2-tv .s2-ledger-table {
+  display: flex;
+  flex-direction: column;
+}
+
+html.slice2-tv .s2-book-row,
+html.slice2-tv .s2-ledger-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) auto;
+  gap: 10px 12px;
+  align-items: baseline;
+  padding: 10px 2px;
+  border-top: 1px solid var(--s2-line);
+}
+
+html.slice2-tv .s2-leader-row {
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+html.slice2-tv .s2-leader-row .s2-player-link {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html.slice2-tv .s2-leader-row .s2-book-who {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+html.slice2-tv .s2-leader-row strong {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+html.slice2-tv .s2-ledger-row {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+}
+
+html.slice2-tv .s2-book-row:first-child,
+html.slice2-tv .s2-ledger-row.is-head {
+  border-top: 0;
+}
+
+html.slice2-tv .s2-book-who,
+html.slice2-tv .s2-book-empty {
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+html.slice2-tv .s2-book-row strong,
+html.slice2-tv .s2-ledger-stat strong {
+  font-variant-numeric: tabular-nums;
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+}
+
+html.slice2-tv .s2-panel h3,
+html.slice2-tv .s2-night-day h3 {
+  margin: 0 0 10px;
+  color: var(--s2-ink);
+  font-family: "Bree Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: 1.35rem;
+}
+
+html.slice2-tv .s2-panel h4 {
+  margin: 12px 0 6px;
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html.slice2-tv .s2-explore-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+html.slice2-tv .s2-explore-games {
+  display: contents;
+}
+
+html.slice2-tv .s2-records-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+html.slice2-tv .s2-records-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: max(13px, 0.8rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+html.slice2-tv .s2-records-filters select {
+  min-width: 10rem;
+  min-height: 44px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--s2-line);
+  border-radius: 10px;
+  background: #fffaf4;
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+html.slice2-tv .s2-shame-panel,
+html.slice2-tv .s2-shame-row {
+  color: var(--s2-ink);
+}
+
+html.slice2-tv .s2-shame-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--s2-line);
+}
+
+html.slice2-tv .s2-shame-row:first-of-type {
+  border-top: 0;
+}
+
+html.slice2-tv .s2-shame-row b {
+  display: block;
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+}
+
+html.slice2-tv .s2-shame-sub {
+  display: block;
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+html.slice2-tv .s2-shame-row p,
+html.slice2-tv .s2-shame-row small {
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 700;
+}
+
+html.slice2-tv .s2-shame-row strong {
+  color: var(--s2-shame);
+  font-variant-numeric: tabular-nums;
+}
+
+html.slice2-tv .s2-night-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 14px 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--s2-line);
+  border-radius: 16px;
+  background: var(--s2-card);
+  cursor: pointer;
+}
+
+html.slice2-tv .s2-night-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+}
+
+html.slice2-tv .s2-night-head strong {
+  font-family: "Bree Serif", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+html.slice2-tv .s2-night-head span,
+html.slice2-tv .s2-night-status {
+  color: var(--s2-muted);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+html.slice2-tv .s2-night-winner {
+  margin: 0;
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+html.slice2-tv .s2-night-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--s2-good-bg);
+  color: var(--s2-teal-deep);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+html.slice2-tv .s2-night-standings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1.6rem auto minmax(0, max-content) max-content;
+  justify-content: start;
+  column-gap: 8px;
+  width: max-content;
+  max-width: 100%;
+}
+
+html.slice2-tv .s2-night-finish {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  column-gap: inherit;
+  align-items: center;
+  padding: 4px 0;
+}
+
+html.slice2-tv .s2-night-finish .player-name-label {
+  min-width: 0;
+}
+
+html.slice2-tv .s2-night-finish strong,
+html.slice2-tv .s2-night-place {
+  font-family: "Nunito Sans", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+html.slice2-tv .s2-night-finish strong {
+  text-align: right;
+  justify-self: end;
+}
+
+html.slice2-tv .s2-night-finish.is-winner .player-name-label,
+html.slice2-tv .s2-night-finish.is-winner strong {
+  color: var(--s2-teal-deep);
+}
+
+html.slice2-tv .s2-night-more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--s2-teal-deep);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+html.slice2-tv .s2-night-actions .s2-btn {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+html.slice2-tv .s2-segment .s2-btn {
+  white-space: nowrap;
+}
+
+html.slice2-tv .s2-disclose summary {
+  cursor: pointer;
+  font-family: "Bree Serif", Georgia, serif;
+  font-size: 1.25rem;
+}
+
+html.slice2-tv .s2-records-filters select:focus {
+  outline: 2px solid var(--s2-teal);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  html.slice2-tv .s2-fame-col,
+  html.slice2-tv .s2-explore-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  html.slice2-tv .s2-headline {
+    grid-template-columns: 1fr;
+  }
+
+  html.slice2-tv .s2-night-card {
+    padding: 12px 10px;
+  }
+
+  html.slice2-tv .s2-night-actions {
+    justify-content: flex-start;
+  }
+
+  html.slice2-tv .s2-book-row:not(.s2-leader-row) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  html.slice2-tv .s2-book-row:not(.s2-leader-row) .s2-book-who {
+    grid-column: 1 / -1;
+  }
+
+  html.slice2-tv .s2-leader-row {
+    grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  }
+
+  html.slice2-tv .s2-headline-card strong {
+    font-size: 1.7rem;
+  }
+
+  html.slice2-tv .s2-fame-col .s2-panel-head h2,
+  html.slice2-tv .s2-nights-col .s2-panel-head h2,
+  html.slice2-tv .s2-explore-col .s2-panel-head h2 {
+    white-space: normal;
+  }
+
+  html.slice2-tv .s2-ledger-row.is-head {
+    display: none;
+  }
+
+  html.slice2-tv .s2-ledger-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px 2px;
+  }
+
+  html.slice2-tv .s2-ledger-stat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+    align-items: baseline;
+  }
+
+  html.slice2-tv .s2-ledger-stat::before {
+    content: attr(data-label);
+    color: var(--s2-muted);
+    font-family: "Nunito Sans", sans-serif;
+    font-size: max(13px, 0.8rem);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  html.slice2-tv .s2-ledger-stat small {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  html.slice2-tv .s2-ledger-stat strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 1.15rem;
+  }
+}
+
+html.slice2-tv .s2-night-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+html.slice2-tv .s2-night-day {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 1100px) {
+  html.slice2-tv .s2-night-day {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  html.slice2-tv .s2-night-day h3 {
+    grid-column: 1 / -1;
+  }
+
+  html.slice2-tv .s2-night-day > .s2-night-card:only-of-type {
+    grid-column: 1 / -1;
+  }
+
+  html.slice2-tv .s2-night-standings {
+    max-width: 22rem;
+  }
+
+  html.slice2-tv #hall-of-fame-view .player-name-label,
+  html.slice2-tv #hall-of-fame-view .s2-player-link .player-name-label,
+  html.slice2-tv #hall-of-fame-view .s2-night-finish .player-name-label,
+  html.slice2-tv #hall-of-fame-view .s2-shame-row small,
+  html.slice2-tv #hall-of-fame-view .s2-ledger-stat small {
+    font-size: 1.2rem !important;
+  }
+
+  html.slice2-tv .s2-night-finish strong,
+  html.slice2-tv .s2-night-place {
+    font-size: 1.2rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  html.slice2-tv .s2-explore-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  html.slice2-tv #score-entry-modal .score-entry-key,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
+    min-height: 40px !important;
+  }
+}
+
+html.slice2-tv .s2-records-footer {
+  margin: 18px 2px 0;
+  color: var(--s2-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  html.slice2-tv .s2-tab-rest {
+    display: none;
+  }
+
+  html.slice2-tv .s2-segment {
+    gap: 2px;
+    padding: 3px;
+    flex-wrap: nowrap;
+  }
+
+  html.slice2-tv .s2-segment .s2-btn {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.28rem;
+    letter-spacing: 0;
+  }
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-b {
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: 8px !important;
+  padding-bottom: 6px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-game {
+  font-size: 1.45rem !important;
+  line-height: 1.1 !important;
+  padding: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal #score-entry-context {
+  color: var(--s2-muted) !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players #score-entry-context {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-context {
+  margin-top: 0 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-unconfirmed {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-progress {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-t {
+  padding-top: 8px !important;
+  gap: 8px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-t button {
+  min-height: 44px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+  min-height: 0 !important;
+  height: var(--se-fit-row-height) !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-dealer-badge {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer .score-entry-player-card,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer.active .score-entry-player-card,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-player-card {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-player-card,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer:not(.active) .score-entry-player-card {
+  border-color: var(--s2-line) !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-input-cell {
+  border-color: var(--s2-line);
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-input-cell .score-entry-meta-label,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-confirm-status {
+  display: none;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-input-cell {
+  min-height: 2.4rem;
+  padding: 0.35rem 0.45rem;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-layout {
+  gap: 8px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-b {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 8px;
+  flex-wrap: unset !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-heading {
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot #score-entry-context {
+  display: block;
+  margin-top: 2px !important;
+  white-space: normal;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  font-size: 0.82rem !important;
+  line-height: 1.25 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-progress {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
+  margin: 0 !important;
+  max-width: 100%;
+  white-space: nowrap;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.65rem;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate-bar {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate {
+  min-width: 0;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate .score-entry-meta-label {
+  white-space: normal;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot #score-entry-unconfirmed,
+html.slice2-tv #score-entry-modal.score-entry-hand-foot #score-entry-error {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 480px) {
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-b {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-progress {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
+    text-align: center;
+  }
+
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate-bar {
+    grid-row: 3;
+  }
+}
+
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot,
+html.slice2-tv #modal-scorecard-body .scorecard-player-name-slot {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name,
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot button.dealer-name-indicator {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+html.slice2-tv .retired-badge,
+html.slice2-tv #scorecard-capture .retired-badge,
+html.slice2-tv #modal-scorecard-body .retired-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: 0.35rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  background: var(--rose-bg, #fde8ee);
+  color: var(--rose, #9f1239);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+  line-height: 1.15;
 }

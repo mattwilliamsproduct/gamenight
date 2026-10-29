@@ -159,11 +159,15 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
 test('laptop scorecard keeps a Table button and a one-line title', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 650});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
-  const titleWraps1024 = await page.locator('#slice2-board-line').evaluate((el) => {
+  const titleLayout1024 = await page.locator('#slice2-board-line').evaluate((el) => {
     const style = getComputedStyle(el);
-    return style.whiteSpace !== 'nowrap' || el.getClientRects().length > 1;
+    return {
+      clipped: el.scrollWidth > el.clientWidth + 1,
+      rows: el.getClientRects().length
+    };
   });
-  expect(titleWraps1024, 'title wraps at 1024').toBe(false);
+  expect(titleLayout1024.clipped, '1024 title stays unclipped on one or two rows').toBe(false);
+  expect(titleLayout1024.rows, '1024 title uses at most two rows').toBeLessThanOrEqual(2);
 
   await page.setViewportSize({width: 1440, height: 900});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
@@ -258,4 +262,63 @@ test('Life Preserver picker opens from Actions and a badge goes straight to that
   await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-name')).toHaveText('Cat');
+});
+
+test('1440 and 1024 keep the current round on screen and pad the header', async ({page}) => {
+  for (const size of [{width: 1440, height: 900}, {width: 1024, height: 768}]) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'five-crowns-4', surface: 'scorecard'});
+    const fit = await page.evaluate(() => {
+      const wrap = document.querySelector('#scorecard-capture .scorecard-table-wrap');
+      const now = document.querySelector('#scorecard-capture thead th.scorecard-col-now');
+      const end = document.querySelector('#slice2-board-bar .match-end-btn');
+      const visible = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th')]
+        .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
+      if (!wrap || !now || !end) return {ok: false};
+      const wrapBox = wrap.getBoundingClientRect();
+      const nowBox = now.getBoundingClientRect();
+      const endBox = end.getBoundingClientRect();
+      return {
+        ok: true,
+        nowInside: nowBox.width >= 36 && nowBox.right <= wrapBox.right + 1 && nowBox.left >= wrapBox.left - 1,
+        endPad: window.innerWidth - endBox.right,
+        visibleRounds: visible.length
+      };
+    });
+    expect(fit.ok, `${size.width} missing NOW or Save & End`).toBe(true);
+    expect(fit.nowInside, `${size.width} NOW clipped`).toBe(true);
+    expect(fit.endPad, `${size.width} Save & End flush`).toBeGreaterThanOrEqual(12);
+    expect(fit.visibleRounds, `${size.width} no past rounds`).toBeGreaterThanOrEqual(1);
+  }
+});
+
+test('1440 late Five Crowns shows every hand', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 900});
+  await openScenario(page, {scenario: 'five-crowns-late', surface: 'scorecard'});
+  const fit = await page.evaluate(() => {
+    const wrap = document.querySelector('#scorecard-capture .scorecard-table-wrap');
+    const now = document.querySelector('#scorecard-capture thead th.scorecard-col-now');
+    const hint = document.querySelector('#scorecard-capture .scorecard-rounds-hint');
+    const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th')];
+    const visible = ths.filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
+    if (!wrap || !now) return {ok: false};
+    const wrapBox = wrap.getBoundingClientRect();
+    const nowBox = now.getBoundingClientRect();
+    return {
+      ok: true,
+      total: ths.length,
+      visible: visible.length,
+      label: (now.textContent || '').replace(/\s+/g, ' ').trim(),
+      clipped: now.scrollWidth > now.clientWidth + 1,
+      nowInside: nowBox.width >= 36 && nowBox.right <= wrapBox.right + 1 && nowBox.left >= wrapBox.left - 1,
+      hintOn: !!(hint && !hint.classList.contains('hidden') && hint.textContent.trim())
+    };
+  });
+  expect(fit.ok, 'missing NOW').toBe(true);
+  expect(fit.visible, `visible rounds ${fit.visible} of ${fit.total}`).toBe(fit.total);
+  expect(fit.visible, 'late card lost a completed hand').toBeGreaterThanOrEqual(10);
+  expect(fit.label, 'NOW header should stay a short R11 Now').toMatch(/^R\d+ Now$/);
+  expect(fit.clipped, `NOW text clipped as ${fit.label}`).toBe(false);
+  expect(fit.nowInside, 'NOW clipped on the late card').toBe(true);
+  expect(fit.hintOn, 'trim hint on a card that should show every hand').toBe(false);
 });

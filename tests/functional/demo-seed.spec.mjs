@@ -1,22 +1,9 @@
 import {expect, test} from '@playwright/test';
-import {DEMO_VIEW_IDS} from '../../public/assets/demo-seed.mjs';
+import {DEMO_VIEW_IDS} from '../helpers/demo-seed.mjs';
+import {openTestView} from '../helpers/inject-book.mjs';
 
-const PREVIEW = 'gamenight-git-cursor-relea-23a825-mattwilliamsproducts-projects.vercel.app';
-
-async function openDemo(page, view, {host, extra} = {}) {
-  if (host) {
-    await page.addInitScript((value) => {
-      window.__GN_DEMO_HOST_OVERRIDE__ = value;
-    }, host);
-  }
-  const params = new URLSearchParams();
-  params.set('demo', '');
-  if (view) params.set('view', view);
-  Object.entries(extra || {}).forEach(([key, value]) => {
-    if (value != null && value !== '') params.set(key, value);
-  });
-  await page.goto(`/?${params.toString()}`, {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => !!document.body.dataset.gnDemoReady, null, {timeout: 20000});
+async function openDemo(page, view, {extra} = {}) {
+  await openTestView(page, view, {game: extra?.game});
 }
 
 function hidden(page, id) {
@@ -61,6 +48,7 @@ const VIEW_ASSERT = {
   },
   'entry-fivecrowns': async (page) => {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#hf-rate-bar')).toBeHidden();
   },
   'entry-wizard': async (page) => {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
@@ -115,7 +103,23 @@ const VIEW_ASSERT = {
   records: async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
-    await expect(page.locator('.s2-fame-col')).toContainText(/Most wins|Five Crowns|Unassisted matches only/);
+    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Five Crowns|Unassisted matches only/);
+  },
+  'records-overview': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Unassisted matches only/);
+  },
+  'records-explore': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-shame')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-explore-col')).toContainText(/Explore records|Most games without a win|Most consecutive last-place finishes/);
+  },
+  'records-nights': async (page) => {
+    await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-show-nights')).toHaveClass(/is-on/);
+    await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Incomplete/);
+    await expect(page.locator('.s2-night-winner', {hasText: / and /}).first()).toBeVisible();
   },
   'records-shame': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
@@ -162,6 +166,7 @@ const VIEW_ASSERT = {
   'bids-wizard': async (page) => {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#score-entry-modal')).toContainText(/Wizard|Bid|bid/i);
+    await expect(page.locator('#hf-rate-bar')).toBeHidden();
   },
   'podium-tie': async (page) => {
     await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
@@ -176,10 +181,16 @@ const VIEW_ASSERT = {
     await expect(page.locator('#midgame-add-player-input')).toHaveValue('m');
     const names = await page.locator('#midgame-player-suggestions .player-name-label').allTextContents();
     expect(names.map((name) => name.trim())).toEqual(['Michelle']);
+  },
+  'demo-path': async (page) => {
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#slice2-board-line')).toContainText(/Five Crowns/);
+    await expect(page.locator('#scorecard-body')).toContainText('June');
+    await expect(page.locator('#scorecard-body')).toContainText('Theo');
   }
 };
 
-test.describe('TEMP demo seed views', () => {
+test.describe('test-only fixture views', () => {
   test('every listed view id has an assertion', () => {
     const missing = DEMO_VIEW_IDS.filter((id) => !VIEW_ASSERT[id]);
     expect(missing, `untested view ids: ${missing.join(', ')}`).toEqual([]);
@@ -188,11 +199,9 @@ test.describe('TEMP demo seed views', () => {
   for (const view of DEMO_VIEW_IDS) {
     test(`preview host opens ${view}`, async ({page}) => {
       test.setTimeout(45000);
-      await openDemo(page, view, {host: PREVIEW});
-      await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', /seeded|empty/);
-      await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', view);
+      await openDemo(page, view);
+      await expect(page.locator('body')).toHaveAttribute('data-gn-test-view', view);
       await expect.poll(() => page.url()).not.toMatch(/[?&]demo=/);
-      await expect.poll(() => page.url()).not.toMatch(/[?&]view=/);
       await VIEW_ASSERT[view](page);
     });
   }
@@ -203,49 +212,74 @@ test.describe('TEMP demo seed views', () => {
     ['wizard', /Wizard/],
     ['flip7', /Flip 7/],
     ['beat-the-heat', /Beat the Heat/],
-    ['rook', /Rook/]
+    ['hand-and-foot', /Canasta/]
   ]) {
     test(`preview host opens view=game&game=${game}`, async ({page}) => {
       test.setTimeout(45000);
-      await openDemo(page, 'game', {host: PREVIEW, extra: {game}});
-      await expect(page.locator('body')).toHaveAttribute('data-gn-demo-view', 'game');
+      await openDemo(page, 'game', {extra: {game}});
+      await expect(page.locator('body')).toHaveAttribute('data-gn-test-view', 'game');
       await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
-      if (game === 'rook') {
-        await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
-        await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
-      } else {
-        await expect(page.locator('#slice2-board, #game-screen')).toContainText(label);
-      }
+      await expect(page.locator('#slice2-board, #game-screen')).toContainText(label);
     });
   }
 
-  test('preview host opens view=game&game=hand-and-foot without crashing', async ({page}) => {
-    await openDemo(page, 'game', {host: PREVIEW, extra: {game: 'hand-and-foot'}});
-    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', /seeded|empty/);
-    const visible = await page.evaluate(() => {
-      const home = document.getElementById('home-screen');
-      const game = document.getElementById('game-screen');
-      return !home?.classList.contains('hidden') || !game?.classList.contains('hidden');
+  test('preview host opens view=game&game=hand-and-foot as in-progress Canasta', async ({page}) => {
+    test.setTimeout(45000);
+    await openDemo(page, 'game', {extra: {game: 'hand-and-foot'}});
+    await expect(page.locator('body')).toHaveAttribute('data-gn-test-view', 'game');
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#game-screen')).toHaveAttribute('data-game', 'Hand and Foot');
+    await expect(page.locator('#slice2-board, #game-screen')).toContainText(/Canasta/);
+    await expect(page.locator('#scorecard-body')).toContainText('3695');
+    await expect(page.locator('#scorecard-body')).toContainText(/Megan|Matt/);
+    const live = await page.evaluate(() => {
+      try { return JSON.parse(localStorage.getItem('gn_current') || 'null'); }
+      catch (error) { return null; }
     });
-    expect(visible).toBe(true);
+    expect(live?.name).toBe('Hand and Foot');
+    expect(live?.rounds).toHaveLength(2);
+    expect(live?.handFoot?.sides).toHaveLength(2);
+    expect(live?.rounds[0]?.handFootParts?.Megan?.sevensCanastas).toBe(1);
+    expect(live?.rounds[0]?.handFootParts?.Megan?.redThrees).toBe(4);
   });
 
-  test('cardknight.vercel.app ignores ?demo and writes nothing', async ({page}) => {
-    await openDemo(page, 'home', {host: 'cardknight.vercel.app'});
+  test('preview host opens view=game&game=rook&games=rook', async ({page}) => {
+    test.setTimeout(45000);
+    await openDemo(page, 'game', {extra: {game: 'rook'}});
+    await expect(page.locator('body')).toHaveAttribute('data-gn-test-view', 'game');
+    await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
+  });
+
+  test('Rook stays off the demo picker without games=rook', async ({page}) => {
+    test.setTimeout(45000);
+    await openDemo(page, 'home');
+    await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
+  });
+
+  test('?demo does nothing on a first-time book', async ({page}) => {
+    await page.goto('/?demo&view=home&art=dusk&logo=dusk', {waitUntil: 'domcontentloaded'});
     await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'ignored');
     const stored = await page.evaluate(() => ({
       history: localStorage.getItem('gn_history'),
       current: localStorage.getItem('gn_current'),
-      flag: localStorage.getItem('gn_demo_seeded')
+      flag: localStorage.getItem('gn_demo_seeded'),
+      art: document.documentElement.dataset.bpArt || '',
+      logo: document.documentElement.dataset.bpLogo || ''
     }));
     expect(stored.history == null || stored.history === '[]').toBeTruthy();
     expect(stored.current == null || stored.current === 'null').toBeTruthy();
     expect(stored.flag).toBeNull();
+    expect(stored.art).toBe('');
+    expect(stored.logo).toBe('');
     await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toHaveCount(0);
     await expect(page.locator('#demo-seed-msg')).toHaveCount(0);
   });
 
-  test('real history is not overwritten', async ({page}) => {
+  test('?demo does not overwrite a personal book', async ({page}) => {
     await page.addInitScript(() => {
       localStorage.setItem('gn_history', JSON.stringify([{
         id: 9,
@@ -257,9 +291,9 @@ test.describe('TEMP demo seed views', () => {
         originalRoster: ['Matt']
       }]));
     });
-    await openDemo(page, 'home');
-    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'blocked');
-    await expect(page.locator('#demo-seed-msg')).toHaveText('This device already has history. Demo data was not loaded.');
+    await page.goto('/?demo&view=home', {waitUntil: 'domcontentloaded'});
+    await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'ignored');
+    await expect(page.locator('#demo-seed-msg')).toHaveCount(0);
     const history = await page.evaluate(() => JSON.parse(localStorage.getItem('gn_history') || '[]'));
     expect(history).toHaveLength(1);
     expect(history[0].id).toBe(9);

@@ -328,7 +328,7 @@ test('Settings and Records say history is local, and Restore copy matches mergeB
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#settings-modal .local-storage-statement')).toHaveText('Scores and history are saved in this browser on this device.');
   await expect(page.locator('#settings-modal button', {hasText: 'Backup'})).toBeVisible();
-  await expect(page.locator('#settings-modal button', {hasText: 'Restore'}).first()).toBeVisible();
+  await expect(page.locator('#settings-modal .bp-modal-foot button', {hasText: /^Restore$/})).toBeVisible();
   await expect(page.locator('#backup-restore-copy')).toContainText('adds games and players');
   await expect(page.locator('#backup-restore-copy')).toContainText('Finished games already here stay');
   await expect(page.locator('#backup-restore-copy')).toContainText('match in progress');
@@ -350,7 +350,7 @@ test('retired players stay visible on a Records scorecard', async ({page}) => {
   });
   await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#modal-scorecard-body')).toContainText('Mike');
-  await expect(page.locator('#modal-scorecard-body .retired-badge')).toHaveText(/Retired/i);
+  await expect(page.locator('#modal-scorecard-body .retired-badge')).toHaveText(/Left early/i);
 });
 
 test('every keypad key is fully visible and unobstructed at 375 and 390 for 8 players', async ({page}) => {

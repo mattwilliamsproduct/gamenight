@@ -151,6 +151,7 @@ test('skipping a dealer roll does not steal the next game\'s Roll Die button', a
 });
 
 test('View Pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete View Pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});

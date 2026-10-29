@@ -11,9 +11,9 @@ test('one laptop porch night walks the shelf, scoring, places, and a local refre
   // 1. home-party
   await openScenario(page,{scenario:'home-party',surface:'home'});
   await expect(page.locator('#home-screen')).toBeVisible();
-  for(const [label, id] of [['Five Crowns','Five Crowns'],['Wizard','Wizard'],['818','818'],['Flip 7','Flip 7 Vengeance'],['Beat the Heat','Beat the Heat'],['Rook','Rook']]){
+  for(const [label, id] of [['Five Crowns','Five Crowns'],['Wizard','Wizard'],['818','818'],['Flip 7','Flip 7 Vengeance'],['Beat the Heat','Beat the Heat'],['Canasta','Hand and Foot']]){
     await expect(page.locator(`[data-s2-action="pick-game"][data-s2-game="${id}"]`)).toBeVisible();
-    await expect(page.locator(`[data-s2-action="pick-game"][data-s2-game="${id}"]`)).toContainText(label);
+    await expect(page.locator(`[data-s2-action="pick-game"][data-s2-game="${id}"]`)).toHaveAttribute('aria-label', new RegExp(label, 'i'));
   }
   const home=await page.evaluate(()=>({
     seated:[...document.querySelectorAll('.s2-seat-name, #roster-list .roster-name, #home-roster .player-name, .home-player-name')].map(el=>el.textContent.trim()).filter(Boolean),

@@ -10,6 +10,9 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
+- Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
+- Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
 - A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
 - Specs plus prove-it. Open the gallery scenarios that exercise the slice.
@@ -28,6 +31,25 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
 - Scorecard places read as 1st, 2nd, 3rd in a real pill, not a faint 24px number.
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
+- Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
+- One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
+- Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
+- Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
+- Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
+- A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
+- One saved night reads `1 night`.
+- The dealer chip hugs the letters and stays a dealer mark, not a selected state. Life Preserver available is a small labeled LP chip.
+- `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
+- iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
+- Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
+- Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
+- Championship Ledger hides Rook while Rook is hidden from the shelf.
+- Records shows Canasta for saved Hand and Foot nights, and shows Rook history when a completed Rook night exists, without putting Rook back on the start shelf.
+- Records keeps Overview · Explore records · Past nights. Final-score rows carry "Unassisted matches only" beside the number. Past nights and the live scorecard say Left early. Rivalries print the tie count. Life Preserver says places are measured right after the spin.
+- The 1024 match header is two clean rows. Saved sits on its own row and does not collide with wild or dealer copy.
+- Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
+- A first-use empty table that says add a name, pick a game, then tap Start.
+- 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
 
 ### Kills
 
@@ -44,9 +66,18 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - An unfinished history match still counting as a completed game.
 - "Warm Porch Ledger" as a user-facing subtitle.
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
+- Life Preserver copy that claims the wheel caused a later win.
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
+- `1 nights` on a single saved night.
+- iPad score entry rows collapsed into one overlapping strip.
+- 80px names and 120px avatars eating the round columns on a 4-seat TV card.
+- `1 WINS · 1 GAMES` or other plural-for-one Records copy.
+- Rook on the Championship Ledger while the shelf hides it.
+- Settings "This device" copy sitting under Backup / Restore, or a close X on the modal border.
+- Avatar rings in four colors that do not mean anything.
+- Standings updated still sitting on Records after Save & End.
 - Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
 - SELECTED PLAYER crowding the Scoring pill on phone entry.
 - A porch password or cloud sync control in Settings this release.
@@ -62,7 +93,27 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Life Preserver labels outside the pie, callout pills, or leader lines.
 - A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
 - A Life Preserver that still looks like a pie chart with extra wedges.
+- A 4-digit Canasta cell that clips to `322(`, or 2-team rows stretched to ~135px with 120px avatars.
+- `Megan` clipped to `Mega` on a 390 Canasta card.
+- Add Player as a 412px chip on a laptop, or a tiny card on a phone.
+- Canasta Each clean / Each dirty / Each red 3 chips on Five Crowns or Wizard entry.
 - A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
+- Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
+- Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
+- A 1024 Home Start button below the fold with 6 seated, or an 8-player 1024 entry that hides rows behind a stacked keypad.
+- A Saved chip or NOW column that clips the card or scorecard edge.
+- Calling a Flip 7 zero round a bust on Records.
+- Developer-facing Records copy such as stored-halftime deficit, stored Turbo history, or "This is not a second dashboard".
+- A combined Life Preserver "pts adjusted" total across games, or counting incomplete spins on published Records rows.
+- Shipping TEMP demo-loading (`demo-seed`, `?demo`, `BPGDemoLiveGame`) on the launch host.
+- 1024 Records Overview stacked in one column with a dead half-screen.
+- `R11 · NOV` or any clipped current-round header.
+- A 390 entry subtitle in coral, or a player row sliding under the Scoring bar.
+- A teal outline on a non-active 8-player entry row.
+- Edit Seating plus Earlier/Later when the Home list can reorder in place.
+- A second ranking function for Recent nights, or a podium on an Incomplete night.
+- Adding Canasta to the game registry or Home picker from this art pass.
+- Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.
 
 ## Prefer
 

@@ -17,11 +17,11 @@ A game night on the iPad (landscape) or the TV succeeds when these are true. The
 
 Portrait is a podium, not the scoring surface. Rotate back for the card.
 
-The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records show Fame / Shame and past nights, not the old Timeline / HOF / Records tabs.
+The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records is one destination with Overview, Explore records, and Past nights. Completed nights do not offer Resume. Saved Canasta nights keep the Hand and Foot id and appear as Canasta. Completed Rook nights can appear on Records while the start card stays hidden. Metric definitions live in [release/records-metrics.md](release/records-metrics.md).
 
 ## Supported games
 
-The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math lives in that file. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
+The shelf is the game tiles in `public/assets/game-registry.js` (`startGame`). Scoring math for Canasta lives in `public/assets/hand-foot-logic.js`. Life Preserver math lives in `public/assets/life-preserver-logic.js`.
 
 | Game | Wins | Length | What the app calculates | What a human enters |
 | --- | --- | --- | --- | --- |
@@ -30,20 +30,23 @@ The shelf is the six buttons in `public/index.html` (`startGame`). Scoring math 
 | 818 | High score | 15 rounds: 8-7-6-5-4-3-2-1-2-3-4-5-6-7-8 | Tricks taken, plus 10 for an exact bid. Dealer may not bid the number that makes the table total equal the tricks. | Bid, then tricks |
 | Flip 7 | High score | Open. No finish line. | Nothing about flips or busts. | Banked round score |
 | Beat the Heat | Low heat | Ends when anyone reaches 66 | Match-over when any active total is ≥ 66. Lowest total wins. | Heat for the round |
+| Canasta | High score | 4 rounds | Clean × 500 + dirty × 300 + sevens × 1,500 (instead of the clean 500) + red 3s (100 each for 1–3, 200 each from 4 on) + going out 100 + card points − cards left. Rates live in `CANASTA_RULES`. | Clean, dirty, sevens, red 3s, going out, card points, cards left |
 | Rook | High score | Until the chosen target (300 / 500 / 1000), then a confirm to end | Other team's counters = hand total − bid team's counters. Made bid: each partner scores the team total. Set: each partner loses the bid amount. The other side scores its counters. | Bid winner, amount, trump, called card, partner, bid-team points |
 
 House notes already in the rules cards (`gameRulesText`):
 
 - Wizard does **not** block the dealer from making bids sum to the tricks. 818 does. Leave Wizard that way unless the porch asks.
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
+- Canasta is the shelf label. The saved game id is `Hand and Foot`.
+- Rook stays in code. The picker hides it. `?demo` and `?demo&games=rook` do nothing. Saved Rook nights still open.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
-- Life Preserver needs 4 active players and is off for Rook and Beat the Heat.
+- Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Canasta.
 
 ## Core flows
 
 ### Score a round
 
-1. Home: On Deck → Tonight's Table → a game card.
+1. Home: On Deck → Tonight's Table → a game card. Tonight's Table is one player per row. Reorder in the list. At laptop width the two Home columns stretch to the same height. Extra height goes into roomier seats and game art. Recent nights stays full width below. Each recent night shows a small 1st / 2nd / 3rd podium from the same ranking helper as Records. Incomplete nights stay labeled Incomplete and have no podium. Phone stays Table, then Start a New Match, then nights.
 2. Optional dealer roll and lineup intro (Settings; dealer roll defaults off).
 3. Wizard and 818: lock bids, then submit tricks. The header shows bids or tricks against the round size. Wizard can undo a bid lock before tricks are submitted. 818 cannot. Leave that alone unless the table asks.
 4. Five Crowns, Flip 7, and Beat the Heat: one number per active player. Next on an empty row leaves that draft empty and moves on. The modal says `Blank scores count as 0`. Submit stores a blank score as `0`. A locked Wizard or 818 bid stays `Suggested: N (tap Next to confirm)` until Next or the row check marks `✓ Confirmed: N`, and that suggestion stays distinct from a blank cell. The first digit on a suggestion replaces it. A blank Wizard or 818 trick becomes `0`, and the round is saved only when those tricks add up to the round size. A blank bid is still rejected. A `null` already stored for a retired player who was not in the hand stays `null`. Rook still needs a bidder, a bid, a trump, a called card, a partner, and bid-team counters.
@@ -111,6 +114,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 - The Porch Club night redesign (PR #44) until Matt signs the preview.
 - Splitting `public/index.html` as a project of its own. Fix the stacked theme CSS when a visual bug requires it. Do not boil the ocean first.
 - Per-player accounts. One porch, one password, one scorebook.
+- Shipping new Home tile art or a new nav logo without Matt's pick. `?demo&art=dusk` and `?demo&logo=dusk` do nothing. Home keeps today's beach thumbs and photo mark.
 
 ## Known bugs
 

@@ -66,6 +66,7 @@ test('Beat the Heat auto-ends at 66 and continues through winner, loser, and met
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(66);
 
   await page.getByRole('button',{name:'End Match & See Winner'}).click();
+  await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#victory-names')).toContainText('Mike');
 
