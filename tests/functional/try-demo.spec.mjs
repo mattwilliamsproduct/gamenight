@@ -76,8 +76,8 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
   await page.goto('/?demo=try', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
   await expect(page.locator('#bpg-try-demo-bar')).toContainText('Demo · Sample data');
-  await expect(page.locator('#bpg-try-demo-exit')).toBeVisible();
-  await expect(page.locator('#bpg-try-demo-reset')).toBeVisible();
+  await expect(page.locator('#bpg-try-demo-exit')).toHaveText('Exit demo');
+  await expect(page.locator('#bpg-try-demo-reset')).toHaveText('Reset demo');
   await expect(page.locator('#bpg-try-demo-tip')).toContainText('Try entering a round, correcting a score, and checking the updated records.');
   await expect(page.locator('#save-indicator')).toContainText('Sample data · separate from your games');
   await expect(page.locator('#save-indicator')).not.toContainText('Saved on this device');
@@ -200,7 +200,8 @@ test('sync and backup are blocked in demo', async ({page}) => {
     await page.evaluate(() => { if (typeof openSettings === 'function') openSettings(); });
   }
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#bpg-try-demo-backup-note')).toContainText('Backup, restore, and sync are off in this demo.');
+  await expect(page.locator('#bpg-try-demo-backup-note')).toHaveText('Backup and restore are off in this demo.');
+  await expect(page.locator('#bpg-try-demo-backup-note')).not.toContainText('sync');
   await expect(page.locator('#backup-clear-warning')).toBeHidden();
   await expect(page.locator('#backup-clear-warning')).toHaveCSS('display', 'none');
   const blocked = await page.evaluate(async () => {
@@ -221,3 +222,88 @@ test('sync and backup are blocked in demo', async ({page}) => {
   expect(blocked.sync).toBe('blocked');
   expect(blocked.active).toBe(true);
 });
+
+test('demo banner stays under open Settings and reserves layout space', async ({page}) => {
+  await openTryDemo(page);
+  const before = await page.evaluate(() => ({
+    pad: getComputedStyle(document.documentElement).paddingTop,
+    barZ: getComputedStyle(document.getElementById('bpg-try-demo-bar')).zIndex
+  }));
+  expect(Number.parseFloat(before.pad)).toBeGreaterThanOrEqual(42);
+  expect(Number(before.barZ)).toBeLessThan(85);
+  await page.evaluate(() => { if (typeof openSettings === 'function') openSettings(); });
+  await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
+  const open = await page.evaluate(() => {
+    const bar = document.getElementById('bpg-try-demo-bar');
+    const modal = document.getElementById('settings-modal');
+    return {
+      barZ: Number(getComputedStyle(bar).zIndex),
+      modalZ: Number(getComputedStyle(modal).zIndex),
+      bpOpen: document.documentElement.classList.contains('bp-modal-open')
+    };
+  });
+  expect(open.bpOpen).toBe(true);
+  expect(open.barZ).toBeLessThan(open.modalZ);
+});
+
+test('Passports (12) is the demo cast and Records refreshes after Canasta reseed', async ({page}) => {
+  page.on('dialog', (dialog) => dialog.accept());
+  await openTryDemo(page);
+  const first = await page.evaluate(() => {
+    const nav = [...document.querySelectorAll('#top-nav .nav-btn')].map((b) => b.textContent.trim());
+    const hist = JSON.parse(localStorage.getItem('bpg_demo_history') || '[]');
+    const all = JSON.parse(localStorage.getItem('bpg_demo_all_players') || '[]');
+    const seated = JSON.parse(localStorage.getItem('bpg_demo_players_v2') || '[]');
+    return {nav, histLen: hist.length, all, seated};
+  });
+  expect(first.all).toEqual([
+    'Nora', 'Owen', 'Priya', 'Theo', 'Ruby', 'Felix',
+    'June', 'Marco', 'Iris', 'Quinn', 'Vera', 'Hugo'
+  ]);
+  expect(first.seated).toHaveLength(8);
+  expect(first.nav.some((label) => label === 'Player Passports (12)')).toBe(true);
+  expect(first.nav.some((label) => label === `Records (${first.histLen})`)).toBe(true);
+  expect(first.histLen).toBe(17);
+
+  await page.evaluate(() => {
+    const hist = JSON.parse(localStorage.getItem('bpg_demo_history') || '[]')
+      .filter((row) => !/Hand and Foot|Canasta/i.test(String(row?.game || '')));
+    localStorage.setItem('bpg_demo_history', JSON.stringify(hist));
+  });
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
+  await page.waitForFunction(() => {
+    const btn = [...document.querySelectorAll('#top-nav .nav-btn')].find((b) => /Records \(/.test(b.textContent || ''));
+    return btn && btn.textContent.includes('Records (17)');
+  }, null, {timeout: 10000});
+  const after = await page.evaluate(() => {
+    const nav = [...document.querySelectorAll('#top-nav .nav-btn')].map((b) => b.textContent.trim());
+    const hist = JSON.parse(localStorage.getItem('bpg_demo_history') || '[]');
+    const gn = Object.keys(localStorage).filter((key) => key.startsWith('gn_'));
+    return {
+      nav,
+      histLen: hist.length,
+      hasCanasta: hist.some((row) => /Hand and Foot|Canasta/i.test(String(row?.game || ''))),
+      gn
+    };
+  });
+  expect(after.histLen).toBe(17);
+  expect(after.hasCanasta).toBe(true);
+  expect(after.nav).toContain('Records (17)');
+  expect(after.nav).toContain('Player Passports (12)');
+  expect(after.gn).toEqual([]);
+});
+
+test('Reset demo confirm explains discarded demo changes', async ({page}) => {
+  let message = '';
+  page.on('dialog', async (dialog) => {
+    message = dialog.message();
+    await dialog.dismiss();
+  });
+  await openTryDemo(page);
+  await page.locator('#bpg-try-demo-reset').click();
+  await page.waitForTimeout(200);
+  expect(message).toContain('discards demo changes');
+  expect(message).toContain('leaves your real games alone');
+});
+

@@ -168,11 +168,12 @@
       'html.bpg-try-demo-pending body{visibility:hidden}',
       'html.bpg-try-demo{padding-top:42px}',
       'html.bpg-try-demo.bpg-try-demo-tip{padding-top:88px}',
-      '#bpg-try-demo-bar{position:fixed;top:0;left:0;right:0;z-index:240;display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 14px;background:#efe7d6;color:#14312e;border-bottom:1px solid #d7cbb3;font-family:"Nunito Sans",sans-serif}',
+      '#bpg-try-demo-bar{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 14px;background:#efe7d6;color:#14312e;border-bottom:1px solid #d7cbb3;font-family:"Nunito Sans",sans-serif}',
       '#bpg-try-demo-bar strong{font-size:13px;font-weight:800;letter-spacing:.02em}',
       '#bpg-try-demo-bar .bpg-try-demo-actions{margin-left:auto;display:flex;gap:8px}',
       '#bpg-try-demo-bar button,#bpg-try-demo-tip button,.bpg-try-demo-start,#bpg-try-demo-about button{min-height:32px;padding:0 12px;border:1px solid #08766c;border-radius:999px;background:#fffdf8;color:#075e57;font-size:12px;font-weight:800}',
-      '#bpg-try-demo-tip{position:fixed;top:42px;left:0;right:0;z-index:239;margin:0;padding:8px 14px;border-bottom:1px solid #d7cbb3;background:#fffdf8;color:#3d4f4c;font-size:13px;font-weight:700;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start}',
+      '#bpg-try-demo-tip{position:fixed;top:42px;left:0;right:0;z-index:69;margin:0;padding:8px 14px;border-bottom:1px solid #d7cbb3;background:#fffdf8;color:#3d4f4c;font-size:13px;font-weight:700;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start}',
+      'html.bp-modal-open #bpg-try-demo-bar,html.bp-modal-open #bpg-try-demo-tip{z-index:40}',
       '#bpg-try-demo-tip[hidden]{display:none}',
       '#bpg-try-demo-tip p{margin:0;flex:1 1 16rem;min-width:0;line-height:1.35}',
       '#bpg-try-demo-tip button{margin-left:auto;flex:0 0 auto}',
@@ -217,7 +218,7 @@
       bar = document.createElement('div');
       bar.id = 'bpg-try-demo-bar';
       bar.setAttribute('role', 'status');
-      bar.innerHTML = '<strong>Demo · Sample data</strong><span class="bpg-try-demo-actions"><button type="button" id="bpg-try-demo-exit">Exit</button><button type="button" id="bpg-try-demo-reset">Reset</button></span>';
+      bar.innerHTML = '<strong>Demo · Sample data</strong><span class="bpg-try-demo-actions"><button type="button" id="bpg-try-demo-exit">Exit demo</button><button type="button" id="bpg-try-demo-reset">Reset demo</button></span>';
       document.body.insertBefore(bar, document.body.firstChild);
       bar.querySelector('#bpg-try-demo-exit').addEventListener('click', exit);
       bar.querySelector('#bpg-try-demo-reset').addEventListener('click', function () { reset(); });
@@ -300,7 +301,7 @@
         var device = document.getElementById('backup-device-summary');
         (device && device.parentNode ? device.parentNode : body).insertBefore(note, device || null);
       }
-      note.textContent = 'Backup, restore, and sync are off in this demo.';
+      note.textContent = 'Backup and restore are off in this demo.';
     } else if (note) {
       note.remove();
     }
@@ -341,7 +342,15 @@
   if (document.readyState === 'complete') setTimeout(afterSlice2Paint, 0);
   else window.addEventListener('load', function () { setTimeout(afterSlice2Paint, 0); });
 
-  async function applySeed(force) {
+  function refreshNavCounts() {
+    try {
+      if (root.BPGSlice2 && typeof root.BPGSlice2.refresh === 'function') {
+        root.BPGSlice2.refresh('records');
+      }
+    } catch (error) {}
+  }
+
+    async function applySeed(force) {
     if (!active()) return null;
     await loadCast();
     var stale = !force && hasDemoBook() && (demoStoreLooksLikePorchCast() || demoStoreMissingCanasta());
@@ -350,6 +359,7 @@
     var book = await loadSeed();
     if (typeof hooks.applyBook === 'function') hooks.applyBook(book);
     neutralizeDemoAvatars();
+    refreshNavCounts();
     return book;
   }
 
@@ -374,6 +384,7 @@
     paintSaveLabel();
     paintSettings();
     neutralizeDemoAvatars();
+    refreshNavCounts();
     if (document.body) document.body.dataset.bpgTryDemo = 'on';
     return {status: 'on'};
   }
@@ -395,12 +406,13 @@
 
   async function reset() {
     if (!active()) return;
-    if (!root.confirm('Reset demo data? This restores the sample porch and leaves your real games alone.')) return;
+    if (!root.confirm('Reset demo? This discards demo changes, restores the sample porch, and leaves your real games alone.')) return;
     await applySeed(true);
     if (typeof hooks.showHome === 'function') hooks.showHome();
     paintChrome();
     paintEntry();
     paintSaveLabel();
+    refreshNavCounts();
   }
 
   function backupBlocked() {
