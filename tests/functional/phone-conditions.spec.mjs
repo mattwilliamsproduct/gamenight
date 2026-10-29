@@ -11,7 +11,7 @@ async function openDemoPath(page, {fontScale} = {}) {
     sessionStorage.clear();
     if (scale) localStorage.setItem('gn_ui_scale', String(scale));
   }, fontScale || '');
-  await openTestView(page, 'demo-path');
+  await openTestView(page, 'demo-path', {persist: false});
 }
 
 test('demo board primary controls are at least 44px on 390', async ({page}) => {
