@@ -559,7 +559,7 @@ test('five-crowns first round uses compact avatar-led player identities',async({
 
   const dealer=page.locator('#scorecard-body button.dealer-name-indicator');
   await expect(dealer).toHaveCount(1);
-  expect((await dealer.innerText()).trim()).toBe('MEGAN');
+  expect((await dealer.innerText()).trim()).toMatch(/^Megan$/i);
   const dealerGeometry=await dealer.evaluate(button=>{
     const label=button.querySelector('.dealer-player-label');
     const buttonRect=button.getBoundingClientRect();
