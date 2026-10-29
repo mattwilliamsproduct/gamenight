@@ -143,12 +143,21 @@
     } catch (error) {}
   }
 
+  function demoStoreMissingCanasta() {
+    try {
+      var history = JSON.parse(localStorage.getItem(PREFIX + 'history') || '[]');
+      return !history.some(function (row) {
+        return row && /Hand and Foot|Canasta/i.test(String(row.game || ''));
+      });
+    } catch (error) {
+      return true;
+    }
+  }
+
   async function loadSeed() {
     var cast = await loadCast();
     var mod = await import(SEED_URL);
-    var data = mod.QA_SCENARIOS && mod.QA_SCENARIOS['demo-seed'] && mod.QA_SCENARIOS['demo-seed'].data;
-    if (!data) throw new Error('try-demo seed missing');
-    return cast.remapDemoBook(JSON.parse(JSON.stringify(data)));
+    return cast.buildDemoBook(mod.QA_SCENARIOS);
   }
 
   function installStyles() {
@@ -179,6 +188,7 @@
       'html.bpg-try-demo #backup-restore-copy,',
       'html.bpg-try-demo #backup-device-summary,',
       'html.bpg-try-demo #backup-empty-hint,',
+      'html.bpg-try-demo #backup-clear-warning,',
       'html.bpg-try-demo #import-text,',
       'html.bpg-try-demo #settings-modal details{display:none!important}',
       '#bpg-try-demo-backup-note{margin:0 0 12px;font-size:13px;font-weight:700;color:#3d4f4c}',
@@ -334,7 +344,7 @@
   async function applySeed(force) {
     if (!active()) return null;
     await loadCast();
-    var stale = !force && hasDemoBook() && demoStoreLooksLikePorchCast();
+    var stale = !force && hasDemoBook() && (demoStoreLooksLikePorchCast() || demoStoreMissingCanasta());
     if (!force && hasDemoBook() && !stale) return null;
     if (force || stale) clearDemoStore();
     var book = await loadSeed();

@@ -56,6 +56,31 @@ export function remapDemoBook(data) {
   return walk(data);
 }
 
+export function isCanastaNight(row) {
+  return !!(row && /Hand and Foot|Canasta/i.test(String(row.game || '')));
+}
+
+export function attachDemoCanastaNight(seed, qaScenarios) {
+  const book = seed && typeof seed === 'object' ? seed : {};
+  const history = Array.isArray(book.history) ? book.history.slice() : [];
+  if (history.some(isCanastaNight)) {
+    book.history = history;
+    return book;
+  }
+  const source = qaScenarios && qaScenarios['records-book'] && qaScenarios['records-book'].data;
+  const canasta = (source && Array.isArray(source.history) ? source.history : []).find(isCanastaNight);
+  if (canasta) history.push(JSON.parse(JSON.stringify(canasta)));
+  book.history = history;
+  return book;
+}
+
+export function buildDemoBook(qaScenarios) {
+  const seed = qaScenarios && qaScenarios['demo-seed'] && qaScenarios['demo-seed'].data;
+  if (!seed) throw new Error('try-demo seed missing');
+  const cloned = attachDemoCanastaNight(JSON.parse(JSON.stringify(seed)), qaScenarios);
+  return remapDemoBook(cloned);
+}
+
 export function demoBookHasPorchCast(blob) {
   const text = typeof blob === 'string' ? blob : JSON.stringify(blob || '');
   if (!text) return false;

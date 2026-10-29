@@ -93,6 +93,7 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
   expect(live.players).toContain('Owen');
   expect(live.players).not.toContain('Megan');
   expect(live.history.length).toBeGreaterThan(5);
+  expect(live.history.some((row) => /Hand and Foot|Canasta/i.test(row?.game || ''))).toBe(true);
   expect(live.game).toBe('Five Crowns');
   expect(live.gn).toEqual([]);
   expect(live.demo.length).toBeGreaterThan(0);
@@ -200,6 +201,8 @@ test('sync and backup are blocked in demo', async ({page}) => {
   }
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#bpg-try-demo-backup-note')).toContainText('Backup, restore, and sync are off in this demo.');
+  await expect(page.locator('#backup-clear-warning')).toBeHidden();
+  await expect(page.locator('#backup-clear-warning')).toHaveCSS('display', 'none');
   const blocked = await page.evaluate(async () => {
     const exportBlocked = (() => {
       if (typeof exportData === 'function') exportData();
