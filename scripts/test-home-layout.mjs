@@ -5,7 +5,7 @@ import test from 'node:test';
 
 const root = process.cwd();
 
-test('laptop Home stretches equal columns and keeps Recent nights full width', async () => {
+test('laptop Home sizes panels to content and keeps Recent nights full width', async () => {
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
   const css = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
 
@@ -18,8 +18,8 @@ test('laptop Home stretches equal columns and keeps Recent nights full width', a
 
   const defaultGrid = css.match(/html\.slice2-tv \.s2-home-grid\s*\{[^}]+\}/);
   assert.ok(defaultGrid, 'default home grid missing');
-  assert.match(defaultGrid[0], /align-items:\s*stretch/);
-  assert.match(css, /\.s2-home-table,\s*html\.slice2-tv \.s2-home-start\s*\{[\s\S]*height:\s*100%/);
+  assert.match(defaultGrid[0], /align-items:\s*start/);
+  assert.match(css, /\.s2-home-table,\s*html\.slice2-tv \.s2-home-start\s*\{[\s\S]*height:\s*auto/);
   assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*flex:\s*1 1 auto;/);
   assert.match(css, /\.s2-seat-grid\s*\{[\s\S]*grid-auto-rows:\s*minmax\(50px, 1fr\)/);
   assert.match(css, /\.s2-seat \.avatar-img\s*\{[\s\S]*width:\s*44px/);

@@ -35,7 +35,7 @@ test('the page loads try-demo and the worker precaches it', () => {
   assert.match(worker, /'\.\/demo\/try-demo\.js'/);
   assert.match(demo, /bpg_demo_/);
   assert.match(demo, /demo-sync-blocked/);
-  assert.match(demo, /Backup, restore, and sync are off in this demo/);
+  assert.match(demo, /Backup and restore are off in this demo/);
   assert.match(html, /id="backup-clear-warning"/);
   assert.match(demo, /#backup-clear-warning/);
   assert.match(demo, /See a sample game night\. Your data stays separate\./);
