@@ -250,6 +250,11 @@ test('Settings on 375 keeps Restore and Text Size inside the panel', async ({pag
 test('a long Five Crowns scorecard scrolls inside the modal', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 480});
   await openPastNight(page);
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
   const before = await measureScorecardModal(page);
   expect(before.wrap.scrollHeight, 'long table should overflow').toBeGreaterThan(before.wrap.clientHeight);
   const scrolled = await page.evaluate(() => {

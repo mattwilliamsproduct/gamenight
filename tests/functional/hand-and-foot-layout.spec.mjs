@@ -44,7 +44,9 @@ async function entryProblems(page){
     const view=scroller?.getBoundingClientRect();
     const footer=[...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].map(boxOf);
     const fields=[...document.querySelectorAll('#score-entry-modal .hf-field, #score-entry-modal .hf-round, #score-entry-modal .hf-rate')].map(el=>({el, box:boxOf(el)}));
-    const keys=[...document.querySelectorAll('#score-entry-modal .score-entry-key')].map(boxOf);
+    const keys=[...document.querySelectorAll('#score-entry-modal .score-entry-key')]
+      .filter(el=>getComputedStyle(el).display!=='none' && getComputedStyle(el).visibility!=='hidden')
+      .map(boxOf);
     const visibleBox=(el, box)=>{
       if(!scroller || !scroller.contains(el) || !view) return box;
       const x=Math.max(box.x, view.x);
@@ -401,7 +403,7 @@ test('Canasta entry header and rate bar stay unclipped at 1024, 1440, and 390', 
   }
 });
 
-test('Left early badge stays whole beside the retired name at 1024, 1440, and 390', async ({page}) => {
+test('Left early disclosure stays in view and expands the retired name at 1024, 1440, and 390', async ({page}) => {
   for (const viewport of [{width: 1024, height: 768}, {width: 1440, height: 900}, {width: 390, height: 844}]) {
     await page.setViewportSize(viewport);
     await openScenario(page, {scenario: 'five-crowns-late-8', surface: 'scorecard'});
@@ -410,17 +412,21 @@ test('Left early badge stays whole beside the retired name at 1024, 1440, and 39
       currentGame.retired = ['Linda'];
       if (typeof renderGame === 'function') renderGame();
     });
-    const badge = page.locator('#scorecard-capture .retired-badge');
-    await expect(badge).toHaveText('Left early');
-    const fit = await page.evaluate(() => {
-      const el = document.querySelector('#scorecard-capture .retired-badge');
-      const name = el?.closest('.scorecard-player-name-slot')?.querySelector('.scoreboard-player-name');
-      return {
-        badgeWhole: !!(el && el.scrollWidth <= el.clientWidth + 1),
-        nameText: (name?.textContent || '').trim()
-      };
+    const disc = page.locator('#left-early-disclosure');
+    await expect(disc).toContainText(/1 player left early/i);
+    const inView = await page.evaluate(() => {
+      const el = document.getElementById('left-early-disclosure');
+      if (!el) return false;
+      const box = el.getBoundingClientRect();
+      return box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.width > 0 && box.height > 0;
     });
-    expect(fit.badgeWhole, `${viewport.width} badge`).toBe(true);
-    expect(fit.nameText).toContain('Linda');
+    expect(inView, `${viewport.width} disclosure in view`).toBe(true);
+    await disc.click();
+    await expect(page.locator('#left-early-names')).toBeVisible();
+    await expect(page.locator('#left-early-names')).toContainText('Linda');
+    const hiddenRow = await page.evaluate(() => {
+      return [...document.querySelectorAll('#scorecard-body tr')].some((row) => /Linda/i.test(row.textContent || ''));
+    });
+    expect(hiddenRow, `${viewport.width} Linda still in active rows`).toBe(false);
   }
 });

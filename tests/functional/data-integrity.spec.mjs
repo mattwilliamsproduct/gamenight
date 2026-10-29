@@ -3,7 +3,7 @@ import {expect,test} from '@playwright/test';
 import {enterRoundButton, openScenario} from '../helpers/qa.mjs';
 import {EIGHT18_BID_ACCURACY_ROUNDS} from '../../public/qa/fixtures.mjs';
 
-const ARTIFACTS='/opt/cursor/artifacts';
+const ARTIFACTS=process.env.RC3_ARTIFACTS || '/workspace/back-porch/rc3/func-shots/data-integrity';
 const cloudHits=[];
 
 test.beforeEach(async ({page})=>{
