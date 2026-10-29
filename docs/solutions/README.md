@@ -10,6 +10,8 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 
 `gate-log.md` in this folder is the append-only Gate B and Gate C log. It is not a lesson note. Column rules are in `docs/jev-gates.md`.
 
+Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Bare `?demo` still does nothing.
+
 Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md) — Vercel ships `src/service-worker.js`, not the committed `public/sw.js`.
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.

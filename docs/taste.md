@@ -40,6 +40,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - One saved night reads `1 night`.
 - The dealer chip hugs the letters and stays a dealer mark, not a selected state. Life Preserver available is a small labeled LP chip.
 - `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
+- `?demo=try` is a separate in-app sample. It uses `bpg_demo_*` and never writes `gn_*`.
 - iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
 - Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
 - Life Preserver available is a small labeled LP chip, not a candy-stripe ring.

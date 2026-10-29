@@ -105,6 +105,10 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 - File backup: Backup / Restore in Settings. Restore (`mergeBackup`) adds games and players this device does not have and leaves existing finished games. If the file has a live match, that match replaces the one on this table.
 - Porch cloud: off this release. `api/sync.js` and Redis `gamenight:backup:v1` stay in place as an untouched backup. The client does not GET or PUT. `#37` stays parked.
 
+### Try a demo
+
+`/?demo=try` opens a fictional, fully playable sample. Bare `?demo` still does nothing. The sample uses the QA `demo-seed` cast and book. It writes `bpg_demo_*` only. It never reads or writes `gn_*`, and it never calls `/api/sync`. Exit restores the real book. Reset restores the seed. Backup, restore, and sync stay off while the sample is on. Entry points are the empty first-use table and Settings About.
+
 ## Non-goals
 
 - AI opponents, suggested bids, or playing the cards.

@@ -76,6 +76,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - `gn_current` is enough to resume the live match after a refresh, including bids, drafts, Rook phase, and Life Preserver holds.
 - History merge is by match `id`. A merge never double-counts a match and never drops a match whose id is new.
 - This release is local-only. The client does not call `/api/sync`. `api/sync.js` and the existing Redis blob stay in place, untouched. GitHub `#37` stays parked.
+- In-app Try a demo (`?demo=try` or session `bpg_try_demo`) remaps `gn_*` reads and writes to `bpg_demo_*` through `gnKey` / `BPGTryDemo.storageKey`. Demo code lives in `public/demo/try-demo.js`. A boot hook in `public/index.html` hydrates the QA `demo-seed` book when the demo store is empty. Bare `?demo` stays a no-op.
 - Scores and history live in this browser on this device (`gn_history`, `gn_current`). A stored `gn_porch_key` is ignored, not deleted. Boot still reads those keys first and never replaces them from the cloud.
 - File Backup writes a JSON file. File Restore uses `mergeBackup`: it adds games and players this device does not have. Existing finished games stay. Exports always include `currentGame`, so Restore replaces the live table with the file's live match (or clears it if the file has none). Incoming photos and text-size settings overwrite the same keys here.
 - The save indicator says "Saved on this device" and means the local write finished.

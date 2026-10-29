@@ -9914,6 +9914,7 @@ button.dealer-name-indicator .dealer-player-label {
   <script src="./assets/life-preserver-logic.js"></script>
   <script src="./assets/scorebook.js"></script>
   <script src="./assets/records-logic.js"></script>
+  <script src="./demo/try-demo.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
      Back Porch Games
@@ -9926,8 +9927,9 @@ button.dealer-name-indicator .dealer-player-label {
   const LP_SPIN_COPY = {ready:'Use your one spin', spinning:'Spinning…'};
 
   // ── Storage helpers ──
-  function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?d:[];}catch(e){return[];}}
-  function safeGetObject(k){try{const d=JSON.parse(localStorage.getItem(k));return(d&&typeof d==='object'&&!Array.isArray(d))?d:{};}catch(e){return{};}}
+  function gnKey(key){return (window.BPGTryDemo&&typeof BPGTryDemo.storageKey==='function')?BPGTryDemo.storageKey(key):key;}
+  function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(gnKey(k)));return Array.isArray(d)?d:[];}catch(e){return[];}}
+  function safeGetObject(k){try{const d=JSON.parse(localStorage.getItem(gnKey(k)));return(d&&typeof d==='object'&&!Array.isArray(d))?d:{};}catch(e){return{};}}
 
   // ── Core state ──
   let allPlayers = safeGetArray('gn_all_players').filter(p=>p&&typeof p==='string'&&p.trim());
@@ -9949,9 +9951,9 @@ button.dealer-name-indicator .dealer-player-label {
       players=_cleanedNames.players;
       playerProfiles=_cleanedNames.playerProfiles;
       try{
-        localStorage.setItem('gn_all_players',JSON.stringify(allPlayers));
-        localStorage.setItem('gn_players_v2',JSON.stringify(players));
-        localStorage.setItem('gn_profiles',JSON.stringify(playerProfiles));
+        localStorage.setItem(gnKey('gn_all_players'),JSON.stringify(allPlayers));
+        localStorage.setItem(gnKey('gn_players_v2'),JSON.stringify(players));
+        localStorage.setItem(gnKey('gn_profiles'),JSON.stringify(playerProfiles));
       }catch(e){}
     }
   }
@@ -9998,7 +10000,7 @@ button.dealer-name-indicator .dealer-player-label {
   function gnPerfLoadReport(){
     if(!GN_PERF_TIMING) return null;
     try{
-      const parsed=JSON.parse(localStorage.getItem(GN_PERF_KEY)||'null');
+      const parsed=JSON.parse(localStorage.getItem(gnKey(GN_PERF_KEY))||'null');
       if(parsed&&parsed.version===1&&Array.isArray(parsed.events)&&Array.isArray(parsed.warnings)&&Array.isArray(parsed.actions)){
         parsed.maxByOp=parsed.maxByOp||{};
         parsed.countByOp=parsed.countByOp||{};
@@ -10040,16 +10042,17 @@ button.dealer-name-indicator .dealer-player-label {
     if(_gnPerfPersistTimer)return;
     _gnPerfPersistTimer=setTimeout(()=>{
       _gnPerfPersistTimer=null;
-      try{localStorage.setItem(GN_PERF_KEY, JSON.stringify(gnPerfReport));}catch(e){}
+      try{localStorage.setItem(gnKey(GN_PERF_KEY), JSON.stringify(gnPerfReport));}catch(e){}
     },1000);
   }
   function gnPerfFlushPersist(){
     if(!GN_PERF_TIMING||!gnPerfReport)return;
     if(_gnPerfPersistTimer){clearTimeout(_gnPerfPersistTimer);_gnPerfPersistTimer=null;}
     gnPerfReport.updatedAt=new Date().toISOString();
-    try{localStorage.setItem(GN_PERF_KEY, JSON.stringify(gnPerfReport));}catch(e){}
+    try{localStorage.setItem(gnKey(GN_PERF_KEY), JSON.stringify(gnPerfReport));}catch(e){}
   }
   function gnPerfStorageSnapshot(){
+    if(window.BPGTryDemo&&BPGTryDemo.active())return;
     if(!GN_PERF_TIMING||!gnPerfReport)return;
     const keys={}, prefix=/^(gn_|gamenight)/;
     let total=0;
@@ -10396,7 +10399,7 @@ button.dealer-name-indicator .dealer-player-label {
     };
   }
   try {
-    currentGame = JSON.parse(localStorage.getItem('gn_current'));
+    currentGame = JSON.parse(localStorage.getItem(gnKey('gn_current')));
     if (currentGame && (!currentGame.name || !Array.isArray(currentGame.originalRoster))) currentGame=null;
     if (currentGame?.name==='Rook' && currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
   } catch(e){ currentGame=null; }
@@ -10443,7 +10446,7 @@ button.dealer-name-indicator .dealer-player-label {
 
 
   // ── UI scale ──
-  let currentUIBase = parseInt(localStorage.getItem('gn_ui_scale'))||16;
+  let currentUIBase = parseInt(localStorage.getItem(gnKey('gn_ui_scale')))||16;
   document.documentElement.style.fontSize = currentUIBase+'px';
   function syncAppearanceControls(){
     const sizeLabel=document.getElementById('settings-text-size-label');
@@ -10457,7 +10460,7 @@ button.dealer-name-indicator .dealer-player-label {
     currentUIBase=Math.max(8,Math.min(24,currentUIBase+(d*2)));
     document.documentElement.style.fontSize=currentUIBase+'px';
     const t=gnPerfStart('GN localStorage.setItem gn_ui_scale');
-    try{localStorage.setItem('gn_ui_scale',currentUIBase);}finally{gnPerfEnd(t);}
+    try{localStorage.setItem(gnKey('gn_ui_scale'),currentUIBase);}finally{gnPerfEnd(t);}
     syncAppearanceControls();
     if(_scorecardTrimRaf){
       cancelAnimationFrame(_scorecardTrimRaf);
@@ -10477,7 +10480,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   // ── Animation/flow preferences (all default ON) ──
   function loadPref(key, defaultOn=true){
-    const v = localStorage.getItem(key);
+    const v = localStorage.getItem(gnKey(key));
     if(v === null) return defaultOn;
     return v === '1';
   }
@@ -10486,7 +10489,7 @@ button.dealer-name-indicator .dealer-player-label {
     statMontage:  loadPref('gn_pref_statmontage',  true),
     dealerRoll:   loadPref('gn_pref_dealerroll',   false), // off by default (optional extra step)
   };
-  function savePref(key, val){ const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(key, val ? '1' : '0');}finally{gnPerfEnd(t);} }
+  function savePref(key, val){ const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(gnKey(key), val ? '1' : '0');}finally{gnPerfEnd(t);} }
 
   // ── Wake Lock ──
   let wakeLock = null;
@@ -10668,7 +10671,7 @@ button.dealer-name-indicator .dealer-player-label {
       const setItemTimer = gnPerfStart('GN localStorage.setItem ' + key);
       try{
         gnWarnNumpadHotPath('localStorage.setItem');
-        localStorage.setItem(key, json);
+        localStorage.setItem(gnKey(key), json);
       } finally {
         gnPerfEnd(setItemTimer);
       }
@@ -10733,7 +10736,7 @@ button.dealer-name-indicator .dealer-player-label {
         persistJsonIfChanged('gn_current', currentGame);
       } else if(_lastPersistedState.gn_current !== null){
         const removeTimer=gnPerfStart('GN localStorage.removeItem gn_current');
-        localStorage.removeItem('gn_current');
+        localStorage.removeItem(gnKey('gn_current'));
         gnPerfEnd(removeTimer);
         gnPerfStorageSnapshot();
         _lastPersistedState.gn_current = null;
@@ -11120,7 +11123,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function clearPerfReport(){
     if(!GN_PERF_TIMING)return;
-    localStorage.removeItem(GN_PERF_KEY);
+    localStorage.removeItem(gnKey(GN_PERF_KEY));
     gnPerfReport=gnPerfNewReport();
     gnPerfAction('cleared performance report');
     renderPerfReport();
@@ -11813,7 +11816,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(Number.isFinite(Number(next.uiScale))){
       currentUIBase=Math.max(8,Math.min(24,Number(next.uiScale)));
       document.documentElement.style.fontSize=currentUIBase+'px';
-      try{localStorage.setItem('gn_ui_scale',currentUIBase);}catch(e){}
+      try{localStorage.setItem(gnKey('gn_ui_scale'),currentUIBase);}catch(e){}
       syncAppearanceControls();
     }
     if(added.games) markHistoryChanged();
@@ -11847,6 +11850,10 @@ button.dealer-name-indicator .dealer-player-label {
     if(message) toast(message, 'warning');
   }
   function exportData(){
+    if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){
+      showBackupError('Backup, restore, and sync are off in this demo.');
+      return;
+    }
     showBackupError('');
     if(!window.BPGBackup){
       showBackupError('Backup is not ready.');
@@ -11867,6 +11874,10 @@ button.dealer-name-indicator .dealer-player-label {
     applyMergedBackup(next, added);
   }
   function importDataFromText(){
+    if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){
+      showBackupError('Backup, restore, and sync are off in this demo.');
+      return;
+    }
     const text=document.getElementById('import-text').value.trim();
     if(!text){
       showBackupError('Paste your JSON first.');
@@ -11878,6 +11889,11 @@ button.dealer-name-indicator .dealer-player-label {
     }catch(e){showBackupError('That paste is not a valid backup.');}
   }
   function importDataFromFile(ev){
+    if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){
+      showBackupError('Backup, restore, and sync are off in this demo.');
+      if(ev?.target) ev.target.value='';
+      return;
+    }
     const file=ev?.target?.files?.[0];
     if(ev?.target) ev.target.value='';
     if(!file)return;
@@ -11897,7 +11913,7 @@ button.dealer-name-indicator .dealer-player-label {
     return false;
   }
   function getPorchKey(){
-    try{return localStorage.getItem(GN_PORCH_KEY)||'';}catch(e){return '';}
+    try{return localStorage.getItem(gnKey(GN_PORCH_KEY))||'';}catch(e){return '';}
   }
   function setPorchKey(){
     /* Leave gn_porch_key alone. Cloud sync is off this release. */
@@ -19885,12 +19901,34 @@ ${isDealer
     initPwaUpdates();
     handleOrientation();
     updateNavButton();
-    if(new URLSearchParams(location.search).has('demo')){
+    const demoParam=new URLSearchParams(location.search).get('demo');
+    if(new URLSearchParams(location.search).has('demo') && demoParam!=='try'){
       document.body.dataset.gnDemoReady='ignored';
     }
     document.documentElement.classList.remove('gn-demo-pending');
+    if(window.BPGTryDemo){
+      const _openSettings=openSettings;
+      openSettings=function(){ _openSettings(); BPGTryDemo.paintSettings(); };
+      await BPGTryDemo.boot({
+        applyBook(book){
+          const fixture=book&&typeof book==='object'?JSON.parse(JSON.stringify(book)):{};
+          allPlayers=Array.isArray(fixture.allPlayers)?fixture.allPlayers:[];
+          players=Array.isArray(fixture.players)?fixture.players:[];
+          history=Array.isArray(fixture.history)?fixture.history:[];
+          playerProfiles=fixture.playerProfiles&&typeof fixture.playerProfiles==='object'?fixture.playerProfiles:{};
+          resetRecordChaseView();
+          currentGame=fixture.currentGame||null;
+          markHistoryChanged();
+          _lastPersistedState={};
+          _persistGamenightState({fullPersist:true,syncCold:true});
+          updateNavButton();
+        },
+        showHome(){ goHome(); }
+      });
+    }
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
+    if(window.BPGTryDemo) BPGTryDemo.paintEntry();
     backfillStableGameIds();
     if(GN_QA_MODE){
       try{
