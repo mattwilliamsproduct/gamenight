@@ -47,6 +47,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - The 1024 match header is two clean rows. Saved sits on its own row and does not collide with wild or dealer copy.
 - Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
 - A first-use empty table that says add a name, pick a game, then tap Start.
+- 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
 
 ### Kills
 
@@ -98,6 +99,11 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
 - A 1024 Home Start button below the fold with 6 seated, or an 8-player 1024 entry that hides rows behind a stacked keypad.
 - A Saved chip or NOW column that clips the card or scorecard edge.
+- Shipping TEMP demo-loading (`demo-seed`, `?demo`, `BPGDemoLiveGame`) on the launch host.
+- 1024 Records Overview stacked in one column with a dead half-screen.
+- `R11 · NOV` or any clipped current-round header.
+- A 390 entry subtitle in coral, or a player row sliding under the Scoring bar.
+- A teal outline on a non-active 8-player entry row.
 - Edit Seating plus Earlier/Later when the Home list can reorder in place.
 - A second ranking function for Recent nights, or a podium on an Incomplete night.
 - Adding Canasta to the game registry or Home picker from this art pass.

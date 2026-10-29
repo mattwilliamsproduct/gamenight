@@ -14,7 +14,7 @@ import {
   deviceHasSavedData,
   stripDemoSearch,
   writeDemoPayload
-} from '../public/assets/demo-seed.mjs';
+} from '../tests/helpers/demo-seed.mjs';
 
 function memoryStorage(start = {}) {
   const data = {...start};
@@ -142,8 +142,9 @@ test('demo view ids stay listed and ?demo is stripped from the URL', () => {
   assert.equal(stripDemoSearch('https://example.test/?demo&view=home'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=records&standings=1'), '/?standings=1');
   assert.equal(stripDemoSearch('https://example.test/?demo&view=game&game=818'), '/');
-  assert.equal(stripDemoSearch('https://example.test/?demo&art=dusk&logo=dusk'), '/?demo&art=dusk&logo=dusk');
+  assert.equal(stripDemoSearch('https://example.test/?demo&art=dusk&logo=dusk'), '/');
   assert.equal(stripDemoSearch('https://example.test/?demo&home=a'), '/');
+  assert.equal(stripDemoSearch('https://example.test/?demo&lp=proposed'), '/');
 });
 
 test('view=game&game= picks the in-progress scorecard for that shelf game', () => {
@@ -220,6 +221,16 @@ test('demo-path is isolated: no persist, no block, no write into a real book', (
 test('the shipped page never boots demo-seed from ?demo', () => {
   const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /import\('\.\/assets\/demo-seed\.mjs'\)/);
+  assert.doesNotMatch(html, /demo-seed\.mjs/);
+  assert.doesNotMatch(html, /BPGDemoLiveGame/);
+  assert.doesNotMatch(html, /bootDemoSeedIfRequested/);
   assert.doesNotMatch(html, /classList\.add\('gn-demo-pending'\)/);
   assert.match(html, /dataset\.gnDemoReady='ignored'/);
+  assert.doesNotMatch(html, /lp===['"]proposed['"]|BPG_LP_TABLE/);
+  try {
+    readFileSync(new URL('../public/assets/demo-seed.mjs', import.meta.url));
+    assert.fail('public/assets/demo-seed.mjs must not ship');
+  } catch (error) {
+    assert.equal(error.code, 'ENOENT');
+  }
 });

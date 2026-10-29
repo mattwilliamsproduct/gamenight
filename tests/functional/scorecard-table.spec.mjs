@@ -308,6 +308,8 @@ test('1440 late Five Crowns shows every hand', async ({page}) => {
       ok: true,
       total: ths.length,
       visible: visible.length,
+      label: (now.textContent || '').replace(/\s+/g, ' ').trim(),
+      clipped: now.scrollWidth > now.clientWidth + 1,
       nowInside: nowBox.width >= 36 && nowBox.right <= wrapBox.right + 1 && nowBox.left >= wrapBox.left - 1,
       hintOn: !!(hint && !hint.classList.contains('hidden') && hint.textContent.trim())
     };
@@ -315,6 +317,8 @@ test('1440 late Five Crowns shows every hand', async ({page}) => {
   expect(fit.ok, 'missing NOW').toBe(true);
   expect(fit.visible, `visible rounds ${fit.visible} of ${fit.total}`).toBe(fit.total);
   expect(fit.visible, 'late card lost a completed hand').toBeGreaterThanOrEqual(10);
+  expect(fit.label, 'NOW header should stay a short R11 Now').toMatch(/^R\d+ Now$/);
+  expect(fit.clipped, `NOW text clipped as ${fit.label}`).toBe(false);
   expect(fit.nowInside, 'NOW clipped on the late card').toBe(true);
   expect(fit.hintOn, 'trim hint on a card that should show every hand').toBe(false);
 });

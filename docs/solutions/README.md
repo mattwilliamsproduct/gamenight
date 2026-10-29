@@ -38,7 +38,7 @@ Standing trap: [rc1-lp-roulette-wheel.md](rc1-lp-roulette-wheel.md) — Life Pre
 
 Standing trap: [rc1-modal-size-system.md](rc1-modal-size-system.md) — one token set sizes every modal; past-night scorecards use most of the viewport. Add Player is form, not confirm.
 
-Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — new Home tiles and the chair logo stay behind `?demo&art=dusk` / `?demo&logo=dusk`; no param keeps today's assets. Dusk maps the five solo games plus Canasta. Rook keeps the current beach thumb.
+Standing trap: [demo-art-dusk.md](demo-art-dusk.md) — dusk rasters stay on disk. The shipped page does not load `demo-art` or honor `?art` / `?logo`. Home uses card-picker faces. Canasta still uses the dusk sheet tile.
 
 Standing trap: [home-recent-nights-column.md](home-recent-nights-column.md) — laptop Home columns stretch even; extra height goes into seats and game art, not padding. Recent nights stays full width. Phone stays Table, Start, nights.
 
@@ -46,7 +46,7 @@ Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights po
 
 Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
 
-Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook is hidden unless `?demo&games=rook`. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
+Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook stays hidden. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
 
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
 
@@ -55,3 +55,5 @@ Standing trap: [rc2-look-fixes.md](rc2-look-fixes.md) — iPad 1024 score entry 
 Standing trap: [card-picker.md](card-picker.md) — Home uses 5:7 card faces and select-then-Start. Do not import the card-picker demo seed. 1024 Start stays in the viewport. Tablet-land entry stays two-column.
 
 Standing trap: [rc2-look-1400.md](rc2-look-1400.md) — reserve NOW min-width and shrink columns; do not hide another oldest hand to unclip a NOW that is already on screen. Saved sits under the Tonight's Table title, fully inside the card.
+
+Standing trap: [rc2-look-1505.md](rc2-look-1505.md) — do not ship TEMP demo-loading. 1024 Records headline stays three across. Current-round header is `R11 Now`, not `R11 · Now`. Phone entry mutes the subtitle and keeps three rows above Scoring. Non-active 8-player rows have no teal/dealer outline.

@@ -150,7 +150,7 @@ async function measureAddPlayer(page) {
       viewport: {width: window.innerWidth, height: window.innerHeight},
       panel: panelBox ? {width: panelBox.width, height: panelBox.height} : null,
       inputFont: input ? parseFloat(getComputedStyle(input).fontSize) : 0,
-      optionHeight: optionBox ? optionBox.height : 0,
+      optionHeight: optionBox ? Math.round(optionBox.height) : 0,
       formClass: !!(panel && panel.classList.contains('bp-modal-panel--form'))
     };
   });

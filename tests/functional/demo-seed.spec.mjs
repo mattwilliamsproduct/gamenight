@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {DEMO_VIEW_IDS} from '../../public/assets/demo-seed.mjs';
+import {DEMO_VIEW_IDS} from '../helpers/demo-seed.mjs';
 import {openTestView} from '../helpers/inject-book.mjs';
 
 async function openDemo(page, view, {extra} = {}) {
@@ -232,7 +232,10 @@ test.describe('test-only fixture views', () => {
     await expect(page.locator('#slice2-board, #game-screen')).toContainText(/Canasta/);
     await expect(page.locator('#scorecard-body')).toContainText('3695');
     await expect(page.locator('#scorecard-body')).toContainText(/Megan|Matt/);
-    const live = await page.evaluate(() => (typeof window.BPGDemoLiveGame === 'function' && window.BPGDemoLiveGame()) || null);
+    const live = await page.evaluate(() => {
+      try { return JSON.parse(localStorage.getItem('gn_current') || 'null'); }
+      catch (error) { return null; }
+    });
     expect(live?.name).toBe('Hand and Foot');
     expect(live?.rounds).toHaveLength(2);
     expect(live?.handFoot?.sides).toHaveLength(2);

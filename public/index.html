@@ -34,7 +34,6 @@
   <link rel="stylesheet" href="./assets/app-utilities.css">
   <link rel="stylesheet" href="./assets/slice2.css">
   <link rel="stylesheet" href="./assets/card-picker.css">
-  <link rel="stylesheet" href="./assets/demo-art.css">
 
   <style>
     /* ════════ TOKENS ════════ */
@@ -12518,11 +12517,6 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function lifePreserverTableMode(){
-    if(typeof window!=='undefined' && window.BPG_LP_TABLE==='proposed') return 'proposed';
-    try{
-      const params=new URLSearchParams(location.search);
-      if(params.get('lp')==='proposed') return 'proposed';
-    }catch(err){}
     return 'current';
   }
 
@@ -15942,7 +15936,7 @@ ${isDealer
     });
     const nowLabel=window.matchMedia('(max-width: 760px)').matches
       ? `R${currentGame.currentRound}`
-      : `R${currentGame.currentRound}\u00a0·\u00a0Now`;
+      : `R${currentGame.currentRound} Now`;
     if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
 
     head+=`</tr>`;
@@ -16824,9 +16818,11 @@ ${isDealer
     const scroller=document.getElementById('score-entry-rows');
     const row=document.getElementById(`score-entry-row-${rookElementId(scoreEntryModalState.activePlayer)}`);
     if(!scroller||!row)return;
-    const pad=12;
+    const pad=8;
     const lane=scroller.getBoundingClientRect();
-    const top=row.getBoundingClientRect().top-lane.top-pad+scroller.scrollTop;
+    const box=row.getBoundingClientRect();
+    if(box.top>=lane.top+pad && box.bottom<=lane.bottom-pad) return;
+    const top=box.top-lane.top-pad+scroller.scrollTop;
     const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
     scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
@@ -19857,14 +19853,6 @@ ${isDealer
   }
 
   /* ═══ BOOT ═══ */
-  window.BPGDemoLiveGame=function(){return currentGame;};
-  async function bootDemoSeedIfRequested(){
-    if(new URLSearchParams(location.search).has('demo')){
-      document.body.dataset.gnDemoReady='ignored';
-    }
-    document.documentElement.classList.remove('gn-demo-pending');
-    return null;
-  }
   window.onload=async function(){
     gnPerfInit();
     document.getElementById('html-root')?.classList.remove('dark');
@@ -19873,11 +19861,13 @@ ${isDealer
     initPwaUpdates();
     handleOrientation();
     updateNavButton();
-    const demoBoot=await bootDemoSeedIfRequested();
+    if(new URLSearchParams(location.search).has('demo')){
+      document.body.dataset.gnDemoReady='ignored';
+    }
+    document.documentElement.classList.remove('gn-demo-pending');
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     backfillStableGameIds();
-    if(demoBoot&&typeof demoBoot.open==='function') demoBoot.open();
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');

@@ -56,6 +56,7 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.doesNotMatch(js, /s2-art-\$\{game\.art\}/);
   assert.doesNotMatch(js, /tapStartEnabled|start-game-now|tapstart/);
   assert.doesNotMatch(js, /bootDemoSeed|demo-seed\.mjs/);
+  assert.doesNotMatch(index, /demo-seed\.mjs|demo-art\.(mjs|css)|BPGDemoLiveGame|bootDemoSeedIfRequested/);
   assert.match(js, /cardAriaLabel/);
   assert.match(js, /data-s2-action="pick-game"/);
   assert.match(index, /id="save-indicator">✓ Saved on this device</);

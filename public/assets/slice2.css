@@ -996,6 +996,12 @@ html.slice2-tv #scorecard-capture th.scorecard-col-now {
   line-height: 1.1;
 }
 
+@media (min-width: 761px) {
+  html.slice2-tv #scorecard-capture th.scorecard-col-now {
+    white-space: normal;
+  }
+}
+
 @media (max-width: 767px) {
   html.slice2-tv #scorecard-capture th.scorecard-col-now,
   html.slice2-tv #scorecard-capture td.scorecard-col-now {
@@ -2305,21 +2311,21 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv #score-entry-modal .score-entry-list {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 8.5rem;
+    flex: 1 1 0;
+    min-height: 9.75rem;
     overflow: hidden;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     overflow-y: auto !important;
     min-height: 0;
-    padding-top: 16px;
+    padding-top: 4px;
     padding-right: 8px;
-    padding-bottom: 8px;
-    scroll-padding-top: 16px;
-    scroll-padding-bottom: 8px;
+    padding-bottom: 10px;
+    scroll-padding-top: 4px;
+    scroll-padding-bottom: 10px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row,
@@ -2328,8 +2334,8 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     flex: 0 0 auto !important;
     min-height: 44px !important;
     height: auto !important;
-    scroll-margin-top: 16px;
-    scroll-margin-bottom: 8px;
+    scroll-margin-top: 4px;
+    scroll-margin-bottom: 4px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-player-card {
@@ -2348,10 +2354,24 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     display: flex !important;
     flex-direction: column !important;
     overflow: visible !important;
+    position: relative;
+    z-index: 5;
+    background: var(--s2-card);
+    box-shadow: 0 -1.75rem 0 var(--s2-card);
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-row .score-entry-input-cell,
+  html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-input-cell {
+    z-index: 0;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-selected-card {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 3;
+    margin-top: 0;
     padding: 4px 8px !important;
+    background: var(--s2-card);
   }
 
   html.slice2-tv #score-entry-modal .score-entry-selected-card > :first-child,
@@ -2554,7 +2574,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 }
 
-@media (max-width: 760px) and (max-height: 700px) {
+@media (max-width: 760px) {
   html.slice2-tv #score-entry-modal {
     padding: 6px !important;
   }
@@ -2566,17 +2586,18 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv #score-entry-modal .score-entry-list {
-    flex: 1 1 auto;
-    min-height: 3.75rem;
+    flex: 1 1 0;
+    min-height: 9.75rem;
     max-height: none;
+    overflow: hidden;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    padding-top: 8px;
-    padding-right: 10px;
+    padding-top: 4px;
+    padding-right: 8px;
     padding-bottom: 4px;
-    scroll-padding-top: 8px;
+    scroll-padding-top: 4px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-row,
@@ -2633,7 +2654,28 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
 
   html.slice2-tv #score-entry-modal .score-entry-key,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
-    min-height: 40px !important;
+    min-height: 44px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-progress {
+    margin-top: 0.2rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-avatar,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-value,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-value {
+    min-height: 2.25rem !important;
+    font-size: 1.35rem !important;
+  }
+
+  html.slice2-tv #score-entry-modal .score-entry-player-card,
+  html.slice2-tv #score-entry-modal .score-entry-row.no-context .score-entry-player-card {
+    grid-template-columns: 40px minmax(0, 1fr) 56px !important;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-panel > .border-t {
@@ -2702,16 +2744,19 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
 
 @media (max-width: 760px) {
   html.slice2-tv #score-entry-modal .score-entry-list {
-    flex: 1 1 auto;
-    min-height: 3.75rem;
+    flex: 1 1 0;
+    min-height: 9.75rem;
     height: auto;
+    overflow: hidden;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     height: auto;
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 
   html.slice2-tv #score-entry-modal .score-entry-keypad,
@@ -3210,13 +3255,16 @@ html.slice2-tv .s2-records-filters select:focus {
 
 @media (max-width: 1100px) {
   html.slice2-tv .s2-fame-col,
-  html.slice2-tv .s2-explore-grid,
-  html.slice2-tv .s2-headline {
+  html.slice2-tv .s2-explore-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
+  html.slice2-tv .s2-headline {
+    grid-template-columns: 1fr;
+  }
+
   html.slice2-tv .s2-night-card {
     padding: 12px 10px;
   }
@@ -3338,6 +3386,13 @@ html.slice2-tv .s2-night-day {
   }
 }
 
+@media (max-width: 760px) and (max-height: 700px) {
+  html.slice2-tv #score-entry-modal .score-entry-key,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
+    min-height: 40px !important;
+  }
+}
+
 html.slice2-tv .s2-records-footer {
   margin: 18px 2px 0;
   color: var(--s2-muted);
@@ -3376,16 +3431,19 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-game {
   padding: 0 !important;
 }
 
+html.slice2-tv #score-entry-modal #score-entry-context {
+  color: var(--s2-muted) !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+}
+
 html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players #score-entry-context {
   display: none;
 }
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-context {
   margin-top: 0 !important;
-  color: var(--s2-muted) !important;
-  font-size: 0.95rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.04em !important;
 }
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-unconfirmed {
@@ -3419,12 +3477,15 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-dealer-ba
 }
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer .score-entry-player-card,
-html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer.active .score-entry-player-card {
-  box-shadow: none;
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer.active .score-entry-player-card,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-player-card {
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-player-card {
-  box-shadow: none;
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-player-card,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row.is-dealer:not(.active) .score-entry-player-card {
+  border-color: var(--s2-line) !important;
 }
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.active) .score-entry-input-cell {

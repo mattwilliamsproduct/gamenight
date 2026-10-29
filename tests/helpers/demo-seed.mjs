@@ -1,6 +1,5 @@
-/* TEMP: demo seed (remove before merge). Preview and localhost only. */
-import {cloneScenario, QA_SCENARIOS} from '../qa/fixtures.mjs';
-import {applyDemoChrome, keepDemoSearchForChrome} from './demo-art.mjs';
+/* Playwright and CLI fixtures only. Not shipped under public/. */
+import {cloneScenario, QA_SCENARIOS} from '../../public/qa/fixtures.mjs';
 
 export const DEMO_FLAG = 'gn_demo_seeded';
 export const DEMO_VERSION = '5';
@@ -153,14 +152,15 @@ export function writeDemoPayload(storage, data){
 
 export function stripDemoSearch(href){
   const url = new URL(href, 'http://local.test');
-  const keepDemo = url.searchParams.has('demo') && keepDemoSearchForChrome(url.search);
   url.searchParams.delete('demo');
   url.searchParams.delete('view');
   url.searchParams.delete('game');
   url.searchParams.delete('home');
+  url.searchParams.delete('art');
+  url.searchParams.delete('logo');
+  url.searchParams.delete('lp');
   const rest = url.searchParams.toString();
-  const search = [keepDemo ? 'demo' : '', rest].filter(Boolean).join('&');
-  return url.pathname + (search ? `?${search}` : '') + url.hash;
+  return url.pathname + (rest ? `?${rest}` : '') + url.hash;
 }
 
 export function parseDemoRequest(search, hostname){
@@ -329,7 +329,11 @@ function openRecordsPane(pane){
 }
 
 function readLiveGame(){
-  return (typeof window !== 'undefined' && window.BPGDemoLiveGame && window.BPGDemoLiveGame()) || null;
+  try{
+    return JSON.parse(localStorage.getItem('gn_current'));
+  }catch(error){
+    return null;
+  }
 }
 
 export function openDemoView(view){
@@ -514,19 +518,12 @@ function viewUsesLiveSeed(view){
 }
 
 export async function bootDemoSeed(api){
-  applyDemoChrome(api.document || (typeof document !== 'undefined' ? document : null), api.search, api.hostname);
   const action = decideDemoAction({
     hostname: api.hostname,
     search: api.search,
     storage: api.storage
   });
   const req = parseDemoRequest(api.search, api.hostname);
-  if (typeof window !== 'undefined' && window.BPGGames && typeof window.BPGGames.rememberDemoGames === 'function') {
-    window.BPGGames.rememberDemoGames(api.search);
-  }
-  if (req.lpTable === 'proposed' && typeof window !== 'undefined') {
-    window.BPG_LP_TABLE = 'proposed';
-  }
   if (action.status === 'idle' || action.status === 'ignored') {
     api.ready?.(action.status, action.view || '', action.game || req.game || '');
     return action;
