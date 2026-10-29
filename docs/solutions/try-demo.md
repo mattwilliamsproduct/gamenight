@@ -1,6 +1,6 @@
 # In-app Try a demo
 
-`cursor/try-demo` only until Matt undrafts. Cut from `cursor/rc2-launch` at `6500992`. A Records pass may land on that branch; keep `index.html` hooks small and rebase.
+`cursor/try-demo` only until Matt undrafts. Cut from `5e57d50` / `rc2-candidate-20261029-2126`. Keep `index.html` hooks small if another Records pass lands.
 
 `/?demo=try` opens the fictional QA `demo-seed` book. Bare `?demo` still does nothing. Session `bpg_try_demo=1` keeps refresh in the sample. Exit clears the session and the query.
 
