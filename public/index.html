@@ -16722,7 +16722,7 @@ ${isDealer
     const shortHeight=vh<820;
     // Smaller tables have room for a clearer visual lane between each player.
     // Larger tables stay compact so every player still fits without scrolling.
-    const rowGap=count<=5?(shortHeight?12:14):count>=8?2:count>=6?5:7;
+    const rowGap=count<=5?(shortHeight?12:14):count>=8?(tabletLand?2:3):count>=6?5:7;
     const fitted=Math.floor((rowArea-(rowGap*(count-1)))/count);
     const tabletMin=tabletLand?(count>=7?44:56):42;
     const rowHeight=tabletLand&&count>=7

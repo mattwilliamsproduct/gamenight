@@ -6,4 +6,4 @@ Do not bring TEMP demo seed, `?demo` views, `?demo&tapstart=1`, or sample data. 
 
 1024 landscape Start must stay above the fold with 6 seated. The Start panel is height-capped. The card grid takes leftover height and shrinks. The start bar does not scroll away.
 
-1024 tablet entry stays two-column (`.score-entry-tablet-land`). The `max-width: 1100px` stack does not apply there, so 8 rows stay usable beside the keypad.
+1024 tablet entry stays two-column (`.score-entry-tablet-land`). The `max-width: 1100px` stack does not apply there, so 8 rows stay usable beside the keypad. The 2px gap for 8+ players is tablet-land only. Laptop keeps 3px.

@@ -33,4 +33,4 @@ Isolated Playwright profile. The app does not boot `?demo`.
 
 Folded into this candidate from `cursor/card-picker` `f08750b`. Six 5:7 faces. Select then Start. Rook stays hidden. Beat the Heat keeps its edge-filled face.
 
-Look shots for this freeze live under `/opt/cursor/artifacts/screenshots/rc2-look/`.
+Look shots for this freeze live under `/opt/cursor/artifacts/screenshots/rc2-final/`. Empty and populated frames at 1440, 1024 landscape, and 390 (home, entry, scorecard, records). Extra: `1024-entry-8.png`.
