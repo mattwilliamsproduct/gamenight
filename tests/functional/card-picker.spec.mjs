@@ -203,3 +203,26 @@ test('clean first start explains what to tap and writes no sample data', async (
   expect(stored.current == null || stored.current === 'null').toBeTruthy();
   expect(stored.flag).toBeNull();
 });
+
+test('Saved chip stays inside Tonight\'s Table at 1440, 1024, and 390', async ({page}) => {
+  for (const size of [{width: 1440, height: 900}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'empty-home', surface: 'home'});
+    const fit = await page.evaluate(() => {
+      const chip = document.getElementById('save-indicator');
+      const card = document.querySelector('#slice2-home .s2-home-table');
+      if (!chip || !card) return {ok: false};
+      const chipBox = chip.getBoundingClientRect();
+      const cardBox = card.getBoundingClientRect();
+      return {
+        ok: true,
+        inside: chipBox.left >= cardBox.left + 8 && chipBox.right <= cardBox.right - 8 &&
+          chipBox.top >= cardBox.top + 4 && chipBox.bottom <= cardBox.bottom - 4,
+        text: (chip.textContent || '').replace(/\s+/g, ' ').trim()
+      };
+    });
+    expect(fit.ok, `${size.width} missing Saved chip`).toBe(true);
+    expect(fit.inside, `${size.width} Saved chip overflow`).toBe(true);
+    expect(fit.text).toMatch(/Saved on this device/i);
+  }
+});

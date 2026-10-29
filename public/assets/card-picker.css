@@ -273,9 +273,11 @@ html.slice2-tv .s2-seat-grid {
   }
 }
 
-/* Home: Saved sits in Tonight's Table, never on Game Instructions. */
+/* Home: Saved sits under the table title, fully inside the card. */
 html.slice2-tv .s2-home-table .s2-panel-head {
   position: relative;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 html.slice2-tv .s2-home-table .s2-panel-head #save-indicator,
@@ -287,9 +289,17 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   display: inline-flex;
   opacity: 1;
   transform: none;
-  margin: 0 0 0 auto;
-  max-width: 12.5rem;
-  white-space: nowrap;
-  text-align: right;
+  flex: 1 1 100%;
+  align-self: flex-start;
+  box-sizing: border-box;
+  margin: 0;
+  max-width: 100%;
+  width: max-content;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.2;
   pointer-events: none;
 }

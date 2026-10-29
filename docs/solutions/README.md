@@ -53,3 +53,5 @@ Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a to
 Standing trap: [rc2-look-fixes.md](rc2-look-fixes.md) — iPad 1024 score entry cannot use managed-fit `flex: 1 1 0` on player rows. A 100% scorecard table that stays 5px over a fudge of 4 will hide every past round. Settings body with flex-basis 0 collapses Appearance behind the foot.
 
 Standing trap: [card-picker.md](card-picker.md) — Home uses 5:7 card faces and select-then-Start. Do not import the card-picker demo seed. 1024 Start stays in the viewport. Tablet-land entry stays two-column.
+
+Standing trap: [rc2-look-1400.md](rc2-look-1400.md) — reserve NOW min-width and shrink columns; do not hide another oldest hand to unclip a NOW that is already on screen. Saved sits under the Tonight's Table title, fully inside the card.

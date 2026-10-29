@@ -94,6 +94,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
 - A 1024 Home Start button below the fold with 6 seated, or an 8-player 1024 entry that hides rows behind a stacked keypad.
+- A Saved chip or NOW column that clips the card or scorecard edge.
 - Edit Seating plus Earlier/Later when the Home list can reorder in place.
 - A second ranking function for Recent nights, or a podium on an Incomplete night.
 - Adding Canasta to the game registry or Home picker from this art pass.

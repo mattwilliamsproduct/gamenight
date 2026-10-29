@@ -3593,9 +3593,9 @@ button.dealer-name-indicator {
       table-layout: fixed;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: clamp(14rem, 20vw, 18rem);
+      width: clamp(12rem, 16vw, 15rem);
       min-width: 12rem;
-      max-width: 20rem;
+      max-width: 15rem;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
       width: clamp(6.5rem, 8vw, 8.5rem);
@@ -15184,6 +15184,7 @@ ${isDealer
           fitActiveScorecardColumns(root);
         }
       }
+      shrinkScorecardRoundsToClearNow(root);
       if(hint){
         if(hidden>0){
           const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
@@ -15499,12 +15500,46 @@ ${isDealer
         valueBox.left<totalBox.left-1.5;
     });
   }
-  function scorecardNowColWidth(table){
+  function scorecardNowStillClipped(table,wrap){
+    const now=table?.querySelector('thead th.scorecard-col-now');
+    if(!now||!wrap) return false;
+    if(now.classList.contains('scorecard-round--hidden')) return false;
+    if(getComputedStyle(now).display==='none') return false;
+    const nowBox=now.getBoundingClientRect();
+    const wrapBox=wrap.getBoundingClientRect();
+    return nowBox.width<36||nowBox.right>wrapBox.right+1||nowBox.left<wrapBox.left-1;
+  }
+  function scorecardNowReserveWidth(table){
     const now=table?.querySelector('thead th.scorecard-col-now');
     if(!now||now.classList.contains('scorecard-round--hidden')) return 0;
     if(getComputedStyle(now).display==='none'||getComputedStyle(now).visibility==='hidden') return 0;
-    const painted=now.getBoundingClientRect().width;
-    return painted>0?painted:56;
+    const min=parseFloat(getComputedStyle(now).minWidth);
+    return Number.isFinite(min)&&min>0?Math.max(min,70):70;
+  }
+  function scorecardNowColWidth(table){
+    return scorecardNowReserveWidth(table);
+  }
+  function shrinkScorecardRoundsToClearNow(root){
+    const host=root||document.getElementById('scorecard-capture');
+    if(!host) return;
+    const wrap=host.querySelector('.scorecard-table-wrap');
+    const table=host.querySelector('table.scorecard-table');
+    if(!wrap||!table) return;
+    const floor=window.innerWidth>=1400?26:28;
+    for(let step=0;step<12&&scorecardNowStillClipped(table,wrap);step++){
+      const raw=parseFloat(host.style.getPropertyValue('--scorecard-round-col')||'');
+      if(!Number.isFinite(raw)||raw<=floor) break;
+      const next=Math.max(floor,raw-2);
+      const pad=next<42?2:next<56?3:5;
+      const input=Math.max(26,next-(pad*2));
+      host.style.setProperty('--scorecard-round-col',`${next}px`);
+      host.style.setProperty('--scorecard-round-input',`${Math.floor(input)}px`);
+      host.style.setProperty('--scorecard-round-input-min',`${Math.floor(Math.min(input,36))}px`);
+      host.style.setProperty('--scorecard-round-input-min-miss',`${Math.floor(Math.max(32,Math.min(input,42)))}px`);
+      host.style.setProperty('--scorecard-round-input-max',`${Math.floor(input)}px`);
+      host.style.setProperty('--scorecard-round-input-pad-x',`${pad}px`);
+      host.style.setProperty('--scorecard-round-th-pad-x',`${pad}px`);
+    }
   }
   function scorecardRoundColsTooTight(root){
     const raw=parseFloat(root?.style.getPropertyValue('--scorecard-round-col')||'');
@@ -15518,7 +15553,7 @@ ${isDealer
   function fitActiveScorecardColumns(root){
     const host=root||document.getElementById('scorecard-capture');
     if(!host)return;
-    const colVars=['--scorecard-round-col','--scorecard-round-input','--scorecard-round-input-min','--scorecard-round-input-min-miss','--scorecard-round-input-max','--scorecard-round-input-pad-x','--scorecard-round-th-pad-x','--scorecard-col-input-font'];
+    const colVars=['--scorecard-round-col','--scorecard-round-input','--scorecard-round-input-min','--scorecard-round-input-min-miss','--scorecard-round-input-max','--scorecard-round-input-pad-x','--scorecard-round-th-pad-x','--scorecard-col-input-font','--scorecard-now-col'];
     colVars.forEach(p=>host.style.removeProperty(p));
     host.classList.remove('scorecard-fit-cols');
     const wrap=host.querySelector('.scorecard-table-wrap');
@@ -15541,13 +15576,19 @@ ${isDealer
         // Fixed tables ignore max-width and pour leftover space into Total while round columns are still 1px. Measure the cap, or every phone Hand and Foot history card looks too tight and hides R1–R3.
         return sum+(Number.isFinite(max)&&max>0&&max<rect?max:rect);
       },0);
-    const available=Math.max(0,wrap.clientWidth-leadW-6);
-    const nowExtra=(!handFoot&&scorecardNowColWidth(table)>0)?1:0;
-    const col=Math.max(handFoot?24:28,Math.min(handFoot?52:72,available/Math.max(1,visible.length+nowExtra)));
+    const nowEl=table.querySelector('thead th.scorecard-col-now');
+    const nowPresent=!!(nowEl&&!nowEl.classList.contains('scorecard-round--hidden')&&getComputedStyle(nowEl).display!=='none');
+    const nowW=nowPresent?scorecardNowReserveWidth(table):0;
+    const available=Math.max(0,wrap.clientWidth-leadW-nowW-16);
+    const desktop=window.innerWidth>=1400;
+    const tablet=window.innerWidth>=1024;
+    const colMax=handFoot?52:desktop?56:tablet?64:72;
+    const col=Math.max(handFoot?24:28,Math.min(colMax,available/Math.max(1,visible.length)));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
     const font=Math.max(13,Math.min(28,col*0.4));
     host.classList.add('scorecard-fit-cols');
+    if(nowW) host.style.setProperty('--scorecard-now-col',`${Math.round(nowW)}px`);
     host.style.setProperty('--scorecard-round-col',`${Math.floor(col)}px`);
     host.style.setProperty('--scorecard-round-input',`${Math.floor(input)}px`);
     host.style.setProperty('--scorecard-round-input-min',`${Math.floor(Math.min(input,36))}px`);

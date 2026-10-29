@@ -84,4 +84,22 @@ test('iPad 1024 eight-player entry keeps every row usable and the keypad on scre
   expect(fit.keypadShare, `keypad share ${fit.keypadShare}`).toBeGreaterThanOrEqual(0.38);
   expect(fit.stacked, '8-player tablet entry must stay two-column').toBe(false);
   expect(fit.namesClipped, `clipped names ${fit.namesClipped.join(', ')}`).toEqual([]);
+  const chrome = await page.evaluate(() => {
+    const context = document.getElementById('score-entry-context');
+    const style = context ? getComputedStyle(context) : null;
+    const labels = [...document.querySelectorAll('#score-entry-rows .score-entry-input-cell .score-entry-meta-label, #score-entry-rows .score-entry-confirm-status')]
+      .filter((el) => getComputedStyle(el).display !== 'none');
+    const accents = [...document.querySelectorAll('#score-entry-rows .score-entry-row:not(.active) .score-entry-player-card')]
+      .map((el) => getComputedStyle(el).boxShadow);
+    return {
+      contextColor: style?.color || '',
+      contextSize: style ? parseFloat(style.fontSize) : 0,
+      overlappingLabels: labels.length,
+      leftoverAccent: accents.some((shadow) => /rgb\(\s*8,\s*118,\s*108|rgb\(\s*10,\s*92,\s*84/.test(shadow))
+    };
+  });
+  expect(chrome.contextSize, 'HAND OF subtitle too small').toBeGreaterThanOrEqual(14);
+  expect(chrome.contextColor).not.toMatch(/rgb\(\s*(169,\s*81,\s*61|233,\s*115,\s*88)/);
+  expect(chrome.overlappingLabels, 'SCORE/Blank still painted on 8-player cells').toBe(0);
+  expect(chrome.leftoverAccent, 'non-active row still has a teal inset').toBe(false);
 });
