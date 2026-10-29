@@ -439,3 +439,12 @@ test('score entry pending minus then digit keeps the sign on scores', () => {
   next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'scores' }, '5');
   assert.equal(next.value, '-5');
 });
+
+test('bid/trick deferAck still appends digits after the first entry', () => {
+  let next = Scorebook.applyScoreEntryKey({ value: '', acknowledged: false, mode: 'tricks' }, '3');
+  assert.equal(next.value, '3');
+  assert.equal(next.acknowledged, false);
+  next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'tricks' }, '3');
+  assert.equal(next.value, '33');
+  assert.equal(next.acknowledged, false);
+});
