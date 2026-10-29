@@ -29,6 +29,23 @@ test('ledger night count is singular for one night', () => {
   assert.equal(Records.formatNightCount(11), '11 nights');
 });
 
+test('records copy uses singular nouns for a count of one', () => {
+  assert.equal(Records.formatPlural(1, 'win'), '1 win');
+  assert.equal(Records.formatPlural(2, 'win'), '2 wins');
+  assert.equal(Records.formatWinsGames(1, 1), '1 win · 1 game');
+  assert.equal(Records.formatWinsGames(2, 3), '2 wins · 3 games');
+  assert.equal(Records.formatPlural(1, 'game'), '1 game');
+  assert.equal(Records.formatPlural(1, 'straight last-place finish', 'straight last-place finishes'), '1 straight last-place finish');
+  assert.equal(Records.formatPlural(2, 'straight last-place finish', 'straight last-place finishes'), '2 straight last-place finishes');
+});
+
+test('hidden Rook stays off the championship ledger', () => {
+  const ids = Records.visibleRecordGames().map((game) => game.id);
+  assert.ok(!ids.includes('Rook'));
+  assert.ok(ids.includes('Five Crowns'));
+  assert.ok(ids.includes('Beat the Heat'));
+});
+
 test('win rate always prints the denominator and hides thin samples from the lead', () => {
   assert.equal(Records.formatWinRate(9, 20), '45% · 9 of 20');
   assert.equal(Records.formatWinRateDenom(9, 20), '9 of 20');

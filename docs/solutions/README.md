@@ -49,3 +49,5 @@ Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder wri
 Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook is hidden unless `?demo&games=rook`. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
 
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
+
+Standing trap: [rc2-look-fixes.md](rc2-look-fixes.md) — iPad 1024 score entry cannot use managed-fit `flex: 1 1 0` on player rows. A 100% scorecard table that stays 5px over a fudge of 4 will hide every past round. Settings body with flex-basis 0 collapses Appearance behind the foot.

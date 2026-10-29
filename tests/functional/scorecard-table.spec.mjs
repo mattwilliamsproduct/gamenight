@@ -159,11 +159,15 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
 test('laptop scorecard keeps a Table button and a one-line title', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 650});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
-  const titleWraps1024 = await page.locator('#slice2-board-line').evaluate((el) => {
+  const titleLayout1024 = await page.locator('#slice2-board-line').evaluate((el) => {
     const style = getComputedStyle(el);
-    return style.whiteSpace !== 'nowrap' || el.getClientRects().length > 1;
+    return {
+      clipped: el.scrollWidth > el.clientWidth + 1,
+      rows: el.getClientRects().length
+    };
   });
-  expect(titleWraps1024, 'title wraps at 1024').toBe(false);
+  expect(titleLayout1024.clipped, '1024 title stays unclipped on one or two rows').toBe(false);
+  expect(titleLayout1024.rows, '1024 title uses at most two rows').toBeLessThanOrEqual(2);
 
   await page.setViewportSize({width: 1440, height: 900});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});

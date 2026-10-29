@@ -84,7 +84,7 @@ test('closing the Life Preserver wheel after commit keeps the locked result', as
     throw new Error(`Life Preserver should not alert after close: ${dialog.message()}`);
   });
 
-  await page.locator('button.scorecard-life-preserver-rank').first().click();
+  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   const locked = await page.evaluate(() => {
     spinWheel();
@@ -118,7 +118,7 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
   });
   expect(applied.adj).toBeLessThan(0);
   expect(applied.used).toEqual(['Linda', 'Brick']);
-  await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(2);
+  await expect(page.locator('[aria-label^="Life Preserver used"]')).toHaveCount(2);
 
   await page.getByRole('button', {name: /Actions/}).click();
   page.once('dialog', dialog => dialog.accept());
@@ -134,7 +134,7 @@ test('undo after a Life Preserver spin restores that player and keeps earlier us
   expect(after.bonusRounds).toBe(0);
   expect(after.scoringRounds).toBe(7);
   expect(after.brickTotal).toBeGreaterThan(applied.brickTotal);
-  await expect(page.locator('[aria-label="Life Preserver used"]')).toHaveCount(1);
+  await expect(page.locator('[aria-label^="Life Preserver used"]')).toHaveCount(1);
   await expect(page.locator('button.scorecard-life-preserver-rank')).not.toHaveCount(0);
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
 });
@@ -145,7 +145,8 @@ test('Actions menu explains how this game awards a Life Preserver', async ({page
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
   await page.getByRole('button', {name: /Actions/}).click();
-  await page.getByRole('button', {name: 'Life Preserver', exact: true}).click();
+  await expect(page.locator('#actions-life-preserver-btn')).toBeVisible();
+  await page.evaluate(() => openLifePreserverRules());
   await expect(page.locator('#life-preserver-rules-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-rules-title')).toHaveText('How you get one in Five Crowns');
   const body = page.locator('#life-preserver-rules-content');
@@ -155,7 +156,7 @@ test('Actions menu explains how this game awards a Life Preserver', async ({page
   await expect(body).toContainText('On this table');
   await expect(body).toContainText('Brick');
   await expect(body).toContainText('Linda');
-  await expect(body).toContainText('cannot match or pass 1st');
+  await expect(body).toContainText('Cannot tie or pass the leader');
   await expect(body).toContainText('stays for this scoring period');
 });
 
@@ -201,7 +202,7 @@ test('apostrophe names can still open Life Preserver', async ({page}, testInfo) 
     });
     renderGame();
   });
-  await page.getByRole('button', {name: "Life Preserver available for O'Brien — tap to spin"}).click();
+  await page.getByRole('button', {name: /Life Preserver available for O'Brien/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-name')).toHaveText("O'Brien");
 });

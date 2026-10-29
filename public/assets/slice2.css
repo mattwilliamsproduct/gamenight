@@ -82,8 +82,8 @@ html.slice2-tv .s2-board-line-row {
 }
 
 html.slice2-tv .s2-board-line-row #slice2-board-line {
-  flex: 1 1 auto;
-  min-width: max-content;
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 html.slice2-tv .s2-board-line-row #save-indicator,
@@ -815,6 +815,7 @@ html.slice2-tv #slice2-board-bar {
   width: min(1440px, 100%);
   margin: 0 auto 8px;
   padding: 10px 0 0;
+  font-size: 16px;
 }
 
 html.slice2-tv .s2-board-identity {
@@ -884,7 +885,7 @@ html.slice2-tv #slice2-board-line {
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  font-size: clamp(17px, 1.8vw, 23px);
   line-height: 1.25;
 }
 
@@ -2025,7 +2026,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     max-width: none;
     margin-left: 0.45rem;
     white-space: nowrap;
-    font-size: 0.62rem;
+    font-size: 10px;
     padding: 0.18rem 0.5rem;
   }
 
@@ -2078,7 +2079,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     min-height: 44px;
     height: 44px;
     padding: 0.4rem 0.95rem;
-    font-size: 0.92rem;
+    font-size: 15px;
     line-height: 1;
     white-space: nowrap;
     text-transform: none;
@@ -2092,8 +2093,8 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 }
 
-/* iPad portrait sits just above the phone breakpoint and wrapped Settings. */
-@media (min-width: 761px) and (max-width: 1023px) {
+/* iPad 1024 and below: two clean header rows, no save-pill collision. */
+@media (min-width: 761px) and (max-width: 1180px) {
   html.slice2-tv #slice2-board-line {
     white-space: normal;
   }
@@ -2101,6 +2102,19 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv .s2-board-title-row,
   html.slice2-tv .s2-board-line-row {
     flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  html.slice2-tv .s2-board-line-row #slice2-board-line {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  html.slice2-tv .s2-board-line-row #save-indicator.show,
+  html.slice2-tv body.active-match-view .s2-board-line-row #save-indicator.show {
+    margin-left: auto;
+    max-width: none;
+    white-space: nowrap;
   }
 
   html.slice2-tv #top-nav > div,

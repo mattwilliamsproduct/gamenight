@@ -38,8 +38,13 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 - A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
 - One saved night reads `1 night`.
-- The dealer chip hugs the letters and stays a dealer mark, not a selected state. The candy-stripe 4th is Life Preserver available.
+- The dealer chip hugs the letters and stays a dealer mark, not a selected state. Life Preserver available is a small labeled LP chip.
 - `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
+- iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
+- Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
+- Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
+- Championship Ledger hides Rook while Rook is hidden from the shelf.
+- The 1024 match header is two clean rows. Saved sits on its own row and does not collide with wild or dealer copy.
 
 ### Kills
 
@@ -60,6 +65,12 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - `1 nights` on a single saved night.
+- iPad score entry rows collapsed into one overlapping strip.
+- 80px names and 120px avatars eating the round columns on a 4-seat TV card.
+- `1 WINS · 1 GAMES` or other plural-for-one Records copy.
+- Rook on the Championship Ledger while the shelf hides it.
+- Settings "This device" copy sitting under Backup / Restore, or a close X on the modal border.
+- Avatar rings in four colors that do not mean anything.
 - Standings updated still sitting on Records after Save & End.
 - Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
 - SELECTED PLAYER crowding the Scoring pill on phone entry.

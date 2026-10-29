@@ -98,9 +98,11 @@ test('tv scoreboard emphasizes names and keeps entry validation', async ({page})
     const border = await miss.evaluate((el) => getComputedStyle(el).borderTopColor);
     expect(border).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/);
   }
-  await page.locator('#slice2-history-btn').click();
+  await page.getByRole('button', {name: /Actions/}).click();
+  await page.locator('#actions-audit-log-btn').click();
   await expect(page.locator('#audit-modal')).not.toHaveClass(/hidden/);
   await page.evaluate(() => closeAuditLog());
+  await expect(page.locator('#audit-modal')).toHaveClass(/hidden/);
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#score-entry-modal .score-entry-key', {hasText: '7'})).toBeVisible();
@@ -149,7 +151,7 @@ test('records ledger uses real history and the phone toggle', async ({page}) => 
   await ready(page);
   await expect(page.getByRole('heading', {name: 'Game Championship Ledger'})).toBeVisible();
   await expect(page.getByRole('heading', {name: 'Hall of Shame'})).toBeVisible();
-  await expect(page.locator('.s2-ledger-row')).toHaveCount(7);
+  await expect(page.locator('.s2-ledger-row')).toHaveCount(6);
   await page.setViewportSize({width: 390, height: 844});
   await page.locator('#slice2-show-shame').click();
   await expect(page.locator('.s2-fame-col')).toBeHidden();
@@ -190,7 +192,7 @@ test('slice2 surfaces do not clip', async ({page}) => {
       await page.waitForTimeout(150);
       if (name === 'wheel') await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
       if (name === 'entry') await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-      if (name === 'editor') await expect(page.locator('#custom-numpad')).not.toHaveClass(/hidden/);
+      // Obsolete inline editor leftover. Score entry uses #score-entry-modal, not #custom-numpad.
       const report = await page.evaluate(() => {
         const vw = document.documentElement.clientWidth;
         const past = [];

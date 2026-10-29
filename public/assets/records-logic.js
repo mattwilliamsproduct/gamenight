@@ -12,7 +12,7 @@
     { id: 'Wizard', title: 'Wizard', unit: 'pts', winLow: false, art: 'wizard' },
     { id: 'Flip 7 Vengeance', title: 'Flip 7', unit: 'pts', winLow: false, art: 'flip7' },
     { id: 'Beat the Heat', title: 'Beat the Heat', unit: 'heat', winLow: true, art: 'heat' },
-    { id: 'Rook', title: 'Rook', unit: 'pts', winLow: false, art: 'rook' }
+    { id: 'Rook', title: 'Rook', unit: 'pts', winLow: false, art: 'rook', hidden: true }
   ];
 
   const WIZARD_PLAYER_COUNTS = [4, 5, 6, 7, 8];
@@ -111,6 +111,27 @@
   function formatNightCount(n) {
     const count = Math.max(0, Number(n) || 0);
     return count === 1 ? '1 night' : `${count} nights`;
+  }
+
+  function formatPlural(n, singular, plural) {
+    const count = Math.max(0, Number(n) || 0);
+    const word = count === 1 ? singular : (plural || `${singular}s`);
+    return `${count} ${word}`;
+  }
+
+  function formatWinsGames(wins, games) {
+    return `${formatPlural(wins, 'win')} · ${formatPlural(games, 'game')}`;
+  }
+
+  function visibleRecordGames() {
+    const Games = (typeof globalThis !== 'undefined' && globalThis.BPGGames) || null;
+    return GAMES.filter((game) => {
+      if (Games && typeof Games.isHiddenGameVisible === 'function') {
+        const meta = Games.gameById ? Games.gameById(game.id) : null;
+        return meta ? Games.isHiddenGameVisible(meta) : !game.hidden;
+      }
+      return !game.hidden;
+    });
   }
 
   function formatWinRate(wins, games) {
@@ -495,8 +516,8 @@
       { id: 'e818-worst-final', record: games['818'] && games['818'].worstGame, stat: (r) => `${r.value} points` },
       { id: 'heat-worst-final', record: games['Beat the Heat'] && games['Beat the Heat'].worstGame, stat: (r) => `${r.value} heat` },
       { id: 'wizard-missed', record: missed, stat: (r) => r.label },
-      { id: 'no-wins', record: noWin ? { player: noWin.name, value: noWin.games, label: `${noWin.games} games, 0 wins`, date: 'Career' } : null, stat: (r) => r.label },
-      { id: 'last-streak', record: lastStreak ? { player: lastStreak.name, value: lastStreak.longestLast, label: `${lastStreak.longestLast} straight last-place finishes`, date: 'Career' } : null, stat: (r) => r.label },
+      { id: 'no-wins', record: noWin ? { player: noWin.name, value: noWin.games, label: `${formatPlural(noWin.games, 'game')}, 0 wins`, date: 'Career' } : null, stat: (r) => r.label },
+      { id: 'last-streak', record: lastStreak ? { player: lastStreak.name, value: lastStreak.longestLast, label: `${formatPlural(lastStreak.longestLast, 'straight last-place finish', 'straight last-place finishes')}`, date: 'Career' } : null, stat: (r) => r.label },
       { id: 'wizard-exact', record: games.Wizard && games.Wizard.bestExactBidPct, stat: (r) => r.label },
       { id: 'win-streak', record: allTime.longestWinningStreak, stat: (r) => `${r.value} wins in a row` }
     ];
@@ -581,7 +602,7 @@
       rate ? { kicker: 'Win rate', value: finite(rate.value) ? `${rate.value}%` : '-', name: rate.player, sub: formatWinRateDenom(rate.wins != null ? rate.wins : rate.value, rate.games) || (rate.label || '') } : null,
       streak ? { kicker: 'Win streak', value: `${streak.value}W`, name: streak.player, sub: streak.label || 'in a row' } : null
     ].filter(Boolean);
-    const rows = GAMES.map((game) => {
+    const rows = visibleRecordGames().map((game) => {
       const card = hall[game.id] || {};
       const round = data.games && data.games[game.id] && data.games[game.id].bestRound;
       const coverage = hall._coverage && hall._coverage[game.id];
@@ -658,7 +679,7 @@
     const players = Array.from(new Set((data.playerCards || []).map((card) => card.player).concat(
       (data.allTime && data.allTime.mostGames || []).map((row) => row.player)
     ))).filter(Boolean).sort();
-    const gameOptions = ['<option value="">All games</option>'].concat(GAMES.map((game) => {
+    const gameOptions = ['<option value="">All games</option>'].concat(visibleRecordGames().map((game) => {
       const selected = gameFilter === game.id ? ' selected' : '';
       return `<option value="${escapeAttr(game.id)}"${selected}>${esc(game.title)}</option>`;
     })).join('');
@@ -741,7 +762,7 @@
   }
 
   function explorePerGame(data, gameFilter, playerFilter, esc, compact) {
-    const blocks = GAMES.map((game) => {
+    const blocks = visibleRecordGames().map((game) => {
       if (gameFilter && gameFilter !== game.id) return '';
       const rec = data.games && data.games[game.id];
       if (!rec) return '';
@@ -996,6 +1017,9 @@
     groupNightsByEvening,
     winRateEligible,
     formatNightCount,
+    formatPlural,
+    formatWinsGames,
+    visibleRecordGames,
     formatWinRate,
     formatWinRateDenom,
     formatStatValue,
