@@ -35,6 +35,9 @@ test('the page loads try-demo and the worker precaches it', () => {
   assert.match(demo, /bpg_demo_/);
   assert.match(demo, /demo-sync-blocked/);
   assert.match(demo, /Backup, restore, and sync are off in this demo/);
+  assert.match(demo, /See a sample game night\. Your data stays separate\./);
+  assert.match(demo, /Sample data · separate from your games/);
+  assert.match(html, /BPGTryDemo\.active\(\)/);
   assert.doesNotMatch(demo, /gamenight:backup:v1/);
   assert.doesNotMatch(demo, /localStorage\.setItem\(\s*['"]gn_/);
 });

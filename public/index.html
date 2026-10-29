@@ -10607,6 +10607,11 @@ button.dealer-name-indicator .dealer-player-label {
 
   // ── Save indicator flash ──
   function flashSaveIndicator(){
+    if(window.BPGTryDemo&&BPGTryDemo.active()){
+      if (window.BPGSlice2 && typeof BPGSlice2.parkSaveIndicator === 'function') BPGSlice2.parkSaveIndicator();
+      if (typeof BPGTryDemo.paintSaveLabel === 'function') BPGTryDemo.paintSaveLabel();
+      return;
+    }
     const el = document.getElementById('save-indicator'); if(!el) return;
     if (window.BPGSlice2 && typeof BPGSlice2.parkSaveIndicator === 'function') BPGSlice2.parkSaveIndicator();
     el.classList.add('show');

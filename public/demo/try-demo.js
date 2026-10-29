@@ -117,21 +117,26 @@
       '#bpg-try-demo-bar{position:fixed;top:0;left:0;right:0;z-index:240;display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 14px;background:#efe7d6;color:#14312e;border-bottom:1px solid #d7cbb3;font-family:"Nunito Sans",sans-serif}',
       '#bpg-try-demo-bar strong{font-size:13px;font-weight:800;letter-spacing:.02em}',
       '#bpg-try-demo-bar .bpg-try-demo-actions{margin-left:auto;display:flex;gap:8px}',
-      '#bpg-try-demo-bar button,#bpg-try-demo-tip button,.bpg-try-demo-start,#bpg-try-demo-about button{min-height:32px;padding:0 12px;border:1px solid #c9ded9;border-radius:999px;background:#fffdf8;color:#075e57;font-size:12px;font-weight:800}',
-      '#bpg-try-demo-tip{position:fixed;top:42px;left:0;right:0;z-index:239;margin:0;padding:8px 14px;border-bottom:1px solid #d7cbb3;background:#fffdf8;color:#3d4f4c;font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center}',
+      '#bpg-try-demo-bar button,#bpg-try-demo-tip button,.bpg-try-demo-start,#bpg-try-demo-about button{min-height:32px;padding:0 12px;border:1px solid #08766c;border-radius:999px;background:#fffdf8;color:#075e57;font-size:12px;font-weight:800}',
+      '#bpg-try-demo-tip{position:fixed;top:42px;left:0;right:0;z-index:239;margin:0;padding:8px 14px;border-bottom:1px solid #d7cbb3;background:#fffdf8;color:#3d4f4c;font-size:13px;font-weight:700;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start}',
       '#bpg-try-demo-tip[hidden]{display:none}',
-      '#bpg-try-demo-tip p{margin:0;flex:1}',
-      '.bpg-try-demo-start{margin:10px 0 0}',
+      '#bpg-try-demo-tip p{margin:0;flex:1 1 16rem;min-width:0;line-height:1.35}',
+      '#bpg-try-demo-tip button{margin-left:auto;flex:0 0 auto}',
+      '.bpg-try-demo-entry{margin:12px 0 4px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}',
+      '.bpg-try-demo-start,.bpg-try-demo-entry .bpg-try-demo-start,#bpg-try-demo-about .bpg-try-demo-start{appearance:none;display:inline-flex;align-items:center;justify-content:center;margin:0;min-height:44px;padding:0.55rem 1.15rem;border:1.5px solid #08766c;border-radius:999px;background:#fff;color:#075e57;font-family:"Nunito Sans",sans-serif;font-size:0.95rem;font-weight:800;line-height:1.1;cursor:pointer}',
+      '.bpg-try-demo-entry-note{margin:0;max-width:22rem;font-size:12px;font-weight:700;line-height:1.35;color:#5e584f}',
       '#bpg-try-demo-about{margin:0 0 18px;padding:14px;border:1px solid #d7cbb3;border-radius:12px;background:#fffdf8}',
       '#bpg-try-demo-about .bpg-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#6d6962;margin-bottom:6px}',
       '#bpg-try-demo-about p{margin:0 0 10px;font-size:13px;font-weight:700;color:#3d4f4c}',
+      'html.bpg-try-demo #save-indicator,html.bpg-try-demo #save-indicator.show{opacity:1;transform:none;text-transform:none;letter-spacing:.01em;font-weight:800;color:#3d4f4c;background:#f4efe4;border-color:#d7cbb3}',
       'html.bpg-try-demo #settings-modal .bp-modal-foot,',
       'html.bpg-try-demo #backup-restore-copy,',
       'html.bpg-try-demo #backup-device-summary,',
       'html.bpg-try-demo #backup-empty-hint,',
       'html.bpg-try-demo #import-text,',
       'html.bpg-try-demo #settings-modal details{display:none!important}',
-      '#bpg-try-demo-backup-note{margin:0 0 12px;font-size:13px;font-weight:700;color:#3d4f4c}'
+      '#bpg-try-demo-backup-note{margin:0 0 12px;font-size:13px;font-weight:700;color:#3d4f4c}',
+      '@media (max-width:520px){html.bpg-try-demo.bpg-try-demo-tip{padding-top:118px}#bpg-try-demo-tip{flex-direction:column;align-items:stretch;padding:8px 12px 10px}#bpg-try-demo-tip p{flex:1 1 auto}#bpg-try-demo-tip button{align-self:flex-end;margin-left:0;min-height:28px;padding:0 10px}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -186,18 +191,35 @@
   }
 
   function paintEntry() {
-    document.querySelectorAll('.bpg-try-demo-start').forEach(function (node) { node.remove(); });
+    document.querySelectorAll('.bpg-try-demo-entry').forEach(function (node) { node.remove(); });
     if (active() || !emptyTable()) return;
     var empty = document.getElementById('slice2-empty-table');
     var host = empty || document.querySelector('#slice2-home .s2-home-table') || document.getElementById('slice2-home');
     if (!host) return;
-    var button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'bpg-try-demo-start';
-    button.textContent = 'Try a demo';
-    button.addEventListener('click', enter);
-    if (empty) empty.insertAdjacentElement('afterend', button);
-    else host.appendChild(button);
+    var wrap = document.createElement('div');
+    wrap.className = 'bpg-try-demo-entry';
+    wrap.innerHTML = '<button type="button" class="s2-btn bpg-try-demo-start">Try a demo</button><p class="bpg-try-demo-entry-note">See a sample game night. Your data stays separate.</p>';
+    wrap.querySelector('.bpg-try-demo-start').addEventListener('click', enter);
+    if (empty) empty.insertAdjacentElement('afterend', wrap);
+    else host.appendChild(wrap);
+  }
+
+  function paintSaveLabel() {
+    var el = document.getElementById('save-indicator');
+    if (!el) return;
+    if (!active()) {
+      if (el.dataset.bpgDemoSave === '1') {
+        el.textContent = '✓ Saved on this device';
+        el.classList.remove('bpg-try-demo-save', 'show');
+        delete el.dataset.bpgDemoSave;
+      }
+      return;
+    }
+    el.dataset.bpgDemoSave = '1';
+    el.classList.add('bpg-try-demo-save');
+    el.classList.remove('show');
+    el.hidden = false;
+    el.textContent = 'Sample data · separate from your games';
   }
 
   function paintSettings() {
@@ -211,7 +233,7 @@
     }
     about.innerHTML = active()
       ? '<div class="bpg-kicker">About</div><p>This is a sample porch. Exit restores your real games on this device.</p>'
-      : '<div class="bpg-kicker">About</div><p>Back Porch keeps score for porch game night. Try a sample table without touching the games on this device.</p><button type="button" class="bpg-try-demo-start">Try a demo</button>';
+      : '<div class="bpg-kicker">About</div><p>Back Porch keeps score for porch game night. Try a sample table without touching the games on this device.</p><button type="button" class="s2-btn bpg-try-demo-start">Try a demo</button>';
     var start = about.querySelector('.bpg-try-demo-start');
     if (start) start.addEventListener('click', enter);
     var note = document.getElementById('bpg-try-demo-backup-note');
@@ -234,14 +256,28 @@
     root.BPGSlice2.refresh = function () {
       var result = orig.apply(this, arguments);
       paintEntry();
+      paintSaveLabel();
       return result;
     };
     root.BPGSlice2.__bpgTryDemoHook = true;
   }
 
+  function hookSavePark() {
+    if (!root.BPGSlice2 || typeof root.BPGSlice2.parkSaveIndicator !== 'function' || root.BPGSlice2.__bpgTryDemoSave) return;
+    var orig = root.BPGSlice2.parkSaveIndicator;
+    root.BPGSlice2.parkSaveIndicator = function () {
+      var result = orig.apply(this, arguments);
+      paintSaveLabel();
+      return result;
+    };
+    root.BPGSlice2.__bpgTryDemoSave = true;
+  }
+
   function afterSlice2Paint() {
     hookRefresh();
+    hookSavePark();
     paintEntry();
+    paintSaveLabel();
   }
 
   if (document.readyState === 'complete') setTimeout(afterSlice2Paint, 0);
@@ -259,6 +295,7 @@
   async function boot(nextHooks) {
     hooks = nextHooks || {};
     hookRefresh();
+    hookSavePark();
     if (!active()) {
       paintEntry();
       return {status: 'off'};
@@ -273,6 +310,7 @@
     }
     paintChrome();
     paintEntry();
+    paintSaveLabel();
     paintSettings();
     if (document.body) document.body.dataset.bpgTryDemo = 'on';
     return {status: 'on'};
@@ -300,6 +338,7 @@
     if (typeof hooks.showHome === 'function') hooks.showHome();
     paintChrome();
     paintEntry();
+    paintSaveLabel();
   }
 
   function backupBlocked() {
@@ -319,6 +358,7 @@
     reset: reset,
     paintSettings: paintSettings,
     paintEntry: paintEntry,
+    paintSaveLabel: paintSaveLabel,
     backupBlocked: backupBlocked,
     loadSeed: loadSeed
   };

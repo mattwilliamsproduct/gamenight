@@ -37,6 +37,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - The dealer chip hugs the letters and stays a dealer mark, not a selected state. Life Preserver available is a small labeled LP chip.
 - `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
 - `?demo=try` is a separate in-app sample. It uses `bpg_demo_*` and never writes `gn_*`.
+- Try a demo on the empty table is an outlined secondary with a one-line "data stays separate" note. Start stays the only primary. In the sample, the chip says sample data, not Saved on this device.
 - iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
 - Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
 - Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
@@ -68,6 +69,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
+- "Saved on this device" while Try a demo is on.
 - `1 nights` on a single saved night.
 - iPad score entry rows collapsed into one overlapping strip.
 - 80px names and 120px avatars eating the round columns on a 4-seat TV card.

@@ -79,6 +79,9 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
   await expect(page.locator('#bpg-try-demo-exit')).toBeVisible();
   await expect(page.locator('#bpg-try-demo-reset')).toBeVisible();
   await expect(page.locator('#bpg-try-demo-tip')).toContainText('Try entering a round, correcting a score, and checking the updated records.');
+  await expect(page.locator('#save-indicator')).toContainText('Sample data · separate from your games');
+  await expect(page.locator('#save-indicator')).not.toContainText('Saved on this device');
+  await expect(page.locator('#save-indicator')).not.toHaveClass(/show/);
   const live = await page.evaluate(() => ({
     players: (typeof players !== 'undefined' && players) || [],
     history: (typeof history !== 'undefined' && history) || [],
@@ -98,6 +101,10 @@ test('empty first-use and Settings About offer Try a demo', async ({page}) => {
   await page.goto('/', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#slice2-empty-table')).toBeVisible();
   await expect(page.locator('.bpg-try-demo-start')).toBeVisible();
+  await expect(page.locator('.bpg-try-demo-entry-note')).toContainText('Your data stays separate');
+  const startFill = await page.locator('#slice2-start-btn').evaluate((el) => getComputedStyle(el).backgroundColor);
+  const demoFill = await page.locator('.bpg-try-demo-entry .bpg-try-demo-start').evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(demoFill).not.toBe(startFill);
   await page.locator('[onclick*="openSettings"], button:has-text("Settings")').first().click();
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#bpg-try-demo-about')).toContainText('Try a sample table');
