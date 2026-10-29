@@ -84,7 +84,8 @@ function paintQaIndex(){
   document.head.appendChild(style);
   const origin=location.origin;
   panel.innerHTML=`<h1>QA deep links</h1><p class="gn-qa-index-lead">Fictional porch cast. Each link hydrates this tab only and does not save. Gallery chrome stays hidden.</p>${QA_LINKS.map((link)=>{
-    const href=`${origin}/?gnqa=1&scenario=${encodeURIComponent(link.id)}&surface=${encodeURIComponent(link.surface)}&gallery=0`;
+    const extra=link.query?`&${link.query}`:'';
+    const href=`${origin}/?gnqa=1&scenario=${encodeURIComponent(link.id)}&surface=${encodeURIComponent(link.surface)}&gallery=0${extra}`;
     return `<a href="${href}"><span>${link.label}</span><small>${link.blurb}</small></a>`;
   }).join('')}`;
 }
@@ -93,6 +94,7 @@ function appSurfaceFor(surface){
   if(surface==='index') return 'home';
   if(surface==='records-overview'||surface==='records-explore'||surface==='records-nights'||surface==='fame'||surface==='shame') return 'records';
   if(surface==='lifepreserver'||surface==='lifepreserver-result') return 'scorecard';
+  if(surface==='add-player'||surface==='dealer'||surface==='dealer-roll'||surface==='lineup'||surface==='review'||surface==='standings'||surface==='edit-round'||surface==='retire'||surface==='rules'||surface==='hf-setup'||surface==='past-night') return 'scorecard';
   return surface;
 }
 
@@ -123,6 +125,11 @@ function applyQaDeepLink(surface){
     paintQaIndex();
     return;
   }
+  const params=new URLSearchParams(location.search);
+  if((params.get('games')||'').toLowerCase().includes('rook')&&window.BPGGames&&typeof BPGGames.revealHiddenGames==='function'){
+    BPGGames.revealHiddenGames('rook');
+    if(window.BPGSlice2&&typeof BPGSlice2.refresh==='function') BPGSlice2.refresh('home');
+  }
   if(window.BPGSlice2&&typeof BPGSlice2.setRecordsPane==='function'){
     if(surface==='records-explore') BPGSlice2.setRecordsPane('explore');
     else if(surface==='records-nights') BPGSlice2.setRecordsPane('nights');
@@ -137,6 +144,46 @@ function applyQaDeepLink(surface){
   }
   if(surface==='lifepreserver'||surface==='lifepreserver-result'){
     openQaLifePreserver(surface==='lifepreserver-result');
+  }
+  if(surface==='add-player'&&typeof addPlayerMidGame==='function') addPlayerMidGame();
+  if(surface==='dealer'&&typeof openDealerModal==='function') openDealerModal();
+  if(surface==='dealer-roll'){
+    if(typeof goHome==='function') goHome();
+    if(typeof showDealerRoll==='function') showDealerRoll();
+    document.getElementById('dealer-roll-modal')?.classList.remove('hidden','opacity-0');
+  }
+  if(surface==='lineup'){
+    if(typeof goHome==='function') goHome();
+    if(typeof showLineupIntro==='function') showLineupIntro('Five Crowns', 0);
+  }
+  if(surface==='review'){
+    if(typeof openScoreEntryModal==='function') openScoreEntryModal();
+    if(typeof doneScoreEntryModal==='function') doneScoreEntryModal();
+  }
+  if(surface==='standings'){
+    document.documentElement.classList.add('s2-standings-only');
+    if(typeof goActiveMatch==='function') goActiveMatch();
+  }
+  if(surface==='edit-round'){
+    if(typeof goActiveMatch==='function') goActiveMatch();
+    requestAnimationFrame(()=>{
+      document.querySelector('#scorecard-body .score-cell-input, #scorecard-body input[id^="score-past-"]')?.click();
+    });
+  }
+  if(surface==='retire'&&typeof openRetirePlayerModal==='function') openRetirePlayerModal();
+  if(surface==='rules'&&typeof openRules==='function') openRules();
+  if(surface==='hf-setup'){
+    if(typeof goHome==='function') goHome();
+    if(typeof openHandFootSetupModal==='function') openHandFootSetupModal();
+  }
+  if(surface==='past-night'){
+    if(typeof goHome==='function') goHome();
+    document.querySelector('[data-s2-action="night-open"], [data-s2-action="night-scorecard"]')?.click();
+  }
+  if((surface==='entry-scores'||surface==='blank-helper')&&window.BPGScorebook&&typeof BPGScorebook.scoreEntryBlankHelper==='function'){
+    const note=document.getElementById('score-entry-unconfirmed');
+    const game=document.getElementById('score-entry-game')?.textContent||'';
+    if(note&&!/Wizard|818/i.test(game)) note.textContent=BPGScorebook.scoreEntryBlankHelper();
   }
 }
 
@@ -168,6 +215,9 @@ export async function bootQaGallery(api){
     if(surface==='whammy'||surface==='nolie')await new Promise(resolve=>setTimeout(resolve,550));
     if(surface==='race')await new Promise(resolve=>setTimeout(resolve,800));
     if(surface==='lifepreserver'||surface==='lifepreserver-result')await new Promise(resolve=>setTimeout(resolve,400));
+    if(surface==='lineup'||surface==='dealer-roll'||surface==='hf-setup'||surface==='add-player'||surface==='dealer'||surface==='retire'||surface==='rules'||surface==='settings'||surface==='past-night'||surface==='edit-round'){
+      await new Promise(resolve=>setTimeout(resolve,350));
+    }
     await waitForStableImages();
     api.setReady();
   };

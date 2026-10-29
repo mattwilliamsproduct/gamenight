@@ -1066,6 +1066,59 @@ function qa818AfterBids(){
   return game;
 }
 
+function qaEmptyBook(){
+  return {allPlayers:[],players:[],history:[],playerProfiles:{},currentGame:null};
+}
+
+function qaRetiredGame(){
+  const game=JSON.parse(JSON.stringify(lateCrowns8Game));
+  game.retired=['Linda'];
+  return game;
+}
+
+function qaTieWizard(){
+  const players=['Megan','Matt','Cat','Mike'];
+  const rounds=wizardExactRounds(players,[
+    {Megan:1},
+    {Megan:1,Matt:1},
+    {Megan:1,Matt:1,Cat:1},
+    {Megan:1,Matt:1,Cat:1,Mike:1},
+    {Megan:2,Matt:2,Cat:1},
+    {Megan:2,Matt:2,Cat:1,Mike:1},
+    {Megan:2,Matt:3,Cat:1,Mike:1},
+    {Megan:2,Matt:2,Cat:2,Mike:2}
+  ]);
+  return makeCurrentGame('Wizard',players,rounds,{
+    wizardPhase:'scoring',
+    maxRounds:8,
+    currentRound:9,
+    completed:true,
+    winners:['Megan','Matt']
+  });
+}
+
+function qaTieNight(){
+  const game=qaTieWizard();
+  return finishedNight(1785600000090,'Wizard','10/29/2026',game.originalRoster,game.rounds,{
+    winners:['Megan','Matt'],
+    completed:true,
+    maxRounds:8
+  });
+}
+
+function qaHeatOverNight(){
+  return finishedNight(1785600000088,'Beat the Heat','10/29/2026',heatPlayers,heatOverRounds,{
+    winners:winnersFor('Beat the Heat', heatOverGame.totals),
+    completed:true
+  });
+}
+
+function qaBookPlus(currentGame, extraNights, seated=8){
+  const book=qaBook(currentGame, seated);
+  book.history=[...extraNights, ...book.history];
+  return book;
+}
+
 export const QA_CAST = Object.freeze([...NAMES]);
 
 export const QA_LINKS = [
@@ -1082,7 +1135,39 @@ export const QA_LINKS = [
   {id:'qa-wizard-bids', surface:'entry-bids', label:'Wizard · bid entry', blurb:'Eight-player Wizard, bidding the next hand.'},
   {id:'qa-wizard-scores', surface:'entry-scores', label:'Wizard · score entry after bids', blurb:'Eight-player Wizard. Bids are in. Score entry is next.'},
   {id:'qa-818-bids', surface:'entry-bids', label:'818 · bid entry', blurb:'Six-player 818 mid-match, bidding the next hand.'},
-  {id:'qa-818-scores', surface:'entry-scores', label:'818 · score entry after bids', blurb:'Same 818 table after bids, ready to log tricks.'}
+  {id:'qa-818-scores', surface:'entry-scores', label:'818 · score entry after bids', blurb:'Same 818 table after bids, ready to log tricks.'},
+  {id:'qa-picker', surface:'home', label:'Game picker', blurb:'Eight seated. Card picker on Start a New Match.'},
+  {id:'qa-add-players', surface:'home', label:'Add players', blurb:'Three seated. Name field ready for the next seat.'},
+  {id:'qa-add-midgame', surface:'add-player', label:'Add player mid-game', blurb:'Five Crowns live. Mid-game Add Player sheet open.'},
+  {id:'qa-dealer-pick', surface:'dealer', label:'Dealer pick', blurb:'Change-dealer sheet on a live Five Crowns table.'},
+  {id:'qa-dealer-roll', surface:'dealer-roll', label:'Dealer roll', blurb:'Roll-a-die picker before the match starts.'},
+  {id:'qa-lineup', surface:'lineup', label:'Lineup intro', blurb:'Tonight\'s Table intro before the first hand.'},
+  {id:'qa-review', surface:'review', label:'Round review before submit', blurb:'Five Crowns drafts parked on the scorecard after Review Scores.'},
+  {id:'qa-standings', surface:'standings', label:'Standings after a round', blurb:'Scorecard totals only, after a late Five Crowns hand.'},
+  {id:'qa-game-over', surface:'scorecard', label:'Game-over winner', blurb:'Beat the Heat Match Complete. Megan hit 67 heat.'},
+  {id:'qa-over-fame', surface:'fame', label:'Fame after that finish', blurb:'Same book plus the just-finished Heat night on the ledger.'},
+  {id:'qa-edit-round', surface:'edit-round', label:'Edit a past round', blurb:'Five Crowns numpad open on an earlier hand.'},
+  {id:'qa-resume-ready', surface:'records-nights', label:'Incomplete · Resume ready', blurb:'Past nights. Incomplete Five Crowns with Resume. Confirm is a native dialog.'},
+  {id:'qa-park-ready', surface:'home', label:'Park ready · live match', blurb:'Live Five Crowns on the table. Start would ask to park. Confirm is native.'},
+  {id:'qa-retired', surface:'scorecard', label:'Retired player mid-game', blurb:'Linda headed ashore. Her row stays, marked Retired.'},
+  {id:'qa-retire-picker', surface:'retire', label:'Retire player picker', blurb:'Send-ashore list on the live Five Crowns table.'},
+  {id:'qa-blank-helper', surface:'entry-scores', label:'Blank scores count as 0', blurb:'Five Crowns score entry showing the blank-as-0 helper.'},
+  {id:'qa-tie-win', surface:'scorecard', label:'Tie for the win', blurb:'Wizard over. Megan and Matt share first.'},
+  {id:'qa-mid-wizard', surface:'scorecard', label:'Wizard · mid-game', blurb:'Six-player Wizard. Bid and trick sums on the card.'},
+  {id:'qa-mid-818', surface:'scorecard', label:'818 · mid-game', blurb:'Six-player 818. Bid and trick sums on the card.'},
+  {id:'qa-mid-crowns', surface:'scorecard', label:'Five Crowns · mid-game', blurb:'Eight-player Five Crowns on the last wilds.'},
+  {id:'qa-mid-flip7', surface:'scorecard', label:'Flip 7 · mid-game', blurb:'Six-player Flip 7 Vengeance with mixed banks and busts.'},
+  {id:'qa-mid-heat', surface:'scorecard', label:'Beat the Heat · mid-game', blurb:'Four players. Megan at 55, one round from 66.'},
+  {id:'qa-mid-rook', surface:'scorecard', label:'Rook · contract', blurb:'Four-player Rook bid setup. Uses games=rook.', query:'games=rook'},
+  {id:'qa-hf-setup', surface:'hf-setup', label:'Hand and Foot · setup', blurb:'Canasta pairing sheet before round 1.'},
+  {id:'qa-hf-entry', surface:'entry-scores', label:'Hand and Foot · rate bar', blurb:'Canasta score entry with the clean/dirty/red-3 rate bar.'},
+  {id:'qa-settings', surface:'settings', label:'Settings', blurb:'Settings modal. Backup, text size, dealer roll.'},
+  {id:'qa-rules', surface:'rules', label:'Rules', blurb:'Five Crowns rules sheet from the live table.'},
+  {id:'qa-empty', surface:'home', label:'First-open empty', blurb:'No seats, no nights, no sample data.'},
+  {id:'qa-start-0', surface:'home', label:'0-player Start guard', blurb:'Empty table. Start alerts Add players. Alert is native.'},
+  {id:'qa-rook-under4', surface:'home', label:'Rook under-4 guard', blurb:'Three seated. Rook on the shelf via games=rook. Start alerts. Alert is native.', query:'games=rook'},
+  {id:'qa-entry-8p', surface:'entry-scores', label:'8 players at 1024 entry', blurb:'Eight-player Five Crowns score entry on the laptop keypad.'},
+  {id:'qa-past-night', surface:'past-night', label:'Past-night scorecard', blurb:'A finished night opened from the book.'}
 ];
 
 // 818 bid-accuracy fixtures.
@@ -1549,6 +1634,203 @@ export const QA_SCENARIOS = {
     description:'Six-player 818 after bids, score entry open.',
     defaultSurface:'entry-scores',
     data:qaBook(qa818AfterBids(), 6)
+  },
+  'qa-picker':{
+    label:'QA · Game picker',
+    description:'Eight seated. Card picker. No live match.',
+    defaultSurface:'home',
+    data:qaBook(null, 8)
+  },
+  'qa-add-players':{
+    label:'QA · Add players',
+    description:'Three seated. Add-name field ready.',
+    defaultSurface:'home',
+    data:qaBook(null, 3)
+  },
+  'qa-add-midgame':{
+    label:'QA · Mid-game add player',
+    description:'Late Five Crowns. Add Player sheet open.',
+    defaultSurface:'add-player',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-dealer-pick':{
+    label:'QA · Dealer pick',
+    description:'Late Five Crowns. Change dealer sheet.',
+    defaultSurface:'dealer',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-dealer-roll':{
+    label:'QA · Dealer roll',
+    description:'Eight seated. Dealer die modal.',
+    defaultSurface:'dealer-roll',
+    data:qaBook(null, 8)
+  },
+  'qa-lineup':{
+    label:'QA · Lineup intro',
+    description:'Eight seated. Tonight\'s Table intro.',
+    defaultSurface:'lineup',
+    data:qaBook(null, 8)
+  },
+  'qa-review':{
+    label:'QA · Round review',
+    description:'Late Five Crowns after Review Scores.',
+    defaultSurface:'review',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-standings':{
+    label:'QA · Standings',
+    description:'Late Five Crowns totals-only standings.',
+    defaultSurface:'standings',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-game-over':{
+    label:'QA · Game over',
+    description:'Beat the Heat Match Complete. Megan at 67 heat.',
+    defaultSurface:'scorecard',
+    data:qaBook(heatOverGame, 4)
+  },
+  'qa-over-fame':{
+    label:'QA · Fame after finish',
+    description:'Records Overview including the just-finished Heat night.',
+    defaultSurface:'fame',
+    data:qaBookPlus(null, [qaHeatOverNight()], 8)
+  },
+  'qa-edit-round':{
+    label:'QA · Edit past round',
+    description:'Late Five Crowns. Numpad on an earlier hand.',
+    defaultSurface:'edit-round',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-resume-ready':{
+    label:'QA · Resume ready',
+    description:'Past nights with an incomplete Five Crowns and Resume.',
+    defaultSurface:'records-nights',
+    data:qaBook(null, 8)
+  },
+  'qa-park-ready':{
+    label:'QA · Park ready',
+    description:'Live Five Crowns. Start would park the match.',
+    defaultSurface:'home',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-retired':{
+    label:'QA · Retired mid-game',
+    description:'Late Five Crowns. Linda retired.',
+    defaultSurface:'scorecard',
+    data:qaBook(qaRetiredGame(), 8)
+  },
+  'qa-retire-picker':{
+    label:'QA · Retire picker',
+    description:'Late Five Crowns. Send-ashore list open.',
+    defaultSurface:'retire',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-blank-helper':{
+    label:'QA · Blank scores helper',
+    description:'Eight-player Five Crowns score entry. Blank counts as 0.',
+    defaultSurface:'entry-scores',
+    data:qaBook(compactCrownsGame, 4)
+  },
+  'qa-tie-win':{
+    label:'QA · Tie for the win',
+    description:'Wizard complete. Megan and Matt share first.',
+    defaultSurface:'scorecard',
+    data:qaBookPlus(qaTieWizard(), [qaTieNight()], 4)
+  },
+  'qa-mid-wizard':{
+    label:'QA · Wizard mid',
+    description:'Six-player Wizard mid-match.',
+    defaultSurface:'scorecard',
+    data:qaBook(demoWizardLive(), 6)
+  },
+  'qa-mid-818':{
+    label:'QA · 818 mid',
+    description:'Six-player 818 mid-match.',
+    defaultSurface:'scorecard',
+    data:qaBook(demo818Live(), 6)
+  },
+  'qa-mid-crowns':{
+    label:'QA · Five Crowns mid',
+    description:'Eight-player late Five Crowns.',
+    defaultSurface:'scorecard',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-mid-flip7':{
+    label:'QA · Flip 7 mid',
+    description:'Six-player Flip 7 Vengeance.',
+    defaultSurface:'scorecard',
+    data:qaBook(demoFlip7Live(), 6)
+  },
+  'qa-mid-heat':{
+    label:'QA · Beat the Heat mid',
+    description:'Four-player Heat. Megan at 55.',
+    defaultSurface:'scorecard',
+    data:qaBook(heatCloseGame, 4)
+  },
+  'qa-mid-rook':{
+    label:'QA · Rook contract',
+    description:'Four-player Rook bid setup.',
+    defaultSurface:'scorecard',
+    data:qaBook(makeCurrentGame('Rook', NAMES.slice(0,4), [], {
+      currentRound:1,
+      rookConfig:{winTarget:300,minBid:70,totalCounters:200},
+      rookPhase:'bidSetup',
+      totals:Object.fromEntries(NAMES.slice(0,4).map(player=>[player,0]))
+    }), 4)
+  },
+  'qa-hf-setup':{
+    label:'QA · Hand and Foot setup',
+    description:'Four seated. Canasta pairing sheet.',
+    defaultSurface:'hf-setup',
+    data:qaBook(null, 4)
+  },
+  'qa-hf-entry':{
+    label:'QA · Hand and Foot rate bar',
+    description:'In-progress Canasta score entry.',
+    defaultSurface:'entry-scores',
+    data:qaBook(demoCanastaLive(), 4)
+  },
+  'qa-settings':{
+    label:'QA · Settings',
+    description:'Settings modal on a seated table.',
+    defaultSurface:'settings',
+    data:qaBook(null, 8)
+  },
+  'qa-rules':{
+    label:'QA · Rules',
+    description:'Five Crowns rules on a live table.',
+    defaultSurface:'rules',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-empty':{
+    label:'QA · First-open empty',
+    description:'Clean first-use Home.',
+    defaultSurface:'home',
+    data:qaEmptyBook()
+  },
+  'qa-start-0':{
+    label:'QA · 0-player Start',
+    description:'Empty table. Start stays on Home after the add-players alert.',
+    defaultSurface:'home',
+    data:qaEmptyBook()
+  },
+  'qa-rook-under4':{
+    label:'QA · Rook under 4',
+    description:'Three seated. Rook visible. Start alerts.',
+    defaultSurface:'home',
+    data:qaBook(null, 3)
+  },
+  'qa-entry-8p':{
+    label:'QA · 8-player entry',
+    description:'Eight-player Five Crowns score entry.',
+    defaultSurface:'entry-scores',
+    data:qaBook(lateCrowns8Game, 8)
+  },
+  'qa-past-night':{
+    label:'QA · Past night',
+    description:'Finished night scorecard from the book.',
+    defaultSurface:'past-night',
+    data:qaBook(null, 8)
   }
 };
 
