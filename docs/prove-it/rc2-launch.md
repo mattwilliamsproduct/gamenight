@@ -1,6 +1,6 @@
 # RC2 launch candidate prove-it
 
-Copy into the PR. Production status: PENDING until Matt approves deploy. This freeze is a new `rc2-candidate` on `cursor/rc2-launch`. Old tags `rc2-candidate-20261029-0251`, `rc2-candidate-20261029-0423`, and `rc2-candidate-20261029-1400` stay put.
+Copy into the PR. Production status: PENDING until Matt approves deploy. This freeze is `rc2-candidate-20261029-1505` on `cursor/rc2-launch`. Old tags `rc2-candidate-20261029-0251`, `rc2-candidate-20261029-0423`, and `rc2-candidate-20261029-1400` stay put.
 
 ```
 Scenarios opened (gallery ids):
@@ -8,10 +8,10 @@ empty-home, empty-records, home-party, five-crowns-4, five-crowns-late, five-cro
 Phone 390 look (Y/N): Y
 Laptop look (Y/N): Y
 Commands run + pass/fail:
-npm run check pending on freeze SHA
-npx playwright test --config=playwright.functional.config.mjs look-fix files 19 passed; full pack pending
-npx playwright test (visual + WebKit) pending
-npx playwright test --config=playwright.porch-night.config.mjs pending
+npm run check pass
+npx playwright test --config=playwright.functional.config.mjs 171 passed, 0 failed, 0 skipped
+npx playwright test (visual + WebKit) 153 passed, 105 skipped, 0 failed
+npx playwright test --config=playwright.porch-night.config.mjs 2 passed, 0 failed, 0 skipped
 Named backend cases:
 scripts/test-card-picker.mjs six hidden-Rook faces, no tapstart, no demo seed
 scripts/test-demo-seed.mjs shipped page never boots demo-seed
@@ -25,7 +25,7 @@ tests/functional/rehearsal-90s.spec.mjs
 tests/functional/older-night.spec.mjs
 Gap list:
 Real Safari on a phone. TV across the room. 1024 Records Overview stacks career stats. Phone Home Start stays below the cards (scroll).
-Gate C Noul note (provider fallback): pending until the freeze SHA gate finishes.
+Gate C Noul note (provider fallback): fallback. No Jev run on this freeze. Conservative pass. Do not undraft or merge.
 ```
 
 ## Isolated walks
