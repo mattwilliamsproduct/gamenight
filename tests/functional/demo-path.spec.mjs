@@ -1,11 +1,12 @@
 import {expect, test} from '@playwright/test';
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {DEMO_PATH_LAST_ROUND} from '../../public/qa/fixtures.mjs';
+import {openTestView} from '../helpers/inject-book.mjs';
 
 const STRIP = process.env.DEMO_STRIP_DIR || '/opt/cursor/artifacts/screenshots/demo-path';
 mkdirSync(STRIP, {recursive: true});
 
-const LINK = '/?demo&view=demo-path';
+const LINK = 'test inject: demo-path';
 
 async function shot(page, name) {
   const path = `${STRIP}/${name}.png`;
@@ -13,27 +14,8 @@ async function shot(page, name) {
   return path;
 }
 
-async function openDemoPath(page, {seedPersonal} = {}) {
-  await page.addInitScript((personal) => {
-    localStorage.clear();
-    sessionStorage.clear();
-    if (personal) {
-      localStorage.setItem('gn_all_players', JSON.stringify(['Ada']));
-      localStorage.setItem('gn_players_v2', JSON.stringify(['Ada']));
-      localStorage.setItem('gn_history', JSON.stringify([{
-        id: 9,
-        game: 'Wizard',
-        date: '1/1/2026',
-        originalRoster: ['Ada'],
-        totals: {Ada: 10},
-        winners: ['Ada'],
-        rounds: [{round: 1, scores: {Ada: 10}}],
-        completed: true
-      }]));
-    }
-  }, !!seedPersonal);
-  await page.goto(LINK, {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded');
+async function openDemoPath(page) {
+  await openTestView(page, 'demo-path', {persist: true});
 }
 
 async function enterScores(page, values) {
@@ -79,7 +61,6 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
 
   await mark('open', async () => {
     await openDemoPath(page);
-    await expect(page.locator('#demo-seed-msg')).toContainText(/Sample night/);
     await expect(page.locator('#slice2-board-line')).toContainText(/Five Crowns/);
     await expect(page.locator('#scorecard-body')).toContainText('June');
     await expect(page.locator('#slice2-table-btn')).toBeVisible();
@@ -156,7 +137,8 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
     expect(saved.winners).toContain('June');
     expect(saved.totals.June).toBe(38);
     expect(saved.totals.Theo).toBe(41);
-    expect(saved.storageHistory.length, 'isolated session must not persist into gn_history').toBe(0);
+    expect(saved.storageHistory.length, 'isolated profile keeps the finished night').toBe(1);
+    expect(saved.storageHistory[0].winners).toContain('June');
     await shot(page, '390-05-records');
   });
 
@@ -168,11 +150,25 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
   }, null, 2));
 });
 
-test('demo-path does not write over a personal book', async ({page}) => {
+test('?demo leaves a personal book alone', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
-  await openDemoPath(page, {seedPersonal: true});
-  await expect(page.locator('#demo-seed-msg')).toContainText(/Sample night/);
-  await expect(page.locator('#scorecard-body')).toContainText('June');
+  await page.addInitScript(() => {
+    localStorage.setItem('gn_all_players', JSON.stringify(['Ada']));
+    localStorage.setItem('gn_players_v2', JSON.stringify(['Ada']));
+    localStorage.setItem('gn_history', JSON.stringify([{
+      id: 9,
+      game: 'Wizard',
+      date: '1/1/2026',
+      originalRoster: ['Ada'],
+      totals: {Ada: 10},
+      winners: ['Ada'],
+      rounds: [{round: 1, scores: {Ada: 10}}],
+      completed: true
+    }]));
+  });
+  await page.goto('/?demo&view=demo-path', {waitUntil: 'domcontentloaded'});
+  await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'ignored');
+  await expect(page.locator('#demo-seed-msg')).toHaveCount(0);
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('gn_history') || '[]'));
   expect(stored).toHaveLength(1);
   expect(stored[0].id).toBe(9);

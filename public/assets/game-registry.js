@@ -12,6 +12,7 @@
   ]);
 
   const DEMO_GAMES_KEY = 'gn_demo_games';
+  let extraHiddenKeys = '';
 
   function searchParams(search) {
     try {
@@ -30,23 +31,25 @@
     }
   }
 
-  function rememberDemoGames(search) {
-    const params = searchParams(search);
-    if (!params.has('demo')) return storedDemoGames();
-    const games = params.get('games') || '';
+  function rememberDemoGames() {
+    return extraHiddenKeys || storedDemoGames();
+  }
+
+  function revealHiddenGames(keys) {
+    extraHiddenKeys = String(keys || '');
     try {
       if (typeof sessionStorage !== 'undefined') {
-        if (games) sessionStorage.setItem(DEMO_GAMES_KEY, games);
+        if (extraHiddenKeys) sessionStorage.setItem(DEMO_GAMES_KEY, extraHiddenKeys);
         else sessionStorage.removeItem(DEMO_GAMES_KEY);
       }
     } catch (error) {
       /* ignore quota / private-mode */
     }
-    return games;
+    return extraHiddenKeys;
   }
 
-  function isDemo(search) {
-    return searchParams(search).has('demo');
+  function isDemo() {
+    return false;
   }
 
   function demoGameKeys(search) {
@@ -59,20 +62,17 @@
     return GAMES.find(function (game) { return game.id === id; }) || null;
   }
 
-  function isHiddenGameVisible(game, search) {
+  function isHiddenGameVisible(game) {
     if (!game) return false;
     if (!game.hidden) return true;
-    rememberDemoGames(search);
-    if (!isDemo(search) && !storedDemoGames()) return false;
-    const keys = demoGameKeys(search).split(',').map(function (key) { return key.trim().toLowerCase(); }).filter(Boolean);
+    const keys = (extraHiddenKeys || storedDemoGames()).split(',').map(function (key) { return key.trim().toLowerCase(); }).filter(Boolean);
     const demoKey = String(game.demoKey || game.id || '').toLowerCase();
     const idKey = String(game.id || '').toLowerCase();
     return keys.indexOf(demoKey) !== -1 || keys.indexOf(idKey) !== -1;
   }
 
-  function visibleGames(search) {
-    rememberDemoGames(search);
-    return GAMES.filter(function (game) { return isHiddenGameVisible(game, search); });
+  function visibleGames() {
+    return GAMES.filter(function (game) { return isHiddenGameVisible(game); });
   }
 
   function displayName(id) {
@@ -96,7 +96,8 @@
     winLow,
     isDemo,
     demoGameKeys,
-    rememberDemoGames
+    rememberDemoGames,
+    revealHiddenGames
   };
 
   root.BPGGames = api;

@@ -7,15 +7,15 @@ test.beforeEach(async ({page})=>{
   await silencePorchPrompts(page);
 });
 
-test('picker shows Canasta and hides Rook unless ?demo&games=rook', async ({page})=>{
+test('picker shows Canasta and hides Rook, including after ?demo&games=rook', async ({page})=>{
   await page.goto('/?wipe=1', {waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toContainText('Canasta');
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
 
   await page.goto('/?demo&games=rook', {waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>document.body.dataset.gnDemoReady==='seeded'||document.body.dataset.gnDemoReady==='skipped', null, {timeout:20000});
-  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+  await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'ignored');
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
 });
 

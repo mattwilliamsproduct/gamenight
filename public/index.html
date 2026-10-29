@@ -8,22 +8,6 @@
       if(new URLSearchParams(location.search).has('standings')){
         document.documentElement.classList.add('s2-standings-only');
       }
-      var demoParams=new URLSearchParams(location.search);
-      if(!demoParams.has('demo')) return;
-      var demoHost=window.__GN_DEMO_HOST_OVERRIDE__||location.hostname;
-      var demoOk=demoHost==='localhost'||demoHost==='127.0.0.1'||demoHost==='::1'||/^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(demoHost);
-      if(!demoOk||demoHost==='cardknight.vercel.app'){
-        document.documentElement.dataset.gnDemoIgnored='1';
-        return;
-      }
-      var demoArt=(demoParams.get('art')||'').toLowerCase();
-      var demoLogo=(demoParams.get('logo')||'').toLowerCase();
-      if(demoArt==='dusk') document.documentElement.dataset.bpArt='dusk';
-      if(demoLogo==='dusk') document.documentElement.dataset.bpLogo='dusk';
-      document.documentElement.classList.add('gn-demo-pending');
-      var demoStyle=document.createElement('style');
-      demoStyle.textContent='html.gn-demo-pending body{visibility:hidden}';
-      document.documentElement.appendChild(demoStyle);
     }catch(err){}
   })();
   </script>
@@ -19708,49 +19692,11 @@ ${isDealer
   /* ═══ BOOT ═══ */
   window.BPGDemoLiveGame=function(){return currentGame;};
   async function bootDemoSeedIfRequested(){
-    const params=new URLSearchParams(location.search);
-    const host=window.__GN_DEMO_HOST_OVERRIDE__||location.hostname;
-    const allowed=host==='localhost'||host==='127.0.0.1'||host==='::1'||/^.+-mattwilliamsproducts-projects\.vercel\.app$/.test(host);
-    if(!params.has('demo')){
-      document.documentElement.classList.remove('gn-demo-pending');
-      return null;
-    }
-    if(!allowed||host==='cardknight.vercel.app'){
+    if(new URLSearchParams(location.search).has('demo')){
       document.body.dataset.gnDemoReady='ignored';
-      document.documentElement.classList.remove('gn-demo-pending');
-      return null;
     }
-    try{
-    const {bootDemoSeed}=await import('./assets/demo-seed.mjs');
-    return await bootDemoSeed({
-      hostname:host,
-      search:location.search,
-      storage:localStorage,
-      applyState(data){
-        const fixture=data||{};
-        allPlayers=Array.isArray(fixture.allPlayers)?fixture.allPlayers.slice():[];
-        players=Array.isArray(fixture.players)?fixture.players.slice():[];
-        history=Array.isArray(fixture.history)?JSON.parse(JSON.stringify(fixture.history)):[];
-        playerProfiles=fixture.playerProfiles&&typeof fixture.playerProfiles==='object'?JSON.parse(JSON.stringify(fixture.playerProfiles)):{};
-        currentGame=fixture.currentGame?JSON.parse(JSON.stringify(fixture.currentGame)):null;
-        if(currentGame&&(!currentGame.name||!Array.isArray(currentGame.originalRoster))) currentGame=null;
-        if(currentGame?.name==='Rook'&&currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
-        markHistoryChanged();
-      },
-      skipPersist(on){ window.__GN_DEMO_SKIP_PERSIST=!!on; },
-      ready(status, view, game){
-        document.body.dataset.gnDemoReady=status||'';
-        document.body.dataset.gnDemoView=view||'';
-        document.body.dataset.gnDemoGame=game||'';
-        document.documentElement.classList.remove('gn-demo-pending');
-      }
-    });
-    }catch(error){
-      console.warn('TEMP demo seed skipped', error);
-      document.body.dataset.gnDemoReady='error';
-      document.documentElement.classList.remove('gn-demo-pending');
-      return null;
-    }
+    document.documentElement.classList.remove('gn-demo-pending');
+    return null;
   }
   window.onload=async function(){
     gnPerfInit();

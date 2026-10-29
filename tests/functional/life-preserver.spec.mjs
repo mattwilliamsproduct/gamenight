@@ -1,5 +1,6 @@
 import {expect,test} from '@playwright/test';
 import {openScenario} from '../helpers/qa.mjs';
+import {openTestView} from '../helpers/inject-book.mjs';
 
 test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({page})=>{
   await openScenario(page,{scenario:'eight18-porch-lp'});
@@ -81,8 +82,7 @@ test('Life Preserver roulette labels stay inside their slices', async ({page}) =
   ];
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
-    await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+    await openTestView(page, 'lifepreserver-low');
     await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
     await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
     const report = await page.evaluate(() => BPGSlice2.wheelLabelReport());
@@ -112,8 +112,8 @@ test('Proposed TEMP wheel uses 30/45/10/15 and keeps the spin button on screen',
   ];
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto('/?demo&view=lifepreserver-low&lp=proposed', {waitUntil: 'domcontentloaded'});
-    await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+    await page.addInitScript(() => { window.BPG_LP_TABLE = 'proposed'; });
+    await openTestView(page, 'lifepreserver-low');
     await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
     await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
     await expect(page.locator('#wheel-odds-line')).toBeVisible();
@@ -150,8 +150,7 @@ test('Proposed TEMP wheel uses 30/45/10/15 and keeps the spin button on screen',
 test('Life Preserver reduced-motion result keeps labels inside slices', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.emulateMedia({reducedMotion: 'reduce'});
-  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  await openTestView(page, 'lifepreserver-low');
   await page.locator('#btn-spin').click();
   await expect(page.locator('#wheel-result')).toBeVisible({timeout: 4000});
   const report = await page.evaluate(() => BPGSlice2.wheelLabelReport());
@@ -165,8 +164,7 @@ test('Life Preserver reduced-motion result keeps labels inside slices', async ({
 
 test('Life Preserver dialog stays usable at a short laptop height', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 650});
-  await page.goto('/?demo&view=lifepreserver-low', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded', null, {timeout: 20000});
+  await openTestView(page, 'lifepreserver-low');
   await page.waitForFunction(() => (window.BPGSlice2?.wheelLabelReport?.().labels || []).length > 4, null, {timeout: 5000});
   const fit = await page.evaluate(() => {
     const hits = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));

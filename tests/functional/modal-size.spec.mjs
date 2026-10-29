@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {nextPaint, openScenario} from '../helpers/qa.mjs';
+import {openTestView} from '../helpers/inject-book.mjs';
 
 function longFiveCrownsMatch() {
   const players = ['Megan', 'Matt', 'Cat', 'Mike', 'Vikki', 'Duke', 'Brick', 'Linda'];
@@ -156,11 +157,7 @@ async function measureAddPlayer(page) {
 }
 
 async function openAddPlayerDemo(page) {
-  await page.addInitScript(() => {
-    window.__GN_DEMO_HOST_OVERRIDE__ = 'localhost';
-  });
-  await page.goto('/?demo&view=add-player-m', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded' || document.body.dataset.gnDemoReady === 'skipped', null, {timeout: 20000});
+  await openTestView(page, 'add-player-m');
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
 }
 

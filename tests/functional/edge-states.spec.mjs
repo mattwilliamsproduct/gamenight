@@ -1,5 +1,6 @@
 import {mkdirSync} from 'node:fs';
 import {expect, test} from '@playwright/test';
+import {openTestView} from '../helpers/inject-book.mjs';
 
 const SHOT = process.env.EDGE_SHOT_DIR || '/opt/cursor/artifacts/screenshots/edge-states';
 mkdirSync(SHOT, {recursive: true});
@@ -9,8 +10,7 @@ async function openDemo(page, view) {
     localStorage.clear();
     sessionStorage.clear();
   });
-  await page.goto(`/?demo&view=${view}`, {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => !!document.body.dataset.gnDemoReady);
+  await openTestView(page, view);
 }
 
 test('empty home has Start and no sample-night CTA', async ({page}) => {

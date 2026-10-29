@@ -16,14 +16,17 @@ test('Rook is hidden by default and Canasta is on the picker', () => {
   assert.equal(Games.gameById('Rook').hidden, true);
 });
 
-test('Rook appears when the URL has ?demo&games=rook', () => {
+test('Rook stays hidden when the URL has ?demo&games=rook', () => {
   assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo'), false);
   assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?games=rook'), false);
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo&games=rook'), true);
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo&games=rook'), false);
   const ids = Games.visibleGames('?demo&games=rook').map((game) => game.id);
-  assert.ok(ids.includes('Rook'));
+  assert.equal(ids.includes('Rook'), false);
   assert.ok(ids.includes('Hand and Foot'));
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), ''), false);
+  Games.revealHiddenGames('rook');
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook')), true);
+  Games.revealHiddenGames('');
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook')), false);
 });
 
 test('old Rook history still has a registry row and high-score win direction', () => {

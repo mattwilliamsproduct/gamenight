@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {QA_SCENARIOS} from '../public/qa/fixtures.mjs';
 import {validateScenario} from '../public/qa/fixture-rules.mjs';
@@ -214,4 +215,11 @@ test('demo-path is isolated: no persist, no block, no write into a real book', (
   assert.equal(beside.blocked, false);
   assert.equal(JSON.parse(real.getItem('gn_history'))[0].id, 9);
   assert.equal(real.getItem(DEMO_FLAG), null);
+});
+
+test('the shipped page never boots demo-seed from ?demo', () => {
+  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /import\('\.\/assets\/demo-seed\.mjs'\)/);
+  assert.doesNotMatch(html, /classList\.add\('gn-demo-pending'\)/);
+  assert.match(html, /dataset\.gnDemoReady='ignored'/);
 });

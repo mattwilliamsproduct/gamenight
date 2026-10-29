@@ -35,6 +35,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
 - One saved night reads `1 night`.
 - The dealer chip hugs the letters and stays a dealer mark, not a selected state. The candy-stripe 4th is Life Preserver available.
+- `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
 
 ## Kills
 

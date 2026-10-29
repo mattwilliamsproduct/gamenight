@@ -232,7 +232,7 @@ function parseTypedView(view){
   return {kind: raw, game: ''};
 }
 
-function emptyPayload(){
+export function emptyPayload(){
   return {allPlayers: [], players: [], history: [], playerProfiles: {}, currentGame: null};
 }
 
@@ -295,7 +295,7 @@ function applyRookEntryState(data){
   return data;
 }
 
-function payloadForView(view, base, gameRaw){
+export function payloadForView(view, base, gameRaw){
   const typed = parseTypedView(view);
   if (view === 'empty-home' || view === 'empty-records') return emptyPayload();
   if (view === 'keypad-8p' || view === 'error-entry') return scenarioData('demo-seed');
@@ -308,6 +308,7 @@ function payloadForView(view, base, gameRaw){
   if (view === 'podium-tie') return scenarioData('wizard-tied-places');
   if (view === 'past-night') return scenarioData('home-party');
   if (view === 'add-player-m') return scenarioData('five-crowns-comeback');
+  if (view === 'demo-path') return scenarioData('demo-path');
   if (view === 'game' || typed.kind === 'game') {
     return payloadForGame(gameKey(gameRaw) || 'fivecrowns') || cloneData(base);
   }
@@ -331,7 +332,7 @@ function readLiveGame(){
   return (typeof window !== 'undefined' && window.BPGDemoLiveGame && window.BPGDemoLiveGame()) || null;
 }
 
-function openDemoView(view){
+export function openDemoView(view){
   const typed = parseTypedView(view);
   if (view === 'empty-home' || view === 'home') {
     if (typeof goHome === 'function') goHome();

@@ -1,5 +1,6 @@
 import {mkdirSync} from 'node:fs';
 import {expect, test} from '@playwright/test';
+import {openTestView} from '../helpers/inject-book.mjs';
 
 const SHOT = process.env.PHONE_COND_DIR || '/opt/cursor/artifacts/screenshots/phone-conditions';
 mkdirSync(SHOT, {recursive: true});
@@ -10,8 +11,7 @@ async function openDemoPath(page, {fontScale} = {}) {
     sessionStorage.clear();
     if (scale) localStorage.setItem('gn_ui_scale', String(scale));
   }, fontScale || '');
-  await page.goto('/?demo&view=demo-path', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded');
+  await openTestView(page, 'demo-path');
 }
 
 test('demo board primary controls are at least 44px on 390', async ({page}) => {
@@ -95,8 +95,7 @@ test('1920 scoreboard keeps names and totals in layout (readability judged separ
 
 test('8-player keypad Next stays on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
-  await page.goto('/?demo&view=keypad-8p', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded');
+  await openTestView(page, 'keypad-8p');
   const next = page.locator('#score-entry-modal .score-entry-key.next');
   await expect(next).toBeVisible();
   const box = await next.evaluate((el) => {
@@ -111,8 +110,7 @@ test('8-player keypad Next stays on 375', async ({page}) => {
 
 test('Canasta entry shows four-digit team totals on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
-  await page.goto('/?demo&view=game&game=hand-and-foot', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => document.body.dataset.gnDemoReady === 'seeded');
+  await openTestView(page, 'game', {game: 'hand-and-foot'});
   await page.locator('#slice2-enter-btn, #submit-action-btn').first().click();
   const modal = page.locator('#score-entry-modal');
   await expect(modal).not.toHaveClass(/hidden/);
@@ -296,11 +294,7 @@ test('768 home nav stays on one row', async ({page}) => {
     localStorage.clear();
     sessionStorage.clear();
   });
-  await page.goto('/?demo&view=home', {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => {
-    const ready = document.body.dataset.gnDemoReady;
-    return ready === 'seeded' || ready === 'empty' || ready === 'skipped';
-  });
+  await openTestView(page, 'home');
   const nav = await page.evaluate(() => {
     const btns = [...document.querySelectorAll('#top-nav .nav-btn')].filter((el) => {
       const r = el.getBoundingClientRect();
