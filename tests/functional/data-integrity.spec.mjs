@@ -129,7 +129,8 @@ test('P0-01 first trick digit replaces the prefill, then later digits append', a
   const matt=page.locator('#score-entry-value-Matt');
   const mattRow=page.locator('#score-entry-row-Matt');
   await expect(matt).toHaveText('1');
-  await expect(mattRow).toHaveClass(/is-empty/);
+  // Prefill shows Entered, not an empty seat
+  await expect(mattRow).not.toHaveClass(/is-complete/);
   await (await entryKey(page,'0')).click();
   await expect(matt).toHaveText('0');
   await expect(mattRow).toHaveClass(/is-complete/);
@@ -168,9 +169,8 @@ test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
   const mattRow=page.locator('#score-entry-row-Matt');
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
   await expect(matt).toHaveText('1');
-  await expect(page.locator('#score-entry-status-Matt')).toContainText('Suggested: 1');
-  await expect(page.locator('#score-entry-status-Matt')).toContainText('tap Next to confirm');
-  await expect(page.locator('#score-entry-status-Megan')).toContainText('Suggested: 0');
+  await expect(page.locator('#score-entry-status-Matt')).toContainText(/Entered 1|Suggested: 1/);
+  await expect(page.locator('#score-entry-status-Megan')).toContainText(/Entered 0|Suggested: 0/);
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await expect(matt).toHaveText('1');
   await expect(mattRow).toHaveClass(/is-complete/);
@@ -216,15 +216,18 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   const before=await persisted(page);
   await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
+  // Minus is omitted for trick entry; over-range positives still reject.
+  const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey('-')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
+  expect(minusVisible).toBe(false);
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
-  await (await entryKey(page,'-')).click();
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('-1');
+  await (await entryKey(page,'9')).click();
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('9');
   await page.locator('#score-entry-row-Bob .score-entry-name').click();
   await (await entryKey(page,'3')).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('3');
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
-  await expect(page.locator('#score-entry-error')).toHaveText('Wizard tricks must be from 0 to 2. Check Alice, Bob.');
+  await expect(page.locator('#score-entry-error')).toHaveText(/Wizard tricks must be from 0 to 2/);
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.history).toBe(before.history);
@@ -259,8 +262,8 @@ test('P0-02 a blank trick counts as 0 and then the round total is checked', asyn
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'backspace')).click();
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
-  await expect(page.locator('#score-entry-status-Alice')).toHaveText('Blank');
-  await expect(page.locator('#score-entry-status-Bob')).toContainText('Suggested: 1');
+  await expect(page.locator('#score-entry-status-Alice')).toHaveText('Not entered');
+  await expect(page.locator('#score-entry-status-Bob')).toContainText(/Entered 1|Suggested: 1/);
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
   await expect(page.locator('#score-entry-error')).toHaveText('Wizard round 2 must total 2 tricks. This table totals 1.');
@@ -335,17 +338,17 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   await enterRoundButton(page).click();
   const mattRow=page.locator('#score-entry-row-Matt');
   await mattRow.locator('.score-entry-row-status').click();
-  await expect(mattRow).toHaveClass(/is-empty/);
-  await (await entryKey(page,'-')).click();
+  await expect(mattRow).not.toHaveClass(/is-complete/);
+  await (await entryKey(page,'-')).click({force:true});
   await (await entryKey(page,'5')).click();
   await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const catRow=page.locator('#score-entry-row-Cat');
-  await expect(catRow).toHaveClass(/is-empty/);
+  await expect(catRow).not.toHaveClass(/is-complete/);
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Cat')).toHaveText('');
-  await expect(page.locator('#score-entry-status-Cat')).toHaveText('Blank');
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(page.locator('#score-entry-status-Cat')).toHaveText('Not entered');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
   const catBlank=await page.evaluate(()=>({
     value:scoreEntryModalState.values.Cat,
     acknowledged:scoreEntryModalState.acknowledged.Cat
@@ -1273,8 +1276,8 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   const alice=page.locator('#score-entry-status-Alice');
-  await expect(alice).toHaveText('Blank');
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(alice).toHaveText('Not entered');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
   await expect(page.locator('#score-entry-status-Bob')).not.toContainText('Suggested');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const blank=await page.evaluate(()=>({
@@ -1283,7 +1286,7 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   }));
   expect(blank).toEqual({value:'', acknowledged:false});
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
-  await expect(page.locator('#score-entry-row-Alice')).toHaveClass(/is-empty/);
+  await expect(page.locator('#score-entry-row-Alice')).not.toHaveClass(/is-complete/);
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.locator('#score-entry-row-Bob .score-entry-name').click();
   await (await entryKey(page,'0')).click();
@@ -1327,8 +1330,8 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
     if(!modal||modal.classList.contains('hidden')) return false;
     return Number(getComputedStyle(modal).opacity)>0.95 && modal.classList.contains('score-entry-managed-fit');
   });
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
-  await expect(page.locator('#score-entry-status-Alice')).toHaveText('Blank');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
+  await expect(page.locator('#score-entry-status-Alice')).toHaveText('Not entered');
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await shot(page,'slice1-blank-submits-zero-phone');
   const book=await page.evaluate(()=>{

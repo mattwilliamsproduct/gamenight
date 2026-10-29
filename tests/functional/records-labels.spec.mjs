@@ -101,18 +101,21 @@ test('editing a historical Five Crowns round updates winners, streaks, rivalries
   const result = await page.evaluate(() => {
     const nights = [];
     for (let i = 0; i < 5; i += 1) {
+      const rounds = [];
+      for (let r = 1; r <= 11; r += 1) {
+        rounds.push({round: r, scores: {Ada: r === 11 ? 0 : 2, Bea: r === 11 ? 10 : 3}});
+      }
       nights.push({
         id: 8100 + i,
         game: 'Five Crowns',
         date: `10/${20 + i}/2026`,
         completed: true,
+        endedEarly: false,
+        maxRounds: 11,
         originalRoster: ['Ada', 'Bea'],
-        totals: {Ada: 20, Bea: 30},
+        totals: {Ada: 20, Bea: 40},
         winners: ['Ada'],
-        rounds: [
-          {round: 1, scores: {Ada: 10, Bea: 15}},
-          {round: 2, scores: {Ada: 10, Bea: 15}}
-        ]
+        rounds
       });
     }
     history = nights;
