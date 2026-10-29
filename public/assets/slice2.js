@@ -120,10 +120,10 @@
         const sum = table.reduce((total, player) => total + (parseInt(game.currentBids?.[player], 10) || 0), 0);
         const delta = sum - tricks;
         let note;
-        if (delta === 0) note = 'exact';
-        else if (delta > 0) note = `${delta} over`;
-        else note = `${Math.abs(delta)} under`;
-        bits.push(`Bids add up to ${sum} of ${tricks} tricks (${note})`);
+        if (delta === 0) note = 'they match the tricks';
+        else if (delta > 0) note = `${delta} more than the tricks`;
+        else note = `${Math.abs(delta)} fewer than the tricks`;
+        bits.push(`Bids add up to ${sum} of ${tricks} tricks · ${note}`);
       }
     }
     return bits.join(' · ');

@@ -124,6 +124,7 @@ test('Departed player leaves live scorecard with disclosure', async ({page}) => 
   expect(result.disclosure).toMatch(/1 player left early/i);
   expect(result.inView, JSON.stringify(result.box)).toBe(true);
   expect(result.boardLine).toMatch(/Bids add up to \d+ of \d+ tricks/i);
+  expect(result.boardLine).not.toMatch(/\(exact\)/i);
   expect(result.bidHeader).toMatch(/Bids\s*\d+ of \d+/i);
   await page.locator('#left-early-disclosure').click();
   await expect(page.locator('#left-early-names')).toBeVisible();
