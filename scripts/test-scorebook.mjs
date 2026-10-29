@@ -309,3 +309,95 @@ test('the live page still uses the same Wizard, 818, and Rook formulas', async (
   assert.match(html, /if\(madeIt\)\{\s*scores\[bidder\]=bidderTeamPts;\s*scores\[partner\]=bidderTeamPts;\s*opponents\.forEach\(p=>scores\[p\]=oppCounters\);/);
   assert.match(html, /scores\[bidder\]=-bid;\s*scores\[partner\]=-bid;\s*opponents\.forEach\(p=>scores\[p\]=oppCounters\);/);
 });
+
+test('Wizard bid blanks are missing, not range errors', () => {
+  const result = Scorebook.validateEntries({
+    game: 'Wizard',
+    kind: 'bids',
+    roundNumber: 1,
+    players: ['Matt', 'Cat', 'Mike'],
+    values: { Matt: '', Cat: 1, Mike: '0' }
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'missing');
+  assert.deepEqual(result.missingPlayers, ['Matt']);
+  assert.match(result.message, /Still need a bid from Matt/);
+});
+
+test('Wizard bid out-of-range stays a range error', () => {
+  const result = Scorebook.validateEntries({
+    game: 'Wizard',
+    kind: 'bids',
+    roundNumber: 1,
+    players: ['Matt', 'Cat'],
+    values: { Matt: 2, Cat: 0 }
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'invalid');
+  assert.deepEqual(result.invalidPlayers, ['Matt']);
+  assert.match(result.message, /bids must be from 0 to 1/);
+});
+
+test('backspace to blank clears acknowledged', () => {
+  let next = Scorebook.applyScoreEntryKey({ value: '1', acknowledged: true }, 'backspace');
+  assert.equal(next.value, '');
+  assert.equal(next.acknowledged, false);
+  next = Scorebook.applyScoreEntryKey({ value: '', acknowledged: false }, '0');
+  assert.equal(next.value, '0');
+  assert.equal(next.acknowledged, true);
+  next = Scorebook.applyScoreEntryKey({ value: '', acknowledged: false, mode: 'bids' }, '0');
+  assert.equal(next.value, '0');
+  assert.equal(next.acknowledged, false);
+});
+
+test('score entry status distinguishes not entered, entered 0, and confirmed', () => {
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false, mode: 'bids' }).label, 'Not entered');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '0', acknowledged: false, mode: 'bids' }).label, 'Entered 0');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '0', acknowledged: true, mode: 'bids' }).label, '✓ Confirmed: 0');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '1', acknowledged: true, mode: 'bids' }).label, '✓ Confirmed: 1');
+});
+
+test('isFullGame derives from stored rounds and does not guess Rook targets', () => {
+  const five = {
+    game: 'Five Crowns',
+    completed: true,
+    maxRounds: 11,
+    rounds: Array.from({ length: 3 }, (_, i) => ({ round: i + 1, scores: { Matt: 5 } })),
+    totals: { Matt: 15 }
+  };
+  assert.equal(Scorebook.isFullGame(five), false);
+  assert.equal(Scorebook.isEndedEarlyMatch({ ...five, endedEarly: true }), true);
+
+  const full = {
+    ...five,
+    endedEarly: false,
+    rounds: Array.from({ length: 11 }, (_, i) => ({ round: i + 1, scores: { Matt: 5 } })),
+    totals: { Matt: 55 }
+  };
+  assert.equal(Scorebook.isFullGame(full), true);
+  assert.equal(Scorebook.isEndedEarlyMatch(full), false);
+
+  const rookNoTarget = {
+    game: 'Rook',
+    completed: true,
+    totals: { Matt: 400, Cat: 200 },
+    rounds: [{ round: 1, scores: { Matt: 400, Cat: 200 } }]
+  };
+  assert.equal(Scorebook.isFullGame(rookNoTarget), false);
+
+  const rookHit = {
+    ...rookNoTarget,
+    rookConfig: { winTarget: 300 },
+    totals: { Matt: 320, Cat: 180 }
+  };
+  assert.equal(Scorebook.isFullGame(rookHit), true);
+
+  const flipMissing = {
+    game: 'Flip 7 Vengeance',
+    totals: { Matt: 40 },
+    rounds: [{ round: 1, scores: { Matt: 40 } }]
+  };
+  assert.equal(Scorebook.isFullGame(flipMissing), false);
+  assert.equal(Scorebook.isEndedEarlyMatch(flipMissing), false);
+  assert.equal(Scorebook.isFullGame({ ...flipMissing, completed: true }), true);
+});

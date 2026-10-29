@@ -77,7 +77,7 @@ test('a blank trick becomes 0 before the round total is checked', () => {
     values: { Alice: '', Bob: 1 }
   });
   assert.equal(bid.ok, false);
-  assert.match(bid.message, /Check Alice/);
+  assert.match(bid.message, /Still need a bid from Alice/);
 });
 
 test('Five Crowns, Flip 7, and Beat the Heat reject negative played-round inputs', () => {
@@ -751,8 +751,8 @@ test('Next leaves a blank score empty, and a submitted blank matches a typed 0',
   assert.equal(blank.acknowledged.Ada, false);
   assert.equal(blank.activePlayer, 'Bea');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).state, 'unentered');
-  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: true }).label, 'Blank');
-  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Blank');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: true }).label, 'Not entered');
+  assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Not entered');
   assert.equal(Scorebook.scoreEntryBlankHelper(), 'Blank scores count as 0');
   assert.notEqual(
     Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label,

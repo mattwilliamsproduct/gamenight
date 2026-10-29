@@ -3499,7 +3499,15 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row:not(.
   border-color: var(--s2-line);
 }
 
-html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-input-cell .score-entry-meta-label,
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-input-cell .score-entry-meta-label {
+  display: none;
+}
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit.hf-no-minus .score-entry-panel.score-entry-many-players .score-entry-confirm-status {
+  display: block;
+  font-size: 0.62rem;
+  line-height: 1.1;
+  margin-top: 0.08rem;
+}
 html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-confirm-status {
   display: none;
 }

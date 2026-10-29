@@ -1,0 +1,116 @@
+import {expect, test} from '@playwright/test';
+import {openScenario} from '../helpers/qa.mjs';
+
+async function homeScrollReachable(page) {
+  return page.evaluate(() => {
+    const doc = document.documentElement;
+    const body = document.body;
+    const scrollMax = Math.max(doc.scrollHeight, body.scrollHeight) - window.innerHeight;
+    const start = document.getElementById('slice2-start-btn') || document.querySelector('.s2-startbar');
+    const startBox = start ? start.getBoundingClientRect() : null;
+    return {
+      canScroll: scrollMax > 8 || (startBox && startBox.bottom <= window.innerHeight + 2),
+      scrollMax,
+      overflowY: getComputedStyle(body).overflowY,
+      startBottom: startBox ? startBox.bottom : null,
+      viewport: window.innerHeight
+    };
+  });
+}
+
+test('Home scroll reaches Start at laptop and iPad sizes', async ({page}) => {
+  for (const size of [{w:1280,h:720},{w:1024,h:768}]) {
+    await page.setViewportSize({width: size.w, height: size.h});
+    await page.goto('/?gnqa=1&gallery=0', {waitUntil: 'networkidle'});
+    await page.waitForTimeout(300);
+    const info = await homeScrollReachable(page);
+    expect(info.overflowY === 'auto' || info.overflowY === 'scroll' || info.canScroll, `${size.w}x${size.h} ${JSON.stringify(info)}`).toBeTruthy();
+    if (info.scrollMax > 8) {
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(100);
+    }
+    const start = page.locator('#slice2-start-btn, .s2-startbar button, button:has-text("Start")').first();
+    await expect(start).toBeVisible();
+  }
+});
+
+test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await openScenario(page, {scenario: 'wizard-early-8', surface: 'entry-bids'});
+  await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#score-entry-review-btn')).toHaveText(/Review Bids/i);
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hf-no-minus/);
+  const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'-\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
+  const dblVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'00\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
+  expect(minusVisible).toBe(false);
+  expect(dblVisible).toBe(false);
+
+  // Clear first row if needed, confirm Not entered
+  await page.locator('#score-entry-modal .score-entry-row').first().click();
+  for (let i = 0; i < 4; i++) {
+    await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'backspace\')"]').click();
+  }
+  const blankStatus = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
+  expect(blankStatus).toMatch(/Not entered/i);
+  const completeAfterClear = await page.locator('#score-entry-modal .score-entry-row').first().evaluate((el) => el.classList.contains('is-complete'));
+  expect(completeAfterClear).toBe(false);
+
+  // Enter 0 and confirm -> Entered 0 then Confirmed
+  await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]').click();
+  let status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
+  expect(status).toMatch(/Entered 0/i);
+  await page.locator('#score-entry-modal button.score-entry-key.next').click();
+  status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
+  expect(status).toMatch(/Confirmed:\s*0/i);
+
+  // Fill remaining players with 0 and lock
+  const rows = page.locator('#score-entry-modal .score-entry-row');
+  const count = await rows.count();
+  for (let i = 1; i < count; i++) {
+    await rows.nth(i).click();
+    await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]').click();
+    await page.locator('#score-entry-modal button.score-entry-key.next').click();
+  }
+  page.once('dialog', async (d) => { await d.accept(); });
+  await page.locator('#score-entry-primary-btn').click();
+  await page.waitForTimeout(500);
+  const phase = await page.evaluate(() => currentGame && currentGame.wizardPhase);
+  expect(phase).toBe('scoring');
+});
+
+test('Departed player leaves live scorecard with disclosure', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
+  const result = await page.evaluate(() => {
+    const name = (currentGame.originalRoster || []).slice(-1)[0];
+    const beforeRows = document.querySelectorAll('#scorecard-body tr').length;
+    if (!currentGame.retired) currentGame.retired = [];
+    if (!currentGame.retired.includes(name)) currentGame.retired.push(name);
+    renderGame();
+    return {
+      name,
+      beforeRows,
+      afterRows: document.querySelectorAll('#scorecard-body tr').length,
+      disclosure: (document.getElementById('left-early-disclosure') || {}).textContent || '',
+      retiredRows: document.querySelectorAll('#scorecard-body tr.row-retired').length,
+      recorded: typeof getRecordedPlayers === 'function' ? getRecordedPlayers(currentGame) : null
+    };
+  });
+  expect(result.afterRows, JSON.stringify(result)).toBe(result.beforeRows - 1);
+  expect(result.retiredRows).toBe(0);
+  expect(result.disclosure).toMatch(/1 player left early/i);
+});
+
+test('Start confirm parks live match incomplete', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
+  await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
+  await page.waitForTimeout(300);
+  page.once('dialog', async (d) => {
+    expect(d.message()).toMatch(/incomplete/i);
+    await d.dismiss();
+  });
+  await page.locator('#slice2-start-btn, button:has-text("Start")').first().click();
+  const stillLive = await page.evaluate(() => !!currentGame);
+  expect(stillLive).toBe(true);
+});

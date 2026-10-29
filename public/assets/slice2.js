@@ -388,6 +388,7 @@
     const podium = BPGRecords.nightPodium(match, {
       configs,
       getDisplayPlayers,
+      getRecordedPlayers,
       sortPlayersByTotal,
       competitionPlaces,
       scorebook: window.BPGScorebook
@@ -571,6 +572,7 @@
         scorebook: window.BPGScorebook,
         configs,
         getDisplayPlayers,
+        getRecordedPlayers,
         sortPlayersByTotal,
         competitionPlaces,
         escapeHtml,

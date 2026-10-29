@@ -294,6 +294,14 @@
     return `${label} scores must be whole numbers, 0 or higher. Check ${who}.`;
   }
 
+  function missingBidsMessage(players) {
+    const list = (players || []).filter(Boolean);
+    if (!list.length) return 'Still need bids.';
+    if (list.length === 1) return `Still need a bid from ${list[0]}.`;
+    if (list.length === 2) return `Still need bids from ${list[0]} and ${list[1]}.`;
+    return `Still need bids from ${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}.`;
+  }
+
   function validateEntries(spec) {
     const source = spec || {};
     const kind = source.kind;
@@ -302,11 +310,16 @@
     const bounded = kind === 'bids' || kind === 'tricks';
     const limit = bounded ? roundTrickLimit(source.game, source.roundNumber) : null;
     const invalidPlayers = [];
+    const missingPlayers = [];
     const values = {};
     players.forEach(player => {
       let raw = rawValues[player];
       if ((kind === 'scores' || kind === 'tricks') && scoreEntryValueIsBlank(raw)) raw = 0;
       if (kind === 'bids' && gameName(source.game) === '818' && scoreEntryValueIsBlank(raw)) raw = 0;
+      if (kind === 'bids' && gameName(source.game) !== '818' && scoreEntryValueIsBlank(raw)) {
+        missingPlayers.push(player);
+        return;
+      }
       const parsed = parseEntryInteger(raw);
       if (!parsed.ok) {
         invalidPlayers.push(player);
@@ -322,6 +335,17 @@
       }
       values[player] = parsed.value;
     });
+    if (missingPlayers.length) {
+      return {
+        ok: false,
+        reason: 'missing',
+        invalidPlayers: missingPlayers.slice(),
+        missingPlayers,
+        values,
+        limit,
+        message: missingBidsMessage(missingPlayers)
+      };
+    }
     if (invalidPlayers.length) {
       return {
         ok: false,
@@ -422,14 +446,20 @@
     let acknowledged = !!source.acknowledged;
     const token = key == null ? '' : String(key);
     const digit = /^[0-9]+$/.test(token);
+    const mode = source.mode || '';
+    const deferAck = !!source.deferAck || mode === 'bids' || mode === 'tricks' || mode === 'bid' || mode === 'trick';
     if (!acknowledged && digit) {
-      return { value: token, acknowledged: true, replaced: true };
+      return { value: token, acknowledged: deferAck ? false : true, replaced: true };
     }
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
     else if (digit && value === '0' && token !== '0' && token !== '00') value = token;
     else if (digit && value.length < 5) value += token;
-    if (digit || token === 'backspace' || token === '-') acknowledged = true;
+    if (scoreEntryValueIsBlank(value)) {
+      acknowledged = false;
+    } else if (digit || token === 'backspace' || token === '-') {
+      acknowledged = deferAck ? false : true;
+    }
     return { value, acknowledged, replaced: false };
   }
 
@@ -502,8 +532,16 @@
   function scoreEntryStatus(entry) {
     const source = entry || {};
     const value = source.value == null ? '' : String(source.value);
-    if (scoreEntryValueIsBlank(value)) return { state: 'unentered', label: 'Blank' };
+    const mode = source.mode || '';
+    const bidLike = mode === 'bids' || mode === 'tricks' || mode === 'bid' || mode === 'trick';
+    if (scoreEntryValueIsBlank(value)) {
+      return { state: 'unentered', label: 'Not entered' };
+    }
     if (source.acknowledged) return { state: 'confirmed', label: `✓ Confirmed: ${value}` };
+    if (bidLike) {
+      if (String(value).trim() === '0') return { state: 'entered', label: 'Entered 0' };
+      return { state: 'entered', label: `Entered ${value}` };
+    }
     return { state: 'suggested', label: `💡 Suggested: ${value} (tap Next to confirm)` };
   }
 
@@ -540,6 +578,63 @@
   function isCompletedHistoryMatch(match) {
     if (!match || typeof match !== 'object') return false;
     return match.completed !== false;
+  }
+
+  function expectedFullRoundCount(match) {
+    if (!match || typeof match !== 'object') return 0;
+    const stored = Number(match.maxRounds);
+    if (Number.isFinite(stored) && stored > 0 && stored < 999) return stored;
+    const name = gameName(match);
+    const roster = Array.isArray(match.originalRoster) ? match.originalRoster.filter(Boolean) : [];
+    const n = Math.max(roster.length || Object.keys(match.totals || {}).length || 0, 1);
+    if (name === 'Five Crowns') return 11;
+    if (name === 'Wizard') return Math.floor(60 / n);
+    if (name === '818') return 15;
+    if (name === 'Hand and Foot') return 4;
+    return 0;
+  }
+
+  function isFullGame(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (match.completed === false) return false;
+    if (match.endedEarly === true) return false;
+    const name = gameName(match);
+    const scored = scoringRoundCount(match.rounds || []);
+    if (name === 'Five Crowns' || name === 'Wizard' || name === '818' || name === 'Hand and Foot') {
+      const need = expectedFullRoundCount(match);
+      return need > 0 && scored >= need;
+    }
+    if (name === 'Beat the Heat') {
+      const line = Number(match.endScore);
+      const target = Number.isFinite(line) && line > 0 ? line : 66;
+      const retired = new Set(match.retired || []);
+      const totals = match.totals || {};
+      return Object.keys(totals).some(player => !retired.has(player) && (Number(totals[player]) || 0) >= target);
+    }
+    if (name === 'Rook') {
+      const target = Number(match.rookConfig && match.rookConfig.winTarget);
+      if (!(Number.isFinite(target) && target > 0)) return false;
+      const retired = new Set(match.retired || []);
+      const totals = match.totals || {};
+      return Object.keys(totals).some(player => !retired.has(player) && (Number(totals[player]) || 0) >= target);
+    }
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
+      return match.completed === true;
+    }
+    return match.completed === true;
+  }
+
+  function isEndedEarlyMatch(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (match.completed === false) return false;
+    if (match.endedEarly === true) return true;
+    const name = gameName(match);
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') return false;
+    if (name === 'Rook') {
+      const target = Number(match.rookConfig && match.rookConfig.winTarget);
+      if (!(Number.isFinite(target) && target > 0)) return false;
+    }
+    return match.completed === true && !isFullGame(match);
   }
 
   function syncAssistedMatch(game) {
@@ -1025,6 +1120,10 @@
     scoreEntryStatus,
     confirmScoreEntryOnNext,
     isCompletedHistoryMatch,
+    isFullGame,
+    isEndedEarlyMatch,
+    expectedFullRoundCount,
+    missingBidsMessage,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
     isAssistedMatch,

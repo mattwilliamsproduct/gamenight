@@ -347,17 +347,30 @@
   function nightStandings(match, helpers) {
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
-    const players = helpers.getDisplayPlayers(match);
-    const sorted = helpers.sortPlayersByTotal(players, match.totals || {}, cfg);
+    const retiredSet = new Set((match.retired || []).filter(Boolean));
+    const recorded = typeof helpers.getRecordedPlayers === 'function'
+      ? helpers.getRecordedPlayers(match)
+      : (helpers.getDisplayPlayers(match) || []).filter((name) => !retiredSet.has(name));
+    const sorted = helpers.sortPlayersByTotal(recorded, match.totals || {}, cfg);
     const places = helpers.competitionPlaces(sorted, match.totals || {});
     const winners = match.winners || [];
-    return sorted.map((name) => ({
+    const finishers = sorted.map((name) => ({
       name,
       score: match.totals ? match.totals[name] : undefined,
       place: places[name],
       isWinner: winners.includes(name),
-      retired: (match.retired || []).includes(name)
+      retired: false,
+      leftEarly: false
     }));
+    const leftEarly = (match.retired || []).filter(Boolean).map((name) => ({
+      name,
+      score: match.totals ? match.totals[name] : undefined,
+      place: null,
+      isWinner: false,
+      retired: true,
+      leftEarly: true
+    }));
+    return finishers.concat(leftEarly);
   }
 
   function nightPodium(match, helpers) {
@@ -396,6 +409,9 @@
     const scorebook = helpers.scorebook;
     const incomplete = !isCompletedMatch(match, scorebook);
     const assisted = isAssistedMatch(match, scorebook);
+    const endedEarly = !incomplete && scorebook && typeof scorebook.isEndedEarlyMatch === 'function'
+      ? scorebook.isEndedEarlyMatch(match)
+      : (!incomplete && match.endedEarly === true);
     const winners = incomplete ? [] : (match.winners || []).filter(Boolean);
     const standings = nightStandings(match, helpers);
     const rounds = scoringRoundCount(match, scorebook);
@@ -406,6 +422,7 @@
       date: match.date || '',
       evening: eveningLabel(match),
       incomplete,
+      endedEarly,
       assisted,
       retired: (match.retired || []).filter(Boolean),
       throughRound: throughRound(match, scorebook),
@@ -995,20 +1012,36 @@
     const more = model.standings.length - shown.length;
     const meta = model.incomplete
       ? `Incomplete · through Round ${model.throughRound}`
-      : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`;
+      : (model.endedEarly
+        ? `Ended early · through Round ${model.throughRound}`
+        : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
       model.assisted ? '<span class="s2-night-badge">Assisted match</span>' : '',
+      model.endedEarly ? '<span class="s2-night-badge">Ended early</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
-    const rows = shown.map((row) => `<li class="s2-night-finish${row.isWinner ? ' is-winner' : ''}">
+    const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
+    const leftEarlyRows = shown.filter((row) => row.leftEarly || row.retired);
+    const rankedHtml = ranked.map((row) => `<li class="s2-night-finish${row.isWinner ? ' is-winner' : ''}">
       <span class="s2-night-place">${esc(String(row.place))}.</span>
       ${avatar(row.name, 'avatar-img s2-mini-avatar')}
-      <span class="player-name-label">${esc(row.name)}${row.retired ? ' <small>Left early</small>' : ''}</span>
+      <span class="player-name-label">${esc(row.name)}</span>
       <strong>${esc(scoreLabel(row.score))}</strong>
     </li>`).join('');
+    const leftHtml = leftEarlyRows.length
+      ? `<li class="s2-night-left-label">Left early</li>` + leftEarlyRows.map((row) => `<li class="s2-night-finish is-left-early">
+      <span class="s2-night-place">—</span>
+      ${avatar(row.name, 'avatar-img s2-mini-avatar')}
+      <span class="player-name-label">${esc(row.name)}</span>
+      <strong>${esc(scoreLabel(row.score))}</strong>
+    </li>`).join('')
+      : '';
+    const rows = rankedHtml + leftHtml;
     const winner = model.incomplete
       ? `<p class="s2-night-status">${esc(meta)}</p>`
-      : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`;
+      : (model.endedEarly
+        ? `<p class="s2-night-status">${esc(meta)}</p><p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`
+        : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`);
     const expand = more > 0
       ? `<button type="button" class="s2-night-more" data-s2-action="night-expand" data-s2-id="${id}">Show all ${model.standings.length}</button>`
       : '';

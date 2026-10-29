@@ -977,6 +977,7 @@
     }
     .score-entry-confirm-status[data-entry-state="unentered"] { color: var(--muted); }
     .score-entry-confirm-status[data-entry-state="suggested"] { color: var(--blue); }
+    .score-entry-confirm-status[data-entry-state="entered"] { color: var(--ink); }
     .score-entry-confirm-status[data-entry-state="confirmed"] { color: var(--emerald); }
     .score-entry-unconfirmed:empty { display: none; }
     .score-entry-unconfirmed {
@@ -3247,11 +3248,12 @@ button.dealer-name-indicator {
     }
     @media (min-width: 761px) {
       body.home-view {
-        overflow-y: hidden;
+        overflow-y: auto;
       }
       body.home-view .bp-app-shell {
-        height: 100dvh;
-        overflow: hidden;
+        min-height: 100dvh;
+        height: auto;
+        overflow: visible;
         display: flex;
         flex-direction: column;
         padding-bottom: 0.75rem;
@@ -3262,7 +3264,7 @@ button.dealer-name-indicator {
       body.home-view #home-screen {
         flex: 1 1 auto;
         min-height: 0;
-        overflow: hidden;
+        overflow: visible;
         align-items: stretch;
       }
       body.home-view #home-screen.hidden {
@@ -3276,7 +3278,7 @@ button.dealer-name-indicator {
       body.home-view #home-screen .bp-roster-panel,
       body.home-view #home-screen .bp-home-side,
       body.home-view #home-screen .bp-on-deck-panel {
-        overflow: hidden;
+        overflow: visible;
       }
       body.home-view #home-screen .bp-roster-panel {
         display: flex;
@@ -3672,6 +3674,23 @@ button.dealer-name-indicator {
       flex: 1 1 auto;
       max-width: 100%;
       overflow: hidden;
+    }
+    .left-early-host { margin-top: 0.2rem; min-height: 0; }
+    .left-early-host[hidden] { display: none !important; }
+    .left-early-disclosure {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 76, 70, 0.18);
+      background: rgba(15, 76, 70, 0.06);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      cursor: help;
     }
     .retired-badge {
       display: inline-flex;
@@ -4901,9 +4920,10 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #score-entry-modal.score-entry-hand-foot .score-entry-rows { overflow-y: auto !important; }
     #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('-')"],
-    #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"] {
-      opacity: 0.35;
-      pointer-events: none;
+    #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('00')"],
+    #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"],
+    #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('00')"] {
+      display: none;
     }
     #hand-foot-setup-modal .hf-setup-card {
       max-height: min(100%, calc(100dvh - 2rem));
@@ -9496,7 +9516,7 @@ button.dealer-name-indicator .dealer-player-label {
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t hairline">
           <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Cancel</button>
-          <button type="button" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Review Scores</button>
+          <button type="button" id="score-entry-review-btn" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Review Scores</button>
           <button type="button" id="score-entry-primary-btn" onclick="submitScoreEntryModal()" class="btn-accent flex-[1.3] py-4 text-base font-extrabold">Submit Scores</button>
         </div>
       </div>
@@ -13133,14 +13153,16 @@ button.dealer-name-indicator .dealer-player-label {
     return prefs.dealerRoll && name !== 'Beat the Heat' && name !== 'Hand and Foot';
   }
 
-  function createSavedMatchSnapshot(game, winners){
+  function createSavedMatchSnapshot(game, winners, options){
     if(window.BPGScorebook) BPGScorebook.ensureGameId(game);
     else if(!game.id) game.id=Date.now();
+    const opts=options||{};
     const data={
       id:game.id,
       gameId:game.gameId||game.id,
       game:game.name,
       completed:true,
+      endedEarly:opts.endedEarly===true,
       assistedMatch:game.assistedMatch===true,
       date:new Date().toLocaleDateString(),
       totals:{...(game.totals||{})},
@@ -14626,10 +14648,13 @@ ${isDealer
     if(!currentGame) return null;
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     const finished=currentGame.completed===true||currentGame.gameOver===true;
-    const snapshot=createSavedMatchSnapshot(currentGame, finished?(currentGame.winners||[]):[]);
+    const snapshot=createSavedMatchSnapshot(currentGame, finished?(currentGame.winners||[]):[], {endedEarly:false});
     snapshot.completed=finished;
     snapshot.gameOver=finished;
-    if(!finished) snapshot.winners=[];
+    if(!finished){
+      snapshot.winners=[];
+      snapshot.endedEarly=false;
+    }
     const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
     if(idx>=0) history[idx]=snapshot;
     else history.unshift(snapshot);
@@ -15934,7 +15959,33 @@ ${isDealer
     const activeRoster=getActiveRoster(currentGame);
     const dealerName=getCurrentDealerName(currentGame, activeRoster);
 
-    let gamePlayers=isHandFootGame(currentGame)?getHandFootColumns(currentGame):[...getDisplayPlayers(currentGame)];
+    let gamePlayers=isHandFootGame(currentGame)?getHandFootColumns(currentGame):[...getRecordedPlayers(currentGame)];
+    const leftEarlyNames=(currentGame.retired||[]).filter(Boolean);
+    const leftEarlyNote=leftEarlyNames.length
+      ? `<button type="button" id="left-early-disclosure" class="left-early-disclosure" title="${escapeHtml(leftEarlyNames.join(', '))}">${leftEarlyNames.length} player${leftEarlyNames.length===1?'':'s'} left early</button>`
+      : '';
+    let leftEarlyHost=document.getElementById('left-early-host');
+    const boardCopy=document.querySelector('#slice2-board-bar .s2-board-copy');
+    if(!leftEarlyHost && boardCopy){
+      leftEarlyHost=document.createElement('div');
+      leftEarlyHost.id='left-early-host';
+      leftEarlyHost.className='left-early-host';
+      boardCopy.appendChild(leftEarlyHost);
+    }
+    if(!leftEarlyHost){
+      const wrap=document.getElementById('round-intel')?.parentElement;
+      if(wrap){
+        leftEarlyHost=document.createElement('div');
+        leftEarlyHost.id='left-early-host';
+        leftEarlyHost.className='left-early-host';
+        wrap.appendChild(leftEarlyHost);
+      }
+    }
+    if(leftEarlyHost){
+      if(boardCopy && leftEarlyHost.parentElement!==boardCopy) boardCopy.appendChild(leftEarlyHost);
+      leftEarlyHost.innerHTML=leftEarlyNote;
+      leftEarlyHost.hidden=!leftEarlyNote;
+    }
 
     syncCurrentLifePreserverHolds({gameOver:over});
 
@@ -16700,13 +16751,16 @@ ${isDealer
   function getScoreEntryEnteredCount(){
     if(!scoreEntryModalState)return 0;
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
-    return players.filter(scoreEntryPlayerIsAcknowledged).length;
+    return players.filter(p=>scoreEntryStatusFor(p).state==='confirmed').length;
   }
 
   function scoreEntryStatusFor(player){
+    const mode=scoreEntryModalState?.mode;
+    const modeKey=isScoreEntryBidMode(mode)?'bids':(isScoreEntryTrickMode(mode)?'tricks':'scores');
     return BPGScorebook.scoreEntryStatus({
       value:scoreEntryModalState?.values?.[player]??'',
-      acknowledged:scoreEntryPlayerIsAcknowledged(player)
+      acknowledged:scoreEntryPlayerIsAcknowledged(player),
+      mode:modeKey
     });
   }
 
@@ -16723,12 +16777,13 @@ ${isDealer
     if(!scoreEntryModalState||!currentGame||!player)return;
     const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
     if(!row)return;
-    const acknowledged=scoreEntryPlayerIsAcknowledged(player);
-    row.classList.toggle('is-complete',acknowledged);
-    row.classList.toggle('is-empty',!acknowledged);
-    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${acknowledged?'entered':'needed'}`);
+    const status=scoreEntryStatusFor(player);
+    const complete=status.state==='confirmed';
+    row.classList.toggle('is-complete',complete);
+    row.classList.toggle('is-empty',status.state==='unentered');
+    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${complete?'entered':'needed'}`);
     const indicator=row.querySelector('.score-entry-row-status');
-    if(indicator)indicator.textContent=acknowledged?'✓':'○';
+    if(indicator)indicator.textContent=complete?'✓':'○';
     paintScoreEntryStatus(player);
     const slot=row.querySelector('.score-entry-comeback-slot');
     if(slot) slot.innerHTML=previewComebackForEntry(player, scoreEntryModalState.values[player]);
@@ -16758,8 +16813,13 @@ ${isDealer
     const label=mode.valueLabel.toLowerCase();
     const enteredText=`${entered} of ${players.length} ${label.endsWith('s')?label:`${label}s`} entered`;
     if(isBidTrickGame(currentGame)){
-      const totalLabel=isScoreEntryBidMode(mode)?'Bids':'Tricks';
-      progress.textContent=`${enteredText} · ${totalLabel}: ${getScoreEntryDraftTotal()} / ${getRoundTrickCount(currentGame)}`;
+      const tricks=getRoundTrickCount(currentGame);
+      const total=getScoreEntryDraftTotal();
+      if(isScoreEntryBidMode(mode)){
+        progress.textContent=`${enteredText} · Bids total ${total} · ${tricks} trick${tricks===1?'':'s'} this round`;
+      } else {
+        progress.textContent=`${enteredText} · Tricks total ${total} · need ${tricks}`;
+      }
     } else {
       progress.textContent=enteredText;
     }
@@ -16958,6 +17018,14 @@ ${isDealer
     const {mode,players,values,dealer}=scoreEntryModalState;
     document.getElementById('score-entry-game').textContent=displayGameName(currentGame.name);
     document.getElementById('score-entry-primary-btn').textContent=mode.primary;
+    const reviewBtn=document.getElementById('score-entry-review-btn');
+    if(reviewBtn){
+      reviewBtn.textContent=isScoreEntryBidMode(mode)?'Review Bids':(isScoreEntryTrickMode(mode)?'Review Tricks':'Review Scores');
+    }
+    const modalEl=document.getElementById('score-entry-modal');
+    if(modalEl && mode.kind!=='hand-foot'){
+      modalEl.classList.toggle('hf-no-minus', isScoreEntryBidMode(mode)||isScoreEntryTrickMode(mode));
+    }
     const kicker=document.getElementById('score-entry-selected-kicker');
     if(kicker) kicker.textContent=mode.kind==='hand-foot'?'Selected side':'Selected Player';
     updateScoreEntryHeaderMeta();
@@ -16971,8 +17039,8 @@ ${isDealer
       const safe=rookElementId(p);
       const bid=currentGame.currentBids?.[p]??0;
       const isDealer=p===dealer;
-      const isComplete=scoreEntryPlayerIsAcknowledged(p);
       const entryStatus=scoreEntryStatusFor(p);
+      const isComplete=entryStatus.state==='confirmed';
       const hasContext=isScoreEntryTrickMode(mode);
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
@@ -17098,7 +17166,8 @@ ${isDealer
       syncHandFootRateBar();
       return;
     }
-    modal?.classList.remove('hf-cards-left','hf-no-minus');
+    modal?.classList.remove('hf-cards-left');
+    modal?.classList.toggle('hf-no-minus', isScoreEntryBidMode(mode)||isScoreEntryTrickMode(mode));
     document.getElementById('score-entry-selected-name').textContent=p||'';
     document.getElementById('score-entry-selected-avatar').innerHTML=p?getScoreEntryAvatarHtml(p,'score-entry-selected-avatar'):'';
     const action=`<span class="score-entry-chip">Entering ${mode.valueLabel.toLowerCase()}</span>`;
@@ -17215,9 +17284,11 @@ ${isDealer
       gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
+      const modeKey=isScoreEntryBidMode(scoreEntryModalState.mode)?'bids':(isScoreEntryTrickMode(scoreEntryModalState.mode)?'tricks':'scores');
       const next=BPGScorebook.applyScoreEntryKey({
         value:scoreEntryModalState.values[p]??'',
-        acknowledged:!!scoreEntryModalState.acknowledged[p]
+        acknowledged:!!scoreEntryModalState.acknowledged[p],
+        mode:modeKey
       }, v);
       scoreEntryModalState.values[p]=next.value;
       scoreEntryModalState.acknowledged[p]=next.acknowledged;
@@ -18022,7 +18093,11 @@ ${isDealer
     const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
     const topScore=currentGame.totals[sorted[0]];
     const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
-    const data=createSavedMatchSnapshot(currentGame,tied);
+    const naturalOver=isMatchOver(currentGame);
+    const data=createSavedMatchSnapshot(currentGame,tied,{endedEarly:!naturalOver});
+    if(currentGame.name==='Beat the Heat' && !data.endScore){
+      data.endScore=getEndScoreForGame(currentGame)||66;
+    }
     finishMatch(data, silent);
   }
 
@@ -18791,17 +18866,32 @@ ${isDealer
     if(!history.length){c.innerHTML=`<div class="surface p-10 text-center font-bold" style="color:var(--muted);">No match history yet.</div>`;return;}
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
-      const sorted=sortPlayersByTotal(getDisplayPlayers(h), h.totals, cfg);
+      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const places=competitionPlaces(sorted, h.totals);
-      const rows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}${retiredBadgeMarkup(h,p)}</span></div>
+      const leftEarly=(h.retired||[]).filter(Boolean);
+      const finisherRows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
+      const leftRows=leftEarly.length
+        ? `<div class="pt-3 mt-2 text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Left early</div>`+
+          leftEarly.map(p=>`<div class="flex items-center justify-between py-2 opacity-70">
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">—</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label">${p}</span></div>
+        <span class="font-mono-num font-extrabold text-xl">${h.totals[p]??'—'}</span>
+      </div>`).join('')
+        : '';
+      const rows=finisherRows+leftRows;
+      const endedEarly=BPGScorebook.isEndedEarlyMatch && BPGScorebook.isEndedEarlyMatch(h);
+      const statusBits=[
+        BPGScorebook.isCompletedHistoryMatch(h)?'':('<span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'),
+        endedEarly?'<span class="ended-early-badge" data-match-status="ended-early">Ended early</span>':'',
+        BPGScorebook.isAssistedMatch(h)?'<span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''
+      ].filter(Boolean).join(' · ');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4 gap-3">
           <div class="min-w-0 flex-1">
             <h3 class="font-display text-2xl truncate">${cfg.emoji} ${h.game}</h3>
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${BPGScorebook.isCompletedHistoryMatch(h)?'':' · <span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'}${BPGScorebook.isAssistedMatch(h)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}</div>
+            <div class="text-[10px] font-extrabold uppercase tracking-[0.15em] mt-1" style="color:var(--muted);">${h.date} · ${BPGScorebook.scoringRoundCount(h.rounds)} rounds${statusBits?' · '+statusBits:''}</div>
           </div>
           <div class="flex gap-2 flex-shrink-0">
             <button onclick="openScorecard(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
@@ -18832,7 +18922,8 @@ ${isDealer
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${displayGameName(g.game)}`;
     document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
     const cfg=configs[g.game];
-    const sorted=sortPlayersByTotal(getDisplayPlayers(g), g.totals, cfg);
+    const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
+    const leftEarly=(g.retired||[]).filter(Boolean);
     const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
     g.rounds?.forEach((r,rIdx)=>{
@@ -18846,19 +18937,22 @@ ${isDealer
     head+=`</tr>`;
     document.getElementById('modal-scorecard-head').innerHTML=head;
     let body='';
-    sorted.forEach(p=>{
-      const w=g.winners?.includes(p);
-      body+=`<tr class="${w?'leader-row':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':'var(--surface)'};">${w?'🏆 ':''}${p}${retiredBadgeMarkup(g,p)}</td>
-        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]}</span>${hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
+    const paintRow=(p, opts)=>{
+      const w=!!opts.winner;
+      const left=!!opts.leftEarly;
+      body+=`<tr class="${w?'leader-row':''}${left?' row-retired':''}">
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}</td>
+        <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]??'—'}</span>${left?'':hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
-        const extra=scoringExtraMarkup(g.rounds, rIdx, r, p);
+        const extra=left?{html:'',className:''}:scoringExtraMarkup(g.rounds, rIdx, r, p);
         const shown=shownRoundScore(r.scores, p);
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:shown}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:(shown===''?'—':shown)}</td>`;
       });
       body+=`</tr>`;
-    });
+    };
+    sorted.forEach(p=>paintRow(p,{winner:g.winners?.includes(p)}));
+    leftEarly.forEach(p=>paintRow(p,{leftEarly:true}));
     document.getElementById('modal-scorecard-body').innerHTML=body;
     openModal('scorecard-modal');
     setTimeout(()=>scheduleScorecardColumnTrimAll(),60);
@@ -19194,6 +19288,7 @@ ${isDealer
       const lastPlayers = lastPlayersFor(h, sorted);
       const winners = (h.winners||[]).filter(p=>sorted.includes(p));
       const assisted = BPGScorebook.isAssistedMatch(h);
+      const fullGame = typeof BPGScorebook.isFullGame==='function' ? BPGScorebook.isFullGame(h) : true;
       if(!games._coverage) games._coverage={};
       if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
       games._coverage[h.game][assisted?'assisted':'unassisted']++;
@@ -19215,7 +19310,7 @@ ${isDealer
         update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
         bg.games++; bg.wins += won?1:0; bg.posSum += pos;
-        if(!assisted){
+        if(!assisted && fullGame){
           const scoreEntry = entry(p,h.totals[p],h);
           if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
           if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
@@ -19262,7 +19357,7 @@ ${isDealer
       if(gameRecords){
         sorted.forEach(p=>{
           const hasLegit = h.rounds.some(r=>r.scores?.[p]!==undefined && !r.joinBonus?.[p] && !BPGScorebook.isSyntheticAdjustmentRound(r));
-          if(!hasLegit || assisted) return;
+          if(!hasLegit || assisted || !fullGame) return;
           const finalEntry = entry(p,h.totals[p],h);
           if(cfg.winLow){
             update(gameRecords,'bestGame',finalEntry,betterLow);
@@ -19278,36 +19373,38 @@ ${isDealer
             }
           }
         });
-        if(sorted.length>1 && gameRecords.closestMargin!==undefined){
-          const margin = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[1]]||0));
-          update(gameRecords,'closestMargin',entry(sorted[0],margin,h,{label:`${sorted[0]} by ${margin} over ${sorted[1]}`}),betterLow);
-        }
-        if(h.game==='Five Crowns' && sorted.length>1){
-          const gap = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[sorted.length-1]]||0));
-          update(gameRecords,'mostLopsided',entry(sorted[0],gap,h,{label:`${sorted[0]} over ${sorted[sorted.length-1]} by ${gap}`}),betterHigh);
-        }
-        if(h.game==='Beat the Heat'){
-          if(sorted.length>1){
+        if(fullGame){
+          if(sorted.length>1 && gameRecords.closestMargin!==undefined){
+            const margin = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[1]]||0));
+            update(gameRecords,'closestMargin',entry(sorted[0],margin,h,{label:`${sorted[0]} by ${margin} over ${sorted[1]}`}),betterLow);
+          }
+          if(h.game==='Five Crowns' && sorted.length>1){
             const gap = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[sorted.length-1]]||0));
-            update(gameRecords,'mostLopsided',entry(sorted[0],gap,h,{label:`${sorted[0]} cooler than ${sorted[sorted.length-1]} by ${gap}`}),betterHigh);
+            update(gameRecords,'mostLopsided',entry(sorted[0],gap,h,{label:`${sorted[0]} over ${sorted[sorted.length-1]} by ${gap}`}),betterHigh);
           }
-          const scoringCount=h.rounds.filter(round=>!round.hailMaryBonus).length;
-          if(scoringCount){
-            update(gameRecords,'longestMatch',entry(sorted[0],scoringCount,h,{label:`${scoringCount} rounds`}),betterHigh);
+          if(h.game==='Beat the Heat'){
+            if(sorted.length>1){
+              const gap = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[sorted.length-1]]||0));
+              update(gameRecords,'mostLopsided',entry(sorted[0],gap,h,{label:`${sorted[0]} cooler than ${sorted[sorted.length-1]} by ${gap}`}),betterHigh);
+            }
+            const scoringCount=h.rounds.filter(round=>!round.hailMaryBonus).length;
+            if(scoringCount){
+              update(gameRecords,'longestMatch',entry(sorted[0],scoringCount,h,{label:`${scoringCount} rounds`}),betterHigh);
+            }
+            const line=cfg.endScore||66;
+            winners.forEach(w=>{
+              const heat=Number(h.totals[w])||0;
+              const next=entry(w,heat,h,{label:`${heat} heat · line ${line}`});
+              const betterClosest=(candidate,cur)=>{
+                if(!cur) return true;
+                const nextDist=Math.abs(candidate.value-line);
+                const curDist=Math.abs(cur.value-line);
+                if(nextDist!==curDist) return nextDist<curDist;
+                return candidate.value<cur.value;
+              };
+              update(gameRecords,'closestFinish',next,betterClosest);
+            });
           }
-          const line=cfg.endScore||66;
-          winners.forEach(w=>{
-            const heat=Number(h.totals[w])||0;
-            const next=entry(w,heat,h,{label:`${heat} heat · line ${line}`});
-            const betterClosest=(candidate,cur)=>{
-              if(!cur) return true;
-              const nextDist=Math.abs(candidate.value-line);
-              const curDist=Math.abs(cur.value-line);
-              if(nextDist!==curDist) return nextDist<curDist;
-              return candidate.value<cur.value;
-            };
-            update(gameRecords,'closestFinish',next,betterClosest);
-          });
         }
       }
 

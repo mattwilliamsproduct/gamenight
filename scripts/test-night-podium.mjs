@@ -115,7 +115,7 @@ test('two-player match shows only the places that exist', () => {
   ]);
 });
 
-test('retired players stay on the podium from the saved record', () => {
+test('retired players leave the podium and stay Left early in standings', () => {
   const match = {
     game: 'Five Crowns',
     completed: true,
@@ -127,10 +127,14 @@ test('retired players stay on the podium from the saved record', () => {
   const podium = Records.nightPodium(match, helpers);
   assert.deepEqual(placesOf(podium), [
     {place: 1, names: ['Megan']},
-    {place: 2, names: ['Mike']},
-    {place: 3, names: ['Matt']}
+    {place: 2, names: ['Matt']}
   ]);
-  assert.equal(podium.places[1].people[0].retired, true);
+  const standings = Records.nightStandings(match, helpers);
+  assert.deepEqual(standings.map((row) => ({name: row.name, place: row.place, leftEarly: !!row.leftEarly})), [
+    {name: 'Megan', place: 1, leftEarly: false},
+    {name: 'Matt', place: 2, leftEarly: false},
+    {name: 'Mike', place: null, leftEarly: true}
+  ]);
 });
 
 test('incomplete nights have no podium', () => {
@@ -168,6 +172,8 @@ test('Rook podium uses player totals so the winning partners share 1st', () => {
   const podium = Records.nightPodium(match, helpers);
   assert.deepEqual(placesOf(podium), [
     {place: 1, names: ['Matt', 'Megan']},
-    {place: 3, names: ['Cat', 'Mike']}
+    {place: 3, names: ['Cat']}
   ]);
+  const left = Records.nightStandings(match, helpers).filter((row) => row.leftEarly);
+  assert.deepEqual(left.map((row) => row.name), ['Mike']);
 });

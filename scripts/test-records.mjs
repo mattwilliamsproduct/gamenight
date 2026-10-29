@@ -382,3 +382,54 @@ test('Life Preserver totals skip incomplete matches and stay per game', () => {
   assert.ok(summary.every((row) => row.game === '818' || row.game === 'Wizard'));
   assert.equal(summary.find((row) => row.game === '818').adjustment, 12);
 });
+
+test('nightStandings ranks finishers and lists Left early unranked', () => {
+  const match = {
+    game: 'Wizard',
+    totals: { Megan: 40, Matt: 30, Linda: 10 },
+    winners: ['Megan'],
+    retired: ['Linda'],
+    originalRoster: ['Megan', 'Matt', 'Linda'],
+    completed: true,
+    rounds: [{ round: 1, scores: { Megan: 40, Matt: 30, Linda: 10 } }]
+  };
+  const helpers = {
+    configs: { Wizard: { winLow: false } },
+    getRecordedPlayers: (m) => (m.originalRoster || []).filter((p) => !(m.retired || []).includes(p)),
+    getDisplayPlayers: (m) => m.originalRoster,
+    sortPlayersByTotal: (players, totals, cfg) => players.slice().sort((a, b) => (cfg.winLow ? totals[a] - totals[b] : totals[b] - totals[a])),
+    competitionPlaces: Scorebook.competitionPlaces,
+    scorebook: Scorebook
+  };
+  const rows = Records.nightStandings(match, helpers);
+  assert.equal(rows.length, 3);
+  assert.equal(rows[0].name, 'Megan');
+  assert.equal(rows[0].place, 1);
+  assert.equal(rows[1].name, 'Matt');
+  assert.equal(rows[1].place, 2);
+  assert.equal(rows[2].name, 'Linda');
+  assert.equal(rows[2].place, null);
+  assert.equal(rows[2].leftEarly, true);
+
+  const model = Records.nightCardModel({ ...match, endedEarly: true, maxRounds: 7 }, helpers);
+  assert.equal(model.endedEarly, true);
+  assert.deepEqual(model.retired, ['Linda']);
+});
+
+test('early-ended better final does not take the full-game record', () => {
+  assert.equal(Scorebook.isFullGame({
+    game: 'Five Crowns',
+    completed: true,
+    endedEarly: true,
+    maxRounds: 11,
+    rounds: Array.from({ length: 3 }, (_, i) => ({ round: i + 1, scores: { Matt: 1 } })),
+    totals: { Matt: 3 }
+  }), false);
+  assert.equal(Scorebook.isFullGame({
+    game: 'Five Crowns',
+    completed: true,
+    maxRounds: 11,
+    rounds: Array.from({ length: 11 }, (_, i) => ({ round: i + 1, scores: { Matt: 8 } })),
+    totals: { Matt: 88 }
+  }), true);
+});

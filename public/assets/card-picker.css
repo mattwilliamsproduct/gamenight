@@ -2,7 +2,7 @@
 
 html.slice2-tv {
   --bp-card-radius: 10px;
-  --bp-card-max: 220px;
+  --bp-card-max: 156px;
   --bp-card-fill: #f6f1e7;
 }
 
@@ -112,26 +112,26 @@ html.slice2-tv .s2-seat-grid {
 @media (min-width: 861px) {
   html.slice2-tv .s2-home-grid {
     grid-template-columns: minmax(348px, 360px) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-    align-items: stretch;
-    max-height: calc(100dvh - 8.75rem);
+    grid-template-rows: auto;
+    align-items: start;
+    max-height: none;
   }
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
     min-height: 0;
-    align-self: stretch;
-    max-height: calc(100dvh - 8.75rem);
+    align-self: start;
+    max-height: none;
   }
 
   html.slice2-tv .s2-home-table {
     height: auto;
-    overflow: auto;
+    overflow: visible;
   }
 
   html.slice2-tv .s2-home-start {
-    height: 100%;
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
@@ -146,11 +146,11 @@ html.slice2-tv .s2-seat-grid {
   }
 
   html.slice2-tv .s2-home-start .s2-game-grid {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     align-content: start;
     justify-content: start;
-    overflow: hidden;
+    overflow: visible;
   }
 
   html.slice2-tv .s2-home-start .s2-game {
@@ -198,12 +198,12 @@ html.slice2-tv .s2-seat-grid {
   }
 
   html.slice2-tv .s2-home-grid {
-    max-height: calc(100dvh - 7.5rem);
+    max-height: none;
   }
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    max-height: calc(100dvh - 7.5rem);
+    max-height: none;
   }
 
   html.slice2-tv .s2-home-start .s2-game-grid {
@@ -233,8 +233,8 @@ html.slice2-tv .s2-seat-grid {
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    height: calc(100dvh - 16rem);
-    max-height: calc(100dvh - 16rem);
+    height: auto;
+    max-height: none;
   }
 
   html.slice2-tv .s2-home-table .s2-seat {
