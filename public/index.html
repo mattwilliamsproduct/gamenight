@@ -3593,9 +3593,9 @@ button.dealer-name-indicator {
       table-layout: fixed;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: clamp(12rem, 16vw, 15rem);
+      width: clamp(14rem, 20vw, 18rem);
       min-width: 12rem;
-      max-width: 15rem;
+      max-width: 20rem;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
       width: clamp(6.5rem, 8vw, 8.5rem);
@@ -15184,7 +15184,7 @@ ${isDealer
           fitActiveScorecardColumns(root);
         }
       }
-      shrinkScorecardRoundsToClearNow(root);
+      if(window.innerWidth>=1024) shrinkScorecardRoundsToClearNow(root);
       if(hint){
         if(hidden>0){
           const firstTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[0]}"]`);
@@ -15514,7 +15514,8 @@ ${isDealer
     if(!now||now.classList.contains('scorecard-round--hidden')) return 0;
     if(getComputedStyle(now).display==='none'||getComputedStyle(now).visibility==='hidden') return 0;
     const min=parseFloat(getComputedStyle(now).minWidth);
-    return Number.isFinite(min)&&min>0?Math.max(min,70):70;
+    const floor=window.innerWidth>=1024?70:0;
+    return Number.isFinite(min)&&min>0?Math.max(min,floor):floor;
   }
   function scorecardNowColWidth(table){
     return scorecardNowReserveWidth(table);
@@ -15578,12 +15579,13 @@ ${isDealer
       },0);
     const nowEl=table.querySelector('thead th.scorecard-col-now');
     const nowPresent=!!(nowEl&&!nowEl.classList.contains('scorecard-round--hidden')&&getComputedStyle(nowEl).display!=='none');
-    const nowW=nowPresent?scorecardNowReserveWidth(table):0;
-    const available=Math.max(0,wrap.clientWidth-leadW-nowW-16);
     const desktop=window.innerWidth>=1400;
     const tablet=window.innerWidth>=1024;
+    const nowW=(!handFoot&&nowPresent&&tablet)?scorecardNowReserveWidth(table):0;
+    const nowExtra=(!handFoot&&nowPresent&&!tablet)?1:0;
+    const available=Math.max(0,wrap.clientWidth-leadW-nowW-(tablet?16:6));
     const colMax=handFoot?52:desktop?56:tablet?64:72;
-    const col=Math.max(handFoot?24:28,Math.min(colMax,available/Math.max(1,visible.length)));
+    const col=Math.max(handFoot?24:28,Math.min(colMax,available/Math.max(1,visible.length+nowExtra)));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
     const font=Math.max(13,Math.min(28,col*0.4));

@@ -137,7 +137,13 @@ html.slice2-tv body.active-match-view .bp-app-shell {
 }
 
 html.slice2-tv body.active-match-view #game-screen {
-  padding: 0 1.25rem 0.75rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  html.slice2-tv body.active-match-view #game-screen {
+    padding: 0 1.25rem 0.75rem;
+  }
 }
 
 html.slice2-tv #scorecard-live-layout.record-chase-active > .scorecard-live-main {
