@@ -107,7 +107,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 
 ### Try a demo
 
-`/?demo=try` opens a fictional, fully playable sample. Bare `?demo` still does nothing. The sample uses the QA `demo-seed` cast and book. It writes `bpg_demo_*` only. It never reads or writes `gn_*`, and it never calls `/api/sync`. Exit restores the real book. Reset restores the seed. Backup, restore, and sync stay off while the sample is on. Entry points are the empty first-use table and Settings About.
+`/?demo=try` opens a fictional, fully playable sample. Bare `?demo` still does nothing. The sample clones the QA `demo-seed` book, then remaps it to Nora / Owen / Priya / Theo / Ruby / Felix / June / Marco (plus Iris, Quinn, Vera, Hugo) and initials avatars. QA fixtures keep the porch cast. It writes `bpg_demo_*` only. It never reads or writes `gn_*`, and it never calls `/api/sync`. Exit restores the real book. Reset restores the seed. Backup, restore, and sync stay off while the sample is on. Entry points are the empty first-use table and Settings About.
 
 ## Non-goals
 

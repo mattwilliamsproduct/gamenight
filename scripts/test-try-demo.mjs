@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {QA_SCENARIOS} from '../public/qa/fixtures.mjs';
 import {validateScenario} from '../public/qa/fixture-rules.mjs';
+import {DEMO_CAST, QA_PORCH_CAST, remapDemoBook} from '../public/demo/try-demo-cast.mjs';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const demo = readFileSync(new URL('../public/demo/try-demo.js', import.meta.url), 'utf8');
@@ -52,4 +53,40 @@ test('try-demo seed is the fictional QA demo-seed book', () => {
   assert.ok((data.history || []).length > 5);
   assert.equal(data.currentGame?.name, 'Five Crowns');
   assert.match(demo, /QA_SCENARIOS\['demo-seed'\]/);
+});
+
+test('demo forks the QA seed to a fictional cast with no character avatars', () => {
+  assert.match(demo, /try-demo-cast\.mjs/);
+  assert.match(demo, /remapDemoBook/);
+  assert.deepEqual([...QA_PORCH_CAST], [
+    'Megan', 'Matt', 'Cat', 'Mike', 'Vikki', 'Duke',
+    'Brick', 'Linda', 'Michelle', 'Alexis', 'Ethan', 'Diana'
+  ]);
+  assert.deepEqual([...DEMO_CAST], [
+    'Nora', 'Owen', 'Priya', 'Theo', 'Ruby', 'Felix',
+    'June', 'Marco', 'Iris', 'Quinn', 'Vera', 'Hugo'
+  ]);
+  const qa = QA_SCENARIOS['demo-seed'].data;
+  const book = remapDemoBook(JSON.parse(JSON.stringify(qa)));
+  const blob = JSON.stringify(book);
+  assert.ok(book.players.includes('Nora'));
+  assert.ok(book.players.includes('Owen'));
+  assert.ok(book.players.includes('Priya'));
+  assert.ok(book.currentGame.originalRoster.includes('Marco'));
+  QA_PORCH_CAST.forEach((name) => {
+    assert.equal(blob.includes(name), false, `demo book still has ${name}`);
+  });
+  DEMO_CAST.forEach((name) => {
+    assert.equal(blob.includes(name), true, `demo book missing ${name}`);
+  });
+  assert.doesNotMatch(blob, /avatars\//);
+  assert.doesNotMatch(blob, /\.png/);
+  assert.equal(
+    Object.values(book.playerProfiles).some((profile) => profile && profile.avatar),
+    false
+  );
+  assert.equal(book.currentGame.originalRoster[1], 'Owen');
+  assert.equal(book.currentGame.dealerOffset, 1);
+  assert.ok(qa.players.includes('Megan'));
+  assert.ok(qa.playerProfiles.Megan.avatar);
 });

@@ -1,17 +1,17 @@
 import {expect, test} from '@playwright/test';
 
 const REAL_BOOK = {
-  allPlayers: ['Nora', 'Owen'],
-  players: ['Nora', 'Owen'],
-  playerProfiles: {Nora: {color: 1}, Owen: {color: 2}},
+  allPlayers: ['Sam', 'Riley'],
+  players: ['Sam', 'Riley'],
+  playerProfiles: {Sam: {color: 1}, Riley: {color: 2}},
   history: [{
     id: 111,
     game: 'Five Crowns',
     date: '1/2/2026',
-    totals: {Nora: 4, Owen: 9},
-    winners: ['Nora'],
-    rounds: [{round: 1, scores: {Nora: 4, Owen: 9}}],
-    originalRoster: ['Nora', 'Owen'],
+    totals: {Sam: 4, Riley: 9},
+    winners: ['Sam'],
+    rounds: [{round: 1, scores: {Sam: 4, Riley: 9}}],
+    originalRoster: ['Sam', 'Riley'],
     completed: true,
     currentRound: 2
   }],
@@ -89,12 +89,22 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
     gn: Object.keys(localStorage).filter((key) => key.startsWith('gn_')),
     demo: Object.keys(localStorage).filter((key) => key.startsWith('bpg_demo_'))
   }));
-  expect(live.players).toContain('Megan');
-  expect(live.players).toContain('Matt');
+  expect(live.players).toContain('Nora');
+  expect(live.players).toContain('Owen');
+  expect(live.players).not.toContain('Megan');
   expect(live.history.length).toBeGreaterThan(5);
   expect(live.game).toBe('Five Crowns');
   expect(live.gn).toEqual([]);
   expect(live.demo.length).toBeGreaterThan(0);
+  const faces = await page.evaluate(() => ({
+    avatars: Object.values((typeof playerProfiles !== 'undefined' && playerProfiles) || {})
+      .map((profile) => profile && profile.avatar)
+      .filter(Boolean),
+    srcs: [...document.querySelectorAll('img.avatar-img, img.avatar-img-sc, img.avatar-img-lg')]
+      .map((img) => img.getAttribute('src') || '')
+  }));
+  expect(faces.avatars).toEqual([]);
+  expect(faces.srcs.every((src) => !/avatars\/|\.png(?:\?|#|$)/i.test(src))).toBe(true);
 });
 
 test('empty first-use and Settings About offer Try a demo', async ({page}) => {
@@ -114,16 +124,18 @@ test('empty first-use and Settings About offer Try a demo', async ({page}) => {
 test('starting demo with real data present leaves it untouched', async ({page}) => {
   await seedRealBook(page);
   await page.goto('/', {waitUntil: 'domcontentloaded'});
-  await expect(page.locator('#slice2-home')).toContainText('Nora');
+  await expect(page.locator('#slice2-home')).toContainText('Sam');
   const before = await snapshotGn(page);
-  expect(before.gn_players_v2).toContain('Nora');
+  expect(before.gn_players_v2).toContain('Sam');
   await openTryDemo(page);
   await expect(page.locator('#bpg-try-demo-bar')).toBeVisible();
-  await expect(page.locator('#game-screen')).toContainText(/Megan|Five Crowns/);
+  await expect(page.locator('#game-screen')).toContainText(/Nora|Five Crowns/);
   expect(await snapshotGn(page)).toEqual(before);
   const demo = await snapshotDemo(page);
-  expect(JSON.stringify(demo)).toContain('Megan');
-  expect(JSON.stringify(demo)).not.toContain('Nora');
+  expect(JSON.stringify(demo)).toContain('Nora');
+  expect(JSON.stringify(demo)).not.toContain('Megan');
+  expect(JSON.stringify(demo)).not.toContain('Sam');
+  expect(JSON.stringify(demo)).not.toMatch(/avatars\/|\.png/);
 });
 
 test('demo edits and Reset touch demo data only', async ({page}) => {
@@ -136,7 +148,7 @@ test('demo edits and Reset touch demo data only', async ({page}) => {
   if (await page.locator('#home-screen').isVisible() && await page.locator('#home-screen').evaluate((el) => !el.classList.contains('hidden'))) {
     await page.locator('[data-s2-action="resume"], #slice2-home .s2-btn-primary', {hasText: 'Resume'}).first().click();
   }
-  await expect(page.locator('#scorecard-body')).toContainText('Megan');
+  await expect(page.locator('#scorecard-body')).toContainText('Nora');
   const beforeDemo = await snapshotDemo(page);
   await enterRound(page, [0, 1, 2, 3, 4, 5, 6, 7]);
   const afterEdit = await snapshotDemo(page);
@@ -159,8 +171,9 @@ test('Exit restores real data byte-identical', async ({page}) => {
   await page.locator('#bpg-try-demo-exit').click();
   await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
   await expect(page.locator('#bpg-try-demo-bar')).toHaveCount(0);
-  await expect(page.locator('#slice2-home')).toContainText('Nora');
+  await expect(page.locator('#slice2-home')).toContainText('Sam');
   await expect(page.locator('#slice2-home')).not.toContainText('Megan');
+  await expect(page.locator('#slice2-home')).not.toContainText('Nora');
   expect(await snapshotGn(page)).toEqual(before);
 });
 
@@ -175,7 +188,7 @@ test('Refresh stays in the correct mode', async ({page}) => {
   await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
   await page.reload({waitUntil: 'domcontentloaded'});
   await expect(page.locator('#bpg-try-demo-bar')).toHaveCount(0);
-  await expect(page.locator('#slice2-home')).toContainText('Nora');
+  await expect(page.locator('#slice2-home')).toContainText('Sam');
 });
 
 test('sync and backup are blocked in demo', async ({page}) => {

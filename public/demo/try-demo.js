@@ -6,7 +6,9 @@
   var PREFIX = 'bpg_demo_';
   var GN = 'gn_';
   var SEED_URL = '../qa/fixtures.mjs?v=try-demo-1';
+  var CAST_URL = './try-demo-cast.mjs?v=try-demo-cast-1';
   var hooks = {};
+  var castApi = null;
 
   function searchParams(search) {
     try {
@@ -99,11 +101,54 @@
 
   if (active()) blockFetch();
 
+  async function loadCast() {
+    if (castApi) return castApi;
+    castApi = await import(CAST_URL);
+    return castApi;
+  }
+
+  function demoStoreLooksLikePorchCast() {
+    try {
+      var blob = demoKeys().map(function (key) {
+        return localStorage.getItem(key) || '';
+      }).join('\n');
+      if (castApi && typeof castApi.demoBookHasPorchCast === 'function') {
+        return castApi.demoBookHasPorchCast(blob);
+      }
+      return /Megan|Matt|Vikki|Duke|Brick|Michelle|Alexis|Ethan|Diana|avatars\/|\.png/.test(blob);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function neutralizeDemoAvatars() {
+    if (!active()) return;
+    try {
+      if (root.playerProfiles && typeof root.playerProfiles === 'object') {
+        Object.keys(root.playerProfiles).forEach(function (name) {
+          var profile = root.playerProfiles[name];
+          if (profile && profile.avatar) delete profile.avatar;
+        });
+      }
+    } catch (error) {}
+    try {
+      document.querySelectorAll('img.avatar-img, img.avatar-img-sc, img.avatar-img-lg').forEach(function (img) {
+        var src = img.getAttribute('src') || '';
+        if (!src) return;
+        var character = /(?:^|\/)avatars\//i.test(src) || /\.png(?:\?|#|$)/i.test(src);
+        if (!character) return;
+        if (img.dataset.fb) img.src = img.dataset.fb;
+        else img.removeAttribute('src');
+      });
+    } catch (error) {}
+  }
+
   async function loadSeed() {
+    var cast = await loadCast();
     var mod = await import(SEED_URL);
     var data = mod.QA_SCENARIOS && mod.QA_SCENARIOS['demo-seed'] && mod.QA_SCENARIOS['demo-seed'].data;
     if (!data) throw new Error('try-demo seed missing');
-    return JSON.parse(JSON.stringify(data));
+    return cast.remapDemoBook(JSON.parse(JSON.stringify(data)));
   }
 
   function installStyles() {
@@ -129,6 +174,7 @@
       '#bpg-try-demo-about .bpg-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#6d6962;margin-bottom:6px}',
       '#bpg-try-demo-about p{margin:0 0 10px;font-size:13px;font-weight:700;color:#3d4f4c}',
       'html.bpg-try-demo #save-indicator,html.bpg-try-demo #save-indicator.show{opacity:1;transform:none;text-transform:none;letter-spacing:.01em;font-weight:800;color:#3d4f4c;background:#f4efe4;border-color:#d7cbb3}',
+      'html.bpg-try-demo img.avatar-img[src*="avatars/"],html.bpg-try-demo img.avatar-img-sc[src*="avatars/"],html.bpg-try-demo img.avatar-img-lg[src*="avatars/"]{opacity:0}',
       'html.bpg-try-demo #settings-modal .bp-modal-foot,',
       'html.bpg-try-demo #backup-restore-copy,',
       'html.bpg-try-demo #backup-device-summary,',
@@ -257,6 +303,7 @@
       var result = orig.apply(this, arguments);
       paintEntry();
       paintSaveLabel();
+      neutralizeDemoAvatars();
       return result;
     };
     root.BPGSlice2.__bpgTryDemoHook = true;
@@ -278,6 +325,7 @@
     hookSavePark();
     paintEntry();
     paintSaveLabel();
+    neutralizeDemoAvatars();
   }
 
   if (document.readyState === 'complete') setTimeout(afterSlice2Paint, 0);
@@ -285,10 +333,13 @@
 
   async function applySeed(force) {
     if (!active()) return null;
-    if (!force && hasDemoBook()) return null;
-    if (force) clearDemoStore();
+    await loadCast();
+    var stale = !force && hasDemoBook() && demoStoreLooksLikePorchCast();
+    if (!force && hasDemoBook() && !stale) return null;
+    if (force || stale) clearDemoStore();
     var book = await loadSeed();
     if (typeof hooks.applyBook === 'function') hooks.applyBook(book);
+    neutralizeDemoAvatars();
     return book;
   }
 
@@ -312,6 +363,7 @@
     paintEntry();
     paintSaveLabel();
     paintSettings();
+    neutralizeDemoAvatars();
     if (document.body) document.body.dataset.bpgTryDemo = 'on';
     return {status: 'on'};
   }
@@ -360,6 +412,8 @@
     paintEntry: paintEntry,
     paintSaveLabel: paintSaveLabel,
     backupBlocked: backupBlocked,
-    loadSeed: loadSeed
+    loadSeed: loadSeed,
+    loadCast: loadCast,
+    neutralizeDemoAvatars: neutralizeDemoAvatars
   };
 })(window);
