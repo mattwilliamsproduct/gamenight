@@ -11,6 +11,7 @@ Commands run + pass/fail:
 npm run check pass
 npx playwright test --config=playwright.functional.config.mjs 168 passed, 0 failed, 0 skipped
 npx playwright test (visual + WebKit) 153 passed, 105 skipped, 0 failed
+npx playwright test --config=playwright.porch-night.config.mjs 2 passed, 0 failed, 0 skipped
 Named backend cases:
 scripts/test-card-picker.mjs six hidden-Rook faces, no tapstart, no demo seed
 scripts/test-demo-seed.mjs shipped page never boots demo-seed
