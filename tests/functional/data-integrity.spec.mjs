@@ -133,7 +133,7 @@ test('P0-01 first trick digit replaces the prefill, then later digits append', a
   await expect(mattRow).not.toHaveClass(/is-complete/);
   await (await entryKey(page,'0')).click();
   await expect(matt).toHaveText('0');
-  await expect(mattRow).toHaveClass(/is-complete/);
+  await expect(page.locator('#score-entry-status-Matt')).toContainText(/Entered 0/i);
 
   await page.locator('#score-entry-row-Cat .score-entry-name').click();
   const cat=page.locator('#score-entry-value-Cat');
@@ -217,7 +217,7 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   // Minus is omitted for trick entry; over-range positives still reject.
-  const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey('-')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
+  const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'-\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
   expect(minusVisible).toBe(false);
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'9')).click();
