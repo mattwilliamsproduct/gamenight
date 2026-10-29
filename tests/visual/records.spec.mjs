@@ -12,7 +12,7 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   await openHallOfFame(page);
 
   const ledger=page.locator('#hall-of-fame-view');
-  await expect(ledger).toContainText('Game Championship Ledger');
+  await expect(ledger).toContainText('Hall of Fame');
   await expect(ledger).toContainText('818');
   await expect(ledger).toContainText('Beat the Heat');
   await expect(ledger).toContainText('Unassisted matches only');

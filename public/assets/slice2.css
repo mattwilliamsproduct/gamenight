@@ -1511,11 +1511,18 @@ html.slice2-tv #hall-of-fame-view {
 }
 
 html.slice2-tv .s2-unassisted-note {
-  display: block;
-  font-size: max(13px, 0.8rem);
+  display: inline;
+  margin-left: 0.45em;
+  font-size: max(12px, 0.74rem);
   font-weight: 700;
   color: var(--s2-muted);
   letter-spacing: 0.02em;
+  font-style: normal;
+}
+
+html.slice2-tv .s2-ledger-stat .s2-unassisted-note {
+  display: block;
+  margin: 2px 0 0;
 }
 
 html.slice2-tv .s2-nights-col {
@@ -3511,4 +3518,113 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fi
 html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
   padding-top: 4px !important;
   padding-bottom: 4px !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-b {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 8px;
+  flex-wrap: unset !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-heading {
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot #score-entry-context {
+  display: block;
+  margin-top: 2px !important;
+  white-space: normal;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  font-size: 0.82rem !important;
+  line-height: 1.25 !important;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-progress {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
+  margin: 0 !important;
+  max-width: 100%;
+  white-space: nowrap;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.65rem;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate-bar {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate {
+  min-width: 0;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate .score-entry-meta-label {
+  white-space: normal;
+}
+
+html.slice2-tv #score-entry-modal.score-entry-hand-foot #score-entry-unconfirmed,
+html.slice2-tv #score-entry-modal.score-entry-hand-foot #score-entry-error {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 480px) {
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-b {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-progress {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
+    text-align: center;
+  }
+
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .hf-rate-bar {
+    grid-row: 3;
+  }
+}
+
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot,
+html.slice2-tv #modal-scorecard-body .scorecard-player-name-slot {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name,
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot button.dealer-name-indicator {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+html.slice2-tv .retired-badge,
+html.slice2-tv #scorecard-capture .retired-badge,
+html.slice2-tv #modal-scorecard-body .retired-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: 0.35rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  background: var(--rose-bg, #fde8ee);
+  color: var(--rose, #9f1239);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+  line-height: 1.15;
 }

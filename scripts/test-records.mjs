@@ -22,11 +22,46 @@ const helpers = {
   scorebook: Scorebook
 };
 
+function paintHtml(history, pane = 'overview', extra = {}) {
+  const view = {classList: {contains: () => false}, className: '', dataset: {}, innerHTML: ''};
+  const completed = (history || []).filter((match) => Scorebook.isCompletedHistoryMatch(match));
+  Records.paint({
+    view,
+    table: {history: history || []},
+    pane,
+    hall: extra.hall || {},
+    data: {
+      completed,
+      allTime: {mostWins: [], bestWinRate: [], mostGames: [], mostLasts: [], longestWinningStreak: null, longestLosingStreak: null, longestNoLastStreak: null},
+      games: Object.fromEntries(Records.GAMES.map((game) => [game.id, {}])),
+      playerCards: [],
+      rivalries: {top: [], lopsided: []},
+      shameAwards: [],
+      ...extra
+    },
+    scorebook: Scorebook,
+    configs: helpers.configs,
+    getDisplayPlayers: helpers.getDisplayPlayers,
+    sortPlayersByTotal: helpers.sortPlayersByTotal,
+    competitionPlaces: helpers.competitionPlaces,
+    escapeHtml(value) { return String(value == null ? '' : value); },
+    getAvatarImg() { return ''; },
+    compact: false
+  });
+  return view.innerHTML;
+}
+
 test('ledger night count is singular for one night', () => {
   assert.equal(Records.formatNightCount(1), '1 night');
   assert.equal(Records.formatNightCount(0), '0 nights');
   assert.equal(Records.formatNightCount(2), '2 nights');
   assert.equal(Records.formatNightCount(11), '11 nights');
+  assert.equal(Records.formatCompletedMatches(1), '1 completed match');
+  assert.equal(Records.formatCompletedMatches(2), '2 completed matches');
+  assert.equal(Records.SINGLE_MATCH_BID_RATE_MIN, 5);
+  assert.equal(Records.singleMatchBidRateEligible(1), false);
+  assert.equal(Records.singleMatchBidRateEligible(4), false);
+  assert.equal(Records.singleMatchBidRateEligible(5), true);
 });
 
 test('records copy uses singular nouns for a count of one', () => {
@@ -44,6 +79,44 @@ test('hidden Rook stays off the championship ledger', () => {
   assert.ok(!ids.includes('Rook'));
   assert.ok(ids.includes('Five Crowns'));
   assert.ok(ids.includes('Beat the Heat'));
+  assert.ok(ids.includes('Hand and Foot'));
+});
+
+test('completed Hand and Foot nights appear as Canasta on Records', () => {
+  const canasta = Records.GAMES.find((game) => game.id === 'Hand and Foot');
+  assert.ok(canasta);
+  assert.equal(canasta.title, 'Canasta');
+  assert.equal(Records.gameTitle('Hand and Foot'), 'Canasta');
+  const book = QA_SCENARIOS['records-book'].data.history.filter((row) => row.game === 'Hand and Foot' && row.completed !== false);
+  assert.ok(book.length >= 1);
+  const html = paintHtml(QA_SCENARIOS['records-book'].data.history, 'overview');
+  assert.match(html, /Canasta/);
+  assert.match(html, /Hall of Fame/);
+  assert.match(html, /16 completed matches/);
+  assert.doesNotMatch(html, /Game Championship Ledger/);
+  assert.doesNotMatch(html, /Unassisted matches only on best final/);
+  assert.match(paintHtml(QA_SCENARIOS['records-book'].data.history, 'explore'), /Unassisted matches only/);
+  const nights = paintHtml(QA_SCENARIOS['records-book'].data.history, 'nights');
+  assert.match(nights, /Canasta/);
+  assert.match(nights, /Left early/);
+  assert.doesNotMatch(nights, /Retired/);
+});
+
+test('completed Rook history appears on Records without unhiding the start card', () => {
+  const rook = {
+    id: 2,
+    game: 'Rook',
+    date: '10/20/2026',
+    completed: true,
+    totals: {Ann: 110, Bo: 90},
+    winners: ['Ann'],
+    originalRoster: ['Ann', 'Bo'],
+    rounds: [{round: 1, scores: {Ann: 110, Bo: 90}}]
+  };
+  assert.ok(Records.visibleRecordGames([rook]).some((game) => game.id === 'Rook'));
+  assert.ok(!Records.visibleRecordGames([{...rook, completed: false}]).some((game) => game.id === 'Rook'));
+  const html = paintHtml([rook], 'overview');
+  assert.match(html, />Rook</);
 });
 
 test('win rate always prints the denominator and hides thin samples from the lead', () => {
@@ -69,6 +142,12 @@ test('tied records keep every name', () => {
   const tied = Records.keepBestWithTies(first, {player: 'Cat', value: 42}, (a, b) => a.value > b.value);
   assert.equal(tied.ties.length, 2);
   assert.equal(Records.formatTiedNames(tied.ties), 'Matt and Cat');
+  const again = Records.keepBestWithTies(tied, {player: 'Matt', value: 42}, (a, b) => a.value > b.value);
+  assert.equal(again.ties.length, 2);
+  const three = Records.keepBestWithTies(tied, {player: 'Megan', value: 42}, (a, b) => a.value > b.value);
+  assert.equal(three.ties.length, 3);
+  assert.equal(Records.recordHolderText(three, true), 'Matt and Cat + 1 more');
+  assert.equal(Records.recordHolderText(three), 'Matt, Cat, and Megan');
   const better = Records.keepBestWithTies(tied, {player: 'Megan', value: 50}, (a, b) => a.value > b.value);
   assert.equal(better.player, 'Megan');
   assert.equal(better.ties.length, 1);
@@ -192,4 +271,114 @@ test('818 Brick is retired as a primary Shame label', () => {
   const crash = Records.SHAME_CATALOG.find((row) => row.id === 'fc-worst-round');
   assert.equal(crash.name, 'Highest single-round score');
   assert.equal(crash.subtitle, 'Crash and Burn');
+});
+
+test('Explore copy hides catch-alls and moves positive records out of Shame', () => {
+  const awards = Records.buildShameAwards({
+    games: {},
+    allTime: {longestWinningStreak: {player: 'Matt', value: 4}}
+  }, [{name: 'Cat', wins: 0, games: 9, longestLast: 2}], {Cat: {busted: 3}});
+  const ids = awards.map((row) => row.id);
+  assert.ok(!ids.includes('no-wins'));
+  assert.ok(!ids.includes('wizard-exact'));
+  assert.ok(!ids.includes('comeback-wins'));
+  assert.ok(!ids.includes('win-streak'));
+  const html = paintHtml(QA_SCENARIOS['records-book'].data.history, 'explore', {
+    rivalries: {
+      top: [{a: 'Cat', b: 'Matt', aWins: 4, bWins: 11, together: 16}],
+      lopsided: [{a: 'Cat', b: 'Matt', aWins: 2, bWins: 8, together: 10}]
+    },
+    playerCards: [{player: 'Matt', wins: 8, games: 15, currentStreak: 'W2'}]
+  });
+  assert.match(html, /Bid accuracy/);
+  assert.match(html, /Longest stretch without a win/);
+  assert.match(html, /Highest head-to-head win rate/);
+  assert.match(html, /View player profiles/);
+  assert.match(html, /Highest final-round score|Best 4-player final score|Best career exact-bid rate/);
+  assert.doesNotMatch(html, /More from the book/);
+  assert.doesNotMatch(html, /Longest losing streak/);
+  assert.doesNotMatch(html, /Most games without a win/);
+  assert.doesNotMatch(html, /Rook bids won/);
+  assert.doesNotMatch(html, /stored-halftime/);
+  assert.doesNotMatch(html, /stored Turbo/);
+  assert.doesNotMatch(html, /This is not a second dashboard/);
+  assert.doesNotMatch(html, /Biggest final-round swing/);
+  assert.doesNotMatch(html, />career</);
+  assert.doesNotMatch(html, /busts/);
+});
+
+test('head-to-head scoreline names ties and the rate denominator', () => {
+  const lead = Records.headToHeadLead({a: 'Linda', b: 'Matt', aWins: 2, bWins: 4, together: 7});
+  assert.equal(lead.scoreline, 'Linda 2 · Matt 4 · Tied 1');
+  assert.equal(lead.leader, 'Matt');
+  assert.equal(lead.ties, 1);
+  assert.equal(lead.text, 'Matt leads 4-2');
+});
+
+test('addendum labels stay relabel-only', () => {
+  const book = QA_SCENARIOS['records-book'].data.history;
+  const overview = paintHtml(book, 'overview');
+  const explore = paintHtml(book, 'explore', {
+    rivalries: {
+      top: [{a: 'Linda', b: 'Matt', aWins: 2, bWins: 4, together: 7}],
+      lopsided: [{a: 'Linda', b: 'Matt', aWins: 2, bWins: 4, together: 7}]
+    },
+    playerCards: [{player: 'Matt', wins: 8, games: 15, currentStreak: 'W2'}],
+    games: {
+      ...Object.fromEntries(Records.GAMES.map((game) => [game.id, {}])),
+      Wizard: {
+        bestExactRateSingleGame: {player: 'Cat', value: 80, label: '8 of 10 bids', date: '10/19/2026'}
+      },
+      'Hand and Foot': {
+        closestMargin: {player: 'Matt', value: 0, label: 'Matt by 0 over Megan'},
+        bestGame: {player: 'Matt', value: 4577}
+      },
+      Rook: {
+        closestMargin: {player: 'Matt', value: 0, label: 'Matt by 0 over Megan'},
+        bestGame: {player: 'Matt', value: 110}
+      }
+    }
+  });
+  assert.match(overview, />Overview</);
+  assert.match(overview, /Explore<span class="s2-tab-rest"> records<\/span>/);
+  assert.match(overview, />Past nights</);
+  assert.doesNotMatch(overview, /Unassisted matches only on best final/);
+  assert.match(explore, /Unassisted matches only/);
+  assert.match(explore, /8 of 10 bids/);
+  assert.match(explore, /Best single-match exact rate/);
+  assert.match(explore, /Linda 2 · Matt 4 · Tied 1/);
+  assert.match(explore, /Places gained are measured immediately after each spin/);
+  assert.doesNotMatch(explore, /won because of the wheel|the wheel caused/);
+  assert.match(explore, /View player profiles/);
+  assert.doesNotMatch(explore, /This is not a second dashboard/);
+  assert.doesNotMatch(explore, /Matt by 0 over Megan/);
+  const nights = paintHtml(book, 'nights');
+  assert.match(nights, /Left early/);
+  assert.doesNotMatch(nights, /Retired/);
+  assert.match(nights, /Resume/);
+});
+
+test('Life Preserver totals skip incomplete matches and stay per game', () => {
+  const done = {
+    game: '818',
+    date: '10/19/2026',
+    completed: true,
+    originalRoster: ['Matt', 'Cat', 'Mike', 'Duke'],
+    totals: {Matt: 40, Cat: 20, Mike: 10, Duke: 32},
+    rounds: [
+      {round: 1, scores: {Matt: 20, Cat: 20, Mike: 10, Duke: 8}},
+      {round: 0, hailMaryBonus: true, scores: {Duke: 12}}
+    ]
+  };
+  const open = {...done, completed: false, game: 'Wizard'};
+  const events = Records.lifePreserverEvents([done, open], helpers);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].game, '818');
+  const summary = Records.lifePreserverSummary([
+    {player: 'Duke', game: '818', adjustment: 12, placesGained: 1},
+    {player: 'Duke', game: 'Wizard', adjustment: 8, placesGained: 1}
+  ]);
+  assert.equal(summary.length, 2);
+  assert.ok(summary.every((row) => row.game === '818' || row.game === 'Wizard'));
+  assert.equal(summary.find((row) => row.game === '818').adjustment, 12);
 });

@@ -807,7 +807,7 @@ test('P0-03 an all-assisted shelf says there are no unassisted matches', async (
   });
   await expect(page.locator('#hall-of-fame-view')).toBeVisible();
   await expect(page.locator('#hall-of-fame-view')).toContainText('No unassisted matches yet');
-  await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
+  await expect(page.locator('#hall-of-fame-view')).not.toContainText('Unassisted matches only on best final');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-all-assisted-empty.png`});
 });

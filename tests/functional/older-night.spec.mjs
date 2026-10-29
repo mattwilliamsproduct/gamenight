@@ -37,9 +37,12 @@ test('older main backup restores Rook nights, profiles, and records without Cana
   await page.evaluate(() => { if (typeof showHistory === 'function') showHistory(); });
   await expect(page.locator('#history-screen')).toBeVisible();
   await expect(page.locator('#history-screen')).toContainText(/Rook/);
-  await expect(page.locator('#history-screen')).not.toContainText(/Canasta/);
+  await expect(page.locator('.s2-night-head strong', {hasText: 'Rook'})).toHaveCount(1);
+  await expect(page.locator('.s2-night-head strong', {hasText: 'Canasta'})).toHaveCount(0);
 
   const nightsTab = page.locator('#slice2-show-nights, [data-s2-records="nights"]');
   if (await nightsTab.count()) await nightsTab.first().click();
   await expect(page.locator('#history-screen')).toContainText(/Rook|Cal|Dee/);
+  await expect(page.locator('.s2-nights-col .s2-night-head strong', {hasText: 'Rook'})).toHaveCount(1);
+  await expect(page.locator('.s2-nights-col .s2-night-head strong', {hasText: 'Canasta'})).toHaveCount(0);
 });

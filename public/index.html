@@ -3665,11 +3665,29 @@ button.dealer-name-indicator {
     }
     .scorecard-player-name-slot {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      row-gap: 2px;
       min-width: 0;
       flex: 1 1 auto;
       max-width: 100%;
       overflow: hidden;
+    }
+    .retired-badge {
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      margin-left: 0.35rem;
+      padding: 0.12rem 0.4rem;
+      border-radius: 999px;
+      background: var(--rose-bg);
+      color: var(--rose);
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-transform: none;
+      white-space: nowrap;
+      line-height: 1.15;
     }
     .scorecard-turbo-slot {
       display: flex;
@@ -10317,7 +10335,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function retiredBadgeMarkup(gameData, player){
     if(!player || !(gameData?.retired||[]).includes(player)) return '';
-    return `<span class="retired-badge ml-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider" style="background:var(--rose-bg);color:var(--rose);">Retired</span>`;
+    return `<span class="retired-badge">Left early</span>`;
   }
   const EIGHT18_ROUND_TRICKS = [8,7,6,5,4,3,2,1,2,3,4,5,6,7,8];
   function isEight18Game(game=currentGame){
@@ -19106,7 +19124,13 @@ ${isDealer
     const entry = (player,value,h,extra={}) => ({player,value,score:value,game:h.game,date:h.date,id:h.id,...extra});
     const betterHigh = (next, cur) => !cur || next.value > cur.value;
     const betterLow = (next, cur) => !cur || next.value < cur.value;
-    const update = (obj,key,next,better) => { if(next && better(next,obj[key])) obj[key]=next; };
+    const keepTies = (window.BPGRecords && typeof BPGRecords.keepBestWithTies === 'function')
+      ? BPGRecords.keepBestWithTies
+      : (cur, next, better) => (!next ? cur || null : (!cur || better(next, cur) ? next : cur));
+    const bidRateOk = (window.BPGRecords && typeof BPGRecords.singleMatchBidRateEligible === 'function')
+      ? BPGRecords.singleMatchBidRateEligible
+      : (total) => (Number(total) || 0) >= 5;
+    const update = (obj,key,next,better) => { if(next) obj[key]=keepTies(obj[key], next, better); };
     const variance = (nums) => {
       if(!nums.length) return 0;
       const avg = nums.reduce((s,n)=>s+n,0)/nums.length;
@@ -19371,18 +19395,18 @@ ${isDealer
         if(h.game==='818'){
           update(games['818'],'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
           update(games['818'],'mostMissedSingleGame',entry(p,m.busted,h,{label:`${m.busted} missed bids`}),betterHigh);
-          if(m.eight18BidTotal>0&&m.exacts>0){
+          if(bidRateOk(m.eight18BidTotal)&&m.exacts>0){
             const exactPct=Math.round(m.exacts/m.eight18BidTotal*100);
-            update(games['818'],'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts}/${m.eight18BidTotal} exact bids`}),betterHigh);
+            update(games['818'],'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts} of ${m.eight18BidTotal} bids`}),betterHigh);
           }
         }
         if(m.extras>0) update(allTime,'mostComebackExtras',entry(p,m.extras,h,{label:`${m.extras} Comeback extras`}),betterHigh);
         if(h.game==='Wizard'){
           update(games.Wizard,'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
           if(m.zeroBidsHit>0) update(games.Wizard,'mostZeroBidsHit',entry(p,m.zeroBidsHit,h,{label:`${m.zeroBidsHit} zero bids hit`}),betterHigh);
-          if(m.wizardBidTotal>0&&m.exacts>0){
+          if(bidRateOk(m.wizardBidTotal)&&m.exacts>0){
             const exactPct=Math.round(m.exacts/m.wizardBidTotal*100);
-            update(games.Wizard,'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts}/${m.wizardBidTotal} exact bids`}),betterHigh);
+            update(games.Wizard,'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts} of ${m.wizardBidTotal} bids`}),betterHigh);
           }
           const playerCount=getWizardRecordPlayerCount(h);
           if(playerCount&&m.exacts>0){

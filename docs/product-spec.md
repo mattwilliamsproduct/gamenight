@@ -17,7 +17,7 @@ A game night on the iPad (landscape) or the TV succeeds when these are true. The
 
 Portrait is a podium, not the scoring surface. Rotate back for the card.
 
-The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records is one destination with Overview, Explore records, and Past nights. Completed nights do not offer Resume. Metric definitions live in [release/records-metrics.md](release/records-metrics.md).
+The production look is Warm Porch Ledger. It is not behind a flag. Home with a live match shows one Resume control. Records is one destination with Overview, Explore records, and Past nights. Completed nights do not offer Resume. Saved Canasta nights keep the Hand and Foot id and appear as Canasta. Completed Rook nights can appear on Records while the start card stays hidden. Metric definitions live in [release/records-metrics.md](release/records-metrics.md).
 
 ## Supported games
 

@@ -40,6 +40,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
 - Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
 - Championship Ledger hides Rook while Rook is hidden from the shelf.
+- Records shows Canasta for saved Hand and Foot nights, and shows Rook history when a completed Rook night exists, without putting Rook back on the start shelf.
+- Records keeps Overview · Explore records · Past nights. Final-score rows carry "Unassisted matches only" beside the number. Past nights and the live scorecard say Left early. Rivalries print the tie count. Life Preserver says places are measured right after the spin.
 - The 1024 match header is two clean rows. Saved sits on its own row and does not collide with wild or dealer copy.
 - Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
 - A first-use empty table that says add a name, pick a game, then tap Start.
@@ -61,6 +63,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - An unfinished history match still counting as a completed game.
 - "Warm Porch Ledger" as a user-facing subtitle.
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
+- Life Preserver copy that claims the wheel caused a later win.
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
@@ -96,6 +99,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
 - A 1024 Home Start button below the fold with 6 seated, or an 8-player 1024 entry that hides rows behind a stacked keypad.
 - A Saved chip or NOW column that clips the card or scorecard edge.
+- Calling a Flip 7 zero round a bust on Records.
+- Developer-facing Records copy such as stored-halftime deficit, stored Turbo history, or "This is not a second dashboard".
+- A combined Life Preserver "pts adjusted" total across games, or counting incomplete spins on published Records rows.
 - Shipping TEMP demo-loading (`demo-seed`, `?demo`, `BPGDemoLiveGame`) on the launch host.
 - 1024 Records Overview stacked in one column with a dead half-screen.
 - `R11 · NOV` or any clipped current-round header.

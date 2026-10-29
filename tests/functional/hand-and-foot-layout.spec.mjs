@@ -367,3 +367,60 @@ test('Canasta rules open from Game Instructions and in-game Actions', async ({pa
   await expect(page.locator('#rules-title')).toHaveText('Canasta');
   await expect(page.locator('#rules-content')).toContainText('sevens');
 });
+
+test('Canasta entry header and rate bar stay unclipped at 1024, 1440, and 390', async ({page}) => {
+  for (const viewport of [{width: 1024, height: 768}, {width: 1440, height: 900}, {width: 390, height: 844}]) {
+    await page.setViewportSize(viewport);
+    await openScenario(page, {scenario: 'demo-canasta', surface: 'entry-scores'});
+    await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#score-entry-context')).toContainText(/Round 3/);
+    await expect(page.locator('#score-entry-progress')).toContainText(/of 2 teams/);
+    const problems = await page.evaluate(() => {
+      const box = (el) => {
+        const r = el.getBoundingClientRect();
+        return {x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom};
+      };
+      const hit = (a, b) => a.width > 0 && b.width > 0 && a.x < b.right - 1 && a.right > b.x + 1 && a.y < b.bottom - 1 && a.bottom > b.y + 1;
+      const context = document.getElementById('score-entry-context');
+      const progress = document.getElementById('score-entry-progress');
+      const rates = [...document.querySelectorAll('#hf-rate-bar .hf-rate')];
+      const modal = document.querySelector('#score-entry-modal .score-entry-panel');
+      const issues = [];
+      if (context && progress && hit(box(context), box(progress))) issues.push('context overlaps progress');
+      if (rates.length !== 3) issues.push(`rate cards ${rates.length}`);
+      const panel = modal ? box(modal) : null;
+      rates.forEach((el, index) => {
+        const r = box(el);
+        if (r.width < 40 || r.height < 32) issues.push(`rate ${index} ${Math.round(r.width)}x${Math.round(r.height)}`);
+        if (panel && (r.right > panel.right + 1 || r.left < panel.left - 1)) issues.push(`rate ${index} clipped`);
+        if (el.scrollWidth > el.clientWidth + 1) issues.push(`rate ${index} text clipped`);
+      });
+      return issues;
+    });
+    expect(problems, `${viewport.width}x${viewport.height}`).toEqual([]);
+  }
+});
+
+test('Left early badge stays whole beside the retired name at 1024, 1440, and 390', async ({page}) => {
+  for (const viewport of [{width: 1024, height: 768}, {width: 1440, height: 900}, {width: 390, height: 844}]) {
+    await page.setViewportSize(viewport);
+    await openScenario(page, {scenario: 'five-crowns-late-8', surface: 'scorecard'});
+    await page.evaluate(() => {
+      if (!currentGame) return;
+      currentGame.retired = ['Linda'];
+      if (typeof renderGame === 'function') renderGame();
+    });
+    const badge = page.locator('#scorecard-capture .retired-badge');
+    await expect(badge).toHaveText('Left early');
+    const fit = await page.evaluate(() => {
+      const el = document.querySelector('#scorecard-capture .retired-badge');
+      const name = el?.closest('.scorecard-player-name-slot')?.querySelector('.scoreboard-player-name');
+      return {
+        badgeWhole: !!(el && el.scrollWidth <= el.clientWidth + 1),
+        nameText: (name?.textContent || '').trim()
+      };
+    });
+    expect(fit.badgeWhole, `${viewport.width} badge`).toBe(true);
+    expect(fit.nameText).toContain('Linda');
+  }
+});

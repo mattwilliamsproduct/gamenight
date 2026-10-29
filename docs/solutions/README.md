@@ -57,3 +57,5 @@ Standing trap: [card-picker.md](card-picker.md) — Home uses 5:7 card faces and
 Standing trap: [rc2-look-1400.md](rc2-look-1400.md) — reserve NOW min-width and shrink columns; do not hide another oldest hand to unclip a NOW that is already on screen. Saved sits under the Tonight's Table title, fully inside the card.
 
 Standing trap: [rc2-look-1505.md](rc2-look-1505.md) — do not ship TEMP demo-loading. 1024 Records headline stays three across. Current-round header is `R11 Now`, not `R11 · Now`. Phone entry mutes the subtitle and keeps three rows above Scoring. Non-active 8-player rows have no teal/dealer outline.
+
+Standing trap: [rc2-records-labels.md](rc2-records-labels.md) — Canasta nights keep the Hand and Foot id. Records must list that id as Canasta. Rook history can show while the start card stays hidden.

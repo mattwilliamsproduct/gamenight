@@ -758,6 +758,23 @@ function demoCanastaLive(){
   });
 }
 
+function canastaFinishedNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const rounds=[
+    canastaTeamRound(1, canastaHouseParts({cleanCanastas:1,dirtyCanastas:1,sevensCanastas:1,redThrees:4,goingOut:1,cardPoints:40,cardsLeft:20}), canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:2,goingOut:0,cardPoints:15,cardsLeft:10}), ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(2, canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:1,goingOut:0,cardPoints:80,cardsLeft:5}), canastaHouseParts({cleanCanastas:1,dirtyCanastas:0,sevensCanastas:0,redThrees:3,goingOut:1,cardPoints:25,cardsLeft:0}), ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(3, canastaHouseParts({cleanCanastas:1,dirtyCanastas:0,sevensCanastas:0,redThrees:2,goingOut:0,cardPoints:60,cardsLeft:0}), canastaHouseParts({cleanCanastas:0,dirtyCanastas:1,sevensCanastas:0,redThrees:1,goingOut:0,cardPoints:20,cardsLeft:15}), ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(4, canastaHouseParts({cleanCanastas:0,dirtyCanastas:0,sevensCanastas:0,redThrees:1,goingOut:0,cardPoints:30,cardsLeft:8}), canastaHouseParts({cleanCanastas:1,dirtyCanastas:1,sevensCanastas:0,redThrees:0,goingOut:1,cardPoints:45,cardsLeft:0}), ['Megan','Matt'], ['Cat','Mike'])
+  ];
+  return finishedNight(1783353600000,'Hand and Foot','10/3/2026',roster,rounds,{
+    handFoot:{format:'teams', sides}
+  });
+}
+
 function rookFinishedNight(){
   const roster=['Megan','Matt','Cat','Mike'];
   const rounds=[{
@@ -1359,9 +1376,9 @@ export const QA_SCENARIOS = {
   },
   'records-book':{
     label:'Records book',
-    description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match and a joint win.',
+    description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match, a joint win, a completed Canasta night, and existing Rook history.',
     defaultSurface:'records',
-    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory(),playerProfiles:profiles(),currentGame:null}
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight()]),playerProfiles:profiles(),currentGame:null}
   },
   'empty-home':{
     label:'Empty first start',

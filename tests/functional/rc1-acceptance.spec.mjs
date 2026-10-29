@@ -350,7 +350,7 @@ test('retired players stay visible on a Records scorecard', async ({page}) => {
   });
   await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#modal-scorecard-body')).toContainText('Mike');
-  await expect(page.locator('#modal-scorecard-body .retired-badge')).toHaveText(/Retired/i);
+  await expect(page.locator('#modal-scorecard-body .retired-badge')).toHaveText(/Left early/i);
 });
 
 test('every keypad key is fully visible and unobstructed at 375 and 390 for 8 players', async ({page}) => {

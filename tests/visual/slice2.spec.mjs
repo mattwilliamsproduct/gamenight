@@ -149,9 +149,9 @@ test('spin lasts about three seconds unless motion is reduced', async ({page}) =
 test('records ledger uses real history and the phone toggle', async ({page}) => {
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2&slice2view=records', {waitUntil: 'networkidle'});
   await ready(page);
-  await expect(page.getByRole('heading', {name: 'Game Championship Ledger'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Hall of Fame'})).toBeVisible();
   await expect(page.getByRole('heading', {name: 'Hall of Shame'})).toBeVisible();
-  await expect(page.locator('.s2-ledger-row')).toHaveCount(6);
+  await expect(page.locator('.s2-ledger-row')).toHaveCount(7);
   await page.setViewportSize({width: 390, height: 844});
   await page.locator('#slice2-show-shame').click();
   await expect(page.locator('.s2-fame-col')).toBeHidden();
