@@ -17266,8 +17266,8 @@ ${isDealer
     }
     const prev=scoreEntryModalState.activePlayer;
     const next=scoreEntryModalState.players[idx];
-    // Leaving a seat confirms a typed value so is-complete matches Entered→Confirmed.
-    if(prev && prev!==next) markScoreEntryPlayerComplete(prev);
+    // Leaving a dirty seat confirms the typed value. Untouched prefills stay Entered.
+    if(prev && prev!==next && scoreEntryModalState.dirty?.[prev]) markScoreEntryPlayerComplete(prev);
     if(prev)document.getElementById(`score-entry-row-${rookElementId(prev)}`)?.classList.remove('active');
     scoreEntryModalState.activePlayer=next;
     document.getElementById(`score-entry-row-${rookElementId(next)}`)?.classList.add('active');
