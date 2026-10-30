@@ -45,21 +45,46 @@ if (want('entry')) {
 }
 
 if (want('addplayer')) {
-  const page = await browser.newPage({viewport:{width:1024,height:768}});
-  await page.goto(`${base}/?gnqa=1&gallery=0&scenario=home-party&surface=home`, {waitUntil:'networkidle'});
-  await ready(page);
-  await page.evaluate(() => {
-    document.documentElement.style.fontSize = '24px';
-    try {
-      for (const k of Object.keys(localStorage)) if (k.includes('gn_ui_scale')) localStorage.setItem(k, '24');
-      if (typeof adjustUI === 'function') { while ((parseInt(getComputedStyle(document.documentElement).fontSize)||16) < 24) adjustUI(1); }
-    } catch {}
-  });
-  await page.waitForTimeout(300);
-  await page.screenshot({path:`${OUT}/home-add-player-150pct-1024x768.png`});
-  const box = await page.locator('#quick-add-player').boundingBox().catch(()=>null);
-  if (box) await page.screenshot({path:`${OUT}/home-add-player-150pct-crop.png`, clip:{x:Math.max(0,box.x-16),y:Math.max(0,box.y-36),width:Math.min(box.width+140,900),height:Math.min(box.height+72,180)}});
-  await page.close();
+  for (const size of [{name:'1024x768',w:1024,h:768},{name:'390x844',w:390,h:844}]) {
+    const page = await browser.newPage({viewport:{width:size.w,height:size.h}});
+    await page.goto(`${base}/?gnqa=1&gallery=0&scenario=home-party&surface=home`, {waitUntil:'networkidle'});
+    await ready(page);
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '24px';
+      try {
+        for (const k of Object.keys(localStorage)) if (k.includes('gn_ui_scale')) localStorage.setItem(k, '24');
+        if (typeof adjustUI === 'function') {
+          let guard = 0;
+          while ((parseInt(getComputedStyle(document.documentElement).fontSize)||16) < 24 && guard++ < 24) adjustUI(1);
+        }
+      } catch {}
+    });
+    await page.waitForTimeout(350);
+    const add = page.locator('#slice2-add-name, #quick-add-player, .s2-add input').first();
+    await page.evaluate(() => {
+      const el = document.querySelector('#slice2-add-name, #quick-add-player, .s2-add input');
+      if (!el) return;
+      const ar = el.getBoundingClientRect();
+      if (ar.bottom > window.innerHeight - 8 || ar.top < 80) {
+        window.scrollTo(0, Math.max(0, window.scrollY + ar.top - Math.floor(window.innerHeight * 0.45)));
+      }
+    }).catch(()=>{});
+    await page.waitForTimeout(200);
+    await page.screenshot({path:`${OUT}/home-add-player-150pct-${size.name}.png`});
+    const box = await add.boundingBox().catch(()=>null);
+    if (box) {
+      await page.screenshot({
+        path:`${OUT}/home-add-player-150pct-crop-${size.name}.png`,
+        clip:{
+          x:Math.max(0, box.x - 16),
+          y:Math.max(0, box.y - 48),
+          width:Math.min(box.width + 200, size.w - Math.max(0, box.x - 16)),
+          height:Math.min(box.height + 96, size.h - Math.max(0, box.y - 48))
+        }
+      });
+    }
+    await page.close();
+  }
 }
 
 if (want('scorecard')) {
@@ -83,19 +108,26 @@ if (want('scorecard')) {
       const scenario = n===3 ? 'five-crowns-4' : n===6 ? 'wizard-6-mid' : 'five-crowns-late-8';
       await openSurface(page, scenario, 'scorecard');
       if (n===3) {
+        await page.waitForFunction(() => typeof currentGame !== 'undefined' && currentGame && (currentGame.originalRoster||[]).length >= 3, null, {timeout:10000});
         await page.evaluate(() => {
-          if (!currentGame) return;
           const keep = (currentGame.originalRoster||currentGame.players||[]).slice(0,3);
-          if (keep.length<3) return;
-          currentGame.originalRoster = keep;
-          currentGame.players = keep;
+          currentGame.originalRoster = keep.slice();
+          if (Array.isArray(currentGame.players)) currentGame.players = keep.slice();
           if (currentGame.totals) {
-            const t={}; keep.forEach(p=>t[p]=currentGame.totals[p]??0); currentGame.totals=t;
+            const t={}; keep.forEach(n=>t[n]=currentGame.totals[n]??0); currentGame.totals=t;
+          }
+          if (currentGame.scores) {
+            const s={}; keep.forEach(n=>s[n]=currentGame.scores[n]||[]); currentGame.scores=s;
           }
           if (typeof renderScoreboard==='function') renderScoreboard();
           else if (typeof renderGame==='function') renderGame();
         });
-        await page.waitForTimeout(250);
+        await page.waitForFunction(() => document.querySelectorAll('#scorecard-capture tbody tr').length === 3, null, {timeout:8000});
+        await page.evaluate(() => {
+          if (typeof fitActiveScorecardRows==='function') fitActiveScorecardRows();
+          if (typeof fitActiveScorecardColumns==='function') fitActiveScorecardColumns(document.getElementById('scorecard-capture'));
+        });
+        await page.waitForTimeout(350);
       }
       await page.screenshot({path:`${OUT}/scorecard-${size.name}-${n}p.png`});
       await page.close();
@@ -108,11 +140,21 @@ async function openPastNights(page) {
     try {
       document.querySelectorAll('.qa-gallery, .gn-qa-gallery, #qa-gallery, [data-qa-gallery]').forEach((el) => el.remove());
       if (typeof showScreen === 'function') showScreen('hall-of-fame-view');
-      document.getElementById('slice2-show-nights')?.click();
     } catch {}
   });
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(200);
+  const nightsBtn = page.locator('#slice2-show-nights, button:has-text("Past nights")').first();
+  await nightsBtn.click({timeout: 5000}).catch(()=>{});
+  await page.waitForTimeout(400);
   await page.waitForSelector('.s2-night-card', {state: 'attached', timeout: 12000}).catch(() => {});
+  await page.evaluate(() => {
+    const pane = document.querySelector('#slice2-nights, .s2-nights-pane, [data-s2-nights]');
+    if (pane) pane.style.display = '';
+    document.querySelectorAll('.s2-night-card').forEach((el) => {
+      el.style.visibility = 'visible';
+      el.hidden = false;
+    });
+  });
 }
 
 if (want('past')) {

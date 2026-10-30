@@ -493,3 +493,31 @@ test('nightCardHtml puts Left early in its own section without a dash place', ()
   assert.match(html, /s2-night-place">2\.</);
   assert.doesNotMatch(html, /s2-night-place">3\.</);
 });
+
+test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () => {
+  const match = {
+    game: 'Wizard',
+    totals: { Megan: 50, Matt: 50, Cat: 20, Linda: 5 },
+    winners: ['Megan', 'Matt'],
+    retired: ['Linda'],
+    originalRoster: ['Megan', 'Matt', 'Cat', 'Linda'],
+    completed: true,
+    rounds: [{ round: 1, scores: { Megan: 50, Matt: 50, Cat: 20, Linda: 5 } }]
+  };
+  const rows = Records.nightStandings(match, helpers);
+  assert.deepEqual(rows.map((r) => [r.name, r.place, !!r.leftEarly]), [
+    ['Matt', 1, false],
+    ['Megan', 1, false],
+    ['Cat', 2, false],
+    ['Linda', null, true]
+  ]);
+  const model = Records.nightCardModel(match, helpers);
+  const html = Records.nightCardHtml(model, {
+    escapeHtml: (s) => String(s),
+    getAvatarImg: () => '<img>'
+  }, false);
+  assert.match(html, /s2-night-place">1\.</);
+  assert.match(html, /s2-night-place">2\.</);
+  assert.doesNotMatch(html, /s2-night-place">3\.</);
+  assert.match(html, /s2-night-left-label">Left early</);
+});

@@ -5,7 +5,7 @@ import test from 'node:test';
 const require = createRequire(import.meta.url);
 const Scorebook = require('../public/assets/scorebook.js');
 
-test('tied totals share a place and the next total skips', () => {
+test('tied totals share a place and the next total is dense', () => {
   const sorted = ['Alexis', 'Diana', 'Ethan', 'Megan', 'Matt', 'Linda', 'Mike'];
   const totals = { Alexis: 200, Diana: 180, Ethan: 160, Megan: 140, Matt: 140, Linda: 100, Mike: 100 };
   const places = Scorebook.competitionPlaces(sorted, totals);
@@ -15,15 +15,29 @@ test('tied totals share a place and the next total skips', () => {
     Ethan: 3,
     Megan: 4,
     Matt: 4,
-    Linda: 6,
-    Mike: 6
+    Linda: 5,
+    Mike: 5
   });
+});
+
+test('competitionPlaces: no ties are 1..n', () => {
+  assert.deepEqual(
+    Scorebook.competitionPlaces(['Megan', 'Matt', 'Cat'], { Megan: 10, Matt: 20, Cat: 30 }),
+    { Megan: 1, Matt: 2, Cat: 3 }
+  );
+});
+
+test('competitionPlaces: ties are dense (1,1,2)', () => {
+  assert.deepEqual(
+    Scorebook.competitionPlaces(['Megan', 'Matt', 'Cat'], { Megan: 10, Matt: 10, Cat: 30 }),
+    { Megan: 1, Matt: 1, Cat: 2 }
+  );
 });
 
 test('low-score ties use the same place loop', () => {
   const sorted = ['Megan', 'Matt', 'Linda', 'Mike'];
   const places = Scorebook.competitionPlaces(sorted, { Megan: 12, Matt: 20, Linda: 20, Mike: 44 });
-  assert.deepEqual(places, { Megan: 1, Matt: 2, Linda: 2, Mike: 4 });
+  assert.deepEqual(places, { Megan: 1, Matt: 2, Linda: 2, Mike: 3 });
 });
 
 test('a Life Preserver paints on the hand it followed and stays out of the hand count', () => {
@@ -107,13 +121,13 @@ test('a unique rename moves the Wizard round and Life Preserver together', () =>
   assert.deepEqual(game.originalRoster, ['Lindy', 'Matt']);
 });
 
-test('empty standings and a three-way tie still skip the next place', () => {
+test('empty standings and a three-way tie use the next dense place', () => {
   assert.deepEqual(Scorebook.competitionPlaces([], {}), {});
   const places = Scorebook.competitionPlaces(
     ['Ann', 'Bea', 'Cal', 'Dee'],
     { Ann: 10, Bea: 10, Cal: 10, Dee: 4 }
   );
-  assert.deepEqual(places, { Ann: 1, Bea: 1, Cal: 1, Dee: 4 });
+  assert.deepEqual(places, { Ann: 1, Bea: 1, Cal: 1, Dee: 2 });
 });
 
 test('a numeric string ties with the same number instead of taking the next place', () => {
@@ -121,7 +135,7 @@ test('a numeric string ties with the same number instead of taking the next plac
     ['Megan', 'Matt', 'Linda'],
     { Megan: '140', Matt: 140, Linda: 100 }
   );
-  assert.deepEqual(places, { Megan: 1, Matt: 1, Linda: 3 });
+  assert.deepEqual(places, { Megan: 1, Matt: 1, Linda: 2 });
 });
 
 test('a Life Preserver does not leak onto the next hand, and a zero spin adds nothing', () => {

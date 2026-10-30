@@ -330,7 +330,15 @@
         </span>
       </button>`;
     }).join('');
-    const nights = table.history.slice(0, 4).map((match) => {
+    const recentNights = (window.BPGRecords && typeof BPGRecords.sortNights === 'function')
+      ? BPGRecords.sortNights(table.history)
+      : (table.history || []).slice().sort((a, b) => {
+          const da = Date.parse(a && a.date) || 0;
+          const db = Date.parse(b && b.date) || 0;
+          if (db !== da) return db - da;
+          return (Number(b && b.id) || 0) - (Number(a && a.id) || 0);
+        });
+    const nights = recentNights.slice(0, 4).map((match) => {
       const winners = (match.winners || []).filter(Boolean);
       const winner = winners[0] || 'Tied';
       const label = displayGameName(match.game);

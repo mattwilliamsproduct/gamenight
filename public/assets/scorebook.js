@@ -6,16 +6,20 @@
     return Number.isFinite(n) ? n : 0;
   }
 
+  // Display ranking for scorecard pills, Home Recent chips, and Past nights.
+  // Dense ties: two 1sts then 2nd (not olympic 1,1,3). Callers must omit departed
+  // seats before ranking so they take no spot. Wins/streaks/records stay elsewhere.
   function competitionPlaces(sortedPlayers, totals) {
     const place = {};
     const list = Array.isArray(sortedPlayers) ? sortedPlayers : [];
     let cursor = 0;
+    let denseRank = 1;
     while (cursor < list.length) {
       const score = placeScore(totals, list[cursor]);
       let end = cursor + 1;
       while (end < list.length && placeScore(totals, list[end]) === score) end++;
-      const rank = cursor + 1;
-      for (let i = cursor; i < end; i++) place[list[i]] = rank;
+      for (let i = cursor; i < end; i++) place[list[i]] = denseRank;
+      denseRank += 1;
       cursor = end;
     }
     return place;

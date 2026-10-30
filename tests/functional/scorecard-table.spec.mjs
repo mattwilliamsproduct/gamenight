@@ -322,3 +322,31 @@ test('1440 late Five Crowns shows every hand', async ({page}) => {
   expect(fit.nowInside, 'NOW clipped on the late card').toBe(true);
   expect(fit.hintOn, 'trim hint on a card that should show every hand').toBe(false);
 });
+
+test('Wizard 8p scorecard headers stay inside the scroll wrap at 1024 and 390', async ({page}) => {
+  for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
+    const fit = await page.evaluate(() => {
+      const wrap = document.querySelector('#scorecard-capture .scorecard-table-wrap');
+      if (!wrap) return {ok: false};
+      const wrapBox = wrap.getBoundingClientRect();
+      const headers = [...document.querySelectorAll('#scorecard-capture thead th')];
+      const offenders = headers.map((th) => {
+        const box = th.getBoundingClientRect();
+        return {
+          text: (th.textContent || '').replace(/\s+/g, ' ').trim(),
+          right: Math.round(box.right * 10) / 10,
+          over: Math.round((box.right - (wrapBox.right + 1)) * 10) / 10
+        };
+      }).filter((row) => row.over > 0);
+      return {
+        ok: true,
+        wrapRight: Math.round(wrapBox.right * 10) / 10,
+        offenders
+      };
+    });
+    expect(fit.ok, `${size.width} missing scorecard wrap`).toBe(true);
+    expect(fit.offenders, `${size.width}x${size.height} header past scroll wrap: ${JSON.stringify(fit.offenders)}`).toEqual([]);
+  }
+});

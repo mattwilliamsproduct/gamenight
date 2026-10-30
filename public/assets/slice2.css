@@ -379,10 +379,10 @@ html.slice2-tv .s2-game-grid {
 
 html.slice2-tv .s2-seat-grid {
   grid-template-columns: 1fr;
-  flex: 1 1 auto;
-  align-content: stretch;
+  flex: 0 1 auto;
+  align-content: start;
   gap: 10px;
-  grid-auto-rows: minmax(50px, 1fr);
+  grid-auto-rows: minmax(44px, auto);
 }
 
 html.slice2-tv .s2-seat,
@@ -487,6 +487,44 @@ html.slice2-tv .s2-seat-live {
 
 html.slice2-tv .s2-home-table {
   position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-home-table .s2-seat-grid {
+  flex: 0 1 auto;
+  grid-auto-rows: minmax(44px, auto);
+  max-width: 100%;
+}
+
+html.slice2-tv .s2-home-table .s2-seat {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-right: 4px;
+  grid-template-columns: 1.5rem 36px minmax(0, 1fr) max-content;
+}
+html.slice2-tv .s2-home-table .s2-seat-tools {
+  max-width: 100%;
+  gap: 0;
+}
+html.slice2-tv .s2-home-table .s2-seat-nudge,
+html.slice2-tv .s2-home-table .s2-seat-out,
+html.slice2-tv .s2-home-table .s2-seat-handle {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+}
+html.slice2-tv .s2-home-table .s2-seat-tools {
+  flex: 0 0 auto;
+  max-width: 100%;
+  gap: 0;
+}
+
+html.slice2-tv .s2-home-table .s2-add {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 html.slice2-tv .s2-seat-num {
@@ -589,6 +627,19 @@ html.slice2-tv #score-entry-modal input {
 
 html.slice2-tv .s2-add input {
   min-height: 48px;
+  flex: 1 1 12rem;
+  min-width: min(100%, 12rem);
+}
+html.slice2-tv .s2-home-table .s2-add {
+  flex-wrap: wrap;
+}
+html.slice2-tv .s2-home-table .s2-add input {
+  flex: 1 1 100%;
+  min-width: 0;
+  width: 100%;
+}
+html.slice2-tv .s2-home-table .s2-add .s2-btn {
+  flex: 1 1 auto;
 }
 
 html.slice2-tv .s2-game-grid {
@@ -1091,7 +1142,9 @@ html.slice2-tv #scorecard-capture th.scorecard-col-total {
 }
 
 html.slice2-tv #scorecard-capture .scorecard-player-name-slot {
-  overflow: visible;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
 }
 
 html.slice2-tv #scorecard-capture .scoreboard-player-name {
@@ -1102,6 +1155,12 @@ html.slice2-tv #scorecard-capture .scoreboard-player-name {
   text-transform: none !important;
   color: var(--s2-ink) !important;
   line-height: 1.05;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 html.slice2-tv #scorecard-capture .scorecard-total-value {
@@ -1969,7 +2028,20 @@ html.slice2-tv .s2-panel-head {
 }
 
 html.slice2-tv .s2-panel-head h2 {
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+html.slice2-tv .s2-home-table .s2-panel-head,
+html.slice2-tv .s2-home-table .s2-panel-head > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html.slice2-tv .s2-home-table .s2-panel-head h2 {
+  font-size: clamp(1.05rem, 2.4vw, 1.8rem);
+  line-height: 1.15;
 }
 
 html.slice2-tv .s2-seat-name,
@@ -3808,4 +3880,29 @@ html.slice2-tv .s2-table-btn {
   align-items: center;
   min-height: 44px;
   font-weight: 800;
+}
+
+/* Scorecard hug: when few rows leave unused height, end the card at the table (all viewports). */
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  align-self: stretch;
+}
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+/* Center hugged scorecard in leftover viewport on tablet/TV only (phone keeps top-aligned board bar). */
+@media (min-width: 761px) {
+  html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) .landscape-only {
+    justify-content: center !important;
+    align-items: stretch;
+  }
+  html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) #scorecard-capture.scorecard-hug-rows {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 }
