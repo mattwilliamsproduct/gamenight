@@ -83,3 +83,6 @@ Gate recount:
 - WebKit: `npx playwright install-deps webkit` failed (Debian mirror 500 / needs root). Not run.
 
 Five Crowns home-party QA: 4 nights, 0 full 11-hand games. Empty Best/Worst copy is No full games yet.
+## Explore nits (2026-10-29 ~9:30 PM ET)
+
+HEAD follow-up: full-game empty copy for closest margin / most lopsided / closest finish / longest match. Steadiest scores use mean absolute deviation as **pts per round** with the same number in meta.
