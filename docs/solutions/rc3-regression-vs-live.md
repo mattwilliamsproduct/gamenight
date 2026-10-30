@@ -14,7 +14,7 @@ Compared by reading both trees and the rc3 defect list. No prod deploy. No dashb
 - Same game registry ids and winLow rules.
 - Settings controls that live already has (text size, lineup intro, path replay, dealer roll, Porch Cloud, export/import) still present outside demo.
 - History storage shape unchanged for departed players (item 4: hide from active card and placements; do not purge scores or rewrite stored nights).
-- Score entry confirm stays on Next/accept. Leaving a seat does not auto-confirm (same as live and freeze).
+- Score entry still uses Next/accept. With bid/trick Entered status (deferAck), a dirty typed seat also confirms when you move to another seat so P0-01 stays green; untouched prefills stay Entered until Next.
 
 ## What rc3 repairs that live still shows as broken or rough
 
@@ -47,10 +47,10 @@ Freeze `5e57d50` and live acknowledge on the first digit and replace the whole f
 | `5d58d17` pending minus | Typing `-` then `5` on Five Crowns / Flip 7 / Beat the Heat stores `-5`, not `5` | Yes — listed P1-05 |
 | `bd48128` append under deferAck | After the first typed digit on bids/tricks, further digits append (33 not stuck at last digit) | Yes — needed once deferAck exists for item 3 |
 | `ca67c04` dirty flag | Prefill still replaces on the first key; after that digits append; dirty tracked per seat | Yes — same reason |
-| `df59dd9` confirm on leave | Switching seats auto-confirmed the previous value | **Reverted** — not in the defect list; live/freeze do not auto-confirm on leave |
-| `8f6c6bc` dirty-only leave confirm | Narrowed df59dd9 to dirty seats only | **Reverted** with df59dd9 |
+| `df59dd9` confirm on leave | Switching seats auto-confirmed the previous value | Superseded by 8f6c6bc |
+| `8f6c6bc` dirty-only leave confirm | Untouched prefills stay Entered; dirty typed values confirm when leaving the seat | Yes — needed so P0-01 (typed then moved on ⇒ complete) still holds under deferAck |
 
-Net vs live: same Next/accept confirm path. Extra: pending minus keep-sign on scores, and dirty-aware replace-then-append so bid Entered status still allows multi-digit entry.
+Net vs live: Next/accept still confirms. Extra: pending minus keep-sign on scores; dirty-aware replace-then-append for bid Entered status; leave-seat confirms only dirty typed seats (live instead acknowledged on first digit).
 
 ## Risks / open deltas (not claimed fixed)
 

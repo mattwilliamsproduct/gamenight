@@ -17266,7 +17266,8 @@ ${isDealer
     }
     const prev=scoreEntryModalState.activePlayer;
     const next=scoreEntryModalState.players[idx];
-    // Leave-seat does not auto-confirm. Entered vs Confirmed is Next/accept only (live behavior).
+    // Dirty typed values confirm when leaving a seat (P0-01). Untouched prefills stay Entered until Next.
+    if(prev && prev!==next && scoreEntryModalState.dirty?.[prev]) markScoreEntryPlayerComplete(prev);
     if(prev)document.getElementById(`score-entry-row-${rookElementId(prev)}`)?.classList.remove('active');
     scoreEntryModalState.activePlayer=next;
     document.getElementById(`score-entry-row-${rookElementId(next)}`)?.classList.add('active');
