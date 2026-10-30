@@ -26,17 +26,25 @@ test('818 Hall of Fame uses that game\'s exact-bid scoring',async({page},testInf
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   const metric=await page.evaluate(()=>{
+    // Full 818 = 15 scored hands (isFullGame). Pad with exact 0-bid rounds so
+    // all-time bestGame/mostExact qualify; keep Megan's three early exacts and Matt's two misses.
+    const pad=[];
+    for(let i=4;i<=15;i++){
+      pad.push({round:i,bids:{Megan:0,Matt:0},actuals:{Megan:0,Matt:0},scores:{Megan:10,Matt:10}});
+    }
     history=[{
       id:909090,
       game:'818',
       date:'8/17/2026',
-      totals:{Megan:40,Matt:1},
+      completed:true,
+      totals:{Megan:160,Matt:121},
       winners:['Megan'],
       originalRoster:['Megan','Matt'],
       rounds:[
         {round:1,bids:{Megan:2,Matt:1},actuals:{Megan:2,Matt:0},scores:{Megan:12,Matt:0}},
         {round:2,bids:{Megan:3,Matt:1},actuals:{Megan:3,Matt:1},scores:{Megan:13,Matt:11}},
-        {round:3,bids:{Megan:5,Matt:2},actuals:{Megan:5,Matt:0},scores:{Megan:15,Matt:0}}
+        {round:3,bids:{Megan:5,Matt:2},actuals:{Megan:5,Matt:0},scores:{Megan:15,Matt:0}},
+        ...pad
       ]
     }];
     markHistoryChanged();
@@ -54,13 +62,13 @@ test('818 Hall of Fame uses that game\'s exact-bid scoring',async({page},testInf
       recordsExacts:records.games['818'].mostExactSingleGame?.value
     };
   });
-  expect(metric.best).toBe(40);
+  expect(metric.best).toBe(160);
   expect(metric.bestPlayer).toBe('Megan');
-  expect(metric.exacts).toBe(3);
+  expect(metric.exacts).toBe(15);
   expect(metric.exactsPlayer).toBe('Megan');
   expect(metric.missed).toBe(2);
   expect(metric.missedPlayer).toBe('Matt');
   expect(metric.bestRound).toBe(15);
-  expect(metric.recordsBest).toBe(40);
-  expect(metric.recordsExacts).toBe(3);
+  expect(metric.recordsBest).toBe(160);
+  expect(metric.recordsExacts).toBe(15);
 });

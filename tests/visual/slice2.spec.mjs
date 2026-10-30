@@ -106,7 +106,7 @@ test('tv scoreboard emphasizes names and keeps entry validation', async ({page})
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#score-entry-modal .score-entry-key', {hasText: '7'})).toBeVisible();
-  const zeroKey = page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first();
+  const zeroKey = page.locator('#score-entry-modal .score-entry-key', {hasText: /^0$/}).first();
   await expect(zeroKey).toBeVisible();
   const keyBox = await zeroKey.boundingBox();
   expect(keyBox && keyBox.height).toBeGreaterThanOrEqual(48);
