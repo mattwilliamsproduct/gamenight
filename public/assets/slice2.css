@@ -3882,10 +3882,14 @@ html.slice2-tv .s2-table-btn {
   font-weight: 800;
 }
 
-/* Scorecard hug: when few rows leave unused height, end the card at the table (all viewports). */
+/* Scorecard hug: shrink HEIGHT to the table; keep WIDTH constrained to the viewport.
+   flex:0 0 auto without width:100% made live-main size to max-content (~1e6px), which
+   poured leftover into round columns and hid every round off-screen on 1440/1920. */
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
   flex: 0 0 auto !important;
   height: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
   align-self: stretch;
 }
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
@@ -3894,15 +3898,11 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .sco
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
-/* Center hugged scorecard in leftover viewport on tablet/TV only (phone keeps top-aligned board bar). */
-@media (min-width: 761px) {
-  html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) .landscape-only {
-    justify-content: center !important;
-    align-items: stretch;
-  }
-  html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) #scorecard-capture.scorecard-hug-rows {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
+/* Top-align hugged table under the header; leftover cream stays BELOW the table. */
+html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) .landscape-only {
+  justify-content: flex-start !important;
+  align-items: stretch;
 }

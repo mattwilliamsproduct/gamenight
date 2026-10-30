@@ -3824,10 +3824,41 @@ button.dealer-name-indicator {
       overflow: visible;
       text-overflow: clip;
     }
+    /* Beat identity-total width:auto so rounds keep the fitted col width instead of
+       absorbing leftover table space (giant ~300–900px cells that clip scores). */
+    #scorecard-capture.scorecard-fit-cols .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
+    #scorecard-capture.scorecard-fit-cols .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
     #scorecard-capture.scorecard-fit-cols .scorecard-round-th,
     #scorecard-capture.scorecard-fit-cols .scorecard-round-td {
-      width: var(--scorecard-round-col);
-      max-width: var(--scorecard-round-col);
+      width: var(--scorecard-round-col) !important;
+      max-width: var(--scorecard-round-col) !important;
+      min-width: 0 !important;
+    }
+    #scorecard-capture.scorecard-fit-cols .scorecard-table.scorecard-table--identity-total {
+      width: max-content;
+      max-width: 100%;
+    }
+    /* Keep Player/Total/rounds as one natural-width group; center leftover card width. */
+    #scorecard-capture.scorecard-fit-cols .scorecard-table-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+    #scorecard-capture.scorecard-fit-cols .scorecard-table-wrap > table {
+      flex: 0 0 auto;
+    }
+    #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-stack {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+    #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-input {
+      max-width: 100%;
+      box-sizing: border-box;
     }
     #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
       width: var(--scorecard-round-input);

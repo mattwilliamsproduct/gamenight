@@ -350,3 +350,102 @@ test('Wizard 8p scorecard headers stay inside the scroll wrap at 1024 and 390', 
     expect(fit.offenders, `${size.width}x${size.height} header past scroll wrap: ${JSON.stringify(fit.offenders)}`).toEqual([]);
   }
 });
+
+
+test('1440 and 1920 show every completed round column with cell text in the table box', async ({page}) => {
+  for (const size of [{width: 1920, height: 1080}, {width: 1440, height: 900}]) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'five-crowns-late-8', surface: 'scorecard'});
+    const fit = await page.evaluate(() => {
+      const wrap = document.querySelector('#scorecard-capture .scorecard-table-wrap');
+      const table = document.querySelector('#scorecard-capture table.scorecard-table');
+      if (!wrap || !table) return {ok: false};
+      const wrapBox = wrap.getBoundingClientRect();
+      const tableBox = table.getBoundingClientRect();
+      const rounds = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th')];
+      const now = document.querySelector('#scorecard-capture thead th.scorecard-col-now');
+      const cols = now ? rounds.concat([now]) : rounds;
+      const report = cols.map((th) => {
+        const box = th.getBoundingClientRect();
+        const hidden = th.classList.contains('scorecard-round--hidden') || getComputedStyle(th).display === 'none';
+        const inBox = !hidden && box.width >= 24 && box.left >= tableBox.left - 2 && box.right <= Math.min(wrapBox.right, window.innerWidth) + 2;
+        const colCells = [...document.querySelectorAll('#scorecard-capture tbody tr')]
+          .map((row) => row.children[th.cellIndex])
+          .filter(Boolean);
+        const texts = colCells.map((td) => {
+          const input = td.querySelector('.score-cell-input');
+          const raw = input ? (input.value || '') : (td.textContent || '');
+          return raw.replace(/\s+/g, ' ').trim();
+        });
+        const completed = !th.classList.contains('scorecard-col-now');
+        const nonEmpty = texts.filter((text) => text && text !== '—' && text !== '-');
+        return {
+          label: (th.textContent || '').replace(/\s+/g, ' ').trim(),
+          width: Math.round(box.width),
+          inBox,
+          hidden,
+          completed,
+          nonEmpty: nonEmpty.length,
+          sample: texts.slice(0, 3)
+        };
+      });
+      return {
+        ok: true,
+        mainW: Math.round(document.querySelector('.scorecard-live-main')?.getBoundingClientRect().width || 0),
+        report
+      };
+    });
+    expect(fit.ok, `${size.width} missing table`).toBe(true);
+    expect(fit.mainW, `${size.width} live-main exploded to ${fit.mainW}`).toBeLessThan(5000);
+    const completed = fit.report.filter((row) => row.completed);
+    expect(completed.length, `${size.width} no completed rounds`).toBeGreaterThanOrEqual(5);
+    for (const row of completed) {
+      expect(row.hidden, `${size.width} ${row.label} hidden`).toBe(false);
+      expect(row.inBox, `${size.width} ${row.label} outside table box w=${row.width}`).toBe(true);
+      expect(row.nonEmpty, `${size.width} ${row.label} empty cells ${JSON.stringify(row.sample)}`).toBeGreaterThan(0);
+    }
+  }
+});
+
+test('Wizard and Five Crowns round cells do not overflow at 1280/1440/1920', async ({page}) => {
+  const cases = [
+    {scenario: 'wizard-6-mid', label: 'Wizard'},
+    {scenario: 'five-crowns-late-8', label: 'Five Crowns'}
+  ];
+  for (const size of [{width: 1280, height: 720}, {width: 1440, height: 900}, {width: 1920, height: 1080}]) {
+    for (const game of cases) {
+      await page.setViewportSize(size);
+      await openScenario(page, {scenario: game.scenario, surface: 'scorecard'});
+      const fit = await page.evaluate(() => {
+        const root = document.getElementById('scorecard-capture');
+        const roundVar = parseFloat(getComputedStyle(root).getPropertyValue('--scorecard-round-col')) || 0;
+        const ths = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th')]
+          .filter((th) => !th.classList.contains('scorecard-round--hidden') && getComputedStyle(th).display !== 'none');
+        const widths = ths.map((th) => Math.round(th.getBoundingClientRect().width));
+        const cells = [...document.querySelectorAll('#scorecard-capture td.scorecard-round-td')];
+        const offenders = [];
+        for (const td of cells) {
+          const targets = [
+            td,
+            td.querySelector('.score-cell-stack'),
+            td.querySelector('.score-cell-input'),
+            td.querySelector('.tv-round-cell-num')
+          ].filter(Boolean);
+          for (const el of targets) {
+            if (el.scrollWidth > el.clientWidth + 1) {
+              offenders.push({
+                tag: el.className?.toString?.().slice(0, 40) || el.tagName,
+                sw: el.scrollWidth,
+                cw: el.clientWidth,
+                text: ((el.value || el.textContent || '') + '').replace(/\s+/g, ' ').trim().slice(0, 24)
+              });
+            }
+          }
+        }
+        return {roundVar, widths, offenders: offenders.slice(0, 8), maxWidth: Math.max(0, ...widths)};
+      });
+      expect(fit.maxWidth, `${game.label} @${size.width} round col ${fit.maxWidth}px (var ${fit.roundVar})`).toBeLessThanOrEqual(Math.max(fit.roundVar + 8, 80));
+      expect(fit.offenders, `${game.label} @${size.width} overflow: ${JSON.stringify(fit.offenders)}`).toEqual([]);
+    }
+  }
+});
