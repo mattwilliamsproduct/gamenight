@@ -1082,9 +1082,9 @@ html.slice2-tv #scorecard-capture th.scorecard-col-now {
 @media (max-width: 767px) {
   html.slice2-tv #scorecard-capture th.scorecard-col-now,
   html.slice2-tv #scorecard-capture td.scorecard-col-now {
-    width: 3.5rem;
-    min-width: 3.3rem;
-    max-width: 4rem;
+    width: var(--scorecard-now-col, 3.5rem) !important;
+    min-width: 0 !important;
+    max-width: var(--scorecard-now-col, 4rem) !important;
   }
 }
 
@@ -2680,12 +2680,13 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
 
   html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
   html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
-    min-width: 2.5rem !important;
-    max-width: none !important;
+    min-width: 0 !important;
+    max-width: var(--scorecard-round-col) !important;
+    width: var(--scorecard-round-col) !important;
   }
 
   html.slice2-tv #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
-    min-width: 2.25rem;
+    min-width: 0;
   }
 }
 

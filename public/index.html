@@ -3856,15 +3856,15 @@ button.dealer-name-indicator {
       max-width: 100%;
       min-width: 0;
     }
-    #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-input {
-      max-width: 100%;
+    #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-input,
+    #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input,
+    #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input.score-cell-miss {
+      width: var(--scorecard-round-input) !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
       box-sizing: border-box;
-    }
-    #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
-      width: var(--scorecard-round-input);
-      min-width: 0;
-      max-width: 100%;
       font-size: var(--scorecard-col-input-font, inherit);
+      overflow-x: hidden;
     }
 
     .scorecard-table tbody tr {
@@ -15775,9 +15775,40 @@ ${isDealer
     const table=host.querySelector('table.scorecard-table');
     if(!wrap||!table||wrap.clientWidth<40)return;
     const visible=[...table.querySelectorAll('thead th.scorecard-round-th')].filter(th=>!th.classList.contains('scorecard-round--hidden'));
-    if(!visible.length)return;
+    const nowElEarly=table.querySelector('thead th.scorecard-col-now');
+    const nowOnly= !visible.length && !!(nowElEarly && !nowElEarly.classList.contains('scorecard-round--hidden') && getComputedStyle(nowElEarly).display!=='none');
+    if(!visible.length && !nowOnly)return;
     const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
       || host.classList.contains('scorecard-hand-foot');
+    if(nowOnly){
+      const leadEls=[...table.querySelectorAll('thead th[data-sc-part="lead"]')];
+      const leadWidth=(leadEls.length?leadEls:[...table.querySelectorAll('thead th.scorecard-col-player, thead th.scorecard-col-bid, thead th.scorecard-col-total')])
+        .reduce((sum,th)=>sum+th.getBoundingClientRect().width,0);
+      const room=Math.max(32, wrap.clientWidth-leadWidth-8);
+      host.classList.add('scorecard-fit-cols');
+      host.style.setProperty('--scorecard-now-col',`${Math.floor(Math.min(56,room))}px`);
+      table.style.width='100%';
+      table.style.maxWidth='100%';
+      void host.offsetWidth;
+      let guard=0;
+      while(nowElEarly.getBoundingClientRect().right>wrap.getBoundingClientRect().right+0.5 && guard++<12){
+        const player=table.querySelector('thead th.scorecard-col-player');
+        const bid=table.querySelector('thead th.scorecard-col-bid');
+        const total=table.querySelector('thead th.scorecard-col-total');
+        const shrink=(el,floor)=>{
+          if(!el) return false;
+          const cur=el.getBoundingClientRect().width;
+          if(cur<=floor) return false;
+          const next=Math.max(floor, cur-12);
+          el.style.setProperty('max-width',`${next}px`,'important');
+          el.style.setProperty('width',`${next}px`,'important');
+          return true;
+        };
+        if(!shrink(player,112) && !shrink(bid,56) && !shrink(total,56)) break;
+        void host.offsetWidth;
+      }
+      return;
+    }
     if(handFoot){
       // Pin rounds to the phone floor first so Player/Total measure their real widths.
       // Measuring lead while rounds are still 1px pours leftover space into 72px columns and hides R1–R3.
@@ -15802,22 +15833,37 @@ ${isDealer
     const col=Math.max(handFoot?24:28,Math.min(colMax,available/Math.max(1,visible.length+nowExtra)));
     const pad=col<42?2:col<56?3:5;
     const input=Math.max(26,col-(pad*2));
-    // Keep round type on the same scale as totals (~60–70%). Column width may
-    // shrink the chip, but do not crush glyphs below the row-fit round font.
+    // Round chip type must fit inside the fitted input width (negative scores
+    // like -10/-20). Never let row-fit totals fonts force overflow in the chip.
     const rowRound=parseFloat(host.style.getPropertyValue('--scorecard-round-font'))||0;
     const rowInput=parseFloat(host.style.getPropertyValue('--scorecard-input-font'))||0;
-    const typeFloor=Math.max(13, rowRound>0 ? rowRound*0.92 : 13);
-    const font=Math.max(typeFloor, Math.min(Math.max(28, rowInput||28), col*0.55, rowInput||48));
+    const chipCap=Math.min(input*0.42, col*0.36, 24);
+    const typeFloor=Math.min(chipCap, Math.max(11, rowRound>0 ? rowRound*0.7 : 11));
+    const font=Math.max(11, Math.min(chipCap, rowInput||chipCap, typeFloor>0?Math.max(typeFloor, Math.min(chipCap,18)):chipCap));
     host.classList.add('scorecard-fit-cols');
     if(nowW) host.style.setProperty('--scorecard-now-col',`${Math.round(nowW)}px`);
     host.style.setProperty('--scorecard-round-col',`${Math.floor(col)}px`);
     host.style.setProperty('--scorecard-round-input',`${Math.floor(input)}px`);
-    host.style.setProperty('--scorecard-round-input-min',`${Math.floor(Math.min(input,36))}px`);
-    host.style.setProperty('--scorecard-round-input-min-miss',`${Math.floor(Math.max(32,Math.min(input,42)))}px`);
+    host.style.setProperty('--scorecard-round-input-min','0px');
+    host.style.setProperty('--scorecard-round-input-min-miss','0px');
     host.style.setProperty('--scorecard-round-input-max',`${Math.floor(input)}px`);
     host.style.setProperty('--scorecard-round-input-pad-x',`${pad}px`);
     host.style.setProperty('--scorecard-round-th-pad-x',`${pad}px`);
     host.style.setProperty('--scorecard-col-input-font',`${font.toFixed(1)}px`);
+    // Sync-shrink any chip that still overflows after the var applies.
+    if(!handFoot){
+      host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+        el.style.removeProperty('font-size');
+      });
+      // Force layout with the new var before measuring.
+      void host.offsetWidth;
+      host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+        if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth)return;
+        const maximum=parseFloat(getComputedStyle(el).fontSize)||font;
+        const fitted=Math.max(10,maximum*(el.clientWidth/Math.max(1,el.scrollWidth))*0.88);
+        el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+      });
+    }
   }
   function fitActiveMatchBanner(){
     const banner=document.querySelector('#game-screen .active-match-banner');
