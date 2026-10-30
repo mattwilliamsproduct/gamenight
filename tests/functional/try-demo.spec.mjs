@@ -428,3 +428,206 @@ test('Reset demo confirm explains discarded demo changes', async ({page}) => {
   expect(message).toContain('leaves your real games alone');
 });
 
+
+// ── Grok Bot verbatim seed + paths (gb-verify-rc3c item 7 / demo-final) ──
+const GB_MID_GAME = {
+  id: 9001,
+  game: 'Wizard',
+  date: '10/29/2026',
+  currentRound: 3,
+  players: ['Alpha', 'Bravo', 'Charlie', 'Delta'],
+  originalRoster: ['Alpha', 'Bravo', 'Charlie', 'Delta'],
+  totals: {Alpha: 40, Bravo: 20, Charlie: 10, Delta: -10},
+  scores: {
+    Alpha: [20, 20],
+    Bravo: [10, 10],
+    Charlie: [0, 10],
+    Delta: [-10, 0]
+  },
+  bids: {},
+  actuals: {},
+  retired: [],
+  hailMaryUsed: []
+};
+const GB_HISTORY = [
+  {id: 8001, game: 'Five Crowns', date: '10/28/2026', totals: {Alpha: 12, Bravo: 30}, winners: ['Alpha'], rounds: [], originalRoster: ['Alpha', 'Bravo'], currentRound: 12},
+  {id: 8002, game: '818', date: '10/27/2026', totals: {Alpha: 40, Charlie: 55}, winners: ['Charlie'], rounds: [], originalRoster: ['Alpha', 'Charlie'], currentRound: 16}
+];
+
+async function seedGbFragileViaInitScript(page, marker = 'RC3C-REAL-MARKER') {
+  await page.addInitScript(({midGame, history, marker}) => {
+    if (sessionStorage.getItem('__bpg_gb_seeded')) return;
+    sessionStorage.setItem('__bpg_gb_seeded', '1');
+    localStorage.clear();
+    localStorage.setItem('gn_current', JSON.stringify(midGame));
+    localStorage.setItem('gn_history', JSON.stringify(history));
+    localStorage.setItem('gn_all_players', JSON.stringify(['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo']));
+    localStorage.setItem('gn_verify_marker', marker);
+    localStorage.removeItem('gn_players_v2');
+    localStorage.removeItem('gn_profiles');
+    const snap = {};
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key) snap[key] = localStorage.getItem(key);
+    }
+    sessionStorage.setItem('__bpg_gb_before', JSON.stringify(snap));
+  }, {midGame: GB_MID_GAME, history: GB_HISTORY, marker});
+}
+
+async function readGbBefore(page) {
+  return page.evaluate(() => JSON.parse(sessionStorage.getItem('__bpg_gb_before') || '{}'));
+}
+
+test('GB cold boot /?demo=try: edit, Reset pristine, Exit+reload deep-equal', async ({page, browser}) => {
+  test.setTimeout(120000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await seedGbFragileViaInitScript(page);
+  await openTryDemo(page);
+  const before = await readGbBefore(page);
+  expect(before.gn_current).toBeTruthy();
+  expect(before.gn_players_v2).toBeUndefined();
+  expect(before.gn_profiles).toBeUndefined();
+  expect(JSON.parse(before.gn_history).every((row) => row.gameId == null)).toBe(true);
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([k]) => k.startsWith('gn_'))));
+
+  await page.evaluate(() => {
+    localStorage.setItem('bpg_demo_history', JSON.stringify([{id: 1, game: 'HACKED-EDIT'}]));
+    localStorage.setItem('bpg_demo_verify_edit', 'edited');
+  });
+  await page.locator('#bpg-try-demo-reset').click();
+  await page.waitForTimeout(800);
+  const afterReset = await snapshotAll(page);
+  expect(afterReset.bpg_demo_verify_edit || null).toBe(null);
+  expect(/HACKED-EDIT/.test(afterReset.bpg_demo_history || '')).toBe(false);
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([k]) => k.startsWith('gn_'))));
+
+  await page.locator('#bpg-try-demo-exit').click();
+  await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(800);
+  await assertFullStorageEqual(page, before, 'GB cold Exit');
+
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await page.waitForTimeout(800);
+  const afterReload = await snapshotAll(page);
+
+  const control = await browser.newPage();
+  await seedGbFragileViaInitScript(control);
+  await control.goto('/', {waitUntil: 'domcontentloaded'});
+  await control.waitForTimeout(800);
+  const coldBoot = await snapshotAll(control);
+  await control.close();
+
+  expect(Object.keys(afterReload).sort()).toEqual(Object.keys(coldBoot).sort());
+  for (const key of Object.keys(coldBoot).sort()) {
+    expect(afterReload[key], `GB Exit+reload vs cold ${key}`).toBe(coldBoot[key]);
+  }
+  expect(Object.keys(afterReload).some((k) => k.startsWith('bpg_demo_'))).toBe(false);
+});
+
+test('GB cold boot: refresh-in-demo then Exit is byte-identical', async ({page}) => {
+  test.setTimeout(90000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await seedGbFragileViaInitScript(page, 'RC3C-REFRESH-MARKER');
+  await openTryDemo(page);
+  const before = await readGbBefore(page);
+  await page.evaluate(() => localStorage.setItem('bpg_demo_verify_edit', 'pre-refresh'));
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
+  await page.waitForTimeout(600);
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([k]) => k.startsWith('gn_'))));
+  await page.locator('#bpg-try-demo-exit').click();
+  await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(800);
+  await assertFullStorageEqual(page, before, 'GB refresh-in-demo then Exit');
+});
+
+test('GB live-seed then enter(): real gn_* survive demo Exit byte-identical', async ({page}) => {
+  // Verbatim GB seed applied on a live page (memory empty / skewed), then enter via
+  // BPGTryDemo.enter(). Failed on 3fd2512 (pagehide clobbered seed); passes after
+  // boot _lastPersistedState init + enter() snapshot/session persist-skip.
+  test.setTimeout(120000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  await page.waitForTimeout(400);
+  const before = await page.evaluate(({midGame, history}) => {
+    for (const k of Object.keys(localStorage)) {
+      if (k.includes('bpg_demo') || k.startsWith('gn_')) localStorage.removeItem(k);
+    }
+    localStorage.setItem('gn_current', JSON.stringify(midGame));
+    localStorage.setItem('gn_history', JSON.stringify(history));
+    localStorage.setItem('gn_all_players', JSON.stringify(['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo']));
+    localStorage.setItem('gn_verify_marker', 'RC3C-REAL-MARKER');
+    localStorage.removeItem('gn_players_v2');
+    localStorage.removeItem('gn_profiles');
+    const snap = {};
+    for (const k of Object.keys(localStorage).sort()) snap[k] = localStorage.getItem(k);
+    return snap;
+  }, {midGame: GB_MID_GAME, history: GB_HISTORY});
+
+  await Promise.all([
+    page.waitForNavigation({waitUntil: 'domcontentloaded'}),
+    page.evaluate(() => window.BPGTryDemo.enter())
+  ]);
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
+  await page.waitForTimeout(800);
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([k]) => k.startsWith('gn_'))));
+
+  await page.evaluate(() => {
+    localStorage.setItem('bpg_demo_history', JSON.stringify([{id: 1, game: 'HACKED-EDIT'}]));
+    localStorage.setItem('bpg_demo_verify_edit', 'edited');
+  });
+  await page.locator('#bpg-try-demo-reset').click();
+  await page.waitForTimeout(800);
+  const afterReset = await snapshotAll(page);
+  expect(afterReset.bpg_demo_verify_edit || null).toBe(null);
+  expect(/HACKED-EDIT/.test(afterReset.bpg_demo_history || '')).toBe(false);
+
+  await page.locator('#bpg-try-demo-exit').click();
+  await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(800);
+  await assertFullStorageEqual(page, before, 'GB live-seed enter Exit');
+});
+
+test('GB live-seed then cold navigate /?demo=try keeps gn_* and Exit restores', async ({page}) => {
+  // Exact gb-verify-rc3c item 7 navigation shape (seed on live page, then goto demo).
+  test.setTimeout(120000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  await page.waitForTimeout(400);
+  const before = await page.evaluate(({midGame, history}) => {
+    for (const k of Object.keys(localStorage)) {
+      if (k.includes('bpg_demo') || k.startsWith('gn_') || k.includes('gn_')) localStorage.removeItem(k);
+    }
+    localStorage.setItem('gn_current', JSON.stringify(midGame));
+    localStorage.setItem('gn_history', JSON.stringify(history));
+    localStorage.setItem('gn_all_players', JSON.stringify(['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo']));
+    localStorage.setItem('gn_verify_marker', 'RC3C-REAL-MARKER');
+    localStorage.removeItem('gn_players_v2');
+    localStorage.removeItem('gn_profiles');
+    const snap = {};
+    for (const k of Object.keys(localStorage).sort()) snap[k] = localStorage.getItem(k);
+    return snap;
+  }, {midGame: GB_MID_GAME, history: GB_HISTORY});
+
+  await page.goto('/?demo=try', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
+  await page.waitForTimeout(800);
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([k]) => k.startsWith('gn_'))));
+
+  await page.evaluate(() => {
+    localStorage.setItem('bpg_demo_history', JSON.stringify([{id: 1, game: 'HACKED-EDIT'}]));
+    localStorage.setItem('bpg_demo_verify_edit', 'edited');
+  });
+  await page.locator('#bpg-try-demo-reset').click();
+  await page.waitForTimeout(800);
+  expect((await snapshotAll(page)).bpg_demo_verify_edit || null).toBe(null);
+
+  await page.locator('#bpg-try-demo-exit').click();
+  await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(800);
+  await assertFullStorageEqual(page, before, 'GB live-seed goto Exit');
+});

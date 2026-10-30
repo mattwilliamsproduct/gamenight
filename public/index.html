@@ -10557,6 +10557,17 @@ button.dealer-name-indicator .dealer-player-label {
     if (currentGame?.name==='Rook' && currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
   } catch(e){ currentGame=null; }
 
+  // Mirror what this boot actually read. Prevents the first pagehide/visibilitychange
+  // from inventing empty gn_players_v2/gn_profiles or deleting an out-of-band
+  // gn_current that in-memory state never loaded (demo seed-then-navigate).
+  _lastPersistedState = {
+    gn_all_players: JSON.stringify(allPlayers),
+    gn_players_v2: JSON.stringify(players),
+    gn_history: JSON.stringify(history),
+    gn_profiles: JSON.stringify(playerProfiles),
+    gn_current: currentGame ? JSON.stringify(currentGame) : null
+  };
+
   players.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
   if (currentGame?.originalRoster) {
     currentGame.originalRoster.forEach(p=>{
@@ -10845,8 +10856,13 @@ button.dealer-name-indicator .dealer-player-label {
     const persistStateTimer = gnPerfStart('GN persist state');
     try{
       // Demo Exit restore in flight — do not let boot migrations rewrite real gn_*.
+      // Demo enter: session is on before the next page activates; skip so pagehide
+      // cannot clobber a just-seeded (or snapshotted) real store with stale memory.
       try{
         if(sessionStorage.getItem('bpg_try_demo_pending_restore')==='1'){
+          return;
+        }
+        if(sessionStorage.getItem('bpg_try_demo')==='1' && !(window.BPGTryDemo&&BPGTryDemo.active())){
           return;
         }
       }catch(e){}
@@ -10898,7 +10914,7 @@ button.dealer-name-indicator .dealer-player-label {
 
       if(currentGame){
         persistJsonIfChanged('gn_current', currentGame);
-      } else if(_lastPersistedState.gn_current !== null){
+      } else if(_lastPersistedState.gn_current != null){
         const removeTimer=gnPerfStart('GN localStorage.removeItem gn_current');
         localStorage.removeItem(gnKey('gn_current'));
         gnPerfEnd(removeTimer);

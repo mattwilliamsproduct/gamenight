@@ -487,6 +487,13 @@
   }
 
   function enter() {
+    // Flush in-memory real state, snapshot it, then arm the demo session BEFORE
+    // navigation so pagehide cannot clobber localStorage with stale memory.
+    try {
+      if (typeof root.flushPendingSave === 'function') root.flushPendingSave();
+      else if (typeof root.saveData === 'function') root.saveData();
+    } catch (error) {}
+    captureRealSnapshot();
     setSession(true);
     var url = new URL(location.href);
     url.searchParams.set('demo', 'try');
