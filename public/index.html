@@ -3427,6 +3427,7 @@ button.dealer-name-indicator {
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
         height: var(--scorecard-row-height) !important;
+        max-height: var(--scorecard-row-height) !important;
         padding-top: var(--scorecard-row-pad-y) !important;
         padding-bottom: var(--scorecard-row-pad-y) !important;
         vertical-align: middle;
@@ -3476,7 +3477,7 @@ button.dealer-name-indicator {
         width: 100% !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
-        font-size: max(16px, calc(var(--scorecard-input-font) * 0.78)) !important;
+        font-size: var(--scorecard-col-input-font, max(16px, calc(var(--scorecard-input-font) * 0.78))) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback,
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-life-preserver {
@@ -3863,7 +3864,7 @@ button.dealer-name-indicator {
       min-width: 0 !important;
       max-width: 100% !important;
       box-sizing: border-box;
-      font-size: var(--scorecard-col-input-font, inherit);
+      font-size: var(--scorecard-col-input-font, inherit) !important;
       overflow-x: hidden;
     }
 
@@ -4878,7 +4879,7 @@ button.dealer-name-indicator .dealer-player-label {
       min-width: 0 !important;
       overflow: hidden;
       text-overflow: clip;
-      font-size: clamp(0.95rem, 1.5vw, 1.2rem) !important;
+      font-size: var(--scorecard-col-input-font, clamp(0.95rem, 1.5vw, 1.2rem)) !important;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-value {
       display: block;
@@ -4886,13 +4887,14 @@ button.dealer-name-indicator .dealer-player-label {
       overflow: hidden;
       text-overflow: clip;
       font-variant-numeric: tabular-nums;
-      font-size: clamp(1.05rem, 1.8vw, 1.45rem) !important;
+      font-size: var(--scorecard-total-font, clamp(1.05rem, 1.8vw, 1.45rem)) !important;
     }
     body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .scorecard-total-value {
       font-size: var(--scorecard-total-font) !important;
     }
-    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .score-cell-input {
-      font-size: var(--scorecard-input-font) !important;
+    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .score-cell-input,
+    body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-cols .score-cell-input {
+      font-size: var(--scorecard-col-input-font, var(--scorecard-input-font)) !important;
     }
     @media (min-width: 1024px) {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
@@ -15505,8 +15507,10 @@ ${isDealer
         rowHeight=Math.max(36,rowHeight*ratio*0.97);
       }
       // When comfortMax leaves unused height, hug the table so the card ends at the last row
-      // (no empty cream block inside the card). Center remaining space above via flex parent.
-      const huggedHeight=(head?.offsetHeight||0)+rowHeight*rowSlots;
+      // (no empty cream block inside the card). Use actual row count — Hand and Foot
+      // sizes with rowSlots=8 but only has 2 team rows; using rowSlots here left the
+      // table stretched to the wrap and blew row height past the dense-names cap.
+      const huggedHeight=(head?.offsetHeight||0)+rowHeight*rows.length;
       root.classList.toggle('scorecard-hug-rows', huggedHeight < fitHeight - 28);
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
@@ -15770,7 +15774,13 @@ ${isDealer
     if(!host)return;
     const colVars=['--scorecard-round-col','--scorecard-round-input','--scorecard-round-input-min','--scorecard-round-input-min-miss','--scorecard-round-input-max','--scorecard-round-input-pad-x','--scorecard-round-th-pad-x','--scorecard-col-input-font','--scorecard-now-col'];
     colVars.forEach(p=>host.style.removeProperty(p));
-    host.classList.remove('scorecard-fit-cols');
+    host.classList.remove('scorecard-fit-cols','scorecard-card-fit');
+    const barReset=document.getElementById('slice2-board-bar');
+    if(barReset){
+      barReset.style.removeProperty('width');
+      barReset.style.removeProperty('max-width');
+      barReset.style.removeProperty('margin-inline');
+    }
     const wrap=host.querySelector('.scorecard-table-wrap');
     const table=host.querySelector('table.scorecard-table');
     if(!wrap||!table||wrap.clientWidth<40)return;
@@ -15813,7 +15823,7 @@ ${isDealer
       // Pin rounds to the phone floor first so Player/Total measure their real widths.
       // Measuring lead while rounds are still 1px pours leftover space into 72px columns and hides R1–R3.
       host.classList.add('scorecard-fit-cols');
-      host.style.setProperty('--scorecard-round-col','24px');
+      host.style.setProperty('--scorecard-round-col', window.innerWidth<=400 ? '40px' : '24px');
     }
     const leadW=[...table.querySelectorAll('thead th[data-sc-part="lead"]')]
       .reduce((sum,th)=>{
@@ -15826,20 +15836,44 @@ ${isDealer
     const nowPresent=!!(nowEl&&!nowEl.classList.contains('scorecard-round--hidden')&&getComputedStyle(nowEl).display!=='none');
     const desktop=window.innerWidth>=1400;
     const tablet=window.innerWidth>=1024;
+    const wide=window.innerWidth>=1280;
     const nowW=(!handFoot&&nowPresent&&tablet)?scorecardNowReserveWidth(table):0;
     const nowExtra=(!handFoot&&nowPresent&&!tablet)?1:0;
     const available=Math.max(0,wrap.clientWidth-leadW-nowW-(tablet?16:6));
-    const colMax=handFoot?52:desktop?56:tablet?64:72;
-    const col=Math.max(handFoot?24:28,Math.min(colMax,available/Math.max(1,visible.length+nowExtra)));
-    const pad=col<42?2:col<56?3:5;
-    const input=Math.max(26,col-(pad*2));
-    // Round chip type must fit inside the fitted input width (negative scores
-    // like -10/-20). Never let row-fit totals fonts force overflow in the chip.
     const rowRound=parseFloat(host.style.getPropertyValue('--scorecard-round-font'))||0;
     const rowInput=parseFloat(host.style.getPropertyValue('--scorecard-input-font'))||0;
-    const chipCap=Math.min(input*0.42, col*0.36, 24);
-    const typeFloor=Math.min(chipCap, Math.max(11, rowRound>0 ? rowRound*0.7 : 11));
-    const font=Math.max(11, Math.min(chipCap, rowInput||chipCap, typeFloor>0?Math.max(typeFloor, Math.min(chipCap,18)):chipCap));
+    const totalFs=parseFloat(host.style.getPropertyValue('--scorecard-total-font'))||0;
+    // At >=1280 aim for ~60–70% of total type; size round cols so chips can hold it.
+    // Below 1280 keep the tighter chip caps so 1024/390 8p stay as they are.
+    // Cap raised to 52 so 8p/6p totals (~70px) still clear the 0.55 ratio gate.
+    const desiredRound=(!handFoot&&wide)
+      ? Math.max(20, Math.min(52, rowRound || (totalFs>0 ? totalFs*0.65 : 22)))
+      : 0;
+    const minRatioRound=(!handFoot&&wide&&totalFs>0)? totalFs*0.58 : 0;
+    const targetRound=Math.max(desiredRound, minRatioRound);
+    const phoneHF=handFoot && window.innerWidth<=400;
+    const colFloor=handFoot?(phoneHF?40:24):(targetRound?Math.ceil(targetRound*2.6+12):28);
+    const colMax=handFoot?(phoneHF?56:52):wide?Math.max(96,colFloor):desktop?56:tablet?64:72;
+    // Never force colFloor above available/n — that blew Five Crowns 8p past the wrap.
+    const rawCol=available/Math.max(1,visible.length+nowExtra);
+    // Prefer colFloor when there is room; never exceed available/n (avoids wrap scroll).
+    const col=Math.min(colMax, Math.max(rawCol < colFloor ? (handFoot?24:28) : colFloor, rawCol));
+    const pad=handFoot?2:(col<42?2:col<56?3:col<72?5:6);
+    const input=Math.max(26,col-(pad*2));
+    let font;
+    if(targetRound){
+      const chipCap=Math.min(input*0.72, col*0.58, targetRound);
+      // Prefer >=0.55× total when the chip can hold it; otherwise take what fits.
+      const want=Math.max(minRatioRound||0, Math.min(chipCap, targetRound));
+      font=Math.max(handFoot?10:14, Math.min(chipCap, want || targetRound));
+    }else{
+      // Round chip type must fit inside the fitted input width (negative scores
+      // like -10/-20, and Canasta 5-digit totals). Never let row-fit totals fonts
+      // force overflow in the chip — Canasta tests assert 12345 without re-fit.
+      const chipCap=Math.min(input*0.42, col*0.36, handFoot?14:24);
+      const typeFloor=Math.min(chipCap, Math.max(handFoot?12:11, rowRound>0 ? rowRound*0.7 : 11));
+      font=Math.max(handFoot?12:11, Math.min(chipCap, rowInput||chipCap, typeFloor>0?Math.max(typeFloor, Math.min(chipCap,18)):chipCap));
+    }
     host.classList.add('scorecard-fit-cols');
     if(nowW) host.style.setProperty('--scorecard-now-col',`${Math.round(nowW)}px`);
     host.style.setProperty('--scorecard-round-col',`${Math.floor(col)}px`);
@@ -15850,19 +15884,88 @@ ${isDealer
     host.style.setProperty('--scorecard-round-input-pad-x',`${pad}px`);
     host.style.setProperty('--scorecard-round-th-pad-x',`${pad}px`);
     host.style.setProperty('--scorecard-col-input-font',`${font.toFixed(1)}px`);
-    // Sync-shrink any chip that still overflows after the var applies.
-    if(!handFoot){
-      host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
-        el.style.removeProperty('font-size');
+    // Phone HF scorecardProblems requires score font >= 12. Canasta asserts 5-digit
+    // without re-fit — size against a real chip's clientWidth after layout.
+    const chipFloor=handFoot?12:10;
+    font=Math.max(chipFloor, font);
+    host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+      el.style.setProperty('font-size',`${font.toFixed(1)}px`,'important');
+    });
+    void host.offsetWidth;
+    if(handFoot){
+      const sample=host.querySelector('td.scorecard-round-td .score-cell-input');
+      if(sample && sample.clientWidth>0){
+        const prev=sample.value;
+        sample.value='12345';
+        void sample.offsetWidth;
+        if(sample.scrollWidth>sample.clientWidth+1){
+          font=Math.max(chipFloor, font*(sample.clientWidth/Math.max(1,sample.scrollWidth))*0.94);
+          host.style.setProperty('--scorecard-col-input-font',`${font.toFixed(1)}px`);
+          host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+            el.style.setProperty('font-size',`${font.toFixed(1)}px`,'important');
+          });
+          void host.offsetWidth;
+        }
+        sample.value=prev;
+      }
+      host.querySelectorAll('.scorecard-total-value').forEach(el=>{
+        const cw=el.clientWidth;
+        if(cw<=0) return;
+        const prev=el.textContent;
+        el.textContent='12345';
+        void el.offsetWidth;
+        if(el.scrollWidth>cw+1){
+          const fs=parseFloat(getComputedStyle(el).fontSize)||16;
+          const next=Math.max(12, fs*(cw/Math.max(1,el.scrollWidth))*0.92);
+          el.style.setProperty('font-size',`${next.toFixed(1)}px`,'important');
+        }
+        el.textContent=prev;
       });
-      // Force layout with the new var before measuring.
+    }
+    host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+      if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth)return;
+      const maximum=parseFloat(getComputedStyle(el).fontSize)||font;
+      const fitted=Math.max(chipFloor,maximum*(el.clientWidth/Math.max(1,el.scrollWidth))*0.88);
+      el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+    });
+    // At >=1280 hug the card to the fitted table and center it. Sync the board
+    // bar to the same width so bar↔card edges stay aligned (laptop title test).
+    // Do NOT stretch table to 100% — that blew round cols past --scorecard-round-col.
+    const bar=document.getElementById('slice2-board-bar');
+    const clearBar=()=>{
+      if(!bar) return;
+      bar.style.removeProperty('width');
+      bar.style.removeProperty('max-width');
+      bar.style.removeProperty('margin-inline');
+    };
+    if(wide){
+      const prevWidth=table.style.width;
+      const prevMax=table.style.maxWidth;
+      table.style.setProperty('width','max-content','important');
+      table.style.setProperty('max-width','none','important');
       void host.offsetWidth;
-      host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
-        if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth)return;
-        const maximum=parseFloat(getComputedStyle(el).fontSize)||font;
-        const fitted=Math.max(10,maximum*(el.clientWidth/Math.max(1,el.scrollWidth))*0.88);
-        el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-      });
+      const tableW=table.getBoundingClientRect().width;
+      const wrapParent=host.parentElement;
+      const parentW=wrapParent ? wrapParent.clientWidth : host.clientWidth;
+      const shouldFit=tableW>0 && parentW>0 && tableW < parentW - 24;
+      host.classList.toggle('scorecard-card-fit', shouldFit);
+      if(shouldFit){
+        const cardW=Math.ceil(tableW + 2);
+        if(bar){
+          bar.style.setProperty('width',`${cardW}px`);
+          bar.style.setProperty('max-width','100%');
+          bar.style.setProperty('margin-inline','auto');
+        }
+      }else{
+        if(prevWidth) table.style.width=prevWidth; else table.style.removeProperty('width');
+        if(prevMax) table.style.maxWidth=prevMax; else table.style.removeProperty('max-width');
+        clearBar();
+      }
+    }else{
+      host.classList.remove('scorecard-card-fit');
+      table.style.removeProperty('width');
+      table.style.removeProperty('max-width');
+      clearBar();
     }
   }
   function fitActiveMatchBanner(){

@@ -407,6 +407,28 @@ test('1440 and 1920 show every completed round column with cell text in the tabl
   }
 });
 
+
+test('round score type stays at least 55% of total type at 1440 and 1920', async ({page}) => {
+  for (const size of [{width: 1440, height: 900}, {width: 1920, height: 1080}]) {
+    for (const scenario of ['five-crowns-late-8', 'wizard-6-mid']) {
+      await page.setViewportSize(size);
+      await openScenario(page, {scenario, surface: 'scorecard'});
+      const ratio = await page.evaluate(() => {
+        const root = document.getElementById('scorecard-capture');
+        const total = root?.querySelector('.scorecard-total-value');
+        const chip = root?.querySelector('td.scorecard-round-td .score-cell-input')
+          || root?.querySelector('.score-cell-input');
+        if (!total || !chip) return null;
+        const totalFs = parseFloat(getComputedStyle(total).fontSize) || 0;
+        const roundFs = parseFloat(getComputedStyle(chip).fontSize) || 0;
+        return {totalFs, roundFs, ratio: totalFs ? roundFs / totalFs : 0};
+      });
+      expect(ratio, `${scenario} @${size.width} missing fonts`).toBeTruthy();
+      expect(ratio.ratio, `${scenario} @${size.width} round ${ratio.roundFs}px / total ${ratio.totalFs}px = ${ratio.ratio}`).toBeGreaterThanOrEqual(0.55);
+    }
+  }
+});
+
 test('Wizard and Five Crowns round cells do not overflow at 1280/1440/1920', async ({page}) => {
   const cases = [
     {scenario: 'wizard-6-mid', label: 'Wizard'},

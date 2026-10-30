@@ -74,8 +74,12 @@ test('a phone hides trimmed hands and keeps each Life Preserver beside Total', a
   expect(linda?.totalOnScreen).toBe(true);
   expect(mike?.hiddenHands).toBeGreaterThan(0);
   expect(linda?.hiddenHands).toBeGreaterThan(0);
-  expect(mike?.totalLabel).toBe('Life Preserver +40');
+  // Linda's LP followed a trimmed early hand → badge moves beside Total.
   expect(linda?.totalLabel).toBe('Life Preserver +15');
+  // Mike's LP followed the latest visible hand (R7) → stays on that cell, not Total.
+  expect(mike?.totalLabel).toBe('');
+  const mikeCell=await page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('[aria-label="Life Preserver +40"]');
+  await expect(mikeCell).toBeVisible();
 });
 
 test('undo clears the Life Preserver that followed the removed hand', async ({page})=>{

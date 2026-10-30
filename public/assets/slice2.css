@@ -3883,9 +3883,10 @@ html.slice2-tv .s2-table-btn {
   font-weight: 800;
 }
 
-/* Scorecard hug: shrink HEIGHT to the table; keep WIDTH constrained to the viewport.
-   flex:0 0 auto without width:100% made live-main size to max-content (~1e6px), which
-   poured leftover into round columns and hid every round off-screen on 1440/1920. */
+/* Scorecard hug: shrink HEIGHT to the table. Width: stretch by default; when
+   .scorecard-card-fit is also set (table narrower than wrap at >=1280), the card
+   hugs the table and centers so empty white side panels go away. Explicit
+   fit-cols round widths keep live-main from exploding to max-content. */
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
   flex: 0 0 auto !important;
   height: auto !important;
@@ -3900,6 +3901,23 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .sco
   height: auto !important;
   min-height: 0 !important;
   width: 100% !important;
+  max-width: 100% !important;
+}
+/* Card hugs fitted table width and centers in the cream (desktop/laptop only). */
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit {
+  width: fit-content !important;
+  max-width: 100% !important;
+  align-self: center;
+  margin-inline: auto;
+}
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-layout,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-main,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-table-wrap {
+  width: max-content !important;
+  max-width: 100% !important;
+}
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit table.scorecard-table {
+  width: max-content !important;
   max-width: 100% !important;
 }
 /* Top-align hugged table under the header; leftover cream stays BELOW the table. */
