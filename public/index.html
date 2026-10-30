@@ -17179,7 +17179,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div></div>
+        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}" aria-hidden="true">${escapeHtml(entryStatus.label)}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;

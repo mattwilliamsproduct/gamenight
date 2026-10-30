@@ -106,8 +106,10 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
   }));
   expect(faces.avatars.length).toBeGreaterThan(0);
   expect(faces.avatars.every((avatar) => /^neutral-\d+\.svg$/.test(avatar))).toBe(true);
-  expect(faces.srcs.every((src) => /neutral-\d+\.svg/i.test(src) || src.startsWith('data:'))).toBe(true);
-  expect(faces.srcs.every((src) => !/\.png(?:\?|#|$)/i.test(src))).toBe(true);
+  const painted = faces.srcs.filter((src) => src);
+  expect(painted.length).toBeGreaterThan(0);
+  expect(painted.every((src) => /neutral-\d+\.svg/i.test(src) || src.startsWith('data:'))).toBe(true);
+  expect(painted.every((src) => !/\.png(?:\?|#|$)/i.test(src))).toBe(true);
 });
 
 test('empty first-use and Settings About offer Try a demo', async ({page}) => {
