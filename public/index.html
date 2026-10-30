@@ -969,6 +969,19 @@
       color: #be123c;
       letter-spacing: 0.12em;
     }
+    /* Input cells: value box only; status lives in header + selected panel + aria */
+    .score-entry-input-cell > .score-entry-meta-label,
+    .score-entry-input-cell > .score-entry-confirm-status {
+      display: none !important;
+    }
+    .score-entry-input-cell {
+      justify-content: center;
+      align-items: center;
+    }
+    .score-entry-input-cell .score-entry-value {
+      margin-top: 0 !important;
+      width: 100%;
+    }
     .score-entry-confirm-status {
       margin-top: 0.15rem;
       font-size: 0.68rem;
@@ -4523,6 +4536,19 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #quick-add-player {
       box-shadow: inset 0 1px 2px rgba(87,54,38,0.04);
+      min-width: 0;
+      overflow: visible;
+      text-overflow: clip;
+      font-size: clamp(0.95rem, 2.1vw, 1rem);
+      padding-left: clamp(0.85rem, 2vw, 1.25rem) !important;
+      padding-right: clamp(0.85rem, 2vw, 1.25rem) !important;
+    }
+    #quick-add-player::placeholder {
+      opacity: 0.55;
+      white-space: nowrap;
+      overflow: visible;
+      text-overflow: clip;
+      font-size: inherit;
     }
     .player-suggest-wrap {
       position: relative;
@@ -8869,7 +8895,7 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div class="flex gap-2 mb-6">
           <div class="player-suggest-wrap">
-            <input id="quick-add-player" type="text" placeholder="Add a new player..."
+            <input id="quick-add-player" type="text" placeholder="Add a player..."
               autocomplete="off"
               oninput="updatePlayerSuggestions('home')"
               onfocus="this.style.borderColor='var(--emerald)';this.style.background='var(--surface)';updatePlayerSuggestions('home');"
@@ -15372,8 +15398,23 @@ ${isDealer
       // Two team rows must not eat the leftover viewport. Size them like an 8-player Five Crowns card.
       // Cap row height so leftover space stays below the table (no tall empty rows / dead strip).
       const rowSlots=handFoot?8:rows.length;
-      const comfortMax = window.innerWidth <= 760 ? 56 : (window.innerWidth <= 1180 ? 64 : 72);
-      const targetRow=Math.min(comfortMax, Math.floor(availableRowsHeight/rowSlots));
+      // Fill the visible scorecard height. Clamp by player count so 3p stays
+      // readable and 8p still fits without a dead strip under the table.
+      const phone = window.innerWidth <= 760;
+      const tablet = window.innerWidth <= 1180;
+      const count = rowSlots;
+      let comfortMax;
+      if (phone) {
+        comfortMax = count <= 3 ? 110 : count <= 6 ? 88 : 68;
+      } else if (tablet) {
+        comfortMax = count <= 3 ? 150 : count <= 6 ? 118 : 98;
+      } else {
+        // Desktop: prefer filling the visible wrap; soft cap keeps 3p readable.
+        comfortMax = count <= 3 ? 220 : count <= 6 ? 140 : 118;
+      }
+      const comfortMin = phone ? 44 : (tablet ? 52 : 58);
+      const fillRow = Math.floor(availableRowsHeight / rowSlots);
+      const targetRow = Math.max(comfortMin, Math.min(comfortMax, fillRow));
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
       root.classList.add('scorecard-fit-rows');
@@ -16856,7 +16897,10 @@ ${isDealer
     const complete=status.state==='confirmed';
     row.classList.toggle('is-complete',complete);
     row.classList.toggle('is-empty',status.state==='unentered');
-    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${complete?'entered':'needed'}`);
+    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${status.label}`);
+    row.querySelector('.score-entry-input-cell')?.setAttribute('data-entry-state', status.state);
+    const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
+    if(valueEl) valueEl.setAttribute('aria-label', `${scoreEntryModalState.mode.valueLabel}: ${status.label}`);
     const indicator=row.querySelector('.score-entry-row-status');
     if(indicator)indicator.textContent=complete?'✓':'○';
     paintScoreEntryStatus(player);
@@ -17121,7 +17165,7 @@ ${isDealer
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${isComplete?'is-complete':'is-empty'}" aria-label="${escapeHtml(`${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${isComplete?'entered':'needed'}`)}">
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${isComplete?'is-complete':'is-empty'}" aria-label="${escapeHtml(`${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
         <div class="score-entry-player-card">
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
@@ -17135,7 +17179,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell"><div class="score-entry-meta-label">${mode.valueLabel}</div><div id="score-entry-value-${safe}" class="score-entry-value">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}">${escapeHtml(entryStatus.label)}</div></div>
+        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;

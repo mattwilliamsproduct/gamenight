@@ -435,3 +435,61 @@ test('early-ended better final does not take the full-game record', () => {
     totals: { Matt: 88 }
   }), true);
 });
+
+test('nightStandings ranks finishers only with no gaps after a departed seat', () => {
+  const match = {
+    game: 'Rook',
+    totals: { Owen: 110, Priya: 90, Theo: 50 },
+    winners: ['Owen'],
+    retired: ['Theo'],
+    originalRoster: ['Owen', 'Priya', 'Theo'],
+    completed: true,
+    rounds: [{ round: 1, scores: { Owen: 110, Priya: 90, Theo: 50 } }]
+  };
+  const helpers = {
+    configs: { Rook: { winLow: false } },
+    // Intentionally include retired in getRecordedPlayers to prove nightStandings still drops them.
+    getRecordedPlayers: (m) => m.originalRoster.slice(),
+    getDisplayPlayers: (m) => m.originalRoster,
+    sortPlayersByTotal: (players, totals, cfg) => players.slice().sort((a, b) => (cfg.winLow ? totals[a] - totals[b] : totals[b] - totals[a])),
+    competitionPlaces: Scorebook.competitionPlaces,
+    scorebook: Scorebook
+  };
+  const rows = Records.nightStandings(match, helpers);
+  assert.deepEqual(rows.map((r) => [r.name, r.place, !!r.leftEarly]), [
+    ['Owen', 1, false],
+    ['Priya', 2, false],
+    ['Theo', null, true]
+  ]);
+});
+
+test('nightCardHtml puts Left early in its own section without a dash place', () => {
+  const model = {
+    id: 'n1',
+    gameTitle: 'Rook',
+    incomplete: false,
+    endedEarly: false,
+    throughRound: 1,
+    rounds: 1,
+    assisted: false,
+    retired: ['Theo'],
+    winners: ['Owen'],
+    winnerText: 'Owen won',
+    showResume: false,
+    standings: [
+      { name: 'Owen', score: 110, place: 1, isWinner: true, retired: false, leftEarly: false },
+      { name: 'Priya', score: 90, place: 2, isWinner: false, retired: false, leftEarly: false },
+      { name: 'Theo', score: 50, place: null, isWinner: false, retired: true, leftEarly: true }
+    ]
+  };
+  const html = Records.nightCardHtml(model, {
+    escapeHtml: (s) => String(s),
+    getAvatarImg: () => '<img>'
+  }, false);
+  assert.match(html, /s2-night-left-label">Left early</);
+  assert.match(html, /is-left-early/);
+  assert.doesNotMatch(html, /is-left-early[\s\S]*?—/);
+  assert.match(html, /s2-night-place">1\.</);
+  assert.match(html, /s2-night-place">2\.</);
+  assert.doesNotMatch(html, /s2-night-place">3\.</);
+});

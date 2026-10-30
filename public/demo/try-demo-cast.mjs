@@ -29,7 +29,44 @@ export function renameDemoText(text, map = castMap()) {
 
 export function isCharacterAvatarRef(value) {
   if (typeof value !== 'string' || !value) return false;
+  if (/neutral-\d+\.svg(?:\?|#|$)/i.test(value)) return false;
   return /(?:^|\/)avatars\//i.test(value) || /\.png(?:\?|#|$)/i.test(value);
+}
+
+
+const NEUTRAL_DEMO_AVATARS = Object.freeze([
+  'neutral-01.svg',
+  'neutral-02.svg',
+  'neutral-03.svg',
+  'neutral-04.svg',
+  'neutral-05.svg',
+  'neutral-06.svg',
+  'neutral-07.svg',
+  'neutral-08.svg',
+  'neutral-09.svg',
+  'neutral-10.svg',
+  'neutral-11.svg',
+  'neutral-12.svg'
+]);
+
+export function applyNeutralDemoAvatars(book) {
+  if (!book || typeof book !== 'object') return book;
+  const names = [...new Set([
+    ...(book.allPlayers || []),
+    ...(book.players || []),
+    ...Object.keys(book.playerProfiles || {})
+  ])].filter(Boolean);
+  const profiles = { ...(book.playerProfiles || {}) };
+  names.forEach((name, index) => {
+    const prev = profiles[name] || {};
+    profiles[name] = {
+      ...prev,
+      avatar: NEUTRAL_DEMO_AVATARS[index % NEUTRAL_DEMO_AVATARS.length],
+      color: prev.color || ((index % 8) + 1)
+    };
+  });
+  book.playerProfiles = profiles;
+  return book;
 }
 
 export function remapDemoBook(data) {
@@ -78,12 +115,13 @@ export function buildDemoBook(qaScenarios) {
   const seed = qaScenarios && qaScenarios['demo-seed'] && qaScenarios['demo-seed'].data;
   if (!seed) throw new Error('try-demo seed missing');
   const cloned = attachDemoCanastaNight(JSON.parse(JSON.stringify(seed)), qaScenarios);
-  return remapDemoBook(cloned);
+  return applyNeutralDemoAvatars(remapDemoBook(cloned));
 }
 
 export function demoBookHasPorchCast(blob) {
   const text = typeof blob === 'string' ? blob : JSON.stringify(blob || '');
   if (!text) return false;
-  if (isCharacterAvatarRef(text)) return true;
+  if (/\.png/i.test(text)) return true;
+  if (/avatars\/(?!neutral-)[^"\s]+/i.test(text)) return true;
   return QA_PORCH_CAST.some((name) => text.includes(name));
 }

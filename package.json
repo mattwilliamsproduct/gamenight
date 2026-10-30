@@ -23,7 +23,7 @@
     "test:home-layout": "node --test scripts/test-home-layout.mjs",
     "test:seat-reorder": "node --test scripts/test-seat-reorder.mjs",
     "test:night-podium": "node --test scripts/test-night-podium.mjs",
-    "test:records": "node --test scripts/test-records.mjs",
+    "test:records": "node --test scripts/test-records.mjs scripts/test-past-nights-layout.mjs",
     "test:hand-foot": "node --test scripts/test-hand-foot.mjs",
     "test:game-registry": "node --test scripts/test-game-registry.mjs",
     "test:card-picker": "node --test scripts/test-card-picker.mjs",

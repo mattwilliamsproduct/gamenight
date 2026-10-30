@@ -104,8 +104,10 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
     srcs: [...document.querySelectorAll('img.avatar-img, img.avatar-img-sc, img.avatar-img-lg')]
       .map((img) => img.getAttribute('src') || '')
   }));
-  expect(faces.avatars).toEqual([]);
-  expect(faces.srcs.every((src) => !/avatars\/|\.png(?:\?|#|$)/i.test(src))).toBe(true);
+  expect(faces.avatars.length).toBeGreaterThan(0);
+  expect(faces.avatars.every((avatar) => /^neutral-\d+\.svg$/.test(avatar))).toBe(true);
+  expect(faces.srcs.every((src) => /neutral-\d+\.svg/i.test(src) || src.startsWith('data:'))).toBe(true);
+  expect(faces.srcs.every((src) => !/\.png(?:\?|#|$)/i.test(src))).toBe(true);
 });
 
 test('empty first-use and Settings About offer Try a demo', async ({page}) => {
@@ -136,7 +138,8 @@ test('starting demo with real data present leaves it untouched', async ({page}) 
   expect(JSON.stringify(demo)).toContain('Nora');
   expect(JSON.stringify(demo)).not.toContain('Megan');
   expect(JSON.stringify(demo)).not.toContain('Sam');
-  expect(JSON.stringify(demo)).not.toMatch(/avatars\/|\.png/);
+  expect(JSON.stringify(demo)).not.toMatch(/\.png/);
+  expect(JSON.stringify(demo)).toMatch(/neutral-\d+\.svg/);
 });
 
 test('demo edits and Reset touch demo data only', async ({page}) => {

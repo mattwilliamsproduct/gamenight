@@ -57,7 +57,7 @@ test('try-demo seed is the fictional QA demo-seed book', () => {
   assert.match(demo, /buildDemoBook/);
 });
 
-test('demo forks the QA seed to a fictional cast with no character avatars', () => {
+test('demo forks the QA seed to a fictional cast with neutral SVG avatars', () => {
   assert.match(demo, /try-demo-cast\.mjs/);
   assert.match(demo, /buildDemoBook/);
   assert.deepEqual([...QA_PORCH_CAST], [
@@ -69,7 +69,7 @@ test('demo forks the QA seed to a fictional cast with no character avatars', () 
     'June', 'Marco', 'Iris', 'Quinn', 'Vera', 'Hugo'
   ]);
   const qa = QA_SCENARIOS['demo-seed'].data;
-  const book = remapDemoBook(JSON.parse(JSON.stringify(qa)));
+  const book = buildDemoBook(QA_SCENARIOS);
   const blob = JSON.stringify(book);
   assert.ok(book.players.includes('Nora'));
   assert.ok(book.players.includes('Owen'));
@@ -81,12 +81,12 @@ test('demo forks the QA seed to a fictional cast with no character avatars', () 
   DEMO_CAST.forEach((name) => {
     assert.equal(blob.includes(name), true, `demo book missing ${name}`);
   });
-  assert.doesNotMatch(blob, /avatars\//);
   assert.doesNotMatch(blob, /\.png/);
   assert.equal(
-    Object.values(book.playerProfiles).some((profile) => profile && profile.avatar),
-    false
+    Object.values(book.playerProfiles).every((profile) => profile && /^neutral-\d+\.svg$/.test(profile.avatar || '')),
+    true
   );
+  assert.match(JSON.stringify(book.playerProfiles.Nora.avatar), /neutral-/);
   assert.equal(book.currentGame.originalRoster[1], 'Owen');
   assert.equal(book.currentGame.dealerOffset, 1);
   assert.ok(qa.players.includes('Megan'));
@@ -111,5 +111,5 @@ test('demo book adds a remapped Canasta night without changing QA fixtures', () 
   QA_PORCH_CAST.forEach((name) => {
     assert.equal(blob.includes(name), false, `Canasta night still has ${name}`);
   });
-  assert.doesNotMatch(blob, /avatars\/|\.png/);
+  assert.doesNotMatch(blob, /\.png/);
 });

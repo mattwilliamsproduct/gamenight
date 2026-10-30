@@ -336,13 +336,13 @@
       const label = displayGameName(match.game);
       const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
       const who = incomplete ? 'Incomplete' : (winners.length > 1 ? 'Tied' : (winner || ''));
-      return `<button type="button" class="s2-night" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
+      return `<button type="button" class="s2-night${incomplete ? ' is-incomplete' : ''}${!incomplete && winners.length > 1 ? ' is-tied' : ''}" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
         <span class="s2-night-copy">
           <strong>${escapeHtml(label)}</strong>
           <span class="s2-night-date">${escapeHtml(match.date || '')}</span>
           <span class="s2-night-who">${escapeHtml(who)}</span>
         </span>
-        ${nightPodiumMarkup(match)}
+        ${incomplete ? '<span class="s2-night-incomplete-note">No finishers yet</span>' : nightPodiumMarkup(match)}
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
@@ -394,6 +394,21 @@
     return next;
   }
 
+  function homePlaceLabel(place) {
+    const n = Number(place);
+    if (n === 1) return '1st';
+    if (n === 2) return '2nd';
+    if (n === 3) return '3rd';
+    if (!Number.isFinite(n) || n < 1) return '';
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+    const mod10 = n % 10;
+    if (mod10 === 1) return `${n}st`;
+    if (mod10 === 2) return `${n}nd`;
+    if (mod10 === 3) return `${n}rd`;
+    return `${n}th`;
+  }
+
   function nightPodiumMarkup(match) {
     if (!window.BPGRecords || typeof BPGRecords.nightPodium !== 'function') return '';
     const podium = BPGRecords.nightPodium(match, {
@@ -410,16 +425,21 @@
       const rank = slot.place === 1 ? 'first' : slot.place === 2 ? 'second' : 'third';
       return `${names} ${rank}`;
     }).join(', ');
-    return `<span class="s2-night-podium" aria-label="Top three: ${escapeHtml(spoken)}">
-      ${podium.places.map((slot) => `<span class="s2-podium-place" data-place="${slot.place}">
-        <span class="s2-podium-faces">
-          ${slot.people.map((person) => `<span class="s2-podium-face" title="${escapeHtml(person.name)}">
-            ${getStreakAvatarHtml(person.name, 'avatar-img s2-podium-avatar')}
-          </span>`).join('')}
-        </span>
-        <span class="s2-podium-badge" aria-hidden="true">${slot.place}</span>
-      </span>`).join('')}
-    </span>`;
+    const people = podium.places.flatMap((slot) => {
+      const label = homePlaceLabel(slot.place);
+      const tied = slot.people.length > 1;
+      return slot.people.map((person) => {
+        const tone = slot.place <= 3 ? ` is-place-${slot.place}` : ' is-place-rest';
+        return `<span class="s2-podium-person" data-place="${slot.place}"${tied ? ' data-tied="true"' : ''}>
+          ${getStreakAvatarHtml(person.name, 'avatar-img s2-podium-avatar')}
+          <span class="s2-podium-meta">
+            <span class="s2-podium-rank scoreboard-rank-badge${tone}">${escapeHtml(label)}</span>
+            <span class="s2-podium-name">${escapeHtml(person.name)}</span>
+          </span>
+        </span>`;
+      });
+    }).join('');
+    return `<span class="s2-night-podium" aria-label="Top three: ${escapeHtml(spoken)}">${people}</span>`;
   }
 
   function seatLive(text) {

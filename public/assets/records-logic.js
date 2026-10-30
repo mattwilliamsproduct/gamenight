@@ -348,10 +348,13 @@
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
     const retiredSet = new Set((match.retired || []).filter(Boolean));
-    const recorded = typeof helpers.getRecordedPlayers === 'function'
+    const source = typeof helpers.getRecordedPlayers === 'function'
       ? helpers.getRecordedPlayers(match)
-      : (helpers.getDisplayPlayers(match) || []).filter((name) => !retiredSet.has(name));
-    const sorted = helpers.sortPlayersByTotal(recorded, match.totals || {}, cfg);
+      : (helpers.getDisplayPlayers(match) || []);
+    // Always drop departed seats before ranking so places stay 1..n among finishers only.
+    const recorded = (source || []).filter((name) => name && !retiredSet.has(name));
+    const sorted = helpers.sortPlayersByTotal(recorded, match.totals || {}, cfg)
+      .filter((name) => name && !retiredSet.has(name));
     const places = helpers.competitionPlaces(sorted, match.totals || {});
     const winners = match.winners || [];
     const finishers = sorted.map((name) => ({
@@ -638,6 +641,7 @@
     const helpers = {
       configs: ctx.configs,
       getDisplayPlayers: ctx.getDisplayPlayers,
+      getRecordedPlayers: ctx.getRecordedPlayers,
       sortPlayersByTotal: ctx.sortPlayersByTotal,
       competitionPlaces: ctx.competitionPlaces,
       scorebook
@@ -1080,9 +1084,12 @@
     const avatar = ctx.getAvatarImg;
     const id = escapeAttr(String(model.id == null ? '' : model.id));
     const expanded = !!(ctx.expandedNights && ctx.expandedNights.has(String(model.id)));
-    const limit = compact && !expanded && model.standings.length > 3 ? 3 : model.standings.length;
-    const shown = model.standings.slice(0, limit);
-    const more = model.standings.length - shown.length;
+    const finishersAll = model.standings.filter((row) => !row.leftEarly && !row.retired);
+    const leftAll = model.standings.filter((row) => row.leftEarly || row.retired);
+    const finisherLimit = compact && !expanded && finishersAll.length > 3 ? 3 : finishersAll.length;
+    const shownFinishers = finishersAll.slice(0, finisherLimit);
+    const shown = shownFinishers.concat(leftAll);
+    const more = finishersAll.length - shownFinishers.length;
     const meta = model.incomplete
       ? `Incomplete · through Round ${model.throughRound}`
       : (model.endedEarly
@@ -1102,7 +1109,7 @@
     </li>`).join('');
     const leftHtml = leftEarlyRows.length
       ? `<li class="s2-night-left-label">Left early</li>` + leftEarlyRows.map((row) => `<li class="s2-night-finish is-left-early">
-      <span class="s2-night-place">—</span>
+      <span class="s2-night-place" aria-hidden="true"></span>
       ${avatar(row.name, 'avatar-img s2-mini-avatar')}
       <span class="player-name-label">${esc(row.name)}</span>
       <strong>${esc(scoreLabel(row.score))}</strong>
@@ -1175,6 +1182,7 @@
     isCompletedMatch,
     scoringRoundCount,
     nightCardModel,
+    nightCardHtml,
     nightStandings,
     nightPodium,
     matchHasComebackData,
