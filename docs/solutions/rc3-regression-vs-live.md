@@ -3,7 +3,8 @@
 | Ref | Path / SHA | Role |
 | --- | --- | --- |
 | LIVE | `/workspace/back-porch/wt-main` @ `39e6b51` | What cardknight runs from main |
-| RC3 | `/workspace/back-porch/wt-rc3` branch `cursor/rc3-candidate` @ `17eae07` | Local repair candidate (no push) |
+| FREEZE | `5e57d50` | Launch freeze the repair started from |
+| RC3 | `/workspace/back-porch/wt-rc3` branch `cursor/rc3-candidate` | Local repair candidate (no push) |
 
 Compared by reading both trees and the rc3 defect list. No prod deploy. No dashboard links.
 
@@ -13,6 +14,7 @@ Compared by reading both trees and the rc3 defect list. No prod deploy. No dashb
 - Same game registry ids and winLow rules.
 - Settings controls that live already has (text size, lineup intro, path replay, dealer roll, Porch Cloud, export/import) still present outside demo.
 - History storage shape unchanged for departed players (item 4: hide from active card and placements; do not purge scores or rewrite stored nights).
+- Score entry confirm stays on Next/accept. Leaving a seat does not auto-confirm (same as live and freeze).
 
 ## What rc3 repairs that live still shows as broken or rough
 
@@ -29,6 +31,26 @@ Compared by reading both trees and the rc3 defect list. No prod deploy. No dashb
 | Table exit | Easy to bury in Actions on some builds | Dedicated Table control kept visible |
 | Past nights | Two-column cards; date repeated under day heading | One full-width card; date only on day heading; same card on Overview |
 | Explore / Profile jargon | Variance / Favorite / WHAMMY / Nolie | Steadiest scores; Most played; All scored; Everyone hit bid |
+| Flip 7 full games | completed flag only | Active stored total ≥ 200 (Matt 7:26 PM) |
+| Final-score records | Count early-ended nights | Full games only; wins/streaks still count Ended early |
+| Nav vs Explore counts | One number, unclear | Nav `Records (N)` = nights saved; Explore subtitle = completed matches, with `· M nights saved` when they differ |
+
+## Score-entry behavior vs freeze / live (bd48128–8f6c6bc)
+
+Freeze `5e57d50` and live acknowledge on the first digit and replace the whole field when `!acknowledged`. That breaks two rc3 needs:
+
+1. **P1-05 minus regression.** Freeze treated pending `-` as blank, so the next digit replaced and turned `-5` into `5`. RC3 keeps the sign when the following key is a digit (`5d58d17`). Minus stays hidden only for Wizard bids/tricks.
+2. **Entered vs Confirmed for bids/tricks (item 3).** RC3 keeps `acknowledged` false while typing (`deferAck`) so status can show Entered 0 until Next. That would have made every later digit hit the replace branch. `bd48128` / `ca67c04` add a per-seat **dirty** flag: first digit still replaces a prefill; later digits append; pending minus still becomes `-N`.
+
+| Commit | User-visible change vs live/freeze | Keep? |
+| --- | --- | --- |
+| `5d58d17` pending minus | Typing `-` then `5` on Five Crowns / Flip 7 / Beat the Heat stores `-5`, not `5` | Yes — listed P1-05 |
+| `bd48128` append under deferAck | After the first typed digit on bids/tricks, further digits append (33 not stuck at last digit) | Yes — needed once deferAck exists for item 3 |
+| `ca67c04` dirty flag | Prefill still replaces on the first key; after that digits append; dirty tracked per seat | Yes — same reason |
+| `df59dd9` confirm on leave | Switching seats auto-confirmed the previous value | **Reverted** — not in the defect list; live/freeze do not auto-confirm on leave |
+| `8f6c6bc` dirty-only leave confirm | Narrowed df59dd9 to dirty seats only | **Reverted** with df59dd9 |
+
+Net vs live: same Next/accept confirm path. Extra: pending minus keep-sign on scores, and dirty-aware replace-then-append so bid Entered status still allows multi-digit entry.
 
 ## Risks / open deltas (not claimed fixed)
 
@@ -36,11 +58,15 @@ Compared by reading both trees and the rc3 defect list. No prod deploy. No dashb
 - L16-style life-preserver codes were not found as user-facing profile labels in this tree; only WHAMMY/Nolie badges were rewritten.
 - Live still has older scorecard chrome; merging rc3 is a product decision, not done here.
 - No signed-out prod smoke on cardknight (blocked until Matt's go).
+- WebKit visual project needs host libs (`libgstgl`, etc.) on this box; Chromium covers the gate.
 
 ## How to re-check locally
 
 ```bash
 cd /workspace/back-porch/wt-rc3
-npx playwright test tests/functional/rc3-acceptance.spec.mjs tests/functional/try-demo.spec.mjs
+npm run check
+npx playwright test --config=playwright.functional.config.mjs
+npx playwright test --config=playwright.porch-night.config.mjs
+npx playwright test # visual chromium
 # Final shots under /workspace/back-porch/rc3/shots/final/
 ```
