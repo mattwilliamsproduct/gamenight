@@ -79,7 +79,7 @@ test('tv scoreboard emphasizes names and keeps entry validation', async ({page})
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-scoring-8&slice2&surface=scorecard', {waitUntil: 'networkidle'});
   await ready(page);
   await expect(page.locator('#slice2-board-line')).toContainText(/Wizard · Round /);
-  await expect(page.locator('#slice2-board-line')).toContainText('Bids');
+  await expect(page.locator('#slice2-board-line')).toContainText(/bids total \d+ \((exact|\d+ over|\d+ under)\)/i);
   await expect(page.locator('#top-nav')).toBeHidden();
   await expect(page.locator('#submit-section')).toBeHidden();
   await expect(page.locator('#record-chase-panel')).toHaveCount(0);
@@ -106,8 +106,10 @@ test('tv scoreboard emphasizes names and keeps entry validation', async ({page})
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#score-entry-modal .score-entry-key', {hasText: '7'})).toBeVisible();
-  const keyBox = await page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first().boundingBox();
-  expect(keyBox.height).toBeGreaterThanOrEqual(48);
+  const zeroKey = page.locator('#score-entry-modal .score-entry-key', {hasText: '0'}).first();
+  await expect(zeroKey).toBeVisible();
+  const keyBox = await zeroKey.boundingBox();
+  expect(keyBox && keyBox.height).toBeGreaterThanOrEqual(48);
   await page.getByRole('button', {name: 'Next', exact: true}).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
 });

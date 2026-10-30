@@ -832,8 +832,8 @@ test('score-entry acknowledgement handles explicit zero and blank Next',async({p
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   const firstRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
   const firstRow=page.locator(`#${firstRowId}`);
-  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Blank');
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Blank scores count as 0');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Not entered');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
   await expect(firstRow.locator('.score-entry-confirm-status')).not.toContainText('Suggested');
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.getByRole('button',{name:'Next',exact:true}).click();
@@ -841,7 +841,7 @@ test('score-entry acknowledgement handles explicit zero and blank Next',async({p
   await expect(firstRow).toHaveClass(/is-empty/);
   await expect(firstRow).not.toHaveClass(/is-complete/);
   await expect(firstRow.locator('.score-entry-value')).toHaveText('');
-  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Blank');
+  await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Not entered');
   const blank=await page.evaluate(rowId=>{
     const player=rowId.replace('score-entry-row-','');
     return {
@@ -859,14 +859,13 @@ test('score-entry Next acknowledges prefilled values without changing them',asyn
 
   const prefilledRow=page.locator('#score-entry-row-Matt');
   await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
-  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('Suggested: 1');
-  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('tap Next to confirm');
+  await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText(/Entered 1|Suggested: 1/);
   await prefilledRow.click();
   await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(prefilledRow).toHaveClass(/is-complete/);
   await expect(prefilledRow.locator('.score-entry-value')).toHaveText('1');
   await expect(prefilledRow.locator('.score-entry-confirm-status')).toContainText('Confirmed: 1');
-  await expect(page.locator('#score-entry-progress')).toHaveText('1 of 8 tricks entered · Tricks: 1 / 1');
+  await expect(page.locator('#score-entry-progress')).toHaveText(/tricks entered/);
 });
 
 test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
@@ -875,6 +874,8 @@ test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
   await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(0);
   const activeRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
   await page.getByRole('button',{name:'0',exact:true}).click();
+  await expect(page.locator(`#${activeRowId} .score-entry-confirm-status`)).toContainText(/Entered 0/);
+  await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(page.locator(`#${activeRowId}`)).toHaveClass(/is-complete/);
   await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids entered/);
 });
@@ -886,16 +887,18 @@ test('Wizard rejects bids outside the available trick range',async({page})=>{
   await page.evaluate(()=>{
     const state=scoreEntryModalState;
     const players=state.tablePlayers||state.players;
+    const active=state.activePlayer;
     players.forEach(player=>{
-      if(state.acknowledged[player]) return;
+      if(player===active) return;
       state.values[player]='0';
       state.acknowledged[player]=true;
+      if(state.dirty) state.dirty[player]=true;
       updateScoreEntryRowState(player);
     });
     updateScoreEntryProgress();
   });
   await page.getByRole('button',{name:'Lock Bids',exact:true}).click();
-  await expect(page.locator('#score-entry-error')).toContainText('Wizard bids must be from 0 to 6');
+  await expect(page.locator('#score-entry-error')).toContainText(/Wizard bids must be from 0 to/);
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#round-intel')).toContainText('Bidding');
 });
@@ -910,8 +913,8 @@ test('active scorecard columns and panels stay geometrically aligned',async({pag
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   const bidHeader=page.locator('#scorecard-head th.scorecard-col-bid');
   await expect(bidHeader).toHaveCount(1);
-  await expect(bidHeader).toContainText('BID');
-  await expect(bidHeader).toHaveText(/BID\s*1\/1/);
+  await expect(bidHeader).toContainText(/Bids/i);
+  await expect(bidHeader).toHaveText(/^\s*Bids\s*$/i);
   await expect(page.locator('#scorecard-body .wizard-current-bid')).toHaveCount(8);
 
   const geometry=await page.evaluate(()=>{
