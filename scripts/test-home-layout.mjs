@@ -12,7 +12,11 @@ test('laptop Home sizes panels to content and keeps Recent nights full width', a
   assert.match(js, /s2-home-grid">\$\{tableBlock\}\$\{startBlock\}<\/div>\$\{nightsBlock\}/);
   assert.doesNotMatch(js, /homeLayout/);
   assert.match(js, /s2-night-podium/);
-  assert.match(js, /s2-podium-faces[\s\S]*s2-podium-badge/);
+  assert.match(js, /s2-podium-person[\s\S]*s2-podium-rank/);
+  assert.match(js, /homePlaceLabel/);
+  assert.match(js, /No finishers yet/);
+  assert.doesNotMatch(js, /s2-podium-faces/);
+  assert.doesNotMatch(js, /s2-podium-badge/);
   assert.doesNotMatch(js, /edit-seating/);
   assert.doesNotMatch(js, /Edit Seating/);
 
