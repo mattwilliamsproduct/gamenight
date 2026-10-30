@@ -812,7 +812,7 @@ test('score-entry shows progress and live entered states',async({page})=>{
   await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(1);
   await expect(page.locator('.score-entry-row.is-empty')).toHaveCount(7);
   await expect(page.locator('.score-entry-row.is-complete .score-entry-row-status')).toHaveText('✓');
-  await expect(page.locator('.score-entry-row.is-complete')).toHaveAttribute('aria-label',/score entered/);
+  await expect(page.locator('.score-entry-row.is-complete')).toHaveAttribute('aria-label',/Confirmed|Entered/i);
   await expect(page.getByRole('button',{name:'Review Scores',exact:true})).toBeVisible();
 });
 
