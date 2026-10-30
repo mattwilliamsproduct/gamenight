@@ -17266,6 +17266,8 @@ ${isDealer
     }
     const prev=scoreEntryModalState.activePlayer;
     const next=scoreEntryModalState.players[idx];
+    // Leaving a seat confirms a typed value so is-complete matches Entered→Confirmed.
+    if(prev && prev!==next) markScoreEntryPlayerComplete(prev);
     if(prev)document.getElementById(`score-entry-row-${rookElementId(prev)}`)?.classList.remove('active');
     scoreEntryModalState.activePlayer=next;
     document.getElementById(`score-entry-row-${rookElementId(next)}`)?.classList.add('active');
