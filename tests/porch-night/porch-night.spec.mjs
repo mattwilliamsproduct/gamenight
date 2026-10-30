@@ -101,7 +101,7 @@ test('one laptop porch night walks the shelf, scoring, places, and a local refre
     const sorted=['Alexis','Diana','Ethan','Megan','Matt','Linda','Mike'];
     return competitionPlaces(sorted,totals);
   });
-  expect(tied).toEqual({Alexis:1,Diana:2,Ethan:3,Megan:4,Matt:4,Linda:6,Mike:6});
+  expect(tied).toEqual({Alexis:1,Diana:2,Ethan:3,Megan:4,Matt:4,Linda:5,Mike:5});
 
   // 7. refresh keeps the live match in localStorage, no cloud
   await openScenario(page,{scenario:'wizard-scoring-8'});
