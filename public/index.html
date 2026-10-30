@@ -17028,6 +17028,7 @@ ${isDealer
       tablePlayers,
       values,
       acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,false])),
+      dirty:{},
       dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
       activeField:mode.kind==='hand-foot'?'cleanCanastas':'cardPoints',
@@ -17358,13 +17359,16 @@ ${isDealer
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
       const modeKey=isScoreEntryBidMode(scoreEntryModalState.mode)?'bids':(isScoreEntryTrickMode(scoreEntryModalState.mode)?'tricks':'scores');
+      if(!scoreEntryModalState.dirty) scoreEntryModalState.dirty={};
       const next=BPGScorebook.applyScoreEntryKey({
         value:scoreEntryModalState.values[p]??'',
         acknowledged:!!scoreEntryModalState.acknowledged[p],
-        mode:modeKey
+        mode:modeKey,
+        dirty:!!scoreEntryModalState.dirty[p]
       }, v);
       scoreEntryModalState.values[p]=next.value;
       scoreEntryModalState.acknowledged[p]=next.acknowledged;
+      scoreEntryModalState.dirty[p]=!!next.dirty;
       updateScoreEntryActiveValue();
     });
   }

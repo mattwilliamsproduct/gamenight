@@ -448,21 +448,15 @@
     const digit = /^[0-9]+$/.test(token);
     const mode = source.mode || '';
     const deferAck = !!source.deferAck || mode === 'bids' || mode === 'tricks' || mode === 'bid' || mode === 'trick';
-    // First digit replaces only when the field is empty. Pending "-" is blank for
-    // status but must keep the sign (P1-05). Bids/tricks keep acknowledged false
-    // (deferAck) so later digits still append instead of replacing again.
-    if (!acknowledged && digit) {
-      const trimmed = String(value).trim();
-      if (trimmed === '-') {
-        return { value: '-' + token, acknowledged: deferAck ? false : true, replaced: false };
+    // Prefills replace on the first digit. After the seat is dirty, digits append
+    // even when deferAck keeps acknowledged false (bids/tricks "Entered" status).
+    // Pending "-" is blank for status but must keep the sign (P1-05).
+    const dirty = !!source.dirty;
+    if (!acknowledged && digit && !dirty) {
+      if (String(value).trim() === '-') {
+        return { value: '-' + token, acknowledged: deferAck ? false : true, replaced: false, dirty: true };
       }
-      if (trimmed === '' || trimmed === '+') {
-        return { value: token, acknowledged: deferAck ? false : true, replaced: true };
-      }
-      if (value.length < 5) {
-        return { value: value + token, acknowledged: deferAck ? false : true, replaced: false };
-      }
-      return { value, acknowledged: deferAck ? false : true, replaced: false };
+      return { value: token, acknowledged: deferAck ? false : true, replaced: true, dirty: true };
     }
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
@@ -475,7 +469,7 @@
     } else if (digit || token === 'backspace' || token === '-') {
       acknowledged = deferAck ? false : true;
     }
-    return { value, acknowledged, replaced: false };
+    return { value, acknowledged, replaced: false, dirty: dirty || digit || token === '-' || token === 'backspace' };
   }
 
   function acceptScoreEntryValue(entry) {

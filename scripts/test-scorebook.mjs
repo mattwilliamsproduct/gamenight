@@ -441,10 +441,18 @@ test('score entry pending minus then digit keeps the sign on scores', () => {
 });
 
 test('bid/trick deferAck still appends digits after the first entry', () => {
-  let next = Scorebook.applyScoreEntryKey({ value: '', acknowledged: false, mode: 'tricks' }, '3');
+  let next = Scorebook.applyScoreEntryKey({ value: '3', acknowledged: false, mode: 'tricks', dirty: false }, '3');
   assert.equal(next.value, '3');
   assert.equal(next.acknowledged, false);
-  next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'tricks' }, '3');
+  assert.equal(next.dirty, true);
+  next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'tricks', dirty: next.dirty }, '3');
   assert.equal(next.value, '33');
   assert.equal(next.acknowledged, false);
+});
+
+test('score entry pending minus then digit keeps the sign when dirty', () => {
+  let next = Scorebook.applyScoreEntryKey({ value: '', acknowledged: false, mode: 'scores' }, '-');
+  assert.equal(next.value, '-');
+  next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'scores', dirty: next.dirty }, '5');
+  assert.equal(next.value, '-5');
 });
