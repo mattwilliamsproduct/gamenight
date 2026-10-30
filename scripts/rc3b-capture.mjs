@@ -205,8 +205,13 @@ if (want('demo')) {
     const page = await browser.newPage({viewport:{width:size.w,height:size.h}});
     await page.goto(`${base}/?demo=try`, {waitUntil:'domcontentloaded'});
     await ready(page);
-    await page.evaluate(() => { try { if (typeof showScreen==='function') showScreen('home'); } catch {} });
-    await page.waitForTimeout(350);
+    await page.evaluate(() => {
+      try {
+        if (typeof goHome === 'function') goHome();
+        else if (typeof showScreen === 'function') showScreen('home-screen');
+      } catch {}
+    });
+    await page.waitForTimeout(450);
     await page.screenshot({path:`${OUT}/demo-home-${size.name}.png`});
     await page.evaluate(() => {
       try {

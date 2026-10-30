@@ -15522,8 +15522,10 @@ ${isDealer
       // table stretched to the wrap and blew row height past the dense-names cap.
       const huggedHeight=(head?.offsetHeight||0)+rowHeight*rows.length;
       // Small player counts on large screens should fill height, not hug and leave
-      // a tall empty band under the card. Hug remains for denser tables.
-      const allowHug = phone || count > 4;
+      // a tall empty band under the card — unless comfortMax capped below fillRow,
+      // in which case hug so rows stay at the var height instead of stretching.
+      const cappedBelowFill = targetRow + 1 < fillRow;
+      const allowHug = phone || count > 4 || cappedBelowFill;
       root.classList.toggle('scorecard-hug-rows', allowHug && huggedHeight < fitHeight - 28);
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
