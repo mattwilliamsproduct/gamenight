@@ -105,15 +105,15 @@ async function expectScorecardUsesRowHeight(page){
     avatar:element.querySelector('.avatar-img-sc')?.getBoundingClientRect().height||0,
     row:element.getBoundingClientRect().height
   }));
-  // Small tables scale avatars/type with row height (comfortMax up to ~320). Dense
-  // tables stay near the old 56–64 avatar band; tall 2–4p rows can reach the 120px cap.
-  const avatarMax=Math.min(120, Math.max(72, Math.round(sizes.row*0.75)));
-  const nameMax=Math.min(56, Math.max(48, Math.round(sizes.row*0.42)));
+  // Names track row height (cap ~72). Avatars stay ≤ ~2.5× the name so they never
+  // dwarf the label on tall 2–4p rows; dense tables stay near the old band.
+  const nameMax=Math.min(72, Math.max(48, Math.round(sizes.row*0.28)));
+  const avatarMax=Math.min(Math.round(sizes.name*2.5)+2, Math.round(sizes.row*0.55)+2, 180);
   expect(sizes.name,'player names stay readable').toBeGreaterThanOrEqual(20);
-  expect(sizes.name,'player names stay within the fitted name cap').toBeLessThanOrEqual(nameMax+1);
-  expect(sizes.total,'totals stay larger than the name').toBeGreaterThanOrEqual(sizes.name*1.35);
-  expect(sizes.avatar,'avatars stay readable').toBeGreaterThanOrEqual(48);
-  expect(sizes.avatar,'avatars stay within the fitted avatar cap').toBeLessThanOrEqual(avatarMax+1);
+  expect(sizes.name,'player names stay within the fitted name cap').toBeLessThanOrEqual(nameMax+2);
+  expect(sizes.total,'totals stay larger than the name').toBeGreaterThanOrEqual(sizes.name*1.15);
+  expect(sizes.avatar,'avatars stay readable').toBeGreaterThanOrEqual(40);
+  expect(sizes.avatar,'avatars stay within the fitted avatar cap').toBeLessThanOrEqual(avatarMax);
 }
 
 async function expectScorecardNamesFit(page){

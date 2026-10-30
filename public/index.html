@@ -3442,7 +3442,8 @@ button.dealer-name-indicator {
         max-width: 100%;
         min-width: 0;
       }
-      body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name {
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name,
+      body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name .dealer-player-label {
         font-size: var(--scorecard-player-font) !important;
         line-height: 0.86;
       }
@@ -3494,10 +3495,10 @@ button.dealer-name-indicator {
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
         width: auto !important;
         height: auto !important;
-        min-width: 2.2rem !important;
-        min-height: 1.45rem !important;
-        padding: 0.12rem 0.4rem !important;
-        font-size: max(0.88rem, var(--scorecard-rank-font, 0.88rem)) !important;
+        min-width: var(--scorecard-rank-size, 2.2rem) !important;
+        min-height: calc(var(--scorecard-rank-size, 2.2rem) * 0.62) !important;
+        padding: 0.12rem 0.45rem !important;
+        font-size: var(--scorecard-rank-font, 0.88rem) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-dealer-avatar-badge {
         font-size: var(--scorecard-dealer-font) !important;
@@ -3608,9 +3609,9 @@ button.dealer-name-indicator {
       table-layout: fixed;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: clamp(15rem, 22vw, 20rem);
+      width: clamp(15rem, 24vw, 28rem);
       min-width: 13rem;
-      max-width: 22rem;
+      max-width: 30rem;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
       width: clamp(6.5rem, 8vw, 8.5rem);
@@ -3618,8 +3619,8 @@ button.dealer-name-indicator {
       max-width: 9rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: clamp(14rem, 18vw, 17rem);
-      max-width: 18rem;
+      width: clamp(18rem, 30vw, 36rem);
+      max-width: 38rem;
     }
     @media (max-width: 700px) {
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
@@ -15467,14 +15468,58 @@ ${isDealer
       const applyFit=()=>{
         const phone=window.innerWidth<=760;
         const tablet=window.innerWidth<=1180;
-        const nameCap=phone?22:tablet?42:Math.min(56, Math.round(rowHeight*0.42));
-        const avatarCap=phone?28:Math.min(120, Math.round(rowHeight*0.72));
-        const playerFont=Math.max(17,Math.min(nameCap,rowHeight*0.38));
+        // Names and ranks track row height with totals/rounds. Cap the avatar
+        // at ~2.5× the name size so it never dwarfs the label on tall 2–4p rows.
+        const nameCap=phone?22:tablet?48:Math.min(72, Math.round(rowHeight*0.28));
+        const playerFont=Math.max(17,Math.min(nameCap,rowHeight*0.28));
+        let avatarCap=phone?28:Math.min(Math.round(playerFont*2.5), Math.round(rowHeight*0.55));
         const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,rowHeight*0.7),rowHeight*0.62));
+        // Rank pill tracks the name but stays compact — a huge min-width stole
+        // the name slot on 2–4p TV rows and triggered width-crush to 12px.
+        let rankSize=Math.max(22, Math.min(Math.round(playerFont*0.72), Math.round(rowHeight*0.2)));
+        const rankFontFloor=phone?11:14;
+        const rankFont=Math.max(rankFontFloor, Math.min(playerFont*0.55, rankSize*0.48));
+        // Keep enough horizontal room for the scaled name; shrink avatar (then
+        // rank) before fitScorecardPlayerNames can crush type below the row fit.
+        root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
+        const playerCell=root.querySelector('td.scorecard-col-player');
+        if(playerCell){
+          const cellStyle=getComputedStyle(playerCell);
+          const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+          const canvas=fitActiveScorecardRows._nameCanvas||(fitActiveScorecardRows._nameCanvas=document.createElement('canvas'));
+          const ctx=canvas.getContext('2d');
+          let longest=0;
+          if(ctx){
+            const probe=root.querySelector('.scoreboard-player-name');
+            const chip=probe?(probe.querySelector('.dealer-player-label')||probe):null;
+            const chipStyle=chip?getComputedStyle(chip):null;
+            const weight=chipStyle?.fontWeight||'700';
+            const family=chipStyle?.fontFamily||'Jakarta, system-ui, sans-serif';
+            ctx.font=`${weight} ${playerFont}px ${family}`;
+            root.querySelectorAll('.scoreboard-player-name').forEach(name=>{
+              const label=name.querySelector('.dealer-player-label')||name;
+              const t=(label.textContent||'').trim();
+              if(t) longest=Math.max(longest, ctx.measureText(t).width);
+            });
+          }
+          const nameNeed=Math.ceil(Math.max(longest*1.04, playerFont*2.2));
+          const gaps=16; // rank/avatar/name flex gaps + turbo slot slack
+          let avatar=Math.max(22, Math.min(rowHeight-8, avatarCap));
+          let budget=cellInner-nameNeed-gaps;
+          if(budget>0 && rankSize+avatar>budget){
+            avatar=Math.max(Math.round(playerFont*1.15), Math.min(avatar, budget-rankSize));
+            if(rankSize+avatar>budget){
+              rankSize=Math.max(22, budget-avatar);
+              avatar=Math.max(Math.round(playerFont*1.15), Math.min(avatar, budget-rankSize));
+            }
+            avatarCap=avatar;
+          }
+        }
+        let avatarPx=Math.max(22,Math.min(rowHeight-8,avatarCap));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(10,Math.round(rowHeight*0.04)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
-        root.style.setProperty('--scorecard-avatar-size',`${Math.max(22,Math.min(rowHeight-8,avatarCap)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-avatar-size',`${avatarPx.toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${(handFoot?Math.min(totalFont,36):totalFont).toFixed(1)}px`);
         root.style.setProperty('--scorecard-input-height',`${Math.max(24,Math.min(64,rowHeight-8)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
@@ -15494,8 +15539,10 @@ ${isDealer
         root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,rowHeight*0.14)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-rank-size',`${Math.max(22,Math.min(64,Math.round(rowHeight*0.36))).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.88,Math.min(1.35,rowHeight*0.012)).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-rank-size',`${rankSize}px`);
+        // Keep ordinals readable on dense tables (≥14 desktop / ≥11 phone) while
+        // still tracking the scaled name on tall 2–4p rows.
+        root.style.setProperty('--scorecard-rank-font',`${rankFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.36,Math.min(0.95,0.72*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-size',`${Math.max(11,Math.min(30,22*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
@@ -15584,9 +15631,12 @@ ${isDealer
     const cellBox=cell.getBoundingClientRect();
     const chipBox=chip.getBoundingClientRect();
     const available=scorecardNameAvailableWidth(name);
+    const fitRows=!!name.closest('#scorecard-capture.scorecard-fit-rows');
+    const varFont=parseFloat((name.closest('#scorecard-capture')||document.documentElement).style.getPropertyValue('--scorecard-player-font'))||0;
+    const floor=fitRows&&varFont>0?Math.max(12,Math.round(varFont*0.85)):12;
     const finish=size=>{
       name.style.removeProperty('font-size');
-      return Math.max(12,Math.min(maximum,size));
+      return Math.max(floor,Math.min(maximum,size));
     };
     const slot=name.closest('.scorecard-player-name-slot');
     const slotBox=slot?.getBoundingClientRect();
@@ -15596,7 +15646,7 @@ ${isDealer
       (slotBox&&chipBox.right>slotBox.right+1)
     ));
     if(available<=0||slotOverflow){
-      let lo=12,hi=maximum,best=12;
+      let lo=floor,hi=maximum,best=floor;
       for(let i=0;i<12;i++){
 
         const mid=(lo+hi)/2;
@@ -15626,11 +15676,11 @@ ${isDealer
     let fitted=maximum;
     const natural=measureAt(maximum);
     if(natural>available){
-      fitted=Math.max(12,maximum*((available-1)/Math.max(1,natural))*0.98);
+      fitted=Math.max(floor,maximum*((available-1)/Math.max(1,natural))*0.98);
     }
     name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
     if(scorecardNameChipWidth(name)<=available+1)return finish(Math.min(maximum,fitted));
-    let lo=12,hi=Math.min(maximum,fitted),best=12;
+    let lo=floor,hi=Math.min(maximum,fitted),best=floor;
     for(let i=0;i<10;i++){
       const mid=(lo+hi)/2;
       name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');

@@ -976,7 +976,11 @@ html.slice2-tv .s2-board-title-row {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.35rem 0.75rem;
+  gap: 0.12rem 0.75rem;
+  min-width: 0;
+}
+html.slice2-tv .s2-board-title-row #slice2-board-sub {
+  flex: 1 1 100%;
   min-width: 0;
 }
 
@@ -2181,8 +2185,8 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv .s2-board-title-row {
-    flex-wrap: nowrap;
-    align-items: baseline;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   html.slice2-tv .s2-board-line-row {
@@ -2231,11 +2235,16 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv #scorecard-capture .scoreboard-rank-badge,
-  html.slice2-tv button.scoreboard-rank-badge,
-  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
+  html.slice2-tv button.scoreboard-rank-badge {
     font-size: 1rem !important;
     min-width: 2.5rem;
     min-height: 1.65rem;
+    padding: 0.16rem 0.48rem;
+  }
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-rank-badge {
+    font-size: var(--scorecard-rank-font, 1rem) !important;
+    min-width: var(--scorecard-rank-size, 2.5rem);
+    min-height: calc(var(--scorecard-rank-size, 2.5rem) * 0.62);
     padding: 0.16rem 0.48rem;
   }
 
