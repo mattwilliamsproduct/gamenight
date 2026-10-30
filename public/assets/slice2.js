@@ -403,6 +403,9 @@
   }
 
   function homePlaceLabel(place) {
+    if (window.BPGRecords && typeof BPGRecords.densePlaceLabel === 'function') {
+      return BPGRecords.densePlaceLabel(place);
+    }
     const n = Number(place);
     if (n === 1) return '1st';
     if (n === 2) return '2nd';

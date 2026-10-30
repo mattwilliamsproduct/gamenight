@@ -3,6 +3,8 @@
 
   var SESSION_KEY = 'bpg_try_demo';
   var TIP_KEY = 'bpg_try_demo_tip';
+  var SNAP_KEY = 'bpg_try_demo_snap';
+  var PENDING_RESTORE = 'bpg_try_demo_pending_restore';
   var PREFIX = 'bpg_demo_';
   var GN = 'gn_';
   var SEED_URL = '../qa/fixtures.mjs?v=try-demo-1';
@@ -34,12 +36,12 @@
   }
 
   function activate() {
+    // Capture real gn_* once per demo session (raw keys; remapping does not apply).
+    captureRealSnapshot();
     root.__BPG_TRY_DEMO = true;
     setSession(true);
     try { document.documentElement.classList.add('bpg-try-demo'); } catch (error) {}
   }
-
-  if (wantsTry() || sessionOn()) activate();
 
   function active() {
     return !!root.__BPG_TRY_DEMO;
@@ -79,6 +81,90 @@
     demoKeys().forEach(function (key) {
       try { localStorage.removeItem(key); } catch (error) {}
     });
+  }
+
+  function listGnKeys() {
+    var keys = [];
+    try {
+      for (var i = 0; i < localStorage.length; i += 1) {
+        var key = localStorage.key(i);
+        if (key && key.indexOf(GN) === 0) keys.push(key);
+      }
+    } catch (error) {}
+    return keys;
+  }
+
+  function captureRealSnapshot() {
+    try {
+      if (sessionStorage.getItem(SNAP_KEY)) return;
+      var snap = {};
+      listGnKeys().forEach(function (key) {
+        snap[key] = localStorage.getItem(key);
+      });
+      sessionStorage.setItem(SNAP_KEY, JSON.stringify(snap));
+    } catch (error) {}
+  }
+
+  function applyRealSnapshot(snap) {
+    if (!snap || typeof snap !== 'object') return;
+    try {
+      listGnKeys().forEach(function (key) {
+        try { localStorage.removeItem(key); } catch (error) {}
+      });
+      Object.keys(snap).forEach(function (key) {
+        if (key.indexOf(GN) !== 0) return;
+        var value = snap[key];
+        if (value == null) {
+          try { localStorage.removeItem(key); } catch (error) {}
+        } else {
+          try { localStorage.setItem(key, value); } catch (error) {}
+        }
+      });
+    } catch (error) {}
+  }
+
+  function readRealSnapshot() {
+    try {
+      var raw = sessionStorage.getItem(SNAP_KEY);
+      if (!raw) return null;
+      var snap = JSON.parse(raw);
+      return snap && typeof snap === 'object' ? snap : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function restorePendingSnapshot() {
+    try {
+      if (sessionStorage.getItem(PENDING_RESTORE) !== '1') return false;
+      var snap = readRealSnapshot();
+      if (snap) applyRealSnapshot(snap);
+      clearDemoStore();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function finishExitRestore() {
+    try {
+      if (sessionStorage.getItem(PENDING_RESTORE) !== '1') return false;
+      restorePendingSnapshot();
+      sessionStorage.removeItem(PENDING_RESTORE);
+      sessionStorage.removeItem(SNAP_KEY);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Exit restore must run before the main app reads gn_* (this file loads first).
+  // Keep PENDING/SNAP so onload can re-apply after backfillStableGameIds.
+  // pagehide on the Exit navigation may have rewritten demo memory onto gn_*.
+  if (sessionStorage.getItem(PENDING_RESTORE) === '1') {
+    restorePendingSnapshot();
+  } else if (wantsTry() || sessionOn()) {
+    activate();
   }
 
   function blockFetch() {
@@ -408,8 +494,18 @@
   }
 
   function exit() {
+    var snap = readRealSnapshot();
+    if (snap) applyRealSnapshot(snap);
+    clearDemoStore();
+    try {
+      sessionStorage.setItem(PENDING_RESTORE, '1');
+    } catch (error) {}
     setSession(false);
     try { sessionStorage.removeItem(TIP_KEY); } catch (error) {}
+    // Stay inactive for the unload persist so pagehide cannot rewrite demo
+    // state onto real gn_* keys.
+    root.__BPG_TRY_DEMO = false;
+    try { document.documentElement.classList.remove('bpg-try-demo', 'bpg-try-demo-tip'); } catch (error) {}
     var url = new URL(location.href);
     if (url.searchParams.get('demo') === 'try') url.searchParams.delete('demo');
     location.assign(url.pathname + url.search + url.hash);
@@ -433,6 +529,8 @@
   root.BPGTryDemo = {
     PREFIX: PREFIX,
     SESSION_KEY: SESSION_KEY,
+    SNAP_KEY: SNAP_KEY,
+    PENDING_RESTORE: PENDING_RESTORE,
     active: active,
     storageKey: storageKey,
     wantsTry: wantsTry,
@@ -441,6 +539,7 @@
     enter: enter,
     exit: exit,
     reset: reset,
+    finishExitRestore: finishExitRestore,
     paintSettings: paintSettings,
     paintEntry: paintEntry,
     paintSaveLabel: paintSaveLabel,

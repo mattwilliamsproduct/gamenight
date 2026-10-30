@@ -489,9 +489,9 @@ test('nightCardHtml puts Left early in its own section without a dash place', ()
   assert.match(html, /s2-night-left-label">Left early</);
   assert.match(html, /is-left-early/);
   assert.doesNotMatch(html, /is-left-early[\s\S]*?—/);
-  assert.match(html, /s2-night-place">1\.</);
-  assert.match(html, /s2-night-place">2\.</);
-  assert.doesNotMatch(html, /s2-night-place">3\.</);
+  assert.match(html, /s2-night-place">1st</);
+  assert.match(html, /s2-night-place">2nd</);
+  assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
 });
 
 test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () => {
@@ -516,8 +516,8 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
     escapeHtml: (s) => String(s),
     getAvatarImg: () => '<img>'
   }, false);
-  assert.match(html, /s2-night-place">1\.</);
-  assert.match(html, /s2-night-place">2\.</);
-  assert.doesNotMatch(html, /s2-night-place">3\.</);
+  assert.match(html, /s2-night-place">1st</);
+  assert.match(html, /s2-night-place">2nd</);
+  assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
   assert.match(html, /s2-night-left-label">Left early</);
 });

@@ -167,34 +167,150 @@ test('demo edits and Reset touch demo data only', async ({page}) => {
   expect(await snapshotGn(page)).toEqual(before);
 });
 
-test('Exit restores real data byte-identical', async ({page}) => {
-  test.setTimeout(60000);
-  await seedRealBook(page);
-  await page.goto('/', {waitUntil: 'domcontentloaded'});
-  const before = await snapshotGn(page);
+const FRAGILE_REAL_SEED = {
+  gn_all_players: JSON.stringify(['Sam', 'Riley', 'Quinn']),
+  gn_history: JSON.stringify([{
+    id: 42,
+    game: 'Five Crowns',
+    date: '2/2/2026',
+    totals: {Sam: 4, Riley: 9, Quinn: 12},
+    winners: ['Sam'],
+    rounds: [{round: 1, scores: {Sam: 4, Riley: 9, Quinn: 12}}],
+    originalRoster: ['Sam', 'Riley', 'Quinn'],
+    completed: true,
+    currentRound: 2
+  }]),
+  gn_current: JSON.stringify({
+    id: 'real-cur',
+    name: 'Five Crowns',
+    originalRoster: ['Sam', 'Riley', 'Quinn'],
+    currentRound: 3,
+    rounds: [
+      {round: 1, scores: {Sam: 1, Riley: 2, Quinn: 3}},
+      {round: 2, scores: {Sam: 0, Riley: 4, Quinn: 1}}
+    ],
+    totals: {Sam: 1, Riley: 6, Quinn: 4},
+    completed: false
+  })
+};
+
+async function snapshotAll(page) {
+  return page.evaluate(() => {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key) out[key] = localStorage.getItem(key);
+    }
+    return out;
+  });
+}
+
+async function seedFragileRealState(page) {
+  // Seed BEFORE any app boot. Seeding after goto(/) is wiped on navigation by the
+  // prior page's pagehide persist of empty in-memory state.
+  await page.addInitScript((seed) => {
+    if (sessionStorage.getItem('__bpg_frag_seeded')) return;
+    sessionStorage.setItem('__bpg_frag_seeded', '1');
+    localStorage.clear();
+    Object.entries(seed).forEach(([key, value]) => localStorage.setItem(key, value));
+    const snap = {};
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key) snap[key] = localStorage.getItem(key);
+    }
+    sessionStorage.setItem('__bpg_frag_snap', JSON.stringify(snap));
+  }, FRAGILE_REAL_SEED);
+}
+
+async function readFragileSnapshot(page) {
+  return page.evaluate(() => JSON.parse(sessionStorage.getItem('__bpg_frag_snap') || '{}'));
+}
+
+async function assertFullStorageEqual(page, before, label) {
+  const after = await snapshotAll(page);
+  const beforeKeys = Object.keys(before).sort();
+  const afterKeys = Object.keys(after).sort();
+  expect(afterKeys, `${label}: key set`).toEqual(beforeKeys);
+  for (const key of beforeKeys) {
+    expect(after[key], `${label}: raw ${key}`).toBe(before[key]);
+  }
+  expect(afterKeys.some((key) => key.startsWith('bpg_demo_')), `${label}: zero bpg_demo_*`).toBe(false);
+}
+
+test('Exit restores real data byte-identical', async ({page, browser}) => {
+  // Old test (d) passed on a55a96d because it compared the wrong thing:
+  // seedRealBook already wrote gn_players_v2 + gn_profiles, omitted gn_current,
+  // and snapshotGn ran AFTER goto / so backfillStableGameIds had already stamped
+  // gameId onto history. Only gn_* keys were compared, so lingering bpg_demo_*
+  // after Exit were invisible. This rewrite seeds the fragile shape GB found,
+  // snapshots ALL keys before demo, and deep-equals raw strings after Exit.
+  test.setTimeout(120000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await seedFragileRealState(page);
   await openTryDemo(page);
+  const before = await readFragileSnapshot(page);
+  expect(before.gn_current).toBeTruthy();
+  expect(before.gn_players_v2).toBeUndefined();
+  expect(before.gn_profiles).toBeUndefined();
+  expect(JSON.parse(before.gn_history)[0].gameId).toBeUndefined();
   await expect(page.locator('#bpg-try-demo-bar')).toBeVisible();
+  const duringGn = await snapshotGn(page);
+  expect(duringGn).toEqual(Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('gn_'))));
+
+  await page.locator('#bpg-try-demo-reset').click();
+  await page.waitForTimeout(400);
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('gn_'))));
+
   await page.locator('#bpg-try-demo-exit').click();
   await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
-  await expect(page.locator('#bpg-try-demo-bar')).toHaveCount(0);
-  await expect(page.locator('#slice2-home')).toContainText('Sam');
-  await expect(page.locator('#slice2-home')).not.toContainText('Megan');
-  await expect(page.locator('#slice2-home')).not.toContainText('Nora');
-  expect(await snapshotGn(page)).toEqual(before);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(800);
+  await assertFullStorageEqual(page, before, 'after Exit');
+
+  // A further normal boot after Exit must match a cold boot on the same seed
+  // (demo detour must not change migration outcomes).
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await page.waitForTimeout(800);
+  const afterExitBoot = await snapshotAll(page);
+
+  const control = await browser.newPage();
+  await seedFragileRealState(control);
+  await control.goto('/', {waitUntil: 'domcontentloaded'});
+  await control.waitForTimeout(800);
+  const coldSnap = await control.evaluate(() => JSON.parse(sessionStorage.getItem('__bpg_frag_snap') || '{}'));
+  expect(coldSnap).toEqual(before);
+  const coldBoot = await snapshotAll(control);
+  await control.close();
+  expect(Object.keys(afterExitBoot).sort(), 'post-Exit boot key set vs cold boot').toEqual(Object.keys(coldBoot).sort());
+  for (const key of Object.keys(coldBoot).sort()) {
+    const left = afterExitBoot[key];
+    const right = coldBoot[key];
+    if (key.startsWith('gn_') && left != null && right != null) {
+      expect(JSON.parse(left), `post-Exit boot ${key}`).toEqual(JSON.parse(right));
+    } else {
+      expect(left, `post-Exit boot ${key}`).toBe(right);
+    }
+  }
+  expect(Object.keys(afterExitBoot).some((key) => key.startsWith('bpg_demo_'))).toBe(false);
 });
 
 test('Refresh stays in the correct mode', async ({page}) => {
-  await seedRealBook(page);
+  test.setTimeout(90000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await seedFragileRealState(page);
   await openTryDemo(page);
+  const before = await readFragileSnapshot(page);
   await expect(page.locator('#bpg-try-demo-bar')).toBeVisible();
   await page.reload({waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
   await expect(page.locator('#bpg-try-demo-bar')).toBeVisible();
+  expect(await snapshotGn(page)).toEqual(Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('gn_'))));
+
   await page.locator('#bpg-try-demo-exit').click();
   await page.waitForFunction(() => !document.body?.dataset?.bpgTryDemo, null, {timeout: 20000});
-  await page.reload({waitUntil: 'domcontentloaded'});
-  await expect(page.locator('#bpg-try-demo-bar')).toHaveCount(0);
-  await expect(page.locator('#slice2-home')).toContainText('Sam');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(800);
+  await assertFullStorageEqual(page, before, 'refresh-in-demo then Exit');
 });
 
 test('sync and backup are blocked in demo', async ({page}) => {

@@ -10092,9 +10092,11 @@ button.dealer-name-indicator .dealer-player-label {
       players=_cleanedNames.players;
       playerProfiles=_cleanedNames.playerProfiles;
       try{
-        localStorage.setItem(gnKey('gn_all_players'),JSON.stringify(allPlayers));
-        localStorage.setItem(gnKey('gn_players_v2'),JSON.stringify(players));
-        localStorage.setItem(gnKey('gn_profiles'),JSON.stringify(playerProfiles));
+        if(sessionStorage.getItem('bpg_try_demo_pending_restore')!=='1'){
+          localStorage.setItem(gnKey('gn_all_players'),JSON.stringify(allPlayers));
+          localStorage.setItem(gnKey('gn_players_v2'),JSON.stringify(players));
+          localStorage.setItem(gnKey('gn_profiles'),JSON.stringify(playerProfiles));
+        }
       }catch(e){}
     }
   }
@@ -10841,6 +10843,12 @@ button.dealer-name-indicator .dealer-player-label {
   function _persistGamenightState(opts){
     const persistStateTimer = gnPerfStart('GN persist state');
     try{
+      // Demo Exit restore in flight — do not let boot migrations rewrite real gn_*.
+      try{
+        if(sessionStorage.getItem('bpg_try_demo_pending_restore')==='1'){
+          return;
+        }
+      }catch(e){}
       opts = opts || {};
       const fullPersist = opts.fullPersist !== undefined ? opts.fullPersist : !currentGame;
       const syncCold = opts.syncCold !== undefined ? opts.syncCold : !currentGame;
@@ -15436,18 +15444,20 @@ ${isDealer
       const phone = window.innerWidth <= 760;
       const tablet = window.innerWidth <= 1180;
       const count = rowSlots;
+      const fillRow = Math.floor(availableRowsHeight / rowSlots);
+      // Height-derived size for small tables so 2–4p fill large screens. Keep
+      // a sensible upper bound (~320) so rows don't become absurd on huge TVs,
+      // and keep 6p/8p + phone caps so dense tables still fit.
+      const derivedCap = Math.max(96, Math.min(320, fillRow));
       let comfortMax;
       if (phone) {
         comfortMax = count <= 3 ? 96 : count <= 6 ? 88 : 68;
       } else if (tablet) {
-        // No giant rows for 2–3p; TV/tablet cap ~72–96px.
-        comfortMax = count <= 3 ? 96 : count <= 6 ? 110 : 92;
+        comfortMax = count <= 4 ? derivedCap : count <= 6 ? 110 : 92;
       } else {
-        // Desktop/TV: cap 2–3p ~72–96px so leftover stays below the table, not in giant rows.
-        comfortMax = count <= 3 ? 96 : count <= 6 ? 118 : 96;
+        comfortMax = count <= 4 ? derivedCap : count <= 6 ? 118 : 96;
       }
       const comfortMin = phone ? 44 : (tablet ? 52 : 58);
-      const fillRow = Math.floor(availableRowsHeight / rowSlots);
       const targetRow = Math.max(comfortMin, Math.min(comfortMax, fillRow));
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
@@ -15457,12 +15467,12 @@ ${isDealer
       const applyFit=()=>{
         const phone=window.innerWidth<=760;
         const tablet=window.innerWidth<=1180;
-        const nameCap=phone?22:tablet?38:42;
-        const avatarCap=phone?28:64;
+        const nameCap=phone?22:tablet?42:Math.min(56, Math.round(rowHeight*0.42));
+        const avatarCap=phone?28:Math.min(120, Math.round(rowHeight*0.72));
         const playerFont=Math.max(17,Math.min(nameCap,rowHeight*0.38));
-        const totalFont=Math.max(18,Math.min(phone?40:96,rowHeight*0.62));
+        const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,rowHeight*0.7),rowHeight*0.62));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
-        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(4,Math.round(rowHeight*0.025)))}px`);
+        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(10,Math.round(rowHeight*0.04)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-avatar-size',`${Math.max(22,Math.min(rowHeight-8,avatarCap)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${(handFoot?Math.min(totalFont,36):totalFont).toFixed(1)}px`);
@@ -15484,8 +15494,8 @@ ${isDealer
         root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,rowHeight*0.14)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-rank-size',`${Math.max(22,Math.min(42,28*scale)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.88,Math.min(1.05,0.78*scale)).toFixed(2)}rem`);
+        root.style.setProperty('--scorecard-rank-size',`${Math.max(22,Math.min(64,Math.round(rowHeight*0.36))).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-rank-font',`${Math.max(0.88,Math.min(1.35,rowHeight*0.012)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-font',`${Math.max(0.36,Math.min(0.95,0.72*scale)).toFixed(2)}rem`);
         root.style.setProperty('--scorecard-dealer-size',`${Math.max(11,Math.min(30,22*scale)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-cell-gap',`${Math.max(0.12,0.5*scale).toFixed(2)}rem`);
@@ -15511,7 +15521,10 @@ ${isDealer
       // sizes with rowSlots=8 but only has 2 team rows; using rowSlots here left the
       // table stretched to the wrap and blew row height past the dense-names cap.
       const huggedHeight=(head?.offsetHeight||0)+rowHeight*rows.length;
-      root.classList.toggle('scorecard-hug-rows', huggedHeight < fitHeight - 28);
+      // Small player counts on large screens should fill height, not hug and leave
+      // a tall empty band under the card. Hug remains for denser tables.
+      const allowHug = phone || count > 4;
+      root.classList.toggle('scorecard-hug-rows', allowHug && huggedHeight < fitHeight - 28);
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
       const recordPanel=document.getElementById('record-chase-panel');
@@ -20365,7 +20378,34 @@ ${isDealer
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}
     if(window.BPGTryDemo) BPGTryDemo.paintEntry();
-    backfillStableGameIds();
+    // Demo Exit: skip migrations that would rewrite real gn_*; finishExitRestore
+    // re-applies the pre-demo snapshot and clears bpg_demo_* + pending flags.
+    let _bpgPendingExitRestore=false;
+    try{ _bpgPendingExitRestore=sessionStorage.getItem('bpg_try_demo_pending_restore')==='1'; }catch(e){}
+    if(!_bpgPendingExitRestore) backfillStableGameIds();
+    if(window.BPGTryDemo&&typeof BPGTryDemo.finishExitRestore==='function'&&BPGTryDemo.finishExitRestore()){
+      // Re-hydrate so in-memory roster expansions / migrations cannot persist over the snapshot.
+      allPlayers=safeGetArray('gn_all_players').filter(p=>p&&typeof p==='string'&&p.trim());
+      players=safeGetArray('gn_players_v2').filter(p=>p&&typeof p==='string'&&p.trim());
+      history=safeGetArray('gn_history');
+      playerProfiles=safeGetObject('gn_profiles');
+      try{
+        currentGame=JSON.parse(localStorage.getItem(gnKey('gn_current')));
+        if(currentGame&&(!currentGame.name||!Array.isArray(currentGame.originalRoster)))currentGame=null;
+      }catch(e){currentGame=null;}
+      // Seed last-persisted JSON so a later saveData does not create missing keys
+      // (empty players_v2/profiles) that were absent from the pre-demo snapshot.
+      _lastPersistedState={
+        gn_all_players:JSON.stringify(allPlayers),
+        gn_players_v2:JSON.stringify(players),
+        gn_history:JSON.stringify(history),
+        gn_profiles:JSON.stringify(playerProfiles),
+        gn_current:currentGame?JSON.stringify(currentGame):null
+      };
+      _lastPersistedHistoryRev=_historyRevision;
+      if(currentGame){goActiveMatch();requestWakeLock();}
+      else{navigateTo('home-screen');renderRoster();}
+    }
     if(GN_QA_MODE){
       try{
         const {bootQaGallery}=await import('./qa/gallery.mjs?v=j145-scorebook-20260928');

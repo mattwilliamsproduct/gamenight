@@ -1079,6 +1079,21 @@
     return matches.map((match) => nightCardHtml(nightCardModel(match, helpers), ctx, compact)).join('');
   }
 
+  function densePlaceLabel(place) {
+    const n = Number(place);
+    if (!Number.isFinite(n) || n < 1) return '';
+    if (n === 1) return '1st';
+    if (n === 2) return '2nd';
+    if (n === 3) return '3rd';
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+    const mod10 = n % 10;
+    if (mod10 === 1) return `${n}st`;
+    if (mod10 === 2) return `${n}nd`;
+    if (mod10 === 3) return `${n}rd`;
+    return `${n}th`;
+  }
+
   function nightCardHtml(model, ctx, compact) {
     const esc = ctx.escapeHtml;
     const avatar = ctx.getAvatarImg;
@@ -1102,7 +1117,7 @@
     const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
     const leftEarlyRows = shown.filter((row) => row.leftEarly || row.retired);
     const rankedHtml = ranked.map((row) => `<li class="s2-night-finish${row.isWinner ? ' is-winner' : ''}">
-      <span class="s2-night-place">${esc(String(row.place))}.</span>
+      <span class="s2-night-place">${esc(densePlaceLabel(row.place))}</span>
       ${avatar(row.name, 'avatar-img s2-mini-avatar')}
       <span class="player-name-label">${esc(row.name)}</span>
       <strong>${esc(scoreLabel(row.score))}</strong>
@@ -1183,6 +1198,7 @@
     scoringRoundCount,
     nightCardModel,
     nightCardHtml,
+    densePlaceLabel,
     nightStandings,
     nightPodium,
     matchHasComebackData,
