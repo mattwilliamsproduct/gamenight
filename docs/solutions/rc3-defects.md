@@ -108,3 +108,11 @@ Source: `/workspace/back-porch/rc2/settings-demo-audit.md` (PROD `39e6b51`, LAUN
 - **P0-03 / records-assisted-heal:** The unassisted Five Crowns night is a full 11-hand match so `bestGame` qualifies under `isFullGame`. Totals stay Matt 4 / field 10. Reason: final-score records require full games; the old 1-round plain match correctly stopped qualifying after item 16, so the fixture was expanded rather than weakening `isFullGame`.
 - **records-labels historical edit:** Full 11-hand Ada/Bea nights with Bea’s fat round 2. Correcting that round to Ada 40 / Bea 0 flips the match to Bea and makes `afterBest` Bea (19) while Ada keeps other nights at 20. Reason: after expanding to full games, a tiny Bea delta could not beat Ada’s remaining bests.
 - **P1-05 minus:** Regression vs freeze `5e57d50`. Pending `-` was treated as blank and the next digit replaced the value. `applyScoreEntryKey` now keeps a pending minus when the following key is a digit. Minus stays hidden only for Wizard bids/tricks.
+
+## Shot review fix pass (2026-10-29 evening)
+
+- Explore Career leaders: value in its own right column; meta truncates; explore grid stacks under 901px so phone rows are not squeezed.
+- Five Crowns Best/Worst final: home-party fixture has **4** Five Crowns nights and **0** full 11-hand games. Empty copy is **No full games yet** plus **Full games only · Unassisted matches only**. Gate (`isFullGame`) is correct.
+- Units/plurals: `formatStatValue` now uses round/bid/trick/match/extra/pt correctly; meta lines use singular `zero round` when count is 1. Profile cards use the same formatter.
+- Wizard/hf-no-minus keypad: `7 8 9 bk / 4 5 6 nx / 1 2 3 nx / 0 0 . nx`. Five Crowns with minus keeps live layout (`00`, `0` span 2, Next tall).
+- WebKit: `npx playwright install-deps webkit` failed (apt mirror 500 / needs root). Chromium gate only.

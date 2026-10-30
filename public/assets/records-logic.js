@@ -534,16 +534,46 @@
   function formatStatValue(value, label) {
     const text = String(label || '');
     let unit = '';
-    if (/\brate\b/i.test(text)) unit = '%';
-    else if (/\bheat\b/i.test(text)) unit = 'heat';
+    if (/\brate\b|exact-bid percentage|exact bid percentage/i.test(text)) unit = '%';
+    else if (/perfect rounds?|zero rounds?|ice-cold rounds?|zero-heat rounds?|rounds? in one (match|game)|most ice-cold rounds/i.test(text)) {
+      unit = Number(value) === 1 ? 'round' : 'rounds';
+    }
+    else if (/\bheat\b/i.test(text) && !/final|round|average|avg/i.test(text)) {
+      unit = Number(value) === 1 ? 'heat' : 'heats';
+    }
     else if (/\btrick/i.test(text)) unit = Number(value) === 1 ? 'trick' : 'tricks';
-    else if (/\bbid/i.test(text) && !/exact-bid rate/i.test(text)) unit = Number(value) === 1 ? 'bid' : 'bids';
-    else if (/\bstreak|consecutive|without a win|without last/i.test(text)) unit = Number(value) === 1 ? 'match' : 'matches';
-    else if (/\bwin\b|wins\b/i.test(text)) unit = Number(value) === 1 ? 'win' : 'wins';
-    else if (/\bscore|points|final|round|margin|lopsided|disaster|coolest|cleanest|avg|average/i.test(text)) {
+    else if (/\bbid/i.test(text) && !/exact-bid rate|exact bid percentage|exact rate/i.test(text)) {
+      unit = Number(value) === 1 ? 'bid' : 'bids';
+    }
+    else if (/\bstreak|consecutive|without a win|without last|games without a win/i.test(text)) {
+      unit = Number(value) === 1 ? 'match' : 'matches';
+    }
+    else if (/\bwin\b|wins\b/i.test(text) && !/winning streak|margin of victory/i.test(text)) {
+      unit = Number(value) === 1 ? 'win' : 'wins';
+    }
+    else if (/\bspin/i.test(text)) unit = Number(value) === 1 ? 'spin' : 'spins';
+    else if (/comeback extras?/i.test(text)) unit = Number(value) === 1 ? 'extra' : 'extras';
+    else if (/\bscore|points|final|margin|lopsided|disaster|coolest|cleanest|avg|average|swing|overbid|underbid|single-?round|single round/i.test(text)) {
       unit = Number(value) === 1 ? 'pt' : 'pts';
     }
     return scoreLabel(value, unit);
+  }
+
+  function fullGameEmptyCopy() {
+    return 'No full games yet';
+  }
+
+  function fullGameNote(extra) {
+    const bits = ['Full games only'];
+    if (extra) bits.push(extra);
+    return bits.join(' · ');
+  }
+
+  function isFullGameGatedLabel(label) {
+    const text = String(label || '');
+    // Final-score / full-match totals only. Cleanest avg can come from short nights.
+    return /final score|best game|worst game|coolest final|hottest final|coolest game|hottest game|best \d+-player/i.test(text)
+      && !/single-?round|single round|perfect rounds|zero rounds|exact|bid|trick/i.test(text);
   }
 
   function escapeAttr(value) {
@@ -800,14 +830,23 @@
 
   function statLine(label, record, esc, note, playerFilter) {
     if (playerFilter && !recordMatchesPlayer(record, playerFilter)) return '';
+    const gated = isFullGameGatedLabel(label);
+    const noteText = (() => {
+      if (note === 'No unassisted matches yet') return gated ? fullGameNote('Unassisted matches only') : note;
+      if (gated && note === 'Unassisted matches only') return fullGameNote(note);
+      if (gated && !note) return 'Full games only';
+      return note || '';
+    })();
     if (!record) {
-      const empty = note === 'No unassisted matches yet' ? note : 'No qualifying history';
-      const noteHtml = note && note !== 'No unassisted matches yet' ? `<small class="s2-unassisted-note">${esc(note)}</small>` : '';
+      let empty = 'No qualifying history';
+      if (note === 'No unassisted matches yet') empty = 'No unassisted matches yet';
+      else if (gated) empty = fullGameEmptyCopy();
+      const noteHtml = noteText ? `<small class="s2-unassisted-note">${esc(noteText)}</small>` : '';
       return `<div class="s2-book-row"><span class="s2-book-label">${esc(label)}</span><span class="s2-book-empty">${esc(empty)}</span>${noteHtml}</div>`;
     }
     const names = recordHolderText(record);
     const extra = record.label || (finite(record.round) ? `R${record.round}` : '');
-    const noteHtml = note ? `<small class="s2-unassisted-note">${esc(note)}</small>` : '';
+    const noteHtml = noteText ? `<small class="s2-unassisted-note">${esc(noteText)}</small>` : '';
     return `<div class="s2-book-row">
       <span class="s2-book-label">${esc(label)}</span>
       <strong class="s2-book-value">${esc(formatStatValue(record.value, label))}</strong>
@@ -826,10 +865,17 @@
     const lines = (rows, title) => {
       const shown = (rows || []).filter((row) => recordMatchesPlayer(row, playerFilter)).slice(0, 8);
       if (!shown.length) return '';
+      const valueText = (row) => {
+        if (title === 'Win rate' && finite(row.value)) return `${row.value}%`;
+        return String(row.value ?? '-');
+      };
       return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row, index) => `<div class="s2-book-row s2-leader-row">
-        <span class="s2-leader-rank">${index + 1}.</span>${playerLink(row.player, esc, avatar)}
-        <span class="s2-book-who">${esc(row.label || formatWinRate(row.wins, row.games) || '')}</span>
-        <strong>${esc(String(row.value ?? '-'))}</strong>
+        <span class="s2-leader-rank">${index + 1}.</span>
+        <div class="s2-leader-main">
+          ${playerLink(row.player, esc, avatar)}
+          <span class="s2-book-who">${esc(row.label || formatWinRate(row.wins, row.games) || '')}</span>
+        </div>
+        <strong class="s2-book-value">${esc(valueText(row))}</strong>
       </div>`).join('')}</div>`;
     };
     return listBlock('Career leaders', [
@@ -1105,6 +1151,9 @@
     formatWinRate,
     formatWinRateDenom,
     formatStatValue,
+    fullGameEmptyCopy,
+    fullGameNote,
+    isFullGameGatedLabel,
     scoreLabel,
     rankWinRates,
     formatTiedNames,

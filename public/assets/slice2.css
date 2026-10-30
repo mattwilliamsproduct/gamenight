@@ -2979,24 +2979,52 @@ html.slice2-tv .s2-ledger-row {
 }
 
 html.slice2-tv .s2-leader-row {
-  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.6rem minmax(0, 1fr) max-content;
   align-items: center;
+  column-gap: 12px;
+}
+
+html.slice2-tv .s2-leader-row .s2-leader-main {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 html.slice2-tv .s2-leader-row .s2-player-link {
-  grid-column: 2;
-  grid-row: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+html.slice2-tv .s2-leader-row .s2-player-link .player-name-label,
+html.slice2-tv .s2-leader-row .s2-player-link {
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 html.slice2-tv .s2-leader-row .s2-book-who {
-  grid-column: 2;
-  grid-row: 2;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-html.slice2-tv .s2-leader-row strong {
+html.slice2-tv .s2-leader-row .s2-book-value,
+html.slice2-tv .s2-leader-row strong.s2-book-value {
   grid-column: 3;
-  grid-row: 1 / span 2;
+  grid-row: 1;
+  justify-self: end;
   align-self: center;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
 }
 
 html.slice2-tv .s2-ledger-row {
@@ -3293,7 +3321,7 @@ html.slice2-tv .s2-records-filters select:focus {
   }
 
   html.slice2-tv .s2-leader-row {
-    grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+    grid-template-columns: 1.6rem minmax(0, 1fr) max-content;
   }
 
   html.slice2-tv .s2-headline-card strong {
@@ -3706,7 +3734,12 @@ html.slice2-tv .s2-ledger-stat .s2-unassisted-note {
   text-transform: none;
 }
 html.slice2-tv .s2-explore-grid {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 901px) {
+  html.slice2-tv .s2-explore-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 html.slice2-tv .s2-board-round {
   white-space: nowrap;

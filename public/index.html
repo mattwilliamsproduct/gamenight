@@ -4945,7 +4945,11 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('00')"] {
       display: none;
     }
-    /* Phone order when - and 00 are omitted: 789 / 456 / 123 / 0 */
+    /* Default keypad (minus + 00 present): 0 spans two columns like live */
+    #score-entry-modal:not(.hf-no-minus):not(.hf-cards-left) .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
+      grid-column: span 2;
+    }
+        /* No-minus keypad: 789 bk / 456 nx / 123 nx / 0 0 . nx */
     #score-entry-modal.hf-no-minus .score-entry-keypad,
     #score-entry-modal.hf-cards-left .score-entry-keypad {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4953,7 +4957,7 @@ button.dealer-name-indicator .dealer-player-label {
         "k7 k8 k9 bk"
         "k4 k5 k6 nx"
         "k1 k2 k3 nx"
-        "k0 k0 k0 nx";
+        "k0 k0 .  nx";
     }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('7')"],
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('7')"] { grid-area: k7; }
@@ -4977,13 +4981,11 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('0')"],
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
-      grid-area: k0;
-      grid-column: auto;
+      grid-area: k0 / k0 / k0 / k0 !important;
     }
     #score-entry-modal.hf-no-minus .score-entry-keypad button.score-entry-key.next,
     #score-entry-modal.hf-cards-left .score-entry-keypad button.score-entry-key.next {
-      grid-area: nx;
-      grid-row: auto;
+      grid-area: nx / nx / nx / nx !important;
     }
     #hand-foot-setup-modal .hf-setup-card {
       max-height: min(100%, calc(100dvh - 2rem));
@@ -9569,7 +9571,7 @@ button.dealer-name-indicator .dealer-player-label {
               <button type="button" onclick="scoreEntryKey('3')" class="score-entry-key">3</button>
               <button type="button" onclick="scoreEntryNext()" class="score-entry-key next">Next</button>
               <button type="button" onclick="scoreEntryKey('00')" class="score-entry-key">00</button>
-              <button type="button" onclick="scoreEntryKey('0')" class="score-entry-key col-span-2">0</button>
+              <button type="button" onclick="scoreEntryKey('0')" class="score-entry-key">0</button>
             </div>
           </div>
         </div>
@@ -19570,7 +19572,7 @@ ${isDealer
       });
       Object.entries(perMatch).forEach(([p,m])=>{
         if(h.game==='Five Crowns'){
-          update(games["Five Crowns"],'mostPerfectRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero rounds`}),betterHigh);
+          update(games["Five Crowns"],'mostPerfectRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero round${m.zeros===1?'':'s'}`}),betterHigh);
           if(m.roundScores.length>=5){
             const v = variance(m.roundScores);
             update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Steadiest scores · spread ${v.toFixed(1)}`}),betterLow);
@@ -19587,7 +19589,7 @@ ${isDealer
             const avg=total/m.roundScores.length;
             update(games["Beat the Heat"],'cleanestGame',entry(p,avg,h,{label:`${avg.toFixed(1)} heat avg · ${total} over ${m.roundScores.length} rounds`}),betterLow);
           }
-          if(m.zeros>0) update(games["Beat the Heat"],'mostIceRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero-heat rounds`}),betterHigh);
+          if(m.zeros>0) update(games["Beat the Heat"],'mostIceRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero-heat round${m.zeros===1?'':'s'}`}),betterHigh);
         }
         if(h.game==='818'){
           update(games['818'],'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
@@ -19610,7 +19612,7 @@ ${isDealer
             update(games.Wizard.mostExactByPlayerCount,playerCount,entry(p,m.exacts,h,{label:`${m.exacts} exact bids · ${playerCount}-player game`}),betterHigh);
           }
         }
-        if(h.game==='Flip 7 Vengeance'&&m.zeros>0) update(games["Flip 7 Vengeance"],'mostZeroRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero rounds`}),betterHigh);
+        if(h.game==='Flip 7 Vengeance'&&m.zeros>0) update(games["Flip 7 Vengeance"],'mostZeroRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero round${m.zeros===1?'':'s'}`}),betterHigh);
         if(h.game==='Rook') update(games.Rook,'mostSuccessfulBids',entry(p,m.rookMade,h,{label:`${m.rookMade} made bids`}),betterHigh);
       });
     });
@@ -19697,13 +19699,25 @@ ${isDealer
       <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
       <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
     </div>`;
+    const formatProfileValue=(title,r)=>{
+      if(!r || !Number.isFinite(r.value)) return r?.value ?? '—';
+      if(window.BPGRecords && typeof BPGRecords.formatStatValue==='function') return BPGRecords.formatStatValue(r.value, title);
+      return Number.isInteger(r.value)?r.value:r.value.toFixed(1);
+    };
+    const isFullGameProfileTitle=(title)=>/best game|worst game|coolest game|hottest game|disaster award|best \d+-player/i.test(String(title||''));
     const recordCard = (title,r,pos=true,note='',emptyText='No qualifying history') => {
-      const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';
+      const gated=isFullGameProfileTitle(title);
+      const noteBits=[];
+      if(gated) noteBits.push('Full games only');
+      if(note) noteBits.push(note);
+      const noteText=noteBits.join(' · ');
+      const noteHtml=noteText?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${noteText}</div>`:'';
       const roundBit=Number.isFinite(r?.round)?` · R${r.round}`:'';
-      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="font-bold mt-2" style="color:var(--muted);">${emptyText}</div></div>`;
+      const emptyShown = (!r && gated && emptyText==='No qualifying history') ? 'No full games yet' : emptyText;
+      if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="font-bold mt-2" style="color:var(--muted);">${emptyShown}</div></div>`;
       return `<div class="surface p-5 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.label&&Number.isFinite(r.round)?'':roundBit}${r.date?` · ${r.date}`:''}</div></div></div>
-        <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${Number.isFinite(r.value)?(Number.isInteger(r.value)?r.value:r.value.toFixed(1)):(r.value??'—')}</div>
+        <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${formatProfileValue(title,r)}</div>
       </div>`;
     };
     const UNASSISTED='Unassisted matches only';
