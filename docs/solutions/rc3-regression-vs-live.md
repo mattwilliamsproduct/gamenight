@@ -70,3 +70,16 @@ npx playwright test --config=playwright.porch-night.config.mjs
 npx playwright test # visual chromium
 # Final shots under /workspace/back-porch/rc3/shots/final/
 ```
+
+## Shot review fix pass (local, 2026-10-29 ~9:23 PM ET)
+
+HEAD `c9386b7` on `cursor/rc3-candidate`. Bundle refreshed at `/workspace/back-porch/rc3/rc3.bundle`.
+
+Gate recount:
+- `npm run check`: 255 / 255
+- functional: 192 passed
+- porch-night: 2 passed
+- visual Chromium (`laptop-chromium` + `tv-1080p-chromium`): 109 passed, 63 skipped
+- WebKit: `npx playwright install-deps webkit` failed (Debian mirror 500 / needs root). Not run.
+
+Five Crowns home-party QA: 4 nights, 0 full 11-hand games. Empty Best/Worst copy is No full games yet.
