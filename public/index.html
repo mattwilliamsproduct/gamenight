@@ -19327,10 +19327,11 @@ ${isDealer
       ? BPGRecords.singleMatchBidRateEligible
       : (total) => (Number(total) || 0) >= 5;
     const update = (obj,key,next,better) => { if(next) obj[key]=keepTies(obj[key], next, better); };
-    const variance = (nums) => {
+    // Average swing per round: mean absolute deviation from the player's mean round score.
+    const averageSwingPerRound = (nums) => {
       if(!nums.length) return 0;
       const avg = nums.reduce((s,n)=>s+n,0)/nums.length;
-      return nums.reduce((s,n)=>s+Math.pow(n-avg,2),0)/nums.length;
+      return nums.reduce((s,n)=>s+Math.abs(n-avg),0)/nums.length;
     };
     const sortedFor = (h) => {
       const cfg = configs[h.game];
@@ -19574,8 +19575,8 @@ ${isDealer
         if(h.game==='Five Crowns'){
           update(games["Five Crowns"],'mostPerfectRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero round${m.zeros===1?'':'s'}`}),betterHigh);
           if(m.roundScores.length>=5){
-            const v = variance(m.roundScores);
-            update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`Steadiest scores · spread ${v.toFixed(1)}`}),betterLow);
+            const v = averageSwingPerRound(m.roundScores);
+            update(games["Five Crowns"],'mostConsistent',entry(p,v,h,{label:`${Number(v).toFixed(1)} pts per round`}),betterLow);
           }
           if(!assisted && m.roundScores.length){
             const total=m.roundScores.reduce((sum,n)=>sum+(Number(n)||0),0);
@@ -19704,7 +19705,7 @@ ${isDealer
       if(window.BPGRecords && typeof BPGRecords.formatStatValue==='function') return BPGRecords.formatStatValue(r.value, title);
       return Number.isInteger(r.value)?r.value:r.value.toFixed(1);
     };
-    const isFullGameProfileTitle=(title)=>/best game|worst game|coolest game|hottest game|disaster award|best \d+-player/i.test(String(title||''));
+    const isFullGameProfileTitle=(title)=>/best game|worst game|coolest game|hottest game|disaster award|best \d+-player|closest margin|most lopsided|closest finish|longest match/i.test(String(title||''));
     const recordCard = (title,r,pos=true,note='',emptyText='No qualifying history') => {
       const gated=isFullGameProfileTitle(title);
       const noteBits=[];

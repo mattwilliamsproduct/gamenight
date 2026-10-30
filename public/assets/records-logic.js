@@ -535,6 +535,11 @@
     const text = String(label || '');
     let unit = '';
     if (/\brate\b|exact-bid percentage|exact bid percentage/i.test(text)) unit = '%';
+    else if (/steadiest|consistent|variance|deviation|lowest spread|spread/i.test(text)) {
+      if (!finite(value)) return '-';
+      const shown = Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+      return `${shown} pts per round`;
+    }
     else if (/perfect rounds?|zero rounds?|ice-cold rounds?|zero-heat rounds?|rounds? in one (match|game)|most ice-cold rounds/i.test(text)) {
       unit = Number(value) === 1 ? 'round' : 'rounds';
     }
@@ -553,7 +558,8 @@
     }
     else if (/\bspin/i.test(text)) unit = Number(value) === 1 ? 'spin' : 'spins';
     else if (/comeback extras?/i.test(text)) unit = Number(value) === 1 ? 'extra' : 'extras';
-    else if (/\bscore|points|final|margin|lopsided|disaster|coolest|cleanest|avg|average|swing|overbid|underbid|single-?round|single round/i.test(text)) {
+    else if (/\bscore|points|final|margin|lopsided|disaster|coolest|cleanest|avg|average|swing|overbid|underbid|single-?round|single round/i.test(text)
+      && !/steadiest|consistent|variance|deviation|spread/i.test(text)) {
       unit = Number(value) === 1 ? 'pt' : 'pts';
     }
     return scoreLabel(value, unit);
@@ -571,8 +577,8 @@
 
   function isFullGameGatedLabel(label) {
     const text = String(label || '');
-    // Final-score / full-match totals only. Cleanest avg can come from short nights.
-    return /final score|best game|worst game|coolest final|hottest final|coolest game|hottest game|best \d+-player/i.test(text)
+    // Anything computed only on isFullGame nights. Cleanest avg can come from short nights.
+    return /final score|best game|worst game|coolest final|hottest final|coolest game|hottest game|best \d+-player|closest margin|most lopsided|closest finish|longest match/i.test(text)
       && !/single-?round|single round|perfect rounds|zero rounds|exact|bid|trick/i.test(text);
   }
 
