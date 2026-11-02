@@ -8973,19 +8973,15 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div class="flex gap-2 mb-6">
           <div class="player-suggest-wrap">
-            <input id="quick-add-player" type="text" placeholder="Add a player..."
+            <input type="text" placeholder="Add a player..."
               autocomplete="off"
-              oninput="updatePlayerSuggestions('home')"
-              onfocus="this.style.borderColor='var(--emerald)';this.style.background='var(--surface)';updatePlayerSuggestions('home');"
-              onblur="this.style.borderColor='var(--hairline)';this.style.background='var(--bg-2)';hidePlayerSuggestionsSoon('home');"
-              onkeydown="handlePlayerSuggestKey(event,'home')"
               class="w-full rounded-2xl px-5 py-3.5 text-base font-bold outline-none transition-colors placeholder:opacity-50"
               style="background:var(--bg-2);color:var(--ink);border:1.5px solid var(--hairline);">
-            <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
+            <div class="player-suggest-menu hidden"></div>
           </div>
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
-        <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold mb-4" style="color:var(--rose);"></p>
+        <p class="hidden inline-form-error text-sm font-semibold mb-4" style="color:var(--rose);"></p>
         <div class="bp-roster-columns">
           <div class="bp-roster-column bp-on-deck-zone">
             <div class="flex items-center justify-between mb-3 px-1">
@@ -13124,9 +13120,11 @@ button.dealer-name-indicator .dealer-player-label {
     if(message){
       el.textContent=message;
       el.classList.remove('hidden');
+      el.classList.add('is-on');
     }else{
       el.textContent='';
       el.classList.add('hidden');
+      el.classList.remove('is-on');
     }
   }
   function rejectUnsavablePlayerName(name,elId){

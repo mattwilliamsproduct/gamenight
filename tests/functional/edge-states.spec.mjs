@@ -36,10 +36,8 @@ test('emoji name seats once; a second add does not duplicate the row', async ({p
   const usable = await page.evaluate(() => window.BPGScorebook.isUsablePlayerName('🔥June'));
   expect(usable, 'scorebook accepts an emoji name').toBe(true);
   await page.evaluate(() => {
-    const field = document.getElementById('slice2-add-name');
-    const hidden = document.getElementById('quick-add-player');
+    const field = document.getElementById('quick-add-player') || document.getElementById('slice2-add-name');
     if (field) field.value = '🔥June';
-    if (hidden) hidden.value = '🔥June';
     addPlayerToAll('🔥June');
   });
   await expect(page.locator('#slice2-home')).toContainText('🔥June');
@@ -67,8 +65,8 @@ test('one seated player can start Five Crowns without a pageerror', async ({page
   page.on('pageerror', (err) => errors.push(String(err)));
   await page.setViewportSize({width: 390, height: 844});
   await openDemo(page, 'empty-home');
-  await page.locator('#slice2-add-name').fill('Solo');
-  await page.locator('#slice2-add-name').press('Enter');
+  await page.locator('#quick-add-player, #slice2-add-name').fill('Solo');
+  await page.locator('#quick-add-player, #slice2-add-name').press('Enter');
   await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Five Crowns"]').click();
   await page.locator('#slice2-start-btn').click();
   await page.screenshot({path: `${SHOT}/one-player-390.png`, fullPage: false});

@@ -364,9 +364,17 @@
           <div class="s2-seat-grid">${seats}</div>
           <div class="s2-deck">${chips}</div>
           <form class="s2-add" data-s2-action="add-form">
-            <input id="slice2-add-name" type="text" placeholder="Add a player" autocomplete="off" aria-label="Add a player">
-            <button type="submit" class="s2-btn s2-btn-primary">Add Player</button>
+            <div class="player-suggest-wrap">
+              <input id="quick-add-player" type="text" placeholder="Add a player" autocomplete="off" aria-label="Add a player"
+                oninput="updatePlayerSuggestions('home')"
+                onfocus="updatePlayerSuggestions('home')"
+                onblur="hidePlayerSuggestionsSoon('home')"
+                onkeydown="handlePlayerSuggestKey(event,'home')">
+              <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
+            </div>
+            <button type="submit" class="s2-btn s2-btn-primary" aria-label="Add">Add Player</button>
           </form>
+          <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
     const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
@@ -1084,12 +1092,7 @@
     const form = event.target.closest?.('[data-s2-action="add-form"]');
     if (!form) return;
     event.preventDefault();
-    const field = document.getElementById('slice2-add-name');
-    const input = document.getElementById('quick-add-player');
-    if (!field || !input) return;
-    input.value = field.value;
-    addPlayerToAll();
-    field.value = '';
+    if (typeof addPlayerToAll === 'function') addPlayerToAll();
   }
 
   function onChange(event) {

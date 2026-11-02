@@ -633,10 +633,21 @@ html.slice2-tv .s2-add input {
 html.slice2-tv .s2-home-table .s2-add {
   flex-wrap: wrap;
 }
+html.slice2-tv .s2-home-table .s2-add .player-suggest-wrap {
+  flex: 1 1 100%;
+  min-width: 0;
+  position: relative;
+}
+html.slice2-tv .s2-home-table .s2-add .player-suggest-wrap input,
 html.slice2-tv .s2-home-table .s2-add input {
   flex: 1 1 100%;
   min-width: 0;
   width: 100%;
+}
+html.slice2-tv .s2-home-table .s2-add .player-suggest-menu {
+  position: static;
+  max-height: 12rem;
+  margin-top: 0.45rem;
 }
 html.slice2-tv .s2-home-table .s2-add .s2-btn {
   flex: 1 1 auto;

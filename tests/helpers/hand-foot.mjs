@@ -45,7 +45,7 @@ export async function freshTable(page){
 
 export async function seatPlayers(page, names){
   for(const name of names){
-    await page.locator('#slice2-add-name').fill(name);
+    await page.locator('#quick-add-player, #slice2-add-name').fill(name);
     await page.locator('#slice2-home button[type="submit"]').click();
     await expect(page.locator('#slice2-home .s2-seat-name').filter({hasText:name})).toBeVisible();
   }
