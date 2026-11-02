@@ -1816,24 +1816,15 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel {
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-layout {
   grid-template-columns: minmax(280px, 1fr) minmax(380px, 1.15fr) !important;
-  grid-template-rows: auto minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
   overflow: hidden !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
 }
 
-html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-layout > #score-entry-unconfirmed {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  flex: 0 0 auto;
-  margin: 0;
-}
-
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list {
   display: flex !important;
   flex-direction: column !important;
-  grid-column: 1;
-  grid-row: 2;
   min-height: 0 !important;
   height: 100% !important;
   overflow: hidden !important;
@@ -1842,8 +1833,6 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list {
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-side {
   display: flex !important;
   flex-direction: column !important;
-  grid-column: 2;
-  grid-row: 2;
   width: auto;
   min-height: 0 !important;
   height: 100% !important;

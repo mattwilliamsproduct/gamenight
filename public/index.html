@@ -2122,22 +2122,6 @@
       padding-top: 16px !important;
       padding-bottom: 16px !important;
       grid-template-columns: minmax(0, 760px) minmax(286px, 320px);
-      grid-template-rows: auto minmax(0, 1fr);
-    }
-    #score-entry-modal .score-entry-layout > #score-entry-unconfirmed {
-      grid-column: 1 / -1;
-      grid-row: 1;
-      flex: 0 0 auto;
-      width: 100%;
-      margin-top: 0;
-    }
-    #score-entry-modal .score-entry-list {
-      grid-column: 1;
-      grid-row: 2;
-    }
-    #score-entry-modal .score-entry-side {
-      grid-column: 2;
-      grid-row: 2;
     }
     #score-entry-modal .score-entry-list,
     #score-entry-modal .score-entry-side {
@@ -17287,10 +17271,30 @@ ${isDealer
     });
   }
 
+  function placeScoreEntryBlankHelper(){
+    const note=document.getElementById('score-entry-unconfirmed');
+    const header=document.querySelector('#score-entry-modal .score-entry-panel > .border-b');
+    const layout=document.querySelector('#score-entry-modal .score-entry-layout');
+    const side=layout&&layout.querySelector('.score-entry-side');
+    if(!note||!header||!layout||!side)return;
+    const phone=(window.visualViewport?.width||window.innerWidth||0)<761;
+    if(phone){
+      if(note.parentElement!==layout||note.nextElementSibling!==side){
+        layout.insertBefore(note, side);
+      }
+      return;
+    }
+    if(note.parentElement!==header){
+      const error=document.getElementById('score-entry-error');
+      header.insertBefore(note, error||null);
+    }
+  }
+
   function fitScoreEntryModalLayout(){
     if(!scoreEntryModalState)return;
     const modal=document.getElementById('score-entry-modal');
     if(!modal||modal.classList.contains('hidden'))return;
+    placeScoreEntryBlankHelper();
     const panel=modal.querySelector('.score-entry-panel');
     const rows=document.getElementById('score-entry-rows');
     const keypad=modal.querySelector('.score-entry-keypad');
