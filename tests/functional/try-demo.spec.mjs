@@ -167,6 +167,81 @@ test('demo edits and Reset touch demo data only', async ({page}) => {
   expect(await snapshotGn(page)).toEqual(before);
 });
 
+async function resumeDemoFiveCrowns(page) {
+  const home = page.locator('#home-screen');
+  if (await home.isVisible() && await home.evaluate((el) => !el.classList.contains('hidden'))) {
+    await page.locator('[data-s2-action="resume"], #slice2-home .s2-btn-primary', {hasText: 'Resume'}).first().click();
+  }
+  await expect(page.locator('#scorecard-body')).toContainText('Nora');
+  await expect(page.locator('#slice2-board-line')).toContainText(/Five Crowns/);
+}
+
+async function correctPastDemoScore(page, player, nextScore) {
+  await page.evaluate((name) => {
+    const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).length - 1;
+    if (typeof openPastScoreCell === 'function') openPastScoreCell(name, last);
+  }, player);
+  const pad = page.locator('#custom-numpad');
+  await expect(pad).toBeVisible({timeout: 5000});
+  const back = pad.locator('button[onclick="numpadPress(\'backspace\')"]');
+  await back.click();
+  await back.click();
+  await pad.locator(`button[onclick="numpadPress('${nextScore}')"]`).click();
+  await page.getByRole('button', {name: 'Close Keypad', exact: true}).click();
+  await expect(pad).toBeHidden({timeout: 8000});
+}
+
+function demoSeedCore(snap) {
+  const current = snap.bpg_demo_current ? JSON.parse(snap.bpg_demo_current) : null;
+  if (current) {
+    delete current.gameId;
+    delete current.id;
+    delete current.lifePreserverHeld;
+    delete current.lifePreserverHeldRound;
+  }
+  return {
+    current,
+    history: snap.bpg_demo_history || null,
+    players: snap.bpg_demo_players_v2 || null,
+    allPlayers: snap.bpg_demo_all_players || null,
+    profiles: snap.bpg_demo_profiles || null
+  };
+}
+
+test('try-demo past score correction changes demo only and Reset restores the seed', async ({page}) => {
+  test.setTimeout(120000);
+  page.on('dialog', (dialog) => dialog.accept());
+  await seedRealBook(page);
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  const beforeGn = await snapshotGn(page);
+  expect(beforeGn.gn_players_v2).toContain('Sam');
+  await openTryDemo(page);
+  await resumeDemoFiveCrowns(page);
+  const seedDemo = await snapshotDemo(page);
+  expect(JSON.stringify(seedDemo)).toContain('Nora');
+  expect(JSON.stringify(seedDemo)).not.toContain('Sam');
+  expect(await snapshotGn(page)).toEqual(beforeGn);
+
+  await enterRound(page, [0, 1, 2, 3, 4, 5, 6, 7]);
+  const afterEnter = await snapshotDemo(page);
+  expect(afterEnter).not.toEqual(seedDemo);
+  expect(await snapshotGn(page)).toEqual(beforeGn);
+
+  await correctPastDemoScore(page, 'Nora', '9');
+  const afterPast = await snapshotDemo(page);
+  expect(afterPast).not.toEqual(afterEnter);
+  expect(afterPast).not.toEqual(seedDemo);
+  expect(JSON.stringify(afterPast)).toContain('Nora');
+  expect(await snapshotGn(page)).toEqual(beforeGn);
+
+  await page.locator('#bpg-try-demo-reset').click();
+  await page.waitForTimeout(600);
+  const afterReset = await snapshotDemo(page);
+  expect(demoSeedCore(afterReset)).toEqual(demoSeedCore(seedDemo));
+  expect(await snapshotGn(page)).toEqual(beforeGn);
+  expect(Object.keys(afterReset).every((key) => key.startsWith('bpg_demo_'))).toBe(true);
+});
+
 const FRAGILE_REAL_SEED = {
   gn_all_players: JSON.stringify(['Sam', 'Riley', 'Quinn']),
   gn_history: JSON.stringify([{
@@ -413,6 +488,18 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
   expect(after.nav).toContain('Records (17)');
   expect(after.nav).toContain('Player Passports (12)');
   expect(after.gn).toEqual([]);
+});
+
+test('Got it dismisses the demo tip for the rest of the session', async ({page}) => {
+  await openTryDemo(page);
+  await expect(page.locator('#bpg-try-demo-tip')).toBeVisible();
+  await page.locator('#bpg-try-demo-tip button').click();
+  await expect(page.locator('#bpg-try-demo-tip')).toBeHidden();
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
+  await expect(page.locator('#bpg-try-demo-tip')).toBeHidden();
+  const stored = await page.evaluate(() => sessionStorage.getItem('bpg_try_demo_tip'));
+  expect(stored).toBe('1');
 });
 
 test('Reset demo confirm explains discarded demo changes', async ({page}) => {

@@ -8684,7 +8684,10 @@ button.dealer-name-indicator .dealer-player-label {
         grid-template-rows: minmax(6.75rem, 1fr) auto;
       }
       #score-entry-modal .score-entry-list {
-        min-height: 6.75rem !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 11.25rem !important;
+        height: 100%;
         overflow: hidden;
       }
       #score-entry-modal .score-entry-panel > .border-t button {
@@ -8693,8 +8696,9 @@ button.dealer-name-indicator .dealer-player-label {
         padding-bottom: 8px !important;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+        flex: 1 1 0 !important;
         overflow-y: auto !important;
-        min-height: 0;
+        min-height: 0 !important;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-row,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
@@ -8745,12 +8749,33 @@ button.dealer-name-indicator .dealer-player-label {
         font-size: 22px !important;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
-        flex: 0 0 auto;
+        flex: 0 1 auto;
         overflow: visible;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-key {
         min-height: 44px !important;
         min-width: 44px !important;
+      }
+      @media (max-height: 700px) {
+        #score-entry-modal .score-entry-panel.score-entry-many-players .score-entry-key,
+        #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-key {
+          min-height: 36px !important;
+          min-width: 36px !important;
+        }
+        #score-entry-modal .score-entry-panel.score-entry-many-players .score-entry-keypad,
+        #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-keypad {
+          gap: 4px;
+          padding: 4px;
+        }
+        #score-entry-modal .score-entry-panel.score-entry-many-players #score-entry-unconfirmed {
+          display: none;
+        }
+        #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+          min-height: 40px !important;
+        }
+        #score-entry-modal .score-entry-panel.score-entry-many-players .score-entry-list {
+          min-height: 12.5rem !important;
+        }
       }
       button.dealer-name-indicator {
         min-width: 44px;
@@ -9078,7 +9103,7 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
                 <button id="actions-retire-btn" onclick="openRetirePlayerModal();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3v18"></path><path d="M3 21h18"></path><path d="M3 3h11"></path><path d="M3 3v18"></path><path d="m10 12 4 4 4-4"></path><path d="M14 16V8"></path></svg></span>
-                  <span>Head Back to Shore</span>
+                  <span>Mark left early</span>
                 </button>
               </div>
               <div class="actions-menu-section">
@@ -17306,6 +17331,7 @@ ${isDealer
     panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
 
     rows.style.maxHeight='';
+    requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
   }
 
   function scrollScoreEntryActiveIntoView(){

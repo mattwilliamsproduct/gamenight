@@ -1,6 +1,7 @@
 import {mkdirSync} from 'node:fs';
 import {expect, test} from '@playwright/test';
 import {openTestView} from '../helpers/inject-book.mjs';
+import {openScenario} from '../helpers/qa.mjs';
 
 const SHOT = process.env.PHONE_COND_DIR || '/opt/cursor/artifacts/screenshots/phone-conditions';
 mkdirSync(SHOT, {recursive: true});
@@ -91,6 +92,59 @@ test('1920 scoreboard keeps names and totals in layout (readability judged separ
   await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
   const totals = await page.locator('#scorecard-body .scorecard-total-value').allTextContents();
   expect(totals.some((text) => text.includes('38') || text.includes('36'))).toBe(true);
+});
+
+async function phoneEntryFit() {
+  const active = document.querySelector('#score-entry-rows .score-entry-row.active');
+  const keypad = document.querySelector('#score-entry-modal .score-entry-keypad');
+  const list = document.getElementById('score-entry-rows');
+  const rows = [...document.querySelectorAll('#score-entry-rows .score-entry-row')];
+  const a = active?.getBoundingClientRect();
+  const k = keypad?.getBoundingClientRect();
+  const lane = list?.getBoundingClientRect();
+  const visible = rows.filter((row) => {
+    const box = row.getBoundingClientRect();
+    const bottom = Math.min(box.bottom, k?.top || box.bottom, lane?.bottom || box.bottom);
+    const top = Math.max(box.top, lane?.top || 0);
+    return bottom - top >= Math.min(28, box.height * 0.6);
+  }).length;
+  return {
+    rowCount: rows.length,
+    visible,
+    activeBottom: a ? Math.round(a.bottom) : 0,
+    keypadTop: k ? Math.round(k.top) : 0
+  };
+}
+
+test('8-player phone entry keeps the active row above the keypad', async ({page}) => {
+  const cases = [
+    {scenario: 'five-crowns-late-8', surface: 'entry-scores'},
+    {scenario: 'wizard-scoring-8', surface: 'entry-scores'}
+  ];
+  for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
+    for (const {scenario, surface} of cases) {
+      await page.setViewportSize(size);
+      await openScenario(page, {scenario, surface});
+      await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+      await page.waitForFunction(() => {
+        const modal = document.getElementById('score-entry-modal');
+        return modal && Number(getComputedStyle(modal).opacity) > 0.95;
+      });
+      const first = await page.evaluate(phoneEntryFit);
+      expect(first.rowCount, `${size.width} ${scenario} seats`).toBe(8);
+      expect(first.activeBottom, `${size.width} ${scenario} first-open active ${first.activeBottom} under keypad ${first.keypadTop}`).toBeLessThanOrEqual(first.keypadTop + 1);
+      expect(first.visible, `${size.width} ${scenario} first-open visible rows ${first.visible}`).toBeGreaterThanOrEqual(4);
+      await page.screenshot({path: `${SHOT}/entry-8p-${scenario}-${size.width}-first.png`, fullPage: false});
+      const next = page.locator('#score-entry-modal .score-entry-key.next');
+      for (let i = 0; i < 5; i += 1) await next.click();
+      await page.waitForTimeout(80);
+      const fit = await page.evaluate(phoneEntryFit);
+      expect(fit.rowCount, `${size.width} ${scenario} seats after next`).toBe(8);
+      expect(fit.activeBottom, `${size.width} ${scenario} active ${fit.activeBottom} under keypad ${fit.keypadTop}`).toBeLessThanOrEqual(fit.keypadTop + 1);
+      expect(fit.visible, `${size.width} ${scenario} visible rows ${fit.visible}`).toBeGreaterThanOrEqual(4);
+      await page.screenshot({path: `${SHOT}/entry-8p-${scenario}-${size.width}.png`, fullPage: false});
+    }
+  }
 });
 
 test('8-player keypad Next stays on 375', async ({page}) => {

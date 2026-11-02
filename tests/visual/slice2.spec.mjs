@@ -316,7 +316,7 @@ test('phone keypad leaves roster rows reachable', async ({page}) => {
   expect(short.firstRowClipped, 'first visible roster row should not be clipped').toBe(false);
   expect(short.scoringLabel).toMatch(/Scoring:\s*Megan/);
   expect(short.activeFull, 'selected roster row should be fully unclipped').toBe(true);
-  expectKeysUsable(short, 40);
+  expectKeysUsable(short, 36);
   await page.setViewportSize({width: 390, height: 844});
   await page.reload({waitUntil: 'networkidle'});
   await ready(page);
