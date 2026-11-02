@@ -1,9 +1,24 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import {expect,test} from '@playwright/test';
 import {enterRoundButton, openScenario} from '../helpers/qa.mjs';
 import {EIGHT18_BID_ACCURACY_ROUNDS} from '../../public/qa/fixtures.mjs';
 
-const ARTIFACTS=process.env.RC3_ARTIFACTS || '/workspace/back-porch/rc3/func-shots/data-integrity';
+function writableArtifactsDir(){
+  const preferred=process.env.RC3_ARTIFACTS || '/workspace/back-porch/rc3/func-shots/data-integrity';
+  const fallback=path.join(process.cwd(),'test-results','functional','data-integrity-shots');
+  for(const dir of [preferred, fallback]){
+    try{
+      fs.mkdirSync(dir,{recursive:true});
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    }catch{
+      // GitHub Actions cannot write /workspace/back-porch; use test-results there.
+    }
+  }
+  return fallback;
+}
+const ARTIFACTS=writableArtifactsDir();
 const cloudHits=[];
 
 test.beforeEach(async ({page})=>{
