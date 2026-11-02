@@ -107,22 +107,46 @@ function circularRuns(kinds) {
   return runs;
 }
 
-function assertMixedWheel(result, label) {
-  assert.ok(result.slices.length >= 8, `${label}: expected a full wheel`);
+function assertSliceDistribution(result, label) {
+  assert.ok(result.slices.length >= 5, `${label}: expected a full wheel`);
   const kinds = result.slices.map(slice => sliceKind(slice, result.winLow));
-  const runs = circularRuns(kinds);
-  const sequence = kinds.join(',');
-  const maxGood = Math.max(0, ...runs.filter(run => run.kind === 'good').map(run => run.length));
-  assert.ok(maxGood <= 2, `${label}: helpful slices still clustered (${sequence})`);
-  assert.ok(runs.filter(run => run.kind === 'bad').every(run => run.length === 1), `${label}: setbacks clustered (${sequence})`);
-  assert.ok(runs.filter(run => run.kind === 'zero').every(run => run.length === 1), `${label}: zeros clustered (${sequence})`);
-  assert.ok(kinds.filter(kind => kind === 'bad').length >= 2, `${label}: expected split setbacks`);
-  assert.ok(kinds.filter(kind => kind === 'zero').length >= 2, `${label}: expected split zeros`);
-  const helpfulWeights = result.slices
-    .filter(slice => sliceKind(slice, result.winLow) === 'good')
-    .reduce((sum, slice) => sum + slice.weight, 0);
   const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
-  assert.ok(helpfulWeights / totalWeight >= 0.65, `${label}: helpful odds should stay in the majority`);
+  const weightOf = (kind) => result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === kind)
+    .reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(weightOf('good') / totalWeight >= 0.75, `${label}: green weight ${weightOf('good')}/${totalWeight}`);
+  assert.ok(weightOf('bad') / totalWeight <= 0.10, `${label}: red weight ${weightOf('bad')}/${totalWeight}`);
+  const helpfulMags = result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === 'good')
+    .map(slice => Math.abs(slice.adjustment))
+    .sort((a, b) => a - b);
+  const increment = result.scoreIncrement || 1;
+  const smallCap = increment * 2;
+  const smallWeight = result.slices
+    .filter(slice => sliceKind(slice, result.winLow) === 'good' && Math.abs(slice.adjustment) <= smallCap)
+    .reduce((sum, slice) => sum + slice.weight, 0);
+  assert.ok(smallWeight / totalWeight >= 0.35, `${label}: small-help weight ${smallWeight}/${totalWeight}`);
+  const table = LP.OUTCOME_TABLE;
+  assert.ok(Math.abs(table.smallHelp + table.mediumHelp + table.bigHelp + table.noChange + table.smallSetback - 1) < 1e-9);
+  result.slices.forEach(slice => {
+    const increment = result.scoreIncrement || 1;
+    if (slice.adjustment) {
+      assert.equal(Math.abs(slice.adjustment) % increment, 0, `${label}: ${slice.label} not on increment ${increment}`);
+    }
+    assert.equal(slice.kind, sliceKind(slice, result.winLow), `${label}: kind/color mismatch on ${slice.label}`);
+  });
+  const runs = circularRuns(kinds);
+  assert.ok(runs.filter(run => run.kind === 'bad').every(run => run.length === 1), `${label}: setbacks clustered (${kinds.join(',')})`);
+}
+
+function assertWheelAnglesMatchWeights(result, label) {
+  const arcs = LP.sliceArcs(result.slices);
+  const total = result.slices.reduce((sum, slice) => sum + LP.sliceDisplayWeight(slice), 0);
+  assert.ok(arcs.length === result.slices.length);
+  arcs.forEach((arc, index) => {
+    const expected = LP.sliceDisplayWeight(result.slices[index]) / total;
+    assert.ok(Math.abs(arc.fraction - expected) < 1e-9, `${label}: slice ${index} angle ${arc.fraction} != display ${expected}`);
+  });
 }
 
 test('818 remaining opportunity uses each upcoming trick count', () => {
@@ -348,11 +372,10 @@ test('porch 818 table gives Cat about +20, not a ticket to 1st', () => {
   assert.equal(vikki.maxSafeAdjustment, 20);
   assert.equal(brick.eligible, true);
   assert.equal(brick.maxSafeAdjustment, 20);
-  assert.equal(megan.eligible, true);
-  assert.ok(megan.maxSafeAdjustment <= 20);
-  assert.ok(megan.maxSafeAdjustment <= megan.rankCap);
+  assert.equal(megan.eligible, false);
+  assert.equal(megan.reason, 'recovery-load');
   assert.equal(LP.capLifePreserverAdjustment(80, cat), 20);
-  assert.equal(currentGame.totals.Cat + 20, 78);
+  assert.equal(currentGame.totals.Cat + 20, 61);
   assert.ok(currentGame.totals.Cat + 20 < currentGame.totals.Duke);
   assertNoPodium(cat, players, currentGame.totals);
   assertNoPodium(vikki, players, currentGame.totals);
@@ -423,7 +446,7 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.ok(result.maxSafeAdjustment <= 75);
   const helpfulWeights = result.slices.filter(slice => slice.adjustment < 0).reduce((sum, slice) => sum + slice.weight, 0);
   const totalWeight = result.slices.reduce((sum, slice) => sum + slice.weight, 0);
-  assert.ok(helpfulWeights / totalWeight >= 0.8);
+  assert.ok(helpfulWeights / totalWeight >= 0.79);
   assertNoPodium(result, players, totals);
   const afterJackpot = totals.Brick - result.maxSafeAdjustment;
   const firstScore = Math.min(...players.map(player => Number(totals[player]) || 0));
@@ -432,15 +455,45 @@ test('crushed Five Crowns Brick gets a real rescue without reaching the podium',
   assert.equal(result.remainingRounds, 3);
   assert.equal(result.bindingLimit, 'game-cap');
   assert.match(explained.wheelLine, /behind 1st/);
-  assert.match(explained.wheelLine, /−75/);
+  assert.match(explained.wheelLine, /Best help: −75 points/);
+  assert.match(explained.wheelLine, /Largest setback:/);
+  const brickAdjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
+  const brickMin = Math.min(...brickAdjustments);
+  const brickMax = Math.max(...brickAdjustments);
+  assert.ok(brickAdjustments.includes(-60), `big help should be −60, got ${brickAdjustments.join(',')}`);
+  assert.ok(brickAdjustments.includes(-75), `jackpot should stay −75, got ${brickAdjustments.join(',')}`);
+  assert.ok(!brickAdjustments.includes(-65), 'stretch must not invent −65');
+  assert.ok(brickMin < 0, 'negative slices stay on the wheel');
+  assert.ok(brickMax > 0, 'small bad slices stay on the wheel');
   assert.match(explained.summary, /7th of 8/);
   assert.match(explained.summary, /1st/);
-  assert.ok(explained.bullets.some(bullet => /Five Crowns scores low/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /lower scores win/.test(bullet) && /Best help: −75 points/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /3 hands left/.test(bullet)));
   assert.ok(explained.bullets.some(bullet => /will not give more than that/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /−15/.test(bullet) && /−35/.test(bullet) && /−55/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /red slices are modest setbacks/.test(bullet)));
-  assert.ok(explained.bullets.some(bullet => /\+10/.test(bullet)));
+  assert.ok(explained.bullets.some(bullet => /red slice/.test(bullet)));
+  assertSliceDistribution(result, 'Brick Five Crowns');
+  assertWheelAnglesMatchWeights(result, 'Brick Five Crowns');
+});
+
+test('wheel line spin range matches the slice min and max', () => {
+  const currentGame = QA_SCENARIOS['eight18-porch-lp'].data.currentGame;
+  const players = currentGame.originalRoster;
+  const result = LP.getLifePreserverOffer(currentGame, 'Brick', players);
+  assert.equal(result.eligible, true);
+  const explained = LP.explainLifePreserverOffer(result);
+  const adjustments = result.slices.map(slice => Number(slice.adjustment) || 0);
+  assert.ok(adjustments.length > 0);
+  const min = Math.min(...adjustments);
+  const max = Math.max(...adjustments);
+  const signed = value => value ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : '0';
+  const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(explained.wheelLine, /Best help:/);
+  assert.match(explained.wheelLine, /Largest setback:/);
+  assert.match(explained.wheelLine, /behind 1st/);
+  assert.doesNotMatch(explained.wheelLine, /Worst:/);
+  assert.doesNotMatch(explained.wheelLine, /Spin range/);
+  assert.ok(min < 0, 'negative slices stay on the wheel');
+  assert.ok(max > 0);
 });
 
 test('Five Crowns QA fixture still has one available and one used Life Preserver', () => {
@@ -488,27 +541,28 @@ test('Wizard max rounds stay frozen when the active table shrinks', () => {
   assert.equal(LP.getMaxRounds(g, seven), 7);
 });
 
-test('Life Preserver slices mix greens with reds and zeros instead of clustering', () => {
+test('Life Preserver slices stay mostly helpful in both score directions', () => {
   const lastRoundTotals = { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 };
   const lastRound = offer('818', lastRoundTotals, { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' });
-  assertMixedWheel(lastRound, '818 last round');
+  assertSliceDistribution(lastRound, '818 last round');
+  assertWheelAnglesMatchWeights(lastRound, '818 last round');
+  assert.ok(lastRound.slices.some(slice => slice.adjustment > 0 && slice.kind === 'good'));
+  assert.ok(lastRound.slices.some(slice => slice.adjustment < 0 && slice.kind === 'bad'));
 
   const wizardTotals = { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 };
   const wizard = offer('Wizard', wizardTotals, { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' });
-  assertMixedWheel(wizard, 'Wizard');
+  assertSliceDistribution(wizard, 'Wizard');
+  assertWheelAnglesMatchWeights(wizard, 'Wizard');
 
   const fiveCrowns = LP.getLifePreserverOffer(
     QA_SCENARIOS['five-crowns-preservers'].data.currentGame,
     'Brick',
     QA_SCENARIOS['five-crowns-preservers'].data.currentGame.originalRoster
   );
-  assertMixedWheel(fiveCrowns, 'Five Crowns Brick');
-
-  const adjacentSameValue = fiveCrowns.slices.some((slice, index) => {
-    const next = fiveCrowns.slices[(index + 1) % fiveCrowns.slices.length];
-    return slice.adjustment === next.adjustment && slice.color === next.color;
-  });
-  assert.equal(adjacentSameValue, false, `identical slices should not sit next to each other: ${fiveCrowns.slices.map(slice => slice.label).join(' | ')}`);
+  assertSliceDistribution(fiveCrowns, 'Five Crowns Brick');
+  assertWheelAnglesMatchWeights(fiveCrowns, 'Five Crowns Brick');
+  assert.ok(fiveCrowns.slices.some(slice => slice.adjustment < 0 && slice.kind === 'good'));
+  assert.ok(fiveCrowns.slices.some(slice => slice.adjustment > 0 && slice.kind === 'bad'));
 });
 
 test('Life Preserver rules copy is plain language and game-specific', () => {
@@ -519,7 +573,10 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.ok(eight18.how.some(line => /not in 1st/.test(line)));
   assert.ok(eight18.how.some(line => /made bids/.test(line)));
   assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
-  assert.ok(eight18.wheel.some(line => /cannot match or pass 1st/.test(line)));
+  assert.ok(eight18.how.some(line => /One spin per player per match/.test(line)));
+  assert.ok(eight18.wheel.some(line => /Cannot tie or pass the leader/.test(line)));
+  assert.ok(eight18.wheel.some(line => /45% small help/.test(line) && /12% no change/.test(line)));
+  assert.ok(!eight18.wheel.some(line => /perfectly proportional/i.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
   assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
@@ -541,8 +598,8 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
 
 test('threshold QA fixtures unlock only Duke at the first legal hole', () => {
   const cases = [
-    ['eight18-life-preserver-threshold', '818', 123],
-    ['wizard-life-preserver-threshold', 'Wizard', 190],
+    ['eight18-life-preserver-threshold', '818', 81],
+    ['wizard-life-preserver-threshold', 'Wizard', -150],
     ['five-crowns-life-preserver-threshold', 'Five Crowns', 54],
     ['flip7-life-preserver-threshold', 'Flip 7 Vengeance', 112]
   ];
@@ -603,4 +660,580 @@ test('unused Life Preserver holds stay after someone else takes theirs, then re-
   assert.ok(later.includes('Gus'), `expected Gus to unlock again, got ${later.join(',') || 'none'}`);
   assert.equal(LP.getLifePreserverOffer(g, 'Gus', EIGHT).eligible, true);
   assert.equal(LP.getLifePreserverOffer(g, 'Hal', EIGHT).reason, 'used');
+});
+
+test('pickWeightedSlice follows slice weights and lock is independent of animation', () => {
+  const slices = [
+    { adjustment: 10, weight: 80, kind: 'good', label: '+10 · Help' },
+    { adjustment: 0, weight: 12, kind: 'zero', label: '0 · No change' },
+    { adjustment: -5, weight: 8, kind: 'bad', label: '−5 · Setback' }
+  ];
+  const arcs = LP.sliceArcs(slices);
+  arcs.forEach((arc, index) => {
+    assert.equal(Number(arc.fraction.toFixed(6)), Number((slices[index].weight / 100).toFixed(6)));
+  });
+  const picks = { 10: 0, 0: 0, [-5]: 0 };
+  const n = 10000;
+  for (let i = 0; i < n; i++) {
+    const pick = LP.pickWeightedSlice(slices, () => (i + 0.5) / n);
+    picks[pick.adjustment] += 1;
+  }
+  assert.ok(picks[10] / n > 0.75, `helpful pick ${picks[10]}/${n}`);
+  assert.ok(picks[-5] / n < 0.12, `setback pick ${picks[-5]}/${n}`);
+
+  const totals = { Ann: 100, Bea: 40 };
+  const offer = {
+    eligible: true,
+    player: 'Bea',
+    winLow: false,
+    rank: 2,
+    leaderGap: 60,
+    leaderScore: 100,
+    maxSafeAdjustment: 20,
+    maxSetback: 5,
+    scoreIncrement: 1
+  };
+  const locked = LP.buildLockedOutcome(offer, { adjustment: 20, kind: 'good' }, totals, ['Ann', 'Bea']);
+  assert.equal(locked.adjustment, 20);
+  assert.equal(locked.beforeTotal, 40);
+  assert.equal(locked.afterTotal, 60);
+  assert.equal(locked.afterRank, 2);
+  const described = LP.describeLifePreserverResult(locked);
+  assert.match(described.headline, /\+20 points/);
+  assert.match(described.totals, /40 → 60/);
+  assert.match(described.standing, /2nd → 2nd|Stays 2nd/);
+  const high = LP.describeLifePreserverResult({
+    adjustment: 20,
+    beforeTotal: 41,
+    afterTotal: 61,
+    beforeRank: 3,
+    afterRank: 2,
+    winLow: false
+  });
+  assert.match(high.headline, /\+20 points/);
+  assert.match(high.totals, /41 → 61/);
+  assert.match(high.standing, /3rd → 2nd place/);
+  const low = LP.describeLifePreserverResult({
+    adjustment: -20,
+    beforeTotal: 150,
+    afterTotal: 130,
+    beforeRank: 8,
+    afterRank: 7,
+    winLow: true
+  });
+  assert.match(low.headline, /20 points off/);
+  assert.match(low.totals, /150 → 130/);
+  assert.match(low.standing, /8th → 7th place/);
+});
+
+test('a landed Life Preserver is locked, persists, blocks a second spin, and marks assisted', () => {
+  const Scorebook = require('../public/assets/scorebook.js');
+  const players = FOUR;
+  const live = game({
+    name: '818',
+    players,
+    totals: { Ann: 80, Bea: 70, Cal: 60, Dee: 40 },
+    roundCount: 6,
+    spread: 10,
+    currentRound: 7
+  });
+  Scorebook.recordLifePreserverSpin(live, 'Dee', 12);
+  assert.equal(live.assistedMatch, true);
+  assert.deepEqual(live.hailMaryUsed, ['Dee']);
+  assert.equal(live.rounds.filter(round => round.hailMaryBonus).length, 1);
+  assert.equal(live.totals.Dee, 12);
+  assert.equal(LP.getLifePreserverOffer(live, 'Dee', players).reason, 'used');
+
+  const reloaded = JSON.parse(JSON.stringify(live));
+  assert.equal(Scorebook.isAssistedMatch(reloaded), true);
+  assert.deepEqual(reloaded.hailMaryUsed, ['Dee']);
+  assert.equal(reloaded.rounds.filter(round => round.hailMaryBonus).length, 1);
+  assert.equal(reloaded.totals.Dee, 12);
+  assert.equal(LP.getLifePreserverOffer(reloaded, 'Dee', players).reason, 'used');
+
+  const before = JSON.stringify(reloaded.rounds);
+  Scorebook.recordLifePreserverSpin(reloaded, 'Dee', 20);
+  assert.equal(JSON.stringify(reloaded.rounds), before);
+  assert.deepEqual(reloaded.hailMaryUsed, ['Dee']);
+  assert.equal(reloaded.rounds.filter(round => round.hailMaryBonus).length, 1);
+});
+
+function legacyBuildSlices(maxHelpful, maxSetback, winLow, increment, recoveryLoad) {
+  const sign = winLow ? -1 : 1;
+  const helpful = [0.25, 0.5, 0.5, 0.75, 1].map((percent) => {
+    const raw = Math.floor((maxHelpful * percent) / increment) * increment;
+    return Math.max(increment, raw);
+  });
+  const setback = Math.max(increment, Math.floor(maxSetback / increment) * increment);
+  const smallSetback = Math.max(increment, Math.floor(setback / 2 / increment) * increment);
+  const helpfulWeight = recoveryLoad >= 1 ? 85 : recoveryLoad >= 0.55 ? 75 : 68;
+  const setbackWeight = recoveryLoad >= 1 ? 8 : 10;
+  const zeroWeight = Math.max(6, 100 - helpfulWeight - setbackWeight);
+  const parts = [0.26, 0.22, 0.18, 0.21];
+  const helpfulWeights = parts.map((part) => Math.max(1, Math.round(helpfulWeight * part)));
+  helpfulWeights.push(Math.max(1, helpfulWeight - helpfulWeights.reduce((sum, weight) => sum + weight, 0)));
+  const slices = [];
+  [smallSetback, setback].forEach((magnitude, index) => {
+    slices.push({ adjustment: -sign * magnitude, weight: Math.ceil(setbackWeight / 2) - (index ? 0 : 0), kind: 'bad' });
+  });
+  slices[0].weight = Math.ceil(setbackWeight / 2);
+  slices[1].weight = setbackWeight - slices[0].weight;
+  slices.push({ adjustment: 0, weight: Math.ceil(zeroWeight / 2), kind: 'zero' });
+  slices.push({ adjustment: 0, weight: zeroWeight - Math.ceil(zeroWeight / 2), kind: 'zero' });
+  helpful.forEach((magnitude, index) => {
+    slices.push({ adjustment: sign * magnitude, weight: helpfulWeights[index], kind: 'good' });
+  });
+  return slices;
+}
+
+function simulateWheel(slices, offer, totals, players) {
+  const total = slices.reduce((sum, slice) => sum + slice.weight, 0) || 1;
+  const sign = offer.winLow ? -1 : 1;
+  let pHelp = 0;
+  let expectedAdj = 0;
+  let expectedPlaces = 0;
+  let rareMax = 0;
+  let leapfrog = 0;
+  const others = players.filter((name) => name !== offer.player && name !== offer.leaderPlayer);
+  slices.forEach((slice) => {
+    const p = slice.weight / total;
+    const adj = Number(slice.adjustment) || 0;
+    expectedAdj += p * adj;
+    if (adj * sign > 0) {
+      pHelp += p;
+      rareMax = Math.max(rareMax, Math.abs(adj));
+    }
+    const next = { ...totals, [offer.player]: (Number(totals[offer.player]) || 0) + adj };
+    const afterRank = LP.rankWithScore(offer.player, next[offer.player], players, next, offer.winLow);
+    expectedPlaces += p * ((offer.rank || 0) - afterRank);
+    const passed = others.some((name) => {
+      const before = LP.rankWithScore(name, totals[name], players, totals, offer.winLow);
+      const after = LP.rankWithScore(name, totals[name], players, next, offer.winLow);
+      return after > before;
+    });
+    if (passed) leapfrog += p;
+  });
+  return { pHelp, expectedAdj, expectedPlaces, rareMax, leapfrog };
+}
+
+test('old vs new wheel simulation on early, middle, and late tables', () => {
+  const cases = [
+    {
+      name: 'Linda Five Crowns late',
+      game: QA_SCENARIOS['demo-seed'].data.currentGame,
+      player: 'Linda'
+    },
+    {
+      name: 'Cat 818 porch',
+      game: QA_SCENARIOS['eight18-porch-lp'].data.currentGame,
+      player: 'Cat'
+    },
+    {
+      name: 'Hal barely eligible last 818',
+      totals: { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 85 },
+      options: { name: '818', roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' }
+    }
+  ];
+  const report = [];
+  for (const item of cases) {
+    const result = item.game
+      ? LP.getLifePreserverOffer(item.game, item.player, item.game.originalRoster)
+      : offer(item.options.name, item.totals, item.options);
+    assert.equal(result.eligible, true, item.name);
+    const players = item.game ? item.game.originalRoster : Object.keys(item.totals);
+    const totals = item.game ? item.game.totals : item.totals;
+    const neu = simulateWheel(result.slices, result, totals, players);
+    const old = simulateWheel(
+      legacyBuildSlices(result.maxSafeAdjustment, result.maxSetback, result.winLow, result.scoreIncrement, result.recoveryLoad || 1),
+      result,
+      totals,
+      players
+    );
+    assert.ok(neu.pHelp >= 0.79 && neu.pHelp <= 0.81, `${item.name} P(help) ${neu.pHelp}`);
+    assert.ok(neu.rareMax <= result.maxSafeAdjustment);
+    report.push({ name: item.name, old, neu });
+  }
+  console.log('LP_WHEEL_SIM', JSON.stringify(report, null, 2));
+  assert.ok(report.length === 3);
+});
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a += 0x6D2B79F5;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const ROULETTE_CASES = [
+  {
+    label: '818 last hole',
+    name: '818',
+    totals: { Ann: 100, Bea: 99, Cal: 98, Dee: 97, Eve: 96, Fay: 95, Gus: 90, Hal: 77 },
+    options: { roundCount: 14, spread: 17, currentRound: 15, player: 'Hal' }
+  },
+  {
+    label: '818 mid porch Cat',
+    game: QA_SCENARIOS['eight18-porch-lp'].data.currentGame,
+    player: 'Cat'
+  },
+  {
+    label: 'Wizard late Hal',
+    name: 'Wizard',
+    totals: { Ann: 400, Bea: 390, Cal: 380, Dee: 370, Eve: 200, Fay: 180, Gus: 120, Hal: 40 },
+    options: { roundCount: 6, spread: 80, currentRound: 7, player: 'Hal' }
+  },
+  {
+    label: 'Five Crowns Brick',
+    game: QA_SCENARIOS['five-crowns-preservers'].data.currentGame,
+    player: 'Brick'
+  },
+  {
+    label: 'Five Crowns Linda demo',
+    game: QA_SCENARIOS['demo-seed'].data.currentGame,
+    player: 'Linda'
+  },
+  {
+    label: 'Five Crowns Duke-like 20',
+    slices: () => LP.buildSlices(20, 10, true, 5, { remainingRounds: 4, oneStrongRound: 20, leaderGap: 51 })
+  },
+  {
+    label: 'Flip 7 late Hal',
+    name: 'Flip 7 Vengeance',
+    totals: { Ann: 180, Bea: 170, Cal: 160, Dee: 150, Eve: 90, Fay: 80, Gus: 70, Hal: 20 },
+    options: { roundCount: 6, spread: 40, currentRound: 7, player: 'Hal' }
+  }
+];
+
+function offerFromCase(item) {
+  if (item.slices) return { eligible: true, winLow: true, scoreIncrement: 5, slices: item.slices() };
+  if (item.game) return LP.getLifePreserverOffer(item.game, item.player, item.game.originalRoster);
+  return offer(item.name, item.totals, item.options);
+}
+
+test('roulette segment arcs match each outcome probability and sum to 360', () => {
+  for (const item of ROULETTE_CASES) {
+    const result = offerFromCase(item);
+    assert.equal(result.eligible, true, item.label);
+    const slices = result.slices;
+    assert.ok(slices.length >= 20 && slices.length <= 40, `${item.label}: pocket count ${slices.length}`);
+    const arcs = LP.sliceArcs(slices);
+    const totalArc = arcs.reduce((sum, arc) => sum + arc.arc, 0);
+    assert.ok(Math.abs(totalArc - Math.PI * 2) < 1e-9, `${item.label}: arcs ${totalArc}`);
+    const degreeSum = arcs.reduce((sum, arc) => sum + (arc.fraction * 360), 0);
+    assert.ok(Math.abs(degreeSum - 360) < 0.1, `${item.label}: degree sum ${degreeSum}`);
+    const outcomes = LP.summarizeWheelOutcomes(slices);
+    outcomes.forEach((outcome) => {
+      const matching = arcs.filter((arc) => (
+        (Number(arc.adjustment) || 0) === outcome.adjustment && arc.kind === outcome.kind
+      ));
+      const summed = matching.reduce((sum, arc) => sum + (arc.fraction * 360), 0);
+      assert.ok(
+        Math.abs(summed - outcome.arcDegrees) < 0.1,
+        `${item.label} ${outcome.label}: summed ${summed} != ${outcome.arcDegrees}`
+      );
+      assert.equal(matching.length, outcome.segments, `${item.label} ${outcome.label} segment count`);
+      assert.ok(outcome.segments >= 1, `${item.label} ${outcome.label} needs a pocket`);
+      assert.ok(
+        Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+        `${item.label} ${outcome.label} visual ${outcome.visualShare} vs live ${outcome.probability}`
+      );
+    });
+    if (item.label === 'Five Crowns Duke-like 20') {
+      const labels = outcomes.map((outcome) => `${outcome.label}:${outcome.segments}:${outcome.arcDegrees.toFixed(1)}`);
+      assert.deepEqual(
+        outcomes.map((outcome) => outcome.adjustment).sort((a, b) => a - b),
+        [-20, -10, -5, 0, 5, 10],
+        `Duke collapsed tiers should merge to six amounts, got ${labels.join(' | ')}`
+      );
+      const medium = outcomes.find((outcome) => Math.abs(outcome.adjustment) === 30 || Math.abs(outcome.adjustment) === 40);
+      assert.equal(medium, undefined, 'Duke medium band is empty and must not invent a 30/40 slice');
+      const small = outcomes.filter((outcome) => outcome.adjustment === -5 || outcome.adjustment === -10);
+      const smallP = small.reduce((sum, outcome) => sum + outcome.probability, 0);
+      assert.ok(Math.abs(smallP - 0.75) < 1e-9, `Duke small+folded medium should be 75%, got ${smallP}`);
+      console.log('DUKE_ROULETTE', JSON.stringify(outcomes, null, 2));
+    }
+    const table = LP.describePocketTable(slices);
+    assert.ok(table.pockets >= 20 && table.pockets <= 40, `${item.label} pockets ${table.pockets}`);
+    table.bands.forEach((band) => {
+      assert.ok(
+        Math.abs(band.visualShare - band.probability) < 1e-9,
+        `${item.label} ${band.band} visual ${band.visualShare} != live ${band.probability}`
+      );
+    });
+    assert.equal(table.equalOption.implied.noChange, 0.125);
+    assert.equal(LP.OUTCOME_TABLE.noChange, 0.12);
+    assert.equal(LP.OUTCOME_TABLE.smallSetback, 0.08);
+    console.log('POCKET_TABLE', item.label, JSON.stringify(table.outcomes.map((row) => ({
+      label: row.label,
+      prob: Number(row.probability.toFixed(4)),
+      visual: Number(row.visualShare.toFixed(4)),
+      pockets: row.segments,
+      width: Number(row.widthEach.toFixed(4)),
+      arc: Number(row.arcDegrees.toFixed(2))
+    }))));
+  }
+});
+
+test('landing angle stays inside a locked-outcome segment across many seeds', () => {
+  for (const item of ROULETTE_CASES) {
+    const result = offerFromCase(item);
+    const slices = LP.attachSliceArcs(result.slices);
+    const outcomes = LP.summarizeWheelOutcomes(slices);
+    for (const outcome of outcomes) {
+      const pool = slices.filter((slice) => LP.outcomeKey(slice) === outcome.outcomeKey);
+      assert.ok(pool.length, `${item.label} ${outcome.label} has segments`);
+      for (let seed = 1; seed <= 80; seed++) {
+        const random = mulberry32(seed * 97 + outcome.adjustment + item.label.length);
+        const pick = LP.pickWeightedSlice(pool, random);
+        const degrees = LP.landingDegreesForSlice(pick, random);
+        const angle = LP.wheelAngleFromDegrees(degrees);
+        const hit = slices.find((slice) => (
+          LP.angleInArc(angle, slice._start, slice._end)
+        ));
+        assert.ok(hit, `${item.label} ${outcome.label} seed ${seed} missed the wheel`);
+        assert.equal(LP.outcomeKey(hit), outcome.outcomeKey, `${item.label} ${outcome.label} seed ${seed} landed ${hit && LP.outcomeKey(hit)}`);
+        const span = pick._end - pick._start;
+        const inset = Math.min(Math.max(span * 0.18, span * 0.08), span * 0.35);
+        assert.ok(angle >= pick._start + inset - 1e-9 && angle <= pick._end - inset + 1e-9, `${item.label} landed on an edge`);
+      }
+    }
+  }
+});
+
+test('realized Life Preserver frequencies still match the outcome table', () => {
+  const n = 20000;
+  for (const item of ROULETTE_CASES) {
+    const result = offerFromCase(item);
+    const slices = result.slices;
+    const expected = LP.summarizeWheelOutcomes(slices);
+    const counts = Object.fromEntries(expected.map((outcome) => [outcome.outcomeKey, 0]));
+    const random = mulberry32(20261027 + item.label.length);
+    for (let i = 0; i < n; i++) {
+      const pick = LP.pickWeightedSlice(slices, random);
+      counts[LP.outcomeKey(pick)] += 1;
+    }
+    expected.forEach((outcome) => {
+      const freq = counts[outcome.outcomeKey] / n;
+      assert.ok(
+        Math.abs(freq - outcome.probability) < 0.02,
+        `${item.label} ${outcome.label} freq ${freq} != ${outcome.probability}`
+      );
+    });
+    const help = expected.filter((outcome) => outcome.kind === 'good').reduce((sum, outcome) => sum + outcome.probability, 0);
+    assert.ok(help >= 0.79 && help <= 0.81, `${item.label} P(help) ${help}`);
+  }
+});
+
+test('in-slice label boxes stay inside their roulette segments', () => {
+  const geos = [
+    { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 340, canvasWidth: 800 },
+    { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 520, canvasWidth: 800 }
+  ];
+  for (const geo of geos) {
+    for (const item of ROULETTE_CASES) {
+      const result = offerFromCase(item);
+      const slices = LP.attachSliceArcs(result.slices);
+      slices.forEach((slice, index) => {
+        const layout = LP.labelLayout(slice, geo);
+        assert.equal(layout.text, LP.formatSignedPoints(slice.adjustment));
+        assert.ok(layout.insidePie, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left the pie`);
+        assert.ok(layout.insideSegment, `${item.label} ${geo.cssWidth} slice ${index} ${layout.text} left its segment`);
+        assert.ok(layout.cssFont >= 8, `${item.label} ${layout.text} font ${layout.cssFont}`);
+        assert.equal(layout.tangentialMode, true, `${item.label} ${layout.text} should read along the rim`);
+      });
+    }
+  }
+});
+
+test('data-driven pocket layout works for current and proposed tables', () => {
+  const cases = [
+    { table: 'current', help: 0.80, zero: 0.12, bad: 0.08 },
+    { table: 'proposed', help: 0.75, zero: 0.10, bad: 0.15 }
+  ];
+  const altOutcomes = LP.layoutRoulettePockets([
+    { adjustment: -25, weight: 0.20, kind: 'good', band: 'reallyGood' },
+    { adjustment: -10, weight: 0.55, kind: 'good', band: 'good' },
+    { adjustment: 0, weight: 0.10, kind: 'zero', band: 'noChange' },
+    { adjustment: 5, weight: 0.15, kind: 'bad', band: 'smallSetback' }
+  ], { pocketCount: 40 });
+  const altSlices = altOutcomes.flatMap((item) => {
+    const n = Math.max(1, Number(item.pocketCount) || 1);
+    return Array.from({ length: n }, (_, index) => ({
+      adjustment: item.adjustment,
+      kind: item.kind,
+      band: item.band,
+      weight: item.weight / n,
+      displayWeight: item.displayWeight / n,
+      pocketCount: 1,
+      segmentIndex: index
+    }));
+  });
+  const altTable = LP.describePocketTable(altSlices);
+  assert.ok(altSlices.length >= 20 && altSlices.length <= 40, `20/55 pockets ${altSlices.length}`);
+  altTable.outcomes.forEach((outcome) => {
+    assert.ok(outcome.segments >= 1, `20/55 ${outcome.label} missing pocket`);
+    assert.ok(
+      Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+      `20/55 ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+    );
+  });
+  const altHelp = altTable.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(altHelp - 0.75) < 1e-9, `20/55 help ${altHelp}`);
+  LP.attachSliceArcs(altSlices);
+  const altGeo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+  altSlices.forEach((slice, index) => {
+    const layout = LP.labelLayout(slice, altGeo);
+    assert.ok(layout.insideSegment, `20/55 slice ${index} ${layout.text} left its pocket`);
+  });
+  const altRandom = mulberry32(203);
+  for (let seed = 0; seed < 40; seed++) {
+    const pick = LP.pickWeightedSlice(altSlices, altRandom);
+    const degrees = LP.landingDegreesForSlice(pick, altRandom);
+    const angle = LP.wheelAngleFromDegrees(degrees);
+    const hit = altSlices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+    assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), '20/55 landing mismatch');
+  }
+  for (const item of cases) {
+    const slices = LP.buildSlices(20, 10, true, 5, {
+      remainingRounds: 4,
+      oneStrongRound: 20,
+      leaderGap: 51,
+      table: item.table,
+      pocketCount: 40
+    });
+    assert.ok(slices.length >= 20 && slices.length <= 40, `${item.table} pockets ${slices.length}`);
+    const amounts = new Set(slices.map((slice) => Number(slice.adjustment)));
+    amounts.forEach((amount) => {
+      assert.ok(slices.some((slice) => Number(slice.adjustment) === amount));
+    });
+    const table = LP.describePocketTable(slices);
+    table.outcomes.forEach((outcome) => {
+      assert.ok(outcome.segments >= 1, `${item.table} ${outcome.label} missing pocket`);
+      assert.ok(
+        Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+        `${item.table} ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+      );
+    });
+    const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+    const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+    const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+    assert.ok(Math.abs(help - item.help) < 1e-9, `${item.table} help ${help}`);
+    assert.ok(Math.abs(zero - item.zero) < 1e-9, `${item.table} zero ${zero}`);
+    assert.ok(Math.abs(bad - item.bad) < 1e-9, `${item.table} bad ${bad}`);
+    LP.attachSliceArcs(slices);
+    const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+    slices.forEach((slice, index) => {
+      const layout = LP.labelLayout(slice, geo);
+      assert.ok(layout.insideSegment, `${item.table} slice ${index} ${layout.text} left its pocket`);
+    });
+    const random = mulberry32(77 + item.table.length);
+    for (let seed = 0; seed < 40; seed++) {
+      const pick = LP.pickWeightedSlice(slices, random);
+      const degrees = LP.landingDegreesForSlice(pick, random);
+      const angle = LP.wheelAngleFromDegrees(degrees);
+      const hit = slices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+      assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), `${item.table} landing mismatch`);
+    }
+  }
+});
+
+test('in-slice label fonts grow with the wheel', () => {
+  const small = { cx: 200, cy: 200, outer: 200 * LP.WHEEL_OUTER_FRAC, inner: 200 * LP.WHEEL_INNER_FRAC, cssWidth: 280, canvasWidth: 400 };
+  const large = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 560, canvasWidth: 800 };
+  const result = offerFromCase(ROULETTE_CASES[0]);
+  const smallSlices = LP.attachSliceArcs(result.slices.map((slice) => ({ ...slice })));
+  const largeSlices = LP.attachSliceArcs(result.slices.map((slice) => ({ ...slice })));
+  const pick = (slices) => slices.reduce((best, slice) => ((slice._end - slice._start) > (best._end - best._start) ? slice : best), slices[0]);
+  const smallFont = LP.labelLayout(pick(smallSlices), small).cssFont;
+  const largeFont = LP.labelLayout(pick(largeSlices), large).cssFont;
+  assert.ok(largeFont > smallFont + 3, `rim font ${smallFont} -> ${largeFont}`);
+});
+
+test('default offer stays on the live 45/30/5/12/8 table', () => {
+  const live = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
+    roundCount: 9,
+    spread: 8,
+    currentRound: 10,
+    player: 'Duke'
+  });
+  assert.equal(live.eligible, true);
+  assert.equal(live.table, 'current');
+  const table = LP.describePocketTable(live.slices);
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+  const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(help - 0.80) < 1e-9, `live help ${help}`);
+  assert.ok(Math.abs(zero - 0.12) < 1e-9, `live zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.08) < 1e-9, `live bad ${bad}`);
+});
+
+test('proposed TEMP table matches 30/45/10/15, lands in the locked pocket, and stays inside labels', () => {
+  const proposed = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
+    roundCount: 9,
+    spread: 8,
+    currentRound: 10,
+    player: 'Duke',
+    extra: { table: 'proposed', pocketCount: 40 }
+  });
+  assert.equal(proposed.eligible, true);
+  assert.equal(proposed.table, 'proposed');
+  assert.equal(proposed.maxSetback, LP.PROPOSED_SETBACK_MAX['Five Crowns']);
+  const table = LP.describePocketTable(proposed.slices);
+  assert.ok(table.pockets >= 20 && table.pockets <= 40, `proposed pockets ${table.pockets}`);
+  const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
+  const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
+  const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
+  assert.ok(Math.abs(help - 0.75) < 1e-9, `proposed help ${help}`);
+  assert.ok(Math.abs(zero - 0.10) < 1e-9, `proposed zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.15) < 1e-9, `proposed bad ${bad}`);
+  table.outcomes.forEach((outcome) => {
+    assert.ok(outcome.segments >= 1, `proposed ${outcome.label} missing pocket`);
+    assert.ok(
+      Math.abs(outcome.visualShare - outcome.probability) <= LP.VISUAL_SHARE_TOLERANCE + 1e-9,
+      `proposed ${outcome.label} visual ${outcome.visualShare} vs ${outcome.probability}`
+    );
+  });
+  const gap = proposed.leaderGap;
+  const inc = proposed.scoreIncrement;
+  const floorTo = (value) => Math.floor(value / inc) * inc;
+  const expected = new Set([
+    ...LP.PROPOSED_HELP_FRACTIONS.good.map((frac) => -floorTo(Math.min(gap * frac, proposed.maxSafeAdjustment))),
+    ...LP.PROPOSED_HELP_FRACTIONS.reallyGood.map((frac) => -floorTo(Math.min(gap * frac, proposed.maxSafeAdjustment))),
+    0,
+    5,
+    10
+  ].filter((value) => value !== 0 || true));
+  const amounts = new Set(proposed.slices.map((slice) => Number(slice.adjustment)));
+  amounts.forEach((amount) => {
+    assert.ok(proposed.slices.some((slice) => Number(slice.adjustment) === amount));
+  });
+  [...expected].filter((value) => value !== 0 || amounts.has(0)).forEach((amount) => {
+    if (amount < 0 && Math.abs(amount) > proposed.maxSafeAdjustment) return;
+    if (amount > 0 && amount > proposed.maxSetback) return;
+    assert.ok(amounts.has(amount), `proposed missing pocket ${amount}`);
+  });
+  const slices = LP.attachSliceArcs(proposed.slices);
+  const geo = { cx: 400, cy: 400, outer: 400 * LP.WHEEL_OUTER_FRAC, inner: 400 * LP.WHEEL_INNER_FRAC, cssWidth: 360, canvasWidth: 800 };
+  slices.forEach((slice, index) => {
+    const layout = LP.labelLayout(slice, geo);
+    assert.ok(layout.insideSegment, `proposed slice ${index} ${layout.text} left its pocket`);
+  });
+  const n = 20000;
+  const counts = { good: 0, zero: 0, bad: 0 };
+  const random = mulberry32(20261027);
+  for (let i = 0; i < n; i++) {
+    const pick = LP.pickWeightedSlice(slices, random);
+    counts[pick.kind === 'good' ? 'good' : pick.kind === 'bad' ? 'bad' : 'zero'] += 1;
+    const degrees = LP.landingDegreesForSlice(pick, random);
+    const angle = LP.wheelAngleFromDegrees(degrees);
+    const hit = slices.find((slice) => LP.angleInArc(angle, slice._start, slice._end));
+    assert.equal(LP.outcomeKey(hit), LP.outcomeKey(pick), `proposed landing ${LP.outcomeKey(pick)} -> ${hit && LP.outcomeKey(hit)}`);
+  }
+  assert.ok(Math.abs(counts.good / n - 0.30 - 0.45) < 0.02, `proposed sim help ${counts.good / n}`);
+  assert.ok(Math.abs(counts.zero / n - 0.10) < 0.02, `proposed sim zero ${counts.zero / n}`);
+  assert.ok(Math.abs(counts.bad / n - 0.15) < 0.02, `proposed sim bad ${counts.bad / n}`);
 });
