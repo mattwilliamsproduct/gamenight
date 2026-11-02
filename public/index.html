@@ -2059,6 +2059,7 @@
     @media (max-width: 760px) {
       .score-entry-progress { width: 100%; margin-top: 0.75rem; }
       .score-entry-unconfirmed { flex: 1 0 100%; }
+      .score-entry-layout > #score-entry-unconfirmed { flex: 0 0 auto; width: 100%; }
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
@@ -2121,6 +2122,22 @@
       padding-top: 16px !important;
       padding-bottom: 16px !important;
       grid-template-columns: minmax(0, 760px) minmax(286px, 320px);
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+    #score-entry-modal .score-entry-layout > #score-entry-unconfirmed {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      flex: 0 0 auto;
+      width: 100%;
+      margin-top: 0;
+    }
+    #score-entry-modal .score-entry-list {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    #score-entry-modal .score-entry-side {
+      grid-column: 2;
+      grid-row: 2;
     }
     #score-entry-modal .score-entry-list,
     #score-entry-modal .score-entry-side {
@@ -8681,7 +8698,7 @@ button.dealer-name-indicator .dealer-player-label {
       #score-entry-modal .score-entry-layout {
         min-height: 0;
         overflow: hidden;
-        grid-template-rows: minmax(6.75rem, 1fr) auto;
+        grid-template-rows: minmax(6.75rem, 1fr) auto auto;
       }
       #score-entry-modal .score-entry-list {
         display: flex;
@@ -8689,6 +8706,14 @@ button.dealer-name-indicator .dealer-player-label {
         min-height: 11.25rem !important;
         height: 100%;
         overflow: hidden;
+      }
+      #score-entry-modal .score-entry-layout > #score-entry-unconfirmed {
+        flex: 0 0 auto;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding: 0;
+        font-size: 0.85rem;
+        line-height: 1.25;
       }
       #score-entry-modal .score-entry-panel > .border-t button {
         min-height: 44px !important;
@@ -8767,8 +8792,12 @@ button.dealer-name-indicator .dealer-player-label {
           gap: 4px;
           padding: 4px;
         }
+        #score-entry-modal .score-entry-layout > #score-entry-unconfirmed,
         #score-entry-modal .score-entry-panel.score-entry-many-players #score-entry-unconfirmed {
-          display: none;
+          margin-top: 0;
+          padding: 0;
+          font-size: 0.85rem;
+          line-height: 1.25;
         }
         #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
           min-height: 40px !important;
@@ -9604,7 +9633,6 @@ button.dealer-name-indicator .dealer-player-label {
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
-          <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
           <p id="score-entry-error" class="inline-form-error" role="alert"></p>
           <div id="hf-rate-bar" class="hf-rate-bar hidden">
             <button type="button" id="hf-rate-clean" class="hf-rate" onclick="selectHandFootRate('cleanCanastaEach')">
@@ -9631,6 +9659,7 @@ button.dealer-name-indicator .dealer-player-label {
             </div>
             <div id="score-entry-rows" class="score-entry-rows overflow-y-auto pr-1 min-h-0"></div>
           </div>
+          <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
           <div class="score-entry-side flex flex-col gap-3">
             <div class="score-entry-selected-card p-4">
               <div id="score-entry-selected-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-3" style="color:var(--muted);">Selected Player</div>

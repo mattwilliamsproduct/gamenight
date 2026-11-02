@@ -147,6 +147,96 @@ test('8-player phone entry keeps the active row above the keypad', async ({page}
   }
 });
 
+async function trimScoreEntryRosterTo(page, count) {
+  await page.evaluate((keep) => {
+    if (!currentGame || !Array.isArray(currentGame.originalRoster)) return;
+    const roster = currentGame.originalRoster.slice(0, keep);
+    currentGame.originalRoster = roster;
+    if (Array.isArray(players)) {
+      players.length = 0;
+      roster.forEach((name) => players.push(name));
+    }
+    const trimScores = (bag) => {
+      if (!bag || typeof bag !== 'object') return;
+      Object.keys(bag).forEach((name) => {
+        if (!roster.includes(name)) delete bag[name];
+      });
+    };
+    trimScores(currentGame.totals);
+    (currentGame.rounds || []).forEach((round) => {
+      trimScores(round && round.scores);
+      trimScores(round && round.bids);
+      trimScores(round && round.actuals);
+    });
+    if (typeof cancelScoreEntryModal === 'function') cancelScoreEntryModal();
+    if (typeof renderGame === 'function') renderGame();
+  }, count);
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    if (typeof openScoreEntryModal === 'function') openScoreEntryModal();
+  });
+  await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+  await page.waitForFunction(() => {
+    const modal = document.getElementById('score-entry-modal');
+    return modal && Number(getComputedStyle(modal).opacity) > 0.95;
+  });
+}
+
+async function expectBlankScoreHelper(page, label) {
+  const helper = page.locator('#score-entry-unconfirmed');
+  await expect(helper, label).toBeVisible();
+  await expect(helper, label).toHaveText(/Blank scores count as 0/);
+  const box = await helper.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const glyph = range.getBoundingClientRect();
+    return {
+      width: r.width,
+      height: r.height,
+      display: style.display,
+      visibility: style.visibility,
+      glyphH: glyph.height,
+      glyphW: glyph.width,
+      glyphTop: glyph.top,
+      glyphBottom: glyph.bottom,
+      vh: window.innerHeight
+    };
+  });
+  expect(box.display, `${label} display`).not.toBe('none');
+  expect(box.visibility, `${label} visibility`).not.toBe('hidden');
+  expect(box.height, `${label} height ${box.height}`).toBeGreaterThan(8);
+  expect(box.width, `${label} width ${box.width}`).toBeGreaterThan(40);
+  expect(box.glyphH, `${label} glyph height ${box.glyphH}`).toBeGreaterThan(8);
+  expect(box.glyphW, `${label} glyph width ${box.glyphW}`).toBeGreaterThan(80);
+  expect(box.glyphTop, `${label} glyph top`).toBeGreaterThanOrEqual(0);
+  expect(box.glyphBottom, `${label} glyph bottom`).toBeLessThanOrEqual(box.vh + 1);
+}
+
+test('blank-score helper stays visible for 3 and 8 players', async ({page}) => {
+  const sizes = [
+    {width: 375, height: 667},
+    {width: 390, height: 844},
+    {width: 1024, height: 768},
+    {width: 1440, height: 900}
+  ];
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'five-crowns-late-8', surface: 'entry-scores'});
+    await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+    await page.waitForFunction(() => {
+      const modal = document.getElementById('score-entry-modal');
+      return modal && Number(getComputedStyle(modal).opacity) > 0.95;
+    });
+    await expectBlankScoreHelper(page, `${size.width} 8-player`);
+    await trimScoreEntryRosterTo(page, 3);
+    await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
+    await page.waitForFunction(() => document.querySelectorAll('#score-entry-rows .score-entry-row').length === 3);
+    await expectBlankScoreHelper(page, `${size.width} 3-player`);
+  }
+});
+
 test('8-player keypad Next stays on 375', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await openTestView(page, 'keypad-8p');
