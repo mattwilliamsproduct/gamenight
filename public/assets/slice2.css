@@ -2430,11 +2430,13 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     gap: 0.4rem !important;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-layout > #score-entry-unconfirmed {
+  html.slice2-tv #score-entry-modal .score-entry-side > #score-entry-unconfirmed {
     flex: 0 0 auto !important;
     width: 100%;
     margin: 0;
     padding: 0;
+    line-height: 1.5;
+    color: var(--muted);
   }
 
   html.slice2-tv #score-entry-modal .score-entry-list {
@@ -2893,12 +2895,14 @@ html.s2-standings-only #scorecard-capture .scorecard-col-now {
     grid-template-rows: minmax(6.75rem, 1fr) auto auto;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-layout > #score-entry-unconfirmed {
+  html.slice2-tv #score-entry-modal .score-entry-side > #score-entry-unconfirmed {
     flex: 0 0 auto !important;
     width: 100%;
     margin-top: 0;
     margin-bottom: 0;
     padding: 0;
+    line-height: 1.5;
+    color: var(--muted);
   }
 
   html.slice2-tv #score-entry-modal .score-entry-rows,
@@ -3613,14 +3617,15 @@ html.slice2-tv .s2-night-day {
     font-size: 0.78rem;
   }
 
-  html.slice2-tv #score-entry-modal .score-entry-layout > #score-entry-unconfirmed,
+  html.slice2-tv #score-entry-modal .score-entry-side > #score-entry-unconfirmed,
   html.slice2-tv #score-entry-modal .score-entry-panel.score-entry-many-players #score-entry-unconfirmed {
     flex: 0 0 auto !important;
     margin-top: 0;
     margin-bottom: 0;
     padding: 0;
     font-size: 0.85rem;
-    line-height: 1.25;
+    line-height: 1.5;
+    color: var(--muted);
   }
 
   html.slice2-tv #score-entry-modal .score-entry-panel.score-entry-many-players .score-entry-row,

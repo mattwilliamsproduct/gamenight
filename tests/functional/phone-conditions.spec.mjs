@@ -182,6 +182,11 @@ async function trimScoreEntryRosterTo(page, count) {
   });
 }
 
+function parseRgb(color) {
+  const m = String(color).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  return m ? {r: +m[1], g: +m[2], b: +m[3], a: m[4] == null ? 1 : +m[4]} : null;
+}
+
 async function expectBlankScoreHelper(page, label) {
   const helper = page.locator('#score-entry-unconfirmed');
   await expect(helper, label).toBeVisible();
@@ -189,29 +194,81 @@ async function expectBlankScoreHelper(page, label) {
   const box = await helper.evaluate((el) => {
     const r = el.getBoundingClientRect();
     const style = getComputedStyle(el);
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const glyph = range.getBoundingClientRect();
+    const panel = document.querySelector('#score-entry-modal .score-entry-panel');
+    const m = panel?.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const hit = document.elementFromPoint(cx, cy);
+    let bgNode = el;
+    let bg = 'rgba(0, 0, 0, 0)';
+    while (bgNode) {
+      const next = getComputedStyle(bgNode).backgroundColor;
+      if (next && !/^rgba?\(0,\s*0,\s*0,\s*0\)$/.test(next)) {
+        bg = next;
+        break;
+      }
+      bgNode = bgNode.parentElement;
+    }
     return {
       width: r.width,
       height: r.height,
+      top: r.top,
+      bottom: r.bottom,
+      left: r.left,
+      right: r.right,
       display: style.display,
       visibility: style.visibility,
-      glyphH: glyph.height,
-      glyphW: glyph.width,
-      glyphTop: glyph.top,
-      glyphBottom: glyph.bottom,
-      vh: window.innerHeight
+      opacity: Number(style.opacity),
+      color: style.color,
+      bg,
+      hitId: hit?.id || '',
+      hitIsHelper: !!(hit && (hit === el || el.contains(hit))),
+      modalTop: m?.top || 0,
+      modalBottom: m?.bottom || 0,
+      modalLeft: m?.left || 0,
+      modalRight: m?.right || 0
     };
   });
   expect(box.display, `${label} display`).not.toBe('none');
   expect(box.visibility, `${label} visibility`).not.toBe('hidden');
+  expect(box.opacity, `${label} opacity`).toBeGreaterThan(0.95);
   expect(box.height, `${label} height ${box.height}`).toBeGreaterThan(8);
   expect(box.width, `${label} width ${box.width}`).toBeGreaterThan(40);
-  expect(box.glyphH, `${label} glyph height ${box.glyphH}`).toBeGreaterThan(8);
-  expect(box.glyphW, `${label} glyph width ${box.glyphW}`).toBeGreaterThan(80);
-  expect(box.glyphTop, `${label} glyph top`).toBeGreaterThanOrEqual(0);
-  expect(box.glyphBottom, `${label} glyph bottom`).toBeLessThanOrEqual(box.vh + 1);
+  const visibleH = Math.min(box.bottom, box.modalBottom) - Math.max(box.top, box.modalTop);
+  const visibleW = Math.min(box.right, box.modalRight) - Math.max(box.left, box.modalLeft);
+  expect(visibleH, `${label} visible height ${visibleH}`).toBeGreaterThan(8);
+  expect(visibleW, `${label} visible width ${visibleW}`).toBeGreaterThan(40);
+  expect(box.top, `${label} top`).toBeGreaterThanOrEqual(box.modalTop - 2);
+  expect(box.bottom, `${label} bottom`).toBeLessThanOrEqual(box.modalBottom + 2);
+  expect(box.hitIsHelper, `${label} covered by ${box.hitId}`).toBe(true);
+  const fg = parseRgb(box.color);
+  const bg = parseRgb(box.bg);
+  expect(fg && fg.a, `${label} text alpha`).toBeGreaterThan(0.8);
+  expect(bg, `${label} background`).toBeTruthy();
+  const channelDelta = Math.abs(fg.r - bg.r) + Math.abs(fg.g - bg.g) + Math.abs(fg.b - bg.b);
+  expect(channelDelta, `${label} color ${box.color} vs ${box.bg}`).toBeGreaterThan(80);
+  const shot = await helper.screenshot();
+  const paint = await page.evaluate(async (b64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${b64}`;
+    await img.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let dark = 0;
+    const seen = new Set();
+    for (let i = 0; i < data.length; i += 4) {
+      seen.add(`${data[i] >> 4}:${data[i + 1] >> 4}:${data[i + 2] >> 4}`);
+      if (data[i] + data[i + 1] + data[i + 2] < 620) dark += 1;
+    }
+    return {dark, colors: seen.size, w: canvas.width, h: canvas.height};
+  }, shot.toString('base64'));
+  expect(paint.h, `${label} screenshot height`).toBeGreaterThan(8);
+  expect(paint.colors, `${label} painted colors ${paint.colors}`).toBeGreaterThan(4);
+  expect(paint.dark, `${label} painted ink ${paint.dark}`).toBeGreaterThan(40);
 }
 
 test('blank-score helper stays visible for 3 and 8 players', async ({page}) => {

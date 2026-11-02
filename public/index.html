@@ -2059,7 +2059,12 @@
     @media (max-width: 760px) {
       .score-entry-progress { width: 100%; margin-top: 0.75rem; }
       .score-entry-unconfirmed { flex: 1 0 100%; }
-      .score-entry-layout > #score-entry-unconfirmed { flex: 0 0 auto; width: 100%; }
+      .score-entry-side > #score-entry-unconfirmed {
+        flex: 0 0 auto;
+        width: 100%;
+        margin: 0;
+        line-height: 1.5;
+      }
       .score-entry-list::before { display: none; }
       .score-entry-lane-label { display: none; }
       .score-entry-row {
@@ -8691,13 +8696,13 @@ button.dealer-name-indicator .dealer-player-label {
         height: 100%;
         overflow: hidden;
       }
-      #score-entry-modal .score-entry-layout > #score-entry-unconfirmed {
+      #score-entry-modal .score-entry-side > #score-entry-unconfirmed {
         flex: 0 0 auto;
-        margin-top: 0;
-        margin-bottom: 0;
+        margin: 0;
         padding: 0;
         font-size: 0.85rem;
-        line-height: 1.25;
+        line-height: 1.5;
+        color: var(--muted);
       }
       #score-entry-modal .score-entry-panel > .border-t button {
         min-height: 44px !important;
@@ -8776,12 +8781,13 @@ button.dealer-name-indicator .dealer-player-label {
           gap: 4px;
           padding: 4px;
         }
-        #score-entry-modal .score-entry-layout > #score-entry-unconfirmed,
+        #score-entry-modal .score-entry-side > #score-entry-unconfirmed,
         #score-entry-modal .score-entry-panel.score-entry-many-players #score-entry-unconfirmed {
-          margin-top: 0;
+          margin: 0;
           padding: 0;
           font-size: 0.85rem;
-          line-height: 1.25;
+          line-height: 1.5;
+          color: var(--muted);
         }
         #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
           min-height: 40px !important;
@@ -9643,8 +9649,8 @@ button.dealer-name-indicator .dealer-player-label {
             </div>
             <div id="score-entry-rows" class="score-entry-rows overflow-y-auto pr-1 min-h-0"></div>
           </div>
-          <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
           <div class="score-entry-side flex flex-col gap-3">
+            <div id="score-entry-unconfirmed" class="score-entry-unconfirmed" role="status"></div>
             <div class="score-entry-selected-card p-4">
               <div id="score-entry-selected-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-3" style="color:var(--muted);">Selected Player</div>
               <div class="score-entry-selected-head">
@@ -17279,8 +17285,8 @@ ${isDealer
     if(!note||!header||!layout||!side)return;
     const phone=(window.visualViewport?.width||window.innerWidth||0)<761;
     if(phone){
-      if(note.parentElement!==layout||note.nextElementSibling!==side){
-        layout.insertBefore(note, side);
+      if(note.parentElement!==side||side.firstElementChild!==note){
+        side.insertBefore(note, side.firstElementChild);
       }
       return;
     }
