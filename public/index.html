@@ -8985,7 +8985,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <button onclick="addPlayerToAll()" class="btn-primary px-7 py-3.5 text-base">Add</button>
         </div>
-        <p id="home-player-name-error" class="inline-form-error text-sm font-semibold mb-4" style="color:var(--rose);"></p>
+        <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold mb-4" style="color:var(--rose);"></p>
         <div class="bp-roster-columns">
           <div class="bp-roster-column bp-on-deck-zone">
             <div class="flex items-center justify-between mb-3 px-1">
@@ -9543,7 +9543,7 @@ button.dealer-name-indicator .dealer-player-label {
           onkeypress="if(event.key==='Enter')doRenamePlayer()"
           class="w-full rounded-xl px-4 py-3 text-base font-bold outline-none border hairline mb-3"
           style="background:var(--bg-2);color:var(--ink);">
-        <p id="rename-player-name-error" class="inline-form-error text-sm font-semibold mb-3" style="color:var(--rose);"></p>
+        <p id="rename-player-name-error" class="hidden inline-form-error text-sm font-semibold mb-3" style="color:var(--rose);"></p>
         <p class="text-xs font-semibold mb-4 leading-relaxed" style="color:var(--muted);">All match history, stats, avatar, color, and profile data will carry over to the new name.</p>
         <div class="flex gap-2">
           <button onclick="closeRenameModal()" class="btn-ghost flex-1 py-3 text-sm">Cancel</button>
@@ -9712,7 +9712,7 @@ button.dealer-name-indicator .dealer-player-label {
           <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-lg">Add</button>
         </div>
         <div id="midgame-player-suggestions" class="player-suggest-menu add-player-suggest hidden"></div>
-        <p id="midgame-player-name-error" class="inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
+        <p id="midgame-player-name-error" class="hidden inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
       </div>
     </div>
 
@@ -9934,6 +9934,7 @@ button.dealer-name-indicator .dealer-player-label {
             <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds games and players this device does not already have. Finished games already here stay as they are. If the file has a match in progress, that match replaces the one on this table. Player photos and text-size settings in the file overwrite the ones here.</p>
             <p id="backup-clear-warning" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
             <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
+            <p id="import-player-name-error" class="hidden text-xs font-bold" style="color:var(--rose);"></p>
             <details class="rounded-2xl border hairline p-3" style="background:var(--bg-2);">
               <summary class="text-xs font-extrabold uppercase tracking-[0.14em] cursor-pointer" style="color:var(--muted);">Or paste JSON</summary>
               <p class="text-xs font-bold mt-3 mb-2" style="color:var(--muted);">Paste incoming JSON:</p>
@@ -12094,6 +12095,12 @@ button.dealer-name-indicator .dealer-player-label {
   function importBackupText(text){
     if(!window.BPGBackup) throw new Error('invalid-backup');
     const incoming=BPGBackup.parseBackup(text);
+    const nameErr=incomingPlayerNameWriteError(incoming);
+    if(nameErr){
+      showPlayerNameWriteError('import-player-name-error',nameErr);
+      throw Object.assign(new Error('invalid-player-name'),{playerNameError:nameErr});
+    }
+    showPlayerNameWriteError('import-player-name-error','');
     const {next,added}=BPGBackup.mergeBackup(currentBackupState(), incoming);
     applyMergedBackup(next, added);
   }
@@ -12110,7 +12117,10 @@ button.dealer-name-indicator .dealer-player-label {
     try{
       showBackupError('');
       importBackupText(text);
-    }catch(e){showBackupError('That paste is not a valid backup.');}
+    }catch(e){
+      if(e?.playerNameError) return;
+      showBackupError('That paste is not a valid backup.');
+    }
   }
   function importDataFromFile(ev){
     if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){
@@ -12127,7 +12137,10 @@ button.dealer-name-indicator .dealer-player-label {
       try{
         showBackupError('');
         importBackupText(String(reader.result||''));
-      }catch(e){showBackupError('That file is not a valid backup.');}
+      }catch(e){
+        if(e?.playerNameError) return;
+        showBackupError('That file is not a valid backup.');
+      }
     };
     reader.readAsText(file);
   }
@@ -12651,6 +12664,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!editingPlayerProfile) return;
     document.getElementById('rename-current').textContent = editingPlayerProfile;
     document.getElementById('rename-input').value = editingPlayerProfile;
+    showPlayerNameWriteError('rename-player-name-error','');
     openModal('rename-modal');
     setTimeout(() => {
       const inp = document.getElementById('rename-input');
@@ -12663,7 +12677,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!oldName) return;
     const newName = (document.getElementById('rename-input').value || '').trim();
     if(!newName){ alert('Please enter a name.'); return; }
-    if(rejectUnusablePlayerName(newName,'rename-player-name-error')) return;
+    if(rejectUnsavablePlayerName(newName,'rename-player-name-error')) return;
     if(newName === oldName){ closeRenameModal(); return; }
     if(playerNameIsTaken(newName)){
       if(!confirm(`A player named "${newName}" already exists. Merge "${oldName}" into "${newName}"? All history will combine.`)){
@@ -13098,8 +13112,63 @@ button.dealer-name-indicator .dealer-player-label {
     return String(str??'').replace(/\\/g,'\\\\').replace(/'/g,'\\\'');
   }
   const playerSuggestHideTimers={};
+  const PLAYER_NAME_COMMA_MSG='Use one name — commas aren’t allowed.';
+  function playerNameWriteError(name){
+    if(typeof name!=='string') return PLAYER_NAME_COMMA_MSG;
+    if(name.includes(',')) return PLAYER_NAME_COMMA_MSG;
+    return '';
+  }
+  function showPlayerNameWriteError(elId,message){
+    const el=document.getElementById(elId);
+    if(!el) return;
+    if(message){
+      el.textContent=message;
+      el.classList.remove('hidden');
+    }else{
+      el.textContent='';
+      el.classList.add('hidden');
+    }
+  }
+  function rejectUnsavablePlayerName(name,elId){
+    const err=playerNameWriteError(name);
+    showPlayerNameWriteError(elId,err);
+    return !!err;
+  }
+  function collectIncomingPlayerNames(incoming){
+    const names=[];
+    if(Array.isArray(incoming?.allPlayers)) names.push(...incoming.allPlayers);
+    if(Array.isArray(incoming?.players)) names.push(...incoming.players);
+    if(incoming?.playerProfiles&&typeof incoming.playerProfiles==='object'){
+      names.push(...Object.keys(incoming.playerProfiles));
+    }
+    if(incoming?.currentGame&&Array.isArray(incoming.currentGame.originalRoster)){
+      names.push(...incoming.currentGame.originalRoster);
+    }
+    if(Array.isArray(incoming?.history)){
+      incoming.history.forEach(h=>{
+        if(h&&Array.isArray(h.originalRoster)) names.push(...h.originalRoster);
+      });
+    }
+    return names;
+  }
+  function incomingPlayerNameWriteError(incoming){
+    for(const name of collectIncomingPlayerNames(incoming)){
+      const err=playerNameWriteError(name);
+      if(err) return err;
+    }
+    return '';
+  }
   function getKnownPlayerNames(){
-    return BPGScorebook.knownPlayerNames(allPlayers, playerProfiles);
+    const seen=new Set(), names=[];
+    [...allPlayers,...Object.keys(playerProfiles||{})].forEach(raw=>{
+      const name=String(raw||'').trim();
+      if(!name)return;
+      const key=name.toLowerCase();
+      if(seen.has(key))return;
+      seen.add(key);
+      names.push(name);
+    });
+    return names.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
   }
   function getPlayerSuggestEls(scope){
     const isMid=scope==='midgame';
@@ -13112,12 +13181,13 @@ button.dealer-name-indicator .dealer-player-label {
     const {input}=getPlayerSuggestEls(scope);
     const q=(input?.value||'').trim().toLowerCase();
     if(!q)return [];
-    return BPGScorebook.playerSuggestionMatches(
-      allPlayers,
-      playerProfiles,
-      q,
-      scope==='midgame' ? (currentGame?.originalRoster||[]) : players
-    );
+    const ineligible=new Set(scope==='midgame'
+      ? (currentGame?.originalRoster||[]).map(p=>p.toLowerCase())
+      : players.map(p=>p.toLowerCase()));
+    return getKnownPlayerNames()
+      .filter(name=>!ineligible.has(name.toLowerCase()))
+      .filter(name=>name.toLowerCase().startsWith(q))
+      .slice(0,8);
   }
   function rejectUnusablePlayerName(name, errorId){
     if(BPGScorebook.isUsablePlayerName(name)){
@@ -13140,6 +13210,7 @@ button.dealer-name-indicator .dealer-player-label {
   function updatePlayerSuggestions(scope){
     const {input,menu}=getPlayerSuggestEls(scope);
     if(!input||!menu)return;
+    showPlayerNameWriteError(scope==='midgame'?'midgame-player-name-error':'home-player-name-error','');
     clearTimeout(playerSuggestHideTimers[scope]);
     const q=(input.value||'').trim();
     const matches=getPlayerSuggestionMatches(scope);
@@ -13220,8 +13291,10 @@ button.dealer-name-indicator .dealer-player-label {
 
   function addPlayerToAll(selectedName){
     const input=document.getElementById('quick-add-player');
-    const name=(selectedName||input.value).trim(); if(!name)return;
-    if(rejectUnusablePlayerName(name,'home-player-name-error')) return;
+    const raw=selectedName!=null?selectedName:input.value;
+    if(typeof raw!=='string'){ showPlayerNameWriteError('home-player-name-error',PLAYER_NAME_COMMA_MSG); return; }
+    const name=raw.trim(); if(!name)return;
+    if(rejectUnsavablePlayerName(name,'home-player-name-error')) return;
     if(!allPlayers.includes(name)) allPlayers.push(name);
     if(!players.includes(name)) players.push(name);
     input.value='';
@@ -18343,6 +18416,7 @@ ${isDealer
     const input=document.getElementById('midgame-add-player-input');
     if(input)input.value='';
     hidePlayerSuggestions('midgame');
+    showPlayerNameWriteError('midgame-player-name-error','');
     openModal('add-player-modal');
     setTimeout(()=>input?.focus(),80);
   }
@@ -18352,9 +18426,11 @@ ${isDealer
   }
   function submitAddPlayerMidGame(selectedName){
     const input=document.getElementById('midgame-add-player-input');
-    const name=(selectedName||input?.value||'').trim();
+    const raw=selectedName!=null?selectedName:(input?.value||'');
+    if(typeof raw!=='string'){ showPlayerNameWriteError('midgame-player-name-error',PLAYER_NAME_COMMA_MSG); return; }
+    const name=raw.trim();
     if(!name){alert('Invalid name.');return;}
-    if(rejectUnusablePlayerName(name,'midgame-player-name-error')) return;
+    if(rejectUnsavablePlayerName(name,'midgame-player-name-error')) return;
     if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
     closeAddPlayerModal();
       if(!players.includes(name))players.push(name);
