@@ -53,6 +53,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
 - A first-use empty table that says add a name, pick a game, then tap Start.
 - 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
+- Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
 
 ### Kills
 

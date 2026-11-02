@@ -61,3 +61,5 @@ Standing trap: [rc2-look-1400.md](rc2-look-1400.md) — reserve NOW min-width an
 Standing trap: [rc2-look-1505.md](rc2-look-1505.md) — do not ship TEMP demo-loading. 1024 Records headline stays three across. Current-round header is `R11 Now`, not `R11 · Now`. Phone entry mutes the subtitle and keeps three rows above Scoring. Non-active 8-player rows have no teal/dealer outline.
 
 Standing trap: [rc2-records-labels.md](rc2-records-labels.md) — Canasta nights keep the Hand and Foot id. Records must list that id as Canasta. Rook history can show while the start card stays hidden.
+
+Standing trap: [rc3d-phone-entry-roster.md](rc3d-phone-entry-roster.md) — phone 8-player entry must scroll the roster lane; do not let `#score-entry-rows` grow and clip under the keypad.

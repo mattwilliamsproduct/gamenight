@@ -56,7 +56,7 @@ House notes already in the rules cards (`gameRulesText`):
 
 Mid-game join: the new player gets the average of the current losing half, written onto the last scoring round, with `joinBonus` on every earlier round so records ignore the catch-up. Wizard length resyncs from the new headcount and never shrinks below the round you are on.
 
-Head Back to Shore retires someone. Their row stays. They stop scoring and stop qualifying for a Life Preserver.
+Mark left early (the confirm still says Head Back to Shore) retires someone. Their row stays. They stop scoring and stop qualifying for a Life Preserver.
 
 ### Life Preserver (the wheel; stored as Hail Mary)
 
