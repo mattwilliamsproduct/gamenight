@@ -3886,7 +3886,7 @@ button.dealer-name-indicator {
     #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-input,
     #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input,
     #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input.score-cell-miss {
-      width: var(--scorecard-round-input) !important;
+      width: 100% !important;
       min-width: 0 !important;
       max-width: 100% !important;
       box-sizing: border-box;
@@ -16033,10 +16033,18 @@ ${isDealer
     const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
       || host.classList.contains('scorecard-hand-foot');
     const chipFloor=handFoot?12:10;
+    const inputs=[...host.querySelectorAll('td.scorecard-round-td .score-cell-input')];
+    inputs.forEach((el)=>{
+      el.style.removeProperty('font-size');
+      el.style.setProperty('width','100%','important');
+      el.style.setProperty('max-width','100%','important');
+      el.style.setProperty('min-width','0','important');
+    });
+    void host.offsetWidth;
+    let smallest=0;
     for(let pass=0;pass<6;pass++){
       let overflowed=false;
-      let smallest=0;
-      host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+      inputs.forEach((el)=>{
         if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth+1) return;
         overflowed=true;
         const maximum=parseFloat(getComputedStyle(el).fontSize)||16;
@@ -16044,10 +16052,6 @@ ${isDealer
         el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
         smallest=smallest?Math.min(smallest,fitted):fitted;
       });
-      if(smallest>0){
-        const current=parseFloat(host.style.getPropertyValue('--scorecard-col-input-font'))||smallest;
-        host.style.setProperty('--scorecard-col-input-font',`${Math.min(current,smallest).toFixed(1)}px`);
-      }
       if(!overflowed) break;
       void host.offsetWidth;
     }
@@ -16102,6 +16106,7 @@ ${isDealer
     table.querySelectorAll('.scorecard-col-player').forEach((el)=>{
       el.style.removeProperty('width');
       el.style.removeProperty('max-width');
+      el.style.removeProperty('min-width');
     });
     const visible=[...table.querySelectorAll('thead th.scorecard-round-th')].filter(th=>!th.classList.contains('scorecard-round--hidden'));
     const nowElEarly=table.querySelector('thead th.scorecard-col-now');
@@ -16183,7 +16188,7 @@ ${isDealer
     const rawCol=available/Math.max(1,visible.length+nowExtra);
     // Prefer colFloor when there is room; never exceed available/n (avoids wrap scroll).
     const col=Math.min(colMax, Math.max(rawCol < colFloor ? (handFoot?24:28) : colFloor, rawCol));
-    const pad=handFoot?2:(col<42?2:col<56?3:col<72?5:6);
+    const pad=handFoot?2:(col<42?2:col<64?3:col<80?5:6);
     const input=Math.max(26,col-(pad*2));
     let font;
     if(targetRound){
@@ -16329,6 +16334,7 @@ ${isDealer
         const block=document.getElementById('modal-scorecard-block');
         if(modal&&block&&!modal.classList.contains('hidden')) updateScorecardColumnTrim(block);
         fitActiveScorecardRows();
+        fitScorecardRoundInputFonts(capture);
         fitScorecardPlayerNames(capture);
         fitScorecardTotals(capture);
         const table=capture?.querySelector('table.scorecard-table');
@@ -16336,6 +16342,7 @@ ${isDealer
           updateScorecardColumnTrim(capture,{hideUntilLeadFits:true});
           fitActiveScorecardRows();
           fitScorecardPlayerNames(capture);
+          fitScorecardRoundInputFonts(capture);
         }
         fitScorecardTotals(capture);
         keepScorecardRoundTotalRatio(capture);
@@ -16753,7 +16760,7 @@ ${isDealer
         const cellClick=isHandFootGame(currentGame)?`openHandFootRoundEditor('${escapeJsString(p)}',${rIdx})`:`openPastScoreCell('${escapeJsString(p)}',${rIdx})`;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td${exactTdClass}">
           <div class="score-cell-stack${extra.className}">
-          <input type="text" id="${cellId}" readonly inputmode="none" unselectable="on"
+          <input type="text" id="${cellId}" size="2" readonly inputmode="none" unselectable="on"
             onclick="${cellClick}" value="${shown!==undefined&&shown!==null?shown:''}"
             class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
 
