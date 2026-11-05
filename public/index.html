@@ -15986,15 +15986,7 @@ ${isDealer
     });
     const handFootInputs=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
       || root?.classList.contains('scorecard-hand-foot');
-    if(!handFootInputs){
-      root.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(input=>{
-        input.style.removeProperty('font-size');
-        if(input.clientWidth<=0||input.scrollWidth<=input.clientWidth+1)return;
-        const maximum=parseFloat(getComputedStyle(input).fontSize)||16;
-        const fitted=Math.max(11,maximum*(input.clientWidth/Math.max(1,input.scrollWidth))*0.92);
-        input.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-      });
-    }
+    if(!handFootInputs) fitScorecardRoundInputFonts(root);
     keepScorecardRoundTotalRatio(root);
   }
   function scorecardLeadStillOverflows(table){
@@ -16035,6 +16027,31 @@ ${isDealer
   function scorecardNowColWidth(table){
     return scorecardNowReserveWidth(table);
   }
+  function fitScorecardRoundInputFonts(root){
+    const host=root||document.getElementById('scorecard-capture');
+    if(!host) return;
+    const handFoot=document.getElementById('game-screen')?.dataset.game==='Hand and Foot'
+      || host.classList.contains('scorecard-hand-foot');
+    const chipFloor=handFoot?12:10;
+    for(let pass=0;pass<6;pass++){
+      let overflowed=false;
+      let smallest=0;
+      host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
+        if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth+1) return;
+        overflowed=true;
+        const maximum=parseFloat(getComputedStyle(el).fontSize)||16;
+        const fitted=Math.max(chipFloor,maximum*(el.clientWidth/Math.max(1,el.scrollWidth))*0.86);
+        el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
+        smallest=smallest?Math.min(smallest,fitted):fitted;
+      });
+      if(smallest>0){
+        const current=parseFloat(host.style.getPropertyValue('--scorecard-col-input-font'))||smallest;
+        host.style.setProperty('--scorecard-col-input-font',`${Math.min(current,smallest).toFixed(1)}px`);
+      }
+      if(!overflowed) break;
+      void host.offsetWidth;
+    }
+  }
   function shrinkScorecardRoundsToClearNow(root){
     const host=root||document.getElementById('scorecard-capture');
     if(!host) return;
@@ -16056,6 +16073,7 @@ ${isDealer
       host.style.setProperty('--scorecard-round-input-pad-x',`${pad}px`);
       host.style.setProperty('--scorecard-round-th-pad-x',`${pad}px`);
     }
+    fitScorecardRoundInputFonts(host);
   }
   function scorecardRoundColsTooTight(root){
     const raw=parseFloat(root?.style.getPropertyValue('--scorecard-round-col')||'');
@@ -16229,12 +16247,7 @@ ${isDealer
         el.textContent=prev;
       });
     }
-    host.querySelectorAll('td.scorecard-round-td .score-cell-input').forEach(el=>{
-      if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth)return;
-      const maximum=parseFloat(getComputedStyle(el).fontSize)||font;
-      const fitted=Math.max(chipFloor,maximum*(el.clientWidth/Math.max(1,el.scrollWidth))*0.88);
-      el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-    });
+    fitScorecardRoundInputFonts(host);
     // Keep a stable card width. Content-hug (max-content) made the card shrink
     // after Round 1; stretching to 100% ran it edge to edge. CSS owns the max.
     const bar=document.getElementById('slice2-board-bar');
@@ -16326,6 +16339,7 @@ ${isDealer
         }
         fitScorecardTotals(capture);
         keepScorecardRoundTotalRatio(capture);
+        fitScorecardRoundInputFonts(capture);
         fitActiveMatchBanner();
       } finally {
         gnPerfEnd(trimAllTimer);
