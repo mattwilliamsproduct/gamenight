@@ -24,7 +24,7 @@ Sample records must be computed by the real records functions from seeded games.
 
 ## Home gap
 
-Desktop Home is three 5:7 cards per row. From 1280px the two panels stretch to the taller one and Start sits at the bottom. Seats stay compact; empty space inside Tonight's Table is fine. At 1024 the cards stay smaller (`--bp-card-max: 148px`) so Start stays above the fold with 6 seated.
+Desktop Home is three 5:7 cards per row. From 1280px the start panel fills leftover viewport and Start sits at its bottom, so Resume + 3x2 + Start stay on screen. Tonight's Table is at least that tall (empty space inside is fine). Extra seats can sit below the fold; they do not pull Start down. Card width is capped (`--bp-card-max`: 132px through 1280, 148px from 1440). 1280x800 with the demo bar and Resume cannot take a larger card — 132px is the closest fit. Do not grow cards just to fill leftover space. At 1024 the same 132px keeps Start above the fold with 6 seated.
 
 ## Safari
 

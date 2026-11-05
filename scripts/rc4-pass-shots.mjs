@@ -27,10 +27,11 @@ async function shot(page, name) {
 async function freshDemo(browser, vp) {
   const page = await browser.newPage();
   await page.setViewportSize({width: vp.width, height: vp.height});
+  await page.addInitScript(() => {
+    try { sessionStorage.setItem('bpg_try_demo_tip', '1'); } catch (error) {}
+  });
   await page.goto(`${BASE}/?demo=try`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on' || window.__BPG_TRY_DEMO === true);
-  const tip = page.locator('#bpg-try-demo-tip button');
-  if (await tip.isVisible().catch(() => false)) await tip.click();
   await page.waitForTimeout(250);
   return page;
 }
@@ -42,6 +43,9 @@ try {
   for (const vp of VIEWPORTS) {
     {
       const page = await freshDemo(browser, vp);
+      await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
+      await page.waitForSelector('#home-screen:not(.hidden)');
+      await page.waitForTimeout(150);
       shots.push(await shot(page, `${vp.name}_header`));
       await page.close();
     }
@@ -197,9 +201,9 @@ try {
       <h1 style="margin:16px 20px 8px;font:700 22px Bree Serif,serif">PWA / apple-touch (Icon v3)</h1>
       <p style="margin:0 20px 16px">Favicon is not in this sheet. Leave it unchanged.</p>
       <div style="display:flex;gap:24px;align-items:end;padding:0 20px 24px;flex-wrap:wrap">
-        <figure style="margin:0;text-align:center"><img src="${BASE}/apple-touch-icon.png?v=5" width="180" height="180" alt="apple 180"><figcaption>apple-touch 180</figcaption></figure>
-        <figure style="margin:0;text-align:center"><img src="${BASE}/bp-icon-192.png?v=5" width="192" height="192" alt="192"><figcaption>icon 192</figcaption></figure>
-        <figure style="margin:0;text-align:center"><img src="${BASE}/bp-icon-512.png?v=5" width="256" height="256" alt="512"><figcaption>icon 512 (shown 256)</figcaption></figure>
+        <figure style="margin:0;text-align:center"><img src="${BASE}/apple-touch-icon.png?v=6" width="180" height="180" alt="apple 180"><figcaption>apple-touch 180</figcaption></figure>
+        <figure style="margin:0;text-align:center"><img src="${BASE}/bp-icon-192.png?v=6" width="192" height="192" alt="192"><figcaption>icon 192</figcaption></figure>
+        <figure style="margin:0;text-align:center"><img src="${BASE}/bp-icon-512.png?v=6" width="256" height="256" alt="512"><figcaption>icon 512 (shown 256)</figcaption></figure>
       </div>
     </body></html>`);
     await page.waitForTimeout(300);

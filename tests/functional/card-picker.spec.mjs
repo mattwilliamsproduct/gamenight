@@ -169,6 +169,61 @@ test('1024 with 6 seated keeps Start above the fold', async ({page}) => {
   expect(fold.startInsidePanel, 'Start left the picker panel').toBe(true);
 });
 
+async function openDemoHome(page) {
+  await page.addInitScript(() => {
+    try { sessionStorage.setItem('bpg_try_demo_tip', '1'); } catch (error) {}
+  });
+  await page.goto('/?demo=try', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
+  await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
+  await page.waitForSelector('#home-screen:not(.hidden)');
+}
+
+test('1440 and 1280 keep the 3x2 grid and Start on screen with Resume', async ({page}) => {
+  for (const size of [{width: 1440, height: 900}, {width: 1280, height: 800}]) {
+    await page.setViewportSize(size);
+    await openDemoHome(page);
+    const fold = await startFold(page);
+    expect(fold.startOnScreen, `${size.width} Start sits below the fold with Resume`).toBe(true);
+    expect(fold.barOnScreen, `${size.width} Start bar sits below the fold`).toBe(true);
+    expect(fold.startInsidePanel, `${size.width} Start left the picker panel`).toBe(true);
+    const cards = await page.locator('.s2-home-start .s2-card-frame').evaluateAll((nodes) => nodes.map((node) => {
+      const box = node.getBoundingClientRect();
+      return {width: box.width, height: box.height, bottom: box.bottom};
+    }));
+    expect(cards, `${size.width} missing cards`).toHaveLength(6);
+    const vh = size.height;
+    expect(Math.max(...cards.map((card) => card.bottom)), `${size.width} second row clipped`).toBeLessThanOrEqual(vh + 1);
+    expect(Math.max(...cards.map((card) => card.width)), `${size.width} cards oversized`).toBeLessThanOrEqual(160);
+  }
+});
+
+test('phone wordmark stays readable and nav stays one row at 390 and 375', async ({page}) => {
+  for (const size of [{width: 390, height: 844}, {width: 375, height: 667}]) {
+    await page.setViewportSize(size);
+    await openDemoHome(page);
+    const chrome = await page.evaluate(() => {
+      const mark = document.querySelector('#top-nav .bp-brand-wordmark')?.getBoundingClientRect();
+      const nav = document.querySelector('#top-nav');
+      const row = nav?.getBoundingClientRect();
+      const buttons = [...(nav?.querySelectorAll('.nav-btn, a.nav-btn, button.nav-btn') || [])]
+        .filter((el) => el.offsetParent && getComputedStyle(el).display !== 'none')
+        .map((el) => el.getBoundingClientRect());
+      const tops = buttons.map((box) => Math.round(box.top));
+      return {
+        markW: mark ? mark.width : 0,
+        markH: mark ? mark.height : 0,
+        navH: row ? row.height : 0,
+        oneRow: tops.length ? Math.max(...tops) - Math.min(...tops) <= 8 : false
+      };
+    });
+    expect(chrome.markW, `${size.width} wordmark ${chrome.markW}px`).toBeGreaterThanOrEqual(108);
+    expect(chrome.markW, `${size.width} wordmark too wide ${chrome.markW}px`).toBeLessThanOrEqual(140);
+    expect(chrome.oneRow, `${size.width} nav wrapped`).toBe(true);
+    expect(chrome.navH, `${size.width} nav height ${chrome.navH}`).toBeLessThanOrEqual(72);
+  }
+});
+
 test('Heat and Five Crowns load the default 5:7 faces', async ({page}) => {
   await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#home-screen')).toBeVisible();

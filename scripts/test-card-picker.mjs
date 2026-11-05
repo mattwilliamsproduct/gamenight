@@ -37,17 +37,21 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   const css = await readFile(join(root, 'public/assets/card-picker.css'), 'utf8');
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
   const index = await readFile(join(root, 'public/index.html'), 'utf8');
+  const slice = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
+  assert.match(slice, /html\.slice2-tv #top-nav \.bp-brand-wordmark \{[\s\S]*height:\s*2\.55rem !important;[\s\S]*max-width:\s*8\.2rem !important;/);
   const worker = await readFile(join(root, 'src/service-worker.js'), 'utf8');
 
   assert.match(index, /href="\.\/assets\/card-picker\.css"/);
   assert.match(worker, /'\.\/assets\/card-picker\.css'/);
   assert.match(css, /aspect-ratio:\s*5\s*\/\s*7/);
+  assert.match(css, /--bp-card-max:\s*132px/);
   assert.match(css, /--bp-card-max:\s*148px/);
-  assert.match(css, /--bp-card-max:\s*200px/);
+  assert.match(css, /--bp-home-panel-max:\s*calc\(100svh - var\(--bp-home-chrome\)\)/);
   assert.match(css, /min-width:\s*1280px/);
   assert.match(css, /repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(css, /align-items:\s*stretch/);
   assert.match(css, /margin-top:\s*auto/);
+  assert.match(css, /min-width:\s*1440px/);
   assert.match(css, /minmax\(348px,\s*360px\)/);
   assert.match(css, /\.s2-card-frame/);
   assert.match(css, /object-fit:\s*cover/);

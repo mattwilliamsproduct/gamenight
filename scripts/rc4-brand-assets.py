@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Back Porch icon sizes and a trimmed wordmark from Matt's v3 / v1 art."""
+"""Regen PWA / apple-touch from Icon v3. Never writes favicons or the wordmark."""
 from pathlib import Path
 from PIL import Image
 
@@ -9,10 +9,10 @@ ART = Path('/opt/cursor/artifacts/screenshots/rc4-usability')
 LOCAL = Path('/agent/repos/gamenight/artifacts/screenshots/rc4-usability')
 
 ICON_SRC = next(UPLOADS.glob('Back_Porch_Games_Icon_v3*.jpg'))
-WORD_SRC = next(UPLOADS.glob('Back_Porch_Games_Wordmark_v1*.jpg'))
 
-# Teal from the icon frame, used for maskable padding.
-TEAL = (58, 148, 148, 255)
+# Teal sampled from the rounded stroke. Used to fill iOS-mask corners
+# and to pad the maskable safe zone. Never white.
+TEAL = (78, 157, 151, 255)
 
 
 def nearest(im, size):
@@ -25,36 +25,32 @@ def write_png(im, path):
     print(f'wrote {path} {im.size}')
 
 
-def trim_wordmark(src):
+def flood_white_corners(src):
+    """Replace the white field outside the rounded art with the stroke teal."""
     rgba = src.convert('RGBA')
     pixels = rgba.load()
     w, h = rgba.size
-    cream = pixels[0, 0]
-    out = Image.new('RGBA', rgba.size, (0, 0, 0, 0))
-    dest = out.load()
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = pixels[x, y]
-            # Cream page around the sign, not the painted wood.
-            if abs(r - cream[0]) < 18 and abs(g - cream[1]) < 18 and abs(b - cream[2]) < 18:
-                dest[x, y] = (0, 0, 0, 0)
-            else:
-                dest[x, y] = (r, g, b, a)
-    bbox = out.getbbox()
-    if not bbox:
-        return rgba
-    trimmed = out.crop(bbox)
-    # Keep a 2% pad so the sign does not kiss the header edge.
-    pad_x = max(2, trimmed.width // 50)
-    pad_y = max(2, trimmed.height // 50)
-    padded = Image.new('RGBA', (trimmed.width + pad_x * 2, trimmed.height + pad_y * 2), (0, 0, 0, 0))
-    padded.paste(trimmed, (pad_x, pad_y), trimmed)
-    return padded
+
+    def is_white(x, y):
+        r, g, b, a = pixels[x, y]
+        return a > 0 and r >= 248 and g >= 248 and b >= 248
+
+    seen = set()
+    stack = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
+    while stack:
+        x, y = stack.pop()
+        if (x, y) in seen or x < 0 or y < 0 or x >= w or y >= h:
+            continue
+        if not is_white(x, y):
+            continue
+        seen.add((x, y))
+        pixels[x, y] = TEAL
+        stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+    return rgba
 
 
 def maskable(icon, size):
     canvas = Image.new('RGBA', (size, size), TEAL)
-    # Safe zone is the center 80%. Keep the whole icon inside that circle-ish box.
     inner = int(size * 0.8)
     face = nearest(icon, inner)
     x = (size - inner) // 2
@@ -62,12 +58,12 @@ def maskable(icon, size):
     return canvas
 
 
-def contact_sheet(paths, dest, tile=160, cols=4):
+def contact_sheet(paths, dest, tile=160, cols=4, background=(18, 28, 30, 255)):
     images = [Image.open(p).convert('RGBA') for p in paths]
     rows = (len(images) + cols - 1) // cols
-    sheet = Image.new('RGBA', (cols * tile + 24, rows * tile + 24), (246, 241, 231, 255))
+    sheet = Image.new('RGBA', (cols * tile + 24, rows * tile + 24), background)
     for i, im in enumerate(images):
-        fitted = Image.new('RGBA', (tile - 16, tile - 16), (255, 255, 255, 255))
+        fitted = Image.new('RGBA', (tile - 16, tile - 16), (0, 0, 0, 0))
         copy = im.copy()
         copy.thumbnail((tile - 24, tile - 24), Image.Resampling.LANCZOS)
         ox = (fitted.width - copy.width) // 2
@@ -79,49 +75,28 @@ def contact_sheet(paths, dest, tile=160, cols=4):
 
 
 def main():
-    icon = Image.open(ICON_SRC).convert('RGBA')
-    word = trim_wordmark(Image.open(WORD_SRC))
+    filled = flood_white_corners(Image.open(ICON_SRC))
 
-    write_png(nearest(icon, 16), PUBLIC / 'bp-favicon-16.png')
-    write_png(nearest(icon, 32), PUBLIC / 'bp-favicon-32.png')
-    write_png(nearest(icon, 32), PUBLIC / 'favicon-32.png')
-    write_png(nearest(icon, 180), PUBLIC / 'apple-touch-icon.png')
-    write_png(nearest(icon, 180), PUBLIC / 'bp-apple-touch-icon.png')
-    write_png(nearest(icon, 192), PUBLIC / 'bp-icon-192.png')
-    write_png(nearest(icon, 192), PUBLIC / 'icon-192.png')
-    write_png(nearest(icon, 512), PUBLIC / 'bp-icon-512.png')
-    write_png(nearest(icon, 512), PUBLIC / 'icon-512.png')
-    write_png(maskable(icon, 192), PUBLIC / 'bp-icon-192-maskable.png')
-    write_png(maskable(icon, 512), PUBLIC / 'bp-icon-512-maskable.png')
-    write_png(icon, PUBLIC / 'assets/logo/back-porch-icon.png')
-    write_png(word, PUBLIC / 'assets/logo/back-porch-wordmark.png')
+    write_png(nearest(filled, 180), PUBLIC / 'apple-touch-icon.png')
+    write_png(nearest(filled, 180), PUBLIC / 'bp-apple-touch-icon.png')
+    write_png(nearest(filled, 192), PUBLIC / 'bp-icon-192.png')
+    write_png(nearest(filled, 512), PUBLIC / 'bp-icon-512.png')
+    write_png(maskable(filled, 192), PUBLIC / 'bp-icon-192-maskable.png')
+    write_png(maskable(filled, 512), PUBLIC / 'bp-icon-512-maskable.png')
 
-    # Simple ICO with 16 and 32.
-    nearest(icon, 32).save(
-        PUBLIC / 'favicon.ico',
-        format='ICO',
-        sizes=[(16, 16), (32, 32)]
-    )
-    print('wrote', PUBLIC / 'favicon.ico')
-
+    icons = [
+        PUBLIC / 'apple-touch-icon.png',
+        PUBLIC / 'bp-icon-192.png',
+        PUBLIC / 'bp-icon-512.png',
+        PUBLIC / 'bp-icon-192-maskable.png',
+        PUBLIC / 'bp-icon-512-maskable.png',
+    ]
     for dest_root in (ART, LOCAL):
         dest_root.mkdir(parents=True, exist_ok=True)
-        contact_sheet(
-            [
-                PUBLIC / 'bp-favicon-16.png',
-                PUBLIC / 'bp-favicon-32.png',
-                PUBLIC / 'apple-touch-icon.png',
-                PUBLIC / 'bp-icon-192.png',
-                PUBLIC / 'bp-icon-512.png',
-                PUBLIC / 'bp-icon-192-maskable.png',
-                PUBLIC / 'bp-icon-512-maskable.png',
-                PUBLIC / 'assets/logo/back-porch-icon.png',
-                PUBLIC / 'assets/logo/back-porch-wordmark.png',
-            ],
-            dest_root / 'after_icon_contact.png',
-            tile=180,
-            cols=3
-        )
+        contact_sheet(icons, dest_root / 'after_pwa_icons_contact.png', tile=180, cols=5,
+                      background=(246, 241, 231, 255))
+        contact_sheet(icons, dest_root / 'after_pwa_icons_contact_dark.png', tile=180, cols=5,
+                      background=(18, 28, 30, 255))
 
 
 if __name__ == '__main__':

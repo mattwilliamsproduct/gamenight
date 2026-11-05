@@ -2,8 +2,17 @@
 
 html.slice2-tv {
   --bp-card-radius: 10px;
-  --bp-card-max: 148px;
+  --bp-card-max: 132px;
   --bp-card-fill: #f6f1e7;
+  --bp-home-chrome: 15.75rem;
+}
+
+html.slice2-tv.bpg-try-demo {
+  --bp-home-chrome: 18.75rem;
+}
+
+html.slice2-tv.bpg-try-demo.bpg-try-demo-tip {
+  --bp-home-chrome: 21.625rem;
 }
 
 html.slice2-tv .s2-home-start {
@@ -229,10 +238,13 @@ html.slice2-tv .s2-seat-grid {
   }
 }
 
-/* Desktop: larger 5:7 cards, equal-height panels, Start anchored at the bottom. */
+/* Desktop: slightly larger 5:7 cards, equal-height panels, Start at the bottom.
+   Cap the pair to leftover viewport so Resume + 3x2 + Start stay on screen.
+   1280x800 with the demo bar cannot take a larger card; 132px is the closest fit. */
 @media (min-width: 1280px) {
   html.slice2-tv {
-    --bp-card-max: 200px;
+    --bp-card-max: 132px;
+    --bp-home-panel-max: calc(100svh - var(--bp-home-chrome));
   }
 
   html.slice2-tv .s2-home-grid {
@@ -241,17 +253,53 @@ html.slice2-tv .s2-seat-grid {
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    align-self: stretch;
-    min-height: 0;
-    height: auto;
-    max-height: none;
     display: flex;
     flex-direction: column;
+    min-height: var(--bp-home-panel-max);
+  }
+
+  html.slice2-tv .s2-home-start {
+    align-self: start;
+    height: var(--bp-home-panel-max);
+    max-height: var(--bp-home-panel-max);
+    overflow: hidden;
+  }
+
+  html.slice2-tv .s2-home-table {
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   html.slice2-tv .s2-home-start .s2-startbar {
     flex: 0 0 auto;
     margin-top: auto;
+  }
+}
+
+@media (min-width: 1280px) and (max-height: 820px) {
+  html.slice2-tv .s2-home-start {
+    padding: 8px 12px;
+  }
+
+  html.slice2-tv .s2-home-start .s2-panel-head {
+    margin-bottom: 4px;
+  }
+
+  html.slice2-tv .s2-home-start .s2-game-grid {
+    gap: 6px;
+    padding: 2px;
+  }
+
+  html.slice2-tv .s2-home-start .s2-startbar {
+    margin-top: auto;
+    padding-top: 4px;
+  }
+}
+
+@media (min-width: 1440px) {
+  html.slice2-tv {
+    --bp-card-max: 148px;
   }
 }
 
@@ -264,8 +312,7 @@ html.slice2-tv .s2-seat-grid {
     grid-template-columns: minmax(348px, 400px) minmax(0, 1fr);
   }
 
-  html.slice2-tv .s2-home-table,
-  html.slice2-tv .s2-home-start {
+  html.slice2-tv .s2-home-table {
     height: auto;
     max-height: none;
   }
