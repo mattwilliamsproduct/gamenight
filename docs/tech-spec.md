@@ -58,6 +58,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - Sort by total (low wins or high wins per game). Equal totals share the best place in that run. The next different total skips (`1, 2, 2, 4`).
 - Live scorecard, history list, profile rank, and path replay use that rule. Tie order under the same place may follow seat order. It must not invent a lower place.
+- End-of-match copy lives in `BPGRecords.matchResult`. An all-tied night says Everyone tied and skips the loser screen. A tied last place says share last. Every stored winner still gets a career win.
 - Life Preserver still may not land on a tie for 1st. Sharing 2nd is allowed.
 
 ### DISPUTE

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import test from 'node:test';
 import {QA_SCENARIOS} from '../public/qa/fixtures.mjs';
+import {buildDemoBook} from '../public/demo/try-demo-cast.mjs';
 
 const require = createRequire(import.meta.url);
 const Records = require('../public/assets/records-logic.js');
@@ -271,9 +272,30 @@ test('displayed record numbers use at most one decimal place', () => {
   assert.equal(Records.formatDisplayNumber(1.04), '1.0');
   assert.equal(Records.formatStatValue(19 / 11, 'Cleanest game'), '1.7 pts');
   assert.equal(Records.scoreLabel(19 / 11, 'pts'), '1.7 pts');
-  assert.equal(Records.formatStreakPhrase('W1'), 'Won last match');
-  assert.equal(Records.formatStreakPhrase('L2'), 'Lost last 2');
+  assert.equal(Records.formatStreakPhrase('W1'), 'Won the last match');
+  assert.equal(Records.formatStreakPhrase('L2'), 'Lost the last 2 matches');
   assert.match(Records.formatStreakTitle('W1'), /Won the last completed match/);
+  assert.equal(Records.formatSpecialChip('whammy', 2), 'Only player to score, twice');
+  assert.equal(Records.formatSpecialChip('nolie', 1), 'Everyone made their bid, once');
+  assert.equal(Records.formatSpecialChip('cami', 3), 'Everyone missed, 3 times');
+});
+
+test('end-of-match copy names every tied winner and skips a single loser', () => {
+  const winTie = Records.matchResult(['Nora', 'Owen'], ['Theo']);
+  assert.equal(Records.formatVictoryHeadline(winTie), 'Nora and Owen Tie!');
+  assert.equal(Records.formatLoserHeadline(winTie), 'Theo loses.');
+  assert.equal(winTie.skipLoser, false);
+
+  const allTied = Records.matchResult(['Nora', 'Owen', 'Priya', 'Theo'], ['Theo', 'Priya', 'Owen', 'Nora']);
+  assert.equal(allTied.allTied, true);
+  assert.equal(allTied.skipLoser, true);
+  assert.equal(Records.formatVictoryHeadline(allTied), 'Everyone tied.');
+  assert.equal(Records.formatLoserHeadline(allTied), '');
+
+  const lastTie = Records.matchResult(['Nora'], ['Priya', 'Theo']);
+  assert.equal(Records.formatVictoryHeadline(lastTie), 'Nora Wins!');
+  assert.equal(Records.formatLoserHeadline(lastTie), 'Priya and Theo share last.');
+  assert.equal(lastTie.lastTied, true);
 });
 
 test('818 Brick is retired as a primary Shame label', () => {
@@ -531,4 +553,16 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
   assert.match(html, /s2-night-place">2nd</);
   assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
   assert.match(html, /s2-night-left-label">Left early</);
+});
+
+test('demo career wins sum from completed nights, including ties and assisted', () => {
+  const book = buildDemoBook(QA_SCENARIOS);
+  const tally = Records.careerWinTally(book.history, {scorebook: Scorebook});
+  assert.match(tally.rule, /completed history match/);
+  assert.match(tally.rule, /tie for the win is a win for each tied player/);
+  assert.equal(tally.counted, 23);
+  assert.equal(tally.winSum, 29);
+  assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
+  assert.equal(tally.rows.some((row) => row.counts && row.assisted), true);
+  assert.equal(tally.rows.filter((row) => row.counts && row.tied).reduce((sum, row) => sum + row.winners.length, 0) > 0, true);
 });

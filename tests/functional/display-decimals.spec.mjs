@@ -102,10 +102,28 @@ test('passport chips use plain-language labels', async ({page}) => {
   expect(text).not.toContain('Nolie');
   expect(text).not.toContain('All scored');
   expect(text).not.toMatch(/\bCami\b/);
-  expect(text).toMatch(/Won last match|Lost last match|Won last \d+|Lost last \d+|Everyone made bid|Only one scored|Everyone missed/);
+  expect(text).toMatch(/Won the last match|Lost the last match|Won the last \d+ matches|Lost the last \d+ matches|Everyone made their bid|Only player to score|Everyone missed/);
+  expect(text).not.toMatch(/Only one scored \d+|Everyone made bid \d+|Everyone missed \d+/);
   await page.locator('#profile-game-filter').selectOption('Wizard');
   const wizardText = await grid.innerText();
   expect(wizardText).not.toMatch(/\bW\d\b/);
   expect(wizardText).not.toContain('Nolie');
   expect(wizardText).not.toContain('All scored');
+});
+
+test('passport chips stay one line at 1440, 1280, 390, and 375', async ({page}) => {
+  for (const width of [1440, 1280, 390, 375]) {
+    await page.setViewportSize({width, height: width >= 1024 ? 900 : 844});
+    await openDemo(page);
+    await page.evaluate(() => { if (typeof showProfiles === 'function') showProfiles(); });
+    const grid = page.locator('#profiles-grid');
+    await expect(grid).toBeVisible({timeout: 15000});
+    const wrapped = await page.evaluate(() => {
+      return [...document.querySelectorAll('#profiles-grid .profile-badge')].filter((chip) => {
+        const card = chip.closest('.profile-passport-card');
+        return chip.scrollWidth > chip.clientWidth + 1 || (card && chip.getBoundingClientRect().right > card.getBoundingClientRect().right + 1);
+      }).map((chip) => chip.textContent.trim());
+    });
+    expect(wrapped, `${width} wrapped chips`).toEqual([]);
+  }
 });

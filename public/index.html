@@ -1335,6 +1335,13 @@
       filter: drop-shadow(0 12px 18px rgba(7,63,59,0.18));
       transform: translateZ(0);
     }
+    #victory-names,
+    #loser-names {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+      white-space: normal;
+    }
     .lineup-enter { animation: lineupSlide 0.32s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes lineupSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
     .drag-over { border-color: var(--rose) !important; background: var(--rose-bg) !important; transform: scale(1.02); }
@@ -7917,6 +7924,7 @@ button.dealer-name-indicator .dealer-player-label {
       font-size: 0.66rem;
       font-weight: 900;
       line-height: 1;
+      white-space: nowrap;
     }
     .profile-passport-detail {
       overflow: hidden;
@@ -10039,7 +10047,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-victory-card bp-modal-panel bp-modal-panel--form p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🌅</div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Sunset Champion</div>
+        <div id="victory-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Sunset Champion</div>
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
         <div id="victory-records" class="w-full space-y-2 mb-5"></div>
@@ -10057,9 +10065,9 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-loser-card bp-modal-panel bp-modal-panel--form p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🌊</div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--blue);">Low Tide</div>
+        <div id="loser-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--blue);">Low Tide</div>
         <h3 id="loser-names" class="font-display text-3xl sm:text-4xl mb-3 leading-tight"></h3>
-        <p class="text-base font-bold mb-6 italic" style="color:var(--muted);">The tide went out on this one.</p>
+        <p id="loser-sub" class="text-base font-bold mb-6 italic" style="color:var(--muted);">The tide went out on this one.</p>
         <button onclick="closeLoserModal()" class="btn-primary w-full py-4 text-lg">Return Home</button>
       </div>
     </div>
@@ -12361,11 +12369,18 @@ button.dealer-name-indicator .dealer-player-label {
       const streakTip=window.BPGRecords&&typeof BPGRecords.formatStreakTitle==='function'
         ? BPGRecords.formatStreakTitle(s.currentStreak)
         : '';
+      const specialChip=(kind, count, tone, title)=>{
+        if(!count) return '';
+        const label=window.BPGRecords&&typeof BPGRecords.formatSpecialChip==='function'
+          ? BPGRecords.formatSpecialChip(kind, count)
+          : '';
+        return label?renderProfileBadge(label, undefined, tone, title):'';
+      };
       const badges=[
         streakLabel?renderProfileBadge(streakLabel, undefined, s.currentStreak.startsWith('W')?'hot':'storm', streakTip):'',
-        s.specialTotals.whammy?renderProfileBadge('Only one scored', s.specialTotals.whammy, 'hot', 'A round where only one player scored well and everyone else missed.'):'',
-        s.specialTotals.nolie?renderProfileBadge('Everyone made bid', s.specialTotals.nolie, 'good', 'A round where everyone at the table made their bid, scored 0 in Five Crowns, or scored in Flip 7.'):'',
-        s.specialTotals.cami?renderProfileBadge('Everyone missed', s.specialTotals.cami, 'storm', 'A round where everyone missed their bid, or everyone scored 0.'):'',
+        specialChip('whammy', s.specialTotals.whammy, 'hot', 'A round where only one player scored well and everyone else missed.'),
+        specialChip('nolie', s.specialTotals.nolie, 'good', 'A round where everyone at the table made their bid, scored 0 in Five Crowns, or scored in Flip 7.'),
+        specialChip('cami', s.specialTotals.cami, 'storm', 'A round where everyone missed their bid, or everyone scored 0.'),
         s.needsAvatar?renderProfileBadge('Needs avatar', undefined, 'neutral'):''
       ].filter(Boolean).slice(0,4).join('');
       d.innerHTML=`
@@ -12468,8 +12483,8 @@ button.dealer-name-indicator .dealer-player-label {
 
   function getSpecialRoundStatsForPlayer(name, gameScope){
     const stats={
-      whammy:{label:'Only one scored',total:0,byGame:{}},
-      nolie:{label:'Everyone made bid',total:0,byGame:{}},
+      whammy:{label:'Only player to score',total:0,byGame:{}},
+      nolie:{label:'Everyone made their bid',total:0,byGame:{}},
       cami:{label:'Everyone missed',total:0,byGame:{}}
     };
     const add=(key,event)=>{
@@ -18785,9 +18800,36 @@ ${isDealer
     _presentVictoryModal(data, alerts);
   }
 
+  function decorateResultNames(text, names){
+    let html=escapeHtml(text||'');
+    uniqueResultNames(names).sort((a,b)=>b.length-a.length).forEach((name)=>{
+      const needle=escapeHtml(name);
+      html=html.split(needle).join(`<span class="player-name-label">${needle}</span>`);
+    });
+    return html;
+  }
+  function uniqueResultNames(names){
+    return [...new Set((names||[]).filter(Boolean))];
+  }
+  function resultForMatch(data, losers){
+    if(window.BPGRecords&&typeof BPGRecords.matchResult==='function'){
+      return BPGRecords.matchResult(data&&data.winners, losers);
+    }
+    const win=uniqueResultNames(data&&data.winners);
+    const last=uniqueResultNames(losers);
+    return {winners:win,losers:last,allTied:win.length>=2&&win.length===last.length,lastTied:last.length>1,skipLoser:win.length>=2&&win.length===last.length,shared:win.length>1};
+  }
   function _presentVictoryModal(data, alerts){
-    const winnerNames=data.winners.map(name=>`<span class="player-name-label">${escapeHtml(name)}</span>`).join(' &amp; ');
-    document.getElementById('victory-names').innerHTML=data.winners.length>1?`${winnerNames} Tie!`:`${winnerNames} Wins!`;
+    const result=resultForMatch(data, currentLosers);
+    const headline=window.BPGRecords&&typeof BPGRecords.formatVictoryHeadline==='function'
+      ? BPGRecords.formatVictoryHeadline(result)
+      : (result.allTied?'Everyone tied.':(result.winners.length>1?`${result.winners.join(' & ')} Tie!`:`${result.winners[0]||''} Wins!`));
+    const kicker=window.BPGRecords&&typeof BPGRecords.formatVictoryKicker==='function'
+      ? BPGRecords.formatVictoryKicker(result)
+      : 'Sunset Champion';
+    document.getElementById('victory-names').innerHTML=decorateResultNames(headline, result.winners);
+    const kickerEl=document.getElementById('victory-kicker');
+    if(kickerEl) kickerEl.textContent=kicker;
     const vs=document.getElementById('victory-subtitle');
     if(vs){ vs.textContent=''; vs.classList.add('hidden'); }
     document.getElementById('victory-records').innerHTML=alerts.map(a=>`<div class="px-4 py-2 rounded-xl font-bold text-sm mx-auto w-fit" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;">${a}</div>`).join('');
@@ -18832,8 +18874,26 @@ ${isDealer
   function showLoserModal(){
     document.getElementById('victory-modal').classList.add('hidden');
     resetPostgameConfetti();
-    const loserNames=currentLosers.map(name=>`<span class="player-name-label">${escapeHtml(name)}</span>`).join(' &amp; ');
-    document.getElementById('loser-names').innerHTML=currentLosers.length>1?`${loserNames} lose.`:`${loserNames} loses.`;
+    const last=history[0];
+    const result=resultForMatch(last, currentLosers);
+    if(result.skipLoser){
+      closeLoserModal();
+      return;
+    }
+    const headline=window.BPGRecords&&typeof BPGRecords.formatLoserHeadline==='function'
+      ? BPGRecords.formatLoserHeadline(result)
+      : (result.lastTied?`${result.losers.join(' & ')} share last.`:`${result.losers[0]||''} loses.`);
+    const kicker=window.BPGRecords&&typeof BPGRecords.formatLoserKicker==='function'
+      ? BPGRecords.formatLoserKicker(result)
+      : 'Low Tide';
+    const sub=window.BPGRecords&&typeof BPGRecords.formatLoserSub==='function'
+      ? BPGRecords.formatLoserSub(result)
+      : 'The tide went out on this one.';
+    document.getElementById('loser-names').innerHTML=decorateResultNames(headline, result.losers);
+    const kickerEl=document.getElementById('loser-kicker');
+    if(kickerEl) kickerEl.textContent=kicker;
+    const subEl=document.getElementById('loser-sub');
+    if(subEl) subEl.textContent=sub;
     document.getElementById('loser-modal').classList.remove('hidden');
     fireLoserConfettiLoop();
   }

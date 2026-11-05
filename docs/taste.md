@@ -61,7 +61,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Demo sample records are computed by the real records code from seeded games. No planted numbers.
 - Sample games that produce a believable closest margin and plausible Wizard scores. A 134-point "closest" finish or a 1500 all-tricks Wizard night is fixture noise.
 - Leftover scorecard width goes to the player column. Total and round columns stay fixed. No tinted empty trailing band. Dealer names share the same fitted size as the rest of the column.
-- Displayed records, passport, and scorecard numbers use at most one decimal (1.7 avg). Passport chips say what they mean: Won last match, Everyone made bid, Only one scored.
+- Displayed records, passport, and scorecard numbers use at most one decimal (1.7 avg). Passport chips are one-line sentences: Won the last match, Only player to score, twice.
 
 ### Kills
 
@@ -91,7 +91,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A scorecard card that stays wide while the table hugs after Round 1. Measure the visible table box, not only the card.
 - A stable-width card with a blank or tinted empty band at the end of every row. Leftover width belongs in the player column.
 - Raw float records such as `1.7272727272727273 pts`. Round displayed numbers to one decimal.
-- Cryptic Passport chips (`Nolie 2`, `All scored 2`, `W1`/`L1`) with no plain-language label.
+- Cryptic Passport chips (`Nolie 2`, `All scored 2`, `W1`/`L1`, `Only one scored 2`) with no plain-language sentence.
+- A four-way tie announced as one person losing. A shared bottom is a shared result.
 - `1 WINS · 1 GAMES` or other plural-for-one Records copy.
 - Rook on the Championship Ledger while the shelf hides it.
 - Settings "This device" copy sitting under Backup / Restore, or a close X on the modal border.

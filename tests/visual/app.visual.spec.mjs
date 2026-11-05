@@ -1016,9 +1016,9 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   await page.getByRole('button',{name:'Save & End',exact:true}).click();
   await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
-  await expect(page.locator('#victory-names')).toContainText('Alex');
-  await expect(page.locator('#victory-names')).toContainText('Blair');
-  await expect(page.locator('#victory-names')).toContainText('Tie!');
+  await expect(page.locator('#victory-names')).toHaveText(/Everyone tied/i);
+  const winners = await page.evaluate(() => ((typeof history !== 'undefined' && history[0] && history[0].winners) || []).slice().sort());
+  expect(winners).toEqual(['Alex', 'Blair']);
 });
 
 test('undo last Five Crowns hand keeps Comeback chips on stranded players',async({page})=>{

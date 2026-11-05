@@ -540,8 +540,8 @@
     const kind = raw.charAt(0);
     const n = parseInt(raw.slice(1), 10);
     if ((kind !== 'W' && kind !== 'L') || !Number.isFinite(n) || n < 1) return raw;
-    if (kind === 'W') return n === 1 ? 'Won last match' : `Won last ${n}`;
-    return n === 1 ? 'Lost last match' : `Lost last ${n}`;
+    if (kind === 'W') return n === 1 ? 'Won the last match' : `Won the last ${n} matches`;
+    return n === 1 ? 'Lost the last match' : `Lost the last ${n} matches`;
   }
 
   function formatStreakTitle(streak) {
@@ -552,6 +552,125 @@
     if ((kind !== 'W' && kind !== 'L') || !Number.isFinite(n) || n < 1) return '';
     if (kind === 'W') return n === 1 ? 'Won the last completed match.' : `Won the last ${n} completed matches.`;
     return n === 1 ? 'Lost the last completed match.' : `Lost the last ${n} completed matches.`;
+  }
+
+  function timesWord(count) {
+    const n = Math.max(0, Number(count) || 0);
+    if (n === 1) return 'once';
+    if (n === 2) return 'twice';
+    return `${n} times`;
+  }
+
+  function formatSpecialChip(kind, count) {
+    const n = Math.max(0, Number(count) || 0);
+    if (kind === 'whammy') return `Only player to score, ${timesWord(n)}`;
+    if (kind === 'nolie') return `Everyone made their bid, ${timesWord(n)}`;
+    if (kind === 'cami') return `Everyone missed, ${timesWord(n)}`;
+    return '';
+  }
+
+  function uniqueNames(list) {
+    return [...new Set((list || []).filter(Boolean))];
+  }
+
+  function sameNameSet(left, right) {
+    if (!left.length || left.length !== right.length) return false;
+    const other = new Set(right);
+    return left.every((name) => other.has(name));
+  }
+
+  function matchResult(winners, losers) {
+    const win = uniqueNames(winners);
+    const last = uniqueNames(losers);
+    const allTied = win.length >= 2 && sameNameSet(win, last);
+    const lastTied = !allTied && last.length > 1;
+    const skipLoser = allTied || !last.length || sameNameSet(win, last);
+    return {
+      winners: win,
+      losers: last,
+      allTied,
+      lastTied,
+      skipLoser,
+      shared: win.length > 1
+    };
+  }
+
+  function formatVictoryHeadline(result) {
+    const row = result || matchResult([], []);
+    if (row.allTied) return 'Everyone tied.';
+    const names = formatTiedNames(row.winners.map((player) => ({player})));
+    if (row.winners.length > 1) return `${names} Tie!`;
+    if (row.winners.length === 1) return `${names} Wins!`;
+    return '';
+  }
+
+  function formatVictoryKicker(result) {
+    const row = result || matchResult([], []);
+    if (row.allTied) return 'Shared night';
+    if (row.winners.length > 1) return 'Tied champions';
+    return 'Sunset Champion';
+  }
+
+  function formatLoserHeadline(result) {
+    const row = result || matchResult([], []);
+    if (row.skipLoser) return '';
+    const names = formatTiedNames(row.losers.map((player) => ({player})));
+    if (row.lastTied) return `${names} share last.`;
+    if (row.losers.length === 1) return `${names} loses.`;
+    return '';
+  }
+
+  function formatLoserKicker(result) {
+    const row = result || matchResult([], []);
+    if (row.skipLoser) return '';
+    return row.lastTied ? 'Shared low tide' : 'Low Tide';
+  }
+
+  function formatLoserSub(result) {
+    const row = result || matchResult([], []);
+    if (row.skipLoser) return '';
+    return row.lastTied ? 'Last place is tied.' : 'The tide went out on this one.';
+  }
+
+  const CAREER_WIN_RULE = 'A night counts toward career wins when it is a completed history match (completed !== false), the game is on the shelf, totals exist, and at least one stored round exists. Unfinished and reopened-not-completed nights are excluded. Assisted nights still count for wins; they only skip unassisted best-score records. Every name in winners[] gets one win, so a tie for the win is a win for each tied player.';
+
+  function careerWinTally(history, options) {
+    const scorebook = options && options.scorebook;
+    const known = new Set(GAMES.map((game) => game.id));
+    const rows = [];
+    let counted = 0;
+    let winSum = 0;
+    (history || []).forEach((match) => {
+      const completed = !!(scorebook && typeof scorebook.isCompletedHistoryMatch === 'function' && scorebook.isCompletedHistoryMatch(match));
+      const hasTotals = !!(match && match.totals && typeof match.totals === 'object');
+      const hasRounds = Array.isArray(match && match.rounds) && match.rounds.length > 0;
+      const knownGame = !!(match && known.has(match.game));
+      const counts = completed && hasTotals && hasRounds && knownGame;
+      const winners = counts ? uniqueNames(match.winners) : [];
+      const assisted = !!(scorebook && typeof scorebook.isAssistedMatch === 'function' && scorebook.isAssistedMatch(match));
+      if (counts) {
+        counted += 1;
+        winSum += winners.length;
+      }
+      let reason = 'counted';
+      if (!completed) reason = 'unfinished';
+      else if (!hasRounds) reason = 'no-rounds';
+      else if (!hasTotals) reason = 'no-totals';
+      else if (!knownGame) reason = 'unknown-game';
+      rows.push({
+        id: match && match.id,
+        game: match && match.game,
+        date: match && match.date,
+        totals: match && match.totals ? {...match.totals} : null,
+        winners,
+        tied: winners.length > 1,
+        assisted,
+        completed,
+        counts,
+        reason
+      });
+    });
+    return {counted, winSum, rows, rule: CAREER_WIN_RULE};
   }
 
   function scoreLabel(value, unit) {
@@ -1250,6 +1369,16 @@
     formatDisplayNumber,
     formatStreakPhrase,
     formatStreakTitle,
+    timesWord,
+    formatSpecialChip,
+    matchResult,
+    formatVictoryHeadline,
+    formatVictoryKicker,
+    formatLoserHeadline,
+    formatLoserKicker,
+    formatLoserSub,
+    CAREER_WIN_RULE,
+    careerWinTally,
     formatStatValue,
     fullGameEmptyCopy,
     fullGameNote,
