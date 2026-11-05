@@ -169,6 +169,13 @@ try {
       else document.querySelector('[data-s2-action="show-shame"]')?.click();
     });
     await page.waitForTimeout(250);
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+      const host = document.getElementById('hall-of-fame-view');
+      if (host) host.scrollTop = 0;
+      document.querySelector('.s2-explore-col, .s2-explore-grid')?.scrollIntoView({block: 'start'});
+    });
+    await page.waitForTimeout(150);
     report.shots.push(await shot(page, `${vp.name}_records_explore`));
 
     await page.evaluate(() => { if (typeof showProfiles === 'function') showProfiles(); });

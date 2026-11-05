@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import test from 'node:test';
 import {QA_SCENARIOS} from '../public/qa/fixtures.mjs';
-import {validateGameFixture, validateScenario} from '../public/qa/fixture-rules.mjs';
+import {validateGameFixture, validateScenario, wizardScore} from '../public/qa/fixture-rules.mjs';
 import {buildDemoBook} from '../public/demo/try-demo-cast.mjs';
 import {buildDemoRecordNights} from '../public/demo/try-demo-records.mjs';
 
@@ -111,4 +111,39 @@ test('demo book exposes honest full nights for the real records functions', () =
   });
   assert.match(assistedCard, /A Life Preserver was used/);
   assert.match(assistedCard, /Best-score records skip this night/);
+});
+
+test('demo Flip 7 has a tight finish and a multi-zero night', () => {
+  const nights = buildDemoRecordNights().filter((night) => night.game === 'Flip 7 Vengeance' && night.completed);
+  assert.ok(nights.length >= 1);
+  const margins = nights.map((night) => {
+    const values = Object.values(night.totals || {}).map(Number).sort((a, b) => b - a);
+    return values[0] - values[1];
+  });
+  assert.ok(Math.min(...margins) <= 12, `closest Flip 7 margin ${Math.min(...margins)}`);
+  const zeros = nights.map((night) => Math.max(...(night.originalRoster || []).map((player) => (
+    (night.rounds || []).filter((round) => !round.hailMaryBonus && Number(round.scores?.[player]) === 0).length
+  ))));
+  assert.ok(Math.max(...zeros) >= 3, `most Flip 7 zeros ${Math.max(...zeros)}`);
+});
+
+test('demo Wizard nights use real scoring and plausible finals', () => {
+  const nights = buildDemoRecordNights().filter((night) => night.game === 'Wizard');
+  assert.equal(nights.length, 2);
+  nights.forEach((night) => {
+    const expectedRounds = Math.floor(60 / night.originalRoster.length);
+    assert.equal(night.rounds.length, expectedRounds, `${night.id} round count`);
+    night.rounds.forEach((round) => {
+      const tricks = round.round;
+      const actualSum = night.originalRoster.reduce((sum, player) => sum + Number(round.actuals?.[player] || 0), 0);
+      assert.equal(actualSum, tricks, `${night.id} R${tricks} actuals`);
+      night.originalRoster.forEach((player) => {
+        assert.equal(round.scores[player], wizardScore(round.bids[player], round.actuals[player]), `${night.id} ${player} R${tricks}`);
+      });
+    });
+    const max = Math.max(...Object.values(night.totals).map(Number));
+    const min = Math.min(...Object.values(night.totals).map(Number));
+    assert.ok(max >= 80 && max <= 400, `${night.id} winner ${max}`);
+    assert.ok(min >= -80 && min <= 350, `${night.id} low ${min}`);
+  });
 });

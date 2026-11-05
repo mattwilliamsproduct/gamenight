@@ -49,46 +49,75 @@ function scoreRound(round, roster, values) {
 function fiveCrownsFull() {
   const roster = ['Nora', 'Owen', 'Priya', 'Theo'];
   const rounds = [
-    [0, 5, 8, 6],
-    [2, 0, 7, 9],
-    [0, 6, 4, 8],
-    [1, 4, 0, 7],
-    [0, 3, 6, 5],
-    [2, 5, 4, 0],
-    [0, 4, 8, 6],
-    [1, 0, 5, 7],
-    [0, 6, 3, 8],
-    [2, 4, 0, 5],
-    [0, 3, 6, 4]
+    [0, 2, 5, 4],
+    [3, 1, 4, 6],
+    [2, 3, 6, 5],
+    [1, 2, 3, 4],
+    [4, 0, 5, 3],
+    [2, 3, 4, 0],
+    [1, 2, 3, 5],
+    [2, 1, 4, 3],
+    [0, 3, 2, 4],
+    [2, 3, 0, 2],
+    [2, 2, 4, 3]
   ].map((values, index) => scoreRound(index + 1, roster, values));
   return finishedNight(1786100000001, 'Five Crowns', '10/28/2026', roster, rounds, {maxRounds: 11, endedEarly: false});
 }
 
-function wizardHands(roster, count, takeAll) {
+function splitTricks(roster, tricks, winner) {
+  const actuals = Object.fromEntries(roster.map((player) => [player, 0]));
+  if (tricks <= 0) return actuals;
+  const winnerTake = Math.min(tricks, Math.max(0, Math.floor(tricks / roster.length)));
+  actuals[winner] = winnerTake;
+  let left = tricks - winnerTake;
+  const others = roster.filter((player) => player !== winner);
+  others.forEach((player, index) => {
+    if (index === others.length - 1) {
+      actuals[player] = left;
+      return;
+    }
+    const take = Math.min(left, Math.floor(left / (others.length - index)));
+    actuals[player] = take;
+    left -= take;
+  });
+  return actuals;
+}
+
+function wizardPlayable(roster, winner) {
+  const count = Math.floor(60 / roster.length);
   return Array.from({length: count}, (_, index) => {
-    const round = index + 1;
+    const tricks = index + 1;
+    const actuals = splitTricks(roster, tricks, winner);
     const bids = {};
-    const actuals = {};
-    const scores = {};
-    roster.forEach((player) => {
-      bids[player] = player === takeAll ? round : 0;
-      actuals[player] = player === takeAll ? round : 0;
-      scores[player] = wizardScore(bids[player], actuals[player]);
+    roster.forEach((player, playerIndex) => {
+      const took = actuals[player];
+      const winnerHit = player === winner && (tricks % 2 === 0 || tricks === 5);
+      const tableNolie = tricks === 5;
+      const otherHit = player !== winner && (tricks + playerIndex) % 3 === 0;
+      if (tableNolie || winnerHit || otherHit) {
+        bids[player] = took;
+        return;
+      }
+      const miss = (tricks + playerIndex) % 2 === 0 ? 1 : -1;
+      let bid = took + miss;
+      if (bid < 0) bid = took + 1;
+      if (bid > tricks) bid = Math.max(0, took - 1);
+      if (bid === took) bid = took === 0 ? Math.min(1, tricks) : took - 1;
+      bids[player] = bid;
     });
-    return {round, bids, actuals, scores};
+    const scores = Object.fromEntries(roster.map((player) => [player, wizardScore(bids[player], actuals[player])]));
+    return {round: tricks, bids, actuals, scores};
   });
 }
 
 function wizardFullFour() {
   const roster = ['Owen', 'Nora', 'Priya', 'Theo'];
-  const rounds = wizardHands(roster, 15, 'Owen');
-  return finishedNight(1786100000002, 'Wizard', '10/27/2026', roster, rounds, {maxRounds: 15, endedEarly: false});
+  return finishedNight(1786100000002, 'Wizard', '10/27/2026', roster, wizardPlayable(roster, 'Owen'), {maxRounds: 15, endedEarly: false});
 }
 
 function wizardFullBench() {
   const roster = ['June', 'Marco', 'Iris', 'Hugo'];
-  const rounds = wizardHands(roster, 15, 'June');
-  return finishedNight(1786100000003, 'Wizard', '10/26/2026', roster, rounds, {maxRounds: 15, endedEarly: false});
+  return finishedNight(1786100000003, 'Wizard', '10/26/2026', roster, wizardPlayable(roster, 'June'), {maxRounds: 15, endedEarly: false});
 }
 
 function eight18Full() {
@@ -122,11 +151,11 @@ function eight18Full() {
 function flip7Full() {
   const roster = ['Nora', 'Owen', 'Priya', 'Theo'];
   const rounds = [
-    [40, 12, 18, 9],
-    [36, 0, 14, 21],
-    [42, 16, 0, 11],
-    [38, 22, 15, 0],
-    [44, 10, 19, 13]
+    [42, 38, 20, 0],
+    [40, 36, 18, 0],
+    [38, 44, 22, 0],
+    [45, 40, 16, 12],
+    [45, 46, 12, 12]
   ].map((values, index) => scoreRound(index + 1, roster, values));
   return finishedNight(1786100000005, 'Flip 7 Vengeance', '10/24/2026', roster, rounds, {endedEarly: false});
 }

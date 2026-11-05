@@ -3615,9 +3615,9 @@ button.dealer-name-indicator {
       table-layout: fixed;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: clamp(15rem, 24vw, 28rem);
+      width: 14.5rem;
       min-width: 13rem;
-      max-width: 30rem;
+      max-width: 15rem;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
       width: clamp(6.5rem, 8vw, 8.5rem);
@@ -3625,10 +3625,11 @@ button.dealer-name-indicator {
       max-width: 9rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: clamp(18rem, 30vw, 36rem);
-      max-width: 38rem;
+      width: 22rem;
+      min-width: 18rem;
+      max-width: 24rem;
     }
-    @media (max-width: 700px) {
+    @media (max-width: 900px) {
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
       #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
         width: auto;
@@ -3843,17 +3844,31 @@ button.dealer-name-indicator {
       min-width: 0 !important;
     }
     #scorecard-capture.scorecard-fit-cols .scorecard-table.scorecard-table--identity-total {
-      width: max-content;
+      width: 100%;
       max-width: 100%;
     }
-    /* Keep Player/Total/rounds as one natural-width group; center leftover card width. */
     #scorecard-capture.scorecard-fit-cols .scorecard-table-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
+      display: block;
+      width: 100%;
+      overflow-x: auto;
     }
     #scorecard-capture.scorecard-fit-cols .scorecard-table-wrap > table {
-      flex: 0 0 auto;
+      width: 100%;
+    }
+    #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
+    #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
+      width: var(--scorecard-now-col, 4.5rem);
+      max-width: var(--scorecard-now-col, 4.5rem);
+    }
+    #scorecard-capture .scorecard-fill-col,
+    #scorecard-capture.scorecard-fit-cols .scorecard-fill-col {
+      width: 100%;
+      min-width: 0;
+    }
+    @media (max-width: 900px) {
+      #scorecard-capture .scorecard-fill-col {
+        display: none;
+      }
     }
     #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-stack {
       display: inline-flex;
@@ -12270,9 +12285,10 @@ button.dealer-name-indicator .dealer-player-label {
     return game ? game.replace('Flip 7 Vengeance','Flip 7').replace(' Vengeance','') : '-';
   }
 
-  function renderProfileBadge(label, value, tone='neutral'){
+  function renderProfileBadge(label, value, tone='neutral', title){
     const color=tone==='good'?'var(--emerald)':tone==='hot'?'var(--bp-coral)':tone==='storm'?'var(--rose)':'var(--bp-teal-dark)';
-    return `<span class="profile-badge" style="color:${color};">${label}${value!==undefined?` ${value}`:''}</span>`;
+    const tip=title?` title="${escapeHtml(title)}"`:'';
+    return `<span class="profile-badge"${tip} style="color:${color};">${label}${value!==undefined?` ${value}`:''}</span>`;
   }
 
   function renderProfilesGrid(){
@@ -12338,7 +12354,7 @@ button.dealer-name-indicator .dealer-player-label {
       const badges=[
         s.currentStreak!=='New'?renderProfileBadge(s.currentStreak.startsWith('W')?'🔥':'🌧', s.currentStreak, s.currentStreak.startsWith('W')?'hot':'storm'):'',
         s.specialTotals.whammy?renderProfileBadge('All scored', s.specialTotals.whammy, 'hot'):'',
-        s.specialTotals.nolie?renderProfileBadge('Everyone hit bid', s.specialTotals.nolie, 'good'):'',
+        s.specialTotals.nolie?renderProfileBadge('Nolie', s.specialTotals.nolie, 'good', 'A Nolie is a round where everyone at the table made their bid.'):'',
         s.specialTotals.cami?renderProfileBadge('Cami', s.specialTotals.cami, 'storm'):'',
         s.needsAvatar?renderProfileBadge('Needs avatar', undefined, 'neutral'):''
       ].filter(Boolean).slice(0,4).join('');
@@ -15880,6 +15896,9 @@ ${isDealer
     names.forEach(name=>{
       name.style.setProperty('font-size',`${columnSize.toFixed(1)}px`,'important');
     });
+    // Dealer labels read --scorecard-player-font with !important, so the shared
+    // size has to live on the var or Megan stays large while Matt shrinks.
+    if(root.style) root.style.setProperty('--scorecard-player-font',`${columnSize.toFixed(1)}px`);
   }
   function scorecardGlyphBox(el){
     if(!el) return null;
@@ -15890,6 +15909,30 @@ ${isDealer
       if(box.width>0||box.height>0) return box;
     }catch(e){}
     return el.getBoundingClientRect();
+  }
+  function keepScorecardRoundTotalRatio(root){
+    if(!root||window.innerWidth<1280) return;
+    if(document.getElementById('game-screen')?.dataset.game==='Hand and Foot'||root.classList.contains('scorecard-hand-foot')) return;
+    const chip=root.querySelector('td.scorecard-round-td .score-cell-input');
+    const total=root.querySelector('.scorecard-total-value');
+    if(!chip||!total) return;
+    void root.offsetWidth;
+    const varFs=parseFloat(root.style.getPropertyValue('--scorecard-col-input-font'))||0;
+    const chipFs=parseFloat(getComputedStyle(chip).fontSize)||0;
+    const close=varFs>0&&chipFs>0&&Math.abs(varFs-chipFs)/Math.max(varFs,chipFs)<0.2;
+    const roundFs=close?Math.min(varFs,chipFs):(chipFs||varFs);
+    const liveTotal=parseFloat(getComputedStyle(total).fontSize)||0;
+    if(!(roundFs>0&&liveTotal>0)||roundFs/liveTotal>=0.55) return;
+    const rows=root.querySelectorAll('tbody tr').length;
+    const nameEl=root.querySelector('.scoreboard-player-name');
+    const nameFs=parseFloat(nameEl?getComputedStyle(nameEl).fontSize:'')||0;
+    const nameFloor=rows<=4&&nameFs>0?nameFs*1.15:28;
+    const raw=Math.max(28, nameFloor, roundFs/0.55);
+    const next=nameFloor>28?Math.ceil(raw*10)/10:Math.floor(raw*10)/10;
+    root.style.setProperty('--scorecard-total-font',`${next.toFixed(1)}px`);
+    root.querySelectorAll('.scorecard-total-value').forEach((el)=>{
+      el.style.setProperty('font-size',`${next.toFixed(1)}px`,'important');
+    });
   }
   function fitScorecardTotals(root){
     if(!root||root.offsetParent===null)return;
@@ -15935,6 +15978,7 @@ ${isDealer
         input.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
       });
     }
+    keepScorecardRoundTotalRatio(root);
   }
   function scorecardLeadStillOverflows(table){
     if(!table)return false;
@@ -16174,8 +16218,28 @@ ${isDealer
       bar.style.removeProperty('margin-inline');
     };
     host.classList.remove('scorecard-card-fit');
-    table.style.removeProperty('width');
-    table.style.removeProperty('max-width');
+    table.style.width='100%';
+    table.style.maxWidth='100%';
+    const fillEls=[...table.querySelectorAll('.scorecard-fill-col')];
+    fillEls.forEach((el)=>{
+      el.style.removeProperty('width');
+      el.style.removeProperty('max-width');
+    });
+    if(fillEls.length&&window.innerWidth>900){
+      void host.offsetWidth;
+      const used=[...table.querySelectorAll('thead th')].reduce((sum,th)=>{
+        if(th.classList.contains('scorecard-fill-col')) return sum;
+        if(th.classList.contains('scorecard-round--hidden')) return sum;
+        if(getComputedStyle(th).display==='none') return sum;
+        return sum+th.getBoundingClientRect().width;
+      },0);
+      const leftover=Math.max(0,wrap.clientWidth-used);
+      fillEls.forEach((el)=>{
+        el.style.width=`${leftover}px`;
+        el.style.maxWidth=`${leftover}px`;
+      });
+    }
+    keepScorecardRoundTotalRatio(host);
     clearBar();
   }
   function fitActiveMatchBanner(){
@@ -16247,12 +16311,17 @@ ${isDealer
         fitScorecardPlayerNames(capture);
         fitScorecardTotals(capture);
         const table=capture?.querySelector('table.scorecard-table');
-        if(table&&scorecardLeadStillOverflows(table)){
+        const fillCol=capture?.querySelector('.scorecard-fill-col');
+        const fillVisible=!!(fillCol&&getComputedStyle(fillCol).display!=='none');
+        // A leftover fill column already holds unused width. Hiding rounds
+        // cannot widen Player, and it parked Life Preservers on Total.
+        if(table&&!fillVisible&&scorecardLeadStillOverflows(table)){
           updateScorecardColumnTrim(capture,{hideUntilLeadFits:true});
           fitActiveScorecardRows();
           fitScorecardPlayerNames(capture);
-          fitScorecardTotals(capture);
         }
+        fitScorecardTotals(capture);
+        keepScorecardRoundTotalRatio(capture);
         fitActiveMatchBanner();
       } finally {
         gnPerfEnd(trimAllTimer);
@@ -16547,6 +16616,7 @@ ${isDealer
       ? `R${currentGame.currentRound}`
       : `R${currentGame.currentRound} Now`;
     if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
+    head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
 
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
@@ -16682,6 +16752,7 @@ ${isDealer
         }
         body+=`<td class="scorecard-col-now px-1 py-2 text-center"><span class="s2-now-bid">${escapeHtml(String(nowLabel))}</span></td>`;
       }
+      body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       body+=`</tr>`;
     });

@@ -8,7 +8,7 @@
   var PREFIX = 'bpg_demo_';
   var GN = 'gn_';
   var SEED_URL = '../qa/fixtures.mjs?v=try-demo-1';
-  var CAST_URL = './try-demo-cast.mjs?v=try-demo-cast-3';
+  var CAST_URL = './try-demo-cast.mjs?v=try-demo-cast-4';
   var hooks = {};
   var castApi = null;
 
@@ -254,9 +254,13 @@
   function demoStoreMissingFullRecords() {
     try {
       var history = JSON.parse(localStorage.getItem(PREFIX + 'history') || '[]');
-      return !history.some(function (row) {
-        return row && row.id === 1786100000001;
+      var wizard = history.find(function (row) {
+        return row && row.id === 1786100000002;
       });
+      if (!history.some(function (row) { return row && row.id === 1786100000001; }) || !wizard) return true;
+      var totals = wizard.totals || {};
+      var max = Math.max.apply(null, Object.keys(totals).map(function (name) { return Number(totals[name]) || 0; }).concat([0]));
+      return !(max > 0 && max < 500);
     } catch (error) {
       return true;
     }

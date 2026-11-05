@@ -52,8 +52,11 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
 - Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
 - A scorecard with a stable readable max width, centered with the page column, identical before and after Round 1. Not edge to edge.
+- The scorecard table fills that same card before and after Round 1. A wide empty band beside a hugged table is not a width fix.
 - One meaning for a Passport game filter: every number on screen is that game only. Players who have not played it are left out with a short note.
 - Demo sample records are computed by the real records code from seeded games. No planted numbers.
+- Sample games that produce a believable closest margin and plausible Wizard scores. A 134-point "closest" finish or a 1500 all-tricks Wizard night is fixture noise.
+- Leftover scorecard width sits in a fill column so early hands stay on screen. Dealer names share the same fitted size as the rest of the column.
 
 ## Kills
 
@@ -81,6 +84,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - `1 nights` on a single saved night.
 - iPad score entry rows collapsed into one overlapping strip.
 - 80px names and 120px avatars eating the round columns on a 4-seat TV card.
+- A scorecard card that stays wide while the table hugs after Round 1. Measure the visible table box, not only the card.
+- Hiding early rounds to "make room" while a leftover fill column sits empty. That parks a Life Preserver on Total.
 - `1 WINS · 1 GAMES` or other plural-for-one Records copy.
 - Rook on the Championship Ledger while the shelf hides it.
 - Settings "This device" copy sitting under Backup / Restore, or a close X on the modal border.
