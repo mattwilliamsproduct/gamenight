@@ -158,7 +158,12 @@ async function measureAddPlayer(page) {
 
 async function openAddPlayerDemo(page) {
   await openTestView(page, 'add-player-m');
-  await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
+  const modal = page.locator('#add-player-modal');
+  await expect(modal).not.toHaveClass(/hidden/);
+  await expect.poll(async () => {
+    const measure = await measureAddPlayer(page);
+    return measure.panel ? measure.panel.width / measure.viewport.width : 0;
+  }, {timeout: 3000}).toBeGreaterThanOrEqual(0.58);
 }
 
 test('Add Player uses the form modal size at 1440 and a near-full sheet on 375', async ({page}) => {

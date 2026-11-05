@@ -42,7 +42,9 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.match(index, /href="\.\/assets\/card-picker\.css"/);
   assert.match(worker, /'\.\/assets\/card-picker\.css'/);
   assert.match(css, /aspect-ratio:\s*5\s*\/\s*7/);
+  assert.match(css, /--bp-card-max:\s*148px/);
   assert.match(css, /--bp-card-max:\s*200px/);
+  assert.match(css, /min-width:\s*1280px/);
   assert.match(css, /repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(css, /align-items:\s*stretch/);
   assert.match(css, /margin-top:\s*auto/);

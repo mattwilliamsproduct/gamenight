@@ -22,6 +22,10 @@ Passports, Records, wins, win %, streaks, and games share `BPGRecords.careerWinT
 
 Sample records must be computed by the real records functions from seeded games. Incomplete nights do not count until finished. Assisted nights follow the existing book rules. Do not plant headline numbers.
 
+## Home gap
+
+Desktop Home is three 5:7 cards per row. From 1280px the two panels stretch to the taller one and Start sits at the bottom. Seats stay compact; empty space inside Tonight's Table is fine. At 1024 the cards stay smaller (`--bp-card-max: 148px`) so Start stays above the fold with 6 seated.
+
 ## Safari
 
 A Playwright walkthrough is not a real-phone Safari check. Leave that pending for Matt.

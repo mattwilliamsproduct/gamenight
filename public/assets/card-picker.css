@@ -2,7 +2,7 @@
 
 html.slice2-tv {
   --bp-card-radius: 10px;
-  --bp-card-max: 200px;
+  --bp-card-max: 148px;
   --bp-card-fill: #f6f1e7;
 }
 
@@ -108,19 +108,19 @@ html.slice2-tv .s2-seat-grid {
   min-height: min-content;
 }
 
-/* Equal-height columns. Taller panel sets the row. Cards keep 5:7. Seats stay compact. */
+/* 3-across from laptop width. Natural panel height so Start stays above the 1024 fold. */
 @media (min-width: 861px) {
   html.slice2-tv .s2-home-grid {
     grid-template-columns: minmax(348px, 360px) minmax(0, 1fr);
     grid-template-rows: auto;
-    align-items: stretch;
+    align-items: start;
     max-height: none;
   }
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
     min-height: 0;
-    align-self: stretch;
+    align-self: start;
     height: auto;
     max-height: none;
     display: flex;
@@ -155,7 +155,7 @@ html.slice2-tv .s2-seat-grid {
 
   html.slice2-tv .s2-home-start .s2-startbar {
     flex: 0 0 auto;
-    margin-top: auto;
+    margin-top: 8px;
   }
 
   html.slice2-tv .s2-home-start .s2-game {
@@ -216,7 +216,7 @@ html.slice2-tv .s2-seat-grid {
   html.slice2-tv .s2-home-start .s2-game-grid {
     padding: 4px;
     gap: 8px;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
   }
 
   html.slice2-tv .s2-home-start .s2-startbar {
@@ -226,6 +226,32 @@ html.slice2-tv .s2-seat-grid {
 
   html.slice2-tv .s2-home-start .s2-card-frame {
     width: min(100%, var(--bp-card-max));
+  }
+}
+
+/* Desktop: larger 5:7 cards, equal-height panels, Start anchored at the bottom. */
+@media (min-width: 1280px) {
+  html.slice2-tv {
+    --bp-card-max: 200px;
+  }
+
+  html.slice2-tv .s2-home-grid {
+    align-items: stretch;
+  }
+
+  html.slice2-tv .s2-home-table,
+  html.slice2-tv .s2-home-start {
+    align-self: stretch;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.slice2-tv .s2-home-start .s2-startbar {
+    flex: 0 0 auto;
+    margin-top: auto;
   }
 }
 

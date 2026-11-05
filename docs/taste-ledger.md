@@ -30,7 +30,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
-- Tonight's Table fills the left Home column down to Start a New Match. Extra height goes into seat cards, not padding.
+- Desktop Home is three 5:7 game cards per row. Tonight's Table and Start a New Match stretch to the taller panel. Seats stay compact. Empty space inside Tonight's Table is fine. Start sits at the bottom of its panel.
 - Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
 - Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 - A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
@@ -39,7 +39,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
 - `?demo=try` is a separate in-app sample. It uses `bpg_demo_*` and never writes `gn_*`.
 - Try a demo on the empty table is an outlined secondary with a one-line "data stays separate" note. Start stays the only primary. In the sample, the chip says sample data, not Saved on this device.
-- Try a demo uses a fictional porch (Nora, Owen, Priya, and the rest) and initials avatars, never the QA character faces.
+- Try a demo uses a fictional porch (Nora, Owen, Priya, and the rest). Stored demo avatars stay empty. The app paints teal card silhouettes at render, never the QA character faces.
 - iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
 - Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
 - Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
@@ -135,5 +135,6 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A scorecard that runs edge to edge before Round 1, then hugs content after it.
 - A Passport filter that still mixes other games into games, wins, win rate, streaks, or best score.
 - Passports and Records using two win counters. Matching totals alone is not a pass.
+- Stuffing leftover Home height into Tonight's Table seat cards. Seats stay compact. Empty space inside that panel is fine.
 - Planted demo record numbers that the real records functions did not compute.
 - Claiming a real-phone Safari check that Matt has not done.

@@ -99,17 +99,17 @@ test('direct ?demo=try opens a populated sample and never writes gn_*', async ({
   expect(live.demo.length).toBeGreaterThan(0);
   const faces = await page.evaluate(() => ({
     avatars: Object.values((typeof playerProfiles !== 'undefined' && playerProfiles) || {})
-      .map((profile) => profile && profile.avatar)
-      .filter(Boolean),
+      .map((profile) => (profile && profile.avatar) || ''),
     srcs: [...document.querySelectorAll('img.avatar-img, img.avatar-img-sc, img.avatar-img-lg')]
       .map((img) => img.getAttribute('src') || '')
   }));
   expect(faces.avatars.length).toBeGreaterThan(0);
-  expect(faces.avatars.every((avatar) => /^neutral-\d+\.svg$/.test(avatar))).toBe(true);
+  expect(faces.avatars.every((avatar) => avatar === '')).toBe(true);
   const painted = faces.srcs.filter((src) => src);
   expect(painted.length).toBeGreaterThan(0);
-  expect(painted.every((src) => /neutral-\d+\.svg/i.test(src) || src.startsWith('data:'))).toBe(true);
-  expect(painted.every((src) => !/\.png(?:\?|#|$)/i.test(src))).toBe(true);
+  expect(painted.every((src) => /(?:^|\/)silhouette-[a-z0-9-]+\.png(?:\?|#|$)/i.test(src))).toBe(true);
+  expect(painted.every((src) => !/neutral-\d+\.svg/i.test(src))).toBe(true);
+  expect(painted.every((src) => !/megan|matt|cat|mike|vikki|duke/i.test(src))).toBe(true);
 });
 
 test('empty first-use and Settings About offer Try a demo', async ({page}) => {
@@ -137,11 +137,15 @@ test('starting demo with real data present leaves it untouched', async ({page}) 
   await expect(page.locator('#game-screen')).toContainText(/Nora|Five Crowns/);
   expect(await snapshotGn(page)).toEqual(before);
   const demo = await snapshotDemo(page);
-  expect(JSON.stringify(demo)).toContain('Nora');
-  expect(JSON.stringify(demo)).not.toContain('Megan');
-  expect(JSON.stringify(demo)).not.toContain('Sam');
-  expect(JSON.stringify(demo)).not.toMatch(/\.png/);
-  expect(JSON.stringify(demo)).toMatch(/neutral-\d+\.svg/);
+  const blob = JSON.stringify(demo);
+  expect(blob).toContain('Nora');
+  expect(blob).not.toContain('Megan');
+  expect(blob).not.toContain('Sam');
+  expect(blob).not.toMatch(/\.png/);
+  expect(blob).not.toMatch(/neutral-\d+\.svg/);
+  const profiles = JSON.parse(demo.bpg_demo_profiles || '{}');
+  expect(Object.keys(profiles).length).toBeGreaterThan(0);
+  expect(Object.values(profiles).every((profile) => profile && profile.avatar === '')).toBe(true);
 });
 
 test('demo edits and Reset touch demo data only', async ({page}) => {

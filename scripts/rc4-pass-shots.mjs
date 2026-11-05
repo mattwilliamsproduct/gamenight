@@ -117,6 +117,95 @@ try {
       await page.close();
     }
   }
+
+  const homeViewports = [
+    {name: '1440', width: 1440, height: 900},
+    {name: '1280', width: 1280, height: 800},
+    {name: '390', width: 390, height: 844}
+  ];
+  for (const vp of homeViewports) {
+    const page = await freshDemo(browser, vp);
+    await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
+    await page.waitForTimeout(200);
+    for (const count of [0, 4, 8, 9]) {
+      await page.evaluate((n) => {
+        const names = (typeof allPlayers !== 'undefined' && allPlayers ? allPlayers : []).slice();
+        players = names.slice(0, n);
+        if (typeof saveData === 'function') saveData();
+        if (typeof goHome === 'function') goHome();
+        if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh();
+      }, count);
+      await page.waitForTimeout(200);
+      shots.push(await shot(page, `${vp.name}_home_${count}p`));
+    }
+    await page.close();
+  }
+
+  {
+    const page = await freshDemo(browser, {width: 1440, height: 900});
+    await page.evaluate(() => {
+      const names = (typeof allPlayers !== 'undefined' && allPlayers ? allPlayers : []).slice(0, 9);
+      players = names;
+      if (typeof saveData === 'function') saveData();
+      if (typeof goHome === 'function') goHome();
+      if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh();
+    });
+    await page.waitForTimeout(250);
+    shots.push(await shot(page, '1440_avatars_home9'));
+    await page.evaluate(() => { if (typeof showProfiles === 'function') showProfiles(); });
+    await page.waitForTimeout(250);
+    shots.push(await shot(page, '1440_avatars_picker'));
+    await page.close();
+  }
+  {
+    const page = await freshDemo(browser, {width: 390, height: 844});
+    await page.evaluate(() => {
+      const names = (typeof allPlayers !== 'undefined' && allPlayers ? allPlayers : []).slice(0, 9);
+      players = names;
+      if (typeof saveData === 'function') saveData();
+      if (typeof goHome === 'function') goHome();
+      if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh();
+    });
+    await page.waitForTimeout(250);
+    shots.push(await shot(page, '390_avatars_home9'));
+    await page.evaluate(() => { if (typeof showProfiles === 'function') showProfiles(); });
+    await page.waitForTimeout(250);
+    shots.push(await shot(page, '390_avatars_picker'));
+    await page.close();
+  }
+
+  {
+    const page = await browser.newPage();
+    await page.setViewportSize({width: 1100, height: 900});
+    await page.setContent(`<!doctype html><html><body style="margin:0;background:#f6f1e7;font:16px/1.3 Nunito Sans,sans-serif;color:#14312e">
+      <h1 style="margin:16px 20px 8px;font:700 22px Bree Serif,serif">Teal card silhouettes</h1>
+      <p style="margin:0 20px 16px">Nine cropped badges. Transparent outside the ring.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:0 20px 24px">
+        ${['pirate','cowboy','wizard','fisherman','flamingo','dealer','surfer','grandma','pelican'].map((id) =>
+          `<figure style="margin:0;text-align:center"><img src="${BASE}/avatars/silhouette-${id}.png" width="180" height="180" alt="${id}" style="width:180px;height:180px;object-fit:contain"><figcaption>${id}</figcaption></figure>`
+        ).join('')}
+      </div>
+    </body></html>`);
+    await page.waitForTimeout(300);
+    shots.push(await shot(page, 'silhouette_contact'));
+    await page.close();
+  }
+  {
+    const page = await browser.newPage();
+    await page.setViewportSize({width: 1100, height: 720});
+    await page.setContent(`<!doctype html><html><body style="margin:0;background:#f6f1e7;font:16px/1.3 Nunito Sans,sans-serif;color:#14312e">
+      <h1 style="margin:16px 20px 8px;font:700 22px Bree Serif,serif">PWA / apple-touch (Icon v3)</h1>
+      <p style="margin:0 20px 16px">Favicon is not in this sheet. Leave it unchanged.</p>
+      <div style="display:flex;gap:24px;align-items:end;padding:0 20px 24px;flex-wrap:wrap">
+        <figure style="margin:0;text-align:center"><img src="${BASE}/apple-touch-icon.png?v=5" width="180" height="180" alt="apple 180"><figcaption>apple-touch 180</figcaption></figure>
+        <figure style="margin:0;text-align:center"><img src="${BASE}/bp-icon-192.png?v=5" width="192" height="192" alt="192"><figcaption>icon 192</figcaption></figure>
+        <figure style="margin:0;text-align:center"><img src="${BASE}/bp-icon-512.png?v=5" width="256" height="256" alt="512"><figcaption>icon 512 (shown 256)</figcaption></figure>
+      </div>
+    </body></html>`);
+    await page.waitForTimeout(300);
+    shots.push(await shot(page, 'pwa_icons_contact'));
+    await page.close();
+  }
 } finally {
   await browser.close();
 }
