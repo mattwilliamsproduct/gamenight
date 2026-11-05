@@ -10,8 +10,30 @@ mkdirSync(ART, {recursive: true});
 
 async function writeShot(page, name, fullPage) {
   const file = `after_${name}.png`;
+  if (fullPage) {
+    await page.evaluate(() => {
+      const html = document.documentElement;
+      const body = document.body;
+      html.dataset.bpShotOverflow = html.style.overflow || '';
+      body.dataset.bpShotOverflow = body.style.overflow || '';
+      html.style.overflow = 'visible';
+      html.style.height = 'auto';
+      body.style.overflow = 'visible';
+      body.style.height = 'auto';
+    });
+  }
   for (const path of [`${OUT}/${file}`, `${ART}/${file}`]) {
     await page.screenshot({path, fullPage: !!fullPage});
+  }
+  if (fullPage) {
+    await page.evaluate(() => {
+      const html = document.documentElement;
+      const body = document.body;
+      html.style.overflow = html.dataset.bpShotOverflow || '';
+      body.style.overflow = body.dataset.bpShotOverflow || '';
+      html.style.height = '';
+      body.style.height = '';
+    });
   }
   return file;
 }
@@ -59,6 +81,9 @@ async function measureHome(page) {
       return {w: Math.round(box.width), h: Math.round(box.height), bottom: Math.round(box.bottom)};
     });
     const mark = document.querySelector('#top-nav .bp-brand-wordmark')?.getBoundingClientRect();
+    const tableEl = document.querySelector('.s2-home-table');
+    const startEl = document.querySelector('.s2-home-start');
+    const open = (el) => !el || el.scrollHeight <= el.clientHeight + 1;
     return {
       vh: window.innerHeight,
       vw: window.innerWidth,
@@ -69,6 +94,8 @@ async function measureHome(page) {
       bottomDelta: table && start ? Math.round(start.bottom - table.bottom) : null,
       startBtnBottom: btn ? Math.round(btn.bottom) : null,
       startOnScreen: !!(btn && btn.height > 20 && btn.top >= 0 && btn.bottom <= window.innerHeight + 1),
+      tableOpen: open(tableEl),
+      startOpen: open(startEl),
       cards,
       cardMaxW: cards.length ? Math.max(...cards.map((c) => c.w)) : 0,
       wordmarkW: mark ? Math.round(mark.width) : 0,
@@ -109,7 +136,8 @@ try {
 
   for (const vp of [
     {name: '1440', width: 1440, height: 900},
-    {name: '1280', width: 1280, height: 800}
+    {name: '1280', width: 1280, height: 800},
+    {name: '390', width: 390, height: 844}
   ]) {
     const page = await freshDemo(browser, vp);
     await goHome(page);

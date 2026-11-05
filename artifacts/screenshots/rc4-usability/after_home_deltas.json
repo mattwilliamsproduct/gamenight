@@ -7,10 +7,12 @@
     "bannerH": 118,
     "bannerOn": true,
     "tableBottom": 1162,
-    "startBottom": 886,
-    "bottomDelta": -277,
-    "startBtnBottom": 875,
-    "startOnScreen": true,
+    "startBottom": 1162,
+    "bottomDelta": 0,
+    "startBtnBottom": 1145,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 148,
@@ -55,40 +57,42 @@
     "bannerH": 116,
     "bannerOn": true,
     "tableBottom": 1161,
-    "startBottom": 784,
-    "bottomDelta": -377,
-    "startBtnBottom": 783,
-    "startOnScreen": true,
+    "startBottom": 1161,
+    "bottomDelta": 0,
+    "startBtnBottom": 1148,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       }
     ],
     "cardMaxW": 132,
@@ -107,6 +111,8 @@
     "bottomDelta": 579,
     "startBtnBottom": 1702,
     "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 98,
@@ -155,6 +161,8 @@
     "bottomDelta": 565,
     "startBtnBottom": 1711,
     "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 93,
@@ -199,11 +207,13 @@
     "vw": 1440,
     "bannerH": 118,
     "bannerOn": true,
-    "tableBottom": 886,
-    "startBottom": 886,
+    "tableBottom": 892,
+    "startBottom": 892,
     "bottomDelta": 0,
     "startBtnBottom": 875,
     "startOnScreen": true,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 148,
@@ -249,10 +259,12 @@
     "bannerH": 118,
     "bannerOn": true,
     "tableBottom": 960,
-    "startBottom": 886,
-    "bottomDelta": -75,
-    "startBtnBottom": 875,
-    "startOnScreen": true,
+    "startBottom": 960,
+    "bottomDelta": 0,
+    "startBtnBottom": 943,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 148,
@@ -298,10 +310,12 @@
     "bannerH": 118,
     "bannerOn": true,
     "tableBottom": 1162,
-    "startBottom": 886,
-    "bottomDelta": -277,
-    "startBtnBottom": 875,
-    "startOnScreen": true,
+    "startBottom": 1162,
+    "bottomDelta": 0,
+    "startBtnBottom": 1145,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 148,
@@ -347,10 +361,12 @@
     "bannerH": 118,
     "bannerOn": true,
     "tableBottom": 1172,
-    "startBottom": 886,
-    "bottomDelta": -287,
-    "startBtnBottom": 875,
-    "startOnScreen": true,
+    "startBottom": 1172,
+    "bottomDelta": 0,
+    "startBtnBottom": 1155,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 148,
@@ -396,40 +412,42 @@
     "bannerH": 116,
     "bannerOn": true,
     "tableBottom": 817,
-    "startBottom": 784,
-    "bottomDelta": -33,
-    "startBtnBottom": 783,
-    "startOnScreen": true,
+    "startBottom": 817,
+    "bottomDelta": 0,
+    "startBtnBottom": 804,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       }
     ],
     "cardMaxW": 132,
@@ -445,40 +463,42 @@
     "bannerH": 116,
     "bannerOn": true,
     "tableBottom": 959,
-    "startBottom": 784,
-    "bottomDelta": -175,
-    "startBtnBottom": 783,
-    "startOnScreen": true,
+    "startBottom": 959,
+    "bottomDelta": 0,
+    "startBtnBottom": 946,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       }
     ],
     "cardMaxW": 132,
@@ -494,40 +514,42 @@
     "bannerH": 116,
     "bannerOn": true,
     "tableBottom": 1161,
-    "startBottom": 784,
-    "bottomDelta": -377,
-    "startBtnBottom": 783,
-    "startOnScreen": true,
+    "startBottom": 1161,
+    "bottomDelta": 0,
+    "startBtnBottom": 1148,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       }
     ],
     "cardMaxW": 132,
@@ -543,43 +565,249 @@
     "bannerH": 116,
     "bannerOn": true,
     "tableBottom": 1171,
-    "startBottom": 784,
-    "bottomDelta": -387,
-    "startBtnBottom": 783,
-    "startOnScreen": true,
+    "startBottom": 1171,
+    "bottomDelta": 0,
+    "startBtnBottom": 1158,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
     "cards": [
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 541
+        "bottom": 551
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       },
       {
         "w": 132,
         "h": 185,
-        "bottom": 732
+        "bottom": 744
       }
     ],
     "cardMaxW": 132,
+    "wordmarkW": 115,
+    "wordmarkH": 41
+  },
+  {
+    "kind": "home",
+    "viewport": "390x844",
+    "seated": 0,
+    "vh": 844,
+    "vw": 390,
+    "bannerH": 194,
+    "bannerOn": true,
+    "tableBottom": 877,
+    "startBottom": 1456,
+    "bottomDelta": 579,
+    "startBtnBottom": 1439,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
+    "cards": [
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1176
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1176
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1176
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1326
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1326
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1326
+      }
+    ],
+    "cardMaxW": 98,
+    "wordmarkW": 115,
+    "wordmarkH": 41
+  },
+  {
+    "kind": "home",
+    "viewport": "390x844",
+    "seated": 4,
+    "vh": 844,
+    "vw": 390,
+    "bannerH": 194,
+    "bannerOn": true,
+    "tableBottom": 978,
+    "startBottom": 1557,
+    "bottomDelta": 579,
+    "startBtnBottom": 1540,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
+    "cards": [
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1278
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1278
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1278
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1427
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1427
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1427
+      }
+    ],
+    "cardMaxW": 98,
+    "wordmarkW": 115,
+    "wordmarkH": 41
+  },
+  {
+    "kind": "home",
+    "viewport": "390x844",
+    "seated": 8,
+    "vh": 844,
+    "vw": 390,
+    "bannerH": 194,
+    "bannerOn": true,
+    "tableBottom": 1140,
+    "startBottom": 1719,
+    "bottomDelta": 579,
+    "startBtnBottom": 1702,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
+    "cards": [
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1440
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1440
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1440
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1589
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1589
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1589
+      }
+    ],
+    "cardMaxW": 98,
+    "wordmarkW": 115,
+    "wordmarkH": 41
+  },
+  {
+    "kind": "home",
+    "viewport": "390x844",
+    "seated": 9,
+    "vh": 844,
+    "vw": 390,
+    "bannerH": 194,
+    "bannerOn": true,
+    "tableBottom": 1140,
+    "startBottom": 1719,
+    "bottomDelta": 579,
+    "startBtnBottom": 1702,
+    "startOnScreen": false,
+    "tableOpen": true,
+    "startOpen": true,
+    "cards": [
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1440
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1440
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1440
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1589
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1589
+      },
+      {
+        "w": 98,
+        "h": 138,
+        "bottom": 1589
+      }
+    ],
+    "cardMaxW": 98,
     "wordmarkW": 115,
     "wordmarkH": 41
   }

@@ -59,7 +59,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Leftover scorecard width goes to the player column. Total and round columns stay fixed. No tinted empty trailing band. Dealer names share the same fitted size as the rest of the column.
 - Displayed records, passport, and scorecard numbers use at most one decimal (1.7 avg). Passport chips are one-line sentences: Won the last match, Only player to score, twice.
 - One counting rule: Passports and the game tally count the same finished nights. Every tied winner gets a win. Unfinished nights are out of wins, win %, and games. Left-early players keep their scores and the game, never the win.
-- Home 5:7 cards stay slightly larger on desktop, not double, so the 3x2 grid, summary, and Start fit under the Resume banner at 1440x900 and 1280x800. Do not grow cards just to fill leftover space.
+- Home 5:7 cards stay slightly larger on desktop, not double (148px at 1440, 132px at 1280). Both Home panels stretch to the same height. The taller one sets it. Empty space inside either panel is fine. Do not grow cards just to fill leftover space.
 - Phone wordmark large enough that GAMES is readable (about 110 to 130px wide) without wrapping the mobile nav.
 - PWA and apple-touch icons are full-bleed: no white outside the rounded art. Maskable padding matches the art teal. The favicon stays frozen.
 
@@ -144,3 +144,4 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Oversizing Home cards just to fill leftover desktop space so Start drops below the fold under Resume.
 - Shipping PWA or apple-touch icons with white corners iOS would unmask.
 - A phone wordmark so small GAMES is unreadable, or a header shot of the scorecard labeled as Home.
+- Clipping or internally scrolling Tonight's Table, or leaving the two Home panels different heights. Stretch to the taller one. Start at the bottom of its panel may sit below the fold at 8 or 9 seats.

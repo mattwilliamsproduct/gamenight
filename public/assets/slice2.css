@@ -495,7 +495,7 @@ html.slice2-tv .s2-seat-live {
 
 html.slice2-tv .s2-home-table {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   min-width: 0;
 }
 

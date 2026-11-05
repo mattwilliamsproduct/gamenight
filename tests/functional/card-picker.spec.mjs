@@ -179,22 +179,39 @@ async function openDemoHome(page) {
   await page.waitForSelector('#home-screen:not(.hidden)');
 }
 
-test('1440 and 1280 keep the 3x2 grid and Start on screen with Resume', async ({page}) => {
+test('1440 and 1280 Home panels stretch equally and do not clip', async ({page}) => {
   for (const size of [{width: 1440, height: 900}, {width: 1280, height: 800}]) {
     await page.setViewportSize(size);
     await openDemoHome(page);
-    const fold = await startFold(page);
-    expect(fold.startOnScreen, `${size.width} Start sits below the fold with Resume`).toBe(true);
-    expect(fold.barOnScreen, `${size.width} Start bar sits below the fold`).toBe(true);
-    expect(fold.startInsidePanel, `${size.width} Start left the picker panel`).toBe(true);
-    const cards = await page.locator('.s2-home-start .s2-card-frame').evaluateAll((nodes) => nodes.map((node) => {
-      const box = node.getBoundingClientRect();
-      return {width: box.width, height: box.height, bottom: box.bottom};
-    }));
-    expect(cards, `${size.width} missing cards`).toHaveLength(6);
-    const vh = size.height;
-    expect(Math.max(...cards.map((card) => card.bottom)), `${size.width} second row clipped`).toBeLessThanOrEqual(vh + 1);
-    expect(Math.max(...cards.map((card) => card.width)), `${size.width} cards oversized`).toBeLessThanOrEqual(160);
+    for (const count of [0, 4, 8, 9]) {
+      await page.evaluate((n) => {
+        const names = (typeof allPlayers !== 'undefined' && allPlayers ? allPlayers : []).slice();
+        players = names.slice(0, n);
+        if (typeof saveData === 'function') saveData();
+        if (typeof goHome === 'function') goHome();
+        if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh();
+      }, count);
+      const layout = await page.evaluate(() => {
+        const table = document.querySelector('.s2-home-table');
+        const start = document.querySelector('.s2-home-start');
+        const tableBox = table?.getBoundingClientRect();
+        const startBox = start?.getBoundingClientRect();
+        const cards = [...document.querySelectorAll('.s2-home-start .s2-card-frame')].map((node) => node.getBoundingClientRect().width);
+        const overflow = (el) => !el || el.scrollHeight <= el.clientHeight + 1;
+        return {
+          delta: tableBox && startBox ? startBox.bottom - tableBox.bottom : 999,
+          tableOpen: overflow(table),
+          startOpen: overflow(start),
+          cardMaxW: cards.length ? Math.max(...cards) : 0,
+          cardCount: cards.length
+        };
+      });
+      expect(Math.abs(layout.delta), `${size.width} ${count}p |delta| ${layout.delta}`).toBeLessThanOrEqual(4);
+      expect(layout.tableOpen, `${size.width} ${count}p Tonight's Table clipped`).toBe(true);
+      expect(layout.startOpen, `${size.width} ${count}p Start panel clipped`).toBe(true);
+      expect(layout.cardCount, `${size.width} missing cards`).toBe(6);
+      expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(160);
+    }
   }
 });
 
