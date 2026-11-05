@@ -31,9 +31,14 @@ export function renameDemoText(text, map = castMap()) {
   return next;
 }
 
+export function isPlaceholderAvatar(value) {
+  return /neutral-\d+\.svg(?:\?|#|$)/i.test(String(value || ''))
+    || /silhouette-[a-z0-9-]+\.png(?:\?|#|$)/i.test(String(value || ''));
+}
+
 export function isCharacterAvatarRef(value) {
   if (typeof value !== 'string' || !value) return false;
-  if (/neutral-\d+\.svg(?:\?|#|$)/i.test(value)) return false;
+  if (isPlaceholderAvatar(value)) return false;
   return /(?:^|\/)avatars\//i.test(value) || /\.png(?:\?|#|$)/i.test(value);
 }
 
@@ -63,9 +68,10 @@ export function applyNeutralDemoAvatars(book) {
   const profiles = { ...(book.playerProfiles || {}) };
   names.forEach((name, index) => {
     const prev = profiles[name] || {};
+    const avatar = isCharacterAvatarRef(prev.avatar) || isPlaceholderAvatar(prev.avatar) ? '' : (prev.avatar || '');
     profiles[name] = {
       ...prev,
-      avatar: NEUTRAL_DEMO_AVATARS[index % NEUTRAL_DEMO_AVATARS.length],
+      avatar,
       color: prev.color || ((index % 8) + 1)
     };
   });
@@ -127,6 +133,6 @@ export function demoBookHasPorchCast(blob) {
   const text = typeof blob === 'string' ? blob : JSON.stringify(blob || '');
   if (!text) return false;
   if (/\.png/i.test(text)) return true;
-  if (/avatars\/(?!neutral-)[^"\s]+/i.test(text)) return true;
+  if (/avatars\/(?!neutral-|silhouette-)[^"\s]+/i.test(text)) return true;
   return QA_PORCH_CAST.some((name) => text.includes(name));
 }

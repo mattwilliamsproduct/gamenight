@@ -33,7 +33,7 @@ test('card faces stay on the shelf without demo-art', async () => {
   assert.match(js, /assets\/cards\/canasta\.webp/);
   assert.match(js, /assets\/cards\/rook\.webp/);
   assert.doesNotMatch(js, /demo-art|applyDemoChrome|data-bp-art/);
-  assert.match(slice2, /\.s2-art-canasta[\s\S]*?url\("\.\/art\/dusk\/canasta\.webp"\)/);
+  assert.match(slice2, /\.s2-art-canasta[\s\S]*?url\("\.\/cards\/canasta\.webp"\)/);
   for (const face of ['five-crowns.webp', '818.webp', 'wizard.webp', 'flip7.webp', 'beat-the-heat.webp', 'canasta.webp', 'rook.webp']) {
     await access(join(root, 'public/assets/cards', face));
   }

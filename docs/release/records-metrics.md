@@ -4,8 +4,8 @@ Definitions for the restored Records book. The same rules live as comments in `p
 
 | Metric | Definition | Ties | Too little data | Unassisted only |
 | --- | --- | --- | --- | --- |
-| Career wins | Completed matches (`completed !== false`) where the player is in `winners`. | All names with the same win count stay listed. | Shown as 0. | No. Assisted matches still count. |
-| Games played | Completed matches the player sat. Reopened rows (`completed === false`) are out. | Same count lists every name. | Shown as 0. | No. |
+| Career wins | Completed matches (`completed !== false`) where `eligibleWinners` includes the player. Left-early players are never winners. | All names with the same win count stay listed. A tie for the win is a win for each remaining finisher. | Shown as 0. | No. Assisted matches still count. |
+| Games played | Completed matches the player sat, including left-early sits. Reopened rows (`completed === false`) are out. | Same count lists every name. | Shown as 0. | No. |
 | Win rate | `wins / games`, printed as `45% · 9 of 20`. Leaders need 5 completed matches. | Same rate lists every eligible name. | Below 5 games the fraction still prints on a career row; it cannot lead. | No. |
 | Best / worst final score | Stored match total for that game only. Low-score games treat lower as better. | Same value lists every name. | Empty: "No qualifying history". All-assisted shelf: "No unassisted matches yet". | Yes. |
 | Cleanest game | Average of played scoring-round scores in one unassisted match. | Same average lists every name. | Needs played scoring rounds. | Yes. |

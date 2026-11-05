@@ -14,6 +14,10 @@ A second-column wrap of Tonight's Table at ~9 seats did not reproduce at 2, 3, 4
 
 One meaning: the filter scopes the stats. Every number on Passports becomes that game only. Players with no games of that type are left out, with a leftover note. Label the scope in the UI. Do not leave career-wide games/wins/rate on a filtered card.
 
+## One counting rule
+
+Passports, Records, wins, win %, streaks, and games share `BPGRecords.careerWinTally`. Finished nights only. Every tied winner gets a win. Unfinished, incomplete, and reopened-not-completed nights are out of wins, win %, and games. A left-early player keeps their scores and the game, never the win. The remapped demo Rook night marks Theo left early; winners stay Nora and Owen. See `artifacts/rc4-win-tally.md`.
+
 ## Demo records
 
 Sample records must be computed by the real records functions from seeded games. Incomplete nights do not count until finished. Assisted nights follow the existing book rules. Do not plant headline numbers.

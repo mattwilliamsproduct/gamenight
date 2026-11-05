@@ -101,10 +101,24 @@
     return CARD_FACES[art] || '';
   }
 
+  function thumbnailSrc(id) {
+    const game = gameById(id);
+    return cardFace(game && game.art) || '';
+  }
+
+  function thumbnailHtml(id, className) {
+    const src = thumbnailSrc(id);
+    if (!src) return '';
+    const cls = className || 's2-game-thumb';
+    return '<img class="' + cls + '" src="' + src + '" alt="" draggable="false">';
+  }
+
   const api = {
     GAMES,
     CARD_FACES,
     cardFace,
+    thumbnailSrc,
+    thumbnailHtml,
     gameById,
     visibleGames,
     isHiddenGameVisible,

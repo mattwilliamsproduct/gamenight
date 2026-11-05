@@ -83,10 +83,10 @@ test('demo forks the QA seed to a fictional cast with neutral SVG avatars', () =
   });
   assert.doesNotMatch(blob, /\.png/);
   assert.equal(
-    Object.values(book.playerProfiles).every((profile) => profile && /^neutral-\d+\.svg$/.test(profile.avatar || '')),
+    Object.values(book.playerProfiles).every((profile) => profile && !profile.avatar),
     true
   );
-  assert.match(JSON.stringify(book.playerProfiles.Nora.avatar), /neutral-/);
+  assert.equal(book.playerProfiles.Nora.avatar, '');
   assert.equal(book.currentGame.originalRoster[1], 'Owen');
   assert.equal(book.currentGame.dealerOffset, 1);
   assert.ok(qa.players.includes('Megan'));

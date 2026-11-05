@@ -298,6 +298,17 @@ test('end-of-match copy names every tied winner and skips a single loser', () =>
   assert.equal(lastTie.lastTied, true);
 });
 
+test('several players tying a new record share one line', () => {
+  assert.equal(
+    Records.formatTiedRecordAlert(['Nora', 'Owen', 'Priya', 'Theo'], 'lowest Five Crowns score', 4),
+    'Nora, Owen, Priya, and Theo tied for the lowest Five Crowns score (4)'
+  );
+  assert.equal(
+    Records.formatTiedRecordAlert(['Nora'], 'lowest Five Crowns score', 4),
+    'Nora set a new lowest Five Crowns score (4)'
+  );
+});
+
 test('818 Brick is retired as a primary Shame label', () => {
   const brick = Records.SHAME_CATALOG.find((row) => row.oldName === 'The 818 Brick');
   assert.ok(brick);
@@ -558,11 +569,96 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
 test('demo career wins sum from completed nights, including ties and assisted', () => {
   const book = buildDemoBook(QA_SCENARIOS);
   const tally = Records.careerWinTally(book.history, {scorebook: Scorebook});
-  assert.match(tally.rule, /completed history match/);
-  assert.match(tally.rule, /tie for the win is a win for each tied player/);
+  assert.match(tally.rule, /One counting rule/);
+  assert.match(tally.rule, /Every tied winner gets a win/);
+  assert.match(tally.rule, /never a winner/);
   assert.equal(tally.counted, 23);
   assert.equal(tally.winSum, 29);
   assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
   assert.equal(tally.rows.some((row) => row.counts && row.assisted), true);
   assert.equal(tally.rows.filter((row) => row.counts && row.tied).reduce((sum, row) => sum + row.winners.length, 0) > 0, true);
+});
+
+test('Passport career stats equal the per-match tally for every demo player', () => {
+  const book = buildDemoBook(QA_SCENARIOS);
+  const tally = Records.careerWinTally(book.history, {scorebook: Scorebook});
+  Object.keys(tally.players).forEach((name) => {
+    const passport = Records.playerCareerStats(book.history, {scorebook: Scorebook, player: name});
+    assert.equal(passport.wins, tally.players[name].wins, `${name} wins`);
+    assert.equal(passport.games, tally.players[name].games, `${name} games`);
+  });
+});
+
+test('tied winners each get a win on the shared career function', () => {
+  const match = {
+    game: 'Flip 7 Vengeance',
+    completed: true,
+    totals: {Ada: 40, Beau: 40, Cy: 10},
+    winners: ['Ada', 'Beau'],
+    originalRoster: ['Ada', 'Beau', 'Cy'],
+    rounds: [{round: 1, scores: {Ada: 40, Beau: 40, Cy: 10}}]
+  };
+  assert.deepEqual(Records.eligibleWinners(match, {scorebook: Scorebook}), ['Ada', 'Beau']);
+  assert.equal(Records.playerCareerStats([match], {scorebook: Scorebook, player: 'Ada'}).wins, 1);
+  assert.equal(Records.playerCareerStats([match], {scorebook: Scorebook, player: 'Beau'}).wins, 1);
+  assert.equal(Records.playerCareerStats([match], {scorebook: Scorebook, player: 'Cy'}).wins, 0);
+  assert.equal(Records.playerCareerStats([match], {scorebook: Scorebook, player: 'Ada'}).games, 1);
+});
+
+test('unfinished nights are excluded from wins, win %, and games', () => {
+  const history = [
+    {
+      game: 'Five Crowns',
+      completed: false,
+      totals: {Ada: 5, Beau: 9},
+      winners: ['Ada'],
+      originalRoster: ['Ada', 'Beau'],
+      rounds: [{round: 1, scores: {Ada: 5, Beau: 9}}]
+    },
+    {
+      game: 'Five Crowns',
+      completed: true,
+      totals: {Ada: 10, Beau: 8},
+      winners: ['Beau'],
+      originalRoster: ['Ada', 'Beau'],
+      rounds: [{round: 1, scores: {Ada: 10, Beau: 8}}]
+    }
+  ];
+  const ada = Records.playerCareerStats(history, {scorebook: Scorebook, player: 'Ada'});
+  const beau = Records.playerCareerStats(history, {scorebook: Scorebook, player: 'Beau'});
+  assert.equal(ada.wins, 0);
+  assert.equal(ada.games, 1);
+  assert.equal(beau.wins, 1);
+  assert.equal(beau.games, 1);
+  assert.equal(ada.games ? ada.wins / ada.games : 0, 0);
+});
+
+test('left-early player who would have won is not a winner; remaining finishers win', () => {
+  const match = {
+    game: 'Five Crowns',
+    completed: true,
+    totals: {Ada: 4, Beau: 10, Cy: 12},
+    winners: ['Ada'],
+    retired: ['Ada'],
+    originalRoster: ['Ada', 'Beau', 'Cy'],
+    rounds: [{round: 1, scores: {Ada: 4, Beau: 10, Cy: 12}}]
+  };
+  assert.deepEqual(Records.eligibleWinners(match, {scorebook: Scorebook}), ['Beau']);
+  const ada = Records.playerCareerStats([match], {scorebook: Scorebook, player: 'Ada'});
+  const beau = Records.playerCareerStats([match], {scorebook: Scorebook, player: 'Beau'});
+  assert.equal(ada.wins, 0);
+  assert.equal(ada.games, 1);
+  assert.equal(beau.wins, 1);
+  assert.equal(beau.games, 1);
+  assert.equal(Records.playerWonMatch(match, 'Ada', {scorebook: Scorebook}), false);
+});
+
+test('demo Rook night has a left-early player and does not change the stored winners', () => {
+  const book = buildDemoBook(QA_SCENARIOS);
+  const rook = book.history.find((row) => row.game === 'Rook' && (row.retired || []).includes('Theo'));
+  assert.ok(rook, 'demo fixture should include the remapped Rook night with Theo left early');
+  assert.deepEqual(Records.eligibleWinners(rook, {scorebook: Scorebook}).slice().sort(), ['Nora', 'Owen']);
+  const theo = Records.playerCareerStats([rook], {scorebook: Scorebook, player: 'Theo'});
+  assert.equal(theo.wins, 0);
+  assert.equal(theo.games, 1);
 });

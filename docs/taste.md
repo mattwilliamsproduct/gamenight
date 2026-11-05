@@ -62,6 +62,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Sample games that produce a believable closest margin and plausible Wizard scores. A 134-point "closest" finish or a 1500 all-tricks Wizard night is fixture noise.
 - Leftover scorecard width goes to the player column. Total and round columns stay fixed. No tinted empty trailing band. Dealer names share the same fitted size as the rest of the column.
 - Displayed records, passport, and scorecard numbers use at most one decimal (1.7 avg). Passport chips are one-line sentences: Won the last match, Only player to score, twice.
+- One counting rule: Passports and the game tally count the same finished nights. Every tied winner gets a win. Unfinished nights are out of wins, win %, and games. Left-early players keep their scores and the game, never the win.
 
 ### Kills
 
@@ -136,6 +137,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.
 - A scorecard that runs edge to edge before Round 1, then hugs content after it.
 - A Passport filter that still mixes other games into games, wins, win rate, streaks, or best score.
+- Passports and Records using two win counters. Matching totals alone is not a pass.
 - Planted demo record numbers that the real records functions did not compute.
 - Claiming a real-phone Safari check that Matt has not done.
 

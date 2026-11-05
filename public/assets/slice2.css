@@ -690,16 +690,32 @@ html.slice2-tv .s2-game-art {
   background-size: cover;
 }
 
-html.slice2-tv .s2-art-five { background-image: url("../theme/game-card-five-crowns-thumb.jpg"); }
-html.slice2-tv .s2-art-818 { background-image: url("../theme/game-card-818-thumb.jpg"); }
-html.slice2-tv .s2-art-wizard { background-image: url("../theme/game-card-wizard-thumb.jpg"); }
-html.slice2-tv .s2-art-flip7 { background-image: url("../theme/game-card-flip7-thumb.jpg"); }
-html.slice2-tv .s2-art-heat { background-image: url("../theme/game-card-beat-heat-thumb.jpg"); }
-html.slice2-tv .s2-art-rook { background-image: url("../theme/game-card-rook-thumb.jpg"); }
+html.slice2-tv .s2-art-five { background-image: url("./cards/five-crowns.webp"); }
+html.slice2-tv .s2-art-818 { background-image: url("./cards/818.webp"); }
+html.slice2-tv .s2-art-wizard { background-image: url("./cards/wizard.webp"); }
+html.slice2-tv .s2-art-flip7 { background-image: url("./cards/flip7.webp"); }
+html.slice2-tv .s2-art-heat { background-image: url("./cards/beat-the-heat.webp"); }
+html.slice2-tv .s2-art-rook { background-image: url("./cards/rook.webp"); }
 html.slice2-tv .s2-art-canasta {
-  background-image: url("./art/dusk/canasta.webp");
+  background-image: url("./cards/canasta.webp");
   background-size: cover;
   background-position: center;
+}
+html.slice2-tv .s2-game-thumb,
+html.slice2-tv .s2-ledger-mark {
+  width: 26px;
+  height: 36px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 5px;
+  background: var(--s2-card);
+}
+html.slice2-tv .s2-explore-game-title,
+html.slice2-tv .s2-disclose summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 html.slice2-tv .s2-game-copy {
@@ -2373,6 +2389,11 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     width: 1.7rem !important;
     height: 1.7rem !important;
     flex: 0 0 1.7rem !important;
+  }
+
+  html.slice2-tv #top-nav .bp-brand-wordmark {
+    height: 1.7rem !important;
+    max-width: 7.1rem !important;
   }
 
   html.slice2-tv #top-nav .bp-brand-copy {

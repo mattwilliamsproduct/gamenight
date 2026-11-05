@@ -6,6 +6,14 @@ const require = createRequire(import.meta.url);
 const Games = require('../public/assets/game-registry.js');
 const Scorebook = require('../public/assets/scorebook.js');
 
+test('each shelf game has a card-back thumbnail helper', () => {
+  ['Five Crowns', '818', 'Wizard', 'Flip 7 Vengeance', 'Beat the Heat', 'Hand and Foot', 'Rook'].forEach((id) => {
+    const src = Games.thumbnailSrc(id);
+    assert.match(src, /assets\/cards\/.+\.webp$/, `${id} missing card-back`);
+  });
+  assert.equal(Games.thumbnailSrc('Unknown Game'), '');
+});
+
 test('Rook is hidden by default and Canasta is on the picker', () => {
   const visible = Games.visibleGames('');
   const ids = visible.map((game) => game.id);

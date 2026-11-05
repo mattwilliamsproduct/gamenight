@@ -2,7 +2,7 @@
 
 html.slice2-tv {
   --bp-card-radius: 10px;
-  --bp-card-max: 156px;
+  --bp-card-max: 200px;
   --bp-card-fill: #f6f1e7;
 }
 
@@ -15,8 +15,8 @@ html.slice2-tv .s2-home-start .s2-game-grid {
   align-content: start;
   justify-content: start;
   justify-items: stretch;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 12px;
   width: 100%;
   min-width: 0;
   min-height: 0;
@@ -108,60 +108,66 @@ html.slice2-tv .s2-seat-grid {
   min-height: min-content;
 }
 
-/* Columns first. Cards take leftover height. Start bar stays inside the panel. */
+/* Equal-height columns. Taller panel sets the row. Cards keep 5:7. Seats stay compact. */
 @media (min-width: 861px) {
   html.slice2-tv .s2-home-grid {
-    /* rc3: panels size to content; avoid stretch fill */
     grid-template-columns: minmax(348px, 360px) minmax(0, 1fr);
     grid-template-rows: auto;
-    align-items: start;
+    align-items: stretch;
     max-height: none;
   }
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
     min-height: 0;
-    align-self: start;
+    align-self: stretch;
+    height: auto;
     max-height: none;
-  }
-
-  html.slice2-tv .s2-home-table {
-    height: auto;
-    overflow: visible;
-  }
-
-  html.slice2-tv .s2-home-start {
-    height: auto;
-    overflow: visible;
     display: flex;
     flex-direction: column;
   }
 
-  html.slice2-tv .s2-home-start .s2-panel-head,
-  html.slice2-tv .s2-home-start .s2-startbar {
+  html.slice2-tv .s2-home-table {
+    overflow: visible;
+  }
+
+  html.slice2-tv .s2-home-table .s2-seat-grid,
+  html.slice2-tv .s2-home-table .s2-add,
+  html.slice2-tv #slice2-empty-table {
     flex: 0 0 auto;
   }
 
-  html.slice2-tv .s2-home-start .s2-startbar {
-    margin-top: 10px;
+  html.slice2-tv .s2-home-start {
+    overflow: visible;
+  }
+
+  html.slice2-tv .s2-home-start .s2-panel-head {
+    flex: 0 0 auto;
   }
 
   html.slice2-tv .s2-home-start .s2-game-grid {
-    flex: 0 1 auto;
-    min-height: 0;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: start;
     justify-content: start;
     overflow: visible;
   }
 
+  html.slice2-tv .s2-home-start .s2-startbar {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
+
   html.slice2-tv .s2-home-start .s2-game {
     height: auto;
-    max-height: 100%;
+    max-width: var(--bp-card-max);
+    justify-self: center;
   }
 
   html.slice2-tv .s2-home-start .s2-card-frame {
-    width: min(100%, var(--bp-card-max));
-    max-height: 100%;
+    width: 100%;
+    max-width: var(--bp-card-max);
+    height: auto !important;
   }
 
   html.slice2-tv .s2-home-table .s2-seat {

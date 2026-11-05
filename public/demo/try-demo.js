@@ -209,19 +209,14 @@
 
   function neutralizeDemoAvatars() {
     if (!active()) return;
-    var neutrals = [
-      'neutral-01.svg', 'neutral-02.svg', 'neutral-03.svg', 'neutral-04.svg',
-      'neutral-05.svg', 'neutral-06.svg', 'neutral-07.svg', 'neutral-08.svg',
-      'neutral-09.svg', 'neutral-10.svg', 'neutral-11.svg', 'neutral-12.svg'
-    ];
     try {
       if (root.playerProfiles && typeof root.playerProfiles === 'object') {
-        Object.keys(root.playerProfiles).forEach(function (name, index) {
+        Object.keys(root.playerProfiles).forEach(function (name) {
           var profile = root.playerProfiles[name] || {};
-          var avatar = profile.avatar || '';
-          var isNeutral = /neutral-\d+\.svg$/i.test(String(avatar));
-          if (!isNeutral) {
-            profile.avatar = neutrals[index % neutrals.length];
+          var avatar = String(profile.avatar || '');
+          var placeholder = /neutral-\d+\.svg$/i.test(avatar) || /silhouette-[a-z0-9-]+\.png$/i.test(avatar);
+          if (avatar && !placeholder) {
+            profile.avatar = '';
             root.playerProfiles[name] = profile;
           }
         });
@@ -231,7 +226,7 @@
       document.querySelectorAll('img.avatar-img, img.avatar-img-sc, img.avatar-img-lg').forEach(function (img) {
         var src = img.getAttribute('src') || '';
         if (!src) return;
-        if (/neutral-\d+\.svg/i.test(src)) return;
+        if (/neutral-\d+\.svg/i.test(src) || /silhouette-[a-z0-9-]+\.png/i.test(src)) return;
         var character = /(?:^|\/)avatars\//i.test(src) || /\.png(?:\?|#|$)/i.test(src);
         if (!character) return;
         if (img.dataset.fb) img.src = img.dataset.fb;
@@ -296,7 +291,7 @@
       '#bpg-try-demo-about .bpg-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#6d6962;margin-bottom:6px}',
       '#bpg-try-demo-about p{margin:0 0 10px;font-size:13px;font-weight:700;color:#3d4f4c}',
       'html.bpg-try-demo #save-indicator,html.bpg-try-demo #save-indicator.show{opacity:1;transform:none;text-transform:none;letter-spacing:.01em;font-weight:800;color:#3d4f4c;background:#f4efe4;border-color:#d7cbb3}',
-      'html.bpg-try-demo img.avatar-img[src*="avatars/"]:not([src*="neutral-"]),html.bpg-try-demo img.avatar-img-sc[src*="avatars/"]:not([src*="neutral-"]),html.bpg-try-demo img.avatar-img-lg[src*="avatars/"]:not([src*="neutral-"]){opacity:0}',
+      'html.bpg-try-demo img.avatar-img[src*="avatars/"]:not([src*="neutral-"]):not([src*="silhouette-"]),html.bpg-try-demo img.avatar-img-sc[src*="avatars/"]:not([src*="neutral-"]):not([src*="silhouette-"]),html.bpg-try-demo img.avatar-img-lg[src*="avatars/"]:not([src*="neutral-"]):not([src*="silhouette-"]){opacity:0}',
       'html.bpg-try-demo #settings-modal .bp-modal-foot,',
       'html.bpg-try-demo #backup-restore-copy,',
       'html.bpg-try-demo #backup-device-summary,',

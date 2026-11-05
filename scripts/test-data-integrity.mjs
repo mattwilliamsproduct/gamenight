@@ -554,8 +554,8 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /function shownRoundScore/);
   const fame = page.slice(page.indexOf('function calculateHallOfFame'), page.indexOf('function calculateAllTimeRecords'));
   const records = page.slice(page.indexOf('function calculateAllTimeRecords'), page.indexOf('function renderHallOfFame'));
-  assert.match(fame, /BPGScorebook\.isCompletedHistoryMatch/);
-  assert.match(records, /BPGScorebook\.isCompletedHistoryMatch/);
+  assert.match(fame, /nightCountsForCareer|isCareerCountableMatch|isCompletedHistoryMatch/);
+  assert.match(records, /nightCountsForCareer|eligibleWinners|isCompletedHistoryMatch/);
   assert.match(fame, /historyScoreOrNull/);
   assert.match(records, /historyScoreOrNull/);
   assert.doesNotMatch(page, /unconfirmedScoreEntryMessage/);

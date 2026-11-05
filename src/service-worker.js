@@ -18,7 +18,8 @@ const APP_SHELL = [
   './demo/try-demo.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
-  './bp-apple-touch-icon.png'
+  './bp-apple-touch-icon.png',
+  './assets/logo/back-porch-wordmark.png'
 ];
 
 self.addEventListener('install', event => {

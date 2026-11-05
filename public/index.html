@@ -22,12 +22,11 @@
   <meta name="apple-mobile-web-app-title" content="Back Porch">
   <meta property="og:title" content="Back Porch Games">
   <meta property="og:description" content="Cards, scores, and good company.">
-  <meta property="og:image" content="./bp-icon-512.png">
+  <meta property="og:image" content="./icon-512.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=4">
-  <link rel="apple-touch-icon" sizes="180x180" href="./bp-apple-touch-icon.png?v=4">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=5">
+  <link rel="apple-touch-icon" sizes="180x180" href="./bp-apple-touch-icon.png?v=5">
   <link rel="icon" type="image/png" sizes="32x32" href="./bp-favicon-32.png?v=4">
-  <link rel="icon" type="image/png" sizes="192x192" href="./bp-icon-192.png?v=4">
   <title>Back Porch Games</title>
   <link rel="preload" href="./assets/fonts/londrina-solid-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./assets/fonts.css">
@@ -1341,6 +1340,32 @@
       overflow-wrap: anywhere;
       text-wrap: balance;
       white-space: normal;
+    }
+    #victory-records {
+      max-width: 26rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #victory-records > div {
+      max-width: 100%;
+      text-wrap: pretty;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      line-height: 1.35;
+    }
+    .bp-brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      flex: 0 1 auto;
+    }
+    .bp-brand-wordmark {
+      display: block;
+      height: 2.55rem;
+      width: auto;
+      max-width: 11.25rem;
+      object-fit: contain;
+      object-position: left center;
     }
     .lineup-enter { animation: lineupSlide 0.32s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes lineupSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
@@ -8506,6 +8531,7 @@ button.dealer-name-indicator .dealer-player-label {
       .bp-app-shell { padding-left: 0.65rem !important; padding-right: 0.65rem !important; }
       #top-nav { top: 0.35rem; padding: 0.6rem 0.7rem !important; }
       .bp-brand-mark { width: 2.75rem; height: 2.75rem; flex-basis: 2.75rem; }
+      .bp-brand-wordmark { height: 1.9rem; max-width: 7.6rem; }
       .brand-name { display: flex; }
       .bp-brand-main { font-size: 1.35rem; }
       .bp-brand-games { margin-top: 0.1rem; font-size: 0.58rem; }
@@ -8967,11 +8993,8 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- ═══ TOP NAV ═══ -->
     <div id="top-nav" class="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 backdrop-blur-xl" style="background: var(--nav-bg); border-bottom: 1px solid var(--hairline);">
       <div class="flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center gap-3">
-          <div class="brand-mark bp-brand-mark" aria-hidden="true"></div>
-          <div class="bp-brand-copy">
-            <h1 class="brand-name leading-none"><span class="bp-brand-main">Back Porch</span><span class="bp-brand-games">Games</span></h1>
-          </div>
+        <div class="bp-brand">
+          <img class="bp-brand-wordmark" src="./assets/logo/back-porch-wordmark.png" alt="Back Porch Games" width="320" height="113">
         </div>
         <div class="flex flex-wrap gap-1.5 items-center">
           <button onclick="goHome()" class="nav-btn">Home</button>
@@ -11149,23 +11172,42 @@ button.dealer-name-indicator .dealer-player-label {
   function getColorRingClass(_name){
     return '';
   }
-  function getAvatarFallback(name){
-    const raw=(name&&typeof name==='string')?name.trim():'';
-    // charAt(0) splits an emoji surrogate pair and encodeURIComponent then throws.
-    const first=raw?[...raw][0]:'?';
-    const initial=first&&first.length===1&&/[a-z]/i.test(first)?first.toUpperCase():(first||'?');
-    const safe=String(initial).replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
-    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#e4e2dc" width="100" height="100"/><text fill="#78716c" x="50" y="58" font-size="46" font-weight="800" text-anchor="middle" font-family="sans-serif">${safe}</text></svg>`;
-    try{
-      return ('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)).replace(/'/g,'%27');
-    }catch(e){
-      return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="#e4e2dc" width="100" height="100"/></svg>');
+  const PLACEHOLDER_SILHOUETTES = Object.freeze([
+    'silhouette-pirate.png',
+    'silhouette-cowboy.png',
+    'silhouette-wizard.png',
+    'silhouette-fisherman.png',
+    'silhouette-flamingo.png',
+    'silhouette-dealer.png',
+    'silhouette-surfer.png',
+    'silhouette-grandma.png',
+    'silhouette-pelican.png'
+  ]);
+  function isUploadedPlayerPhoto(file){
+    const raw=String(file||'').trim();
+    if(!raw) return false;
+    if(/^neutral-\d+\.svg$/i.test(raw)) return false;
+    if(/^silhouette-[a-z0-9-]+\.png$/i.test(raw)) return false;
+    return true;
+  }
+  function placeholderSilhouetteFor(name){
+    const seated=(typeof players!=='undefined'&&Array.isArray(players)?players:[]).filter(Boolean);
+    const known=(typeof allPlayers!=='undefined'&&Array.isArray(allPlayers)?allPlayers:[]).filter(Boolean);
+    let idx=seated.indexOf(name);
+    if(idx<0) idx=known.indexOf(name);
+    if(idx<0){
+      const stable=[...new Set(known.concat(seated))].sort((a,b)=>String(a).localeCompare(String(b)));
+      idx=Math.max(0, stable.indexOf(name));
     }
+    return PLACEHOLDER_SILHOUETTES[idx % PLACEHOLDER_SILHOUETTES.length];
+  }
+  function getAvatarFallback(name){
+    return `./avatars/${placeholderSilhouetteFor(name)}`;
   }
   function getAvatarSrc(name){
     const f = playerProfiles[name]?.avatar || '';
-    if(!f) return getAvatarFallback(name);
-    return `./avatars/${f}`;
+    if(isUploadedPlayerPhoto(f)) return `./avatars/${f}`;
+    return getAvatarFallback(name);
   }
   function getAvatarImg(name,cls){
     const fb=getAvatarFallback(name);
@@ -12227,17 +12269,42 @@ button.dealer-name-indicator .dealer-player-label {
     return value && value!=='all' ? value : '';
   }
 
+  function careerCountOptions(scope){
+    return {scorebook:BPGScorebook, gameScope:scope||'', recordedPlayers:getDisplayPlayers};
+  }
+  function playerWonNight(match, name, scope){
+    if(window.BPGRecords&&typeof BPGRecords.playerWonMatch==='function'){
+      return BPGRecords.playerWonMatch(match, name, careerCountOptions(scope));
+    }
+    const left=new Set((match&&match.retired)||[]);
+    return !!(match&&name&&!left.has(name)&&(match.winners||[]).includes(name));
+  }
+  function playerSatCareerMatch(match, name, scope){
+    if(window.BPGRecords&&typeof BPGRecords.matchSitters==='function'){
+      return BPGRecords.matchSitters(match, careerCountOptions(scope)).includes(name);
+    }
+    return !!(match&&name&&match.totals&&match.totals[name]!==undefined);
+  }
+  function nightCountsForCareer(match, scope){
+    if(window.BPGRecords&&typeof BPGRecords.isCareerCountableMatch==='function'){
+      return BPGRecords.isCareerCountableMatch(match, careerCountOptions(scope));
+    }
+    return !!(BPGScorebook.isCompletedHistoryMatch(match)&&match.totals&&Array.isArray(match.rounds)&&match.rounds.length&&configs[match.game]);
+  }
+
   function getProfileSummary(name, gameScope){
     const scope=gameScope===undefined?profileGameScope():gameScope;
+    const career=window.BPGRecords&&typeof BPGRecords.playerCareerStats==='function'
+      ? BPGRecords.playerCareerStats(history,{scorebook:BPGScorebook,player:name,gameScope:scope,recordedPlayers:getDisplayPlayers})
+      : null;
     const summary={
-      name,games:0,wins:0,lasts:0,winRate:0,recent:null,currentStreak:'New',
+      name,games:career?career.games:0,wins:career?career.wins:0,lasts:0,winRate:0,recent:null,currentStreak:'New',
       favoriteGame:null,bestGame:null,gameStats:{},specialTotals:{whammy:0,nolie:0,cami:0},
-      needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0,
+      needsAvatar:!isUploadedPlayerPhoto(playerProfiles[name]?.avatar),recentRank:null,avgRank:null,lastGameId:0,
       gameScope:scope||''
     };
     const matches=history
-      .filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
-      .filter(h=>!scope||h.game===scope)
+      .filter(h=>nightCountsForCareer(h, scope)&&playerSatCareerMatch(h, name, scope))
       .slice()
       .sort((a,b)=>(a.id||0)-(b.id||0));
     matches.forEach(h=>{
@@ -12245,10 +12312,12 @@ button.dealer-name-indicator .dealer-player-label {
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const rank=competitionPlaces(sorted, h.totals)[name]||0;
       const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
-      const won=!!h.winners?.includes(name);
+      const won=playerWonNight(h, name, scope);
       const s=summary.gameStats[h.game]||(summary.gameStats[h.game]={games:0,wins:0,lasts:0,posSum:0,best:null,worst:null,lastScore:null});
-      summary.games++;
-      summary.wins += won?1:0;
+      if(!career){
+        summary.games++;
+        summary.wins += won?1:0;
+      }
       summary.lasts += h.totals[name]===lastScore?1:0;
       summary.recent={game:h.game,date:h.date,score:h.totals[name],rank,won};
       summary.lastGameId=h.id||summary.lastGameId;
@@ -12269,10 +12338,10 @@ button.dealer-name-indicator .dealer-player-label {
       .filter(([_,s])=>s.games>=2 || s.wins>0)
       .sort((a,b)=>(b[1].wins/b[1].games)-(a[1].wins/a[1].games)||b[1].wins-a[1].wins||b[1].games-a[1].games)[0]||null;
     if(matches.length){
-      const recentType=matches[matches.length-1].winners?.includes(name)?'W':'L';
+      const recentType=playerWonNight(matches[matches.length-1], name, scope)?'W':'L';
       let count=0;
       for(let i=matches.length-1;i>=0;i--){
-        const type=matches[i].winners?.includes(name)?'W':'L';
+        const type=playerWonNight(matches[i], name, scope)?'W':'L';
         if(type!==recentType)break;
         count++;
       }
@@ -12308,7 +12377,9 @@ button.dealer-name-indicator .dealer-player-label {
     const c=document.getElementById('profiles-grid'); c.innerHTML='';
     document.getElementById('profile-detail-view').classList.add('hidden');
     const summaryStrip=document.getElementById('profiles-summary-strip');
-    const totalMatches=history.filter(h=>h.totals&&configs[h.game]).length;
+    const totalMatches=window.BPGRecords&&typeof BPGRecords.careerWinTally==='function'
+      ? BPGRecords.careerWinTally(history, careerCountOptions()).counted
+      : history.filter(h=>nightCountsForCareer(h)).length;
     if(summaryStrip)summaryStrip.innerHTML=`<span>🌴 ${allPlayers.length}</span><span>·</span><span>${totalMatches} matches</span>`;
     if(!allPlayers.length){ c.innerHTML=`<div class="profile-empty-state">No cabana crew yet. Add players from Home, then their passports will show up here.</div>`; return; }
     const q=(document.getElementById('profile-search-input')?.value||'').trim().toLowerCase();
@@ -12395,7 +12466,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
         <div class="profile-card-stat-row">
-          <div class="profile-mini-stat"><span>Games</span><strong>${s.games}</strong></div>
+          <div class="profile-mini-stat"><span title="Completed nights only">Games</span><strong>${s.games}</strong></div>
           <div class="profile-mini-stat"><span>Wins</span><strong>${s.wins}</strong></div>
           <div class="profile-mini-stat"><span>Win %</span><strong>${s.games?s.winRate:'-'}</strong></div>
         </div>
@@ -12545,15 +12616,15 @@ button.dealer-name-indicator .dealer-player-label {
       const stampText=summary.games?`${stampStreak||summary.currentStreak} · ${summary.winRate}% wins`:'New Crew Member';
       stamp.innerHTML=`<div>${escapeHtml(stampText)}</div><div style="font-size:1.55rem;letter-spacing:0;margin-top:0.2rem;">🌴</div>`;
     }
-    let games=0,wins=0,lasts=0,labels=[],data=[];
+    let lasts=0,labels=[],data=[];
     const detailScope=summary.gameScope;
+    const games=summary.games;
+    const wins=summary.wins;
     history.slice().reverse().forEach(h=>{
-      if(detailScope&&h.game!==detailScope)return;
-      if(!BPGScorebook.isCompletedHistoryMatch(h)||!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
-      games++; if(h.winners?.includes(name))wins++;
+      if(!nightCountsForCareer(h, detailScope)||!playerSatCareerMatch(h, name, detailScope))return;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      if(h.totals[name]===h.totals[sorted[sorted.length-1]])lasts++;
+      if(sorted.length&&h.totals[name]===h.totals[sorted[sorted.length-1]]&&!(h.retired||[]).includes(name))lasts++;
       const myRank=competitionPlaces(sorted, h.totals)[name]||0;
       labels.push(`${h.game.split(' ')[0]}`); data.push(myRank);
     });
@@ -14661,8 +14732,8 @@ ${isDealer
   function consecutiveResultStreak(name, wantWin){
     let n=0;
     for(const h of history){
-      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
-      const won=!!h.winners?.includes(name);
+      if(!nightCountsForCareer(h)||!playerSatCareerMatch(h, name)) continue;
+      const won=playerWonNight(h, name);
       if(wantWin?won:!won) n++;
       else break;
     }
@@ -14672,12 +14743,12 @@ ${isDealer
   function snappedLosingStreak(name, matchId){
     const start=history.findIndex(h=>h && h.id===matchId);
     if(start<0) return 0;
-    if(!history[start]?.winners?.includes(name)) return 0;
+    if(!playerWonNight(history[start], name)) return 0;
     let losses=0;
     for(let i=start+1;i<history.length;i++){
       const h=history[i];
-      if(!BPGScorebook.isCompletedHistoryMatch(h)||!playerPlayedMatch(h, name)) continue;
-      if(h.winners?.includes(name)) break;
+      if(!nightCountsForCareer(h)||!playerSatCareerMatch(h, name)) continue;
+      if(playerWonNight(h, name)) break;
       losses++;
     }
     return losses;
@@ -18846,29 +18917,13 @@ ${isDealer
   }
 
   function analyzeRecords(data){
-    const r=getHallOfFame(); const msgs=[];
-    getRecordedPlayers(data).forEach(p=>{
-      const s=data.totals[p];
-      if(data.game==='Five Crowns'&&r['Five Crowns']&&s<r['Five Crowns'].bestScore&&r['Five Crowns'].bestScore!==Infinity)
-        msgs.push(`⭐ ${p} set new Lowest Five Crowns Score! (${s})`);
-      if(data.game==='Beat the Heat'&&r['Beat the Heat']&&s<r['Beat the Heat'].bestScore&&r['Beat the Heat'].bestScore!==Infinity)
-        msgs.push(`⭐ ${p} set new Lowest Beat the Heat score! (${s} heat)`);
-      if(data.game==='Wizard'&&r['Wizard']){
-        const playerCount=getWizardRecordPlayerCount(data);
-        const bucket=playerCount?r.Wizard.bestScoreByPlayerCount?.[playerCount]:null;
-        if(bucket&&s>bucket.bestScore&&bucket.bestScore!==-Infinity)
-          msgs.push(`⭐ ${p} set new ${playerCount}-player Wizard high score! (${s})`);
-      }
-      if(data.game==='818'&&r['818']&&s>r['818'].bestScore&&r['818'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest 818 Score! (${s})`);
-      if(data.game==='Flip 7 Vengeance'&&r['Flip 7 Vengeance']&&s>r['Flip 7 Vengeance'].bestScore&&r['Flip 7 Vengeance'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest Flip 7 Score! (${s})`);
-      if(data.game==='Rook'&&r['Rook']&&s>r['Rook'].bestScore&&r['Rook'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest Rook Score! (${s})`);
-      if(data.game==='Hand and Foot'&&r['Hand and Foot']&&s>r['Hand and Foot'].bestScore&&r['Hand and Foot'].bestScore!==-Infinity)
-        msgs.push(`⭐ ${p} set new Highest Hand and Foot Score! (${s})`);
-    });
-    return msgs;
+    if(window.BPGRecords&&typeof BPGRecords.collectRecordAlerts==='function'){
+      return BPGRecords.collectRecordAlerts(data, getHallOfFame(), {
+        recordedPlayers: getRecordedPlayers,
+        wizardPlayerCount: getWizardRecordPlayerCount(data)
+      });
+    }
+    return [];
   }
 
   function showLoserModal(){
@@ -19776,9 +19831,15 @@ ${isDealer
     };
     let stats={};
     history.forEach(h=>{
-      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
+      if(!nightCountsForCareer(h)) return;
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
       const playersInMatch=getRecordedPlayers(h);
+      const sitters=window.BPGRecords&&typeof BPGRecords.matchSitters==='function'
+        ? BPGRecords.matchSitters(h, careerCountOptions())
+        : playersInMatch;
+      const winners=window.BPGRecords&&typeof BPGRecords.eligibleWinners==='function'
+        ? BPGRecords.eligibleWinners(h, careerCountOptions())
+        : (h.winners||[]).filter(p=>!(h.retired||[]).includes(p));
       const sorted=sortPlayersByTotal(playersInMatch, h.totals, cfg);
       if(!sorted.length)return;
       const lastScore=h.totals[sorted[sorted.length-1]];
@@ -19788,10 +19849,10 @@ ${isDealer
       if(!r._coverage[h.game]) r._coverage[h.game]={assisted:0,unassisted:0};
       r._coverage[h.game][assisted?'assisted':'unassisted']++;
 
-      playersInMatch.forEach(p=>{
+      sitters.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
         stats[p].games++;
-        if(h.winners?.includes(p))stats[p].wins++;
+        if(winners.includes(p))stats[p].wins++;
         if(lastPlayers.includes(p))stats[p].lasts++;
       });
 
@@ -19997,31 +20058,43 @@ ${isDealer
       const sorted = sortedFor(h);
       if(!sorted.length) return;
       const lastPlayers = lastPlayersFor(h, sorted);
-      const winners = (h.winners||[]).filter(p=>sorted.includes(p));
+      const winners = window.BPGRecords&&typeof BPGRecords.eligibleWinners==='function'
+        ? BPGRecords.eligibleWinners(h, careerCountOptions())
+        : (h.winners||[]).filter(p=>sorted.includes(p)&&!(h.retired||[]).includes(p));
+      const sitters = window.BPGRecords&&typeof BPGRecords.matchSitters==='function'
+        ? BPGRecords.matchSitters(h, careerCountOptions())
+        : [...new Set(sorted.concat(h.retired||[]))];
       const assisted = BPGScorebook.isAssistedMatch(h);
       const fullGame = typeof BPGScorebook.isFullGame==='function' ? BPGScorebook.isFullGame(h) : true;
       if(!games._coverage) games._coverage={};
       if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
       games._coverage[h.game][assisted?'assisted':'unassisted']++;
-      sorted.forEach((p,idx)=>{
+      sitters.forEach((p)=>{
         const ps = ensurePlayer(p);
-        const won = winners.includes(p), last = lastPlayers.includes(p), pos = idx+1;
-        ps.games++; ps.wins += won?1:0; ps.lasts += last?1:0; ps.positions.push({pos,game:h.game,date:h.date,id:h.id});
+        const won = winners.includes(p);
+        const finisher = sorted.includes(p);
+        const last = finisher && lastPlayers.includes(p);
+        const pos = finisher ? sorted.indexOf(p)+1 : 0;
+        ps.games++; ps.wins += won?1:0;
+        if(last) ps.lasts++;
+        if(pos) ps.positions.push({pos,game:h.game,date:h.date,id:h.id});
         ps.lastGameId = h.id||ps.lastGameId;
         ps.currentType = won ? 'W' : 'L';
         ps.currentCount = (won ? ps.curWin : ps.curLoss) + 1;
         ps.curWin = won ? ps.curWin+1 : 0; ps.curLoss = won ? 0 : ps.curLoss+1;
-        ps.curNoLast = last ? 0 : ps.curNoLast+1; ps.curLast = last ? ps.curLast+1 : 0;
+        if(finisher){
+          ps.curNoLast = last ? 0 : ps.curNoLast+1; ps.curLast = last ? ps.curLast+1 : 0;
+        }
         ps.longestWin = Math.max(ps.longestWin, ps.curWin);
         ps.longestLoss = Math.max(ps.longestLoss, ps.curLoss);
         ps.longestNoLast = Math.max(ps.longestNoLast, ps.curNoLast);
         ps.longestLast = Math.max(ps.longestLast, ps.curLast);
         update(allTime,'longestWinningStreak',entry(p,ps.curWin,h),betterHigh);
         update(allTime,'longestLosingStreak',entry(p,ps.curLoss,h),betterHigh);
-        update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
+        if(finisher) update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
-        bg.games++; bg.wins += won?1:0; bg.posSum += pos;
-        if(!assisted && fullGame){
+        bg.games++; bg.wins += won?1:0; if(pos) bg.posSum += pos;
+        if(finisher && !assisted && fullGame){
           const scoreEntry = entry(p,h.totals[p],h);
           if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
           if(!bg.worst || (cfg.winLow ? scoreEntry.value > bg.worst.value : scoreEntry.value < bg.worst.value)) bg.worst = scoreEntry;
