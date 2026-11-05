@@ -180,6 +180,7 @@ try {
 
     await page.evaluate(() => { if (typeof showProfiles === 'function') showProfiles(); });
     await page.waitForTimeout(250);
+    report.shots.push(await shot(page, `${vp.name}_passports_all`));
     await page.selectOption('#profile-game-filter', 'Wizard').catch(() => {});
     await page.waitForTimeout(200);
     report.shots.push(await shot(page, `${vp.name}_passports_wizard`));
