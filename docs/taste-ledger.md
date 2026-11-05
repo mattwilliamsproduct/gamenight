@@ -51,6 +51,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A first-use empty table that says add a name, pick a game, then tap Start.
 - 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
 - Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
+- A scorecard with a stable readable max width, centered with the page column, identical before and after Round 1. Not edge to edge.
+- One meaning for a Passport game filter: every number on screen is that game only. Players who have not played it are left out with a short note.
+- Demo sample records are computed by the real records code from seeded games. No planted numbers.
 
 ## Kills
 
@@ -119,3 +122,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A second ranking function for Recent nights, or a podium on an Incomplete night.
 - Adding Canasta to the game registry or Home picker from this art pass.
 - Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.
+- A scorecard that runs edge to edge before Round 1, then hugs content after it.
+- A Passport filter that still mixes other games into games, wins, win rate, streaks, or best score.
+- Planted demo record numbers that the real records functions did not compute.
+- Claiming a real-phone Safari check that Matt has not done.

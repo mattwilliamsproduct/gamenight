@@ -65,3 +65,5 @@ Standing trap: [rc2-look-1505.md](rc2-look-1505.md) — do not ship TEMP demo-lo
 Standing trap: [rc2-records-labels.md](rc2-records-labels.md) — Canasta nights keep the Hand and Foot id. Records must list that id as Canasta. Rook history can show while the start card stays hidden.
 
 Standing trap: [rc3d-phone-entry-roster.md](rc3d-phone-entry-roster.md) — phone 8-player entry must scroll the roster lane; do not let `#score-entry-rows` grow and clip under the keypad.
+
+Standing trap: [rc4-usability.md](rc4-usability.md) — scorecard width stays stable, not edge-to-edge then hugged. Nine-seat wrap was not reproduced. Passport filters scope every number. Demo records are computed, never planted. Safari on a real phone stays Matt's check.

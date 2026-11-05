@@ -1,3 +1,7 @@
+import {attachDemoRecordNights, demoBookHasFullRecordNights} from './try-demo-records.mjs';
+
+export {attachDemoRecordNights, demoBookHasFullRecordNights};
+
 export const QA_PORCH_CAST = Object.freeze([
   'Megan', 'Matt', 'Cat', 'Mike', 'Vikki', 'Duke',
   'Brick', 'Linda', 'Michelle', 'Alexis', 'Ethan', 'Diana'
@@ -115,7 +119,8 @@ export function buildDemoBook(qaScenarios) {
   const seed = qaScenarios && qaScenarios['demo-seed'] && qaScenarios['demo-seed'].data;
   if (!seed) throw new Error('try-demo seed missing');
   const cloned = attachDemoCanastaNight(JSON.parse(JSON.stringify(seed)), qaScenarios);
-  return applyNeutralDemoAvatars(remapDemoBook(cloned));
+  const remapped = applyNeutralDemoAvatars(remapDemoBook(cloned));
+  return attachDemoRecordNights(remapped);
 }
 
 export function demoBookHasPorchCast(blob) {

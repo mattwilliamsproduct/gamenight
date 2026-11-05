@@ -1223,7 +1223,7 @@
       top: var(--storm-top, 0%);
       width: var(--storm-width, 34vw);
       height: var(--storm-height, 18vh);
-      border-radius: 999px;
+      border-radius: 46% 54% 48% 52% / 58% 42% 60% 40%;
       opacity: 0;
       background:
         radial-gradient(circle at 17% 60%, rgba(15, 23, 42, 0.95) 0 29%, transparent 30%),
@@ -1239,7 +1239,7 @@
       content: "";
       position: absolute;
       inset: 40% 5% 4%;
-      border-radius: 999px;
+      border-radius: 44% 56% 50% 50% / 30% 30% 70% 70%;
       background: linear-gradient(180deg, rgba(148, 163, 184, 0.24), rgba(2, 6, 23, 0.58));
       filter: blur(7px);
     }
@@ -4315,7 +4315,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     @media (max-width: 760px) {
       body.active-match-view #toast-container {
-        top: 13.25rem;
+        top: 10.75rem;
         bottom: auto;
       }
     }
@@ -9240,6 +9240,7 @@ button.dealer-name-indicator .dealer-player-label {
           <span>Needs avatar</span>
         </label>
       </div>
+      <p id="profile-scope-note" class="s2-scope-note" hidden></p>
       <div id="profiles-grid" class="profile-passport-grid"></div>
       <div id="profile-detail-view" class="hidden mt-8 surface-raised p-7 relative profile-passport-detail">
         <button onclick="closeProfileDetail()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
@@ -12194,14 +12195,22 @@ button.dealer-name-indicator .dealer-player-label {
     select.value=games.includes(selected)?selected:'all';
   }
 
-  function getProfileSummary(name){
+  function profileGameScope(){
+    const value=document.getElementById('profile-game-filter')?.value||'all';
+    return value && value!=='all' ? value : '';
+  }
+
+  function getProfileSummary(name, gameScope){
+    const scope=gameScope===undefined?profileGameScope():gameScope;
     const summary={
       name,games:0,wins:0,lasts:0,winRate:0,recent:null,currentStreak:'New',
       favoriteGame:null,bestGame:null,gameStats:{},specialTotals:{whammy:0,nolie:0,cami:0},
-      needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0
+      needsAvatar:!playerProfiles[name]?.avatar,recentRank:null,avgRank:null,lastGameId:0,
+      gameScope:scope||''
     };
     const matches=history
       .filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&h.totals&&h.totals[name]!==undefined&&configs[h.game]&&getRecordedPlayers(h).includes(name))
+      .filter(h=>!scope||h.game===scope)
       .slice()
       .sort((a,b)=>(a.id||0)-(b.id||0));
     matches.forEach(h=>{
@@ -12248,7 +12257,7 @@ button.dealer-name-indicator .dealer-player-label {
       }).filter(Boolean);
       summary.avgRank=ranks.length?ranks.reduce((sum,n)=>sum+n,0)/ranks.length:null;
     }
-    const special=getSpecialRoundStatsForPlayer(name);
+    const special=getSpecialRoundStatsForPlayer(name, scope);
     summary.specialTotals={
       whammy:special.whammy.total,
       nolie:special.nolie.total,
@@ -12278,9 +12287,11 @@ button.dealer-name-indicator .dealer-player-label {
     const sortMode=document.getElementById('profile-sort-select')?.value||'recent';
     const gameFilter=document.getElementById('profile-game-filter')?.value||'all';
     const needsAvatar=!!document.getElementById('profile-needs-avatar-filter')?.checked;
-    let summaries=allPlayers.map(getProfileSummary).filter(s=>{
+    const scope=gameFilter==='all'?'':gameFilter;
+    const allSummaries=allPlayers.map(name=>getProfileSummary(name, scope));
+    let summaries=allSummaries.filter(s=>{
       if(q&&!s.name.toLowerCase().includes(q))return false;
-      if(gameFilter!=='all'&&!s.gameStats[gameFilter])return false;
+      if(scope&&s.games===0)return false;
       if(needsAvatar&&!s.needsAvatar)return false;
       return true;
     });
@@ -12291,6 +12302,21 @@ button.dealer-name-indicator .dealer-player-label {
       if(sortMode==='winRate')return b.winRate-a.winRate||b.wins-a.wins||b.games-a.games||a.name.localeCompare(b.name);
       return b.lastGameId-a.lastGameId||b.games-a.games||a.name.localeCompare(b.name);
     });
+    const scopeNote=document.getElementById('profile-scope-note');
+    if(scopeNote){
+      if(scope){
+        const leftOut=allSummaries.filter(s=>s.games===0).length;
+        const gameLabel=profileGameLabel(scope);
+        const leftover=leftOut===1
+          ? `1 player hasn't played ${gameLabel} yet.`
+          : `${leftOut} players haven't played ${gameLabel} yet.`;
+        scopeNote.hidden=false;
+        scopeNote.textContent=`Showing ${gameLabel} games only. ${leftover}`;
+      }else{
+        scopeNote.hidden=true;
+        scopeNote.textContent='';
+      }
+    }
     if(!summaries.length){
       c.innerHTML=`<div class="profile-empty-state">No passports match those filters.</div>`;
       return;
@@ -12302,6 +12328,10 @@ button.dealer-name-indicator .dealer-player-label {
       d.className='profile-passport-card';
       d.style.setProperty('--profile-accent', accent);
       d.onclick=()=>openProfileDetail(p);
+      const scoped=!!s.gameScope;
+      const scopedBest=scoped && s.gameStats[s.gameScope] && s.gameStats[s.gameScope].best
+        ? String(s.gameStats[s.gameScope].best.score)
+        : '-';
       const fav=s.favoriteGame?profileGameLabel(s.favoriteGame[0]):'No games yet';
       const best=s.bestGame?`${profileGameLabel(s.bestGame[0])} · ${Math.round(s.bestGame[1].wins/s.bestGame[1].games*100)}%`:'Building history';
       const recent=s.recent?`${profileGameLabel(s.recent.game)} · ${s.recent.won?'Won':'Played'} ${s.recent.date||''}`:'Ready for first match';
@@ -12328,8 +12358,10 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="profile-mini-stat"><span>Wins</span><strong>${s.wins}</strong></div>
           <div class="profile-mini-stat"><span>Win %</span><strong>${s.games?s.winRate:'-'}</strong></div>
         </div>
-        <div class="profile-big-stat"><span>Most played</span><strong>${escapeHtml(fav)}</strong></div>
-        <div class="profile-big-stat"><span>Best Game</span><strong>${escapeHtml(best)}</strong></div>
+        ${scoped
+          ? `<div class="profile-big-stat"><span>Best score</span><strong>${escapeHtml(scopedBest)}</strong></div>`
+          : `<div class="profile-big-stat"><span>Most played</span><strong>${escapeHtml(fav)}</strong></div>
+        <div class="profile-big-stat"><span>Best Game</span><strong>${escapeHtml(best)}</strong></div>`}
         <div class="profile-badge-row">${badges||renderProfileBadge('New passport')}</div>`;
       d.querySelector('.profile-avatar-quick-btn')?.addEventListener('click', event=>openAvatarPickerForProfile(p,event));
       c.appendChild(d);
@@ -12408,7 +12440,7 @@ button.dealer-name-indicator .dealer-player-label {
     return matched?{type:'cami',game:gameData.game,round:roundData.round,players:participants}:null;
   }
 
-  function getSpecialRoundStatsForPlayer(name){
+  function getSpecialRoundStatsForPlayer(name, gameScope){
     const stats={
       whammy:{label:'WHAMMY',total:0,byGame:{}},
       nolie:{label:'Nolie',total:0,byGame:{}},
@@ -12420,6 +12452,7 @@ button.dealer-name-indicator .dealer-player-label {
       stats[key].byGame[event.game]=(stats[key].byGame[event.game]||0)+1;
     };
     history.forEach(h=>{
+      if(gameScope&&h.game!==gameScope)return;
       if(!BPGScorebook.isCompletedHistoryMatch(h)||!configs[h.game]||!Array.isArray(h.rounds))return;
       h.rounds.forEach(round=>{
         const whammy=detectHistoryWhammyForRound(h, round);
@@ -12435,7 +12468,7 @@ button.dealer-name-indicator .dealer-player-label {
     const section=document.getElementById('detail-special-rounds-section');
     const container=document.getElementById('detail-special-rounds');
     if(!section||!container)return;
-    const stats=getSpecialRoundStatsForPlayer(name);
+    const stats=getSpecialRoundStatsForPlayer(name, profileGameScope());
     const rows=Object.values(stats).filter(s=>s.total>0);
     if(!rows.length){
       section.classList.add('hidden');
@@ -12458,7 +12491,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   async function openProfileDetail(name){
     editingPlayerProfile=name;
-    const summary=getProfileSummary(name);
+    const summary=getProfileSummary(name, profileGameScope());
     document.getElementById('detail-name').textContent=name;
     const fb=getAvatarFallback(name);
     const av=document.getElementById('detail-avatar'); av.src=getAvatarSrc(name); av.onerror=()=>av.src=fb;
@@ -12469,7 +12502,9 @@ button.dealer-name-indicator .dealer-player-label {
       stamp.innerHTML=`<div>${escapeHtml(stampText)}</div><div style="font-size:1.55rem;letter-spacing:0;margin-top:0.2rem;">🌴</div>`;
     }
     let games=0,wins=0,lasts=0,labels=[],data=[];
+    const detailScope=summary.gameScope;
     history.slice().reverse().forEach(h=>{
+      if(detailScope&&h.game!==detailScope)return;
       if(!BPGScorebook.isCompletedHistoryMatch(h)||!h.totals||h.totals[name]===undefined||!getRecordedPlayers(h).includes(name))return;
       games++; if(h.winners?.includes(name))wins++;
       const cfg=configs[h.game]; if(!cfg)return;
@@ -12480,15 +12515,20 @@ button.dealer-name-indicator .dealer-player-label {
     });
     const favoriteGame=summary.favoriteGame;
     const strongestGame=summary.bestGame;
-    const favChip=favoriteGame?`<span class="chip">Most played <strong class="ml-1">${profileGameLabel(favoriteGame[0])}</strong></span>`:'';
-    const strongChip=strongestGame?`<span class="chip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Best Game ${profileGameLabel(strongestGame[0])} · ${Math.round(strongestGame[1].wins/strongestGame[1].games*100)}%</span>`:'';
+    const scopedBest=detailScope && summary.gameStats[detailScope] && summary.gameStats[detailScope].best
+      ? summary.gameStats[detailScope].best.score
+      : null;
+    const favChip=!detailScope&&favoriteGame?`<span class="chip">Most played <strong class="ml-1">${profileGameLabel(favoriteGame[0])}</strong></span>`:'';
+    const strongChip=!detailScope&&strongestGame?`<span class="chip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Best Game ${profileGameLabel(strongestGame[0])} · ${Math.round(strongestGame[1].wins/strongestGame[1].games*100)}%</span>`:'';
+    const bestChip=detailScope&&scopedBest!=null?`<span class="chip" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Best score ${scopedBest}</span>`:'';
     const wr=games>0?Math.round(wins/games*100):0;
     document.getElementById('detail-quick-stats').innerHTML=`
       <span class="chip">Matches <strong class="ml-1">${games}</strong></span>
       <span class="chip" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Wins ${wins} (${wr}%)</span>
       <span class="chip" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose-border);">Last ${lasts}×</span>
       ${favChip}
-      ${strongChip}`;
+      ${strongChip}
+      ${bestChip}`;
     const boardwalk=document.getElementById('detail-boardwalk-stats');
     if(boardwalk){
       const avgRank=summary.avgRank?summary.avgRank.toFixed(1):'-';
@@ -12541,7 +12581,7 @@ button.dealer-name-indicator .dealer-player-label {
 
     // Personal Bests
     const bests = getPersonalBests(name);
-    const bestsKeys = Object.keys(bests);
+    const bestsKeys = Object.keys(bests).filter(game => !detailScope || game === detailScope);
     const bestsSection = document.getElementById('detail-bests-section');
     const bestsContainer = document.getElementById('detail-personal-bests');
     if(bestsKeys.length > 0){
@@ -12565,7 +12605,7 @@ button.dealer-name-indicator .dealer-player-label {
     const nemesis = getNemesisFor(name);
     const rivalriesSection = document.getElementById('detail-rivalries-section');
     const rivalriesContainer = document.getElementById('detail-rivalries');
-    if(rivalries.length > 0){
+    if(rivalries.length > 0 && !detailScope){
       rivalriesSection.classList.remove('hidden');
       rivalriesContainer.innerHTML = rivalries.slice(0, 8).map(r => {
         const isNemesis = nemesis && nemesis.opponent === r.opponent;
@@ -16124,9 +16164,8 @@ ${isDealer
       const fitted=Math.max(chipFloor,maximum*(el.clientWidth/Math.max(1,el.scrollWidth))*0.88);
       el.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
     });
-    // At >=1280 hug the card to the fitted table and center it. Sync the board
-    // bar to the same width so bar↔card edges stay aligned (laptop title test).
-    // Do NOT stretch table to 100% — that blew round cols past --scorecard-round-col.
+    // Keep a stable card width. Content-hug (max-content) made the card shrink
+    // after Round 1; stretching to 100% ran it edge to edge. CSS owns the max.
     const bar=document.getElementById('slice2-board-bar');
     const clearBar=()=>{
       if(!bar) return;
@@ -16134,35 +16173,10 @@ ${isDealer
       bar.style.removeProperty('max-width');
       bar.style.removeProperty('margin-inline');
     };
-    if(wide){
-      const prevWidth=table.style.width;
-      const prevMax=table.style.maxWidth;
-      table.style.setProperty('width','max-content','important');
-      table.style.setProperty('max-width','none','important');
-      void host.offsetWidth;
-      const tableW=table.getBoundingClientRect().width;
-      const wrapParent=host.parentElement;
-      const parentW=wrapParent ? wrapParent.clientWidth : host.clientWidth;
-      const shouldFit=tableW>0 && parentW>0 && tableW < parentW - 24;
-      host.classList.toggle('scorecard-card-fit', shouldFit);
-      if(shouldFit){
-        const cardW=Math.ceil(tableW + 2);
-        if(bar){
-          bar.style.setProperty('width',`${cardW}px`);
-          bar.style.setProperty('max-width','100%');
-          bar.style.setProperty('margin-inline','auto');
-        }
-      }else{
-        if(prevWidth) table.style.width=prevWidth; else table.style.removeProperty('width');
-        if(prevMax) table.style.maxWidth=prevMax; else table.style.removeProperty('max-width');
-        clearBar();
-      }
-    }else{
-      host.classList.remove('scorecard-card-fit');
-      table.style.removeProperty('width');
-      table.style.removeProperty('max-width');
-      clearBar();
-    }
+    host.classList.remove('scorecard-card-fit');
+    table.style.removeProperty('width');
+    table.style.removeProperty('max-width');
+    clearBar();
   }
   function fitActiveMatchBanner(){
     const banner=document.querySelector('#game-screen .active-match-banner');
@@ -18598,10 +18612,11 @@ ${isDealer
   }
 
   function endMatchCopy(over){
+    const records='This saves the night to Records. Wins and games count. Best-score records only count a full night with no Life Preserver.';
     if(over){
-      return 'This writes the final standings to Records and clears the live table. Cancel keeps you on the scorecard.';
+      return `${records} Cancel keeps you on the scorecard.`;
     }
-    return 'This match is still in progress. Ending now writes the current standings to Records as a finished night and clears the live table. Home will no longer show Resume for this match. Cancel keeps you on the scorecard and does not change scores.';
+    return `This match is still in progress. Ending now ${records.slice(5)} Home will no longer show Resume for this match. Cancel keeps you on the scorecard and does not change scores.`;
   }
   function requestEndGame(){
     if(!currentGame)return;

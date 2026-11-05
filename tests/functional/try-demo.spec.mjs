@@ -459,7 +459,7 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
   expect(first.seated).toHaveLength(8);
   expect(first.nav.some((label) => label === 'Player Passports (12)')).toBe(true);
   expect(first.nav.some((label) => label === `Records (${first.histLen})`)).toBe(true);
-  expect(first.histLen).toBe(17);
+  expect(first.histLen).toBe(25);
 
   await page.evaluate(() => {
     const hist = JSON.parse(localStorage.getItem('bpg_demo_history') || '[]')
@@ -470,7 +470,7 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
   await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
   await page.waitForFunction(() => {
     const btn = [...document.querySelectorAll('#top-nav .nav-btn')].find((b) => /Records \(/.test(b.textContent || ''));
-    return btn && btn.textContent.includes('Records (17)');
+    return btn && btn.textContent.includes('Records (25)');
   }, null, {timeout: 10000});
   const after = await page.evaluate(() => {
     const nav = [...document.querySelectorAll('#top-nav .nav-btn')].map((b) => b.textContent.trim());
@@ -483,9 +483,9 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
       gn
     };
   });
-  expect(after.histLen).toBe(17);
+  expect(after.histLen).toBe(25);
   expect(after.hasCanasta).toBe(true);
-  expect(after.nav).toContain('Records (17)');
+  expect(after.nav).toContain('Records (25)');
   expect(after.nav).toContain('Player Passports (12)');
   expect(after.gn).toEqual([]);
 });

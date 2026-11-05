@@ -92,6 +92,10 @@ test('demo forks the QA seed to a fictional cast with neutral SVG avatars', () =
   assert.ok(qa.players.includes('Megan'));
   assert.ok(qa.playerProfiles.Megan.avatar);
   assert.equal((qa.history || []).some(isCanastaNight), false);
+  assert.ok((book.history || []).some((row) => row && row.id === 1786100000001));
+  assert.ok((book.history || []).some((row) => row && row.id === 1786100000002));
+  assert.ok((book.history || []).some((row) => row && row.completed === false && row.id === 1786100000007));
+  assert.ok((book.history || []).some((row) => row && row.assistedMatch === true && row.id === 1786100000008));
 });
 
 test('demo book adds a remapped Canasta night without changing QA fixtures', () => {

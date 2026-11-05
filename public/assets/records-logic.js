@@ -735,12 +735,10 @@
     }).join('');
     const selectedShame = (data.shameAwards || []).filter((award) => award.record).slice(0, 4);
     const shame = selectedShame.map((award) => shameRow(award, esc, avatar)).join('');
-    const rival = data.rivalries && data.rivalries.top && data.rivalries.top[0];
-    const lead = rival ? headToHeadLead(rival) : null;
-    const rivalText = rival
-      ? `${rival.a} vs ${rival.b} · ${lead.scoreline} · ${lead.text} · ${rival.together} shared matches`
-      : '';
-    const recent = sortNights(table.history).slice(0, compact ? 3 : 4);
+    const pairs = (data.rivalries && (data.rivalries.all || data.rivalries.top)) || [];
+    const selectedKey = ctx.pairFilter || '';
+    const rival = pairs.find((row) => `${row.a}|${row.b}` === selectedKey) || pairs[0];
+    const recent = sortNights(table.history);
     return `<div class="s2-records-pane s2-fame-col" data-pane="overview">
       <section class="s2-panel">
         <div class="s2-headline">${headlines.map((card) => `<article class="s2-headline-card">
@@ -760,10 +758,10 @@
           <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
           ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
         </section>
-        ${rivalText ? `<article class="s2-rival"><small class="s2-kicker">Head-to-head</small><p class="s2-sub">${esc(rivalText)}</p></article>` : ''}
+        ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
         <section class="s2-panel">
           <div class="s2-panel-head"><h2>Recent results</h2></div>
-          ${nightsListHtml(recent, helpers, ctx, compact)}
+          ${nightsSplitHtml(recent, helpers, ctx, compact)}
         </section>
       </div>
     </div>`;
@@ -1034,9 +1032,9 @@
       const extra = kind === 'rate'
         ? `${lead.leaderWins} of ${row.together}`
         : `${row.together} shared matches`;
-      return `<div class="s2-book-row">
+      return `<div class="s2-book-row s2-rival-row">
         <span>${playerLink(row.a, esc, avatar)} vs ${playerLink(row.b, esc, avatar)}</span>
-        <span class="s2-book-who">${esc(lead.scoreline)} · ${esc(lead.text)} · ${esc(extra)}</span>
+        <span class="s2-book-who">${esc(row.a)} ${row.aWins} · ${esc(row.b)} ${row.bWins}${lead.ties ? ` · Tied ${lead.ties}` : ''} · ${esc(lead.text)} · ${esc(extra)}</span>
       </div>`;
     };
     const limit = compact ? 3 : 5;
@@ -1074,9 +1072,52 @@
     </div>`;
   }
 
+  function pairSelectKey(pair) {
+    return pair ? `${pair.a}|${pair.b}` : '';
+  }
+
+  function rivalCardHtml(pair, pairs, ctx, selectedKey) {
+    const esc = ctx.escapeHtml;
+    const avatar = ctx.getAvatarImg;
+    if (!pair) return '';
+    const lead = headToHeadLead(pair);
+    const options = (pairs || []).map((row) => {
+      const key = pairSelectKey(row);
+      const selected = key === (selectedKey || pairSelectKey(pair)) ? ' selected' : '';
+      return `<option value="${escapeAttr(key)}"${selected}>${esc(row.a)} vs ${esc(row.b)}</option>`;
+    }).join('');
+    const ties = lead.ties ? ` · ${lead.ties} tied` : '';
+    return `<article class="s2-rival">
+      <small class="s2-kicker">Head-to-head</small>
+      <div class="s2-rival-pair">
+        <div class="s2-rival-person">${avatar(pair.a, 'avatar-img s2-mini-avatar')}${playerLink(pair.a, esc, avatar)}<strong>${esc(String(pair.aWins))}</strong></div>
+        <span class="s2-rival-vs">vs</span>
+        <div class="s2-rival-person">${avatar(pair.b, 'avatar-img s2-mini-avatar')}${playerLink(pair.b, esc, avatar)}<strong>${esc(String(pair.bWins))}</strong></div>
+      </div>
+      <p class="s2-sub">${esc(lead.text)}${esc(ties)} · ${esc(String(pair.together))} shared matches</p>
+      ${options ? `<label class="s2-rival-pick">Pick another pairing <select data-s2-action="filter-pair">${options}</select></label>` : ''}
+    </article>`;
+  }
+
   function nightsListHtml(matches, helpers, ctx, compact) {
     if (!matches || !matches.length) return '<p class="s2-sub">No nights saved yet.</p>';
     return matches.map((match) => nightCardHtml(nightCardModel(match, helpers), ctx, compact)).join('');
+  }
+
+  function nightsSplitHtml(matches, helpers, ctx, compact) {
+    if (!matches || !matches.length) return '<p class="s2-sub">No nights saved yet.</p>';
+    const rows = matches.map((match) => ({match, model: nightCardModel(match, helpers)}));
+    const live = rows.filter((row) => row.model.incomplete || row.model.showResume);
+    const done = rows.filter((row) => !row.model.incomplete && !row.model.showResume);
+    const liveLimit = compact ? 2 : 3;
+    const doneLimit = compact ? 3 : 4;
+    const liveHtml = live.length
+      ? `<div class="s2-in-progress"><h3>In progress</h3>${live.slice(0, liveLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}</div>`
+      : '';
+    const doneHtml = done.length
+      ? `${live.length ? '<h3>Finished nights</h3>' : ''}${done.slice(0, doneLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}`
+      : (live.length ? '' : '<p class="s2-sub">No nights saved yet.</p>');
+    return liveHtml + doneHtml;
   }
 
   function densePlaceLabel(place) {
@@ -1111,7 +1152,7 @@
         ? `Ended early · through Round ${model.throughRound}`
         : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
-      model.assisted ? '<span class="s2-night-badge">Assisted match</span>' : '',
+      model.assisted ? '<span class="s2-night-badge">Assisted</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
     const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
@@ -1148,6 +1189,7 @@
         ${badges}
       </header>
       ${winner}
+      ${model.assisted ? '<p class="s2-assisted-note">A Life Preserver was used. Best-score records skip this night.</p>' : ''}
       <ol class="s2-night-standings">${rows}</ol>
       ${expand}
       <div class="s2-night-actions">

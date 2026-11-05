@@ -8,7 +8,7 @@
   var PREFIX = 'bpg_demo_';
   var GN = 'gn_';
   var SEED_URL = '../qa/fixtures.mjs?v=try-demo-1';
-  var CAST_URL = './try-demo-cast.mjs?v=try-demo-cast-2';
+  var CAST_URL = './try-demo-cast.mjs?v=try-demo-cast-3';
   var hooks = {};
   var castApi = null;
 
@@ -251,6 +251,17 @@
     }
   }
 
+  function demoStoreMissingFullRecords() {
+    try {
+      var history = JSON.parse(localStorage.getItem(PREFIX + 'history') || '[]');
+      return !history.some(function (row) {
+        return row && row.id === 1786100000001;
+      });
+    } catch (error) {
+      return true;
+    }
+  }
+
   async function loadSeed() {
     var cast = await loadCast();
     var mod = await import(SEED_URL);
@@ -450,7 +461,7 @@
     async function applySeed(force) {
     if (!active()) return null;
     await loadCast();
-    var stale = !force && hasDemoBook() && (demoStoreLooksLikePorchCast() || demoStoreMissingCanasta());
+    var stale = !force && hasDemoBook() && (demoStoreLooksLikePorchCast() || demoStoreMissingCanasta() || demoStoreMissingFullRecords());
     if (!force && hasDemoBook() && !stale) return null;
     if (force || stale) clearDemoStore();
     var book = await loadSeed();

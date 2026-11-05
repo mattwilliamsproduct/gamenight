@@ -37,6 +37,7 @@
   let recordsPane = 'overview';
   let recordsGameFilter = '';
   let recordsPlayerFilter = '';
+  let recordsPairFilter = '';
   const expandedNights = new Set();
   let wired = false;
   let seatPointer = null;
@@ -538,7 +539,7 @@
     }
     const dest = bar.querySelector('.s2-board-actions');
     const enter = document.getElementById('slice2-enter-btn');
-    if (cluster && dest && !dest.contains(cluster)) dest.insertBefore(cluster, enter || null);
+    if (cluster && dest && !dest.contains(cluster)) dest.appendChild(cluster);
     const copy = bar.querySelector('.s2-board-copy');
     const line = document.getElementById('slice2-board-line');
     if (copy && line) {
@@ -633,6 +634,7 @@
         compact: recordsCompact(),
         gameFilter: recordsGameFilter,
         playerFilter: recordsPlayerFilter,
+        pairFilter: recordsPairFilter,
         expandedNights
       });
     }
@@ -1111,6 +1113,9 @@
       paintRecords();
     } else if (action === 'filter-player') {
       recordsPlayerFilter = target.value || '';
+      paintRecords();
+    } else if (action === 'filter-pair') {
+      recordsPairFilter = target.value || '';
       paintRecords();
     }
   }

@@ -265,7 +265,15 @@ html.slice2-tv .s2-board-actions .match-end-btn {
   font-weight: 800;
 }
 
+html.slice2-tv #slice2-enter-btn {
+  order: 1;
+}
+html.slice2-tv .s2-board-actions .active-match-actions {
+  order: 2;
+}
 html.slice2-tv .s2-board-actions .match-end-btn {
+  order: 5;
+  margin-left: 1.25rem;
   background: transparent;
   border-color: var(--s2-ink);
 }
@@ -2027,7 +2035,7 @@ html.slice2-tv #toast-container {
 /* Phone board: keep Standings updated off Save & End, Match complete, and the totals. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #toast-container {
-    top: 13.25rem;
+    top: 10.75rem;
     bottom: auto;
     transform: translateX(-50%);
   }
@@ -2154,7 +2162,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
 
   html.slice2-tv #slice2-enter-btn {
     flex: 0 1 auto;
-    order: 3;
+    order: 1;
     min-height: 44px;
     font-size: 0.95rem;
   }
@@ -3075,6 +3083,73 @@ html.slice2-tv .s2-overview-side {
   min-width: 0;
 }
 
+html.slice2-tv .s2-rival {
+  padding: 14px 16px;
+  border: 1.5px solid var(--s2-line);
+  border-radius: 16px;
+  background: #fffaf4;
+}
+html.slice2-tv .s2-rival-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+html.slice2-tv .s2-rival-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+html.slice2-tv .s2-rival-person strong {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+html.slice2-tv .s2-rival-vs {
+  color: var(--s2-muted);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+html.slice2-tv .s2-rival-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  color: var(--s2-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+html.slice2-tv .s2-rival-pick select {
+  min-height: 44px;
+  border: 1.5px solid var(--s2-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--s2-ink);
+  font-weight: 800;
+}
+html.slice2-tv .s2-assisted-note {
+  margin: 4px 0 0;
+  color: var(--s2-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+html.slice2-tv .s2-in-progress {
+  margin-bottom: 14px;
+}
+html.slice2-tv .s2-scope-note {
+  margin: 0 0 12px;
+  color: var(--s2-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
 html.slice2-tv .s2-player-link {
   display: inline-flex;
   align-items: center;
@@ -3228,10 +3303,13 @@ html.slice2-tv .s2-panel h4 {
 }
 
 html.slice2-tv .s2-explore-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
+  display: block;
+  column-count: 2;
+  column-gap: 16px;
+}
+html.slice2-tv .s2-explore-grid > * {
+  break-inside: avoid;
+  margin-bottom: 16px;
 }
 
 html.slice2-tv .s2-explore-games {
@@ -3475,9 +3553,11 @@ html.slice2-tv .s2-records-filters select:focus {
 }
 
 @media (max-width: 900px) {
-  html.slice2-tv .s2-fame-col,
-  html.slice2-tv .s2-explore-grid {
+  html.slice2-tv .s2-fame-col {
     grid-template-columns: 1fr;
+  }
+  html.slice2-tv .s2-explore-grid {
+    column-count: 1;
   }
 }
 
@@ -3954,11 +4034,11 @@ html.slice2-tv .s2-ledger-stat .s2-unassisted-note {
   text-transform: none;
 }
 html.slice2-tv .s2-explore-grid {
-  grid-template-columns: minmax(0, 1fr);
+  column-count: 1;
 }
 @media (min-width: 901px) {
   html.slice2-tv .s2-explore-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-count: 2;
   }
 }
 html.slice2-tv .s2-board-round {
@@ -3979,16 +4059,21 @@ html.slice2-tv .s2-table-btn {
   font-weight: 800;
 }
 
-/* Scorecard hug: shrink HEIGHT to the table. Width: stretch by default; when
-   .scorecard-card-fit is also set (table narrower than wrap at >=1280), the card
-   hugs the table and centers so empty white side panels go away. Explicit
-   fit-cols round widths keep live-main from exploding to max-content. */
+/* Stable scorecard width: not edge-to-edge, not content-hugged. Same before and
+   after Round 1. 72rem uses laptop space without running to the viewport. */
+html.slice2-tv body.active-match-view #scorecard-capture,
+html.slice2-tv body.active-match-view #slice2-board-bar {
+  width: min(90rem, calc(100% - 2.5rem));
+  max-width: 90rem;
+  margin-inline: auto;
+}
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
   flex: 0 0 auto !important;
   height: auto !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  align-self: stretch;
+  width: min(90rem, calc(100% - 2.5rem)) !important;
+  max-width: 90rem !important;
+  align-self: center;
+  margin-inline: auto;
 }
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
@@ -3999,22 +4084,31 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .sco
   width: 100% !important;
   max-width: 100% !important;
 }
-/* Card hugs fitted table width and centers in the cream (desktop/laptop only). */
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit {
-  width: fit-content !important;
-  max-width: 100% !important;
+  width: min(90rem, calc(100% - 2.5rem)) !important;
+  max-width: 90rem !important;
   align-self: center;
   margin-inline: auto;
 }
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-layout,
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-main,
-html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-table-wrap {
-  width: max-content !important;
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-table-wrap,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit table.scorecard-table {
+  width: 100% !important;
   max-width: 100% !important;
 }
-html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit table.scorecard-table {
-  width: max-content !important;
-  max-width: 100% !important;
+@media (max-width: 900px) {
+  html.slice2-tv body.active-match-view #scorecard-capture,
+  html.slice2-tv body.active-match-view #slice2-board-bar,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0;
+  }
+  html.slice2-tv .s2-board-actions .match-end-btn {
+    margin-left: 0;
+  }
 }
 /* Top-align hugged table under the header; leftover cream stays BELOW the table. */
 html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) .landscape-only {
