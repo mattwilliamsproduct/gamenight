@@ -109,7 +109,7 @@ WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, a
 
 `/?demo=try` opens a fictional, fully playable sample. Bare `?demo` still does nothing. The sample clones the QA `demo-seed` book, then remaps it to Nora / Owen / Priya / Theo / Ruby / Felix / June / Marco (plus Iris, Quinn, Vera, Hugo) and initials avatars. A finished Canasta night is attached in the demo module only. Honest completed and interrupted sample nights live in `public/demo/try-demo-records.mjs` and are attached in the demo path only. Displayed records are computed by the real records functions from those games. QA fixtures keep the porch cast. It writes `bpg_demo_*` only. It never reads or writes `gn_*`, and it never calls `/api/sync`. Exit restores the real book. Reset restores the seed. Backup, restore, and sync stay off while the sample is on. Entry points are the empty first-use table and Settings About.
 
-Passports: a game filter scopes every number on that screen to that game (games, wins, win rate, streaks, best score, using that game's win rule). Players with no games of that type are left out, with a short leftover note. The UI says which game is showing.
+Passports: a game filter scopes every number on that screen to that game (games, wins, win rate, streaks, best score, using that game's win rule). Players with no games of that type are left out, with a short leftover note. The UI says which game is showing. Chips use a plain-language label (and a title) for streaks and table specials. Do not show `W1`, `Nolie`, or `All scored` without saying what they mean. Displayed records, passport, and scorecard numbers use at most one decimal place.
 
 ## Non-goals
 

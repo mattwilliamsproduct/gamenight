@@ -528,10 +528,37 @@
     return typeof value === 'number' && Number.isFinite(value);
   }
 
+  function formatDisplayNumber(value) {
+    if (!finite(value)) return '-';
+    if (Number.isInteger(value)) return String(value);
+    return (Math.round(Number(value) * 10) / 10).toFixed(1);
+  }
+
+  function formatStreakPhrase(streak) {
+    const raw = String(streak || '').trim();
+    if (!raw || raw === 'New') return '';
+    const kind = raw.charAt(0);
+    const n = parseInt(raw.slice(1), 10);
+    if ((kind !== 'W' && kind !== 'L') || !Number.isFinite(n) || n < 1) return raw;
+    if (kind === 'W') return n === 1 ? 'Won last match' : `Won last ${n}`;
+    return n === 1 ? 'Lost last match' : `Lost last ${n}`;
+  }
+
+  function formatStreakTitle(streak) {
+    const raw = String(streak || '').trim();
+    if (!raw || raw === 'New') return '';
+    const kind = raw.charAt(0);
+    const n = parseInt(raw.slice(1), 10);
+    if ((kind !== 'W' && kind !== 'L') || !Number.isFinite(n) || n < 1) return '';
+    if (kind === 'W') return n === 1 ? 'Won the last completed match.' : `Won the last ${n} completed matches.`;
+    return n === 1 ? 'Lost the last completed match.' : `Lost the last ${n} completed matches.`;
+  }
+
   function scoreLabel(value, unit) {
     if (!finite(value)) return '-';
-    if (unit === '%') return `${value}%`;
-    return unit ? `${value} ${unit}` : String(value);
+    const shown = formatDisplayNumber(value);
+    if (unit === '%') return `${shown}%`;
+    return unit ? `${shown} ${unit}` : shown;
   }
 
   function formatStatValue(value, label) {
@@ -874,8 +901,8 @@
       const shown = (rows || []).filter((row) => recordMatchesPlayer(row, playerFilter)).slice(0, 8);
       if (!shown.length) return '';
       const valueText = (row) => {
-        if (title === 'Win rate' && finite(row.value)) return `${row.value}%`;
-        return String(row.value ?? '-');
+        if (title === 'Win rate' && finite(row.value)) return `${formatDisplayNumber(row.value)}%`;
+        return finite(row.value) ? formatDisplayNumber(row.value) : String(row.value ?? '-');
       };
       return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row, index) => `<div class="s2-book-row s2-leader-row">
         <span class="s2-leader-rank">${index + 1}.</span>
@@ -1049,7 +1076,7 @@
     if (!cards.length) return '';
     const rows = cards.map((card) => `<div class="s2-book-row">
       ${playerLink(card.player, esc, avatar)}
-      <span class="s2-book-who">${esc(formatWinRate(card.wins, card.games) || '')} · ${esc(card.currentStreak || '')}</span>
+      <span class="s2-book-who">${esc(formatWinRate(card.wins, card.games) || '')}${formatStreakPhrase(card.currentStreak) ? ` · ${esc(formatStreakPhrase(card.currentStreak))}` : ''}</span>
       <strong>${esc(String(card.wins))}W / ${esc(String(card.games))}</strong>
     </div>`).join('');
     return `<section class="s2-panel">
@@ -1220,6 +1247,9 @@
     visibleRecordGames,
     formatWinRate,
     formatWinRateDenom,
+    formatDisplayNumber,
+    formatStreakPhrase,
+    formatStreakTitle,
     formatStatValue,
     fullGameEmptyCopy,
     fullGameNote,

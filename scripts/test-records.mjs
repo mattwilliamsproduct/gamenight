@@ -265,6 +265,17 @@ test('exact-bid rates print a percent sign', () => {
   assert.equal(Records.scoreLabel(100, '%'), '100%');
 });
 
+test('displayed record numbers use at most one decimal place', () => {
+  assert.equal(Records.formatDisplayNumber(19 / 11), '1.7');
+  assert.equal(Records.formatDisplayNumber(20), '20');
+  assert.equal(Records.formatDisplayNumber(1.04), '1.0');
+  assert.equal(Records.formatStatValue(19 / 11, 'Cleanest game'), '1.7 pts');
+  assert.equal(Records.scoreLabel(19 / 11, 'pts'), '1.7 pts');
+  assert.equal(Records.formatStreakPhrase('W1'), 'Won last match');
+  assert.equal(Records.formatStreakPhrase('L2'), 'Lost last 2');
+  assert.match(Records.formatStreakTitle('W1'), /Won the last completed match/);
+});
+
 test('818 Brick is retired as a primary Shame label', () => {
   const brick = Records.SHAME_CATALOG.find((row) => row.oldName === 'The 818 Brick');
   assert.ok(brick);

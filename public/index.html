@@ -3615,9 +3615,17 @@ button.dealer-name-indicator {
       table-layout: fixed;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 14.5rem;
+      width: auto;
       min-width: 13rem;
-      max-width: 15rem;
+      max-width: none;
+    }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player > .flex,
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player .scorecard-player-identity {
+      width: 100%;
+    }
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-player-name-slot {
+      overflow: visible;
+      max-width: none;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
       width: clamp(6.5rem, 8vw, 8.5rem);
@@ -3625,13 +3633,17 @@ button.dealer-name-indicator {
       max-width: 9rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: 22rem;
+      width: auto;
       min-width: 18rem;
-      max-width: 24rem;
+      max-width: none;
+    }
+    #scorecard-capture.scorecard-roomy-identity-4 .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+      min-width: 22rem;
     }
     @media (max-width: 900px) {
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
-      #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+      #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+      #scorecard-capture.scorecard-roomy-identity-4 .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
         width: auto;
         min-width: 0;
         max-width: none;
@@ -3642,14 +3654,15 @@ button.dealer-name-indicator {
       }
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-th,
-    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td,
-    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-fill-col {
-      width: auto;
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-round-td {
+      width: var(--scorecard-round-col, 4.5rem);
+      min-width: var(--scorecard-round-col, 4.5rem);
+      max-width: var(--scorecard-round-col, 4.5rem);
     }
-    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-fill-col {
-      padding: 0;
-      border-left: 0;
-      background: rgba(255,252,247,0.97);
+    #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-now {
+      width: var(--scorecard-now-col, 4.5rem);
+      min-width: var(--scorecard-now-col, 4.5rem);
+      max-width: var(--scorecard-now-col, 4.5rem);
     }
     .scorecard-table thead tr {
       background:
@@ -3841,7 +3854,7 @@ button.dealer-name-indicator {
     #scorecard-capture.scorecard-fit-cols .scorecard-round-td {
       width: var(--scorecard-round-col) !important;
       max-width: var(--scorecard-round-col) !important;
-      min-width: 0 !important;
+      min-width: var(--scorecard-round-col) !important;
     }
     #scorecard-capture.scorecard-fit-cols .scorecard-table.scorecard-table--identity-total {
       width: 100%;
@@ -3859,16 +3872,7 @@ button.dealer-name-indicator {
     #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
       width: var(--scorecard-now-col, 4.5rem);
       max-width: var(--scorecard-now-col, 4.5rem);
-    }
-    #scorecard-capture .scorecard-fill-col,
-    #scorecard-capture.scorecard-fit-cols .scorecard-fill-col {
-      width: 100%;
-      min-width: 0;
-    }
-    @media (max-width: 900px) {
-      #scorecard-capture .scorecard-fill-col {
-        display: none;
-      }
+      min-width: var(--scorecard-now-col, 4.5rem);
     }
     #scorecard-capture.scorecard-fit-cols td.scorecard-round-td .score-cell-stack {
       display: inline-flex;
@@ -12351,11 +12355,17 @@ button.dealer-name-indicator .dealer-player-label {
       const fav=s.favoriteGame?profileGameLabel(s.favoriteGame[0]):'No games yet';
       const best=s.bestGame?`${profileGameLabel(s.bestGame[0])} · ${Math.round(s.bestGame[1].wins/s.bestGame[1].games*100)}%`:'Building history';
       const recent=s.recent?`${profileGameLabel(s.recent.game)} · ${s.recent.won?'Won':'Played'} ${s.recent.date||''}`:'Ready for first match';
+      const streakLabel=window.BPGRecords&&typeof BPGRecords.formatStreakPhrase==='function'
+        ? BPGRecords.formatStreakPhrase(s.currentStreak)
+        : '';
+      const streakTip=window.BPGRecords&&typeof BPGRecords.formatStreakTitle==='function'
+        ? BPGRecords.formatStreakTitle(s.currentStreak)
+        : '';
       const badges=[
-        s.currentStreak!=='New'?renderProfileBadge(s.currentStreak.startsWith('W')?'🔥':'🌧', s.currentStreak, s.currentStreak.startsWith('W')?'hot':'storm'):'',
-        s.specialTotals.whammy?renderProfileBadge('All scored', s.specialTotals.whammy, 'hot'):'',
-        s.specialTotals.nolie?renderProfileBadge('Nolie', s.specialTotals.nolie, 'good', 'A Nolie is a round where everyone at the table made their bid.'):'',
-        s.specialTotals.cami?renderProfileBadge('Cami', s.specialTotals.cami, 'storm'):'',
+        streakLabel?renderProfileBadge(streakLabel, undefined, s.currentStreak.startsWith('W')?'hot':'storm', streakTip):'',
+        s.specialTotals.whammy?renderProfileBadge('Only one scored', s.specialTotals.whammy, 'hot', 'A round where only one player scored well and everyone else missed.'):'',
+        s.specialTotals.nolie?renderProfileBadge('Everyone made bid', s.specialTotals.nolie, 'good', 'A round where everyone at the table made their bid, scored 0 in Five Crowns, or scored in Flip 7.'):'',
+        s.specialTotals.cami?renderProfileBadge('Everyone missed', s.specialTotals.cami, 'storm', 'A round where everyone missed their bid, or everyone scored 0.'):'',
         s.needsAvatar?renderProfileBadge('Needs avatar', undefined, 'neutral'):''
       ].filter(Boolean).slice(0,4).join('');
       d.innerHTML=`
@@ -12458,9 +12468,9 @@ button.dealer-name-indicator .dealer-player-label {
 
   function getSpecialRoundStatsForPlayer(name, gameScope){
     const stats={
-      whammy:{label:'WHAMMY',total:0,byGame:{}},
-      nolie:{label:'Nolie',total:0,byGame:{}},
-      cami:{label:'Cami Whammi',total:0,byGame:{}}
+      whammy:{label:'Only one scored',total:0,byGame:{}},
+      nolie:{label:'Everyone made bid',total:0,byGame:{}},
+      cami:{label:'Everyone missed',total:0,byGame:{}}
     };
     const add=(key,event)=>{
       if(!event||!event.players.includes(name))return;
@@ -12514,7 +12524,10 @@ button.dealer-name-indicator .dealer-player-label {
     av.className=`avatar-img-lg ${getColorRingClass(name)}`;
     const stamp=document.getElementById('detail-passport-stamp');
     if(stamp){
-      const stampText=summary.games?`${summary.currentStreak} · ${summary.winRate}% wins`:'New Crew Member';
+      const stampStreak=window.BPGRecords&&typeof BPGRecords.formatStreakPhrase==='function'
+        ? BPGRecords.formatStreakPhrase(summary.currentStreak)
+        : summary.currentStreak;
+      const stampText=summary.games?`${stampStreak||summary.currentStreak} · ${summary.winRate}% wins`:'New Crew Member';
       stamp.innerHTML=`<div>${escapeHtml(stampText)}</div><div style="font-size:1.55rem;letter-spacing:0;margin-top:0.2rem;">🌴</div>`;
     }
     let games=0,wins=0,lasts=0,labels=[],data=[];
@@ -12548,12 +12561,14 @@ button.dealer-name-indicator .dealer-player-label {
     const boardwalk=document.getElementById('detail-boardwalk-stats');
     if(boardwalk){
       const avgRank=summary.avgRank?summary.avgRank.toFixed(1):'-';
+      const tideLabel=(window.BPGRecords&&typeof BPGRecords.formatStreakPhrase==='function'&&BPGRecords.formatStreakPhrase(summary.currentStreak))||summary.currentStreak;
+      const tideTip=(window.BPGRecords&&typeof BPGRecords.formatStreakTitle==='function'&&BPGRecords.formatStreakTitle(summary.currentStreak))||'';
       boardwalk.innerHTML=`
         <div class="profile-stat-tile"><span>Matches</span><strong>${summary.games}</strong></div>
         <div class="profile-stat-tile"><span>Wins</span><strong>${summary.wins}</strong></div>
         <div class="profile-stat-tile"><span>Win Rate</span><strong>${summary.games?`${summary.winRate}%`:'-'}</strong></div>
         <div class="profile-stat-tile"><span>Last Place</span><strong>${summary.lasts}</strong></div>
-        <div class="profile-stat-tile"><span>Current Tide</span><strong>${escapeHtml(summary.currentStreak)}</strong></div>
+        <div class="profile-stat-tile"><span>Current Tide</span><strong${tideTip?` title="${escapeHtml(tideTip)}"`:''}>${escapeHtml(tideLabel)}</strong></div>
         <div class="profile-stat-tile"><span>Avg Rank</span><strong>${avgRank}</strong></div>`;
     }
     const gameSection=document.getElementById('detail-game-breakdown-section');
@@ -15610,6 +15625,7 @@ ${isDealer
         root.style.setProperty('--record-chase-head-height',`${head.getBoundingClientRect().height.toFixed(3)}px`);
       }
       root.classList.toggle('scorecard-roomy-identity',rows.length>0&&rows.length<=6);
+      root.classList.toggle('scorecard-roomy-identity-4',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
       if(handFoot&&window.innerWidth<1280)return;
@@ -15832,7 +15848,8 @@ ${isDealer
       chip.scrollWidth>slot.clientWidth+1||
       (slotBox&&chipBox.right>slotBox.right+1)
     ));
-    if(available<=0||slotOverflow){
+    const textOverflows=chip.scrollWidth>available+1||name.scrollWidth>available+1;
+    if(available<=0||slotOverflow||textOverflows){
       let lo=floor,hi=maximum,best=floor;
       for(let i=0;i<12;i++){
 
@@ -15850,7 +15867,7 @@ ${isDealer
       }
       return finish(best);
     }
-    if(chipBox.right<=cellBox.right+2&&chipBox.width<=available+1)return finish(maximum);
+    if(chipBox.right<=cellBox.right+2&&chip.scrollWidth<=available+1&&name.scrollWidth<=available+1)return finish(maximum);
     const chipStyle=getComputedStyle(chip);
     const text=scorecardNameDisplayText(name);
     const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
@@ -16064,6 +16081,10 @@ ${isDealer
     const wrap=host.querySelector('.scorecard-table-wrap');
     const table=host.querySelector('table.scorecard-table');
     if(!wrap||!table||wrap.clientWidth<40)return;
+    table.querySelectorAll('.scorecard-col-player').forEach((el)=>{
+      el.style.removeProperty('width');
+      el.style.removeProperty('max-width');
+    });
     const visible=[...table.querySelectorAll('thead th.scorecard-round-th')].filter(th=>!th.classList.contains('scorecard-round--hidden'));
     const nowElEarly=table.querySelector('thead th.scorecard-col-now');
     const nowOnly= !visible.length && !!(nowElEarly && !nowElEarly.classList.contains('scorecard-round--hidden') && getComputedStyle(nowElEarly).display!=='none');
@@ -16107,6 +16128,12 @@ ${isDealer
     }
     const leadW=[...table.querySelectorAll('thead th[data-sc-part="lead"]')]
       .reduce((sum,th)=>{
+        // Player absorbs leftover width. Measure its min so rounds keep a
+        // fitted column instead of being squeezed by a wide pre-R1 name cell.
+        if(th.classList.contains('scorecard-col-player')&&window.innerWidth>900){
+          const min=parseFloat(getComputedStyle(th).minWidth);
+          if(Number.isFinite(min)&&min>0) return sum+min;
+        }
         const rect=th.getBoundingClientRect().width;
         const max=parseFloat(getComputedStyle(th).maxWidth);
         // Fixed tables ignore max-width and pour leftover space into Total while round columns are still 1px. Measure the cap, or every phone Hand and Foot history card looks too tight and hides R1–R3.
@@ -16220,25 +16247,6 @@ ${isDealer
     host.classList.remove('scorecard-card-fit');
     table.style.width='100%';
     table.style.maxWidth='100%';
-    const fillEls=[...table.querySelectorAll('.scorecard-fill-col')];
-    fillEls.forEach((el)=>{
-      el.style.removeProperty('width');
-      el.style.removeProperty('max-width');
-    });
-    if(fillEls.length&&window.innerWidth>900){
-      void host.offsetWidth;
-      const used=[...table.querySelectorAll('thead th')].reduce((sum,th)=>{
-        if(th.classList.contains('scorecard-fill-col')) return sum;
-        if(th.classList.contains('scorecard-round--hidden')) return sum;
-        if(getComputedStyle(th).display==='none') return sum;
-        return sum+th.getBoundingClientRect().width;
-      },0);
-      const leftover=Math.max(0,wrap.clientWidth-used);
-      fillEls.forEach((el)=>{
-        el.style.width=`${leftover}px`;
-        el.style.maxWidth=`${leftover}px`;
-      });
-    }
     keepScorecardRoundTotalRatio(host);
     clearBar();
   }
@@ -16311,11 +16319,7 @@ ${isDealer
         fitScorecardPlayerNames(capture);
         fitScorecardTotals(capture);
         const table=capture?.querySelector('table.scorecard-table');
-        const fillCol=capture?.querySelector('.scorecard-fill-col');
-        const fillVisible=!!(fillCol&&getComputedStyle(fillCol).display!=='none');
-        // A leftover fill column already holds unused width. Hiding rounds
-        // cannot widen Player, and it parked Life Preservers on Total.
-        if(table&&!fillVisible&&scorecardLeadStillOverflows(table)){
+        if(table&&scorecardLeadStillOverflows(table)){
           updateScorecardColumnTrim(capture,{hideUntilLeadFits:true});
           fitActiveScorecardRows();
           fitScorecardPlayerNames(capture);
@@ -16616,7 +16620,6 @@ ${isDealer
       ? `R${currentGame.currentRound}`
       : `R${currentGame.currentRound} Now`;
     if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
-    head+=`<th class="scorecard-fill-col" aria-hidden="true"></th>`;
 
     head+=`</tr>`;
     const headAssignTimer = gnPerfStart('GN renderGame dom assign');
@@ -16752,7 +16755,6 @@ ${isDealer
         }
         body+=`<td class="scorecard-col-now px-1 py-2 text-center"><span class="s2-now-bid">${escapeHtml(String(nowLabel))}</span></td>`;
       }
-      body+=`<td class="scorecard-fill-col" aria-hidden="true"></td>`;
 
       body+=`</tr>`;
     });
@@ -20244,7 +20246,7 @@ ${isDealer
     const empty = '<div class="surface p-5 text-sm font-bold" style="color:var(--muted);">No qualifying history yet.</div>';
     const playerLine = (r,idx) => `<div class="surface p-4 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
-      <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${r.value ?? '—'}</div>
+      <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${window.BPGRecords&&Number.isFinite(r.value)?BPGRecords.formatDisplayNumber(r.value):(r.value ?? '—')}</div>
     </div>`;
     const formatProfileValue=(title,r)=>{
       if(!r || !Number.isFinite(r.value)) return r?.value ?? '—';
@@ -20455,7 +20457,9 @@ ${isDealer
       return {value, player};
     };
     const fmt=(ttl,val,player,pos,sfx='',note='')=>{
-      const cleanVal=Number.isFinite(val)&&!Number.isInteger(val)?val.toFixed(1):val;
+      const cleanVal=Number.isFinite(val)&&!Number.isInteger(val)
+        ?(window.BPGRecords&&typeof BPGRecords.formatDisplayNumber==='function'?BPGRecords.formatDisplayNumber(val):val.toFixed(1))
+        :val;
       const dv=(!Number.isFinite(val)||(val===0&&player==='-'))?'—':cleanVal+sfx;
       const col=pos?'var(--emerald)':'var(--rose)';
       const noteHtml=note?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${note}</div>`:'';

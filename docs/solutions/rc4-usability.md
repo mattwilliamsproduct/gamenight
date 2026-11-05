@@ -4,7 +4,7 @@ Matt reviewed `2745bfa` on a laptop with `/?demo=try`. These are the standing tr
 
 ## Scorecard width
 
-The live card and the match header share `min(62rem, calc(100% - 2.5rem))` (~992px) on laptop. The visible table fills that card before and after Round 1. Do not hug the table to `max-content`, do not stretch the card to the viewport, and do not measure only the card box. A leftover fill column absorbs unused width so round columns stay fitted and scroll when they no longer fit. Do not hide early rounds to make Player wider when that leftover column is already holding the slack. Phone stays full width.
+The live card and the match header share `min(62rem, calc(100% - 2.5rem))` (~992px) on laptop. The visible table fills that card before and after Round 1. Do not hug the table to `max-content`, do not stretch the card to the viewport, and do not measure only the card box. The player column takes leftover width. Total and round columns stay fixed. Do not leave a blank or tinted trailing band. Displayed records, passport, and scorecard numbers use at most one decimal place. Passport chips use a plain-language label (and a title) for streaks and table specials. Phone stays full width.
 
 ## Nine-seat wrap
 

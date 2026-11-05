@@ -58,6 +58,15 @@ async function tableBoxes(page) {
     const cr = card.getBoundingClientRect();
     const tr = table.getBoundingClientRect();
     const br = bar ? bar.getBoundingClientRect() : null;
+    const dataHeads = [...table.querySelectorAll('thead th')].filter((th) => {
+      if (th.classList.contains('scorecard-fill-col')) return false;
+      if (th.classList.contains('scorecard-round--hidden')) return false;
+      return getComputedStyle(th).display !== 'none';
+    });
+    const last = dataHeads.at(-1);
+    const player = table.querySelector('thead th.scorecard-col-player');
+    const total = table.querySelector('thead th.scorecard-col-total');
+    const lastBox = last ? last.getBoundingClientRect() : null;
     return {
       cardW: Math.round(cr.width),
       cardLeft: Math.round(cr.left),
@@ -67,6 +76,10 @@ async function tableBoxes(page) {
       tableLeft: Math.round(tr.left),
       tableRight: Math.round(tr.right),
       tableW: Math.round(tr.width),
+      lastDataRight: lastBox ? Math.round(lastBox.right) : 0,
+      playerW: player ? Math.round(player.getBoundingClientRect().width) : 0,
+      totalW: total ? Math.round(total.getBoundingClientRect().width) : 0,
+      fillCount: table.querySelectorAll('.scorecard-fill-col').length,
       barW: br ? Math.round(br.width) : 0,
       barLeft: br ? Math.round(br.left) : 0,
       vw: window.innerWidth
@@ -81,6 +94,10 @@ function expectFilledCard(before, viewportWidth) {
   expect(Math.abs(before.tableLeft - before.cardInnerLeft)).toBeLessThanOrEqual(2);
   expect(Math.abs(before.tableRight - before.cardInnerRight)).toBeLessThanOrEqual(2);
   expect(Math.abs(before.tableW - before.cardInnerW)).toBeLessThanOrEqual(2);
+  expect(before.fillCount, 'no leftover fill column').toBe(0);
+  expect(Math.abs(before.lastDataRight - before.tableRight)).toBeLessThanOrEqual(2);
+  expect(Math.abs(before.lastDataRight - before.cardInnerRight)).toBeLessThanOrEqual(2);
+  expect(before.playerW).toBeGreaterThan(before.totalW);
   expect(before.barW).toBe(before.cardW);
   expect(Math.abs(before.barLeft - before.cardLeft)).toBeLessThanOrEqual(2);
 }
