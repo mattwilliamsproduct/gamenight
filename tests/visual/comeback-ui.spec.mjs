@@ -1,5 +1,9 @@
 import {expect,test} from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js. CLI goldens in test:comeback still cover stored round.comeback extras.');
+});
+
 const blowoutUrl='/?gnqa=1&gallery=0&scenario=five-crowns-blowout&surface=scorecard';
 
 async function ready(page){

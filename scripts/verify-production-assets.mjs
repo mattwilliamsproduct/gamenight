@@ -1,5 +1,10 @@
-import { access, readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 const rootDir = process.cwd();
 const index = await readFile(join(rootDir, 'public', 'index.html'), 'utf8');
@@ -22,6 +27,8 @@ const requiredAssets = [
   'public/assets/vendor/html2canvas.js',
   'public/assets/life-preserver-logic.js',
   'public/assets/scorebook.js',
+  'public/assets/game-registry.js',
+  'public/assets/hand-foot-logic.js',
   'public/assets/backup.js',
   'public/sw.js',
   'public/apple-touch-icon.png',
@@ -32,6 +39,25 @@ const requiredAssets = [
 ];
 
 await Promise.all(requiredAssets.map(asset => access(join(rootDir, asset))));
+
+const committedUtilitiesCss = await readFile(join(rootDir, 'public', 'assets', 'app-utilities.css'));
+const generatedDir = await mkdtemp(join(tmpdir(), 'app-utilities-'));
+const generatedUtilitiesCssPath = join(generatedDir, 'app-utilities.css');
+try{
+  await execFileAsync(process.execPath, [
+    join(rootDir, 'node_modules', 'tailwindcss', 'lib', 'cli.js'),
+    '-c', join(rootDir, 'tailwind.config.cjs'),
+    '-i', join(rootDir, 'src', 'tailwind.css'),
+    '-o', generatedUtilitiesCssPath,
+    '--minify'
+  ], {cwd: rootDir});
+  const generatedUtilitiesCss = await readFile(generatedUtilitiesCssPath);
+  if(!committedUtilitiesCss.equals(generatedUtilitiesCss)){
+    throw new Error('public/assets/app-utilities.css is stale. Run npm run build:styles and commit the result.');
+  }
+}finally{
+  await rm(generatedDir, {recursive: true, force: true});
+}
 
 if(!index.includes("navigator.serviceWorker.register('./sw.js'")){
   throw new Error('PWA registration is missing from the app shell.');
@@ -51,6 +77,14 @@ if(!index.includes("src=\"./assets/backup.js\"")){
 
 if(!index.includes("src=\"./assets/scorebook.js\"")){
   throw new Error('Scorebook helper is missing from the app shell.');
+}
+
+if(!index.includes("src=\"./assets/hand-foot-logic.js\"")){
+  throw new Error('Hand and Foot scoring helper is missing from the app shell.');
+}
+
+if(!index.includes("src=\"./assets/game-registry.js\"")){
+  throw new Error('Game registry is missing from the app shell.');
 }
 
 function appShellEntries(source, label){
