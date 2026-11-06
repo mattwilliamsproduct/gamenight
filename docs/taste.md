@@ -34,7 +34,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
-- Desktop Home is three 5:7 game cards per row. Tonight's Table and Start a New Match stretch to the taller panel. Seats stay compact. Empty space inside Tonight's Table is fine. Start sits at the bottom of its panel.
+- Desktop Home is three 5:7 game cards per row. Tonight's Table and Start a New Match each fit their own content. Seats stay compact. Start sits under the cards. A gap below the shorter panel is fine.
 - Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
 - Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 - A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
@@ -63,7 +63,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Leftover scorecard width goes to the player column. Total and round columns stay fixed. No tinted empty trailing band. Dealer names share the same fitted size as the rest of the column.
 - Displayed records, passport, and scorecard numbers use at most one decimal (1.7 avg). Passport chips are one-line sentences: Won the last match, Only player to score, twice.
 - One counting rule: Passports and the game tally count the same finished nights. Every tied winner gets a win. Unfinished nights are out of wins, win %, and games. Left-early players keep their scores and the game, never the win.
-- Home 5:7 cards stay slightly larger on desktop, not double (148px at 1440, 132px at 1280). Both Home panels stretch to the same height. The taller one sets it. Empty space inside either panel is fine. Do not grow cards just to fill leftover space.
+- Home 5:7 cards stay slightly larger on desktop, not double (148px at 1440, 132px at 1280). Each Home panel is its own height. Start stays under the cards and on a laptop screen. Do not grow cards or stretch panels just to line up bottoms.
 - Phone wordmark large enough that GAMES is readable (about 110 to 130px wide) without wrapping the mobile nav.
 - PWA and apple-touch icons are full-bleed: no white outside the rounded art. Maskable padding matches the art teal. The favicon stays frozen.
 
@@ -147,7 +147,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Oversizing Home cards just to fill leftover desktop space so Start drops below the fold under Resume.
 - Shipping PWA or apple-touch icons with white corners iOS would unmask.
 - A phone wordmark so small GAMES is unreadable, or a header shot of the scorecard labeled as Home.
-- Clipping or internally scrolling Tonight's Table, or leaving the two Home panels different heights. Stretch to the taller one. Start at the bottom of its panel may sit below the fold at 8 or 9 seats.
+- Clipping or internally scrolling Tonight's Table to hide seats or Add Player.
+- Stretching the two Home panels to equal height so Start drops below the laptop fold.
 
 ## Prefer
 

@@ -24,7 +24,7 @@ Sample records must be computed by the real records functions from seeded games.
 
 ## Home gap
 
-Desktop Home is three 5:7 cards per row. From 1280px both panels stretch to the taller one (`align-items: stretch`). Tonight's Table is never clipped or internally scrolled; it shows every seat, chip, and Add Player at compact natural height. Start a New Match keeps the 148/132 card caps. The summary and Start sit at the bottom of that stretched panel. Empty space between the card grid and Start is fine, the same way empty space inside the table is. Start may sit below the fold at 8 or 9 seats. Do not fill leftover viewport or put a max-height on the table. Phone 390 stays stacked at natural height. At 1024 the 132px cards keep Start above the fold with 6 seated.
+Desktop Home is three 5:7 cards per row. From 1280px each panel is its own height (`align-items: start`). Tonight's Table is never clipped or internally scrolled; it shows every seat, chip, and Add Player at compact natural height. Start a New Match keeps the 148/132 card caps. Start sits under the cards, not pinned to a stretched panel bottom. A gap below the shorter panel is fine. Do not fill leftover viewport, put a max-height on the table, or scroll the seat list to keep Start on screen. At 1440×900 and 1280×800, with Resume showing, Start stays fully in the viewport for 0/4/8/9 seated. Phone 390 stays stacked at natural height. At 1024 the 132px cards keep Start above the fold with 6 seated.
 
 ## Safari
 

@@ -229,21 +229,21 @@ html.slice2-tv .s2-seat-grid {
   }
 }
 
-/* Desktop: slightly larger 5:7 cards. Both panels stretch; the taller one sets
-   the row. Start sits at the bottom of its panel. Empty space between the grid
-   and the summary is fine. Never clip or scroll Tonight's Table. */
+/* Desktop: slightly larger 5:7 cards. Each panel is its own height.
+   Start sits under the cards, not at a stretched bottom. A gap below
+   the shorter panel is fine. Never clip or scroll Tonight's Table. */
 @media (min-width: 1280px) {
   html.slice2-tv {
     --bp-card-max: 132px;
   }
 
   html.slice2-tv .s2-home-grid {
-    align-items: stretch;
+    align-items: start;
   }
 
   html.slice2-tv .s2-home-table,
   html.slice2-tv .s2-home-start {
-    align-self: stretch;
+    align-self: start;
     min-height: min-content;
     height: auto;
     max-height: none;
@@ -259,7 +259,20 @@ html.slice2-tv .s2-seat-grid {
 
   html.slice2-tv .s2-home-start .s2-startbar {
     flex: 0 0 auto;
-    margin-top: auto;
+    margin-top: 8px;
+  }
+}
+
+/* 1280×800: Start was ~9px below the fold after dropping stretch.
+   Tighten Start-panel chrome only. Cards stay 132×185. */
+@media (min-width: 1280px) and (max-height: 820px) {
+  html.slice2-tv .s2-home-start .s2-panel-head {
+    margin-bottom: 4px;
+  }
+
+  html.slice2-tv .s2-home-start .s2-startbar {
+    margin-top: 2px;
+    padding-top: 2px;
   }
 }
 

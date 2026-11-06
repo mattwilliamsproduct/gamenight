@@ -179,7 +179,7 @@ async function openDemoHome(page) {
   await page.waitForSelector('#home-screen:not(.hidden)');
 }
 
-test('1440 and 1280 Home panels stretch equally and do not clip', async ({page}) => {
+test('1440 and 1280 keep Start on screen without clipping Tonight\'s Table', async ({page}) => {
   for (const size of [{width: 1440, height: 900}, {width: 1280, height: 800}]) {
     await page.setViewportSize(size);
     await openDemoHome(page);
@@ -194,21 +194,36 @@ test('1440 and 1280 Home panels stretch equally and do not clip', async ({page})
       const layout = await page.evaluate(() => {
         const table = document.querySelector('.s2-home-table');
         const start = document.querySelector('.s2-home-start');
-        const tableBox = table?.getBoundingClientRect();
-        const startBox = start?.getBoundingClientRect();
-        const cards = [...document.querySelectorAll('.s2-home-start .s2-card-frame')].map((node) => node.getBoundingClientRect().width);
+        const btn = document.querySelector('#slice2-start-btn');
+        const add = table?.querySelector('.s2-add .s2-btn');
+        const title = table?.querySelector('h2');
+        const cards = [...document.querySelectorAll('.s2-home-start .s2-card-frame')].map((node) => node.getBoundingClientRect());
         const overflow = (el) => !el || el.scrollHeight <= el.clientHeight + 1;
+        const box = btn?.getBoundingClientRect();
+        const inView = (el) => {
+          const b = el?.getBoundingClientRect();
+          return !!(b && b.height > 8 && b.bottom <= (table?.getBoundingClientRect().bottom || 0) + 1);
+        };
         return {
-          delta: tableBox && startBox ? startBox.bottom - tableBox.bottom : 999,
+          startOnScreen: !!(box && box.height > 20 && box.top >= 0 && box.bottom <= window.innerHeight + 1),
+          startBtnBottom: box ? Math.round(box.bottom) : null,
           tableOpen: overflow(table),
           startOpen: overflow(start),
-          cardMaxW: cards.length ? Math.max(...cards) : 0,
-          cardCount: cards.length
+          titleInTable: inView(title),
+          addInTable: inView(add),
+          seatScroll: table ? getComputedStyle(table.querySelector('.s2-seat-grid')).overflowY : '',
+          cardMaxW: cards.length ? Math.max(...cards.map((c) => c.width)) : 0,
+          cardCount: cards.length,
+          bannerOn: !!(document.querySelector('.s2-banner')?.getBoundingClientRect().height > 20)
         };
       });
-      expect(Math.abs(layout.delta), `${size.width} ${count}p |delta| ${layout.delta}`).toBeLessThanOrEqual(4);
+      expect(layout.bannerOn, `${size.width} ${count}p Resume banner missing`).toBe(true);
+      expect(layout.startOnScreen, `${size.width} ${count}p Start below the fold at ${layout.startBtnBottom}`).toBe(true);
       expect(layout.tableOpen, `${size.width} ${count}p Tonight's Table clipped`).toBe(true);
       expect(layout.startOpen, `${size.width} ${count}p Start panel clipped`).toBe(true);
+      expect(layout.titleInTable, `${size.width} ${count}p table title clipped`).toBe(true);
+      expect(layout.addInTable, `${size.width} ${count}p Add Player clipped`).toBe(true);
+      expect(layout.seatScroll, `${size.width} ${count}p seat overflow ${layout.seatScroll}`).toBe('visible');
       expect(layout.cardCount, `${size.width} missing cards`).toBe(6);
       expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(160);
     }
