@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 980" width="700" height="980">
+  <defs>
+    <pattern id="lattice" width="28" height="24" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#533086" stroke-width="1.2" opacity="0.62">
+        <ellipse cx="14" cy="12" rx="7.6" ry="4.1" transform="rotate(-34 14 12)"/>
+        <ellipse cx="0" cy="0" rx="7.6" ry="4.1" transform="rotate(-34 0 0)"/>
+        <ellipse cx="28" cy="0" rx="7.6" ry="4.1" transform="rotate(-34 28 0)"/>
+        <ellipse cx="0" cy="24" rx="7.6" ry="4.1" transform="rotate(-34 0 24)"/>
+        <ellipse cx="28" cy="24" rx="7.6" ry="4.1" transform="rotate(-34 28 24)"/>
+        <ellipse cx="14" cy="0" rx="7.6" ry="4.1" transform="rotate(34 14 0)"/>
+        <ellipse cx="14" cy="24" rx="7.6" ry="4.1" transform="rotate(34 14 24)"/>
+        <ellipse cx="0" cy="12" rx="7.6" ry="4.1" transform="rotate(34 0 12)"/>
+        <ellipse cx="28" cy="12" rx="7.6" ry="4.1" transform="rotate(34 28 12)"/>
+      </g>
+    </pattern>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4d25a"/>
+      <stop offset="0.5" stop-color="#e2b42c"/>
+      <stop offset="1" stop-color="#c49216"/>
+    </linearGradient>
+    <linearGradient id="gold-edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f0cc4a"/>
+      <stop offset="0.5" stop-color="#e0b22a"/>
+      <stop offset="1" stop-color="#f0cc4a"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#de2428"/>
+      <stop offset="1" stop-color="#c1161c"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="700" height="980" fill="#3a1a72"/>
+  <rect width="700" height="980" fill="url(#lattice)"/>
+
+  <rect x="292" y="0" width="116" height="980" fill="#5f4b8a"/>
+  <rect x="292" y="0" width="116" height="980" fill="url(#lattice)" opacity="0.3"/>
+  <rect x="290.4" y="0" width="2.5" height="980" fill="url(#gold-edge)"/>
+  <rect x="407.1" y="0" width="2.5" height="980" fill="url(#gold-edge)"/>
+
+  <!--
+    Natural logo (FIVE over CROWNS, crown on FIVE toward F), then -90 so
+    the crown sits left, FIVE is the short tier, CROWNS reads bottom to top.
+  -->
+  <g transform="translate(350 490) rotate(-90) scale(1.02)">
+    <!-- Stepped crown frame: short FIVE box that holds the crown, longer CROWNS box -->
+    <path d="M -92 -248
+             L 92 -248
+             A 50 50 0 0 1 142 -198
+             L 142 -84
+             C 142 -62 164 -54 196 -54
+             L 174 -54
+             A 120 120 0 0 1 294 66
+             L 294 124
+             A 120 120 0 0 1 174 244
+             L -174 244
+             A 120 120 0 0 1 -294 124
+             L -294 66
+             A 120 120 0 0 1 -174 -54
+             L -196 -54
+             C -164 -54 -142 -62 -142 -84
+             L -142 -198
+             A 50 50 0 0 1 -92 -248
+             Z"
+          fill="url(#red)" stroke="url(#gold)" stroke-width="17" stroke-linejoin="round"/>
+    <path d="M -88 -232
+             L 88 -232
+             A 36 36 0 0 1 124 -196
+             L 124 -86
+             C 124 -68 144 -62 172 -62
+             L 168 -62
+             A 104 104 0 0 1 276 66
+             L 276 122
+             A 104 104 0 0 1 168 226
+             L -168 226
+             A 104 104 0 0 1 -276 122
+             L -276 66
+             A 104 104 0 0 1 -168 -62
+             L -172 -62
+             C -144 -62 -124 -68 -124 -86
+             L -124 -196
+             A 36 36 0 0 1 -88 -232
+             Z"
+          fill="none" stroke="#6b1418" stroke-width="2.6"/>
+    <path d="M -88 -232
+             L 88 -232
+             A 36 36 0 0 1 124 -196
+             L 124 -86
+             C 124 -68 144 -62 172 -62
+             L 168 -62
+             A 104 104 0 0 1 276 66
+             L 276 122
+             A 104 104 0 0 1 168 226
+             L -168 226
+             A 104 104 0 0 1 -276 122
+             L -276 66
+             A 104 104 0 0 1 -168 -62
+             L -172 -62
+             C -144 -62 -124 -68 -124 -86
+             L -124 -196
+             A 36 36 0 0 1 -88 -232
+             Z"
+          fill="none" stroke="#f6d76a" stroke-width="2" opacity="0.9"/>
+
+    <!-- One chunky jeweled crown in the FIVE field, toward F, clear of the letters -->
+    <g transform="translate(-88 -236)">
+      <path d="M 8 58
+               L 10 50
+               L 28 18
+               L 48 48
+               L 80 4
+               L 112 48
+               L 132 18
+               L 150 50
+               L 152 58
+               L 146 58
+               L 142 82
+               Q 80 96 18 82
+               L 14 58
+               Z"
+            fill="url(#gold)" stroke="#8a6410" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M 18 63 H 142" stroke="#c49216" stroke-width="4" stroke-linecap="round"/>
+      <rect x="77" y="-16" width="6" height="22" rx="1.6" fill="url(#gold)" stroke="#8a6410" stroke-width="1.1"/>
+      <rect x="69" y="-12" width="22" height="6" rx="1.6" fill="url(#gold)" stroke="#8a6410" stroke-width="1.1"/>
+      <circle cx="28" cy="16" r="7" fill="#fff3b8" stroke="#8a6410" stroke-width="1.2"/>
+      <circle cx="80" cy="2" r="8" fill="#fff8d0" stroke="#8a6410" stroke-width="1.2"/>
+      <circle cx="132" cy="16" r="7" fill="#fff3b8" stroke="#8a6410" stroke-width="1.2"/>
+      <circle cx="80" cy="-18" r="6.4" fill="#fff8d0" stroke="#8a6410" stroke-width="1.2"/>
+      <circle cx="32" cy="72" r="7" fill="#2f7d3a"/>
+      <circle cx="56" cy="74" r="7" fill="#e2b42c"/>
+      <circle cx="80" cy="76" r="7.4" fill="#1c1c1c"/>
+      <circle cx="104" cy="74" r="7" fill="#c42b2b"/>
+      <circle cx="128" cy="72" r="7" fill="#6b3fa0"/>
+    </g>
+
+    <!-- FIVE, shorter tier, under the crown -->
+    <g transform="translate(0 -96) scale(1, 1.72)"
+       font-family="Noto Serif, Liberation Serif, serif"
+       font-weight="700" font-size="74" text-anchor="middle" letter-spacing="1">
+      <text x="0" y="26" fill="none" stroke="#e2b42c" stroke-width="10" stroke-linejoin="round">FIVE</text>
+      <text x="0" y="26" fill="none" stroke="#6b1418" stroke-width="4.4" stroke-linejoin="round">FIVE</text>
+      <text x="0" y="26" fill="#fff">FIVE</text>
+    </g>
+
+    <!-- CROWNS, much larger, hugging the long tier -->
+    <g transform="translate(0 90) scale(1, 2.82)"
+       font-family="Noto Serif, Liberation Serif, serif"
+       font-weight="700" font-size="118" text-anchor="middle">
+      <text x="0" y="36" textLength="520" lengthAdjust="spacingAndGlyphs" fill="none" stroke="#e2b42c" stroke-width="8.2" stroke-linejoin="round">CROWNS</text>
+      <text x="0" y="36" textLength="520" lengthAdjust="spacingAndGlyphs" fill="none" stroke="#6b1418" stroke-width="3.7" stroke-linejoin="round">CROWNS</text>
+      <text x="0" y="36" textLength="520" lengthAdjust="spacingAndGlyphs" fill="#fff">CROWNS</text>
+    </g>
+  </g>
+</svg>

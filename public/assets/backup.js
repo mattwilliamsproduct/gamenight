@@ -7,7 +7,8 @@
     '818',
     'Flip 7 Vengeance',
     'Beat the Heat',
-    'Rook'
+    'Rook',
+    'Hand and Foot'
   ]);
 
   function gameCounts(history) {
@@ -21,7 +22,9 @@
   }
 
   function displayGameName(name) {
+    if (root.BPGGames && typeof root.BPGGames.displayName === 'function') return root.BPGGames.displayName(name);
     if (name === 'Flip 7 Vengeance') return 'Flip 7';
+    if (name === 'Hand and Foot') return 'Canasta';
     return name || 'Unknown';
   }
 

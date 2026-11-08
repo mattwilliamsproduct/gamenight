@@ -74,6 +74,40 @@ test('cloud merge keeps a live local match and unions Beat the Heat history', ()
   assert.equal(next.history.some(match => match.game === 'Beat the Heat'), true);
 });
 
+test('file merge adds unknown games and players and replaces a live match when the file has one', () => {
+  const current = {
+    allPlayers: ['Matt'],
+    players: ['Matt'],
+    history: [{ id: 1, game: 'Wizard', totals: { Matt: 90 } }],
+    playerProfiles: { Matt: { avatar: 'old.png' } },
+    currentGame: { name: '818', originalRoster: ['Matt'] },
+    prefs: { dealerRoll: false },
+    uiScale: 16
+  };
+  const incoming = Backup.buildBackup({
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Cat'],
+    history: [
+      { id: 1, game: 'Wizard', totals: { Matt: 999 } },
+      { id: 8, game: 'Five Crowns', totals: { Cat: 12 } }
+    ],
+    playerProfiles: { Cat: { avatar: 'joker-cards.png' } },
+    currentGame: { name: 'Rook', originalRoster: ['Cat'] },
+    prefs: { dealerRoll: true },
+    uiScale: 18
+  });
+  const { next, added } = Backup.mergeBackup(current, incoming);
+  assert.equal(next.history.length, 2);
+  assert.equal(next.history[0].totals.Matt, 90);
+  assert.equal(added.games, 1);
+  assert.ok(next.allPlayers.includes('Cat'));
+  assert.equal(next.currentGame.name, 'Rook');
+  assert.equal(next.prefs.dealerRoll, true);
+  assert.equal(next.uiScale, 18);
+  assert.equal(next.playerProfiles.Matt.avatar, 'old.png');
+  assert.equal(next.playerProfiles.Cat.avatar, 'joker-cards.png');
+});
+
 test('parseBackup rejects junk and accepts a v1 paste payload', () => {
   assert.throws(() => Backup.parseBackup('{"hello":true}'));
   const parsed = Backup.parseBackup(JSON.stringify({
