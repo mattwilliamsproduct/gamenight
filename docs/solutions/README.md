@@ -67,3 +67,5 @@ Standing trap: [rc2-records-labels.md](rc2-records-labels.md) — Canasta nights
 Standing trap: [rc3d-phone-entry-roster.md](rc3d-phone-entry-roster.md) — phone 8-player entry must scroll the roster lane; do not let `#score-entry-rows` grow and clip under the keypad.
 
 Standing trap: [rc4-usability.md](rc4-usability.md) — scorecard width stays stable, not edge-to-edge then hugged. Nine-seat wrap was not reproduced. Passport filters scope every number. Demo records are computed, never planted. Safari on a real phone stays Matt's check.
+
+Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phone scoreboard that locks the shell to `100dvh` clips the last seats and hides the app nav. Scroll the seat list inside the visual viewport. Phone header is Home, Enter Score, Actions, Save & End on one row. Desktop keeps `← Table`.

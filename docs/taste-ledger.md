@@ -61,6 +61,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - One counting rule: Passports and the game tally count the same finished nights. Every tied winner gets a win. Unfinished nights are out of wins, win %, and games. Left-early players keep their scores and the game, never the win.
 - Home 5:7 cards stay slightly larger on desktop, not double (148px at 1440, 132px at 1280). Each Home panel is its own height. Start stays under the cards and on a laptop screen. Do not grow cards or stretch panels just to line up bottoms.
 - Phone wordmark large enough that GAMES is readable (about 110 to 130px wide) without wrapping the mobile nav.
+- On a phone scoreboard, Home, Enter Score, Actions, and Save & End sit on one row. The app nav stays on screen. Every seated player can be reached by scrolling.
 - PWA and apple-touch icons are full-bleed: no white outside the rounded art. Maskable padding matches the art teal. The favicon stays frozen.
 
 ## Kills
@@ -146,3 +147,5 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A phone wordmark so small GAMES is unreadable, or a header shot of the scorecard labeled as Home.
 - Clipping or internally scrolling Tonight's Table to hide seats or Add Player.
 - Stretching the two Home panels to equal height so Start drops below the laptop fold.
+- A phone scoreboard that clips seats past June and hides the app nav, with no scroll path.
+- A phone scoreboard back control that still says Table, or Save & End wrapped onto a second row.

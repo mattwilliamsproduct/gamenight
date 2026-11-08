@@ -4366,7 +4366,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     @media (max-width: 760px) {
       body.active-match-view #toast-container {
-        top: 10.75rem;
+        top: calc(var(--bp-board-bottom, 108px) + 6px);
         bottom: auto;
       }
     }
@@ -8906,6 +8906,39 @@ button.dealer-name-indicator .dealer-player-label {
     html.slice2-tv #game-screen .active-match-banner,
     html.slice2-tv #record-chase-panel,
     html.slice2-tv #submit-section { display: none !important; }
+    @media (max-width: 760px) {
+      html.slice2-tv body.active-match-view #top-nav {
+        display: block !important;
+        position: relative !important;
+        top: auto !important;
+        order: 5;
+        flex: 0 0 auto;
+        z-index: 40;
+        margin: 0 !important;
+        border-bottom: 0 !important;
+        border-top: 1px solid var(--hairline);
+        padding-top: 0.15rem !important;
+        padding-bottom: calc(0.15rem + env(safe-area-inset-bottom, 0px)) !important;
+        background: var(--nav-bg);
+      }
+      html.slice2-tv body.active-match-view #top-nav .bp-brand {
+        display: none !important;
+      }
+      html.slice2-tv body.active-match-view #top-nav > div {
+        justify-content: stretch;
+        width: 100%;
+      }
+      html.slice2-tv body.active-match-view #top-nav > div > div:last-child {
+        flex: 1 1 auto;
+        width: 100%;
+        justify-content: space-between;
+      }
+      html.slice2-tv body.active-match-view #top-nav .nav-btn {
+        flex: 1 1 0;
+        min-height: 44px;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 
@@ -10788,6 +10821,9 @@ button.dealer-name-indicator .dealer-player-label {
   // ── Toast notifications ──
   function toast(message, type='default'){
     const c = document.getElementById('toast-container'); if(!c) return;
+    if(window.BPGSlice2 && typeof window.BPGSlice2.syncPhoneBoardViewport==='function'){
+      window.BPGSlice2.syncPhoneBoardViewport();
+    }
     const t = document.createElement('div');
     t.className = `toast ${type}`;
     t.textContent = message;
@@ -12030,12 +12066,22 @@ button.dealer-name-indicator .dealer-player-label {
     const place = () => {
       const box = btn.getBoundingClientRect();
       const reserve = 10;
+      const vv = window.visualViewport;
+      const viewBottom = vv ? (vv.offsetTop + vv.height) : window.innerHeight;
+      const nav = document.getElementById('top-nav');
+      let navCut = 0;
+      if(nav && window.innerWidth <= 760){
+        const navBox = nav.getBoundingClientRect();
+        if(getComputedStyle(nav).display !== 'none' && navBox.height > 20 && navBox.top < viewBottom){
+          navCut = Math.max(0, viewBottom - navBox.top);
+        }
+      }
       let top = Math.round(box.bottom + 6);
-      let maxH = window.innerHeight - top - reserve;
+      let maxH = viewBottom - navCut - top - reserve;
       const needed = Math.ceil(m.scrollHeight);
       if(needed > maxH){
         top = Math.max(8, top - (needed - maxH));
-        maxH = window.innerHeight - top - reserve;
+        maxH = viewBottom - navCut - top - reserve;
       }
       m.style.top = top + 'px';
       m.style.maxHeight = Math.max(160, maxH) + 'px';
@@ -15720,8 +15766,24 @@ ${isDealer
       // Row-fit must use the on-screen remainder. wrap.clientHeight follows the
       // table, so large type was sizing rows that painted through Match Complete.
       const wrapBox=wrap.getBoundingClientRect();
-      const overTop=overVisible?overEl.getBoundingClientRect().top:window.innerHeight;
-      const bottomLimit=Math.min(window.innerHeight, overTop) - 8;
+      const phone = window.innerWidth <= 760;
+      const tablet = window.innerWidth <= 1180;
+      if(phone && window.BPGSlice2 && typeof window.BPGSlice2.syncPhoneBoardViewport==='function'){
+        window.BPGSlice2.syncPhoneBoardViewport();
+      }
+      const vv=window.visualViewport;
+      const viewBottom=phone&&vv?(vv.offsetTop+vv.height):window.innerHeight;
+      let navCut=0;
+      if(phone){
+        const nav=document.getElementById('top-nav');
+        if(nav){
+          const navBox=nav.getBoundingClientRect();
+          const navShown=getComputedStyle(nav).display!=='none'&&navBox.height>20&&navBox.top<viewBottom;
+          if(navShown) navCut=Math.max(0, viewBottom-navBox.top);
+        }
+      }
+      const overTop=overVisible?overEl.getBoundingClientRect().top:viewBottom;
+      const bottomLimit=Math.min(viewBottom-navCut, overTop) - 8;
       const visibleWrap=Math.max(80,Math.min(wrap.clientHeight,Math.floor(bottomLimit - wrapBox.top)));
       const fitHeight=visibleWrap;
       const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
@@ -15731,8 +15793,6 @@ ${isDealer
       const rowSlots=handFoot?8:rows.length;
       // Fill the visible scorecard height. Clamp by player count so 3p stays
       // readable and 8p still fits without a dead strip under the table.
-      const phone = window.innerWidth <= 760;
-      const tablet = window.innerWidth <= 1180;
       const count = rowSlots;
       const fillRow = Math.floor(availableRowsHeight / rowSlots);
       // Height-derived size for small tables so 2–4p fill large screens. Keep
@@ -15849,8 +15909,13 @@ ${isDealer
         const limit=projectedOverflow>=actualOverflow?fitHeight:wrap.clientHeight;
         const used=projectedOverflow>=actualOverflow?projected:actual;
         const ratio=Math.max(0.8,(limit-2)/Math.max(1,used));
+        const rowFloor=phone?44:36;
         scale=Math.max(0.42,scale*ratio*0.97);
-        rowHeight=Math.max(36,rowHeight*ratio*0.97);
+        rowHeight=Math.max(rowFloor,rowHeight*ratio*0.97);
+        if(phone&&rowHeight<=rowFloor+0.25&&overflow>1){
+          applyFit();
+          break;
+        }
       }
       // When comfortMax leaves unused height, hug the table so the card ends at the last row
       // (no empty cream block inside the card). Use actual row count — Hand and Foot

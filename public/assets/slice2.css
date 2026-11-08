@@ -2048,10 +2048,12 @@ html.slice2-tv #toast-container {
   max-width: 90vw;
 }
 
-/* Phone board: keep Standings updated off Save & End, Match complete, and the totals. */
+/* Phone board: keep Standings updated off Save & End, Match complete, and the totals.
+   The one-row header sits higher than the old two-row header, so a fixed 10.75rem
+   lands on the first total. Park the toast in the hint strip under the buttons. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #toast-container {
-    top: 10.75rem;
+    top: calc(var(--bp-board-bottom, 108px) + 6px);
     bottom: auto;
     transform: translateX(-50%);
   }
@@ -2639,8 +2641,11 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv body.active-match-view #game-screen {
     display: flex;
     flex-direction: column;
-    max-height: 100dvh;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
     overflow: hidden;
+    padding-bottom: 0;
   }
 
   /* Fixed so Scratch is not clipped by #game-screen overflow:hidden. */
@@ -2724,7 +2729,7 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 
   html.slice2-tv body.active-match-view #game-screen {
-    padding-bottom: 1.25rem;
+    padding-bottom: 0;
   }
 }
 
@@ -4148,4 +4153,136 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit tabl
 html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) .landscape-only {
   justify-content: flex-start !important;
   align-items: stretch;
+}
+
+/* Phone scoreboard: visual-viewport shell, scrolling seats, one header row.
+   Desktop and iPad (761px and up) keep the long header. */
+@media (max-width: 760px) {
+  html.slice2-tv body.active-match-view .bp-app-shell {
+    position: fixed;
+    top: var(--bp-vv-top, 0px);
+    left: 0;
+    right: 0;
+    height: var(--bp-vv-height, 100dvh);
+    max-height: var(--bp-vv-height, 100dvh);
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    box-sizing: border-box;
+    z-index: 20;
+  }
+
+  html.bpg-try-demo.slice2-tv body.active-match-view .bp-app-shell {
+    padding-top: 42px;
+  }
+
+  html.bpg-try-demo.bpg-try-demo-tip.slice2-tv body.active-match-view .bp-app-shell {
+    padding-top: 88px;
+  }
+
+  html.slice2-tv body.active-match-view #game-screen {
+    order: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: 100% !important;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-main,
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-table-wrap,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-main,
+  html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-table-wrap {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  html.slice2-tv body.active-match-view #scorecard-capture .scorecard-table-wrap {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-board-bar {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1.45fr) max-content max-content;
+    grid-template-areas:
+      "copy copy copy copy"
+      "home enter actions end";
+    align-items: center;
+    column-gap: 4px;
+    row-gap: 6px;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0;
+  }
+
+  html.slice2-tv body.active-match-view .s2-board-identity,
+  html.slice2-tv body.active-match-view .s2-board-actions,
+  html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions,
+  html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions > .relative {
+    display: contents;
+  }
+
+  html.slice2-tv body.active-match-view .s2-board-copy {
+    grid-area: copy;
+    min-width: 0;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-table-btn {
+    grid-area: home;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-enter-btn {
+    grid-area: enter;
+  }
+
+  html.slice2-tv body.active-match-view #actions-btn {
+    grid-area: actions;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-board-bar .match-end-btn {
+    grid-area: end;
+    margin-left: 0 !important;
+  }
+
+  html.slice2-tv body.active-match-view #slice2-table-btn,
+  html.slice2-tv body.active-match-view #slice2-enter-btn,
+  html.slice2-tv body.active-match-view #actions-btn,
+  html.slice2-tv body.active-match-view #slice2-board-bar .match-end-btn {
+    justify-self: stretch;
+    min-width: 0;
+    min-height: 44px !important;
+    height: 44px !important;
+    margin: 0;
+    padding: 0 7px !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
+@media (max-width: 520px) {
+  html.bpg-try-demo.bpg-try-demo-tip.slice2-tv body.active-match-view .bp-app-shell {
+    padding-top: 118px;
+  }
 }

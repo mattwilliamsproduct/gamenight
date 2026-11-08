@@ -150,8 +150,17 @@
     return bits.join(' · ');
   }
 
+  function phoneScoreboard() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
+  }
+
   function enterLabel(game) {
     const round = game.currentRound;
+    if (phoneScoreboard()) {
+      if (isMatchOver(game)) return 'Match complete';
+      if (isBidTrickGame(game)) return getBidTrickPhase(game) === 'bidding' ? 'Enter Bids' : 'Enter Tricks';
+      return 'Enter Score';
+    }
     if (isMatchOver(game)) return 'Match complete';
     if (game.name === 'Rook') return `Enter Round ${round}`;
     if (isBidTrickGame(game)) return getBidTrickPhase(game) === 'bidding' ? `Enter Round ${round} Bids` : `Enter Round ${round} Tricks`;
@@ -198,8 +207,14 @@
     const actions = document.querySelector('#slice2-board-bar .s2-board-actions');
     const table = document.getElementById('slice2-table-btn');
     if (table) {
-      table.title = 'Leave the scorecard. The match stays on Resume.';
-      table.setAttribute('aria-label', 'Back to Table. Leaves the scorecard without ending the match.');
+      const phone = phoneScoreboard();
+      table.textContent = phone ? 'Home' : '← Table';
+      table.title = phone
+        ? 'Leave the scorecard and go Home. The match stays on Resume.'
+        : 'Leave the scorecard. The match stays on Resume.';
+      table.setAttribute('aria-label', phone
+        ? 'Home. Leaves the scorecard without ending the match.'
+        : 'Back to Table. Leaves the scorecard without ending the match.');
     }
     const endBtn = document.querySelector('#game-screen .match-end-btn');
     if (endBtn) {
@@ -1204,16 +1219,27 @@
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => {
         paintRecords();
+        paintBoard();
+        syncPhoneBoardViewport();
       });
       window.matchMedia('(max-width: 1023px)').addEventListener('change', () => {
         paintNav();
       });
     }
     window.addEventListener('resize', () => {
+      syncPhoneBoardViewport();
+      if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
       sizeLifePreserverModal();
       paintWheel();
     });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        syncPhoneBoardViewport();
+        if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
+      });
+      window.visualViewport.addEventListener('scroll', () => syncPhoneBoardViewport());
+    }
     const dialog = document.querySelector('#wheel-modal .life-preserver-dialog');
     if (dialog && typeof ResizeObserver === 'function') {
       const ro = new ResizeObserver(() => {
@@ -1224,8 +1250,29 @@
     }
   }
 
+  function syncPhoneBoardViewport() {
+    const root = document.documentElement;
+    const phone = phoneScoreboard() && document.body.classList.contains('active-match-view');
+    if (!phone) {
+      root.style.removeProperty('--bp-vv-height');
+      root.style.removeProperty('--bp-vv-top');
+      root.style.removeProperty('--bp-board-bottom');
+      return;
+    }
+    const vv = window.visualViewport;
+    const height = Math.max(1, Math.round((vv && vv.height) || window.innerHeight || 0));
+    const top = Math.max(0, Math.round((vv && vv.offsetTop) || 0));
+    root.style.setProperty('--bp-vv-height', `${height}px`);
+    root.style.setProperty('--bp-vv-top', `${top}px`);
+    const bar = document.getElementById('slice2-board-bar');
+    if (bar) {
+      root.style.setProperty('--bp-board-bottom', `${Math.round(bar.getBoundingClientRect().bottom)}px`);
+    }
+  }
+
   function refresh(which) {
     wire();
+    syncPhoneBoardViewport();
     const all = !which || which === 'all';
     try { if (all || which === 'home' || which === 'game' || which === 'records') paintNav(); } catch (error) { console.error(error); }
     try { if (all || which === 'home') paintHome(); } catch (error) { console.error(error); }
@@ -1274,6 +1321,7 @@
 
   window.BPGSlice2 = {
     refresh,
+    syncPhoneBoardViewport,
     paintWheel,
     parkSaveIndicator,
     parkBoardChrome,
