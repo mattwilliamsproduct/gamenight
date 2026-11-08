@@ -2604,9 +2604,9 @@
       height: auto !important;
     }
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
-      flex: 0 0 auto !important;
-      min-height: 0 !important;
-      height: var(--se-fit-row-height) !important;
+      flex: 1 1 auto !important;
+      min-height: 44px !important;
+      height: auto !important;
     }
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-player-card,
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card {
@@ -3299,12 +3299,16 @@ button.dealer-name-indicator {
     }
     @media (min-width: 761px) {
       body.home-view {
-        overflow-y: auto;
+        overflow: hidden;
       }
       body.home-view .bp-app-shell {
-        min-height: 100dvh;
-        height: auto;
-        overflow: visible;
+        height: 100%;
+        max-height: 100%;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
         display: flex;
         flex-direction: column;
         padding-bottom: 0.75rem;
@@ -4173,7 +4177,8 @@ button.dealer-name-indicator {
       font-weight: 800;
       font-size: clamp(0.62rem, 2.2vw, 0.85rem);
       letter-spacing: 0.08em;
-      cursor: pointer;
+      pointer-events: none;
+      cursor: default;
     }
     .wheel-ball-orbit {
       position: absolute;
@@ -4213,12 +4218,7 @@ button.dealer-name-indicator {
       gap: 0.05rem;
     }
     .scorecard-life-preserver-rank::after {
-      content: 'LP';
-      display: block;
-      font-size: 0.55rem;
-      font-weight: 950;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      content: none;
     }
     body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-life-preserver-rank {
       width: auto !important;
@@ -9818,7 +9818,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="wheel-ball-orbit" class="wheel-ball-orbit" aria-hidden="true">
             <div id="wheel-ball" class="wheel-ball"></div>
           </div>
-          <button type="button" class="wheel-spinner-hub" onclick="spinWheel()" aria-label="Use your one spin">SPIN</button>
+          <div class="wheel-spinner-hub" aria-hidden="true"></div>
           <div id="wheel-callouts" class="wheel-callouts" hidden></div>
         </div>
         <div id="wheel-legend" class="wheel-legend" aria-label="Wheel colors">
@@ -9861,7 +9861,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>In most games a good spin adds points. In Five Crowns it subtracts, because low score wins.</li>
               <li>Cannot tie or pass the leader.</li>
               <li>You always finish at least one scoring step behind 1st.</li>
-              <li>The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.</li>
+              <li>The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 7.5% no change, and 12.5% a small setback.</li>
               <li>Most slices help. Some do nothing. A few slightly hurt.</li>
               <li>If you are getting crushed, the helpful slices get bigger and a bit more common.</li>
             </ul>
@@ -11171,6 +11171,9 @@ button.dealer-name-indicator .dealer-player-label {
     document.body.classList.toggle('home-view', id==='home-screen');
     document.body.classList.toggle('active-match-view', id==='game-screen');
     window.scrollTo({top:0,behavior:'auto'});
+    const shell=document.querySelector('.bp-app-shell');
+    if(shell) shell.scrollTop=0;
+    if(typeof syncModalScrollLock==='function') syncModalScrollLock();
     closeNumpad();
     clearToasts();
   }
@@ -11754,7 +11757,7 @@ button.dealer-name-indicator .dealer-player-label {
       : '';
     if(line){
       line.textContent=whyText;
-      line.classList.toggle('hidden', !whyText);
+      line.classList.add('hidden');
     }
     const meta=document.getElementById('wheel-player-meta');
     if(meta){
@@ -17639,7 +17642,7 @@ ${isDealer
     const count=Math.max(1,players.length);
     const vw=window.visualViewport?.width||window.innerWidth||0;
     const vh=window.visualViewport?.height||window.innerHeight||0;
-    const tabletLand=vw>=900&&vw<=1180&&vh<=820;
+    const tabletLand=vw>=900&&vw<=1400&&vh<=1100&&vw>vh;
     modal.classList.toggle('score-entry-tablet-land', tabletLand);
     modal.classList.add('score-entry-managed-fit');
 
@@ -17652,7 +17655,7 @@ ${isDealer
     const fitted=Math.floor((rowArea-(rowGap*(count-1)))/count);
     const tabletMin=tabletLand?(count>=7?44:56):42;
     const rowHeight=tabletLand&&count>=7
-      ? Math.max(40, Math.min(fitted || 44, 52))
+      ? Math.max(44, fitted || 44)
       : Math.max(tabletMin, fitted);
     const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
     const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
@@ -18775,23 +18778,22 @@ ${isDealer
     return texts.map(text=>getTextConfettiShape(text, scalar)).filter(Boolean);
   }
   function fireWinnerConfettiLoop(){
-    const colors = ['#08766c','#73c5c8','#e76f51','#f19a6b','#ffd166','#fff7d6'];
-    const shapes = getTextConfettiShapes(['🌺','🌴','☀️'], 2);
+    const colors = ['#08766c','#73c5c8','#e76f51','#f19a6b','#ffd166'];
     const end = Date.now() + 3000;
     const c = getPostgameConfetti();
     // PERF: Capture generation so resetPostgameConfetti() kills this loop immediately.
     const gen = _confettiLoopGeneration;
+    const side = { colors, scalar: 0.9, shapes: ['square', 'circle'] };
     (function frame(){
       if(gen !== _confettiLoopGeneration) return;
-      const shapeOpts = shapes.length ? { shapes, scalar: 1.7 } : {};
       if(c){
-        c({ particleCount: 5, angle: 60, spread: 58, origin: { x: 0 }, colors, ...shapeOpts });
-        c({ particleCount: 5, angle: 120, spread: 58, origin: { x: 1 }, colors, ...shapeOpts });
-        c({ particleCount: 2, angle: 90, spread: 80, origin: { x: 0.5, y: 0.12 }, colors });
+        c({ particleCount: 5, angle: 60, spread: 58, origin: { x: 0 }, ...side });
+        c({ particleCount: 5, angle: 120, spread: 58, origin: { x: 1 }, ...side });
+        c({ particleCount: 2, angle: 90, spread: 80, origin: { x: 0.5, y: 0.12 }, colors, shapes: ['square', 'circle'], scalar: 0.8 });
       } else if(typeof confetti === 'function'){
-        confetti({ particleCount: 5, angle: 60, spread: 58, origin: { x: 0 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z, ...shapeOpts });
-        confetti({ particleCount: 5, angle: 120, spread: 58, origin: { x: 1 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z, ...shapeOpts });
-        confetti({ particleCount: 2, angle: 90, spread: 80, origin: { x: 0.5, y: 0.12 }, colors, zIndex: POSTGAME_CONFETTI_LAYER_Z });
+        confetti({ particleCount: 5, angle: 60, spread: 58, origin: { x: 0 }, zIndex: POSTGAME_CONFETTI_LAYER_Z, ...side });
+        confetti({ particleCount: 5, angle: 120, spread: 58, origin: { x: 1 }, zIndex: POSTGAME_CONFETTI_LAYER_Z, ...side });
+        confetti({ particleCount: 2, angle: 90, spread: 80, origin: { x: 0.5, y: 0.12 }, colors, shapes: ['square', 'circle'], scalar: 0.8, zIndex: POSTGAME_CONFETTI_LAYER_Z });
       }
       if(Date.now() < end) requestAnimationFrame(frame);
     })();
@@ -20381,7 +20383,7 @@ ${isDealer
           }
         }
         if(h.game==='Flip 7 Vengeance'&&m.zeros>0) update(games["Flip 7 Vengeance"],'mostZeroRounds',entry(p,m.zeros,h,{label:`${m.zeros} zero round${m.zeros===1?'':'s'}`}),betterHigh);
-        if(h.game==='Rook') update(games.Rook,'mostSuccessfulBids',entry(p,m.rookMade,h,{label:`${m.rookMade} made bids`}),betterHigh);
+        if(h.game==='Rook') update(games.Rook,'mostSuccessfulBids',entry(p,m.rookMade,h,{label:`${m.rookMade} made bid${m.rookMade===1?'':'s'}`}),betterHigh);
       });
     });
 

@@ -1,6 +1,6 @@
 # Life Preserver help sizing
 
-Comparison only. Live reward math stays 45/30/5/12/8. Wheel visuals stay equal-ish 40 pockets. The Proposed wheel is TEMP behind `?demo&lp=proposed`.
+Comparison only. This note compared an older live table (45/30/5/12/8) with a proposed table. As of 2026-11-08 the live draw is 45/30/5/7.5/12.5: 32 help slices, 3 no-change, 5 setback, on 40 pockets. Help stays 80%. Setback amounts did not grow. The Proposed wheel is still TEMP behind `?demo&lp=proposed`.
 
 ## Spec
 

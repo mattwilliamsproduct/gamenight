@@ -53,6 +53,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
 - A scorecard with a stable readable max width, centered with the page column, identical before and after Round 1. Not edge to edge.
 - The scorecard table fills that same card before and after Round 1. A wide empty band beside a hugged table is not a width fix.
+- The scoreboard back control says Home at every size, sits with Enter Score, Actions, and Save & End, and leaves the match on Resume. Five Crowns lines up with the score table.
 - One meaning for a Passport game filter: every number on screen is that game only. Players who have not played it are left out with a short note.
 - Demo sample records are computed by the real records code from seeded games. No planted numbers.
 - Sample games that produce a believable closest margin and plausible Wizard scores. A 134-point "closest" finish or a 1500 all-tricks Wizard night is fixture noise.
@@ -149,3 +150,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Stretching the two Home panels to equal height so Start drops below the laptop fold.
 - A phone scoreboard that clips seats past June and hides the app nav, with no scroll path.
 - A phone scoreboard back control that still says Table, or Save & End wrapped onto a second row.
+- The letters LP stacked inside the place number. The place stays the place. The control's name is Life Preserver.
+- A Rook bid amount labeled as a count of bids, or "1 made bids".
+- Winner confetti that paints opaque white tiles over the name, the results, or Next.
+- Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
+- The same Life Preserver status sentence printed twice.

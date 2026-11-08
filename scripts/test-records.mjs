@@ -262,6 +262,9 @@ test('exact-bid rates print a percent sign', () => {
   assert.equal(Records.formatStatValue(67, 'Best single-match exact rate'), '67%');
   assert.equal(Records.formatStatValue(4, 'Most exact bids · Wizard'), '4 bids');
   assert.equal(Records.formatStatValue(1, 'Most exact bids · Wizard'), '1 bid');
+  assert.equal(Records.formatStatValue(90, 'Highest bid made'), '90');
+  assert.equal(Records.formatStatValue(90, 'Biggest set'), '90');
+  assert.equal(Records.formatStatValue(1, 'Most successful bids in one match'), '1 bid');
   assert.equal(Records.formatStatValue(20, 'Best final score'), '20 pts');
   assert.equal(Records.scoreLabel(100, '%'), '100%');
 });

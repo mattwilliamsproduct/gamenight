@@ -188,7 +188,7 @@
 
   function boardBarMarkup() {
     return `<div class="s2-board-identity">
-        <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">← Table</button>
+        <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">Home</button>
         <div class="s2-board-copy">
           <div class="s2-board-title-row">
             <p id="slice2-board-line"></p>
@@ -207,14 +207,9 @@
     const actions = document.querySelector('#slice2-board-bar .s2-board-actions');
     const table = document.getElementById('slice2-table-btn');
     if (table) {
-      const phone = phoneScoreboard();
-      table.textContent = phone ? 'Home' : '← Table';
-      table.title = phone
-        ? 'Leave the scorecard and go Home. The match stays on Resume.'
-        : 'Leave the scorecard. The match stays on Resume.';
-      table.setAttribute('aria-label', phone
-        ? 'Home. Leaves the scorecard without ending the match.'
-        : 'Back to Table. Leaves the scorecard without ending the match.');
+      table.textContent = 'Home';
+      table.title = 'Leave the scorecard and go Home. The match stays on Resume.';
+      table.setAttribute('aria-label', 'Home. Leaves the scorecard without ending the match.');
     }
     const endBtn = document.querySelector('#game-screen .match-end-btn');
     if (endBtn) {
@@ -932,7 +927,7 @@
     paintTurret(context, cx, cy, hubR);
     const hub = document.querySelector('.wheel-spinner-hub');
     const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
-    if (hub) hub.textContent = resultOpen ? '' : 'SPIN';
+    if (hub) hub.textContent = '';
     const mode = document.getElementById('wheel-mode-label');
     if (mode && !resultOpen) mode.textContent = 'Life Preserver';
     canvas.dataset.slice2Wheel = '1';

@@ -882,6 +882,9 @@
       unit = Number(value) === 1 ? 'heat' : 'heats';
     }
     else if (/\btrick/i.test(text)) unit = Number(value) === 1 ? 'trick' : 'tricks';
+    else if (/highest bid made|biggest set/i.test(text)) {
+      unit = '';
+    }
     else if (/\bbid/i.test(text) && !/exact-bid rate|exact bid percentage|exact rate/i.test(text)) {
       unit = Number(value) === 1 ? 'bid' : 'bids';
     }
@@ -1143,15 +1146,16 @@
     })).join('');
     const lpEvents = lifePreserverEvents(table.history, helpers);
     const lpRows = lifePreserverSummary(lpEvents);
-    const sections = [];
-    sections.push(exploreLeaders(data, playerFilter, esc, avatar));
-    sections.push(explorePerGame(data, table.history, gameFilter, playerFilter, esc, compact));
-    sections.push(exploreBids(data, hall, gameFilter, playerFilter, esc));
-    sections.push(exploreStreaks(data, playerFilter, esc));
-    if (lpRows.length) sections.push(exploreLifePreserver(lpRows, playerFilter, esc));
-    sections.push(exploreShame(data, playerFilter, esc, avatar));
-    sections.push(exploreRivalries(data, playerFilter, esc, avatar, compact));
-    sections.push(explorePlayers(data, playerFilter, esc, avatar));
+    const side = [
+      exploreLeaders(data, playerFilter, esc, avatar),
+      exploreBids(data, hall, gameFilter, playerFilter, esc),
+      exploreStreaks(data, playerFilter, esc),
+      lpRows.length ? exploreLifePreserver(lpRows, playerFilter, esc) : '',
+      exploreShame(data, playerFilter, esc, avatar),
+      exploreRivalries(data, playerFilter, esc, avatar, compact),
+      explorePlayers(data, playerFilter, esc, avatar)
+    ].filter(Boolean).join('');
+    const games = explorePerGame(data, table.history, gameFilter, playerFilter, esc, compact);
     return `<div class="s2-records-pane s2-shame-col s2-explore-col" data-pane="explore">
       <section class="s2-panel">
         <div class="s2-panel-head"><h2>Explore records</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
@@ -1160,7 +1164,7 @@
           <label>Player <select id="s2-records-player" data-s2-action="filter-player">${playerOptions}</select></label>
         </div>
       </section>
-      <div class="s2-explore-grid">${sections.filter(Boolean).join('')}</div>
+      <div class="s2-explore-grid"><div class="s2-explore-side">${side}</div>${games}</div>
     </div>`;
   }
 

@@ -69,7 +69,7 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   const badWeight = bads.reduce((sum, slice) => sum + slice.weight, 0);
   const total = compared.reduce((sum, slice) => sum + slice.weight, 0);
   expect(goodWeight / total).toBeGreaterThanOrEqual(0.75);
-  expect(badWeight / total).toBeLessThanOrEqual(0.10);
+  expect(badWeight / total).toBeLessThanOrEqual(0.125 + 1e-9);
 });
 
 test('Life Preserver roulette labels stay inside their slices', async ({page}) => {

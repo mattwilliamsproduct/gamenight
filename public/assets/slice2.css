@@ -31,9 +31,25 @@ html.slice2-tv #lineup-intro {
 }
 
 html.slice2-tv #top-nav {
-  background: rgba(246, 241, 231, 0.94) !important;
+  position: sticky;
+  top: 0 !important;
+  border-radius: 0 !important;
+  background: #f6f1e7 !important;
   border-bottom: 1px solid var(--s2-line) !important;
   box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  z-index: 40;
+}
+html.slice2-tv #top-nav::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: 100%;
+  height: 1.25rem;
+  background: #f6f1e7;
+  pointer-events: none;
 }
 
 html.slice2-tv body.active-match-view #top-nav {
@@ -59,7 +75,7 @@ html.slice2-tv #slice2-saved {
 }
 
 html.slice2-tv #top-nav {
-  margin-bottom: 2.5rem !important;
+  margin-bottom: 0.85rem !important;
 }
 
 html.slice2-tv #save-indicator {
@@ -1610,8 +1626,8 @@ html.slice2-tv .wheel-spinner-hub {
   font-weight: 800;
   font-size: clamp(0.62rem, 2vw, 0.88rem);
   letter-spacing: 0.08em;
-  pointer-events: auto;
-  cursor: pointer;
+  pointer-events: none;
+  cursor: default;
 }
 
 html.slice2-tv .wheel-ball-orbit,
@@ -3334,15 +3350,21 @@ html.slice2-tv .s2-explore-grid {
   align-items: start;
   gap: 16px;
 }
-html.slice2-tv .s2-explore-grid > .s2-panel {
+html.slice2-tv .s2-explore-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
   grid-column: 1;
+  align-self: start;
 }
 html.slice2-tv .s2-explore-games {
   display: flex;
   flex-direction: column;
   gap: 16px;
   grid-column: 2;
-  grid-row: 1 / -1;
+  grid-row: auto;
+  align-self: start;
 }
 
 html.slice2-tv .s2-records-filters {
@@ -3481,13 +3503,13 @@ html.slice2-tv .s2-night-standings {
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: 1.6rem auto max-content max-content;
-  justify-content: start;
+  grid-template-columns: 1.6rem auto minmax(0, 1fr) max-content;
+  justify-content: stretch;
   justify-items: start;
   align-items: center;
   column-gap: 10px;
   row-gap: 0;
-  width: max-content;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -3588,7 +3610,7 @@ html.slice2-tv .s2-records-filters select:focus {
   html.slice2-tv .s2-explore-grid {
     grid-template-columns: 1fr;
   }
-  html.slice2-tv .s2-explore-grid > .s2-panel,
+  html.slice2-tv .s2-explore-side,
   html.slice2-tv .s2-explore-games {
     grid-column: 1;
     grid-row: auto;
@@ -3690,7 +3712,7 @@ html.slice2-tv .s2-night-day {
   }
 
   html.slice2-tv .s2-night-standings {
-    width: max-content;
+    width: 100%;
     max-width: 100%;
   }
 
@@ -3788,9 +3810,37 @@ html.slice2-tv .s2-records-footer {
   }
 }
 
+html.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 6px;
+}
+html.slice2-tv #score-entry-modal .score-entry-heading {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+html.slice2-tv #score-entry-modal #score-entry-game {
+  overflow-wrap: anywhere;
+}
+html.slice2-tv #score-entry-modal .score-entry-progress {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  margin: 0 !important;
+  max-width: min(42vw, 18rem);
+  text-align: right;
+}
+html.slice2-tv #score-entry-modal #score-entry-error,
+html.slice2-tv #score-entry-modal .hf-rate-bar {
+  grid-column: 1 / -1;
+}
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel > .border-b {
   flex-wrap: nowrap !important;
-  align-items: center;
+  align-items: start;
   gap: 8px !important;
   padding-bottom: 6px !important;
 }
@@ -3890,8 +3940,18 @@ html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fi
 }
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
   padding-top: 4px !important;
   padding-bottom: 4px !important;
+}
+html.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+  flex: 1 1 auto !important;
+  min-height: 44px !important;
+  height: auto !important;
 }
 
 html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-panel > .border-b {
@@ -4100,6 +4160,39 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
   width: min(62rem, calc(100% - 2.5rem));
   max-width: 62rem;
   margin-inline: auto;
+}
+@media (min-width: 761px) {
+  html.slice2-tv body.active-match-view #slice2-board-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content max-content max-content;
+    grid-template-areas: "copy home enter actions end";
+    align-items: center;
+    column-gap: 8px;
+  }
+  html.slice2-tv body.active-match-view .s2-board-identity,
+  html.slice2-tv body.active-match-view .s2-board-actions,
+  html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions {
+    display: contents;
+  }
+  html.slice2-tv body.active-match-view .s2-board-copy {
+    grid-area: copy;
+    min-width: 0;
+    text-align: left;
+  }
+  html.slice2-tv body.active-match-view #slice2-table-btn {
+    grid-area: home;
+  }
+  html.slice2-tv body.active-match-view #slice2-enter-btn {
+    grid-area: enter;
+  }
+  html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions > .relative {
+    grid-area: actions;
+    display: block;
+  }
+  html.slice2-tv body.active-match-view #slice2-board-bar .match-end-btn {
+    grid-area: end;
+    margin-left: 0;
+  }
 }
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
   flex: 0 0 auto !important;

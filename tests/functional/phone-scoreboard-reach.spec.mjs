@@ -100,11 +100,11 @@ test('phone scoreboard keeps Home, Enter Score, Actions, and Save & End on one r
   }
 });
 
-test('laptop and iPad scoreboard keep the Table label and the long enter label', async ({page}) => {
+test('laptop and iPad scoreboard say Home and keep the long enter label', async ({page}) => {
   for (const size of [{width: 768, height: 1024}, {width: 1024, height: 768}, {width: 1440, height: 900}]) {
     await page.setViewportSize(size);
     await openDemoBoard(page);
-    await expect(page.locator('#slice2-table-btn')).toHaveText('← Table');
+    await expect(page.locator('#slice2-table-btn')).toHaveText('Home');
     await expect(page.locator('#slice2-enter-btn')).toHaveText(/Enter Round \d+ Scores/);
     await expect(page.locator('#top-nav')).toBeHidden();
   }

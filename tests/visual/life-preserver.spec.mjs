@@ -11,11 +11,12 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
 
   await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-why-line')).toBeHidden();
   await expect(page.locator('#wheel-commit-line')).toContainText('Best help:');
   await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
   await expect(page.locator('#wheel-game-line')).toContainText('lower scores win');
-  await expect(page.locator('#wheel-why-line')).not.toContainText('Spin range');
+  await expect(page.locator('#wheel-player-meta')).not.toContainText('Spin range');
   await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
   await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
@@ -236,11 +237,12 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
 
   await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-why-line')).toBeHidden();
   await expect(page.locator('#wheel-commit-line')).toContainText('Best help: +20');
   await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
   await expect(page.locator('#wheel-game-line')).toContainText('higher scores win');
-  await expect(page.locator('#wheel-why-line')).not.toContainText('Spin range');
+  await expect(page.locator('#wheel-player-meta')).not.toContainText('Spin range');
 
   const snapshot = await page.evaluate(() => ({
     player: lifePreserverOfferSnapshot?.player,

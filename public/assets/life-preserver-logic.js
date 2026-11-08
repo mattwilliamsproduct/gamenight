@@ -71,8 +71,8 @@
     smallHelp: 0.45,
     mediumHelp: 0.30,
     bigHelp: 0.05,
-    noChange: 0.12,
-    smallSetback: 0.08
+    noChange: 0.075,
+    smallSetback: 0.125
   });
 
   function clamp(value, min, max) {
@@ -355,7 +355,7 @@
     let timing = `Once 4 ${unit} are scored.`;
     let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
-      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.',
+      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 7.5% no change, and 12.5% a small setback.',
       'Most slices help. Some do nothing. A few hurt a little.',
       'Cannot tie or pass the leader.'
     ];
@@ -559,18 +559,18 @@
       smallHelp: 18,
       mediumHelp: 12,
       bigHelp: 2,
-      noChange: 5,
-      smallSetback: 3
+      noChange: 3,
+      smallSetback: 5
     }),
     implied: Object.freeze({
       smallHelp: 0.45,
       mediumHelp: 0.30,
       bigHelp: 0.05,
-      noChange: 0.125,
-      smallSetback: 0.075
+      noChange: 0.075,
+      smallSetback: 0.125
     }),
     live: OUTCOME_TABLE,
-    note: 'Default visual plan. Category shares stay exact via subtle pocket widths (neutral a hair narrower, setback a hair wider). The draw still uses 12% and 8%.'
+    note: 'Default visual plan. 5 setback slices of 40 (was 3). Help stays 32 of 40. No-change is 3. Draw matches those shares: 45/30/5/7.5/12.5. Setback amounts are unchanged.'
   });
 
   function outcomeKey(slice) {
