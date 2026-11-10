@@ -1123,6 +1123,18 @@ export const QA_SCENARIOS = {
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
   },
+  'home-live-8':{
+    label:'Home · Live Five Crowns · 8',
+    description:'Landscape Home during an eight-player Five Crowns night. Standings sit beside the game cards.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:[...lateCrowns8Players],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrowns8Game}
+  },
+  'home-resume-unfinished':{
+    label:'Home · Resume unfinished',
+    description:'No live match. Two unfinished Five Crowns nights, so the newest banner and View all are both on screen.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:[demoIncompleteNight(),{...demoIncompleteNight(),id:1784476800000,date:'10/18/2026',currentRound:5}],playerProfiles:profiles(),currentGame:null}
+  },
   'wizard-10':{
     label:'Wizard · 10 Players',
     description:'A nearly full Wizard scorecard with bidding and scoring entry states.',
