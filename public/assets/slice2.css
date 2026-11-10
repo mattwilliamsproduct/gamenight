@@ -1223,7 +1223,7 @@ html.slice2-tv #slice2-board-line {
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-weight: 800;
-  font-size: clamp(17px, 1.8vw, 23px);
+  font-size: clamp(17px, 1.8vw, 30px);
   line-height: 1.25;
 }
 
@@ -1356,16 +1356,14 @@ html.slice2-tv #scorecard-capture {
   margin: 0 auto !important;
 }
 
-@media (min-width: 1600px) {
-  html.slice2-tv #scorecard-capture {
-    --bp-scorecard-max: 1680px;
-  }
-}
-
-@media (min-width: 1800px) {
-  html.slice2-tv #scorecard-capture {
-    --bp-scorecard-max: 1760px;
-  }
+/* The live board and its header share one inset. A 1440px cap left a small
+   card in a wide window, and the header did not grow with the card. */
+html.slice2-tv body.active-match-view #slice2-board-bar,
+html.slice2-tv body.active-match-view #scorecard-capture {
+  width: calc(100% - 32px) !important;
+  max-width: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 html.slice2-tv #scorecard-capture .scorecard-table thead th {
@@ -2113,6 +2111,29 @@ html.slice2-tv .s2-rival {
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-panel {
   display: flex !important;
   flex-direction: column !important;
+  width: calc(100vw - 48px) !important;
+  max-width: none !important;
+  height: calc(100dvh - 48px) !important;
+  max-height: calc(100dvh - 48px) !important;
+}
+
+html.slice2-tv #round-correction-modal .bp-modal-panel {
+  width: min(880px, calc(100vw - 48px));
+  max-width: none;
+  height: calc(100dvh - 48px);
+  max-height: calc(100dvh - 48px);
+}
+
+html.slice2-tv #round-correction-rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+}
+
+html.slice2-tv #round-correction-modal .numpad-btn {
+  min-height: 56px;
+  font-size: 1.45rem;
 }
 
 html.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-layout {

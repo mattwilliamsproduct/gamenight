@@ -6,20 +6,20 @@
     return Number.isFinite(n) ? n : 0;
   }
 
-  // Display ranking for scorecard pills, Home Recent chips, and Past nights.
-  // Dense ties: two 1sts then 2nd (not olympic 1,1,3). Callers must omit departed
-  // seats before ranking so they take no spot. Wins/streaks/records stay elsewhere.
+  // Shared place rule for the live card, Home, Records, history, and the path.
+  // Competition ranking: equal totals share a place and the next total skips
+  // (1, 1, 3 and 2, 2, 4). Callers must omit departed seats before ranking so
+  // they take no spot. Wins, streaks, and records stay elsewhere.
   function competitionPlaces(sortedPlayers, totals) {
     const place = {};
     const list = Array.isArray(sortedPlayers) ? sortedPlayers : [];
     let cursor = 0;
-    let denseRank = 1;
     while (cursor < list.length) {
       const score = placeScore(totals, list[cursor]);
       let end = cursor + 1;
       while (end < list.length && placeScore(totals, list[end]) === score) end++;
-      for (let i = cursor; i < end; i++) place[list[i]] = denseRank;
-      denseRank += 1;
+      const rank = cursor + 1;
+      for (let i = cursor; i < end; i++) place[list[i]] = rank;
       cursor = end;
     }
     return place;
@@ -251,6 +251,31 @@
     'Beat the Heat': true
   };
 
+  function entryDigitCap(game) {
+    return gameName(game) === 'Hand and Foot' ? 4 : 3;
+  }
+
+  function entryAbsMax(cap) {
+    const digits = Number(cap) > 0 ? Number(cap) : 3;
+    return (10 ** digits) - 1;
+  }
+
+  function entryDigitCount(value) {
+    return String(value == null ? '' : value).replace(/[^0-9]/g, '').length;
+  }
+
+  // Inside the hard cap. A round this large is legal but uncommon for the game.
+  function unusualEntryFloor(game) {
+    const name = gameName(game);
+    if (name === 'Hand and Foot') return 8000;
+    if (name === 'Five Crowns') return 200;
+    if (name === 'Wizard') return 150;
+    if (name === '818') return 20;
+    if (name === 'Flip 7 Vengeance') return 200;
+    if (name === 'Beat the Heat') return 30;
+    return 500;
+  }
+
   function gameName(game) {
     if (typeof game === 'string') return game;
     return (game && (game.name || game.game)) || '';
@@ -465,7 +490,21 @@
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
     else if (digit && value === '0' && token !== '0' && token !== '00') value = token;
-    else if (digit && value.length < 5) value += token;
+    else if (digit) {
+      const candidate = value + token;
+      const cap = Number(source.digitCap);
+      if (Number.isFinite(cap) && cap > 0 && entryDigitCount(candidate) > cap) {
+        return {
+          value: source.value == null ? '' : String(source.value),
+          acknowledged,
+          replaced: false,
+          dirty,
+          rejected: true,
+          message: `That is over ${entryAbsMax(cap)}. The extra digits were not added.`
+        };
+      }
+      value = candidate;
+    }
     if (String(value).trim() === '-') {
       acknowledged = deferAck ? false : true;
     } else if (scoreEntryValueIsBlank(value)) {
@@ -822,9 +861,10 @@
 
   // The live scoreboard and Home standings both call this. Round 1 stays in
   // roster order with no places. After that, order is the scoreboard sort
-  // (win direction, stable ties) and places are dense. A later ruleset can
-  // take over by defining matchStandings and lifePreserverWinRuleActive in
-  // this file. This does not reorder seats or the dealer.
+  // (win direction, stable ties) and places are competitionPlaces (1, 1, 3).
+  // A later ruleset can take over by defining matchStandings and
+  // lifePreserverWinRuleActive in this file. This does not reorder seats or
+  // the dealer.
   function scoreboardStandings(game, players) {
     const list = (Array.isArray(players) ? players : []).filter(Boolean);
     const round = Number(game && game.currentRound) || 1;

@@ -45,6 +45,7 @@
   let anotherStep = null;
   let anotherParkOk = false;
   let unfinishedOpen = false;
+  let nextRosterOpen = false;
 
   function state() {
     return slice2TableState();
@@ -464,6 +465,7 @@
     const startSummary = limit.ok
       ? `${meta.title} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
       : limit.message;
+    const live = table.currentGame;
     const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
@@ -478,12 +480,31 @@
             </label>
           </div>
           <div class="s2-game-grid">${cards}</div>
+          ${live ? `<div class="s2-next-roster${nextRosterOpen ? '' : ' hidden'}" id="slice2-next-roster">
+            <p class="s2-sub">Next match roster</p>
+            <div class="s2-seat-grid">${seats}</div>
+            <div class="s2-deck">${chips}</div>
+            <form class="s2-add" data-s2-action="add-form">
+              <div class="player-suggest-wrap">
+                <input id="quick-add-player" type="text" placeholder="Add a player" autocomplete="off" aria-label="Add a player"
+                  oninput="updatePlayerSuggestions('home')"
+                  onfocus="updatePlayerSuggestions('home')"
+                  onblur="hidePlayerSuggestionsSoon('home')"
+                  onkeydown="handlePlayerSuggestKey(event,'home')">
+                <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
+              </div>
+              <button type="submit" class="s2-btn s2-btn-primary" aria-label="Add">Add Player</button>
+            </form>
+          </div>` : ''}
           <div class="s2-startbar">
             <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
-            <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
+            <div class="s2-start-actions">
+              ${live ? `<button type="button" class="s2-btn" data-s2-action="edit-next-roster" aria-expanded="${nextRosterOpen ? 'true' : 'false'}">Players (${seated})</button>` : ''}
+              <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
+            </div>
           </div>
         </section>`;
-    const live = table.currentGame;
+    const enterReady = live && !(typeof isMatchOver === 'function' && isMatchOver(live));
     const standings = live ? `<section class="s2-panel s2-home-table s2-home-standings" ${anotherStep === 'confirm' ? '' : 'data-s2-action="resume"'} aria-label="Current standings">
           <div class="s2-panel-head">
             <div>
@@ -492,6 +513,9 @@
             </div>
           </div>
           <div class="s2-standings">${standingRows(live)}</div>
+          <div class="s2-standings-foot">
+            <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${enterReady ? '' : ' disabled'}>${escapeHtml(enterLabel(live))}</button>
+          </div>
         </section>` : '';
     const ask = live && anotherStep === 'confirm'
       ? `<div class="s2-another-layer" data-s2-action="another-cancel">
@@ -1178,6 +1202,9 @@
       anotherParkOk = true;
       anotherStep = null;
       startGame(selected);
+    } else if (action === 'edit-next-roster') {
+      nextRosterOpen = !nextRosterOpen;
+      paintHome();
     } else if (action === 'start-game') {
       if (state().currentGame && !anotherParkOk) {
         anotherStep = 'confirm';
