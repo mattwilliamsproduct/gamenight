@@ -716,7 +716,7 @@ html.slice2-tv .s2-standings {
 
 html.slice2-tv .s2-standing {
   display: grid;
-  grid-template-columns: auto 44px minmax(0, 1fr) auto auto;
+  grid-template-columns: auto 44px minmax(0, 1fr) auto minmax(6.4rem, auto);
   gap: 10px;
   align-items: center;
   width: 100%;
@@ -743,13 +743,14 @@ html.slice2-tv .s2-dealer-tag-empty {
 }
 
 html.slice2-tv .s2-standing-score {
-  min-width: 2.5rem;
+  min-width: 6.4rem;
+  text-align: right;
+  white-space: nowrap;
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-size: 1.15rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  text-align: right;
 }
 
 html.slice2-tv .s2-another-ask p {
@@ -4696,7 +4697,7 @@ html.slice2-tv .s2-standing {
 }
 html.slice2-tv .s2-home-standings .s2-lp-status {
   display: block;
-  white-space: normal;
+  white-space: nowrap;
 }
 html.slice2-tv .scorecard-player-name-slot {
   display: flex;
@@ -4873,20 +4874,62 @@ html.slice2-tv .s2-night-grid h3 { grid-column: 1 / -1; }
   html.slice2-tv .s2-night-grid,
   html.slice2-tv .s2-career .s2-headline { grid-template-columns: 1fr; }
 }
-#score-entry-modal .score-entry-panel,
-#wheel-modal .life-preserver-dialog,
-#reorder-players-modal .bp-modal-panel,
-#settings-modal .bp-modal-panel,
-#add-player-modal .bp-modal-panel,
-.bp-modal-panel {
-  width: min(92vw, 1080px);
-  max-height: 92vh;
+html.slice2-tv .bp-modal-viewport-shell > .bp-modal-panel:not(.bp-modal-panel--confirm),
+html.slice2-tv .bp-modal-viewport-shell > .score-entry-panel,
+html.slice2-tv .bp-modal-viewport-shell > .life-preserver-dialog,
+html.slice2-tv .bp-modal-viewport-shell > .hf-setup-card,
+html.slice2-tv #rook-results-modal > .bp-modal-panel,
+html.slice2-tv .s2-chooser.bp-modal-panel {
+  width: min(94vw, calc(100vw - 36px)) !important;
+  max-width: min(94vw, calc(100vw - 36px)) !important;
+  height: min(92vh, calc(100dvh - 36px)) !important;
+  max-height: min(92vh, calc(100dvh - 36px)) !important;
+  font-size: 1.125rem;
 }
-#score-entry-modal .score-entry-panel { height: min(92vh, 900px); }
-.bp-modal-panel .text-\[10px\],
-.life-preserver-dialog .text-\[10px\],
-.wheel-mode-label {
-  font-size: 1rem !important;
-  letter-spacing: 0.04em !important;
+html.slice2-tv .bp-modal-panel--confirm,
+html.slice2-tv .s2-another-ask {
+  width: fit-content !important;
+  min-width: min(92vw, 32rem);
+  max-width: min(92vw, 44rem) !important;
+  height: auto !important;
+  max-height: min(88vh, 760px) !important;
+  font-size: 1.2rem !important;
 }
-#reorder-players-modal .bp-modal-panel { width: min(92vw, 820px); }
+html.slice2-tv .bp-modal-panel .text-sm,
+html.slice2-tv .bp-modal-panel .text-xs,
+html.slice2-tv .bp-modal-panel .text-\[10px\],
+html.slice2-tv .bp-modal-panel .text-\[11px\],
+html.slice2-tv .hf-setup-card .text-sm,
+html.slice2-tv .hf-setup-card .text-xs,
+html.slice2-tv .hf-setup-card .text-\[10px\],
+html.slice2-tv .hf-setup-card .text-\[11px\],
+html.slice2-tv .life-preserver-dialog .text-\[10px\],
+html.slice2-tv .wheel-mode-label,
+html.slice2-tv .s2-another-ask .text-sm,
+html.slice2-tv .s2-chooser .text-sm {
+  font-size: 1.05rem !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1.4;
+}
+html.slice2-tv .bp-modal-panel button,
+html.slice2-tv .bp-modal-panel input,
+html.slice2-tv .bp-modal-panel select,
+html.slice2-tv .hf-setup-card button,
+html.slice2-tv .s2-another-ask button,
+html.slice2-tv .s2-chooser button {
+  font-size: 1.05rem;
+  min-height: 48px;
+}
+html.slice2-tv .s2-lp-status {
+  white-space: nowrap;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+html.slice2-tv #scorecard-capture .scorecard-col-total,
+html.slice2-tv .scorecard-total-value,
+html.slice2-tv .s2-standing b {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+html.slice2-tv #scorecard-capture .scorecard-col-total { min-width: 5.6rem; }

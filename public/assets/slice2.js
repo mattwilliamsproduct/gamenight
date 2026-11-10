@@ -147,13 +147,13 @@
       const last = bonus[bonus.length - 1];
       const n = last ? Number(last.scores[player]) : NaN;
       const delta = Number.isFinite(n) && n !== 0 ? ` ${n > 0 ? '+' : '−'}${Math.abs(n)}` : '';
-      return `<span class="s2-lp-status">Life Preserver · Used${delta}</span>`;
+      return `<span class="s2-lp-status">LP · Used${delta}</span>`;
     }
     const table = typeof getActivePlayers === 'function' ? getActivePlayers(game) : [];
     if (isHailMaryEligible(game, player, table, { gameOver: false })) {
-      return `<span class="s2-lp-status">Life Preserver · Available</span>`;
+      return `<span class="s2-lp-status">LP · Available</span>`;
     }
-    return `<span class="s2-lp-status">Life Preserver · Not yet available</span>`;
+    return `<span class="s2-lp-status">LP · Not yet</span>`;
   }
 
   function leaderBit(game) {
@@ -452,7 +452,7 @@
       const more = open.length > 1;
       const chooser = unfinishedOpen && more
         ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
-            <section class="s2-panel s2-chooser" role="dialog" aria-label="Unfinished matches">
+            <section class="s2-panel s2-chooser bp-modal-panel" role="dialog" aria-label="Unfinished matches">
               <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
               ${open.map((match) => {
                 const name = displayGameName(match.game || match.name);
@@ -570,7 +570,7 @@
         </section>` : '';
     const ask = live && anotherStep === 'confirm'
       ? `<div class="s2-another-layer" data-s2-action="another-cancel">
-          <section class="s2-panel s2-another-ask" role="dialog" aria-labelledby="s2-another-title">
+          <section class="s2-panel s2-another-ask bp-modal-panel bp-modal-panel--confirm" role="dialog" aria-labelledby="s2-another-title">
             <h2 id="s2-another-title">Start another match?</h2>
             <p>${escapeHtml(anotherMatchCopy(live))}</p>
             <div class="s2-another-actions">

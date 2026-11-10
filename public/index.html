@@ -9436,7 +9436,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- ═══ ROOK: Setup Modal ═══ -->
     <div id="hand-foot-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelHandFootSetup()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised hf-setup-card w-full max-w-lg p-7 relative pop-in">
+      <div class="surface-raised hf-setup-card bp-modal-panel w-full p-7 relative pop-in">
         <div class="text-center mb-5">
           <div class="text-5xl mb-3">🃏</div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Before round 1</div>
@@ -9550,9 +9550,9 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ ROOK: Results Modal ═══ -->
-    <div id="rook-results-modal" class="hidden fixed inset-0 flex items-end sm:items-center justify-center z-[150] p-0 sm:p-4 opacity-0 transition-opacity">
+    <div id="rook-results-modal" class="hidden fixed inset-0 flex items-end sm:items-center justify-center z-[150] p-0 sm:p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelRookResults()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-      <div class="surface-raised w-full max-w-lg relative pop-in flex flex-col max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden">
+      <div class="surface-raised bp-modal-panel w-full relative pop-in flex flex-col overflow-hidden">
 
         <!-- Header -->
         <div class="px-6 pt-6 pb-4 border-b hairline flex-shrink-0">
@@ -9924,7 +9924,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- End match confirm -->
     <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Save &amp; End</div>
         <h3 class="font-display text-3xl mb-3" id="end-match-title">End this match now?</h3>
         <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy"></p>
@@ -10156,7 +10156,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Dealer Override -->
     <div id="dealer-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeDealerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel p-7 relative pop-in">
         <button onclick="closeDealerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Dealer Override</div>
@@ -10169,7 +10169,7 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- Leave Match Modal -->
     <div id="retire-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRetirePlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
-      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
+      <div class="surface-raised bp-modal-panel p-7 relative pop-in">
         <button onclick="closeRetirePlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--rose);">Leaving the Table</div>
@@ -15592,8 +15592,8 @@ ${isDealer
           ontouchstart="reorderModalTouchStart(event, ${i})"
           title="Drag to reorder">⋮⋮</span>
         <div class="flex flex-col gap-0 mr-0.5 shrink-0">
-          <button type="button" onclick="reorderModalMoveArrow(${i},-1)" class="text-2xl leading-none hover:opacity-70 transition-opacity ${i===0?'invisible':''}" style="color:var(--ink);min-width:44px;min-height:36px;" aria-label="Move up">▲</button>
-          <button type="button" onclick="reorderModalMoveArrow(${i},1)" class="text-2xl leading-none hover:opacity-70 transition-opacity ${i===n-1?'invisible':''}" style="color:var(--ink);min-width:44px;min-height:36px;" aria-label="Move down">▼</button>
+          <button type="button" onclick="reorderModalMoveArrow(${i},-1)" class="text-2xl leading-none hover:opacity-70 transition-opacity ${i===0?'invisible':''}" style="color:var(--ink);min-width:44px;min-height:44px;" aria-label="Move up">▲</button>
+          <button type="button" onclick="reorderModalMoveArrow(${i},1)" class="text-2xl leading-none hover:opacity-70 transition-opacity ${i===n-1?'invisible':''}" style="color:var(--ink);min-width:44px;min-height:44px;" aria-label="Move down">▼</button>
         </div>
         <span class="text-2xl w-10 font-mono-num shrink-0 text-center" style="color:var(--ink);">${i + 1}</span>
         ${getAvatarImg(p, 'avatar-img')}
@@ -17029,10 +17029,10 @@ ${isDealer
         return ` ${n>0?'+':'−'}${Math.abs(n)}`;
       })();
       const lpStatus=!lpGames.has(currentGame.name)||isRetired?'':(hasUsedPreserver
-        ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')">Life Preserver · Used${lpDelta}</button>`
+        ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')" aria-label="Life Preserver used">LP · Used${lpDelta}</button>`
         : hasAvailablePreserver
-          ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')">Life Preserver · Available</button>`
-          : (!over?`<span class="s2-lp-status">Life Preserver · Not yet available</span>`:''));
+          ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')" aria-label="Life Preserver available">LP · Available</button>`
+          : (!over?`<span class="s2-lp-status" aria-label="Life Preserver not yet available">LP · Not yet</span>`:''));
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer — tap to change" aria-label="${escapeHtml(nameLabel)} is dealer — tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
   : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}${lpStatus}`;

@@ -72,11 +72,18 @@ async function seedBoard(page, count, round, finals) {
     const row = document.querySelector('#scorecard-capture tbody tr');
     const board = document.getElementById('scorecard-capture');
     const places = [...document.querySelectorAll('#scorecard-capture tbody .scoreboard-rank-badge')].map((el) => el.textContent.trim());
+    const lp = [...document.querySelectorAll('#scorecard-capture .s2-lp-status')].map((el) => ({
+      text: el.textContent.trim(),
+      lines: el.getClientRects().length,
+      h: Math.round(el.getBoundingClientRect().height)
+    }));
     return {
       places,
       rowHeight: row ? Math.round(row.getBoundingClientRect().height) : 0,
       boardWidth: board ? Math.round(board.getBoundingClientRect().width) : 0,
       viewWidth: window.innerWidth,
+      roundCols: document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th').length,
+      lp,
       finals
     };
   }, { count, round, finals });
@@ -118,6 +125,10 @@ try {
           record(`ties 1,2,2,4 board ${width}`, measured.places.includes('4th') && measured.places.filter((p) => p === '2nd').length === 2, measured.places.join(','));
           record(`board width ${width}`, measured.boardWidth > width * 0.9, `${measured.boardWidth}/${measured.viewWidth}`);
           record(`row cap ${width}`, measured.rowHeight > 0 && measured.rowHeight <= 110, String(measured.rowHeight));
+        }
+        if (width === 1194 && count === 8 && spec.tag === 'final') {
+          const wrapped = measured.lp.filter((item) => item.lines > 1 || item.h > 28);
+          record('lp status one line', measured.lp.length > 0 && wrapped.length === 0, JSON.stringify(measured.lp.slice(0, 3)));
         }
       }
     }
@@ -187,7 +198,122 @@ try {
     currentGame.name = 'Five Crowns';
   });
   const canasta = await page.evaluate(() => window.__canasta);
-  record('canasta 9999 entry', canasta.next === '9999' && canasta.blocked === true && canasta.kept === '9999', JSON.stringify(canasta));
+  record('canasta helper still 9999', canasta.next === '9999' && canasta.blocked === true && canasta.kept === '9999', JSON.stringify(canasta));
+
+  await openScenario(page, 'demo-canasta');
+  await page.locator('#slice2-enter-btn').click();
+  await page.waitForTimeout(300);
+  await page.locator('.hf-field', { hasText: 'Card points' }).first().click();
+  await page.evaluate(() => {
+    const player = scoreEntryModalState.activePlayer;
+    scoreEntryModalState.activeField = 'cardPoints';
+    if (scoreEntryModalState.values[player]) scoreEntryModalState.values[player].cardPoints = '';
+    updateScoreEntryActiveValue();
+  });
+  for (let i = 0; i < 4; i += 1) {
+    await page.locator(`#score-entry-modal button[onclick="scoreEntryKey('9')"]`).click();
+  }
+  const canastaShown = await page.locator('.hf-field.active .hf-field-value').innerText();
+  record('canasta modal accepts 9999', canastaShown.replace(/\D/g, '') === '9999', canastaShown);
+  await page.locator(`#score-entry-modal button[onclick="scoreEntryKey('9')"]`).click();
+  const canastaKept = await page.locator('.hf-field.active .hf-field-value').innerText();
+  const canastaWarn = await page.locator('#score-entry-error').innerText();
+  record('canasta modal rejects 5th digit', canastaKept.replace(/\D/g, '') === '9999' && /9,999/.test(canastaWarn), `${canastaKept} | ${canastaWarn}`);
+  await shot(page, 'canasta-entry-1194');
+  await page.evaluate(() => { if (typeof closeScoreEntryModalOnly === 'function') closeScoreEntryModalOnly(); });
+  const bigTotals = await page.evaluate(() => {
+    const keys = Object.keys(currentGame.totals || {});
+    keys.forEach((key, index) => { currentGame.totals[key] = index ? 10500 : 12340; });
+    const round = (currentGame.rounds || []).find((item) => item && item.scores);
+    const scoreKey = round ? Object.keys(round.scores)[0] : '';
+    if (round && scoreKey) round.scores[scoreKey] = 10500;
+    if (typeof renderGame === 'function') renderGame();
+    const cells = [...document.querySelectorAll('#scorecard-capture .scorecard-col-total, #scorecard-capture .scorecard-total-value')];
+    return cells.slice(0, 6).map((el) => ({
+      text: el.textContent.trim(),
+      overflow: el.scrollWidth > el.clientWidth + 2
+    }));
+  });
+  await shot(page, 'canasta-totals-1194');
+  const homeTotals = await page.evaluate(() => {
+    if (typeof goHome === 'function') goHome();
+    if (window.BPGSlice2 && typeof BPGSlice2.refresh === 'function') BPGSlice2.refresh();
+    return [...document.querySelectorAll('.s2-standing-score')].slice(0, 4).map((el) => ({
+      text: el.textContent.trim(),
+      overflow: el.scrollWidth > el.clientWidth + 2
+    }));
+  });
+  await shot(page, 'canasta-home-totals-1194');
+  const boardBig = bigTotals.some((cell) => Number(String(cell.text).replace(/\D/g, '')) >= 10000);
+  record('canasta totals above 10000 fit', boardBig && homeTotals.length > 0 && bigTotals.every((cell) => !cell.overflow) && homeTotals.every((cell) => !cell.overflow), `${JSON.stringify(bigTotals)} ${JSON.stringify(homeTotals)}`);
+
+  await openScenario(page, 'five-crowns-4');
+  await seedBoard(page, 8, 4, false);
+  await page.locator('#slice2-enter-btn').click();
+  await page.waitForTimeout(250);
+  const score8 = await page.locator('#score-entry-modal .score-entry-panel').boundingBox();
+  record('score modal 8 fills screen', !!score8 && score8.width > 1194 * 0.88 && score8.height > 834 * 0.85, JSON.stringify(score8));
+  await shot(page, 'entry-modal-8-1194');
+  await page.evaluate(() => { if (typeof closeScoreEntryModalOnly === 'function') closeScoreEntryModalOnly(); });
+  await seedBoard(page, 14, 4, false);
+  await page.locator('#slice2-enter-btn').click();
+  await page.waitForTimeout(250);
+  const score14 = await page.locator('#score-entry-modal .score-entry-panel').boundingBox();
+  const rowCount = await page.locator('#score-entry-modal .score-entry-row').count();
+  record('score modal 14 opens', !!score14 && score14.height > 834 * 0.85 && rowCount >= 14, `${rowCount} ${JSON.stringify(score14)}`);
+  await shot(page, 'entry-modal-14-1194');
+
+  await openScenario(page, 'wizard-late-5');
+  await page.evaluate(() => { currentGame.wizardPhase = 'bidding'; if (typeof renderGame === 'function') renderGame(); });
+  await page.locator('#slice2-enter-btn').click();
+  await page.waitForTimeout(250);
+  const bidTitle = await page.locator('#score-entry-modal').innerText();
+  record('bid modal opens', /bids/i.test(bidTitle), bidTitle.slice(0, 80));
+  await shot(page, 'bid-modal-wizard-1194');
+  await page.evaluate(() => { if (typeof closeScoreEntryModalOnly === 'function') closeScoreEntryModalOnly(); });
+
+  await openScenario(page, 'five-crowns-late-8');
+  const lateLp = await page.evaluate(() => {
+    const cols = document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th').length;
+    const labels = [...document.querySelectorAll('#scorecard-capture .s2-lp-status')].map((el) => ({
+      text: el.textContent.trim(),
+      lines: el.getClientRects().length,
+      h: Math.round(el.getBoundingClientRect().height)
+    }));
+    return { cols, labels };
+  });
+  await shot(page, 'lp-status-11-1194');
+  record('lp status one line on late board', lateLp.labels.length > 0 && lateLp.labels.every((item) => item.lines === 1 && item.h <= 28), JSON.stringify(lateLp));
+
+  await page.evaluate(() => { if (typeof openLifePreserverRules === 'function') openLifePreserverRules(); });
+  await page.waitForTimeout(200);
+  const lpRules = await page.locator('#life-preserver-rules-modal .bp-modal-panel').boundingBox();
+  const lpTitle = await page.locator('#life-preserver-rules-title').innerText();
+  record('lp rules header fills screen', !!lpRules && lpRules.width > 1194 * 0.88 && lpRules.height > 834 * 0.85 && /How you get one/.test(lpTitle), `${lpTitle} ${JSON.stringify(lpRules)}`);
+  await shot(page, 'lp-rules-1194');
+  await page.locator('#life-preserver-rules-modal button', { hasText: '×' }).click();
+  await page.waitForTimeout(400);
+  const lpClosed = await page.evaluate(() => document.getElementById('life-preserver-rules-modal').classList.contains('hidden'));
+  record('lp rules closes', lpClosed, '');
+
+  await openScenario(page, 'home-party');
+  const seatBefore = await page.locator('.s2-seat-name').first().innerText();
+  const seatBox = await page.locator('.s2-seat').first().boundingBox();
+  await page.locator('[data-s2-action="seat-down"]').first().click();
+  const seatAfter = await page.locator('.s2-seat-name').first().innerText();
+  record('tonight table row and move', !!seatBox && seatBox.height >= 64 && seatBefore !== seatAfter, `${Math.round(seatBox?.height || 0)} ${seatBefore} -> ${seatAfter}`);
+  await shot(page, 'tonight-table-moved-1194');
+
+  await openScenario(page, 'home-live-8');
+  await page.evaluate(() => { if (typeof openReorderPlayersModal === 'function') openReorderPlayersModal(); });
+  await page.waitForTimeout(200);
+  const reorderBefore = await page.locator('.reorder-player-row').first().innerText();
+  const reorderBox = await page.locator('#reorder-players-modal .bp-modal-panel').boundingBox();
+  await page.locator('#reorder-players-modal [aria-label="Move down"]').first().click();
+  const reorderAfter = await page.locator('.reorder-player-row').first().innerText();
+  record('reorder move and size', !!reorderBox && reorderBox.width > 700 && reorderBefore !== reorderAfter, `${reorderBefore.split('\n')[0]} -> ${reorderAfter.split('\n')[0]}`);
+  await shot(page, 'reorder-moved-1194');
+  await page.evaluate(() => { if (typeof closeReorderPlayersModal === 'function') closeReorderPlayersModal(); });
 
   await openScenario(page, 'home-live-8');
   const liveBefore = await page.evaluate(() => JSON.stringify({ id: currentGame && currentGame.id, rounds: currentGame && currentGame.rounds, roster: currentGame && currentGame.originalRoster }));
@@ -243,7 +369,7 @@ try {
   await openScenario(page, 'five-crowns-life-preserver-threshold');
   await shot(page, 'lp-status-board-1194');
   const lp = await page.locator('#scorecard-capture').innerText();
-  record('lp status labels', /Life Preserver ·/.test(lp), lp.includes('Available') || lp.includes('Used') || lp.includes('Not yet'));
+  record('lp status labels', /LP · (Available|Used|Not yet)/.test(lp), lp.includes('Available') || lp.includes('Used') || lp.includes('Not yet'));
   await page.evaluate(() => { if (typeof authorizeHailMary === 'function') { const name = (currentGame.originalRoster || [])[0]; if (name) authorizeHailMary(name); } });
   await page.waitForTimeout(300);
   if (await page.locator('#wheel-modal').isVisible()) await shot(page, 'lp-modal-1194');
@@ -258,10 +384,17 @@ try {
   await page.evaluate(() => { if (typeof openGameRules === 'function') openGameRules('818'); });
   await page.waitForTimeout(250);
   await shot(page, 'rules-818-1194');
-  await page.keyboard.press('Escape').catch(() => {});
+  const rulesBox = await page.locator('#rules-modal .bp-modal-panel').boundingBox();
+  const rulesType = await page.locator('#rules-content').evaluate((el) => Number.parseFloat(getComputedStyle(el).fontSize));
+  record('rules fills screen', !!rulesBox && rulesBox.width > 1194 * 0.88 && rulesBox.height > 834 * 0.85 && rulesType >= 16, `${rulesType} ${JSON.stringify(rulesBox)}`);
+  await page.evaluate(() => { if (typeof closeRules === 'function') closeRules(); });
   await page.evaluate(() => { if (typeof openSettings === 'function') openSettings(); });
   await page.waitForTimeout(250);
   if (await page.locator('#settings-modal').isVisible()) await shot(page, 'settings-modal-1194');
+  const settingsBox = await page.locator('#settings-modal .bp-modal-panel').boundingBox();
+  const settingsType = await page.locator('#settings-modal .bp-modal-panel').evaluate((el) => Number.parseFloat(getComputedStyle(el).fontSize));
+  const settingsBtn = await page.locator('#settings-modal button').first().evaluate((el) => Number.parseFloat(getComputedStyle(el).fontSize));
+  record('settings fills screen and type', !!settingsBox && settingsBox.width > 1194 * 0.88 && settingsBox.height > 834 * 0.85 && settingsType >= 16 && settingsBtn >= 16, `${settingsType}/${settingsBtn} ${JSON.stringify(settingsBox)}`);
 
   const photoPage = await browser.newPage({ viewport: { width: 1194, height: 834 } });
   const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
