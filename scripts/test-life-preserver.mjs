@@ -1178,6 +1178,12 @@ test('default offer stays on the live 45/30/5/7.5/12.5 table', () => {
   assert.equal(helpSegs, 32, `help slices ${helpSegs}`);
   assert.equal(zeroSegs, 3, `no-change slices ${zeroSegs}`);
   assert.equal(badSegs, 5, `setback slices ${badSegs}`);
+  assert.equal(LP.PREVIOUS_POCKET_COUNTS.smallSetback, 3);
+  assert.equal(LP.PREVIOUS_OUTCOME_TABLE.smallSetback, 0.08);
+  assert.equal(LP.PREVIOUS_OUTCOME_TABLE.noChange, 0.12);
+  assert.ok(badSegs > LP.PREVIOUS_POCKET_COUNTS.smallSetback);
+  const setbackLift = badSegs / LP.PREVIOUS_POCKET_COUNTS.smallSetback - 1;
+  assert.ok(Math.abs(setbackLift - (2 / 3)) < 1e-9, `setback slice lift ${setbackLift}`);
   const setbacks = [...new Set(live.slices.filter((slice) => slice.kind === 'bad').map((slice) => Math.abs(slice.adjustment)))].sort((a, b) => a - b);
   assert.deepEqual(setbacks, [5, 10], `setback amounts grew: ${setbacks.join(',')}`);
 });

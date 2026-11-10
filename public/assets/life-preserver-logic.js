@@ -67,6 +67,25 @@
 
   // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
   // and then clamped by max helpful / max setback. Do not change eligibility here.
+  // Previous known-good draw, kept for comparison. 40 pockets were 18/12/2/5/3
+  // (32 help, 5 no-change, 3 setback). Setback was 8% of the draw and 3 of 40 slices.
+  const PREVIOUS_OUTCOME_TABLE = Object.freeze({
+    smallHelp: 0.45,
+    mediumHelp: 0.30,
+    bigHelp: 0.05,
+    noChange: 0.12,
+    smallSetback: 0.08
+  });
+  const PREVIOUS_POCKET_COUNTS = Object.freeze({
+    pockets: 40,
+    smallHelp: 18,
+    mediumHelp: 12,
+    bigHelp: 2,
+    noChange: 5,
+    smallSetback: 3
+  });
+  // Live draw. Setback slices went from 3 to 5 of 40 (+67%, the modest rounding of +70%).
+  // The two extra slices come from no-change. Help stays 32 of 40 and 80% of the draw.
   const OUTCOME_TABLE = Object.freeze({
     smallHelp: 0.45,
     mediumHelp: 0.30,
@@ -1566,6 +1585,8 @@
     rankWithScore,
     bestAllowedRankFor,
     scoringRounds,
+    PREVIOUS_OUTCOME_TABLE,
+    PREVIOUS_POCKET_COUNTS,
     OUTCOME_TABLE,
     PROPOSED_OUTCOME_TABLE,
     PROPOSED_HELP_FRACTIONS,

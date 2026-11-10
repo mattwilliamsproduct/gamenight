@@ -37,7 +37,7 @@ Counted on the live 40-pocket Five Crowns offer before the edit.
 - The LP `::after` is gone. The button name is still Life Preserver.
 - Bid amounts print as the number. One made bid is singular.
 - Winner confetti uses square and circle particles in the porch colors. It does not call `shapeFromText`.
-- Score-entry header is a two-column grid. Tablet landscape now includes iPad landscape up to 1400×1100. Many-player rows use `flex: 1 1 auto` and a 44px minimum so they fill the lane and still scroll.
+- Score-entry header is a two-column grid. Tablet landscape now includes iPad landscape up to 1400×1100 on the first frame and on the fit pass. Every tablet row uses `flex: 1 1 auto`. Six or more players keep a 44px floor. Fewer players use a 52px floor. `flex: 1 1 0` still collapses the rows.
 - Home's scrollport from 761px is `.bp-app-shell` (`height: 100%`, `overflow-y: auto`). `navigateTo` resets that scroll and clears a stale modal lock.
 
 ## Do not repeat
@@ -47,3 +47,20 @@ Counted on the live 40-pocket Five Crowns offer before the edit.
 - Do not bring emoji bitmap confetti back to cover a Safari tile bug.
 - Do not use `flex: 1 1 0` on iPad score-entry rows. That collapses them.
 - A later successful Home scroll is not proof the first-load lock is gone.
+
+## Emulated play, 2026-11-10
+
+Mobile WebKit at 1194×834. This is not iPad Safari.
+
+- Five Crowns, 11 rounds: Dee's round 1 changed from 3 to 8 and stayed 8 after reload. Final totals Ada 44, Bea 66, Cal 55, Dee 38. Dee wins. Completed, not early, not assisted. pagehide/pageshow did not add a round.
+- Wizard, 15 rounds, every bid exact: Ada 1500, others 300. Ada wins. Home, then reload, kept those totals.
+- 818, 15 rounds, bids 0 and one player taking every trick: 150, 150, 150, and 71. Three-way tie. Completed.
+- Canasta, 4 rounds: first round 1955 and -50. Ada 2145, Bea 600.
+- Beat the Heat: a 20 corrected to 5, reload kept it, then the match ended 20 to 66. Ada wins.
+- Flip 7 ended early at 70 to 30. Cancel on Save & End left the match on round 3.
+- Two-player Five Crowns tie. Delete and Scratch both asked first. Dismiss kept the data. Accept removed it.
+- All-blank Five Crowns asked "Everyone scored 0?" Dismiss left the modal open. Accept stored zeros.
+- Life Preserver: one spin wrote one bonus round. A second spin plus pagehide/pageshow left it at one. The hub is a div. The button says "USE YOUR ONE SPIN". The duplicate status line stays hidden.
+- Passports after an early Five Crowns win and a finished Heat win: Ada 2 wins in 2 games, Bea 0 wins in 2 games. Same winners as history.
+- Demo enter left `gn_history` on its real marker. Exit cleared the demo keys.
+- Home wheel and mouse drag did not move the shell. Mobile WebKit rejects mouse.wheel. Setting scrollTop does move it. Do not call the first-touch scroll fixed.
