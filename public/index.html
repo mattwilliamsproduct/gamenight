@@ -9205,7 +9205,7 @@ button.dealer-name-indicator .dealer-player-label {
               </div>
               <div class="actions-menu-section">
                 <span class="actions-menu-label">Table tools</span>
-                <button id="actions-add-player-btn" onclick="addPlayerMidGame();closeActionsMenu();" class="actions-menu-item">
+                <button id="actions-add-player-btn" onclick="addPlayerMidGame();closeActionsMenu();" class="actions-menu-item hidden">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-1.8-4-4-4H6c-2.2 0-4 1.8-4 4"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M16 11h6"></path></svg></span>
                   <span>Add Player Mid-Game</span>
                 </button>
@@ -17077,7 +17077,7 @@ ${isDealer
       if(rosterLocked||over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
-    document.getElementById('actions-add-player-btn')?.classList.toggle('hidden', rosterLocked);
+    document.getElementById('actions-add-player-btn')?.classList.add('hidden');
     document.getElementById('actions-reorder-btn')?.classList.toggle('hidden', rosterLocked);
     const lifePreserverRulesBtn=document.getElementById('actions-life-preserver-btn');
     if(lifePreserverRulesBtn){
@@ -18770,13 +18770,7 @@ ${isDealer
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
   function addPlayerMidGame(){
-    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
-    const input=document.getElementById('midgame-add-player-input');
-    if(input)input.value='';
-    hidePlayerSuggestions('midgame');
-    showPlayerNameWriteError('midgame-player-name-error','');
-    openModal('add-player-modal');
-    setTimeout(()=>input?.focus(),80);
+    toast('Add players for the next match from Tonight\'s Table','warning');
   }
   function closeAddPlayerModal(){
     hidePlayerSuggestions('midgame');
@@ -18789,45 +18783,8 @@ ${isDealer
     const name=raw.trim();
     if(!name){alert('Invalid name.');return;}
     if(rejectUnsavablePlayerName(name,'midgame-player-name-error')) return;
-    if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
     closeAddPlayerModal();
-      if(!players.includes(name))players.push(name);
-      if(!allPlayers.includes(name))allPlayers.push(name);
-      currentGame.originalRoster.push(name);
-      if(!currentGame.retired)currentGame.retired=[];
-      if(isBidTrickGame(currentGame)){if(!currentGame.currentBids)currentGame.currentBids={};currentGame.currentBids[name]=0;}
-
-    // Bottom-half average calculation
-    const cfg=configs[currentGame.name];
-    const activePlayers=getActivePlayers(currentGame).filter(p=>p!==name);
-    const sortedByScore=sortPlayersByTotal(activePlayers, currentGame.totals, cfg);
-    // "Worst" = losing half. For winLow games, worst = highest scores (end of sorted). For winHigh, worst = lowest (end of sorted).
-    const halfCount=Math.max(1,Math.ceil(sortedByScore.length/2));
-    const worstHalf=sortedByScore.slice(-halfCount);
-    const avg=worstHalf.length?Math.round(worstHalf.reduce((s,p)=>s+(currentGame.totals[p]||0),0)/worstHalf.length):0;
-
-    if(currentGame.rounds.length>0){
-      let lastScoringIdx=-1;
-      for(let i=currentGame.rounds.length-1;i>=0;i--){
-        if(!currentGame.rounds[i].hailMaryBonus){ lastScoringIdx=i; break; }
-      }
-      currentGame.rounds.forEach((r,idx)=>{
-        r.scores[name] = idx===lastScoringIdx ? avg : 0;
-        if(!r.joinBonus)r.joinBonus={};
-        r.joinBonus[name]=true; // ALL rounds flagged so records exclude them
-      });
-    } else {
-      currentGame.totals[name]=0;
-    }
-    recomputeGameTotals(currentGame);
-    const lengthChange=resyncGameMaxRounds(currentGame);
-    if(lengthChange.changed){
-      addAuditEntry('Player joined', `${name} · match now ${lengthChange.next} rounds`);
-      toast(`Match is now ${lengthChange.next} rounds`);
-    } else {
-      addAuditEntry('Player joined', name);
-    }
-    saveData(); scheduleRender();
+    toast('Add players for the next match from Tonight\'s Table','warning');
   }
 
   /* ═══ END GAME ═══ */
