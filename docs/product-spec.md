@@ -53,7 +53,7 @@ House notes already in the rules cards (`gameRulesText`):
 5. Rook: bid winner and amount, trump and called card, partner, then bid-team points. Save & Next Round.
 6. Totals recompute from every round, including a Life Preserver round and any leftover `comeback` extra on old history (`recomputeGameTotals`).
 7. Save & End writes a history snapshot. Beat the Heat reaches Match Complete at 66. Rook asks to end when someone crosses the target. Wizard, 818, and Five Crowns complete when the round counter passes the length. On a phone the live scoreboard keeps Home, Enter Score, Actions, and Save & End on one row, keeps the app nav on screen, and scrolls the seat list when the visual viewport is shorter than the table. From 761px up the header keeps Home, Enter Score, Actions, and Save & End, with the game title lined up to the score table. Home leaves the scorecard and does not end the match.
-8. An entered round score, including a stored 0, sits on one soft tile. Ordinary rows use a warm gray. The leader row uses a deeper mint. The current-round dash has no tile. Total stays the large number.
+8. An entered round score, including a stored 0, sits on one soft tile. Ordinary rows use a light warm gray. The leader row uses a matching light mint. The current-round dash has no tile. Total stays the large number.
 
 Mid-game join: the new player gets the average of the current losing half, written onto the last scoring round, with `joinBonus` on every earlier round so records ignore the catch-up. Wizard length resyncs from the new headcount and never shrinks below the round you are on.
 

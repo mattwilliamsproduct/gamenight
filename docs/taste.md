@@ -10,7 +10,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
-- Entered round scores sit on one soft tile: warm gray on a normal row, a deeper mint on the leader, small gaps, darker digits, no outline and no column stripes. A stored 0 is a tile. The current-round dash is not. Total stays the large number.
+- Entered round scores sit on one soft tile: light warm gray on a normal row, a matching light mint on the leader, small gaps, darker digits, no outline and no column stripes. A stored 0 is a tile. The current-round dash is not. Total stays the large number.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
 - Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.
@@ -160,6 +160,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
 - The same Life Preserver status sentence printed twice.
 - A Saved chip on the Back Porch wordmark, or a Home seat sliding under the header. The chip stays in the player card. The header stays opaque and outside the scroller. The top-nav word for that page is Home. Sunset Champion stays TV-readable.
+- A heavy tan score tile. An entered cell stays a light warm gray, and the leader mint stays just as light. Digits stay dark.
 
 ## Prefer
 

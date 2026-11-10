@@ -7,8 +7,8 @@ test('entered round scores use one tile and a blank cell stays bare', async () =
   const html = await readFile(new URL('../public/index.html', import.meta.url), 'utf8');
   const tile = css.slice(css.indexOf('Entered round scores sit on one soft tile'));
   assert.ok(tile.length > 40);
-  assert.match(tile, /\.score-cell-input\.is-entered \{[^}]*background: #e4d6c4/);
-  assert.match(tile, /tr\.leader-row[^}]*\{[^}]*background: #b7dccb/);
+  assert.match(tile, /\.score-cell-input\.is-entered \{[^}]*background: #e8e3da/);
+  assert.match(tile, /tr\.leader-row[^}]*\{[^}]*background: #d5ebe3/);
   assert.match(tile, /border-radius: 9px/);
   assert.match(tile, /box-shadow: none/);
   assert.doesNotMatch(tile, /nth-child|border-left|border-right|column-stripe/);

@@ -1279,7 +1279,7 @@ html.slice2-tv #scorecard-capture .score-cell-input {
 
 /* Entered round scores sit on one soft tile. A blank cell and the current-round dash stay bare. */
 html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
-  background: #e4d6c4 !important;
+  background: #e8e3da !important;
   border: 0 !important;
   box-shadow: none !important;
   border-radius: 9px !important;
@@ -1295,11 +1295,11 @@ html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.h
 }
 
 html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
-  background: #b7dccb !important;
+  background: #d5ebe3 !important;
 }
 
 html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
-  background: #e4d6c4 !important;
+  background: #e8e3da !important;
   border: 0 !important;
   box-shadow: none !important;
   border-radius: 9px !important;
@@ -1314,7 +1314,7 @@ html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.ha
 }
 
 html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
-  background: #b7dccb !important;
+  background: #d5ebe3 !important;
 }
 
 html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input {

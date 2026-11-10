@@ -110,8 +110,8 @@ test('eight-player Five Crowns tiles a stored 0 and leaves the current dash bare
       tileCount: document.querySelectorAll('.score-cell-input.is-entered').length
     };
   });
-  expect(paint.leader.bg).toBe('rgb(183, 220, 203)');
-  expect(paint.ordinary.bg).toBe('rgb(228, 214, 196)');
+  expect(paint.leader.bg).toBe('rgb(213, 235, 227)');
+  expect(paint.ordinary.bg).toBe('rgb(232, 227, 218)');
   expect(paint.leader.bg).not.toBe(paint.ordinary.bg);
   expect(paint.leader.shadow).toBe('none');
   expect(paint.ordinary.shadow).toBe('none');
@@ -159,6 +159,6 @@ test('a four-player board and a three-digit Life Preserver cell keep the same ti
   expect(fit.mark).toMatch(/20/);
   expect(fit.markInside).toBe(true);
   expect(fit.tileInside).toBe(true);
-  expect(fit.bg).toBe('rgb(228, 214, 196)');
+  expect(fit.bg).toBe('rgb(232, 227, 218)');
   await page.screenshot({path: '/opt/cursor/artifacts/scoreboard-after-wide-1194-emulated.png'});
 });
