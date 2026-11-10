@@ -14774,7 +14774,7 @@ ${isDealer
     if(!cfg) return null;
     let picked=null;
     history.forEach(h=>{
-      if(!h || !BPGScorebook.isCompletedHistoryMatch(h) || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
+      if(!h || !BPGScorebook.isCompletedHistoryMatch(h) || BPGScorebook.sameMatchId(h.id, exceptId) || h.game!==gameName || !playerPlayedMatch(h, name)) return;
       const score=Number(h.totals[name]);
       if(!Number.isFinite(score)) return;
       if(picked==null){ picked=score; return; }
@@ -14798,7 +14798,7 @@ ${isDealer
   }
 
   function snappedLosingStreak(name, matchId){
-    const start=history.findIndex(h=>h && h.id===matchId);
+    const start=BPGScorebook.findMatchIndex(history, matchId);
     if(start<0) return 0;
     if(!playerWonNight(history[start], name)) return 0;
     let losses=0;
@@ -15139,9 +15139,11 @@ ${isDealer
       snapshot.winners=[];
       snapshot.endedEarly=false;
     }
-    const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
-    if(idx>=0) history[idx]=snapshot;
-    else history.unshift(snapshot);
+    const idx=BPGScorebook.findMatchIndex(history, snapshot.id);
+    if(idx>=0){
+      BPGScorebook.dropDuplicateMatchIds(history, snapshot.id, idx);
+      history[idx]=snapshot;
+    } else history.unshift(snapshot);
     markHistoryChanged();
     saveData();
     return snapshot;
@@ -15153,11 +15155,13 @@ ${isDealer
       if(!confirm('Save the game on the table and resume this match?'))return;
       parkActiveMatch();
     }
-    const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
+    const idx=BPGScorebook.findMatchIndex(history, id); if(idx<0)return;
+    BPGScorebook.dropDuplicateMatchIds(history, id, idx);
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
     currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    Object.assign(currentGame, BPGScorebook.resumeCarryFields(g));
     if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
@@ -18930,8 +18934,11 @@ ${isDealer
     const worst=data.totals[sorted[sorted.length-1]];
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
     const alerts=silent?[]:analyzeRecords(data);
-    const existing=history.findIndex(h=>h.id===data.id);
-    if(existing>=0) history.splice(existing,1);
+    const existing=BPGScorebook.findMatchIndex(history, data.id);
+    if(existing>=0){
+      BPGScorebook.dropDuplicateMatchIds(history, data.id, existing);
+      history.splice(existing,1);
+    }
     history.unshift(data);
     markHistoryChanged();
     if(!silent) stashScorecardReceipt();
@@ -19209,7 +19216,7 @@ ${isDealer
 
   function syncSavedMatchFromGame(game){
     if(!game||game.id==null) return;
-    const saved=history.find(h=>h.id===game.id);
+    const saved=history[BPGScorebook.findMatchIndex(history, game.id)];
     if(!saved||saved===game) return;
     saved.rounds=JSON.parse(JSON.stringify(game.rounds||[]));
     saved.totals=JSON.parse(JSON.stringify(game.totals||{}));
@@ -19261,13 +19268,16 @@ ${isDealer
 
   function correctionMatch(state){
     if(!state) return null;
-    if(state.source==='history') return history.find(h=>h.id===state.historyId)||null;
+    if(state.source==='history'){
+      const idx=BPGScorebook.findMatchIndex(history, state.historyId);
+      return idx>=0?history[idx]:null;
+    }
     return currentGame;
   }
 
   function openRoundCorrection(spec){
     const source=spec?.source||'live';
-    const match=source==='history'?history.find(h=>h.id===spec.historyId):currentGame;
+    const match=source==='history'?(history[BPGScorebook.findMatchIndex(history, spec.historyId)]||null):currentGame;
     if(!match) return;
     const round=match.rounds?.[spec.roundIndex];
     const name=match.name||match.game;
@@ -19745,9 +19755,9 @@ ${isDealer
   }
 
   function deleteMatchRecord(id){
-    const g = history.find(h => h.id === id); if(!g) return;
+    const g = history[BPGScorebook.findMatchIndex(history, id)]; if(!g) return;
     if(!confirm(`Permanently delete this ${g.game} match from ${g.date}?\n\nThis cannot be undone.`)) return;
-    history = history.filter(h => h.id !== id);
+    history = history.filter(h => !BPGScorebook.sameMatchId(h && h.id, id));
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
     toast(`🗑 ${g.game} record deleted`, 'warning');
@@ -19756,7 +19766,7 @@ ${isDealer
   }
 
   function openScorecard(id){
-    const g=history.find(h=>h.id===id); if(!g)return;
+    const g=history[BPGScorebook.findMatchIndex(history, id)]; if(!g)return;
     document.getElementById('scorecard-modal')?.classList.toggle('scorecard-modal-hand-foot', g.game==='Hand and Foot');
     document.getElementById('modal-scorecard-block')?.classList.toggle('scorecard-hand-foot', g.game==='Hand and Foot');
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${displayGameName(g.game)}`;

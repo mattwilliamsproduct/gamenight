@@ -736,6 +736,39 @@
     return blocked ? `${cause} ${effect} The game on the table stayed put.` : `${cause} ${effect}`;
   }
 
+  function sameMatchId(left, right) {
+    if (left == null || right == null || left === '' || right === '') return false;
+    return String(left) === String(right);
+  }
+
+  function findMatchIndex(list, id) {
+    if (!Array.isArray(list)) return -1;
+    return list.findIndex(item => item && sameMatchId(item.id, id));
+  }
+
+  // Drops later rows with the same id. The kept index stays put, so a caller
+  // that already found the first row can splice it afterwards.
+  function dropDuplicateMatchIds(list, id, keepIndex) {
+    if (!Array.isArray(list)) return list;
+    const keep = Number.isInteger(keepIndex) ? keepIndex : findMatchIndex(list, id);
+    for (let i = list.length - 1; i >= 0; i -= 1) {
+      if (i !== keep && list[i] && sameMatchId(list[i].id, id)) list.splice(i, 1);
+    }
+    return list;
+  }
+
+  function resumeCarryFields(snapshot) {
+    const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    const carried = {
+      endedEarly: source.endedEarly === true,
+      gameOver: source.gameOver === true,
+      winners: Array.isArray(source.winners) ? source.winners.filter(Boolean).slice() : []
+    };
+    const line = Number(source.endScore);
+    if (Number.isFinite(line) && line > 0) carried.endScore = line;
+    return carried;
+  }
+
   function historyReopenWouldReplaceActive(active, edited) {
     if (!active) return false;
     if (edited && active === edited) return false;
@@ -1157,6 +1190,10 @@
     ensureGameId,
     matchIdentity,
     historyReopenNotice,
+    sameMatchId,
+    findMatchIndex,
+    dropDuplicateMatchIds,
+    resumeCarryFields,
     historyReopenWouldReplaceActive,
     historicalRoundParticipants,
     eight18DealerBidViolation,
