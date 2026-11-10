@@ -401,6 +401,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     align-items: stretch;
     height: auto;
     min-height: 0;
+    grid-template-columns: minmax(240px, 2fr) minmax(0, 3fr);
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table,
@@ -450,6 +451,68 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     overflow: visible;
   }
 
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standings {
+    align-content: start;
+    grid-auto-rows: minmax(68px, 96px);
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standing {
+    min-height: 68px;
+    max-height: 96px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-standings .s2-seat-name {
+    font-size: clamp(1.25rem, 1.7vw, 1.7rem);
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-standings .s2-standing-score {
+    font-size: clamp(1.75rem, 2.6vw, 2.55rem);
+    min-width: 3.2rem;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-standings .s2-standing .avatar-img {
+    width: 52px;
+    height: 52px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-standings .scoreboard-rank-badge {
+    min-width: 2.8rem;
+    min-height: 1.85rem;
+    font-size: 1.05rem !important;
+    padding: 0.16rem 0.5rem !important;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-standings-foot {
+    flex: 0 0 auto;
+    margin-top: 8px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-standings-foot .s2-btn {
+    width: 100%;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-start-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-next-roster {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-next-roster .s2-seat-grid {
+    display: grid;
+    gap: 4px;
+    align-content: start;
+  }
+
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-grid {
     flex: 1 1 auto;
     min-height: 0;
@@ -477,8 +540,8 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc(100cqh * 5 / 7), 220px);
-    max-width: 220px;
+    width: min(100cqw, calc(100cqh * 5 / 7), 148px);
+    max-width: 148px;
     height: auto !important;
     margin-inline: auto;
     aspect-ratio: 5 / 7;
@@ -491,7 +554,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
 @media (min-width: 1600px) and (orientation: landscape) and (min-height: 700px) {
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc(100cqh * 5 / 7));
-    max-width: none;
+    width: min(100cqw, calc(100cqh * 5 / 7), 148px);
+    max-width: 148px;
   }
 }

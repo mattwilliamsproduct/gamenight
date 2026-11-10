@@ -2561,7 +2561,7 @@
     }
     #score-entry-modal.score-entry-tablet-land .score-entry-layout,
     #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-layout {
-      grid-template-columns: minmax(280px, 1fr) minmax(380px, 1.15fr) !important;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px) !important;
       align-items: stretch;
     }
     #score-entry-modal.score-entry-tablet-land #score-entry-game {
@@ -2581,7 +2581,18 @@
       display: none;
     }
     #score-entry-modal.score-entry-tablet-land .score-entry-selected-card {
-      display: none;
+      display: block;
+      flex: 0 0 auto;
+    }
+    #score-entry-modal.score-entry-roster-scroll .score-entry-rows {
+      overflow-y: auto !important;
+    }
+    #score-entry-modal.score-entry-tablet-land:not(.score-entry-roster-scroll) .score-entry-rows {
+      overflow-y: hidden !important;
+    }
+    #score-entry-modal.score-entry-roster-scroll .score-entry-row {
+      flex: 0 0 auto !important;
+      min-height: 56px !important;
     }
     #score-entry-modal.score-entry-tablet-land .score-entry-side {
       display: flex !important;
@@ -3472,6 +3483,9 @@ button.dealer-name-indicator {
         min-height: 0;
         overflow-y: hidden;
         overflow-x: hidden;
+      }
+      body.active-match-view #scorecard-capture.scorecard-rows-scroll .scorecard-table-wrap {
+        overflow-y: auto;
       }
       body.active-match-view .tournament-footer,
       body.active-match-view #game-over-section,
@@ -15840,7 +15854,7 @@ ${isDealer
       const root=document.getElementById('scorecard-capture');
       if(!root)return;
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
-      root.classList.remove('scorecard-fit-rows','scorecard-hug-rows');
+      root.classList.remove('scorecard-fit-rows','scorecard-hug-rows','scorecard-rows-scroll');
       const paceList=root.querySelector('#record-chase-list');
       if(paceList){
         paceList.style.removeProperty('height');
@@ -15895,20 +15909,22 @@ ${isDealer
       // readable and 8p still fits without a dead strip under the table.
       const count = rowSlots;
       const fillRow = Math.floor(availableRowsHeight / rowSlots);
-      // Height-derived size for small tables so 2–4p fill large screens. Keep
-      // a sensible upper bound (~320) so rows don't become absurd on huge TVs,
-      // and keep 6p/8p + phone caps so dense tables still fit.
-      const derivedCap = Math.max(96, Math.min(320, fillRow));
+      // Rows grow with the visible card, then stop. Two players stay a normal
+      // row. Eight fill the card. A long roster scrolls instead of shrinking.
+      const rowCap = 120;
       let comfortMax;
+      let scrollRows = false;
       if (phone) {
         comfortMax = count <= 3 ? 96 : count <= 6 ? 88 : 68;
-      } else if (tablet) {
-        comfortMax = count <= 4 ? derivedCap : count <= 6 ? 110 : 92;
+      } else if (count >= 10) {
+        comfortMax = 84;
+        scrollRows = fillRow < 58;
       } else {
-        comfortMax = count <= 4 ? derivedCap : count <= 6 ? 118 : 96;
+        comfortMax = Math.min(rowCap, Math.max(72, fillRow));
       }
       const comfortMin = phone ? 44 : (tablet ? 52 : 58);
-      const targetRow = Math.max(comfortMin, Math.min(comfortMax, fillRow));
+      const targetRow = scrollRows ? comfortMin : Math.max(comfortMin, Math.min(comfortMax, fillRow));
+      root.classList.toggle('scorecard-rows-scroll', scrollRows);
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
       root.classList.add('scorecard-fit-rows');
@@ -16429,7 +16445,7 @@ ${isDealer
     // Below 1280 keep the tighter chip caps so 1024/390 8p stay as they are.
     // Cap raised to 52 so 8p/6p totals (~70px) still clear the 0.55 ratio gate.
     const desiredRound=(!handFoot&&wide)
-      ? Math.max(20, Math.min(52, rowRound || (totalFs>0 ? totalFs*0.65 : 22)))
+      ? Math.max(20, Math.min(64, rowRound || (totalFs>0 ? totalFs*0.65 : 22)))
       : 0;
     const minRatioRound=(!handFoot&&wide&&totalFs>0)? totalFs*0.58 : 0;
     const targetRound=Math.max(desiredRound, minRatioRound);
@@ -17740,8 +17756,9 @@ ${isDealer
     const count=Math.max(1,players.length);
     const vw=window.visualViewport?.width||window.innerWidth||0;
     const vh=window.visualViewport?.height||window.innerHeight||0;
-    const tabletLand=vw>=900&&vw<=1400&&vh<=1100&&vw>vh;
+    const tabletLand=vw>=900&&vw>vh;
     modal.classList.toggle('score-entry-tablet-land', tabletLand);
+    modal.classList.toggle('score-entry-roster-scroll', count>8);
     modal.classList.add('score-entry-managed-fit');
 
     const rowArea=Math.max(0,rows.getBoundingClientRect().height);
@@ -17749,12 +17766,12 @@ ${isDealer
     const shortHeight=vh<820;
     // Smaller tables have room for a clearer visual lane between each player.
     // Larger tables stay compact so every player still fits without scrolling.
-    const rowGap=count<=5?(shortHeight?12:14):count>=8?(tabletLand?2:3):count>=6?5:7;
+    const rowGap=count<=5?(shortHeight?12:14):count>8?4:count>=6?6:8;
     const fitted=Math.floor((rowArea-(rowGap*(count-1)))/count);
-    const tabletMin=tabletLand?(count>=7?44:56):42;
-    const rowHeight=tabletLand&&count>=7
-      ? Math.max(44, fitted || 44)
-      : Math.max(tabletMin, fitted);
+    const rosterScroll=count>8;
+    const rowHeight=tabletLand
+      ? (rosterScroll ? Math.max(56, Math.min(fitted||56, 80)) : Math.max(52, fitted||52))
+      : Math.max(42, fitted);
     const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
     const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
     const name=Math.floor(clamp(18,rowHeight*0.42,tightWidth?28:34));
@@ -17789,8 +17806,8 @@ ${isDealer
     const keyHeight=Math.max(34,(keyArea-(keyPad*2)-(keyGap*3))/4);
     panel.style.setProperty('--se-fit-key-gap',`${keyGap}px`);
     panel.style.setProperty('--se-fit-key-pad',`${keyPad}px`);
-    panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(22,keyHeight*0.42,34))}px`);
-    panel.style.setProperty('--se-fit-next-font',`${Math.floor(clamp(18,keyHeight*0.34,25))}px`);
+    panel.style.setProperty('--se-fit-key-font',`${Math.floor(clamp(26,keyHeight*0.46,48))}px`);
+    panel.style.setProperty('--se-fit-next-font',`${Math.floor(clamp(18,keyHeight*0.34,28))}px`);
 
     const selectedAvatar=Math.floor(clamp(48,keyHeight*0.95,76));
     panel.style.setProperty('--se-fit-selected-pad',`${Math.floor(clamp(9,keyHeight*0.2,16))}px`);
@@ -17863,7 +17880,8 @@ ${isDealer
     modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', mode.kind!=='hand-foot' && players.length>=6);
     const openVw=window.visualViewport?.width||window.innerWidth||0;
     const openVh=window.visualViewport?.height||window.innerHeight||0;
-    modal.classList.toggle('score-entry-tablet-land', openVw>=900&&openVw<=1400&&openVh<=1100&&openVw>openVh);
+    modal.classList.toggle('score-entry-tablet-land', openVw>=900&&openVw>openVh);
+    modal.classList.toggle('score-entry-roster-scroll', players.length>8);
     modal.classList.add('score-entry-managed-fit');
     modal.classList.remove('hidden');
     modal.classList.add('flex');

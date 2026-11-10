@@ -541,7 +541,7 @@ test('nightCardHtml puts Left early in its own section without a dash place', ()
   assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
 });
 
-test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () => {
+test('Past nights competition ranks: ties read 1, 1, 3 and departed take no spot', () => {
   const match = {
     game: 'Wizard',
     totals: { Megan: 50, Matt: 50, Cat: 20, Linda: 5 },
@@ -555,7 +555,7 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
   assert.deepEqual(rows.map((r) => [r.name, r.place, !!r.leftEarly]), [
     ['Matt', 1, false],
     ['Megan', 1, false],
-    ['Cat', 2, false],
+    ['Cat', 3, false],
     ['Linda', null, true]
   ]);
   const model = Records.nightCardModel(match, helpers);
@@ -564,10 +564,37 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
     getAvatarImg: () => '<img>'
   }, false);
   assert.match(html, /s2-night-place">1st</);
-  assert.match(html, /s2-night-place">2nd</);
-  assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
+  assert.match(html, /s2-night-place">3rd</);
+  assert.doesNotMatch(html, /s2-night-place">2nd</);
   assert.match(html, /s2-night-left-label">Left early</);
 });
+
+test('Records tie for 2nd reads 2nd, 2nd, 4th', () => {
+  const tie = {
+    game: 'Five Crowns',
+    totals: { Owen: 20, Nora: 40, Priya: 40, Theo: 70 },
+    winners: ['Owen'],
+    completed: true,
+    originalRoster: ['Owen', 'Nora', 'Priya', 'Theo'],
+    rounds: [{ round: 1, scores: { Owen: 20, Nora: 40, Priya: 40, Theo: 70 } }]
+  };
+  const ranked = Records.nightStandings(tie, helpers);
+  assert.deepEqual(ranked.map((row) => [row.name, row.place]), [
+    ['Owen', 1],
+    ['Nora', 2],
+    ['Priya', 2],
+    ['Theo', 4]
+  ]);
+  const card = Records.nightCardHtml(Records.nightCardModel(tie, helpers), {
+    escapeHtml: (value) => String(value),
+    getAvatarImg: () => '<img>'
+  }, false);
+  assert.match(card, /s2-night-place">1st</);
+  assert.match(card, /s2-night-place">2nd</);
+  assert.match(card, /s2-night-place">4th</);
+  assert.doesNotMatch(card, /s2-night-place">3rd</);
+});
+
 
 test('demo career wins sum from completed nights, including ties and assisted', () => {
   const book = buildDemoBook(QA_SCENARIOS);
