@@ -26,6 +26,8 @@ test('scoreboard header, tiles, and Life Preserver cells stay on the porch type'
   assert.match(css, /grid-template-areas:\s*"copy copy copy"\s*"home actions enter"/);
   assert.match(css, /border-radius: 28px !important/);
   assert.match(css, /background: #fffaf1 !important/);
+  assert.match(css, /top: calc\(var\(--bp-accent-line\) \+ var\(--bp-nav-gap\)\) !important/);
+  assert.match(css, /score-cell-stack:is\(\.has-comeback, \.has-life-preserver\):has\(\.is-entered\) \{[\s\S]*width: 100% !important/);
   assert.doesNotMatch(css, /\.s2-now-bid \{[^}]*border-radius:\s*999px/);
   assert.doesNotMatch(html, /font-size: var\(--scorecard-col-input-font, max\(15px, calc\(var\(--scorecard-input-font\) \* 0\.72\)\)\)/);
   assert.match(html, /score-cell-stack:is\(\.has-comeback, \.has-life-preserver\) \{\s*width: auto;/);

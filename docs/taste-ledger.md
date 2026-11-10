@@ -159,7 +159,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
 - The same Life Preserver status sentence printed twice.
 - A Saved chip on the Back Porch wordmark, or a Home seat sliding under the header. The chip stays in the player card. The header stays opaque and outside the scroller. The top-nav word for that page is Home. Sunset Champion stays TV-readable.
-- A Deals first badge clipped under the name. The row is tall enough for the name and the badge.
+- A Deals first badge clipped under the name. The row is tall enough for the name and the badge. A compact list does not paint one row over the next.
+- A 3-digit score clipped by a narrower tile. The digits stay the column size. The cell is wide enough, with padding, for the score and the adjustment.
+- A sticky nav that drops into a cream band or sits lower than Home. Same inset and top on every page. The card edge and shadow stay visible.
 - An Active Match pill that stays up while Home has no live match. Unfinished history is not the match on the table.
 - Starting a game outside that game's own player range. Five Crowns stops at 7. Wizard does not take a layout cap.
 - Shrinking score digits to unclip a Life Preserver cell. Give the cell height and padding. The adjustment stays a smaller blue second line.

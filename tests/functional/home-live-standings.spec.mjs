@@ -116,6 +116,10 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
           rowH: rowBox.height,
           ratio: frameBox.width / frameBox.height,
           scrolls: list.scrollHeight > list.clientHeight + 1,
+          overlaps: [...list.querySelectorAll('.s2-seat')].some((seat, index, seats) => {
+            if (!index) return false;
+            return seat.getBoundingClientRect().top < seats[index - 1].getBoundingClientRect().bottom - 1;
+          }),
           badgeInside: !!(badgeBox && seatBox && badgeBox.height > 10 && badgeBox.top >= seatBox.top - 1 && badgeBox.bottom <= seatBox.bottom + 1 && badgeBox.top >= 0 && badgeBox.bottom <= window.innerHeight),
           startBtn,
           addBtn,
@@ -134,6 +138,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(idle.bottoms, `${size.width} idle ${count} panel bottoms`).toBeLessThanOrEqual(4);
       expect(idle.rowH, `${size.width} idle ${count} row`).toBeGreaterThanOrEqual(60);
       expect(idle.badgeInside, `${size.width} idle ${count} Deals first clipped`).toBe(true);
+      expect(idle.overlaps, `${size.width} idle ${count} rows overlap`).toBe(false);
       expect(Math.abs(idle.ratio - (5 / 7)), `${size.width} idle art`).toBeLessThan(0.08);
       if (count === 14) {
         expect(idle.scrolls, `${size.width} idle 14 should scroll inside the list`).toBe(true);

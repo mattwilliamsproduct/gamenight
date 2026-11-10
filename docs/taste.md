@@ -78,6 +78,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled [prove-it packet](prove-it-packet.md).
 - Overlap, uneven gaps, truncated text, or clipped menus.
+- A 3-digit score clipped inside its tile, or a sticky nav that leaves a cream band under the green line. Digits stay large. The nav card matches Home.
 - A place badge so small Matt cannot see the number.
 - A keypad covering a row, a name cut off, or Actions clipped by the match banner.
 - Truncated player names, or a control that no longer hugs the glyphs it labels.

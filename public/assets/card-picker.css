@@ -429,6 +429,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     overflow-x: hidden;
     overflow-y: auto;
     align-content: start;
+    grid-auto-rows: max-content;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-seat-grid,

@@ -22,6 +22,7 @@ async function showBoard(page) {
     const grid = names.map((_, playerIndex) => (
       Array.from({length: 8}, (__, roundIndex) => (playerIndex + 1) * (roundIndex + 1))
     ));
+    // Pattern value for this seat and round is 4 x 8 = 32. 128 is the width fixture.
     grid[3][7] = 128;
     const rounds = grid[0].map((_, roundIndex) => ({
       round: roundIndex + 1,
@@ -100,12 +101,19 @@ test('1194 scoreboard header, tiles, and Life Preserver cells', async ({page}) =
       padTop: scoreBox.top - stackBox.top,
       padBottom: stackBox.bottom - markBox.bottom,
       scoreInside: scoreBox.top >= stackBox.top + 2 && scoreBox.bottom <= markBox.top,
-      markInside: markBox.bottom <= stackBox.bottom - 2 && markBox.top >= scoreBox.bottom - 1
+      markInside: markBox.bottom <= stackBox.bottom - 2 && markBox.top >= scoreBox.bottom - 1,
+      scoreScroll: score.scrollWidth,
+      scoreClient: score.clientWidth,
+      nameFont: getComputedStyle(document.querySelector('.scoreboard-player-name')).fontSize,
+      totalFont: getComputedStyle(document.querySelector('.scorecard-total-value')).fontSize
     };
   });
   expect(paint.score).toBe('128');
+  expect(paint.scoreScroll).toBeLessThanOrEqual(paint.scoreClient + 1);
   expect(paint.mark).toMatch(/5/);
   expect(paint.scoreFont).toBe(paint.plainFont);
+  expect(parseFloat(paint.nameFont)).toBeGreaterThanOrEqual(16);
+  expect(parseFloat(paint.totalFont)).toBeGreaterThanOrEqual(28);
   expect(paint.tile).toBe('rgb(232, 227, 218)');
   expect(paint.ordinary).toBe('rgb(232, 227, 218)');
   expect(paint.leader).toBe('rgb(213, 235, 227)');

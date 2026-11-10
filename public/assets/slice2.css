@@ -59,13 +59,13 @@ html.slice2-tv body:not(.active-match-view) .bp-app-shell {
 
 html.slice2-tv body:not(.active-match-view) #top-nav {
   position: sticky;
-  top: calc(var(--bp-demo-offset) + var(--bp-accent-line) + var(--bp-nav-gap)) !important;
+  top: calc(var(--bp-accent-line) + var(--bp-nav-gap)) !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
   border-radius: 28px !important;
   background: #fffaf1 !important;
-  border: 1px solid var(--s2-line) !important;
-  box-shadow: 0 18px 42px -30px rgba(26, 63, 57, 0.72), inset 0 1px 0 #fff !important;
+  border: 1px solid #cfc3b2 !important;
+  box-shadow: 0 10px 24px -8px rgba(20, 49, 46, 0.42), 0 2px 8px rgba(20, 49, 46, 0.14) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   z-index: 50;
@@ -79,10 +79,10 @@ html.slice2-tv body.home-view #top-nav {
 html.slice2-tv body:not(.active-match-view) #top-nav::before {
   content: "";
   position: absolute;
-  left: -100vw;
-  right: -100vw;
-  top: calc(-1 * (var(--bp-demo-offset) + var(--bp-accent-line) + var(--bp-nav-gap)));
-  bottom: -10px;
+  left: -24px;
+  right: -24px;
+  top: calc(-1 * (var(--bp-accent-line) + var(--bp-nav-gap)));
+  bottom: 0;
   background: #f6f1e7;
   pointer-events: none;
   z-index: -1;
@@ -1463,16 +1463,17 @@ html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.ha
   border: 0 !important;
   box-shadow: none !important;
   border-radius: 9px !important;
-  width: calc(100% - 8px) !important;
+  width: 100% !important;
   min-width: 0 !important;
-  max-width: calc(100% - 8px) !important;
+  max-width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
   margin-left: auto !important;
   margin-right: auto !important;
-  padding: 0.28rem 0.4rem 0.32rem !important;
+  padding: 0.28rem 0.22rem 0.32rem !important;
   overflow: visible !important;
+  box-sizing: border-box !important;
 }
 
 html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
