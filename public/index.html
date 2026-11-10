@@ -9385,7 +9385,12 @@ button.dealer-name-indicator .dealer-player-label {
         <button onclick="closeAvatarPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Select Icon</div>
         <h2 class="font-display text-3xl mb-1">Choose Avatar</h2>
-        <p class="text-xs font-bold mb-6" style="color:var(--muted);">Drop square .png files into your app folder to use them.</p>
+        <p class="text-xs font-bold mb-4" style="color:var(--muted);">Use a photo from this device, or pick one below.</p>
+        <label class="btn-primary inline-flex items-center justify-center mb-4 px-5 py-3 font-extrabold cursor-pointer">
+          Use a photo
+          <input id="avatar-photo-input" type="file" accept="image/*,.heic,.heif" class="hidden" onchange="uploadPlayerPhoto(event)">
+        </label>
+        <p id="avatar-photo-status" class="hidden text-sm font-bold mb-4" style="color:var(--rose);" role="status"></p>
         <div id="avatar-grid" class="grid grid-cols-4 sm:grid-cols-5 gap-4 max-h-[55vh] overflow-y-auto p-2 w-full"></div>
       </div>
     </div>
@@ -10187,6 +10192,7 @@ button.dealer-name-indicator .dealer-player-label {
   <script src="./assets/life-preserver-logic.js"></script>
   <script src="./assets/scorebook.js"></script>
   <script src="./assets/records-logic.js"></script>
+  <script src="./assets/avatar-photo.js"></script>
   <script src="./demo/try-demo.js"></script>
   <script>
   /* ══════════════════════════════════════════════════════════
@@ -10216,6 +10222,7 @@ button.dealer-name-indicator .dealer-player-label {
     return h;
   });
   let playerProfiles = safeGetObject('gn_profiles');
+  repairStoredAvatars();
   if(window.BPGScorebook&&typeof BPGScorebook.cleanupCommaJoinedGhosts==='function'){
     const _cleanedNames=BPGScorebook.cleanupCommaJoinedGhosts({allPlayers,players,playerProfiles});
     (_cleanedNames.kept||[]).forEach((name)=>console.warn('Kept a player name that contains commas:', name));
@@ -11231,11 +11238,52 @@ button.dealer-name-indicator .dealer-player-label {
     'silhouette-pelican.png'
   ]);
   function isUploadedPlayerPhoto(file){
+    if(window.BPGAvatarPhoto) return BPGAvatarPhoto.isUploadedPlayerPhoto(file);
     const raw=String(file||'').trim();
     if(!raw) return false;
     if(/^neutral-\d+\.svg$/i.test(raw)) return false;
     if(/^silhouette-[a-z0-9-]+\.png$/i.test(raw)) return false;
     return true;
+  }
+  function repairStoredAvatars(){
+    if(!window.BPGAvatarPhoto || !playerProfiles || typeof playerProfiles!=='object') return;
+    let changed=false;
+    Object.keys(playerProfiles).forEach(name=>{
+      const profile=playerProfiles[name];
+      if(!profile || typeof profile!=='object') return;
+      if(BPGAvatarPhoto.isBrokenAvatarRef(profile.avatar)){
+        profile.avatar='';
+        changed=true;
+      }
+    });
+    if(!changed) return;
+    try{ localStorage.setItem(gnKey('gn_profiles'), JSON.stringify(playerProfiles)); }catch(e){}
+  }
+  function showAvatarPhotoStatus(message){
+    const note=document.getElementById('avatar-photo-status');
+    if(!note) return;
+    note.textContent=message||'';
+    note.classList.toggle('hidden', !message);
+  }
+  function commitPlayerAvatar(name, next){
+    if(!name) return false;
+    if(!playerProfiles[name]) playerProfiles[name]={};
+    const previous=playerProfiles[name].avatar||'';
+    const value=next||'';
+    if(previous===value) return true;
+    playerProfiles[name].avatar=value;
+    try{
+      const json=JSON.stringify(playerProfiles);
+      localStorage.setItem(gnKey('gn_profiles'), json);
+      if(typeof _lastPersistedState==='object' && _lastPersistedState) _lastPersistedState.gn_profiles=json;
+      return true;
+    }catch(error){
+      playerProfiles[name].avatar=previous;
+      const message='That photo could not be saved on this device. The current picture stayed.';
+      showAvatarPhotoStatus(message);
+      toast(message, 'warning');
+      return false;
+    }
   }
   function placeholderSilhouetteFor(name){
     const seated=(typeof players!=='undefined'&&Array.isArray(players)?players:[]).filter(Boolean);
@@ -11253,8 +11301,10 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function getAvatarSrc(name){
     const f = playerProfiles[name]?.avatar || '';
-    if(isUploadedPlayerPhoto(f)) return `./avatars/${f}`;
-    return getAvatarFallback(name);
+    const fb = getAvatarFallback(name);
+    if(window.BPGAvatarPhoto) return BPGAvatarPhoto.avatarSrc(f, fb);
+    if(isUploadedPlayerPhoto(f) && !/^data:/i.test(f) && !/^blob:/i.test(f)) return `./avatars/${f}`;
+    return fb;
   }
   function getAvatarImg(name,cls){
     const fb=getAvatarFallback(name);
@@ -12663,7 +12713,10 @@ button.dealer-name-indicator .dealer-player-label {
     const summary=getProfileSummary(name, profileGameScope());
     document.getElementById('detail-name').textContent=name;
     const fb=getAvatarFallback(name);
-    const av=document.getElementById('detail-avatar'); av.src=getAvatarSrc(name); av.onerror=()=>av.src=fb;
+    const av=document.getElementById('detail-avatar');
+    av.dataset.fb=fb;
+    av.onerror=function(){ if(this.getAttribute('src')!==fb){ this.onerror=null; this.src=fb; } };
+    av.src=getAvatarSrc(name);
     av.className=`avatar-img-lg ${getColorRingClass(name)}`;
     const stamp=document.getElementById('detail-passport-stamp');
     if(stamp){
@@ -12837,13 +12890,35 @@ button.dealer-name-indicator .dealer-player-label {
   function selectAvatar(f){
     const editedName=editingPlayerProfile;
     const detailWasOpen=!document.getElementById('profile-detail-view')?.classList.contains('hidden');
-    if(!playerProfiles[editingPlayerProfile])playerProfiles[editingPlayerProfile]={};
-    playerProfiles[editingPlayerProfile].avatar=f;
-    saveData({ fullPersist: true, syncCold: true });
+    showAvatarPhotoStatus('');
+    if(!commitPlayerAvatar(editedName, f||'')) return;
     closeAvatarPicker();
     renderProfilesGrid();
     if(detailWasOpen&&editedName)openProfileDetail(editedName);
     if(currentGame)scheduleRender();
+    if(window.BPGSlice2&&typeof BPGSlice2.refresh==='function') BPGSlice2.refresh('home');
+  }
+  async function uploadPlayerPhoto(event){
+    const input=event&&event.target;
+    const file=input&&input.files&&input.files[0];
+    if(input) input.value='';
+    const name=editingPlayerProfile;
+    if(!name||!file) return;
+    showAvatarPhotoStatus('');
+    const prepared=window.BPGAvatarPhoto
+      ? await BPGAvatarPhoto.prepareAvatarPhoto(file)
+      : {ok:false, message:'That photo could not be read. Try a JPEG or PNG.'};
+    if(!prepared.ok){
+      showAvatarPhotoStatus(prepared.message||'That photo could not be read. Try a JPEG or PNG.');
+      toast(prepared.message||'That photo could not be read. Try a JPEG or PNG.', 'warning');
+      return;
+    }
+    if(!commitPlayerAvatar(name, prepared.data)) return;
+    closeAvatarPicker();
+    renderProfilesGrid();
+    openProfileDetail(name);
+    if(currentGame)scheduleRender();
+    if(window.BPGSlice2&&typeof BPGSlice2.refresh==='function') BPGSlice2.refresh('home');
   }
 
   // ── Color Picker ──
@@ -13696,7 +13771,8 @@ button.dealer-name-indicator .dealer-player-label {
     if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
     if(name==='Hand and Foot'&&(players.length<2||players.length>6)){alert('Hand and Foot needs 2, 3, 4, 5, or 6 players.');return;}
     if(currentGame){
-      if(!confirm('The match on the table will be saved as incomplete. Start this new game anyway?'))return;
+      const told=window.BPGSlice2&&typeof BPGSlice2.takeAnotherParkOk==='function'&&BPGSlice2.takeAnotherParkOk();
+      if(!told&&!confirm('The match on the table will be saved as incomplete. Start this new game anyway?'))return;
       const parked=parkActiveMatch();
       currentGame=null;
       if(name==='Hand and Foot') _handFootCancelSnapshotId=parked?.id||null;
@@ -16764,10 +16840,9 @@ ${isDealer
 
     syncCurrentLifePreserverHolds({gameOver:over});
 
-    let sortedP = currentGame.currentRound===1
-      ? [...gamePlayers]
-      : [...gamePlayers].sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
-    const places = currentGame.currentRound===1 ? null : competitionPlaces(sortedP, currentGame.totals);
+    const standing = BPGScorebook.scoreboardStandings(currentGame, gamePlayers);
+    let sortedP = standing.ordered;
+    const places = standing.ranked ? standing.places : null;
 
     const leaderScore = sortedP.length ? currentGame.totals[sortedP[0]] : (cfg.winLow?Infinity:-Infinity);
     let hi=-Infinity,lo=Infinity;

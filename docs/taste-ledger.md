@@ -30,7 +30,10 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
-- Desktop Home is three 5:7 game cards per row. Tonight's Table and Start a New Match each fit their own content. Seats stay compact. Start sits under the cards. A gap below the shorter panel is fine.
+- On a landscape iPad or laptop, Tonight's Table and Start a New Match share the height under the nav. Game art grows at 5:7. A short list stays capped. A long list scrolls inside the card. Phone, portrait, and an open keyboard still scroll the page.
+- While a match is on the table, Home shows the live standings beside the game cards. Start asks before it parks the live match as unfinished.
+- Home does not keep a Recent nights list. An unfinished match shows as Resume unfinished, and View all lists the rest.
+- A photo the player sets is shrunk before it is saved, in the demo and in real games. A photo that cannot be saved leaves the previous portrait in place.
 - Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
 - Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
 - A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
@@ -39,7 +42,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
 - `?demo=try` is a separate in-app sample. It uses `bpg_demo_*` and never writes `gn_*`.
 - Try a demo on the empty table is an outlined secondary with a one-line "data stays separate" note. Start stays the only primary. In the sample, the chip says sample data, not Saved on this device.
-- Try a demo uses a fictional porch (Nora, Owen, Priya, and the rest). Stored demo avatars stay empty. The app paints teal card silhouettes at render, never the QA character faces.
+- Try a demo uses a fictional porch (Nora, Owen, Priya, and the rest). The sample starts on silhouettes, never the QA character faces. A photo the player sets stays in the demo store and still shows.
 - iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
 - Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
 - Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
@@ -87,7 +90,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - "Saved on this device" while Try a demo is on.
-- Porch names or character avatar images inside Try a demo.
+- Porch names, or the sample cast shipping with character portraits. A picture the player chooses in the demo stays on that sample only.
 - `1 nights` on a single saved night.
 - iPad score entry rows collapsed into one overlapping strip.
 - 80px names and 120px avatars eating the round columns on a 4-seat TV card.

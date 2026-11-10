@@ -13,9 +13,10 @@ function hidden(page, id) {
 const VIEW_ASSERT = {
   home: async (page) => {
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
-    await expect(page.locator('#slice2-home')).toContainText(/Tonight's Table/);
+    await expect(page.locator('#slice2-home')).toContainText(/Current standings/);
     await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
-    await expect(page.locator('#slice2-home')).toContainText(/Recent nights/);
+    await expect(page.locator('#slice2-home .s2-home-start')).toBeVisible();
+    await expect(page.locator('#slice2-home')).not.toContainText(/Recent nights/);
     await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
   },
   'active-match': async (page) => {

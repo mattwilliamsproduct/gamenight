@@ -820,6 +820,37 @@
     return name === 'Five Crowns' || name === 'Beat the Heat';
   }
 
+  // The live scoreboard and Home standings both call this. Round 1 stays in
+  // roster order with no places. After that, order is the scoreboard sort
+  // (win direction, stable ties) and places are dense. A later ruleset can
+  // take over by defining matchStandings and lifePreserverWinRuleActive in
+  // this file. This does not reorder seats or the dealer.
+  function scoreboardStandings(game, players) {
+    const list = (Array.isArray(players) ? players : []).filter(Boolean);
+    const round = Number(game && game.currentRound) || 1;
+    if (round > 1
+      && typeof matchStandings === 'function'
+      && typeof lifePreserverWinRuleActive === 'function'
+      && lifePreserverWinRuleActive(game)) {
+      const standing = matchStandings(game);
+      const wanted = new Set(list);
+      const ordered = (standing.ordered || []).filter((player) => wanted.has(player));
+      list.forEach((player) => {
+        if (!ordered.includes(player)) ordered.push(player);
+      });
+      return { ordered, places: standing.places || {}, ranked: true };
+    }
+    if (round <= 1) return { ordered: list.slice(), places: null, ranked: false };
+    const low = lowScoreWins(game);
+    const totals = (game && game.totals) || {};
+    const ordered = list.slice().sort((a, b) => (
+      low
+        ? (Number(totals[a]) || 0) - (Number(totals[b]) || 0)
+        : (Number(totals[b]) || 0) - (Number(totals[a]) || 0)
+    ));
+    return { ordered, places: competitionPlaces(ordered, totals), ranked: true };
+  }
+
   function beatTheHeatLine(game) {
     const line = Number(game && game.endScore);
     return Number.isFinite(line) && line > 0 ? line : 66;
@@ -1110,6 +1141,7 @@
     isCommaJoinedGhost,
     cleanupCommaJoinedGhosts,
     competitionPlaces,
+    scoreboardStandings,
     isScoringRound,
     scoringRoundCount,
     lifePreserverFollowing,

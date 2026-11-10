@@ -50,7 +50,10 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.match(css, /min-width:\s*1280px/);
   assert.match(css, /repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(css, /min-width:\s*1280px\) \{[\s\S]*?\.s2-home-grid \{\s*align-items:\s*start/);
-  assert.doesNotMatch(css, /margin-top:\s*auto/);
+  const landscapeAt = css.indexOf('orientation: landscape');
+  assert.ok(landscapeAt > 0, 'landscape dashboard block missing');
+  assert.doesNotMatch(css.slice(0, landscapeAt), /margin-top:\s*auto/);
+  assert.match(css.slice(landscapeAt), /margin-top:\s*auto/);
   assert.match(css, /min-width:\s*1440px/);
   assert.match(css, /minmax\(348px,\s*360px\)/);
   assert.match(css, /\.s2-card-frame/);

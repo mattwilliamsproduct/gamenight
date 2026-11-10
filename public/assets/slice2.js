@@ -42,6 +42,9 @@
   let wired = false;
   let seatPointer = null;
   let seatGrab = null;
+  let anotherStep = null;
+  let anotherParkOk = false;
+  let unfinishedOpen = false;
 
   function state() {
     return slice2TableState();
@@ -64,13 +67,79 @@
     return table.players[0] || '';
   }
 
+  function liveRoundLabel(game) {
+    const maxR = getMaxRoundsForGame(game);
+    const round = shownRound(game, maxR);
+    if (maxR && maxR < 900) return `Round ${round} of ${maxR}`;
+    return `Round ${round}`;
+  }
+
+  function anotherMatchCopy(game) {
+    const name = displayGameName(game && game.name);
+    return `${name} (${liveRoundLabel(game)}) will be saved as unfinished. You can resume it later.`;
+  }
+
+  function historyAsGame(match) {
+    return {
+      name: (match && (match.game || match.name)) || '',
+      currentRound: match && match.currentRound,
+      maxRounds: match && match.maxRounds,
+      originalRoster: (match && match.originalRoster) || []
+    };
+  }
+
+  function unfinishedMatches(history) {
+    return (history || [])
+      .filter((match) => window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match))
+      .slice()
+      .sort((a, b) => (Number(b && b.id) || 0) - (Number(a && a.id) || 0));
+  }
+
+  function clearAnotherMatch() {
+    anotherStep = null;
+    anotherParkOk = false;
+  }
+
+  function takeAnotherParkOk() {
+    const ok = anotherParkOk;
+    if (ok) clearAnotherMatch();
+    return ok;
+  }
+
+  function standingRows(game) {
+    const roster = (typeof getRecordedPlayers === 'function' ? getRecordedPlayers(game) : getActivePlayers(game)).slice();
+    const standing = window.BPGScorebook.scoreboardStandings(game, roster);
+    const dealer = getCurrentDealerName(game);
+    return standing.ordered.map((player) => {
+      const place = standing.ranked ? standing.places[player] : null;
+      const label = place ? homePlaceLabel(place) : '';
+      const tone = place === 1 ? ' is-place-1' : place === 2 ? ' is-place-2' : place === 3 ? ' is-place-3' : (place ? ' is-place-rest' : '');
+      const score = Number(game.totals && game.totals[player]) || 0;
+      const isDealer = player === dealer;
+      const badge = label
+        ? `<span class="scoreboard-rank-badge${tone}">${escapeHtml(label)}</span>`
+        : '<span class="s2-standing-unranked" aria-hidden="true"></span>';
+      const dealerTag = isDealer
+        ? '<span class="s2-dealer-tag">Dealer</span>'
+        : '<span class="s2-dealer-tag s2-dealer-tag-empty" aria-hidden="true"></span>';
+      const spoken = [label, player, String(score), isDealer ? 'dealer' : ''].filter(Boolean).join(', ');
+      return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
+        ${badge}
+        ${getStreakAvatarHtml(player, 'avatar-img')}
+        <span class="s2-seat-name">${escapeHtml(player)}</span>
+        ${dealerTag}
+        <span class="s2-standing-score">${escapeHtml(String(score))}</span>
+      </button>`;
+    }).join('');
+  }
+
   function leaderBit(game) {
-    if (!game || (game.currentRound || 1) <= 1) return '';
-    const table = getActivePlayers(game);
-    if (!table.length) return '';
-    const low = window.BPGGames ? BPGGames.winLow(game.name) : (game.name === 'Five Crowns' || game.name === 'Beat the Heat');
-    const sorted = [...table].sort((a, b) => low ? (game.totals[a] || 0) - (game.totals[b] || 0) : (game.totals[b] || 0) - (game.totals[a] || 0));
-    const name = sorted[0];
+    if (!game || (game.currentRound || 1) <= 1 || !window.BPGScorebook) return '';
+    const roster = typeof getRecordedPlayers === 'function' ? getRecordedPlayers(game) : getActivePlayers(game);
+    if (!roster.length) return '';
+    const standing = BPGScorebook.scoreboardStandings(game, roster);
+    if (!standing.ranked || !standing.ordered.length) return '';
+    const name = standing.ordered[0];
     return `Leader: ${name} (${game.totals[name] || 0} pts)`;
   }
 
@@ -286,12 +355,14 @@
       home.appendChild(root);
     }
     const table = state();
+    if (!table.currentGame) clearAnotherMatch();
     const dealer = dealerOf(table);
     const picker = registryGames();
     if (!picker.some((game) => game.id === selected)) selected = picker[0]?.id || 'Five Crowns';
     const meta = gameMeta(selected);
     const seated = table.players.length;
     const bench = table.allPlayers.filter((player) => !table.players.includes(player));
+    const open = unfinishedMatches(table.history);
     const banner = table.currentGame ? (() => {
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
@@ -308,7 +379,31 @@
           <button type="button" class="s2-btn s2-btn-primary" data-s2-action="resume">Resume</button>
         </div>
       </section>`;
-    })() : '';
+    })() : (open.length ? (() => {
+      const top = open[0];
+      const label = displayGameName(top.game || top.name);
+      const round = liveRoundLabel(historyAsGame(top));
+      const more = open.length > 1;
+      const list = unfinishedOpen && more
+        ? `<div class="s2-unfinished-list">${open.slice(1).map((match) => {
+            const name = displayGameName(match.game || match.name);
+            return `<div class="s2-unfinished-row">
+              <span>${escapeHtml(name)} · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}</span>
+              <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
+            </div>`;
+          }).join('')}</div>`
+        : '';
+      return `<section class="s2-banner s2-unfinished-banner">
+        <div>
+          <div class="s2-kicker">Unfinished</div>
+          <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
+        </div>
+        <div class="s2-banner-actions">
+          ${more ? '<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all</button>' : ''}
+          <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}">Resume</button>
+        </div>
+      </section>${list}`;
+    })() : '');
     const seats = table.players.map((player, index) => {
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
       return `<article class="s2-seat" data-s2-index="${index}" data-s2-player="${escapeHtml(player)}">
@@ -339,29 +434,6 @@
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
-      </button>`;
-    }).join('');
-    const recentNights = (window.BPGRecords && typeof BPGRecords.sortNights === 'function')
-      ? BPGRecords.sortNights(table.history)
-      : (table.history || []).slice().sort((a, b) => {
-          const da = Date.parse(a && a.date) || 0;
-          const db = Date.parse(b && b.date) || 0;
-          if (db !== da) return db - da;
-          return (Number(b && b.id) || 0) - (Number(a && a.id) || 0);
-        });
-    const nights = recentNights.slice(0, 4).map((match) => {
-      const winners = (match.winners || []).filter(Boolean);
-      const winner = winners[0] || 'Tied';
-      const label = displayGameName(match.game);
-      const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const who = incomplete ? 'Incomplete' : (winners.length > 1 ? 'Tied' : (winner || ''));
-      return `<button type="button" class="s2-night${incomplete ? ' is-incomplete' : ''}${!incomplete && winners.length > 1 ? ' is-tied' : ''}" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
-        <span class="s2-night-copy">
-          <strong>${escapeHtml(label)}</strong>
-          <span class="s2-night-date">${escapeHtml(match.date || '')}</span>
-          <span class="s2-night-who">${escapeHtml(who)}</span>
-        </span>
-        ${incomplete ? '<span class="s2-night-incomplete-note">No finishers yet</span>' : nightPodiumMarkup(match)}
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
@@ -406,8 +478,30 @@
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game">Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
-    const nightsBlock = nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : '';
-    root.innerHTML = `${banner}<div class="s2-home-grid">${tableBlock}${startBlock}</div>${nightsBlock}`;
+    const live = table.currentGame;
+    const standings = live ? `<section class="s2-panel s2-home-table s2-home-standings" ${anotherStep === 'confirm' ? '' : 'data-s2-action="resume"'} aria-label="Current standings">
+          <div class="s2-panel-head">
+            <div>
+              <h2>Current standings</h2>
+              <p class="s2-sub">${escapeHtml(displayGameName(live.name))} · ${escapeHtml(liveRoundLabel(live))}</p>
+            </div>
+          </div>
+          <div class="s2-standings">${standingRows(live)}</div>
+        </section>` : '';
+    const ask = live && anotherStep === 'confirm'
+      ? `<div class="s2-another-layer" data-s2-action="another-cancel">
+          <section class="s2-panel s2-another-ask" role="dialog" aria-labelledby="s2-another-title">
+            <h2 id="s2-another-title">Start another match?</h2>
+            <p>${escapeHtml(anotherMatchCopy(live))}</p>
+            <div class="s2-another-actions">
+              <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="another-cancel">Cancel</button>
+              <button type="button" class="s2-btn s2-btn-primary" data-s2-action="another-confirm">Save and start</button>
+            </div>
+          </section>
+        </div>`
+      : '';
+    const left = live ? standings : tableBlock;
+    root.innerHTML = `${banner}<div class="s2-home-grid">${left}${startBlock}</div>${ask}`;
     restoreSeatGrab(root);
     parkSaveIndicator();
   }
@@ -1069,8 +1163,24 @@
     } else if (action === 'pick-game') {
       selected = target.dataset.s2Game || selected;
       paintHome();
-    } else if (action === 'start-game') {
+    } else if (action === 'another-cancel') {
+      if (target.closest('.s2-another-ask') && target.dataset.s2Action !== 'another-cancel') return;
+      clearAnotherMatch();
+      paintHome();
+    } else if (action === 'another-confirm') {
+      anotherParkOk = true;
+      anotherStep = null;
       startGame(selected);
+    } else if (action === 'start-game') {
+      if (state().currentGame && !anotherParkOk) {
+        anotherStep = 'confirm';
+        paintHome();
+      } else {
+        startGame(selected);
+      }
+    } else if (action === 'unfinished-all') {
+      unfinishedOpen = !unfinishedOpen;
+      paintHome();
     } else if (action === 'resume' || action === 'scorecard') {
       goActiveMatch();
     } else if (action === 'night-open' || action === 'night-scorecard') {
@@ -1222,6 +1332,7 @@
       });
     }
     window.addEventListener('resize', () => {
+      syncHomeChrome();
       syncPhoneBoardViewport();
       if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
@@ -1230,6 +1341,7 @@
     });
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
+        syncHomeChrome();
         syncPhoneBoardViewport();
         if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       });
@@ -1265,9 +1377,25 @@
     }
   }
 
+  function syncHomeChrome() {
+    const root = document.documentElement;
+    const nav = document.getElementById('top-nav');
+    const navH = nav ? Math.ceil(nav.getBoundingClientRect().height) : 72;
+    root.style.setProperty('--bp-nav-offset', `${navH}px`);
+    const home = document.getElementById('home-screen');
+    if (home) {
+      const top = Math.max(0, Math.round(home.getBoundingClientRect().top));
+      root.style.setProperty('--bp-home-top', `${top}px`);
+    }
+    const vv = window.visualViewport;
+    const keyboard = !!(vv && window.innerHeight - vv.height > 140);
+    root.dataset.bpKb = keyboard ? '1' : '0';
+  }
+
   function refresh(which) {
     wire();
     syncPhoneBoardViewport();
+    syncHomeChrome();
     const all = !which || which === 'all';
     try { if (all || which === 'home' || which === 'game' || which === 'records') paintNav(); } catch (error) { console.error(error); }
     try { if (all || which === 'home') paintHome(); } catch (error) { console.error(error); }
@@ -1316,6 +1444,7 @@
 
   window.BPGSlice2 = {
     refresh,
+    takeAnotherParkOk,
     syncPhoneBoardViewport,
     paintWheel,
     parkSaveIndicator,

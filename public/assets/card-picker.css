@@ -364,3 +364,99 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   line-height: 1.2;
   pointer-events: none;
 }
+
+/* Landscape dashboard: both panels fill the home screen. Art grows at 5:7.
+   Phone, portrait, short screens, and an open keyboard keep their own height. */
+@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home {
+    height: calc(100dvh - var(--bp-home-top, 96px) - 8px);
+    max-height: calc(100dvh - var(--bp-home-top, 96px) - 8px);
+    min-height: 0;
+    box-sizing: border-box;
+    padding-bottom: 8px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid {
+    flex: 1 1 auto;
+    align-items: stretch;
+    height: auto;
+    min-height: 0;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start {
+    align-self: stretch;
+    height: 100%;
+    max-height: none;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-panel-head,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-panel-head,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-deck,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-add,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-startbar {
+    flex: 0 0 auto;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-seat-grid,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standings {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    align-content: start;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-seat-grid,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standings {
+    gap: 4px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start {
+    padding: 12px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-seat,
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standing {
+    max-height: 52px;
+    min-height: 44px;
+    padding: 2px 8px;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    align-content: stretch;
+    justify-content: stretch;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game {
+    height: 100% !important;
+    max-width: none;
+    width: 100%;
+    align-self: stretch;
+    justify-self: stretch;
+    justify-content: center;
+    container-type: size;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
+    width: min(100cqw, calc(100cqh * 5 / 7));
+    max-width: none;
+    height: auto !important;
+    margin-inline: auto;
+    aspect-ratio: 5 / 7;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-startbar {
+    margin-top: auto;
+  }
+}

@@ -643,6 +643,113 @@ html.slice2-tv .s2-dealer-tag {
   text-transform: uppercase;
 }
 
+html.slice2-tv .s2-btn-quiet {
+  background: transparent;
+  color: var(--s2-teal-deep);
+  border-color: var(--s2-line);
+}
+
+html.slice2-tv .s2-home-standings .s2-panel-head {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+html.slice2-tv .s2-standings {
+  display: grid;
+  gap: 8px;
+}
+
+html.slice2-tv .s2-standing {
+  display: grid;
+  grid-template-columns: auto 44px minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--s2-line);
+  background: #fffaf4;
+  color: var(--s2-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+html.slice2-tv .s2-standing .avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+html.slice2-tv .s2-dealer-tag-empty {
+  visibility: hidden;
+}
+
+html.slice2-tv .s2-standing-score {
+  min-width: 2.5rem;
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+html.slice2-tv .s2-another-ask p {
+  margin: 0 0 14px;
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+html.slice2-tv .s2-another-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 49, 46, 0.35);
+}
+
+html.slice2-tv .s2-another-ask {
+  width: min(32rem, 100%);
+  margin: 0;
+}
+
+html.slice2-tv .s2-another-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+html.slice2-tv .s2-unfinished-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -4px;
+}
+
+html.slice2-tv .s2-unfinished-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid var(--s2-line);
+  border-radius: 16px;
+  background: var(--s2-card);
+  color: var(--s2-ink);
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+}
+
 html.slice2-tv .s2-seat-actions {
   display: none;
 }
@@ -652,6 +759,10 @@ html.slice2-tv .s2-deck {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 16px;
+}
+
+html.slice2-tv .s2-deck:empty {
+  display: none;
 }
 
 html.slice2-tv .s2-chip {

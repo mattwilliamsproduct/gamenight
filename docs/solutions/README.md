@@ -50,6 +50,10 @@ Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights po
 
 Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
 
+Standing trap: [home-live-standings.md](home-live-standings.md) — landscape Home fills under the nav. Live standings use `scoreboardStandings` and do not sort the seats. Start confirms before `parkActiveMatch`. Unfinished nights resume from the banner, not a Home history list.
+
+Standing trap: [avatar-photo.md](avatar-photo.md) — uploads are shrunk to a JPEG data URL before `gn_profiles` or `bpg_demo_profiles`. A failed save keeps the previous portrait. A broken ref shows the silhouette.
+
 Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook stays hidden. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
 
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
