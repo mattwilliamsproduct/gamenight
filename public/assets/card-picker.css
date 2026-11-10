@@ -443,9 +443,10 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-seat,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standing {
-    max-height: 52px;
-    min-height: 44px;
-    padding: 2px 8px;
+    max-height: none;
+    min-height: 64px;
+    padding: 6px 8px;
+    overflow: visible;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-grid {

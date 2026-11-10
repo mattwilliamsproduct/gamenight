@@ -62,7 +62,8 @@ test('demo walkthrough: start, score, correct, end, resume, records', async ({pa
     return last && Number(last.scores[name]) === 9;
   }, roster[0]);
 
-  await page.locator('.match-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-menu .match-end-btn').click();
   await expect(page.locator('#end-match-modal')).not.toHaveClass(/hidden/);
   const confirmCopy = await page.locator('#end-match-copy').innerText();
   report.endConfirm = /saves the night to Records/i.test(confirmCopy) && /Wins and games count/i.test(confirmCopy);

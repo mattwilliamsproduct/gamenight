@@ -1462,7 +1462,7 @@
       border: 1.5px solid transparent;
       border-radius: 10px;
       box-sizing: border-box;
-      overflow: hidden;
+      overflow: visible;
     }
     .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.score-cell-miss) {
       border-color: rgba(225,29,72,0.78);
@@ -1484,8 +1484,8 @@
       height: auto !important;
       min-height: 0 !important;
       margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1 !important;
+      padding: 0.05rem 0 !important;
+      line-height: 1.15 !important;
     }
     .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input.score-cell-miss,
     .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input.score-cell-active {
@@ -3315,7 +3315,11 @@ button.dealer-name-indicator {
         top: auto;
         flex: 0 0 auto;
         z-index: 40;
-        background: #f6f1e7 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 28px !important;
+        background: #fffaf1 !important;
+        box-shadow: 0 18px 42px -30px rgba(26, 63, 57, 0.72), inset 0 1px 0 #fff !important;
       }
       body.home-view #home-screen {
         flex: 1 1 auto;
@@ -3514,23 +3518,26 @@ button.dealer-name-indicator {
         line-height: 1 !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack:is(.has-comeback, .has-life-preserver) {
-        width: clamp(3rem, 4vw, 4rem);
-        min-height: var(--scorecard-input-height);
-        height: var(--scorecard-input-height);
-        padding-top: 0.08rem;
-        padding-bottom: 0.08rem;
+        width: auto;
+        min-width: 2.7rem;
+        max-width: 100%;
+        min-height: 0;
+        height: auto;
+        max-height: none;
+        padding: 0.28rem 0.36rem 0.32rem;
+        overflow: visible;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input {
         height: auto !important;
         min-height: 0 !important;
         width: 100% !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        font-size: var(--scorecard-col-input-font, max(16px, calc(var(--scorecard-input-font) * 0.78))) !important;
+        padding: 0.04rem 0 !important;
+        line-height: 1.15 !important;
+        font-size: var(--scorecard-col-input-font, var(--scorecard-input-font)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-comeback,
       body.active-match-view #scorecard-capture.scorecard-fit-rows .score-cell-life-preserver {
-        font-size: max(14px, calc(var(--scorecard-input-font) * 0.66)) !important;
+        font-size: max(14px, calc(var(--scorecard-col-input-font, var(--scorecard-input-font)) * 0.66)) !important;
       }
       body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-round-td .tv-round-cell-num {
         font-size: var(--scorecard-round-font) !important;
@@ -9216,9 +9223,15 @@ button.dealer-name-indicator .dealer-player-label {
                   <span>Scratch Match</span>
                 </button>
               </div>
+              <div class="actions-menu-section">
+                <span class="actions-menu-label">End the night</span>
+                <button type="button" id="actions-save-end" onclick="requestEndGame();closeActionsMenu();" class="actions-menu-item match-end-btn">
+                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg></span>
+                  <span>Save &amp; End</span>
+                </button>
+              </div>
             </div>
           </div>
-          <button type="button" onclick="requestEndGame()" class="btn-ghost match-end-btn px-4 py-2.5 text-sm">Save &amp; End</button>
         </div>
       </div>
 
@@ -11192,7 +11205,7 @@ button.dealer-name-indicator .dealer-player-label {
     closeNumpad();
     clearToasts();
   }
-  function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
+  function goHome(){ gnPerfAction('clicked Home'); navigateTo('home-screen'); updateNavButton(); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);} }
   function leaveMatchToTable(){
     gnPerfAction('clicked Table');
     if(typeof closeActionsMenu==='function') closeActionsMenu();
@@ -13766,10 +13779,9 @@ button.dealer-name-indicator .dealer-player-label {
 
   function startGame(name){
     if(!players.length){alert('Add players to the Lineup first!');return;}
+    const seatLimit=window.BPGGames&&typeof BPGGames.seatLimit==='function'?BPGGames.seatLimit(name, players.length):{ok:true};
+    if(!seatLimit.ok) return;
     warmCelebrationAssets();
-    if(name==='Rook'&&players.length<4){alert('Rook needs at least 4 players for call-your-partner scoring. Add a few more players to the Lineup first.');return;}
-    if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
-    if(name==='Hand and Foot'&&(players.length<2||players.length>6)){alert('Hand and Foot needs 2, 3, 4, 5, or 6 players.');return;}
     if(currentGame){
       const told=window.BPGSlice2&&typeof BPGSlice2.takeAnotherParkOk==='function'&&BPGSlice2.takeAnotherParkOk();
       if(!told&&!confirm('The match on the table will be saved as incomplete. Start this new game anyway?'))return;
@@ -16283,6 +16295,7 @@ ${isDealer
     for(let pass=0;pass<6;pass++){
       let overflowed=false;
       inputs.forEach((el)=>{
+        if(el.closest('.has-life-preserver, .has-comeback')) return;
         if(el.clientWidth<=0||el.scrollWidth<=el.clientWidth+1) return;
         overflowed=true;
         const maximum=parseFloat(getComputedStyle(el).fontSize)||16;
@@ -16993,13 +17006,14 @@ ${isDealer
         const hfParts=isHandFootGame(currentGame)?handFootColumnParts(currentGame, r, p):null;
         const hfTitle=hfParts?` title="${handFootPartsTitle(hfParts)}"`:'';
         const shown=isHandFootGame(currentGame)?handFootColumnScore(currentGame, r, p):shownRoundScore(r.scores, p);
+        const entered=shown!==''&&shown!==undefined&&shown!==null;
         const cellId=isHandFootGame(currentGame)?`score-past-${rIdx}-${rookElementId(p)}`:`score-past-${rIdx}-${p}`;
         const cellClick=isHandFootGame(currentGame)?`openHandFootRoundEditor('${escapeJsString(p)}',${rIdx})`:`openPastScoreCell('${escapeJsString(p)}',${rIdx})`;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td${exactTdClass}">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="${cellId}" size="2" readonly inputmode="none" unselectable="on"
             onclick="${cellClick}" value="${shown!==undefined&&shown!==null?shown:''}"
-            class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
+            class="score-cell-input${entered?' is-entered':''}${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
 
           ${extra.html}
           </div>

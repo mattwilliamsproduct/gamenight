@@ -225,16 +225,13 @@
 
   function enterLabel(game) {
     const round = game.currentRound;
-    if (phoneScoreboard()) {
-      if (isMatchOver(game)) return 'Match complete';
-      if (isBidTrickGame(game)) return getBidTrickPhase(game) === 'bidding' ? 'Enter Bids' : 'Enter Tricks';
-      return 'Enter Score';
-    }
     if (isMatchOver(game)) return 'Match complete';
-    if (game.name === 'Rook') return `Enter Round ${round}`;
-    if (isBidTrickGame(game)) return getBidTrickPhase(game) === 'bidding' ? `Enter Round ${round} Bids` : `Enter Round ${round} Tricks`;
-    if (game.name === 'Beat the Heat') return `Enter Round ${round} Heat`;
-    return `Enter Round ${round} Scores`;
+    if (isBidTrickGame(game)) {
+      const bidding = getBidTrickPhase(game) === 'bidding';
+      if (phoneScoreboard()) return bidding ? 'Enter Bids' : 'Enter Tricks';
+      return bidding ? `Enter Round ${round} Bids` : `Enter Round ${round} Tricks`;
+    }
+    return 'Enter Scores';
   }
 
   function eligibleLifePreserverPlayers() {
@@ -257,6 +254,8 @@
 
   function boardBarMarkup() {
     return `<div class="s2-board-identity">
+        <img class="s2-board-mark" src="./assets/logo/back-porch-wordmark.png" alt="Back Porch Games" width="320" height="113">
+        <span class="s2-board-rule" aria-hidden="true"></span>
         <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">Home</button>
         <div class="s2-board-copy">
           <div class="s2-board-title-row">
@@ -280,7 +279,7 @@
       table.title = 'Leave the scorecard and go Home. The match stays on Resume.';
       table.setAttribute('aria-label', 'Home. Leaves the scorecard without ending the match.');
     }
-    const endBtn = document.querySelector('#game-screen .match-end-btn');
+    const endBtn = document.querySelector('#actions-menu .match-end-btn');
     if (endBtn) {
       endBtn.title = 'Save the standings to Records and clear the live table.';
     }
@@ -291,10 +290,10 @@
     if (!actions) return;
     const menuWrap = document.querySelector('#game-screen .active-match-actions');
     if (menuWrap && menuWrap.parentElement !== actions) actions.appendChild(menuWrap);
-    if (endBtn && endBtn.parentElement !== actions) actions.appendChild(endBtn);
   }
 
   function paintNav() {
+    if (typeof updateNavButton === 'function') updateNavButton();
     const table = state();
     const row = document.querySelector('#top-nav > div');
     const actions = row?.children?.[1];
@@ -459,6 +458,12 @@
           </form>
           <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
+    const limit = window.BPGGames && typeof BPGGames.seatLimit === 'function'
+      ? BPGGames.seatLimit(selected, seated)
+      : { ok: true, message: '' };
+    const startSummary = limit.ok
+      ? `${meta.title} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
+      : limit.message;
     const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
@@ -474,8 +479,8 @@
           </div>
           <div class="s2-game-grid">${cards}</div>
           <div class="s2-startbar">
-            <p id="slice2-start-summary">${escapeHtml(meta.title)} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${escapeHtml(meta.detail(seated))}</p>
-            <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game">Start ${escapeHtml(meta.title)}</button>
+            <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
+            <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
     const live = table.currentGame;
@@ -685,7 +690,9 @@
         : '';
     }
     if (enter) {
-      enter.textContent = enterLabel(currentGame);
+      const label = enterLabel(currentGame);
+      enter.textContent = label;
+      enter.setAttribute('aria-label', label);
       enter.disabled = !!isMatchOver(currentGame);
     }
     const eligible = eligibleLifePreserverPlayers();
@@ -1387,6 +1394,14 @@
       const shellTop = Math.max(0, Math.round(shell.getBoundingClientRect().top));
       root.style.setProperty('--bp-shell-top', `${shellTop}px`);
     }
+    const demoBar = document.getElementById('bpg-try-demo-bar');
+    const demoTip = document.getElementById('bpg-try-demo-tip');
+    let demoOffset = 0;
+    if (demoBar) demoOffset += Math.ceil(demoBar.getBoundingClientRect().height);
+    if (demoTip && !demoTip.hidden && getComputedStyle(demoTip).display !== 'none') {
+      demoOffset += Math.ceil(demoTip.getBoundingClientRect().height);
+    }
+    root.style.setProperty('--bp-demo-offset', `${demoOffset}px`);
     const vv = window.visualViewport;
     const keyboard = !!(vv && window.innerHeight - vv.height > 140);
     root.dataset.bpKb = keyboard ? '1' : '0';

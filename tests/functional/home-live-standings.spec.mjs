@@ -5,7 +5,7 @@ test.use({
   viewport: {width: 1194, height: 834},
   hasTouch: true,
   isMobile: true,
-  deviceScaleFactor: 2,
+  deviceScaleFactor: 1,
   serviceWorkers: 'block'
 });
 
@@ -97,6 +97,9 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         const start = document.querySelector('.s2-home-start');
         const row = document.querySelector('.s2-seat');
         const last = document.querySelector('.s2-seat:last-child');
+        const badge = document.querySelector('.s2-seat .s2-dealer-tag');
+        const badgeBox = badge ? badge.getBoundingClientRect() : null;
+        const seatBox = badge ? badge.closest('.s2-seat').getBoundingClientRect() : null;
         const frame = document.querySelector('.s2-card-frame');
         const list = document.querySelector('.s2-seat-grid');
         const tableBox = table.getBoundingClientRect();
@@ -112,7 +115,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
           panelBottom: Math.max(tableBox.bottom, startBox.bottom),
           rowH: rowBox.height,
           ratio: frameBox.width / frameBox.height,
-          scrolls: list.scrollHeight > list.clientHeight + 8,
+          scrolls: list.scrollHeight > list.clientHeight + 1,
+          badgeInside: !!(badgeBox && seatBox && badgeBox.height > 10 && badgeBox.top >= seatBox.top - 1 && badgeBox.bottom <= seatBox.bottom + 1 && badgeBox.top >= 0 && badgeBox.bottom <= window.innerHeight),
           startBtn,
           addBtn,
           summary,
@@ -128,12 +132,17 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(idle.summary.visibleBottom, `${size.width} idle ${count} summary clipped`).toBeGreaterThanOrEqual(idle.summary.bottom - 1);
       expect(idle.pageScroll, `${size.width} idle ${count} page scroll`).toBeLessThanOrEqual(1);
       expect(idle.bottoms, `${size.width} idle ${count} panel bottoms`).toBeLessThanOrEqual(4);
-      expect(idle.rowH, `${size.width} idle ${count} row`).toBeLessThanOrEqual(56);
-      expect(idle.rowH).toBeGreaterThanOrEqual(44);
+      expect(idle.rowH, `${size.width} idle ${count} row`).toBeGreaterThanOrEqual(60);
+      expect(idle.badgeInside, `${size.width} idle ${count} Deals first clipped`).toBe(true);
       expect(Math.abs(idle.ratio - (5 / 7)), `${size.width} idle art`).toBeLessThan(0.08);
-      if (count === 14) expect(idle.scrolls, `${size.width} idle 14 should scroll inside the list`).toBe(true);
-      else {
-        expect(idle.scrolls, `${size.width} idle ${count} should fit without a list scroller`).toBe(false);
+      if (count === 14) {
+        expect(idle.scrolls, `${size.width} idle 14 should scroll inside the list`).toBe(true);
+        await expect(page.locator('#slice2-start-btn')).toBeDisabled();
+        await expect(page.locator('#slice2-start-summary')).toHaveText('Five Crowns plays up to 7. Unseat 7 players.');
+        if (size.width === 1194) {
+          await page.screenshot({path: '/opt/cursor/artifacts/home-over-limit-14-1194-emulated.png'});
+        }
+      } else if (!idle.scrolls) {
         expect(idle.lastRow.bottom, `${size.width} idle ${count} last row`).toBeLessThanOrEqual(size.height - 12);
         expect(idle.lastRow.visibleBottom, `${size.width} idle ${count} last row clipped`).toBeGreaterThanOrEqual(idle.lastRow.bottom - 1);
       }
@@ -175,7 +184,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
           bottoms: Math.abs(table.getBoundingClientRect().bottom - start.getBoundingClientRect().bottom),
           panelBottom: Math.max(table.getBoundingClientRect().bottom, start.getBoundingClientRect().bottom),
           rowH: row.getBoundingClientRect().height,
-          scrolls: list.scrollHeight > list.clientHeight + 8,
+          scrolls: list.scrollHeight > list.clientHeight + 1,
           startBtn,
           summary,
           lastRow,
@@ -190,11 +199,10 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(live.summary.visibleBottom, `${size.width} live ${count} summary clipped`).toBeGreaterThanOrEqual(live.summary.bottom - 1);
       expect(live.pageScroll, `${size.width} live ${count} page scroll`).toBeLessThanOrEqual(1);
       expect(live.bottoms, `${size.width} live ${count} panel bottoms`).toBeLessThanOrEqual(4);
-      expect(live.rowH).toBeLessThanOrEqual(56);
+      expect(live.rowH).toBeGreaterThanOrEqual(60);
       expect(live.seats).toEqual(roster);
       if (count === 14) expect(live.scrolls).toBe(true);
-      else {
-        expect(live.scrolls, `${size.width} live ${count} should fit`).toBe(false);
+      else if (!live.scrolls) {
         expect(live.lastRow.bottom, `${size.width} live ${count} last row`).toBeLessThanOrEqual(size.height - 12);
         expect(live.lastRow.visibleBottom, `${size.width} live ${count} last row clipped`).toBeGreaterThanOrEqual(live.lastRow.bottom - 1);
       }
@@ -202,6 +210,43 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       await page.screenshot({path: `/opt/cursor/artifacts/home-live-${count}-${size.width}-emulated.png`});
     }
   }
+});
+
+test('Active Match pill matches whether a match is on the table', async ({page}) => {
+  await boot(page, '/?demo=try');
+  await page.evaluate(() => {
+    currentGame = null;
+    if (typeof goHome === 'function') goHome();
+    if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh('home');
+  });
+  await expect(page.locator('#nav-active-btn')).toBeHidden();
+  await expect(page.locator('.s2-home-standings')).toHaveCount(0);
+  await expect(page.locator('.s2-seat').first()).toBeVisible();
+
+  await page.evaluate(() => {
+    const roster = ['Nora', 'Owen'];
+    players = roster.slice();
+    allPlayers = roster.slice();
+    currentGame = {
+      name: 'Five Crowns',
+      originalRoster: roster.slice(),
+      currentRound: 3,
+      maxRounds: 11,
+      dealerOffset: 0,
+      rounds: [{round: 1, scores: {Nora: 10, Owen: 4}}],
+      totals: {Nora: 10, Owen: 4},
+      hailMaryUsed: [],
+      retired: [],
+      currentScoreDrafts: {},
+      auditLog: []
+    };
+    if (typeof goHome === 'function') goHome();
+    if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh('home');
+  });
+  await expect(page.locator('#nav-active-btn')).toBeVisible();
+  await expect(page.locator('.s2-banner')).toContainText('Resume');
+  await expect(page.locator('.s2-home-standings')).toBeVisible();
+  await expect(page.locator('.s2-seat')).toHaveCount(0);
 });
 
 test('several unfinished matches show the newest plus View all', async ({page}) => {

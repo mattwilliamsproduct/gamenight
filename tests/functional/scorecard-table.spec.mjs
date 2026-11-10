@@ -107,7 +107,8 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
     history: (history || []).length,
     totals: JSON.stringify(currentGame?.totals || {})
   }));
-  await page.locator('.match-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-menu .match-end-btn').click();
   await expect(page.locator('#end-match-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#end-match-copy')).toContainText(/still in progress|finished night|Records/);
   await page.locator('#end-match-cancel').click();
@@ -121,7 +122,8 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
   expect(afterCancel.history).toBe(before.history);
   expect(afterCancel.totals).toBe(before.totals);
 
-  await page.locator('.match-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-menu .match-end-btn').click();
   await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   const after = await page.evaluate(() => ({
@@ -271,23 +273,23 @@ test('1440 and 1024 keep the current round on screen and pad the header', async 
     const fit = await page.evaluate(() => {
       const wrap = document.querySelector('#scorecard-capture .scorecard-table-wrap');
       const now = document.querySelector('#scorecard-capture thead th.scorecard-col-now');
-      const end = document.querySelector('#slice2-board-bar .match-end-btn');
+      const enter = document.getElementById('slice2-enter-btn');
       const visible = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th')]
         .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
-      if (!wrap || !now || !end) return {ok: false};
+      if (!wrap || !now || !enter) return {ok: false};
       const wrapBox = wrap.getBoundingClientRect();
       const nowBox = now.getBoundingClientRect();
-      const endBox = end.getBoundingClientRect();
+      const enterBox = enter.getBoundingClientRect();
       return {
         ok: true,
         nowInside: nowBox.width >= 36 && nowBox.right <= wrapBox.right + 1 && nowBox.left >= wrapBox.left - 1,
-        endPad: window.innerWidth - endBox.right,
+        endPad: window.innerWidth - enterBox.right,
         visibleRounds: visible.length
       };
     });
-    expect(fit.ok, `${size.width} missing NOW or Save & End`).toBe(true);
+    expect(fit.ok, `${size.width} missing NOW or Enter Scores`).toBe(true);
     expect(fit.nowInside, `${size.width} NOW clipped`).toBe(true);
-    expect(fit.endPad, `${size.width} Save & End flush`).toBeGreaterThanOrEqual(12);
+    expect(fit.endPad, `${size.width} Enter Scores flush`).toBeGreaterThanOrEqual(12);
     expect(fit.visibleRounds, `${size.width} no past rounds`).toBeGreaterThanOrEqual(1);
   }
 });

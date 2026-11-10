@@ -65,7 +65,7 @@ test.use({
   viewport: {width: 1194, height: 834},
   hasTouch: true,
   isMobile: true,
-  deviceScaleFactor: 2,
+  deviceScaleFactor: 1,
   serviceWorkers: 'block'
 });
 
@@ -123,6 +123,7 @@ test('demo keeps a large photo and a normal PNG on the passport, home, and score
   await page.evaluate(() => { if (typeof openProfileDetail === 'function') openProfileDetail('Priya'); });
   await expect(page.locator('#detail-avatar')).toHaveAttribute('src', /^data:image\/jpeg/);
   await expect.poll(async () => page.locator('#detail-avatar').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+  await page.screenshot({path: '/opt/cursor/artifacts/avatar-demo-passport-after-reload-emulated.png'});
 
   await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
   const home = page.locator('#slice2-home img[alt="Priya"]').first();
@@ -190,6 +191,7 @@ test('real games keep a large photo and a normal PNG separate from the demo', as
   await page.waitForFunction(() => typeof openProfileDetail === 'function');
   await page.evaluate(() => { if (typeof openProfileDetail === 'function') openProfileDetail('Priya'); });
   await expect(page.locator('#detail-avatar')).toHaveAttribute('src', /^data:image\/jpeg/);
+  await page.screenshot({path: '/opt/cursor/artifacts/avatar-real-passport-after-reload-emulated.png'});
   await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
   await expect(page.locator('#slice2-home img[alt="Priya"]').first()).toHaveAttribute('src', /^data:image\/jpeg/);
   await page.evaluate(() => { if (typeof goActiveMatch === 'function') goActiveMatch(); });

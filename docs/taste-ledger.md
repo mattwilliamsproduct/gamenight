@@ -56,7 +56,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
 - A scorecard with a stable readable max width, centered with the page column, identical before and after Round 1. Not edge to edge.
 - The scorecard table fills that same card before and after Round 1. A wide empty band beside a hugged table is not a width fix.
-- The scoreboard back control says Home at every size, sits with Enter Score, Actions, and Save & End, and leaves the match on Resume. Five Crowns lines up with the score table.
+- The scoreboard back control says Home at every size, then Actions, then Enter Scores, and leaves the match on Resume. Save & End is last in Actions and still confirms. Five Crowns lines up with the score table.
 - One meaning for a Passport game filter: every number on screen is that game only. Players who have not played it are left out with a short note.
 - Demo sample records are computed by the real records code from seeded games. No planted numbers.
 - Sample games that produce a believable closest margin and plausible Wizard scores. A 134-point "closest" finish or a 1500 all-tricks Wizard night is fixture noise.
@@ -65,7 +65,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - One counting rule: Passports and the game tally count the same finished nights. Every tied winner gets a win. Unfinished nights are out of wins, win %, and games. Left-early players keep their scores and the game, never the win.
 - Home 5:7 cards stay slightly larger on desktop, not double (148px at 1440, 132px at 1280). Each Home panel is its own height. Start stays under the cards and on a laptop screen. Do not grow cards or stretch panels just to line up bottoms.
 - Phone wordmark large enough that GAMES is readable (about 110 to 130px wide) without wrapping the mobile nav.
-- On a phone scoreboard, Home, Enter Score, Actions, and Save & End sit on one row. The app nav stays on screen. Every seated player can be reached by scrolling.
+- On a phone scoreboard, Home, Actions, and Enter Scores sit on one row. Save & End stays in Actions. The app nav stays on screen. Every seated player can be reached by scrolling.
 - PWA and apple-touch icons are full-bleed: no white outside the rounded art. Maskable padding matches the art teal. The favicon stays frozen.
 
 ## Kills
@@ -159,4 +159,10 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
 - The same Life Preserver status sentence printed twice.
 - A Saved chip on the Back Porch wordmark, or a Home seat sliding under the header. The chip stays in the player card. The header stays opaque and outside the scroller. The top-nav word for that page is Home. Sunset Champion stays TV-readable.
+- A Deals first badge clipped under the name. The row is tall enough for the name and the badge.
+- An Active Match pill that stays up while Home has no live match. Unfinished history is not the match on the table.
+- Starting a game outside that game's own player range. Five Crowns stops at 7. Wizard does not take a layout cap.
+- Shrinking score digits to unclip a Life Preserver cell. Give the cell height and padding. The adjustment stays a smaller blue second line.
+- A scoreboard header with Save & End beside Enter Scores. Save & End is last in Actions. The enter control says Enter Scores. The round stays in the header.
+- A sticky nav that goes flat, loses its inset, or lets the page and the green accent slide through it.
 - Landscape Home panels that run past the viewport, so Start, Add Player, the summary line, or the last row is sliced off the bottom. Size the panels to the space under the nav, leave a margin, and scroll the list inside the panel.

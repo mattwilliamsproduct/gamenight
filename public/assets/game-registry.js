@@ -2,13 +2,13 @@
   'use strict';
 
   const GAMES = Object.freeze([
-    Object.freeze({ id: 'Five Crowns', title: 'Five Crowns', art: 'five', line: '11 rounds · Lowest total wins', detail: function () { return '11 rounds'; }, winLow: true, hidden: false }),
-    Object.freeze({ id: '818', title: '818', art: '818', line: '15 rounds · Highest total wins', detail: function () { return '15 rounds'; }, winLow: false, hidden: false }),
-    Object.freeze({ id: 'Wizard', title: 'Wizard', art: 'wizard', line: 'Highest total wins', detail: function (count) { return Math.max(1, Math.floor(60 / Math.max(count, 1))) + ' rounds'; }, winLow: false, hidden: false }),
-    Object.freeze({ id: 'Flip 7 Vengeance', title: 'Flip 7', art: 'flip7', line: 'Highest total wins · Open match', detail: function () { return 'Open match'; }, winLow: false, hidden: false }),
-    Object.freeze({ id: 'Beat the Heat', title: 'Beat the Heat', art: 'heat', line: 'Lowest heat wins · Ends at 66', detail: function () { return 'Ends at 66'; }, winLow: true, hidden: false }),
-    Object.freeze({ id: 'Hand and Foot', title: 'Canasta', art: 'canasta', line: '4 rounds · Highest total wins', detail: function () { return '4 rounds'; }, winLow: false, hidden: false, demoKey: 'canasta' }),
-    Object.freeze({ id: 'Rook', title: 'Rook', art: 'rook', line: 'Highest total wins · Teams', detail: function () { return 'Teams'; }, winLow: false, hidden: true, demoKey: 'rook' })
+    Object.freeze({ id: 'Five Crowns', title: 'Five Crowns', art: 'five', line: '11 rounds · Lowest total wins', detail: function () { return '11 rounds'; }, winLow: true, hidden: false, players: { min: 1, max: 7 } }),
+    Object.freeze({ id: '818', title: '818', art: '818', line: '15 rounds · Highest total wins', detail: function () { return '15 rounds'; }, winLow: false, hidden: false, players: { min: 1 } }),
+    Object.freeze({ id: 'Wizard', title: 'Wizard', art: 'wizard', line: 'Highest total wins', detail: function (count) { return Math.max(1, Math.floor(60 / Math.max(count, 1))) + ' rounds'; }, winLow: false, hidden: false, players: { min: 1 } }),
+    Object.freeze({ id: 'Flip 7 Vengeance', title: 'Flip 7', art: 'flip7', line: 'Highest total wins · Open match', detail: function () { return 'Open match'; }, winLow: false, hidden: false, players: { min: 1 } }),
+    Object.freeze({ id: 'Beat the Heat', title: 'Beat the Heat', art: 'heat', line: 'Lowest heat wins · Ends at 66', detail: function () { return 'Ends at 66'; }, winLow: true, hidden: false, players: { min: 1 } }),
+    Object.freeze({ id: 'Hand and Foot', title: 'Canasta', art: 'canasta', line: '4 rounds · Highest total wins', detail: function () { return '4 rounds'; }, winLow: false, hidden: false, demoKey: 'canasta', players: { min: 2, max: 6 } }),
+    Object.freeze({ id: 'Rook', title: 'Rook', art: 'rook', line: 'Highest total wins · Teams', detail: function () { return 'Teams'; }, winLow: false, hidden: true, demoKey: 'rook', players: { min: 4, max: 6 } })
   ]);
 
   const DEMO_GAMES_KEY = 'gn_demo_games';
@@ -87,6 +87,24 @@
     return id === 'Five Crowns' || id === 'Beat the Heat';
   }
 
+  function seatLimit(id, count) {
+    const game = gameById(id);
+    const title = (game && game.title) || id || 'This game';
+    const range = (game && game.players) || { min: 1 };
+    const min = range.min == null ? 1 : range.min;
+    const max = range.max == null ? null : range.max;
+    const seated = Number(count) || 0;
+    if (seated < min) {
+      const need = min - seated;
+      return { ok: false, message: title + ' needs at least ' + min + ' players. Seat ' + need + ' more.' };
+    }
+    if (max != null && seated > max) {
+      const extra = seated - max;
+      return { ok: false, message: title + ' plays up to ' + max + '. Unseat ' + extra + ' player' + (extra === 1 ? '' : 's') + '.' };
+    }
+    return { ok: true, message: '' };
+  }
+
   const CARD_FACES = Object.freeze({
     five: './assets/cards/five-crowns.webp',
     '818': './assets/cards/818.webp',
@@ -124,6 +142,7 @@
     isHiddenGameVisible,
     displayName,
     winLow,
+    seatLimit,
     isDemo,
     demoGameKeys,
     rememberDemoGames,

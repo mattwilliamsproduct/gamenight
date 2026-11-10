@@ -50,6 +50,8 @@ Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights po
 
 Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
 
+Standing trap: [scoreboard-header-tiles.md](scoreboard-header-tiles.md) — header is Home, Actions, Enter Scores. Save & End stays in Actions. Entered scores use one light tile. A Life Preserver cell grows in height instead of shrinking the digits.
+
 Standing trap: [home-live-standings.md](home-live-standings.md) — landscape Home fills under the nav and ends a margin above the viewport. A `100dvh` height taken from the wrong top slices Start, Add Player, and the last row. Live standings use `scoreboardStandings` and do not sort the seats. Start confirms before `parkActiveMatch`. Unfinished nights resume from the banner, not a Home history list.
 
 Standing trap: [avatar-photo.md](avatar-photo.md) — uploads are shrunk to a JPEG data URL before `gn_profiles` or `bpg_demo_profiles`. A failed save keeps the previous portrait. A broken ref shows the silhouette.

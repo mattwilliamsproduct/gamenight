@@ -28,7 +28,6 @@ async function boardState(page) {
         clientWidth: el.clientWidth
       };
     };
-    const end = document.querySelector('#slice2-board-bar .match-end-btn');
     const nav = document.getElementById('top-nav');
     const navBox = nav.getBoundingClientRect();
     const navStyle = getComputedStyle(nav);
@@ -43,9 +42,8 @@ async function boardState(page) {
       viewBottom,
       controls: [
         buttonOf(document.getElementById('slice2-table-btn')),
-        buttonOf(document.getElementById('slice2-enter-btn')),
         buttonOf(document.getElementById('actions-btn')),
-        buttonOf(end)
+        buttonOf(document.getElementById('slice2-enter-btn'))
       ],
       nav: {
         display: navStyle.display,
@@ -66,7 +64,7 @@ async function boardState(page) {
   });
 }
 
-test('phone scoreboard keeps Home, Enter Score, Actions, and Save & End on one row', async ({page}) => {
+test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async ({page}) => {
   for (const size of [{width: 390, height: 844}, {width: 390, height: 700}, {width: 375, height: 667}]) {
     await page.setViewportSize(size);
     await openDemoBoard(page);
@@ -75,9 +73,8 @@ test('phone scoreboard keeps Home, Enter Score, Actions, and Save & End on one r
     expect(Math.max(...tops) - Math.min(...tops), `${size.width}x${size.height} header wraps`).toBeLessThanOrEqual(4);
     expect(state.controls[0].text, 'phone back control').toBe('Home');
     expect(state.controls[0].text, 'phone back control still says Table').not.toMatch(/Table/);
-    expect(state.controls[1].text).toBe('Enter Score');
-    expect(state.controls[2].text).toMatch(/^Actions/);
-    expect(state.controls[3].text).toMatch(/Save & End/);
+    expect(state.controls[1].text).toMatch(/^Actions/);
+    expect(state.controls[2].text).toBe('Enter Scores');
     state.controls.forEach((control) => {
       expect(control.height, control.text).toBeGreaterThanOrEqual(44);
       expect(control.scrollWidth, `${control.text} truncated`).toBeLessThanOrEqual(control.clientWidth + 2);
@@ -100,12 +97,20 @@ test('phone scoreboard keeps Home, Enter Score, Actions, and Save & End on one r
   }
 });
 
-test('laptop and iPad scoreboard say Home and keep the long enter label', async ({page}) => {
+test('laptop and iPad scoreboard say Home, Actions, then Enter Scores', async ({page}) => {
   for (const size of [{width: 768, height: 1024}, {width: 1024, height: 768}, {width: 1440, height: 900}]) {
     await page.setViewportSize(size);
     await openDemoBoard(page);
     await expect(page.locator('#slice2-table-btn')).toHaveText('Home');
-    await expect(page.locator('#slice2-enter-btn')).toHaveText(/Enter Round \d+ Scores/);
+    await expect(page.locator('#slice2-enter-btn')).toHaveText('Enter Scores');
+    await expect(page.locator('#slice2-board-line')).toContainText(/Round \d+ of \d+/);
+    await expect(page.locator('#actions-menu .match-end-btn')).toHaveCount(1);
     await expect(page.locator('#top-nav')).toBeHidden();
+    const order = await page.evaluate(() => {
+      const box = (id) => document.getElementById(id).getBoundingClientRect().left;
+      return [box('slice2-table-btn'), box('actions-btn'), box('slice2-enter-btn')];
+    });
+    expect(order[0]).toBeLessThan(order[1]);
+    expect(order[1]).toBeLessThan(order[2]);
   }
 });

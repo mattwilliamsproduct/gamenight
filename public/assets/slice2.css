@@ -16,44 +16,76 @@ html.slice2-tv {
   --s2-good-bg: #e7f4ef;
 }
 
+html.slice2-tv {
+  --bp-demo-offset: 0px;
+  --bp-accent-line: 6px;
+  --bp-nav-gap: 8px;
+}
+
+html.slice2-tv.bpg-try-demo {
+  --bp-demo-offset: 42px;
+}
+
+html.slice2-tv.bpg-try-demo.bpg-try-demo-tip {
+  --bp-demo-offset: 88px;
+}
+
 html.slice2-tv,
 html.slice2-tv body {
   background-color: #f6f1e7 !important;
-  background-image: linear-gradient(#0a5c54, #0a5c54) !important;
-  background-size: 100% 6px !important;
-  background-repeat: no-repeat !important;
-  background-position: top center !important;
+  background-image: none !important;
   color: var(--s2-ink);
+}
+
+html.slice2-tv::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--bp-demo-offset);
+  height: var(--bp-accent-line);
+  background: #0a5c54;
+  z-index: 65;
+  pointer-events: none;
 }
 
 html.slice2-tv #lineup-intro {
   background: #f6f1e7 none !important;
 }
 
-html.slice2-tv #top-nav {
+html.slice2-tv body:not(.active-match-view) .bp-app-shell {
+  padding-top: calc(var(--bp-accent-line) + var(--bp-nav-gap));
+}
+
+html.slice2-tv body:not(.active-match-view) #top-nav {
   position: sticky;
-  top: 0 !important;
-  border-radius: 0 !important;
-  background: #f6f1e7 !important;
-  border-bottom: 1px solid var(--s2-line) !important;
-  box-shadow: none !important;
+  top: calc(var(--bp-demo-offset) + var(--bp-accent-line) + var(--bp-nav-gap)) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  border-radius: 28px !important;
+  background: #fffaf1 !important;
+  border: 1px solid var(--s2-line) !important;
+  box-shadow: 0 18px 42px -30px rgba(26, 63, 57, 0.72), inset 0 1px 0 #fff !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   z-index: 50;
 }
+
 html.slice2-tv body.home-view #top-nav {
   position: relative;
   top: auto !important;
 }
-html.slice2-tv #top-nav::before {
+
+html.slice2-tv body:not(.active-match-view) #top-nav::before {
   content: "";
   position: absolute;
-  left: -1px;
-  right: -1px;
-  bottom: 100%;
-  height: 1.25rem;
+  left: -100vw;
+  right: -100vw;
+  top: calc(-1 * (var(--bp-demo-offset) + var(--bp-accent-line) + var(--bp-nav-gap)));
+  bottom: -10px;
   background: #f6f1e7;
   pointer-events: none;
+  z-index: -1;
 }
 
 html.slice2-tv body.active-match-view #top-nav {
@@ -298,6 +330,17 @@ html.slice2-tv .s2-board-actions .match-end-btn {
   border-color: var(--s2-ink);
 }
 
+html.slice2-tv #actions-menu .match-end-btn {
+  order: 0;
+  margin: 0;
+  width: 100%;
+  justify-content: flex-start;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
 html.slice2-tv .s2-btn {
   appearance: none;
   border: 1.5px solid var(--s2-line);
@@ -528,9 +571,21 @@ html.slice2-tv .s2-home-table .s2-seat-grid {
 html.slice2-tv .s2-home-table .s2-seat {
   max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
-  padding-right: 4px;
+  overflow: visible;
+  min-height: 64px;
+  padding: 6px 8px 6px 8px;
+  align-items: center;
   grid-template-columns: 1.5rem 36px minmax(0, 1fr) max-content;
+}
+html.slice2-tv .s2-home-table .s2-seat-who {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+}
+html.slice2-tv .s2-home-table .s2-dealer-tag {
+  white-space: nowrap;
 }
 html.slice2-tv .s2-home-table .s2-seat-tools {
   max-width: 100%;
@@ -1246,21 +1301,20 @@ html.slice2-tv #slice2-score-legend::before {
 }
 
 html.slice2-tv .s2-now-bid {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
   min-width: 0;
   max-width: 100%;
-  min-height: 1.8rem;
-  padding: 0.12rem 0.35rem;
-  border-radius: 999px;
-  border: 1.5px solid #cfe3dc;
-  background: var(--s2-good-bg);
-  color: var(--s2-teal-deep);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--s2-muted);
   font-family: "Nunito Sans", sans-serif !important;
   font-weight: 800 !important;
   font-variant-numeric: tabular-nums;
-  font-size: 0.78rem;
+  font-size: 1.05rem;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -1382,8 +1436,54 @@ html.slice2-tv #scorecard-capture .score-cell-input {
   font-weight: 700 !important;
   font-variant-numeric: tabular-nums !important;
   font-feature-settings: "tnum" 1 !important;
-  color: var(--s2-ink) !important;
+  color: #0c2824 !important;
   background: transparent !important;
+}
+
+html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
+  background: #e8e3da !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 9px !important;
+  width: calc(100% - 8px) !important;
+  height: auto !important;
+  min-height: 2.35rem !important;
+  max-height: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 0.2rem 0.15rem !important;
+}
+
+html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
+  background: #d5ebe3 !important;
+}
+
+html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
+  background: #e8e3da !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 9px !important;
+  width: calc(100% - 8px) !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 8px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 0.28rem 0.4rem 0.32rem !important;
+  overflow: visible !important;
+}
+
+html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
+  background: #d5ebe3 !important;
+}
+
+html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #0c2824 !important;
 }
 
 html.slice2-tv #scorecard-capture .score-cell-input.score-cell-miss {
@@ -4313,8 +4413,8 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
 @media (min-width: 761px) {
   html.slice2-tv body.active-match-view #slice2-board-bar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) max-content max-content max-content max-content;
-    grid-template-areas: "copy home enter actions end";
+    grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content max-content;
+    grid-template-areas: "logo rule copy home actions enter";
     align-items: center;
     column-gap: 8px;
   }
@@ -4322,6 +4422,19 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
   html.slice2-tv body.active-match-view .s2-board-actions,
   html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions {
     display: contents;
+  }
+  html.slice2-tv body.active-match-view .s2-board-mark {
+    grid-area: logo;
+    display: block;
+    height: 2.15rem;
+    width: auto;
+  }
+  html.slice2-tv body.active-match-view .s2-board-rule {
+    grid-area: rule;
+    display: block;
+    width: 1px;
+    height: 2.4rem;
+    background: var(--s2-line);
   }
   html.slice2-tv body.active-match-view .s2-board-copy {
     grid-area: copy;
@@ -4337,10 +4450,6 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
   html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions > .relative {
     grid-area: actions;
     display: block;
-  }
-  html.slice2-tv body.active-match-view #slice2-board-bar .match-end-btn {
-    grid-area: end;
-    margin-left: 0;
   }
 }
 html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
@@ -4463,10 +4572,10 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
 
   html.slice2-tv body.active-match-view #slice2-board-bar {
     display: grid;
-    grid-template-columns: max-content minmax(0, 1.45fr) max-content max-content;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
     grid-template-areas:
-      "copy copy copy copy"
-      "home enter actions end";
+      "copy copy copy"
+      "home actions enter";
     align-items: center;
     column-gap: 4px;
     row-gap: 6px;
@@ -4499,15 +4608,14 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
     grid-area: actions;
   }
 
-  html.slice2-tv body.active-match-view #slice2-board-bar .match-end-btn {
-    grid-area: end;
-    margin-left: 0 !important;
+  html.slice2-tv body.active-match-view .s2-board-mark,
+  html.slice2-tv body.active-match-view .s2-board-rule {
+    display: none;
   }
 
   html.slice2-tv body.active-match-view #slice2-table-btn,
   html.slice2-tv body.active-match-view #slice2-enter-btn,
-  html.slice2-tv body.active-match-view #actions-btn,
-  html.slice2-tv body.active-match-view #slice2-board-bar .match-end-btn {
+  html.slice2-tv body.active-match-view #actions-btn {
     justify-self: stretch;
     min-width: 0;
     min-height: 44px !important;

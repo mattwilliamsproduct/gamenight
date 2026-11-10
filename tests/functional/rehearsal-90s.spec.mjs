@@ -52,7 +52,10 @@ test('90s rehearsal: start last hand, correct, finish, Records agree', async ({p
   await page.screenshot({path: `${STRIP}/03-corrected.png`});
   const endMatch = page.locator('#game-over-section button').filter({hasText: /End Match/});
   if (await endMatch.count()) await endMatch.first().click();
-  else await page.locator('.match-end-btn').first().click();
+  else {
+    await page.locator('#actions-btn').click();
+    await page.locator('#actions-menu .match-end-btn').click();
+  }
   await expect(page.locator('#end-match-confirm')).toBeVisible({timeout: 5000});
   await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);

@@ -34,7 +34,8 @@ test('laptop Home keeps a content-sized default and a landscape fill', async () 
   assert.match(css, /\.s2-seat-handle\s*\{[\s\S]*touch-action:\s*none;/);
   assert.match(css, /@media \(max-width:\s*860px\)[\s\S]*grid-auto-rows:\s*minmax\(44px, auto\)/);
   assert.match(cards, /orientation:\s*landscape[\s\S]*overflow-y:\s*auto/);
-  assert.match(cards, /orientation:\s*landscape[\s\S]*max-height:\s*52px/);
+  assert.match(cards, /orientation:\s*landscape[\s\S]*min-height:\s*64px/);
+  assert.doesNotMatch(cards, /max-height:\s*52px/);
   assert.match(cards, /aspect-ratio:\s*5\s*\/\s*7/);
   assert.doesNotMatch(css, /overflow:\s*hidden;\s*\/\* lock the page/);
   assert.doesNotMatch(cards, /100svh/);

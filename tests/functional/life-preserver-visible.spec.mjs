@@ -104,6 +104,7 @@ test('undo clears the Life Preserver that followed the removed hand', async ({pa
 
 test('Share Receipt keeps the Life Preserver mark from the live card', async ({page})=>{
   await openVisiblePreserver(page);
+  await page.locator('#actions-btn').click();
   await page.getByRole('button',{name:'Save & End',exact:true}).click();
   await page.locator('#end-match-confirm').click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);

@@ -26,8 +26,10 @@ test('demo board primary controls are at least 44px on 390', async ({page}) => {
       return {id: el?.id || el?.className, w: box?.width || 0, h: box?.height || 0};
     });
   });
-  const end = await page.locator('.match-end-btn').boundingBox();
+  await page.locator('#actions-btn').click();
+  const end = await page.locator('#actions-menu .match-end-btn').boundingBox();
   expect(end?.height || 0, 'Save & End height').toBeGreaterThanOrEqual(44);
+  await page.locator('#actions-btn').click();
   sizes.forEach((row) => {
     expect(row.h, `${row.id} height`).toBeGreaterThanOrEqual(44);
   });

@@ -37,6 +37,26 @@ test('Rook stays hidden when the URL has ?demo&games=rook', () => {
   assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook')), false);
 });
 
+test('Start follows each game player range and leaves Wizard uncapped', () => {
+  assert.deepEqual(Games.seatLimit('Five Crowns', 14), {
+    ok: false,
+    message: 'Five Crowns plays up to 7. Unseat 7 players.'
+  });
+  assert.deepEqual(Games.seatLimit('Five Crowns', 7), { ok: true, message: '' });
+  assert.deepEqual(Games.seatLimit('Hand and Foot', 1), {
+    ok: false,
+    message: 'Canasta needs at least 2 players. Seat 1 more.'
+  });
+  assert.equal(Games.seatLimit('Hand and Foot', 7).ok, false);
+  assert.equal(Games.seatLimit('Rook', 3).ok, false);
+  assert.equal(Games.seatLimit('Rook', 7).ok, false);
+  assert.equal(Games.seatLimit('Rook', 4).ok, true);
+  ['Wizard', '818', 'Flip 7 Vengeance', 'Beat the Heat'].forEach((id) => {
+    assert.equal(Games.seatLimit(id, 8).ok, true, `${id} stays startable at 8`);
+    assert.equal(Games.seatLimit(id, 14).ok, true, `${id} has no layout cap`);
+  });
+});
+
 test('old Rook history still has a registry row and high-score win direction', () => {
   assert.equal(Games.displayName('Rook'), 'Rook');
   assert.equal(Games.winLow('Rook'), false);

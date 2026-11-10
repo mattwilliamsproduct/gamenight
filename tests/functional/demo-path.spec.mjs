@@ -64,7 +64,7 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
     await expect(page.locator('#slice2-board-line')).toContainText(/Five Crowns/);
     await expect(page.locator('#scorecard-body')).toContainText('June');
     await expect(page.locator('#slice2-table-btn')).toBeVisible();
-    await expect(page.locator('.match-end-btn')).toBeVisible();
+    await expect(page.locator('#actions-menu .match-end-btn')).toHaveCount(1);
     const live = await page.evaluate(() => ({
       totals: currentGame.totals,
       round: currentGame.currentRound,
@@ -107,7 +107,10 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
     expect(over, 'hand 11 finishes Five Crowns').toBe(true);
     const endMatch = page.locator('#game-over-section button').filter({hasText: /End Match/});
     if (await endMatch.count()) await endMatch.first().click();
-    else await page.locator('.match-end-btn').first().click();
+    else {
+      await page.locator('#actions-btn').click();
+      await page.locator('#actions-menu .match-end-btn').click();
+    }
     const confirm = page.locator('#end-match-confirm');
     await expect(confirm).toBeVisible({timeout: 5000});
     await confirm.click();
