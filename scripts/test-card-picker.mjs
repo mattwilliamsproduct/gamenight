@@ -57,7 +57,7 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.match(css, /min-width:\s*1440px/);
   assert.match(css, /minmax\(348px,\s*360px\)/);
   assert.match(css, /\.s2-card-frame/);
-  assert.match(css, /object-fit:\s*cover/);
+  assert.match(css, /object-fit:\s*contain/);
   assert.doesNotMatch(css, /background-size:\s*contain/);
   assert.match(css, /\.s2-game-copy\s*\{\s*display:\s*none/);
   assert.doesNotMatch(css, /repeat\(4,\s*var\(--bp-card-max\)\)/);

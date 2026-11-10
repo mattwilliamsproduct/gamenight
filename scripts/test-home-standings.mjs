@@ -32,7 +32,7 @@ test('live standings match the scoreboard order and leave the dealer seated', ()
   assert.equal(dealerIndex(game.currentRound, game.dealerOffset, roster.length), dealer);
 });
 
-test('a tied score shares the scoreboard place and the next score is dense', () => {
+test('a tied score shares the scoreboard place and the next score skips', () => {
   const roster = ['Nora', 'Owen', 'Priya'];
   const game = {
     name: 'Five Crowns',
@@ -42,7 +42,7 @@ test('a tied score shares the scoreboard place and the next score is dense', () 
   };
   const standing = Scorebook.scoreboardStandings(game, roster.slice());
   assert.deepEqual(standing.ordered, ['Nora', 'Owen', 'Priya']);
-  assert.deepEqual(standing.places, {Nora: 1, Owen: 1, Priya: 2});
+  assert.deepEqual(standing.places, {Nora: 1, Owen: 1, Priya: 3});
   assert.deepEqual(roster, ['Nora', 'Owen', 'Priya']);
   assert.equal(game.dealerOffset, 0);
 });

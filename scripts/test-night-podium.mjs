@@ -71,7 +71,7 @@ test('highest-wins 818 podium uses the same helper', () => {
   ]);
 });
 
-test('tie for first shares 1st and next place is dense 2nd', () => {
+test('tie for first shares 1st and the next score is 3rd', () => {
   const match = {
     game: 'Flip 7 Vengeance',
     completed: true,
@@ -82,7 +82,7 @@ test('tie for first shares 1st and next place is dense 2nd', () => {
   const podium = Records.nightPodium(match, helpers);
   assert.deepEqual(placesOf(podium), [
     {place: 1, names: ['Matt', 'Megan']},
-    {place: 2, names: ['Cat', 'Mike']}
+    {place: 3, names: ['Cat', 'Mike']}
   ]);
 });
 
@@ -172,7 +172,7 @@ test('Rook podium uses player totals so the winning partners share 1st', () => {
   const podium = Records.nightPodium(match, helpers);
   assert.deepEqual(placesOf(podium), [
     {place: 1, names: ['Matt', 'Megan']},
-    {place: 2, names: ['Cat']}
+    {place: 3, names: ['Cat']}
   ]);
   const left = Records.nightStandings(match, helpers).filter((row) => row.leftEarly);
   assert.deepEqual(left.map((row) => row.name), ['Mike']);
@@ -199,18 +199,18 @@ test('home podium markup uses readable 1st/2nd/3rd text chips, including ties', 
   const podium = Records.nightPodium(match, helpers);
   assert.equal(podium.places[0].place, 1);
   assert.equal(podium.places[0].people.length, 2);
-  // Dense: tied winners are 1st/1st; next distinct total is 2nd (not olympic 3rd).
-  assert.equal(podium.places[1].place, 2);
+  // Competition: tied winners are 1st/1st; the next distinct total is 3rd.
+  assert.equal(podium.places[1].place, 3);
   const labels = podium.places.flatMap((slot) => {
     const ordinal = slot.place === 1 ? '1st' : slot.place === 2 ? '2nd' : slot.place === 3 ? '3rd' : `${slot.place}`;
     return slot.people.map((person) => ({name: person.name, label: ordinal, place: slot.place}));
   });
   assert.deepEqual(labels.filter((row) => row.place === 1).map((row) => row.label), ['1st', '1st']);
-  assert.deepEqual(labels.filter((row) => row.place === 2).map((row) => row.label), ['2nd', '2nd']);
+  assert.deepEqual(labels.filter((row) => row.place === 3).map((row) => row.label), ['3rd', '3rd']);
   assert.ok(labels.every((row) => /\d+(st|nd|rd|th)/.test(row.label)));
 });
 
-test('ties plus a departed player take no spot (dense among finishers)', () => {
+test('ties plus a departed player take no spot', () => {
   const match = {
     game: 'Wizard',
     completed: true,
@@ -223,12 +223,12 @@ test('ties plus a departed player take no spot (dense among finishers)', () => {
   assert.deepEqual(standings.map((row) => ({name: row.name, place: row.place, leftEarly: !!row.leftEarly})), [
     {name: 'Matt', place: 1, leftEarly: false},
     {name: 'Megan', place: 1, leftEarly: false},
-    {name: 'Cat', place: 2, leftEarly: false},
+    {name: 'Cat', place: 3, leftEarly: false},
     {name: 'Mike', place: null, leftEarly: true}
   ]);
   const podium = Records.nightPodium(match, helpers);
   assert.deepEqual(placesOf(podium), [
     {place: 1, names: ['Matt', 'Megan']},
-    {place: 2, names: ['Cat']}
+    {place: 3, names: ['Cat']}
   ]);
 });

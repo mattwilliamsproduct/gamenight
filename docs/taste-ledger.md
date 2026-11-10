@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Tied totals share a place and the next total skips. Two 2nds, then 4th. The scoreboard uses the page width, and a short table does not stretch its rows to fill the screen.
 - This MVP preview seats the next match from Tonight's Table. Mid-match Add Player stays off. The ceiling-average join lives on the fast-follow branch.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.

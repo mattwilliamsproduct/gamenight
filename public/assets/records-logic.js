@@ -1054,14 +1054,14 @@
         || (hall._coverage && hall._coverage[game.id]);
       const noUnassisted = !!(coverage && coverage.assisted > 0 && coverage.unassisted === 0);
       const matchValue = noUnassisted
-        ? '-'
-        : (bestFinal && finite(bestFinal.value) ? scoreLabel(bestFinal.value, game.unit) : scoreLabel(card.bestScore, game.unit));
+        ? 'No record yet'
+        : (bestFinal && finite(bestFinal.value) ? scoreLabel(bestFinal.value, game.unit) : (finite(card.bestScore) ? scoreLabel(card.bestScore, game.unit) : 'No record yet'));
       const matchWho = noUnassisted
-        ? 'No unassisted matches yet'
+        ? ''
         : (bestFinal ? recordHolderText(bestFinal, true) : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : ''));
-      const roundValue = round && finite(round.value) ? scoreLabel(round.value, game.unit) : '-';
+      const roundValue = round && finite(round.value) ? scoreLabel(round.value, game.unit) : 'No record yet';
       const roundWho = round ? recordHolderText(round, true) : '';
-      const matchNote = noUnassisted || matchValue === '-' ? '' : 'Unassisted matches only';
+      const matchNote = '';
       return `<div class="s2-ledger-row">
         <div class="s2-ledger-game">${gameThumbnailHtml(game.id, 's2-ledger-mark s2-game-thumb')}<div><strong>${esc(game.title)}</strong></div></div>
         ${ledgerStat(esc(matchValue), esc(matchWho), matchNote, 'Best final')}
@@ -1074,31 +1074,36 @@
     const selectedKey = ctx.pairFilter || '';
     const rival = pairs.find((row) => `${row.a}|${row.b}` === selectedKey) || pairs[0];
     const recent = sortNights(table.history);
-    return `<div class="s2-records-pane s2-fame-col" data-pane="overview">
-      <section class="s2-panel">
+    return `<div class="s2-records-pane s2-fame-col s2-overview-layout" data-pane="overview">
+      <section class="s2-panel s2-career">
         <div class="s2-headline">${headlines.map((card) => `<article class="s2-headline-card">
           <small>${esc(card.kicker)}</small>
           <strong>${esc(card.value)}</strong>
           ${(card.people || []).map((row) => playerLink(row.player || row.name, esc, avatar)).join('')}
           <small>${esc(card.sub)}</small>
         </article>`).join('')}</div>
-        <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
-        <div class="s2-ledger-table">
-          <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
-          ${rows}
-        </div>
       </section>
-      <div class="s2-overview-side">
-        <section class="s2-panel s2-shame-panel">
-          <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
-          ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
-        </section>
-        ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
+      <div class="s2-overview-mid">
         <section class="s2-panel">
-          <div class="s2-panel-head"><h2>Recent results</h2></div>
-          ${nightsSplitHtml(recent, helpers, ctx, compact)}
+          <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
+          <p class="s2-assisted-note">Final-score records exclude assisted matches</p>
+          <div class="s2-ledger-table">
+            <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
+            ${rows}
+          </div>
         </section>
+        <div class="s2-overview-side">
+          <section class="s2-panel s2-shame-panel">
+            <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
+            ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
+          </section>
+          ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
+        </div>
       </div>
+      <section class="s2-panel s2-recent-board">
+        <div class="s2-panel-head"><h2>Recent results</h2></div>
+        ${nightsSplitHtml(recent, helpers, ctx, compact)}
+      </section>
     </div>`;
   }
 
@@ -1452,7 +1457,7 @@
       ? `<div class="s2-in-progress"><h3>In progress</h3>${live.slice(0, liveLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}</div>`
       : '';
     const doneHtml = done.length
-      ? `${live.length ? '<h3>Finished nights</h3>' : ''}${done.slice(0, doneLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}`
+      ? `<div class="s2-night-grid">${live.length ? '<h3>Finished nights</h3>' : ''}${done.slice(0, doneLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}</div>`
       : (live.length ? '' : '<p class="s2-sub">No nights saved yet.</p>');
     return liveHtml + doneHtml;
   }
@@ -1483,8 +1488,9 @@
     const shownFinishers = finishersAll.slice(0, finisherLimit);
     const shown = shownFinishers.concat(leftAll);
     const more = finishersAll.length - shownFinishers.length;
+    const names = (model.standings || []).map((row) => row.name).filter(Boolean).slice(0, 6).join(', ');
     const meta = model.incomplete
-      ? `Incomplete · through Round ${model.throughRound}`
+      ? `Incomplete · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
       : (model.endedEarly
         ? `Ended early · through Round ${model.throughRound}`
         : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);

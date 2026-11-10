@@ -61,7 +61,7 @@ html.slice2-tv .s2-home-start .s2-card-photo {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   border: 0;
 }
@@ -494,4 +494,15 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     width: min(100cqw, calc(100cqh * 5 / 7));
     max-width: none;
   }
+}
+
+html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standing {
+  grid-template-columns: auto 40px minmax(128px, 1fr) auto auto;
+  min-height: 86px;
+  align-items: center;
+}
+html.slice2-tv .s2-home-standings .s2-lp-status {
+  display: block;
+  white-space: normal;
+  font-size: 0.84rem;
 }

@@ -4637,3 +4637,256 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
     padding-top: 118px;
   }
 }
+
+/* RC4 items 1–19: page-width board, capped rows, covers, type, records. */
+html.slice2-tv .s2-home-grid {
+  grid-template-columns: minmax(280px, 0.67fr) minmax(0, 1fr);
+}
+html.slice2-tv .s2-home-table,
+html.slice2-tv .s2-home-start {
+  min-height: 0;
+}
+html.slice2-tv .s2-standings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+html.slice2-tv .s2-standing {
+  min-height: 64px;
+  font-size: 1.2rem;
+}
+html.slice2-tv .s2-standing-score,
+html.slice2-tv .s2-seat-name,
+html.slice2-tv .scoreboard-player-name {
+  font-size: clamp(1.15rem, 1.6vw, 1.7rem);
+}
+html.slice2-tv .s2-seat {
+  min-height: 64px;
+}
+html.slice2-tv .s2-seat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+html.slice2-tv .s2-seat-nudge,
+html.slice2-tv .s2-seat-out,
+html.slice2-tv .s2-seat-handle {
+  min-width: 40px;
+  min-height: 40px;
+}
+html.slice2-tv .s2-lp-status {
+  display: inline;
+  margin-top: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--s2-teal-deep, #0a5c54);
+}
+html.slice2-tv .s2-standing {
+  min-height: 88px;
+  height: auto;
+  overflow: visible;
+}
+html.slice2-tv .s2-home-standings .s2-lp-status {
+  display: block;
+  white-space: normal;
+}
+html.slice2-tv .scorecard-player-name-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: visible;
+}
+html.slice2-tv #scorecard-capture .scorecard-col-player {
+  min-width: 220px !important;
+}
+html.slice2-tv #scorecard-capture .s2-lp-status {
+  display: block;
+  white-space: normal;
+  font-size: 0.78rem;
+}
+#reorder-players-modal .player-name-label {
+  text-transform: none;
+  font-size: 1.45rem;
+}
+#reorder-players-modal .bp-modal-panel {
+  width: min(92vw, 920px) !important;
+  height: 88vh !important;
+  max-height: 92vh !important;
+  display: flex;
+  flex-direction: column;
+}
+html.slice2-tv .s2-standings-foot,
+html.slice2-tv .s2-startbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+html.slice2-tv .s2-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+html.slice2-tv .s2-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 10px;
+  border: 1px solid #d9d0c2;
+  border-radius: 12px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+html.slice2-tv .s2-pick.is-on { border-color: #0a5c54; }
+html.slice2-tv .s2-pick.is-blocked { opacity: 0.45; }
+html.slice2-tv .s2-selected-tag {
+  display: block;
+  min-height: 1.35rem;
+  margin-top: 4px;
+  text-align: center;
+  font-weight: 800;
+  color: transparent;
+}
+html.slice2-tv .s2-game.is-selected .s2-selected-tag { color: #0a5c54; }
+html.slice2-tv .s2-card-frame,
+html.slice2-tv .s2-home-start .s2-card-frame {
+  box-shadow: inset 0 0 0 1px #d9d0c2 !important;
+  background: #f6f1e7;
+}
+html.slice2-tv .s2-game.is-selected .s2-card-frame {
+  box-shadow: inset 0 0 0 4px #0a5c54 !important;
+}
+html.slice2-tv .s2-card-photo,
+html.slice2-tv .s2-game-thumb,
+html.slice2-tv .s2-ledger-mark,
+html.slice2-tv .s2-explore-thumb,
+html.slice2-tv .s2-night-thumb {
+  object-fit: contain !important;
+  object-position: center !important;
+  background: #f6f1e7;
+}
+html.slice2-tv .s2-game-thumb,
+html.slice2-tv .s2-ledger-mark,
+html.slice2-tv .s2-explore-thumb,
+html.slice2-tv .s2-night-thumb {
+  width: 48px;
+  height: 68px;
+  border: 1px solid #d9d0c2;
+  border-radius: 6px;
+}
+html.slice2-tv .s2-chooser-layer,
+html.slice2-tv .s2-another-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 40, 36, 0.45);
+  padding: 24px;
+}
+html.slice2-tv .s2-chooser,
+html.slice2-tv .s2-another-ask {
+  width: min(92vw, 760px);
+  max-height: 86vh;
+  overflow: auto;
+}
+html.slice2-tv .s2-unfinished-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 1.05rem;
+}
+html.slice2-tv body.active-match-view #scorecard-capture,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows,
+html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit,
+html.slice2-tv body.active-match-view #slice2-board-bar {
+  width: calc(100% - 1.5rem) !important;
+  max-width: none !important;
+  align-self: stretch !important;
+}
+html.slice2-tv .scorecard-player-name-slot,
+html.slice2-tv .s2-seat-who {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+html.slice2-tv #slice2-board-bar .s2-btn,
+html.slice2-tv .s2-banner .s2-btn,
+html.slice2-tv .s2-startbar .s2-btn,
+html.slice2-tv .s2-standings-foot .s2-btn {
+  font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  min-height: 48px;
+}
+html.slice2-tv .s2-overview-layout {
+  display: flex !important;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+html.slice2-tv .s2-overview-mid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+html.slice2-tv .s2-career .s2-headline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+html.slice2-tv .s2-headline-card small,
+html.slice2-tv .s2-assisted-note,
+html.slice2-tv .s2-kicker {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+html.slice2-tv .s2-headline-card strong {
+  font-size: clamp(2rem, 3vw, 3.2rem);
+}
+html.slice2-tv .s2-night-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+html.slice2-tv .s2-night-grid h3 { grid-column: 1 / -1; }
+@media (max-width: 900px) {
+  html.slice2-tv .s2-overview-mid,
+  html.slice2-tv .s2-night-grid,
+  html.slice2-tv .s2-career .s2-headline { grid-template-columns: 1fr; }
+}
+#score-entry-modal .score-entry-panel,
+#wheel-modal .life-preserver-dialog,
+#reorder-players-modal .bp-modal-panel,
+#settings-modal .bp-modal-panel,
+#add-player-modal .bp-modal-panel,
+.bp-modal-panel {
+  width: min(92vw, 1080px);
+  max-height: 92vh;
+}
+#score-entry-modal .score-entry-panel { height: min(92vh, 900px); }
+.bp-modal-panel .text-\[10px\],
+.life-preserver-dialog .text-\[10px\],
+.wheel-mode-label {
+  font-size: 1rem !important;
+  letter-spacing: 0.04em !important;
+}
+#reorder-players-modal .bp-modal-panel { width: min(92vw, 820px); }

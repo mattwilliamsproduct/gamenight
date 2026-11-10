@@ -9285,7 +9285,7 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ HISTORY ═══ -->
-    <div id="history-screen" class="hidden max-w-6xl mx-auto">
+    <div id="history-screen" class="hidden w-full mx-auto px-2">
       <div class="bp-view-tabs flex justify-center mb-8">
         <div class="border hairline p-1 rounded-full flex gap-1" style="background:var(--surface);">
           <button onclick="switchTab('history-list-view')" id="tab-history" class="nav-btn active">Timeline</button>
@@ -12261,6 +12261,55 @@ button.dealer-name-indicator .dealer-player-label {
     }
     if(message) toast(message, 'warning');
   }
+  function showUnusualScoreConfirm(sample){
+    const host=document.getElementById('score-entry-error');
+    if(!host){
+      showScoreEntryError(`You entered ${Number(sample).toLocaleString()}. Is that correct?`);
+      return;
+    }
+    host.classList.remove('hidden');
+    host.innerHTML=`You entered ${Number(sample).toLocaleString()}. Is that correct? <button type="button" id="unusual-score-edit">Edit</button> <button type="button" id="unusual-score-use">Use score</button>`;
+    host.querySelector('#unusual-score-edit')?.addEventListener('click', ()=>host.classList.add('hidden'));
+    host.querySelector('#unusual-score-use')?.addEventListener('click', ()=>{
+      if(scoreEntryModalState) scoreEntryModalState.unusualOk=true;
+      host.classList.add('hidden');
+      submitScoreEntryModal();
+    });
+  }
+  document.addEventListener('keydown', (event)=>{
+    const modal=document.getElementById('score-entry-modal');
+    if(!modal || modal.classList.contains('hidden') || !scoreEntryModalState) return;
+    const tag=event.target && event.target.tagName;
+    if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT') return;
+    if(event.metaKey || event.ctrlKey || event.altKey) return;
+    if(event.key==='Backspace'){ scoreEntryKey('backspace'); event.preventDefault(); }
+    else if(event.key==='-' || event.key==='Subtract'){ scoreEntryKey('-'); event.preventDefault(); }
+    else if(/^[0-9]$/.test(event.key)){ scoreEntryKey(event.key); event.preventDefault(); }
+  });
+  document.addEventListener('paste', (event)=>{
+    const modal=document.getElementById('score-entry-modal');
+    if(!modal || modal.classList.contains('hidden') || !scoreEntryModalState) return;
+    const text=(event.clipboardData && event.clipboardData.getData('text') || '').trim();
+    if(!text) return;
+    event.preventDefault();
+    if(!/^-?\d+$/.test(text)){
+      showScoreEntryError('Paste a whole number.');
+      return;
+    }
+    const player=scoreEntryModalState.activePlayer;
+    const modeKey=isScoreEntryBidMode(scoreEntryModalState.mode)?'bids':(isScoreEntryTrickMode(scoreEntryModalState.mode)?'tricks':'scores');
+    const cap=BPGScorebook.entryDigitCap(currentGame, modeKey);
+    if(String(text).replace(/\D/g,'').length>cap){
+      showScoreEntryError(cap>=4?'Hand and Foot scores stop at 9,999.':'That entry stops at 999.');
+      return;
+    }
+    scoreEntryModalState.values[player]=text;
+    scoreEntryModalState.acknowledged[player]=true;
+    if(!scoreEntryModalState.dirty) scoreEntryModalState.dirty={};
+    scoreEntryModalState.dirty[player]=true;
+    scoreEntryModalState.unusualOk=false;
+    updateScoreEntryActiveValue();
+  });
   function exportData(){
     if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){
       showBackupError('Backup, restore, and sync are off in this demo.');
@@ -15527,25 +15576,28 @@ ${isDealer
     if(!list || !_reorderPlayersWorking) return;
     const n = _reorderPlayersWorking.length;
     list.innerHTML = _reorderPlayersWorking.map((p, i) => `
-      <div class="reorder-player-row flex items-center gap-2 px-3 py-2.5 rounded-xl border hairline"
-        style="background:var(--surface-2);border-color:var(--hairline);"
+      <div class="reorder-player-row flex items-center gap-3 px-4 py-3 rounded-xl border hairline"
+        style="background:var(--surface-2);border-color:var(--hairline);min-height:76px;"
+        draggable="true"
+        ondragstart="reorderModalHandleDragStart(event, ${i})"
+        ondragend="reorderModalDragEnd(event)"
         data-reorder-idx="${i}"
         ondragover="reorderModalDragOver(event, ${i})"
         ondragleave="reorderModalDragLeave(event)"
         ondrop="reorderModalDragDrop(event, ${i})">
-        <span class="drag-handle"
+        <span class="drag-handle" style="font-size:1.7rem;min-width:44px;min-height:44px;"
           draggable="true"
           ondragstart="reorderModalHandleDragStart(event, ${i})"
           ondragend="reorderModalDragEnd(event)"
           ontouchstart="reorderModalTouchStart(event, ${i})"
           title="Drag to reorder">⋮⋮</span>
         <div class="flex flex-col gap-0 mr-0.5 shrink-0">
-          <button type="button" onclick="reorderModalMoveArrow(${i},-1)" class="text-lg leading-none hover:opacity-70 transition-opacity ${i===0?'invisible':''}" style="color:var(--muted);">▲</button>
-          <button type="button" onclick="reorderModalMoveArrow(${i},1)" class="text-lg leading-none hover:opacity-70 transition-opacity ${i===n-1?'invisible':''}" style="color:var(--muted);">▼</button>
+          <button type="button" onclick="reorderModalMoveArrow(${i},-1)" class="text-2xl leading-none hover:opacity-70 transition-opacity ${i===0?'invisible':''}" style="color:var(--ink);min-width:44px;min-height:36px;" aria-label="Move up">▲</button>
+          <button type="button" onclick="reorderModalMoveArrow(${i},1)" class="text-2xl leading-none hover:opacity-70 transition-opacity ${i===n-1?'invisible':''}" style="color:var(--ink);min-width:44px;min-height:36px;" aria-label="Move down">▼</button>
         </div>
-        <span class="text-sm w-6 font-mono-num shrink-0 text-center" style="color:var(--muted);">${i + 1}</span>
+        <span class="text-2xl w-10 font-mono-num shrink-0 text-center" style="color:var(--ink);">${i + 1}</span>
         ${getAvatarImg(p, 'avatar-img')}
-        <span class="player-name-label text-base truncate min-w-0 flex-1">${p}</span>
+        <span class="player-name-label text-2xl truncate min-w-0 flex-1">${p}</span>
       </div>
     `).join('');
   }
@@ -15898,14 +15950,11 @@ ${isDealer
       // Height-derived size for small tables so 2–4p fill large screens. Keep
       // a sensible upper bound (~320) so rows don't become absurd on huge TVs,
       // and keep 6p/8p + phone caps so dense tables still fit.
-      const derivedCap = Math.max(96, Math.min(320, fillRow));
       let comfortMax;
       if (phone) {
-        comfortMax = count <= 3 ? 96 : count <= 6 ? 88 : 68;
-      } else if (tablet) {
-        comfortMax = count <= 4 ? derivedCap : count <= 6 ? 110 : 92;
+        comfortMax = count <= 3 ? 88 : count <= 6 ? 76 : 64;
       } else {
-        comfortMax = count <= 4 ? derivedCap : count <= 6 ? 118 : 96;
+        comfortMax = count <= 4 ? 92 : count <= 6 ? 88 : 80;
       }
       const comfortMin = phone ? 44 : (tablet ? 52 : 58);
       const targetRow = Math.max(comfortMin, Math.min(comfortMax, fillRow));
@@ -16022,11 +16071,8 @@ ${isDealer
       // sizes with rowSlots=8 but only has 2 team rows; using rowSlots here left the
       // table stretched to the wrap and blew row height past the dense-names cap.
       const huggedHeight=(head?.offsetHeight||0)+rowHeight*rows.length;
-      // Small player counts on large screens should fill height, not hug and leave
-      // a tall empty band under the card — unless comfortMax capped below fillRow,
-      // in which case hug so rows stay at the var height instead of stretching.
       const cappedBelowFill = targetRow + 1 < fillRow;
-      const allowHug = phone || count > 4 || cappedBelowFill;
+      const allowHug = true;
       root.classList.toggle('scorecard-hug-rows', allowHug && huggedHeight < fitHeight - 28);
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
@@ -16372,7 +16418,7 @@ ${isDealer
         .reduce((sum,th)=>sum+th.getBoundingClientRect().width,0);
       const room=Math.max(32, wrap.clientWidth-leadWidth-8);
       host.classList.add('scorecard-fit-cols');
-      host.style.setProperty('--scorecard-now-col',`${Math.floor(Math.min(56,room))}px`);
+      host.style.setProperty('--scorecard-now-col',`${Math.floor(Math.min(120,Math.max(88,room)))}px`);
       table.style.width='100%';
       table.style.maxWidth='100%';
       void host.offsetWidth;
@@ -16973,9 +17019,23 @@ ${isDealer
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
+      const lpGames=new Set(['Five Crowns','Wizard','818','Flip 7 Vengeance']);
+      const lpDelta=(()=>{
+        if(!hasUsedPreserver) return '';
+        const bonus=(currentGame.rounds||[]).filter(r=>r&&r.hailMaryBonus&&r.scores&&r.scores[p]!=null);
+        const last=bonus[bonus.length-1];
+        const n=last?Number(last.scores[p]):NaN;
+        if(!Number.isFinite(n)||n===0) return '';
+        return ` ${n>0?'+':'−'}${Math.abs(n)}`;
+      })();
+      const lpStatus=!lpGames.has(currentGame.name)||isRetired?'':(hasUsedPreserver
+        ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')">Life Preserver · Used${lpDelta}</button>`
+        : hasAvailablePreserver
+          ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')">Life Preserver · Available</button>`
+          : (!over?`<span class="s2-lp-status">Life Preserver · Not yet available</span>`:''));
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer — tap to change" aria-label="${escapeHtml(nameLabel)} is dealer — tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
-  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
+  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}${lpStatus}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -18171,7 +18231,15 @@ ${isDealer
         if(v==='backspace') c=c.slice(0,-1);
         else if(v==='-') c=c.startsWith('-')?c.substring(1):'-'+c;
         else if(c==='0'&&v!=='0'&&v!=='00') c=v;
-        else if(c.length<5) c+=v;
+        else {
+          const next=c+v;
+          const digits=String(next).replace(/\D/g,'').length;
+          if(digits>4){
+            showScoreEntryError('Hand and Foot scores stop at 9,999.');
+            return;
+          }
+          c=next;
+        }
         scoreEntryModalState.values[p][field]=c;
         updateScoreEntryActiveValue();
         return;
@@ -18185,8 +18253,14 @@ ${isDealer
         value:scoreEntryModalState.values[p]??'',
         acknowledged:!!scoreEntryModalState.acknowledged[p],
         mode:modeKey,
-        dirty:!!scoreEntryModalState.dirty[p]
+        dirty:!!scoreEntryModalState.dirty[p],
+        digitCap:BPGScorebook.entryDigitCap(currentGame, modeKey)
       }, v);
+      if(next.rejected){
+        showScoreEntryError(next.message||'That entry is too large.');
+        return;
+      }
+      if(scoreEntryModalState) scoreEntryModalState.unusualOk=false;
       scoreEntryModalState.values[p]=next.value;
       scoreEntryModalState.acknowledged[p]=next.acknowledged;
       scoreEntryModalState.dirty[p]=!!next.dirty;
@@ -18360,6 +18434,13 @@ ${isDealer
     }
     const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players,values});
     if(!checked.ok) return rejectScoreEntries(checked);
+    const floor=BPGScorebook.unusualEntryFloor(currentGame);
+    const unusual=players.filter(p=>Math.abs(Number(checked.values[p]))>=floor);
+    if(unusual.length && !scoreEntryModalState.unusualOk){
+      const sample=checked.values[unusual[0]];
+      showUnusualScoreConfirm(sample);
+      return false;
+    }
     const allZero=players.every(p=>checked.values[p]===0);
     const label=currentGame.name==='Beat the Heat'?'Everyone logged 0 heat? Submit?':'Everyone scored 0? Submit?';
     return !allZero||confirm(label);

@@ -6,23 +6,47 @@
     return Number.isFinite(n) ? n : 0;
   }
 
-  // Display ranking for scorecard pills, Home Recent chips, and Past nights.
-  // Dense ties: two 1sts then 2nd (not olympic 1,1,3). Callers must omit departed
-  // seats before ranking so they take no spot. Wins/streaks/records stay elsewhere.
+  // Competition ranking: tied totals share a place and the next total skips.
+  // 1,1,3 and 2,2,4. Callers omit departed seats so they take no spot.
   function competitionPlaces(sortedPlayers, totals) {
     const place = {};
     const list = Array.isArray(sortedPlayers) ? sortedPlayers : [];
     let cursor = 0;
-    let denseRank = 1;
     while (cursor < list.length) {
       const score = placeScore(totals, list[cursor]);
       let end = cursor + 1;
       while (end < list.length && placeScore(totals, list[end]) === score) end++;
-      for (let i = cursor; i < end; i++) place[list[i]] = denseRank;
-      denseRank += 1;
+      const rank = cursor + 1;
+      for (let i = cursor; i < end; i++) place[list[i]] = rank;
       cursor = end;
     }
     return place;
+  }
+
+  function entryDigitCap(game, kind) {
+    const name = gameName(game);
+    const mode = kind || '';
+    if (name === 'Hand and Foot' && mode !== 'bids' && mode !== 'tricks') return 4;
+    return 3;
+  }
+
+  function entryDigitLimit(game, kind) {
+    return entryDigitCap(game, kind) === 4 ? 9999 : 999;
+  }
+
+  function unusualEntryFloor(game) {
+    const name = gameName(game);
+    if (name === 'Hand and Foot') return 8000;
+    if (name === 'Five Crowns') return 200;
+    if (name === 'Wizard') return 150;
+    if (name === '818') return 20;
+    if (name === 'Flip 7 Vengeance') return 200;
+    if (name === 'Beat the Heat') return 30;
+    return 500;
+  }
+
+  function entryDigitCount(value) {
+    return String(value == null ? '' : value).replace(/\D/g, '').length;
   }
 
   function isScoringRound(round) {
@@ -316,6 +340,7 @@
     const invalidPlayers = [];
     const missingPlayers = [];
     const values = {};
+    let oversizeLimit = 0;
     players.forEach(player => {
       let raw = rawValues[player];
       if ((kind === 'scores' || kind === 'tricks') && scoreEntryValueIsBlank(raw)) raw = 0;
@@ -331,6 +356,12 @@
       }
       if (bounded && (parsed.value < 0 || parsed.value > limit)) {
         invalidPlayers.push(player);
+        return;
+      }
+      const digitLimit = entryDigitLimit(source.game, kind);
+      if (Math.abs(parsed.value) > digitLimit) {
+        invalidPlayers.push(player);
+        oversizeLimit = digitLimit;
         return;
       }
       if (kind === 'scores' && playedScoreMustBeNonNegative(source.game) && parsed.value < 0) {
@@ -357,7 +388,9 @@
         invalidPlayers,
         values,
         limit,
-        message: entryRejectionMessage(source.game, kind, limit, invalidPlayers)
+        message: oversizeLimit
+          ? `That entry stops at ${oversizeLimit.toLocaleString()}.`
+          : entryRejectionMessage(source.game, kind, limit, invalidPlayers)
       };
     }
     if (kind === 'bids' && gameName(source.game) === '818') {
@@ -462,10 +495,24 @@
       }
       return { value: token, acknowledged: deferAck ? false : true, replaced: true, dirty: true };
     }
+    const cap = Number.isFinite(Number(source.digitCap)) ? Number(source.digitCap) : 3;
+    const limitLabel = cap >= 4 ? '9,999' : '999';
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
-    else if (digit && value === '0' && token !== '0' && token !== '00') value = token;
-    else if (digit && value.length < 5) value += token;
+    else if (digit) {
+      const nextValue = (value === '0' && token !== '0' && token !== '00') ? token : value + token;
+      if (entryDigitCount(nextValue) > cap) {
+        return {
+          value,
+          acknowledged,
+          replaced: false,
+          dirty,
+          rejected: true,
+          message: `That entry stops at ${limitLabel}.`
+        };
+      }
+      value = nextValue;
+    }
     if (String(value).trim() === '-') {
       acknowledged = deferAck ? false : true;
     } else if (scoreEntryValueIsBlank(value)) {
@@ -1141,6 +1188,10 @@
     isCommaJoinedGhost,
     cleanupCommaJoinedGhosts,
     competitionPlaces,
+    entryDigitCap,
+    entryDigitLimit,
+    unusualEntryFloor,
+    entryDigitCount,
     scoreboardStandings,
     isScoringRound,
     scoringRoundCount,

@@ -45,6 +45,8 @@
   let anotherStep = null;
   let anotherParkOk = false;
   let unfinishedOpen = false;
+  let nextRosterOpen = false;
+  let addPicks = new Set();
 
   function state() {
     return slice2TableState();
@@ -126,11 +128,32 @@
       return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
         ${badge}
         ${getStreakAvatarHtml(player, 'avatar-img')}
-        <span class="s2-seat-name">${escapeHtml(player)}</span>
+        <span class="s2-seat-who">
+          <span class="s2-seat-name">${escapeHtml(player)}</span>
+          ${lifePreserverStatusMarkup(game, player)}
+        </span>
         ${dealerTag}
         <span class="s2-standing-score">${escapeHtml(String(score))}</span>
       </button>`;
     }).join('');
+  }
+
+  function lifePreserverStatusMarkup(game, player) {
+    const supported = new Set(['Five Crowns', 'Wizard', '818', 'Flip 7 Vengeance']);
+    if (!game || !supported.has(game.name) || typeof isHailMaryEligible !== 'function') return '';
+    const used = (game.hailMaryUsed || []).includes(player);
+    if (used) {
+      const bonus = (game.rounds || []).filter((round) => round && round.hailMaryBonus && round.scores && round.scores[player] != null);
+      const last = bonus[bonus.length - 1];
+      const n = last ? Number(last.scores[player]) : NaN;
+      const delta = Number.isFinite(n) && n !== 0 ? ` ${n > 0 ? '+' : '−'}${Math.abs(n)}` : '';
+      return `<span class="s2-lp-status">Life Preserver · Used${delta}</span>`;
+    }
+    const table = typeof getActivePlayers === 'function' ? getActivePlayers(game) : [];
+    if (isHailMaryEligible(game, player, table, { gameOver: false })) {
+      return `<span class="s2-lp-status">Life Preserver · Available</span>`;
+    }
+    return `<span class="s2-lp-status">Life Preserver · Not yet available</span>`;
   }
 
   function leaderBit(game) {
@@ -343,6 +366,50 @@
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
+  function addPlayerPickerMarkup(bench, seated) {
+    const max = window.BPGGames && typeof BPGGames.seatLimit === 'function'
+      ? BPGGames.seatLimit(selected, seated + addPicks.size)
+      : { ok: true, message: '' };
+    const room = window.BPGGames && typeof BPGGames.seatLimit === 'function'
+      ? BPGGames.seatLimit(selected, seated + addPicks.size + 1)
+      : { ok: true, message: '' };
+    const rows = bench.map((player) => {
+      const on = addPicks.has(player);
+      const blocked = !on && !room.ok;
+      return `<label class="s2-pick${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}">
+        <input type="checkbox" data-s2-action="pick-add" data-s2-player="${escapeHtml(player)}"${on ? ' checked' : ''}${blocked ? ' disabled' : ''}>
+        ${getStreakAvatarHtml(player, 'avatar-img')}
+        <span>${escapeHtml(player)}</span>
+        <span class="s2-pick-mark" aria-hidden="true">${on ? '✓' : ''}</span>
+      </label>`;
+    }).join('');
+    const count = addPicks.size;
+    const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add Player';
+    return `<div class="s2-picker">
+      ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are already in this match.</p>'}
+      ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(room.message || max.message || 'No room for another player.')}</p>` : ''}
+      <form class="s2-add" data-s2-action="add-form">
+        <div class="player-suggest-wrap">
+          <input id="quick-add-player" type="text" placeholder="Add someone new" autocomplete="off" aria-label="Add a player"
+            oninput="updatePlayerSuggestions('home'); window.BPGSlice2 && BPGSlice2.filterAddPicker(this.value)"
+            onfocus="updatePlayerSuggestions('home')"
+            onblur="hidePlayerSuggestionsSoon('home')"
+            onkeydown="handlePlayerSuggestKey(event,'home')">
+          <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
+        </div>
+        <button type="submit" class="s2-btn s2-btn-primary" aria-label="${escapeHtml(label)}"${count && !max.ok ? ' disabled' : ''}>${escapeHtml(label)}</button>
+      </form>
+    </div>`;
+  }
+
+  function filterAddPicker(query) {
+    const q = String(query || '').trim().toLowerCase();
+    document.querySelectorAll('.s2-pick').forEach((row) => {
+      const name = (row.querySelector('span')?.textContent || '').toLowerCase();
+      row.hidden = !!(q && !name.includes(q));
+    });
+  }
+
   function paintHome() {
     const home = document.getElementById('home-screen');
     if (!home) return;
@@ -383,14 +450,22 @@
       const label = displayGameName(top.game || top.name);
       const round = liveRoundLabel(historyAsGame(top));
       const more = open.length > 1;
-      const list = unfinishedOpen && more
-        ? `<div class="s2-unfinished-list">${open.slice(1).map((match) => {
-            const name = displayGameName(match.game || match.name);
-            return `<div class="s2-unfinished-row">
-              <span>${escapeHtml(name)} · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}</span>
-              <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
-            </div>`;
-          }).join('')}</div>`
+      const chooser = unfinishedOpen && more
+        ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
+            <section class="s2-panel s2-chooser" role="dialog" aria-label="Unfinished matches">
+              <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
+              ${open.map((match) => {
+                const name = displayGameName(match.game || match.name);
+                const who = (match.originalRoster || match.players || []).filter(Boolean).join(', ');
+                const when = match.date || match.savedAt || '';
+                return `<div class="s2-unfinished-row">
+                  <span><strong>${escapeHtml(name)}</strong> · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}${who ? ` · ${escapeHtml(who)}` : ''}${when ? ` · ${escapeHtml(String(when))}` : ''}</span>
+                  <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
+                </div>`;
+              }).join('')}
+              <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-close">Close</button>
+            </section>
+          </div>`
         : '';
       return `<section class="s2-banner s2-unfinished-banner">
         <div>
@@ -398,10 +473,10 @@
           <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
         </div>
         <div class="s2-banner-actions">
-          ${more ? '<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all</button>' : ''}
+          ${more ? `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all (${open.length})</button>` : ''}
           <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}">Resume</button>
         </div>
-      </section>${list}`;
+      </section>${chooser}`;
     })() : '');
     const seats = table.players.map((player, index) => {
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
@@ -433,6 +508,7 @@
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
+        ${on ? '<span class="s2-selected-tag">✓ Selected</span>' : '<span class="s2-selected-tag s2-selected-reserve" aria-hidden="true">✓ Selected</span>'}
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
@@ -445,19 +521,10 @@
           <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
           <div class="s2-seat-grid">${seats}</div>
           <div class="s2-deck">${chips}</div>
-          <form class="s2-add" data-s2-action="add-form">
-            <div class="player-suggest-wrap">
-              <input id="quick-add-player" type="text" placeholder="Add a player" autocomplete="off" aria-label="Add a player"
-                oninput="updatePlayerSuggestions('home')"
-                onfocus="updatePlayerSuggestions('home')"
-                onblur="hidePlayerSuggestionsSoon('home')"
-                onkeydown="handlePlayerSuggestKey(event,'home')">
-              <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
-            </div>
-            <button type="submit" class="s2-btn s2-btn-primary" aria-label="Add">Add Player</button>
-          </form>
+          ${addPlayerPickerMarkup(bench, seated)}
           <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
+    const live = table.currentGame;
     const limit = window.BPGGames && typeof BPGGames.seatLimit === 'function'
       ? BPGGames.seatLimit(selected, seated)
       : { ok: true, message: '' };
@@ -478,12 +545,17 @@
             </label>
           </div>
           <div class="s2-game-grid">${cards}</div>
+          ${live && nextRosterOpen ? `<div class="s2-next-roster" id="slice2-next-roster">
+            <p class="s2-sub">Next match roster. This does not change the match in progress.</p>
+            <div class="s2-seat-grid">${seats}</div>
+            ${addPlayerPickerMarkup(bench, seated)}
+          </div>` : ''}
           <div class="s2-startbar">
             <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
+            ${live ? `<button type="button" class="s2-btn" data-s2-action="edit-next-roster">Players (${seated})</button>` : ''}
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
-    const live = table.currentGame;
     const standings = live ? `<section class="s2-panel s2-home-table s2-home-standings" ${anotherStep === 'confirm' ? '' : 'data-s2-action="resume"'} aria-label="Current standings">
           <div class="s2-panel-head">
             <div>
@@ -492,6 +564,9 @@
             </div>
           </div>
           <div class="s2-standings">${standingRows(live)}</div>
+          <div class="s2-standings-foot">
+            <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${typeof isMatchOver === 'function' && isMatchOver(live) ? ' disabled' : ''}>Enter Scores</button>
+          </div>
         </section>` : '';
     const ask = live && anotherStep === 'confirm'
       ? `<div class="s2-another-layer" data-s2-action="another-cancel">
@@ -1186,7 +1261,20 @@
         startGame(selected);
       }
     } else if (action === 'unfinished-all') {
-      unfinishedOpen = !unfinishedOpen;
+      unfinishedOpen = true;
+      paintHome();
+    } else if (action === 'unfinished-close') {
+      if (target.closest('.s2-chooser') && target.dataset.s2Action !== 'unfinished-close') return;
+      unfinishedOpen = false;
+      paintHome();
+    } else if (action === 'edit-next-roster') {
+      nextRosterOpen = !nextRosterOpen;
+      paintHome();
+    } else if (action === 'pick-add') {
+      const name = target.dataset.s2Player || target.closest('.s2-pick')?.querySelector('span')?.textContent || '';
+      if (!name) return;
+      if (addPicks.has(name)) addPicks.delete(name);
+      else addPicks.add(name);
       paintHome();
     } else if (action === 'resume' || action === 'scorecard') {
       goActiveMatch();
@@ -1221,7 +1309,19 @@
     const form = event.target.closest?.('[data-s2-action="add-form"]');
     if (!form) return;
     event.preventDefault();
-    if (typeof addPlayerToAll === 'function') addPlayerToAll();
+    const typed = (form.querySelector('#quick-add-player')?.value || '').trim();
+    const picks = [...addPicks];
+    addPicks = new Set();
+    picks.forEach((name) => {
+      if (typeof moveToLineup === 'function') moveToLineup(name);
+    });
+    if (typed && typeof addPlayerToAll === 'function') {
+      const input = document.getElementById('quick-add-player');
+      if (input) input.value = typed;
+      addPlayerToAll();
+    } else {
+      paintHome();
+    }
   }
 
   function onChange(event) {
@@ -1471,7 +1571,8 @@
     animateLifePreserverBall,
     resetLifePreserverBall,
     placeLifePreserverBall,
-    highlightLifePreserverPocket
+    highlightLifePreserverPocket,
+    filterAddPicker
   };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });
