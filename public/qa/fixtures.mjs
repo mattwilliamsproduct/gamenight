@@ -186,6 +186,17 @@ const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFive
 const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
+const lpFinishPlayers=['Ada','Bea','Cal','Dee'];
+const lpFinishRounds=[
+  {round:1,scores:{Ada:30,Bea:12,Cal:18,Dee:22}},
+  {round:2,scores:{Ada:4,Bea:14,Cal:16,Dee:20}},
+  {round:0,hailMaryBonus:true,scores:{Ada:-20}}
+];
+const lpFinishGame=makeCurrentGame('Five Crowns',lpFinishPlayers,lpFinishRounds,{
+  ruleset:'best-finish-2nd',
+  hailMaryUsed:['Ada'],
+  currentRound:3
+});
 const nameFitCrownsPlayers=['Megan','Vikki','Matt','Duke','Linda','Mike','Michelle'];
 const nameFitCrownsGame=makeCurrentGame('Five Crowns',nameFitCrownsPlayers,[],{dealerOffset:0});
 const heatPlayers=NAMES.slice(0,4);
@@ -1248,6 +1259,12 @@ export const QA_SCENARIOS = {
     description:'Hand of 9 with six players at 0, Linda at 108, and Vikki at 140 after a 0 with Comeback extra in the R6 cell.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:blowoutCrownsGame}
+  },
+  'lp-best-finish':{
+    label:'Five Crowns · Life Preserver best finish',
+    description:'Ada has the lowest score after a helpful Life Preserver and sits under Bea, the eligible leader.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES,...lpFinishPlayers],players:[...lpFinishPlayers],history:[],playerProfiles:profiles(),currentGame:lpFinishGame}
   },
   'five-crowns-4':{
     label:'Five Crowns · 4 Players',

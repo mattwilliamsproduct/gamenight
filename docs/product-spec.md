@@ -78,6 +78,7 @@ What the wheel may do:
 - 818's biggest help is about two made bids (+20), not a ticket to 1st. That calibration is on main (`rescue` path in `life-preserver-logic.js`, shipped in PR #42).
 - Some slices are small help, some are 0, some are a small setback.
 - One spin per player per match. Undo of a later round gives the spin back if that undo removes the bonus round.
+- A match started after this house rule stores `ruleset: best-finish-2nd`. A helpful spin, judged by that game's win direction, bars that player from the win. Zero or a setback does not. Taking the spin is not itself a bar. The score stays the real total. One standings function puts eligible leaders first, including ties, then everyone else by score. `STANDINGS_TIE_RANKING` is `competition` (1, 1, 3). The row reads `Life Preserver · Best finish: 2nd`, and adds `Best score, but out of first after Life Preserver help` when the raw score beats the eligible leader. The pre-spin confirm states the trade and the live wheel odds (about 80% help). If nobody remains eligible, the night says `No champion tonight.` Nights without the ruleset keep the winner they were played under. Best-score records still use the assisted-night gate. That gate is separate from who may win.
 
 The spin is stored as its own round: `{ round: 0, hailMaryBonus: true, scores: { Name: adjustment } }`. It is inside the total. It is excluded from round columns, Player Pace, round records, WHAMMY / Nolie / Cami, and the place-over-time path.
 

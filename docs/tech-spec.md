@@ -60,6 +60,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - Live scorecard, history list, profile rank, and path replay use that rule. Tie order under the same place may follow seat order. It must not invent a lower place.
 - End-of-match copy lives in `BPGRecords.matchResult`. An all-tied night says Everyone tied and skips the loser screen. A tied last place says share last. Every stored winner still gets a career win.
 - Life Preserver still may not land on a tie for 1st. Sharing 2nd is allowed.
+- New matches store `ruleset: best-finish-2nd`. `BPGScorebook.matchStandings` is the only winner order. It reads the stored spin outcome (`helpful`, `zero`, or `setback`, plus the amount) and `eligibleToWin`. A helpful outcome is ineligible. Eligible leaders share 1st. The next player is 3rd while `STANDINGS_TIE_RANKING` is `competition`. Scoreboard rows, the winner screen, history, and Passport win counts all call that function. A missing ruleset keeps the old raw-score winner. The wheel table is unchanged.
 
 ### DISPUTE
 

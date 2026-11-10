@@ -3984,6 +3984,23 @@ button.dealer-name-indicator {
       color: #1f4a44;
     }
     html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
+    .lp-finish-note, .lp-finish-why {
+      display: block;
+      max-width: 18rem;
+      color: var(--ink);
+      font-family: "Nunito Sans", sans-serif;
+      font-weight: 750;
+      line-height: 1.25;
+      white-space: normal;
+    }
+    .lp-finish-note { margin-top: 0.2rem; font-size: 0.84rem; }
+    .lp-finish-why { margin-top: 0.12rem; font-size: 0.78rem; font-weight: 650; color: var(--ink-2); }
+    #lp-win-confirm {
+      background: var(--surface);
+      border: 1.5px solid var(--ink);
+      color: var(--ink);
+    }
+    #lp-win-confirm-copy { font-size: 1.05rem; line-height: 1.35; font-weight: 750; }
 
     .life-preserver-dialog {
       border-color: #0a4f49 !important;
@@ -9832,6 +9849,13 @@ button.dealer-name-indicator .dealer-player-label {
           <span class="wheel-legend-chip is-zero">No change</span>
           <span class="wheel-legend-chip is-setback">Setback</span>
         </div>
+        <div id="lp-win-confirm" class="hidden w-full mt-3 mb-3 p-4 text-left rounded-2xl">
+          <p id="lp-win-confirm-copy"></p>
+          <div class="flex gap-2 mt-3">
+            <button type="button" id="lp-win-confirm-yes" class="btn-primary flex-1 py-3 font-display text-xl" onclick="acceptLifePreserverWinConfirm()">Spin</button>
+            <button type="button" id="lp-win-confirm-no" class="btn-ghost flex-1 py-3 font-extrabold" onclick="hideLifePreserverWinConfirm()">Not now</button>
+          </div>
+        </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary w-full py-5 font-display text-2xl md:text-3xl shrink-0">Use your one spin</button>
         <div id="wheel-result" class="hidden w-full mt-4 p-5 text-left rounded-2xl" style="background:var(--emerald-bg);border:1px solid var(--emerald-border);">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--emerald);">Landed result · Locked</div>
@@ -11738,6 +11762,8 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function closeWheel(){
     cancelLifePreserverSpin({notify:true});
+    _lpWinTradeAccepted=false;
+    hideLifePreserverWinConfirm();
     hideLifePreserverHelp();
     lifePreserverOfferSnapshot=null;
     renderLifePreserverExplanation();
@@ -12991,7 +13017,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   /* ═══ HAIL MARY WHEEL ═══ */
   let wheelPlayer=null, currentWheelRotation=0, lifePreserverOfferSnapshot=null;
-  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0, _lifePreserverCommitted=false;
+  let _lifePreserverSpinTimer=null, _lifePreserverSpinToken=0, _lifePreserverCommitted=false, _lpWinTradeAccepted=false;
   function lifePreserverSpinDuration(){
     if(GN_QA_MODE) return 80;
     const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -13167,6 +13193,34 @@ button.dealer-name-indicator .dealer-player-label {
     return slices;
   }
 
+  function lifePreserverTradeApplies(){
+    return !!(currentGame&&window.BPGScorebook&&BPGScorebook.lifePreserverWinRuleActive(currentGame));
+  }
+  function lifePreserverTradeCopy(){
+    const odds=window.BPGLifePreserver&&typeof BPGLifePreserver.liveWheelOdds==='function'
+      ? BPGLifePreserver.liveWheelOdds()
+      : null;
+    return BPGScorebook.lifePreserverWinConfirmCopy(odds&&odds.line);
+  }
+  function hideLifePreserverWinConfirm(){
+    document.getElementById('lp-win-confirm')?.classList.add('hidden');
+    const btn=document.getElementById('btn-spin');
+    if(btn) btn.classList.remove('hidden');
+  }
+  function showLifePreserverWinConfirm(){
+    const panel=document.getElementById('lp-win-confirm');
+    const copy=document.getElementById('lp-win-confirm-copy');
+    if(copy) copy.textContent=lifePreserverTradeCopy();
+    if(panel) panel.classList.remove('hidden');
+    const btn=document.getElementById('btn-spin');
+    if(btn) btn.classList.add('hidden');
+    if(window.BPGSlice2&&typeof BPGSlice2.sizeLifePreserverModal==='function') BPGSlice2.sizeLifePreserverModal();
+  }
+  function acceptLifePreserverWinConfirm(){
+    _lpWinTradeAccepted=true;
+    hideLifePreserverWinConfirm();
+    spinWheel();
+  }
   function authorizeHailMary(p){
     const activePlayers=getActivePlayers(currentGame);
     if(!activePlayers.includes(p))return;
@@ -13194,6 +13248,8 @@ button.dealer-name-indicator .dealer-player-label {
     hideLifePreserverHelp();
     cancelLifePreserverSpin();
     _lifePreserverCommitted=false;
+    _lpWinTradeAccepted=false;
+    hideLifePreserverWinConfirm();
     resetLifePreserverResultPanel();
     renderLifePreserverExplanation();
     openModal('wheel-modal');
@@ -13226,6 +13282,10 @@ button.dealer-name-indicator .dealer-player-label {
 
   function spinWheel(){
     if(_lifePreserverCommitted)return;
+    if(lifePreserverTradeApplies()&&!_lpWinTradeAccepted){
+      showLifePreserverWinConfirm();
+      return;
+    }
     cancelLifePreserverSpin();
     const spinToken=++_lifePreserverSpinToken;
     document.getElementById('btn-spin').disabled=true;
@@ -13663,6 +13723,10 @@ button.dealer-name-indicator .dealer-player-label {
       dealerOffset:game.dealerOffset||0,
       auditLog:game.auditLog||[]
     };
+    if(game.ruleset) data.ruleset=game.ruleset;
+    if(game.lifePreserverOutcomes) data.lifePreserverOutcomes=JSON.parse(JSON.stringify(game.lifePreserverOutcomes));
+    if(game.eligibleToWin) data.eligibleToWin={...game.eligibleToWin};
+    if(game.noChampion===true) data.noChampion=true;
     if(game.name==='Wizard'){
       data.wizardPhase=game.wizardPhase||'bidding';
       data.currentBids={...(game.currentBids||{})};
@@ -13728,7 +13792,7 @@ button.dealer-name-indicator .dealer-player-label {
     _pendingGameName = null;
     resetRecordChaseView();
     let t={}; players.forEach(p=>t[p]=0);
-    currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
+    currentGame={name,originalRoster:[...players],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{},ruleset:window.BPGScorebook?BPGScorebook.LIFE_PRESERVER_WIN_RULE:'best-finish-2nd'};
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     snapshotGameMaxRounds(currentGame, players.length);
     if(typeof dealerOffsetOverride === 'number') currentGame.dealerOffset = dealerOffsetOverride;
@@ -14297,7 +14361,16 @@ button.dealer-name-indicator .dealer-player-label {
     const winners_=players_.filter(p=>(currentGame.totals[p]||0)>=winTarget);
     if(winners_.length>0){
       const wNames=winners_.map(p=>`${p} (${currentGame.totals[p]})`).join(', ');
-      if(confirm(`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`)){
+      let prompt=`🎉 Target reached! ${wNames} hit ${winTarget}+. End the match?`;
+      if(BPGScorebook.lifePreserverWinRuleActive(currentGame)){
+        const standing=BPGScorebook.matchStandings(currentGame);
+        const champ=standing.champion;
+        const result=standing.noChampion
+          ? BPGScorebook.NO_CHAMPION_COPY
+          : (champ.length>1?`${champ.join(' & ')} tie for the win.`:`${champ[0]} wins.`);
+        prompt=`🎉 Target reached! ${wNames} hit ${winTarget}+. ${result} End the match?`;
+      }
+      if(confirm(prompt)){
         commitEndGame(false);
       }
     }
@@ -14306,6 +14379,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   function rookGetLeader(){
     if(!currentGame)return null;
+    if(BPGScorebook.lifePreserverWinRuleActive(currentGame)) return BPGScorebook.matchStandings(currentGame).leaders[0]||null;
     const pp=getActivePlayers(currentGame);
     if(!pp.length)return null;
     return pp.sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0];
@@ -15160,7 +15234,7 @@ ${isDealer
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[],ruleset:g.ruleset||undefined,lifePreserverOutcomes:g.lifePreserverOutcomes?JSON.parse(JSON.stringify(g.lifePreserverOutcomes)):undefined,eligibleToWin:g.eligibleToWin?{...g.eligibleToWin}:undefined};
     Object.assign(currentGame, BPGScorebook.resumeCarryFields(g));
     if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
@@ -16768,10 +16842,14 @@ ${isDealer
 
     syncCurrentLifePreserverHolds({gameOver:over});
 
+    const lpStanding = currentGame.currentRound>1 && BPGScorebook.lifePreserverWinRuleActive(currentGame)
+      ? BPGScorebook.matchStandings(currentGame) : null;
     let sortedP = currentGame.currentRound===1
       ? [...gamePlayers]
-      : [...gamePlayers].sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
-    const places = currentGame.currentRound===1 ? null : competitionPlaces(sortedP, currentGame.totals);
+      : (lpStanding
+        ? lpStanding.ordered.filter(p=>gamePlayers.includes(p)).concat(gamePlayers.filter(p=>!lpStanding.ordered.includes(p)))
+        : [...gamePlayers].sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]));
+    const places = currentGame.currentRound===1 ? null : (lpStanding ? lpStanding.places : competitionPlaces(sortedP, currentGame.totals));
 
     const leaderScore = sortedP.length ? currentGame.totals[sortedP[0]] : (cfg.winLow?Infinity:-Infinity);
     let hi=-Infinity,lo=Infinity;
@@ -16822,13 +16900,16 @@ ${isDealer
     let body='';
     try{
     sortedP.forEach((p,ri)=>{
-      const isLeader=currentGame.currentRound>1&&currentGame.totals[p]===leaderScore;
+      const isLeader=currentGame.currentRound>1&&(lpStanding?lpStanding.leaders.includes(p):currentGame.totals[p]===leaderScore);
       const isRetired=retired.includes(p);
       const isDealer=!over&&p===dealerName&&!isRetired&&!isHandFootGame(currentGame);
       const rowCls=isLeader?'leader-row':(isRetired?'row-retired':'');
       const cellBg=isLeader?'var(--emerald-bg)':(isRetired?'var(--surface-2)':'var(--surface)');
+      const paceScore=lpStanding&&lpStanding.leaders.length
+        ? (currentGame.totals[lpStanding.leaders[0]]||0)
+        : leaderScore;
       const dist=(!isLeader&&currentGame.currentRound>1)
-        ? `<span class="tv-stat-delta font-mono-num ml-2" style="opacity:0.45;">${cfg.winLow?'+':'−'}${Math.abs(currentGame.totals[p]-leaderScore)}</span>`
+        ? `<span class="tv-stat-delta font-mono-num ml-2" style="opacity:0.45;">${cfg.winLow?'+':'−'}${Math.abs(currentGame.totals[p]-paceScore)}</span>`
         : '';
 
       let avatarDragAttrs='';
@@ -16888,9 +16969,13 @@ ${isDealer
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
+      const lpRow=lpStanding&&lpStanding.rows.find(row=>row.player===p);
+      const lpFinish=lpRow&&lpRow.lpCap
+        ? `<span class="lp-finish-note">${escapeHtml(lpRow.lpCap)}</span>${lpRow.lpWhy?`<span class="lp-finish-why">${escapeHtml(lpRow.lpWhy)}</span>`:''}`
+        : '';
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer — tap to change" aria-label="${escapeHtml(nameLabel)} is dealer — tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
-  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
+  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}${lpFinish}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -18626,6 +18711,14 @@ ${isDealer
   }
   function checkLeaderChange(prevLeader){
     if(!currentGame || !prevLeader) return;
+    if(BPGScorebook.lifePreserverWinRuleActive(currentGame)){
+      const newLeader=BPGScorebook.matchStandings(currentGame).leaders[0]||null;
+      if(newLeader && newLeader!==prevLeader){
+        toast(`👑 ${newLeader} takes the lead!`, 'success');
+        soundLeader();
+      }
+      return;
+    }
     const cfg=configs[currentGame.name];
     const pool=isHandFootGame(currentGame)?getHandFootColumns(currentGame):getActivePlayers(currentGame);
     const pp = pool.filter(p => currentGame.totals[p] !== undefined);
@@ -18901,13 +18994,13 @@ ${isDealer
   }
   function commitEndGame(silent=false){
     if(!currentGame)return;
-    const cfg=configs[currentGame.name];
     // Exclude retired players from winner consideration.
     const keys=getRecordedPlayers(currentGame);
     if(!keys.length){currentGame=null;saveData();goHome();return;}
-    const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
-    const topScore=currentGame.totals[sorted[0]];
-    const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
+    const standing=BPGScorebook.matchStandings(currentGame);
+    const tied=standing.champion.slice();
+    if(standing.noChampion) currentGame.noChampion=true;
+    else delete currentGame.noChampion;
     const naturalOver=isMatchOver(currentGame);
     const data=createSavedMatchSnapshot(currentGame,tied,{endedEarly:!naturalOver});
     if(currentGame.name==='Beat the Heat' && !data.endScore){
@@ -18974,12 +19067,17 @@ ${isDealer
   }
   function _presentVictoryModal(data, alerts){
     const result=resultForMatch(data, currentLosers);
-    const headline=window.BPGRecords&&typeof BPGRecords.formatVictoryHeadline==='function'
+    const noChampion=data.noChampion===true||(window.BPGScorebook&&BPGScorebook.lifePreserverWinRuleActive(data)&&!(data.winners||[]).length);
+    const headline=noChampion
+      ? BPGScorebook.NO_CHAMPION_COPY
+      : (window.BPGRecords&&typeof BPGRecords.formatVictoryHeadline==='function'
       ? BPGRecords.formatVictoryHeadline(result)
-      : (result.allTied?'Everyone tied.':(result.winners.length>1?`${result.winners.join(' & ')} Tie!`:`${result.winners[0]||''} Wins!`));
-    const kicker=window.BPGRecords&&typeof BPGRecords.formatVictoryKicker==='function'
+      : (result.allTied?'Everyone tied.':(result.winners.length>1?`${result.winners.join(' & ')} Tie!`:`${result.winners[0]||''} Wins!`)));
+    const kicker=noChampion
+      ? 'Final placings'
+      : (window.BPGRecords&&typeof BPGRecords.formatVictoryKicker==='function'
       ? BPGRecords.formatVictoryKicker(result)
-      : 'Sunset Champion';
+      : 'Sunset Champion');
     document.getElementById('victory-names').innerHTML=decorateResultNames(headline, result.winners);
     const kickerEl=document.getElementById('victory-kicker');
     if(kickerEl) kickerEl.textContent=kicker;
@@ -18995,7 +19093,7 @@ ${isDealer
     } else {
       haptic([60, 40, 100]);
     }
-    loadOptionalAsset('confetti').catch(error=>console.warn('Winner celebration unavailable.',error)).finally(fireWinnerConfettiLoop);
+    if(!noChampion) loadOptionalAsset('confetti').catch(error=>console.warn('Winner celebration unavailable.',error)).finally(fireWinnerConfettiLoop);
   }
 
   function analyzeRecords(data){
@@ -19716,13 +19814,22 @@ ${isDealer
     if(!history.length){c.innerHTML=`<div class="surface p-10 text-center font-bold" style="color:var(--muted);">No match history yet.</div>`;return;}
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
-      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const places=competitionPlaces(sorted, h.totals);
+      const lpHistory=BPGScorebook.lifePreserverWinRuleActive(h)?BPGScorebook.matchStandings(h):null;
+      const sorted=lpHistory
+        ? lpHistory.ordered.filter(p=>getRecordedPlayers(h).includes(p)).concat(getRecordedPlayers(h).filter(p=>!lpHistory.ordered.includes(p)&&!(h.retired||[]).includes(p)))
+        : sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
+      const places=lpHistory?lpHistory.places:competitionPlaces(sorted, h.totals);
+      const winnerSet=new Set(lpHistory?lpHistory.champion:(h.winners||[]));
       const leftEarly=(h.retired||[]).filter(Boolean);
-      const finisherRows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+      const finisherRows=sorted.map(p=>{
+        const row=lpHistory&&lpHistory.rows.find(item=>item.player===p);
+        const note=row&&row.lpCap?`<span class="lp-finish-note">${escapeHtml(row.lpCap)}</span>${row.lpWhy?`<span class="lp-finish-why">${escapeHtml(row.lpWhy)}</span>`:''}`:'';
+        const won=winnerSet.has(p);
+        return `<div class="flex items-center justify-between py-2">
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${won?'leader-text':''}">${won?'🏆 ':''}${p}</span>${note}</div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
-      </div>`).join('');
+      </div>`;
+      }).join('');
       const leftRows=leftEarly.length
         ? `<div class="pt-3 mt-2 text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Left early</div>`+
           leftEarly.map(p=>`<div class="flex items-center justify-between py-2 opacity-70">
@@ -19772,7 +19879,12 @@ ${isDealer
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${displayGameName(g.game)}`;
     document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
     const cfg=configs[g.game];
-    const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
+    const lpCard=BPGScorebook.lifePreserverWinRuleActive(g)?BPGScorebook.matchStandings(g):null;
+    const recorded=getRecordedPlayers(g);
+    const sorted=lpCard
+      ? lpCard.ordered.filter(p=>recorded.includes(p)).concat(recorded.filter(p=>!lpCard.ordered.includes(p)&&!(g.retired||[]).includes(p)))
+      : sortPlayersByTotal(recorded, g.totals, cfg);
+    const winnerSet=new Set(lpCard?lpCard.champion:(g.winners||[]));
     const leftEarly=(g.retired||[]).filter(Boolean);
     const historyVisibleRounds=(g.rounds||[]).map((round,index)=>round&&!round.hailMaryBonus?index:null).filter(index=>index!=null);
     let head=`<tr><th data-sc-part="lead" class="scorecard-col-player px-4 py-3 sticky left-0 z-10" style="background:var(--ink);">Player</th><th data-sc-part="lead" class="scorecard-col-total px-2 py-3 text-center">Total</th>`;
@@ -19790,8 +19902,10 @@ ${isDealer
     const paintRow=(p, opts)=>{
       const w=!!opts.winner;
       const left=!!opts.leftEarly;
+      const row=lpCard&&lpCard.rows.find(item=>item.player===p);
+      const note=!left&&row&&row.lpCap?`<span class="lp-finish-note">${escapeHtml(row.lpCap)}</span>${row.lpWhy?`<span class="lp-finish-why">${escapeHtml(row.lpWhy)}</span>`:''}`:'';
       body+=`<tr class="${w?'leader-row':''}${left?' row-retired':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}${note}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]??'—'}</span>${left?'':hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
@@ -19801,7 +19915,7 @@ ${isDealer
       });
       body+=`</tr>`;
     };
-    sorted.forEach(p=>paintRow(p,{winner:g.winners?.includes(p)}));
+    sorted.forEach(p=>paintRow(p,{winner:winnerSet.has(p)}));
     leftEarly.forEach(p=>paintRow(p,{leftEarly:true}));
     document.getElementById('modal-scorecard-body').innerHTML=body;
     openModal('scorecard-modal');
@@ -20109,8 +20223,13 @@ ${isDealer
       return nums.reduce((s,n)=>s+Math.abs(n-avg),0)/nums.length;
     };
     const sortedFor = (h) => {
+      const recorded = getRecordedPlayers(h).filter(p=>h.totals[p]!==undefined);
+      if(BPGScorebook.lifePreserverWinRuleActive(h)){
+        const standing = BPGScorebook.matchStandings(h);
+        return standing.ordered.filter(p=>recorded.includes(p)).concat(recorded.filter(p=>!standing.ordered.includes(p)));
+      }
       const cfg = configs[h.game];
-      return sortPlayersByTotal(getRecordedPlayers(h).filter(p=>h.totals[p]!==undefined), h.totals, cfg);
+      return sortPlayersByTotal(recorded, h.totals, cfg);
     };
     const positionOf = (sorted,p) => sorted.indexOf(p)+1;
     const lastPlayersFor = (h,sorted) => {
@@ -20159,7 +20278,8 @@ ${isDealer
         const won = winners.includes(p);
         const finisher = sorted.includes(p);
         const last = finisher && lastPlayers.includes(p);
-        const pos = finisher ? sorted.indexOf(p)+1 : 0;
+        const ruled = BPGScorebook.lifePreserverWinRuleActive(h) ? BPGScorebook.matchStandings(h) : null;
+        const pos = finisher ? (ruled ? (ruled.places[p] || 0) : sorted.indexOf(p)+1) : 0;
         ps.games++; ps.wins += won?1:0;
         if(last) ps.lasts++;
         if(pos) ps.positions.push({pos,game:h.game,date:h.date,id:h.id});
