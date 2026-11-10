@@ -345,6 +345,34 @@
   }
 
   function nightStandings(match, helpers) {
+    const scorebook = helpers && helpers.scorebook;
+    if (scorebook && typeof scorebook.lifePreserverWinRuleActive === 'function' && scorebook.lifePreserverWinRuleActive(match) && typeof scorebook.matchStandings === 'function') {
+      const standing = scorebook.matchStandings(match);
+      const retiredSet = new Set((match.retired || []).filter(Boolean));
+      const winners = new Set(standing.champion);
+      const finishers = standing.rows.filter((row) => row.player && !retiredSet.has(row.player)).map((row) => ({
+        name: row.player,
+        score: row.score,
+        place: row.place,
+        isWinner: winners.has(row.player),
+        retired: false,
+        leftEarly: false,
+        eligibleToWin: row.eligibleToWin !== false,
+        lpCap: row.lpCap || '',
+        lpWhy: row.lpWhy || ''
+      }));
+      const leftEarly = (match.retired || []).filter(Boolean).map((name) => ({
+        name,
+        score: match.totals ? match.totals[name] : undefined,
+        place: null,
+        isWinner: false,
+        retired: true,
+        leftEarly: true,
+        lpCap: '',
+        lpWhy: ''
+      }));
+      return finishers.concat(leftEarly);
+    }
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
     const retiredSet = new Set((match.retired || []).filter(Boolean));
@@ -423,6 +451,8 @@
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
     });
     const standings = nightStandings(match, helpers);
+    const noChampion = !incomplete && scorebook && typeof scorebook.lifePreserverWinRuleActive === 'function'
+      && scorebook.lifePreserverWinRuleActive(match) && !winners.length;
     const rounds = scoringRoundCount(match, scorebook);
     return {
       id: match.id,
@@ -437,7 +467,7 @@
       throughRound: throughRound(match, scorebook),
       rounds,
       winners,
-      winnerText: incomplete ? '' : winnerText(winners, standings),
+      winnerText: incomplete ? '' : (noChampion ? (scorebook.NO_CHAMPION_COPY || 'No champion tonight.') : winnerText(winners, standings)),
       standings,
       showResume: shouldShowResume(match, scorebook),
       showScorecard: true,
@@ -728,6 +758,10 @@
   function eligibleWinners(match, options) {
     if (!isCompletedMatch(match, options && options.scorebook)) return [];
     const left = new Set(leftEarlyNames(match));
+    const scorebook = options && options.scorebook;
+    if (scorebook && typeof scorebook.lifePreserverWinRuleActive === 'function' && scorebook.lifePreserverWinRuleActive(match) && typeof scorebook.matchStandings === 'function') {
+      return scorebook.matchStandings(match).champion.filter((name) => !left.has(name));
+    }
     const stored = uniqueNames(match && match.winners).filter((name) => !left.has(name));
     if (stored.length) return stored;
     return winnersFromFinishers(match, options);
@@ -1499,6 +1533,8 @@
       ${avatar(row.name, 'avatar-img s2-mini-avatar')}
       <span class="player-name-label">${esc(row.name)}</span>
       <strong>${esc(scoreLabel(row.score))}</strong>
+      ${row.lpCap ? `<span class="lp-finish-note">${esc(row.lpCap)}</span>` : ''}
+      ${row.lpWhy ? `<span class="lp-finish-why">${esc(row.lpWhy)}</span>` : ''}
     </li>`).join('');
     const leftHtml = leftEarlyRows.length
       ? `<li class="s2-night-left-label">Left early</li>` + leftEarlyRows.map((row) => `<li class="s2-night-finish is-left-early">

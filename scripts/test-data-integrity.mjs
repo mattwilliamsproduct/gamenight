@@ -1080,3 +1080,41 @@ test('every match keeps a stable gameId once it has one', () => {
   assert.equal(Scorebook.ensureGameId(named), 'porch-night');
   assert.equal(named.id, 'porch-night');
 });
+
+test('a numeric history id still matches the string form, and resume keeps the saved finish', () => {
+  assert.equal(Scorebook.sameMatchId(42, '42'), true);
+  assert.equal(Scorebook.sameMatchId('42', 42), true);
+  assert.equal(Scorebook.sameMatchId(42, 43), false);
+  assert.equal(Scorebook.sameMatchId(null, '42'), false);
+  assert.equal(Scorebook.sameMatchId('', '42'), false);
+  const history = [
+    { id: 42, game: 'Beat the Heat', endedEarly: true, gameOver: true, winners: ['Ada'], endScore: 66 },
+    { id: '42', game: 'Beat the Heat', winners: ['Ghost'] },
+    { id: 'other', game: 'Wizard' }
+  ];
+  const idx = Scorebook.findMatchIndex(history, '42');
+  assert.equal(idx, 0);
+  Scorebook.dropDuplicateMatchIds(history, '42', idx);
+  assert.equal(history.length, 2);
+  assert.equal(history[0].id, 42);
+  assert.equal(history[1].id, 'other');
+  const carried = Scorebook.resumeCarryFields(history[0]);
+  assert.equal(carried.endedEarly, true);
+  assert.equal(carried.gameOver, true);
+  assert.equal(carried.endScore, 66);
+  assert.deepEqual(carried.winners, ['Ada']);
+  history[0].winners.push('Bea');
+  assert.deepEqual(carried.winners, ['Ada']);
+  const unfinished = Scorebook.resumeCarryFields({ id: 7, completed: false });
+  assert.equal(unfinished.endedEarly, false);
+  assert.equal(unfinished.gameOver, false);
+  assert.equal(unfinished.endScore, undefined);
+  assert.deepEqual(unfinished.winners, []);
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const resume = page.slice(page.indexOf('function resumeMatch'), page.indexOf('function tapOut'));
+  assert.match(resume, /BPGScorebook\.findMatchIndex\(history, id\)/);
+  assert.match(resume, /BPGScorebook\.dropDuplicateMatchIds\(history, id, idx\)/);
+  assert.match(resume, /BPGScorebook\.resumeCarryFields\(g\)/);
+  const park = page.slice(page.indexOf('function parkActiveMatch'), page.indexOf('function resumeMatch'));
+  assert.match(park, /BPGScorebook\.findMatchIndex\(history, snapshot\.id\)/);
+});

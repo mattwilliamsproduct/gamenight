@@ -441,6 +441,7 @@
         game.totals[player] += Number(extra) || 0;
       });
     });
+    syncLifePreserverEligibility(game);
     return game.totals;
   }
 
@@ -736,6 +737,39 @@
     return blocked ? `${cause} ${effect} The game on the table stayed put.` : `${cause} ${effect}`;
   }
 
+  function sameMatchId(left, right) {
+    if (left == null || right == null || left === '' || right === '') return false;
+    return String(left) === String(right);
+  }
+
+  function findMatchIndex(list, id) {
+    if (!Array.isArray(list)) return -1;
+    return list.findIndex(item => item && sameMatchId(item.id, id));
+  }
+
+  // Drops later rows with the same id. The kept index stays put, so a caller
+  // that already found the first row can splice it afterwards.
+  function dropDuplicateMatchIds(list, id, keepIndex) {
+    if (!Array.isArray(list)) return list;
+    const keep = Number.isInteger(keepIndex) ? keepIndex : findMatchIndex(list, id);
+    for (let i = list.length - 1; i >= 0; i -= 1) {
+      if (i !== keep && list[i] && sameMatchId(list[i].id, id)) list.splice(i, 1);
+    }
+    return list;
+  }
+
+  function resumeCarryFields(snapshot) {
+    const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    const carried = {
+      endedEarly: source.endedEarly === true,
+      gameOver: source.gameOver === true,
+      winners: Array.isArray(source.winners) ? source.winners.filter(Boolean).slice() : []
+    };
+    const line = Number(source.endScore);
+    if (Number.isFinite(line) && line > 0) carried.endScore = line;
+    return carried;
+  }
+
   function historyReopenWouldReplaceActive(active, edited) {
     if (!active) return false;
     if (edited && active === edited) return false;
@@ -862,16 +896,135 @@
     return matchLengthOver(game) || beatTheHeatOver(game) || rookTargetOver(game);
   }
 
-  function leadersOf(game) {
-    const players = activeStandingPlayers(game);
-    if (!players.length) return [];
-    const low = lowScoreWins(game);
-    let best = null;
-    players.forEach(player => {
-      const score = Number(game.totals[player]) || 0;
-      if (best == null || (low ? score < best : score > best)) best = score;
+  const LIFE_PRESERVER_WIN_RULE = 'best-finish-2nd';
+  // Flip to 'dense' for 1, 1, 2. 'competition' means two 1sts, then 3rd.
+  const STANDINGS_TIE_RANKING = 'competition';
+  const LP_FINISH_CAP = 'Life Preserver · Best finish: 2nd';
+  const LP_FINISH_WHY = 'Best score, but out of first after Life Preserver help';
+  const NO_CHAMPION_COPY = 'No champion tonight.';
+
+  function lifePreserverWinRuleActive(game) {
+    return !!(game && game.ruleset === LIFE_PRESERVER_WIN_RULE);
+  }
+
+  function classifySpinOutcome(game, amount) {
+    const value = Number(amount) || 0;
+    if (value === 0) return 'zero';
+    const helpful = lowScoreWins(game) ? value < 0 : value > 0;
+    return helpful ? 'helpful' : 'setback';
+  }
+
+  function syncLifePreserverEligibility(game) {
+    if (!game || typeof game !== 'object' || !lifePreserverWinRuleActive(game)) return game;
+    const outcomes = {};
+    const eligible = {};
+    (game.rounds || []).forEach(round => {
+      if (!round || round.hailMaryBonus !== true || !round.scores) return;
+      Object.keys(round.scores).forEach(player => {
+        if (!player) return;
+        const amount = Number(round.scores[player]) || 0;
+        const outcome = classifySpinOutcome(game, amount);
+        outcomes[player] = { outcome, amount };
+        eligible[player] = outcome !== 'helpful';
+      });
     });
-    return players.filter(player => (Number(game.totals[player]) || 0) === best);
+    game.lifePreserverOutcomes = outcomes;
+    game.eligibleToWin = eligible;
+    return game;
+  }
+
+  function playerEligibleToWin(game, player) {
+    if (!lifePreserverWinRuleActive(game)) return true;
+    const map = game && game.eligibleToWin;
+    if (!map || !Object.prototype.hasOwnProperty.call(map, player)) return true;
+    return map[player] !== false;
+  }
+
+  function lifePreserverWinConfirmCopy(oddsLine) {
+    const odds = oddsLine || 'About 80% help.';
+    return `If this spin helps, you can't win this match. Zero or a setback keeps you in it. ${odds}`;
+  }
+
+  function assignDensePlaces(ordered, scoreOf, places) {
+    let cursor = 0;
+    let rank = 1;
+    while (cursor < ordered.length) {
+      const score = scoreOf(ordered[cursor]);
+      let end = cursor + 1;
+      while (end < ordered.length && scoreOf(ordered[end]) === score) end += 1;
+      for (let i = cursor; i < end; i += 1) places[ordered[i]] = rank;
+      rank += 1;
+      cursor = end;
+    }
+  }
+
+  function matchStandings(game) {
+    syncLifePreserverEligibility(game);
+    const players = activeStandingPlayers(game);
+    const totals = (game && game.totals) || {};
+    const low = lowScoreWins(game);
+    const scoreOf = player => Number(totals[player]) || 0;
+    const byScore = (a, b) => {
+      const diff = low ? scoreOf(a) - scoreOf(b) : scoreOf(b) - scoreOf(a);
+      return diff || String(a).localeCompare(String(b));
+    };
+    const rule = lifePreserverWinRuleActive(game);
+    const eligible = players.filter(player => playerEligibleToWin(game, player));
+    let best = null;
+    eligible.forEach(player => {
+      const value = scoreOf(player);
+      if (best == null || (low ? value < best : value > best)) best = value;
+    });
+    const leaders = best == null
+      ? []
+      : eligible.filter(player => scoreOf(player) === best).sort((a, b) => String(a).localeCompare(String(b)));
+    const leaderSet = new Set(leaders);
+    const rest = players.filter(player => !leaderSet.has(player)).sort(byScore);
+    const ordered = leaders.concat(rest);
+    const ranking = rule ? STANDINGS_TIE_RANKING : 'dense';
+    const places = {};
+    if (!leaders.length || ranking === 'dense') {
+      assignDensePlaces(ordered, scoreOf, places);
+    } else {
+      leaders.forEach(player => { places[player] = 1; });
+      rest.forEach(player => {
+        const ahead = leaders.length + rest.filter(other => {
+          const diff = low ? scoreOf(other) - scoreOf(player) : scoreOf(player) - scoreOf(other);
+          return diff < 0;
+        }).length;
+        places[player] = ahead + 1;
+      });
+    }
+    const beatsLeader = player => {
+      if (!leaders.length || leaderSet.has(player) || !rule || playerEligibleToWin(game, player)) return false;
+      return low ? scoreOf(player) < best : scoreOf(player) > best;
+    };
+    const rows = ordered.map(player => {
+      const eligibleToWin = playerEligibleToWin(game, player);
+      const ahead = beatsLeader(player);
+      return {
+        player,
+        score: scoreOf(player),
+        place: places[player],
+        eligibleToWin,
+        outcome: game && game.lifePreserverOutcomes ? game.lifePreserverOutcomes[player] || null : null,
+        beatsLeader: ahead,
+        lpCap: !eligibleToWin && rule ? LP_FINISH_CAP : '',
+        lpWhy: ahead ? LP_FINISH_WHY : ''
+      };
+    });
+    return {
+      ordered,
+      places,
+      leaders,
+      champion: leaders.slice(),
+      noChampion: rule && players.length > 0 && leaders.length === 0,
+      rows
+    };
+  }
+
+  function leadersOf(game) {
+    return matchStandings(game).champion.slice();
   }
 
   function refreshStanding(game, before) {
@@ -881,6 +1034,7 @@
       game.winners = [];
       game.completed = false;
       game.gameOver = false;
+      delete game.noChampion;
       return { over: false, reopened: true, winnersChanged: priorWinners.length > 0, winners: [] };
     }
     const finished = over || !!(before && before.completed);
@@ -889,6 +1043,8 @@
     }
     const next = leadersOf(game);
     game.winners = next.slice();
+    if (lifePreserverWinRuleActive(game) && activeStandingPlayers(game).length > 0 && next.length === 0) game.noChampion = true;
+    else delete game.noChampion;
     game.completed = true;
     game.gameOver = true;
     return {
@@ -1153,10 +1309,25 @@
     isAssistedMatch,
     syncAssistedMatch,
     recordLifePreserverSpin,
+    LIFE_PRESERVER_WIN_RULE,
+    STANDINGS_TIE_RANKING,
+    LP_FINISH_CAP,
+    LP_FINISH_WHY,
+    NO_CHAMPION_COPY,
+    lifePreserverWinRuleActive,
+    classifySpinOutcome,
+    syncLifePreserverEligibility,
+    playerEligibleToWin,
+    lifePreserverWinConfirmCopy,
+    matchStandings,
     classifyBidAccuracy,
     ensureGameId,
     matchIdentity,
     historyReopenNotice,
+    sameMatchId,
+    findMatchIndex,
+    dropDuplicateMatchIds,
+    resumeCarryFields,
     historyReopenWouldReplaceActive,
     historicalRoundParticipants,
     eight18DealerBidViolation,

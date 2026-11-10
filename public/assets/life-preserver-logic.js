@@ -1546,6 +1546,20 @@
     return (used || []).filter(player => !removedPlayers.has(player));
   }
 
+  function liveWheelOdds() {
+    const help = OUTCOME_TABLE.smallHelp + OUTCOME_TABLE.mediumHelp + OUTCOME_TABLE.bigHelp;
+    const pct = value => {
+      const shown = Math.round(value * 1000) / 10;
+      return `${shown}%`;
+    };
+    return {
+      help,
+      zero: OUTCOME_TABLE.noChange,
+      setback: OUTCOME_TABLE.smallSetback,
+      line: `About ${pct(help)} help, ${pct(OUTCOME_TABLE.noChange)} no change, and ${pct(OUTCOME_TABLE.smallSetback)} setback.`
+    };
+  }
+
   function capLifePreserverAdjustment(adjustment, offer) {
     if (!offer) return 0;
     const increment = offer.scoreIncrement || 1;
@@ -1581,6 +1595,7 @@
     explainLifePreserverRules,
     summarizeLifePreserverTable,
     releaseRemovedLifePreservers,
+    liveWheelOdds,
     capLifePreserverAdjustment,
     rankWithScore,
     bestAllowedRankFor,
