@@ -727,6 +727,15 @@
     };
   }
 
+  function historyReopenNotice(gameName, blocked) {
+    const heat = gameName === 'Beat the Heat';
+    const cause = heat
+      ? 'That score no longer reaches the heat line.'
+      : 'That score no longer finishes the night.';
+    const effect = 'The winner is removed and this night drops out of wins and records.';
+    return blocked ? `${cause} ${effect} The game on the table stayed put.` : `${cause} ${effect}`;
+  }
+
   function historyReopenWouldReplaceActive(active, edited) {
     if (!active) return false;
     if (edited && active === edited) return false;
@@ -1147,6 +1156,7 @@
     classifyBidAccuracy,
     ensureGameId,
     matchIdentity,
+    historyReopenNotice,
     historyReopenWouldReplaceActive,
     historicalRoundParticipants,
     eight18DealerBidViolation,

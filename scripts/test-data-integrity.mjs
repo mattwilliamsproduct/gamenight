@@ -963,6 +963,19 @@ test('reopening a saved match does not replace a different active game', () => {
   assert.equal(Scorebook.historyReopenWouldReplaceActive({ name: 'Wizard' }, edited), true);
   const reopened = { id: 66, gameId: 66, completed: false, gameOver: false, winners: [] };
   assert.equal(Scorebook.isCompletedHistoryMatch(reopened), false);
+  const blocked = Scorebook.historyReopenNotice('Beat the Heat', true);
+  assert.match(blocked, /no longer reaches the heat line/);
+  assert.match(blocked, /winner is removed/);
+  assert.match(blocked, /drops out of wins and records/);
+  assert.match(blocked, /game on the table stayed put/);
+  const clear = Scorebook.historyReopenNotice('Five Crowns', false);
+  assert.match(clear, /no longer finishes the night/);
+  assert.match(clear, /winner is removed/);
+  assert.equal(clear.includes('table stayed put'), false);
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const fin = page.slice(page.indexOf('function finalizeHistoryCorrection'), page.indexOf('function openPastScoreCell'));
+  assert.match(fin, /BPGScorebook\.historyReopenNotice\(match\.name\|\|match\.game, blocked\)/);
+  assert.match(fin, /if\(reopened\) toast\(reopenCopy, 'warning'\)/);
 });
 
 test('undoing the only Life Preserver clears assistedMatch, including a zero-point spin', () => {

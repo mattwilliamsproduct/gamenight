@@ -19227,14 +19227,14 @@ ${isDealer
     markHistoryChanged();
     const reopened=!!(result.standing&&result.standing.reopened);
     const blocked=reopened&&BPGScorebook.historyReopenWouldReplaceActive(currentGame, match);
+    const reopenCopy=BPGScorebook.historyReopenNotice(match.name||match.game, blocked);
     if(reopened&&!blocked&&!currentGame){
       closeModal('scorecard-modal');
       resumeMatch(match.id,{force:true});
-      toast('Match is back on the table');
+      toast(reopenCopy+' It is back on the table.');
       return;
     }
-    if(blocked) toast('Corrected match saved. The game on the table stayed put.');
-    else if(reopened) toast('That saved match is under the line again');
+    if(reopened) toast(reopenCopy, 'warning');
     else if(result.standing?.winnersChanged) toast('Standings updated');
     saveData({ fullPersist: true, syncCold: true });
     renderHistoryList();
