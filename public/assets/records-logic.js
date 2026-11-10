@@ -487,6 +487,11 @@
         if (round.comeback && round.comeback[name]) totals[name] += Number(round.comeback[name]) || 0;
       });
     });
+    Object.keys(match.lateJoins || {}).forEach((player) => {
+      const start = Number(match.lateJoins[player] && match.lateJoins[player].start);
+      if (!Number.isFinite(start) || totals[player] === undefined) return;
+      totals[player] += start;
+    });
     return totals;
   }
 

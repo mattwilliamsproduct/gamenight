@@ -22,6 +22,8 @@ Standing trap: [scorecard-visible-lead.md](scorecard-visible-lead.md) — a name
 
 Standing trap: [emoji-avatar-fallback.md](emoji-avatar-fallback.md) — `charAt(0)` on an emoji name throws inside the avatar data URI.
 
+Standing trap: [late-join-start.md](late-join-start.md) — a mid-match start is one ceiling adjustment, not a fake score on every missed round. MVP does not offer that join.
+
 Standing trap: [data-integrity-records.md](data-integrity-records.md) — bid accuracy comes from bids and actuals, a historical round keeps its own roster, and a Life Preserver flag follows the spins that remain. Undo removes the adjustment and restores the win. The spin stays used.
 
 Standing trap: [slice2-phone-scorekeeper.md](slice2-phone-scorekeeper.md) — Slice 2 still needs a scrollable phone roster above the keypad; do not port #59 welcome/sample work onto that preview.

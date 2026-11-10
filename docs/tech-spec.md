@@ -34,7 +34,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - `totals[player]` equals the sum of `round.scores[player]` over every round, plus any legacy `round.comeback[player]`.
 - A Life Preserver adjustment is one of those `round.scores` entries. It is not a second total.
-- `joinBonus` marks catch-up points. Records and Player Pace skip those cells. The live total still includes them.
+- A mid-match join stores `lateJoins[player] = { start, joinedRound }`. `start` is the ceiling of the other active totals and is added in `recomputeTotals`. Missed rounds are not score cells. Older `joinBonus` cells still stay out of per-round records; the live total still includes those legacy cells.
 - Wizard points for a submitted round are `20 + 10 × tricks` on an exact bid, otherwise `−10 × |bid − tricks|`. Wizard can return from scoring to bidding before the round is submitted. 818 uses the same two phases and has no unlock. That difference is intentional until the table asks for it.
 - 818 points are tricks taken, plus 10 when bid equals tricks. The dealer bid that would make the table sum equal the tricks in play is rejected. A blank 818 bid becomes 0, then that same dealer check runs. Wizard blank bids stay invalid. Wizard does not apply that dealer law.
 - Five Crowns, Flip 7, and Beat the Heat store the number the table typed. A played-round entry for those games must be a whole number, 0 or higher. Blank and whitespace are rejected before they become 0. Wizard and Rook calculated scores, and Life Preserver adjustments, may be negative.

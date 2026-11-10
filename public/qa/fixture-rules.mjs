@@ -142,6 +142,10 @@ export function validateGameFixture(game, label) {
       totals[player] = (totals[player] || 0) + (Number(extra) || 0);
     });
   });
+  Object.keys(game.lateJoins || {}).forEach((player) => {
+    const start = Number(game.lateJoins[player] && game.lateJoins[player].start);
+    if (Number.isFinite(start)) totals[player] = (totals[player] || 0) + start;
+  });
   players.forEach((player) => {
     if ((Number(game.totals?.[player]) || 0) !== (totals[player] || 0)) {
       issues.push(`${label}: ${player} total ${game.totals?.[player]} !== round sum ${totals[player] || 0}`);

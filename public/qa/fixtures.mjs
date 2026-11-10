@@ -580,6 +580,19 @@ const lifePreserverVisibleRounds=[
   {round:6,bids:{Matt:3,Mike:3,Linda:0},actuals:{Matt:3,Mike:3,Linda:0},scores:{Matt:50,Mike:50,Linda:20}},
   {round:0,hailMaryBonus:true,scores:{Mike:40}}
 ];
+const lateJoinPlayers=['Megan','Matt','Cat','Nora'];
+const lateJoinRounds=[
+  {round:1,scores:{Megan:10,Matt:20,Cat:30}},
+  {round:2,scores:{Megan:10,Matt:30,Cat:30}},
+  {round:3,scores:{Megan:10,Matt:20,Cat:30}}
+];
+const lateJoinGame=makeCurrentGame('Five Crowns',lateJoinPlayers,lateJoinRounds,{
+  currentRound:4,
+  ruleset:'best-finish-2nd',
+  lateJoins:{Nora:{start:64,joinedRound:4}},
+  totals:{Megan:30,Matt:70,Cat:90,Nora:64}
+});
+
 const lifePreserverVisibleGame=makeCurrentGame('Wizard',lifePreserverVisiblePlayers,lifePreserverVisibleRounds,{
   currentRound:7,
   wizardPhase:'bidding',
@@ -1199,6 +1212,12 @@ export const QA_SCENARIOS = {
     description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverGame}
+  },
+  'late-join-start':{
+    label:'Five Crowns · Late join',
+    description:'Nora joins at round 4. Missed hands say Did not play. Her total starts at the ceiling of Megan, Matt, and Cat.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES,'Nora'],players:['Megan','Matt','Cat','Nora'],history:sharedHistory,playerProfiles:profiles([...NAMES,'Nora']),currentGame:lateJoinGame}
   },
   'five-crowns-turbo-ladder':{
     label:'Five Crowns · Turbo Ladder',

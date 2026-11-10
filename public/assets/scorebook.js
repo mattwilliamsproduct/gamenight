@@ -183,6 +183,7 @@
       (Array.isArray(game[key]) ? game[key] : []).forEach(add);
     });
     Object.keys(game.totals || {}).forEach(add);
+    Object.keys(game.lateJoins || {}).forEach(add);
     (game.rounds || []).forEach(round => {
       if (!round) return;
       ['scores', 'bids', 'actuals'].forEach(key => Object.keys(round[key] || {}).forEach(add));
@@ -224,6 +225,10 @@
     ['originalRoster', 'retired', 'hailMaryUsed', 'lifePreserverHeld'].forEach(key => {
       if (Array.isArray(game[key])) game[key] = replaceName(game[key], oldName, newName);
     });
+    if (game.lateJoins && game.lateJoins[oldName]) {
+      if (!game.lateJoins[newName]) game.lateJoins[newName] = game.lateJoins[oldName];
+      delete game.lateJoins[oldName];
+    }
     moveOrMergeField(game.currentBids, oldName, newName, combining);
     moveOrMergeField(game.currentScoreDrafts, oldName, newName, combining);
     if (game.rookHighBidder === oldName) game.rookHighBidder = newName;
@@ -427,6 +432,62 @@
     return result;
   }
 
+  // Ceiling of the table average. 97.5 and 97.1 both become 98. An exact
+  // integer stays put (800 / 8 = 100). Negative sums use mathematical ceiling.
+  function ceilingAverage(values) {
+    const nums = (Array.isArray(values) ? values : []).map(value => Number(value)).filter(Number.isFinite);
+    if (!nums.length) return 0;
+    const sum = nums.reduce((total, value) => total + value, 0);
+    const count = nums.length;
+    if (Number.isInteger(sum)) {
+      if (sum >= 0) return Math.floor((sum + count - 1) / count);
+      return -Math.floor((-sum) / count);
+    }
+    return Math.ceil(sum / count);
+  }
+
+  function lateJoinInfo(game, player) {
+    const info = game && game.lateJoins && game.lateJoins[player];
+    if (!info || typeof info !== 'object') return null;
+    const start = Number(info.start);
+    const joinedRound = Number(info.joinedRound) || 0;
+    if (!Number.isFinite(start) || joinedRound < 1) return null;
+    return {
+      start,
+      joinedRound,
+      label: `Joined R${joinedRound} · start ${start}`
+    };
+  }
+
+  function missedRoundText(game, player, roundNumber) {
+    const info = lateJoinInfo(game, player);
+    const round = Number(roundNumber) || 0;
+    if (!info || round < 1 || round >= info.joinedRound) return '';
+    return 'Did not play';
+  }
+
+  function addLateJoinStarts(game, totals) {
+    const book = totals || (game && game.totals);
+    if (!game || !book) return book || {};
+    Object.keys(game.lateJoins || {}).forEach(player => {
+      const info = lateJoinInfo(game, player);
+      if (!info) return;
+      if (book[player] === undefined) book[player] = 0;
+      book[player] += info.start;
+    });
+    return book;
+  }
+
+  function recordLateJoin(game, player, existingTotals, joinedRound) {
+    if (!game || !player) return null;
+    const values = Array.isArray(existingTotals) ? existingTotals : Object.values(existingTotals || {});
+    const start = ceilingAverage(values);
+    const round = Math.max(1, Number(joinedRound) || 1);
+    if (!game.lateJoins || typeof game.lateJoins !== 'object') game.lateJoins = {};
+    game.lateJoins[player] = { start, joinedRound: round };
+    return lateJoinInfo(game, player);
+  }
+
   function recomputeTotals(game) {
     if (!game) return {};
     game.totals = {};
@@ -441,6 +502,7 @@
         game.totals[player] += Number(extra) || 0;
       });
     });
+    addLateJoinStarts(game);
     syncLifePreserverEligibility(game);
     return game.totals;
   }
@@ -1287,6 +1349,11 @@
     snapshotMatchState,
     restoreMatchState,
     commitValidatedMutation,
+    ceilingAverage,
+    lateJoinInfo,
+    missedRoundText,
+    addLateJoinStarts,
+    recordLateJoin,
     recomputeTotals,
     applyScoreEntryKey,
     acceptScoreEntryValue,

@@ -421,6 +421,22 @@
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
+    .score-absent,
+    .late-join-note {
+      display: block;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--muted);
+      white-space: normal;
+      text-align: center;
+    }
+    .late-join-note {
+      flex: 1 0 100%;
+      margin-top: 0.1rem;
+      text-align: left;
+    }
     .tv-target-pct {
       font-size: clamp(0.72rem, 1.85vw, 1.05rem) !important;
       font-weight: 800;
@@ -13726,6 +13742,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(game.ruleset) data.ruleset=game.ruleset;
     if(game.lifePreserverOutcomes) data.lifePreserverOutcomes=JSON.parse(JSON.stringify(game.lifePreserverOutcomes));
     if(game.eligibleToWin) data.eligibleToWin={...game.eligibleToWin};
+    if(game.lateJoins) data.lateJoins=JSON.parse(JSON.stringify(game.lateJoins));
     if(game.noChampion===true) data.noChampion=true;
     if(game.name==='Wizard'){
       data.wizardPhase=game.wizardPhase||'bidding';
@@ -14483,7 +14500,7 @@ button.dealer-name-indicator .dealer-player-label {
             <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}</span>
 ${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
-              : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
+              : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}${lateJoinNoteMarkup(currentGame,p)}
           </div>
           ${progressBar}
         </td>
@@ -14496,6 +14513,11 @@ ${isDealer
       // Past rounds
       currentGame.rounds.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
+        const missed=missedRoundMarkup(currentGame, p, r.round);
+        if(missed){
+          body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">${missed}</td>`;
+          return;
+        }
         const s=r.scores[p];
         const isBidder=r.rookBidder===p;
         const isPartner=r.rookPartner===p;
@@ -15234,7 +15256,7 @@ ${isDealer
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
-    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[],ruleset:g.ruleset||undefined,lifePreserverOutcomes:g.lifePreserverOutcomes?JSON.parse(JSON.stringify(g.lifePreserverOutcomes)):undefined,eligibleToWin:g.eligibleToWin?{...g.eligibleToWin}:undefined};
+    currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[],ruleset:g.ruleset||undefined,lifePreserverOutcomes:g.lifePreserverOutcomes?JSON.parse(JSON.stringify(g.lifePreserverOutcomes)):undefined,eligibleToWin:g.eligibleToWin?{...g.eligibleToWin}:undefined,lateJoins:g.lateJoins?JSON.parse(JSON.stringify(g.lateJoins)):undefined};
     Object.assign(currentGame, BPGScorebook.resumeCarryFields(g));
     if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
@@ -16975,7 +16997,7 @@ ${isDealer
         : '';
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer — tap to change" aria-label="${escapeHtml(nameLabel)} is dealer — tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
-  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}${lpFinish}`;
+              : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}${lpFinish}${lateJoinNoteMarkup(currentGame,p)}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -17002,6 +17024,11 @@ ${isDealer
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
+        }
+        const missed=missedRoundMarkup(currentGame, p, r.round);
+        if(missed){
+          body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">${missed}</td>`;
+          return;
         }
         const extra=scoringExtraMarkup(currentGame.rounds, rIdx, r, p);
         const hfParts=isHandFootGame(currentGame)?handFootColumnParts(currentGame, r, p):null;
@@ -17587,6 +17614,18 @@ ${isDealer
       return JSON.stringify({values:scoreEntryModalState.values,rates:scoreEntryModalState.rates||{}});
     }
     return JSON.stringify(scoreEntryModalState.values);
+  }
+
+  function lateJoinNoteMarkup(game, player){
+    const info=window.BPGScorebook&&BPGScorebook.lateJoinInfo(game, player);
+    return info?`<span class="late-join-note">${escapeHtml(info.label)}</span>`:'';
+  }
+
+  function missedRoundMarkup(game, player, roundNumber){
+    const text=window.BPGScorebook&&BPGScorebook.missedRoundText(game, player, roundNumber);
+    if(!text) return '';
+    const html=text==='Did not play'?'Did not<br>play':escapeHtml(text);
+    return `<span class="score-absent">${html}</span>`;
   }
 
   function shownRoundScore(scores, player){
@@ -18802,29 +18841,17 @@ ${isDealer
       if(!allPlayers.includes(name))allPlayers.push(name);
       currentGame.originalRoster.push(name);
       if(!currentGame.retired)currentGame.retired=[];
-      if(isBidTrickGame(currentGame)){if(!currentGame.currentBids)currentGame.currentBids={};currentGame.currentBids[name]=0;}
-
-    // Bottom-half average calculation
-    const cfg=configs[currentGame.name];
-    const activePlayers=getActivePlayers(currentGame).filter(p=>p!==name);
-    const sortedByScore=sortPlayersByTotal(activePlayers, currentGame.totals, cfg);
-    // "Worst" = losing half. For winLow games, worst = highest scores (end of sorted). For winHigh, worst = lowest (end of sorted).
-    const halfCount=Math.max(1,Math.ceil(sortedByScore.length/2));
-    const worstHalf=sortedByScore.slice(-halfCount);
-    const avg=worstHalf.length?Math.round(worstHalf.reduce((s,p)=>s+(currentGame.totals[p]||0),0)/worstHalf.length):0;
-
-    if(currentGame.rounds.length>0){
-      let lastScoringIdx=-1;
-      for(let i=currentGame.rounds.length-1;i>=0;i--){
-        if(!currentGame.rounds[i].hailMaryBonus){ lastScoringIdx=i; break; }
-      }
-      currentGame.rounds.forEach((r,idx)=>{
-        r.scores[name] = idx===lastScoringIdx ? avg : 0;
-        if(!r.joinBonus)r.joinBonus={};
-        r.joinBonus[name]=true; // ALL rounds flagged so records exclude them
-      });
-    } else {
-      currentGame.totals[name]=0;
+      if(isBidTrickGame(currentGame)&&!currentGame.currentBids)currentGame.currentBids={};
+    const seated=getActivePlayers(currentGame).filter(p=>p!==name);
+    const start=BPGScorebook.recordLateJoin(
+      currentGame,
+      name,
+      seated.map(p=>Number(currentGame.totals?.[p])||0),
+      Number(currentGame.currentRound)||1
+    );
+    if(isBidTrickGame(currentGame)&&getBidTrickPhase(currentGame)!=='bidding'){
+      if(currentGame.name==='Wizard') currentGame.wizardPhase='bidding';
+      if(isEight18Game(currentGame)) currentGame.eight18Phase='bidding';
     }
     recomputeGameTotals(currentGame);
     const lengthChange=resyncGameMaxRounds(currentGame);
@@ -18832,7 +18859,7 @@ ${isDealer
       addAuditEntry('Player joined', `${name} · match now ${lengthChange.next} rounds`);
       toast(`Match is now ${lengthChange.next} rounds`);
     } else {
-      addAuditEntry('Player joined', name);
+      addAuditEntry('Player joined', start?`${name} · ${start.label}`:name);
     }
     saveData(); scheduleRender();
   }
@@ -19352,6 +19379,7 @@ ${isDealer
     if(!currentGame) return;
     const round=currentGame.rounds?.[roundIndex];
     if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return;
+    if(BPGScorebook.missedRoundText(currentGame, player, round.round)) return;
     if(isBidTrickGame(currentGame)){
       if(activeInputId) closeNumpad({discard:true,render:false});
       openRoundCorrection({source:'live', roundIndex, focusPlayer:player});
@@ -19905,13 +19933,14 @@ ${isDealer
       const row=lpCard&&lpCard.rows.find(item=>item.player===p);
       const note=!left&&row&&row.lpCap?`<span class="lp-finish-note">${escapeHtml(row.lpCap)}</span>${row.lpWhy?`<span class="lp-finish-why">${escapeHtml(row.lpWhy)}</span>`:''}`:'';
       body+=`<tr class="${w?'leader-row':''}${left?' row-retired':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}${note}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}${note}${lateJoinNoteMarkup(g,p)}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]??'—'}</span>${left?'':hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=left?{html:'',className:''}:scoringExtraMarkup(g.rounds, rIdx, r, p);
+        const missed=missedRoundMarkup(g, p, r.round);
         const shown=shownRoundScore(r.scores, p);
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:(shown===''?'—':shown)}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center ${missed?'':'tv-round-cell-num font-mono-num '}scorecard-round-td">${missed||(extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:(shown===''?'—':shown))}</td>`;
       });
       body+=`</tr>`;
     };
@@ -20244,6 +20273,7 @@ ${isDealer
       h.rounds.slice(0,roundCount).forEach(r=>{
         Object.entries(r.scores||{}).forEach(([p,s])=>{ if(totals[p]!==undefined && !r.joinBonus?.[p]) totals[p]+=s||0; });
       });
+      if(window.BPGScorebook) BPGScorebook.addLateJoinStarts(h, totals);
       const sorted = sortPlayersByTotal(roster.filter(p=>totals[p]!==undefined), totals, cfg);
       return sorted[0] || null;
     };
