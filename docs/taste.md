@@ -158,6 +158,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Winner confetti that paints opaque white tiles over the name, the results, or Next.
 - Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
 - The same Life Preserver status sentence printed twice.
+- A Saved chip on the Back Porch wordmark, or a Home seat sliding under the header. The chip stays in the player card. The header stays opaque and outside the scroller. The top-nav word for that page is Home. Sunset Champion stays TV-readable.
 
 ## Prefer
 

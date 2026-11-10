@@ -39,7 +39,11 @@ html.slice2-tv #top-nav {
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  z-index: 40;
+  z-index: 50;
+}
+html.slice2-tv body.home-view #top-nav {
+  position: relative;
+  top: auto !important;
 }
 html.slice2-tv #top-nav::before {
   content: "";
@@ -590,6 +594,40 @@ html.slice2-tv .s2-seat-name {
   font-weight: 800;
   font-size: 1.08rem;
   color: var(--s2-ink);
+}
+
+html.slice2-tv button,
+html.slice2-tv .s2-seat,
+html.slice2-tv .s2-seat-name,
+html.slice2-tv .s2-game,
+html.slice2-tv .s2-chip,
+html.slice2-tv .nav-btn,
+html.slice2-tv .scoreboard-player-name,
+html.slice2-tv .score-entry-row,
+html.slice2-tv .score-entry-keypad,
+html.slice2-tv .score-entry-keypad button,
+html.slice2-tv #custom-numpad,
+html.slice2-tv #custom-numpad button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html.slice2-tv input,
+html.slice2-tv textarea,
+html.slice2-tv select,
+html.slice2-tv [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+html.slice2-tv #victory-kicker {
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.15;
+  text-transform: uppercase;
 }
 
 html.slice2-tv .s2-dealer-tag {

@@ -234,7 +234,7 @@
     const compactNav = window.matchMedia('(max-width: 1023px)').matches;
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
-      if (action.includes('goHome')) button.textContent = compactNav ? 'Table' : "Tonight's Table";
+      if (action.includes('goHome')) button.textContent = 'Home';
       if (action.includes('showHistory')) button.textContent = compactNav ? 'Records' : `Records (${table.history.length})`;
       if (action.includes('showProfiles')) button.textContent = compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`;
       if (action.includes('openSettings')) button.textContent = compactNav ? '⚙' : 'Settings';

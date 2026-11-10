@@ -3305,21 +3305,27 @@ button.dealer-name-indicator {
         height: 100%;
         max-height: 100%;
         min-height: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        padding-bottom: 0.75rem;
+        padding-bottom: 0;
       }
       body.home-view #top-nav {
+        position: relative;
+        top: auto;
         flex: 0 0 auto;
+        z-index: 40;
+        background: #f6f1e7 !important;
       }
       body.home-view #home-screen {
         flex: 1 1 auto;
         min-height: 0;
-        overflow: visible;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scroll-padding-top: 0.75rem;
+        scroll-padding-bottom: 1rem;
         align-items: stretch;
       }
       body.home-view #home-screen.hidden {
@@ -10103,7 +10109,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="absolute inset-0 bg-black/55 backdrop-blur-md"></div>
       <div class="surface-raised postgame-card postgame-victory-card bp-modal-panel bp-modal-panel--form p-9 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <div class="postgame-hero-icon text-7xl mb-4">🌅</div>
-        <div id="victory-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Sunset Champion</div>
+        <div id="victory-kicker" class="victory-kicker font-extrabold uppercase mb-3" style="color:var(--bp-coral);">Sunset Champion</div>
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
         <div id="victory-records" class="w-full space-y-2 mb-5"></div>
@@ -11173,6 +11179,8 @@ button.dealer-name-indicator .dealer-player-label {
     window.scrollTo({top:0,behavior:'auto'});
     const shell=document.querySelector('.bp-app-shell');
     if(shell) shell.scrollTop=0;
+    const homeScroll=document.getElementById('home-screen');
+    if(homeScroll) homeScroll.scrollTop=0;
     if(typeof syncModalScrollLock==='function') syncModalScrollLock();
     closeNumpad();
     clearToasts();

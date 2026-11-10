@@ -64,3 +64,9 @@ Mobile WebKit at 1194×834. This is not iPad Safari.
 - Passports after an early Five Crowns win and a finished Heat win: Ada 2 wins in 2 games, Bea 0 wins in 2 games. Same winners as history.
 - Demo enter left `gn_history` on its real marker. Exit cleared the demo keys.
 - Home wheel and mouse drag did not move the shell. Mobile WebKit rejects mouse.wheel. Setting scrollTop does move it. Do not call the first-touch scroll fixed.
+
+## Header, 2026-11-10
+
+Home scrolls inside `#home-screen`. `#top-nav` stays `position: relative` on `body.home-view`, background `#f6f1e7`, and is not inside that scroller. The saved chip is `position: static` in the Tonight's Table head, so it cannot paint over the wordmark. The top-nav item says Home at every width. The scoreboard Home button is a different control and only shows while the top nav is hidden. The card title stays Tonight's Table. `#victory-kicker` is `clamp(1.45rem, 2.8vw, 2rem)`. Seats, game cards, the keypad, and buttons use `user-select: none`. Inputs stay selectable.
+
+Emulated mobile WebKit, not iPad Safari. At 1180×820, 1194×834, 1366×1024, and 1024×768, top, middle, and bottom scroll: the chip does not sit on the logo, and `elementFromPoint` just under the nav hits the shell, not a seat. 1366×1024 does not overflow with 8 seats. Computed `user-select` is `none` on a seat name and `text` on the name field. Sunset Champion computed at 32px. Shots: `ipad-home-top.png`, `ipad-home-scrolled.png`, `ipad-home-bottom.png`, `ipad-winner-kicker.png`.

@@ -341,13 +341,15 @@ html.slice2-tv .s2-home-table .s2-panel-head {
 
 html.slice2-tv .s2-home-table .s2-panel-head #save-indicator,
 html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
-  position: static;
-  top: auto;
-  right: auto;
-  left: auto;
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: auto !important;
   display: inline-flex;
   opacity: 1;
-  transform: none;
+  transform: none !important;
   flex: 1 1 100%;
   align-self: flex-start;
   box-sizing: border-box;
