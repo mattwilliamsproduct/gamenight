@@ -10,6 +10,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- Entered round scores sit on one soft tile: warm gray on a normal row, a deeper mint on the leader, small gaps, darker digits, no outline and no column stripes. A stored 0 is a tile. The current-round dash is not. Total stays the large number.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
 - Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.

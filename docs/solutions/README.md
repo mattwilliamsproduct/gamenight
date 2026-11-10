@@ -18,6 +18,8 @@ Standing trap: [worker-template-matches-page.md](worker-template-matches-page.md
 
 Standing trap: [scorecard-places-and-life-preserver.md](scorecard-places-and-life-preserver.md) — a hidden round column is not a deleted hand, and place ties compare as numbers.
 
+Standing trap: [scoreboard-tiles.md](scoreboard-tiles.md) — an entered round score, including 0, gets one tile. The current-round dash stays bare. Do not stripe the columns on top.
+
 Standing trap: [scorecard-visible-lead.md](scorecard-visible-lead.md) — a name that fits its cell can still sit off the phone viewport; row-fit must use the visible remainder, and phone Slice 2 must apply the fit-row height.
 
 Standing trap: [emoji-avatar-fallback.md](emoji-avatar-fallback.md) — `charAt(0)` on an emoji name throws inside the avatar data URI.

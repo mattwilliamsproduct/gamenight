@@ -1268,11 +1268,63 @@ html.slice2-tv #scorecard-capture .scorecard-total-value {
 
 html.slice2-tv #scorecard-capture .score-cell-input {
   font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   font-variant-numeric: tabular-nums !important;
   font-feature-settings: "tnum" 1 !important;
-  color: var(--s2-ink) !important;
+  color: #0c2824 !important;
   background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Entered round scores sit on one soft tile. A blank cell and the current-round dash stay bare. */
+html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
+  background: #e4d6c4 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 9px !important;
+  width: calc(100% - 8px) !important;
+  height: 2.5rem !important;
+  min-height: 2.5rem !important;
+  max-height: 2.5rem !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 2.5rem !important;
+}
+
+html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
+  background: #b7dccb !important;
+}
+
+html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
+  background: #e4d6c4 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 9px !important;
+  width: calc(100% - 8px) !important;
+  height: auto !important;
+  min-height: 3.15rem !important;
+  max-height: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 0.16rem 0.08rem 0.2rem !important;
+  overflow: visible !important;
+}
+
+html.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
+  background: #b7dccb !important;
+}
+
+html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver) .score-cell-input {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  line-height: 1.05 !important;
 }
 
 html.slice2-tv #scorecard-capture .score-cell-input.score-cell-miss {

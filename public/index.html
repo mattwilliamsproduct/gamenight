@@ -16918,13 +16918,14 @@ ${isDealer
         const hfParts=isHandFootGame(currentGame)?handFootColumnParts(currentGame, r, p):null;
         const hfTitle=hfParts?` title="${handFootPartsTitle(hfParts)}"`:'';
         const shown=isHandFootGame(currentGame)?handFootColumnScore(currentGame, r, p):shownRoundScore(r.scores, p);
+        const entered=shown!==''&&shown!==undefined&&shown!==null;
         const cellId=isHandFootGame(currentGame)?`score-past-${rIdx}-${rookElementId(p)}`:`score-past-${rIdx}-${p}`;
         const cellClick=isHandFootGame(currentGame)?`openHandFootRoundEditor('${escapeJsString(p)}',${rIdx})`:`openPastScoreCell('${escapeJsString(p)}',${rIdx})`;
         body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td${exactTdClass}">
           <div class="score-cell-stack${extra.className}">
           <input type="text" id="${cellId}" size="2" readonly inputmode="none" unselectable="on"
             onclick="${cellClick}" value="${shown!==undefined&&shown!==null?shown:''}"
-            class="score-cell-input${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
+            class="score-cell-input${entered?' is-entered':''}${missClass} px-1 py-1.5 text-center cursor-pointer caret-transparent no-select"${missTitle}${hfTitle}>
 
           ${extra.html}
           </div>

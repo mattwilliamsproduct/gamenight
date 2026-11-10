@@ -1116,12 +1116,35 @@ export const QA_SURFACES = [
   {id:'race',label:'Path replay'}
 ];
 
+const tileBoardPlayers=['Owen','Nora','Priya','Ruby','Theo','Felix','June','Marco'];
+const tileBoardGrid=[
+  [4,0,6,3,5,4,3,0,0],
+  [0,5,3,4,6,2,5,8,2],
+  [7,6,0,8,4,9,6,6,0],
+  [8,4,7,11,0,8,10,5,0],
+  [5,8,9,0,7,6,8,11,0],
+  [11,12,10,9,13,0,12,9,0],
+  [15,16,14,17,18,16,0,14,0],
+  [18,20,19,15,21,22,19,16,0]
+];
+const tileBoardRounds=tileBoardGrid[0].map((_,roundIndex)=>({
+  round:roundIndex+1,
+  scores:Object.fromEntries(tileBoardPlayers.map((name,playerIndex)=>[name,tileBoardGrid[playerIndex][roundIndex]]))
+}));
+const tileBoardGame=makeCurrentGame('Five Crowns',tileBoardPlayers,tileBoardRounds,{maxRounds:11,dealerOffset:1});
+
 export const QA_SCENARIOS = {
   'home-party':{
     label:'Busy Home Table',
     description:'Six seated players, six on deck, and full profile history.',
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
+  },
+  'scoreboard-tiles-8':{
+    label:'Scoreboard tiles · Five Crowns · 8',
+    description:'Eight players on Round 10 of 11. Entered scores, including 0, sit on tiles. The current round stays a dash.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...tileBoardPlayers],players:[...tileBoardPlayers],history:[],playerProfiles:profiles(tileBoardPlayers),currentGame:tileBoardGame}
   },
   'wizard-10':{
     label:'Wizard · 10 Players',
