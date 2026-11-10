@@ -365,15 +365,35 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   pointer-events: none;
 }
 
-/* Landscape dashboard: both panels fill the home screen. Art grows at 5:7.
+/* Landscape dashboard: the shell ends a margin above the viewport, both panels
+   fill that shell, art shrinks at 5:7, and a long list scrolls inside its panel.
    Phone, portrait, short screens, and an open keyboard keep their own height. */
 @media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
-  html.slice2-tv:not([data-bp-kb="1"]) .s2-home {
-    height: calc(100dvh - var(--bp-home-top, 96px) - 8px);
-    max-height: calc(100dvh - var(--bp-home-top, 96px) - 8px);
+  html.slice2-tv:not([data-bp-kb="1"]) body.home-view {
+    padding-bottom: 0;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) body.home-view .bp-app-shell {
+    height: calc(100dvh - var(--bp-shell-top, 0px) - 16px);
+    max-height: calc(100dvh - var(--bp-shell-top, 0px) - 16px);
     min-height: 0;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) body.home-view #home-screen {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home {
+    flex: 1 1 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: hidden;
     box-sizing: border-box;
-    padding-bottom: 8px;
+    padding-bottom: 0;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid {
@@ -440,6 +460,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game {
     height: 100% !important;
+    min-height: 0;
     max-width: none;
     width: 100%;
     align-self: stretch;
@@ -448,9 +469,14 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     container-type: size;
   }
 
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-art {
+    height: auto;
+    min-height: 0;
+  }
+
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc(100cqh * 5 / 7));
-    max-width: none;
+    width: min(100cqw, calc(100cqh * 5 / 7), 220px);
+    max-width: 220px;
     height: auto !important;
     margin-inline: auto;
     aspect-ratio: 5 / 7;
@@ -458,5 +484,12 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-startbar {
     margin-top: auto;
+  }
+}
+
+@media (min-width: 1600px) and (orientation: landscape) and (min-height: 700px) {
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
+    width: min(100cqw, calc(100cqh * 5 / 7));
+    max-width: none;
   }
 }

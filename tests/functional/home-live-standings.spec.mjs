@@ -80,30 +80,63 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       const roster = count === 2 ? ['Nora', 'Owen'] : (count === 8 ? EIGHT : FOURTEEN);
       await paintRoster(page, roster, false);
       const idle = await page.evaluate(() => {
+        const clipBottom = (el) => {
+          const box = el.getBoundingClientRect();
+          let limit = window.innerHeight;
+          let node = el.parentElement;
+          while (node && node !== document.documentElement) {
+            const style = getComputedStyle(node);
+            if (/(auto|hidden|clip|scroll)/.test(style.overflowY + style.overflow)) {
+              limit = Math.min(limit, node.getBoundingClientRect().bottom);
+            }
+            node = node.parentElement;
+          }
+          return { top: box.top, bottom: box.bottom, visibleBottom: Math.min(box.bottom, limit), height: box.height };
+        };
         const table = document.querySelector('.s2-home-table');
         const start = document.querySelector('.s2-home-start');
         const row = document.querySelector('.s2-seat');
+        const last = document.querySelector('.s2-seat:last-child');
         const frame = document.querySelector('.s2-card-frame');
         const list = document.querySelector('.s2-seat-grid');
         const tableBox = table.getBoundingClientRect();
         const startBox = start.getBoundingClientRect();
         const rowBox = row.getBoundingClientRect();
         const frameBox = frame.getBoundingClientRect();
+        const startBtn = clipBottom(document.querySelector('#slice2-start-btn'));
+        const addBtn = clipBottom(document.querySelector('.s2-add .s2-btn'));
+        const summary = clipBottom(document.querySelector('#slice2-start-summary'));
+        const lastRow = clipBottom(last);
         return {
           bottoms: Math.abs(tableBox.bottom - startBox.bottom),
+          panelBottom: Math.max(tableBox.bottom, startBox.bottom),
           rowH: rowBox.height,
           ratio: frameBox.width / frameBox.height,
           scrolls: list.scrollHeight > list.clientHeight + 8,
-          startBottom: document.querySelector('#slice2-start-btn')?.getBoundingClientRect().bottom || 0
+          startBtn,
+          addBtn,
+          summary,
+          lastRow,
+          pageScroll: document.querySelector('#home-screen').scrollHeight - document.querySelector('#home-screen').clientHeight
         };
       });
-      expect(idle.startBottom, `${size.width} idle ${count} Start`).toBeLessThanOrEqual(size.height + 1);
+      expect(idle.panelBottom, `${size.width} idle ${count} panels`).toBeLessThanOrEqual(size.height - 12);
+      expect(idle.startBtn.bottom, `${size.width} idle ${count} Start`).toBeLessThanOrEqual(size.height - 12);
+      expect(idle.startBtn.visibleBottom, `${size.width} idle ${count} Start clipped`).toBeGreaterThanOrEqual(idle.startBtn.bottom - 1);
+      expect(idle.addBtn.bottom, `${size.width} idle ${count} Add Player`).toBeLessThanOrEqual(size.height - 12);
+      expect(idle.addBtn.visibleBottom, `${size.width} idle ${count} Add Player clipped`).toBeGreaterThanOrEqual(idle.addBtn.bottom - 1);
+      expect(idle.summary.visibleBottom, `${size.width} idle ${count} summary clipped`).toBeGreaterThanOrEqual(idle.summary.bottom - 1);
+      expect(idle.pageScroll, `${size.width} idle ${count} page scroll`).toBeLessThanOrEqual(1);
       expect(idle.bottoms, `${size.width} idle ${count} panel bottoms`).toBeLessThanOrEqual(4);
       expect(idle.rowH, `${size.width} idle ${count} row`).toBeLessThanOrEqual(56);
       expect(idle.rowH).toBeGreaterThanOrEqual(44);
       expect(Math.abs(idle.ratio - (5 / 7)), `${size.width} idle art`).toBeLessThan(0.08);
       if (count === 14) expect(idle.scrolls, `${size.width} idle 14 should scroll inside the list`).toBe(true);
-      else expect(idle.scrolls, `${size.width} idle ${count} should fit without a list scroller`).toBe(false);
+      else {
+        expect(idle.scrolls, `${size.width} idle ${count} should fit without a list scroller`).toBe(false);
+        expect(idle.lastRow.bottom, `${size.width} idle ${count} last row`).toBeLessThanOrEqual(size.height - 12);
+        expect(idle.lastRow.visibleBottom, `${size.width} idle ${count} last row clipped`).toBeGreaterThanOrEqual(idle.lastRow.bottom - 1);
+      }
       await page.screenshot({path: `/opt/cursor/artifacts/home-idle-${count}-${size.width}-emulated.png`});
 
       await paintRoster(page, roster, true);
@@ -117,25 +150,54 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         await expect(page.locator('.s2-standing', {hasText: 'Priya'}).locator('.s2-dealer-tag:not(.s2-dealer-tag-empty)')).toHaveText('Dealer');
       }
       const live = await page.evaluate(() => {
+        const clipBottom = (el) => {
+          const box = el.getBoundingClientRect();
+          let limit = window.innerHeight;
+          let node = el.parentElement;
+          while (node && node !== document.documentElement) {
+            const style = getComputedStyle(node);
+            if (/(auto|hidden|clip|scroll)/.test(style.overflowY + style.overflow)) {
+              limit = Math.min(limit, node.getBoundingClientRect().bottom);
+            }
+            node = node.parentElement;
+          }
+          return { top: box.top, bottom: box.bottom, visibleBottom: Math.min(box.bottom, limit), height: box.height };
+        };
         const table = document.querySelector('.s2-home-standings');
         const start = document.querySelector('.s2-home-start');
         const row = document.querySelector('.s2-standing');
+        const last = document.querySelector('.s2-standing:last-child');
         const list = document.querySelector('.s2-standings');
+        const startBtn = clipBottom(document.querySelector('#slice2-start-btn'));
+        const summary = clipBottom(document.querySelector('#slice2-start-summary'));
+        const lastRow = clipBottom(last);
         return {
           bottoms: Math.abs(table.getBoundingClientRect().bottom - start.getBoundingClientRect().bottom),
+          panelBottom: Math.max(table.getBoundingClientRect().bottom, start.getBoundingClientRect().bottom),
           rowH: row.getBoundingClientRect().height,
           scrolls: list.scrollHeight > list.clientHeight + 8,
-          startBottom: document.querySelector('#slice2-start-btn')?.getBoundingClientRect().bottom || 0,
+          startBtn,
+          summary,
+          lastRow,
+          pageScroll: document.querySelector('#home-screen').scrollHeight - document.querySelector('#home-screen').clientHeight,
           seats: players.slice(),
           offset: currentGame.dealerOffset
         };
       });
-      expect(live.startBottom, `${size.width} live ${count} Start`).toBeLessThanOrEqual(size.height + 1);
+      expect(live.panelBottom, `${size.width} live ${count} panels`).toBeLessThanOrEqual(size.height - 12);
+      expect(live.startBtn.bottom, `${size.width} live ${count} Start`).toBeLessThanOrEqual(size.height - 12);
+      expect(live.startBtn.visibleBottom, `${size.width} live ${count} Start clipped`).toBeGreaterThanOrEqual(live.startBtn.bottom - 1);
+      expect(live.summary.visibleBottom, `${size.width} live ${count} summary clipped`).toBeGreaterThanOrEqual(live.summary.bottom - 1);
+      expect(live.pageScroll, `${size.width} live ${count} page scroll`).toBeLessThanOrEqual(1);
       expect(live.bottoms, `${size.width} live ${count} panel bottoms`).toBeLessThanOrEqual(4);
       expect(live.rowH).toBeLessThanOrEqual(56);
       expect(live.seats).toEqual(roster);
       if (count === 14) expect(live.scrolls).toBe(true);
-      else expect(live.scrolls, `${size.width} live ${count} should fit`).toBe(false);
+      else {
+        expect(live.scrolls, `${size.width} live ${count} should fit`).toBe(false);
+        expect(live.lastRow.bottom, `${size.width} live ${count} last row`).toBeLessThanOrEqual(size.height - 12);
+        expect(live.lastRow.visibleBottom, `${size.width} live ${count} last row clipped`).toBeGreaterThanOrEqual(live.lastRow.bottom - 1);
+      }
       if (count === 2) expect(live.offset).toBe(0);
       await page.screenshot({path: `/opt/cursor/artifacts/home-live-${count}-${size.width}-emulated.png`});
     }

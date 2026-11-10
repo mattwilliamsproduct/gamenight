@@ -34,7 +34,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
 - Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
 - One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
-- On a landscape iPad or laptop, Tonight's Table and Start a New Match share the height under the nav. Game art grows at 5:7. A short list stays capped. A long list scrolls inside the card. Phone, portrait, and an open keyboard still scroll the page.
+- On a landscape iPad or laptop, Tonight's Table and Start a New Match share the height under the nav and end a margin above the viewport. Game art stays 5:7 and shrinks to fit. A short list stays capped. A long list scrolls inside the card. Start, Add Player, and the last fitted row stay fully on screen. Phone, portrait, and an open keyboard still scroll the page.
 - While a match is on the table, Home shows the live standings beside the game cards. Start asks before it parks the live match as unfinished.
 - Home does not keep a Recent nights list. An unfinished match shows as Resume unfinished, and View all lists the rest.
 - A photo the player sets is shrunk before it is saved, in the demo and in real games. A photo that cannot be saved leaves the previous portrait in place.
@@ -162,6 +162,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
 - The same Life Preserver status sentence printed twice.
 - A Saved chip on the Back Porch wordmark, or a Home seat sliding under the header. The chip stays in the player card. The header stays opaque and outside the scroller. The top-nav word for that page is Home. Sunset Champion stays TV-readable.
+- Landscape Home panels that run past the viewport, so Start, Add Player, the summary line, or the last row is sliced off the bottom. Size the panels to the space under the nav, leave a margin, and scroll the list inside the panel.
 
 ## Prefer
 

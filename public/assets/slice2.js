@@ -1382,10 +1382,10 @@
     const nav = document.getElementById('top-nav');
     const navH = nav ? Math.ceil(nav.getBoundingClientRect().height) : 72;
     root.style.setProperty('--bp-nav-offset', `${navH}px`);
-    const home = document.getElementById('home-screen');
-    if (home) {
-      const top = Math.max(0, Math.round(home.getBoundingClientRect().top));
-      root.style.setProperty('--bp-home-top', `${top}px`);
+    const shell = document.querySelector('.bp-app-shell');
+    if (shell) {
+      const shellTop = Math.max(0, Math.round(shell.getBoundingClientRect().top));
+      root.style.setProperty('--bp-shell-top', `${shellTop}px`);
     }
     const vv = window.visualViewport;
     const keyboard = !!(vv && window.innerHeight - vv.height > 140);
