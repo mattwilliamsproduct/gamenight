@@ -49,10 +49,10 @@ There is no framework and no per-player account. State is `localStorage` on the 
 - The best legal result stays strictly behind 1st by at least one scoring step (1 point, or 5 in games that step by 5).
 - 818’s largest helpful slice is about two made bids (+20), and still behind 1st. The live draw is 45% small help, 30% medium, 5% big, 7.5% no change, and 12.5% a small setback. On the 40-pocket wheel that is 32 help slices, 3 no-change, and 5 setback. Help stays the majority. Setback point amounts are the same step and double-step as before. The wheel header states Best help and Largest setback (`Best help: +20 points · Largest setback: −5 points`). Color is by benefit, not by sign.
 - The spin is stored as `{ round: 0, hailMaryBonus: true, scores }`. The UI commits before the wheel moves and applies the landed result immediately. There is no post-spin Apply. `recordLifePreserverSpin` no-ops if that player already used a spin. It counts in the total once. Recomputing totals does not apply it again. It does not count as a hand, a Player Pace round, a per-round Hall of Fame record, a WHAMMY input, a path-replay step, or a Wizard / 818 exact or missed bid. `hailMaryUsed` is a cache of who has spun. A legacy save with that list and no bonus round still counts as assisted. A sticky `assistedMatch: true` with no remaining spin does not.
-- A zero-point spin still sets `assistedMatch` and `hailMaryUsed`. Undo removes the bonus rounds that followed the undone hand, releases those players, and recomputes `assistedMatch` from what remains.
+- A zero-point spin still sets `assistedMatch` and `hailMaryUsed`. Undo removes the bonus rounds that followed the undone hand and recomputes the total from what remains. `hailMaryUsed` stays, so the spin cannot be taken again and `assistedMatch` stays on.
 - Timeline and history keep the real total and show an Assisted Match badge when a spin remains. Best Game Score, Highest Winning Score, Worst Game Score, and Cleanest Game read unassisted matches only. The label is "Unassisted matches only". An all-assisted shelf says "No unassisted matches yet".
 - The scorecard shows the adjustment on the scoring hand it followed, including history and Share Receipt. If that column is hidden, a mark sits beside Total.
-- Undo of the surrounding scoring round returns the spin to unused.
+- Undo of the surrounding scoring round removes the adjustment and restores win eligibility. It does not return the spin to unused.
 
 ### SHARED-PLACE
 

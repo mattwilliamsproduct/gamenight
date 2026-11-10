@@ -27,6 +27,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 - A helpful Life Preserver says the trade before the spin and keeps a readable cap on the row: Life Preserver · Best finish: 2nd. The score stays the real score.
+- Undo of a Life Preserver removes the whole adjustment and restores the win. The spin stays used. There is no reroll.
 - A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.
 - A Life Preserver modal that uses the leftover viewport so the wheel and slice numbers can get big. Use Your One Spin stays on screen.
 - A Life Preserver that reads as a roulette bowl: narrow pockets, numbered rim, frets, turret, and a ball that settles.
@@ -82,7 +83,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Porch Club redesign work without Matt's visual sign-off.
 - Loading Turbos, or a second rescue beside Life Preserver.
 - Durable Matt feedback left only in chat.
-- A positive 818 miss, or a round with no stored bid, counted as an exact bid. A Life Preserver flag that stays on after the last spin is undone.
+- A positive 818 miss, or a round with no stored bid, counted as an exact bid.
+- Undo that gives a Life Preserver spin back. The adjustment goes away and the win returns. The spin stays used. A player never keeps the helpful points and also gets the win back.
 - An unfinished history match still counting as a completed game.
 - "Warm Porch Ledger" as a user-facing subtitle.
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.

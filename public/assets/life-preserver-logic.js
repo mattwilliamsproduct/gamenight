@@ -1534,16 +1534,9 @@
     return offer;
   }
 
-  function releaseRemovedLifePreservers(used, removedRounds) {
-    const removedPlayers = new Set();
-    (removedRounds || []).forEach(round => {
-      if (!round?.hailMaryBonus) return;
-      Object.keys(round.scores || {}).forEach(player => {
-        if (player) removedPlayers.add(player);
-      });
-    });
-    if (!removedPlayers.size) return Array.isArray(used) ? used.slice() : [];
-    return (used || []).filter(player => !removedPlayers.has(player));
+  function releaseRemovedLifePreservers(used) {
+    // Undo deletes the bonus round. The spin stays used, so the same player cannot spin again.
+    return Array.isArray(used) ? used.slice() : [];
   }
 
   function liveWheelOdds() {

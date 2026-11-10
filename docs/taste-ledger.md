@@ -79,7 +79,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Porch Club redesign work without Matt's visual sign-off.
 - Loading Turbos, or a second rescue beside Life Preserver.
 - Durable Matt feedback left only in chat.
-- A positive 818 miss, or a round with no stored bid, counted as an exact bid. A Life Preserver flag that stays on after the last spin is undone.
+- A positive 818 miss, or a round with no stored bid, counted as an exact bid.
+- Undo that returns a Life Preserver spin. Removing the adjustment restores the score and the win. It does not open a second spin. A correction that keeps a helpful adjustment keeps the player out of first.
 - An unfinished history match still counting as a completed game.
 - "Warm Porch Ledger" as a user-facing subtitle.
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.

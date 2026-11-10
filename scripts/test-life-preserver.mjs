@@ -517,15 +517,15 @@ test('capping a result cannot place the player first after standings change', ()
   assert.ok(totals.Hal + capped < totals.Ann);
 });
 
-test('undo only frees Life Preservers whose bonus rounds were removed', () => {
+test('undo keeps a Life Preserver spin used after the bonus round is removed', () => {
   const used = ['Linda', 'Brick'];
   const kept = LP.releaseRemovedLifePreservers(used, [{ round: 8, scores: { Megan: 22 } }]);
   assert.deepEqual(kept, ['Linda', 'Brick']);
-  const released = LP.releaseRemovedLifePreservers(used, [
+  const stillUsed = LP.releaseRemovedLifePreservers(used, [
     { round: 8, scores: { Megan: 22 } },
     { round: 0, hailMaryBonus: true, scores: { Brick: -75 } }
   ]);
-  assert.deepEqual(released, ['Linda']);
+  assert.deepEqual(stillUsed, ['Linda', 'Brick']);
 });
 
 test('Wizard max rounds stay frozen when the active table shrinks', () => {

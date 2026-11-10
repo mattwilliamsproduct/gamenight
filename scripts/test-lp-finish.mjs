@@ -235,4 +235,87 @@ test('the page uses the shared standings and the pre-spin confirm', () => {
   assert.match(page, /id="lp-win-confirm"/);
   assert.match(page, /lifePreserverWinConfirmCopy/);
   assert.match(page, /if\(lifePreserverTradeApplies\(\)&&!_lpWinTradeAccepted\)/);
+  assert.match(page, /releaseRemovedLifePreservers\(currentGame\.hailMaryUsed, removedRounds\)/);
+});
+
+function undoLastScoringRound(game) {
+  let lastIdx = -1;
+  for (let i = game.rounds.length - 1; i >= 0; i -= 1) {
+    if (!game.rounds[i].hailMaryBonus) { lastIdx = i; break; }
+  }
+  const removed = game.rounds.slice(lastIdx);
+  game.rounds = game.rounds.slice(0, lastIdx);
+  game.currentRound = game.rounds[lastIdx] ? game.rounds[lastIdx].round : (game.rounds.length + 1);
+  game.hailMaryUsed = Life.releaseRemovedLifePreservers(game.hailMaryUsed, removed);
+  Scorebook.recomputeTotals(game);
+  Scorebook.syncAssistedMatch(game);
+  return removed;
+}
+
+test('undo removes the whole adjustment and restores eligibility without a reroll', () => {
+  const game = {
+    name: 'Five Crowns',
+    ruleset: RULE,
+    originalRoster: ['Ada', 'Bea', 'Cal', 'Dee'],
+    currentRound: 3,
+    rounds: [
+      { round: 1, scores: { Ada: 20, Bea: 30, Cal: 40, Dee: 50 } },
+      { round: 2, scores: { Ada: 18, Bea: 12, Cal: 16, Dee: 22 } }
+    ],
+    totals: {},
+    hailMaryUsed: [],
+    retired: []
+  };
+  Scorebook.recomputeTotals(game);
+  const base = game.totals.Ada;
+  Scorebook.recordLifePreserverSpin(game, 'Ada', -8);
+  Scorebook.matchStandings(game);
+  assert.equal(game.totals.Ada, base - 8);
+  assert.equal(game.eligibleToWin.Ada, false);
+  assert.deepEqual(game.hailMaryUsed, ['Ada']);
+
+  undoLastScoringRound(game);
+  const standing = Scorebook.matchStandings(game);
+  assert.equal(game.totals.Ada, 20);
+  assert.equal((game.rounds || []).some(round => round && round.hailMaryBonus), false);
+  assert.equal(game.eligibleToWin.Ada, undefined);
+  assert.equal(standing.rows.find(row => row.player === 'Ada').eligibleToWin, true);
+  assert.deepEqual(game.hailMaryUsed, ['Ada']);
+  assert.equal(game.assistedMatch, true);
+
+  const sameRound = Scorebook.recordLifePreserverSpin(game, 'Ada', -8);
+  assert.equal(sameRound, game);
+  assert.equal((game.rounds || []).some(round => round && round.hailMaryBonus), false);
+  assert.equal(game.totals.Ada, 20);
+
+  game.currentRound = 4;
+  game.rounds.push({ round: 3, scores: { Ada: 10, Bea: 14, Cal: 18, Dee: 20 } });
+  Scorebook.recomputeTotals(game);
+  const later = Scorebook.recordLifePreserverSpin(game, 'Ada', -8);
+  assert.equal(later.totals.Ada, 30);
+  assert.equal((later.rounds || []).some(round => round && round.hailMaryBonus), false);
+
+  const reloaded = JSON.parse(JSON.stringify(later));
+  Scorebook.recordLifePreserverSpin(reloaded, 'Ada', -12);
+  assert.equal((reloaded.rounds || []).some(round => round && round.hailMaryBonus), false);
+  assert.deepEqual(reloaded.hailMaryUsed, ['Ada']);
+  assert.equal(Scorebook.matchStandings(reloaded).rows.find(row => row.player === 'Ada').eligibleToWin, true);
+});
+
+test('a correction that keeps a helpful adjustment leaves the player ineligible', () => {
+  const game = night('Five Crowns', { Ada: 10, Bea: 20, Cal: 30, Dee: 40 }, -8);
+  const bonus = game.rounds.find(round => round.hailMaryBonus);
+  bonus.scores.Ada = -3;
+  Scorebook.recomputeTotals(game);
+  const standing = Scorebook.matchStandings(game);
+  assert.equal(game.totals.Ada, 7);
+  assert.equal(game.eligibleToWin.Ada, false);
+  assert.equal(standing.rows.find(row => row.player === 'Ada').eligibleToWin, false);
+  assert.deepEqual(standing.champion, ['Bea']);
+
+  game.eligibleToWin.Ada = true;
+  const again = Scorebook.matchStandings(game);
+  assert.equal(game.eligibleToWin.Ada, false);
+  assert.equal(again.rows.find(row => row.player === 'Ada').score, 7);
+  assert.equal(again.rows.find(row => row.player === 'Ada').eligibleToWin, false);
 });

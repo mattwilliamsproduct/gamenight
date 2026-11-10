@@ -978,7 +978,7 @@ test('reopening a saved match does not replace a different active game', () => {
   assert.match(fin, /if\(reopened\) toast\(reopenCopy, 'warning'\)/);
 });
 
-test('undoing the only Life Preserver clears assistedMatch, including a zero-point spin', () => {
+test('undoing the only Life Preserver keeps the spin used, including a zero-point spin', () => {
   const game = {
     name: 'Five Crowns',
     originalRoster: ['Ada'],
@@ -1009,10 +1009,12 @@ test('undoing the only Life Preserver clears assistedMatch, including a zero-poi
   assert.equal(Scorebook.isAssistedMatch(game), true);
   assert.equal(game.assistedMatch, true);
   assert.equal(undo(game), true);
-  assert.equal(game.assistedMatch, false);
-  assert.deepEqual(game.hailMaryUsed, []);
+  assert.equal(game.assistedMatch, true);
+  assert.deepEqual(game.hailMaryUsed, ['Ada']);
+  assert.equal((game.rounds || []).some(round => round && round.hailMaryBonus), false);
   const reloaded = JSON.parse(JSON.stringify(game));
-  assert.equal(Scorebook.isAssistedMatch(reloaded), false);
+  assert.equal(Scorebook.isAssistedMatch(reloaded), true);
+  assert.deepEqual(reloaded.hailMaryUsed, ['Ada']);
 
   const neutral = {
     name: 'Five Crowns',
@@ -1029,11 +1031,14 @@ test('undoing the only Life Preserver clears assistedMatch, including a zero-poi
   assert.deepEqual(neutral.hailMaryUsed, ['Ada']);
   assert.equal(neutral.rounds.at(-1).scores.Ada, 0);
   assert.equal(undo(neutral), true);
-  assert.equal(neutral.assistedMatch, false);
+  assert.equal(neutral.assistedMatch, true);
+  assert.deepEqual(neutral.hailMaryUsed, ['Ada']);
   assert.equal(neutral.rounds.some(round => round.hailMaryBonus), false);
   const stored = JSON.parse(JSON.stringify(neutral));
-  assert.equal(Scorebook.isAssistedMatch(stored), false);
-  assert.equal(stored.assistedMatch, false);
+  assert.equal(Scorebook.isAssistedMatch(stored), true);
+  assert.equal(stored.assistedMatch, true);
+  assert.equal(Scorebook.recordLifePreserverSpin(stored, 'Ada', -5), stored);
+  assert.equal(stored.rounds.some(round => round.hailMaryBonus), false);
 });
 
 test('818 blank dealer bid matches typing 0 against the dealer rule', () => {
