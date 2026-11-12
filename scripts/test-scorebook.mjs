@@ -584,3 +584,73 @@ test('Canasta is the Hand and Foot id, and four rounds is config rather than a s
   const book = JSON.parse(await readFile(new URL('../tests/fixtures/main-format-backup.json', import.meta.url)));
   assert.equal(book.history.some((row) => row.game === 'Canasta' || row.game === 'Hand and Foot'), false);
 });
+
+function rounds(count, scores) {
+  return Array.from({length: count}, (_, index) => ({round: index + 1, scores: scores || {Ava: 1, Ben: 2}}));
+}
+
+test('legacyCompletion reads saved rounds and stays off until the review is applied', () => {
+  const fullCrowns = night({rounds: rounds(11), totals: {Ava: 11, Ben: 22}, maxRounds: undefined});
+  delete fullCrowns.maxRounds;
+  assert.equal(Scorebook.legacyCompletion(fullCrowns).status, 'complete');
+  assert.equal(Scorebook.resolveOutcome(fullCrowns), 'uncertain');
+  const shortCrowns = night({});
+  assert.equal(Scorebook.legacyCompletion(shortCrowns).status, 'partial');
+  assert.equal(Scorebook.legacyCompletion(shortCrowns).fixed, 11);
+  const full818 = night({game: '818', originalRoster: ['Ava', 'Ben'], rounds: rounds(15), totals: {Ava: 20, Ben: 10}});
+  delete full818.maxRounds;
+  assert.equal(Scorebook.legacyCompletion(full818).status, 'complete');
+  assert.equal(Scorebook.legacyCompletion(night({game: '818', rounds: rounds(2)})).status, 'partial');
+  const wizard = night({
+    game: 'Wizard',
+    originalRoster: ['Ava', 'Ben', 'Cara', 'Dan'],
+    rounds: rounds(15, {Ava: 1, Ben: 1, Cara: 1, Dan: 1}),
+    totals: {Ava: 15, Ben: 15, Cara: 15, Dan: 15}
+  });
+  delete wizard.maxRounds;
+  assert.equal(Scorebook.legacyCompletion(wizard).status, 'complete');
+  assert.equal(Scorebook.legacyCompletion(night({game: 'Wizard', originalRoster: ['Ava', 'Ben'], rounds: rounds(1)})).status, 'partial');
+  const heatDone = night({game: 'Beat the Heat', totals: {Ava: 66, Ben: 10}, rounds: rounds(3)});
+  delete heatDone.maxRounds;
+  delete heatDone.endScore;
+  assert.equal(Scorebook.legacyCompletion(heatDone).status, 'complete');
+  const heatOpen = night({game: 'Beat the Heat', totals: {Ava: 20, Ben: 10}, rounds: rounds(3)});
+  delete heatOpen.maxRounds;
+  delete heatOpen.endScore;
+  assert.equal(Scorebook.legacyCompletion(heatOpen).status, 'uncertain');
+  const flip = night({game: 'Flip 7 Vengeance', totals: {Ava: 230, Ben: 40}, rounds: rounds(4)});
+  delete flip.maxRounds;
+  assert.equal(Scorebook.legacyCompletion(flip).status, 'uncertain');
+  const flipTarget = night({game: 'Flip 7 Vengeance', endScore: 200, totals: {Ava: 230, Ben: 40}, rounds: rounds(4)});
+  assert.equal(Scorebook.legacyCompletion(flipTarget).status, 'complete');
+  assert.equal(Scorebook.legacyCompletion(night({game: 'Rook', totals: {Ava: 400, Ben: 100}})).status, 'uncertain');
+  const canasta = night({
+    game: 'Hand and Foot',
+    maxRounds: 4,
+    rounds: rounds(4, {Ava: 100, Ben: 50}),
+    totals: {Ava: 400, Ben: 200},
+    winners: ['Ava']
+  });
+  assert.equal(Scorebook.legacyCompletion(canasta).status, 'uncertain');
+  try {
+    Scorebook.setLegacyReviewApplied(true);
+    assert.equal(Scorebook.resolveOutcome(fullCrowns), 'finished');
+    assert.equal(Scorebook.resolveOutcome(heatDone), 'finished');
+    assert.equal(Scorebook.resolveOutcome(heatOpen), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(flip), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(shortCrowns), 'ended_early');
+    assert.match(Scorebook.endedEarlyLabel(shortCrowns), /Ended early, 1 of 11 rounds/);
+    assert.equal(Scorebook.countsForScoreMagnitude(shortCrowns), false);
+    assert.equal(Scorebook.resolveOutcome(canasta), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(night({completed: false, rounds: rounds(11)})), 'paused');
+    assert.equal(Scorebook.resolveOutcome(night({outcome: 'ended_early', rounds: rounds(11)})), 'ended_early');
+    Scorebook.setHistoryReview({[String(shortCrowns.id || 'x')]: {decision: 'counted', reviewedAt: '2026-11-12T00:00:00.000Z'}});
+    const marked = Object.assign({}, shortCrowns, {id: 'x'});
+    assert.equal(Scorebook.countsForTallies(marked), true);
+    assert.equal(Scorebook.countsForScoreMagnitude(marked), false);
+    assert.equal(marked.countResult, undefined);
+  } finally {
+    Scorebook.setLegacyReviewApplied(false);
+    Scorebook.setHistoryReview({});
+  }
+});

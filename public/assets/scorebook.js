@@ -742,18 +742,112 @@
     return (roundsMet || scoreMet) ? 'finished' : 'short';
   }
 
+  function outcomeFromLegacy(match) {
+    const name = gameName(match);
+    if (name === 'Hand and Foot' || name === 'Canasta') return 'uncertain';
+    const known = completionFromSavedRules(match);
+    if (known === 'finished') return 'finished';
+    if (known === 'short') return 'ended_early';
+    const legacy = legacyCompletion(match);
+    if (legacy.status === 'complete') return 'finished';
+    if (legacy.status === 'partial') return 'ended_early';
+    return 'uncertain';
+  }
+
   function resolveOutcome(match) {
     if (!match || typeof match !== 'object') return 'uncertain';
     const stored = match.outcome;
     if (stored === 'finished' || stored === 'paused' || stored === 'ended_early' || stored === 'uncertain') return stored;
     if (match.completed === false) return 'paused';
+    if (legacyReviewAppliedNow()) return outcomeFromLegacy(match);
     const known = completionFromSavedRules(match);
     if (known === 'finished') return 'finished';
     if (known === 'short') return 'ended_early';
     return 'uncertain';
   }
 
+  let legacyReviewApplied = false;
+  let historyReviewDecisions = {};
+
+  function setLegacyReviewApplied(on) {
+    legacyReviewApplied = !!on;
+  }
+
+  function legacyReviewAppliedNow() {
+    return legacyReviewApplied;
+  }
+
+  function setHistoryReview(decisions) {
+    historyReviewDecisions = decisions && typeof decisions === 'object' && !Array.isArray(decisions) ? decisions : {};
+  }
+
+  function historyReviewDecision(match) {
+    if (!match || match.id == null) return null;
+    const row = historyReviewDecisions[String(match.id)];
+    const decision = row && typeof row === 'object' ? row.decision : row;
+    if (decision === 'counted' || decision === 'not_counted') return decision;
+    return null;
+  }
+
+  function legacyRosterCount(match) {
+    const roster = Array.isArray(match && match.originalRoster) ? match.originalRoster.filter(Boolean) : [];
+    if (roster.length) return roster.length;
+    const players = Array.isArray(match && match.players) ? match.players.filter(Boolean) : [];
+    if (players.length) return players.length;
+    return Object.keys((match && match.totals) || {}).filter(Boolean).length;
+  }
+
+  function anySavedTotalAtLeast(match, score) {
+    const totals = (match && match.totals) || {};
+    return Object.keys(totals).some((player) => player && (Number(totals[player]) || 0) >= score);
+  }
+
+  // Isolated legacy rule. 'complete' | 'partial' | 'uncertain', plus a reason.
+  // Known fixed lengths come from saved rounds, not from a round-count field.
+  // Flip 7 and Rook stay uncertain unless a target saved on that night was reached.
+  // Canasta stays uncertain until its round rule is confirmed.
+  function legacyCompletion(match) {
+    if (!match || typeof match !== 'object') {
+      return {status: 'uncertain', reason: 'No saved night.', played: 0, fixed: null};
+    }
+    const name = gameName(match);
+    const played = scoringRoundCount(match.rounds || []);
+    if (name === 'Hand and Foot' || name === 'Canasta') {
+      return {status: 'uncertain', reason: 'Canasta round rules are not confirmed. Needs review.', played, fixed: null};
+    }
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7' || name === 'Rook') {
+      const target = storedScoreTarget(match);
+      if (target != null && anySavedTotalAtLeast(match, target)) {
+        return {status: 'complete', reason: 'A target saved on this night was reached.', played, fixed: null};
+      }
+      return {status: 'uncertain', reason: name + ' has no confirmed finish rule. Needs review.', played, fixed: null};
+    }
+    if (name === 'Beat the Heat') {
+      if (anySavedTotalAtLeast(match, 66)) {
+        return {status: 'complete', reason: 'A saved Beat the Heat total reached 66.', played, fixed: null};
+      }
+      return {status: 'uncertain', reason: 'Beat the Heat did not show a saved total of 66. Needs review.', played, fixed: null};
+    }
+    let fixed = null;
+    if (name === 'Five Crowns') fixed = 11;
+    else if (name === '818') fixed = EIGHT18_ROUND_TRICKS.length;
+    else if (name === 'Wizard') {
+      const count = legacyRosterCount(match);
+      fixed = count > 0 ? Math.floor(60 / count) : null;
+    }
+    if (!fixed) {
+      return {status: 'uncertain', reason: 'No known finish rule for this night. Needs review.', played, fixed: null};
+    }
+    if (played >= fixed) {
+      return {status: 'complete', reason: played + ' saved rounds meet the ' + fixed + '-round length.', played, fixed};
+    }
+    return {status: 'partial', reason: played + ' of ' + fixed + ' rounds. Ended early.', played, fixed};
+  }
+
   function resultIsCounted(match) {
+    const decision = historyReviewDecision(match);
+    if (decision === 'counted') return true;
+    if (decision === 'not_counted') return false;
     return !!(match && (match.countResult === true || match.countOverride === true));
   }
 
@@ -782,10 +876,10 @@
     const outcome = resolveOutcome(match);
     if (outcome === 'ended_early') {
       const rounds = storedRoundTarget(match);
-      if (rounds != null) {
-        const played = scoringRoundCount((match && match.rounds) || []);
-        return `Ended early, ${played} of ${rounds} rounds`;
-      }
+      const played = scoringRoundCount((match && match.rounds) || []);
+      if (rounds != null) return `Ended early, ${played} of ${rounds} rounds`;
+      const legacy = legacyCompletion(match);
+      if (legacy.status === 'partial' && legacy.fixed) return `Ended early, ${legacy.played} of ${legacy.fixed} rounds`;
       return 'Ended early';
     }
     if (outcome === 'uncertain') return 'Needs review';
@@ -1337,6 +1431,10 @@
     storedRoundTarget,
     storedScoreTarget,
     completionFromSavedRules,
+    legacyCompletion,
+    setLegacyReviewApplied,
+    legacyReviewAppliedNow,
+    setHistoryReview,
     resolveOutcome,
     resultIsCounted,
     isCompleteGame,

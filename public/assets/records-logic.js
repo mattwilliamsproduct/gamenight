@@ -192,17 +192,54 @@
     return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
   }
 
+  function tieRows(record) {
+    const ties = record && Array.isArray(record.ties) ? record.ties : null;
+    if (ties && ties.length && ties[0] && ties[0] !== record && (ties[0].player || ties[0].name)) return ties;
+    return record ? [record] : [];
+  }
+
   function keepBestWithTies(current, next, better) {
     if (!next) return current || null;
-    if (!current) return Object.assign({}, next, { ties: [next] });
+    if (!current) return Object.assign({}, next, { ties: tieRows(next) });
     if (next.value === current.value) {
-      const existing = current.ties || [current];
-      const name = next.player || next.name;
-      if (name && existing.some((row) => (row.player || row.name) === name)) return current;
-      return Object.assign({}, current, { ties: existing.concat([next]) });
+      const merged = tieRows(current).slice();
+      tieRows(next).forEach((row) => {
+        const name = row.player || row.name;
+        if (name && !merged.some((item) => (item.player || item.name) === name)) merged.push(row);
+      });
+      return Object.assign({}, current, { ties: merged });
     }
-    if (better(next, current)) return Object.assign({}, next, { ties: [next] });
+    if (better(next, current)) return Object.assign({}, next, { ties: tieRows(next) });
     return current;
+  }
+
+  function competitionListRank(rows, index) {
+    const list = Array.isArray(rows) ? rows : [];
+    if (index < 0 || index >= list.length) return index + 1;
+    let rank = index + 1;
+    for (let i = index; i > 0; i -= 1) {
+      if (list[i] && list[i - 1] && list[i].value === list[i - 1].value) rank = i;
+      else break;
+    }
+    return rank;
+  }
+
+  function closestMarginRecord(sorted, totals) {
+    const order = Array.isArray(sorted) ? sorted.filter(Boolean) : [];
+    if (order.length < 2) return null;
+    const scoreOf = (name) => Number(totals && totals[name]) || 0;
+    const top = scoreOf(order[0]);
+    const tied = order.filter((name) => scoreOf(name) === top);
+    const next = order[tied.length];
+    const margin = next == null ? 0 : Math.abs(top - scoreOf(next));
+    const names = formatTiedNames(tied.map((player) => ({player})));
+    return {
+      player: tied[0],
+      value: margin,
+      label: tied.length > 1 ? 'tied' : `${order[0]} by ${margin} over ${order[1]}`,
+      ties: tied.map((player) => ({player, value: margin})),
+      names
+    };
   }
 
   function pairKey(a, b) {
@@ -840,8 +877,13 @@
   }
 
   function collectRecordAlerts(match, hall, options) {
+    const scorebook = options && options.scorebook;
+    if (scorebook && typeof scorebook.countsForScoreMagnitude === 'function' && !scorebook.countsForScoreMagnitude(match)) {
+      return [];
+    }
+    const left = new Set(leftEarlyNames(match));
     const r = hall || {};
-    const recorded = matchSitters(match, options);
+    const recorded = matchSitters(match, options).filter((name) => !left.has(name));
     const groups = [];
     const add = (key, label, score, player) => {
       let group = groups.find((row) => row.key === key && row.score === score);
@@ -1242,8 +1284,8 @@
         if (title === 'Win rate' && finite(row.value)) return `${formatDisplayNumber(row.value)}%`;
         return finite(row.value) ? formatDisplayNumber(row.value) : String(row.value ?? '-');
       };
-      return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row, index) => `<div class="s2-book-row s2-leader-row">
-        <span class="s2-leader-rank">${index + 1}.</span>
+      return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row) => `<div class="s2-book-row s2-leader-row">
+        <span class="s2-leader-rank">${competitionListRank(rows, rows.indexOf(row))}.</span>
         <div class="s2-leader-main">
           ${playerLink(row.player, esc, avatar)}
           <span class="s2-book-who">${esc(row.label || formatWinRate(row.wins, row.games) || '')}</span>
@@ -1570,6 +1612,107 @@
     </article>`;
   }
 
+  function bestFinalSnapshot(history, scorebook) {
+    const map = {};
+    (history || []).forEach((row) => {
+      if (!scorebook.countsForScoreMagnitude(row)) return;
+      const retired = new Set(leftEarlyNames(row));
+      const low = row.game === 'Five Crowns' || row.game === 'Beat the Heat';
+      Object.entries(row.totals || {}).forEach(([player, raw]) => {
+        if (!player || retired.has(player) || !Number.isFinite(Number(raw))) return;
+        const value = Number(raw);
+        const key = `${player}\t${row.game}`;
+        const prev = map[key];
+        const better = !prev || (low ? value < prev.value : value > prev.value);
+        if (better) map[key] = {player, game: row.game, value, date: row.date || '', id: row.id};
+      });
+    });
+    return map;
+  }
+
+  function countingSnapshot(history, scorebook) {
+    const tally = careerWinTally(history, {scorebook});
+    const nights = (history || []).map((row) => ({
+      id: row && row.id,
+      game: row && row.game,
+      date: row && row.date,
+      outcome: scorebook.resolveOutcome(row),
+      counts: scorebook.countsForTallies(row),
+      score: scorebook.countsForScoreMagnitude(row)
+    }));
+    return {
+      counted: tally.counted,
+      winSum: tally.winSum,
+      players: tally.players,
+      nights,
+      finals: bestFinalSnapshot(history, scorebook)
+    };
+  }
+
+  function historyReviewReport(history, scorebook) {
+    const book = scorebook;
+    const rows = Array.isArray(history) ? history.map((row) => row) : [];
+    const beforeJson = JSON.stringify(rows);
+    const counts = {};
+    rows.forEach((row) => {
+      const game = (row && row.game) || 'Unknown';
+      const status = book.legacyCompletion(row).status;
+      if (!counts[game]) counts[game] = {complete: 0, partial: 0, uncertain: 0};
+      counts[game][status] += 1;
+    });
+    const previous = book.legacyReviewAppliedNow();
+    let before;
+    let after;
+    try {
+      book.setLegacyReviewApplied(false);
+      before = countingSnapshot(rows, book);
+      book.setLegacyReviewApplied(true);
+      after = countingSnapshot(rows, book);
+    } finally {
+      book.setLegacyReviewApplied(previous);
+    }
+    const lines = [];
+    Object.keys(counts).sort().forEach((game) => {
+      const row = counts[game];
+      lines.push(`${game}: ${row.complete} complete, ${row.partial} partial, ${row.uncertain} uncertain`);
+    });
+    lines.push(`counted wins ${before.winSum} -> ${after.winSum}`);
+    const names = new Set([...Object.keys(before.players), ...Object.keys(after.players)]);
+    rows.forEach((row) => {
+      Object.keys((row && row.totals) || {}).forEach((name) => { if (name) names.add(name); });
+      uniqueNames(row && row.winners).forEach((name) => names.add(name));
+      uniqueNames((row && row.originalRoster) || (row && row.players)).forEach((name) => names.add(name));
+    });
+    [...names].sort().forEach((name) => {
+      const oldRow = before.players[name] || {wins: 0, games: 0};
+      const newRow = after.players[name] || {wins: 0, games: 0};
+      lines.push(`${name}: wins ${oldRow.wins} -> ${newRow.wins}, games ${oldRow.games} -> ${newRow.games}`);
+    });
+    before.nights.forEach((night, index) => {
+      const next = after.nights[index];
+      if (night.outcome === next.outcome && night.counts === next.counts && night.score === next.score) return;
+      lines.push(`${night.date || 'no date'} · ${night.game} · ${night.outcome} -> ${next.outcome} · counted ${night.counts ? 'yes' : 'no'} -> ${next.counts ? 'yes' : 'no'}`);
+    });
+    const finalKeys = new Set([...Object.keys(before.finals), ...Object.keys(after.finals)]);
+    [...finalKeys].sort().forEach((key) => {
+      const oldFinal = before.finals[key];
+      const newFinal = after.finals[key];
+      if (oldFinal && newFinal && oldFinal.value === newFinal.value && String(oldFinal.id) === String(newFinal.id)) return;
+      const who = (oldFinal || newFinal).player;
+      const game = (oldFinal || newFinal).game;
+      const oldText = oldFinal ? `${oldFinal.value} on ${oldFinal.date || 'no date'}` : 'none';
+      const newText = newFinal ? `${newFinal.value} on ${newFinal.date || 'no date'}` : 'none';
+      lines.push(`${who} · ${game} · best final ${oldText} -> ${newText}`);
+    });
+    return {
+      counts,
+      before,
+      after,
+      lines,
+      unchanged: beforeJson === JSON.stringify(rows)
+    };
+  }
+
   const api = {
     WIN_RATE_MIN_GAMES,
     SINGLE_MATCH_BID_RATE_MIN,
@@ -1626,6 +1769,9 @@
     formatTiedNames,
     recordHolderText,
     keepBestWithTies,
+    competitionListRank,
+    closestMarginRecord,
+    historyReviewReport,
     pairKey,
     addPairFinish,
     pairWinnerFromScores,

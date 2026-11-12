@@ -301,6 +301,34 @@ test('end-of-match copy names every tied winner and skips a single loser', () =>
   assert.equal(lastTie.lastTied, true);
 });
 
+test('tied records share rank 1, 1, 3 and name every tied player', () => {
+  assert.equal(Records.competitionListRank([{value: 5}, {value: 5}, {value: 3}], 0), 1);
+  assert.equal(Records.competitionListRank([{value: 5}, {value: 5}, {value: 3}], 1), 1);
+  assert.equal(Records.competitionListRank([{value: 5}, {value: 5}, {value: 3}], 2), 3);
+  const tied = Records.closestMarginRecord(['Ada', 'Cleo', 'Bea'], {Ada: 10, Cleo: 10, Bea: 40});
+  assert.equal(tied.value, 30);
+  assert.equal(tied.label, 'tied');
+  assert.deepEqual(tied.ties.map((row) => row.player), ['Ada', 'Cleo']);
+  const solo = Records.closestMarginRecord(['Ada', 'Cleo'], {Ada: 10, Cleo: 14});
+  assert.equal(solo.label, 'Ada by 4 over Cleo');
+  const alerts = Records.collectRecordAlerts({
+    game: 'Five Crowns',
+    outcome: 'finished',
+    totals: {Ada: 80, Eli: 20},
+    retired: ['Eli'],
+    winners: ['Ada'],
+    rounds: [{round: 1, scores: {Ada: 80, Eli: 20}}]
+  }, {'Five Crowns': {bestScore: 90}}, {scorebook: Scorebook});
+  assert.equal(alerts.some((line) => line.includes('Eli')), false);
+  assert.equal(Records.collectRecordAlerts({
+    game: 'Five Crowns',
+    completed: true,
+    totals: {Eli: 20},
+    winners: ['Eli'],
+    rounds: [{round: 1, scores: {Eli: 20}}]
+  }, {'Five Crowns': {bestScore: 90}}, {scorebook: Scorebook}).length, 0);
+});
+
 test('several players tying a new record share one line', () => {
   assert.equal(
     Records.formatTiedRecordAlert(['Nora', 'Owen', 'Priya', 'Theo'], 'lowest Five Crowns score', 4),
