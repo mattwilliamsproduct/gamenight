@@ -314,6 +314,23 @@ test('tied records share rank 1, 1, 3 and name every tied player', () => {
   assert.equal(tiedZero.value, 0);
   assert.equal(tiedZero.label, 'tied');
   assert.match(Records.recordHolderText(tiedZero), /Ada and Bo/);
+  assert.equal(Scorebook.classifyBidAccuracy({
+    round: 1,
+    bids: {Ada: 2, Bea: 1},
+    actuals: {Ada: 2, Bea: 0},
+    joinBonus: {Bea: true},
+    scores: {Ada: 30, Bea: 10}
+  }, 'Bea'), null);
+  assert.equal(Scorebook.classifyBidAccuracy({
+    round: 1,
+    bids: {Ada: 2},
+    actuals: {Ada: 2},
+    scores: {Ada: 30}
+  }, 'Ada'), 'exact');
+  assert.equal(Scorebook.matchHasPlayedBid({
+    game: 'Wizard',
+    rounds: [{round: 1, bids: {Ada: 1}, actuals: {Ada: 1}, scores: {Ada: 30}}]
+  }), true);
   const solo = Records.closestMarginRecord(['Ada', 'Cleo'], {Ada: 10, Cleo: 14});
   assert.equal(solo.label, 'Ada by 4 over Cleo');
   const alerts = Records.collectRecordAlerts({

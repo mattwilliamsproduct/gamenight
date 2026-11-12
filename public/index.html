@@ -20979,7 +20979,8 @@ ${isDealer
     history.forEach(h=>{
       const forTallies=nightCountsForTallies(h);
       const forScores=nightCountsForScores(h);
-      if(!forTallies && !forScores && !historyRowHasEvents(h)) return;
+      const bidNight=!forScores && window.BPGScorebook && BPGScorebook.matchHasPlayedBid && BPGScorebook.matchHasPlayedBid(h);
+      if(!forTallies && !forScores && !historyRowHasEvents(h) && !bidNight) return;
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
       const playersInMatch=getRecordedPlayers(h);
       const sitters=window.BPGRecords&&typeof BPGRecords.matchSitters==='function'
@@ -21038,6 +21039,15 @@ ${isDealer
         playersInMatch.forEach(p=>ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0});
         h.rounds.forEach(round=>{
           if(!round.scores || BPGScorebook.isSyntheticAdjustmentRound(round))return;
+          if(h.game==='Wizard' || h.game==='818'){
+            Object.keys(round.bids||{}).forEach(p=>{
+              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
+              if(!bidResult) return;
+              if(!ms[p]) ms[p]={zeros:0,exacts:0,busted:0,rookBids:0,rookSets:0,extras:0};
+              if(bidResult==='exact') ms[p].exacts++;
+              else ms[p].busted++;
+            });
+          }
           Object.entries(round.scores).forEach(([p,rawScore])=>{
             const score=BPGScorebook.historyScoreOrNull(rawScore);
             if(score==null)return;
@@ -21057,16 +21067,10 @@ ${isDealer
             if(h.game==='Wizard'){
               if(score>r.Wizard.bestRound){r.Wizard.bestRound=score;r.Wizard.bestRoundPlayer=p;}
               if(score<r.Wizard.worstRound){r.Wizard.worstRound=score;r.Wizard.worstRoundPlayer=p;}
-              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
-              if(bidResult==='exact')ms[p].exacts++;
-              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='818'){
               if(score>r['818'].bestRound){r['818'].bestRound=score;r['818'].bestRoundPlayer=p;}
               if(score<r['818'].worstRound){r['818'].worstRound=score;r['818'].worstRoundPlayer=p;}
-              const bidResult=BPGScorebook.classifyBidAccuracy(round,p);
-              if(bidResult==='exact')ms[p].exacts++;
-              else if(bidResult==='miss')ms[p].busted++;
             }
             if(h.game==='Flip 7 Vengeance'){
               if(score>r['Flip 7 Vengeance'].bestRound){r['Flip 7 Vengeance'].bestRound=score;r['Flip 7 Vengeance'].bestRoundPlayer=p;}
@@ -21121,7 +21125,7 @@ ${isDealer
     } else {
       _matchAllTimeRecordsSnap = null;
     }
-    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0&&(BPGScorebook.countsForTallies(h)||BPGScorebook.countsForScoreMagnitude(h)||historyRowHasEvents(h)));
+    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0&&(BPGScorebook.countsForTallies(h)||BPGScorebook.countsForScoreMagnitude(h)||historyRowHasEvents(h)||BPGScorebook.matchHasPlayedBid(h)));
     const chrono = completed.slice().sort(compareMatchesOldestFirst);
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
     const players = {};
@@ -21182,6 +21186,58 @@ ${isDealer
       });
       Object.entries(counts).forEach(([p,n])=>{
         if(n>0) update(allTime,'mostComebackExtras',entry(p,n,h,{label:`${n} Comeback extras`}),betterHigh);
+      });
+    };
+    const countOpenBidAccuracy = (h) => {
+      if(h.game!=='Wizard' && h.game!=='818') return;
+      const perMatch={};
+      (h.rounds||[]).forEach(r=>{
+        if(BPGScorebook.isSyntheticAdjustmentRound(r)) return;
+        Object.keys(r.bids||{}).forEach(p=>{
+          const bidResult=BPGScorebook.classifyBidAccuracy(r,p);
+          if(!bidResult) return;
+          if(!perMatch[p]) perMatch[p]={exacts:0,busted:0,wizardBidTotal:0,eight18BidTotal:0,zeroBidsHit:0};
+          const bid=r.bids[p], actual=r.actuals[p];
+          if(h.game==='818'){
+            if(bidResult==='exact') perMatch[p].exacts++;
+            else perMatch[p].busted++;
+            perMatch[p].eight18BidTotal++;
+            const miss=Math.abs(Number(actual)-Number(bid));
+            if(miss>0) update(games['818'],'biggestMiss',entry(p,miss,h,{round:r.round,label:`Bid ${bid}, took ${actual}`}),betterHigh);
+          }
+          if(h.game==='Wizard'){
+            if(!wizardBidStats[p]) wizardBidStats[p]={exact:0,total:0,busted:0};
+            wizardBidStats[p].total++;
+            perMatch[p].wizardBidTotal++;
+            if(bidResult==='exact'){ wizardBidStats[p].exact++; perMatch[p].exacts++; }
+            else { wizardBidStats[p].busted++; perMatch[p].busted++; }
+            if(Number(bid)===0 && Number(actual)===0) perMatch[p].zeroBidsHit++;
+            if(Number(actual)<Number(bid)) update(games.Wizard,'biggestOverbid',entry(p,Number(bid)-Number(actual),h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
+            if(Number(actual)>Number(bid)) update(games.Wizard,'biggestUnderbid',entry(p,Number(actual)-Number(bid),h,{round:r.round,label:`Bid ${bid}, got ${actual}`}),betterHigh);
+          }
+        });
+      });
+      Object.entries(perMatch).forEach(([p,m])=>{
+        if(h.game==='818'){
+          update(games['818'],'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
+          update(games['818'],'mostMissedSingleGame',entry(p,m.busted,h,{label:`${m.busted} missed bids`}),betterHigh);
+          if(bidRateOk(m.eight18BidTotal)&&m.exacts>0){
+            const exactPct=Math.round(m.exacts/m.eight18BidTotal*100);
+            update(games['818'],'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts} of ${m.eight18BidTotal} bids`}),betterHigh);
+          }
+        }
+        if(h.game==='Wizard'){
+          update(games.Wizard,'mostExactSingleGame',entry(p,m.exacts,h,{label:`${m.exacts} exact bids`}),betterHigh);
+          if(m.zeroBidsHit>0) update(games.Wizard,'mostZeroBidsHit',entry(p,m.zeroBidsHit,h,{label:`${m.zeroBidsHit} zero bids hit`}),betterHigh);
+          if(bidRateOk(m.wizardBidTotal)&&m.exacts>0){
+            const exactPct=Math.round(m.exacts/m.wizardBidTotal*100);
+            update(games.Wizard,'bestExactRateSingleGame',entry(p,exactPct,h,{label:`${m.exacts} of ${m.wizardBidTotal} bids`}),betterHigh);
+          }
+          const playerCount=getWizardRecordPlayerCount(h);
+          if(playerCount&&m.exacts>0){
+            update(games.Wizard.mostExactByPlayerCount,playerCount,entry(p,m.exacts,h,{label:`${m.exacts} exact bids · ${playerCount}-player game`}),betterHigh);
+          }
+        }
       });
     };
     // Average swing per round: mean absolute deviation from the player's mean round score.
@@ -21288,6 +21344,7 @@ ${isDealer
       }
       if(!forScores){
         noteExtras(h);
+        countOpenBidAccuracy(h);
         return;
       }
 

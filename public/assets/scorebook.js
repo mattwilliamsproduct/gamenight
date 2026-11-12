@@ -993,8 +993,18 @@
 
   function classifyBidAccuracy(round, player) {
     if (!isPlayedScoringRound(round) || !player) return null;
+    if (round.joinBonus && round.joinBonus[player]) return null;
     if (!bidFieldPresent(round.bids, player) || !bidFieldPresent(round.actuals, player)) return null;
     return Number(round.bids[player]) === Number(round.actuals[player]) ? 'exact' : 'miss';
+  }
+
+  function matchHasPlayedBid(match) {
+    const name = gameName(match);
+    if (name !== 'Wizard' && name !== '818') return false;
+    return (match && match.rounds || []).some((round) => {
+      const names = Object.keys((round && round.bids) || {});
+      return names.some((player) => classifyBidAccuracy(round, player));
+    });
   }
 
   function mintGameId() {
@@ -1579,6 +1589,7 @@
     syncAssistedMatch,
     recordLifePreserverSpin,
     classifyBidAccuracy,
+    matchHasPlayedBid,
     ensureGameId,
     matchIdentity,
     historyReopenNotice,
