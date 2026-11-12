@@ -331,7 +331,8 @@ test('Settings and Records say history is local, and Restore copy matches mergeB
   await expect(page.locator('#settings-modal .bp-modal-foot button', {hasText: /^Restore$/})).toBeVisible();
   await expect(page.locator('#backup-restore-copy')).toContainText('adds players and games');
   await expect(page.locator('#backup-restore-copy')).toContainText('same id');
-  await expect(page.locator('#backup-restore-copy')).toContainText('replaces the one here');
+  await expect(page.locator('#backup-restore-copy')).toContainText('leaves the match here');
+  await expect(page.locator('#backup-restore-copy')).toContainText('Neither match is discarded');
   await expect(page.locator('#settings-modal')).toContainText('Clearing browser data or losing this device');
   await expect(page.locator('#porch-cloud-key')).toHaveCount(0);
   await page.evaluate(() => closeSettings());

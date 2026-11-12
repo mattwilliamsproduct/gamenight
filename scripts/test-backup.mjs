@@ -97,9 +97,13 @@ test('file merge adds unknown games and players and replaces a live match when t
     uiScale: 18
   });
   const { next, added } = Backup.mergeBackup(current, incoming);
-  assert.equal(next.history.length, 2);
-  assert.equal(next.history[0].totals.Matt, 90);
-  assert.equal(added.games, 1);
+  assert.equal(next.history.length, 3);
+  assert.equal(next.history[0].game, '818');
+  assert.equal(next.history[0].outcome, 'paused');
+  assert.equal(next.history[0].completed, false);
+  assert.equal(next.history[1].totals.Matt, 90);
+  assert.equal(added.games, 2);
+  assert.equal(added.parked, true);
   assert.ok(next.allPlayers.includes('Cat'));
   assert.equal(next.currentGame.name, 'Rook');
   assert.equal(next.prefs.dealerRoll, true);
@@ -137,14 +141,36 @@ test('restore preview names adds, same-id skips, a replaced live match, and over
   const text = lines.join(' ');
   assert.match(text, /Adds 1 player: Alex Rivera/);
   assert.match(text, /Seats Alex Rivera tonight/);
-  assert.match(text, /Adds 1 game/);
+  assert.match(text, /Adds 2 games/);
   assert.match(text, /same id stays as it is/);
-  assert.match(text, /Replaces the match on this table with Beat the Heat/);
+  assert.match(text, /Saves the match on this table, then puts Beat the Heat on the table/);
+  assert.match(text, /Neither match is discarded/);
   assert.match(text, /Overwrites photos for Quinn, Alex Rivera/);
   assert.match(text, /Sets text size to 18/);
   assert.match(text, /lineup intro off/);
-  assert.equal(next.history[0].totals.Quinn, 90);
+  assert.equal(next.history.find(match => match.game === 'Wizard').totals.Quinn, 90);
   assert.equal(next.currentGame.name, 'Beat the Heat');
+  assert.equal(next.history.some(match => match.game === '818' && match.outcome === 'paused'), true);
+});
+
+test('an empty table in a file does not clear the match here', () => {
+  const current = {
+    allPlayers: ['Quinn'],
+    players: ['Quinn'],
+    history: [],
+    playerProfiles: {},
+    currentGame: { id: 4, name: 'Five Crowns', totals: { Quinn: 12 } }
+  };
+  const incoming = Backup.buildBackup({
+    allPlayers: ['Quinn'],
+    players: ['Quinn'],
+    history: [],
+    currentGame: null
+  });
+  const { next, lines } = Backup.restoreChangeLines(current, incoming);
+  assert.equal(next.currentGame.name, 'Five Crowns');
+  assert.equal(next.currentGame.totals.Quinn, 12);
+  assert.match(lines.join(' '), /does not clear it/);
 });
 
 test('parseBackup rejects junk and accepts a v1 paste payload', () => {

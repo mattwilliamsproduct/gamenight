@@ -20,6 +20,8 @@ Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals 
 
 Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player uses the ceiling of the seated average. A departure does not change the Wizard length. Canasta and Rook do not add a seat.
 
+Standing trap: [restore-keeps-live-match.md](restore-keeps-live-match.md) — an empty backup table does not clear the live match. A different match in the file is parked first.
+
 Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Remap the QA seed to a fictional cast in the demo path only. Bare `?demo` still does nothing.
 
 Standing trap: [add-player-suggestions-joined-name.md](add-player-suggestions-joined-name.md) — spread profile keys into the known-name list, or Add Player offers one comma-joined fake row.

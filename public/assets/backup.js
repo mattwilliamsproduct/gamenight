@@ -88,15 +88,42 @@
     return data;
   }
 
+  function liveMatch(game) {
+    return game && typeof game === 'object' && (game.name || game.game) ? game : null;
+  }
+
+  function sameLiveMatch(a, b) {
+    const left = liveMatch(a);
+    const right = liveMatch(b);
+    if (!left || !right) return false;
+    const leftId = left.id != null ? left.id : left.gameId;
+    const rightId = right.id != null ? right.id : right.gameId;
+    if (leftId != null && rightId != null) return String(leftId) === String(rightId);
+    const leftName = left.name || left.game;
+    const rightName = right.name || right.game;
+    return !!(leftName && leftName === rightName);
+  }
+
+  function parkLiveMatch(game) {
+    const live = liveMatch(game);
+    if (!live) return null;
+    const parked = Object.assign({}, live);
+    parked.game = parked.game || parked.name;
+    parked.outcome = 'paused';
+    parked.completed = false;
+    parked.gameOver = false;
+    parked.winners = [];
+    parked.countResult = false;
+    return parked;
+  }
+
   function mergeBackup(current, incoming) {
     const next = {
       allPlayers: [...(current?.allPlayers || [])],
       players: [...(current?.players || [])],
       history: [...(current?.history || [])],
       playerProfiles: Object.assign({}, current?.playerProfiles || {}),
-      currentGame: Object.prototype.hasOwnProperty.call(incoming || {}, 'currentGame')
-        ? (incoming.currentGame || null)
-        : (current?.currentGame || null),
+      currentGame: liveMatch(current?.currentGame),
       prefs: incoming?.prefs && typeof incoming.prefs === 'object' ? incoming.prefs : current?.prefs || null,
       uiScale: incoming?.uiScale != null ? incoming.uiScale : current?.uiScale
     };
@@ -128,6 +155,27 @@
     });
     if (incoming?.playerProfiles && typeof incoming.playerProfiles === 'object') {
       Object.assign(next.playerProfiles, incoming.playerProfiles);
+    }
+    const incomingHasTable = !!(incoming && Object.prototype.hasOwnProperty.call(incoming, 'currentGame'));
+    const incomingLive = incomingHasTable ? liveMatch(incoming.currentGame) : null;
+    const localLive = liveMatch(current?.currentGame);
+    if (incomingLive && localLive && !sameLiveMatch(localLive, incomingLive)) {
+      const parked = parkLiveMatch(localLive);
+      const parkedId = parked.id != null ? parked.id : parked.gameId;
+      const already = parkedId != null && next.history.some(match => {
+        if (!match) return false;
+        return String(match.id) === String(parkedId) || String(match.gameId) === String(parkedId);
+      });
+      if (!already) {
+        next.history.unshift(parked);
+        added.games += 1;
+        const name = parked.game || 'Unknown';
+        added.byGame[name] = (added.byGame[name] || 0) + 1;
+      }
+      added.parked = true;
+      next.currentGame = incomingLive;
+    } else if (incomingLive) {
+      next.currentGame = incomingLive;
     }
     added.device = summarizeHistory(next.history);
     return { next, added };
@@ -170,12 +218,15 @@
     lines.push(added.games
       ? `Adds ${added.games} game${added.games === 1 ? '' : 's'}. A game already on this device with the same id stays as it is.`
       : 'Adds no games. A game already on this device with the same id stays as it is.');
-    if (incoming && Object.prototype.hasOwnProperty.call(incoming, 'currentGame')) {
-      lines.push(incoming.currentGame && incoming.currentGame.name
-        ? `Replaces the match on this table with ${incoming.currentGame.name}.`
-        : 'Clears the match on this table.');
+    const incomingHasTable = !!(incoming && Object.prototype.hasOwnProperty.call(incoming, 'currentGame'));
+    const incomingLive = incomingHasTable ? liveMatch(incoming.currentGame) : null;
+    const localLive = liveMatch(current?.currentGame);
+    if (incomingLive && localLive && !sameLiveMatch(localLive, incomingLive)) {
+      lines.push(`Saves the match on this table, then puts ${incomingLive.name || incomingLive.game} on the table. Neither match is discarded.`);
+    } else if (incomingLive && !localLive) {
+      lines.push(`Puts ${incomingLive.name || incomingLive.game} on the table.`);
     } else {
-      lines.push('Leaves the match on this table alone.');
+      lines.push('Leaves the match on this table. An empty table in the file does not clear it.');
     }
     const photos = photoOverwriteNames(current, incoming);
     lines.push(photos.length
