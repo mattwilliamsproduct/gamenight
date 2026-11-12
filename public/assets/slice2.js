@@ -379,10 +379,10 @@
 
   function addPlayerPickerMarkup(bench, seated) {
     const max = window.BPGGames && typeof BPGGames.seatLimit === 'function'
-      ? BPGGames.seatLimit(selected, seated + addPicks.size)
+      ? BPGGames.seatLimit(selected, seated + addPicks.size, 'seat')
       : { ok: true, message: '' };
     const room = window.BPGGames && typeof BPGGames.seatLimit === 'function'
-      ? BPGGames.seatLimit(selected, seated + addPicks.size + 1)
+      ? BPGGames.seatLimit(selected, seated + addPicks.size + 1, 'seat')
       : { ok: true, message: '' };
     const rows = bench.map((player) => {
       const on = addPicks.has(player);

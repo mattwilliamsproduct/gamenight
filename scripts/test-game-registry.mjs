@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -47,10 +48,16 @@ test('Start follows each game player range and leaves Wizard uncapped', () => {
     ok: false,
     message: 'Canasta needs at least 2 players. Seat 1 more.'
   });
+  assert.deepEqual(Games.seatLimit('Hand and Foot', 0, 'seat'), {ok: true, message: ''});
+  assert.deepEqual(Games.seatLimit('Hand and Foot', 1, 'seat'), {ok: true, message: ''});
+  assert.equal(Games.seatLimit('Hand and Foot', 7, 'seat').ok, false);
   assert.equal(Games.seatLimit('Hand and Foot', 7).ok, false);
   assert.equal(Games.seatLimit('Rook', 3).ok, false);
   assert.equal(Games.seatLimit('Rook', 7).ok, false);
   assert.equal(Games.seatLimit('Rook', 4).ok, true);
+  const slice = readFileSync(new URL('../public/assets/slice2.js', import.meta.url), 'utf8');
+  assert.match(slice, /seatLimit\(selected, seated \+ addPicks\.size, 'seat'\)/);
+  assert.match(slice, /seatLimit\(selected, seated\)/);
   ['Wizard', '818', 'Flip 7 Vengeance', 'Beat the Heat'].forEach((id) => {
     assert.equal(Games.seatLimit(id, 8).ok, true, `${id} stays startable at 8`);
     assert.equal(Games.seatLimit(id, 14).ok, true, `${id} has no layout cap`);

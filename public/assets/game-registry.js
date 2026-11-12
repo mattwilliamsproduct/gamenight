@@ -87,7 +87,7 @@
     return id === 'Five Crowns' || id === 'Beat the Heat';
   }
 
-  function seatLimit(id, count) {
+  function seatLimit(id, count, gate) {
     const game = gameById(id);
     const title = (game && game.title) || id || 'This game';
     const range = (game && game.players) || { min: 1 };
@@ -96,7 +96,9 @@
     const seated = Number(count) || 0;
     if (seated < min) {
       const need = min - seated;
-      return { ok: false, message: title + ' needs at least ' + min + ' players. Seat ' + need + ' more.' };
+      const message = title + ' needs at least ' + min + ' players. Seat ' + need + ' more.';
+      if (gate === 'seat') return { ok: true, message: '' };
+      return { ok: false, message: message };
     }
     if (max != null && seated > max) {
       const extra = seated - max;
