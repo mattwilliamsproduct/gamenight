@@ -593,7 +593,7 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
 
   const rook = LP.explainLifePreserverRules('Rook');
   assert.equal(rook.supported, false);
-  assert.match(rook.lead, /does not use Life Preservers/);
+  assert.match(rook.lead, /does not use the Back Porch Wheel/);
 });
 
 test('threshold QA fixtures unlock only Duke at the first legal hole', () => {

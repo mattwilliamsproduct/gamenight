@@ -22,8 +22,8 @@ test('scoreboard header, tiles, and Life Preserver cells stay on the porch type'
   assert.match(css, /background: #e8e3da !important/);
   assert.match(css, /background: #d5ebe3 !important/);
   assert.match(css, /color: #0c2824 !important/);
-  assert.match(css, /grid-template-areas: "logo rule copy home actions enter"/);
-  assert.match(css, /grid-template-areas:\s*"copy copy copy"\s*"home actions enter"/);
+  assert.match(css, /grid-template-areas: "logo rule copy home enter actions end"/);
+  assert.match(css, /grid-template-areas:\s*"copy copy copy copy"\s*"home enter actions end"/);
   assert.match(css, /border-radius: 28px !important/);
   assert.match(css, /background: #fffaf1 !important/);
   assert.match(css, /top: calc\(var\(--bp-accent-line\) \+ var\(--bp-nav-gap\)\) !important/);
