@@ -585,8 +585,8 @@ test('a night is classified from the rule stored on the row', () => {
   assert.equal(Scorebook.needsCountDecision(finished), false);
 
   const legacy = night({});
-  assert.equal(Scorebook.resolveOutcome(legacy), 'uncertain');
-  assert.equal(Scorebook.endedEarlyLabel(legacy), 'Needs review');
+  assert.equal(Scorebook.resolveOutcome(legacy), 'ended_early');
+  assert.match(Scorebook.endedEarlyLabel(legacy), /Ended early, 1 of 11 rounds/);
   assert.equal(Scorebook.countsForTallies(legacy), false);
   assert.equal(Scorebook.showCountResult(legacy), true);
 
@@ -607,7 +607,7 @@ test('a night is classified from the rule stored on the row', () => {
   assert.equal(Scorebook.resolveOutcome(rookHit), 'finished');
 });
 
-test('the main-format fixture has no saved finish rule, so every night is uncertain', async () => {
+test('the main-format fixture has no saved finish rule, so every night is a short saved-round game', async () => {
   const book = JSON.parse(await readFile(new URL('../tests/fixtures/main-format-backup.json', import.meta.url)));
   const counts = { finished: 0, paused: 0, ended_early: 0, uncertain: 0 };
   for (const row of book.history) {
@@ -617,7 +617,7 @@ test('the main-format fixture has no saved finish rule, so every night is uncert
     assert.equal(Scorebook.countsForTallies(row), false);
     assert.equal(Scorebook.countsForScoreMagnitude(row), false);
   }
-  assert.deepEqual(counts, { finished: 0, paused: 0, ended_early: 0, uncertain: 3 });
+  assert.deepEqual(counts, { finished: 0, paused: 0, ended_early: 3, uncertain: 0 });
   const games = book.history.map((row) => row.game).sort();
   assert.deepEqual(games, ['818', 'Five Crowns', 'Wizard']);
 });
@@ -639,7 +639,7 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
   const fullCrowns = night({rounds: rounds(11), totals: {Ava: 11, Ben: 22}, maxRounds: undefined});
   delete fullCrowns.maxRounds;
   assert.equal(Scorebook.legacyCompletion(fullCrowns).status, 'complete');
-  assert.equal(Scorebook.resolveOutcome(fullCrowns), 'uncertain');
+  assert.equal(Scorebook.resolveOutcome(fullCrowns), 'finished');
   const shortCrowns = night({});
   assert.equal(Scorebook.legacyCompletion(shortCrowns).status, 'partial');
   assert.equal(Scorebook.legacyCompletion(shortCrowns).fixed, 11);
@@ -678,25 +678,35 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
     winners: ['Ava']
   });
   assert.equal(Scorebook.legacyCompletion(canasta).status, 'uncertain');
+  const heatLeft = night({game: 'Beat the Heat', retired: ['Ava'], totals: {Ava: 66, Ben: 12}, rounds: rounds(2)});
+  delete heatLeft.maxRounds;
+  delete heatLeft.endScore;
+  assert.equal(Scorebook.legacyCompletion(heatLeft).status, 'uncertain');
+  const storedCanasta = Object.assign({}, canasta, {outcome: 'finished'});
+  assert.equal(Scorebook.resolveOutcome(storedCanasta), 'uncertain');
   try {
-    Scorebook.setLegacyReviewApplied(true);
-    assert.equal(Scorebook.resolveOutcome(fullCrowns), 'finished');
-    assert.equal(Scorebook.resolveOutcome(heatDone), 'finished');
-    assert.equal(Scorebook.resolveOutcome(heatOpen), 'uncertain');
-    assert.equal(Scorebook.resolveOutcome(flip), 'uncertain');
-    assert.equal(Scorebook.resolveOutcome(shortCrowns), 'ended_early');
-    assert.match(Scorebook.endedEarlyLabel(shortCrowns), /Ended early, 1 of 11 rounds/);
-    assert.equal(Scorebook.countsForScoreMagnitude(shortCrowns), false);
-    assert.equal(Scorebook.resolveOutcome(canasta), 'uncertain');
-    assert.equal(Scorebook.resolveOutcome(night({completed: false, rounds: rounds(11)})), 'paused');
-    assert.equal(Scorebook.resolveOutcome(night({outcome: 'ended_early', rounds: rounds(11)})), 'ended_early');
-    Scorebook.setHistoryReview({[String(shortCrowns.id || 'x')]: {decision: 'counted', reviewedAt: '2026-11-12T00:00:00.000Z'}});
-    const marked = Object.assign({}, shortCrowns, {id: 'x'});
-    assert.equal(Scorebook.countsForTallies(marked), true);
-    assert.equal(Scorebook.countsForScoreMagnitude(marked), false);
-    assert.equal(marked.countResult, undefined);
-  } finally {
     Scorebook.setLegacyReviewApplied(false);
+    assert.equal(Scorebook.resolveOutcome(fullCrowns), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(storedCanasta), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(canasta), 'uncertain');
+  } finally {
+    Scorebook.setLegacyReviewApplied(true);
     Scorebook.setHistoryReview({});
   }
+  assert.equal(Scorebook.resolveOutcome(fullCrowns), 'finished');
+  assert.equal(Scorebook.resolveOutcome(heatDone), 'finished');
+  assert.equal(Scorebook.resolveOutcome(heatOpen), 'uncertain');
+  assert.equal(Scorebook.resolveOutcome(flip), 'uncertain');
+  assert.equal(Scorebook.resolveOutcome(shortCrowns), 'ended_early');
+  assert.match(Scorebook.endedEarlyLabel(shortCrowns), /Ended early, 1 of 11 rounds/);
+  assert.equal(Scorebook.countsForScoreMagnitude(shortCrowns), false);
+  assert.equal(Scorebook.resolveOutcome(canasta), 'uncertain');
+  assert.equal(Scorebook.resolveOutcome(night({completed: false, rounds: rounds(11)})), 'paused');
+  assert.equal(Scorebook.resolveOutcome(night({outcome: 'ended_early', rounds: rounds(11)})), 'ended_early');
+  Scorebook.setHistoryReview({x: {decision: 'counted', reviewedAt: '2026-11-12T00:00:00.000Z'}});
+  const marked = Object.assign({}, shortCrowns, {id: 'x'});
+  assert.equal(Scorebook.countsForTallies(marked), true);
+  assert.equal(Scorebook.countsForScoreMagnitude(marked), false);
+  assert.equal(marked.countResult, undefined);
+  Scorebook.setHistoryReview({});
 });

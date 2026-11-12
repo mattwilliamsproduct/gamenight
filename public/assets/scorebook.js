@@ -813,6 +813,11 @@
 
   function resolveOutcome(match) {
     if (!match || typeof match !== 'object') return 'uncertain';
+    const name = gameName(match);
+    if (name === 'Hand and Foot' || name === 'Canasta') {
+      if (match.outcome === 'paused' || match.completed === false) return 'paused';
+      return 'uncertain';
+    }
     const stored = match.outcome;
     if (stored === 'finished' || stored === 'paused' || stored === 'ended_early' || stored === 'uncertain') return stored;
     if (match.completed === false) return 'paused';
@@ -823,7 +828,7 @@
     return 'uncertain';
   }
 
-  let legacyReviewApplied = false;
+  let legacyReviewApplied = true;
   let historyReviewDecisions = {};
 
   function setLegacyReviewApplied(on) {
@@ -880,8 +885,8 @@
       return {status: 'uncertain', reason: name + ' has no confirmed finish rule. Needs review.', played, fixed: null};
     }
     if (name === 'Beat the Heat') {
-      if (anySavedTotalAtLeast(match, 66)) {
-        return {status: 'complete', reason: 'A saved Beat the Heat total reached 66.', played, fixed: null};
+      if (anyActiveTotalAtLeast(match, 66)) {
+        return {status: 'complete', reason: 'A seated player reached 66.', played, fixed: null};
       }
       return {status: 'uncertain', reason: 'Beat the Heat did not show a saved total of 66. Needs review.', played, fixed: null};
     }

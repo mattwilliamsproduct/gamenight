@@ -30,7 +30,7 @@ test('Canasta seating stays open, history review is read-only, and Recent activi
       localStorage.removeItem(gnKey('gn_legacy_review_seen'));
       localStorage.removeItem(gnKey('gn_history_review'));
     } catch (error) {}
-    BPGScorebook.setLegacyReviewApplied(false);
+    BPGScorebook.setLegacyReviewApplied(true);
     BPGScorebook.setHistoryReview({});
     saveData({fullPersist: true, syncCold: true});
     goHome();
@@ -54,7 +54,7 @@ test('Canasta seating stays open, history review is read-only, and Recent activi
   await page.evaluate(() => openSettings());
   await expect(page.locator('#history-review-apply')).toBeHidden();
   await page.locator('#history-review-show').click();
-  await expect(page.locator('#history-review-body')).toContainText('Preview only');
+  await expect(page.locator('#history-review-body')).toContainText('already counting');
   await expect(page.locator('#history-review-body')).toContainText('Five Crowns: 0 complete, 1 partial, 0 uncertain');
   await expect(page.locator('#history-review-body')).toContainText('Ada: wins 0 -> 0');
   const shown = await page.evaluate(() => ({
@@ -64,7 +64,7 @@ test('Canasta seating stays open, history review is read-only, and Recent activi
   }));
   expect(shown.history).toBe(before);
   expect(shown.seen).toBeNull();
-  expect(shown.applied).toBe(false);
+  expect(shown.applied).toBe(true);
 
   await page.locator('#history-review-body').screenshot({path: '/opt/cursor/artifacts/history-review-summary-1024.png'});
   await page.locator('#history-review-apply').click();

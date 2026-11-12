@@ -36,7 +36,7 @@ test('history review is read-only and reports fixture and demo changes', () => {
   assert.ok(fixtureReport.lines.includes('11/2/2026 · Wizard · uncertain -> ended_early · counted no -> no'));
   assert.equal(fixtureReport.lines.some((line) => line.includes('best final')), false);
   sameCounts(fixtureReport.lines);
-  assert.equal(Scorebook.legacyReviewAppliedNow(), false);
+  assert.equal(Scorebook.legacyReviewAppliedNow(), true);
 
   const demo = buildDemoBook(QA_SCENARIOS).history;
   const before = JSON.stringify(demo);
@@ -60,5 +60,5 @@ test('history review is read-only and reports fixture and demo changes', () => {
   assert.ok(demoReport.lines.includes('Priya: wins 1 -> 1, games 4 -> 4'));
   assert.equal(demoReport.lines.some((line) => line.includes('best final')), false);
   sameCounts(demoReport.lines);
-  assert.equal(Scorebook.legacyReviewAppliedNow(), false);
+  assert.equal(Scorebook.legacyReviewAppliedNow(), true);
 });

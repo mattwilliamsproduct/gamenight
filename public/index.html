@@ -10232,7 +10232,7 @@ button.dealer-name-indicator .dealer-player-label {
             </div>
             <div id="history-review" class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
               <p class="text-base font-extrabold" style="color:var(--ink);">History review summary</p>
-              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">This reads the nights already on this device. It does not change them. Saved-round rules stay off until you apply the summary.</p>
+              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">This reads the nights already on this device. It does not change them. Saved-round rules are already counting. The summary shows how they differ from the old stored-field rule.</p>
               <button type="button" id="history-review-show" onclick="showHistoryReviewSummary()" class="w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--surface);color:var(--ink);border-color:var(--hairline);">Show history review</button>
               <pre id="history-review-body" class="hidden text-xs font-bold leading-relaxed whitespace-pre-wrap" style="color:var(--ink-2);"></pre>
               <button type="button" id="history-review-apply" onclick="applyHistoryReview()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Count saved nights this way</button>
@@ -10946,24 +10946,21 @@ button.dealer-name-indicator .dealer-player-label {
     if(!window.BPGScorebook) return;
     const store=readHistoryReviewStore();
     BPGScorebook.setHistoryReview(store.decisions);
-    let seen=false;
-    try{ seen=localStorage.getItem(gnKey('gn_legacy_review_seen'))==='1'; }catch(e){ seen=false; }
-    BPGScorebook.setLegacyReviewApplied(seen);
+    BPGScorebook.setLegacyReviewApplied(true);
   }
   function showHistoryReviewSummary(){
     const body=document.getElementById('history-review-body');
     const apply=document.getElementById('history-review-apply');
     if(!body||!window.BPGRecords||typeof BPGRecords.historyReviewReport!=='function'||!window.BPGScorebook) return;
     const report=BPGRecords.historyReviewReport(history, BPGScorebook);
-    const applied=BPGScorebook.legacyReviewAppliedNow();
-    const head=applied
-      ? 'Saved-round rules are already on. Saved nights were not rewritten.'
-      : 'Preview only. Nothing was written.';
+    let seen=false;
+    try{ seen=localStorage.getItem(gnKey('gn_legacy_review_seen'))==='1'; }catch(e){ seen=false; }
+    const head='Saved-round rules are already counting. This is how they differ from the old stored-field rule. Saved nights were not rewritten.';
     body.textContent=[head].concat(report.lines.length?report.lines:['No win or record counts would change.']).join('\n');
     body.classList.remove('hidden');
     if(apply){
-      apply.classList.toggle('hidden', applied);
-      apply.disabled=applied;
+      apply.classList.toggle('hidden', seen);
+      apply.disabled=seen;
     }
   }
   function applyHistoryReview(){
@@ -19887,8 +19884,9 @@ ${isDealer
     const topScore=currentGame.totals[sorted[0]];
     const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
     const probe=liveRuleProbe(currentGame);
-    const known=window.BPGScorebook&&BPGScorebook.completionFromSavedRules?BPGScorebook.completionFromSavedRules(probe):null;
-    const outcome=known==='finished'?'finished':(known==='short'?'ended_early':'uncertain');
+    const outcome=window.BPGScorebook&&BPGScorebook.resolveOutcome
+      ? BPGScorebook.resolveOutcome(Object.assign({}, probe, {completed:true}))
+      : 'uncertain';
     const data=createSavedMatchSnapshot(currentGame,tied,{endedEarly:outcome==='ended_early'});
     data.outcome=outcome;
     if(Number(probe.maxRounds)>0 && probe.maxRounds<999) data.maxRounds=probe.maxRounds;

@@ -10,7 +10,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
-- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. The summary is shown before that rule turns on, and the original night is not rewritten.
+- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. That rule is already counting. The summary shows how it differs from the old stored-field rule, and the original night is not rewritten. Canasta stays uncertain. Beat the Heat is complete only when a seated player reached 66. Flip 7 at 230 still needs review.
 - A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it. Passports sort reads Recent activity in full.
 - Tied totals share a place and the next total skips. Two 2nds, then 4th. The scoreboard uses the page width, and a short table does not stretch its rows to fill the screen.
 - Add Player Mid-Game is on. The start is the ceiling of the seated average, missed rounds say Did not play, and a departure does not change the Wizard length fixed at the start. Canasta and Rook keep their seats.
