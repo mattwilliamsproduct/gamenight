@@ -108,6 +108,45 @@ test('file merge adds unknown games and players and replaces a live match when t
   assert.equal(next.playerProfiles.Cat.avatar, 'joker-cards.png');
 });
 
+test('restore preview names adds, same-id skips, a replaced live match, and overwrites', () => {
+  const current = {
+    allPlayers: ['Quinn'],
+    players: ['Quinn'],
+    history: [{ id: 1, game: 'Wizard', totals: { Quinn: 90 } }],
+    playerProfiles: { Quinn: { avatar: 'old.png', color: 1 } },
+    currentGame: { name: '818', originalRoster: ['Quinn'] },
+    prefs: { lineupIntro: true, statMontage: false, dealerRoll: false },
+    uiScale: 16
+  };
+  const incoming = Backup.buildBackup({
+    allPlayers: ['Quinn', 'Alex Rivera'],
+    players: ['Alex Rivera'],
+    history: [
+      { id: 1, game: 'Wizard', totals: { Quinn: 999 } },
+      { id: 8, game: 'Five Crowns', totals: { 'Alex Rivera': 12 } }
+    ],
+    playerProfiles: {
+      Quinn: { avatar: 'indiana.png', color: 1 },
+      'Alex Rivera': { avatar: 'hermione.png' }
+    },
+    currentGame: { name: 'Beat the Heat', originalRoster: ['Alex Rivera'] },
+    prefs: { lineupIntro: false, statMontage: true, dealerRoll: true },
+    uiScale: 18
+  });
+  const { next, lines } = Backup.restoreChangeLines(current, incoming);
+  const text = lines.join(' ');
+  assert.match(text, /Adds 1 player: Alex Rivera/);
+  assert.match(text, /Seats Alex Rivera tonight/);
+  assert.match(text, /Adds 1 game/);
+  assert.match(text, /same id stays as it is/);
+  assert.match(text, /Replaces the match on this table with Beat the Heat/);
+  assert.match(text, /Overwrites photos for Quinn, Alex Rivera/);
+  assert.match(text, /Sets text size to 18/);
+  assert.match(text, /lineup intro off/);
+  assert.equal(next.history[0].totals.Quinn, 90);
+  assert.equal(next.currentGame.name, 'Beat the Heat');
+});
+
 test('parseBackup rejects junk and accepts a v1 paste payload', () => {
   assert.throws(() => Backup.parseBackup('{"hello":true}'));
   const parsed = Backup.parseBackup(JSON.stringify({

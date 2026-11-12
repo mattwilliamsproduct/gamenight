@@ -147,7 +147,7 @@ test('main-format storage boots and reloads with only a live-match id added', as
   expect(syncHits).toEqual([]);
 });
 
-test('restore downloads the current book before it merges', async ({page}) => {
+async function seedQuinn(page) {
   await page.addInitScript(() => {
     localStorage.clear();
     localStorage.setItem('gn_all_players', JSON.stringify(['Quinn']));
@@ -157,23 +157,108 @@ test('restore downloads the current book before it merges', async ({page}) => {
     localStorage.setItem('gn_pref_lineupintro', '0');
     localStorage.setItem('gn_pref_dealerroll', '0');
     localStorage.setItem('gn_pref_statmontage', '0');
+    localStorage.setItem('gn_ui_scale', '16');
   });
   await page.goto('/', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof importBackupText === 'function' && allPlayers.includes('Quinn'));
+}
+
+test('an invalid restore file changes nothing and does not download', async ({page}) => {
+  await seedQuinn(page);
+  let downloaded = false;
+  page.on('download', () => { downloaded = true; });
+  const result = await page.evaluate(() => {
+    try {
+      importBackupText('{"hello":true}');
+      return {threw: false};
+    } catch (error) {
+      return {threw: true, players: allPlayers.slice(), pending: localStorage.getItem('gn_restore_pending')};
+    }
+  });
+  expect(result.threw).toBe(true);
+  expect(result.players).toEqual(['Quinn']);
+  expect(result.pending).toBeNull();
+  expect(downloaded).toBe(false);
+});
+
+test('cancel leaves the device alone, and confirm downloads the old book before merging', async ({page}) => {
+  await seedQuinn(page);
+  let downloaded = false;
+  page.on('download', () => { downloaded = true; });
+  const preview = await page.evaluate((text) => {
+    const plan = importBackupText(text);
+    return {
+      lines: plan.lines.join('\n'),
+      players: allPlayers.slice(),
+      open: !document.getElementById('restore-preview').classList.contains('hidden')
+    };
+  }, JSON.stringify(book));
+  expect(preview.open).toBe(true);
+  expect(preview.lines).toContain('Adds 3 players: Alex Rivera, Blair Cho, Casey Nguyen.');
+  expect(preview.lines).toContain('Replaces the match on this table with Beat the Heat.');
+  expect(preview.lines).toContain('same id stays as it is');
+  expect(preview.players).toEqual(['Quinn']);
+  expect(downloaded).toBe(false);
+  await page.evaluate(() => cancelRestore());
+  const cancelled = await page.evaluate(() => ({
+    players: allPlayers.slice(),
+    hidden: document.getElementById('restore-preview').classList.contains('hidden'),
+    pending: localStorage.getItem('gn_restore_pending')
+  }));
+  expect(cancelled).toEqual({players: ['Quinn'], hidden: true, pending: null});
+
   const downloadPromise = page.waitForEvent('download');
-  await page.evaluate((text) => importBackupText(text), JSON.stringify(book));
+  await page.evaluate((text) => {
+    importBackupText(text);
+    confirmRestore();
+  }, JSON.stringify(book));
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^gamenight-before-restore-/);
-  const path = await download.path();
-  const copy = JSON.parse(readFileSync(path, 'utf8'));
-  expect(copy.allPlayers).toContain('Quinn');
+  const copy = JSON.parse(readFileSync(await download.path(), 'utf8'));
+  expect(copy.allPlayers).toEqual(['Quinn']);
   expect(copy.allPlayers).not.toContain('Alex Rivera');
   const after = await page.evaluate(() => ({
     players: allPlayers.slice(),
-    quinn: playerProfiles.Quinn && playerProfiles.Quinn.avatar
+    quinn: playerProfiles.Quinn && playerProfiles.Quinn.avatar,
+    live: currentGame && currentGame.name,
+    pending: localStorage.getItem('gn_restore_pending'),
+    recovery: localStorage.getItem('gn_restore_recovery')
   }));
-  expect(after.players).toEqual(expect.arrayContaining(['Quinn', 'Alex Rivera']));
+  expect(after.players).toEqual(expect.arrayContaining(['Quinn', 'Alex Rivera', 'Blair Cho', 'Casey Nguyen']));
   expect(after.quinn).toBe('indiana.png');
+  expect(after.live).toBe('Beat the Heat');
+  expect(after.pending).toBeNull();
+  expect(after.recovery).toBeNull();
+});
+
+test('a failed restore puts the original book back', async ({page}) => {
+  await seedQuinn(page);
+  const result = await page.evaluate((text) => {
+    importBackupText(text);
+    const original = Storage.prototype.setItem;
+    let armed = true;
+    Storage.prototype.setItem = function blockHistory(key, value) {
+      if (armed && String(key) === 'gn_history') {
+        armed = false;
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      }
+      return original.call(this, key, value);
+    };
+    confirmRestore();
+    Storage.prototype.setItem = original;
+    return {
+      players: allPlayers.slice(),
+      history: history.length,
+      live: currentGame && currentGame.name,
+      pending: localStorage.getItem('gn_restore_pending'),
+      message: document.getElementById('backup-inline-msg').textContent
+    };
+  }, JSON.stringify(book));
+  expect(result.players).toEqual(['Quinn']);
+  expect(result.history).toBe(0);
+  expect(result.live).toBeFalsy();
+  expect(result.pending).toBeNull();
+  expect(result.message).toContain('put back the way it was');
 });
 
 function photoUrl(chars) {

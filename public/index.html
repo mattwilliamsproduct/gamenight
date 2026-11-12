@@ -10177,7 +10177,15 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="space-y-3">
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
             <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
-            <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds games and players this device does not already have. Finished games already here stay as they are. If the file has a match in progress, that match replaces the one on this table. Player photos and text-size settings in the file overwrite the ones here.</p>
+            <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds players and games this device does not already have. It does not remove players or games already here, and it does not change a game that has the same id. People already seated stay seated. A backup file includes the match on the table, and that match replaces the one here. An empty table in the file clears the match here. Photos, text size, lineup intro, path replay, and dealer roll in the file overwrite the ones here. You see what this file will change and can cancel. Nothing changes until you confirm. Confirming saves a recovery copy and downloads a file of what is here now. If the restore does not finish, this device is put back.</p>
+            <div id="restore-preview" class="hidden rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+              <p id="restore-preview-title" class="text-base font-extrabold" style="color:var(--ink);">Restore this file?</p>
+              <div id="restore-preview-body" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);white-space:pre-line;"></div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <button type="button" id="restore-cancel" onclick="cancelRestore()" class="w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--surface);color:var(--ink);border-color:var(--hairline);">Cancel</button>
+                <button type="button" id="restore-confirm" onclick="confirmRestore()" class="w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
+              </div>
+            </div>
             <p id="backup-clear-warning" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
             <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
             <p id="import-player-name-error" class="hidden text-xs font-bold" style="color:var(--rose);"></p>
@@ -10977,6 +10985,7 @@ button.dealer-name-indicator .dealer-player-label {
     dealerRoll:   loadPref('gn_pref_dealerroll',   false), // off by default (optional extra step)
   };
   function savePref(key, val){ const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(gnKey(key), val ? '1' : '0');}finally{gnPerfEnd(t);} }
+  recoverInterruptedRestore();
 
   // ── Wake Lock ──
   let wakeLock = null;
@@ -11179,6 +11188,7 @@ button.dealer-name-indicator .dealer-player-label {
           const full=error&&(error.name==='QuotaExceededError'||error.code===22||error.code===1014);
           if(!full) throw error;
           noteStorageFull();
+          _persistBlocked=true;
           return;
         }
       } finally {
@@ -11192,18 +11202,20 @@ button.dealer-name-indicator .dealer-player-label {
     }
   }
   /** @param {{ fullPersist?: boolean, syncCold?: boolean, flushDeferred?: boolean }} [opts] */
+  let _persistBlocked=false;
   function _persistGamenightState(opts){
     const persistStateTimer = gnPerfStart('GN persist state');
+    _persistBlocked=false;
     try{
       // Demo Exit restore in flight — do not let boot migrations rewrite real gn_*.
       // Demo enter: session is on before the next page activates; skip so pagehide
       // cannot clobber a just-seeded (or snapshotted) real store with stale memory.
       try{
         if(sessionStorage.getItem('bpg_try_demo_pending_restore')==='1'){
-          return;
+          return true;
         }
         if(sessionStorage.getItem('bpg_try_demo')==='1' && !(window.BPGTryDemo&&BPGTryDemo.active())){
-          return;
+          return true;
         }
       }catch(e){}
       opts = opts || {};
@@ -11267,6 +11279,7 @@ button.dealer-name-indicator .dealer-player-label {
 
     updateNavButton();
     flashSaveIndicator();
+    return !_persistBlocked;
   }
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */
   function flushPendingSave(){
@@ -11297,8 +11310,8 @@ button.dealer-name-indicator .dealer-player-label {
     const exec = () => {
       const execTimer = gnPerfStart('GN saveData exec');
       try{
-        _persistGamenightState({ fullPersist, syncCold });
         /* Porch cloud is off this release. Local persist only. */
+        return _persistGamenightState({ fullPersist, syncCold })!==false;
       } finally {
         gnPerfEnd(execTimer);
       }
@@ -11330,7 +11343,7 @@ button.dealer-name-indicator .dealer-player-label {
       if(_saveIdleCallback !== null && typeof cancelIdleCallback === 'function') cancelIdleCallback(_saveIdleCallback);
       _saveIdleCallback = null;
       _pendingSaveExec = null;
-      exec();
+      return exec()!==false;
     } finally {
       gnPerfEnd(saveTimer);
     }
@@ -12419,7 +12432,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(added.games) markHistoryChanged();
     if(currentGame && !(Number.isFinite(currentGame.maxRounds)&&currentGame.maxRounds>0)) snapshotGameMaxRounds(currentGame);
     applyCommaJoinedGhostCleanup();
-    saveData({ fullPersist: true, syncCold: true });
+    if(saveData({ fullPersist: true, syncCold: true })===false) throw new Error('persist-failed');
     const now=added.device?.line || BPGBackup.summarizeHistory(history).line;
     toast(`Merged ${added.games} new game${added.games===1?'':'s'}. ${now}`, 'default');
     refreshBackupSummary();
@@ -12531,6 +12544,106 @@ button.dealer-name-indicator .dealer-player-label {
     const snap=BPGBackup.summarizeHistory(d.history);
     toast(`Backup file ready. ${snap.line}`, 'default');
   }
+  function recoverInterruptedRestore(){
+    let pending='';
+    try{ pending=localStorage.getItem(gnKey('gn_restore_pending'))||''; }catch(e){ return; }
+    if(pending!=='1') return;
+    let book=null;
+    try{ book=JSON.parse(localStorage.getItem(gnKey('gn_restore_recovery'))||'null'); }catch(e){ book=null; }
+    if(!book||typeof book!=='object'||Array.isArray(book)){
+      try{ localStorage.removeItem(gnKey('gn_restore_pending')); }catch(e){}
+      return;
+    }
+    allPlayers=Array.isArray(book.allPlayers)?book.allPlayers.filter(p=>typeof p==='string'&&p.trim()):[];
+    players=Array.isArray(book.players)?book.players.filter(p=>typeof p==='string'&&p.trim()):[];
+    history=Array.isArray(book.history)?book.history:[];
+    playerProfiles=(book.playerProfiles&&typeof book.playerProfiles==='object'&&!Array.isArray(book.playerProfiles))?book.playerProfiles:{};
+    currentGame=(book.currentGame&&book.currentGame.name&&Array.isArray(book.currentGame.originalRoster))?book.currentGame:null;
+    if(book.prefs&&typeof book.prefs==='object'){
+      if(typeof book.prefs.lineupIntro==='boolean') prefs.lineupIntro=book.prefs.lineupIntro;
+      if(typeof book.prefs.statMontage==='boolean') prefs.statMontage=book.prefs.statMontage;
+      if(typeof book.prefs.dealerRoll==='boolean') prefs.dealerRoll=book.prefs.dealerRoll;
+    }
+    if(Number.isFinite(Number(book.uiScale))){
+      currentUIBase=Math.max(8,Math.min(24,Number(book.uiScale)));
+      document.documentElement.style.fontSize=currentUIBase+'px';
+    }
+    try{
+      localStorage.setItem(gnKey('gn_all_players'), JSON.stringify(allPlayers));
+      localStorage.setItem(gnKey('gn_players_v2'), JSON.stringify(players));
+      localStorage.setItem(gnKey('gn_history'), JSON.stringify(history));
+      localStorage.setItem(gnKey('gn_profiles'), JSON.stringify(playerProfiles));
+      if(currentGame) localStorage.setItem(gnKey('gn_current'), JSON.stringify(currentGame));
+      else localStorage.removeItem(gnKey('gn_current'));
+      localStorage.setItem(gnKey('gn_ui_scale'), String(currentUIBase));
+      localStorage.setItem(gnKey('gn_pref_lineupintro'), prefs.lineupIntro?'1':'0');
+      localStorage.setItem(gnKey('gn_pref_statmontage'), prefs.statMontage?'1':'0');
+      localStorage.setItem(gnKey('gn_pref_dealerroll'), prefs.dealerRoll?'1':'0');
+      localStorage.removeItem(gnKey('gn_restore_pending'));
+      localStorage.removeItem(gnKey('gn_restore_recovery'));
+    }catch(e){}
+    if(_lastPersistedState){
+      _lastPersistedState.gn_all_players=JSON.stringify(allPlayers);
+      _lastPersistedState.gn_players_v2=JSON.stringify(players);
+      _lastPersistedState.gn_history=JSON.stringify(history);
+      _lastPersistedState.gn_profiles=JSON.stringify(playerProfiles);
+      _lastPersistedState.gn_current=currentGame?JSON.stringify(currentGame):null;
+    }
+  }
+  let _restorePlan=null;
+  function hideRestorePreview(){
+    const panel=document.getElementById('restore-preview');
+    if(panel) panel.classList.add('hidden');
+    const body=document.getElementById('restore-preview-body');
+    if(body) body.textContent='';
+  }
+  function showRestorePreview(lines){
+    const panel=document.getElementById('restore-preview');
+    const body=document.getElementById('restore-preview-body');
+    if(!panel||!body) return;
+    body.textContent=(lines||[]).join('\n');
+    panel.classList.remove('hidden');
+  }
+  function captureRestoreSnapshot(){
+    const keys=['gn_all_players','gn_players_v2','gn_history','gn_profiles','gn_current','gn_ui_scale','gn_pref_lineupintro','gn_pref_statmontage','gn_pref_dealerroll'];
+    const stored={};
+    keys.forEach(key=>{ try{ stored[key]=localStorage.getItem(gnKey(key)); }catch(e){ stored[key]=null; } });
+    return {
+      allPlayers:allPlayers.slice(),
+      players:players.slice(),
+      history:JSON.parse(JSON.stringify(history||[])),
+      playerProfiles:JSON.parse(JSON.stringify(playerProfiles||{})),
+      currentGame:currentGame?JSON.parse(JSON.stringify(currentGame)):null,
+      prefs:{lineupIntro:!!prefs.lineupIntro,statMontage:!!prefs.statMontage,dealerRoll:!!prefs.dealerRoll},
+      uiScale:currentUIBase,
+      stored
+    };
+  }
+  function rollbackRestoreSnapshot(snapshot){
+    try{ localStorage.removeItem(gnKey('gn_restore_recovery')); }catch(e){}
+    try{ localStorage.removeItem(gnKey('gn_restore_pending')); }catch(e){}
+    allPlayers=snapshot.allPlayers.slice();
+    players=snapshot.players.slice();
+    history=snapshot.history;
+    playerProfiles=snapshot.playerProfiles;
+    currentGame=snapshot.currentGame;
+    prefs.lineupIntro=snapshot.prefs.lineupIntro;
+    prefs.statMontage=snapshot.prefs.statMontage;
+    prefs.dealerRoll=snapshot.prefs.dealerRoll;
+    currentUIBase=snapshot.uiScale;
+    document.documentElement.style.fontSize=currentUIBase+'px';
+    Object.keys(snapshot.stored).forEach(key=>{
+      const value=snapshot.stored[key];
+      if(value==null) localStorage.removeItem(gnKey(key));
+      else localStorage.setItem(gnKey(key), value);
+    });
+    _lastPersistedState.gn_all_players=snapshot.stored.gn_all_players;
+    _lastPersistedState.gn_players_v2=snapshot.stored.gn_players_v2;
+    _lastPersistedState.gn_history=snapshot.stored.gn_history;
+    _lastPersistedState.gn_profiles=snapshot.stored.gn_profiles;
+    _lastPersistedState.gn_current=snapshot.stored.gn_current;
+    markHistoryChanged();
+  }
   function importBackupText(text){
     if(!window.BPGBackup) throw new Error('invalid-backup');
     const incoming=BPGBackup.parseBackup(text);
@@ -12540,10 +12653,46 @@ button.dealer-name-indicator .dealer-player-label {
       throw Object.assign(new Error('invalid-player-name'),{playerNameError:nameErr});
     }
     showPlayerNameWriteError('import-player-name-error','');
-    try{ downloadBackupBlob(BPGBackup.buildBackup(currentBackupState()), `gamenight-before-restore-${Date.now()}.json`); }
-    catch(error){ console.warn('Pre-restore copy was not downloaded.', error); }
-    const {next,added}=BPGBackup.mergeBackup(currentBackupState(), incoming);
-    applyMergedBackup(next, added);
+    const plan=BPGBackup.restoreChangeLines(currentBackupState(), incoming);
+    _restorePlan=plan;
+    showRestorePreview(plan.lines);
+    return plan;
+  }
+  function cancelRestore(){
+    _restorePlan=null;
+    hideRestorePreview();
+    showBackupError('');
+  }
+  function confirmRestore(){
+    if(!_restorePlan||!window.BPGBackup) return;
+    const snapshot=captureRestoreSnapshot();
+    let book;
+    try{
+      book=BPGBackup.buildBackup(snapshot);
+      localStorage.setItem(gnKey('gn_restore_recovery'), JSON.stringify(book));
+      localStorage.setItem(gnKey('gn_restore_pending'), '1');
+    }catch(error){
+      try{ localStorage.removeItem(gnKey('gn_restore_pending')); }catch(e){}
+      showBackupError('Could not save a recovery copy. Nothing was changed.');
+      return;
+    }
+    try{
+      downloadBackupBlob(book, `gamenight-before-restore-${Date.now()}.json`);
+    }catch(error){
+      try{ localStorage.removeItem(gnKey('gn_restore_pending')); }catch(e){}
+      showBackupError('Could not download a recovery file. Nothing was changed.');
+      return;
+    }
+    try{
+      applyMergedBackup(_restorePlan.next, _restorePlan.added);
+      localStorage.removeItem(gnKey('gn_restore_pending'));
+      try{ localStorage.removeItem(gnKey('gn_restore_recovery')); }catch(e){}
+      _restorePlan=null;
+      hideRestorePreview();
+    }catch(error){
+      rollbackRestoreSnapshot(snapshot);
+      showBackupError('Restore did not finish. This device was put back the way it was.');
+    }
   }
   function importDataFromText(){
     if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){

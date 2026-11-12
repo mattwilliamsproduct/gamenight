@@ -133,6 +133,67 @@
     return { next, added };
   }
 
+  function listAdded(currentList, incomingList) {
+    const have = new Set((currentList || []).filter(Boolean));
+    const added = [];
+    (incomingList || []).forEach(name => {
+      if (name && !have.has(name) && !added.includes(name)) added.push(name);
+    });
+    return added;
+  }
+
+  function photoOverwriteNames(current, incoming) {
+    const cur = current?.playerProfiles || {};
+    const inc = incoming?.playerProfiles && typeof incoming.playerProfiles === 'object'
+      ? incoming.playerProfiles
+      : {};
+    return Object.keys(inc).filter(name => {
+      const next = inc[name] || {};
+      const prev = cur[name] || {};
+      const avatarChanged = String(next.avatar || '') !== String(prev.avatar || '');
+      const colorChanged = next.color != null && next.color !== prev.color;
+      return avatarChanged || colorChanged;
+    });
+  }
+
+  function restoreChangeLines(current, incoming) {
+    const { next, added } = mergeBackup(current, incoming);
+    const lines = [];
+    const players = listAdded(current?.allPlayers, incoming?.allPlayers);
+    lines.push(players.length
+      ? `Adds ${players.length} player${players.length === 1 ? '' : 's'}: ${players.join(', ')}.`
+      : 'Adds no new players.');
+    const seated = listAdded(current?.players, incoming?.players);
+    lines.push(seated.length
+      ? `Seats ${seated.join(', ')} tonight. People already seated stay seated.`
+      : 'Does not change who is seated tonight.');
+    lines.push(added.games
+      ? `Adds ${added.games} game${added.games === 1 ? '' : 's'}. A game already on this device with the same id stays as it is.`
+      : 'Adds no games. A game already on this device with the same id stays as it is.');
+    if (incoming && Object.prototype.hasOwnProperty.call(incoming, 'currentGame')) {
+      lines.push(incoming.currentGame && incoming.currentGame.name
+        ? `Replaces the match on this table with ${incoming.currentGame.name}.`
+        : 'Clears the match on this table.');
+    } else {
+      lines.push('Leaves the match on this table alone.');
+    }
+    const photos = photoOverwriteNames(current, incoming);
+    lines.push(photos.length
+      ? `Overwrites photos for ${photos.join(', ')}.`
+      : 'Does not overwrite any photos.');
+    if (incoming && Number.isFinite(Number(incoming.uiScale))) {
+      lines.push(`Sets text size to ${Number(incoming.uiScale)}.`);
+    }
+    if (incoming?.prefs && typeof incoming.prefs === 'object') {
+      const bits = [];
+      if (typeof incoming.prefs.lineupIntro === 'boolean') bits.push(`lineup intro ${incoming.prefs.lineupIntro ? 'on' : 'off'}`);
+      if (typeof incoming.prefs.statMontage === 'boolean') bits.push(`path replay ${incoming.prefs.statMontage ? 'on' : 'off'}`);
+      if (typeof incoming.prefs.dealerRoll === 'boolean') bits.push(`dealer roll ${incoming.prefs.dealerRoll ? 'on' : 'off'}`);
+      if (bits.length) lines.push(`Sets ${bits.join(', ')}.`);
+    }
+    return { next, added, lines };
+  }
+
   function mergeCloud(local, remote) {
     if (!remote || typeof remote !== 'object') {
       return mergeBackup(local || {}, {});
@@ -152,7 +213,8 @@
     buildBackup,
     parseBackup,
     mergeBackup,
-    mergeCloud
+    mergeCloud,
+    restoreChangeLines
   };
 
   root.BPGBackup = api;
