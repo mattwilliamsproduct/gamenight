@@ -18979,6 +18979,11 @@ ${isDealer
         scoreEntryPlainAdvance('commit');
         return;
       }
+      const now=(typeof performance!=='undefined'&&performance.now)?performance.now():Date.now();
+      const typed=!!scoreEntryModalState.typedSinceAdvance;
+      if(!typed&&now-(scoreEntryModalState._advanceAt||0)<400)return;
+      scoreEntryModalState._advanceAt=now;
+      scoreEntryModalState.typedSinceAdvance=false;
       if(scoreEntryModalState.mode?.kind==='hand-foot'){
         const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
         const current=scoreEntryModalState.activePlayer||order[0];

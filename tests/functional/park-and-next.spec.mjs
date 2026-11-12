@@ -218,3 +218,46 @@ test('double-tap Next stays on screen order and a filled row replaces', async ({
   const rounds = await page.evaluate(() => currentGame.rounds.length);
   expect(rounds).toBe(2);
 });
+
+test('Wizard Next double-tap does not score the next player or append a digit', async ({page}) => {
+  page.on('dialog', (dialog) => dialog.accept());
+  await boot(page);
+  await page.evaluate(() => {
+    const roster = ['Ava', 'Ben', 'Cora'];
+    allPlayers = roster.slice();
+    players = roster.slice();
+    history = [];
+    prefs.lineupIntro = false;
+    prefs.dealerRoll = false;
+    currentGame = {
+      id: 93,
+      name: 'Wizard',
+      originalRoster: roster.slice(),
+      currentRound: 1,
+      maxRounds: 20,
+      rounds: [],
+      totals: {Ava: 0, Ben: 0, Cora: 0},
+      wizardPhase: 'bidding',
+      currentBids: {},
+      hailMaryUsed: [],
+      retired: [],
+      currentScoreDrafts: {},
+      completed: false,
+      winners: []
+    };
+    goActiveMatch();
+  });
+  await page.locator('#slice2-enter-btn').click();
+  await expect(page.locator('#score-entry-modal')).toBeVisible();
+  const order = (await page.locator('.score-entry-name').allTextContents()).map((text) => text.trim());
+  const first = (await page.locator('.score-entry-row.active .score-entry-name').innerText()).trim();
+  const next = order[order.indexOf(first) + 1];
+  await page.locator('#score-entry-modal').getByRole('button', {name: '1', exact: true}).click();
+  await page.locator('#score-entry-next-btn').evaluate((button) => {
+    button.click();
+    button.click();
+  });
+  await expect(page.locator('.score-entry-row.active .score-entry-name')).toHaveText(next);
+  await expect(page.locator(`#score-entry-value-${first}`)).toHaveText('1');
+  await expect(page.locator(`#score-entry-value-${next}`)).toHaveText('');
+});
