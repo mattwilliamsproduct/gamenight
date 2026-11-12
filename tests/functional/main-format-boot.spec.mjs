@@ -236,10 +236,8 @@ test('a failed restore puts the original book back', async ({page}) => {
   const result = await page.evaluate((text) => {
     importBackupText(text);
     const original = Storage.prototype.setItem;
-    let armed = true;
     Storage.prototype.setItem = function blockHistory(key, value) {
-      if (armed && String(key) === 'gn_history') {
-        armed = false;
+      if (String(key) === 'gn_history') {
         throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
       }
       return original.call(this, key, value);

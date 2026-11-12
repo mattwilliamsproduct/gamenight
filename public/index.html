@@ -10986,6 +10986,7 @@ button.dealer-name-indicator .dealer-player-label {
   };
   function savePref(key, val){ const t=gnPerfStart('GN localStorage.setItem '+key); try{localStorage.setItem(gnKey(key), val ? '1' : '0');}finally{gnPerfEnd(t);} }
   recoverInterruptedRestore();
+  ensureScoreReserve();
 
   // ── Wake Lock ──
   let wakeLock = null;
@@ -11156,6 +11157,32 @@ button.dealer-name-indicator .dealer-player-label {
   const DRAFT_SAVE_DEBOUNCE_MS = 1200;
   const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
   let _storageFullNoted=false;
+  const SCORE_RESERVE_CHARS=250000;
+  let _scoreSavePending=false;
+  let _scoreRetryTimer=null;
+  let _scoreRetryTries=0;
+  function ensureScoreReserve(){
+    const key=gnKey('gn_score_reserve');
+    try{
+      if((localStorage.getItem(key)||'').length>=SCORE_RESERVE_CHARS) return true;
+      localStorage.setItem(key, '0'.repeat(SCORE_RESERVE_CHARS));
+      return true;
+    }catch(error){
+      return false;
+    }
+  }
+  function releaseScoreReserve(){
+    try{ localStorage.removeItem(gnKey('gn_score_reserve')); }catch(error){}
+  }
+  function scheduleScoreSaveRetry(){
+    if(_scoreRetryTimer||_scoreRetryTries>=15) return;
+    _scoreRetryTimer=setTimeout(()=>{
+      _scoreRetryTimer=null;
+      if(!_scoreSavePending) return;
+      _scoreRetryTries+=1;
+      saveData({fullPersist:true, syncCold:true});
+    }, 4000);
+  }
   function noteStorageFull(){
     if(_storageFullNoted) return;
     _storageFullNoted=true;
@@ -11181,16 +11208,39 @@ button.dealer-name-indicator .dealer-player-label {
       const setItemTimer = gnPerfStart('GN localStorage.setItem ' + key);
       try{
         gnWarnNumpadHotPath('localStorage.setItem');
+        let wrote=false;
         try{
           localStorage.setItem(gnKey(key), json);
+          wrote=true;
           _storageFullNoted=false;
+          if(key==='gn_history'||key==='gn_current'){
+            _scoreSavePending=false;
+            _scoreRetryTries=0;
+          }
         }catch(error){
           const full=error&&(error.name==='QuotaExceededError'||error.code===22||error.code===1014);
           if(!full) throw error;
-          noteStorageFull();
-          _persistBlocked=true;
-          return;
+          const scoreKey=key==='gn_history'||key==='gn_current'||key==='gn_all_players'||key==='gn_players_v2';
+          if(scoreKey){
+            releaseScoreReserve();
+            try{
+              localStorage.setItem(gnKey(key), json);
+              wrote=true;
+              _storageFullNoted=false;
+              _scoreSavePending=false;
+              _scoreRetryTries=0;
+              toast('Saved. This device is nearly full, so keep a backup.', 'warning');
+            }catch(again){
+              _scoreSavePending=true;
+              scheduleScoreSaveRetry();
+            }
+          }
+          if(!wrote){
+            noteStorageFull();
+            _persistBlocked=true;
+          }
         }
+        if(!wrote) return;
       } finally {
         gnPerfEnd(setItemTimer);
       }
@@ -11487,6 +11537,17 @@ button.dealer-name-indicator .dealer-player-label {
     try{
       const json=JSON.stringify(playerProfiles);
       localStorage.setItem(gnKey('gn_profiles'), json);
+      if(!ensureScoreReserve()){
+        playerProfiles[name].avatar=previous;
+        const reverted=JSON.stringify(playerProfiles);
+        localStorage.setItem(gnKey('gn_profiles'), reverted);
+        if(typeof _lastPersistedState==='object' && _lastPersistedState) _lastPersistedState.gn_profiles=reverted;
+        ensureScoreReserve();
+        const tight='That photo was not saved. This device needs the remaining room for scores. The current picture stayed.';
+        showAvatarPhotoStatus(tight);
+        toast(tight, 'warning');
+        return false;
+      }
       if(typeof _lastPersistedState==='object' && _lastPersistedState) _lastPersistedState.gn_profiles=json;
       return true;
     }catch(error){
@@ -12634,8 +12695,10 @@ button.dealer-name-indicator .dealer-player-label {
     document.documentElement.style.fontSize=currentUIBase+'px';
     Object.keys(snapshot.stored).forEach(key=>{
       const value=snapshot.stored[key];
-      if(value==null) localStorage.removeItem(gnKey(key));
-      else localStorage.setItem(gnKey(key), value);
+      try{
+        if(value==null) localStorage.removeItem(gnKey(key));
+        else localStorage.setItem(gnKey(key), value);
+      }catch(error){}
     });
     _lastPersistedState.gn_all_players=snapshot.stored.gn_all_players;
     _lastPersistedState.gn_players_v2=snapshot.stored.gn_players_v2;
