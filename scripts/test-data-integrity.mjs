@@ -954,6 +954,37 @@ test('a historical trick correction counts the players who were in that round', 
   assert.equal(illegal.rounds[0].actuals.Cara, 2);
 });
 
+test('a round correction can change the bid and rescores from the new bid', () => {
+  const game = {
+    name: 'Wizard',
+    originalRoster: ['Ada', 'Bea'],
+    dealerOffset: 0,
+    currentRound: 2,
+    totals: { Ada: 30, Bea: 20 },
+    auditLog: [],
+    rounds: [{
+      round: 1,
+      bids: { Ada: 1, Bea: 0 },
+      actuals: { Ada: 1, Bea: 0 },
+      scores: { Ada: 30, Bea: 20 }
+    }]
+  };
+  const result = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    bids: { Ada: 0, Bea: 1 },
+    actuals: { Ada: 1, Bea: 0 }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(game.rounds[0].bids.Ada, 0);
+  assert.equal(game.rounds[0].bids.Bea, 1);
+  assert.equal(game.rounds[0].actuals.Ada, 1);
+  assert.equal(game.rounds[0].scores.Ada, Scorebook.wizardRoundScore(0, 1));
+  assert.equal(game.rounds[0].scores.Bea, Scorebook.wizardRoundScore(1, 0));
+  assert.equal(game.totals.Ada, -10);
+  assert.equal(game.totals.Bea, -10);
+});
+
 test('reopening a saved match does not replace a different active game', () => {
   const active = { id: 111, gameId: 111, name: 'Five Crowns', rounds: [{ round: 1, scores: { Matt: 4 } }] };
   const edited = { id: 66, gameId: 66, game: 'Beat the Heat' };

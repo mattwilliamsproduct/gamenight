@@ -18193,10 +18193,6 @@ ${isDealer
   function readScoreEntryDraftValue(source, player, mode){
     const raw=source?.[player];
     if(raw!==undefined&&raw!==null&&raw!=='')return String(parseInt(raw,10)||0);
-    if(isScoreEntryTrickMode(mode)&&isBidTrickGame(currentGame)){
-      const bid=currentGame.currentBids?.[player];
-      if(bid!==undefined&&bid!==null&&bid!=='')return String(parseInt(bid,10)||0);
-    }
     return '';
   }
 
@@ -18314,7 +18310,11 @@ ${isDealer
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${status.label}`);
     row.querySelector('.score-entry-input-cell')?.setAttribute('data-entry-state', status.state);
     const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
-    if(valueEl) valueEl.setAttribute('aria-label', `${scoreEntryModalState.mode.valueLabel}: ${status.label}`);
+    if(valueEl){
+      const shown=scoreEntryModalState.values?.[player];
+      if(typeof shown!=='object') valueEl.textContent=shown!==''&&shown!=null?String(shown):'';
+      valueEl.setAttribute('aria-label', `${scoreEntryModalState.mode.valueLabel}: ${status.label}`);
+    }
     const indicator=row.querySelector('.score-entry-row-status');
     if(indicator)indicator.textContent=complete?'✓':'○';
     paintScoreEntryStatus(player);
@@ -19021,6 +19021,11 @@ ${isDealer
       const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
       if(!order.length)return;
       const current=scoreEntryModalState.activePlayer||order[0];
+      if(isScoreEntryTrickMode(scoreEntryModalState.mode)&&BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[current])){
+        scoreEntryModalState.values[current]='0';
+        scoreEntryModalState.acknowledged[current]=true;
+        scoreEntryModalState.dirty[current]=true;
+      }
       markScoreEntryPlayerComplete(current);
       updateScoreEntryProgress();
       const currentIdx=order.indexOf(current);
@@ -20185,10 +20190,15 @@ ${isDealer
     if(!players.length) return;
     const values={};
     const acknowledged={};
+    const bidValues={};
+    const bidAcknowledged={};
     players.forEach(player=>{
       const actual=round.actuals?.[player];
+      const bid=round.bids?.[player];
       values[player]=actual==null?'':String(actual);
+      bidValues[player]=bid==null?'':String(bid);
       acknowledged[player]=false;
+      bidAcknowledged[player]=false;
     });
     roundCorrectionState={
       source,
@@ -20197,6 +20207,9 @@ ${isDealer
       players,
       values,
       acknowledged,
+      bidValues,
+      bidAcknowledged,
+      field:'actual',
       activePlayer:spec.focusPlayer&&players.includes(spec.focusPlayer)?spec.focusPlayer:players[0],
       limit:BPGScorebook.roundTrickLimit(name, round.round),
       roundNumber:round.round,
@@ -20227,23 +20240,30 @@ ${isDealer
     if(!rows) return;
     rows.innerHTML=state.players.map((player,index)=>{
       const parsed=BPGScorebook.parseEntryInteger(state.values[player]);
-      const bid=state.bids[player];
-      const score=parsed.ok?(state.gameName==='818'?BPGScorebook.eight18RoundScore(bid,parsed.value):BPGScorebook.wizardRoundScore(bid,parsed.value)):'—';
-      const badge=parsed.ok?(Number(bid)===parsed.value?'score-cell-hit':'score-cell-miss'):'';
-      return `<button type="button" class="round-correction-row${player===state.activePlayer?' is-active':''}" data-player="${escapeHtml(player)}" onclick="selectRoundCorrectionPlayer(${index})">
+      const bidParsed=BPGScorebook.parseEntryInteger(state.bidValues?.[player]);
+      const bid=bidParsed.ok?bidParsed.value:state.bids[player];
+      const score=parsed.ok&&bidParsed.ok?(state.gameName==='818'?BPGScorebook.eight18RoundScore(bid,parsed.value):BPGScorebook.wizardRoundScore(bid,parsed.value)):'—';
+      const badge=parsed.ok&&bidParsed.ok?(Number(bid)===parsed.value?'score-cell-hit':'score-cell-miss'):'';
+      const bidOn=player===state.activePlayer&&state.field==='bid';
+      const trickOn=player===state.activePlayer&&state.field!=='bid';
+      return `<div class="round-correction-row${player===state.activePlayer?' is-active':''}" data-player="${escapeHtml(player)}">
         <span class="player-name-label">${escapeHtml(player)}</span>
-        <span>Bid ${bid}</span>
-        <span class="round-correction-actual">${escapeHtml(state.values[player]||'—')}</span>
+        <button type="button" class="round-correction-bid${bidOn?' is-editing':''}" onclick="editRoundCorrectionField(${index},'bid')">Bid ${escapeHtml(state.bidValues?.[player]||'—')}</button>
+        <button type="button" class="round-correction-actual${trickOn?' is-editing':''}" onclick="editRoundCorrectionField(${index},'actual')">${escapeHtml(state.values[player]||'—')}</button>
         <span class="round-correction-score ${badge}">${score}</span>
-      </button>`;
+      </div>`;
     }).join('');
   }
 
   function selectRoundCorrectionPlayer(index){
+    editRoundCorrectionField(index, 'actual');
+  }
+  function editRoundCorrectionField(index, field){
     if(!roundCorrectionState) return;
     const player=roundCorrectionState.players[index];
     if(!player) return;
     roundCorrectionState.activePlayer=player;
+    roundCorrectionState.field=field==='bid'?'bid':'actual';
     renderRoundCorrection();
   }
 
@@ -20251,12 +20271,15 @@ ${isDealer
     const state=roundCorrectionState;
     if(!state||!state.activePlayer) return;
     const player=state.activePlayer;
+    const editingBid=state.field==='bid';
+    const bag=editingBid?state.bidValues:state.values;
+    const ack=editingBid?state.bidAcknowledged:state.acknowledged;
     const next=BPGScorebook.applyScoreEntryKey({
-      value:state.values[player]??'',
-      acknowledged:!!state.acknowledged[player]
+      value:bag[player]??'',
+      acknowledged:!!ack[player]
     }, key);
-    state.values[player]=next.value;
-    state.acknowledged[player]=next.acknowledged;
+    bag[player]=next.value;
+    ack[player]=next.acknowledged;
     state.error='';
     renderRoundCorrection();
   }
@@ -20274,7 +20297,8 @@ ${isDealer
     const meta=prepareMatchForCorrection(match);
     const result=BPGScorebook.commitRoundCorrection(match,{
       roundIndex:state.roundIndex,
-      actuals:{...state.values}
+      actuals:{...state.values},
+      bids:{...(state.bidValues||state.bids||{})}
     });
     restoreCorrectionMeta(match, meta, result);
     if(!result.ok){

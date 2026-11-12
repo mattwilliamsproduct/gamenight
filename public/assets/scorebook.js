@@ -1241,6 +1241,19 @@
           if (source.actuals && Object.prototype.hasOwnProperty.call(source.actuals, player)) rawActuals[player] = source.actuals[player];
           else rawActuals[player] = round.actuals ? round.actuals[player] : '';
         });
+        const rawBids = {};
+        players.forEach(player => {
+          if (source.bids && Object.prototype.hasOwnProperty.call(source.bids, player)) rawBids[player] = source.bids[player];
+          else rawBids[player] = round.bids ? round.bids[player] : '';
+        });
+        const checkedBids = validateEntries({
+          game: draft,
+          kind: 'bids',
+          roundNumber: round.round,
+          players,
+          values: rawBids
+        });
+        if (!checkedBids.ok) return checkedBids;
         const checked = validateEntries({
           game: draft,
           kind: 'tricks',
@@ -1261,7 +1274,7 @@
             message: `${entryGameLabel(draft)} round ${round.round} must total ${checked.limit} tricks. This table totals ${balanced.sum}.`
           };
         }
-        const dealerBlock = eight18DealerBidViolation(draft, round, players);
+        const dealerBlock = eight18DealerBidViolation(draft, Object.assign({}, round, { bids: checkedBids.values }), players);
         if (dealerBlock) {
           return {
             ok: false,
@@ -1271,19 +1284,24 @@
             message: dealerBlock.message
           };
         }
+        const bidsChanged = players.some(player => !sameNumber(round.bids && round.bids[player], checkedBids.values[player]));
         const actualsChanged = players.some(player => !sameNumber(round.actuals && round.actuals[player], checked.values[player]));
-        if (!actualsChanged) return { ok: true, changed: false, noop: true, message: '' };
+        if (!bidsChanged && !actualsChanged) return { ok: true, changed: false, noop: true, message: '' };
         const scoreFor = name === 'Wizard' ? wizardRoundScore : eight18RoundScore;
         const nextScores = {};
         players.forEach(player => {
+          const fromBid = round.bids ? round.bids[player] : undefined;
+          const toBid = checkedBids.values[player];
           const fromActual = round.actuals ? round.actuals[player] : undefined;
           const toActual = checked.values[player];
-          const fromScore = round.scores ? round.scores[player] : scoreFor(round.bids[player], fromActual);
-          const toScore = scoreFor(round.bids[player], toActual);
+          const fromScore = round.scores ? round.scores[player] : scoreFor(fromBid, fromActual);
+          const toScore = scoreFor(toBid, toActual);
           nextScores[player] = toScore;
-          if (!sameNumber(fromActual, toActual) || !sameNumber(fromScore, toScore)) {
+          if (!sameNumber(fromBid, toBid) || !sameNumber(fromActual, toActual) || !sameNumber(fromScore, toScore)) {
             changes.push({
               player,
+              fromBid: Number(fromBid),
+              toBid,
               fromActual: Number(fromActual),
               toActual,
               fromScore: Number(fromScore),
@@ -1291,9 +1309,11 @@
             });
           }
         });
+        if (!round.bids) round.bids = {};
         if (!round.actuals) round.actuals = {};
         if (!round.scores) round.scores = {};
         players.forEach(player => {
+          round.bids[player] = checkedBids.values[player];
           round.actuals[player] = checked.values[player];
           round.scores[player] = nextScores[player];
         });
