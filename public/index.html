@@ -15853,6 +15853,10 @@ ${isDealer
     if(!finished){
       snapshot.winners=[];
       snapshot.endedEarly=false;
+      snapshot.outcome='paused';
+      snapshot.completed=false;
+      snapshot.gameOver=false;
+      snapshot.countResult=false;
     }
     const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
     if(idx>=0) history[idx]=snapshot;

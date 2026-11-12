@@ -1,4 +1,7 @@
-import {expect, test} from '@playwright/test';
+import {mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {chromium, expect, test} from '@playwright/test';
 
 async function boot(page) {
   await page.goto('/', {waitUntil: 'domcontentloaded'});
@@ -67,6 +70,89 @@ test('a parked match is still there after reload and a closed page', async ({pag
   }));
   expect(resumed.scores).toEqual({Ava: 20, Ben: 5, Cora: 10});
   expect(resumed.heat).toBe(true);
+});
+
+async function openProfile(userData) {
+  const context = await chromium.launchPersistentContext(userData, {
+    baseURL: 'http://127.0.0.1:4173',
+    viewport: {width: 1440, height: 900},
+    serviceWorkers: 'block'
+  });
+  const page = context.pages()[0] || await context.newPage();
+  page.on('dialog', (dialog) => dialog.accept());
+  return {context, page};
+}
+
+async function crashRenderer(context, page) {
+  const browser = context.browser();
+  const child = browser && typeof browser.process === 'function' ? browser.process() : null;
+  try {
+    const client = await context.newCDPSession(page);
+    await Promise.race([
+      client.send('Page.crash'),
+      new Promise((resolve) => setTimeout(resolve, 1500))
+    ]);
+  } catch (error) {
+    // The renderer is already gone.
+  }
+  await Promise.race([
+    context.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 2000))
+  ]);
+  if (child && child.exitCode == null && !child.killed) {
+    child.kill('SIGKILL');
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+}
+
+test('an unfinished match and a parked match survive a renderer crash', async () => {
+  test.setTimeout(60000);
+  const userData = mkdtempSync(join(tmpdir(), 'gn-park-'));
+  const first = await openProfile(userData);
+  await boot(first.page);
+  await first.page.evaluate(() => {
+    const roster = ['Ava', 'Ben'];
+    allPlayers = roster.slice();
+    players = roster.slice();
+    history = [];
+    currentGame = {
+      id: 91,
+      name: 'Five Crowns',
+      originalRoster: roster.slice(),
+      currentRound: 2,
+      maxRounds: 11,
+      rounds: [{round: 1, scores: {Ava: 12, Ben: 4}}],
+      totals: {Ava: 12, Ben: 4},
+      hailMaryUsed: [],
+      retired: [],
+      currentScoreDrafts: {},
+      auditLog: [],
+      completed: false,
+      winners: []
+    };
+    BPGScorebook.ensureGameId(currentGame);
+    saveData({fullPersist: true, syncCold: true});
+  });
+  await crashRenderer(first.context, first.page);
+
+  const second = await openProfile(userData);
+  await second.page.goto('/', {waitUntil: 'domcontentloaded'});
+  await second.page.waitForFunction(() => currentGame && currentGame.id === 91 && currentGame.rounds[0].scores.Ava === 12);
+  await second.page.evaluate(() => saveForLater());
+  await second.page.waitForFunction(() => !currentGame);
+  const parked = await second.page.evaluate(() => {
+    const row = JSON.parse(localStorage.getItem('gn_history') || '[]').find((match) => match && match.id === 91);
+    return row && {outcome: row.outcome, completed: row.completed, score: row.rounds[0].scores.Ava, current: localStorage.getItem('gn_current')};
+  });
+  expect(parked).toEqual({outcome: 'paused', completed: false, score: 12, current: null});
+  await crashRenderer(second.context, second.page);
+
+  const third = await openProfile(userData);
+  await third.page.goto('/', {waitUntil: 'domcontentloaded'});
+  await third.page.waitForFunction(() => history.some((match) => match && match.id === 91 && match.outcome === 'paused' && match.rounds[0].scores.Ben === 4));
+  await third.page.evaluate(() => resumeMatch(91));
+  await third.page.waitForFunction(() => currentGame && currentGame.name === 'Five Crowns' && currentGame.totals.Ben === 4);
+  await third.context.close();
 });
 
 test('double-tap Next stays on screen order and a filled row replaces', async ({page}) => {
