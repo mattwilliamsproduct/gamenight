@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const require = createRequire(import.meta.url);
@@ -493,4 +494,93 @@ test('score entry pending minus then digit keeps the sign when dirty', () => {
   assert.equal(next.value, '-');
   next = Scorebook.applyScoreEntryKey({ value: next.value, acknowledged: next.acknowledged, mode: 'scores', dirty: next.dirty }, '5');
   assert.equal(next.value, '-5');
+});
+
+function night(extra) {
+  return Object.assign({
+    game: 'Five Crowns',
+    rounds: [{ round: 1, scores: { Ava: 4, Ben: 20 } }],
+    totals: { Ava: 4, Ben: 20 },
+    winners: ['Ava'],
+    completed: true
+  }, extra);
+}
+
+test('a night is classified from the rule stored on the row', () => {
+  const half = night({ maxRounds: 11, outcome: 'ended_early', countResult: true });
+  assert.equal(Scorebook.resolveOutcome(half), 'ended_early');
+  assert.equal(Scorebook.countsForTallies(half), true);
+  assert.equal(Scorebook.countsForScoreMagnitude(half), false);
+  assert.match(Scorebook.endedEarlyLabel(half), /Ended early, 1 of 11 rounds/);
+
+  const uncounted = night({ maxRounds: 11 });
+  assert.equal(Scorebook.resolveOutcome(uncounted), 'ended_early');
+  assert.equal(Scorebook.countsForTallies(uncounted), false);
+  assert.equal(Scorebook.countsForScoreMagnitude(uncounted), false);
+
+  const legacyOverride = night({ maxRounds: 11, countOverride: true });
+  assert.equal(Scorebook.countsForTallies(legacyOverride), true);
+  assert.equal(Scorebook.countsForScoreMagnitude(legacyOverride), false);
+
+  const paused = night({ maxRounds: 11, completed: false });
+  assert.equal(Scorebook.resolveOutcome(paused), 'paused');
+  assert.equal(Scorebook.countsForTallies(paused), false);
+  assert.equal(Scorebook.countsForScoreMagnitude(paused), false);
+  assert.equal(Scorebook.showCountResult(paused), false);
+
+  const finished = night({
+    maxRounds: 11,
+    rounds: Array.from({ length: 11 }, (_, i) => ({ round: i + 1, scores: { Ava: 1, Ben: 5 } })),
+    totals: { Ava: 11, Ben: 55 }
+  });
+  assert.equal(Scorebook.resolveOutcome(finished), 'finished');
+  assert.equal(Scorebook.countsForTallies(finished), true);
+  assert.equal(Scorebook.countsForScoreMagnitude(finished), true);
+  assert.equal(Scorebook.needsCountDecision(finished), false);
+
+  const legacy = night({});
+  assert.equal(Scorebook.resolveOutcome(legacy), 'uncertain');
+  assert.equal(Scorebook.endedEarlyLabel(legacy), 'Needs review');
+  assert.equal(Scorebook.countsForTallies(legacy), false);
+  assert.equal(Scorebook.showCountResult(legacy), true);
+
+  const flipHigh = night({ game: 'Flip 7 Vengeance', maxRounds: 999, totals: { Ava: 250, Ben: 40 } });
+  assert.equal(Scorebook.resolveOutcome(flipHigh), 'uncertain');
+  assert.equal(Scorebook.countsForScoreMagnitude(flipHigh), false);
+  const flipStored = night({ game: 'Flip 7 Vengeance', maxRounds: 999, endScore: 200, totals: { Ava: 250, Ben: 40 } });
+  assert.equal(Scorebook.resolveOutcome(flipStored), 'finished');
+
+  const heat = night({ game: 'Beat the Heat', maxRounds: 999, endScore: 66, totals: { Ava: 70, Ben: 40 } });
+  assert.equal(Scorebook.resolveOutcome(heat), 'finished');
+  const heatShort = night({ game: 'Beat the Heat', maxRounds: 999, endScore: 66, totals: { Ava: 20, Ben: 10 } });
+  assert.equal(Scorebook.resolveOutcome(heatShort), 'ended_early');
+
+  const rookOpen = night({ game: 'Rook', maxRounds: 999, totals: { Ava: 300, Ben: 100 } });
+  assert.equal(Scorebook.resolveOutcome(rookOpen), 'uncertain');
+  const rookHit = night({ game: 'Rook', maxRounds: 999, rookConfig: { winTarget: 300 }, totals: { Ava: 300, Ben: 100 } });
+  assert.equal(Scorebook.resolveOutcome(rookHit), 'finished');
+});
+
+test('the main-format fixture has no saved finish rule, so every night is uncertain', async () => {
+  const book = JSON.parse(await readFile(new URL('../tests/fixtures/main-format-backup.json', import.meta.url)));
+  const counts = { finished: 0, paused: 0, ended_early: 0, uncertain: 0 };
+  for (const row of book.history) {
+    assert.equal(row.maxRounds, undefined);
+    assert.equal(row.endScore, undefined);
+    counts[Scorebook.resolveOutcome(row)] += 1;
+    assert.equal(Scorebook.countsForTallies(row), false);
+    assert.equal(Scorebook.countsForScoreMagnitude(row), false);
+  }
+  assert.deepEqual(counts, { finished: 0, paused: 0, ended_early: 0, uncertain: 3 });
+  const games = book.history.map((row) => row.game).sort();
+  assert.deepEqual(games, ['818', 'Five Crowns', 'Wizard']);
+});
+
+test('Canasta is the Hand and Foot id, and four rounds is config rather than a saved history row', async () => {
+  const registry = await readFile(new URL('../public/assets/game-registry.js', import.meta.url), 'utf8');
+  assert.match(registry, /id: 'Hand and Foot', title: 'Canasta'/);
+  const html = await readFile(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(html, /"Hand and Foot":\s*\{ emoji:"🃏", winLow:false, maxRounds:4 \}/);
+  const book = JSON.parse(await readFile(new URL('../tests/fixtures/main-format-backup.json', import.meta.url)));
+  assert.equal(book.history.some((row) => row.game === 'Canasta' || row.game === 'Hand and Foot'), false);
 });

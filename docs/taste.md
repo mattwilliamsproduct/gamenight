@@ -26,6 +26,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
 - Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
+- A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it.
+- One Leave game choice: Save for later, End game now, or Keep playing. Save for later stays resumable and does not ask about wins. Count this result never puts a partial total into a full-game score record.
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
 - A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.

@@ -106,7 +106,9 @@ test('Share Receipt keeps the Life Preserver mark from the live card', async ({p
   await openVisiblePreserver(page);
   await page.locator('#actions-btn').click();
   await page.locator('#actions-save-end').click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   const receipt=await page.evaluate(()=>document.getElementById('scorecard-receipt-capture')?.innerText||'');
   expect(receipt).toContain('+40');

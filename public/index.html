@@ -4841,29 +4841,19 @@ button.dealer-name-indicator .dealer-player-label {
     .bp-rules-select {
       width: 100%;
       min-height: 2.8rem;
-      appearance: none;
       border: 1px solid rgba(8,118,108,0.2);
       border-radius: 999px;
-      background: rgba(255,253,249,0.9);
+      background-color: rgba(255,253,249,0.9);
       color: var(--emerald);
       font-size: 0.72rem;
       font-weight: 900;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      padding: 0.72rem 2.5rem 0.72rem 1rem;
+      padding-top: 0.72rem;
+      padding-bottom: 0.72rem;
+      padding-left: 1rem;
       box-shadow: 0 8px 18px -16px rgba(7,63,59,0.7), inset 0 1px 0 rgba(255,255,255,0.82);
       cursor: pointer;
-    }
-    .bp-rules-picker::after {
-      content: '▾';
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-52%);
-      color: var(--emerald);
-      font-size: 0.85rem;
-      font-weight: 900;
-      pointer-events: none;
     }
     .game-card.quest-card.bp-game-card {
       isolation: isolate;
@@ -5093,11 +5083,13 @@ button.dealer-name-indicator .dealer-player-label {
       min-height: 46px;
       border-radius: 12px;
       border: 1.5px solid var(--hairline);
-      background: var(--bg);
+      background-color: var(--bg);
       color: var(--ink);
       font-weight: 800;
       font-size: 1rem;
-      padding: 0.35rem 0.45rem;
+      padding-top: 0.35rem;
+      padding-bottom: 0.35rem;
+      padding-left: 0.45rem;
     }
     .hf-fields {
       display: grid;
@@ -7934,11 +7926,14 @@ button.dealer-name-indicator .dealer-player-label {
       min-height: 46px;
       border-radius: 14px;
       border: 1px solid rgba(196,130,92,0.24);
-      background: rgba(255,250,241,0.88);
+      background-color: rgba(255,250,241,0.88);
       color: var(--ink);
       font-weight: 800;
-      padding: 0 0.9rem;
+      padding-left: 0.9rem;
       outline: none;
+    }
+    .profile-search-wrap input {
+      padding-right: 0.9rem;
     }
     .profile-search-wrap input:focus,
     .profile-control-wrap select:focus {
@@ -8228,7 +8223,7 @@ button.dealer-name-indicator .dealer-player-label {
     html.dark .profile-passport-title h2,
     html.dark .profile-badge { color: #fdf4e8; }
     html.dark .profile-search-wrap input,
-    html.dark .profile-control-wrap select { background: #123b37; border-color: rgba(129,216,198,0.22); color: #fdf4e8; }
+    html.dark .profile-control-wrap select { background-color: #123b37; border-color: rgba(129,216,198,0.22); color: #fdf4e8; }
     html.dark .profile-badge { background: rgba(255,255,255,0.08); border-color: rgba(129,216,198,0.2); }
     #records-view section > h2,
     #hall-of-fame-view h2 { color: var(--bp-teal-dark); border-bottom-color: var(--bp-warm-line); }
@@ -9095,6 +9090,29 @@ button.dealer-name-indicator .dealer-player-label {
         justify-content: center;
       }
     }
+
+    /* One chevron for every select. Do not restyle the arrow per screen. */
+    :root {
+      --bp-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1.2 7 6.8 13 1.2' fill='none' stroke='%23073f3b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+    html.dark {
+      --bp-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1.2 7 6.8 13 1.2' fill='none' stroke='%23fdf4e8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+    select.bp-select {
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+      background-image: var(--bp-select-chevron) !important;
+      background-repeat: no-repeat !important;
+      background-position: right 14px center !important;
+      background-size: 14px 8px !important;
+      background-origin: border-box !important;
+      padding-right: 36px !important;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 100%;
+    }
   </style>
 </head>
 
@@ -9245,7 +9263,7 @@ button.dealer-name-indicator .dealer-player-label {
               <h2 class="font-display text-4xl">Select Game</h2>
             </div>
             <label class="bp-rules-picker" aria-label="Game instructions">
-              <select class="bp-rules-select" onchange="openGameRulesFromSelect(this)">
+              <select class="bp-select bp-rules-select" onchange="openGameRulesFromSelect(this)">
                 <option value="">Game Instructions</option>
                 <option value="Five Crowns">Five Crowns</option>
                 <option value="Wizard">Wizard</option>
@@ -9366,10 +9384,10 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
               </div>
               <div class="actions-menu-section">
-                <span class="actions-menu-label">End the night</span>
-                <button type="button" id="actions-save-end" onclick="requestEndGame();closeActionsMenu();" class="actions-menu-item match-end-btn">
+                <span class="actions-menu-label">Leave game</span>
+                <button type="button" id="actions-save-end" onclick="requestLeaveGame();closeActionsMenu();" class="actions-menu-item match-end-btn">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg></span>
-                  <span>Save &amp; End</span>
+                  <span>Leave game</span>
                 </button>
               </div>
             </div>
@@ -9406,7 +9424,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
             <h3 class="font-display text-3xl" style="color:var(--emerald);">Match Complete!</h3>
             <p id="game-over-copy" class="font-bold" style="color:var(--emerald);">You've reached the final round.</p>
-            <button type="button" onclick="requestEndGame()" class="btn-primary px-12 py-4 text-xl">End Match &amp; See Winner</button>
+            <button type="button" onclick="requestLeaveGame()" class="btn-primary px-12 py-4 text-xl">Leave game</button>
           </div>
         </div>
       </div>
@@ -9465,7 +9483,7 @@ button.dealer-name-indicator .dealer-player-label {
         </label>
         <label class="profile-control-wrap" for="profile-sort-select">
           <span>Sort</span>
-          <select id="profile-sort-select" onchange="renderProfilesGrid()">
+          <select id="profile-sort-select" class="bp-select" onchange="renderProfilesGrid()">
             <option value="recent">Recent activity</option>
             <option value="wins">Most wins</option>
             <option value="games">Most games</option>
@@ -9475,7 +9493,7 @@ button.dealer-name-indicator .dealer-player-label {
         </label>
         <label class="profile-control-wrap" for="profile-game-filter">
           <span>Game</span>
-          <select id="profile-game-filter" onchange="renderProfilesGrid()">
+          <select id="profile-game-filter" class="bp-select" onchange="renderProfilesGrid()">
             <option value="all">All games</option>
           </select>
         </label>
@@ -10066,12 +10084,19 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Save &amp; End</div>
-        <h3 class="font-display text-3xl mb-3" id="end-match-title">End this match now?</h3>
-        <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy"></p>
-        <div class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-          <button type="button" id="end-match-cancel" onclick="closeEndMatchModal()" class="btn-ghost px-5 py-3 text-sm">Cancel</button>
-          <button type="button" id="end-match-confirm" onclick="confirmEndMatch()" class="btn-primary px-5 py-3 text-sm">Save &amp; End</button>
+        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Leave game</div>
+        <h3 class="font-display text-3xl mb-3" id="end-match-title">Leave game</h3>
+        <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy">Choose one. Keep playing changes nothing.</p>
+        <div id="leave-game-choices" class="flex flex-col gap-3">
+          <button type="button" id="leave-save-later" onclick="leaveSaveForLater()" class="btn-primary px-5 py-3 text-sm">Save for later</button>
+          <button type="button" id="leave-end-now" onclick="leaveEndNow()" class="btn-ghost px-5 py-3 text-sm">End game now</button>
+          <button type="button" id="leave-keep-playing" onclick="leaveKeepPlaying()" class="btn-ghost px-5 py-3 text-sm">Keep playing</button>
+        </div>
+        <div id="leave-count-step" class="hidden flex flex-col gap-3">
+          <p id="leave-count-copy" class="text-sm font-semibold leading-relaxed" style="color:var(--ink-2);"></p>
+          <button type="button" id="leave-count-yes" onclick="leaveCountResult(true)" class="btn-primary px-5 py-3 text-sm">Count this result</button>
+          <button type="button" id="leave-count-no" onclick="leaveCountResult(false)" class="btn-ghost px-5 py-3 text-sm">Don't count this result</button>
+          <button type="button" id="leave-count-back" onclick="leaveShowChoices()" class="btn-ghost px-5 py-3 text-sm">Back</button>
         </div>
       </div>
     </div>
@@ -12873,10 +12898,28 @@ button.dealer-name-indicator .dealer-player-label {
     return !!(match&&name&&match.totals&&match.totals[name]!==undefined);
   }
   function nightCountsForCareer(match, scope){
+    return nightCountsForTallies(match, scope);
+  }
+  function nightCountsForTallies(match, scope){
     if(window.BPGRecords&&typeof BPGRecords.isCareerCountableMatch==='function'){
       return BPGRecords.isCareerCountableMatch(match, careerCountOptions(scope));
     }
-    return !!(BPGScorebook.isCompletedHistoryMatch(match)&&match.totals&&Array.isArray(match.rounds)&&match.rounds.length&&configs[match.game]);
+    return !!(window.BPGScorebook&&BPGScorebook.countsForTallies(match)&&match.totals&&Array.isArray(match.rounds)&&match.rounds.length&&configs[match.game]);
+  }
+  function nightCountsForScores(match, scope){
+    if(window.BPGRecords&&typeof BPGRecords.isScoreMagnitudeMatch==='function'){
+      return BPGRecords.isScoreMagnitudeMatch(match, careerCountOptions(scope));
+    }
+    return !!(window.BPGScorebook&&BPGScorebook.countsForScoreMagnitude(match)&&match.totals&&Array.isArray(match.rounds)&&match.rounds.length&&configs[match.game]);
+  }
+  function historyRowHasEvents(match){
+    if(!match||!Array.isArray(match.rounds)) return false;
+    return match.rounds.some(round=>{
+      if(!round) return false;
+      if(round.hailMaryBonus) return true;
+      const extras=round.comeback||{};
+      return Object.keys(extras).some(name=>Number(extras[name]));
+    });
   }
 
   function compareMatchesOldestFirst(a, b){
@@ -12898,30 +12941,38 @@ button.dealer-name-indicator .dealer-player-label {
       needsAvatar:!isUploadedPlayerPhoto(playerProfiles[name]?.avatar),recentRank:null,avgRank:null,lastGameId:0,
       gameScope:scope||''
     };
-    const matches=history
-      .filter(h=>nightCountsForCareer(h, scope)&&playerSatCareerMatch(h, name, scope))
-      .slice()
-      .sort(compareMatchesOldestFirst);
-    matches.forEach(h=>{
-      const cfg=configs[h.game];
-      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const rank=competitionPlaces(sorted, h.totals)[name]||0;
-      const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
+    const sat=(h)=>playerSatCareerMatch(h, name, scope);
+    const tallyMatches=history.filter(h=>nightCountsForTallies(h, scope)&&sat(h)).slice().sort(compareMatchesOldestFirst);
+    const scoreMatches=history.filter(h=>nightCountsForScores(h, scope)&&sat(h)).slice().sort(compareMatchesOldestFirst);
+    const ensureGameStats=(game)=>summary.gameStats[game]||(summary.gameStats[game]={games:0,wins:0,lasts:0,posSum:0,scoreGames:0,best:null,worst:null,lastScore:null});
+    tallyMatches.forEach(h=>{
       const won=playerWonNight(h, name, scope);
-      const s=summary.gameStats[h.game]||(summary.gameStats[h.game]={games:0,wins:0,lasts:0,posSum:0,best:null,worst:null,lastScore:null});
+      const s=ensureGameStats(h.game);
       if(!career){
         summary.games++;
         summary.wins += won?1:0;
       }
-      summary.lasts += h.totals[name]===lastScore?1:0;
-      summary.recent={game:h.game,date:h.date,score:h.totals[name],rank,won};
-      summary.lastGameId=h.id||summary.lastGameId;
-      summary.recentRank=rank;
       s.games++;
       s.wins += won?1:0;
-      s.lasts += h.totals[name]===lastScore?1:0;
+      const cfg=configs[h.game];
+      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
+      const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
+      const isLast=h.totals[name]===lastScore;
+      summary.lasts += isLast?1:0;
+      s.lasts += isLast?1:0;
+      summary.recent={game:h.game,date:h.date,score:h.totals[name],won};
+      summary.lastGameId=h.id||summary.lastGameId;
+    });
+    scoreMatches.forEach(h=>{
+      const cfg=configs[h.game];
+      const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
+      const rank=competitionPlaces(sorted, h.totals)[name]||0;
+      const s=ensureGameStats(h.game);
       s.posSum += rank||0;
+      s.scoreGames++;
       s.lastScore=h.totals[name];
+      summary.recentRank=rank;
+      if(summary.recent && summary.recent.game===h.game && summary.lastGameId===h.id) summary.recent.rank=rank;
       const scoreEntry={score:h.totals[name],date:h.date};
       if(!s.best || (cfg.winLow ? scoreEntry.score<s.best.score : scoreEntry.score>s.best.score)) s.best=scoreEntry;
       if(!s.worst || (cfg.winLow ? scoreEntry.score>s.worst.score : scoreEntry.score<s.worst.score)) s.worst=scoreEntry;
@@ -12932,16 +12983,18 @@ button.dealer-name-indicator .dealer-player-label {
     summary.bestGame=gameEntries
       .filter(([_,s])=>s.games>=2 || s.wins>0)
       .sort((a,b)=>(b[1].wins/b[1].games)-(a[1].wins/a[1].games)||b[1].wins-a[1].wins||b[1].games-a[1].games)[0]||null;
-    if(matches.length){
-      const recentType=playerWonNight(matches[matches.length-1], name, scope)?'W':'L';
+    if(tallyMatches.length){
+      const recentType=playerWonNight(tallyMatches[tallyMatches.length-1], name, scope)?'W':'L';
       let count=0;
-      for(let i=matches.length-1;i>=0;i--){
-        const type=playerWonNight(matches[i], name, scope)?'W':'L';
+      for(let i=tallyMatches.length-1;i>=0;i--){
+        const type=playerWonNight(tallyMatches[i], name, scope)?'W':'L';
         if(type!==recentType)break;
         count++;
       }
       summary.currentStreak=`${recentType}${count}`;
-      const ranks=matches.map(h=>{
+    }
+    if(scoreMatches.length){
+      const ranks=scoreMatches.map(h=>{
         const cfg=configs[h.game];
         const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
         return competitionPlaces(sorted, h.totals)[name]||0;
@@ -13160,7 +13213,7 @@ button.dealer-name-indicator .dealer-player-label {
     };
     history.forEach(h=>{
       if(gameScope&&h.game!==gameScope)return;
-      if(!BPGScorebook.isCompletedHistoryMatch(h)||!configs[h.game]||!Array.isArray(h.rounds))return;
+      if(!h||!configs[h.game]||!Array.isArray(h.rounds))return;
       h.rounds.forEach(round=>{
         const whammy=detectHistoryWhammyForRound(h, round);
         if(whammy){ add('whammy', whammy); return; }
@@ -13219,7 +13272,7 @@ button.dealer-name-indicator .dealer-player-label {
     const games=summary.games;
     const wins=summary.wins;
     history.slice().reverse().forEach(h=>{
-      if(!nightCountsForCareer(h, detailScope)||!playerSatCareerMatch(h, name, detailScope))return;
+      if(!nightCountsForScores(h, detailScope)||!playerSatCareerMatch(h, name, detailScope))return;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(sorted.length&&h.totals[name]===h.totals[sorted[sorted.length-1]]&&!(h.retired||[]).includes(name))lasts++;
@@ -13264,7 +13317,7 @@ button.dealer-name-indicator .dealer-player-label {
         gameBreakdown.innerHTML=gameRows.map(([game,s])=>{
           const cfg=configs[game];
           const rate=Math.round(s.wins/s.games*100);
-          const avg=s.posSum?`${(s.posSum/s.games).toFixed(1)} avg rank`:'No rank yet';
+          const avg=s.scoreGames?`${(s.posSum/s.scoreGames).toFixed(1)} avg rank`:'No rank yet';
           const best=s.best?`Best ${s.best.score} · ${s.best.date||''}`:'No best yet';
           return `<div class="profile-game-tile">
             <span>${cfg?.emoji||'🎮'} ${escapeHtml(profileGameLabel(game))}</span>
@@ -14290,18 +14343,17 @@ button.dealer-name-indicator .dealer-player-label {
 
   let _handFootCancelSnapshotId=null;
 
-  function startGame(name){
+  function startGame(name, options){
     if(!players.length){alert('Add players to the Lineup first!');return;}
     const seatLimit=window.BPGGames&&typeof BPGGames.seatLimit==='function'?BPGGames.seatLimit(name, players.length):{ok:true};
     if(!seatLimit.ok) return;
     warmCelebrationAssets();
-    if(currentGame){
-      const told=window.BPGSlice2&&typeof BPGSlice2.takeAnotherParkOk==='function'&&BPGSlice2.takeAnotherParkOk();
-      if(!told&&!confirm('The match on the table will be saved as incomplete. Start this new game anyway?'))return;
-      const parked=parkActiveMatch();
-      currentGame=null;
-      if(name==='Hand and Foot') _handFootCancelSnapshotId=parked?.id||null;
-
+    if(currentGame && !(options&&options.continueAfterLeave)){
+      requestLeaveGame((parkedId)=>startGame(name, {continueAfterLeave:true, parkedId}));
+      return;
+    }
+    if(options&&options.continueAfterLeave && name==='Hand and Foot'){
+      _handFootCancelSnapshotId=options.parkedId||null;
     }
     _pendingGameName = name;
     // Rook: show setup modal before animation chain
@@ -14410,7 +14462,7 @@ button.dealer-name-indicator .dealer-player-label {
       box.innerHTML=(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<div class="hf-setup-side">
         <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">Pair ${pairIndex+1}</div>
         <div class="hf-pair-row mt-2">
-          ${[0,1].map(seat=>`<select class="hf-pair-select" aria-label="Pair ${pairIndex+1}, player ${seat+1}" onchange="handFootSetPairMember(${pairIndex},${seat},this.value)">${roster.map(name=>`<option value="${escapeHtml(name)}"${name===pair[seat]?' selected':''}>${escapeHtml(name)}</option>`).join('')}</select>`).join('<span style="color:var(--muted);" aria-hidden="true">&amp;</span>')}
+          ${[0,1].map(seat=>`<select class="bp-select hf-pair-select" aria-label="Pair ${pairIndex+1}, player ${seat+1}" onchange="handFootSetPairMember(${pairIndex},${seat},this.value)">${roster.map(name=>`<option value="${escapeHtml(name)}"${name===pair[seat]?' selected':''}>${escapeHtml(name)}</option>`).join('')}</select>`).join('<span style="color:var(--muted);" aria-hidden="true">&amp;</span>')}
         </div>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score for both</div>
       </div>`).join('');
@@ -15375,7 +15427,7 @@ ${isDealer
     if(!cfg) return null;
     let picked=null;
     history.forEach(h=>{
-      if(!h || !BPGScorebook.isCompletedHistoryMatch(h) || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
+      if(!h || !BPGScorebook.countsForScoreMagnitude(h) || h.id===exceptId || h.game!==gameName || !playerPlayedMatch(h, name)) return;
       const score=Number(h.totals[name]);
       if(!Number.isFinite(score)) return;
       if(picked==null){ picked=score; return; }
@@ -15390,7 +15442,7 @@ ${isDealer
   function consecutiveResultStreak(name, wantWin){
     let n=0;
     for(const h of history){
-      if(!nightCountsForCareer(h)||!playerSatCareerMatch(h, name)) continue;
+      if(!nightCountsForTallies(h)||!playerSatCareerMatch(h, name)) continue;
       const won=playerWonNight(h, name);
       if(wantWin?won:!won) n++;
       else break;
@@ -15405,7 +15457,7 @@ ${isDealer
     let losses=0;
     for(let i=start+1;i<history.length;i++){
       const h=history[i];
-      if(!nightCountsForCareer(h)||!playerSatCareerMatch(h, name)) continue;
+      if(!nightCountsForTallies(h)||!playerSatCareerMatch(h, name)) continue;
       if(playerWonNight(h, name)) break;
       losses++;
     }
@@ -19570,49 +19622,130 @@ ${isDealer
     }, 4300);
   }
 
-  function endMatchCopy(over){
-    const records=`This saves the night to Records. Wins and games count. Best-score records only count a full night with no ${wheelCopy()?.name||'wheel'}.`;
-    if(over){
-      return `${records} Cancel keeps you on the scorecard.`;
-    }
-    return `This match is still in progress. Ending now ${records.slice(5)} Home will no longer show Resume for this match. Cancel keeps you on the scorecard and does not change scores.`;
+  let _leaveAfter=null;
+  function leaveShowChoices(){
+    document.getElementById('leave-game-choices')?.classList.remove('hidden');
+    document.getElementById('leave-count-step')?.classList.add('hidden');
   }
-  function requestEndGame(){
+  function requestLeaveGame(after){
     if(!currentGame)return;
     if(typeof closeActionsMenu==='function') closeActionsMenu();
-    const over=isMatchOver(currentGame);
-    const title=document.getElementById('end-match-title');
+    _leaveAfter=typeof after==='function'?after:null;
+    leaveShowChoices();
     const copy=document.getElementById('end-match-copy');
-    if(title) title.textContent=over?'Save this match to Records?':'End this match now?';
-    if(copy) copy.textContent=endMatchCopy(over);
+    if(copy){
+      copy.textContent=_leaveAfter
+        ? 'Save for later keeps this match unfinished and resumable, then starts the next one. End game now finishes it. Keep playing changes nothing.'
+        : 'Choose one. Keep playing changes nothing.';
+    }
     openModal('end-match-modal');
   }
+  function requestEndGame(){ requestLeaveGame(); }
   function closeEndMatchModal(){
+    _leaveAfter=null;
     closeModal('end-match-modal');
   }
-  function confirmEndMatch(){
-    closeEndMatchModal();
-    commitEndGame(false);
+  function leaveKeepPlaying(){
+    _leaveAfter=null;
+    closeModal('end-match-modal');
+  }
+  function leaveSaveForLater(){
+    const after=_leaveAfter;
+    _leaveAfter=null;
+    closeModal('end-match-modal');
+    saveForLater(after);
+  }
+  function leaveEndNow(){
+    if(!currentGame)return;
+    const probe=liveRuleProbe(currentGame);
+    const known=window.BPGScorebook&&BPGScorebook.completionFromSavedRules?BPGScorebook.completionFromSavedRules(probe):null;
+    if(known==='finished'){
+      const after=_leaveAfter;
+      _leaveAfter=null;
+      closeModal('end-match-modal');
+      commitEndGame(false);
+      if(after) after();
+      return;
+    }
+    document.getElementById('leave-game-choices')?.classList.add('hidden');
+    document.getElementById('leave-count-step')?.classList.remove('hidden');
+    const countCopy=document.getElementById('leave-count-copy');
+    if(countCopy){
+      countCopy.textContent=known==='short'
+        ? 'This game ended before its saved finish. Count this result toward wins? The partial total stays out of best and worst scores.'
+        : 'This game has no saved finishing rule, so it stays needs-review. Count this result toward wins? The partial total stays out of best and worst scores.';
+    }
+  }
+  function leaveCountResult(count){
+    const after=_leaveAfter;
+    _leaveAfter=null;
+    closeModal('end-match-modal');
+    commitEndGame(false, count===true);
+    if(after) after();
+  }
+  function liveRuleProbe(game){
+    const probe={
+      name:game.name,
+      game:game.name,
+      rounds:game.rounds,
+      totals:game.totals,
+      retired:game.retired,
+      maxRounds:game.maxRounds,
+      endScore:game.endScore,
+      rookConfig:game.rookConfig
+    };
+    const max=Number(probe.maxRounds);
+    if(!(max>0) || max>=999){
+      const fromConfig=getMaxRoundsForGame(game);
+      probe.maxRounds=(fromConfig>0 && fromConfig<999)?fromConfig:null;
+    }
+    if(game.name==='Beat the Heat' && !(Number(probe.endScore)>0)) probe.endScore=getEndScoreForGame(game)||66;
+    return probe;
+  }
+  function saveForLater(after){
+    if(!currentGame)return;
+    const totals=JSON.stringify(currentGame.totals||{});
+    const rounds=JSON.stringify(currentGame.rounds||[]);
+    const snapshot=parkActiveMatch();
+    if(snapshot){
+      snapshot.outcome='paused';
+      snapshot.completed=false;
+      snapshot.gameOver=false;
+      snapshot.winners=[];
+      snapshot.countResult=false;
+      markHistoryChanged();
+    }
+    if(JSON.stringify(currentGame.totals||{})!==totals || JSON.stringify(currentGame.rounds||[])!==rounds){
+      toast('Could not pause without changing the scores.', 'warning');
+      return;
+    }
+    currentGame=null;
+    releaseWakeLock();
+    saveData({fullPersist:true, syncCold:true});
+    if(typeof after==='function') after(snapshot&&snapshot.id);
+    else goHome();
   }
   function endGame(silent=false){
     if(!currentGame)return;
-    if(!silent){ requestEndGame(); return; }
+    if(!silent){ requestLeaveGame(); return; }
     commitEndGame(true);
   }
-  function commitEndGame(silent=false){
+  function commitEndGame(silent=false, countResult){
     if(!currentGame)return;
     const cfg=configs[currentGame.name];
-    // Exclude retired players from winner consideration.
     const keys=getRecordedPlayers(currentGame);
     if(!keys.length){currentGame=null;saveData();goHome();return;}
     const sorted=sortPlayersByTotal(keys, currentGame.totals, cfg);
     const topScore=currentGame.totals[sorted[0]];
     const tied=sorted.filter(p=>currentGame.totals[p]===topScore);
-    const naturalOver=isMatchOver(currentGame);
-    const data=createSavedMatchSnapshot(currentGame,tied,{endedEarly:!naturalOver});
-    if(currentGame.name==='Beat the Heat' && !data.endScore){
-      data.endScore=getEndScoreForGame(currentGame)||66;
-    }
+    const probe=liveRuleProbe(currentGame);
+    const known=window.BPGScorebook&&BPGScorebook.completionFromSavedRules?BPGScorebook.completionFromSavedRules(probe):null;
+    const outcome=known==='finished'?'finished':(known==='short'?'ended_early':'uncertain');
+    const data=createSavedMatchSnapshot(currentGame,tied,{endedEarly:outcome==='ended_early'});
+    data.outcome=outcome;
+    if(Number(probe.maxRounds)>0 && probe.maxRounds<999) data.maxRounds=probe.maxRounds;
+    if(Number(probe.endScore)>0) data.endScore=probe.endScore;
+    if(outcome==='ended_early' || outcome==='uncertain') data.countResult=countResult===true;
     finishMatch(data, silent);
   }
 
@@ -20405,6 +20538,24 @@ ${isDealer
   }
 
   /* ═══ HISTORY LIST ═══ */
+  function toggleCountResult(id){
+    const row=history.find(h=>h&&String(h.id)===String(id));
+    if(!row||!window.BPGScorebook||!BPGScorebook.showCountResult(row)) return;
+    const scores=JSON.stringify(row.totals||{});
+    const winners=JSON.stringify(row.winners||[]);
+    const rounds=JSON.stringify(row.rounds||[]);
+    row.countResult=!(row.countResult===true||row.countOverride===true);
+    if(row.countOverride!=null) delete row.countOverride;
+    if(JSON.stringify(row.totals||{})!==scores||JSON.stringify(row.winners||[])!==winners||JSON.stringify(row.rounds||[])!==rounds){
+      return;
+    }
+    markHistoryChanged();
+    saveData({fullPersist:true, syncCold:true});
+    renderHistoryList();
+    if(typeof renderHallOfFame==='function') renderHallOfFame();
+    const card=document.getElementById('scorecard-modal');
+    if(card&&!card.classList.contains('hidden')) openScorecard(row.id);
+  }
   function renderHistoryList(){
     const c=document.getElementById('history-list-view');
     if(!history.length){c.innerHTML=`<div class="surface p-10 text-center font-bold" style="color:var(--muted);">No match history yet.</div>`;return;}
@@ -20425,10 +20576,11 @@ ${isDealer
       </div>`).join('')
         : '';
       const rows=finisherRows+leftRows;
-      const endedEarly=BPGScorebook.isEndedEarlyMatch && BPGScorebook.isEndedEarlyMatch(h);
+      const earlyLabel=BPGScorebook.endedEarlyLabel?BPGScorebook.endedEarlyLabel(h):'';
+      const canToggle=!!(BPGScorebook.showCountResult&&BPGScorebook.showCountResult(h));
       const statusBits=[
         BPGScorebook.isCompletedHistoryMatch(h)?'':('<span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'),
-        endedEarly?'<span class="ended-early-badge" data-match-status="ended-early">Ended early</span>':'',
+        earlyLabel?`<span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:'',
         BPGScorebook.isAssistedMatch(h)?'<span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''
       ].filter(Boolean).join(' · ');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
@@ -20439,6 +20591,7 @@ ${isDealer
           </div>
           <div class="flex gap-2 flex-shrink-0">
             <button onclick="openScorecard(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
+            ${canToggle?`<button type="button" data-count-toggle="${escapeHtml(String(h.id))}" data-count-override="${(h.countResult===true||h.countOverride===true)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">${(h.countResult===true||h.countOverride===true)?'Counting this result':'Count this result'}</button>`:''}
             <button onclick="resumeMatch(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">${BPGScorebook.isCompletedHistoryMatch(h)?'Resume':'Resume Match'}</button>
             <button onclick="deleteMatchRecord(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
           </div>
@@ -20464,7 +20617,11 @@ ${isDealer
     document.getElementById('scorecard-modal')?.classList.toggle('scorecard-modal-hand-foot', g.game==='Hand and Foot');
     document.getElementById('modal-scorecard-block')?.classList.toggle('scorecard-hand-foot', g.game==='Hand and Foot');
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${displayGameName(g.game)}`;
-    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}`;
+    const earlyLabel=BPGScorebook.endedEarlyLabel?BPGScorebook.endedEarlyLabel(g):'';
+    const countToggle=earlyLabel && BPGScorebook.isCompletedHistoryMatch(g)
+      ? ` · <button type="button" class="btn-ghost px-2 py-1 text-xs" data-count-toggle="${escapeHtml(String(g.id))}" data-count-override="${(g.countResult===true||g.countOverride===true)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(g.id)})">${(g.countResult===true||g.countOverride===true)?'Counting this result':'Count this result'}</button>`
+      : '';
+    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${earlyLabel?` · <span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:''}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''}${countToggle}`;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
     const leftEarly=(g.retired||[]).filter(Boolean);
@@ -20512,7 +20669,7 @@ ${isDealer
     }
     const h2h = {};
     history.forEach(m => {
-      if(!BPGScorebook.isCompletedHistoryMatch(m)) return;
+      if(!BPGScorebook.countsForScoreMagnitude(m)) return;
       const cfg = configs[m.game]; if(!cfg || !m.totals) return;
       const playersInMatch = getRecordedPlayers(m);
       playersInMatch.forEach(pa => {
@@ -20562,7 +20719,7 @@ ${isDealer
   function _personalBestsForPlayer(name){
     const bests = {};
     history.forEach(h => {
-      if(!BPGScorebook.isCompletedHistoryMatch(h)) return;
+      if(!BPGScorebook.countsForScoreMagnitude(h)) return;
       const cfg = configs[h.game]; if(!cfg || !h.totals || h.totals[name] === undefined || !getRecordedPlayers(h).includes(name)) return;
       if(BPGScorebook.isAssistedMatch(h)) return;
       const hasLegit = h.rounds?.some(round => round.scores[name] !== undefined && !(round.joinBonus?.[name]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
@@ -20610,7 +20767,9 @@ ${isDealer
     };
     let stats={};
     history.forEach(h=>{
-      if(!nightCountsForCareer(h)) return;
+      const forTallies=nightCountsForTallies(h);
+      const forScores=nightCountsForScores(h);
+      if(!forTallies && !forScores && !historyRowHasEvents(h)) return;
       const cfg=configs[h.game]; if(!cfg||!h.totals)return;
       const playersInMatch=getRecordedPlayers(h);
       const sitters=window.BPGRecords&&typeof BPGRecords.matchSitters==='function'
@@ -20624,19 +20783,23 @@ ${isDealer
       const lastScore=h.totals[sorted[sorted.length-1]];
       const lastPlayers=sorted.filter(p=>h.totals[p]===lastScore);
       const assisted=BPGScorebook.isAssistedMatch(h);
-      if(!r._coverage) r._coverage={};
-      if(!r._coverage[h.game]) r._coverage[h.game]={assisted:0,unassisted:0};
-      r._coverage[h.game][assisted?'assisted':'unassisted']++;
+      if(forTallies || forScores){
+        if(!r._coverage) r._coverage={};
+        if(!r._coverage[h.game]) r._coverage[h.game]={assisted:0,unassisted:0};
+        r._coverage[h.game][assisted?'assisted':'unassisted']++;
+      }
 
       sitters.forEach(p=>{
         if(!stats[p])stats[p]={games:0,wins:0,lasts:0};
-        stats[p].games++;
-        if(winners.includes(p))stats[p].wins++;
-        if(lastPlayers.includes(p))stats[p].lasts++;
+        if(forTallies){
+          stats[p].games++;
+          if(winners.includes(p))stats[p].wins++;
+          if(lastPlayers.includes(p)) stats[p].lasts++;
+        }
       });
 
       // Per-match totals: only if player has at least one LEGIT (non-joinBonus) round
-      playersInMatch.forEach(p=>{
+      if(forScores) playersInMatch.forEach(p=>{
         const score=h.totals[p];
         const hasLegit = h.rounds?.some(round => round.scores[p]!==undefined && !(round.joinBonus?.[p]) && !BPGScorebook.isSyntheticAdjustmentRound(round));
         if(!hasLegit || assisted) return;
@@ -20680,6 +20843,7 @@ ${isDealer
                 r.Overall.biggestComebackExtraPlayer=p;
               }
             }
+            if(!forScores) return;
             if(h.game==='Wizard'){
               if(score>r.Wizard.bestRound){r.Wizard.bestRound=score;r.Wizard.bestRoundPlayer=p;}
               if(score<r.Wizard.worstRound){r.Wizard.worstRound=score;r.Wizard.worstRoundPlayer=p;}
@@ -20747,7 +20911,7 @@ ${isDealer
     } else {
       _matchAllTimeRecordsSnap = null;
     }
-    const completed = history.filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
+    const completed = history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0&&(BPGScorebook.countsForTallies(h)||BPGScorebook.countsForScoreMagnitude(h)||historyRowHasEvents(h)));
     const chrono = completed.slice().sort(compareMatchesOldestFirst);
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
     const players = {};
@@ -20796,6 +20960,20 @@ ${isDealer
       ? BPGRecords.singleMatchBidRateEligible
       : (total) => (Number(total) || 0) >= 5;
     const update = (obj,key,next,better) => { if(next) obj[key]=keepTies(obj[key], next, better); };
+    const noteExtras = (h) => {
+      const counts = {};
+      (h.rounds||[]).forEach(r=>{
+        Object.entries((r&&r.comeback)||{}).forEach(([p, raw])=>{
+          const extra = Number(raw)||0;
+          if(!extra) return;
+          counts[p]=(counts[p]||0)+1;
+          update(allTime,'biggestComebackExtra',entry(p,Math.abs(extra),h,{label:`${extra>0?'+':''}${extra} extra`}),betterHigh);
+        });
+      });
+      Object.entries(counts).forEach(([p,n])=>{
+        if(n>0) update(allTime,'mostComebackExtras',entry(p,n,h,{label:`${n} Comeback extras`}),betterHigh);
+      });
+    };
     // Average swing per round: mean absolute deviation from the player's mean round score.
     const averageSwingPerRound = (nums) => {
       if(!nums.length) return 0;
@@ -20833,6 +21011,8 @@ ${isDealer
     };
 
     chrono.forEach(h=>{
+      const forTallies = BPGScorebook.countsForTallies(h);
+      const forScores = BPGScorebook.countsForScoreMagnitude(h);
       const cfg = configs[h.game];
       const sorted = sortedFor(h);
       if(!sorted.length) return;
@@ -20844,35 +21024,42 @@ ${isDealer
         ? BPGRecords.matchSitters(h, careerCountOptions())
         : [...new Set(sorted.concat(h.retired||[]))];
       const assisted = BPGScorebook.isAssistedMatch(h);
-      const fullGame = typeof BPGScorebook.isFullGame==='function' ? BPGScorebook.isFullGame(h) : true;
-      if(!games._coverage) games._coverage={};
-      if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
-      games._coverage[h.game][assisted?'assisted':'unassisted']++;
+      const fullGame = forScores;
+      if(forTallies || forScores){
+        if(!games._coverage) games._coverage={};
+        if(!games._coverage[h.game]) games._coverage[h.game]={assisted:0,unassisted:0};
+        games._coverage[h.game][assisted?'assisted':'unassisted']++;
+      }
       sitters.forEach((p)=>{
         const ps = ensurePlayer(p);
         const won = winners.includes(p);
         const finisher = sorted.includes(p);
         const last = finisher && lastPlayers.includes(p);
         const pos = finisher ? sorted.indexOf(p)+1 : 0;
-        ps.games++; ps.wins += won?1:0;
-        if(last) ps.lasts++;
+        if(forTallies){
+          ps.games++; ps.wins += won?1:0;
+          const tallyGame = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
+          tallyGame.games++; tallyGame.wins += won?1:0;
+          if(last) ps.lasts++;
+          ps.lastGameId = h.id||ps.lastGameId;
+          ps.currentType = won ? 'W' : 'L';
+          ps.currentCount = (won ? ps.curWin : ps.curLoss) + 1;
+          ps.curWin = won ? ps.curWin+1 : 0; ps.curLoss = won ? 0 : ps.curLoss+1;
+          ps.longestWin = Math.max(ps.longestWin, ps.curWin);
+          ps.longestLoss = Math.max(ps.longestLoss, ps.curLoss);
+          update(allTime,'longestWinningStreak',entry(p,ps.curWin,h),betterHigh);
+          update(allTime,'longestLosingStreak',entry(p,ps.curLoss,h),betterHigh);
+        }
+        if(!forScores) return;
         if(pos) ps.positions.push({pos,game:h.game,date:h.date,id:h.id});
-        ps.lastGameId = h.id||ps.lastGameId;
-        ps.currentType = won ? 'W' : 'L';
-        ps.currentCount = (won ? ps.curWin : ps.curLoss) + 1;
-        ps.curWin = won ? ps.curWin+1 : 0; ps.curLoss = won ? 0 : ps.curLoss+1;
         if(finisher){
           ps.curNoLast = last ? 0 : ps.curNoLast+1; ps.curLast = last ? ps.curLast+1 : 0;
+          ps.longestNoLast = Math.max(ps.longestNoLast, ps.curNoLast);
+          ps.longestLast = Math.max(ps.longestLast, ps.curLast);
+          update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         }
-        ps.longestWin = Math.max(ps.longestWin, ps.curWin);
-        ps.longestLoss = Math.max(ps.longestLoss, ps.curLoss);
-        ps.longestNoLast = Math.max(ps.longestNoLast, ps.curNoLast);
-        ps.longestLast = Math.max(ps.longestLast, ps.curLast);
-        update(allTime,'longestWinningStreak',entry(p,ps.curWin,h),betterHigh);
-        update(allTime,'longestLosingStreak',entry(p,ps.curLoss,h),betterHigh);
-        if(finisher) update(allTime,'longestNoLastStreak',entry(p,ps.curNoLast,h),betterHigh);
         const bg = ps.byGame[h.game] || (ps.byGame[h.game]=blankByGame());
-        bg.games++; bg.wins += won?1:0; if(pos) bg.posSum += pos;
+        if(pos) bg.posSum += pos;
         if(finisher && !assisted && fullGame){
           const scoreEntry = entry(p,h.totals[p],h);
           if(!bg.best || (cfg.winLow ? scoreEntry.value < bg.best.value : scoreEntry.value > bg.best.value)) bg.best = scoreEntry;
@@ -20880,12 +21067,18 @@ ${isDealer
         }
       });
 
-      for(let i=0;i<sorted.length;i++){
-        for(let j=i+1;j<sorted.length;j++){
-          const a=sorted[i], b=sorted[j], sa=h.totals[a], sb=h.totals[b];
-          const winner = sa===sb ? null : (cfg.winLow ? (sa<sb?a:b) : (sa>sb?a:b));
-          addPair(a,b,h,winner);
+      if(forTallies){
+        for(let i=0;i<sorted.length;i++){
+          for(let j=i+1;j<sorted.length;j++){
+            const a=sorted[i], b=sorted[j], sa=h.totals[a], sb=h.totals[b];
+            const winner = sa===sb ? null : (cfg.winLow ? (sa<sb?a:b) : (sa>sb?a:b));
+            addPair(a,b,h,winner);
+          }
         }
+      }
+      if(!forScores){
+        noteExtras(h);
+        return;
       }
 
       if(winners.length){

@@ -48,7 +48,9 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
   await page.getByRole('button', {name: 'Save & End', exact: true}).click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#game-screen')).toHaveClass(/hidden/);
 

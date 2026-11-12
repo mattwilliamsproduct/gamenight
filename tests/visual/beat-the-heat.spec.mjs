@@ -36,7 +36,7 @@ test('Beat the Heat shows Match Complete when a player already has 66+ heat',asy
   await expect(page.locator('#game-over-section')).toBeVisible();
   await expect(page.locator('#game-over-copy')).toHaveText('Someone reached 66 heat. The match is over.');
   await expect(page.locator('#submit-section')).toBeHidden();
-  await expect(page.getByRole('button',{name:'End Match & See Winner'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Leave game'})).toBeVisible();
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(67);
 });
 
@@ -65,8 +65,10 @@ test('Beat the Heat auto-ends at 66 and continues through winner, loser, and met
   await expect(page.locator('#game-over-copy')).toHaveText('Someone reached 66 heat. The match is over.');
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(66);
 
-  await page.getByRole('button',{name:'End Match & See Winner'}).click();
-  await page.locator('#end-match-confirm').click();
+  await page.getByRole('button',{name:'Leave game'}).click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#victory-names')).toContainText('Mike');
 

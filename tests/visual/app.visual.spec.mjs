@@ -1014,7 +1014,9 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   expect(await page.locator('#sudden-death-modal').count(),'the removed tiebreaker UI should not exist').toBe(0);
 
   await page.getByRole('button',{name:'Save & End',exact:true}).click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#victory-names')).toHaveText(/Everyone tied/i);
   const winners = await page.evaluate(() => ((typeof history !== 'undefined' && history[0] && history[0].winners) || []).slice().sort());

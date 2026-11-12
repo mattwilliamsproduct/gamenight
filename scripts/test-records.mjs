@@ -407,7 +407,7 @@ test('addendum labels stay relabel-only', () => {
   assert.match(nights, /Resume/);
 });
 
-test('Life Preserver totals skip incomplete matches and stay per game', () => {
+test('Life Preserver totals include a paused night and stay per game', () => {
   const done = {
     game: '818',
     date: '10/19/2026',
@@ -421,8 +421,7 @@ test('Life Preserver totals skip incomplete matches and stay per game', () => {
   };
   const open = {...done, completed: false, game: 'Wizard'};
   const events = Records.lifePreserverEvents([done, open], helpers);
-  assert.equal(events.length, 1);
-  assert.equal(events[0].game, '818');
+  assert.deepEqual(events.map((event) => event.game).sort(), ['818', 'Wizard']);
   const summary = Records.lifePreserverSummary([
     {player: 'Duke', game: '818', adjustment: 12, placesGained: 1},
     {player: 'Duke', game: 'Wizard', adjustment: 8, placesGained: 1}
@@ -575,11 +574,17 @@ test('demo career wins sum from completed nights, including ties and assisted', 
   assert.match(tally.rule, /One counting rule/);
   assert.match(tally.rule, /Every tied winner gets a win/);
   assert.match(tally.rule, /never a winner/);
-  assert.equal(tally.counted, 23);
-  assert.equal(tally.winSum, 29);
+  assert.equal(tally.counted, 5);
+  assert.equal(tally.winSum, 5);
   assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
-  assert.equal(tally.rows.some((row) => row.counts && row.assisted), true);
-  assert.equal(tally.rows.filter((row) => row.counts && row.tied).reduce((sum, row) => sum + row.winners.length, 0) > 0, true);
+  assert.equal(tally.rows.some((row) => row.assisted && !row.counts), true);
+  const assisted = book.history.find((row) => row.id === 1786100000008);
+  const countedAssisted = Records.careerWinTally([{...assisted, countResult: true}], {scorebook: Scorebook});
+  assert.equal(countedAssisted.counted, 1);
+  assert.equal(countedAssisted.winSum, 3);
+  const tied = book.history.find((row) => row.id === 1784390400000);
+  const countedTie = Records.careerWinTally([{...tied, countResult: true}], {scorebook: Scorebook});
+  assert.equal(countedTie.winSum, 2);
 });
 
 test('Passport career stats equal the per-match tally for every demo player', () => {
@@ -595,6 +600,7 @@ test('Passport career stats equal the per-match tally for every demo player', ()
 test('tied winners each get a win on the shared career function', () => {
   const match = {
     game: 'Flip 7 Vengeance',
+    outcome: 'finished',
     completed: true,
     totals: {Ada: 40, Beau: 40, Cy: 10},
     winners: ['Ada', 'Beau'],
@@ -620,6 +626,7 @@ test('unfinished nights are excluded from wins, win %, and games', () => {
     },
     {
       game: 'Five Crowns',
+      outcome: 'finished',
       completed: true,
       totals: {Ada: 10, Beau: 8},
       winners: ['Beau'],
@@ -639,6 +646,7 @@ test('unfinished nights are excluded from wins, win %, and games', () => {
 test('left-early player who would have won is not a winner; remaining finishers win', () => {
   const match = {
     game: 'Five Crowns',
+    outcome: 'finished',
     completed: true,
     totals: {Ada: 4, Beau: 10, Cy: 12},
     winners: ['Ada'],
@@ -663,5 +671,5 @@ test('demo Rook night has a left-early player and does not change the stored win
   assert.deepEqual(Records.eligibleWinners(rook, {scorebook: Scorebook}).slice().sort(), ['Nora', 'Owen']);
   const theo = Records.playerCareerStats([rook], {scorebook: Scorebook, player: 'Theo'});
   assert.equal(theo.wins, 0);
-  assert.equal(theo.games, 1);
+  assert.equal(theo.games, 0);
 });

@@ -705,6 +705,104 @@
     return match.completed === true && !isFullGame(match);
   }
 
+  // 999 is the open-ended sentinel (Flip 7, Rook, Beat the Heat). It is not a round target.
+  const OPEN_ROUND_SENTINEL = 999;
+
+  function storedRoundTarget(match) {
+    const stored = Number(match && match.maxRounds);
+    if (Number.isFinite(stored) && stored > 0 && stored < OPEN_ROUND_SENTINEL) return stored;
+    return null;
+  }
+
+  function storedScoreTarget(match) {
+    const end = Number(match && match.endScore);
+    if (Number.isFinite(end) && end > 0) return end;
+    const rook = Number(match && match.rookConfig && match.rookConfig.winTarget);
+    if (Number.isFinite(rook) && rook > 0) return rook;
+    return null;
+  }
+
+  function anyActiveTotalAtLeast(match, score) {
+    const retired = new Set((match && match.retired) || []);
+    const totals = (match && match.totals) || {};
+    return Object.keys(totals).some((player) => (
+      player && !retired.has(player) && (Number(totals[player]) || 0) >= score
+    ));
+  }
+
+  // 'finished' when a stored rule is met, 'short' when a stored rule is missed, null when no rule is stored.
+  // Today's config targets are not applied here. Flip 7 and Rook stay unknown unless the row saved a target.
+  function completionFromSavedRules(match) {
+    if (!match || typeof match !== 'object') return null;
+    const rounds = storedRoundTarget(match);
+    const score = storedScoreTarget(match);
+    if (rounds == null && score == null) return null;
+    const roundsMet = rounds != null && scoringRoundCount(match.rounds || []) >= rounds;
+    const scoreMet = score != null && anyActiveTotalAtLeast(match, score);
+    return (roundsMet || scoreMet) ? 'finished' : 'short';
+  }
+
+  function resolveOutcome(match) {
+    if (!match || typeof match !== 'object') return 'uncertain';
+    const stored = match.outcome;
+    if (stored === 'finished' || stored === 'paused' || stored === 'ended_early' || stored === 'uncertain') return stored;
+    if (match.completed === false) return 'paused';
+    const known = completionFromSavedRules(match);
+    if (known === 'finished') return 'finished';
+    if (known === 'short') return 'ended_early';
+    return 'uncertain';
+  }
+
+  function resultIsCounted(match) {
+    return !!(match && (match.countResult === true || match.countOverride === true));
+  }
+
+  function isCompleteGame(match) {
+    return resolveOutcome(match) === 'finished';
+  }
+
+  // Wins, games played, win rate, and win/loss streak. A counted early or uncertain result is included. A pause is not.
+  function countsForTallies(match) {
+    const outcome = resolveOutcome(match);
+    if (outcome === 'finished') return true;
+    if (outcome === 'ended_early' || outcome === 'uncertain') return resultIsCounted(match);
+    return false;
+  }
+
+  function countsForResults(match) {
+    return countsForTallies(match);
+  }
+
+  // Full-game score records. Counting a winner does not make a partial total eligible.
+  function countsForScoreMagnitude(match) {
+    return resolveOutcome(match) === 'finished';
+  }
+
+  function endedEarlyLabel(match) {
+    const outcome = resolveOutcome(match);
+    if (outcome === 'ended_early') {
+      const rounds = storedRoundTarget(match);
+      if (rounds != null) {
+        const played = scoringRoundCount((match && match.rounds) || []);
+        return `Ended early, ${played} of ${rounds} rounds`;
+      }
+      return 'Ended early';
+    }
+    if (outcome === 'uncertain') return 'Needs review';
+    return '';
+  }
+
+  function showCountResult(match) {
+    const outcome = resolveOutcome(match);
+    return outcome === 'ended_early' || outcome === 'uncertain';
+  }
+
+  function needsCountDecision(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (resolveOutcome(match) === 'paused') return false;
+    return completionFromSavedRules(match) !== 'finished';
+  }
+
   function syncAssistedMatch(game) {
     if (!game || typeof game !== 'object') return false;
     game.assistedMatch = appliedLifePreserverRemains(game);
@@ -1236,6 +1334,18 @@
     isFullGame,
     isEndedEarlyMatch,
     expectedFullRoundCount,
+    storedRoundTarget,
+    storedScoreTarget,
+    completionFromSavedRules,
+    resolveOutcome,
+    resultIsCounted,
+    isCompleteGame,
+    countsForTallies,
+    countsForResults,
+    countsForScoreMagnitude,
+    endedEarlyLabel,
+    showCountResult,
+    needsCountDecision,
     missingBidsMessage,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,

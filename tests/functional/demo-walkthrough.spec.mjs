@@ -72,7 +72,9 @@ test('demo walkthrough: start, score, correct, end, resume, records', async ({pa
     const row = (data.allTime.mostWins || []).find((item) => item.player === ((currentGame.originalRoster || [])[0]));
     return row ? row.value : 0;
   });
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await page.waitForFunction(() => !currentGame, null, {timeout: 15000});
   report.endMatch = await page.evaluate(() => !currentGame && (history || []).some((row) => row && row.game === 'Flip 7 Vengeance' && row.completed !== false));
 

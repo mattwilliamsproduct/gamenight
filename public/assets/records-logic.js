@@ -415,9 +415,10 @@
     const scorebook = helpers.scorebook;
     const incomplete = !isCompletedMatch(match, scorebook);
     const assisted = isAssistedMatch(match, scorebook);
-    const endedEarly = !incomplete && scorebook && typeof scorebook.isEndedEarlyMatch === 'function'
-      ? scorebook.isEndedEarlyMatch(match)
-      : (!incomplete && match.endedEarly === true);
+    const endedEarlyLabel = scorebook && typeof scorebook.endedEarlyLabel === 'function'
+      ? scorebook.endedEarlyLabel(match)
+      : '';
+    const endedEarly = !!endedEarlyLabel;
     const winners = incomplete ? [] : eligibleWinners(match, {
       scorebook: scorebook,
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
@@ -432,6 +433,11 @@
       evening: eveningLabel(match),
       incomplete,
       endedEarly,
+      endedEarlyLabel,
+      countOverride: match.countResult === true || match.countOverride === true,
+      showCountToggle: !incomplete && scorebook && typeof scorebook.showCountResult === 'function'
+        ? scorebook.showCountResult(match)
+        : (!incomplete && !!endedEarlyLabel),
       assisted,
       retired: (match.retired || []).filter(Boolean),
       throughRound: throughRound(match, scorebook),
@@ -474,7 +480,7 @@
   function lifePreserverEvents(history, helpers) {
     const events = [];
     (history || []).forEach((match) => {
-      if (!isCompletedMatch(match, helpers && helpers.scorebook)) return;
+      if (!match || !Array.isArray(match.rounds)) return;
       (match.rounds || []).forEach((round, index) => {
         if (!round || !round.hailMaryBonus) return;
         Object.entries(round.scores || {}).forEach(([player, raw]) => {
@@ -639,12 +645,12 @@
   }
 
   const CAREER_WIN_RULE = [
-    'One counting rule for Passports, Records, wins, win %, streaks, and games.',
-    'A night counts only when it is finished (completed is not false), the game is on the shelf, totals exist, and at least one stored round exists.',
-    'Unfinished, incomplete, and reopened-not-completed nights do not count for wins, win %, or games.',
-    'Assisted nights still count for wins and games; they only skip unassisted best-score records.',
+    'One counting rule for wins, win %, win streak, and games played.',
+    'A finished night counts. An ended-early or needs-review night counts only when Count this result is on. A paused night does not.',
+    'Counting that result never makes the partial total a full-game score record.',
+    'Assisted nights can still count for wins and games; they skip unassisted best-score records.',
     'Every tied winner gets a win.',
-    'A player marked left early keeps their scores and the game, but is never a winner, even if their total would otherwise win.',
+    'A player marked left early keeps their scores, but is never a winner, even if their total would otherwise win.',
     'If that leaves no stored winner, the remaining finishers’ scores decide the winner(s).'
   ].join(' ');
 
@@ -696,16 +702,33 @@
     return names.filter((name) => totals[name] !== undefined);
   }
 
-  function isCareerCountableMatch(match, options) {
-    const scorebook = options && options.scorebook;
+  function careerShape(match, options) {
     const gameScope = options && options.gameScope;
     const known = new Set(GAMES.map((game) => game.id));
-    const completed = isCompletedMatch(match, scorebook);
-    const hasTotals = !!(match && match.totals && typeof match.totals === 'object');
-    const hasRounds = Array.isArray(match && match.rounds) && match.rounds.length > 0;
-    const knownGame = !!(match && known.has(match.game));
-    const inScope = !gameScope || match.game === gameScope;
-    return !!(completed && hasTotals && hasRounds && knownGame && inScope);
+    return {
+      hasTotals: !!(match && match.totals && typeof match.totals === 'object'),
+      hasRounds: Array.isArray(match && match.rounds) && match.rounds.length > 0,
+      knownGame: !!(match && known.has(match.game)),
+      inScope: !gameScope || (match && match.game === gameScope)
+    };
+  }
+
+  function isCareerCountableMatch(match, options) {
+    const scorebook = options && options.scorebook;
+    const shape = careerShape(match, options);
+    const tallies = scorebook && typeof scorebook.countsForTallies === 'function'
+      ? scorebook.countsForTallies(match)
+      : isCompletedMatch(match, scorebook);
+    return !!(tallies && shape.hasTotals && shape.hasRounds && shape.knownGame && shape.inScope);
+  }
+
+  function isScoreMagnitudeMatch(match, options) {
+    const scorebook = options && options.scorebook;
+    const shape = careerShape(match, options);
+    const scores = scorebook && typeof scorebook.countsForScoreMagnitude === 'function'
+      ? scorebook.countsForScoreMagnitude(match)
+      : isCompletedMatch(match, scorebook);
+    return !!(scores && shape.hasTotals && shape.hasRounds && shape.knownGame && shape.inScope);
   }
 
   function gameWinLow(gameId) {
@@ -777,6 +800,7 @@
       else if (!hasRounds) reason = 'no-rounds';
       else if (!hasTotals) reason = 'no-totals';
       else if (!knownGame) reason = 'unknown-game';
+      else if (!counts) reason = 'not-counted';
       rows.push({
         id: match && match.id,
         game: match && match.game,
@@ -1165,8 +1189,8 @@
       <section class="s2-panel">
         <div class="s2-panel-head"><h2>Explore records</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
         <div class="s2-records-filters">
-          <label>Game <select id="s2-records-game" data-s2-action="filter-game">${gameOptions}</select></label>
-          <label>Player <select id="s2-records-player" data-s2-action="filter-player">${playerOptions}</select></label>
+          <label>Game <select id="s2-records-game" class="bp-select" data-s2-action="filter-game">${gameOptions}</select></label>
+          <label>Player <select id="s2-records-player" class="bp-select" data-s2-action="filter-player">${playerOptions}</select></label>
         </div>
       </section>
       <div class="s2-explore-grid"><div class="s2-explore-side">${side}</div>${games}</div>
@@ -1437,7 +1461,7 @@
         <div class="s2-rival-person">${avatar(pair.b, 'avatar-img s2-mini-avatar')}${playerLink(pair.b, esc, avatar)}<strong>${esc(String(pair.bWins))}</strong></div>
       </div>
       <p class="s2-sub">${esc(lead.text)}${esc(ties)} · ${esc(String(pair.together))} shared matches</p>
-      ${options ? `<label class="s2-rival-pick">Pick another pairing <select data-s2-action="filter-pair">${options}</select></label>` : ''}
+      ${options ? `<label class="s2-rival-pick">Pick another pairing <select class="bp-select" data-s2-action="filter-pair">${options}</select></label>` : ''}
     </article>`;
   }
 
@@ -1489,11 +1513,10 @@
     const shown = shownFinishers.concat(leftAll);
     const more = finishersAll.length - shownFinishers.length;
     const names = (model.standings || []).map((row) => row.name).filter(Boolean).slice(0, 6).join(', ');
+    const earlyText = model.endedEarlyLabel || '';
     const meta = model.incomplete
-      ? `Incomplete · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
-      : (model.endedEarly
-        ? `Ended early · through Round ${model.throughRound}`
-        : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
+      ? `Incomplete${earlyText ? ` · ${earlyText}` : ''} · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
+      : (earlyText || `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
       model.assisted ? '<span class="s2-night-badge">Assisted</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
@@ -1525,6 +1548,9 @@
     const resume = model.showResume
       ? `<button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${id}">Resume</button>`
       : '';
+    const countToggle = model.showCountToggle
+      ? `<button type="button" class="s2-btn" data-s2-action="count-toggle" data-s2-id="${id}" data-count-override="${model.countOverride ? 'true' : 'false'}">${model.countOverride ? 'Counting this result' : 'Count this result'}</button>`
+      : '';
     return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.winners.length > 1 ? ' is-joint' : ''}"${model.assisted ? ' data-assisted-match="true"' : ''} data-s2-action="night-open" data-s2-id="${id}">
       <header class="s2-night-head">
         ${gameThumbnailHtml(model.game, 's2-game-thumb s2-night-thumb')}
@@ -1538,6 +1564,7 @@
       ${expand}
       <div class="s2-night-actions">
         <button type="button" class="s2-btn" data-s2-action="night-scorecard" data-s2-id="${id}">View scorecard</button>
+        ${countToggle}
         ${resume}
       </div>
     </article>`;
@@ -1579,6 +1606,7 @@
     leftEarlyNames,
     matchSitters,
     isCareerCountableMatch,
+    isScoreMagnitudeMatch,
     eligibleWinners,
     careerEligibleWinners,
     playerWonMatch,

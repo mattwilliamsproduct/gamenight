@@ -10,6 +10,10 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 
 `gate-log.md` in this folder is the append-only Gate B and Gate C log. It is not a lesson note. Column rules are in `docs/jev-gates.md`.
 
+Standing trap: [select-chevron.md](select-chevron.md) — one `select.bp-select` chevron, 14px in from the right. Do not draw a second arrow per screen.
+
+Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave game choice. A counted partial total stays out of full-game score records. History does not inherit today's targets.
+
 Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals skip to the next place. The scoreboard uses the page width and caps row height.
 
 Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player is off on the MVP. The ceiling-average start lives on the fast-follow branch.

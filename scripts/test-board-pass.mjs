@@ -16,7 +16,10 @@ test('scoreboard header, tiles, and Life Preserver cells stay on the porch type'
   assert.match(js, /updateNavButton\(\)/);
   assert.match(html, /function goHome\(\)\{[^}]*updateNavButton\(\)/);
   assert.match(html, /id="actions-save-end"/);
-  assert.match(html, /End the night/);
+  assert.match(html, /Leave game/);
+  assert.match(html, /id="leave-save-later"/);
+  assert.match(html, /id="leave-end-now"/);
+  assert.match(html, /id="leave-keep-playing"/);
   assert.doesNotMatch(html, /class="btn-ghost match-end-btn/);
   assert.match(html, /entered\?' is-entered':''/);
   assert.match(css, /background: #e8e3da !important/);

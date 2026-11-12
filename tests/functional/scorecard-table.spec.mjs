@@ -110,8 +110,8 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
   await page.locator('#actions-btn').click();
   await page.locator('#actions-menu .match-end-btn').click();
   await expect(page.locator('#end-match-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#end-match-copy')).toContainText(/still in progress|finished night|Records/);
-  await page.locator('#end-match-cancel').click();
+  await expect(page.locator('#leave-keep-playing')).toBeVisible();
+  await page.locator('#leave-keep-playing').click();
   await expect(page.locator('#end-match-modal')).toHaveClass(/hidden/);
   const afterCancel = await page.evaluate(() => ({
     name: currentGame?.name,
@@ -124,7 +124,9 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
 
   await page.locator('#actions-btn').click();
   await page.locator('#actions-menu .match-end-btn').click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   const after = await page.evaluate(() => ({
     current: currentGame,

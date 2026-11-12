@@ -427,10 +427,12 @@ html.slice2-tv .s2-rules-picker {
 html.slice2-tv .s2-rules-select {
   min-height: 44px;
   max-width: 100%;
-  padding: 0.4rem 0.7rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  padding-left: 0.7rem;
   border-radius: 12px;
   border: 1.5px solid var(--s2-line);
-  background: var(--s2-card);
+  background-color: var(--s2-card);
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-size: 0.85rem;
@@ -3452,9 +3454,10 @@ html.slice2-tv .s2-rival-pick select {
   min-height: 44px;
   border: 1.5px solid var(--s2-line);
   border-radius: 10px;
-  background: #fff;
+  background-color: #fff;
   color: var(--s2-ink);
   font-weight: 800;
+  padding-left: 0.7rem;
 }
 html.slice2-tv .s2-assisted-note {
   margin: 4px 0 0;
@@ -3668,10 +3671,12 @@ html.slice2-tv .s2-records-filters label {
 html.slice2-tv .s2-records-filters select {
   min-width: 10rem;
   min-height: 44px;
-  padding: 0.45rem 0.7rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  padding-left: 0.7rem;
   border: 1px solid var(--s2-line);
   border-radius: 10px;
-  background: #fffaf4;
+  background-color: #fffaf4;
   color: var(--s2-ink);
   font-family: "Nunito Sans", sans-serif;
   font-size: 1rem;

@@ -50,14 +50,16 @@ test('90s rehearsal: start last hand, correct, finish, Records agree', async ({p
   expect(after.June).toBe(38);
   expect(after.Theo).toBe(41);
   await page.screenshot({path: `${STRIP}/03-corrected.png`});
-  const endMatch = page.locator('#game-over-section button').filter({hasText: /End Match/});
+  const endMatch = page.locator('#game-over-section button').filter({hasText: /Leave game/});
   if (await endMatch.count()) await endMatch.first().click();
   else {
     await page.locator('#actions-btn').click();
     await page.locator('#actions-menu .match-end-btn').click();
   }
-  await expect(page.locator('#end-match-confirm')).toBeVisible({timeout: 5000});
-  await page.locator('#end-match-confirm').click();
+  await expect(page.locator('#leave-end-now')).toBeVisible({timeout: 5000});
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#victory-names')).toContainText(/June/i);
   await page.screenshot({path: `${STRIP}/04-victory.png`});

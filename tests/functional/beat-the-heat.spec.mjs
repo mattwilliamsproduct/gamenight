@@ -26,6 +26,6 @@ test('Beat the Heat shows Match Complete when a player already has 66+ heat', as
   await expect(page.locator('#game-over-section')).toBeVisible();
   await expect(page.locator('#game-over-copy')).toHaveText('Someone reached 66 heat. The match is over.');
   await expect(page.locator('#submit-section')).toBeHidden();
-  await expect(page.getByRole('button',{name:'End Match & See Winner'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Leave game'})).toBeVisible();
   expect(await page.evaluate(()=>currentGame.totals.Megan)).toBe(67);
 });

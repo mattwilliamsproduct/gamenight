@@ -161,10 +161,12 @@ export async function playFourRounds(page, kind){
 }
 
 export async function endMatch(page){
-  await page.getByRole('button', {name:/End Match/}).click();
-  const confirm=page.locator('#end-match-confirm');
+  await page.getByRole('button', {name:/Leave game/}).click();
+  const confirm=page.locator('#leave-end-now');
   await expect(confirm).toBeVisible();
   await confirm.click();
+  const count=page.locator('#leave-count-yes');
+  if(await count.isVisible().catch(()=>false)) await count.click();
 }
 
 export async function editFirstRoundCardsLeft(page, cellId){

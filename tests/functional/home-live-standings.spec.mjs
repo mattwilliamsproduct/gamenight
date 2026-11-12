@@ -338,14 +338,14 @@ test('parking an in-progress match leaves records alone and resume restores it',
 
   await page.locator('.s2-home-start [data-s2-game="Wizard"]').click();
   await page.locator('#slice2-start-btn').click();
-  await expect(page.locator('.s2-another-ask')).toContainText('Five Crowns (Round 10 of 11) will be saved as unfinished. You can resume it later.');
-  await page.locator('.s2-another-ask [data-s2-action="another-cancel"]').click();
-  await expect(page.locator('.s2-another-ask')).toHaveCount(0);
+  await expect(page.locator('#end-match-copy')).toContainText('unfinished and resumable');
+  await page.locator('#leave-keep-playing').click();
+  await expect(page.locator('#end-match-modal')).toHaveClass(/hidden/);
   const untouched = await page.evaluate(() => currentGame && currentGame.id);
   expect(untouched).toBe(77);
 
   await page.locator('#slice2-start-btn').click();
-  await page.locator('[data-s2-action="another-confirm"]').click();
+  await page.locator('#leave-save-later').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/, {timeout: 15000});
   const parked = await page.evaluate(() => {
     const row = history.find((match) => match && match.id === 77);

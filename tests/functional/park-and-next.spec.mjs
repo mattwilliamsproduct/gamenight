@@ -37,13 +37,14 @@ test('a parked match is still there after reload and a closed page', async ({pag
   });
   await page.locator('.s2-home-start [data-s2-game="Beat the Heat"]').click();
   await page.locator('#slice2-start-btn').click();
-  await page.locator('[data-s2-action="another-confirm"]').click();
+  await expect(page.locator('#leave-save-later')).toBeVisible();
+  await page.locator('#leave-save-later').click();
   await page.waitForFunction(() => currentGame && currentGame.name === 'Beat the Heat');
   const stored = await page.evaluate(() => {
     const row = JSON.parse(localStorage.getItem('gn_history') || '[]').find((match) => match && match.id === 77);
-    return row && {completed: row.completed, scores: row.rounds[0].scores, winners: row.winners};
+    return row && {completed: row.completed, outcome: row.outcome, scores: row.rounds[0].scores, winners: row.winners};
   });
-  expect(stored).toEqual({completed: false, scores: {Ava: 20, Ben: 5, Cora: 10}, winners: []});
+  expect(stored).toEqual({completed: false, outcome: 'paused', scores: {Ava: 20, Ben: 5, Cora: 10}, winners: []});
 
   await page.reload({waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => currentGame && currentGame.name === 'Beat the Heat');

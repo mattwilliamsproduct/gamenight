@@ -296,7 +296,7 @@
       </div>
       <div class="s2-board-actions">
         <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
-        <button type="button" class="s2-btn" id="slice2-end-btn" data-s2-action="save-end">Save &amp; End</button>
+        <button type="button" class="s2-btn" id="slice2-end-btn" data-s2-action="save-end" aria-label="Leave game">Leave game</button>
       </div>`;
   }
 
@@ -310,7 +310,12 @@
     }
     const endBtn = document.querySelector('#actions-menu .match-end-btn');
     if (endBtn) {
-      endBtn.title = 'Save the standings to Records and clear the live table.';
+      endBtn.title = 'Leave game. Save for later, end the game, or keep playing.';
+    }
+    const leave = document.getElementById('slice2-end-btn');
+    if (leave) {
+      leave.textContent = phoneScoreboard() ? 'Leave' : 'Leave game';
+      leave.setAttribute('aria-label', 'Leave game');
     }
     const scratch = document.querySelector('#actions-menu button[onclick*="scratchMatch"] span:last-child');
     if (scratch && !/discard/i.test(scratch.textContent || '')) {
@@ -541,7 +546,7 @@
                 : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start')}</p>
             </div>
             <label class="s2-rules-picker">
-              <select class="s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
+              <select class="bp-select s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
                 <option value="">Game Instructions</option>
                 ${picker.map((game) => `<option value="${escapeHtml(game.id)}">${escapeHtml(game.title)}</option>`).join('')}
               </select>
@@ -1262,12 +1267,7 @@
       anotherStep = null;
       startGame(selected);
     } else if (action === 'start-game') {
-      if (state().currentGame && !anotherParkOk) {
-        anotherStep = 'confirm';
-        paintHome();
-      } else {
-        startGame(selected);
-      }
+      startGame(selected);
     } else if (action === 'unfinished-all') {
       unfinishedOpen = true;
       paintHome();
@@ -1289,6 +1289,9 @@
     } else if (action === 'night-open' || action === 'night-scorecard') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof openScorecard === 'function') openScorecard(id);
+    } else if (action === 'count-toggle') {
+      const id = coerceMatchId(target.dataset.s2Id);
+      if (id != null && typeof toggleCountResult === 'function') toggleCountResult(id);
     } else if (action === 'night-resume') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof resumeMatch === 'function') resumeMatch(id);
@@ -1302,7 +1305,8 @@
     } else if (action === 'enter-round') {
       enterRound();
     } else if (action === 'save-end') {
-      if (typeof requestEndGame === 'function') requestEndGame();
+      if (typeof requestLeaveGame === 'function') requestLeaveGame();
+      else if (typeof requestEndGame === 'function') requestEndGame();
     } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
       setRecordsPane(action === 'show-shame' ? 'explore' : (action === 'show-nights' ? 'nights' : 'overview'));
     } else if (action === 'night-expand') {

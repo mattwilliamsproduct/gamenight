@@ -105,15 +105,15 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
   await mark('finish-and-records', async () => {
     const over = await page.evaluate(() => typeof isMatchOver === 'function' && isMatchOver(currentGame));
     expect(over, 'hand 11 finishes Five Crowns').toBe(true);
-    const endMatch = page.locator('#game-over-section button').filter({hasText: /End Match/});
+    const endMatch = page.locator('#game-over-section button').filter({hasText: /Leave game/});
     if (await endMatch.count()) await endMatch.first().click();
     else {
       await page.locator('#actions-btn').click();
       await page.locator('#actions-menu .match-end-btn').click();
     }
-    const confirm = page.locator('#end-match-confirm');
-    await expect(confirm).toBeVisible({timeout: 5000});
-    await confirm.click();
+    await expect(page.locator('#leave-count-yes')).toBeHidden();
+    await page.locator('#leave-end-now').click();
+    await expect(page.locator('#leave-count-yes')).toBeHidden();
     await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#victory-names')).toContainText(/June/i);
     await shot(page, '390-04-victory');
