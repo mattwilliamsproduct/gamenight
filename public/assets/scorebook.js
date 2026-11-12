@@ -1065,6 +1065,45 @@
     return name === 'Five Crowns' || name === 'Beat the Heat';
   }
 
+  // Canasta pairs share one score. Rank the teams, then give every partner that place.
+  // Two different team scores are 1st and 2nd, not 1st, 1st, 3rd, 3rd.
+  function canastaTeamPlaces(game, players) {
+    const name = gameName(game);
+    if (name !== 'Hand and Foot' && name !== 'Canasta') return null;
+    const sides = game && game.handFoot && Array.isArray(game.handFoot.sides) ? game.handFoot.sides : null;
+    if (!sides || !sides.length) return null;
+    const teams = sides
+      .map((side) => ({ members: (side && side.members || []).filter(Boolean) }))
+      .filter((side) => side.members.length >= 2);
+    if (!teams.length) return null;
+    const totals = (game && game.totals) || {};
+    const scoreOf = (side) => Number(totals[side.members[0]]) || 0;
+    const orderedTeams = teams.slice().sort((a, b) => scoreOf(b) - scoreOf(a));
+    const places = {};
+    const ordered = [];
+    const wanted = Array.isArray(players) && players.length ? new Set(players) : null;
+    let cursor = 0;
+    while (cursor < orderedTeams.length) {
+      const score = scoreOf(orderedTeams[cursor]);
+      let end = cursor + 1;
+      while (end < orderedTeams.length && scoreOf(orderedTeams[end]) === score) end++;
+      const rank = cursor + 1;
+      for (let i = cursor; i < end; i++) {
+        orderedTeams[i].members.forEach((member) => {
+          places[member] = rank;
+          if (!wanted || wanted.has(member)) ordered.push(member);
+        });
+      }
+      cursor = end;
+    }
+    if (wanted) {
+      players.forEach((player) => {
+        if (player && !ordered.includes(player)) ordered.push(player);
+      });
+    }
+    return { ordered, places, ranked: true };
+  }
+
   // The live scoreboard and Home standings both call this. Round 1 stays in
   // roster order with no places. After that, order is the scoreboard sort
   // (win direction, stable ties) and places are dense. A later ruleset can
@@ -1086,6 +1125,8 @@
       return { ordered, places: standing.places || {}, ranked: true };
     }
     if (round <= 1) return { ordered: list.slice(), places: null, ranked: false };
+    const teams = canastaTeamPlaces(game, list);
+    if (teams) return { ordered: teams.ordered, places: teams.places, ranked: true };
     const low = lowScoreWins(game);
     const totals = (game && game.totals) || {};
     const ordered = list.slice().sort((a, b) => (
@@ -1406,6 +1447,7 @@
     isCommaJoinedGhost,
     cleanupCommaJoinedGhosts,
     competitionPlaces,
+    canastaTeamPlaces,
     entryDigitCap,
     entryDigitLimit,
     unusualEntryFloor,

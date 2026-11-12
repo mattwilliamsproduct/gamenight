@@ -625,6 +625,31 @@ test('Passport career stats equal the per-match tally for every demo player', ()
   });
 });
 
+test('Canasta partners share a counted win and an uncounted night stays at zero', () => {
+  const match = {
+    game: 'Hand and Foot',
+    outcome: 'uncertain',
+    totals: {Ann: 11, Bo: 11, Cy: 6, Dee: 6},
+    winners: ['Ann'],
+    handFoot: {
+      format: 'teams',
+      sides: [{members: ['Ann', 'Bo']}, {members: ['Cy', 'Dee']}]
+    },
+    originalRoster: ['Ann', 'Bo', 'Cy', 'Dee'],
+    rounds: [{round: 1, scores: {Ann: 11, Bo: 11, Cy: 6, Dee: 6}}]
+  };
+  const rows = Records.nightStandings(match, helpers);
+  assert.deepEqual(rows.map((row) => [row.name, row.place]), [['Ann', 1], ['Bo', 1], ['Cy', 2], ['Dee', 2]]);
+  const hidden = Records.careerWinTally([match], {scorebook: Scorebook});
+  assert.equal(hidden.counted, 0);
+  const counted = Records.careerWinTally([{...match, countResult: true}], {scorebook: Scorebook});
+  assert.equal(counted.players.Ann.wins, 1);
+  assert.equal(counted.players.Bo.wins, 1);
+  assert.equal(counted.players.Cy.wins, 0);
+  assert.equal(counted.players.Dee.games, 1);
+  assert.equal(counted.players.Bo.games, 1);
+});
+
 test('tied winners each get a win on the shared career function', () => {
   const match = {
     game: 'Flip 7 Vengeance',

@@ -13025,7 +13025,7 @@ button.dealer-name-indicator .dealer-player-label {
     scoreMatches.forEach(h=>{
       const cfg=configs[h.game];
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const rank=competitionPlaces(sorted, h.totals)[name]||0;
+      const rank=matchPlaces(h, sorted)[name]||0;
       const s=ensureGameStats(h.game);
       s.posSum += rank||0;
       s.scoreGames++;
@@ -13056,7 +13056,7 @@ button.dealer-name-indicator .dealer-player-label {
       const ranks=scoreMatches.map(h=>{
         const cfg=configs[h.game];
         const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-        return competitionPlaces(sorted, h.totals)[name]||0;
+        return matchPlaces(h, sorted)[name]||0;
       }).filter(Boolean);
       summary.avgRank=ranks.length?ranks.reduce((sum,n)=>sum+n,0)/ranks.length:null;
     }
@@ -13335,7 +13335,7 @@ button.dealer-name-indicator .dealer-player-label {
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(sorted.length&&h.totals[name]===h.totals[sorted[sorted.length-1]]&&!(h.retired||[]).includes(name))lasts++;
-      const myRank=competitionPlaces(sorted, h.totals)[name]||0;
+      const myRank=matchPlaces(h, sorted)[name]||0;
       labels.push(`${h.game.split(' ')[0]}`); data.push(myRank);
     });
     const favoriteGame=summary.favoriteGame;
@@ -15423,6 +15423,13 @@ ${isDealer
 
   function competitionPlaces(sortedPlayers, totals){
     return BPGScorebook.competitionPlaces(sortedPlayers, totals);
+  }
+  function matchPlaces(game, sorted){
+    const teams=window.BPGScorebook&&typeof BPGScorebook.canastaTeamPlaces==='function'
+      ? BPGScorebook.canastaTeamPlaces(game, sorted)
+      : null;
+    if(teams) return teams.places;
+    return competitionPlaces(sorted, (game&&game.totals)||{});
   }
 
   function roundStandingPoints(round, player){
@@ -20674,7 +20681,7 @@ ${isDealer
     c.innerHTML=history.map(h=>{
       const cfg=configs[h.game]; if(!cfg)return '';
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
-      const places=competitionPlaces(sorted, h.totals);
+      const places=matchPlaces(h, sorted);
       const leftEarly=(h.retired||[]).filter(Boolean);
       const finisherRows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
         <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>

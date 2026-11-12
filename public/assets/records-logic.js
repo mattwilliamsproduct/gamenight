@@ -392,12 +392,16 @@
     const recorded = (source || []).filter((name) => name && !retiredSet.has(name));
     const sorted = helpers.sortPlayersByTotal(recorded, match.totals || {}, cfg)
       .filter((name) => name && !retiredSet.has(name));
-    const places = helpers.competitionPlaces(sorted, match.totals || {});
+    const team = helpers.scorebook && typeof helpers.scorebook.canastaTeamPlaces === 'function'
+      ? helpers.scorebook.canastaTeamPlaces(match, sorted)
+      : null;
+    const places = team ? team.places : helpers.competitionPlaces(sorted, match.totals || {});
+    const finishOrder = team ? team.ordered.filter((name) => sorted.includes(name)) : sorted;
     const winners = eligibleWinners(match, {
       scorebook: helpers && helpers.scorebook,
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
     });
-    const finishers = sorted.map((name) => ({
+    const finishers = finishOrder.map((name) => ({
       name,
       score: match.totals ? match.totals[name] : undefined,
       place: places[name],
@@ -785,12 +789,29 @@
     return finishers.filter((name) => (Number(totals[name]) || 0) === target);
   }
 
+  function withCanastaPartners(match, names) {
+    const sides = match && match.handFoot && Array.isArray(match.handFoot.sides) ? match.handFoot.sides : [];
+    const left = new Set(leftEarlyNames(match));
+    const out = names.slice();
+    names.forEach((name) => {
+      sides.forEach((side) => {
+        const members = (side && side.members || []).filter(Boolean);
+        if (!members.includes(name)) return;
+        members.forEach((member) => {
+          if (left.has(member) || out.includes(member)) return;
+          out.push(member);
+        });
+      });
+    });
+    return out;
+  }
+
   function eligibleWinners(match, options) {
     if (!isCompletedMatch(match, options && options.scorebook)) return [];
     const left = new Set(leftEarlyNames(match));
     const stored = uniqueNames(match && match.winners).filter((name) => !left.has(name));
-    if (stored.length) return stored;
-    return winnersFromFinishers(match, options);
+    if (stored.length) return withCanastaPartners(match, stored);
+    return withCanastaPartners(match, winnersFromFinishers(match, options));
   }
 
   function careerEligibleWinners(match, options) {

@@ -21,6 +21,32 @@ test('tied totals share a place and the next total skips', () => {
   });
 });
 
+test('Canasta team places are 1st and 2nd for both partners', () => {
+  const game = {
+    name: 'Hand and Foot',
+    currentRound: 2,
+    totals: {Ann: 11, Bo: 11, Cy: 6, Dee: 6},
+    handFoot: {
+      format: 'teams',
+      sides: [
+        {members: ['Ann', 'Bo']},
+        {members: ['Cy', 'Dee']}
+      ]
+    }
+  };
+  const standing = Scorebook.scoreboardStandings(game, ['Ann', 'Bo', 'Cy', 'Dee']);
+  assert.deepEqual(standing.places, {Ann: 1, Bo: 1, Cy: 2, Dee: 2});
+  assert.deepEqual(standing.ordered, ['Ann', 'Bo', 'Cy', 'Dee']);
+  const tied = Scorebook.canastaTeamPlaces({
+    name: 'Hand and Foot',
+    totals: {A: 10, B: 10, C: 10, D: 10, E: 4, F: 4},
+    handFoot: {sides: [{members: ['A', 'B']}, {members: ['C', 'D']}, {members: ['E', 'F']}]}
+  }, ['A', 'B', 'C', 'D', 'E', 'F']);
+  assert.deepEqual(tied.places, {A: 1, B: 1, C: 1, D: 1, E: 3, F: 3});
+  assert.equal(Scorebook.scoreboardStandings({...game, currentRound: 1}, ['Ann', 'Bo']).ranked, false);
+  assert.equal(Scorebook.canastaTeamPlaces({name: 'Five Crowns', totals: {Ann: 1}}, ['Ann']), null);
+});
+
 test('competitionPlaces: no ties are 1..n', () => {
   assert.deepEqual(
     Scorebook.competitionPlaces(['Megan', 'Matt', 'Cat'], { Megan: 10, Matt: 20, Cat: 30 }),
