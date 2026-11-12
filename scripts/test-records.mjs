@@ -309,6 +309,11 @@ test('tied records share rank 1, 1, 3 and name every tied player', () => {
   assert.equal(tied.value, 30);
   assert.equal(tied.label, 'tied');
   assert.deepEqual(tied.ties.map((row) => row.player), ['Ada', 'Cleo']);
+  assert.match(Records.recordHolderText(tied), /Ada and Cleo/);
+  const tiedZero = Records.closestMarginRecord(['Ada', 'Bo'], {Ada: 12, Bo: 12});
+  assert.equal(tiedZero.value, 0);
+  assert.equal(tiedZero.label, 'tied');
+  assert.match(Records.recordHolderText(tiedZero), /Ada and Bo/);
   const solo = Records.closestMarginRecord(['Ada', 'Cleo'], {Ada: 10, Cleo: 14});
   assert.equal(solo.label, 'Ada by 4 over Cleo');
   const alerts = Records.collectRecordAlerts({

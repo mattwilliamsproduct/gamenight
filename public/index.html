@@ -19911,7 +19911,8 @@ ${isDealer
     if(!sorted.length){ if(silent){goHome();} return; }
     const worst=data.totals[sorted[sorted.length-1]];
     currentLosers=sorted.filter(p=>data.totals[p]===worst);
-    const alerts=silent?[]:analyzeRecords(data);
+    const scoreNight=!!(window.BPGScorebook&&BPGScorebook.countsForScoreMagnitude&&BPGScorebook.countsForScoreMagnitude(data));
+    const alerts=silent||!scoreNight?[]:analyzeRecords(data);
     const existing=history.findIndex(h=>h.id===data.id);
     if(existing>=0) history.splice(existing,1);
     history.unshift(data);
@@ -19947,30 +19948,48 @@ ${isDealer
     const last=uniqueResultNames(losers);
     return {winners:win,losers:last,allTied:win.length>=2&&win.length===last.length,lastTied:last.length>1,skipLoser:win.length>=2&&win.length===last.length,shared:win.length>1};
   }
+  function endScreenCounts(data){
+    return !!(data && window.BPGScorebook && BPGScorebook.countsForTallies && BPGScorebook.countsForTallies(data));
+  }
   function _presentVictoryModal(data, alerts){
-    const result=resultForMatch(data, currentLosers);
-    const headline=window.BPGRecords&&typeof BPGRecords.formatVictoryHeadline==='function'
-      ? BPGRecords.formatVictoryHeadline(result)
-      : (result.allTied?'Everyone tied.':(result.winners.length>1?`${result.winners.join(' & ')} Tie!`:`${result.winners[0]||''} Wins!`));
-    const kicker=window.BPGRecords&&typeof BPGRecords.formatVictoryKicker==='function'
-      ? BPGRecords.formatVictoryKicker(result)
-      : 'Sunset Champion';
-    document.getElementById('victory-names').innerHTML=decorateResultNames(headline, result.winners);
+    const counted=endScreenCounts(data);
+    const outcome=window.BPGScorebook&&BPGScorebook.resolveOutcome?BPGScorebook.resolveOutcome(data):'';
+    const retired=new Set((data&&data.retired)||[]);
+    const scoreNight=!!(counted && window.BPGScorebook && BPGScorebook.countsForScoreMagnitude && BPGScorebook.countsForScoreMagnitude(data));
+    const shownAlerts=scoreNight?(alerts||[]):[];
+    let headline='Ended early';
+    let kicker='Not counted';
+    let names=[];
+    if(!counted && outcome==='uncertain') headline='Needs review';
+    if(counted){
+      const winners=uniqueResultNames(data&&data.winners).filter(name=>!retired.has(name));
+      const losers=uniqueResultNames(currentLosers).filter(name=>!retired.has(name));
+      const result=resultForMatch({winners}, losers);
+      headline=window.BPGRecords&&typeof BPGRecords.formatVictoryHeadline==='function'
+        ? BPGRecords.formatVictoryHeadline(result)
+        : (result.allTied?'Everyone tied.':(result.winners.length>1?`${result.winners.join(' & ')} Tie!`:`${result.winners[0]||''} Wins!`));
+      kicker=window.BPGRecords&&typeof BPGRecords.formatVictoryKicker==='function'
+        ? BPGRecords.formatVictoryKicker(result)
+        : 'Sunset Champion';
+      names=result.winners;
+    }
+    document.getElementById('victory-names').innerHTML=counted?decorateResultNames(headline, names):escapeHtml(headline);
     const kickerEl=document.getElementById('victory-kicker');
     if(kickerEl) kickerEl.textContent=kicker;
     const vs=document.getElementById('victory-subtitle');
     if(vs){ vs.textContent=''; vs.classList.add('hidden'); }
-    document.getElementById('victory-records').innerHTML=alerts.map(a=>`<div class="px-4 py-2 rounded-xl font-bold text-sm mx-auto w-fit" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;">${a}</div>`).join('');
+    document.getElementById('victory-records').innerHTML=shownAlerts.map(a=>`<div class="px-4 py-2 rounded-xl font-bold text-sm mx-auto w-fit" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;">${escapeHtml(a)}</div>`).join('');
     const modal=document.getElementById('victory-modal');
     modal.classList.remove('hidden','opacity-0');
-    if(alerts.length > 0){
+    if(shownAlerts.length > 0){
       soundRecord();
       haptic([40, 60, 40, 60, 80]);
-      alerts.forEach((a, i) => setTimeout(()=>toast(a, 'record'), i * 600));
+      shownAlerts.forEach((a, i) => setTimeout(()=>toast(a, 'record'), i * 600));
     } else {
       haptic([60, 40, 100]);
     }
-    loadOptionalAsset('confetti').catch(error=>console.warn('Winner celebration unavailable.',error)).finally(fireWinnerConfettiLoop);
+    if(counted) loadOptionalAsset('confetti').catch(error=>console.warn('Winner celebration unavailable.',error)).finally(fireWinnerConfettiLoop);
+    else resetPostgameConfetti();
   }
 
   function analyzeRecords(data){
@@ -19988,7 +20007,15 @@ ${isDealer
     document.getElementById('victory-modal').classList.add('hidden');
     resetPostgameConfetti();
     const last=history[0];
-    const result=resultForMatch(last, currentLosers);
+    if(!endScreenCounts(last)){
+      closeLoserModal();
+      return;
+    }
+    const retired=new Set((last&&last.retired)||[]);
+    const result=resultForMatch(
+      {winners:uniqueResultNames(last&&last.winners).filter(name=>!retired.has(name))},
+      uniqueResultNames(currentLosers).filter(name=>!retired.has(name))
+    );
     if(result.skipLoser){
       closeLoserModal();
       return;
@@ -21555,10 +21582,14 @@ ${isDealer
       return;
     }
     const empty = '<div class="surface p-5 text-sm font-bold" style="color:var(--muted);">No qualifying history yet.</div>';
-    const playerLine = (r,idx) => `<div class="surface p-4 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${idx+1}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
-      <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${window.BPGRecords&&Number.isFinite(r.value)?BPGRecords.formatDisplayNumber(r.value):(r.value ?? '—')}</div>
+    const playerLine = (r,idx,list) => {
+      const rank=window.BPGRecords&&typeof BPGRecords.competitionListRank==='function'?BPGRecords.competitionListRank(list, idx):idx+1;
+      const shown=window.BPGRecords&&Number.isFinite(r.value)?BPGRecords.formatDisplayNumber(r.value):(r.value ?? '—');
+      return `<div class="surface p-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0"><span class="font-mono-num font-extrabold w-6" style="color:var(--muted);">${rank}.</span>${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="player-name-label truncate">${r.player||'-'}</div><div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">${r.label||r.game||''}${r.date?` · ${r.date}`:''}</div></div></div>
+      <div class="font-jakarta font-extrabold text-2xl font-mono-num" style="color:var(--emerald);">${shown}</div>
     </div>`;
+    };
     const formatProfileValue=(title,r)=>{
       if(!r || !Number.isFinite(r.value)) return r?.value ?? '—';
       if(window.BPGRecords && typeof BPGRecords.formatStatValue==='function') return BPGRecords.formatStatValue(r.value, title);
@@ -21573,10 +21604,13 @@ ${isDealer
       const noteText=noteBits.join(' · ');
       const noteHtml=noteText?`<div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" data-record-note="unassisted" style="color:var(--muted);">${noteText}</div>`:'';
       const roundBit=Number.isFinite(r?.round)?` · R${r.round}`:'';
+      const holders=r && window.BPGRecords && typeof BPGRecords.recordHolderText==='function'
+        ? (BPGRecords.recordHolderText(r) || r.player || '-')
+        : (r?.player || '-');
       const emptyShown = (!r && gated && emptyText==='No qualifying history') ? 'No full games yet' : emptyText;
       if(!r) return `<div class="surface p-5"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="font-bold mt-2" style="color:var(--muted);">${emptyShown}</div></div>`;
       return `<div class="surface p-5 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="player-name-label text-lg truncate">${r.player||'-'}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.label&&Number.isFinite(r.round)?'':roundBit}${r.date?` · ${r.date}`:''}</div></div></div>
+        <div class="flex items-center gap-3 min-w-0">${getAvatarImg(r.player||'-','avatar-img')}<div class="min-w-0"><div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--muted);">${title}</div>${noteHtml}<div class="player-name-label text-lg truncate">${escapeHtml(holders)}</div><div class="text-xs font-bold" style="color:var(--muted);">${r.label||r.game||''}${r.label&&Number.isFinite(r.round)?'':roundBit}${r.date?` · ${r.date}`:''}</div></div></div>
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${formatProfileValue(title,r)}</div>
       </div>`;
     };
