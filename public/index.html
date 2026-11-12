@@ -7899,7 +7899,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .profile-toolbar {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.45fr) minmax(150px, 0.45fr) auto;
+      grid-template-columns: minmax(160px, 1fr) minmax(220px, 0.8fr) minmax(180px, 0.6fr) auto;
       gap: 0.85rem;
       align-items: end;
       padding: 1rem;
@@ -7931,6 +7931,9 @@ button.dealer-name-indicator .dealer-player-label {
       font-weight: 800;
       padding-left: 0.9rem;
       outline: none;
+    }
+    #profile-sort-select {
+      min-width: 13.75rem;
     }
     .profile-search-wrap input {
       padding-right: 0.9rem;
@@ -10211,6 +10214,13 @@ button.dealer-name-indicator .dealer-player-label {
                 <button type="button" id="restore-confirm" onclick="confirmRestore()" class="w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
               </div>
             </div>
+            <div id="history-review" class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+              <p class="text-base font-extrabold" style="color:var(--ink);">History review summary</p>
+              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">This reads the nights already on this device. It does not change them. Saved-round rules stay off until you apply the summary.</p>
+              <button type="button" id="history-review-show" onclick="showHistoryReviewSummary()" class="w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--surface);color:var(--ink);border-color:var(--hairline);">Show history review</button>
+              <pre id="history-review-body" class="hidden text-xs font-bold leading-relaxed whitespace-pre-wrap" style="color:var(--ink-2);"></pre>
+              <button type="button" id="history-review-apply" onclick="applyHistoryReview()" class="hidden w-full py-3.5 rounded-2xl font-bold text-base border" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Count saved nights this way</button>
+            </div>
             <p id="backup-clear-warning" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);">Clearing browser data or losing this device can lose any history you have not backed up.</p>
             <p id="backup-inline-msg" class="inline-form-error" role="alert"></p>
             <p id="import-player-name-error" class="hidden text-xs font-bold" style="color:var(--rose);"></p>
@@ -10907,11 +10917,60 @@ button.dealer-name-indicator .dealer-player-label {
       label:`${count}-player game`
     };
   }
+  function readHistoryReviewStore(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(gnKey('gn_history_review'))||'null');
+      if(!raw||typeof raw!=='object'||Array.isArray(raw)||!raw.decisions||typeof raw.decisions!=='object') return {decisions:{}};
+      return {decisions:raw.decisions};
+    }catch(e){
+      return {decisions:{}};
+    }
+  }
+  function loadHistoryReview(){
+    if(!window.BPGScorebook) return;
+    const store=readHistoryReviewStore();
+    BPGScorebook.setHistoryReview(store.decisions);
+    let seen=false;
+    try{ seen=localStorage.getItem(gnKey('gn_legacy_review_seen'))==='1'; }catch(e){ seen=false; }
+    BPGScorebook.setLegacyReviewApplied(seen);
+  }
+  function showHistoryReviewSummary(){
+    const body=document.getElementById('history-review-body');
+    const apply=document.getElementById('history-review-apply');
+    if(!body||!window.BPGRecords||typeof BPGRecords.historyReviewReport!=='function'||!window.BPGScorebook) return;
+    const report=BPGRecords.historyReviewReport(history, BPGScorebook);
+    const applied=BPGScorebook.legacyReviewAppliedNow();
+    const head=applied
+      ? 'Saved-round rules are already on. Saved nights were not rewritten.'
+      : 'Preview only. Nothing was written.';
+    body.textContent=[head].concat(report.lines.length?report.lines:['No win or record counts would change.']).join('\n');
+    body.classList.remove('hidden');
+    if(apply){
+      apply.classList.toggle('hidden', applied);
+      apply.disabled=applied;
+    }
+  }
+  function applyHistoryReview(){
+    if(!window.BPGScorebook) return;
+    try{ localStorage.setItem(gnKey('gn_legacy_review_seen'),'1'); }catch(e){ return; }
+    BPGScorebook.setLegacyReviewApplied(true);
+    showHistoryReviewSummary();
+    if(typeof renderHistoryList==='function') renderHistoryList();
+    if(typeof renderHallOfFame==='function') renderHallOfFame();
+  }
+  function writeHistoryReviewDecision(id, decision){
+    const store=readHistoryReviewStore();
+    store.decisions[String(id)]={decision, reviewedAt:new Date().toISOString()};
+    try{ localStorage.setItem(gnKey('gn_history_review'), JSON.stringify(store)); }catch(e){ return false; }
+    if(window.BPGScorebook) BPGScorebook.setHistoryReview(store.decisions);
+    return true;
+  }
   try {
     currentGame = JSON.parse(localStorage.getItem(gnKey('gn_current')));
     if (currentGame && (!currentGame.name || !Array.isArray(currentGame.originalRoster))) currentGame=null;
     if (currentGame?.name==='Rook' && currentGame.rookPhase==='bidding') currentGame.rookPhase='bidSetup';
   } catch(e){ currentGame=null; }
+  loadHistoryReview();
 
   // Mirror what this boot actually read. Prevents the first pagehide/visibilitychange
   // from inventing empty gn_players_v2/gn_profiles or deleting an out-of-band
@@ -15469,7 +15528,10 @@ ${isDealer
     if(!cfg || !path) return [];
     const label=matchPathGameLabel(gameData.game);
     const notes=[];
+    const leftEarly=new Set(gameData.retired||[]);
+    const scoreNight=!!(window.BPGScorebook&&BPGScorebook.countsForScoreMagnitude(gameData));
     path.players.forEach(p=>{
+      if(!scoreNight||leftEarly.has(p)) return;
       const score=Number(gameData.totals?.[p]);
       if(!Number.isFinite(score)) return;
       const priorBest=priorScoreForGame(p, gameData.game, gameData.id, true);
@@ -19832,7 +19894,8 @@ ${isDealer
     if(window.BPGRecords&&typeof BPGRecords.collectRecordAlerts==='function'){
       return BPGRecords.collectRecordAlerts(data, getHallOfFame(), {
         recordedPlayers: getRecordedPlayers,
-        wizardPlayerCount: getWizardRecordPlayerCount(data)
+        wizardPlayerCount: getWizardRecordPlayerCount(data),
+        scorebook: window.BPGScorebook
       });
     }
     return [];
@@ -20541,6 +20604,22 @@ ${isDealer
   function toggleCountResult(id){
     const row=history.find(h=>h&&String(h.id)===String(id));
     if(!row||!window.BPGScorebook||!BPGScorebook.showCountResult(row)) return;
+    const explicit=row.outcome==='finished'||row.outcome==='paused'||row.outcome==='ended_early'||row.outcome==='uncertain';
+    if(!explicit){
+      const scores=JSON.stringify(row.totals||{});
+      const winners=JSON.stringify(row.winners||[]);
+      const rounds=JSON.stringify(row.rounds||[]);
+      const counted=BPGScorebook.resultIsCounted(row);
+      if(!writeHistoryReviewDecision(row.id, counted?'not_counted':'counted')) return;
+      if(JSON.stringify(row.totals||{})!==scores||JSON.stringify(row.winners||[])!==winners||JSON.stringify(row.rounds||[])!==rounds){
+        return;
+      }
+      renderHistoryList();
+      if(typeof renderHallOfFame==='function') renderHallOfFame();
+      const card=document.getElementById('scorecard-modal');
+      if(card&&!card.classList.contains('hidden')) openScorecard(row.id);
+      return;
+    }
     const scores=JSON.stringify(row.totals||{});
     const winners=JSON.stringify(row.winners||[]);
     const rounds=JSON.stringify(row.rounds||[]);
@@ -21130,9 +21209,11 @@ ${isDealer
           }
         });
         if(fullGame){
-          if(sorted.length>1 && gameRecords.closestMargin!==undefined){
-            const margin = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[1]]||0));
-            update(gameRecords,'closestMargin',entry(sorted[0],margin,h,{label:`${sorted[0]} by ${margin} over ${sorted[1]}`}),betterLow);
+          if(sorted.length>1 && gameRecords.closestMargin!==undefined && window.BPGRecords && typeof BPGRecords.closestMarginRecord==='function'){
+            const marginRecord=BPGRecords.closestMarginRecord(sorted, h.totals);
+            if(marginRecord){
+              update(gameRecords,'closestMargin',entry(marginRecord.player,marginRecord.value,h,{label:marginRecord.label,ties:marginRecord.ties}),betterLow);
+            }
           }
           if(h.game==='Five Crowns' && sorted.length>1){
             const gap = Math.abs((h.totals[sorted[0]]||0)-(h.totals[sorted[sorted.length-1]]||0));
