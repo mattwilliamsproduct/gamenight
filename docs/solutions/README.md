@@ -22,6 +22,8 @@ Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player
 
 Standing trap: [restore-keeps-live-match.md](restore-keeps-live-match.md) — an empty backup table does not clear the live match. A different match in the file is parked first.
 
+Standing trap: [left-early-stays-visible.md](left-early-stays-visible.md) — a player who left early stays on the board with their score and the words Left early. Passport Best score skips that partial total.
+
 Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Remap the QA seed to a fictional cast in the demo path only. Bare `?demo` still does nothing.
 
 Standing trap: [add-player-suggestions-joined-name.md](add-player-suggestions-joined-name.md) — spread profile keys into the known-name list, or Add Player offers one comma-joined fake row.

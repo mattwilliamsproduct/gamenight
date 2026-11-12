@@ -112,7 +112,7 @@
     const roster = (typeof getRecordedPlayers === 'function' ? getRecordedPlayers(game) : getActivePlayers(game)).slice();
     const standing = window.BPGScorebook.scoreboardStandings(game, roster);
     const dealer = getCurrentDealerName(game);
-    return standing.ordered.map((player) => {
+    const ranked = standing.ordered.map((player) => {
       const place = standing.ranked ? standing.places[player] : null;
       const label = place ? homePlaceLabel(place) : '';
       const tone = place === 1 ? ' is-place-1' : place === 2 ? ' is-place-2' : place === 3 ? ' is-place-3' : (place ? ' is-place-rest' : '');
@@ -136,6 +136,19 @@
         <span class="s2-standing-score">${escapeHtml(String(score))}</span>
       </button>`;
     }).join('');
+    const left = (game.retired || []).filter((player) => player && !standing.ordered.includes(player));
+    const leftRows = left.map((player) => {
+      const score = Number(game.totals && game.totals[player]) || 0;
+      const spoken = ['Left early', player, String(score)].join(', ');
+      return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
+        <span class="scoreboard-rank-badge is-place-rest">Left early</span>
+        ${getStreakAvatarHtml(player, 'avatar-img')}
+        <span class="s2-seat-who"><span class="s2-seat-name">${escapeHtml(player)}</span></span>
+        <span class="s2-dealer-tag s2-dealer-tag-empty" aria-hidden="true"></span>
+        <span class="s2-standing-score">${escapeHtml(String(score))}</span>
+      </button>`;
+    }).join('');
+    return ranked + leftRows;
   }
 
   function wheelCopy() {

@@ -13030,13 +13030,14 @@ button.dealer-name-indicator .dealer-player-label {
       const cfg=configs[h.game];
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const lastScore=sorted.length?h.totals[sorted[sorted.length-1]]:null;
-      const isLast=h.totals[name]===lastScore;
+      const isLast=!(h.retired||[]).includes(name) && h.totals[name]===lastScore;
       summary.lasts += isLast?1:0;
       s.lasts += isLast?1:0;
       summary.recent={game:h.game,date:h.date,score:h.totals[name],won};
       summary.lastGameId=h.id||summary.lastGameId;
     });
     scoreMatches.forEach(h=>{
+      if((h.retired||[]).includes(name)) return;
       const cfg=configs[h.game];
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const rank=matchPlaces(h, sorted)[name]||0;
@@ -13346,6 +13347,7 @@ button.dealer-name-indicator .dealer-player-label {
     const wins=summary.wins;
     history.slice().reverse().forEach(h=>{
       if(!nightCountsForScores(h, detailScope)||!playerSatCareerMatch(h, name, detailScope))return;
+      if((h.retired||[]).includes(name))return;
       const cfg=configs[h.game]; if(!cfg)return;
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       if(sorted.length&&h.totals[name]===h.totals[sorted[sorted.length-1]]&&!(h.retired||[]).includes(name))lasts++;
@@ -17504,11 +17506,7 @@ ${isDealer
 
     let gamePlayers=isHandFootGame(currentGame)?getHandFootColumns(currentGame):[...getRecordedPlayers(currentGame)];
     const leftEarlyNames=(currentGame.retired||[]).filter(Boolean);
-    const leftEarlyOpen=!!document.getElementById('left-early-disclosure')?.getAttribute('aria-expanded')?.includes('true');
-    const leftEarlyNote=leftEarlyNames.length
-      ? `<button type="button" id="left-early-disclosure" class="left-early-disclosure" aria-expanded="${leftEarlyOpen?'true':'false'}" aria-controls="left-early-names" onclick="toggleLeftEarlyDisclosure()">${leftEarlyNames.length} player${leftEarlyNames.length===1?'':'s'} left early</button>
-         <div id="left-early-names" class="left-early-names" ${leftEarlyOpen?'':'hidden'}>Left early: ${escapeHtml(leftEarlyNames.join(', '))}</div>`
-      : '';
+    const leftEarlyNote='';
     let leftEarlyHost=document.getElementById('left-early-host');
     const scorecardMount=document.getElementById('scorecard-capture')
       || document.querySelector('#game-screen .scorecard-live-layout')
@@ -17532,7 +17530,8 @@ ${isDealer
     syncCurrentLifePreserverHolds({gameOver:over});
 
     const standing = BPGScorebook.scoreboardStandings(currentGame, gamePlayers);
-    let sortedP = standing.ordered;
+    let sortedP = standing.ordered.slice();
+    leftEarlyNames.forEach(name=>{ if(name && !sortedP.includes(name)) sortedP.push(name); });
     const places = standing.ranked ? standing.places : null;
 
     const leaderScore = sortedP.length ? currentGame.totals[sortedP[0]] : (cfg.winLow?Infinity:-Infinity);
@@ -17611,9 +17610,9 @@ ${isDealer
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const placeNum=places?places[p]:ri+1;
-      const placeLabel=ordinalLive(placeNum);
-      const placeTone=placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
-      const rankBadge=currentGame.currentRound===1?'':`<span class="scoreboard-rank-badge${placeTone} shrink-0" aria-label="${placeLabel}">${placeLabel}</span>`;
+      const placeLabel=isRetired?'Left early':ordinalLive(placeNum);
+      const placeTone=isRetired?' is-place-rest':placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
+      const rankBadge=(isRetired||currentGame.currentRound>1)&&placeLabel?`<span class="scoreboard-rank-badge${placeTone} shrink-0" aria-label="${placeLabel}">${placeLabel}</span>`:'';
       const wheelBadge=isRetired?'':wheelBadgeMarkup(p, hasAvailablePreserver?'ready':(hasUsedPreserver?'used':''));
 
       const retiredTag=retiredBadgeMarkup(currentGame,p);
@@ -20754,7 +20753,7 @@ ${isDealer
       const leftRows=leftEarly.length
         ? `<div class="pt-3 mt-2 text-[10px] font-extrabold uppercase tracking-[0.15em]" style="color:var(--muted);">Left early</div>`+
           leftEarly.map(p=>`<div class="flex items-center justify-between py-2 opacity-70">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">—</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label">${p}</span></div>
+        <div class="flex items-center gap-3"><span class="text-xs font-extrabold" style="color:var(--muted);">Left early</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label">${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]??'—'}</span>
       </div>`).join('')
         : '';
