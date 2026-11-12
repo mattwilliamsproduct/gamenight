@@ -28,6 +28,8 @@ Standing trap: [end-screen-eligibility.md](end-screen-eligibility.md) — an unc
 
 Standing trap: [exact-bid-open-nights.md](exact-bid-open-nights.md) — exact-bid stats include paused and ended-early rounds that have both a bid and the tricks taken. A late-join starting adjustment does not count.
 
+Standing trap: [two-tab-revision.md](two-tab-revision.md) — a second tab loads the newer match instead of writing over it.
+
 Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Remap the QA seed to a fictional cast in the demo path only. Bare `?demo` still does nothing.
 
 Standing trap: [add-player-suggestions-joined-name.md](add-player-suggestions-joined-name.md) — spread profile keys into the known-name list, or Add Player offers one comma-joined fake row.

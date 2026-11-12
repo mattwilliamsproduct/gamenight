@@ -18,6 +18,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A player who left early keeps their score on the board. The place says Left early. That partial total is not a Passport best.
 - An uncounted ended-early night says Ended early. It does not name a winner or celebrate a score. Tied career lists share 1, 1, 3, and a closest margin of 0 names every tied player.
 - Wizard and 818 exact-bid stats count every round with a bid and the tricks taken, including a paused or ended-early night. A late-join starting adjustment does not count.
+- Two tabs do not overwrite each other. The tab with the older copy shows the newer match.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
 - Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
 - Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.

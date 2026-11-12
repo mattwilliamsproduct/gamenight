@@ -10451,6 +10451,15 @@ button.dealer-name-indicator .dealer-player-label {
 
   // ── Storage helpers ──
   function gnKey(key){return (window.BPGTryDemo&&typeof BPGTryDemo.storageKey==='function')?BPGTryDemo.storageKey(key):key;}
+  function readStorageRev(){
+    try{
+      const raw=Number(localStorage.getItem(gnKey('gn_storage_rev')));
+      return Number.isFinite(raw)&&raw>0?Math.floor(raw):0;
+    }catch(e){return 0;}
+  }
+  let _seenStorageRev=readStorageRev();
+  let _storageRevPending=false;
+  let _adoptingStorage=false;
   function safeGetArray(k){try{const d=JSON.parse(localStorage.getItem(gnKey(k)));return Array.isArray(d)?d:[];}catch(e){return[];}}
   function safeGetObject(k){try{const d=JSON.parse(localStorage.getItem(gnKey(k)));return(d&&typeof d==='object'&&!Array.isArray(d))?d:{};}catch(e){return{};}}
 
@@ -11314,6 +11323,7 @@ button.dealer-name-indicator .dealer-player-label {
           if(key==='gn_history'||key==='gn_current'){
             _scoreSavePending=false;
             _scoreRetryTries=0;
+            _storageRevPending=true;
           }
         }catch(error){
           const full=error&&(error.name==='QuotaExceededError'||error.code===22||error.code===1014);
@@ -11327,6 +11337,7 @@ button.dealer-name-indicator .dealer-player-label {
               _storageFullNoted=false;
               _scoreSavePending=false;
               _scoreRetryTries=0;
+              _storageRevPending=true;
               toast('Saved. This device is nearly full, so keep a backup.', 'warning');
             }catch(again){
               _scoreSavePending=true;
@@ -11349,9 +11360,48 @@ button.dealer-name-indicator .dealer-player-label {
       gnPerfEnd(persistTimer);
     }
   }
+  function bumpStorageRev(){
+    if(!_storageRevPending||_adoptingStorage) return;
+    _storageRevPending=false;
+    const next=readStorageRev()+1;
+    try{localStorage.setItem(gnKey('gn_storage_rev'), String(next));}catch(e){return;}
+    _seenStorageRev=next;
+  }
+  function adoptStoredMatch(){
+    if(_adoptingStorage) return;
+    _adoptingStorage=true;
+    _storageRevPending=false;
+    try{
+      history=safeGetArray('gn_history');
+      try{
+        currentGame=JSON.parse(localStorage.getItem(gnKey('gn_current')));
+        if(currentGame&&(!currentGame.name||!Array.isArray(currentGame.originalRoster))) currentGame=null;
+      }catch(e){currentGame=null;}
+      _seenStorageRev=readStorageRev();
+      markHistoryChanged();
+      _lastPersistedHistoryRev=_historyRevision;
+      if(_lastPersistedState){
+        _lastPersistedState.gn_history=JSON.stringify(history);
+        _lastPersistedState.gn_current=currentGame?JSON.stringify(currentGame):null;
+      }
+      toast('This match changed in another tab. Showing the newer copy.', 'warning');
+      if(currentGame) goActiveMatch();
+      else goHome();
+    }finally{
+      _adoptingStorage=false;
+    }
+  }
+  window.addEventListener('storage',(event)=>{
+    if(!event||event.key!==gnKey('gn_storage_rev')) return;
+    if(readStorageRev()>_seenStorageRev) adoptStoredMatch();
+  });
   /** @param {{ fullPersist?: boolean, syncCold?: boolean, flushDeferred?: boolean }} [opts] */
   let _persistBlocked=false;
   function _persistGamenightState(opts){
+    if(!_adoptingStorage&&readStorageRev()>_seenStorageRev){
+      adoptStoredMatch();
+      return false;
+    }
     const persistStateTimer = gnPerfStart('GN persist state');
     _persistBlocked=false;
     try{
@@ -11420,10 +11470,12 @@ button.dealer-name-indicator .dealer-player-label {
         gnPerfEnd(removeTimer);
         gnPerfStorageSnapshot();
         _lastPersistedState.gn_current = null;
+        _storageRevPending=true;
       }
     } finally {
       gnPerfEnd(persistStateTimer);
     }
+    bumpStorageRev();
 
     updateNavButton();
     flashSaveIndicator();
