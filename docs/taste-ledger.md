@@ -6,7 +6,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
-- A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it.
+- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. The summary is shown before that rule turns on, and the original night is not rewritten.
+- A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it. Passports sort reads Recent activity in full.
 - One Leave game choice: Save for later, End game now, or Keep playing. Save for later stays resumable and does not ask about wins. Count this result never puts a partial total into a full-game score record.
 - Tied totals share a place and the next total skips. Two 2nds, then 4th. The scoreboard uses the page width, and a short table does not stretch its rows to fill the screen.
 - This MVP preview seats the next match from Tonight's Table. Mid-match Add Player stays off. The ceiling-average join lives on the fast-follow branch.
@@ -74,6 +75,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- Zeroing every old night because a Flip 7 or Rook target was not stored on it. Canasta's 4-round config is not a history rule. A game's minimum does not lock the seat checkboxes.
 - A profile-name array dropped into a suggestion list as one item, so typing a letter offers a comma-joined fake player.
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled `docs/prove-it-packet.md`.

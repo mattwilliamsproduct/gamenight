@@ -97,6 +97,8 @@ Automatic per-round extras (the "Turbo" chips) were the replacement for the whee
 
 History, Hall of Fame, Records, and Profiles read `gn_history`. The post-game path replay plots place after each scoring round and already shares places when totals match. Share Receipt and the audit log are the dispute tools.
 
+Saved nights stay on the rule stored on the row until Settings shows History review summary and that summary is applied. After that, Five Crowns (11 rounds), 818 (the 15-round trick list), Wizard (60 divided by that night's player count), and Beat the Heat (a saved total of 66) can count from the rounds and totals already saved. A shorter fixed-length night stays in history as Ended early and stays out of results until Count this result. Flip 7, Rook, and Canasta stay Needs review. The original night is not rewritten. Counted or not counted is stored beside the night.
+
 WHAMMY, Nolie, and Cami Whammi are round celebrations for Wizard, Five Crowns, and Flip 7 only. 818, Beat the Heat, and Rook do not fire them. Rook has an explicit note to wait on team-round edge cases.
 
 ### Memory

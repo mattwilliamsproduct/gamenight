@@ -90,6 +90,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 
 - A rename onto a name that already played the same match is refused. The check looks through the live match and every saved match: roster, retired seats, totals, round scores, bids, actuals, and Rook bidder and partner. Disjoint aliases can still merge. A new unused name renames in place.
 - Each match has a stable `gameId`. A legacy row that already has `id` keeps that value as `gameId`. A row with neither gets one id, stored on both fields, on boot before the gallery hydrates. Reload keeps that same id. Saved matches live in `gn_history`. The live table is `gn_current`. `(gameId, currentRound, phase)` is the match cursor. Phase is `wizardPhase`, `eight18Phase`, `rookPhase`, or `scoring`. History buttons pass the id through `jsAttrArg` so a minted id still opens Scorecard, Resume, and Correct.
+- Legacy classification is `BPGScorebook.legacyCompletion`. It stays off until `gn_legacy_review_seen` is set from History review summary. Counted and not-counted choices live in `gn_history_review` and are not written onto the night. `node scripts/history-review.mjs` prints the same preview for a backup file. See [solutions/legacy-history-review.md](solutions/legacy-history-review.md).
 - Shelf labels may say Flip 7. Stored game name is `Flip 7 Vengeance`.
 - Shelf labels say Canasta. Stored game name is `Hand and Foot`.
 - Rook stays registered with `hidden: true`. The picker hides it. `?demo` and `?demo&games=rook` do nothing. History still opens a saved Rook match.

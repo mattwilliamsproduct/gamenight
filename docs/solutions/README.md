@@ -14,6 +14,8 @@ Standing trap: [select-chevron.md](select-chevron.md) — one `select.bp-select`
 
 Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave game choice. A counted partial total stays out of full-game score records. History does not inherit today's targets.
 
+Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round classification stays off until History review summary is shown and applied. Canasta stays uncertain. Do not invent a Flip 7 or Rook target.
+
 Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals skip to the next place. The scoreboard uses the page width and caps row height.
 
 Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player is off on the MVP. The ceiling-average start lives on the fast-follow branch.

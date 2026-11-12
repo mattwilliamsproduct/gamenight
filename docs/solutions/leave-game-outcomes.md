@@ -10,4 +10,6 @@ End game now stores `finished` when the row's own maxRounds, endScore, or Rook `
 
 Do not classify old nights from today's Flip 7 or Rook target. `maxRounds` 999 is the open sentinel, not a round count. Canasta's id is `Hand and Foot`. The title is Canasta. Four rounds is the config copied onto a new save, not a fact already stored on the main-format fixture.
 
+A device that has not applied History review summary still uses only the rule stored on the row. After that summary is shown and applied, `legacyCompletion` may count Five Crowns, 818, Wizard, and Beat the Heat from the rounds and totals already saved. It still does not invent a Flip 7 or Rook target, and it does not treat Canasta's 4-round config as history. See [legacy-history-review.md](legacy-history-review.md).
+
 The phone row is four columns, so the header reads Leave. The dialog and the Actions item read Leave game.
