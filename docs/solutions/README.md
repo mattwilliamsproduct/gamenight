@@ -18,7 +18,7 @@ Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-ro
 
 Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals skip to the next place. The scoreboard uses the page width and caps row height.
 
-Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player is off on the MVP. The ceiling-average start lives on the fast-follow branch.
+Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player uses the ceiling of the seated average. A departure does not change the Wizard length. Canasta and Rook do not add a seat.
 
 Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Remap the QA seed to a fictional cast in the demo path only. Bare `?demo` still does nothing.
 

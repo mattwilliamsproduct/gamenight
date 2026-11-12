@@ -927,6 +927,22 @@
       border-color: rgba(4,120,87,0.72);
       box-shadow: 0 0 0 2px rgba(4,120,87,0.12);
     }
+    .score-absent {
+      display: inline-block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+    }
+    .late-join-note {
+      display: block;
+      margin-top: 0.15rem;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
     .round-correction-row {
       width: 100%;
       display: grid;
@@ -9369,7 +9385,7 @@ button.dealer-name-indicator .dealer-player-label {
                 <span class="actions-menu-label">Table tools</span>
                 <button id="actions-add-player-btn" onclick="addPlayerMidGame();closeActionsMenu();" class="actions-menu-item hidden">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-1.8-4-4-4H6c-2.2 0-4 1.8-4 4"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M16 11h6"></path></svg></span>
-                  <span>Add Player</span>
+                  <span>Add Player Mid-Game</span>
                 </button>
                 <button id="actions-reorder-btn" onclick="openReorderPlayersModal();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path></svg></span>
@@ -11011,7 +11027,8 @@ button.dealer-name-indicator .dealer-player-label {
   function resyncGameMaxRounds(game){
     if(!game)return { previous:0, next:0, computed:0, changed:false };
     const previous=Number.isFinite(game.maxRounds)&&game.maxRounds>0?game.maxRounds:getMaxRoundsForGame(game);
-    const computed=snapshotGameMaxRounds(game, getActivePlayerCount(game));
+    const roster=(game.originalRoster||[]).filter(Boolean).length;
+    const computed=snapshotGameMaxRounds(game, roster||getActivePlayerCount(game));
     const floor=Math.max(1, Number(game.currentRound)||1);
     if(computed!==999 && computed<floor) game.maxRounds=floor;
     const next=game.maxRounds;
@@ -17635,7 +17652,7 @@ ${isDealer
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
-  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
+              : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -17646,6 +17663,7 @@ ${isDealer
             </div>
             ${wheelBadge}
           </div>
+          ${lateJoinNoteMarkup(currentGame,p)}
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
         <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><div class="scorecard-total-stack"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${rankBadge}</div>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
@@ -17662,6 +17680,11 @@ ${isDealer
             missClass=' score-cell-miss';
             missTitle=` title="Missed bid: ${Math.abs(diff)} ${diff>0?'over':'under'}"`;
           }
+        }
+        const missed=missedRoundMarkup(currentGame, p, r.round);
+        if(missed){
+          body+=`<td data-sc-round="${rIdx}" class="px-1 py-2 text-center score-cell scorecard-round-td">${missed}</td>`;
+          return;
         }
         const extra=scoringExtraMarkup(currentGame.rounds, rIdx, r, p);
         const hfParts=isHandFootGame(currentGame)?handFootColumnParts(currentGame, r, p):null;
@@ -17737,7 +17760,7 @@ ${isDealer
       if(rosterLocked||over||activeCount<=1) retireBtn.classList.add('hidden');
       else retireBtn.classList.remove('hidden');
     }
-    document.getElementById('actions-add-player-btn')?.classList.add('hidden');
+    document.getElementById('actions-add-player-btn')?.classList.toggle('hidden', rosterLocked||currentGame.name==='Rook');
     document.getElementById('actions-reorder-btn')?.classList.toggle('hidden', rosterLocked);
     const lifePreserverRulesBtn=document.getElementById('actions-life-preserver-btn');
     if(lifePreserverRulesBtn){
@@ -18255,6 +18278,16 @@ ${isDealer
     return JSON.stringify(scoreEntryModalState.values);
   }
 
+  function lateJoinNoteMarkup(game, player){
+    const info=window.BPGScorebook&&BPGScorebook.lateJoinInfo(game, player);
+    return info?`<span class="late-join-note">${escapeHtml(info.label)}</span>`:'';
+  }
+  function missedRoundMarkup(game, player, roundNumber){
+    const text=window.BPGScorebook&&BPGScorebook.missedRoundText(game, player, roundNumber);
+    if(!text) return '';
+    const html=text==='Did not play'?'Did not<br>play':escapeHtml(text);
+    return `<span class="score-absent">${html}</span>`;
+  }
   function shownRoundScore(scores, player){
     if(!scores || !Object.prototype.hasOwnProperty.call(scores, player)) return '';
     const score=BPGScorebook.historyScoreOrNull(scores[player]);
@@ -19562,7 +19595,14 @@ ${isDealer
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
   function addPlayerMidGame(){
-    toast('Add players for the next match from Tonight\'s Table','warning');
+    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
+    if(currentGame&&currentGame.name==='Rook'){ toast('Rook keeps the same seats for the match','warning'); return; }
+    const input=document.getElementById('midgame-add-player-input');
+    if(input)input.value='';
+    hidePlayerSuggestions('midgame');
+    showPlayerNameWriteError('midgame-player-name-error','');
+    openModal('add-player-modal');
+    setTimeout(()=>input?.focus(),80);
   }
   function closeAddPlayerModal(){
     hidePlayerSuggestions('midgame');
@@ -19575,8 +19615,33 @@ ${isDealer
     const name=raw.trim();
     if(!name){alert('Invalid name.');return;}
     if(rejectUnsavablePlayerName(name,'midgame-player-name-error')) return;
+    if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
     closeAddPlayerModal();
-    toast('Add players for the next match from Tonight\'s Table','warning');
+    if(!players.includes(name))players.push(name);
+    if(!allPlayers.includes(name))allPlayers.push(name);
+    currentGame.originalRoster.push(name);
+    if(!currentGame.retired)currentGame.retired=[];
+    if(isBidTrickGame(currentGame)&&!currentGame.currentBids)currentGame.currentBids={};
+    const seated=getActivePlayers(currentGame).filter(p=>p!==name);
+    const start=BPGScorebook.recordLateJoin(
+      currentGame,
+      name,
+      seated.map(p=>Number(currentGame.totals?.[p])||0),
+      Number(currentGame.currentRound)||1
+    );
+    if(isBidTrickGame(currentGame)&&getBidTrickPhase(currentGame)!=='bidding'){
+      if(currentGame.name==='Wizard') currentGame.wizardPhase='bidding';
+      if(isEight18Game(currentGame)) currentGame.eight18Phase='bidding';
+    }
+    recomputeGameTotals(currentGame);
+    const lengthChange=resyncGameMaxRounds(currentGame);
+    if(lengthChange.changed){
+      addAuditEntry('Player joined', `${name} · match now ${lengthChange.next} rounds`);
+      toast(`Match is now ${lengthChange.next} rounds`);
+    } else {
+      addAuditEntry('Player joined', start?`${name} · ${start.label}`:name);
+    }
+    saveData(); scheduleRender();
   }
 
   /* ═══ END GAME ═══ */
@@ -20168,6 +20233,7 @@ ${isDealer
     if(!currentGame) return;
     const round=currentGame.rounds?.[roundIndex];
     if(!round||BPGScorebook.isSyntheticAdjustmentRound(round)) return;
+    if(BPGScorebook.missedRoundText(currentGame, player, round.round)) return;
     if(isBidTrickGame(currentGame)){
       if(activeInputId) closeNumpad({discard:true,render:false});
       openRoundCorrection({source:'live', roundIndex, focusPlayer:player});
@@ -20761,13 +20827,14 @@ ${isDealer
       const w=!!opts.winner;
       const left=!!opts.leftEarly;
       body+=`<tr class="${w?'leader-row':''}${left?' row-retired':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}${lateJoinNoteMarkup(g,p)}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]??'—'}</span>${left?'':hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;
         const extra=left?{html:'',className:''}:scoringExtraMarkup(g.rounds, rIdx, r, p);
+        const missed=missedRoundMarkup(g, p, r.round);
         const shown=shownRoundScore(r.scores, p);
-        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center tv-round-cell-num font-mono-num scorecard-round-td">${extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:(shown===''?'—':shown)}</td>`;
+        body+=`<td data-sc-round="${rIdx}" class="px-3 py-2 text-center ${missed?'':'tv-round-cell-num font-mono-num '}scorecard-round-td">${missed||(extra.html?`<div class="score-cell-stack${extra.className}"><span class="score-cell-base">${shown}</span>${extra.html}</div>`:(shown===''?'—':shown))}</td>`;
       });
       body+=`</tr>`;
     };

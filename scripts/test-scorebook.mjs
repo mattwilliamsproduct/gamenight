@@ -21,6 +21,26 @@ test('tied totals share a place and the next total skips', () => {
   });
 });
 
+test('a late join starts at the ceiling of the seated average', () => {
+  assert.equal(Scorebook.ceilingAverage([97.5, 97.1]), 98);
+  assert.equal(Scorebook.ceilingAverage([100, 100, 100, 100, 100, 100, 100, 100]), 100);
+  const game = {
+    name: 'Wizard',
+    originalRoster: ['Ada', 'Bea'],
+    rounds: [{round: 1, scores: {Ada: 10, Bea: 20}}],
+    totals: {Ada: 10, Bea: 20}
+  };
+  const info = Scorebook.recordLateJoin(game, 'Cy', [10, 20], 2);
+  assert.equal(info.start, 15);
+  assert.equal(info.joinedRound, 2);
+  game.originalRoster.push('Cy');
+  Scorebook.recomputeTotals(game);
+  assert.equal(game.totals.Ada, 10);
+  assert.equal(game.totals.Cy, 15);
+  assert.equal(Scorebook.missedRoundText(game, 'Cy', 1), 'Did not play');
+  assert.equal(Scorebook.missedRoundText(game, 'Cy', 2), '');
+});
+
 test('Canasta team places are 1st and 2nd for both partners', () => {
   const game = {
     name: 'Hand and Foot',

@@ -46,6 +46,22 @@ test('adding a late Wizard player does not cut off the current round', async ({p
   expect(state.intel).toContain('R9 / 9');
 });
 
+test('a Wizard departure does not change the round count fixed at the start', async ({page})=>{
+  await openScenario(page,{scenario:'wizard-6-mid'});
+  const state=await page.evaluate(()=>{
+    const before=currentGame.maxRounds;
+    const name=currentGame.originalRoster[0];
+    if(!currentGame.retired) currentGame.retired=[];
+    if(!currentGame.retired.includes(name)) currentGame.retired.push(name);
+    const change=resyncGameMaxRounds(currentGame);
+    return {before, after:currentGame.maxRounds, changed:change.changed, roster:currentGame.originalRoster.length};
+  });
+  expect(state.before).toBe(10);
+  expect(state.after).toBe(10);
+  expect(state.changed).toBe(false);
+  expect(state.roster).toBe(6);
+});
+
 test('adding a Five Crowns player keeps the 11-hand match length', async ({page})=>{
   await openScenario(page,{scenario:'five-crowns-4'});
 

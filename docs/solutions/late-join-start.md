@@ -1,5 +1,7 @@
 # Late-join start
 
-Matt, 2026-11-10 (t3493u). This MVP branch does not add a player during a live match. Actions hides Add Player Mid-Game. `addPlayerMidGame` and `submitAddPlayerMidGame` stop after the name check and point at Tonight's Table.
+2026-11-12. Add Player Mid-Game is back, copied from `cursor/rc4-fast-follow-4ff6`. The start is the ceiling of the seated average. Missed rounds read Did not play. The start is added when totals are rebuilt.
 
-The ceiling-average start, "Did not play" for missed rounds, and the Life Preserver best-finish rule are on `cursor/rc4-fast-follow-4ff6`. Do not copy that join back here.
+Wizard length uses the starting roster (`originalRoster`), so a departure does not add rounds. A join is pushed onto that roster first, then the length is recomputed. A join in the current round does not mark the match over. Five Crowns stays 11. Canasta and Rook keep the same seats.
+
+Life Preserver best-finish stays on the fast-follow branch. Do not copy that rule here.

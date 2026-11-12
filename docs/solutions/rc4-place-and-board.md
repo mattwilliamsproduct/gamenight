@@ -6,7 +6,7 @@ The scoreboard header and the card use the page width. A 4-player table does not
 
 Score and bid entry stops at 999, except Hand and Foot scores, which stop at 9,999. The minus sign does not count. Keypad, typing, and paste reject a larger number. They do not chop it. Inside the cap, an unusual value asks before submit. The floors used here, pending Matt, are Hand and Foot 8000, Five Crowns 200, Wizard 150, 818 20, Flip 7 200, Beat the Heat 30, and 500 otherwise.
 
-Life Preserver best-finish and the late-join start stay on the fast-follow branch. This preview does not add a player to a live match. Tonight's Table and Players (N) seat the next match.
+Late join is on this branch. See `docs/solutions/late-join-start.md`. Life Preserver best-finish stays on the fast-follow branch.
 
 Wheel odds were not changed. The previous 40-pocket plan was 32 help, 5 no change, and 3 setback. The live plan turned 2 of those no-change pockets into setbacks. It is now 32 help, 3 no change, and 5 setback. Nothing was added.
 

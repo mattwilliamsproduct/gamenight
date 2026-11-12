@@ -480,7 +480,64 @@
         game.totals[player] += Number(extra) || 0;
       });
     });
+    addLateJoinStarts(game);
     return game.totals;
+  }
+
+  // Ceiling of the table average. 97.5 and 97.1 both become 98. An exact
+  // integer stays put (800 / 8 = 100). Negative sums use mathematical ceiling.
+  function ceilingAverage(values) {
+    const nums = (Array.isArray(values) ? values : []).map(value => Number(value)).filter(Number.isFinite);
+    if (!nums.length) return 0;
+    const sum = nums.reduce((total, value) => total + value, 0);
+    const count = nums.length;
+    if (Number.isInteger(sum)) {
+      if (sum >= 0) return Math.floor((sum + count - 1) / count);
+      return -Math.floor((-sum) / count);
+    }
+    return Math.ceil(sum / count);
+  }
+
+  function lateJoinInfo(game, player) {
+    const info = game && game.lateJoins && game.lateJoins[player];
+    if (!info || typeof info !== 'object') return null;
+    const start = Number(info.start);
+    const joinedRound = Number(info.joinedRound) || 0;
+    if (!Number.isFinite(start) || joinedRound < 1) return null;
+    return {
+      start,
+      joinedRound,
+      label: `Joined R${joinedRound} · start ${start}`
+    };
+  }
+
+  function missedRoundText(game, player, roundNumber) {
+    const info = lateJoinInfo(game, player);
+    const round = Number(roundNumber) || 0;
+    if (!info || round < 1 || round >= info.joinedRound) return '';
+    return 'Did not play';
+  }
+
+  function addLateJoinStarts(game, totals) {
+    const book = totals || (game && game.totals);
+    if (!game || !book) return book || {};
+    Object.keys(game.lateJoins || {}).forEach(player => {
+      const info = lateJoinInfo(game, player);
+      if (!info) return;
+      if (book[player] === undefined) book[player] = 0;
+      book[player] += info.start;
+    });
+    return book;
+  }
+
+  function recordLateJoin(game, player, existingTotals, joinedRound) {
+    if (!game || !player) return null;
+    const values = Array.isArray(existingTotals) ? existingTotals : Object.values(existingTotals || {});
+    const start = ceilingAverage(values);
+    const round = Math.max(1, Number(joinedRound) || 1);
+    if (!game.lateJoins || typeof game.lateJoins !== 'object') game.lateJoins = {};
+    game.lateJoins[player] = { start, joinedRound: round };
+    return lateJoinInfo(game, player);
   }
 
   function applyScoreEntryKey(entry, key) {
@@ -1475,6 +1532,10 @@
     restoreMatchState,
     commitValidatedMutation,
     recomputeTotals,
+    ceilingAverage,
+    lateJoinInfo,
+    missedRoundText,
+    recordLateJoin,
     applyScoreEntryKey,
     acceptScoreEntryValue,
     createScoreEntrySession,
