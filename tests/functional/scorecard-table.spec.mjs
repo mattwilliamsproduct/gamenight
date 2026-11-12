@@ -142,7 +142,7 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
     await expect(page.locator('#slice2-board-line')).not.toContainText(/Wild|Dealer/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Wild/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Dealer/);
-    await expect(page.locator('th.scorecard-col-now')).toHaveText(/^R\d+$/);
+    await expect(page.locator('th.scorecard-col-now')).toHaveText('This round');
     const nowWraps = await page.locator('th.scorecard-col-now').evaluate((el) => getComputedStyle(el).whiteSpace !== 'nowrap');
     expect(nowWraps).toBe(false);
     const overflow = await page.evaluate(() => {
@@ -261,7 +261,7 @@ test('Life Preserver picker opens from Actions and a badge goes straight to that
   expect(afterCancel).not.toContain('Cat');
   expect(afterCancel).not.toContain('Brick');
 
-  await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
+  await page.getByRole('button', {name: /Spin ready for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-name')).toHaveText('Cat');
 });
@@ -319,7 +319,7 @@ test('1440 late Five Crowns shows every hand', async ({page}) => {
   expect(fit.ok, 'missing NOW').toBe(true);
   expect(fit.visible, `visible rounds ${fit.visible} of ${fit.total}`).toBe(fit.total);
   expect(fit.visible, 'late card lost a completed hand').toBeGreaterThanOrEqual(10);
-  expect(fit.label, 'NOW header should stay a short R11 Now').toMatch(/^R\d+ Now$/);
+  expect(fit.label, 'current round header').toBe('This round');
   expect(fit.clipped, `NOW text clipped as ${fit.label}`).toBe(false);
   expect(fit.nowInside, 'NOW clipped on the late card').toBe(true);
   expect(fit.hintOn, 'trim hint on a card that should show every hand').toBe(false);

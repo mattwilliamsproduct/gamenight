@@ -567,7 +567,7 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /score-entry-confirm-status/);
   assert.match(page, /function jsAttrArg/);
   const scorebook = fs.readFileSync(new URL('../public/assets/scorebook.js', import.meta.url), 'utf8');
-  assert.match(scorebook, /Blank scores count as 0/);
+  assert.match(scorebook, /Skip leaves a score blank/);
   assert.match(scorebook, /Suggested: \$\{value\} \(tap Next to confirm\)/);
   assert.match(scorebook, /Confirmed: \$\{value\}/);
   assert.match(scorebook, /kind === 'scores' \|\| kind === 'tricks'/);
@@ -753,7 +753,7 @@ test('Next leaves a blank score empty, and a submitted blank matches a typed 0',
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).state, 'unentered');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: true }).label, 'Not entered');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Not entered');
-  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Blank scores count as 0');
+  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Skip leaves a score blank. Submit names anyone still missing.');
   assert.notEqual(
     Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label,
     Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).label

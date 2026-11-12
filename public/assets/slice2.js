@@ -138,22 +138,27 @@
     }).join('');
   }
 
+  function wheelCopy() {
+    return window.BPGLifePreserver && BPGLifePreserver.BACK_PORCH_WHEEL;
+  }
+
+  function wheelIconSvg() {
+    return '<svg class="wheel-badge-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg>';
+  }
+
   function lifePreserverStatusMarkup(game, player) {
+    const copy = wheelCopy();
     const supported = new Set(['Five Crowns', 'Wizard', '818', 'Flip 7 Vengeance']);
-    if (!game || !supported.has(game.name) || typeof isHailMaryEligible !== 'function') return '';
+    if (!copy || !game || !supported.has(game.name) || typeof isHailMaryEligible !== 'function') return '';
     const used = (game.hailMaryUsed || []).includes(player);
     if (used) {
-      const bonus = (game.rounds || []).filter((round) => round && round.hailMaryBonus && round.scores && round.scores[player] != null);
-      const last = bonus[bonus.length - 1];
-      const n = last ? Number(last.scores[player]) : NaN;
-      const delta = Number.isFinite(n) && n !== 0 ? ` ${n > 0 ? '+' : '−'}${Math.abs(n)}` : '';
-      return `<span class="s2-lp-status">LP · Used${delta}</span>`;
+      return `<span class="wheel-badge wheel-badge-used" aria-label="${copy.used}">${wheelIconSvg()}<span>${copy.used}</span></span>`;
     }
     const table = typeof getActivePlayers === 'function' ? getActivePlayers(game) : [];
     if (isHailMaryEligible(game, player, table, { gameOver: false })) {
-      return `<span class="s2-lp-status">LP · Available</span>`;
+      return `<span class="wheel-badge wheel-badge-ready" aria-label="${copy.ready}">${wheelIconSvg()}<span>${copy.ready}</span></span>`;
     }
-    return `<span class="s2-lp-status">LP · Not yet</span>`;
+    return '';
   }
 
   function leaderBit(game) {
@@ -291,6 +296,7 @@
       </div>
       <div class="s2-board-actions">
         <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
+        <button type="button" class="s2-btn" id="slice2-end-btn" data-s2-action="save-end">Save &amp; End</button>
       </div>`;
   }
 
@@ -386,7 +392,7 @@
     const count = addPicks.size;
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add Player';
     return `<div class="s2-picker">
-      ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are already in this match.</p>'}
+      ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>'}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(room.message || max.message || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
@@ -410,6 +416,41 @@
     });
   }
 
+  function unfinishedBannerMarkup(open) {
+    if (!open.length) return '';
+    const top = open[0];
+    const label = displayGameName(top.game || top.name);
+    const round = liveRoundLabel(historyAsGame(top));
+    const more = open.length > 1;
+    const chooser = unfinishedOpen && more
+      ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
+          <section class="s2-panel s2-chooser bp-modal-panel" role="dialog" aria-label="Unfinished matches">
+            <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
+            ${open.map((match) => {
+              const name = displayGameName(match.game || match.name);
+              const who = (match.originalRoster || match.players || []).filter(Boolean).join(', ');
+              const when = match.date || match.savedAt || '';
+              return `<div class="s2-unfinished-row">
+                <span><strong>${escapeHtml(name)}</strong> · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}${who ? ` · ${escapeHtml(who)}` : ''}${when ? ` · ${escapeHtml(String(when))}` : ''}</span>
+                <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}" aria-label="Resume unfinished ${escapeHtml(name)}">Resume</button>
+              </div>`;
+            }).join('')}
+            <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-close">Close</button>
+          </section>
+        </div>`
+      : '';
+    return `<section class="s2-banner s2-unfinished-banner">
+      <div>
+        <div class="s2-kicker">Unfinished</div>
+        <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
+      </div>
+      <div class="s2-banner-actions">
+        ${more ? `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all (${open.length})</button>` : ''}
+        <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}" aria-label="Resume unfinished ${escapeHtml(label)}">Resume</button>
+      </div>
+    </section>${chooser}`;
+  }
+
   function paintHome() {
     const home = document.getElementById('home-screen');
     if (!home) return;
@@ -429,6 +470,7 @@
     const seated = table.players.length;
     const bench = table.allPlayers.filter((player) => !table.players.includes(player));
     const open = unfinishedMatches(table.history);
+    const parkedBanner = unfinishedBannerMarkup(open);
     const banner = table.currentGame ? (() => {
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
@@ -444,40 +486,8 @@
         <div class="s2-banner-actions">
           <button type="button" class="s2-btn s2-btn-primary" data-s2-action="resume">Resume</button>
         </div>
-      </section>`;
-    })() : (open.length ? (() => {
-      const top = open[0];
-      const label = displayGameName(top.game || top.name);
-      const round = liveRoundLabel(historyAsGame(top));
-      const more = open.length > 1;
-      const chooser = unfinishedOpen && more
-        ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
-            <section class="s2-panel s2-chooser bp-modal-panel" role="dialog" aria-label="Unfinished matches">
-              <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
-              ${open.map((match) => {
-                const name = displayGameName(match.game || match.name);
-                const who = (match.originalRoster || match.players || []).filter(Boolean).join(', ');
-                const when = match.date || match.savedAt || '';
-                return `<div class="s2-unfinished-row">
-                  <span><strong>${escapeHtml(name)}</strong> · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}${who ? ` · ${escapeHtml(who)}` : ''}${when ? ` · ${escapeHtml(String(when))}` : ''}</span>
-                  <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}">Resume</button>
-                </div>`;
-              }).join('')}
-              <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-close">Close</button>
-            </section>
-          </div>`
-        : '';
-      return `<section class="s2-banner s2-unfinished-banner">
-        <div>
-          <div class="s2-kicker">Unfinished</div>
-          <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
-        </div>
-        <div class="s2-banner-actions">
-          ${more ? `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all (${open.length})</button>` : ''}
-          <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}">Resume</button>
-        </div>
-      </section>${chooser}`;
-    })() : '');
+      </section>${parkedBanner}`;
+    })() : parkedBanner;
     const seats = table.players.map((player, index) => {
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
       return `<article class="s2-seat" data-s2-index="${index}" data-s2-player="${escapeHtml(player)}">
@@ -488,27 +498,19 @@
           ${tag}
         </span>
         <div class="s2-seat-tools">
-          <button type="button" class="s2-seat-nudge" data-s2-action="seat-up" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} up"${index === 0 ? ' disabled' : ''}>
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 8l4-5 4 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button type="button" class="s2-seat-nudge" data-s2-action="seat-down" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} down"${index === table.players.length - 1 ? ' disabled' : ''}>
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} to on deck">×</button>
+          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="${escapeHtml(table.currentGame ? `Unseat ${player} from next match (keeps their profile)` : `Unseat ${player} from tonight (keeps their profile)`)}" title="${escapeHtml(table.currentGame ? 'Unseat from next match (keeps their profile)' : 'Unseat from tonight (keeps their profile)')}">×</button>
           <button type="button" class="s2-seat-handle" data-s2-action="seat-handle" data-s2-index="${index}" aria-label="Reorder ${escapeHtml(player)}">
             <svg viewBox="0 0 12 16" aria-hidden="true"><circle cx="4" cy="3" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="4" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="4" cy="13" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>
           </button>
         </div>
       </article>`;
     }).join('') || '<p class="s2-sub" id="slice2-empty-table">Add a name to seat tonight\'s table. Then pick a game and tap Start.</p>';
-    const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
-        ${on ? '<span class="s2-selected-tag">✓ Selected</span>' : '<span class="s2-selected-tag s2-selected-reserve" aria-hidden="true">✓ Selected</span>'}
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
@@ -520,7 +522,6 @@
           </div>
           <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
           <div class="s2-seat-grid">${seats}</div>
-          <div class="s2-deck">${chips}</div>
           ${addPlayerPickerMarkup(bench, seated)}
           <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
@@ -534,8 +535,10 @@
     const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
-              <h2>Start a New Match</h2>
-              <p class="s2-sub">${seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start'}</p>
+              <h2>${live ? 'Next match' : 'Start a New Match'}</h2>
+              <p class="s2-sub">${live
+                ? `Next match players · ${seated} seated. Changing them does not change the match in progress.`
+                : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start')}</p>
             </div>
             <label class="s2-rules-picker">
               <select class="s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
@@ -546,13 +549,14 @@
           </div>
           <div class="s2-game-grid">${cards}</div>
           ${live && nextRosterOpen ? `<div class="s2-next-roster" id="slice2-next-roster">
-            <p class="s2-sub">Next match roster. This does not change the match in progress.</p>
+            <h3>Next match players</h3>
+            <p class="s2-sub">Unseat from next match (keeps their profile). This does not change the match in progress.</p>
             <div class="s2-seat-grid">${seats}</div>
             ${addPlayerPickerMarkup(bench, seated)}
           </div>` : ''}
           <div class="s2-startbar">
             <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
-            ${live ? `<button type="button" class="s2-btn" data-s2-action="edit-next-roster">Players (${seated})</button>` : ''}
+            ${live ? `<button type="button" class="s2-btn" data-s2-action="edit-next-roster">Next match players (${seated})</button>` : ''}
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
@@ -774,8 +778,8 @@
     const lpAction = document.getElementById('actions-life-preserver-btn');
     if (lpAction) {
       const label = lpAction.querySelector('span:last-child') || lpAction;
-      if (eligible.length) label.textContent = 'Life Preserver…';
-      else label.textContent = 'Life Preserver';
+      const copy = wheelCopy();
+      if (copy) label.textContent = copy.name;
     }
   }
 
@@ -1105,7 +1109,10 @@
     const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
     if (hub) hub.textContent = '';
     const mode = document.getElementById('wheel-mode-label');
-    if (mode && !resultOpen) mode.textContent = 'Life Preserver';
+    if (mode && !resultOpen) {
+      const copy = wheelCopy();
+      if (copy) mode.textContent = copy.name;
+    }
     canvas.dataset.slice2Wheel = '1';
     paintWheel.lastLabels = labels;
     paintWheel.lastGeometry = { cx, cy, outer, inner, cssWidth, canvasWidth: canvas.width, bowl, hubR };
@@ -1239,7 +1246,8 @@
     } else if (action === 'seat-out') {
       const table = state();
       const player = table.players[Number(target.dataset.s2Index)];
-      if (player) moveToBench(player);
+      if (player && typeof unseatTonightPlayer === 'function') unseatTonightPlayer(player);
+      else if (player) moveToBench(player);
     } else if (action === 'deck-add') {
       moveToLineup(target.dataset.s2Player || '');
     } else if (action === 'pick-game') {
@@ -1293,6 +1301,8 @@
       openAuditLog();
     } else if (action === 'enter-round') {
       enterRound();
+    } else if (action === 'save-end') {
+      if (typeof requestEndGame === 'function') requestEndGame();
     } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
       setRecordsPane(action === 'show-shame' ? 'explore' : (action === 'show-nights' ? 'nights' : 'overview'));
     } else if (action === 'night-expand') {
@@ -1348,13 +1358,15 @@
   }
 
   function onPointerDown(event) {
-    const handle = event.target.closest?.('.s2-seat-handle');
-    if (!handle || !handle.closest('#slice2-home')) return;
-    const seat = handle.closest('.s2-seat');
-    const from = Number(seat?.dataset.s2Index);
+    if (event.button != null && event.button !== 0) return;
+    const seat = event.target.closest?.('#slice2-home .s2-seat');
+    if (!seat || event.target.closest?.('.s2-seat-out, a, input, select, textarea')) return;
+    const from = Number(seat.dataset.s2Index);
     if (!Number.isInteger(from)) return;
     event.preventDefault();
-    if (handle.setPointerCapture) handle.setPointerCapture(event.pointerId);
+    if (seat.setPointerCapture) {
+      try { seat.setPointerCapture(event.pointerId); } catch (error) {}
+    }
     seatPointer = { from, over: from, pointerId: event.pointerId, startY: event.clientY, active: false };
   }
 

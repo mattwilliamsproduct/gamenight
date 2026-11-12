@@ -354,21 +354,13 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   const mattRow=page.locator('#score-entry-row-Matt');
   await mattRow.locator('.score-entry-row-status').click();
   await expect(mattRow).not.toHaveClass(/is-complete/);
-  await (await entryKey(page,'-')).click({force:true});
+  await page.evaluate(() => scoreEntryKey('-'));
   await (await entryKey(page,'5')).click();
   await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
-  const catRow=page.locator('#score-entry-row-Cat');
-  await expect(catRow).not.toHaveClass(/is-complete/);
-  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
-  await expect(page.locator('#score-entry-value-Cat')).toHaveText('');
-  await expect(page.locator('#score-entry-status-Cat')).toHaveText('Not entered');
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
-  const catBlank=await page.evaluate(()=>({
-    value:scoreEntryModalState.values.Cat,
-    acknowledged:scoreEntryModalState.acknowledged.Cat
-  }));
-  expect(catBlank).toEqual({value:'', acknowledged:false});
+  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
+  await expect(page.locator('#score-entry-value-Cat')).toHaveText('0');
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
@@ -805,7 +797,7 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   const nights=page.locator('#hall-of-fame-view .s2-night');
   await expect(nights).toHaveCount(2);
   await expect(page.locator('#hall-of-fame-view .s2-night[data-assisted-match="true"]')).toHaveCount(1);
-  await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
   await expect(page.locator('#hall-of-fame-view')).toContainText('Matt');
   await expect(page.locator('#hall-of-fame-view')).toContainText('4 pts');
   await expect(page.locator('.s2-ledger-table')).not.toContainText('-18');
@@ -824,7 +816,10 @@ test('P0-03 an all-assisted shelf says there are no unassisted matches', async (
     showHistory();
   });
   await expect(page.locator('#hall-of-fame-view')).toBeVisible();
-  await expect(page.locator('#hall-of-fame-view')).toContainText('No unassisted matches yet');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('No record yet');
+  await page.locator('#slice2-show-shame').click();
+  await expect(page.locator('.s2-explore-col')).toContainText('No unassisted matches yet');
   await expect(page.locator('#hall-of-fame-view')).not.toContainText('Unassisted matches only on best final');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-all-assisted-empty.png`});
@@ -840,7 +835,7 @@ test('P0-03 spins stay out of exact bids and opening the wheel is not an assiste
   }));
   expect(before.assisted).toBe(false);
   expect(before.bonus).toBe(false);
-  await page.getByRole('button',{name:/Life Preserver available for Duke/}).click();
+  await page.getByRole('button',{name:/Spin ready for Duke/}).click();
   await expect(page.locator('#wheel-modal')).toBeVisible();
   await page.evaluate(()=>closeWheel());
   await expect(page.locator('#wheel-modal')).toBeHidden();
@@ -1045,7 +1040,7 @@ test('P0-03 phone width still shows the assisted badge and the healed round', as
   await expect(page.locator('[data-assisted-match="true"]').first()).toBeVisible();
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await shot(page,'slice1-phone-timeline');
-  await expect(page.locator('#hall-of-fame-view')).toContainText('Unassisted matches only');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
   await shot(page,'slice1-phone-hall-of-fame');
   await shot(page,'slice1-phone-records');
 });
@@ -1292,24 +1287,22 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   const alice=page.locator('#score-entry-status-Alice');
   await expect(alice).toHaveText('Not entered');
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
   await expect(page.locator('#score-entry-status-Bob')).not.toContainText('Suggested');
-  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
-  const blank=await page.evaluate(()=>({
+  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
+  const aliceZero=await page.evaluate(()=>({
     value:scoreEntryModalState.values.Alice,
     acknowledged:scoreEntryModalState.acknowledged.Alice
   }));
-  expect(blank).toEqual({value:'', acknowledged:false});
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
-  await expect(page.locator('#score-entry-row-Alice')).not.toHaveClass(/is-complete/);
-  await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
-  await page.locator('#score-entry-row-Bob .score-entry-name').click();
-  await (await entryKey(page,'0')).click();
+  expect(aliceZero).toEqual({value:'0', acknowledged:true});
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('0');
+  await expect(page.locator('#score-entry-row-Alice')).toHaveClass(/is-complete/);
+  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('0');
   await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
-  await page.locator('#score-entry-row-Cara .score-entry-name').click();
   await (await entryKey(page,'4')).click();
-  await expect(page.locator('#score-entry-value-Dan')).toHaveText('');
+  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
+  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
   await shot(page,'slice1-blank-submits-zero');
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-modal')).toBeHidden();
@@ -1345,7 +1338,7 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
     if(!modal||modal.classList.contains('hidden')) return false;
     return Number(getComputedStyle(modal).opacity)>0.95 && modal.classList.contains('score-entry-managed-fit');
   });
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
   await expect(page.locator('#score-entry-status-Alice')).toHaveText('Not entered');
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
   await shot(page,'slice1-blank-submits-zero-phone');

@@ -3665,9 +3665,9 @@ button.dealer-name-indicator {
       table-layout: fixed;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: auto;
+      width: 42%;
       min-width: 13rem;
-      max-width: none;
+      max-width: 28rem;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player > .flex,
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player .scorecard-player-identity {
@@ -3678,17 +3678,19 @@ button.dealer-name-indicator {
       max-width: none;
     }
     #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-total {
-      width: clamp(6.5rem, 8vw, 8.5rem);
-      min-width: 6.5rem;
-      max-width: 9rem;
+      width: clamp(9rem, 14vw, 13rem);
+      min-width: 9rem;
+      max-width: 14rem;
     }
     #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      width: auto;
-      min-width: 18rem;
-      max-width: none;
+      width: 44%;
+      min-width: 16rem;
+      max-width: 28rem;
     }
     #scorecard-capture.scorecard-roomy-identity-4 .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-      min-width: 22rem;
+      width: 46%;
+      min-width: 14rem;
+      max-width: 26rem;
     }
     @media (max-width: 900px) {
       #scorecard-capture .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
@@ -3990,6 +3992,58 @@ button.dealer-name-indicator {
       background: #eef4f1;
       border-color: #c5d4ce;
       color: #1f4a44;
+    }
+    .scorecard-total-stack {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+    }
+    .wheel-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 44px;
+      min-width: 44px;
+      margin-left: auto;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-family: "Nunito Sans", sans-serif;
+      font-size: max(1.15rem, calc(var(--scorecard-player-font, 1.25rem) * 0.72));
+      font-weight: 800;
+      line-height: 1.1;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .wheel-badge-icon {
+      width: 1.35rem;
+      height: 1.35rem;
+      flex: 0 0 auto;
+    }
+    .wheel-badge-icon circle,
+    .wheel-badge-icon path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+    }
+    .wheel-badge-ready {
+      background: #0a5c54;
+      color: #fffaf3;
+      border: 2px solid #073f3b;
+      cursor: pointer;
+    }
+    .wheel-badge-ready:hover,
+    .wheel-badge-ready:focus-visible {
+      background: #087066;
+    }
+    .wheel-badge-used {
+      background: transparent;
+      color: var(--ink-2);
+      border: 1px solid #c4b49a;
+      font-weight: 700;
     }
     html.dark .scoreboard-rank-badge { background: rgba(16,185,129,0.08); color: #6ee7b7; }
 
@@ -4371,12 +4425,12 @@ button.dealer-name-indicator .dealer-player-label {
 
     /* ════════ TOASTS ════════ */
     #toast-container {
-      position: fixed; top: 5rem; left: 50%;
+      position: fixed; top: auto; bottom: 1.25rem; left: 50%;
       transform: translateX(-50%);
       z-index: 150;
       display: flex; flex-direction: column; gap: 0.5rem;
       pointer-events: none;
-      max-width: 90vw;
+      max-width: min(40rem, 92vw);
     }
     @media (max-width: 760px) {
       body.active-match-view #toast-container {
@@ -4398,6 +4452,34 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .toast.success { background: var(--emerald); color: #fff; }
     .toast.warning { background: var(--amber); color: #fff; }
+    .toast.toast-info {
+      background: #f6f1e7;
+      color: #1c1915;
+      border: 1px solid #c4b49a;
+      border-radius: 18px;
+      white-space: normal;
+      max-width: min(36rem, 92vw);
+      font-size: 1.2rem;
+      line-height: 1.35;
+      font-weight: 700;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+      padding: 1rem 1.15rem;
+      animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards, toastOut 0.5s ease 7.4s forwards;
+    }
+    .toast.toast-info p { margin: 0; }
+    .toast.toast-info .toast-go {
+      align-self: flex-start;
+      min-height: 48px;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      border: 2px solid #1c1915;
+      background: #fffaf3;
+      color: #1c1915;
+      font: 800 1.05rem/1 "Nunito Sans", sans-serif;
+      cursor: pointer;
+    }
     .toast.record  { background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%); color: #fff; }
     @keyframes toastIn  { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-30px); opacity: 0; } }
@@ -4452,22 +4534,32 @@ button.dealer-name-indicator .dealer-player-label {
     .inline-form-error.is-on { display: block; }
 
     /* ════════ AUDIT LOG ════════ */
+    .audit-lead {
+      margin: 0.35rem 0 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--ink-2);
+    }
     .audit-entry {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.55rem 0.85rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+      padding: 0.85rem 1rem;
       background: var(--surface-2);
       border: 1px solid var(--hairline);
-      border-radius: 10px;
-      font-size: 0.78rem;
-      margin-bottom: 0.4rem;
+      border-radius: 14px;
+      font-size: 1.2rem;
+      line-height: 1.35;
+      margin-bottom: 0.55rem;
     }
+    .audit-entry strong { font-weight: 800; }
     .audit-time {
-      color: var(--muted);
+      color: var(--ink-2);
       font-variant-numeric: tabular-nums;
-      font-size: 0.7rem;
-      font-weight: 600;
+      font-size: 1.05rem;
+      font-weight: 700;
     }
 
     /* ════════ RIVALRY CARD ════════ */
@@ -5077,8 +5169,58 @@ button.dealer-name-indicator .dealer-player-label {
       display: none;
     }
     /* Default keypad (minus + 00 present): 0 spans two columns like live */
-    #score-entry-modal:not(.hf-no-minus):not(.hf-cards-left) .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
+    #score-entry-modal:not(.hf-no-minus):not(.hf-cards-left):not(.score-entry-plain) .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
       grid-column: span 2;
+    }
+    #score-entry-modal.score-entry-plain .score-entry-keypad {
+      grid-template-areas:
+        "k7 k8 k9 del"
+        "k4 k5 k6 skip"
+        "k1 k2 k3 next"
+        "k0 minus minus next";
+    }
+    #score-entry-modal.score-entry-plain.score-entry-no-minus .score-entry-keypad {
+      grid-template-areas:
+        "k7 k8 k9 del"
+        "k4 k5 k6 skip"
+        "k1 k2 k3 next"
+        "k0 k0 k0 next";
+    }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('7')"] { grid-area: k7; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('8')"] { grid-area: k8; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('9')"] { grid-area: k9; }
+    #score-entry-modal.score-entry-plain #score-entry-delete-key { grid-area: del; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('4')"] { grid-area: k4; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('5')"] { grid-area: k5; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('6')"] { grid-area: k6; }
+    #score-entry-modal.score-entry-plain #score-entry-skip-slot { grid-area: skip; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('1')"] { grid-area: k1; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('2')"] { grid-area: k2; }
+    #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
+    #score-entry-modal.score-entry-plain #score-entry-next-btn { grid-area: next; grid-row: auto; }
+    #score-entry-modal.score-entry-plain #score-entry-key-0 { grid-area: k0 !important; grid-column: auto !important; }
+    #score-entry-modal.score-entry-plain .score-entry-minus-key { grid-area: minus; }
+    #score-entry-modal.score-entry-plain.score-entry-no-minus .score-entry-minus-key { display: none !important; }
+    #score-entry-modal.score-entry-plain #score-entry-delete-key,
+    #score-entry-modal.score-entry-plain #score-entry-skip-slot {
+      background: var(--surface);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+    #score-entry-modal.score-entry-plain #score-entry-next-btn {
+      font-family: "Nunito Sans", sans-serif;
+      font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+      font-weight: 800;
+    }
+    .score-entry-cap-note {
+      margin-top: 0.2rem;
+      color: var(--rose);
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1.2;
     }
         /* No-minus keypad: 789 bk / 456 nx / 123 nx / 0 0 . nx */
     #score-entry-modal.hf-no-minus .score-entry-keypad,
@@ -6454,6 +6596,7 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0.16em;
       text-transform: uppercase;
     }
+    .actions-menu-item.hidden { display: none !important; }
     .actions-menu-item {
       display: flex;
       align-items: center;
@@ -7458,6 +7601,7 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0.16em;
       text-transform: uppercase;
     }
+    .actions-menu-item.hidden { display: none !important; }
     .actions-menu-item {
       display: flex;
       align-items: center;
@@ -8630,7 +8774,6 @@ button.dealer-name-indicator .dealer-player-label {
       padding-top: 0.28rem;
       padding-bottom: 0.28rem;
     }
-    #game-screen #actions-btn,
     #game-screen .active-match-banner .btn-accent,
     #game-screen .active-match-banner .match-end-btn {
       font-size: 13px;
@@ -8678,7 +8821,6 @@ button.dealer-name-indicator .dealer-player-label {
         padding-left: 0.42rem;
         padding-right: 0.42rem;
       }
-      #game-screen #actions-btn,
       #game-screen .active-match-banner .match-end-btn {
         padding-left: 0.65rem;
         padding-right: 0.65rem;
@@ -9027,9 +9169,8 @@ button.dealer-name-indicator .dealer-player-label {
     <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
       <button onclick="closeAuditLog()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
       <div class="mb-5">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">This match</div>
         <h3 class="font-display text-3xl">Audit Log</h3>
-        <p class="text-xs font-semibold mt-1" style="color:var(--muted);">Every round submission, edit, Life Preserver, and retirement — for settling disputes.</p>
+        <p class="audit-lead" id="audit-log-lead"></p>
       </div>
       <div id="audit-list" class="flex-1 overflow-y-auto"></div>
     </div>
@@ -9180,8 +9321,8 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div class="active-match-actions flex flex-nowrap gap-2 items-center relative min-w-0">
           <div class="relative">
-            <button type="button" onclick="toggleActionsMenu(event)" id="actions-btn" class="btn-ghost px-5 py-2.5 text-sm flex items-center gap-1.5" aria-haspopup="menu" aria-expanded="false" aria-controls="actions-menu">
-              Actions <span id="actions-caret" class="text-[10px]">▾</span>
+            <button type="button" onclick="toggleActionsMenu(event)" id="actions-btn" class="s2-btn flex items-center gap-1.5" aria-haspopup="menu" aria-expanded="false" aria-controls="actions-menu">
+              Actions <span id="actions-caret">▾</span>
             </button>
             <div id="actions-menu" class="hidden absolute right-0 top-full mt-2 z-[120] surface-raised" role="menu" style="background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--shadow-lg);">
               <div class="actions-menu-section">
@@ -9200,14 +9341,14 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
                 <button type="button" id="actions-life-preserver-btn" onclick="openLifePreserverEntry();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.25"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg></span>
-                  <span>Life Preserver</span>
+                  <span class="actions-menu-label-text"></span>
                 </button>
               </div>
               <div class="actions-menu-section">
                 <span class="actions-menu-label">Table tools</span>
                 <button id="actions-add-player-btn" onclick="addPlayerMidGame();closeActionsMenu();" class="actions-menu-item hidden">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-1.8-4-4-4H6c-2.2 0-4 1.8-4 4"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M16 11h6"></path></svg></span>
-                  <span>Add Player Mid-Game</span>
+                  <span>Add Player</span>
                 </button>
                 <button id="actions-reorder-btn" onclick="openReorderPlayersModal();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path></svg></span>
@@ -9215,13 +9356,13 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
                 <button id="actions-retire-btn" onclick="openRetirePlayerModal();closeActionsMenu();" class="actions-menu-item">
                   <span class="actions-menu-icon actions-menu-icon--coral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3v18"></path><path d="M3 21h18"></path><path d="M3 3h11"></path><path d="M3 3v18"></path><path d="m10 12 4 4 4-4"></path><path d="M14 16V8"></path></svg></span>
-                  <span>Mark left early</span>
+                  <span>Mark left early (keeps scores)</span>
                 </button>
               </div>
               <div class="actions-menu-section">
                 <button onclick="scratchMatch();closeActionsMenu();" class="actions-menu-item actions-menu-item--danger">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></span>
-                  <span>Scratch Match</span>
+                  <span>Scratch Match (discard scores)</span>
                 </button>
               </div>
               <div class="actions-menu-section">
@@ -9770,17 +9911,17 @@ button.dealer-name-indicator .dealer-player-label {
               <button type="button" onclick="scoreEntryKey('7')" class="score-entry-key">7</button>
               <button type="button" onclick="scoreEntryKey('8')" class="score-entry-key">8</button>
               <button type="button" onclick="scoreEntryKey('9')" class="score-entry-key">9</button>
-              <button type="button" onclick="scoreEntryKey('backspace')" class="score-entry-key subtle">⌫</button>
+              <button type="button" id="score-entry-delete-key" onclick="scoreEntryKey('backspace')" class="score-entry-key subtle">⌫</button>
               <button type="button" onclick="scoreEntryKey('4')" class="score-entry-key">4</button>
               <button type="button" onclick="scoreEntryKey('5')" class="score-entry-key">5</button>
               <button type="button" onclick="scoreEntryKey('6')" class="score-entry-key">6</button>
-              <button type="button" onclick="scoreEntryKey('-')" class="score-entry-key subtle">−</button>
+              <button type="button" onclick="scoreEntryKey('-')" class="score-entry-key subtle score-entry-minus-key">−</button>
               <button type="button" onclick="scoreEntryKey('1')" class="score-entry-key">1</button>
               <button type="button" onclick="scoreEntryKey('2')" class="score-entry-key">2</button>
               <button type="button" onclick="scoreEntryKey('3')" class="score-entry-key">3</button>
-              <button type="button" onclick="scoreEntryNext()" class="score-entry-key next">Next</button>
-              <button type="button" onclick="scoreEntryKey('00')" class="score-entry-key">00</button>
-              <button type="button" onclick="scoreEntryKey('0')" class="score-entry-key">0</button>
+              <button type="button" id="score-entry-next-btn" onclick="scoreEntryNext()" class="score-entry-key next">Next</button>
+              <button type="button" id="score-entry-skip-slot" onclick="scoreEntryKey('00')" class="score-entry-key">00</button>
+              <button type="button" id="score-entry-key-0" onclick="scoreEntryKey('0')" class="score-entry-key">0</button>
             </div>
           </div>
         </div>
@@ -9827,7 +9968,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog bp-modal-panel p-5 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
         <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
-        <div id="wheel-mode-label" class="wheel-mode-label">Life Preserver</div>
+        <div id="wheel-mode-label" class="wheel-mode-label"></div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
         <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
@@ -9860,9 +10001,9 @@ button.dealer-name-indicator .dealer-player-label {
           <p id="wheel-result-standing" class="text-lg md:text-2xl font-extrabold mt-1" style="color:var(--ink);"></p>
           <button type="button" onclick="closeWheel()" class="btn-primary w-full mt-4 py-4 font-display text-xl">Back to scorecard</button>
         </div>
-        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold shrink-0">How Life Preserver works</button>
+        <button type="button" id="btn-life-preserver-help" onclick="showLifePreserverHelp()" class="btn-ghost w-full mt-3 py-3 text-sm font-extrabold shrink-0"></button>
         <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-50 flex flex-col p-6 md:p-7 text-left">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);">🛟 Life Preserver</div>
+          <div id="wheel-help-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);"></div>
           <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
           <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
           <div class="flex-1 min-h-0 overflow-y-auto pr-1 text-sm md:text-[15px] font-semibold">
@@ -9913,7 +10054,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="lp-picker-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeLifePreserverPicker()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Life Preserver</div>
+        <div id="lp-picker-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);"></div>
         <h3 class="font-display text-3xl mb-2">Who spins?</h3>
         <p class="text-sm font-semibold mb-4" style="color:var(--ink-2);">Pick a player. Cancel spends nothing.</p>
         <div id="lp-picker-list" class="flex flex-col gap-2 mb-4"></div>
@@ -9941,7 +10082,7 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="surface-raised life-preserver-rules-card bp-modal-panel p-7 md:p-10 relative">
         <button type="button" onclick="closeLifePreserverRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5 pr-8">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">🛟 Life Preserver</div>
+          <div id="wheel-rules-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);"></div>
           <h3 class="font-display text-4xl md:text-5xl leading-tight" id="life-preserver-rules-title">How you get one</h3>
         </div>
         <div id="life-preserver-rules-content" class="life-preserver-rules-body bp-modal-body overflow-y-auto pr-1 text-sm md:text-base"></div>
@@ -10172,9 +10313,8 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="surface-raised bp-modal-panel p-7 relative pop-in">
         <button onclick="closeRetirePlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="text-center mb-5">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--rose);">Leaving the Table</div>
-          <h3 class="font-display text-3xl">Head Back to Shore</h3>
-          <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Their score is frozen and they leave the rotation.</p>
+          <h3 class="font-display text-3xl">Mark left early</h3>
+          <p class="text-base font-semibold mt-2" style="color:var(--ink);">They keep the scores already entered. They leave the rest of this match and cannot win it.</p>
         </div>
         <div id="retire-player-list" class="space-y-2"></div>
       </div>
@@ -10218,6 +10358,37 @@ button.dealer-name-indicator .dealer-player-label {
   const GN_QA_MODE = (GN_QA_LOCAL_HOSTS.has(location.hostname)||GN_QA_PREVIEW_HOST) && new URLSearchParams(location.search).has('gnqa');
   document.body.classList.add('slice2-tv');
   const LP_SPIN_COPY = {ready:'Use your one spin', spinning:'Spinning…'};
+  function wheelCopy(){
+    return window.BPGLifePreserver && BPGLifePreserver.BACK_PORCH_WHEEL;
+  }
+  function wheelIconSvg(){
+    return '<svg class="wheel-badge-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg>';
+  }
+  function wheelBadgeMarkup(player, kind){
+    const copy=wheelCopy();
+    if(!copy || (kind!=='ready' && kind!=='used')) return '';
+    const label=kind==='ready'?copy.ready:copy.used;
+    const spoken=`${label} for ${player}`;
+    if(kind==='ready'){
+      return `<button type="button" class="wheel-badge wheel-badge-ready" onclick="authorizeHailMary('${escapeJsString(player)}')" aria-label="${escapeHtml(spoken)}">${wheelIconSvg()}<span>${escapeHtml(label)}</span></button>`;
+    }
+    return `<span class="wheel-badge wheel-badge-used" aria-label="${escapeHtml(spoken)}">${wheelIconSvg()}<span>${escapeHtml(label)}</span></span>`;
+  }
+  function applyWheelChrome(){
+    const copy=wheelCopy();
+    if(!copy) return;
+    const name=copy.name;
+    const text=(id,value)=>{ const el=document.getElementById(id); if(el) el.textContent=value; };
+    text('wheel-mode-label', name);
+    text('wheel-help-kicker', name);
+    text('lp-picker-kicker', name);
+    text('wheel-rules-kicker', name);
+    text('btn-life-preserver-help', `How ${name} works`);
+    text('audit-log-lead', `Every round submission, edit, ${name}, and retirement, for settling disputes.`);
+    const action=document.querySelector('#actions-life-preserver-btn .actions-menu-label-text');
+    if(action && !action.textContent) action.textContent=name;
+  }
+  applyWheelChrome();
 
   // ── Storage helpers ──
   function gnKey(key){return (window.BPGTryDemo&&typeof BPGTryDemo.storageKey==='function')?BPGTryDemo.storageKey(key):key;}
@@ -10960,8 +11131,8 @@ button.dealer-name-indicator .dealer-player-label {
       list.innerHTML = `<div class="text-center py-10 font-bold" style="color:var(--muted);">No actions recorded yet.</div>`;
     } else {
       list.innerHTML = entries.map(e=>`<div class="audit-entry">
-        <div><span class="font-extrabold" style="color:var(--ink);">${e.action}</span> <span style="color:var(--ink-2);">${e.detail||''}</span></div>
-        <div class="audit-time">${formatAuditTime(e.ts)}</div>
+        <strong>${escapeHtml(e.action||'Note')}</strong>
+        <div class="audit-time">${escapeHtml([e.detail, formatAuditTime(e.ts)].filter(Boolean).join(' · '))}</div>
       </div>`).join('');
     }
     openModal('audit-modal');
@@ -10975,6 +11146,12 @@ button.dealer-name-indicator .dealer-player-label {
   const SAVE_DEBOUNCE_MS = 220;
   const DRAFT_SAVE_DEBOUNCE_MS = 1200;
   const DRAFT_SAVE_IDLE_TIMEOUT_MS = 1000;
+  let _storageFullNoted=false;
+  function noteStorageFull(){
+    if(_storageFullNoted) return;
+    _storageFullNoted=true;
+    toast('This device is full. What you see stayed on screen, and the last saved copy was not replaced.', 'warning');
+  }
   function persistJsonIfChanged(key, value){
     if(window.__GN_DEMO_SKIP_PERSIST) return;
     if(key === 'gn_current') gnWarnNumpadHotPath("persistJsonIfChanged('gn_current')");
@@ -10995,7 +11172,15 @@ button.dealer-name-indicator .dealer-player-label {
       const setItemTimer = gnPerfStart('GN localStorage.setItem ' + key);
       try{
         gnWarnNumpadHotPath('localStorage.setItem');
-        localStorage.setItem(gnKey(key), json);
+        try{
+          localStorage.setItem(gnKey(key), json);
+          _storageFullNoted=false;
+        }catch(error){
+          const full=error&&(error.name==='QuotaExceededError'||error.code===22||error.code===1014);
+          if(!full) throw error;
+          noteStorageFull();
+          return;
+        }
       } finally {
         gnPerfEnd(setItemTimer);
       }
@@ -11155,7 +11340,7 @@ button.dealer-name-indicator .dealer-player-label {
       cleanupActiveTouchDrags();
       saveOpenScoreEntryModalDrafts();
       flushPendingSave();
-      _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+      _persistGamenightState({ fullPersist: true, syncCold: true, flushDeferred: true });
       gnPerfFlushPersist();
     }
     else if(document.visibilityState === 'visible' && currentGame){
@@ -11167,7 +11352,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(GN_QA_MODE)return;
     saveOpenScoreEntryModalDrafts();
     flushPendingSave();
-    _persistGamenightState({ fullPersist: !currentGame, syncCold: true, flushDeferred: true });
+    _persistGamenightState({ fullPersist: true, syncCold: true, flushDeferred: true });
     gnPerfFlushPersist();
   });
   function updateNavButton(){
@@ -11703,7 +11888,7 @@ button.dealer-name-indicator .dealer-player-label {
     const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
     const others=live.notYet.filter(entry=>entry.reason!=='too-early');
     if(!live.timingOpen && tooEarly.length && !others.length){
-      lines.push('Nobody has one yet — the game is still too early.');
+      lines.push('Nobody has one yet. The game is still too early.');
     } else {
       const groups=[];
       others.forEach(entry=>{
@@ -11720,7 +11905,7 @@ button.dealer-name-indicator .dealer-player-label {
           const showGap=Number.isFinite(gap)&&gap>0&&(entry.reason==='leader-gap'||entry.reason==='pack-gap'||entry.reason==='recovery-load');
           return showGap ? `${entry.player} (${Math.round(gap)} behind 1st)` : entry.player;
         });
-        lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
+        lines.push(`${escapeHtml(joinLiveNames(names))}. ${escapeHtml(group.label)}.`);
       });
     }
     return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
@@ -11764,10 +11949,10 @@ button.dealer-name-indicator .dealer-player-label {
     const over=isMatchOver(currentGame);
     const summary=(window.BPGLifePreserver&&typeof BPGLifePreserver.summarizeLifePreserverTable==='function')
       ? BPGLifePreserver.summarizeLifePreserverTable(currentGame, players, {gameOver:over})
-      : {rules:{supported:false,gameName:currentGame.name,lead:'Life Preserver details are unavailable.',how:[],wheel:[]},live:null};
+      : {rules:{supported:false,gameName:currentGame.name,lead:`${wheelCopy()?.name||'Wheel'} details are unavailable.`,how:[],wheel:[]},live:null};
     const rules=summary.rules||{};
     const title=document.getElementById('life-preserver-rules-title');
-    if(title) title.textContent=rules.supported?`How you get one in ${rules.gameName}`:`Life Preserver`;
+    if(title) title.textContent=rules.supported?`How you get one in ${rules.gameName}`:(wheelCopy()?.name||'');
     const parts=[];
     if(rules.lead) parts.push(`<p>${escapeHtml(rules.lead)}</p>`);
     if(rules.how?.length){
@@ -11797,7 +11982,7 @@ button.dealer-name-indicator .dealer-player-label {
       btn.disabled=false;
       btn.textContent=LP_SPIN_COPY.ready;
     }
-    if(wasSpinning&&notify&&!_lifePreserverCommitted) toast('Life Preserver not applied', 'warning');
+    if(wasSpinning&&notify&&!_lifePreserverCommitted) toast(`${wheelCopy()?.name||'Wheel'} not applied`, 'warning');
     return wasSpinning;
   }
   function closeWheel(){
@@ -12255,7 +12440,19 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function showScoreEntryError(message){
     const modal=document.getElementById('score-entry-modal');
+    document.querySelectorAll('.score-entry-cap-note').forEach(el=>el.remove());
+    const cap=/stops at/.test(message||'');
     if(modal && !modal.classList.contains('hidden')){
+      const player=scoreEntryModalState?.activePlayer;
+      const cell=cap&&player?document.querySelector(`#score-entry-row-${rookElementId(player)} .score-entry-input-cell`):null;
+      if(cell){
+        const note=document.createElement('div');
+        note.className='score-entry-cap-note';
+        note.textContent=message;
+        cell.appendChild(note);
+        showFormError('score-entry-error','');
+        return;
+      }
       showFormError('score-entry-error', message);
       return;
     }
@@ -12310,6 +12507,15 @@ button.dealer-name-indicator .dealer-player-label {
     scoreEntryModalState.unusualOk=false;
     updateScoreEntryActiveValue();
   });
+  function downloadBackupBlob(book, filename){
+    const blob=new Blob([JSON.stringify(book,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=filename;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1500);
+  }
   function exportData(){
     if(window.BPGTryDemo&&BPGTryDemo.backupBlocked()){
       showBackupError('Backup, restore, and sync are off in this demo.');
@@ -12321,10 +12527,7 @@ button.dealer-name-indicator .dealer-player-label {
       return;
     }
     const d=BPGBackup.buildBackup(currentBackupState());
-    const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download=`gamenight-${Date.now()}.json`; a.click();
-    URL.revokeObjectURL(url);
+    downloadBackupBlob(d, `gamenight-${Date.now()}.json`);
     const snap=BPGBackup.summarizeHistory(d.history);
     toast(`Backup file ready. ${snap.line}`, 'default');
   }
@@ -12337,6 +12540,8 @@ button.dealer-name-indicator .dealer-player-label {
       throw Object.assign(new Error('invalid-player-name'),{playerNameError:nameErr});
     }
     showPlayerNameWriteError('import-player-name-error','');
+    try{ downloadBackupBlob(BPGBackup.buildBackup(currentBackupState()), `gamenight-before-restore-${Date.now()}.json`); }
+    catch(error){ console.warn('Pre-restore copy was not downloaded.', error); }
     const {next,added}=BPGBackup.mergeBackup(currentBackupState(), incoming);
     applyMergedBackup(next, added);
   }
@@ -12462,6 +12667,14 @@ button.dealer-name-indicator .dealer-player-label {
     return !!(BPGScorebook.isCompletedHistoryMatch(match)&&match.totals&&Array.isArray(match.rounds)&&match.rounds.length&&configs[match.game]);
   }
 
+  function compareMatchesOldestFirst(a, b){
+    if(window.BPGRecords&&typeof BPGRecords.compareNightsByDate==='function'){
+      return BPGRecords.compareNightsByDate(b, a);
+    }
+    const stamp=match=>Date.parse(match&&match.date)||Number(match&&match.id)||0;
+    return stamp(a)-stamp(b);
+  }
+
   function getProfileSummary(name, gameScope){
     const scope=gameScope===undefined?profileGameScope():gameScope;
     const career=window.BPGRecords&&typeof BPGRecords.playerCareerStats==='function'
@@ -12476,7 +12689,7 @@ button.dealer-name-indicator .dealer-player-label {
     const matches=history
       .filter(h=>nightCountsForCareer(h, scope)&&playerSatCareerMatch(h, name, scope))
       .slice()
-      .sort((a,b)=>(a.id||0)-(b.id||0));
+      .sort(compareMatchesOldestFirst);
     matches.forEach(h=>{
       const cfg=configs[h.game];
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
@@ -13230,7 +13443,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(result) result.classList.remove('hidden');
     document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
     const mode=document.getElementById('wheel-mode-label');
-    if(mode) mode.textContent='Life Preserver Unlocked';
+    if(mode) mode.textContent=wheelCopy()?.name||'';
     document.getElementById('wheel-player-name')?.classList.add('hidden');
     if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
     const slices=(typeof getWheelSlices==='function'?getWheelSlices():[])||[];
@@ -13315,7 +13528,7 @@ button.dealer-name-indicator .dealer-player-label {
     wheelPlayer=p;
     lifePreserverOfferSnapshot=offer;
     document.getElementById('wheel-player-name').textContent=p;
-    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent='Life Preserver';
+    const wm=document.getElementById('wheel-mode-label'); if(wm) wm.textContent=wheelCopy()?.name||'';
     document.getElementById('btn-spin').disabled=false;
     document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
     const spinner=document.getElementById('wheel-spinner');
@@ -13378,7 +13591,7 @@ button.dealer-name-indicator .dealer-player-label {
     const alreadySpun=!!(currentGame.hailMaryUsed||[]).includes(wheelPlayer)
       || (currentGame.rounds||[]).some(round=>round&&round.hailMaryBonus&&round.scores&&Object.prototype.hasOwnProperty.call(round.scores,wheelPlayer));
     if(alreadySpun){
-      toast('This Life Preserver is already locked', 'warning');
+      toast(`This ${wheelCopy()?.name||'wheel'} spin is already locked`, 'warning');
       closeWheel();
       return;
     }
@@ -13386,7 +13599,7 @@ button.dealer-name-indicator .dealer-player-label {
     const over=isMatchOver(currentGame);
     const live=getLifePreserverOfferForPlayer(wheelPlayer, activePlayers, {gameOver:over});
     if(!live.eligible){
-      toast('Life Preserver is no longer available', 'warning');
+      toast(`${wheelCopy()?.name||'Wheel'} is no longer available`, 'warning');
       document.getElementById('btn-spin').disabled=false;
       document.getElementById('btn-spin').textContent=LP_SPIN_COPY.ready;
       closeWheel();
@@ -13398,7 +13611,7 @@ button.dealer-name-indicator .dealer-player-label {
     const proposed=Number(win?.adjustment)||0;
     const adj=applyLifePreserverResult(wheelPlayer, proposed, live);
     if(proposed!==0&&adj===0){
-      toast('Life Preserver cannot be applied safely now', 'warning');
+      toast(`${wheelCopy()?.name||'Wheel'} cannot be applied safely now`, 'warning');
       closeWheel();
       return;
     }
@@ -13412,7 +13625,7 @@ button.dealer-name-indicator .dealer-player-label {
       BPGLifePreserver.markLifePreserverUsed(currentGame, wheelPlayer);
     }
     syncCurrentLifePreserverHolds({gameOver:over});
-    addAuditEntry(`Life Preserver Spin`, `${wheelPlayer}: "${win&&win.label||adj}" → ${adj>=0?'+':''}${adj}`);
+    addAuditEntry(`${wheelCopy()?.name||'Wheel'} spin`, `${wheelPlayer}: "${win&&win.label||adj}" → ${adj>=0?'+':''}${adj}`);
     currentGame.lifePreserverLastResult={
       player:wheelPlayer,
       adj,
@@ -13653,6 +13866,44 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
   function moveToBench(n){ players=players.filter(p=>p!==n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
+  function showUnseatToast(name, index){
+    const c=document.getElementById('toast-container');
+    if(!c) return;
+    c.replaceChildren();
+    const t=document.createElement('div');
+    t.className='toast';
+    t.setAttribute('role','status');
+    const label=document.createElement('span');
+    label.textContent=`${name} unseated · `;
+    const undo=document.createElement('button');
+    undo.type='button';
+    undo.className='toast-undo';
+    undo.textContent='Undo';
+    undo.onclick=(event)=>{
+      event.stopPropagation();
+      restoreUnseatedPlayer(name, index);
+    };
+    t.append(label, undo);
+    c.appendChild(t);
+    setTimeout(()=>{ if(t.parentNode) t.remove(); }, 3700);
+  }
+  function unseatTonightPlayer(name){
+    if(!name||!players.includes(name)) return;
+    const index=players.indexOf(name);
+    players=players.filter(p=>p!==name);
+    saveData({ fullPersist: true, syncCold: true });
+    renderRoster();
+    showUnseatToast(name, index);
+  }
+  function restoreUnseatedPlayer(name, index){
+    if(!name||players.includes(name)) return;
+    if(!allPlayers.includes(name)) allPlayers.push(name);
+    const at=Math.max(0, Math.min(Number(index)||0, players.length));
+    players.splice(at, 0, name);
+    saveData({ fullPersist: true, syncCold: true });
+    renderRoster();
+    clearToasts();
+  }
   function slice2TableState(){ return {players, allPlayers, history, currentGame}; }
   function slice2ReorderSeat(index, dir){
     slice2MoveSeat(index, index+dir);
@@ -13725,11 +13976,11 @@ button.dealer-name-indicator .dealer-player-label {
       // Trigger delete confirm
       el.style.transform = 'translateX(-100%)';
       setTimeout(() => {
-        if(confirm(`Delete "${name}"? History remains intact.`)){
+        if(confirm(`Delete ${name} and their photo? Their saved profile is removed. Past scores stay in history.`)){
           allPlayers = allPlayers.filter(p => p !== name);
           players   = players.filter(p => p !== name);
           saveData({ fullPersist: true, syncCold: true });
-          toast(`🗑 "${name}" deleted`, 'warning');
+          toast(`Deleted ${name} and their photo`, 'warning');
           renderRoster();
         } else {
           el.style.transform = 'translateX(0)';
@@ -13749,7 +14000,7 @@ button.dealer-name-indicator .dealer-player-label {
     moveToLineup(name);
   }
   function permanentlyDeletePlayer(n){
-    if(!confirm(`Delete "${n}"? History remains intact.`))return;
+    if(!confirm(`Delete ${n} and their photo? Their saved profile is removed. Past scores stay in history.`))return;
     allPlayers=allPlayers.filter(p=>p!==n); players=players.filter(p=>p!==n);
     saveData({ fullPersist: true, syncCold: true }); renderRoster();
   }
@@ -15262,7 +15513,7 @@ ${isDealer
 
   function scratchMatch(){
     if(!currentGame)return;
-    if(!confirm('Scratch this match? All progress lost.'))return;
+    if(!confirm('Scratch this match? The scores on the table are discarded. Saved profiles stay.'))return;
     releaseWakeLock(); currentGame=null; saveData(); goHome();
   }
 
@@ -15281,7 +15532,8 @@ ${isDealer
     if(idx>=0) history[idx]=snapshot;
     else history.unshift(snapshot);
     markHistoryChanged();
-    saveData();
+    // History is skipped while a match is live. The match being parked is still current here.
+    saveData({ fullPersist: true, syncCold: true });
     return snapshot;
   }
 
@@ -15291,7 +15543,7 @@ ${isDealer
       if(!confirm('Save the game on the table and resume this match?'))return;
       parkActiveMatch();
     }
-    const idx=history.findIndex(h=>h.id===id); if(idx<0)return;
+    const idx=history.findIndex(h=>h&&String(h.id)===String(id)); if(idx<0)return;
     const g=history[idx]; history.splice(idx,1);
     markHistoryChanged();
     resetRecordChaseView();
@@ -15328,7 +15580,7 @@ ${isDealer
 
   /* ═══ TAP OUT + DEALER ═══ */
   function tapOut(player){
-    if(!confirm(`Send "${player}" back to shore for this match?\nTheir current score will be frozen and they'll be removed from the rotation.`))return;
+    if(!confirm(`Mark ${player} left early? Their scores stay. They leave the rest of this match and cannot win it.`))return;
     if(!currentGame.retired)currentGame.retired=[];
     if(!currentGame.retired.includes(player))currentGame.retired.push(player);
     addAuditEntry('Headed Ashore', `${player} left the match early`);
@@ -15892,7 +16144,7 @@ ${isDealer
       const root=document.getElementById('scorecard-capture');
       if(!root)return;
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
-      root.classList.remove('scorecard-fit-rows','scorecard-hug-rows');
+      root.classList.remove('scorecard-fit-rows','scorecard-hug-rows','scorecard-scroll-rows');
       const paceList=root.querySelector('#record-chase-list');
       if(paceList){
         paceList.style.removeProperty('height');
@@ -15951,12 +16203,23 @@ ${isDealer
       // a sensible upper bound (~320) so rows don't become absurd on huge TVs,
       // and keep 6p/8p + phone caps so dense tables still fit.
       let comfortMax;
+      let comfortMin;
       if (phone) {
         comfortMax = count <= 3 ? 88 : count <= 6 ? 76 : 64;
+        comfortMin = 44;
+      } else if (count <= 2) {
+        comfortMax = 200;
+        comfortMin = 120;
+      } else if (count <= 4) {
+        comfortMax = 320;
+        comfortMin = 108;
+      } else if (count <= 8) {
+        comfortMax = 160;
+        comfortMin = 64;
       } else {
-        comfortMax = count <= 4 ? 92 : count <= 6 ? 88 : 80;
+        comfortMax = 120;
+        comfortMin = 64;
       }
-      const comfortMin = phone ? 44 : (tablet ? 52 : 58);
       const targetRow = Math.max(comfortMin, Math.min(comfortMax, fillRow));
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
@@ -15968,8 +16231,9 @@ ${isDealer
         const tablet=window.innerWidth<=1180;
         // Names and ranks track row height with totals/rounds. Cap the avatar
         // at ~2.5× the name size so it never dwarfs the label on tall 2–4p rows.
-        const nameCap=phone?22:tablet?48:Math.min(72, Math.round(rowHeight*0.28));
-        const playerFont=Math.max(17,Math.min(nameCap,rowHeight*0.28));
+        const wideScreen=window.innerWidth>=1280;
+        const nameCap=phone?22:Math.min(wideScreen?64:56, rowHeight*0.34);
+        const playerFont=Math.max(phone?17:20, Math.min(nameCap, rowHeight*0.34));
         let avatarCap=phone?28:Math.min(Math.round(playerFont*2.5), Math.round(rowHeight*0.55));
         const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,rowHeight*0.7),rowHeight*0.62));
         // Rank pill tracks the name but stays compact — a huge min-width stole
@@ -16058,10 +16322,11 @@ ${isDealer
         const limit=projectedOverflow>=actualOverflow?fitHeight:wrap.clientHeight;
         const used=projectedOverflow>=actualOverflow?projected:actual;
         const ratio=Math.max(0.8,(limit-2)/Math.max(1,used));
-        const rowFloor=phone?44:36;
+        const rowFloor=phone?44:comfortMin;
         scale=Math.max(0.42,scale*ratio*0.97);
         rowHeight=Math.max(rowFloor,rowHeight*ratio*0.97);
-        if(phone&&rowHeight<=rowFloor+0.25&&overflow>1){
+        if(rowHeight<=rowFloor+0.25&&overflow>1){
+          if(!phone) root.classList.add('scorecard-scroll-rows');
           applyFit();
           break;
         }
@@ -16318,7 +16583,7 @@ ${isDealer
     if(!now||now.classList.contains('scorecard-round--hidden')) return 0;
     if(getComputedStyle(now).display==='none'||getComputedStyle(now).visibility==='hidden') return 0;
     const min=parseFloat(getComputedStyle(now).minWidth);
-    const floor=window.innerWidth>=1024?70:0;
+    const floor=window.innerWidth>=1440?180:window.innerWidth>=1180?164:window.innerWidth>=1024?148:0;
     return Number.isFinite(min)&&min>0?Math.max(min,floor):floor;
   }
   function scorecardNowColWidth(table){
@@ -16418,7 +16683,22 @@ ${isDealer
         .reduce((sum,th)=>sum+th.getBoundingClientRect().width,0);
       const room=Math.max(32, wrap.clientWidth-leadWidth-8);
       host.classList.add('scorecard-fit-cols');
-      host.style.setProperty('--scorecard-now-col',`${Math.floor(Math.min(120,Math.max(88,room)))}px`);
+      const phoneNow=window.innerWidth<=760;
+      const nowPx=phoneNow?Math.floor(Math.min(120,Math.max(88,room))):(window.innerWidth>=1440?200:window.innerWidth>=1180?176:156);
+      const totalPx=phoneNow?88:(window.innerWidth>=1440?200:156);
+      host.style.setProperty('--scorecard-now-col',`${nowPx}px`);
+      table.querySelectorAll('.scorecard-col-total').forEach((el)=>{
+        el.style.setProperty('width',`${totalPx}px`,'important');
+        el.style.setProperty('min-width',`${totalPx}px`,'important');
+        el.style.setProperty('max-width',`${totalPx}px`,'important');
+      });
+      if(!phoneNow){
+        const playerMax=Math.max(220, Math.round(wrap.clientWidth*0.46));
+        table.querySelectorAll('.scorecard-col-player').forEach((el)=>{
+          el.style.setProperty('width',`${playerMax}px`,'important');
+          el.style.setProperty('max-width',`${playerMax}px`,'important');
+        });
+      }
       table.style.width='100%';
       table.style.maxWidth='100%';
       void host.offsetWidth;
@@ -16934,9 +17214,7 @@ ${isDealer
       const meld=isHandFootGame(currentGame)?handFootMeldForRound(r.round):null;
       head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">${meld?`<span class="hf-round-label">R${r.round}</span><span class="hf-meld-hint">Meld ${meld}</span>`:`R${r.round}`}</th>`;
     });
-    const nowLabel=window.matchMedia('(max-width: 760px)').matches
-      ? `R${currentGame.currentRound}`
-      : `R${currentGame.currentRound} Now`;
+    const nowLabel='This round';
     if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
 
     head+=`</tr>`;
@@ -16984,9 +17262,8 @@ ${isDealer
       const placeNum=places?places[p]:ri+1;
       const placeLabel=ordinalLive(placeNum);
       const placeTone=placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
-      const rankBadge=currentGame.currentRound===1?'':(hasAvailablePreserver
-        ? `<button type="button" onclick="authorizeHailMary('${escapeJsString(p)}')" class="scoreboard-rank-badge scorecard-life-preserver-rank${placeTone} shrink-0" title="Life Preserver available. Tap to spin" aria-label="Life Preserver available for ${escapeHtml(p)}, ${placeLabel}. Tap to spin">${placeLabel}</button>`
-        : `<span class="scoreboard-rank-badge${placeTone}${hasUsedPreserver?' scorecard-life-preserver-rank scorecard-life-preserver-rank-used':''} shrink-0"${hasUsedPreserver?' title="Life Preserver used" aria-label="Life Preserver used, '+placeLabel+'"':` aria-label="${placeLabel}"`}>${placeLabel}</span>`);
+      const rankBadge=currentGame.currentRound===1?'':`<span class="scoreboard-rank-badge${placeTone} shrink-0" aria-label="${placeLabel}">${placeLabel}</span>`;
+      const wheelBadge=isRetired?'':wheelBadgeMarkup(p, hasAvailablePreserver?'ready':(hasUsedPreserver?'used':''));
 
       const retiredTag=retiredBadgeMarkup(currentGame,p);
 
@@ -17019,36 +17296,22 @@ ${isDealer
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
-      const lpGames=new Set(['Five Crowns','Wizard','818','Flip 7 Vengeance']);
-      const lpDelta=(()=>{
-        if(!hasUsedPreserver) return '';
-        const bonus=(currentGame.rounds||[]).filter(r=>r&&r.hailMaryBonus&&r.scores&&r.scores[p]!=null);
-        const last=bonus[bonus.length-1];
-        const n=last?Number(last.scores[p]):NaN;
-        if(!Number.isFinite(n)||n===0) return '';
-        return ` ${n>0?'+':'−'}${Math.abs(n)}`;
-      })();
-      const lpStatus=!lpGames.has(currentGame.name)||isRetired?'':(hasUsedPreserver
-        ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')" aria-label="Life Preserver used">LP · Used${lpDelta}</button>`
-        : hasAvailablePreserver
-          ? `<button type="button" class="s2-lp-status" onclick="authorizeHailMary('${escapeJsString(p)}')" aria-label="Life Preserver available">LP · Available</button>`
-          : (!over?`<span class="s2-lp-status" aria-label="Life Preserver not yet available">LP · Not yet</span>`:''));
       const nameInner=`${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer — tap to change" aria-label="${escapeHtml(nameLabel)} is dealer — tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
-  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}${lpStatus}`;
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
+  : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
             <div class="scorecard-player-identity flex items-center gap-2 min-w-0 flex-1">
-              ${rankBadge}
               <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${avatarInner}</span>
               <span class="scorecard-player-name-slot">${nameInner}</span>
               <span class="scorecard-turbo-slot">${comebackChip}</span>
             </div>
+            ${wheelBadge}
           </div>
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><div class="scorecard-total-stack"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${rankBadge}</div>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
       // Past rounds
       visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
         let missClass='', missTitle='', exactTdClass='';
@@ -17170,12 +17433,14 @@ ${isDealer
   function lifePreserverMarkMarkup(rounds, roundIndex, player){
     const lp=BPGScorebook.lifePreserverFollowing(rounds, roundIndex, player);
     if(!lp) return '';
-    return `<span class="score-cell-life-preserver" data-lp="${lp}" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+    const wheelName=wheelCopy()?.name||'Wheel';
+    return `<span class="score-cell-life-preserver" data-lp="${lp}" title="${wheelName}" aria-label="${wheelName} ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
   }
   function hiddenLifePreserverMarkup(rounds, visibleIndexes, player){
     const lp=BPGScorebook.lifePreserverHidden(rounds, visibleIndexes, player);
     if(!lp) return '';
-    return `<span class="score-total-life-preserver" data-lp="${lp}" data-lp-base="${lp}" title="Life Preserver" aria-label="Life Preserver ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
+    const wheelName=wheelCopy()?.name||'Wheel';
+    return `<span class="score-total-life-preserver" data-lp="${lp}" data-lp-base="${lp}" title="${wheelName}" aria-label="${wheelName} ${plainSigned(lp)}">${signedPointsMarkup(lp)}</span>`;
   }
   function paintTrimmedLifePreserverMarks(root){
     const table=root?.querySelector?.('table.scorecard-table');
@@ -17211,8 +17476,9 @@ ${isDealer
         totalCell.appendChild(badge);
       }
       badge.dataset.lp=String(total);
-      badge.title='Life Preserver';
-      badge.setAttribute('aria-label',`Life Preserver ${plainSigned(total)}`);
+      const wheelName=wheelCopy()?.name||'Wheel';
+      badge.title=wheelName;
+      badge.setAttribute('aria-label',`${wheelName} ${plainSigned(total)}`);
       badge.innerHTML=signedPointsMarkup(total);
     });
   }
@@ -17617,9 +17883,15 @@ ${isDealer
     });
   }
 
+  function scoreEntryUsesPlainPad(mode){
+    return !!(mode&&(mode.kind==='scores'||mode.kind==='heat'));
+  }
+
   function getScoreEntryInitialActivePlayer(mode, tablePlayers, displayPlayers){
-    const fallback=tablePlayers?.[0]||displayPlayers?.[0]||null;
-    if(!currentGame||!isScoreEntryBidMode(mode)||!isBidTrickGame(currentGame)||!Array.isArray(tablePlayers)||tablePlayers.length<=1)return fallback;
+    const seatFirst=tablePlayers?.[0]||displayPlayers?.[0]||null;
+    const screenFirst=displayPlayers?.[0]||seatFirst;
+    if(scoreEntryUsesPlainPad(mode))return screenFirst;
+    if(!currentGame||!isScoreEntryBidMode(mode)||!isBidTrickGame(currentGame)||!Array.isArray(tablePlayers)||tablePlayers.length<=1)return seatFirst;
     const offset=currentGame.dealerOffset||0;
     const dealerIdx=(currentGame.currentRound-1+offset+tablePlayers.length)%tablePlayers.length;
     if(dealerIdx<0||dealerIdx>=tablePlayers.length)return fallback;
@@ -17758,6 +18030,36 @@ ${isDealer
     if(note) note.textContent=(!isScoreEntryBidMode(mode)&&!isScoreEntryTrickMode(mode))?BPGScorebook.scoreEntryBlankHelper():'';
     const submit=document.getElementById('score-entry-primary-btn');
     if(submit) submit.disabled=false;
+    syncScoreEntryPad();
+  }
+
+  function syncScoreEntryPad(){
+    const modal=document.getElementById('score-entry-modal');
+    const mode=scoreEntryModalState?.mode;
+    const plain=scoreEntryUsesPlainPad(mode);
+    modal?.classList.toggle('score-entry-plain', plain);
+    const noMinus=plain&&!!(currentGame&&window.BPGScorebook&&BPGScorebook.playedScoreMustBeNonNegative(currentGame));
+    modal?.classList.toggle('score-entry-no-minus', noMinus);
+    const skip=document.getElementById('score-entry-skip-slot');
+    const next=document.getElementById('score-entry-next-btn');
+    const del=document.getElementById('score-entry-delete-key');
+    if(del) del.textContent=plain?'Delete':'⌫';
+    if(skip){
+      if(plain){
+        skip.textContent='Skip';
+        skip.onclick=()=>scoreEntryPlainAdvance('skip');
+      } else {
+        skip.textContent='00';
+        skip.onclick=()=>scoreEntryKey('00');
+      }
+    }
+    if(next&&plain&&scoreEntryModalState){
+      const player=scoreEntryModalState.activePlayer;
+      const blank=BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]);
+      next.textContent=blank?'0 & Next':'Next';
+    } else if(next){
+      next.textContent='Next';
+    }
   }
 
   function scheduleScoreEntryModalFit(){
@@ -17908,6 +18210,8 @@ ${isDealer
       values,
       acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,false])),
       dirty:{},
+      replaceArmed:false,
+      typedSinceAdvance:false,
       dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
       activePlayer:getScoreEntryInitialActivePlayer(mode, tablePlayers, players),
       activeField:mode.kind==='hand-foot'?'cleanCanastas':'cardPoints',
@@ -18149,10 +18453,12 @@ ${isDealer
     if(prev && prev!==next && scoreEntryModalState.dirty?.[prev]) markScoreEntryPlayerComplete(prev);
     if(prev)document.getElementById(`score-entry-row-${rookElementId(prev)}`)?.classList.remove('active');
     scoreEntryModalState.activePlayer=next;
+    scoreEntryModalState.replaceArmed=scoreEntryUsesPlainPad(scoreEntryModalState.mode)&&!BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[next]);
     document.getElementById(`score-entry-row-${rookElementId(next)}`)?.classList.add('active');
     updateScoreEntryRowState(prev);
     updateScoreEntryRowState(next);
     updateScoreEntrySelectedSummary();
+    updateScoreEntryProgress();
     requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());
   }
 
@@ -18247,6 +18553,14 @@ ${isDealer
       gnPerfAction('modal digit press', v);
       const p=scoreEntryModalState.activePlayer;
       if(!p)return;
+      scoreEntryModalState.typedSinceAdvance=true;
+      document.querySelectorAll('.score-entry-cap-note').forEach(el=>el.remove());
+      if(scoreEntryUsesPlainPad(scoreEntryModalState.mode)&&scoreEntryModalState.replaceArmed&&(/^[0-9]+$/.test(String(v))||v==='-')){
+        scoreEntryModalState.acknowledged[p]=false;
+        scoreEntryModalState.dirty[p]=false;
+        scoreEntryModalState.values[p]='';
+        scoreEntryModalState.replaceArmed=false;
+      }
       const modeKey=isScoreEntryBidMode(scoreEntryModalState.mode)?'bids':(isScoreEntryTrickMode(scoreEntryModalState.mode)?'tricks':'scores');
       if(!scoreEntryModalState.dirty) scoreEntryModalState.dirty={};
       const next=BPGScorebook.applyScoreEntryKey({
@@ -18293,9 +18607,48 @@ ${isDealer
     updateScoreEntryProgress();
   }
 
+  function scoreEntryPlainAdvance(kind){
+    if(!scoreEntryModalState||!scoreEntryUsesPlainPad(scoreEntryModalState.mode))return;
+    const now=(typeof performance!=='undefined'&&performance.now)?performance.now():Date.now();
+    const typed=!!scoreEntryModalState.typedSinceAdvance;
+    if(!typed&&now-(scoreEntryModalState._advanceAt||0)<400)return;
+    scoreEntryModalState._advanceAt=now;
+    scoreEntryModalState.typedSinceAdvance=false;
+    const order=scoreEntryModalState.players||[];
+    const current=scoreEntryModalState.activePlayer||order[0];
+    if(!current)return;
+    if(kind==='skip'){
+      scoreEntryModalState.values[current]='';
+      scoreEntryModalState.acknowledged[current]=false;
+      scoreEntryModalState.dirty[current]=false;
+    } else if(BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[current])){
+      scoreEntryModalState.values[current]='0';
+      scoreEntryModalState.acknowledged[current]=true;
+      scoreEntryModalState.dirty[current]=true;
+    } else {
+      markScoreEntryPlayerComplete(current);
+    }
+    const idx=order.indexOf(current);
+    let following=null;
+    if(idx>=0&&idx<order.length-1) following=order[idx+1];
+    else following=order.find(player=>BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[player]))||null;
+    updateScoreEntryRowState(current);
+    updateScoreEntryActiveValue();
+    if(following&&following!==current){
+      const displayIdx=order.indexOf(following);
+      if(displayIdx>=0) selectScoreEntryPlayer(displayIdx);
+    } else {
+      syncScoreEntryPad();
+    }
+  }
+
   function scoreEntryNext(){
     return gnRunNumpadHotPath('modal Next',()=>{
       if(!scoreEntryModalState||!scoreEntryModalState.players.length)return;
+      if(scoreEntryUsesPlainPad(scoreEntryModalState.mode)){
+        scoreEntryPlainAdvance('commit');
+        return;
+      }
       if(scoreEntryModalState.mode?.kind==='hand-foot'){
         const order=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
         const current=scoreEntryModalState.activePlayer||order[0];
@@ -18403,6 +18756,10 @@ ${isDealer
   }
 
   function rejectScoreEntries(result){
+    if(result&&Array.isArray(result.missingPlayers)&&result.missingPlayers.length&&scoreEntryModalState){
+      const idx=scoreEntryModalState.players.indexOf(result.missingPlayers[0]);
+      if(idx>=0) selectScoreEntryPlayer(idx);
+    }
     if(result&&result.message) showScoreEntryError(result.message);
     return false;
   }
@@ -18432,7 +18789,14 @@ ${isDealer
       }
       return true;
     }
-    const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players,values});
+    const scorePlayers=scoreEntryUsesPlainPad(mode)?(scoreEntryModalState.players||players):players;
+    if(scoreEntryUsesPlainPad(mode)){
+      const missing=scorePlayers.filter(p=>BPGScorebook.scoreEntryValueIsBlank(values[p]));
+      if(missing.length){
+        return rejectScoreEntries({ok:false, missingPlayers:missing, message:`Still need: ${missing.join(', ')}`});
+      }
+    }
+    const checked=BPGScorebook.validateEntries({game:currentGame.name,kind:'scores',roundNumber,players:scorePlayers,values});
     if(!checked.ok) return rejectScoreEntries(checked);
     const floor=BPGScorebook.unusualEntryFloor(currentGame);
     const unusual=players.filter(p=>Math.abs(Number(checked.values[p]))>=floor);
@@ -18995,7 +19359,7 @@ ${isDealer
   }
 
   function endMatchCopy(over){
-    const records='This saves the night to Records. Wins and games count. Best-score records only count a full night with no Life Preserver.';
+    const records=`This saves the night to Records. Wins and games count. Best-score records only count a full night with no ${wheelCopy()?.name||'wheel'}.`;
     if(over){
       return `${records} Cancel keeps you on the scorecard.`;
     }
@@ -19874,7 +20238,7 @@ ${isDealer
 
   function deleteMatchRecord(id){
     const g = history.find(h => h.id === id); if(!g) return;
-    if(!confirm(`Permanently delete this ${g.game} match from ${g.date}?\n\nThis cannot be undone.`)) return;
+    if(!confirm(`Delete this ${g.game} night from history? The scores from ${g.date} are removed. Player profiles stay.`)) return;
     history = history.filter(h => h.id !== id);
     markHistoryChanged();
     saveData({ fullPersist: true, syncCold: true });
@@ -20172,7 +20536,7 @@ ${isDealer
       _matchAllTimeRecordsSnap = null;
     }
     const completed = history.filter(h=>BPGScorebook.isCompletedHistoryMatch(h)&&configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
-    const chrono = completed.slice().sort((a,b)=>(a.id||0)-(b.id||0));
+    const chrono = completed.slice().sort(compareMatchesOldestFirst);
     const blankByGame = () => ({games:0,wins:0,posSum:0,best:null,worst:null});
     const players = {};
     const wizardBidStats = {};

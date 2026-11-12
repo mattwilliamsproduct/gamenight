@@ -322,6 +322,12 @@
     return `${label} scores must be whole numbers, 0 or higher. Check ${who}.`;
   }
 
+  function missingScoresMessage(players) {
+    const list = (players || []).filter(Boolean);
+    if (!list.length) return 'Still need a score.';
+    return `Still need: ${list.join(', ')}`;
+  }
+
   function missingBidsMessage(players) {
     const list = (players || []).filter(Boolean);
     if (!list.length) return 'Still need bids.';
@@ -579,7 +585,7 @@
   }
 
   function scoreEntryBlankHelper() {
-    return 'Blank scores count as 0';
+    return 'Skip leaves a score blank. Submit names anyone still missing.';
   }
 
   function historyScoreOrNull(raw) {

@@ -192,7 +192,7 @@ function parseRgb(color) {
 async function expectBlankScoreHelper(page, label) {
   const helper = page.locator('#score-entry-unconfirmed');
   await expect(helper, label).toBeVisible();
-  await expect(helper, label).toHaveText(/Blank scores count as 0/);
+  await expect(helper, label).toHaveText(/Skip leaves a score blank/);
   const box = await helper.evaluate((el) => {
     const r = el.getBoundingClientRect();
     const style = getComputedStyle(el);

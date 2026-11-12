@@ -1351,7 +1351,7 @@
     </div>`).join('');
     if (!body) return '';
     return `<section class="s2-panel">
-      <h3>Life Preserver</h3>
+      <h3>${esc((root.BPGLifePreserver && root.BPGLifePreserver.BACK_PORCH_WHEEL && root.BPGLifePreserver.BACK_PORCH_WHEEL.name) || '')}</h3>
       <p class="s2-sub">Places gained are measured immediately after each spin. A later win is not credited to the wheel.</p>
       <div class="s2-book">${body}</div>
     </section>`;
@@ -1533,7 +1533,7 @@
         ${badges}
       </header>
       ${winner}
-      ${model.assisted ? '<p class="s2-assisted-note">A Life Preserver was used. Best-score records skip this night.</p>' : ''}
+      ${model.assisted ? `<p class="s2-assisted-note">The ${esc((root.BPGLifePreserver && root.BPGLifePreserver.BACK_PORCH_WHEEL && root.BPGLifePreserver.BACK_PORCH_WHEEL.name) || 'wheel')} was used. Best-score records skip this night.</p>` : ''}
       <ol class="s2-night-standings">${rows}</ol>
       ${expand}
       <div class="s2-night-actions">

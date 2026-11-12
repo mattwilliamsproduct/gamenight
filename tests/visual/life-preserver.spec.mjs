@@ -9,7 +9,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(available).not.toHaveCount(0);
   await expect(page.locator('.scorecard-life-preserver-rank-used')).toHaveCount(1);
 
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
   await expect(page.locator('#wheel-why-line')).toBeHidden();
@@ -85,7 +85,7 @@ test('closing the Life Preserver wheel after commit keeps the locked result', as
     throw new Error(`Life Preserver should not alert after close: ${dialog.message()}`);
   });
 
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   const locked = await page.evaluate(() => {
     spinWheel();
@@ -203,7 +203,7 @@ test('apostrophe names can still open Life Preserver', async ({page}, testInfo) 
     });
     renderGame();
   });
-  await page.getByRole('button', {name: /Life Preserver available for O'Brien/}).click();
+  await page.getByRole('button', {name: /Spin ready for O'Brien/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-name')).toHaveText("O'Brien");
 });
@@ -235,7 +235,7 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   await page.goto('/?gnqa=1&gallery=0&scenario=eight18-porch-lp&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
-  await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
+  await page.getByRole('button', {name: /Spin ready for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
   await expect(page.locator('#wheel-why-line')).toBeHidden();
@@ -302,7 +302,7 @@ test('iPad wheel keeps Spin and Help tappable and ignores backdrop taps', async 
   test.skip(testInfo.project.name !== 'ipad-landscape-webkit', 'This is the porch iPad size');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
 
   const geometry = await page.evaluate(() => {

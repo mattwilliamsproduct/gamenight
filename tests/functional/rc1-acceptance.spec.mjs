@@ -145,7 +145,7 @@ for (const size of SIZES) {
       expect(resumed, `${size.name} Megan total after Resume`).toBe(afterEnter);
 
       await openScenario(page, {scenario: 'eight18-porch-lp', surface: 'scorecard'});
-      const chip = page.getByRole('button', {name: /Life Preserver available/}).first();
+      const chip = page.getByRole('button', {name: /Spin ready/}).first();
       if (await chip.count()) await chip.click();
       else {
         await page.locator('#actions-btn').click();

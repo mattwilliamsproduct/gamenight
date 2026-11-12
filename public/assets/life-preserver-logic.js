@@ -2,6 +2,12 @@
   'use strict';
 
   const SUPPORTED_GAMES = Object.freeze(['818', 'Wizard', 'Five Crowns', 'Flip 7 Vengeance']);
+  // User-facing feature name. Swap this object to rename the wheel. Do not scatter the name.
+  const BACK_PORCH_WHEEL = Object.freeze({
+    name: 'Back Porch Wheel',
+    ready: 'Spin ready',
+    used: 'Spin used'
+  });
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
   const EIGHT18_BID_BONUS = 10;
@@ -365,7 +371,7 @@
       return {
         supported: false,
         gameName: display,
-        lead: `${display} does not use Life Preservers.`,
+        lead: `${display} does not use the ${BACK_PORCH_WHEEL.name}.`,
         how: ['Keep playing this one without a rescue spin.'],
         wheel: []
       };
@@ -406,7 +412,7 @@
     return {
       supported: true,
       gameName: display,
-      lead: `A one-time rescue if you are truly out of the hunt in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      lead: `A one-time rescue if you are truly out of the hunt in ${display}, not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
       how,
       wheel
     };
@@ -1566,6 +1572,7 @@
 
   const api = {
     SUPPORTED_GAMES,
+    BACK_PORCH_WHEEL,
     EIGHT18_ROUND_TRICKS,
     EIGHT18_BID_BONUS,
     RECOVERY_LOAD_THRESHOLD,

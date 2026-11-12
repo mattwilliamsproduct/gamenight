@@ -29,8 +29,8 @@ test('tied Wizard places are shared on the live card and profiles', async ({page
     {name:'Ethan',place:'3rd'},
     {name:'Megan',place:'4th'},
     {name:'Matt',place:'4th'},
-    {name:'Linda',place:'5th'},
-    {name:'Mike',place:'5th'}
+    {name:'Linda',place:'6th'},
+    {name:'Mike',place:'6th'}
   ]);
 
   const ranks=await page.evaluate(()=>({
@@ -39,7 +39,7 @@ test('tied Wizard places are shared on the live card and profiles', async ({page
     linda:getProfileSummary('Linda').avgRank,
     mike:getProfileSummary('Mike').avgRank
   }));
-  expect(ranks).toEqual({megan:4,matt:4,linda:5,mike:5});
+  expect(ranks).toEqual({megan:4,matt:4,linda:6,mike:6});
 
   await page.evaluate(()=>showProfiles());
   await page.locator('.profile-passport-name',{hasText:'Megan'}).click();
