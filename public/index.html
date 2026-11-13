@@ -17819,6 +17819,23 @@ ${isDealer
     // Dealer labels read --scorecard-player-font with !important, so the shared
     // size has to live on the var or Megan stays large while Matt shrinks.
     if(root.style) root.style.setProperty('--scorecard-player-font',`${columnSize.toFixed(1)}px`);
+    // On a phone the badge keeps its width. Cap only those names so Duke, Brick,
+    // and Linda stay one line and a longer name wraps in the same slot.
+    if(window.innerWidth<=760){
+      names.forEach(name=>{
+        const cell=name.closest('td.scorecard-col-player');
+        const badge=cell&&cell.querySelector('.wheel-badge');
+        if(!badge||getComputedStyle(badge).display==='none')return;
+        const slot=name.closest('.scorecard-player-name-slot');
+        const slotW=slot?slot.clientWidth:0;
+        if(slotW<24)return;
+        const cap=Math.max(16, Math.min(columnSize, slotW/2.95));
+        const size=`${cap.toFixed(1)}px`;
+        name.style.setProperty('font-size',size,'important');
+        const chip=name.querySelector('.dealer-player-label');
+        if(chip) chip.style.setProperty('font-size',size,'important');
+      });
+    }
   }
   function scorecardGlyphBox(el){
     if(!el) return null;

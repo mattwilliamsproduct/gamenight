@@ -19,7 +19,7 @@ Bid and trick pads use the same no-minus grid as the score pads: Delete, Skip, N
 
 ## Spin ready
 
-On a phone the player column is `min(11.5rem, 42vw)`. A nowrap name plus a nowrap badge pushed `Spin ready` into the score column. Under 760px the name on a badge row may wrap, and the badge stays at the right of that cell. It does not paint over the score. Full names stay visible. Other rows do not wrap.
+On a phone the player column is `min(11.5rem, 42vw)`. A nowrap name plus a nowrap badge pushed `Spin ready` into the score column. Under 760px the badge stays on the right of the name, in the same row. Duke, Brick, and Linda stay on one line. A longer name wraps inside its slot (`overflow-wrap: break-word`, not `anywhere`). The badge does not paint over the score. Other rows do not wrap.
 
 ## Do not
 
