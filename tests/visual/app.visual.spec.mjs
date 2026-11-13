@@ -1156,8 +1156,9 @@ test('all six game types reach their first scoring surface',async({page})=>{
   }
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
-  await page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]').click();
-  await page.locator('#slice2-start-btn').click();
+  // Rook has no Home deck (f2c81a4 picker); its setup sheet still ships.
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
+  await page.evaluate(()=>openRookSetupModal());
   await expect(page.locator('#rook-setup-modal')).toBeVisible();
   const rookSetup = await page.evaluate(() => ({
     stored: _rookSetupConfig.winTarget,

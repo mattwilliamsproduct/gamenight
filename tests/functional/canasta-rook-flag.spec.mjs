@@ -7,19 +7,20 @@ test.beforeEach(async ({page})=>{
   await silencePorchPrompts(page);
 });
 
-test('picker shows Canasta and Rook, including after ?demo&games=rook', async ({page})=>{
+test('Home picker shows Canasta and never Rook, even after ?demo&games=rook', async ({page})=>{
   await page.goto('/?wipe=1', {waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
-  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
 
   await page.goto('/?demo&games=rook', {waitUntil:'domcontentloaded'});
   await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'ignored');
-  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Five Crowns"]')).toBeVisible();
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
   await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
 });
 
-test('saved Rook history still opens on Records after Rook is hidden', async ({page})=>{
+test('saved Rook history still opens on Records with Rook off the Home picker', async ({page})=>{
   const match={
     id:1785600000099,
     gameId:1785600000099,
@@ -46,7 +47,8 @@ test('saved Rook history still opens on Records after Rook is hidden', async ({p
     sessionStorage.setItem('hf-cleared','1');
   }, match);
   await page.goto('/', {waitUntil:'domcontentloaded'});
-  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Five Crowns"]')).toBeVisible();
+  await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
   await page.getByRole('button', {name:/Records/}).click();
   await expect(page.locator('.s2-ledger .s2-night').first()).toContainText('Rook');
   await page.locator('.s2-ledger [data-s2-action="night-scorecard"]').first().click();

@@ -17,20 +17,22 @@ const GAMES = [
   {id: 'Hand and Foot', title: 'Canasta'}
 ];
 
-test('Home shows seven equal 5:7 cards with no labels; select then Start opens the game', async ({page}) => {
+test('Home shows six equal 5:7 cards with no visible captions and no Rook (f2c81a4); select then Start opens the game', async ({page}) => {
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
 
   const cards = page.locator('.s2-home-start [data-s2-action="pick-game"]');
-  await expect(cards).toHaveCount(7);
-  await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
-  await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(7);
+  await expect(cards).toHaveCount(6);
+  await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
+  await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(6);
+  for (const name of await page.locator('.s2-home-start .s2-game-name').all()) await expect(name).toBeHidden();
   await expect(page.locator('.s2-home-start [data-s2-action="start-game-now"]')).toHaveCount(0);
 
   for (const game of GAMES) {
     const tile = page.locator(`.s2-home-start [data-s2-action="pick-game"][data-s2-game="${game.id}"]`);
     await expect(tile).toHaveAttribute('aria-label', new RegExp(game.title, 'i'));
     await expect(tile.locator('.s2-game-name')).toHaveText(game.title);
+    await expect(tile).toBeVisible();
   }
 
   const metrics = await page.evaluate(() => {
@@ -53,7 +55,7 @@ test('Home shows seven equal 5:7 cards with no labels; select then Start opens t
       };
     });
   });
-  expect(metrics).toHaveLength(7);
+  expect(metrics).toHaveLength(6);
   const widths = metrics.map((card) => card.width);
   const heights = metrics.map((card) => card.height);
   expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
@@ -66,8 +68,8 @@ test('Home shows seven equal 5:7 cards with no labels; select then Start opens t
   }
 
   const photos = page.locator('.s2-home-start .s2-card-photo');
-  await expect(photos).toHaveCount(7);
-  for (let i = 0; i < 7; i += 1) {
+  await expect(photos).toHaveCount(6);
+  for (let i = 0; i < 6; i += 1) {
     await expect(photos.nth(i)).toHaveCSS('object-fit', 'cover');
   }
 
@@ -148,7 +150,7 @@ test('1920 TV cards stay inside Start a new match and stay identical', async ({p
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
   const layout = await homeCardLayout(page);
-  expect(layout.count).toBe(7);
+  expect(layout.count).toBe(6);
   expect(layout.inside, '1920 cards stay inside the Start panel').toBe(true);
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
@@ -168,7 +170,7 @@ test('1024 landscape fills the start panel and Saved misses Game instructions', 
     toast.classList.add('show');
   });
   const layout = await homeCardLayout(page);
-  expect(layout.count).toBe(7);
+  expect(layout.count).toBe(6);
   expect(layout.inside, '1024 cards stay inside the Start panel').toBe(true);
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
@@ -261,7 +263,7 @@ test('1440 and 1280 keep Start on screen without clipping Tonight\'s Table', asy
       expect(layout.titleInTable, `${size.width} ${count}p table title clipped`).toBe(true);
       expect(layout.addInTable, `${size.width} ${count}p Add player clipped`).toBe(true);
       expect(['visible', 'auto']).toContain(layout.seatScroll);
-      expect(layout.cardCount, `${size.width} missing cards`).toBe(7);
+      expect(layout.cardCount, `${size.width} missing cards`).toBe(6);
       expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(420);
       expect(layout.cardMaxW, `${size.width} cards collapsed`).toBeGreaterThan(40);
     }
@@ -306,7 +308,8 @@ test('Heat and Five Crowns load the default 5:7 faces', async ({page}) => {
     './assets/cards/wizard.webp',
     './assets/cards/canasta.webp'
   ]));
-  expect(defaults).toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
+  // Rook has no Home deck (f2c81a4 picker); rook.webp stays for saved Rook nights.
+  expect(defaults).not.toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
   expect(defaults.some((src) => src && src.includes('/fill/'))).toBe(false);
 });
 

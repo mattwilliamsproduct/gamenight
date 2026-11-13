@@ -252,7 +252,7 @@ test.describe('test-only fixture views', () => {
     await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
   });
 
-  test('Rook is on the demo picker', async ({page}) => {
+  test('Rook is not on the demo picker; Canasta is', async ({page}) => {
     test.setTimeout(45000);
     await openDemo(page, 'home');
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
@@ -260,7 +260,7 @@ test.describe('test-only fixture views', () => {
     if (await reveal.count()) await reveal.click();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
-    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
   });
 
   test('?demo does nothing on a first-time book', async ({page}) => {

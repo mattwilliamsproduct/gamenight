@@ -100,7 +100,7 @@ Standing trap: [avatar-photo.md](avatar-photo.md) — uploads are shrunk to a JP
 
 Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
 
-Standing trap: [cf-prod-parity.md](cf-prod-parity.md) — Rook is on the picker with the existing 300/500/1000 target. Comeback Extra is the stored mark and the two Records lines. Do not load `comeback-logic.js`. Porch Cloud fetches only on `cardknight.vercel.app`, with `gn_porch_key` and `/api/sync`. Do not change `mergeCloud` or `api/sync.js`.
+Standing trap: [cf-prod-parity.md](cf-prod-parity.md) — Rook keeps the existing 300/500/1000 setup but has no Home deck (f2c81a4 picker). Comeback Extra is the stored mark and the two Records lines. Do not load `comeback-logic.js`. Porch Cloud fetches only on `cardknight.vercel.app`, with `gn_porch_key` and `/api/sync`. Do not change `mergeCloud` or `api/sync.js`.
 
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
 
@@ -122,4 +122,4 @@ Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phon
 
 Standing trap: [porch-ledger-phone-edge.md](porch-ledger-phone-edge.md) — the phone ledger field runs to the screen edge. Do not leave the 6px hairline scrollbar thumb as a cream strip. Match-bar labels stay one line at 13px or larger. Player Passports is not abbreviated, and the buttons are not forced to equal widths.
 
-Standing trap: [porch-mat.md](porch-mat.md) — the home picker is the blue mat. Decks sit on the calm center of the blue felt; the suit lattice stays toward the edges. Numbers stay on ivory. Tweak the `--felt-*` tokens, `--mat-stitch`, and `--deck-shadow` in one place. Do not put the decks back inside a cream rectangle.
+Standing trap: [porch-mat.md](porch-mat.md) — Home is the f2c81a4 layout on the blue felt page. The suit lattice stays toward the edges. Numbers stay on ivory. Tweak the `--felt-*` tokens in one place. Do not drift the Home layout from f2c81a4.

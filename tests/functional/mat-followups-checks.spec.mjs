@@ -26,8 +26,9 @@ test('Rook setup opens with 300, 70, and 200 selected in teal', async ({page}) =
   for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
     await openScenario(page, {scenario: 'home-party', surface: 'home'});
-    await page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]').click();
-    await page.locator('#slice2-start-btn').click();
+    // Rook has no Home deck now (f2c81a4 picker). Its setup sheet still ships
+    // for saved Rook nights, so open it directly to check the defaults.
+    await page.evaluate(() => openRookSetupModal());
     await expect(page.locator('#rook-setup-modal')).toBeVisible();
     await expect(page.locator('#rook-setup-modal')).toContainText('Game setup');
     await expect(page.locator('#rook-setup-modal')).toContainText('Win target');
