@@ -1971,3 +1971,144 @@ html.porch-ledger[data-ledger-bg].slice2-tv body:not(.active-match-view) #top-na
 html.porch-ledger[data-ledger-bg].slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-hug-rows {
   background: var(--ledger-page) !important;
 }
+
+/* #86 parity on the phone board. Spin ready sits to the right of the
+   name inside the player cell, and a round cell stays wide enough (44px)
+   to keep its own Back Porch Wheel mark instead of moving it to Total. */
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex {
+    flex-wrap: nowrap !important;
+    column-gap: 4px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
+    flex: 0 1 auto !important;
+    gap: 5px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-avatar-slot,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .avatar-img-sc {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-name-indicator,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    min-width: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .wheel-badge {
+    flex: 0 0 auto !important;
+    margin: 0 0 0 auto !important;
+    max-width: none !important;
+    min-height: 26px !important;
+    padding: 2px 7px !important;
+    gap: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+  }
+
+  /* The words carry it on a phone; the wheel glyph would cost a name letter. */
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .wheel-badge .wheel-badge-icon {
+    display: none !important;
+  }
+
+  /* This round wraps its header onto two lines, so it gives the name room. */
+  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+  }
+}
+
+/* A wheel mark the board moved to Total never shows twice. */
+html.porch-ledger #scorecard-capture .score-cell-life-preserver[hidden] {
+  display: none !important;
+}
+
+/* Phone Home standings: the name keeps its room and Spin ready sits to the
+   right of it, the same as the board. The score column only holds the score. */
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standing,
+  html.porch-ledger.slice2-tv .s2-standing {
+    grid-template-columns: auto 36px minmax(0, 1fr) auto minmax(2.5rem, auto) !important;
+    column-gap: 8px !important;
+    padding-left: 14px !important;
+    padding-right: 12px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .avatar-img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .s2-seat-who {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    justify-self: stretch !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .s2-seat-name {
+    text-align: left !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    font-size: 17px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .wheel-badge {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+    min-height: 26px !important;
+    padding: 2px 6px !important;
+    gap: 3px !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .wheel-badge .wheel-badge-icon {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .s2-dealer-tag:not(.s2-dealer-tag-empty) {
+    font-size: 11px !important;
+    padding: 2px 5px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .s2-dealer-tag-empty {
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing-score {
+    min-width: 2.5rem !important;
+    justify-self: end !important;
+    text-align: right !important;
+  }
+}
