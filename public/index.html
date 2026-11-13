@@ -15729,9 +15729,10 @@ button.dealer-name-indicator .dealer-player-label {
     // Reset all buttons to defaults
     document.querySelectorAll('#rook-setup-modal .rook-setup-btn').forEach(btn=>btn.classList.remove('rook-opt-active'));
     // Activate defaults
-    document.querySelectorAll('#rook-setup-modal [onclick*="winTarget,300"]').forEach(b=>b.classList.add('rook-opt-active'));
-    document.querySelectorAll('#rook-setup-modal [onclick*="minBid,70"]').forEach(b=>b.classList.add('rook-opt-active'));
-    document.querySelectorAll('#rook-setup-modal [onclick*="totalCounters,200"]').forEach(b=>b.classList.add('rook-opt-active'));
+    // The buttons read rookSetupSelect('winTarget',300,this), so match the quoted key and the value with its trailing comma.
+    Object.entries(_rookSetupConfig).forEach(([key,val])=>{
+      document.querySelectorAll(`#rook-setup-modal [onclick*="'${key}',${val},"]`).forEach(b=>b.classList.add('rook-opt-active'));
+    });
     const m=document.getElementById('rook-setup-modal');
     m.classList.remove('hidden');
     setTimeout(()=>m.classList.remove('opacity-0'),10);
