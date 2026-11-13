@@ -623,15 +623,25 @@
 
   // The laptop roster scrolls inside Tonight's table. A soft fade on the edge
   // that has more players says so; whole rows snap into place.
+  function rosterScroller(roster) {
+    // Laptop: the whole roster scrolls. Phone: the page scrolls and only the
+    // bench list does, so the cue follows whichever one actually scrolls.
+    const list = roster.querySelector('.s2-pick-list');
+    if (roster.scrollHeight > roster.clientHeight + 1) return roster;
+    if (list && list.scrollHeight > list.clientHeight + 1) return list;
+    return roster;
+  }
+
   function syncRoster(roster) {
     if (!roster) return;
-    const scrolls = roster.scrollHeight > roster.clientHeight + 1;
-    roster.classList.toggle('s2-roster-more-below', scrolls && roster.scrollTop + roster.clientHeight < roster.scrollHeight - 2);
-    roster.classList.toggle('s2-roster-more-above', scrolls && roster.scrollTop > 2);
+    const scroller = rosterScroller(roster);
+    const scrolls = scroller.scrollHeight > scroller.clientHeight + 1;
+    roster.classList.toggle('s2-roster-more-below', scroller === roster && scrolls && roster.scrollTop + roster.clientHeight < roster.scrollHeight - 2);
+    roster.classList.toggle('s2-roster-more-above', scroller === roster && scrolls && roster.scrollTop > 2);
     const cue = roster.parentElement && roster.parentElement.querySelector('.s2-roster-more');
     if (!cue) return;
-    const box = roster.getBoundingClientRect();
-    const rows = [...roster.querySelectorAll('.s2-seat, .s2-pick')].filter((row) => !row.hidden);
+    const box = scroller.getBoundingClientRect();
+    const rows = [...scroller.querySelectorAll('.s2-seat, .s2-pick')].filter((row) => !row.hidden);
     const below = rows.filter((row) => row.getBoundingClientRect().bottom > box.bottom + 2).length;
     if (scrolls && below > 0) {
       cue.textContent = `${below} more below ↓`;
@@ -646,6 +656,7 @@
       cue.textContent = '';
     }
   }
+
 
   // Laptop roster height stops on a whole row, so nothing shows half cut.
   const ROSTER_FIT_QUERY = '(min-width: 861px) and (orientation: landscape) and (min-height: 700px)';
@@ -672,6 +683,8 @@
     const roster = root && root.querySelector('.s2-home-table .s2-roster');
     if (!roster) return;
     roster.addEventListener('scroll', () => syncRoster(roster), {passive: true});
+    const list = roster.querySelector('.s2-pick-list');
+    if (list) list.addEventListener('scroll', () => syncRoster(roster), {passive: true});
     fitRoster(roster);
     requestAnimationFrame(() => fitRoster(roster));
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitRoster(roster)).catch(() => {});
@@ -1449,7 +1462,8 @@
       openAuditLog();
     } else if (action === 'roster-more') {
       const roster = target.parentElement?.querySelector('.s2-roster');
-      if (roster) roster.scrollTo({top: target.dataset.dir === 'up' ? 0 : roster.scrollTop + roster.clientHeight * 0.8, behavior: 'smooth'});
+      const scroller = roster && rosterScroller(roster);
+      if (scroller) scroller.scrollTo({top: target.dataset.dir === 'up' ? 0 : scroller.scrollTop + scroller.clientHeight * 0.8, behavior: 'smooth'});
     } else if (action === 'standings-more') {
       const list = target.closest('.s2-home-standings')?.querySelector('.s2-standings');
       if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
