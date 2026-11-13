@@ -10,6 +10,8 @@ What was missing: `game-registry.js` and `records-logic.js` marked Rook `hidden:
 
 The landscape home grid was locked to two rows, which clipped the seventh card. It is three equal rows now, still three cards across. At 1024 the faces are about 99px wide and still 5:7.
 
+Opening the setup modal clears the painted target. `openRookSetupModal` looks for `[onclick*="winTarget,300"]`, and the button attribute is `winTarget',300`, so the selector matches nothing. The same selector is on `39e6b51`. The stored target stays 300. The selector was not changed.
+
 ## Comeback Extra
 
 Production does not load `comeback-logic.js`. `applyComebackAndNotify` returns `[]` on `39e6b51` and on this branch. `npm run check` fails if the page loads the script or the worker precaches it. That is the production behavior, so the script stays unloaded.

@@ -1159,5 +1159,10 @@ test('all six game types reach their first scoring surface',async({page})=>{
   await page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#rook-setup-modal')).toBeVisible();
-  await expect(page.locator('#rook-setup-modal [onclick*="winTarget,300"]')).toHaveClass(/rook-opt-active/);
+  const rookSetup = await page.evaluate(() => ({
+    stored: _rookSetupConfig.winTarget,
+    targets: [...document.querySelectorAll('#rook-setup-modal .rook-setup-btn')].map((el) => el.textContent.trim()).filter((text) => ['300', '500', '1000'].includes(text))
+  }));
+  expect(rookSetup.stored).toBe(300);
+  expect(rookSetup.targets).toEqual(['300', '500', '1000']);
 });

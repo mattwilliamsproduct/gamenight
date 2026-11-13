@@ -1,0 +1,302 @@
+[
+  {
+    "shot": "entry-8-390",
+    "panelRight": 372,
+    "cellRight": 340,
+    "progressRight": 359,
+    "progressText": "0 of 8 scores entered",
+    "progressLines": 1,
+    "context": "Round 1 · Log scores",
+    "progressOverflow": false,
+    "zeroW": 77,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "nextH": 88,
+    "nextBottom": 710,
+    "zeroBottom": 710,
+    "minusW": 157,
+    "skip": "Skip"
+  },
+  {
+    "shot": "entry-3-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "0 of 3 scores entered",
+    "progressLines": 1,
+    "context": "Hand of 3 · Log scores",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "nextH": 88,
+    "nextBottom": 710,
+    "zeroBottom": 710,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "entry-4-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "0 of 4 heats entered",
+    "progressLines": 1,
+    "context": "Round 1 · Ends at 66 heat · Log heat",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "nextH": 88,
+    "nextBottom": 710,
+    "zeroBottom": 710,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "zero-span-crowns",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 scores entered",
+    "progressLines": 1,
+    "context": "Hand of 3 · Log scores",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 123,
+    "sevenW": 112,
+    "sevenH": 123,
+    "nextH": 255,
+    "nextBottom": 653,
+    "zeroBottom": 653,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "zero-span-heat",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 heats entered",
+    "progressLines": 1,
+    "context": "Round 1 · Ends at 66 heat · Log heat",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 123,
+    "sevenW": 112,
+    "sevenH": 123,
+    "nextH": 255,
+    "nextBottom": 653,
+    "zeroBottom": 653,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "flip7-minus",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 scores entered",
+    "progressLines": 1,
+    "context": "Round 1 · Log scores",
+    "progressOverflow": false,
+    "zeroW": 112,
+    "zeroH": 123,
+    "sevenW": 112,
+    "sevenH": 123,
+    "nextH": 255,
+    "nextBottom": 653,
+    "zeroBottom": 653,
+    "minusW": 233,
+    "skip": "Skip"
+  },
+  {
+    "shot": "wizard-bid",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 bids in · total 0 · 1 trick",
+    "progressLines": 2,
+    "context": "Round 1 of 15 · Log bids",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 125,
+    "sevenW": 112,
+    "sevenH": 125,
+    "nextH": 259,
+    "nextBottom": 653,
+    "zeroBottom": 653,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "wizard-bid-tap",
+    "afterSkip": "",
+    "nextValue": "0"
+  },
+  {
+    "shot": "wizard-bid-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "1 of 4 bids in · total 0 · 1 trick",
+    "progressLines": 2,
+    "context": "Round 1 of 15 · Log bids",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "nextH": 88,
+    "nextBottom": 710,
+    "zeroBottom": 710,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "818-bid",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 bids in · total 0 · 8 tricks",
+    "progressLines": 2,
+    "context": "Round 1 of 15 · 8 tricks · Log bids",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 125,
+    "sevenW": 112,
+    "sevenH": 125,
+    "nextH": 259,
+    "nextBottom": 653,
+    "zeroBottom": 653,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "818-bid-tap",
+    "before": "",
+    "afterSkip": ""
+  },
+  {
+    "shot": "818-bid-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "0 of 4 bids in · total 0 · 8 tricks",
+    "progressLines": 2,
+    "context": "Round 1 of 15 · 8 tricks · Log bids",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "nextH": 88,
+    "nextBottom": 710,
+    "zeroBottom": 710,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "review-390",
+    "review": "Review the scores, then submit."
+  },
+  {
+    "shot": "teams",
+    "title": "Choose your teams",
+    "selects": 0,
+    "pick": false,
+    "order": "Tap a player, then someone on the other team to swap.",
+    "names": [
+      "Ann",
+      "Bo",
+      "Cy",
+      "Dee"
+    ]
+  },
+  {
+    "shot": "teams-swapped",
+    "swapped": [
+      "Ann",
+      "Cy",
+      "Bo",
+      "Dee"
+    ]
+  },
+  {
+    "shot": "teams-behind",
+    "line": "Canasta · Round 1 of 4",
+    "gameHidden": false
+  },
+  {
+    "shot": "cap-9999",
+    "text": "Canasta scores stop at 9,999.",
+    "beside": true
+  },
+  {
+    "shot": "apply-order",
+    "apply": "Apply order"
+  },
+  {
+    "shot": "live-home",
+    "hasButton": true,
+    "gridHidden": true
+  },
+  {
+    "shot": "recent-nights",
+    "recent": false
+  },
+  {
+    "shot": "toast",
+    "toast": "👑 Cat & Mike take the lead!"
+  },
+  {
+    "shot": "comeback",
+    "wizard": true,
+    "canasta": true
+  },
+  {
+    "shot": "spin-ready-390",
+    "rows": 3,
+    "ready": 2,
+    "inside": true
+  },
+  {
+    "shot": "rook-picker",
+    "rookCard": "Rook"
+  },
+  {
+    "shot": "rook-setup",
+    "stored": 300,
+    "targets": [
+      "300",
+      "500",
+      "1000"
+    ],
+    "highlighted": []
+  },
+  {
+    "shot": "comeback-extra-cell",
+    "extraCell": "+20"
+  },
+  {
+    "shot": "comeback-extra-records",
+    "hasMost": true,
+    "hasBiggest": true
+  },
+  {
+    "shot": "porch-cloud",
+    "status": "Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.",
+    "cloud": false,
+    "label": "Porch password",
+    "hits": 0
+  },
+  {
+    "shot": "view-pace",
+    "text": "View Pace",
+    "size": 15.2,
+    "full": true
+  }
+]
