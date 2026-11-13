@@ -540,3 +540,24 @@ html.slice2-tv .s2-home-standings .s2-lp-status {
   white-space: nowrap;
   font-size: 0.95rem;
 }
+
+/* Laptop: a roomier Tonight's Table column and a larger wordmark. The decks
+   keep --bp-card-max; the start panel gives up the width. */
+@media (min-width: 861px) {
+  html.slice2-tv #top-nav .bp-brand-wordmark {
+    height: 3.2rem;
+    max-width: 12.5rem;
+  }
+}
+
+@media (min-width: 1180px) {
+  html.slice2-tv .s2-home-grid {
+    grid-template-columns: minmax(380px, 400px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  html.slice2-tv .s2-home-grid {
+    grid-template-columns: minmax(400px, 420px) minmax(0, 1fr);
+  }
+}
