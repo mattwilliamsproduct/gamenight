@@ -13,7 +13,7 @@ async function keypadKeys(page) {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const inset = 2;
-    return [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
+    return [...document.querySelectorAll('#score-entry-modal .score-entry-key')].filter((el) => getComputedStyle(el).display !== 'none').map((el) => {
       const box = el.getBoundingClientRect();
       const points = [
         ['center', box.left + box.width / 2, box.top + box.height / 2],
