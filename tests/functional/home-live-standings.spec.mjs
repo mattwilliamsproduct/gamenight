@@ -249,7 +249,7 @@ test('Active Match pill matches whether a match is on the table', async ({page})
     if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh('home');
   });
   await expect(page.locator('#nav-active-btn')).toBeVisible();
-  await expect(page.locator('.s2-banner')).toContainText('Resume');
+  await expect(page.locator('.s2-banner:not(.s2-unfinished-banner)')).toContainText('Resume');
   await expect(page.locator('.s2-home-standings')).toBeVisible();
   await expect(page.locator('.s2-seat')).toHaveCount(0);
 });

@@ -4,7 +4,7 @@
   const SUPPORTED_GAMES = Object.freeze(['818', 'Wizard', 'Five Crowns', 'Flip 7 Vengeance']);
   // User-facing feature name. Swap this object to rename the wheel. Do not scatter the name.
   const BACK_PORCH_WHEEL = Object.freeze({
-    name: 'Back Porch Wheel',
+    name: 'Life Preserver',
     ready: 'Spin ready',
     used: 'Spin used'
   });

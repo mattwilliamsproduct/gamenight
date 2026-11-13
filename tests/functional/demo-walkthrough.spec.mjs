@@ -35,6 +35,9 @@ test('demo walkthrough: start, score, correct, end, resume, records', async ({pa
     if (typeof saveData === 'function') saveData();
     if (typeof startGame === 'function') startGame('Flip 7 Vengeance');
   });
+  // Matt 5:25 PM ET: starting another game while one is live opens Leave game. Save for later, then the new game starts.
+  const saveLater = page.locator('#leave-save-later');
+  if (await saveLater.isVisible().catch(() => false)) await saveLater.click();
   await page.waitForFunction(() => currentGame && currentGame.name === 'Flip 7 Vengeance' && document.getElementById('game-screen') && !document.getElementById('game-screen').classList.contains('hidden'), null, {timeout: 15000});
   report.start = await page.evaluate(() => currentGame && currentGame.name === 'Flip 7 Vengeance' && (currentGame.rounds || []).length === 0);
 
@@ -66,7 +69,12 @@ test('demo walkthrough: start, score, correct, end, resume, records', async ({pa
   await page.locator('#actions-menu .match-end-btn').click();
   await expect(page.locator('#end-match-modal')).not.toHaveClass(/hidden/);
   const confirmCopy = await page.locator('#end-match-copy').innerText();
-  report.endConfirm = /saves the night to Records/i.test(confirmCopy) && /Wins and games count/i.test(confirmCopy);
+  // Matt 5:25 PM ET: Leave game offers Save for later, End game now, and Keep playing.
+  const leaveReady = await page.evaluate(() => ['leave-save-later', 'leave-end-now', 'leave-keep-playing'].every((id) => {
+    const el = document.getElementById(id);
+    return !!(el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0);
+  }));
+  report.endConfirm = leaveReady && /Keep playing changes nothing/i.test(confirmCopy);
   const beforeWins = await page.evaluate(() => {
     const data = getAllTimeRecords();
     const row = (data.allTime.mostWins || []).find((item) => item.player === ((currentGame.originalRoster || [])[0]));
@@ -85,9 +93,9 @@ test('demo walkthrough: start, score, correct, end, resume, records', async ({pa
     });
     if (typeof goHome === 'function') goHome();
     if (typeof showHistory === 'function') showHistory();
-    if (window.BPGSlice2 && typeof window.BPGSlice2.setRecordsPane === 'function') window.BPGSlice2.setRecordsPane('overview');
+    if (window.BPGSlice2 && typeof window.BPGSlice2.setRecordsPane === 'function') window.BPGSlice2.setRecordsPane('nights');
   });
-  const resume = page.locator('[data-s2-action="night-resume"]').first();
+  const resume = page.locator('#hall-of-fame-view [data-pane="nights"] [data-s2-action="night-resume"]').first();
   await expect(resume).toBeVisible({timeout: 8000});
   await resume.click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);

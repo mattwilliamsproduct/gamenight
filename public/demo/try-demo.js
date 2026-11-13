@@ -152,6 +152,10 @@
       restorePendingSnapshot();
       sessionStorage.removeItem(PENDING_RESTORE);
       sessionStorage.removeItem(SNAP_KEY);
+      // The next pagehide would rewrite this snapshot and bump gn_storage_rev
+      // before the following boot's id backfill. Hold that persist so a reload
+      // matches a cold boot of the same seed.
+      sessionStorage.setItem('bpg_exit_hold', '1');
       return true;
     } catch (error) {
       return false;
@@ -163,8 +167,9 @@
   // pagehide on the Exit navigation may have rewritten demo memory onto gn_*.
   if (sessionStorage.getItem(PENDING_RESTORE) === '1') {
     restorePendingSnapshot();
-  } else if (wantsTry() || sessionOn()) {
-    activate();
+  } else {
+    try { sessionStorage.removeItem('bpg_exit_hold'); } catch (error) {}
+    if (wantsTry() || sessionOn()) activate();
   }
 
   function blockFetch() {

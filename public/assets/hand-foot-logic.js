@@ -772,6 +772,11 @@
     return totals;
   }
 
+  function clearedBreakdownParts(total) {
+    const score = Number(total);
+    return {roundScore: Number.isFinite(score) ? score : 0, breakdownCleared: true};
+  }
+
   function eventLeaders(history) {
     const names = new Set();
     (history || []).forEach(function (match) {
@@ -837,6 +842,7 @@
     sumFieldForPlayer,
     playerEventTotals,
     eventLeaders,
+    clearedBreakdownParts,
     meldForRound,
     scoringKeys,
     recordedKeys,

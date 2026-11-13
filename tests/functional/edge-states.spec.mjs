@@ -54,9 +54,10 @@ test('Start with 0 players stays on home after the add-players alert', async ({p
   });
   await page.setViewportSize({width: 390, height: 844});
   await openDemo(page, 'empty-home');
-  await page.locator('#slice2-start-btn').click();
+  // docs/solutions/legacy-history-review.md: Start stays off until the minimum is met.
+  await expect(page.locator('#slice2-start-btn')).toBeDisabled();
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
-  expect(message).toMatch(/Add players/i);
+  expect(message).toBe('');
 });
 
 test('one seated player can start Five Crowns without a pageerror', async ({page}) => {

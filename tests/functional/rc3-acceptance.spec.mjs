@@ -138,11 +138,12 @@ test('Start confirm parks live match incomplete', async ({page}) => {
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
   await page.waitForTimeout(300);
-  page.once('dialog', async (d) => {
-    expect(d.message()).toMatch(/incomplete/i);
-    await d.dismiss();
-  });
-  await page.locator('#slice2-start-btn, button:has-text("Start")').first().click();
-  const stillLive = await page.evaluate(() => !!currentGame);
+  // Five Crowns plays up to 7. This Wizard has 8, so Start stays off until a game that seats them is picked.
+  // Matt 5:25 PM ET: starting another game opens Leave game. Keep playing leaves the match on the table.
+  await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Wizard"]').click();
+  await page.locator('#slice2-start-btn').click();
+  await expect(page.locator('#leave-keep-playing')).toBeVisible();
+  await page.locator('#leave-keep-playing').click();
+  const stillLive = await page.evaluate(() => !!currentGame && currentGame.name === 'Wizard');
   expect(stillLive).toBe(true);
 });

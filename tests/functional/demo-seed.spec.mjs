@@ -17,7 +17,7 @@ const VIEW_ASSERT = {
     await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
     await expect(page.locator('#slice2-home .s2-home-start')).toBeVisible();
     await expect(page.locator('#slice2-home')).not.toContainText(/Recent nights/);
-    await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
+    await expect(page.locator('#slice2-home .s2-banner:not(.s2-unfinished-banner) .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
   },
   'active-match': async (page) => {
     await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);

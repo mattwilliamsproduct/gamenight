@@ -19,10 +19,15 @@ test('Passports and Records show the same career wins and games', async ({page})
     });
     return {players: rows.players, counted: rows.counted, winSum: rows.winSum};
   });
-  expect(tally.counted).toBe(23);
-  expect(tally.winSum).toBe(29);
-  expect(tally.players.Nora).toEqual({name: 'Nora', wins: 11, games: 22});
-  expect(tally.players.Theo).toEqual({name: 'Theo', wins: 3, games: 22});
+  // Matt 5:55 PM ET: only a full saved night counts. The demo book has six:
+  // 10/28 Five Crowns (11 rounds, Nora), 10/27 and 10/26 Wizard (15 rounds, Owen and June),
+  // 10/25 818 (15 rounds, Priya), 10/23 Beat the Heat (seated 70, Nora).
+  // 10/24 Flip 7 (Nora 210) counts under Matt 7:26 PM ET Oct 29, a seated total of 200+.
+  // 10/3 Hand and Foot is 4 rounds with no stored finish, so it stays uncertain and is not the seventh night.
+  expect(tally.counted).toBe(6);
+  expect(tally.winSum).toBe(6);
+  expect(tally.players.Nora).toEqual({name: 'Nora', wins: 3, games: 5});
+  expect(tally.players.Theo).toEqual({name: 'Theo', wins: 0, games: 5});
 
   await page.evaluate(() => {
     if (typeof showProfiles === 'function') showProfiles();
@@ -71,7 +76,8 @@ test('Passports and Records show the same career wins and games', async ({page})
     return byName;
   });
 
-  ['Nora', 'Owen', 'Priya', 'Theo', 'Felix', 'June'].forEach((name) => {
+  // A player who sat no finished night is not in the tally. Compare the people the count includes.
+  Object.keys(tally.players).forEach((name) => {
     expect(records[name], `${name} records`).toEqual({
       wins: tally.players[name].wins,
       games: tally.players[name].games

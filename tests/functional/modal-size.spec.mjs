@@ -54,12 +54,11 @@ async function openPastNight(page) {
     if (window.BPGSlice2) window.BPGSlice2.refresh('home');
   }, longFiveCrownsMatch());
   await nextPaint(page);
-  const clicked = await page.locator('[data-s2-action="night-scorecard"], [data-s2-action="night-open"]').first().count();
-  if (clicked) {
-    await page.locator('[data-s2-action="night-scorecard"], [data-s2-action="night-open"]').first().click();
-  } else {
-    await page.evaluate(() => openScorecard(1784391110001));
-  }
+  // Product spec: history stays in Records. The night card is not on Home.
+  await page.evaluate(() => { if (typeof showHistory === 'function') showHistory(); });
+  const card = page.locator('#hall-of-fame-view [data-s2-action="night-scorecard"], #hall-of-fame-view [data-s2-action="night-open"]');
+  if (await card.count()) await card.first().click();
+  else await page.evaluate(() => openScorecard(1784391110001));
   await expect(page.locator('#scorecard-modal')).not.toHaveClass(/hidden/);
 }
 
@@ -195,8 +194,8 @@ test('Settings form at 1440 keeps Backup and Restore on screen', async ({page}) 
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   const fit = await page.evaluate(() => {
     const panel = document.querySelector('#settings-modal .bp-modal-panel')?.getBoundingClientRect();
-    const backup = [...document.querySelectorAll('#settings-modal button')].find((el) => (el.textContent || '').trim() === 'Backup')?.getBoundingClientRect();
-    const restore = [...document.querySelectorAll('#settings-modal button')].find((el) => (el.textContent || '').trim() === 'Restore')?.getBoundingClientRect();
+    const backup = [...document.querySelectorAll('#settings-modal .bp-modal-foot button')].find((el) => (el.textContent || '').trim() === 'Backup' && el.getClientRects().length)?.getBoundingClientRect();
+    const restore = [...document.querySelectorAll('#settings-modal .bp-modal-foot button')].find((el) => (el.textContent || '').trim() === 'Restore' && el.getClientRects().length)?.getBoundingClientRect();
     const close = document.querySelector('#settings-modal .bp-modal-panel > button.absolute')?.getBoundingClientRect();
     const panelEl = document.querySelector('#settings-modal .bp-modal-panel');
     const body = document.querySelector('#settings-modal .bp-modal-body');
@@ -234,7 +233,7 @@ test('Settings on 375 keeps Restore and Text Size inside the panel', async ({pag
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   const fit = await page.evaluate(() => {
     const panel = document.querySelector('#settings-modal .bp-modal-panel')?.getBoundingClientRect();
-    const restore = [...document.querySelectorAll('#settings-modal button')].find((el) => (el.textContent || '').trim() === 'Restore')?.getBoundingClientRect();
+    const restore = [...document.querySelectorAll('#settings-modal .bp-modal-foot button')].find((el) => (el.textContent || '').trim() === 'Restore' && el.getClientRects().length)?.getBoundingClientRect();
     const textSize = [...document.querySelectorAll('#settings-modal .settings-appearance-row')].find((el) => /Text Size/i.test(el.textContent || ''))?.getBoundingClientRect();
     const close = document.querySelector('#settings-modal .bp-modal-panel > button.absolute')?.getBoundingClientRect();
     const body = document.querySelector('#settings-modal .bp-modal-body');
@@ -246,7 +245,7 @@ test('Settings on 375 keeps Restore and Text Size inside the panel', async ({pag
       bodyScrolls: !!(body && body.scrollHeight > body.clientHeight - 1)
     };
   });
-  expect(fit.restoreOn, 'Restore clipped by panel').toBe(true);
+  expect(fit.restoreOn, `Restore clipped by panel ${JSON.stringify(fit)}`).toBe(true);
   expect(fit.restoreInView, 'Restore clipped by viewport').toBe(true);
   expect(fit.textSizeOn, 'Text Size clipped').toBe(true);
   expect(fit.closeInside, 'close X sits on the border').toBe(true);

@@ -624,8 +624,8 @@ test('demo career wins sum from completed nights, including ties and assisted', 
   assert.match(tally.rule, /One counting rule/);
   assert.match(tally.rule, /Every tied winner gets a win/);
   assert.match(tally.rule, /never a winner/);
-  assert.equal(tally.counted, 7);
-  assert.equal(tally.winSum, 8);
+  assert.equal(tally.counted, 6);
+  assert.equal(tally.winSum, 6);
   assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
   assert.equal(tally.rows.some((row) => row.assisted && !row.counts), true);
   const assisted = book.history.find((row) => row.id === 1786100000008);
@@ -801,6 +801,34 @@ test('biggest single-game comeback uses round totals, not Turbo', () => {
   assert.equal(Records.shouldShowComebackStats([match]), false);
 });
 
+test('Hall of Fame names a three-way tie at laptop width', () => {
+  const html = paintHtml([{
+    id: 1,
+    game: 'Five Crowns',
+    date: '10/1/2026',
+    rounds: Array.from({length: 11}, (_, index) => ({round: index + 1, scores: {Ada: 1, Cleo: 1, Bea: 1}})),
+    totals: {Ada: 11, Cleo: 11, Bea: 11},
+    winners: ['Ada', 'Cleo', 'Bea'],
+    completed: true
+  }], 'overview', {
+    games: {
+      'Five Crowns': {
+        bestGame: {
+          player: 'Ada',
+          value: 11,
+          ties: [
+            {player: 'Ada', value: 11},
+            {player: 'Cleo', value: 11},
+            {player: 'Bea', value: 11}
+          ]
+        }
+      }
+    }
+  });
+  assert.match(html, /Ada, Cleo, and Bea/);
+  assert.doesNotMatch(html, /\+ 1 more/);
+});
+
 test('Player Career Cards are on the records overview and say Canasta', () => {
   const html = paintHtml([{
     id: 2,
@@ -828,4 +856,28 @@ test('Player Career Cards are on the records overview and say Canasta', () => {
   assert.match(html, /Most played Canasta/);
   assert.doesNotMatch(html, /Most played Hand and Foot/);
   assert.match(html, /Best type Canasta/);
+});
+
+test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
+  require('../public/assets/hand-foot-logic.js');
+  const html = paintHtml([{
+    id: 3,
+    game: 'Hand and Foot',
+    date: '10/3/2026',
+    originalRoster: ['Ann', 'Bo'],
+    totals: {Ann: 100, Bo: 40},
+    winners: ['Ann'],
+    rounds: [{
+      round: 1,
+      scores: {Ann: 100, Bo: 40},
+      handFootParts: {
+        Ann: {basic: 1, count: 20, got22: true, wentOut: true, cardsLeft: 0, roundScore: 100},
+        Bo: {basic: 1, count: 20, got22: false, wentOut: false, cardsLeft: 12, roundScore: 40}
+      }
+    }]
+  }], 'explore');
+  assert.match(html, /Got the 22/);
+  assert.match(html, /Went out/);
+  assert.match(html, /Cards left/);
+  assert.match(html, /Ann/);
 });

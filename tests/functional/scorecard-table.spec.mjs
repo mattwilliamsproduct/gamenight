@@ -10,7 +10,10 @@ async function typeOneDraft(page, digit = '7') {
 async function draftValue(page) {
   return page.evaluate(() => {
     const drafts = currentGame?.currentScoreDrafts || {};
-    const first = (currentGame?.originalRoster || [])[0];
+    const order = typeof getScoreEntryDisplayPlayers === 'function'
+      ? getScoreEntryDisplayPlayers(getActivePlayers(currentGame))
+      : (currentGame?.originalRoster || []);
+    const first = order[0];
     return {first, value: drafts[first], all: drafts};
   });
 }
@@ -23,13 +26,13 @@ test('Table parks an unfinished entry and Resume restores it after Records', asy
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
   const parked = await draftValue(page);
   expect(String(parked.value)).toBe('7');
-  await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
+  await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
 
   await page.evaluate(() => showHistory());
   await expect(page.locator('#history-screen')).not.toHaveClass(/hidden/);
   await page.evaluate(() => goHome());
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
-  await page.locator('#slice2-home [data-s2-action="resume"]').click();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-table-btn')).toBeVisible();
   const resumed = await draftValue(page);
@@ -37,7 +40,10 @@ test('Table parks an unfinished entry and Resume restores it after Records', asy
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   const shown = await page.evaluate(() => {
-    const first = (currentGame?.originalRoster || [])[0];
+    const order = typeof getScoreEntryDisplayPlayers === 'function'
+      ? getScoreEntryDisplayPlayers(getActivePlayers(currentGame))
+      : (currentGame?.originalRoster || []);
+    const first = order[0];
     const safe = String(first || '').replace(/[^A-Za-z0-9_-]/g, '');
     return document.getElementById(`score-entry-value-${safe}`)?.textContent || '';
   });
@@ -52,7 +58,7 @@ test('Table parks an unfinished entry and Resume restores it after Settings', as
   await page.evaluate(() => openSettings());
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   await page.evaluate(() => closeSettings());
-  await page.locator('[data-s2-action="resume"]').click();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   const resumed = await draftValue(page);
   expect(String(resumed.value)).toBe('8');
@@ -86,7 +92,7 @@ test('standalone Table leaves the match without ending it', async ({page}) => {
   await page.locator('#slice2-table-btn').click();
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#end-match-modal')).toHaveClass(/hidden/);
-  await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
+  await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
   const parked = await page.evaluate(() => ({
     name: currentGame?.name,
     totals: {...(currentGame?.totals || {})},
@@ -95,7 +101,7 @@ test('standalone Table leaves the match without ending it', async ({page}) => {
   expect(parked.name).toBe(before.name);
   expect(parked.totals).toEqual(before.totals);
   expect(parked.history).toBe(before.history);
-  await page.locator('[data-s2-action="resume"]').click();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-table-btn')).toBeVisible();
 });

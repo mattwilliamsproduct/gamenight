@@ -104,7 +104,9 @@ for (const size of SIZES) {
       page.on('dialog', (dialog) => dialog.accept());
       await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
       await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-      await expect(page.locator('#score-entry-selected-name')).toContainText(/Megan|Scoring/);
+      const leader = await page.evaluate(() => getScoreEntryDisplayPlayers(getActivePlayers(currentGame))[0]);
+      // docs/tech-spec.md: after round 1 the scoreboard sorts by win direction. The modal opens on that row.
+      await expect(page.locator('#score-entry-selected-name')).toHaveText(leader);
       if (size.width <= 390) {
         await assertKeypadFullyUsable(page, size.name);
         await assertEntryFooterLayout(page, size.name);
@@ -137,8 +139,8 @@ for (const size of SIZES) {
       });
 
       await page.evaluate(() => goHome());
-      await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
-      await page.locator('[data-s2-action="resume"]').click();
+      await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
+      await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
       await expect(page.locator('#slice2-board-bar')).toBeVisible();
       await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
       const resumed = await page.evaluate(() => Number(currentGame?.totals?.Megan) || 0);
@@ -269,7 +271,8 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
     };
   });
   expect(entry.labelShown, 'Selected Player label is gone on 375').toBe(false);
-  expect(entry.nameText, 'selected name stays Megan').toMatch(/Megan/i);
+  const leader = await page.evaluate(() => getScoreEntryDisplayPlayers(getActivePlayers(currentGame))[0]);
+  expect(entry.nameText, 'selected name is the standings leader').toBe(leader);
 });
 
 test('a porch key and local history boot with no cloud sync', async ({page}) => {

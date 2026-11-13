@@ -70,7 +70,7 @@ test('a 2-player Hand and Foot match scores four rounds, survives reload, and la
   await expect(page.locator('#game-over-section')).toContainText('Match Complete');
 
   await endMatch(page);
-  await expect(page.locator('#victory-names')).toContainText('Ann');
+  await expect(page.locator('#victory-names')).toContainText('Needs review');
   const history=await readHistory(page);
   const match=history.find(item=>item.game==='Hand and Foot' && item.originalRoster?.includes('Ann'));
   expect(match).toBeTruthy();
@@ -121,7 +121,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   expect(Object.keys(game.rounds[0].scores).sort()).toEqual(['Ann','Bo','Cy','Dee']);
   expect(game.rounds).toHaveLength(4);
   await endMatch(page);
-  await expect(page.locator('#victory-names')).toContainText('Ann');
+  await expect(page.locator('#victory-names')).toContainText('Needs review');
 
   await freshTable(page);
   setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams'});
@@ -155,7 +155,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   expect(Object.keys(game.rounds[3].scores).sort()).toEqual(['Ann','Bo','Cy','Dee','Eve','Fay']);
   expect(game.rounds).toHaveLength(4);
   await endMatch(page);
-  await expect(page.locator('#victory-names')).toContainText('Ann');
+  await expect(page.locator('#victory-names')).toContainText('Needs review');
   history=await readHistory(page);
   expect(history.filter(item=>item.game==='Hand and Foot' && item.handFoot?.format==='singles' && item.originalRoster?.length===6)).toHaveLength(1);
 });

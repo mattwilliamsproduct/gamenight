@@ -16,8 +16,8 @@ test('Table and back keeps the same live hand and does not add a round', async (
   }));
   await page.locator('#slice2-table-btn').click();
   await expect(page.locator('#slice2-home')).toBeVisible();
-  await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
-  await page.locator('[data-s2-action="resume"]').click();
+  await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   const after = await page.evaluate(() => ({
     id: currentGame.id,
     round: currentGame.currentRound,

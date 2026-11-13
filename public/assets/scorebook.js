@@ -291,6 +291,7 @@
     if (text === '' || text === '-') return '';
     const n = parseInt(text, 10);
     if (!Number.isFinite(n) || n <= limit) return '';
+    if (source.detail) return `${n} is more than this round's ${trickCountLabel(limit)}.`;
     return `This round has ${trickCountLabel(limit)}.`;
   }
 
@@ -570,7 +571,7 @@
       const replaced = String(value).trim() === '-' ? '-' + token : token;
       const blocked = trickLimitRejection(replaced, source);
       if (blocked) {
-        return { value, acknowledged, replaced: false, dirty, rejected: true, message: blocked };
+        return { value, acknowledged, replaced: false, dirty, rejected: true, attempt: replaced, message: blocked };
       }
       if (String(value).trim() === '-') {
         return { value: '-' + token, acknowledged: deferAck ? false : true, replaced: false, dirty: true };
@@ -595,7 +596,7 @@
       }
       const blocked = trickLimitRejection(nextValue, source);
       if (blocked) {
-        return { value, acknowledged, replaced: false, dirty, rejected: true, message: blocked };
+        return { value, acknowledged, replaced: false, dirty, rejected: true, attempt: nextValue, message: blocked };
       }
       value = nextValue;
     }
@@ -851,10 +852,8 @@
     if (!match || typeof match !== 'object') return 'uncertain';
     const name = gameName(match);
     if (name === 'Hand and Foot' || name === 'Canasta') {
+      // Matt 5:55 PM ET: a round count is not a Canasta finish, and a stored finished flag does not finish the night.
       if (match.outcome === 'paused' || match.completed === false) return 'paused';
-      const legacy = legacyCompletion(match);
-      if (legacy.status === 'complete') return 'finished';
-      if (legacy.status === 'partial') return 'ended_early';
       return 'uncertain';
     }
     const stored = match.outcome;
@@ -905,8 +904,8 @@
 
   // Isolated legacy rule. 'complete' | 'partial' | 'uncertain', plus a reason.
   // Known fixed lengths come from saved rounds, not from a round-count field.
-    // Flip 7 finishes at 200 for a seated player. Rook stays uncertain unless a target saved on that night was reached.
-    // Canasta is 4 saved scoring rounds. A stored finished flag does not override a short count.
+    // Flip 7 finishes at 200 for a seated player (Matt 7:26 PM ET Oct 29). Rook stays uncertain unless a target saved on that night was reached.
+    // Canasta stays uncertain no matter the round count (Matt 5:55 PM ET). A stored finished flag does not finish it.
   function legacyCompletion(match) {
     if (!match || typeof match !== 'object') {
       return {status: 'uncertain', reason: 'No saved night.', played: 0, fixed: null};
@@ -914,13 +913,7 @@
     const name = gameName(match);
     const played = scoringRoundCount(match.rounds || []);
     if (name === 'Hand and Foot' || name === 'Canasta') {
-      if (played >= 4) {
-        return {status: 'complete', reason: played + ' saved rounds meet the 4-round length.', played, fixed: 4};
-      }
-      if (played >= 1) {
-        return {status: 'partial', reason: played + ' of 4 rounds. Ended early.', played, fixed: 4};
-      }
-      return {status: 'uncertain', reason: 'No saved Canasta rounds. Needs review.', played, fixed: 4};
+      return {status: 'uncertain', reason: 'A Canasta round count is not a finish. Needs review.', played, fixed: null};
     }
     if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
       if (anyActiveTotalAtLeast(match, 200)) {

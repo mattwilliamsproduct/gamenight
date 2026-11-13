@@ -21,13 +21,13 @@ async function openDemoPath(page) {
 async function enterScores(page, values) {
   await page.locator('#slice2-enter-btn, #submit-action-btn').first().click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-  const next = page.locator('#score-entry-modal .score-entry-key.next');
+  // Later rounds sort by win direction (docs/tech-spec.md). Type onto the named seat, not whoever is first on screen.
+  const names = await page.evaluate(() => (currentGame.originalRoster || []).slice());
   for (let i = 0; i < values.length; i += 1) {
-    const digits = String(values[i]).split('');
-    for (const digit of digits) {
-      await page.locator('#score-entry-modal .score-entry-key', {hasText: digit}).first().click();
+    await page.locator('#score-entry-modal .score-entry-name', {hasText: new RegExp(`^${names[i]}$`)}).click();
+    for (const digit of String(values[i]).split('')) {
+      await page.locator('#score-entry-modal .score-entry-key', {hasText: new RegExp(`^${digit}$`)}).first().click();
     }
-    if (i < values.length - 1) await next.click();
   }
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/, {timeout: 8000});

@@ -169,7 +169,8 @@ test('a legacy round shows the saved total and edits only on purpose', async ({p
   const game = await readGame(page);
   expect(game.rounds[0].scores.Ann).toBe(2000);
   expect(game.rounds[0].scores.Cy).toBe(300);
-  expect(game.rounds[0].handFootParts.Ann.cleanCanastas).toBe(2);
+  expect(game.rounds[0].handFootParts.Ann.breakdownCleared).toBe(true);
+  expect(game.rounds[0].handFootParts.Ann.cleanCanastas).toBeUndefined();
   expect(game.rounds[0].handFootParts.Ann.basic).toBeUndefined();
   expect(game.rounds[0].handFootParts.Ann.count).toBeUndefined();
   expect(game.rounds[0].handFootParts.Ann.got22).toBeUndefined();

@@ -39,14 +39,15 @@ test('tied Wizard places are shared on the live card and profiles', async ({page
     linda:getProfileSummary('Linda').avgRank,
     mike:getProfileSummary('Mike').avgRank
   }));
-  expect(ranks).toEqual({megan:4,matt:4,linda:6,mike:6});
+  // Matt 5:55 PM ET: Wizard is complete at floor(60 / players). Seven players need 8 rounds. This night has 7, so career rank stays empty.
+  expect(ranks).toEqual({megan:null,matt:null,linda:null,mike:null});
 
   await page.evaluate(()=>showProfiles());
   await page.locator('.profile-passport-name',{hasText:'Megan'}).click();
-  await expect(page.locator('.profile-stat-tile',{hasText:'Avg Rank'}).locator('strong')).toHaveText('4.0');
+  await expect(page.locator('.profile-stat-tile',{hasText:'Avg Rank'}).locator('strong')).toHaveText('-');
   await page.evaluate(()=>closeProfileDetail());
   await page.locator('.profile-passport-name',{hasText:'Matt'}).click();
-  await expect(page.locator('.profile-stat-tile',{hasText:'Avg Rank'}).locator('strong')).toHaveText('4.0');
+  await expect(page.locator('.profile-stat-tile',{hasText:'Avg Rank'}).locator('strong')).toHaveText('-');
 });
 
 test('scorecard places read as visible ordinals on lowest-wins, highest-wins, and ties', async ({page}) => {

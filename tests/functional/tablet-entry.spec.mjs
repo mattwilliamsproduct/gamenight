@@ -110,7 +110,18 @@ test('iPad 1024 eight-player entry keeps every row usable and the keypad on scre
 
 test('1024 Records Overview lays career stats across, not one stacked column', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
-  await openScenario(page, {scenario: 'records-book', surface: 'records'});
+  // records-book's nights are short or Canasta, so Matt 5:55 leaves one headline.
+  // The sample porch has a win, a win rate, and a streak, which is the three-card row.
+  await page.goto('/?demo=try', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on');
+  const tip = page.locator('#bpg-try-demo-tip button');
+  if (await tip.isVisible().catch(() => false)) await tip.click();
+  await page.evaluate(() => {
+    if (typeof showHistory === 'function') showHistory();
+    if (window.BPGSlice2 && typeof window.BPGSlice2.setRecordsPane === 'function') {
+      window.BPGSlice2.setRecordsPane('overview');
+    }
+  });
   const layout = await page.evaluate(() => {
     const cards = [...document.querySelectorAll('.s2-headline .s2-headline-card')];
     const boxes = cards.map((card) => card.getBoundingClientRect());

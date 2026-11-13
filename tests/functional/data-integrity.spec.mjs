@@ -508,8 +508,9 @@ test('P0-06 a Wizard round correction rejects a bad table, then saves the balanc
   expect(blankSaved.current).toBe(before.current);
   await page.locator('#score-past-0-Alice').click();
   await correctionKey(page,'2').click();
-  await expect(page.locator('#round-correction-error')).toHaveText('This round has 1 trick.');
-  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took 0');
+  await expect(page.locator('#round-correction-error')).toHaveText("2 is more than this round's 1 trick.");
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took 2');
+  await correctionKey(page,'backspace').click();
   await page.locator('.round-correction-row[data-player="Bob"]').click();
   await correctionKey(page,'backspace').click();
   await page.locator('#round-correction-save').click();
@@ -594,8 +595,8 @@ test('P0-06 an 818 historical round uses its own trick count while the table is 
   await page.locator('#score-past-0-Alice').click();
   await expect(page.locator('#round-correction-limit')).toHaveText('This round has 1 trick.');
   await correctionKey(page,'8').click();
-  await expect(page.locator('#round-correction-error')).toHaveText('This round has 1 trick.');
-  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took 1');
+  await expect(page.locator('#round-correction-error')).toHaveText("8 is more than this round's 1 trick.");
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took 8');
   const mid=await persisted(page);
   expect(mid.game).toBe(before.game);
   expect(mid.current).toBe(before.current);

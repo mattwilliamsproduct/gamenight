@@ -148,7 +148,7 @@ test('editing a finished Heat night keeps the live match and says the winner is 
     showHistory();
     BPGSlice2.setRecordsPane('nights');
   });
-  const resume = page.locator('[data-s2-action="night-resume"][data-s2-id="heat-66"]');
+  const resume = page.locator('#hall-of-fame-view [data-s2-action="night-resume"][data-s2-id="heat-66"]');
   await expect(resume).toBeVisible();
   page.once('dialog', async (dialog) => {
     expect(dialog.message()).toContain('Save the game on the table and resume this match?');

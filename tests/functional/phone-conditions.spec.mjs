@@ -552,7 +552,8 @@ test('375 and 390 demo scorecards keep round cells readable', async ({page}) => 
     expect(cols.collide, `${size.width} ${JSON.stringify(cols.boxes)}`).toBe(false);
     expect(cols.boxes.length, `${size.width} at least one visible round`).toBeGreaterThanOrEqual(1);
     cols.boxes.forEach((box) => {
-      expect(box.text, `${size.width} ${JSON.stringify(box)}`).toMatch(/^R\d+$/);
+      // Completed hands read R#. The live column is "This round" (scorecard-table locks that header).
+      expect(box.text, `${size.width} ${JSON.stringify(box)}`).toMatch(/^(?:R\d+|This round)$/);
     });
     expect(cols.minCol, `${size.width} ${JSON.stringify(cols.boxes)}`).toBeGreaterThanOrEqual(32);
     expect(cols.minCell, `${size.width} round cell readable`).toBeGreaterThanOrEqual(28);

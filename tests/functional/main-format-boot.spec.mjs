@@ -120,8 +120,9 @@ function expectStableBook(snap, liveId) {
     memory: {lineupIntro: false, statMontage: true, dealerRoll: true}
   });
   expect(snap.porch).toBe('leave-this-key');
-  // Same count main-shaped rows already produce: every row with winners and no completed:false is a win.
-  expect(snap.wins).toEqual({'Alex Rivera': 3, 'Blair Cho': 0, 'Casey Nguyen': 0});
+  // Matt 5:55 PM ET: each main-format night is one round of a known length, so it is ended early.
+  // A player with no counted night is omitted, so the win map is empty.
+  expect(snap.wins).toEqual({});
 }
 
 test('main-format storage boots and reloads with only a live-match id added', async ({page}) => {
@@ -195,7 +196,8 @@ test('cancel leaves the device alone, and confirm downloads the old book before 
   }, JSON.stringify(book));
   expect(preview.open).toBe(true);
   expect(preview.lines).toContain('Adds 3 players: Alex Rivera, Blair Cho, Casey Nguyen.');
-  expect(preview.lines).toContain('Replaces the match on this table with Beat the Heat.');
+  // docs/solutions/restore-keeps-live-match.md: an empty table receives the file's match. Quinn has no live match.
+  expect(preview.lines).toContain('Puts Beat the Heat on the table.');
   expect(preview.lines).toContain('same id stays as it is');
   expect(preview.players).toEqual(['Quinn']);
   expect(downloaded).toBe(false);

@@ -435,6 +435,10 @@
     return best;
   }
 
+  function publicGamePhrase(text) {
+    return String(text || '').replace(/Hand and Foot/g, 'Canasta').replace(/Flip 7 Vengeance/g, 'Flip 7');
+  }
+
   function nightStandings(match, helpers) {
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
@@ -1199,9 +1203,9 @@
         : (bestFinal && finite(bestFinal.value) ? scoreLabel(bestFinal.value, game.unit) : (finite(card.bestScore) ? scoreLabel(card.bestScore, game.unit) : 'No record yet'));
       const matchWho = noUnassisted
         ? ''
-        : (bestFinal ? recordHolderText(bestFinal, true) : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : ''));
+        : (bestFinal ? recordHolderText(bestFinal, compact) : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : ''));
       const roundValue = round && finite(round.value) ? scoreLabel(round.value, game.unit) : 'No record yet';
-      const roundWho = round ? recordHolderText(round, true) : '';
+      const roundWho = round ? recordHolderText(round, compact) : '';
       const matchNote = '';
       return `<div class="s2-ledger-row">
         <div class="s2-ledger-game">${gameThumbnailHtml(game.id, 's2-ledger-mark s2-game-thumb')}<div><strong>${esc(game.title)}</strong></div></div>
@@ -1247,10 +1251,6 @@
         ${nightsSplitHtml(recent, helpers, ctx, compact)}
       </section>
     </div>`;
-  }
-
-  function publicGamePhrase(text) {
-    return String(text || '').replace(/Hand and Foot/g, 'Canasta').replace(/Flip 7 Vengeance/g, 'Flip 7');
   }
 
   function careerCardsHtml(cards, esc, avatar) {
@@ -1491,6 +1491,14 @@
       }
       if (game.id === 'Hand and Foot') {
         if (rec.closestMargin && rec.closestMargin.value > 0) push('Closest margin of victory', rec.closestMargin);
+        const leaders = root.BPGHandFoot && typeof root.BPGHandFoot.eventLeaders === 'function'
+          ? root.BPGHandFoot.eventLeaders(history)
+          : null;
+        if (leaders) {
+          push('Got the 22', leaders.got22);
+          push('Went out', leaders.wentOut);
+          push('Cards left', leaders.cardsLeft);
+        }
       }
       if (game.id === 'Rook') {
         push('Most successful bids in one match', rec.mostSuccessfulBids);

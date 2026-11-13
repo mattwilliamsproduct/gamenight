@@ -440,11 +440,13 @@
     const label = displayGameName(top.game || top.name);
     const round = liveRoundLabel(historyAsGame(top));
     const more = open.length > 1;
+    const others = open.slice(1);
     const chooser = unfinishedOpen && more
       ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
           <section class="s2-panel s2-chooser bp-modal-panel" role="dialog" aria-label="Unfinished matches">
             <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
-            ${open.map((match) => {
+            <div class="s2-unfinished-list">
+            ${others.map((match) => {
               const name = displayGameName(match.game || match.name);
               const who = (match.originalRoster || match.players || []).filter(Boolean).join(', ');
               const when = match.date || match.savedAt || '';
@@ -453,6 +455,7 @@
                 <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}" aria-label="Resume unfinished ${escapeHtml(name)}">Resume</button>
               </div>`;
             }).join('')}
+            </div>
             <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-close">Close</button>
           </section>
         </div>`
@@ -553,7 +556,7 @@
     const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
-              <h2>${live ? 'Next match' : 'Start a New Match'}</h2>
+              <h2>Start a New Match</h2>
               <p class="s2-sub">${live
                 ? `Next match players · ${seated} seated. Changing them does not change the match in progress.`
                 : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start')}</p>
@@ -1316,7 +1319,8 @@
         return;
       }
       const match = (table.history || []).find((row) => row && String(row.id) === String(id));
-      const label = match && (match.game || match.name) ? (match.game || match.name) : 'this night';
+      const rawLabel = match && (match.game || match.name) ? String(match.game || match.name) : '';
+      const label = rawLabel && typeof displayGameName === 'function' ? displayGameName(rawLabel) : (rawLabel || 'saved');
       if (!window.confirm(`Delete this past ${label} night? The live match is not deleted.`)) return;
       if (typeof deletePastNight === 'function') deletePastNight(id);
       paintRecords();
@@ -1523,8 +1527,11 @@
     root.style.setProperty('--bp-vv-height', `${height}px`);
     root.style.setProperty('--bp-vv-top', `${top}px`);
     const bar = document.getElementById('slice2-board-bar');
-    if (bar) {
-      root.style.setProperty('--bp-board-bottom', `${Math.round(bar.getBoundingClientRect().bottom)}px`);
+    const enter = document.getElementById('slice2-enter-btn');
+    const end = document.getElementById('slice2-end-btn');
+    const bottoms = [bar, enter, end].filter(Boolean).map((el) => el.getBoundingClientRect().bottom);
+    if (bottoms.length) {
+      root.style.setProperty('--bp-board-bottom', `${Math.round(Math.max(...bottoms))}px`);
     }
   }
 

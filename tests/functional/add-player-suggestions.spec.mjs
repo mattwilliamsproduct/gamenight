@@ -41,7 +41,7 @@ test('Home quick-add rejects a comma name without saving', async ({page})=>{
   await openScenario(page,{scenario:'home-party',surface:'home'});
   const before=await page.evaluate(()=>({allPlayers:[...allPlayers],players:[...players]}));
   await page.locator('#quick-add-player').fill('Megan,Matt');
-  await page.locator('#home-screen').getByRole('button',{name:'Add',exact:true}).click();
+  await page.locator('#home-screen form.s2-add').getByRole('button',{name:'Add Player',exact:true}).click();
   await expect(page.locator('#home-player-name-error')).toBeVisible();
   await expect(page.locator('#home-player-name-error')).toContainText('commas');
   const after=await page.evaluate(()=>({allPlayers:[...allPlayers],players:[...players]}));

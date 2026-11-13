@@ -12,9 +12,11 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 
 Standing trap: [select-chevron.md](select-chevron.md) — one `select.bp-select` chevron, 14px in from the right. Do not draw a second arrow per screen.
 
-Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave game choice. A counted partial total stays out of full-game score records. History does not inherit today's targets.
+Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave game choice. A counted partial total stays out of full-game score records. History does not inherit today's targets. Flip 7 Leave still uses the seated 200 rule.
 
-Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round classification stays off until History review summary is shown and applied. Canasta stays uncertain. Do not invent a Flip 7 or Rook target.
+Standing trap: [rc4-live-records.md](rc4-live-records.md) — Canasta places use the team key. Biggest comeback is ordinary round history. A cleared Canasta breakdown does not keep the old parts.
+
+Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round rules are already counting. Canasta stays uncertain. Flip 7 is a full game when a seated total reached 200 (Matt, 7:26 PM ET Oct 29). Do not invent a Rook target.
 
 Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals skip to the next place. The scoreboard uses the page width and caps row height.
 

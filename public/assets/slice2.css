@@ -2355,7 +2355,14 @@ html.slice2-tv #toast-container {
   html.slice2-tv body.active-match-view #toast-container {
     top: calc(var(--bp-board-bottom, 108px) + 6px);
     bottom: auto;
-    transform: translateX(-50%);
+    left: auto !important;
+    right: 8px !important;
+    transform: none !important;
+    width: max-content !important;
+    max-width: 22vw !important;
+  }
+  html.slice2-tv body.active-match-view .toast {
+    max-width: 22vw !important;
   }
 }
 
@@ -2869,18 +2876,27 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     font-size: 1.15rem !important;
   }
 
+  html.slice2-tv #score-entry-modal .score-entry-layout,
+  html.slice2-tv #score-entry-modal .score-entry-side {
+    min-height: 0;
+    overflow: hidden;
+  }
+
   html.slice2-tv #score-entry-modal .score-entry-keypad,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
     max-width: none;
-    overflow: visible;
+    overflow: hidden;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
   }
 
   html.slice2-tv #score-entry-modal .score-entry-key,
   html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key {
-    min-height: 44px !important;
-    min-width: 44px !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    height: 100%;
   }
 
   html.slice2-tv #scorecard-capture td.scorecard-col-player,
@@ -3033,6 +3049,20 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   }
 }
 
+html.slice2-tv #scorecard-capture.scorecard-fit-cols table.scorecard-table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+html.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-round-th:not(.scorecard-round--hidden),
+html.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-round-td:not(.scorecard-round--hidden) {
+  width: var(--scorecard-round-col) !important;
+  min-width: 0 !important;
+  max-width: var(--scorecard-round-col) !important;
+}
+html.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-player {
+  width: auto !important;
+}
+
 @media (max-width: 400px) {
   html.slice2-tv #scorecard-capture .scorecard-table thead th.scorecard-round-th {
     letter-spacing: 0 !important;
@@ -3052,11 +3082,19 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     min-width: 0;
   }
 
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols table.scorecard-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-player {
+    width: 100% !important;
+    max-width: none !important;
+  }
   html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
   html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
-    min-width: 2.75rem !important;
-    width: auto !important;
-    max-width: none !important;
+    min-width: 0 !important;
+    width: var(--scorecard-round-col) !important;
+    max-width: var(--scorecard-round-col) !important;
   }
   html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-input {
     width: 100% !important;
@@ -4476,7 +4514,7 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
   html.slice2-tv body.active-match-view #slice2-board-bar {
     display: grid;
     grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content max-content max-content;
-    grid-template-areas: "logo rule copy home enter actions end";
+    grid-template-areas: "logo rule copy home actions enter end";
     align-items: center;
     column-gap: 8px;
   }
@@ -4640,7 +4678,7 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-areas:
       "copy copy copy copy"
-      "home enter actions end";
+      "home actions enter end";
     align-items: center;
     column-gap: 4px;
     row-gap: 6px;
@@ -4687,6 +4725,9 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
   html.slice2-tv body.active-match-view #actions-btn,
   html.slice2-tv body.active-match-view #slice2-end-btn {
     justify-self: stretch;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
     min-width: 0;
     min-height: 44px !important;
     height: 44px !important;
@@ -4847,7 +4888,6 @@ html.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   outline: 6px solid #0a5c54;
   outline-offset: 0;
 }
-html.slice2-tv .s2-card-photo,
 html.slice2-tv .s2-game-thumb,
 html.slice2-tv .s2-ledger-mark,
 html.slice2-tv .s2-explore-thumb,
@@ -4855,6 +4895,10 @@ html.slice2-tv .s2-night-thumb {
   object-fit: contain !important;
   object-position: center !important;
   background: #f6f1e7;
+}
+html.slice2-tv .s2-card-photo {
+  object-fit: cover !important;
+  object-position: center !important;
 }
 html.slice2-tv .s2-game-thumb,
 html.slice2-tv .s2-ledger-mark,
@@ -4895,8 +4939,8 @@ html.slice2-tv .s2-unfinished-row {
   html.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows,
   html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit,
   html.slice2-tv body.active-match-view #slice2-board-bar {
-    width: min(calc(100% - clamp(1.25rem, 3vw, 4rem)), 108rem) !important;
-    max-width: 108rem !important;
+    width: min(62rem, calc(100% - 2.5rem)) !important;
+    max-width: 62rem !important;
     align-self: center !important;
     margin-inline: auto !important;
   }
@@ -4967,6 +5011,49 @@ html.slice2-tv .s2-night-grid h3 { grid-column: 1 / -1; }
   html.slice2-tv .s2-overview-mid,
   html.slice2-tv .s2-night-grid,
   html.slice2-tv .s2-career .s2-headline { grid-template-columns: 1fr; }
+}
+@media (min-width: 900px) {
+  html.slice2-tv #add-player-modal .bp-modal-panel,
+  html.slice2-tv #settings-modal .bp-modal-panel {
+    width: min(72vw, 960px) !important;
+    max-width: min(72vw, 960px) !important;
+    height: auto !important;
+    max-height: min(88vh, 820px) !important;
+  }
+}
+html.slice2-tv #settings-modal .bp-modal-panel {
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+html.slice2-tv #settings-modal .bp-modal-head,
+html.slice2-tv #settings-modal .bp-modal-foot {
+  flex: 0 0 auto;
+}
+html.slice2-tv #settings-modal .bp-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+@media (max-width: 760px) {
+  html.slice2-tv #settings-modal .bp-modal-panel {
+    flex-shrink: 0 !important;
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+    padding: 12px !important;
+    background: #fffaf4 !important;
+    overflow: hidden !important;
+  }
+  html.slice2-tv #settings-modal .bp-modal-foot {
+    background: #fffaf4;
+  }
+  html.slice2-tv #settings-modal .bp-modal-foot .grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  html.slice2-tv #settings-modal #backup-restore-copy {
+    display: none;
+  }
 }
 html.slice2-tv .bp-modal-viewport-shell > .bp-modal-panel:not(.bp-modal-panel--confirm),
 html.slice2-tv .bp-modal-viewport-shell > .score-entry-panel,
@@ -5073,6 +5160,26 @@ html.slice2-tv .s2-another-ask button {
   padding: 0 22px !important;
 }
 
+html.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
+html.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
+  width: var(--scorecard-now-col, 7.5rem) !important;
+  min-width: var(--scorecard-now-col, 7.5rem) !important;
+  max-width: var(--scorecard-now-col, 7.5rem) !important;
+}
+
+@media (max-width: 760px) {
+  html.slice2-tv #settings-modal.bp-modal-viewport-shell > .bp-modal-panel {
+    flex: 0 0 auto !important;
+    align-self: center !important;
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+    overflow: hidden !important;
+    background: #fffaf4 !important;
+  }
+}
+
 html.slice2-tv .s2-career-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
@@ -5098,4 +5205,137 @@ html.slice2-tv .s2-career-line {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+html.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+  flex: 1 1 auto !important;
+  min-width: 4.5rem !important;
+}
+
+html.slice2-tv #scorecard-live-layout.record-chase-active > .record-chase-panel {
+  --record-chase-score-col: 3.35rem;
+  --record-chase-grid-gap: 0.35rem;
+  --record-chase-pad-x: 0.4rem;
+}
+html.slice2-tv #scorecard-live-layout.record-chase-active .scorecard-col-player {
+  min-width: 8.5rem !important;
+  width: 22% !important;
+  max-width: 13rem !important;
+  overflow: hidden;
+}
+html.slice2-tv #scorecard-live-layout.record-chase-active .scorecard-col-player .flex.items-center {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+html.slice2-tv #scorecard-live-layout.record-chase-active .wheel-badge {
+  margin-left: 0;
+  flex: 1 1 100%;
+  max-width: 100%;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.5rem;
+  min-height: 32px;
+}
+html.slice2-tv #scorecard-live-layout.record-chase-active td.scorecard-total-cell,
+html.slice2-tv #scorecard-live-layout.record-chase-active th.scorecard-col-total {
+  width: 4.6rem !important;
+  min-width: 4.6rem !important;
+  max-width: 5.4rem !important;
+}
+html.slice2-tv #scorecard-live-layout.record-chase-active .scorecard-total-value {
+  font-size: 1.35rem !important;
+}
+html.slice2-tv #scorecard-capture.scorecard-fit-cols table.scorecard-table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+@media (max-width: 760px) {
+  html.slice2-tv #score-entry-modal .score-entry-panel {
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  html.slice2-tv #score-entry-modal .score-entry-layout {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    position: relative;
+    z-index: 2;
+  }
+  html.slice2-tv #score-entry-modal .score-entry-list {
+    flex: 1 1 auto !important;
+    min-height: 8.75rem !important;
+  }
+  html.slice2-tv #score-entry-modal .score-entry-side {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  html.slice2-tv #score-entry-modal .score-entry-keypad,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    grid-template-rows: none !important;
+    align-content: start !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    padding: 4px !important;
+    margin-bottom: 0 !important;
+    transform: translateY(-8px);
+    box-sizing: border-box !important;
+  }
+  html.slice2-tv #score-entry-modal .score-entry-key,
+  html.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-key,
+  html.slice2-tv #score-entry-modal .score-entry-panel.score-entry-many-players .score-entry-key {
+    min-height: 42px !important;
+    box-sizing: border-box !important;
+  }
+  html.slice2-tv #add-player-modal .bp-modal-panel {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+  html.slice2-tv #score-entry-modal .score-entry-panel > .border-t {
+    flex: 0 0 auto !important;
+    position: relative;
+    z-index: 1;
+    padding-top: 2px !important;
+  }
+  html.slice2-tv #scorecard-capture .scorecard-total-stack {
+    flex-direction: column;
+    gap: 0;
+  }
+  html.slice2-tv #scorecard-capture .scorecard-total-value {
+    font-size: 1.15rem !important;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player .flex.items-center {
+    flex-wrap: wrap;
+  }
+  html.slice2-tv #scorecard-capture .wheel-badge {
+    margin-left: 0;
+    flex: 1 1 100%;
+    max-width: 100%;
+    font-size: 0.68rem;
+    padding: 0.15rem 0.35rem;
+    min-height: 28px;
+  }
+}
+
+html.slice2-tv #score-entry-modal.hf-basic-entry .score-entry-keypad {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  grid-template-rows: none !important;
+  align-content: start !important;
+  overflow: visible !important;
+}
+html.slice2-tv #score-entry-modal.hf-basic-entry .score-entry-key:not(.next) {
+  height: 46px !important;
+  min-height: 44px !important;
+  max-height: 52px !important;
+}
+html.slice2-tv #round-correction-modal .bp-modal-panel {
+  width: min(960px, calc(100vw - 24px)) !important;
+  max-height: calc(100dvh - 16px) !important;
+  overflow: auto !important;
 }

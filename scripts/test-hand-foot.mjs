@@ -934,3 +934,12 @@ test('basic count rounds add the five fields and keep old totals frozen', () => 
   assert.equal(leaders.got22.value, 1);
   assert.equal(leaders.wentOut.value, 2);
 });
+
+test('an edited round total clears a breakdown that would no longer add up', () => {
+  const cleared = HF.clearedBreakdownParts(640);
+  assert.equal(cleared.roundScore, 640);
+  assert.equal(cleared.breakdownCleared, true);
+  assert.equal(cleared.cleanCanastas, undefined);
+  assert.equal(cleared.cardsLeft, undefined);
+  assert.equal(cleared.got22, undefined);
+});

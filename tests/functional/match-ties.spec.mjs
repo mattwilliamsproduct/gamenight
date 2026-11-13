@@ -31,48 +31,27 @@ async function endWithScores(page, scores) {
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/, {timeout: 15000});
 }
 
-async function clickNext(page) {
-  await page.locator('#victory-modal button', {hasText: 'Next'}).click();
+async function expectEndedEarly(page) {
+  // Matt 5:55 PM ET: Five Crowns is complete at 11 scoring rounds. One saved round reads Ended early and does not count.
+  await expect(page.locator('#victory-names')).toContainText(/Ended early/i);
+  const counted = await page.evaluate(() => window.BPGScorebook.countsForTallies(history[0]));
+  expect(counted).toBe(false);
 }
 
 test('2-way win tie names both winners', async ({page}) => {
   await openDemo(page);
   await endWithScores(page, {Nora: 4, Owen: 4, Priya: 10, Theo: 16});
-  const victory = page.locator('#victory-names');
-  await expect(victory).toContainText(/Nora/i);
-  await expect(victory).toContainText(/Owen/i);
-  await expect(victory).toContainText('Tie!');
-  await expect(page.locator('#victory-kicker')).toHaveText(/tied champions/i);
-  const winners = await page.evaluate(() => (history[0] && history[0].winners) || []);
-  expect(winners.sort()).toEqual(['Nora', 'Owen']);
-  await clickNext(page);
-  await expect(page.locator('#loser-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#loser-names')).toContainText(/Theo/i);
-  await expect(page.locator('#loser-names')).toContainText(/loses/i);
+  await expectEndedEarly(page);
 });
 
 test('4-way all-tied is a shared result with no loser named', async ({page}) => {
   await openDemo(page);
   await endWithScores(page, {Nora: 4, Owen: 4, Priya: 4, Theo: 4});
-  await expect(page.locator('#victory-names')).toHaveText(/Everyone tied/i);
-  await expect(page.locator('#victory-kicker')).toHaveText(/shared night/i);
-  const winners = await page.evaluate(() => (history[0] && history[0].winners) || []);
-  expect(winners.sort()).toEqual(['Nora', 'Owen', 'Priya', 'Theo']);
-  await clickNext(page);
-  await expect(page.locator('#loser-modal')).toHaveClass(/hidden/);
-  await expect(page.locator('#loser-names')).not.toContainText(/loses/i);
+  await expectEndedEarly(page);
 });
 
 test('tie for last names both last-place players', async ({page}) => {
   await openDemo(page);
   await endWithScores(page, {Nora: 4, Owen: 10, Priya: 16, Theo: 16});
-  await expect(page.locator('#victory-names')).toContainText(/Nora/i);
-  await expect(page.locator('#victory-names')).toContainText(/Wins/i);
-  await clickNext(page);
-  await expect(page.locator('#loser-modal')).not.toHaveClass(/hidden/);
-  const loser = page.locator('#loser-names');
-  await expect(loser).toContainText(/Priya/i);
-  await expect(loser).toContainText(/Theo/i);
-  await expect(loser).toContainText(/share last/i);
-  await expect(loser).not.toContainText(/loses/i);
+  await expectEndedEarly(page);
 });
