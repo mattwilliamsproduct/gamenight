@@ -2293,6 +2293,37 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-
     min-height: 2.3em;
   }
 
+  /* Bench tight (fitHomeDecks): Add on one line, slightly shorter rows, so
+     all saved players show whole on a 1024 or 1180 laptop. */
+  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-add {
+    flex-wrap: nowrap !important;
+    margin-top: 10px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-add .player-suggest-wrap {
+    flex: 1 1 auto !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-add .s2-btn {
+    flex: 0 0 auto !important;
+    min-height: 48px !important;
+    padding-inline: 18px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-pick-list {
+    gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-pick {
+    min-height: 44px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-seat {
+    min-height: 56px !important;
+  }
+
   html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) {
     flex-shrink: 0 !important;
   }
@@ -2407,4 +2438,19 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-side {
     box-shadow: none !important;
   }
+}
+
+/* Bench "N more below" cue: only when the bench still cannot show every
+   saved player whole. */
+html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more {
+  align-self: flex-start;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 4px 12px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more[hidden] {
+  display: none !important;
 }

@@ -416,7 +416,7 @@
     const count = addPicks.size;
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
     return `<div class="s2-picker">
-      ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>'}
+      ${bench.length ? `<div class="s2-pick-list">${rows}</div><button type="button" class="s2-btn s2-btn-quiet s2-bench-more" data-s2-action="bench-more" hidden></button>` : '<p class="s2-sub">All saved players are seated.</p>'}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
@@ -606,6 +606,8 @@
     restoreSeatGrab(root);
     parkSaveIndicator();
     wireStandingsMore(root);
+    const benchList = root.querySelector('.s2-home-table .s2-pick-list');
+    if (benchList) benchList.addEventListener('scroll', () => syncBenchMore(benchList), {passive: true});
     fitHomeDecks();
     requestAnimationFrame(fitHomeDecks);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHomeDecks).catch(() => {});
@@ -620,17 +622,37 @@
     const home = document.getElementById('slice2-home');
     const start = home && home.querySelector('.s2-home-start');
     const seats = home && home.querySelector('.s2-home-table .s2-seat-grid');
-    if (seats) seats.closest('.s2-home-table').classList.remove('s2-seats-tight');
-    if (!start) return;
+    const table = seats && seats.closest('.s2-home-table');
+    const bench = table && table.querySelector('.s2-pick-list');
+    if (table) table.classList.remove('s2-seats-tight', 's2-bench-tight');
+    if (bench) bench.style.removeProperty('max-height');
+    if (!start) { syncBenchMore(bench); return; }
     start.style.removeProperty('--bp-deck-fit');
     start.classList.remove('s2-decks-one-row');
-    if (!window.matchMedia(HOME_FIT_QUERY).matches || document.documentElement.dataset.bpKb === '1') return;
-    // Up to five seated rows stay whole and the bench gives up its height first.
-    // If the panel still overflows, tighten those rows instead of scrolling them.
-    const table = seats && seats.closest('.s2-home-table');
-    if (table && seats.children.length <= 5 && table.scrollHeight > table.clientHeight + 1) {
+    if (!window.matchMedia(HOME_FIT_QUERY).matches || document.documentElement.dataset.bpKb === '1') { syncBenchMore(bench); return; }
+    // Every saved player should show whole. When the panel or the bench would
+    // scroll, first put Add on one line and tighten the rows a little; then,
+    // with up to five seated, tighten the seated rows too.
+    const tableOver = () => table.scrollHeight > table.clientHeight + 1;
+    const benchOver = () => !!bench && bench.scrollHeight > bench.clientHeight + 1;
+    if (table && (tableOver() || benchOver())) table.classList.add('s2-bench-tight');
+    if (table && seats.children.length <= 5 && (tableOver() || benchOver())) {
       table.classList.add('s2-seats-tight');
     }
+    // Still too many: end the bench on a whole row and say how many are below.
+    if (benchOver()) {
+      // Show the cue before measuring so its own line is already counted.
+      const cue = bench.parentElement && bench.parentElement.querySelector('.s2-bench-more');
+      if (cue) { cue.hidden = false; cue.textContent = 'More below ↓'; }
+      const picks = [...bench.querySelectorAll('.s2-pick')].filter((row) => row.offsetParent);
+      const gap = parseFloat(getComputedStyle(bench).rowGap) || 0;
+      const rowH = picks.length ? picks[0].getBoundingClientRect().height : 0;
+      if (rowH > 0) {
+        const whole = Math.max(1, Math.floor((bench.clientHeight + gap) / (rowH + gap)));
+        bench.style.maxHeight = `${Math.ceil(whole * rowH + (whole - 1) * gap)}px`;
+      }
+    }
+    syncBenchMore(bench);
     const frames = [...start.querySelectorAll('.s2-card-frame')];
     if (!frames.length) return;
     const width = () => frames[0].getBoundingClientRect().width;
@@ -670,6 +692,29 @@
     const above = rows.filter((row) => row.getBoundingClientRect().top < box.top - 2).length;
     const scrolls = list.scrollHeight > list.clientHeight + 1;
     panel.classList.toggle('s2-standings-has-more', scrolls && below > 0);
+    if (scrolls && below > 0) {
+      cue.textContent = `${below} more below ↓`;
+      cue.dataset.dir = 'down';
+      cue.hidden = false;
+    } else if (scrolls && above > 0) {
+      cue.textContent = 'Back to top ↑';
+      cue.dataset.dir = 'up';
+      cue.hidden = false;
+    } else {
+      cue.hidden = true;
+      cue.textContent = '';
+    }
+  }
+
+  // The bench says when more saved players sit below its last whole row.
+  function syncBenchMore(list) {
+    const cue = list && list.parentElement && list.parentElement.querySelector('.s2-bench-more');
+    if (!cue) return;
+    const box = list.getBoundingClientRect();
+    const rows = [...list.querySelectorAll('.s2-pick')].filter((row) => row.offsetParent);
+    const below = rows.filter((row) => row.getBoundingClientRect().bottom > box.bottom + 2).length;
+    const above = rows.filter((row) => row.getBoundingClientRect().top < box.top - 2).length;
+    const scrolls = list.scrollHeight > list.clientHeight + 1;
     if (scrolls && below > 0) {
       cue.textContent = `${below} more below ↓`;
       cue.dataset.dir = 'down';
@@ -1418,6 +1463,9 @@
       else if (typeof openLifePreserverRules === 'function') openLifePreserverRules();
     } else if (action === 'history') {
       openAuditLog();
+    } else if (action === 'bench-more') {
+      const list = target.parentElement?.querySelector('.s2-pick-list');
+      if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
     } else if (action === 'standings-more') {
       const list = target.closest('.s2-home-standings')?.querySelector('.s2-standings');
       if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
