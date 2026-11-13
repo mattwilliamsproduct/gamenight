@@ -526,10 +526,32 @@ test('bid/trick deferAck still appends digits after the first entry', () => {
   assert.equal(next.acknowledged, false);
 });
 
-test('a 00 key does not write a score', () => {
+test('a 00 key does not write a score or a bid', () => {
   const kept = Scorebook.applyScoreEntryKey({value: '4', acknowledged: true, dirty: true, mode: 'scores'}, '00');
   assert.equal(kept.value, '4');
   assert.equal(kept.rejected, false);
+  const blankBid = Scorebook.applyScoreEntryKey({value: '', acknowledged: false, dirty: false, mode: 'bids'}, '00');
+  assert.equal(blankBid.value, '');
+  const typedZero = Scorebook.applyScoreEntryKey({value: '', acknowledged: false, dirty: false, mode: 'bids'}, '0');
+  assert.equal(typedZero.value, '0');
+  const wizardBlank = Scorebook.validateEntries({
+    kind: 'bids',
+    game: { name: 'Wizard', currentRound: 1, originalRoster: ['Ava', 'Ben'] },
+    players: ['Ava'],
+    values: { Ava: '' },
+    roundNumber: 1
+  });
+  assert.equal(wizardBlank.ok, false);
+  assert.equal(wizardBlank.reason, 'missing');
+  const eightBlank = Scorebook.validateEntries({
+    kind: 'bids',
+    game: { name: '818', currentRound: 1, originalRoster: ['Ava', 'Ben'] },
+    players: ['Ava'],
+    values: { Ava: '' },
+    roundNumber: 1
+  });
+  assert.equal(eightBlank.ok, true);
+  assert.equal(eightBlank.values.Ava, 0);
   assert.equal(Scorebook.playedScoreMustBeNonNegative('Five Crowns'), true);
   assert.equal(Scorebook.playedScoreMustBeNonNegative('Beat the Heat'), true);
   assert.equal(Scorebook.playedScoreMustBeNonNegative('Flip 7 Vengeance'), false);

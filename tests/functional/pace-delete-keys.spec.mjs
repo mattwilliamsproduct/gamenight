@@ -190,7 +190,22 @@ test('the Wizard bid line stays inside the sheet', async ({page}) => {
     if (typeof goActiveMatch === 'function') goActiveMatch();
   });
   await page.locator('#slice2-enter-btn').click();
-  await expect(page.locator('#score-entry-skip-slot')).toHaveText('00');
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
+  await expect(page.locator('#score-entry-delete-key')).toHaveText('Delete');
+  const keyLabels = await page.locator('#score-entry-modal .score-entry-keypad button').allTextContents();
+  expect(keyLabels.map((text) => text.trim())).not.toContain('00');
+  const span = await page.evaluate(() => {
+    const seven = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'7\')"]');
+    const zero = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]');
+    return {
+      sevenW: seven.getBoundingClientRect().width,
+      zeroW: zero.getBoundingClientRect().width,
+      sevenH: seven.getBoundingClientRect().height,
+      zeroH: zero.getBoundingClientRect().height
+    };
+  });
+  expect(span.zeroW).toBeGreaterThan(span.sevenW * 2.4);
+  expect(Math.abs(span.zeroH - span.sevenH)).toBeLessThan(12);
   const bid = await page.evaluate(() => {
     const panel = document.querySelector('#score-entry-modal .score-entry-panel').getBoundingClientRect();
     const progress = document.getElementById('score-entry-progress');
@@ -206,4 +221,39 @@ test('the Wizard bid line stays inside the sheet', async ({page}) => {
   expect(bid.text).toMatch(/trick/i);
   expect(bid.right).toBeLessThanOrEqual(bid.panelRight - 4);
   expect(bid.overflow).toBe(false);
+});
+
+test('the 818 bid pad has no 00 key and a wide 0', async ({page}) => {
+  for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await page.goto('/', {waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => typeof startGame === 'function');
+    await page.evaluate(() => {
+      allPlayers = ['Ava', 'Ben', 'Cora', 'Dev'];
+      players = ['Ava', 'Ben', 'Cora', 'Dev'];
+      history = [];
+      prefs.lineupIntro = false;
+      prefs.dealerRoll = false;
+      currentGame = null;
+      startGame('818');
+      if (typeof goActiveMatch === 'function') goActiveMatch();
+    });
+    await page.locator('#slice2-enter-btn').click();
+    await expect(page.locator('#score-entry-modal')).toBeVisible();
+    await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
+    const labels = await page.locator('#score-entry-modal .score-entry-keypad button').allTextContents();
+    expect(labels.map((text) => text.trim()), `${size.width}`).not.toContain('00');
+    const span = await page.evaluate(() => {
+      const seven = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'7\')"]');
+      const zero = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]');
+      return {
+        sevenW: seven.getBoundingClientRect().width,
+        zeroW: zero.getBoundingClientRect().width,
+        sevenH: seven.getBoundingClientRect().height,
+        zeroH: zero.getBoundingClientRect().height
+      };
+    });
+    expect(span.zeroW, `${size.width}`).toBeGreaterThan(span.sevenW * 2.4);
+    expect(Math.abs(span.zeroH - span.sevenH), `${size.width}`).toBeLessThan(12);
+  }
 });

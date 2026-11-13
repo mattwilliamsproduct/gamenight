@@ -10,6 +10,8 @@ test('adding a seventh Wizard player shortens a 6-player match from 10 rounds to
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
   await page.locator('#midgame-add-player-input').fill('Alexis');
   await page.locator('#add-player-modal').getByRole('button',{name:'Add',exact:true}).click();
+  await expect(page.locator('#midgame-add-confirm')).not.toHaveClass(/hidden/);
+  await page.locator('#add-player-modal').getByRole('button',{name:'Add',exact:true}).click();
 
   await expect(page.locator('#slice2-board-line')).toContainText(/Round 3 of 8/);
   await expect(page.locator('#toast-container')).toContainText('Match is now 8 rounds');
@@ -30,6 +32,7 @@ test('adding a late Wizard player does not cut off the current round', async ({p
   const state=await page.evaluate(()=>{
     currentGame.currentRound=9;
     renderGame();
+    submitAddPlayerMidGame('Alexis');
     submitAddPlayerMidGame('Alexis');
     renderGame();
     return {
@@ -69,6 +72,7 @@ test('adding a Five Crowns player keeps the 11-hand match length', async ({page}
   expect(before).toBe(11);
 
   const after=await page.evaluate(()=>{
+    submitAddPlayerMidGame('Alexis');
     submitAddPlayerMidGame('Alexis');
     renderGame();
     return {

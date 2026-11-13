@@ -5489,15 +5489,22 @@ button.dealer-name-indicator .dealer-player-label {
       color: var(--emerald, #047857);
       font-size: 0.62em;
     }
-        /* No-minus keypad: 789 bk / 456 nx / 123 nx / 0 0 . nx */
-    #score-entry-modal.hf-no-minus .score-entry-keypad,
+        /* Bid and trick pads match the no-minus score pad: Skip, then 0 across the bottom row. */
+    #score-entry-modal.hf-no-minus .score-entry-keypad {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-areas:
+        "k7 k8 k9 del"
+        "k4 k5 k6 skip"
+        "k1 k2 k3 next"
+        "k0 k0 k0 next";
+    }
     #score-entry-modal.hf-cards-left .score-entry-keypad {
       grid-template-columns: repeat(3, minmax(2.4rem, 1fr)) minmax(4.8rem, 1.15fr);
       grid-template-areas:
         "k7 k8 k9 bk"
         "k4 k5 k6 nx"
         "k1 k2 k3 nx"
-        "k0 k0 .  nx";
+        "k0 k0 k0 nx";
     }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('7')"],
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('7')"] { grid-area: k7; }
@@ -5505,8 +5512,9 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('8')"] { grid-area: k8; }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('9')"],
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('9')"] { grid-area: k9; }
-    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('backspace')"],
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('backspace')"] { grid-area: del; }
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('backspace')"] { grid-area: bk; }
+    #score-entry-modal.hf-no-minus #score-entry-skip-slot { grid-area: skip; }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('4')"],
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('4')"] { grid-area: k4; }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('5')"],
@@ -5519,13 +5527,31 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('2')"] { grid-area: k2; }
     #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('3')"],
     #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
-    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('0')"],
-    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
-      grid-area: k0 / k0 / k0 / k0 !important;
+    #score-entry-modal.hf-no-minus .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
+      grid-area: k0 !important;
+      grid-column: 1 / 4 !important;
+      height: 100%;
     }
-    #score-entry-modal.hf-no-minus .score-entry-keypad button.score-entry-key.next,
+    #score-entry-modal.hf-cards-left .score-entry-keypad button[onclick="scoreEntryKey('0')"] {
+      grid-area: k0 !important;
+      grid-column: 1 / 4 !important;
+      height: 100%;
+    }
+    #score-entry-modal.hf-no-minus .score-entry-keypad button.score-entry-key.next {
+      grid-area: next !important;
+    }
     #score-entry-modal.hf-cards-left .score-entry-keypad button.score-entry-key.next {
-      grid-area: nx / nx / nx / nx !important;
+      grid-area: nx !important;
+    }
+    #score-entry-modal.hf-no-minus #score-entry-delete-key,
+    #score-entry-modal.hf-no-minus #score-entry-skip-slot {
+      background: var(--surface);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0;
     }
     #score-entry-modal.hf-basic-entry {
       padding: 8px !important;
@@ -10607,8 +10633,7 @@ button.dealer-name-indicator .dealer-player-label {
         <button onclick="numpadPress('2')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold font-mono-num">2</button>
         <button onclick="numpadPress('3')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold font-mono-num">3</button>
         <button onclick="numpadNext()" class="numpad-btn rounded-2xl py-4 sm:py-5 text-base font-extrabold row-span-2 flex flex-col items-center justify-center gap-1" style="background:var(--emerald);color:#fff;box-shadow:0 10px 22px -8px rgba(4,120,87,0.6);">Next <span>→</span></button>
-        <button onclick="numpadPress('00')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-xl font-extrabold font-mono-num">00</button>
-        <button onclick="numpadPress('0')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold col-span-2 font-mono-num">0</button>
+        <button onclick="numpadPress('0')" class="numpad-btn bg-neutral-800 hover:bg-neutral-700 rounded-2xl py-4 sm:py-5 text-2xl font-extrabold col-span-3 font-mono-num">0</button>
       </div>
     </div>
 
@@ -13518,7 +13543,8 @@ button.dealer-name-indicator .dealer-player-label {
     if(modal && !modal.classList.contains('hidden')){
       const player=scoreEntryModalState?.activePlayer;
       const row=cap&&player?document.getElementById(`score-entry-row-${rookElementId(player)}`):null;
-      const cell=row?.querySelector('.score-entry-input-cell, .hf-field.active, .hf-round.active')||row?.querySelector('.hf-field.hf-num');
+      const cell=row?.querySelector('.score-entry-input-cell, .hf-field.active, .hf-round.active')
+        || document.querySelector('#score-entry-modal .hf-team-card.is-active .hf-field.active, #score-entry-modal .hf-field.active');
       if(cell){
         const note=document.createElement('div');
         note.className='score-entry-cap-note';
@@ -17798,6 +17824,23 @@ ${isDealer
     // Dealer labels read --scorecard-player-font with !important, so the shared
     // size has to live on the var or Megan stays large while Matt shrinks.
     if(root.style) root.style.setProperty('--scorecard-player-font',`${columnSize.toFixed(1)}px`);
+    // On a phone the badge keeps its width. Cap only those names so Duke, Brick,
+    // and Linda stay one line and a longer name wraps in the same slot.
+    if(window.innerWidth<=760){
+      names.forEach(name=>{
+        const cell=name.closest('td.scorecard-col-player');
+        const badge=cell&&cell.querySelector('.wheel-badge');
+        if(!badge||getComputedStyle(badge).display==='none')return;
+        const slot=name.closest('.scorecard-player-name-slot');
+        const slotW=slot?slot.clientWidth:0;
+        if(slotW<24)return;
+        const cap=Math.max(16, Math.min(columnSize, slotW/2.95));
+        const size=`${cap.toFixed(1)}px`;
+        name.style.setProperty('font-size',size,'important');
+        const chip=name.querySelector('.dealer-player-label');
+        if(chip) chip.style.setProperty('font-size',size,'important');
+      });
+    }
   }
   function scorecardGlyphBox(el){
     if(!el) return null;
@@ -19528,17 +19571,12 @@ ${isDealer
     const skip=document.getElementById('score-entry-skip-slot');
     const next=document.getElementById('score-entry-next-btn');
     const del=document.getElementById('score-entry-delete-key');
-    if(del) del.textContent=plain?'Delete':'⌫';
+    const bidTrick=isScoreEntryBidMode(mode)||isScoreEntryTrickMode(mode);
+    if(del) del.textContent=(plain||bidTrick)?'Delete':'⌫';
     if(skip){
-      if(plain){
-        skip.textContent='Skip';
-        skip.setAttribute('aria-label','Skip');
-        skip.onclick=()=>scoreEntrySkip();
-      } else {
-        skip.textContent='00';
-        skip.setAttribute('aria-label','00');
-        skip.onclick=()=>scoreEntryKey('00');
-      }
+      skip.textContent='Skip';
+      skip.setAttribute('aria-label','Skip');
+      skip.onclick=()=>scoreEntrySkip();
     }
     if(next&&scoreEntryModalState&&plain&&!bids&&!handFoot){
       const player=scoreEntryModalState.activePlayer;
@@ -22064,9 +22102,10 @@ ${isDealer
         return;
       }
       let c=el.value;
+      if(v==='00') return;
       if(v==='backspace')el.value=c.slice(0,-1);
       else if(v==='-')el.value=c.startsWith('-')?c.substring(1):'-'+c;
-        else{ if(c==='0'&&v!=='0'&&v!=='00')el.value=v; else if(c.length<5)el.value+=v; }
+        else{ if(c==='0'&&v!=='0')el.value=v; else if(c.length<5)el.value+=v; }
         if(activeInputContext?.roundIndex==='current'){
           saveActiveInputToModel();
           if(isBidTrickGame(currentGame)){

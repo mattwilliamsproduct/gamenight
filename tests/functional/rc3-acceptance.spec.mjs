@@ -42,8 +42,10 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hf-no-minus/);
   const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'-\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
   expect(minusVisible).toBe(false);
-  await expect(page.locator('#score-entry-skip-slot')).toHaveText('00');
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
   await expect(page.locator('#score-entry-skip-slot')).toBeVisible();
+  const keyLabels = await page.locator('#score-entry-modal .score-entry-keypad button').allTextContents();
+  expect(keyLabels.map((text) => text.trim())).not.toContain('00');
 
   const digitOrder = await page.evaluate(() => {
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-keypad .score-entry-key')]

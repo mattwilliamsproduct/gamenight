@@ -5532,14 +5532,62 @@ html.slice2-tv .s2-standing .wheel-badge {
   }
 }
 @media (max-width: 760px) {
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) {
+    padding-left: 0.2rem !important;
+    padding-right: 0.12rem !important;
+    overflow: hidden;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex,
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 0.12rem !important;
+    min-width: 0;
+    max-width: 100%;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-avatar-slot,
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .avatar-img-sc {
+    width: 20px !important;
+    height: 20px !important;
+    flex: 0 0 20px !important;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-dealer-avatar-badge {
+    width: 0.85rem !important;
+    height: 0.85rem !important;
+    font-size: 0.55rem !important;
+    right: -0.02rem;
+    bottom: -0.02rem;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-name-slot {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) button.dealer-name-indicator,
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.05 !important;
+  }
   html.slice2-tv #scorecard-capture .wheel-badge {
-    font-size: 0.6rem !important;
+    margin-left: 0 !important;
+    flex: 0 0 auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    font-size: 0.64rem !important;
     padding: 0.04rem 0.22rem !important;
-    min-height: 24px !important;
-    gap: 0.1rem !important;
+    min-height: 22px !important;
+    gap: 0.08rem !important;
+    white-space: nowrap !important;
   }
   html.slice2-tv #scorecard-capture .wheel-badge-icon {
-    width: 0.7rem !important;
-    height: 0.7rem !important;
+    width: 0.65rem !important;
+    height: 0.65rem !important;
   }
 }
