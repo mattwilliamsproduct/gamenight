@@ -2370,3 +2370,10 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-
   }
 }
 
+/* Four or fewer score rows never scroll on the phone, so the keypad side does
+   not need its 28px cover strip; it was hiding the bottom of the last row. */
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-side {
+    box-shadow: none !important;
+  }
+}
