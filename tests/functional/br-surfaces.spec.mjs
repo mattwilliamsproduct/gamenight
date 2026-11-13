@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openScoreEntry, silencePorchPrompts, submitEntry, typeRound} from '../helpers/hand-foot.mjs';
 
 test.use({serviceWorkers: 'block'});
 
@@ -165,6 +166,41 @@ test('the phone correction sheet gives was and now the row width', async ({page}
   });
   expect(widths.label).toBeGreaterThan(widths.row * 0.85);
   expect(widths.scroll).toBeLessThanOrEqual(widths.client + 1);
+});
+
+test('a real Canasta score entry toasts the team that passed the leader', async ({page}) => {
+  test.setTimeout(60000);
+  await silencePorchPrompts(page);
+  await page.setViewportSize({width: 1024, height: 768});
+  await page.goto('/?gnqa=1&gallery=0&scenario=canasta-house-round&surface=scorecard', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  const before = await page.evaluate(() => ({
+    leaders: currentLeaders(currentGame, getHandFootColumns(currentGame)),
+    megan: currentGame.totals['Megan'],
+    cat: currentGame.totals['Cat']
+  }));
+  expect(before.leaders).toEqual(['Megan & Matt']);
+  expect(before.megan).toBeGreaterThan(before.cat);
+  await openScoreEntry(page);
+  await typeRound(page, [
+    {basic: '0', count: '0', cardsLeft: '0'},
+    {basic: '2800', count: '0', cardsLeft: '0'}
+  ]);
+  await submitEntry(page);
+  const toast = page.locator('#toast-container .toast');
+  await expect(toast).toContainText('Cat & Mike take the lead!');
+  await expect(toast).not.toContainText('Ann');
+  const after = await page.evaluate(() => ({
+    leaders: currentLeaders(currentGame, getHandFootColumns(currentGame)),
+    megan: currentGame.totals['Megan'],
+    cat: currentGame.totals['Cat'],
+    board: [...document.querySelectorAll('#scorecard-capture .hf-team-name')].map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim()).join(' | ')
+  }));
+  expect(after.leaders).toEqual(['Cat & Mike']);
+  expect(after.cat).toBeGreaterThan(after.megan);
+  expect(after.board).toContain('Cat');
+  expect(after.board).toContain('Mike');
+  expect(after.board).not.toContain('Ann');
 });
 
 test('Canasta event stats show on Overview, Passports, and a phone', async ({page}) => {
