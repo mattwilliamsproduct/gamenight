@@ -207,6 +207,8 @@ async function entryMeasure(page) {
       const nextText = (nextKey.textContent || '').replace(/\s+/g, '');
       if (!/^next$/i.test(nextText)) problems.push(`next key ${nextText}`);
       if (nextKey.scrollWidth > nextKey.clientWidth + 2) problems.push('NEXT clipped');
+      const nextBox = nextKey.getBoundingClientRect();
+      if (nextBox.right > window.innerWidth + 1 || nextBox.left < -1) problems.push('NEXT off screen');
     }
     const lastBox = cards.at(-1)?.getBoundingClientRect();
     const lastPast = !!(lastBox && lastBox.bottom > listBox.bottom + 12);
@@ -219,6 +221,14 @@ async function entryMeasure(page) {
         if (!text) return;
         if (el.scrollWidth > el.clientWidth + 4) problems.push(`wide ${text.slice(0, 36)}`);
       });
+      const match = card.querySelector('.hf-match-total .score-entry-meta-label');
+      if (match) {
+        const matchBox = match.getBoundingClientRect();
+        const cardBox = card.getBoundingClientRect();
+        if (matchBox.width < 8 || matchBox.right > cardBox.right + 1 || matchBox.left < cardBox.left - 1 || matchBox.right > window.innerWidth + 1) {
+          problems.push('MATCH outside the card');
+        }
+      }
     });
     const value = cards[0]?.querySelector('.hf-field-value');
     const help = cards[0]?.querySelector('.hf-help');
