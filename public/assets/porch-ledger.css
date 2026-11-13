@@ -2454,3 +2454,29 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more {
 html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more[hidden] {
   display: none !important;
 }
+
+/* View pace sits on the felt, so it is a solid ivory pill like Home and
+   Actions (a see-through mint pill washed out on the blue). */
+html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1px solid rgba(92, 62, 36, 0.22) !important;
+  box-shadow: var(--ledger-shadow-key) !important;
+}
+
+html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle:hover {
+  background: #fffdf8 !important;
+}
+
+html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle-track {
+  background: #8a7f72 !important;
+}
+
+html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="true"] {
+  background: var(--ledger-teal-wash) !important;
+  border-color: var(--ledger-teal) !important;
+}
+
+html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-track {
+  background: var(--ledger-teal) !important;
+}
