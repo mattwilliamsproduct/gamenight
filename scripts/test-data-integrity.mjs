@@ -80,8 +80,8 @@ test('a blank trick becomes 0 before the round total is checked', () => {
   assert.match(bid.message, /Still need a bid from Alice/);
 });
 
-test('Five Crowns, Flip 7, and Beat the Heat reject negative played-round inputs', () => {
-  ['Five Crowns', 'Flip 7 Vengeance', 'Beat the Heat'].forEach(game => {
+test('Five Crowns and Beat the Heat reject negative played-round inputs', () => {
+  ['Five Crowns', 'Beat the Heat'].forEach(game => {
     const result = Scorebook.validateEntries({
       game,
       kind: 'scores',
@@ -93,15 +93,14 @@ test('Five Crowns, Flip 7, and Beat the Heat reject negative played-round inputs
     assert.match(result.message, /0 or higher/);
     assert.match(result.message, /Alice/);
   });
-  assert.match(
-    Scorebook.validateEntries({
-      game: 'Flip 7 Vengeance',
-      kind: 'scores',
-      players: ['Alice'],
-      values: { Alice: -1 }
-    }).message,
-    /^Flip 7 scores/
-  );
+  const flip = Scorebook.validateEntries({
+    game: 'Flip 7 Vengeance',
+    kind: 'scores',
+    players: ['Alice'],
+    values: { Alice: -15 }
+  });
+  assert.equal(flip.ok, true);
+  assert.equal(flip.values.Alice, -15);
 });
 
 test('Wizard and Rook calculated scores stay legal when they are negative', () => {
@@ -323,7 +322,7 @@ test('an out-of-bounds or unbalanced historical trick table changes nothing', ()
     actuals: { Alice: '', Bob: '' }
   });
   assert.equal(short.ok, false);
-  assert.equal(short.message, 'Wizard round 1 must total 1 tricks. This table totals 0.');
+  assert.equal(short.message, 'Wizard round 1 must total 1 trick. This table totals 0.');
   assert.deepEqual(game, before);
 
   const unbalanced = Scorebook.commitRoundCorrection(game, {
@@ -331,7 +330,7 @@ test('an out-of-bounds or unbalanced historical trick table changes nothing', ()
     actuals: { Alice: 1, Bob: 1 }
   });
   assert.equal(unbalanced.ok, false);
-  assert.equal(unbalanced.message, 'Wizard round 1 must total 1 tricks. This table totals 2.');
+  assert.equal(unbalanced.message, 'Wizard round 1 must total 1 trick. This table totals 2.');
   assert.deepEqual(game, before);
 });
 
@@ -554,8 +553,8 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /function shownRoundScore/);
   const fame = page.slice(page.indexOf('function calculateHallOfFame'), page.indexOf('function calculateAllTimeRecords'));
   const records = page.slice(page.indexOf('function calculateAllTimeRecords'), page.indexOf('function renderHallOfFame'));
-  assert.match(fame, /nightCountsForCareer|isCareerCountableMatch|isCompletedHistoryMatch/);
-  assert.match(records, /nightCountsForCareer|eligibleWinners|isCompletedHistoryMatch/);
+  assert.match(fame, /nightCountsForTallies|countsForTallies|nightCountsForCareer|isCareerCountableMatch|isCompletedHistoryMatch/);
+  assert.match(records, /countsForTallies|countsForScoreMagnitude|nightCountsForCareer|eligibleWinners|isCompletedHistoryMatch/);
   assert.match(fame, /historyScoreOrNull/);
   assert.match(records, /historyScoreOrNull/);
   assert.doesNotMatch(page, /unconfirmedScoreEntryMessage/);
@@ -567,7 +566,7 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /score-entry-confirm-status/);
   assert.match(page, /function jsAttrArg/);
   const scorebook = fs.readFileSync(new URL('../public/assets/scorebook.js', import.meta.url), 'utf8');
-  assert.match(scorebook, /Blank scores count as 0/);
+  assert.match(scorebook, /Skip leaves a score blank/);
   assert.match(scorebook, /Suggested: \$\{value\} \(tap Next to confirm\)/);
   assert.match(scorebook, /Confirmed: \$\{value\}/);
   assert.match(scorebook, /kind === 'scores' \|\| kind === 'tricks'/);
@@ -753,7 +752,7 @@ test('Next leaves a blank score empty, and a submitted blank matches a typed 0',
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).state, 'unentered');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: true }).label, 'Not entered');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Not entered');
-  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Blank scores count as 0');
+  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Skip leaves a score blank.');
   assert.notEqual(
     Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label,
     Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).label
@@ -954,6 +953,37 @@ test('a historical trick correction counts the players who were in that round', 
   assert.equal(illegal.rounds[0].actuals.Cara, 2);
 });
 
+test('a round correction can change the bid and rescores from the new bid', () => {
+  const game = {
+    name: 'Wizard',
+    originalRoster: ['Ada', 'Bea'],
+    dealerOffset: 0,
+    currentRound: 2,
+    totals: { Ada: 30, Bea: 20 },
+    auditLog: [],
+    rounds: [{
+      round: 1,
+      bids: { Ada: 1, Bea: 0 },
+      actuals: { Ada: 1, Bea: 0 },
+      scores: { Ada: 30, Bea: 20 }
+    }]
+  };
+  const result = Scorebook.commitRoundCorrection(game, {
+    roundIndex: 0,
+    bids: { Ada: 0, Bea: 1 },
+    actuals: { Ada: 1, Bea: 0 }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(game.rounds[0].bids.Ada, 0);
+  assert.equal(game.rounds[0].bids.Bea, 1);
+  assert.equal(game.rounds[0].actuals.Ada, 1);
+  assert.equal(game.rounds[0].scores.Ada, Scorebook.wizardRoundScore(0, 1));
+  assert.equal(game.rounds[0].scores.Bea, Scorebook.wizardRoundScore(1, 0));
+  assert.equal(game.totals.Ada, -10);
+  assert.equal(game.totals.Bea, -10);
+});
+
 test('reopening a saved match does not replace a different active game', () => {
   const active = { id: 111, gameId: 111, name: 'Five Crowns', rounds: [{ round: 1, scores: { Matt: 4 } }] };
   const edited = { id: 66, gameId: 66, game: 'Beat the Heat' };
@@ -963,6 +993,19 @@ test('reopening a saved match does not replace a different active game', () => {
   assert.equal(Scorebook.historyReopenWouldReplaceActive({ name: 'Wizard' }, edited), true);
   const reopened = { id: 66, gameId: 66, completed: false, gameOver: false, winners: [] };
   assert.equal(Scorebook.isCompletedHistoryMatch(reopened), false);
+  const blocked = Scorebook.historyReopenNotice('Beat the Heat', true);
+  assert.match(blocked, /no longer reaches the heat line/);
+  assert.match(blocked, /winner is removed/);
+  assert.match(blocked, /drops out of wins and records/);
+  assert.match(blocked, /game on the table stayed put/);
+  const clear = Scorebook.historyReopenNotice('Five Crowns', false);
+  assert.match(clear, /no longer finishes the night/);
+  assert.match(clear, /winner is removed/);
+  assert.equal(clear.includes('table stayed put'), false);
+  const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const fin = page.slice(page.indexOf('function finalizeHistoryCorrection'), page.indexOf('function openPastScoreCell'));
+  assert.match(fin, /BPGScorebook\.historyReopenNotice\(match\.name\|\|match\.game, blocked\)/);
+  assert.match(fin, /if\(reopened\) toast\(reopenCopy, 'warning'\)/);
 });
 
 test('undoing the only Life Preserver clears assistedMatch, including a zero-point spin', () => {

@@ -5,16 +5,19 @@ import test from 'node:test';
 
 const root = process.cwd();
 
-test('laptop Home sizes panels to content and keeps Recent nights full width', async () => {
+test('laptop Home keeps a content-sized default and a landscape fill', async () => {
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
   const css = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
+  const cards = await readFile(join(root, 'public/assets/card-picker.css'), 'utf8');
 
-  assert.match(js, /s2-home-grid">\$\{tableBlock\}\$\{startBlock\}<\/div>\$\{nightsBlock\}/);
+  assert.match(js, /s2-home-grid">\$\{left\}\$\{startBlock\}<\/div>/);
+  assert.doesNotMatch(js, /Recent nights/);
   assert.doesNotMatch(js, /homeLayout/);
   assert.match(js, /s2-night-podium/);
   assert.match(js, /s2-podium-person[\s\S]*s2-podium-rank/);
   assert.match(js, /homePlaceLabel/);
-  assert.match(js, /No finishers yet/);
+  assert.match(js, /Resume unfinished/);
+  assert.doesNotMatch(js, /View all/);
   assert.doesNotMatch(js, /s2-podium-faces/);
   assert.doesNotMatch(js, /s2-podium-badge/);
   assert.doesNotMatch(js, /edit-seating/);
@@ -30,5 +33,11 @@ test('laptop Home sizes panels to content and keeps Recent nights full width', a
   assert.match(css, /\.s2-seat-name\s*\{[\s\S]*font-size:\s*1\.08rem/);
   assert.match(css, /\.s2-seat-handle\s*\{[\s\S]*touch-action:\s*none;/);
   assert.match(css, /@media \(max-width:\s*860px\)[\s\S]*grid-auto-rows:\s*minmax\(44px, auto\)/);
-  assert.doesNotMatch(css, /data-bp-home/);
+  assert.match(cards, /orientation:\s*landscape[\s\S]*overflow-y:\s*auto/);
+  assert.match(cards, /orientation:\s*landscape[\s\S]*min-height:\s*64px/);
+  assert.match(cards, /orientation:\s*landscape[\s\S]*grid-auto-rows:\s*max-content/);
+  assert.doesNotMatch(cards, /max-height:\s*52px/);
+  assert.match(cards, /aspect-ratio:\s*5\s*\/\s*7/);
+  assert.doesNotMatch(css, /overflow:\s*hidden;\s*\/\* lock the page/);
+  assert.doesNotMatch(cards, /100svh/);
 });

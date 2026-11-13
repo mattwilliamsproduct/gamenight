@@ -24,7 +24,7 @@
       nineAndBelow: 5
     }),
     rounds: 4,
-    melds: Object.freeze([50, 90, 120, 150]),
+    melds: Object.freeze([50, 90, 110, 150]),
     minPlayers: 2,
     maxPlayers: 6,
     winLow: false
@@ -144,6 +144,74 @@
     });
   }
 
+  function flagOn(value) {
+    return value === true || value === 'true' || value === 1 || value === '1';
+  }
+
+  // Typed Basic + Count is a new round. Older shapes keep their own formulas.
+  function usesBasicCount(parts) {
+    if (!parts || typeof parts !== 'object' || Array.isArray(parts)) return false;
+    if (usesNewBreakdown(parts)) return false;
+    if (['canastas', 'canastaPoints', 'footPenalty', 'bonuses'].some(function (key) {
+      return Object.prototype.hasOwnProperty.call(parts, key);
+    })) return false;
+    if (parts.legacy) return false;
+    return ['basic', 'count', 'got22', 'wentOut'].some(function (key) {
+      return Object.prototype.hasOwnProperty.call(parts, key);
+    });
+  }
+
+  // Cards left is typed as a positive number and subtracted. A negative is
+  // rejected. It is not turned into a bonus with Math.abs.
+  function acceptCardsLeft(raw) {
+    if (raw === undefined || raw === null || raw === '' || raw === '-') {
+      return {ok: true, blank: true, value: 0};
+    }
+    const text = String(raw).trim();
+    if (text.startsWith('-')) return {ok: false, reason: 'negative'};
+    const n = typeof raw === 'number' ? raw : parseInt(text, 10);
+    if (!Number.isFinite(n) || n < 0) return {ok: false, reason: 'negative'};
+    return {ok: true, blank: false, value: n};
+  }
+
+  function basicCardsLeft(parts) {
+    if (flagOn(parts && parts.wentOut)) return 0;
+    const parsed = acceptCardsLeft(parts && parts.cardsLeft);
+    return parsed.ok ? parsed.value : 0;
+  }
+
+  function basicCountScore(parts) {
+    const basic = parsePart(parts && parts.basic, false);
+    const count = parsePart(parts && parts.count, false);
+    const got = flagOn(parts && parts.got22) ? 100 : 0;
+    const out = flagOn(parts && parts.wentOut) ? 100 : 0;
+    return basic + count + got + out - basicCardsLeft(parts);
+  }
+
+  // At most one side goes out. That side's cards left is 0.
+  function settleBasicRound(bySide) {
+    const keys = Object.keys(bySide || {});
+    let winner = null;
+    keys.forEach(function (key) {
+      const raw = bySide[key];
+      if (winner || !raw || !flagOn(raw.wentOut)) return;
+      if (usesBasicCount(raw) || Object.prototype.hasOwnProperty.call(raw, 'basic') || Object.prototype.hasOwnProperty.call(raw, 'wentOut')) {
+        winner = key;
+      }
+    });
+    const next = {};
+    keys.forEach(function (key) {
+      const raw = Object.assign({}, bySide[key]);
+      if (usesBasicCount(raw) || Object.prototype.hasOwnProperty.call(raw, 'wentOut') || Object.prototype.hasOwnProperty.call(raw, 'basic')) {
+        const on = winner === key;
+        raw.wentOut = on;
+        if (on) raw.cardsLeft = 0;
+      }
+      next[key] = raw;
+    });
+    return next;
+  }
+
   function rateOrDefault(parts, key, fallback) {
     if (!parts || parts[key] === undefined || parts[key] === null || parts[key] === '') return fallback;
     return parsePart(parts[key], false);
@@ -224,6 +292,7 @@
   // A saved round with one canasta count still uses that older formula.
   // A saved round with none of those fields still uses card points + bonuses − cards left.
   function roundScore(parts) {
+    if (usesBasicCount(parts)) return basicCountScore(parts);
     if (usesNewBreakdown(parts)) return newRoundScore(parts);
     if (usesStructuredScore(parts)) return oldStructuredScore(parts);
     const card = parsePart(parts && parts.cardPoints, false);
@@ -273,7 +342,7 @@
 
   function isLegacyParts(parts) {
     if (!parts || typeof parts !== 'object' || Array.isArray(parts)) return false;
-    if (usesNewBreakdown(parts) || usesStructuredScore(parts)) return false;
+    if (usesBasicCount(parts) || usesNewBreakdown(parts) || usesStructuredScore(parts)) return false;
     return !!(parts.legacy || parts.bonuses !== undefined || parts.cardsLeft !== undefined);
   }
 
@@ -285,6 +354,19 @@
   // does not multiply the canasta count again.
   function persistSideParts(raw) {
     const parts = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    if (usesBasicCount(parts)) {
+      const went = flagOn(parts.wentOut);
+      const left = acceptCardsLeft(went ? 0 : parts.cardsLeft);
+      const storedBasic = {
+        basic: parsePart(parts.basic, false),
+        count: parsePart(parts.count, false),
+        got22: flagOn(parts.got22),
+        wentOut: went,
+        cardsLeft: went ? 0 : (left.ok ? left.value : 0)
+      };
+      storedBasic.roundScore = basicCountScore(storedBasic);
+      return storedBasic;
+    }
     if (usesNewBreakdown(parts)) {
       const going = wentOut(parts);
       const goingRate = rateOrDefault(parts, 'goingOutBonus', SCORE_DEFAULTS.goingOutBonus);
@@ -371,7 +453,7 @@
   // be split without inventing them.
   function normalizeSideParts(parts, savedScore) {
     if (!parts || typeof parts !== 'object' || Array.isArray(parts)) return null;
-    if (!usesStructuredScore(parts) && !isLegacyParts(parts)) return null;
+    if (!usesBasicCount(parts) && !usesStructuredScore(parts) && !isLegacyParts(parts)) return null;
     const stored = persistSideParts(parts);
     const scorecard = Number(savedScore);
     if (Number.isFinite(scorecard)) stored.roundScore = scorecard;
@@ -655,6 +737,78 @@
     return { config: { format: config.format, sides: uniqueSides }, keyMap: keyMap };
   }
 
+  function eventDelta(parts) {
+    if (!parts || typeof parts !== 'object') return {got22: 0, wentOut: 0, cardsLeft: 0};
+    if (usesBasicCount(parts)) {
+      return {
+        got22: flagOn(parts.got22) ? 1 : 0,
+        wentOut: flagOn(parts.wentOut) ? 1 : 0,
+        cardsLeft: basicCardsLeft(parts)
+      };
+    }
+    const went = Object.prototype.hasOwnProperty.call(parts, 'goingOut') && parsePart(parts.goingOut, true) > 0 ? 1 : 0;
+    const left = Object.prototype.hasOwnProperty.call(parts, 'cardsLeft') ? parsePart(parts.cardsLeft, true) : 0;
+    return {got22: 0, wentOut: went, cardsLeft: left};
+  }
+
+  function playerEventTotals(history, playerName) {
+    const totals = {got22: 0, wentOut: 0, cardsLeft: 0, rounds: 0};
+    (history || []).forEach(function (match) {
+      if (!isHandFootHistory(match)) return;
+      const keys = sideKeysForPlayer(match, playerName);
+      (match.rounds || []).forEach(function (round) {
+        if (!round || round.hailMaryBonus) return;
+        keys.forEach(function (key) {
+          const parts = round.handFootParts && round.handFootParts[key];
+          if (!parts) return;
+          const delta = eventDelta(parts);
+          totals.got22 += delta.got22;
+          totals.wentOut += delta.wentOut;
+          totals.cardsLeft += delta.cardsLeft;
+          totals.rounds += 1;
+        });
+      });
+    });
+    return totals;
+  }
+
+  function clearedBreakdownParts(total) {
+    const score = Number(total);
+    return {roundScore: Number.isFinite(score) ? score : 0, breakdownCleared: true};
+  }
+
+  function eventLeaders(history) {
+    const names = new Set();
+    (history || []).forEach(function (match) {
+      if (!isHandFootHistory(match)) return;
+      Object.keys(match.totals || {}).forEach(function (name) { if (name) names.add(name); });
+      ((match && (match.originalRoster || match.players)) || []).forEach(function (name) { if (name) names.add(name); });
+    });
+    const out = {};
+    ['got22', 'wentOut', 'cardsLeft'].forEach(function (field) {
+      const rows = [];
+      names.forEach(function (name) {
+        const totals = playerEventTotals(history, name);
+        if (!totals.rounds) return;
+        rows.push({player: name, value: totals[field]});
+      });
+      const positive = rows.filter(function (row) { return row.value > 0; });
+      if (!positive.length) {
+        out[field] = null;
+        return;
+      }
+      const max = Math.max.apply(null, positive.map(function (row) { return row.value; }));
+      const ties = positive.filter(function (row) { return row.value === max; });
+      out[field] = {
+        player: ties[0].player,
+        value: max,
+        label: field === 'cardsLeft' ? 'points left' : 'rounds',
+        ties: ties
+      };
+    });
+    return out;
+  }
+
   const api = {
     GAME_NAME,
     CANASTA_RULES,
@@ -672,6 +826,10 @@
     buildSides,
     swapPairMember,
     parsePart,
+    usesBasicCount,
+    acceptCardsLeft,
+    basicCountScore,
+    settleBasicRound,
     roundScore,
     persistSideParts,
     persistRound,
@@ -682,6 +840,9 @@
     sumFieldForSide,
     sumFieldForMatch,
     sumFieldForPlayer,
+    playerEventTotals,
+    eventLeaders,
+    clearedBreakdownParts,
     meldForRound,
     scoringKeys,
     recordedKeys,

@@ -20,7 +20,7 @@
     let summary;
     if (game.id === 'Beat the Heat') summary = `lowest heat wins, ${detail}`;
     else if (game.id === 'Rook') summary = 'highest total wins, teams';
-    else if (game.id === 'Flip 7 Vengeance') summary = 'highest total wins, open match';
+    else if (game.id === 'Flip 7 Vengeance') summary = 'highest total wins, first to 200';
     else if (game.winLow) summary = `lowest total wins, ${detail}`;
     else summary = `highest total wins, ${detail}`;
     return `${title}, ${summary}${selected ? ', selected' : ''}`;
@@ -42,6 +42,12 @@
   let wired = false;
   let seatPointer = null;
   let seatGrab = null;
+  let anotherStep = null;
+  let anotherParkOk = false;
+  let unfinishedOpen = false;
+  let nextRosterOpen = false;
+  let pickerRevealed = false;
+  let addPicks = new Set();
 
   function state() {
     return slice2TableState();
@@ -64,13 +70,119 @@
     return table.players[0] || '';
   }
 
+  function liveRoundLabel(game) {
+    const maxR = getMaxRoundsForGame(game);
+    const round = shownRound(game, maxR);
+    if (maxR && maxR < 900) return `Round ${round} of ${maxR}`;
+    return `Round ${round}`;
+  }
+
+  function anotherMatchCopy(game) {
+    const name = displayGameName(game && game.name);
+    return `${name} (${liveRoundLabel(game)}) will be saved as unfinished. You can resume it later.`;
+  }
+
+  function historyAsGame(match) {
+    return {
+      name: (match && (match.game || match.name)) || '',
+      currentRound: match && match.currentRound,
+      maxRounds: match && match.maxRounds,
+      originalRoster: (match && match.originalRoster) || []
+    };
+  }
+
+  function unfinishedMatches(history) {
+    return (history || [])
+      .filter((match) => window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match))
+      .slice()
+      .sort((a, b) => (Number(b && b.id) || 0) - (Number(a && a.id) || 0));
+  }
+
+  function clearAnotherMatch() {
+    anotherStep = null;
+    anotherParkOk = false;
+    pickerRevealed = false;
+  }
+
+  function takeAnotherParkOk() {
+    const ok = anotherParkOk;
+    if (ok) clearAnotherMatch();
+    return ok;
+  }
+
+  function standingRows(game) {
+    const roster = (typeof getRecordedPlayers === 'function' ? getRecordedPlayers(game) : getActivePlayers(game)).slice();
+    const standing = window.BPGScorebook.scoreboardStandings(game, roster);
+    const dealer = getCurrentDealerName(game);
+    const ranked = standing.ordered.map((player) => {
+      const place = standing.ranked ? standing.places[player] : null;
+      const label = place ? homePlaceLabel(place) : '';
+      const tone = place === 1 ? ' is-place-1' : place === 2 ? ' is-place-2' : place === 3 ? ' is-place-3' : (place ? ' is-place-rest' : '');
+      const score = Number(game.totals && game.totals[player]) || 0;
+      const isDealer = player === dealer;
+      const badge = label
+        ? `<span class="scoreboard-rank-badge${tone}">${escapeHtml(label)}</span>`
+        : '<span class="s2-standing-unranked" aria-hidden="true"></span>';
+      const dealerTag = isDealer
+        ? '<span class="s2-dealer-tag">Dealer</span>'
+        : '<span class="s2-dealer-tag s2-dealer-tag-empty" aria-hidden="true"></span>';
+      const spoken = [label, player, String(score), isDealer ? 'dealer' : ''].filter(Boolean).join(', ');
+      return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
+        ${badge}
+        ${getStreakAvatarHtml(player, 'avatar-img')}
+        <span class="s2-seat-who">
+          <span class="s2-seat-name">${escapeHtml(player)}</span>
+          ${lifePreserverStatusMarkup(game, player)}
+        </span>
+        ${dealerTag}
+        <span class="s2-standing-score">${escapeHtml(String(score))}</span>
+      </button>`;
+    }).join('');
+    const left = (game.retired || []).filter((player) => player && !standing.ordered.includes(player));
+    const leftRows = left.map((player) => {
+      const score = Number(game.totals && game.totals[player]) || 0;
+      const spoken = ['Left early', player, String(score)].join(', ');
+      return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
+        <span class="scoreboard-rank-badge is-place-rest">Left early</span>
+        ${getStreakAvatarHtml(player, 'avatar-img')}
+        <span class="s2-seat-who"><span class="s2-seat-name">${escapeHtml(player)}</span></span>
+        <span class="s2-dealer-tag s2-dealer-tag-empty" aria-hidden="true"></span>
+        <span class="s2-standing-score">${escapeHtml(String(score))}</span>
+      </button>`;
+    }).join('');
+    return ranked + leftRows;
+  }
+
+  function wheelCopy() {
+    return window.BPGLifePreserver && BPGLifePreserver.BACK_PORCH_WHEEL;
+  }
+
+  function wheelIconSvg() {
+    return '<svg class="wheel-badge-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg>';
+  }
+
+  function lifePreserverStatusMarkup(game, player) {
+    const copy = wheelCopy();
+    const supported = new Set(['Five Crowns', 'Wizard', '818', 'Flip 7 Vengeance']);
+    if (!copy || !game || !supported.has(game.name) || typeof isHailMaryEligible !== 'function') return '';
+    const used = (game.hailMaryUsed || []).includes(player);
+    if (used) {
+      return `<span class="wheel-badge wheel-badge-used" aria-label="${copy.used}">${wheelIconSvg()}<span>${copy.used}</span></span>`;
+    }
+    const table = typeof getActivePlayers === 'function' ? getActivePlayers(game) : [];
+    if (isHailMaryEligible(game, player, table, { gameOver: false })) {
+      return `<span class="wheel-badge wheel-badge-ready" aria-label="${copy.ready}">${wheelIconSvg()}<span>${copy.ready}</span></span>`;
+    }
+    return '';
+  }
+
   function leaderBit(game) {
-    if (!game || (game.currentRound || 1) <= 1) return '';
-    const table = getActivePlayers(game);
-    if (!table.length) return '';
-    const low = window.BPGGames ? BPGGames.winLow(game.name) : (game.name === 'Five Crowns' || game.name === 'Beat the Heat');
-    const sorted = [...table].sort((a, b) => low ? (game.totals[a] || 0) - (game.totals[b] || 0) : (game.totals[b] || 0) - (game.totals[a] || 0));
-    const name = sorted[0];
+    if (!game || (game.currentRound || 1) <= 1 || !window.BPGScorebook) return '';
+    const roster = typeof getRecordedPlayers === 'function' ? getRecordedPlayers(game) : getActivePlayers(game);
+    if (!roster.length) return '';
+    const standing = BPGScorebook.scoreboardStandings(game, roster);
+    if (!standing.ranked || !standing.ordered.length) return '';
+    const name = standing.ordered[0];
     return `Leader: ${name} (${game.totals[name] || 0} pts)`;
   }
 
@@ -156,16 +268,13 @@
 
   function enterLabel(game) {
     const round = game.currentRound;
-    if (phoneScoreboard()) {
-      if (isMatchOver(game)) return 'Match complete';
-      if (isBidTrickGame(game)) return getBidTrickPhase(game) === 'bidding' ? 'Enter Bids' : 'Enter Tricks';
-      return 'Enter Score';
-    }
     if (isMatchOver(game)) return 'Match complete';
-    if (game.name === 'Rook') return `Enter Round ${round}`;
-    if (isBidTrickGame(game)) return getBidTrickPhase(game) === 'bidding' ? `Enter Round ${round} Bids` : `Enter Round ${round} Tricks`;
-    if (game.name === 'Beat the Heat') return `Enter Round ${round} Heat`;
-    return `Enter Round ${round} Scores`;
+    if (isBidTrickGame(game)) {
+      const bidding = getBidTrickPhase(game) === 'bidding';
+      if (phoneScoreboard()) return bidding ? 'Enter Bids' : 'Enter Tricks';
+      return bidding ? `Enter Round ${round} Bids` : `Enter Round ${round} Tricks`;
+    }
+    return 'Enter Scores';
   }
 
   function eligibleLifePreserverPlayers() {
@@ -188,7 +297,9 @@
 
   function boardBarMarkup() {
     return `<div class="s2-board-identity">
-        <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">← Table</button>
+        <img class="s2-board-mark" src="./assets/logo/back-porch-wordmark.png" alt="Back Porch Games" width="320" height="113">
+        <span class="s2-board-rule" aria-hidden="true"></span>
+        <button type="button" class="s2-btn s2-table-btn" id="slice2-table-btn" data-s2-action="table">Home</button>
         <div class="s2-board-copy">
           <div class="s2-board-title-row">
             <p id="slice2-board-line"></p>
@@ -200,6 +311,7 @@
       </div>
       <div class="s2-board-actions">
         <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
+        <button type="button" class="s2-btn" id="slice2-end-btn" data-s2-action="save-end" aria-label="Leave game">Leave game</button>
       </div>`;
   }
 
@@ -207,18 +319,18 @@
     const actions = document.querySelector('#slice2-board-bar .s2-board-actions');
     const table = document.getElementById('slice2-table-btn');
     if (table) {
-      const phone = phoneScoreboard();
-      table.textContent = phone ? 'Home' : '← Table';
-      table.title = phone
-        ? 'Leave the scorecard and go Home. The match stays on Resume.'
-        : 'Leave the scorecard. The match stays on Resume.';
-      table.setAttribute('aria-label', phone
-        ? 'Home. Leaves the scorecard without ending the match.'
-        : 'Back to Table. Leaves the scorecard without ending the match.');
+      table.textContent = 'Home';
+      table.title = 'Leave the scorecard and go Home. The match stays on Resume.';
+      table.setAttribute('aria-label', 'Home. Leaves the scorecard without ending the match.');
     }
-    const endBtn = document.querySelector('#game-screen .match-end-btn');
+    const endBtn = document.querySelector('#actions-menu .match-end-btn');
     if (endBtn) {
-      endBtn.title = 'Save the standings to Records and clear the live table.';
+      endBtn.title = 'Leave game. Save for later, end the game, or keep playing.';
+    }
+    const leave = document.getElementById('slice2-end-btn');
+    if (leave) {
+      leave.textContent = phoneScoreboard() ? 'Leave' : 'Leave game';
+      leave.setAttribute('aria-label', 'Leave game');
     }
     const scratch = document.querySelector('#actions-menu button[onclick*="scratchMatch"] span:last-child');
     if (scratch && !/discard/i.test(scratch.textContent || '')) {
@@ -227,22 +339,23 @@
     if (!actions) return;
     const menuWrap = document.querySelector('#game-screen .active-match-actions');
     if (menuWrap && menuWrap.parentElement !== actions) actions.appendChild(menuWrap);
-    if (endBtn && endBtn.parentElement !== actions) actions.appendChild(endBtn);
   }
 
   function paintNav() {
+    if (typeof updateNavButton === 'function') updateNavButton();
     const table = state();
     const row = document.querySelector('#top-nav > div');
     const actions = row?.children?.[1];
     if (!actions) return;
     document.getElementById('slice2-saved')?.remove();
+    const phoneNav = window.matchMedia('(max-width: 760px)').matches;
     const compactNav = window.matchMedia('(max-width: 1023px)').matches;
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
-      if (action.includes('goHome')) button.textContent = compactNav ? 'Table' : "Tonight's Table";
+      if (action.includes('goHome')) button.textContent = 'Home';
       if (action.includes('showHistory')) button.textContent = compactNav ? 'Records' : `Records (${table.history.length})`;
-      if (action.includes('showProfiles')) button.textContent = compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`;
-      if (action.includes('openSettings')) button.textContent = compactNav ? '⚙' : 'Settings';
+      if (action.includes('showProfiles')) button.textContent = phoneNav ? 'Player Passports' : (compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`);
+      if (action.includes('openSettings')) button.textContent = phoneNav || !compactNav ? 'Settings' : '⚙';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
     });
     parkSaveIndicator();
@@ -280,6 +393,66 @@
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
+  function addPlayerPickerMarkup(bench, seated) {
+    const max = window.BPGGames && typeof BPGGames.seatLimit === 'function'
+      ? BPGGames.seatLimit(selected, seated + addPicks.size, 'seat')
+      : { ok: true, message: '' };
+    const room = window.BPGGames && typeof BPGGames.seatLimit === 'function'
+      ? BPGGames.seatLimit(selected, seated + addPicks.size + 1, 'seat')
+      : { ok: true, message: '' };
+    const rows = bench.map((player) => {
+      const on = addPicks.has(player);
+      const blocked = !on && !room.ok;
+      return `<label class="s2-pick${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}">
+        <input type="checkbox" data-s2-action="pick-add" data-s2-player="${escapeHtml(player)}"${on ? ' checked' : ''}${blocked ? ' disabled' : ''}>
+        ${getStreakAvatarHtml(player, 'avatar-img')}
+        <span>${escapeHtml(player)}</span>
+        <span class="s2-pick-mark" aria-hidden="true">${on ? '✓' : ''}</span>
+      </label>`;
+    }).join('');
+    const count = addPicks.size;
+    const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add Player';
+    return `<div class="s2-picker">
+      ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>'}
+      ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(room.message || max.message || 'No room for another player.')}</p>` : ''}
+      <form class="s2-add" data-s2-action="add-form">
+        <div class="player-suggest-wrap">
+          <input id="quick-add-player" type="text" placeholder="Add someone new" autocomplete="off" aria-label="Add a player"
+            oninput="updatePlayerSuggestions('home'); window.BPGSlice2 && BPGSlice2.filterAddPicker(this.value)"
+            onfocus="updatePlayerSuggestions('home')"
+            onblur="hidePlayerSuggestionsSoon('home')"
+            onkeydown="handlePlayerSuggestKey(event,'home')">
+          <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
+        </div>
+        <button type="submit" class="s2-btn s2-btn-primary" aria-label="${escapeHtml(label)}"${count && !max.ok ? ' disabled' : ''}>${escapeHtml(label)}</button>
+      </form>
+    </div>`;
+  }
+
+  function filterAddPicker(query) {
+    const q = String(query || '').trim().toLowerCase();
+    document.querySelectorAll('.s2-pick').forEach((row) => {
+      const name = (row.querySelector('span')?.textContent || '').toLowerCase();
+      row.hidden = !!(q && !name.includes(q));
+    });
+  }
+
+  function unfinishedBannerMarkup(open) {
+    if (!open.length) return '';
+    const top = open[0];
+    const label = displayGameName(top.game || top.name);
+    const round = liveRoundLabel(historyAsGame(top));
+    return `<section class="s2-banner s2-unfinished-banner">
+      <div>
+        <div class="s2-kicker">Unfinished</div>
+        <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
+      </div>
+      <div class="s2-banner-actions">
+        <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}" aria-label="Resume unfinished ${escapeHtml(label)}">Resume</button>
+      </div>
+    </section>`;
+  }
+
   function paintHome() {
     const home = document.getElementById('home-screen');
     if (!home) return;
@@ -291,12 +464,15 @@
       home.appendChild(root);
     }
     const table = state();
+    if (!table.currentGame) clearAnotherMatch();
     const dealer = dealerOf(table);
     const picker = registryGames();
     if (!picker.some((game) => game.id === selected)) selected = picker[0]?.id || 'Five Crowns';
     const meta = gameMeta(selected);
     const seated = table.players.length;
     const bench = table.allPlayers.filter((player) => !table.players.includes(player));
+    const open = unfinishedMatches(table.history);
+    const parkedBanner = unfinishedBannerMarkup(open);
     const banner = table.currentGame ? (() => {
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
@@ -312,8 +488,8 @@
         <div class="s2-banner-actions">
           <button type="button" class="s2-btn s2-btn-primary" data-s2-action="resume">Resume</button>
         </div>
-      </section>`;
-    })() : '';
+      </section>${parkedBanner}`;
+    })() : parkedBanner;
     const seats = table.players.map((player, index) => {
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
       return `<article class="s2-seat" data-s2-index="${index}" data-s2-player="${escapeHtml(player)}">
@@ -324,49 +500,20 @@
           ${tag}
         </span>
         <div class="s2-seat-tools">
-          <button type="button" class="s2-seat-nudge" data-s2-action="seat-up" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} up"${index === 0 ? ' disabled' : ''}>
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 8l4-5 4 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button type="button" class="s2-seat-nudge" data-s2-action="seat-down" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} down"${index === table.players.length - 1 ? ' disabled' : ''}>
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="Move ${escapeHtml(player)} to on deck">×</button>
+          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="${escapeHtml(table.currentGame ? `Unseat ${player} from next match (keeps their profile)` : `Unseat ${player} from tonight (keeps their profile)`)}" title="${escapeHtml(table.currentGame ? 'Unseat from next match (keeps their profile)' : 'Unseat from tonight (keeps their profile)')}">×</button>
           <button type="button" class="s2-seat-handle" data-s2-action="seat-handle" data-s2-index="${index}" aria-label="Reorder ${escapeHtml(player)}">
             <svg viewBox="0 0 12 16" aria-hidden="true"><circle cx="4" cy="3" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="4" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="4" cy="13" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>
           </button>
         </div>
       </article>`;
     }).join('') || '<p class="s2-sub" id="slice2-empty-table">Add a name to seat tonight\'s table. Then pick a game and tap Start.</p>';
-    const chips = bench.map((player) => `<button type="button" class="s2-chip" data-s2-action="deck-add" data-s2-player="${escapeHtml(player)}">+ ${escapeHtml(player)}</button>`).join('');
     const cards = registryGames().map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
-      </button>`;
-    }).join('');
-    const recentNights = (window.BPGRecords && typeof BPGRecords.sortNights === 'function')
-      ? BPGRecords.sortNights(table.history)
-      : (table.history || []).slice().sort((a, b) => {
-          const da = Date.parse(a && a.date) || 0;
-          const db = Date.parse(b && b.date) || 0;
-          if (db !== da) return db - da;
-          return (Number(b && b.id) || 0) - (Number(a && a.id) || 0);
-        });
-    const nights = recentNights.slice(0, 4).map((match) => {
-      const winners = (match.winners || []).filter(Boolean);
-      const winner = winners[0] || 'Tied';
-      const label = displayGameName(match.game);
-      const incomplete = window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match);
-      const who = incomplete ? 'Incomplete' : (winners.length > 1 ? 'Tied' : (winner || ''));
-      return `<button type="button" class="s2-night${incomplete ? ' is-incomplete' : ''}${!incomplete && winners.length > 1 ? ' is-tied' : ''}" data-s2-action="night-open" data-s2-id="${escapeHtml(String(match.id || ''))}">
-        <span class="s2-night-copy">
-          <strong>${escapeHtml(label)}</strong>
-          <span class="s2-night-date">${escapeHtml(match.date || '')}</span>
-          <span class="s2-night-who">${escapeHtml(who)}</span>
-        </span>
-        ${incomplete ? '<span class="s2-night-incomplete-note">No finishers yet</span>' : nightPodiumMarkup(match)}
+        <span class="s2-game-name">${escapeHtml(game.title)}</span>
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
@@ -378,41 +525,80 @@
           </div>
           <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
           <div class="s2-seat-grid">${seats}</div>
-          <div class="s2-deck">${chips}</div>
-          <form class="s2-add" data-s2-action="add-form">
-            <div class="player-suggest-wrap">
-              <input id="quick-add-player" type="text" placeholder="Add a player" autocomplete="off" aria-label="Add a player"
-                oninput="updatePlayerSuggestions('home')"
-                onfocus="updatePlayerSuggestions('home')"
-                onblur="hidePlayerSuggestionsSoon('home')"
-                onkeydown="handlePlayerSuggestKey(event,'home')">
-              <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
-            </div>
-            <button type="submit" class="s2-btn s2-btn-primary" aria-label="Add">Add Player</button>
-          </form>
+          ${addPlayerPickerMarkup(bench, seated)}
           <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
-    const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
+    const live = table.currentGame;
+    const limit = window.BPGGames && typeof BPGGames.seatLimit === 'function'
+      ? BPGGames.seatLimit(selected, seated)
+      : { ok: true, message: '' };
+    const startSummary = limit.ok
+      ? `${meta.title} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
+      : limit.message;
+    const startBlock = live && !pickerRevealed
+      ? `<section class="s2-panel s2-home-start s2-home-start-compact" aria-label="Start a new match">
+          <div class="s2-panel-head">
+            <div>
+              <h2>Start a new match</h2>
+              <p class="s2-sub">The match on the table stays until you save it.</p>
+            </div>
+          </div>
+          <button type="button" class="s2-btn" data-s2-action="reveal-picker">Start another game</button>
+        </section>`
+      : `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
               <h2>Start a New Match</h2>
-              <p class="s2-sub">${seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start'}</p>
+              <p class="s2-sub">${live
+                ? `Next match players · ${seated} seated. Changing them does not change the match in progress.`
+                : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start')}</p>
             </div>
             <label class="s2-rules-picker">
-              <select class="s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
+              <select class="bp-select s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
                 <option value="">Game Instructions</option>
                 ${picker.map((game) => `<option value="${escapeHtml(game.id)}">${escapeHtml(game.title)}</option>`).join('')}
               </select>
             </label>
           </div>
           <div class="s2-game-grid">${cards}</div>
+          ${live && nextRosterOpen ? `<div class="s2-next-roster" id="slice2-next-roster">
+            <h3>Next match players</h3>
+            <p class="s2-sub">Unseat from next match (keeps their profile). This does not change the match in progress.</p>
+            <div class="s2-seat-grid">${seats}</div>
+            ${addPlayerPickerMarkup(bench, seated)}
+          </div>` : ''}
           <div class="s2-startbar">
-            <p id="slice2-start-summary">${escapeHtml(meta.title)} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${escapeHtml(meta.detail(seated))}</p>
-            <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game">Start ${escapeHtml(meta.title)}</button>
+            <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
+            ${live ? `<button type="button" class="s2-btn" data-s2-action="edit-next-roster">Next match players (${seated})</button>` : ''}
+            <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
-    const nightsBlock = nights ? `<section class="s2-nights" aria-label="Recent nights"><div class="s2-nights-head"><h2>Recent nights</h2></div><div class="s2-night-list">${nights}</div></section>` : '';
-    root.innerHTML = `${banner}<div class="s2-home-grid">${tableBlock}${startBlock}</div>${nightsBlock}`;
+    const standings = live ? `<section class="s2-panel s2-home-table s2-home-standings" ${anotherStep === 'confirm' ? '' : 'data-s2-action="resume"'} aria-label="Current standings">
+          <div class="s2-panel-head">
+            <div>
+              <h2>Current standings</h2>
+              <p class="s2-sub">${escapeHtml(displayGameName(live.name))} · ${escapeHtml(liveRoundLabel(live))}</p>
+            </div>
+          </div>
+          <div class="s2-standings">${standingRows(live)}</div>
+          <div class="s2-standings-foot">
+            <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${typeof isMatchOver === 'function' && isMatchOver(live) ? ' disabled' : ''}>Enter Scores</button>
+          </div>
+        </section>` : '';
+    const ask = live && anotherStep === 'confirm'
+      ? `<div class="s2-another-layer" data-s2-action="another-cancel">
+          <section class="s2-panel s2-another-ask bp-modal-panel bp-modal-panel--confirm" role="dialog" aria-labelledby="s2-another-title">
+            <h2 id="s2-another-title">Start another match?</h2>
+            <p>${escapeHtml(anotherMatchCopy(live))}</p>
+            <div class="s2-another-actions">
+              <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="another-cancel">Cancel</button>
+              <button type="button" class="s2-btn s2-btn-primary" data-s2-action="another-confirm">Save and start</button>
+            </div>
+          </section>
+        </div>`
+      : '';
+    const left = live ? standings : tableBlock;
+    root.innerHTML = `${banner}<div class="s2-home-grid">${left}${startBlock}</div>${ask}`;
     restoreSeatGrab(root);
     parkSaveIndicator();
   }
@@ -596,15 +782,17 @@
         : '';
     }
     if (enter) {
-      enter.textContent = enterLabel(currentGame);
+      const label = enterLabel(currentGame);
+      enter.textContent = label;
+      enter.setAttribute('aria-label', label);
       enter.disabled = !!isMatchOver(currentGame);
     }
     const eligible = eligibleLifePreserverPlayers();
     const lpAction = document.getElementById('actions-life-preserver-btn');
     if (lpAction) {
       const label = lpAction.querySelector('span:last-child') || lpAction;
-      if (eligible.length) label.textContent = 'Life Preserver…';
-      else label.textContent = 'Life Preserver';
+      const copy = wheelCopy();
+      if (copy) label.textContent = copy.name;
     }
   }
 
@@ -932,9 +1120,12 @@
     paintTurret(context, cx, cy, hubR);
     const hub = document.querySelector('.wheel-spinner-hub');
     const resultOpen = !document.getElementById('wheel-result')?.classList.contains('hidden');
-    if (hub) hub.textContent = resultOpen ? '' : 'SPIN';
+    if (hub) hub.textContent = '';
     const mode = document.getElementById('wheel-mode-label');
-    if (mode && !resultOpen) mode.textContent = 'Life Preserver';
+    if (mode && !resultOpen) {
+      const copy = wheelCopy();
+      if (copy) mode.textContent = copy.name;
+    }
     canvas.dataset.slice2Wheel = '1';
     paintWheel.lastLabels = labels;
     paintWheel.lastGeometry = { cx, cy, outer, inner, cssWidth, canvasWidth: canvas.width, bowl, hubR };
@@ -1068,19 +1259,66 @@
     } else if (action === 'seat-out') {
       const table = state();
       const player = table.players[Number(target.dataset.s2Index)];
-      if (player) moveToBench(player);
+      if (player && typeof unseatTonightPlayer === 'function') unseatTonightPlayer(player);
+      else if (player) moveToBench(player);
     } else if (action === 'deck-add') {
       moveToLineup(target.dataset.s2Player || '');
     } else if (action === 'pick-game') {
       selected = target.dataset.s2Game || selected;
       paintHome();
+    } else if (action === 'another-cancel') {
+      if (target.closest('.s2-another-ask') && target.dataset.s2Action !== 'another-cancel') return;
+      clearAnotherMatch();
+      paintHome();
+    } else if (action === 'another-confirm') {
+      anotherParkOk = true;
+      anotherStep = null;
+      startGame(selected);
+    } else if (action === 'reveal-picker') {
+      pickerRevealed = true;
+      paintHome();
     } else if (action === 'start-game') {
       startGame(selected);
+    } else if (action === 'unfinished-all') {
+      unfinishedOpen = true;
+      paintHome();
+    } else if (action === 'unfinished-close') {
+      if (target.closest('.s2-chooser') && target.dataset.s2Action !== 'unfinished-close') return;
+      unfinishedOpen = false;
+      paintHome();
+    } else if (action === 'edit-next-roster') {
+      nextRosterOpen = !nextRosterOpen;
+      paintHome();
+    } else if (action === 'pick-add') {
+      const name = target.dataset.s2Player || target.closest('.s2-pick')?.querySelector('span')?.textContent || '';
+      if (!name) return;
+      if (addPicks.has(name)) addPicks.delete(name);
+      else addPicks.add(name);
+      paintHome();
     } else if (action === 'resume' || action === 'scorecard') {
       goActiveMatch();
     } else if (action === 'night-open' || action === 'night-scorecard') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof openScorecard === 'function') openScorecard(id);
+    } else if (action === 'count-toggle') {
+      const id = coerceMatchId(target.dataset.s2Id);
+      if (id != null && typeof toggleCountResult === 'function') toggleCountResult(id);
+    } else if (action === 'night-delete') {
+      event.preventDefault();
+      event.stopPropagation();
+      const id = coerceMatchId(target.dataset.s2Id);
+      const table = state();
+      if (id == null) return;
+      if (table.currentGame && String(table.currentGame.id) === String(id)) {
+        if (typeof toast === 'function') toast('The live match stays on the table.');
+        return;
+      }
+      const match = (table.history || []).find((row) => row && String(row.id) === String(id));
+      const rawLabel = match && (match.game || match.name) ? String(match.game || match.name) : '';
+      const label = rawLabel && typeof displayGameName === 'function' ? displayGameName(rawLabel) : (rawLabel || 'saved');
+      if (!window.confirm(`Delete this past ${label} night? The live match is not deleted.`)) return;
+      if (typeof deletePastNight === 'function') deletePastNight(id);
+      paintRecords();
     } else if (action === 'night-resume') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof resumeMatch === 'function') resumeMatch(id);
@@ -1093,6 +1331,9 @@
       openAuditLog();
     } else if (action === 'enter-round') {
       enterRound();
+    } else if (action === 'save-end') {
+      if (typeof requestLeaveGame === 'function') requestLeaveGame();
+      else if (typeof requestEndGame === 'function') requestEndGame();
     } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
       setRecordsPane(action === 'show-shame' ? 'explore' : (action === 'show-nights' ? 'nights' : 'overview'));
     } else if (action === 'night-expand') {
@@ -1109,7 +1350,19 @@
     const form = event.target.closest?.('[data-s2-action="add-form"]');
     if (!form) return;
     event.preventDefault();
-    if (typeof addPlayerToAll === 'function') addPlayerToAll();
+    const typed = (form.querySelector('#quick-add-player')?.value || '').trim();
+    const picks = [...addPicks];
+    addPicks = new Set();
+    picks.forEach((name) => {
+      if (typeof moveToLineup === 'function') moveToLineup(name);
+    });
+    if (typed && typeof addPlayerToAll === 'function') {
+      const input = document.getElementById('quick-add-player');
+      if (input) input.value = typed;
+      addPlayerToAll();
+    } else {
+      paintHome();
+    }
   }
 
   function onChange(event) {
@@ -1136,13 +1389,15 @@
   }
 
   function onPointerDown(event) {
-    const handle = event.target.closest?.('.s2-seat-handle');
-    if (!handle || !handle.closest('#slice2-home')) return;
-    const seat = handle.closest('.s2-seat');
-    const from = Number(seat?.dataset.s2Index);
+    if (event.button != null && event.button !== 0) return;
+    const seat = event.target.closest?.('#slice2-home .s2-seat');
+    if (!seat || event.target.closest?.('.s2-seat-out, a, input, select, textarea')) return;
+    const from = Number(seat.dataset.s2Index);
     if (!Number.isInteger(from)) return;
     event.preventDefault();
-    if (handle.setPointerCapture) handle.setPointerCapture(event.pointerId);
+    if (seat.setPointerCapture) {
+      try { seat.setPointerCapture(event.pointerId); } catch (error) {}
+    }
     seatPointer = { from, over: from, pointerId: event.pointerId, startY: event.clientY, active: false };
   }
 
@@ -1218,6 +1473,7 @@
     document.addEventListener('keydown', onKeyDown);
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => {
+        paintNav();
         paintRecords();
         paintBoard();
         syncPhoneBoardViewport();
@@ -1227,6 +1483,7 @@
       });
     }
     window.addEventListener('resize', () => {
+      syncHomeChrome();
       syncPhoneBoardViewport();
       if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
@@ -1235,6 +1492,7 @@
     });
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
+        syncHomeChrome();
         syncPhoneBoardViewport();
         if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       });
@@ -1265,14 +1523,41 @@
     root.style.setProperty('--bp-vv-height', `${height}px`);
     root.style.setProperty('--bp-vv-top', `${top}px`);
     const bar = document.getElementById('slice2-board-bar');
-    if (bar) {
-      root.style.setProperty('--bp-board-bottom', `${Math.round(bar.getBoundingClientRect().bottom)}px`);
+    const enter = document.getElementById('slice2-enter-btn');
+    const end = document.getElementById('slice2-end-btn');
+    const bottoms = [bar, enter, end].filter(Boolean).map((el) => el.getBoundingClientRect().bottom);
+    if (bottoms.length) {
+      root.style.setProperty('--bp-board-bottom', `${Math.round(Math.max(...bottoms))}px`);
     }
+  }
+
+  function syncHomeChrome() {
+    const root = document.documentElement;
+    const nav = document.getElementById('top-nav');
+    const navH = nav ? Math.ceil(nav.getBoundingClientRect().height) : 72;
+    root.style.setProperty('--bp-nav-offset', `${navH}px`);
+    const shell = document.querySelector('.bp-app-shell');
+    if (shell) {
+      const shellTop = Math.max(0, Math.round(shell.getBoundingClientRect().top));
+      root.style.setProperty('--bp-shell-top', `${shellTop}px`);
+    }
+    const demoBar = document.getElementById('bpg-try-demo-bar');
+    const demoTip = document.getElementById('bpg-try-demo-tip');
+    let demoOffset = 0;
+    if (demoBar) demoOffset += Math.ceil(demoBar.getBoundingClientRect().height);
+    if (demoTip && !demoTip.hidden && getComputedStyle(demoTip).display !== 'none') {
+      demoOffset += Math.ceil(demoTip.getBoundingClientRect().height);
+    }
+    root.style.setProperty('--bp-demo-offset', `${demoOffset}px`);
+    const vv = window.visualViewport;
+    const keyboard = !!(vv && window.innerHeight - vv.height > 140);
+    root.dataset.bpKb = keyboard ? '1' : '0';
   }
 
   function refresh(which) {
     wire();
     syncPhoneBoardViewport();
+    syncHomeChrome();
     const all = !which || which === 'all';
     try { if (all || which === 'home' || which === 'game' || which === 'records') paintNav(); } catch (error) { console.error(error); }
     try { if (all || which === 'home') paintHome(); } catch (error) { console.error(error); }
@@ -1321,6 +1606,7 @@
 
   window.BPGSlice2 = {
     refresh,
+    takeAnotherParkOk,
     syncPhoneBoardViewport,
     paintWheel,
     parkSaveIndicator,
@@ -1332,7 +1618,8 @@
     animateLifePreserverBall,
     resetLifePreserverBall,
     placeLifePreserverBall,
-    highlightLifePreserverPocket
+    highlightLifePreserverPocket,
+    filterAddPicker
   };
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', () => { boot(); });

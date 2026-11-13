@@ -115,7 +115,7 @@ function assertSliceDistribution(result, label) {
     .filter(slice => sliceKind(slice, result.winLow) === kind)
     .reduce((sum, slice) => sum + slice.weight, 0);
   assert.ok(weightOf('good') / totalWeight >= 0.75, `${label}: green weight ${weightOf('good')}/${totalWeight}`);
-  assert.ok(weightOf('bad') / totalWeight <= 0.10, `${label}: red weight ${weightOf('bad')}/${totalWeight}`);
+  assert.ok(weightOf('bad') / totalWeight <= 0.125 + 1e-9, `${label}: red weight ${weightOf('bad')}/${totalWeight}`);
   const helpfulMags = result.slices
     .filter(slice => sliceKind(slice, result.winLow) === 'good')
     .map(slice => Math.abs(slice.adjustment))
@@ -575,7 +575,7 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
   assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
   assert.ok(eight18.how.some(line => /One spin per player per match/.test(line)));
   assert.ok(eight18.wheel.some(line => /Cannot tie or pass the leader/.test(line)));
-  assert.ok(eight18.wheel.some(line => /45% small help/.test(line) && /12% no change/.test(line)));
+  assert.ok(eight18.wheel.some(line => /45% small help/.test(line) && /7\.5% no change/.test(line) && /12\.5% a small setback/.test(line)));
   assert.ok(!eight18.wheel.some(line => /perfectly proportional/i.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
@@ -593,7 +593,7 @@ test('Life Preserver rules copy is plain language and game-specific', () => {
 
   const rook = LP.explainLifePreserverRules('Rook');
   assert.equal(rook.supported, false);
-  assert.match(rook.lead, /does not use Life Preservers/);
+  assert.match(rook.lead, /does not use the Back Porch Wheel/);
 });
 
 test('threshold QA fixtures unlock only Duke at the first legal hole', () => {
@@ -964,9 +964,12 @@ test('roulette segment arcs match each outcome probability and sum to 360', () =
         `${item.label} ${band.band} visual ${band.visualShare} != live ${band.probability}`
       );
     });
-    assert.equal(table.equalOption.implied.noChange, 0.125);
-    assert.equal(LP.OUTCOME_TABLE.noChange, 0.12);
-    assert.equal(LP.OUTCOME_TABLE.smallSetback, 0.08);
+    assert.equal(table.equalOption.implied.noChange, 0.075);
+    assert.equal(table.equalOption.implied.smallSetback, 0.125);
+    assert.equal(table.equalOption.counts.smallSetback, 5);
+    assert.equal(table.equalOption.counts.noChange, 3);
+    assert.equal(LP.OUTCOME_TABLE.noChange, 0.075);
+    assert.equal(LP.OUTCOME_TABLE.smallSetback, 0.125);
     console.log('POCKET_TABLE', item.label, JSON.stringify(table.outcomes.map((row) => ({
       label: row.label,
       prob: Number(row.probability.toFixed(4)),
@@ -1051,7 +1054,7 @@ test('in-slice label boxes stay inside their roulette segments', () => {
 
 test('data-driven pocket layout works for current and proposed tables', () => {
   const cases = [
-    { table: 'current', help: 0.80, zero: 0.12, bad: 0.08 },
+    { table: 'current', help: 0.80, zero: 0.075, bad: 0.125 },
     { table: 'proposed', help: 0.75, zero: 0.10, bad: 0.15 }
   ];
   const altOutcomes = LP.layoutRoulettePockets([
@@ -1153,7 +1156,7 @@ test('in-slice label fonts grow with the wheel', () => {
   assert.ok(largeFont > smallFont + 3, `rim font ${smallFont} -> ${largeFont}`);
 });
 
-test('default offer stays on the live 45/30/5/12/8 table', () => {
+test('default offer stays on the live 45/30/5/7.5/12.5 table', () => {
   const live = offer('Five Crowns', { Ann: 25, Bea: 38, Cal: 44, Dee: 52, Duke: 76 }, {
     roundCount: 9,
     spread: 8,
@@ -1167,8 +1170,22 @@ test('default offer stays on the live 45/30/5/12/8 table', () => {
   const zero = table.outcomes.filter((row) => row.kind === 'zero').reduce((sum, row) => sum + row.probability, 0);
   const bad = table.outcomes.filter((row) => row.kind === 'bad').reduce((sum, row) => sum + row.probability, 0);
   assert.ok(Math.abs(help - 0.80) < 1e-9, `live help ${help}`);
-  assert.ok(Math.abs(zero - 0.12) < 1e-9, `live zero ${zero}`);
-  assert.ok(Math.abs(bad - 0.08) < 1e-9, `live bad ${bad}`);
+  assert.ok(Math.abs(zero - 0.075) < 1e-9, `live zero ${zero}`);
+  assert.ok(Math.abs(bad - 0.125) < 1e-9, `live bad ${bad}`);
+  const helpSegs = live.slices.filter((slice) => slice.kind === 'good').length;
+  const zeroSegs = live.slices.filter((slice) => slice.kind === 'zero').length;
+  const badSegs = live.slices.filter((slice) => slice.kind === 'bad').length;
+  assert.equal(helpSegs, 32, `help slices ${helpSegs}`);
+  assert.equal(zeroSegs, 3, `no-change slices ${zeroSegs}`);
+  assert.equal(badSegs, 5, `setback slices ${badSegs}`);
+  assert.equal(LP.PREVIOUS_POCKET_COUNTS.smallSetback, 3);
+  assert.equal(LP.PREVIOUS_OUTCOME_TABLE.smallSetback, 0.08);
+  assert.equal(LP.PREVIOUS_OUTCOME_TABLE.noChange, 0.12);
+  assert.ok(badSegs > LP.PREVIOUS_POCKET_COUNTS.smallSetback);
+  const setbackLift = badSegs / LP.PREVIOUS_POCKET_COUNTS.smallSetback - 1;
+  assert.ok(Math.abs(setbackLift - (2 / 3)) < 1e-9, `setback slice lift ${setbackLift}`);
+  const setbacks = [...new Set(live.slices.filter((slice) => slice.kind === 'bad').map((slice) => Math.abs(slice.adjustment)))].sort((a, b) => a - b);
+  assert.deepEqual(setbacks, [5, 10], `setback amounts grew: ${setbacks.join(',')}`);
 });
 
 test('proposed TEMP table matches 30/45/10/15, lands in the locked pocket, and stays inside labels', () => {

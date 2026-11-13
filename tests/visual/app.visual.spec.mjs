@@ -838,10 +838,10 @@ test('score-entry acknowledgement handles explicit zero and blank Next',async({p
   const firstRowId=await page.locator('#score-entry-rows .score-entry-row.active').getAttribute('id');
   const firstRow=page.locator(`#${firstRowId}`);
   await expect(firstRow.locator('.score-entry-confirm-status')).toHaveText('Not entered');
-  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Not entered scores count as 0|Blank scores count as 0/);
+  await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
   await expect(firstRow.locator('.score-entry-confirm-status')).not.toContainText('Suggested');
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
-  await page.getByRole('button',{name:'Next',exact:true}).click();
+  await page.getByRole('button',{name:'Skip',exact:true}).click();
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   await expect(firstRow).toHaveClass(/is-empty/);
   await expect(firstRow).not.toHaveClass(/is-complete/);
@@ -882,7 +882,7 @@ test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
   await expect(page.locator(`#${activeRowId} .score-entry-confirm-status`)).toContainText(/Entered 0/);
   await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(page.locator(`#${activeRowId}`)).toHaveClass(/is-complete/);
-  await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids entered/);
+  await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids in/);
 });
 
 test('Wizard rejects bids outside the available trick range',async({page})=>{
@@ -1014,7 +1014,9 @@ test('ties finish normally without a tiebreaker prompt',async({page})=>{
   expect(await page.locator('#sudden-death-modal').count(),'the removed tiebreaker UI should not exist').toBe(0);
 
   await page.getByRole('button',{name:'Save & End',exact:true}).click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#victory-names')).toHaveText(/Everyone tied/i);
   const winners = await page.evaluate(() => ((typeof history !== 'undefined' && history[0] && history[0].winners) || []).slice().sort());
@@ -1142,7 +1144,6 @@ test('all six game types reach their first scoring surface',async({page})=>{
     {id:'818',title:'818'},
     {id:'Flip 7 Vengeance',title:'Flip 7'},
     {id:'Beat the Heat',title:'Beat the Heat'}
-    // Rook stays hidden on the shelf this freeze. Do not unlock it from the picker.
   ];
   page.on('dialog',dialog=>dialog.accept());
   for(const game of games){
@@ -1153,4 +1154,15 @@ test('all six game types reach their first scoring surface',async({page})=>{
     await expect(page.locator('#slice2-board-line')).toContainText(game.title);
     await expect(page.locator('#slice2-enter-btn')).toBeVisible();
   }
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]').click();
+  await page.locator('#slice2-start-btn').click();
+  await expect(page.locator('#rook-setup-modal')).toBeVisible();
+  const rookSetup = await page.evaluate(() => ({
+    stored: _rookSetupConfig.winTarget,
+    targets: [...document.querySelectorAll('#rook-setup-modal .rook-setup-btn')].map((el) => el.textContent.trim()).filter((text) => ['300', '500', '1000'].includes(text))
+  }));
+  expect(rookSetup.stored).toBe(300);
+  expect(rookSetup.targets).toEqual(['300', '500', '1000']);
 });

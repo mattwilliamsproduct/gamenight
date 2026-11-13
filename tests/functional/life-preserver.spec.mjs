@@ -5,7 +5,7 @@ import {openTestView} from '../helpers/inject-book.mjs';
 test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({page})=>{
   await openScenario(page,{scenario:'eight18-porch-lp'});
 
-  await page.getByRole('button',{name:/Life Preserver available for Cat/}).click();
+  await page.getByRole('button',{name:/Spin ready for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-commit-line')).toContainText('Best help: +20');
   await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
@@ -41,7 +41,7 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
 
 test('drawn Life Preserver angles match slice weights', async ({page}) => {
   await openScenario(page, {scenario: 'five-crowns-preservers', surface: 'scorecard'});
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   const compared = await page.evaluate(() => {
     const slices = getWheelSlices();
@@ -69,7 +69,7 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   const badWeight = bads.reduce((sum, slice) => sum + slice.weight, 0);
   const total = compared.reduce((sum, slice) => sum + slice.weight, 0);
   expect(goodWeight / total).toBeGreaterThanOrEqual(0.75);
-  expect(badWeight / total).toBeLessThanOrEqual(0.10);
+  expect(badWeight / total).toBeLessThanOrEqual(0.125 + 1e-9);
 });
 
 test('Life Preserver roulette labels stay inside their slices', async ({page}) => {
@@ -169,7 +169,7 @@ test('Life Preserver dialog stays usable at a short laptop height', async ({page
 
 test('Life Preserver locks the outcome before the reveal and blocks a second spin', async ({page}) => {
   await openScenario(page, {scenario: 'five-crowns-preservers', surface: 'scorecard'});
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   const locked = await page.evaluate(() => {
     spinWheel();

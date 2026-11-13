@@ -14,6 +14,7 @@ test('older main backup restores Rook nights, profiles, and records without Cana
 
   const merged = await page.evaluate((text) => {
     importBackupText(text);
+    confirmRestore();
     const rook = history.find((match) => match.game === 'Rook');
     return {
       games: history.map((match) => match.game),

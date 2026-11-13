@@ -13,7 +13,7 @@ async function keypadKeys(page) {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const inset = 2;
-    return [...document.querySelectorAll('#score-entry-modal .score-entry-key')].map((el) => {
+    return [...document.querySelectorAll('#score-entry-modal .score-entry-key')].filter((el) => getComputedStyle(el).display !== 'none').map((el) => {
       const box = el.getBoundingClientRect();
       const points = [
         ['center', box.left + box.width / 2, box.top + box.height / 2],
@@ -104,7 +104,9 @@ for (const size of SIZES) {
       page.on('dialog', (dialog) => dialog.accept());
       await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'entry-scores'});
       await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-      await expect(page.locator('#score-entry-selected-name')).toContainText(/Megan|Scoring/);
+      const leader = await page.evaluate(() => getScoreEntryDisplayPlayers(getActivePlayers(currentGame))[0]);
+      // docs/tech-spec.md: after round 1 the scoreboard sorts by win direction. The modal opens on that row.
+      await expect(page.locator('#score-entry-selected-name')).toHaveText(leader);
       if (size.width <= 390) {
         await assertKeypadFullyUsable(page, size.name);
         await assertEntryFooterLayout(page, size.name);
@@ -137,15 +139,15 @@ for (const size of SIZES) {
       });
 
       await page.evaluate(() => goHome());
-      await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
-      await page.locator('[data-s2-action="resume"]').click();
+      await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
+      await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
       await expect(page.locator('#slice2-board-bar')).toBeVisible();
       await expect(page.locator('#scorecard-body .scorecard-total-value').first()).toBeVisible();
       const resumed = await page.evaluate(() => Number(currentGame?.totals?.Megan) || 0);
       expect(resumed, `${size.name} Megan total after Resume`).toBe(afterEnter);
 
       await openScenario(page, {scenario: 'eight18-porch-lp', surface: 'scorecard'});
-      const chip = page.getByRole('button', {name: /Life Preserver available/}).first();
+      const chip = page.getByRole('button', {name: /Spin ready/}).first();
       if (await chip.count()) await chip.click();
       else {
         await page.locator('#actions-btn').click();
@@ -190,6 +192,8 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
       const overlaps = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
       return {
         navHeight: box.height,
+        buttonTops: buttons.map((button) => button.getBoundingClientRect().top),
+        buttonH: buttons.length ? Math.max(...buttons.map((button) => button.getBoundingClientRect().height)) : 0,
         labels: buttons.map((button) => (button.textContent || '').replace(/\s+/g, ' ').trim()),
         titles: buttons.map((button) => button.getAttribute('title') || ''),
         boxes: buttons.map((button) => {
@@ -209,7 +213,9 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
         toastOverlapsName: names.some((cell) => overlaps(toast, cell))
       };
     });
-    expect(chrome.navHeight, `${size.width} nav stays one line`).toBeLessThanOrEqual(72);
+    expect(Math.max(...chrome.buttonTops) - Math.min(...chrome.buttonTops), `${size.width} nav stays one line`).toBeLessThanOrEqual(8);
+    expect(chrome.buttonH, `${size.width} home label wrapped`).toBeLessThanOrEqual(48);
+    expect(chrome.navHeight, `${size.width} nav height ${chrome.navHeight}`).toBeLessThanOrEqual(120);
     expect(chrome.savedInNav, `${size.width} Saved is not a nav slot`).toBe(false);
     expect(chrome.labels.join(' '), `${size.width} nav labels`).not.toMatch(/Active Match|Saved/i);
     expect(chrome.titles.join(' '), `${size.width} settings gear on screen`).toMatch(/Settings/);
@@ -269,7 +275,8 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
     };
   });
   expect(entry.labelShown, 'Selected Player label is gone on 375').toBe(false);
-  expect(entry.nameText, 'selected name stays Megan').toMatch(/Megan/i);
+  const leader = await page.evaluate(() => getScoreEntryDisplayPlayers(getActivePlayers(currentGame))[0]);
+  expect(entry.nameText, 'selected name is the standings leader').toBe(leader);
 });
 
 test('a porch key and local history boot with no cloud sync', async ({page}) => {
@@ -329,11 +336,13 @@ test('Settings and Records say history is local, and Restore copy matches mergeB
   await expect(page.locator('#settings-modal .local-storage-statement')).toHaveText('Scores and history are saved in this browser on this device.');
   await expect(page.locator('#settings-modal button', {hasText: 'Backup'})).toBeVisible();
   await expect(page.locator('#settings-modal .bp-modal-foot button', {hasText: /^Restore$/})).toBeVisible();
-  await expect(page.locator('#backup-restore-copy')).toContainText('adds games and players');
-  await expect(page.locator('#backup-restore-copy')).toContainText('Finished games already here stay');
-  await expect(page.locator('#backup-restore-copy')).toContainText('match in progress');
+  await expect(page.locator('#backup-restore-copy')).toContainText('adds players and games');
+  await expect(page.locator('#backup-restore-copy')).toContainText('same id');
+  await expect(page.locator('#backup-restore-copy')).toContainText('leaves the match here');
+  await expect(page.locator('#backup-restore-copy')).toContainText('Neither match is discarded');
   await expect(page.locator('#settings-modal')).toContainText('Clearing browser data or losing this device');
-  await expect(page.locator('#porch-cloud-key')).toHaveCount(0);
+  await expect(page.locator('#porch-cloud-key')).toBeVisible();
+  await expect(page.locator('#porch-cloud-status')).toContainText('preview cannot overwrite');
   await page.evaluate(() => closeSettings());
 
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2view=records', {waitUntil: 'networkidle'});

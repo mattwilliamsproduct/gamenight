@@ -26,8 +26,10 @@ test('demo board primary controls are at least 44px on 390', async ({page}) => {
       return {id: el?.id || el?.className, w: box?.width || 0, h: box?.height || 0};
     });
   });
-  const end = await page.locator('.match-end-btn').boundingBox();
+  await page.locator('#actions-btn').click();
+  const end = await page.locator('#actions-menu .match-end-btn').boundingBox();
   expect(end?.height || 0, 'Save & End height').toBeGreaterThanOrEqual(44);
+  await page.locator('#actions-btn').click();
   sizes.forEach((row) => {
     expect(row.h, `${row.id} height`).toBeGreaterThanOrEqual(44);
   });
@@ -190,7 +192,7 @@ function parseRgb(color) {
 async function expectBlankScoreHelper(page, label) {
   const helper = page.locator('#score-entry-unconfirmed');
   await expect(helper, label).toBeVisible();
-  await expect(helper, label).toHaveText(/Blank scores count as 0/);
+  await expect(helper, label).toHaveText(/Skip leaves a score blank/);
   const box = await helper.evaluate((el) => {
     const r = el.getBoundingClientRect();
     const style = getComputedStyle(el);
@@ -550,7 +552,8 @@ test('375 and 390 demo scorecards keep round cells readable', async ({page}) => 
     expect(cols.collide, `${size.width} ${JSON.stringify(cols.boxes)}`).toBe(false);
     expect(cols.boxes.length, `${size.width} at least one visible round`).toBeGreaterThanOrEqual(1);
     cols.boxes.forEach((box) => {
-      expect(box.text, `${size.width} ${JSON.stringify(box)}`).toMatch(/^R\d+$/);
+      // Completed hands read R#. The live column is "This round" (scorecard-table locks that header).
+      expect(box.text, `${size.width} ${JSON.stringify(box)}`).toMatch(/^(?:R\d+|This round)$/);
     });
     expect(cols.minCol, `${size.width} ${JSON.stringify(cols.boxes)}`).toBeGreaterThanOrEqual(32);
     expect(cols.minCell, `${size.width} round cell readable`).toBeGreaterThanOrEqual(28);

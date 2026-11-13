@@ -10,6 +10,8 @@ test('adding a seventh Wizard player shortens a 6-player match from 10 rounds to
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
   await page.locator('#midgame-add-player-input').fill('Alexis');
   await page.locator('#add-player-modal').getByRole('button',{name:'Add',exact:true}).click();
+  await expect(page.locator('#midgame-add-confirm')).not.toHaveClass(/hidden/);
+  await page.locator('#add-player-modal').getByRole('button',{name:'Add',exact:true}).click();
 
   await expect(page.locator('#slice2-board-line')).toContainText(/Round 3 of 8/);
   await expect(page.locator('#toast-container')).toContainText('Match is now 8 rounds');
@@ -31,6 +33,7 @@ test('adding a late Wizard player does not cut off the current round', async ({p
     currentGame.currentRound=9;
     renderGame();
     submitAddPlayerMidGame('Alexis');
+    submitAddPlayerMidGame('Alexis');
     renderGame();
     return {
       maxRounds:currentGame.maxRounds,
@@ -46,6 +49,22 @@ test('adding a late Wizard player does not cut off the current round', async ({p
   expect(state.intel).toContain('R9 / 9');
 });
 
+test('a Wizard departure does not change the round count fixed at the start', async ({page})=>{
+  await openScenario(page,{scenario:'wizard-6-mid'});
+  const state=await page.evaluate(()=>{
+    const before=currentGame.maxRounds;
+    const name=currentGame.originalRoster[0];
+    if(!currentGame.retired) currentGame.retired=[];
+    if(!currentGame.retired.includes(name)) currentGame.retired.push(name);
+    const change=resyncGameMaxRounds(currentGame);
+    return {before, after:currentGame.maxRounds, changed:change.changed, roster:currentGame.originalRoster.length};
+  });
+  expect(state.before).toBe(10);
+  expect(state.after).toBe(10);
+  expect(state.changed).toBe(false);
+  expect(state.roster).toBe(6);
+});
+
 test('adding a Five Crowns player keeps the 11-hand match length', async ({page})=>{
   await openScenario(page,{scenario:'five-crowns-4'});
 
@@ -53,6 +72,7 @@ test('adding a Five Crowns player keeps the 11-hand match length', async ({page}
   expect(before).toBe(11);
 
   const after=await page.evaluate(()=>{
+    submitAddPlayerMidGame('Alexis');
     submitAddPlayerMidGame('Alexis');
     renderGame();
     return {

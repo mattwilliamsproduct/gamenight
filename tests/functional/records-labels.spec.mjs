@@ -14,7 +14,7 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   await expect(ledger.getByRole('heading', {name: 'Hall of Fame'})).toBeVisible();
   await expect(ledger).toContainText('Canasta');
   await expect(ledger).toContainText(/completed match/);
-  await expect(ledger).toContainText('Unassisted matches only');
+  await expect(ledger).toContainText(/Unassisted matches only|Final-score records exclude assisted matches/);
   await expect(ledger).not.toContainText('Unassisted matches only on best final');
   await expect(ledger).not.toContainText('Game Championship Ledger');
   await expect(page.locator('#slice2-show-fame')).toHaveText(/Overview/);
@@ -24,12 +24,17 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   const explore = page.locator('.s2-explore-col');
   await expect(explore).toContainText('Canasta');
   await expect(explore).toContainText('Rook');
+  await expect(explore).toContainText('Dead Last Derby');
+  await expect(explore).toContainText('Biggest Wizard comeback');
+  const comeback = explore.locator('.s2-book-row').filter({hasText: 'Biggest Wizard comeback'});
+  await expect(comeback).toContainText('100');
+  await expect(comeback).toContainText('Cleo');
+  await expect(comeback).toContainText('Last at halfway, won Wizard');
+  await expect(explore).toContainText('Decided in the final round');
+  await expect(explore).toContainText('Closest finish to 66');
   await expect(explore).toContainText('Longest stretch without a win');
-  await expect(explore).toContainText('Highest head-to-head win rate');
-  await expect(explore).toContainText('View player profiles');
   await expect(explore).toContainText('Unassisted matches only');
   await expect(explore).toContainText('Places gained are measured immediately after each spin');
-  await expect(explore).toContainText('Tied');
   await expect(explore).toContainText(/of \d+ bids/);
   await expect(explore).not.toContainText('More from the book');
   await expect(explore).not.toContainText('Most games without a win');
@@ -40,6 +45,23 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   await expect(page.locator('.s2-nights-col')).toContainText('Left early');
   await expect(page.locator('.s2-nights-col')).toContainText('Resume');
   await expect(page.locator('.s2-nights-col')).not.toContainText('Retired');
+});
+
+test('a Canasta deficit does not erase the Wizard comeback', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await page.goto('/?gnqa=1&gallery=0&scenario=comeback-by-game&surface=records', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.locator('#slice2-show-shame').click();
+  const explore = page.locator('.s2-explore-col');
+  const wizard = explore.locator('.s2-book-row').filter({hasText: 'Biggest Wizard comeback'});
+  const canasta = explore.locator('.s2-book-row').filter({hasText: 'Biggest Canasta comeback'});
+  await expect(wizard).toContainText('100');
+  await expect(wizard).toContainText('Cleo');
+  await expect(wizard).toContainText('Last at halfway, won Wizard');
+  await expect(canasta).toContainText('180');
+  await expect(canasta).toContainText('Cat and Mike');
+  await expect(canasta).toContainText('Last at halfway, won Canasta');
+  await expect(canasta).not.toContainText('Hand and Foot');
 });
 
 test('a one-round Wizard match cannot claim single-match bid accuracy', async ({page}) => {

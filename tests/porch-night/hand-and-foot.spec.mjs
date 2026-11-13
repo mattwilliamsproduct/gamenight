@@ -15,17 +15,20 @@ test('porch night can score a full Hand and Foot table without calling the cloud
 
   let setup=await startHandFoot(page, {names:['Ann','Bo'], format:'singles'});
   expect(setup.sides).toBe(2);
-  await playRound(page, [['2','1','2','1','450','95'], ['0','0','0','0','-40','10']]);
+  await playRound(page, [
+    {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
+    {basic:'0', count:'-40', cardsLeft:'10'}
+  ]);
   await page.reload({waitUntil:'domcontentloaded'});
   let game=await readGame(page);
-  expect(game.rounds[0].scores.Ann).toBe(1955);
+  expect(game.rounds[0].scores.Ann).toBe(2055);
   expect(game.rounds[0].handFootParts.Ann.cardsLeft).toBe(95);
-  await playRound(page, [['0','0','0','1','0','0'], ['0','0','0','0','0','0']]);
-  await playRound(page, [['1','0','0','0','0','0'], ['0','0','1','0','0','0']]);
-  await playRound(page, [['0','0','0','0','10','0'], ['0','1','0','0','0','0']]);
+  await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
+  await playRound(page, [{basic:'100', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', wentOut:true}]);
+  await playRound(page, [{basic:'0', count:'10', cardsLeft:'0'}, {basic:'300', count:'0', cardsLeft:'0'}]);
   await expect(page.locator('#game-over-section')).toContainText('Match Complete');
   await endMatch(page);
-  await expect(page.locator('#victory-names')).toContainText('Ann');
+  await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
 
   await freshTable(page);
   setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee'], format:'teams'});

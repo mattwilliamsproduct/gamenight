@@ -1,0 +1,192 @@
+{
+  "version": 2,
+  "exportedAt": "2026-11-12T21:35:19.073Z",
+  "gameCounts": {
+    "818": 1,
+    "Five Crowns": 1,
+    "Wizard": 1,
+    "Flip 7 Vengeance": 0,
+    "Beat the Heat": 0,
+    "Rook": 0
+  },
+  "allPlayers": [
+    "Alex Rivera",
+    "Blair Cho",
+    "Casey Nguyen"
+  ],
+  "players": [
+    "Alex Rivera",
+    "Blair Cho"
+  ],
+  "history": [
+    {
+      "id": 1730000000001,
+      "game": "818",
+      "date": "10/31/2026",
+      "totals": {
+        "Alex Rivera": 88,
+        "Blair Cho": 70
+      },
+      "winners": [
+        "Alex Rivera"
+      ],
+      "rounds": [
+        {
+          "round": 1,
+          "bids": {
+            "Alex Rivera": 2,
+            "Blair Cho": 1
+          },
+          "actuals": {
+            "Alex Rivera": 2,
+            "Blair Cho": 1
+          },
+          "scores": {
+            "Alex Rivera": 12,
+            "Blair Cho": 11
+          }
+        }
+      ],
+      "originalRoster": [
+        "Alex Rivera",
+        "Blair Cho"
+      ],
+      "currentRound": 16,
+      "hailMaryUsed": [],
+      "lifePreserverHeld": [],
+      "lifePreserverHeldRound": null,
+      "retired": [],
+      "currentScoreDrafts": {},
+      "dealerOffset": 0,
+      "auditLog": [
+        {
+          "ts": 1730000000001,
+          "action": "Match Started",
+          "detail": "818 · 2 players"
+        }
+      ]
+    },
+    {
+      "id": 1730000000002,
+      "game": "Five Crowns",
+      "date": "11/1/2026",
+      "totals": {
+        "Alex Rivera": 40,
+        "Blair Cho": 55,
+        "Casey Nguyen": 48
+      },
+      "winners": [
+        "Alex Rivera"
+      ],
+      "rounds": [
+        {
+          "round": 1,
+          "scores": {
+            "Alex Rivera": 10,
+            "Blair Cho": 20,
+            "Casey Nguyen": 15
+          }
+        }
+      ],
+      "originalRoster": [
+        "Alex Rivera",
+        "Blair Cho",
+        "Casey Nguyen"
+      ],
+      "currentRound": 12,
+      "hailMaryUsed": [],
+      "lifePreserverHeld": [],
+      "lifePreserverHeldRound": null,
+      "retired": [],
+      "currentScoreDrafts": {},
+      "dealerOffset": 0,
+      "auditLog": []
+    },
+    {
+      "id": 1730000000003,
+      "game": "Wizard",
+      "date": "11/2/2026",
+      "totals": {
+        "Alex Rivera": 20,
+        "Blair Cho": 10
+      },
+      "winners": [
+        "Alex Rivera"
+      ],
+      "rounds": [
+        {
+          "round": 1,
+          "bids": {
+            "Alex Rivera": 0,
+            "Blair Cho": 1
+          },
+          "actuals": {
+            "Alex Rivera": 0,
+            "Blair Cho": 1
+          },
+          "scores": {
+            "Alex Rivera": 20,
+            "Blair Cho": 30
+          }
+        }
+      ],
+      "originalRoster": [
+        "Alex Rivera",
+        "Blair Cho"
+      ],
+      "currentRound": 3,
+      "hailMaryUsed": [],
+      "lifePreserverHeld": [],
+      "lifePreserverHeldRound": 1,
+      "retired": [],
+      "currentScoreDrafts": {},
+      "dealerOffset": 0,
+      "auditLog": []
+    }
+  ],
+  "playerProfiles": {
+    "Alex Rivera": {
+      "avatar": "indiana.png",
+      "color": 2
+    },
+    "Blair Cho": {
+      "avatar": "hermione.png",
+      "color": 0
+    },
+    "Casey Nguyen": {
+      "avatar": "donkey.png"
+    }
+  },
+  "currentGame": {
+    "name": "Beat the Heat",
+    "originalRoster": [
+      "Alex Rivera",
+      "Blair Cho"
+    ],
+    "currentRound": 2,
+    "rounds": [
+      {
+        "round": 1,
+        "scores": {
+          "Alex Rivera": 12,
+          "Blair Cho": 8
+        }
+      }
+    ],
+    "totals": {
+      "Alex Rivera": 12,
+      "Blair Cho": 8
+    },
+    "hailMaryUsed": [],
+    "lifePreserverHeld": [],
+    "lifePreserverHeldRound": 1,
+    "retired": [],
+    "currentScoreDrafts": {}
+  },
+  "prefs": {
+    "lineupIntro": false,
+    "statMontage": true,
+    "dealerRoll": true
+  },
+  "uiScale": 18
+}

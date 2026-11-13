@@ -7,11 +7,11 @@ const require = createRequire(import.meta.url);
 const HF = require('../public/assets/hand-foot-logic.js');
 
 test('four rounds use the usual minimum melds', () => {
-  assert.deepEqual(HF.MELDS, [50, 90, 120, 150]);
+  assert.deepEqual(HF.MELDS, [50, 90, 110, 150]);
   assert.equal(HF.ROUNDS, 4);
   assert.equal(HF.meldForRound(1), 50);
   assert.equal(HF.meldForRound(2), 90);
-  assert.equal(HF.meldForRound(3), 120);
+  assert.equal(HF.meldForRound(3), 110);
   assert.equal(HF.meldForRound(4), 150);
   assert.equal(HF.meldForRound(5), null);
 });
@@ -527,21 +527,17 @@ test('prove-it: four players are two lineup pairs and six players are three', ()
   assert.equal(singles.scores.Bo, 100);
 });
 
-test('prove-it: the entry form is seven inputs plus a computed total', () => {
+test('prove-it: a new Canasta round is Basic, Count, two checkboxes, and Cards left', () => {
   const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-  assert.match(html, /const HAND_FOOT_FIELDS=\['cleanCanastas','dirtyCanastas','sevensCanastas','redThrees','goingOut','cardPoints','cardsLeft'\]/);
-  assert.doesNotMatch(html, /HAND_FOOT_FIELDS=\[[^\]]*canastaPoints/);
-  assert.match(html, /cleanCanastas:'Clean'/);
-  assert.match(html, /dirtyCanastas:'Dirty'/);
-  assert.match(html, /sevensCanastas:'Sevens'/);
-  assert.match(html, /redThrees:'Red 3s'/);
-  assert.match(html, /goingOut:'Going out'/);
-  assert.match(html, /cardsLeft:'Cards left'/);
-  assert.match(html, /handFootLegacyUntouched\(parts\)\|\|handFootPriorUntouched\(parts\)/);
-  assert.match(html, /legacy\?'Older round':'Total'/);
-  assert.match(html, /class="hf-round"/);
+  assert.match(html, /Got the 22 · \+100/);
+  assert.match(html, /Went out · \+100/);
+  assert.match(html, /Card points before subtracting cards left\./);
+  assert.match(html, /Cards left · subtract/);
+  assert.match(html, /Meld minimum/);
+  assert.match(html, /type="checkbox"/);
+  assert.match(html, /data-check="got22"/);
+  assert.match(html, /data-check="wentOut"/);
   assert.doesNotMatch(html, /<input[^>]*hf-round/);
-  assert.match(html, /Clean × 500 \+ dirty × 300 \+ sevens × 1,500 \+ red 3s \+ going out − cards left/);
   assert.match(html, /!!merge && !partners/);
 });
 
@@ -785,7 +781,7 @@ test('house rules live in one CANASTA_RULES object', () => {
     nineAndBelow: 5
   });
   assert.equal(HF.CANASTA_RULES.rounds, 4);
-  assert.deepEqual(HF.CANASTA_RULES.melds, [50, 90, 120, 150]);
+  assert.deepEqual(HF.CANASTA_RULES.melds, [50, 90, 110, 150]);
 });
 
 test('a sevens canasta is 1500 instead of the clean 500, not on top', () => {
@@ -866,4 +862,84 @@ test('going out adds 100 once and card values stay in config', () => {
   assert.equal(HF.CANASTA_RULES.cardValues.ace, 20);
   assert.equal(HF.CANASTA_RULES.cardValues.faceAndTen, 10);
   assert.equal(HF.CANASTA_RULES.cardValues.nineAndBelow, 5);
+});
+
+test('basic count rounds add the five fields and keep old totals frozen', () => {
+  assert.deepEqual(HF.CANASTA_RULES.melds, [50, 90, 110, 150]);
+  assert.equal(HF.meldForRound(1), 50);
+  assert.equal(HF.meldForRound(2), 90);
+  assert.equal(HF.meldForRound(3), 110);
+  assert.equal(HF.meldForRound(4), 150);
+  const scored = HF.roundScore({basic: 1600, count: -40, got22: true, wentOut: true, cardsLeft: 95});
+  assert.equal(scored, 1600 + -40 + 100 + 100 - 0);
+  assert.equal(HF.roundScore({basic: 300, count: 0, got22: false, wentOut: false, cardsLeft: 20}), 280);
+  assert.equal(HF.acceptCardsLeft(-8).ok, false);
+  assert.equal(HF.acceptCardsLeft('-3').ok, false);
+  assert.equal(HF.roundScore({basic: 10, count: 0, cardsLeft: -4}), 10);
+  const settled = HF.settleBasicRound({
+    'Ann & Bo': {basic: 10, count: 0, got22: false, wentOut: true, cardsLeft: 4},
+    'Cy & Dee': {basic: 20, count: 0, got22: true, wentOut: true, cardsLeft: 12}
+  });
+  assert.equal(settled['Ann & Bo'].wentOut, true);
+  assert.equal(settled['Ann & Bo'].cardsLeft, 0);
+  assert.equal(settled['Cy & Dee'].wentOut, false);
+  assert.equal(settled['Cy & Dee'].cardsLeft, 12);
+  const sides = [
+    {key: 'Ann & Bo', members: ['Ann', 'Bo']},
+    {key: 'Cy & Dee', members: ['Cy', 'Dee']}
+  ];
+  const round = HF.persistTeamRound(1, settled, sides);
+  assert.equal(round.scores.Ann, round.scores.Bo);
+  assert.equal(round.scores.Ann, 110);
+  assert.equal(round.scores.Cy, 108);
+  assert.equal(round.handFootParts.Ann.basic, 10);
+  assert.equal(round.handFootParts.Bo.got22, false);
+  assert.equal(round.handFootParts.Cy.got22, true);
+  assert.equal(round.scores['Ann & Bo'], undefined);
+  const legacy = HF.persistSideParts({
+    cleanCanastas: 2,
+    dirtyCanastas: 1,
+    sevensCanastas: 0,
+    redThrees: 2,
+    goingOut: 1,
+    cardPoints: 450,
+    cardsLeft: 95
+  });
+  assert.equal(legacy.roundScore, 1955);
+  assert.equal(legacy.basic, undefined);
+  const frozen = HF.normalizeSideParts(legacy, 1955);
+  assert.equal(frozen.roundScore, 1955);
+  assert.equal(frozen.basic, undefined);
+  const history = [{
+    game: 'Hand and Foot',
+    outcome: 'ended_early',
+    completed: true,
+    totals: {Ann: 210, Bo: 210, Cy: 120, Dee: 120},
+    originalRoster: ['Ann', 'Bo', 'Cy', 'Dee'],
+    rounds: [round, {
+      round: 2,
+      scores: {Ann: 100, Bo: 100},
+      handFootParts: {
+        Ann: {cleanCanastas: 0, dirtyCanastas: 0, goingOut: 1, cardPoints: 0, cardsLeft: 0, roundScore: 100},
+        Bo: {cleanCanastas: 0, dirtyCanastas: 0, goingOut: 1, cardPoints: 0, cardsLeft: 0, roundScore: 100}
+      }
+    }]
+  }];
+  assert.equal(HF.playerEventTotals(history, 'Ann').got22, 0);
+  assert.equal(HF.playerEventTotals(history, 'Bo').wentOut, 2);
+  assert.equal(HF.playerEventTotals(history, 'Cy').got22, 1);
+  assert.equal(HF.playerEventTotals(history, 'Cy').cardsLeft, 12);
+  assert.equal(HF.playerEventTotals(history, 'Dee').cardsLeft, 12);
+  const leaders = HF.eventLeaders(history);
+  assert.equal(leaders.got22.value, 1);
+  assert.equal(leaders.wentOut.value, 2);
+});
+
+test('an edited round total clears a breakdown that would no longer add up', () => {
+  const cleared = HF.clearedBreakdownParts(640);
+  assert.equal(cleared.roundScore, 640);
+  assert.equal(cleared.breakdownCleared, true);
+  assert.equal(cleared.cleanCanastas, undefined);
+  assert.equal(cleared.cardsLeft, undefined);
+  assert.equal(cleared.got22, undefined);
 });

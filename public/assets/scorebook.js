@@ -6,23 +6,47 @@
     return Number.isFinite(n) ? n : 0;
   }
 
-  // Display ranking for scorecard pills, Home Recent chips, and Past nights.
-  // Dense ties: two 1sts then 2nd (not olympic 1,1,3). Callers must omit departed
-  // seats before ranking so they take no spot. Wins/streaks/records stay elsewhere.
+  // Competition ranking: tied totals share a place and the next total skips.
+  // 1,1,3 and 2,2,4. Callers omit departed seats so they take no spot.
   function competitionPlaces(sortedPlayers, totals) {
     const place = {};
     const list = Array.isArray(sortedPlayers) ? sortedPlayers : [];
     let cursor = 0;
-    let denseRank = 1;
     while (cursor < list.length) {
       const score = placeScore(totals, list[cursor]);
       let end = cursor + 1;
       while (end < list.length && placeScore(totals, list[end]) === score) end++;
-      for (let i = cursor; i < end; i++) place[list[i]] = denseRank;
-      denseRank += 1;
+      const rank = cursor + 1;
+      for (let i = cursor; i < end; i++) place[list[i]] = rank;
       cursor = end;
     }
     return place;
+  }
+
+  function entryDigitCap(game, kind) {
+    const name = gameName(game);
+    const mode = kind || '';
+    if (name === 'Hand and Foot' && mode !== 'bids' && mode !== 'tricks') return 4;
+    return 3;
+  }
+
+  function entryDigitLimit(game, kind) {
+    return entryDigitCap(game, kind) === 4 ? 9999 : 999;
+  }
+
+  function unusualEntryFloor(game) {
+    const name = gameName(game);
+    if (name === 'Hand and Foot') return 8000;
+    if (name === 'Five Crowns') return 200;
+    if (name === 'Wizard') return 150;
+    if (name === '818') return 20;
+    if (name === 'Flip 7 Vengeance') return 200;
+    if (name === 'Beat the Heat') return 30;
+    return 500;
+  }
+
+  function entryDigitCount(value) {
+    return String(value == null ? '' : value).replace(/\D/g, '').length;
   }
 
   function isScoringRound(round) {
@@ -246,14 +270,29 @@
   const EIGHT18_ROUND_TRICKS = [8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8];
   const NON_NEGATIVE_PLAYED_GAMES = {
     'Five Crowns': true,
-    'Flip 7': true,
-    'Flip 7 Vengeance': true,
     'Beat the Heat': true
   };
 
   function gameName(game) {
     if (typeof game === 'string') return game;
     return (game && (game.name || game.game)) || '';
+  }
+
+  function trickCountLabel(count) {
+    const n = Number(count) || 0;
+    return n === 1 ? '1 trick' : `${n} tricks`;
+  }
+
+  function trickLimitRejection(nextValue, source) {
+    if (!source || source.trickLimit == null || source.trickLimit === '') return '';
+    const limit = Number(source.trickLimit);
+    if (!Number.isFinite(limit)) return '';
+    const text = String(nextValue == null ? '' : nextValue).trim();
+    if (text === '' || text === '-') return '';
+    const n = parseInt(text, 10);
+    if (!Number.isFinite(n) || n <= limit) return '';
+    if (source.detail) return `${n} is more than this round's ${trickCountLabel(limit)}.`;
+    return `This round has ${trickCountLabel(limit)}.`;
   }
 
   function roundTrickLimit(game, roundNumber) {
@@ -298,6 +337,12 @@
     return `${label} scores must be whole numbers, 0 or higher. Check ${who}.`;
   }
 
+  function missingScoresMessage(players) {
+    const list = (players || []).filter(Boolean);
+    if (!list.length) return 'Still need a score.';
+    return `Still need: ${list.join(', ')}`;
+  }
+
   function missingBidsMessage(players) {
     const list = (players || []).filter(Boolean);
     if (!list.length) return 'Still need bids.';
@@ -316,6 +361,7 @@
     const invalidPlayers = [];
     const missingPlayers = [];
     const values = {};
+    let oversizeLimit = 0;
     players.forEach(player => {
       let raw = rawValues[player];
       if ((kind === 'scores' || kind === 'tricks') && scoreEntryValueIsBlank(raw)) raw = 0;
@@ -331,6 +377,12 @@
       }
       if (bounded && (parsed.value < 0 || parsed.value > limit)) {
         invalidPlayers.push(player);
+        return;
+      }
+      const digitLimit = entryDigitLimit(source.game, kind);
+      if (Math.abs(parsed.value) > digitLimit) {
+        invalidPlayers.push(player);
+        oversizeLimit = digitLimit;
         return;
       }
       if (kind === 'scores' && playedScoreMustBeNonNegative(source.game) && parsed.value < 0) {
@@ -357,7 +409,9 @@
         invalidPlayers,
         values,
         limit,
-        message: entryRejectionMessage(source.game, kind, limit, invalidPlayers)
+        message: oversizeLimit
+          ? `That entry stops at ${oversizeLimit.toLocaleString()}.`
+          : entryRejectionMessage(source.game, kind, limit, invalidPlayers)
       };
     }
     if (kind === 'bids' && gameName(source.game) === '818') {
@@ -441,7 +495,64 @@
         game.totals[player] += Number(extra) || 0;
       });
     });
+    addLateJoinStarts(game);
     return game.totals;
+  }
+
+  // Ceiling of the table average. 97.5 and 97.1 both become 98. An exact
+  // integer stays put (800 / 8 = 100). Negative sums use mathematical ceiling.
+  function ceilingAverage(values) {
+    const nums = (Array.isArray(values) ? values : []).map(value => Number(value)).filter(Number.isFinite);
+    if (!nums.length) return 0;
+    const sum = nums.reduce((total, value) => total + value, 0);
+    const count = nums.length;
+    if (Number.isInteger(sum)) {
+      if (sum >= 0) return Math.floor((sum + count - 1) / count);
+      return -Math.floor((-sum) / count);
+    }
+    return Math.ceil(sum / count);
+  }
+
+  function lateJoinInfo(game, player) {
+    const info = game && game.lateJoins && game.lateJoins[player];
+    if (!info || typeof info !== 'object') return null;
+    const start = Number(info.start);
+    const joinedRound = Number(info.joinedRound) || 0;
+    if (!Number.isFinite(start) || joinedRound < 1) return null;
+    return {
+      start,
+      joinedRound,
+      label: `Joined R${joinedRound} · start ${start}`
+    };
+  }
+
+  function missedRoundText(game, player, roundNumber) {
+    const info = lateJoinInfo(game, player);
+    const round = Number(roundNumber) || 0;
+    if (!info || round < 1 || round >= info.joinedRound) return '';
+    return 'Did not play';
+  }
+
+  function addLateJoinStarts(game, totals) {
+    const book = totals || (game && game.totals);
+    if (!game || !book) return book || {};
+    Object.keys(game.lateJoins || {}).forEach(player => {
+      const info = lateJoinInfo(game, player);
+      if (!info) return;
+      if (book[player] === undefined) book[player] = 0;
+      book[player] += info.start;
+    });
+    return book;
+  }
+
+  function recordLateJoin(game, player, existingTotals, joinedRound) {
+    if (!game || !player) return null;
+    const values = Array.isArray(existingTotals) ? existingTotals : Object.values(existingTotals || {});
+    const start = ceilingAverage(values);
+    const round = Math.max(1, Number(joinedRound) || 1);
+    if (!game.lateJoins || typeof game.lateJoins !== 'object') game.lateJoins = {};
+    game.lateJoins[player] = { start, joinedRound: round };
+    return lateJoinInfo(game, player);
   }
 
   function applyScoreEntryKey(entry, key) {
@@ -456,16 +567,43 @@
     // even when deferAck keeps acknowledged false (bids/tricks "Entered" status).
     // Pending "-" is blank for status but must keep the sign (P1-05).
     const dirty = !!source.dirty;
+    // 00 is not a key. A blank bid stays blank. A typed 0 is still a zero bid.
+    if (token === '00') {
+      return { value, acknowledged, replaced: false, dirty, rejected: false };
+    }
     if (!acknowledged && digit && !dirty) {
+      const replaced = String(value).trim() === '-' ? '-' + token : token;
+      const blocked = trickLimitRejection(replaced, source);
+      if (blocked) {
+        return { value, acknowledged, replaced: false, dirty, rejected: true, attempt: replaced, message: blocked };
+      }
       if (String(value).trim() === '-') {
         return { value: '-' + token, acknowledged: deferAck ? false : true, replaced: false, dirty: true };
       }
       return { value: token, acknowledged: deferAck ? false : true, replaced: true, dirty: true };
     }
+    const cap = Number.isFinite(Number(source.digitCap)) ? Number(source.digitCap) : 3;
+    const limitLabel = cap >= 4 ? '9,999' : '999';
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
-    else if (digit && value === '0' && token !== '0' && token !== '00') value = token;
-    else if (digit && value.length < 5) value += token;
+    else if (digit) {
+      const nextValue = (value === '0' && token !== '0' && token !== '00') ? token : value + token;
+      if (entryDigitCount(nextValue) > cap) {
+        return {
+          value,
+          acknowledged,
+          replaced: false,
+          dirty,
+          rejected: true,
+          message: `That entry stops at ${limitLabel}.`
+        };
+      }
+      const blocked = trickLimitRejection(nextValue, source);
+      if (blocked) {
+        return { value, acknowledged, replaced: false, dirty, rejected: true, attempt: nextValue, message: blocked };
+      }
+      value = nextValue;
+    }
     if (String(value).trim() === '-') {
       acknowledged = deferAck ? false : true;
     } else if (scoreEntryValueIsBlank(value)) {
@@ -532,7 +670,7 @@
   }
 
   function scoreEntryBlankHelper() {
-    return 'Blank scores count as 0';
+    return 'Skip leaves a score blank.';
   }
 
   function historyScoreOrNull(raw) {
@@ -547,6 +685,9 @@
     const value = source.value == null ? '' : String(source.value);
     const mode = source.mode || '';
     const bidLike = mode === 'bids' || mode === 'tricks' || mode === 'bid' || mode === 'trick';
+    if (source.skipped && scoreEntryValueIsBlank(value)) {
+      return { state: 'skipped', label: 'Skipped' };
+    }
     if (scoreEntryValueIsBlank(value)) {
       return { state: 'unentered', label: 'Not entered' };
     }
@@ -634,7 +775,7 @@
     if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
       const retired = new Set(match.retired || []);
       const totals = match.totals || {};
-      // Matt 7:26 PM: full game when any stored total reaches 200+.
+      // Matt, Nov 12, 7:10 PM ET: full game when any stored total reaches 200+.
       return Object.keys(totals).some((player) => !retired.has(player) && (Number(totals[player]) || 0) >= 200);
     }
     return match.completed === true;
@@ -650,6 +791,274 @@
       if (!(Number.isFinite(target) && target > 0)) return false;
     }
     return match.completed === true && !isFullGame(match);
+  }
+
+  // 999 is the open-ended sentinel (Flip 7, Rook, Beat the Heat). It is not a round target.
+  const OPEN_ROUND_SENTINEL = 999;
+
+  function storedRoundTarget(match) {
+    const stored = Number(match && match.maxRounds);
+    if (Number.isFinite(stored) && stored > 0 && stored < OPEN_ROUND_SENTINEL) return stored;
+    return null;
+  }
+
+  function storedScoreTarget(match) {
+    const end = Number(match && match.endScore);
+    if (Number.isFinite(end) && end > 0) return end;
+    const rook = Number(match && match.rookConfig && match.rookConfig.winTarget);
+    if (Number.isFinite(rook) && rook > 0) return rook;
+    return null;
+  }
+
+  function anyActiveTotalAtLeast(match, score) {
+    const retired = new Set((match && match.retired) || []);
+    const totals = (match && match.totals) || {};
+    return Object.keys(totals).some((player) => (
+      player && !retired.has(player) && (Number(totals[player]) || 0) >= score
+    ));
+  }
+
+  // 'finished' when a stored rule is met, 'short' when a stored rule is missed, null when no rule is stored.
+  // Today's config targets are not applied here. Rook stays unknown unless the row saved a target.
+  // Leave game asks leaveFinishState, which applies Flip 7's 200 rule without changing review-off history.
+  function completionFromSavedRules(match) {
+    if (!match || typeof match !== 'object') return null;
+    const rounds = storedRoundTarget(match);
+    const score = storedScoreTarget(match);
+    if (rounds == null && score == null) return null;
+    const roundsMet = rounds != null && scoringRoundCount(match.rounds || []) >= rounds;
+    const scoreMet = score != null && anyActiveTotalAtLeast(match, score);
+    return (roundsMet || scoreMet) ? 'finished' : 'short';
+  }
+
+  // Leave game only. Flip 7 finishes at 200 for a seated player (Matt, Nov 12, 7:10 PM ET).
+  // A game that scored and stayed under 200 is short. Rook stays on the saved-target rule.
+  function leaveFinishState(match) {
+    if (!match || typeof match !== 'object') return null;
+    const name = gameName(match);
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
+      const played = scoringRoundCount(match.rounds || []);
+      if (anyActiveTotalAtLeast(match, 200)) return 'finished';
+      if (played >= 1) return 'short';
+      return null;
+    }
+    return completionFromSavedRules(match);
+  }
+
+  function canastaScoreFinite(value) {
+    if (value === '' || value === null || value === undefined || value === '-') return false;
+    const number = Number(value);
+    return Number.isFinite(number);
+  }
+
+  // A saved Canasta row is ambiguous when a scoring round has no numeric score,
+  // a blank score, or the same round number twice. Four clean rounds are not ambiguous.
+  function canastaRowsAmbiguous(match) {
+    const rounds = ((match && match.rounds) || []).filter(isScoringRound);
+    const seen = new Set();
+    return rounds.some((round) => {
+      if (!round || typeof round !== 'object') return true;
+      const number = Number(round.round);
+      if (Number.isFinite(number)) {
+        if (seen.has(number)) return true;
+        seen.add(number);
+      }
+      const scores = round.scores;
+      if (!scores || typeof scores !== 'object' || Array.isArray(scores)) return true;
+      const keys = Object.keys(scores).filter(Boolean);
+      if (!keys.length) return true;
+      return keys.some((key) => !canastaScoreFinite(scores[key]));
+    });
+  }
+
+  // The live Leave probe has no saved id or date. A history row does.
+  function canastaLiveProbe(match) {
+    return !!(match && match.id == null && !match.date);
+  }
+
+  function outcomeFromLegacy(match) {
+    const known = completionFromSavedRules(match);
+    if (known === 'finished') return 'finished';
+    if (known === 'short') return 'ended_early';
+    const legacy = legacyCompletion(match);
+    if (legacy.status === 'complete') return 'finished';
+    if (legacy.status === 'partial') return 'ended_early';
+    return 'uncertain';
+  }
+
+  function resolveOutcome(match) {
+    if (!match || typeof match !== 'object') return 'uncertain';
+    const name = gameName(match);
+    if (name === 'Hand and Foot' || name === 'Canasta') {
+      // Matt, 7:13 PM ET, amendment 11. This replaces the 5:55 note that left every Canasta night uncertain.
+      // Four saved rounds are complete. A game finished in the app is finished.
+      // A legacy night with fewer than 4 rounds, or with an ambiguous row, stays uncertain.
+      if (match.outcome === 'paused' || match.completed === false) return 'paused';
+      if (canastaRowsAmbiguous(match)) return 'uncertain';
+      const played = scoringRoundCount(match.rounds || []);
+      if (played >= 4) return 'finished';
+      if (match.outcome === 'ended_early') return 'ended_early';
+      if (canastaLiveProbe(match)) {
+        const known = completionFromSavedRules(match);
+        if (known === 'finished') return 'finished';
+        if (known === 'short') return 'ended_early';
+      }
+      return 'uncertain';
+    }
+    const stored = match.outcome;
+    if (stored === 'finished' || stored === 'paused' || stored === 'ended_early' || stored === 'uncertain') return stored;
+    if (match.completed === false) return 'paused';
+    if (legacyReviewAppliedNow()) return outcomeFromLegacy(match);
+    const known = completionFromSavedRules(match);
+    if (known === 'finished') return 'finished';
+    if (known === 'short') return 'ended_early';
+    return 'uncertain';
+  }
+
+  let legacyReviewApplied = true;
+  let historyReviewDecisions = {};
+
+  function setLegacyReviewApplied(on) {
+    legacyReviewApplied = !!on;
+  }
+
+  function legacyReviewAppliedNow() {
+    return legacyReviewApplied;
+  }
+
+  function setHistoryReview(decisions) {
+    historyReviewDecisions = decisions && typeof decisions === 'object' && !Array.isArray(decisions) ? decisions : {};
+  }
+
+  function historyReviewDecision(match) {
+    if (!match || match.id == null) return null;
+    const row = historyReviewDecisions[String(match.id)];
+    const decision = row && typeof row === 'object' ? row.decision : row;
+    if (decision === 'counted' || decision === 'not_counted') return decision;
+    return null;
+  }
+
+  function legacyRosterCount(match) {
+    const roster = Array.isArray(match && match.originalRoster) ? match.originalRoster.filter(Boolean) : [];
+    if (roster.length) return roster.length;
+    const players = Array.isArray(match && match.players) ? match.players.filter(Boolean) : [];
+    if (players.length) return players.length;
+    return Object.keys((match && match.totals) || {}).filter(Boolean).length;
+  }
+
+  function anySavedTotalAtLeast(match, score) {
+    const totals = (match && match.totals) || {};
+    return Object.keys(totals).some((player) => player && (Number(totals[player]) || 0) >= score);
+  }
+
+  // Isolated legacy rule. 'complete' | 'partial' | 'uncertain', plus a reason.
+  // Known fixed lengths come from saved rounds, not from a round-count field.
+    // Flip 7 finishes at 200 for a seated player (Matt, Nov 12, 7:10 PM ET). Rook stays uncertain unless a target saved on that night was reached.
+    // Canasta is 4 saved scoring rounds (Matt, 7:13 PM ET, amendment 11). Fewer than 4, or an ambiguous row, stays uncertain.
+  function legacyCompletion(match) {
+    if (!match || typeof match !== 'object') {
+      return {status: 'uncertain', reason: 'No saved night.', played: 0, fixed: null};
+    }
+    const name = gameName(match);
+    const played = scoringRoundCount(match.rounds || []);
+    if (name === 'Hand and Foot' || name === 'Canasta') {
+      if (canastaRowsAmbiguous(match)) {
+        return {status: 'uncertain', reason: 'A Canasta row is ambiguous. Needs review.', played, fixed: 4};
+      }
+      if (played >= 4) {
+        return {status: 'complete', reason: played + ' saved rounds meet the 4-round length.', played, fixed: 4};
+      }
+      return {status: 'uncertain', reason: played + ' of 4 rounds. Needs review.', played, fixed: 4};
+    }
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
+      if (anyActiveTotalAtLeast(match, 200)) {
+        return {status: 'complete', reason: 'A seated player reached 200.', played, fixed: null};
+      }
+      if (played >= 1) {
+        return {status: 'partial', reason: 'Flip 7 ended before 200.', played, fixed: null};
+      }
+      return {status: 'uncertain', reason: 'Flip 7 has no saved rounds. Needs review.', played, fixed: null};
+    }
+    if (name === 'Rook') {
+      const target = storedScoreTarget(match);
+      if (target != null && anySavedTotalAtLeast(match, target)) {
+        return {status: 'complete', reason: 'A target saved on this night was reached.', played, fixed: null};
+      }
+      return {status: 'uncertain', reason: name + ' has no confirmed finish rule. Needs review.', played, fixed: null};
+    }
+    if (name === 'Beat the Heat') {
+      if (anyActiveTotalAtLeast(match, 66)) {
+        return {status: 'complete', reason: 'A seated player reached 66.', played, fixed: null};
+      }
+      return {status: 'uncertain', reason: 'Beat the Heat did not show a saved total of 66. Needs review.', played, fixed: null};
+    }
+    let fixed = null;
+    if (name === 'Five Crowns') fixed = 11;
+    else if (name === '818') fixed = EIGHT18_ROUND_TRICKS.length;
+    else if (name === 'Wizard') {
+      const count = legacyRosterCount(match);
+      fixed = count > 0 ? Math.floor(60 / count) : null;
+    }
+    if (!fixed) {
+      return {status: 'uncertain', reason: 'No known finish rule for this night. Needs review.', played, fixed: null};
+    }
+    if (played >= fixed) {
+      return {status: 'complete', reason: played + ' saved rounds meet the ' + fixed + '-round length.', played, fixed};
+    }
+    return {status: 'partial', reason: played + ' of ' + fixed + ' rounds. Ended early.', played, fixed};
+  }
+
+  function resultIsCounted(match) {
+    const decision = historyReviewDecision(match);
+    if (decision === 'counted') return true;
+    if (decision === 'not_counted') return false;
+    return !!(match && (match.countResult === true || match.countOverride === true));
+  }
+
+  function isCompleteGame(match) {
+    return resolveOutcome(match) === 'finished';
+  }
+
+  // Wins, games played, win rate, and win/loss streak. A counted early or uncertain result is included. A pause is not.
+  function countsForTallies(match) {
+    const outcome = resolveOutcome(match);
+    if (outcome === 'finished') return true;
+    if (outcome === 'ended_early' || outcome === 'uncertain') return resultIsCounted(match);
+    return false;
+  }
+
+  function countsForResults(match) {
+    return countsForTallies(match);
+  }
+
+  // Full-game score records. Counting a winner does not make a partial total eligible.
+  function countsForScoreMagnitude(match) {
+    return resolveOutcome(match) === 'finished';
+  }
+
+  function endedEarlyLabel(match) {
+    const outcome = resolveOutcome(match);
+    if (outcome === 'ended_early') {
+      const rounds = storedRoundTarget(match);
+      const played = scoringRoundCount((match && match.rounds) || []);
+      if (rounds != null) return `Ended early, ${played} of ${rounds} rounds`;
+      const legacy = legacyCompletion(match);
+      if (legacy.status === 'partial' && legacy.fixed) return `Ended early, ${legacy.played} of ${legacy.fixed} rounds`;
+      return 'Ended early';
+    }
+    if (outcome === 'uncertain') return 'Needs review';
+    return '';
+  }
+
+  function showCountResult(match) {
+    const outcome = resolveOutcome(match);
+    return outcome === 'ended_early' || outcome === 'uncertain';
+  }
+
+  function needsCountDecision(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (resolveOutcome(match) === 'paused') return false;
+    return completionFromSavedRules(match) !== 'finished';
   }
 
   function syncAssistedMatch(game) {
@@ -686,8 +1095,18 @@
 
   function classifyBidAccuracy(round, player) {
     if (!isPlayedScoringRound(round) || !player) return null;
+    if (round.joinBonus && round.joinBonus[player]) return null;
     if (!bidFieldPresent(round.bids, player) || !bidFieldPresent(round.actuals, player)) return null;
     return Number(round.bids[player]) === Number(round.actuals[player]) ? 'exact' : 'miss';
+  }
+
+  function matchHasPlayedBid(match) {
+    const name = gameName(match);
+    if (name !== 'Wizard' && name !== '818') return false;
+    return (match && match.rounds || []).some((round) => {
+      const names = Object.keys((round && round.bids) || {});
+      return names.some((player) => classifyBidAccuracy(round, player));
+    });
   }
 
   function mintGameId() {
@@ -725,6 +1144,15 @@
       round: Number(game.currentRound) || 1,
       phase: matchPhase(game)
     };
+  }
+
+  function historyReopenNotice(gameName, blocked) {
+    const heat = gameName === 'Beat the Heat';
+    const cause = heat
+      ? 'That score no longer reaches the heat line.'
+      : 'That score no longer finishes the night.';
+    const effect = 'The winner is removed and this night drops out of wins and records.';
+    return blocked ? `${cause} ${effect} The game on the table stayed put.` : `${cause} ${effect}`;
   }
 
   function historyReopenWouldReplaceActive(active, edited) {
@@ -809,6 +1237,87 @@
   function lowScoreWins(game) {
     const name = gameName(game);
     return name === 'Five Crowns' || name === 'Beat the Heat';
+  }
+
+  // Canasta pairs share one score. Rank the teams, then give every partner that place.
+  // Two different team scores are 1st and 2nd, not 1st, 1st, 3rd, 3rd.
+  function canastaTeamPlaces(game, players) {
+    const name = gameName(game);
+    if (name !== 'Hand and Foot' && name !== 'Canasta') return null;
+    const sides = game && game.handFoot && Array.isArray(game.handFoot.sides) ? game.handFoot.sides : null;
+    if (!sides || !sides.length) return null;
+    const teams = sides
+      .map((side) => ({
+        key: side && side.key ? String(side.key) : '',
+        members: (side && side.members || []).filter(Boolean)
+      }))
+      .filter((side) => side.members.length >= 2);
+    if (!teams.length) return null;
+    const totals = (game && game.totals) || {};
+    const scoreOf = (side) => Number(totals[side.members[0]]) || 0;
+    const orderedTeams = teams.slice().sort((a, b) => scoreOf(b) - scoreOf(a));
+    const places = {};
+    const ordered = [];
+    const wanted = Array.isArray(players) && players.length ? new Set(players) : null;
+    let cursor = 0;
+    while (cursor < orderedTeams.length) {
+      const score = scoreOf(orderedTeams[cursor]);
+      let end = cursor + 1;
+      while (end < orderedTeams.length && scoreOf(orderedTeams[end]) === score) end++;
+      const rank = cursor + 1;
+      for (let i = cursor; i < end; i++) {
+        orderedTeams[i].members.forEach((member) => {
+          places[member] = rank;
+          if (!wanted || wanted.has(member)) ordered.push(member);
+        });
+        if (orderedTeams[i].key) {
+          places[orderedTeams[i].key] = rank;
+          if (wanted && wanted.has(orderedTeams[i].key) && !ordered.includes(orderedTeams[i].key)) {
+            ordered.push(orderedTeams[i].key);
+          }
+        }
+      }
+      cursor = end;
+    }
+    if (wanted) {
+      players.forEach((player) => {
+        if (player && !ordered.includes(player)) ordered.push(player);
+      });
+    }
+    return { ordered, places, ranked: true };
+  }
+
+  // The live scoreboard and Home standings both call this. Round 1 stays in
+  // roster order with no places. After that, order is the scoreboard sort
+  // (win direction, stable ties) and places are dense. A later ruleset can
+  // take over by defining matchStandings and lifePreserverWinRuleActive in
+  // this file. This does not reorder seats or the dealer.
+  function scoreboardStandings(game, players) {
+    const list = (Array.isArray(players) ? players : []).filter(Boolean);
+    const round = Number(game && game.currentRound) || 1;
+    if (round > 1
+      && typeof matchStandings === 'function'
+      && typeof lifePreserverWinRuleActive === 'function'
+      && lifePreserverWinRuleActive(game)) {
+      const standing = matchStandings(game);
+      const wanted = new Set(list);
+      const ordered = (standing.ordered || []).filter((player) => wanted.has(player));
+      list.forEach((player) => {
+        if (!ordered.includes(player)) ordered.push(player);
+      });
+      return { ordered, places: standing.places || {}, ranked: true };
+    }
+    if (round <= 1) return { ordered: list.slice(), places: null, ranked: false };
+    const teams = canastaTeamPlaces(game, list);
+    if (teams) return { ordered: teams.ordered, places: teams.places, ranked: true };
+    const low = lowScoreWins(game);
+    const totals = (game && game.totals) || {};
+    const ordered = list.slice().sort((a, b) => (
+      low
+        ? (Number(totals[a]) || 0) - (Number(totals[b]) || 0)
+        : (Number(totals[b]) || 0) - (Number(totals[a]) || 0)
+    ));
+    return { ordered, places: competitionPlaces(ordered, totals), ranked: true };
   }
 
   function beatTheHeatLine(game) {
@@ -956,6 +1465,19 @@
           if (source.actuals && Object.prototype.hasOwnProperty.call(source.actuals, player)) rawActuals[player] = source.actuals[player];
           else rawActuals[player] = round.actuals ? round.actuals[player] : '';
         });
+        const rawBids = {};
+        players.forEach(player => {
+          if (source.bids && Object.prototype.hasOwnProperty.call(source.bids, player)) rawBids[player] = source.bids[player];
+          else rawBids[player] = round.bids ? round.bids[player] : '';
+        });
+        const checkedBids = validateEntries({
+          game: draft,
+          kind: 'bids',
+          roundNumber: round.round,
+          players,
+          values: rawBids
+        });
+        if (!checkedBids.ok) return checkedBids;
         const checked = validateEntries({
           game: draft,
           kind: 'tricks',
@@ -973,10 +1495,10 @@
             values: checked.values,
             limit: checked.limit,
             sum: balanced.sum,
-            message: `${entryGameLabel(draft)} round ${round.round} must total ${checked.limit} tricks. This table totals ${balanced.sum}.`
+            message: `${entryGameLabel(draft)} round ${round.round} must total ${trickCountLabel(checked.limit)}. This table totals ${balanced.sum}.`
           };
         }
-        const dealerBlock = eight18DealerBidViolation(draft, round, players);
+        const dealerBlock = eight18DealerBidViolation(draft, Object.assign({}, round, { bids: checkedBids.values }), players);
         if (dealerBlock) {
           return {
             ok: false,
@@ -986,19 +1508,24 @@
             message: dealerBlock.message
           };
         }
+        const bidsChanged = players.some(player => !sameNumber(round.bids && round.bids[player], checkedBids.values[player]));
         const actualsChanged = players.some(player => !sameNumber(round.actuals && round.actuals[player], checked.values[player]));
-        if (!actualsChanged) return { ok: true, changed: false, noop: true, message: '' };
+        if (!bidsChanged && !actualsChanged) return { ok: true, changed: false, noop: true, message: '' };
         const scoreFor = name === 'Wizard' ? wizardRoundScore : eight18RoundScore;
         const nextScores = {};
         players.forEach(player => {
+          const fromBid = round.bids ? round.bids[player] : undefined;
+          const toBid = checkedBids.values[player];
           const fromActual = round.actuals ? round.actuals[player] : undefined;
           const toActual = checked.values[player];
-          const fromScore = round.scores ? round.scores[player] : scoreFor(round.bids[player], fromActual);
-          const toScore = scoreFor(round.bids[player], toActual);
+          const fromScore = round.scores ? round.scores[player] : scoreFor(fromBid, fromActual);
+          const toScore = scoreFor(toBid, toActual);
           nextScores[player] = toScore;
-          if (!sameNumber(fromActual, toActual) || !sameNumber(fromScore, toScore)) {
+          if (!sameNumber(fromBid, toBid) || !sameNumber(fromActual, toActual) || !sameNumber(fromScore, toScore)) {
             changes.push({
               player,
+              fromBid: Number(fromBid),
+              toBid,
               fromActual: Number(fromActual),
               toActual,
               fromScore: Number(fromScore),
@@ -1006,9 +1533,11 @@
             });
           }
         });
+        if (!round.bids) round.bids = {};
         if (!round.actuals) round.actuals = {};
         if (!round.scores) round.scores = {};
         players.forEach(player => {
+          round.bids[player] = checkedBids.values[player];
           round.actuals[player] = checked.values[player];
           round.scores[player] = nextScores[player];
         });
@@ -1101,6 +1630,12 @@
     isCommaJoinedGhost,
     cleanupCommaJoinedGhosts,
     competitionPlaces,
+    canastaTeamPlaces,
+    entryDigitCap,
+    entryDigitLimit,
+    unusualEntryFloor,
+    entryDigitCount,
+    scoreboardStandings,
     isScoringRound,
     scoringRoundCount,
     lifePreserverFollowing,
@@ -1115,6 +1650,7 @@
     rookHandScores,
     gameName,
     roundTrickLimit,
+    trickCountLabel,
     parseEntryInteger,
     playedScoreMustBeNonNegative,
     validateEntries,
@@ -1123,6 +1659,10 @@
     restoreMatchState,
     commitValidatedMutation,
     recomputeTotals,
+    ceilingAverage,
+    lateJoinInfo,
+    missedRoundText,
+    recordLateJoin,
     applyScoreEntryKey,
     acceptScoreEntryValue,
     createScoreEntrySession,
@@ -1138,6 +1678,23 @@
     isFullGame,
     isEndedEarlyMatch,
     expectedFullRoundCount,
+    storedRoundTarget,
+    storedScoreTarget,
+    completionFromSavedRules,
+    leaveFinishState,
+    legacyCompletion,
+    setLegacyReviewApplied,
+    legacyReviewAppliedNow,
+    setHistoryReview,
+    resolveOutcome,
+    resultIsCounted,
+    isCompleteGame,
+    countsForTallies,
+    countsForResults,
+    countsForScoreMagnitude,
+    endedEarlyLabel,
+    showCountResult,
+    needsCountDecision,
     missingBidsMessage,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
@@ -1145,8 +1702,10 @@
     syncAssistedMatch,
     recordLifePreserverSpin,
     classifyBidAccuracy,
+    matchHasPlayedBid,
     ensureGameId,
     matchIdentity,
+    historyReopenNotice,
     historyReopenWouldReplaceActive,
     historicalRoundParticipants,
     eight18DealerBidViolation,

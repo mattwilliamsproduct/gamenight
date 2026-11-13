@@ -152,6 +152,10 @@
       restorePendingSnapshot();
       sessionStorage.removeItem(PENDING_RESTORE);
       sessionStorage.removeItem(SNAP_KEY);
+      // The next pagehide would rewrite this snapshot and bump gn_storage_rev
+      // before the following boot's id backfill. Hold that persist so a reload
+      // matches a cold boot of the same seed.
+      sessionStorage.setItem('bpg_exit_hold', '1');
       return true;
     } catch (error) {
       return false;
@@ -163,8 +167,9 @@
   // pagehide on the Exit navigation may have rewritten demo memory onto gn_*.
   if (sessionStorage.getItem(PENDING_RESTORE) === '1') {
     restorePendingSnapshot();
-  } else if (wantsTry() || sessionOn()) {
-    activate();
+  } else {
+    try { sessionStorage.removeItem('bpg_exit_hold'); } catch (error) {}
+    if (wantsTry() || sessionOn()) activate();
   }
 
   function blockFetch() {
@@ -201,7 +206,7 @@
       if (castApi && typeof castApi.demoBookHasPorchCast === 'function') {
         return castApi.demoBookHasPorchCast(blob);
       }
-      return /Megan|Matt|Vikki|Duke|Brick|Michelle|Alexis|Ethan|Diana|avatars\/|\.png/.test(blob);
+      return /Megan|Matt|Vikki|Duke|Brick|Michelle|Alexis|Ethan|Diana/.test(String(blob).replace(/data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+/gi, ''));
     } catch (error) {
       return false;
     }
@@ -210,27 +215,13 @@
   function neutralizeDemoAvatars() {
     if (!active()) return;
     try {
-      if (root.playerProfiles && typeof root.playerProfiles === 'object') {
-        Object.keys(root.playerProfiles).forEach(function (name) {
-          var profile = root.playerProfiles[name] || {};
-          var avatar = String(profile.avatar || '');
-          var placeholder = /neutral-\d+\.svg$/i.test(avatar) || /silhouette-[a-z0-9-]+\.png$/i.test(avatar);
-          if (avatar && !placeholder) {
-            profile.avatar = '';
-            root.playerProfiles[name] = profile;
-          }
-        });
-      }
-    } catch (error) {}
-    try {
-      document.querySelectorAll('img.avatar-img, img.avatar-img-sc, img.avatar-img-lg').forEach(function (img) {
-        var src = img.getAttribute('src') || '';
-        if (!src) return;
-        if (/neutral-\d+\.svg/i.test(src) || /silhouette-[a-z0-9-]+\.png/i.test(src)) return;
-        var character = /(?:^|\/)avatars\//i.test(src) || /\.png(?:\?|#|$)/i.test(src);
-        if (!character) return;
-        if (img.dataset.fb) img.src = img.dataset.fb;
-        else img.removeAttribute('src');
+      var photos = root.BPGAvatarPhoto;
+      if (!photos || typeof photos.isBrokenAvatarRef !== 'function') return;
+      if (!root.playerProfiles || typeof root.playerProfiles !== 'object') return;
+      Object.keys(root.playerProfiles).forEach(function (name) {
+        var profile = root.playerProfiles[name];
+        if (!profile || typeof profile !== 'object') return;
+        if (photos.isBrokenAvatarRef(profile.avatar)) profile.avatar = '';
       });
     } catch (error) {}
   }
@@ -291,7 +282,6 @@
       '#bpg-try-demo-about .bpg-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#6d6962;margin-bottom:6px}',
       '#bpg-try-demo-about p{margin:0 0 10px;font-size:13px;font-weight:700;color:#3d4f4c}',
       'html.bpg-try-demo #save-indicator,html.bpg-try-demo #save-indicator.show{opacity:1;transform:none;text-transform:none;letter-spacing:.01em;font-weight:800;color:#3d4f4c;background:#f4efe4;border-color:#d7cbb3}',
-      'html.bpg-try-demo img.avatar-img[src*="avatars/"]:not([src*="neutral-"]):not([src*="silhouette-"]),html.bpg-try-demo img.avatar-img-sc[src*="avatars/"]:not([src*="neutral-"]):not([src*="silhouette-"]),html.bpg-try-demo img.avatar-img-lg[src*="avatars/"]:not([src*="neutral-"]):not([src*="silhouette-"]){opacity:0}',
       'html.bpg-try-demo #settings-modal .bp-modal-foot,',
       'html.bpg-try-demo #backup-restore-copy,',
       'html.bpg-try-demo #backup-device-summary,',

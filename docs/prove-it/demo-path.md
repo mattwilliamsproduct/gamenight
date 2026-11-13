@@ -23,8 +23,18 @@ Use `tests/helpers/inject-book.mjs` (`openTestView(page, 'demo-path')`) or the r
 4. Totals become June 50, Theo 41. Theo still first.
 5. Tap June's last-hand cell. Change 12 to 0.
 6. Totals become June 38, Theo 41. June is first. Point at June's total.
-7. Hand 11 completes Five Crowns. Tap End Match and See Winner (or Save and End), then confirm.
-8. Open Records. June won with 38. The night is completed.
+7. Hand 11 completes Five Crowns. Tap Leave game, then End game now. A finished night does not ask whether to count the result.
+8. Open Records. June won with 38. The night is finished.
+
+## Park and start another
+
+Home can start the next game while one is still live. That opens the same Leave game choice.
+
+1. Save for later keeps the table match unfinished and resumable. It does not ask about wins. The next game starts.
+2. End game now finishes the table match first. If it has not reached its saved finish, Count this result is the only extra question.
+3. Keep playing closes the choice and leaves the live match as it was.
+
+Shots from the Leave game check: `/opt/cursor/artifacts/screenshots/leave-game/`.
 
 Leave the wheel out of these 90 seconds.
 

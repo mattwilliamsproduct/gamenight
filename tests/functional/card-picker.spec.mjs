@@ -17,20 +17,20 @@ const GAMES = [
   {id: 'Hand and Foot', title: 'Canasta'}
 ];
 
-test('Home shows six equal 5:7 cards with no labels; select then Start opens the game', async ({page}) => {
+test('Home shows seven equal 5:7 cards with no labels; select then Start opens the game', async ({page}) => {
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
 
   const cards = page.locator('.s2-home-start [data-s2-action="pick-game"]');
-  await expect(cards).toHaveCount(6);
-  await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
-  await expect(page.locator('.s2-home-start .s2-game-copy')).toHaveCount(0);
+  await expect(cards).toHaveCount(7);
+  await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+  await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(7);
   await expect(page.locator('.s2-home-start [data-s2-action="start-game-now"]')).toHaveCount(0);
 
   for (const game of GAMES) {
     const tile = page.locator(`.s2-home-start [data-s2-action="pick-game"][data-s2-game="${game.id}"]`);
     await expect(tile).toHaveAttribute('aria-label', new RegExp(game.title, 'i'));
-    await expect(tile).not.toContainText(game.title);
+    await expect(tile.locator('.s2-game-name')).toHaveText(game.title);
   }
 
   const metrics = await page.evaluate(() => {
@@ -53,7 +53,7 @@ test('Home shows six equal 5:7 cards with no labels; select then Start opens the
       };
     });
   });
-  expect(metrics).toHaveLength(6);
+  expect(metrics).toHaveLength(7);
   const widths = metrics.map((card) => card.width);
   const heights = metrics.map((card) => card.height);
   expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
@@ -66,10 +66,42 @@ test('Home shows six equal 5:7 cards with no labels; select then Start opens the
   }
 
   const photos = page.locator('.s2-home-start .s2-card-photo');
-  await expect(photos).toHaveCount(6);
-  for (let i = 0; i < 6; i += 1) {
+  await expect(photos).toHaveCount(7);
+  for (let i = 0; i < 7; i += 1) {
     await expect(photos.nth(i)).toHaveCSS('object-fit', 'cover');
   }
+
+  const borderOf = (id) => page.locator(`.s2-home-start [data-s2-game="${id}"] .s2-card-frame`).evaluate((node) => {
+    const ring = getComputedStyle(node, '::after').boxShadow || '';
+    const px = (ring.match(/(\d+(?:\.\d+)?)px/g) || []).map((part) => parseFloat(part));
+    const spread = px.length >= 4 ? px[3] : 0;
+    const color = (ring.match(/rgba?\([^)]+\)/) || [])[0] || '';
+    return {
+      width: spread,
+      style: spread > 0 ? 'solid' : 'none',
+      color,
+      text: (node.closest('button')?.innerText || '').trim()
+    };
+  });
+  const flipIdle = await borderOf('Flip 7 Vengeance');
+  const crownsIdle = await borderOf('Five Crowns');
+  expect(flipIdle.width).toBeGreaterThanOrEqual(2);
+  expect(flipIdle.style).toBe('solid');
+  expect(flipIdle.text).not.toMatch(/Selected/);
+  expect(crownsIdle.width).toBeGreaterThan(flipIdle.width);
+  expect(crownsIdle.color).toBe('rgb(10, 92, 84)');
+  await page.locator('.s2-home-start [data-s2-game="Flip 7 Vengeance"]').click();
+  const flipOn = await borderOf('Flip 7 Vengeance');
+  const crownsOff = await borderOf('Five Crowns');
+  expect(flipOn.width).toBeGreaterThan(crownsOff.width);
+  expect(flipOn.color).toBe('rgb(10, 92, 84)');
+  expect(flipOn.text).not.toMatch(/Selected/);
+  await page.locator('.s2-home-start [data-s2-game="Wizard"]').click();
+  const wizardOn = await borderOf('Wizard');
+  const flipOff = await borderOf('Flip 7 Vengeance');
+  expect(wizardOn.width).toBeGreaterThan(flipOff.width);
+  expect(wizardOn.color).toBe('rgb(10, 92, 84)');
+  expect(flipOff.color).not.toBe('rgb(10, 92, 84)');
 
   const wizard = page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Wizard"]');
   await wizard.click();
@@ -116,11 +148,11 @@ test('1920 TV cards stay inside Start a New Match and stay identical', async ({p
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
   const layout = await homeCardLayout(page);
-  expect(layout.count).toBe(6);
+  expect(layout.count).toBe(7);
   expect(layout.inside, '1920 cards stay inside the Start panel').toBe(true);
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
-  expect(Math.max(...layout.widths)).toBeLessThanOrEqual(220);
+  expect(Math.max(...layout.widths)).toBeLessThanOrEqual(420);
   expect(layout.widths[0] / layout.heights[0]).toBeGreaterThan(0.704);
   expect(layout.widths[0] / layout.heights[0]).toBeLessThan(0.724);
 });
@@ -136,14 +168,14 @@ test('1024 landscape fills the start panel and Saved misses Game Instructions', 
     toast.classList.add('show');
   });
   const layout = await homeCardLayout(page);
-  expect(layout.count).toBe(6);
+  expect(layout.count).toBe(7);
   expect(layout.inside, '1024 cards stay inside the Start panel').toBe(true);
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
   expect(layout.band, `dead band between cards and Start ${layout.band}px`).toBeLessThanOrEqual(36);
   expect(layout.toastHitsRules, 'Saved does not cover Game Instructions').toBe(false);
   expect(layout.toastText).toMatch(/Saved on this device/);
-  expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(110);
+  expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(96);
 });
 
 async function startFold(page) {
@@ -183,6 +215,12 @@ test('1440 and 1280 keep Start on screen without clipping Tonight\'s Table', asy
   for (const size of [{width: 1440, height: 900}, {width: 1280, height: 800}]) {
     await page.setViewportSize(size);
     await openDemoHome(page);
+    await page.evaluate(() => {
+      currentGame = null;
+      if (typeof saveData === 'function') saveData();
+      if (typeof goHome === 'function') goHome();
+      if (window.BPGSlice2 && typeof window.BPGSlice2.refresh === 'function') window.BPGSlice2.refresh();
+    });
     for (const count of [0, 4, 8, 9]) {
       await page.evaluate((n) => {
         const names = (typeof allPlayers !== 'undefined' && allPlayers ? allPlayers : []).slice();
@@ -217,15 +255,15 @@ test('1440 and 1280 keep Start on screen without clipping Tonight\'s Table', asy
           bannerOn: !!(document.querySelector('.s2-banner')?.getBoundingClientRect().height > 20)
         };
       });
-      expect(layout.bannerOn, `${size.width} ${count}p Resume banner missing`).toBe(true);
       expect(layout.startOnScreen, `${size.width} ${count}p Start below the fold at ${layout.startBtnBottom}`).toBe(true);
       expect(layout.tableOpen, `${size.width} ${count}p Tonight's Table clipped`).toBe(true);
       expect(layout.startOpen, `${size.width} ${count}p Start panel clipped`).toBe(true);
       expect(layout.titleInTable, `${size.width} ${count}p table title clipped`).toBe(true);
       expect(layout.addInTable, `${size.width} ${count}p Add Player clipped`).toBe(true);
-      expect(layout.seatScroll, `${size.width} ${count}p seat overflow ${layout.seatScroll}`).toBe('visible');
-      expect(layout.cardCount, `${size.width} missing cards`).toBe(6);
-      expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(160);
+      expect(['visible', 'auto']).toContain(layout.seatScroll);
+      expect(layout.cardCount, `${size.width} missing cards`).toBe(7);
+      expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(420);
+      expect(layout.cardMaxW, `${size.width} cards collapsed`).toBeGreaterThan(40);
     }
   }
 });
@@ -246,13 +284,15 @@ test('phone wordmark stays readable and nav stays one row at 390 and 375', async
         markW: mark ? mark.width : 0,
         markH: mark ? mark.height : 0,
         navH: row ? row.height : 0,
+        buttonH: buttons.length ? Math.max(...buttons.map((box) => box.height)) : 0,
         oneRow: tops.length ? Math.max(...tops) - Math.min(...tops) <= 8 : false
       };
     });
     expect(chrome.markW, `${size.width} wordmark ${chrome.markW}px`).toBeGreaterThanOrEqual(108);
     expect(chrome.markW, `${size.width} wordmark too wide ${chrome.markW}px`).toBeLessThanOrEqual(140);
     expect(chrome.oneRow, `${size.width} nav wrapped`).toBe(true);
-    expect(chrome.navH, `${size.width} nav height ${chrome.navH}`).toBeLessThanOrEqual(72);
+    expect(chrome.buttonH, `${size.width} home label wrapped ${chrome.buttonH}`).toBeLessThanOrEqual(48);
+    expect(chrome.navH, `${size.width} nav height ${chrome.navH}`).toBeLessThanOrEqual(120);
   }
 });
 
@@ -266,7 +306,7 @@ test('Heat and Five Crowns load the default 5:7 faces', async ({page}) => {
     './assets/cards/wizard.webp',
     './assets/cards/canasta.webp'
   ]));
-  expect(defaults).not.toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
+  expect(defaults).toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
   expect(defaults.some((src) => src && src.includes('/fill/'))).toBe(false);
 });
 

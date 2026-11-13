@@ -21,13 +21,13 @@ async function openDemoPath(page) {
 async function enterScores(page, values) {
   await page.locator('#slice2-enter-btn, #submit-action-btn').first().click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-  const next = page.locator('#score-entry-modal .score-entry-key.next');
+  // Later rounds sort by win direction (docs/tech-spec.md). Type onto the named seat, not whoever is first on screen.
+  const names = await page.evaluate(() => (currentGame.originalRoster || []).slice());
   for (let i = 0; i < values.length; i += 1) {
-    const digits = String(values[i]).split('');
-    for (const digit of digits) {
-      await page.locator('#score-entry-modal .score-entry-key', {hasText: digit}).first().click();
+    await page.locator('#score-entry-modal .score-entry-name', {hasText: new RegExp(`^${names[i]}$`)}).click();
+    for (const digit of String(values[i]).split('')) {
+      await page.locator('#score-entry-modal .score-entry-key', {hasText: new RegExp(`^${digit}$`)}).first().click();
     }
-    if (i < values.length - 1) await next.click();
   }
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/, {timeout: 8000});
@@ -64,7 +64,7 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
     await expect(page.locator('#slice2-board-line')).toContainText(/Five Crowns/);
     await expect(page.locator('#scorecard-body')).toContainText('June');
     await expect(page.locator('#slice2-table-btn')).toBeVisible();
-    await expect(page.locator('.match-end-btn')).toBeVisible();
+    await expect(page.locator('#actions-menu .match-end-btn')).toHaveCount(1);
     const live = await page.evaluate(() => ({
       totals: currentGame.totals,
       round: currentGame.currentRound,
@@ -105,12 +105,15 @@ test('isolated demo path: last-hand correction changes the winner and Records ag
   await mark('finish-and-records', async () => {
     const over = await page.evaluate(() => typeof isMatchOver === 'function' && isMatchOver(currentGame));
     expect(over, 'hand 11 finishes Five Crowns').toBe(true);
-    const endMatch = page.locator('#game-over-section button').filter({hasText: /End Match/});
+    const endMatch = page.locator('#game-over-section button').filter({hasText: /Leave game/});
     if (await endMatch.count()) await endMatch.first().click();
-    else await page.locator('.match-end-btn').first().click();
-    const confirm = page.locator('#end-match-confirm');
-    await expect(confirm).toBeVisible({timeout: 5000});
-    await confirm.click();
+    else {
+      await page.locator('#actions-btn').click();
+      await page.locator('#actions-menu .match-end-btn').click();
+    }
+    await expect(page.locator('#leave-count-yes')).toBeHidden();
+    await page.locator('#leave-end-now').click();
+    await expect(page.locator('#leave-count-yes')).toBeHidden();
     await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#victory-names')).toContainText(/June/i);
     await shot(page, '390-04-victory');

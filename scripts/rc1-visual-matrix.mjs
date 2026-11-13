@@ -50,7 +50,7 @@ async function inspectLayout(page) {
     const cutButtons = [];
     const selectors = [
       '#slice2-table-btn', '#slice2-enter-btn', '#actions-btn',
-      '.match-end-btn', '#end-match-confirm', '#end-match-cancel',
+      '.match-end-btn', '#leave-end-now', '#leave-keep-playing',
       '#score-entry-primary-btn', '#wheel-spin-btn',
       '#home-start-btn', '[data-s2-action="pick-game"]'
     ];

@@ -54,17 +54,19 @@ test('active-match roster is not the Home seat list', async () => {
   assert.doesNotMatch(html, /slice2MoveSeat[\s\S]{0,200}currentGame\.players/);
 });
 
-test('Home seating wires handle-only drag, nudges, keyboard, and live announce', async () => {
+test('Home seating drags the row, keeps keyboard grab on the handle, and announces the move', async () => {
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
   const css = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
   assert.match(js, /function moveSeatList\(list, from, to\)/);
   assert.match(js, /s2-seat-handle/);
-  assert.match(js, /aria-label="Move \$\{escapeHtml\(player\)\} up"/);
-  assert.match(js, /aria-label="Move \$\{escapeHtml\(player\)\} down"/);
+  assert.match(js, /aria-label="Reorder \$\{escapeHtml\(player\)\}"/);
+  assert.doesNotMatch(js, /aria-label="Move \$\{escapeHtml\(player\)\} up"/);
+  assert.doesNotMatch(js, /aria-label="Move \$\{escapeHtml\(player\)\} down"/);
   assert.match(js, /aria-live="polite"/);
   assert.match(js, /onPointerDown/);
-  assert.match(js, /closest\?\.?\('\.s2-seat-handle'\)/);
+  assert.match(js, /closest\?\.?\('#slice2-home \.s2-seat'\)/);
   assert.match(js, /Math\.abs\(event\.clientY - seatPointer\.startY\) < 8/);
+  assert.match(js, /closest\?\.?\('\.s2-seat-handle'\)/);
   assert.match(js, /event\.key === 'Escape'/);
   assert.match(js, /event\.key === 'ArrowUp'/);
   assert.match(js, /Cancelled moving/);

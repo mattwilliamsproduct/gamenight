@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -14,27 +15,52 @@ test('each shelf game has a card-back thumbnail helper', () => {
   assert.equal(Games.thumbnailSrc('Unknown Game'), '');
 });
 
-test('Rook is hidden by default and Canasta is on the picker', () => {
+test('Rook is on the picker with Canasta', () => {
   const visible = Games.visibleGames('');
   const ids = visible.map((game) => game.id);
   assert.ok(ids.includes('Hand and Foot'));
   assert.equal(Games.displayName('Hand and Foot'), 'Canasta');
   assert.equal(Games.winLow('Hand and Foot'), false);
-  assert.equal(ids.includes('Rook'), false);
-  assert.equal(Games.gameById('Rook').hidden, true);
+  assert.ok(ids.includes('Rook'));
+  assert.equal(Games.gameById('Rook').hidden, false);
+  assert.equal(Games.displayName('Rook'), 'Rook');
 });
 
-test('Rook stays hidden when the URL has ?demo&games=rook', () => {
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo'), false);
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?games=rook'), false);
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo&games=rook'), false);
+test('a demo query does not hide Rook', () => {
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo'), true);
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?games=rook'), true);
+  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook'), '?demo&games=rook'), true);
   const ids = Games.visibleGames('?demo&games=rook').map((game) => game.id);
-  assert.equal(ids.includes('Rook'), false);
+  assert.ok(ids.includes('Rook'));
   assert.ok(ids.includes('Hand and Foot'));
-  Games.revealHiddenGames('rook');
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook')), true);
-  Games.revealHiddenGames('');
-  assert.equal(Games.isHiddenGameVisible(Games.gameById('Rook')), false);
+});
+
+test('Start follows each game player range and leaves Wizard uncapped', () => {
+  assert.deepEqual(Games.seatLimit('Five Crowns', 14), {
+    ok: false,
+    message: 'Five Crowns plays up to 7. Unseat 7 players.'
+  });
+  assert.deepEqual(Games.seatLimit('Five Crowns', 7), { ok: true, message: '' });
+  assert.deepEqual(Games.seatLimit('Hand and Foot', 1), {
+    ok: false,
+    message: 'Canasta needs at least 2 players. Seat 1 more.'
+  });
+  assert.deepEqual(Games.seatLimit('Hand and Foot', 0, 'seat'), {ok: true, message: ''});
+  assert.deepEqual(Games.seatLimit('Hand and Foot', 1, 'seat'), {ok: true, message: ''});
+  assert.equal(Games.seatLimit('Hand and Foot', 7, 'seat').ok, false);
+  assert.equal(Games.seatLimit('Hand and Foot', 7).ok, false);
+  assert.equal(Games.seatLimit('Rook', 3).ok, false);
+  assert.equal(Games.seatLimit('Rook', 7).ok, true);
+  assert.equal(Games.seatLimit('Rook', 4).ok, true);
+  const index = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(index, /Call-your-partner Rook is usually played with 4-6 players\. Start anyway\?/);
+  const slice = readFileSync(new URL('../public/assets/slice2.js', import.meta.url), 'utf8');
+  assert.match(slice, /seatLimit\(selected, seated \+ addPicks\.size, 'seat'\)/);
+  assert.match(slice, /seatLimit\(selected, seated\)/);
+  ['Wizard', '818', 'Flip 7 Vengeance', 'Beat the Heat'].forEach((id) => {
+    assert.equal(Games.seatLimit(id, 8).ok, true, `${id} stays startable at 8`);
+    assert.equal(Games.seatLimit(id, 14).ok, true, `${id} has no layout cap`);
+  });
 });
 
 test('old Rook history still has a registry row and high-score win direction', () => {

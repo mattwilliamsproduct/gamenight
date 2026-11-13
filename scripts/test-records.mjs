@@ -23,7 +23,7 @@ const helpers = {
   scorebook: Scorebook
 };
 
-function paintHtml(history, pane = 'overview', extra = {}) {
+function paintHtml(history, pane = 'overview', extra = {}, options = {}) {
   const view = {classList: {contains: () => false}, className: '', dataset: {}, innerHTML: ''};
   const completed = (history || []).filter((match) => Scorebook.isCompletedHistoryMatch(match));
   Records.paint({
@@ -47,7 +47,7 @@ function paintHtml(history, pane = 'overview', extra = {}) {
     competitionPlaces: helpers.competitionPlaces,
     escapeHtml(value) { return String(value == null ? '' : value); },
     getAvatarImg() { return ''; },
-    compact: false
+    compact: !!options.compact
   });
   return view.innerHTML;
 }
@@ -75,9 +75,9 @@ test('records copy uses singular nouns for a count of one', () => {
   assert.equal(Records.formatPlural(2, 'straight last-place finish', 'straight last-place finishes'), '2 straight last-place finishes');
 });
 
-test('hidden Rook stays off the championship ledger', () => {
+test('Rook stays on the championship ledger', () => {
   const ids = Records.visibleRecordGames().map((game) => game.id);
-  assert.ok(!ids.includes('Rook'));
+  assert.ok(ids.includes('Rook'));
   assert.ok(ids.includes('Five Crowns'));
   assert.ok(ids.includes('Beat the Heat'));
   assert.ok(ids.includes('Hand and Foot'));
@@ -93,7 +93,7 @@ test('completed Hand and Foot nights appear as Canasta on Records', () => {
   const html = paintHtml(QA_SCENARIOS['records-book'].data.history, 'overview');
   assert.match(html, /Canasta/);
   assert.match(html, /Hall of Fame/);
-  assert.match(html, /16 completed matches/);
+  assert.match(html, /17 completed matches/);
   assert.doesNotMatch(html, /Game Championship Ledger/);
   assert.doesNotMatch(html, /Unassisted matches only on best final/);
   assert.match(paintHtml(QA_SCENARIOS['records-book'].data.history, 'explore'), /Unassisted matches only/);
@@ -103,7 +103,7 @@ test('completed Hand and Foot nights appear as Canasta on Records', () => {
   assert.doesNotMatch(nights, /Retired/);
 });
 
-test('completed Rook history appears on Records without unhiding the start card', () => {
+test('Rook history appears on Records', () => {
   const rook = {
     id: 2,
     game: 'Rook',
@@ -115,9 +115,35 @@ test('completed Rook history appears on Records without unhiding the start card'
     rounds: [{round: 1, scores: {Ann: 110, Bo: 90}}]
   };
   assert.ok(Records.visibleRecordGames([rook]).some((game) => game.id === 'Rook'));
-  assert.ok(!Records.visibleRecordGames([{...rook, completed: false}]).some((game) => game.id === 'Rook'));
+  assert.ok(Records.visibleRecordGames([{...rook, completed: false}]).some((game) => game.id === 'Rook'));
   const html = paintHtml([rook], 'overview');
   assert.match(html, />Rook</);
+});
+
+test('Comeback Extra uses the production labels when a night stored an extra', () => {
+  const night = [{
+    id: 9,
+    game: 'Wizard',
+    date: '11/1/2026',
+    completed: true,
+    originalRoster: ['Ada', 'Bea'],
+    totals: {Ada: 30, Bea: 20},
+    winners: ['Ada'],
+    rounds: [{round: 1, scores: {Ada: 10, Bea: 20}, comeback: {Ada: 20}}]
+  }];
+  const html = paintHtml(night, 'explore', {
+    allTime: {
+      mostComebackExtras: {player: 'Ada', value: 2, label: '2 Comeback extras', date: '11/1/2026'},
+      biggestComebackExtra: {player: 'Bea', value: 20, label: '+20 extra', date: '11/1/2026'}
+    }
+  });
+  assert.match(html, /Most Comeback Extras In One Game/);
+  assert.match(html, /Biggest Comeback Extra/);
+  assert.match(html, /Ada/);
+  assert.match(html, /Bea/);
+  const empty = paintHtml(night, 'explore');
+  assert.doesNotMatch(empty, /Most Comeback Extras In One Game/);
+  assert.doesNotMatch(empty, /Biggest Comeback Extra/);
 });
 
 test('win rate always prints the denominator and hides thin samples from the lead', () => {
@@ -262,6 +288,9 @@ test('exact-bid rates print a percent sign', () => {
   assert.equal(Records.formatStatValue(67, 'Best single-match exact rate'), '67%');
   assert.equal(Records.formatStatValue(4, 'Most exact bids · Wizard'), '4 bids');
   assert.equal(Records.formatStatValue(1, 'Most exact bids · Wizard'), '1 bid');
+  assert.equal(Records.formatStatValue(90, 'Highest bid made'), '90');
+  assert.equal(Records.formatStatValue(90, 'Biggest set'), '90');
+  assert.equal(Records.formatStatValue(1, 'Most successful bids in one match'), '1 bid');
   assert.equal(Records.formatStatValue(20, 'Best final score'), '20 pts');
   assert.equal(Records.scoreLabel(100, '%'), '100%');
 });
@@ -296,6 +325,56 @@ test('end-of-match copy names every tied winner and skips a single loser', () =>
   assert.equal(Records.formatVictoryHeadline(lastTie), 'Nora Wins!');
   assert.equal(Records.formatLoserHeadline(lastTie), 'Priya and Theo share last.');
   assert.equal(lastTie.lastTied, true);
+});
+
+test('tied records share rank 1, 1, 3 and name every tied player', () => {
+  assert.equal(Records.competitionListRank([{value: 5}, {value: 5}, {value: 3}], 0), 1);
+  assert.equal(Records.competitionListRank([{value: 5}, {value: 5}, {value: 3}], 1), 1);
+  assert.equal(Records.competitionListRank([{value: 5}, {value: 5}, {value: 3}], 2), 3);
+  const tied = Records.closestMarginRecord(['Ada', 'Cleo', 'Bea'], {Ada: 10, Cleo: 10, Bea: 40});
+  assert.equal(tied.value, 30);
+  assert.equal(tied.label, 'tied');
+  assert.deepEqual(tied.ties.map((row) => row.player), ['Ada', 'Cleo']);
+  assert.match(Records.recordHolderText(tied), /Ada and Cleo/);
+  const tiedZero = Records.closestMarginRecord(['Ada', 'Bo'], {Ada: 12, Bo: 12});
+  assert.equal(tiedZero.value, 0);
+  assert.equal(tiedZero.label, 'tied');
+  assert.match(Records.recordHolderText(tiedZero), /Ada and Bo/);
+  assert.equal(Scorebook.classifyBidAccuracy({
+    round: 1,
+    bids: {Ada: 2, Bea: 1},
+    actuals: {Ada: 2, Bea: 0},
+    joinBonus: {Bea: true},
+    scores: {Ada: 30, Bea: 10}
+  }, 'Bea'), null);
+  assert.equal(Scorebook.classifyBidAccuracy({
+    round: 1,
+    bids: {Ada: 2},
+    actuals: {Ada: 2},
+    scores: {Ada: 30}
+  }, 'Ada'), 'exact');
+  assert.equal(Scorebook.matchHasPlayedBid({
+    game: 'Wizard',
+    rounds: [{round: 1, bids: {Ada: 1}, actuals: {Ada: 1}, scores: {Ada: 30}}]
+  }), true);
+  const solo = Records.closestMarginRecord(['Ada', 'Cleo'], {Ada: 10, Cleo: 14});
+  assert.equal(solo.label, 'Ada by 4 over Cleo');
+  const alerts = Records.collectRecordAlerts({
+    game: 'Five Crowns',
+    outcome: 'finished',
+    totals: {Ada: 80, Eli: 20},
+    retired: ['Eli'],
+    winners: ['Ada'],
+    rounds: [{round: 1, scores: {Ada: 80, Eli: 20}}]
+  }, {'Five Crowns': {bestScore: 90}}, {scorebook: Scorebook});
+  assert.equal(alerts.some((line) => line.includes('Eli')), false);
+  assert.equal(Records.collectRecordAlerts({
+    game: 'Five Crowns',
+    completed: true,
+    totals: {Eli: 20},
+    winners: ['Eli'],
+    rounds: [{round: 1, scores: {Eli: 20}}]
+  }, {'Five Crowns': {bestScore: 90}}, {scorebook: Scorebook}).length, 0);
 });
 
 test('several players tying a new record share one line', () => {
@@ -404,7 +483,7 @@ test('addendum labels stay relabel-only', () => {
   assert.match(nights, /Resume/);
 });
 
-test('Life Preserver totals skip incomplete matches and stay per game', () => {
+test('Life Preserver totals include a paused night and stay per game', () => {
   const done = {
     game: '818',
     date: '10/19/2026',
@@ -418,8 +497,7 @@ test('Life Preserver totals skip incomplete matches and stay per game', () => {
   };
   const open = {...done, completed: false, game: 'Wizard'};
   const events = Records.lifePreserverEvents([done, open], helpers);
-  assert.equal(events.length, 1);
-  assert.equal(events[0].game, '818');
+  assert.deepEqual(events.map((event) => event.game).sort(), ['818', 'Wizard']);
   const summary = Records.lifePreserverSummary([
     {player: 'Duke', game: '818', adjustment: 12, placesGained: 1},
     {player: 'Duke', game: 'Wizard', adjustment: 8, placesGained: 1}
@@ -538,7 +616,7 @@ test('nightCardHtml puts Left early in its own section without a dash place', ()
   assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
 });
 
-test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () => {
+test('Past nights competition ranks: ties read 1, 1, 3 and departed take no spot', () => {
   const match = {
     game: 'Wizard',
     totals: { Megan: 50, Matt: 50, Cat: 20, Linda: 5 },
@@ -552,7 +630,7 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
   assert.deepEqual(rows.map((r) => [r.name, r.place, !!r.leftEarly]), [
     ['Matt', 1, false],
     ['Megan', 1, false],
-    ['Cat', 2, false],
+    ['Cat', 3, false],
     ['Linda', null, true]
   ]);
   const model = Records.nightCardModel(match, helpers);
@@ -561,8 +639,8 @@ test('Past nights dense ranks: ties read 1, 1, 2 and departed take no spot', () 
     getAvatarImg: () => '<img>'
   }, false);
   assert.match(html, /s2-night-place">1st</);
-  assert.match(html, /s2-night-place">2nd</);
-  assert.doesNotMatch(html, /s2-night-place">3(?:rd|\.)</);
+  assert.match(html, /s2-night-place">3rd</);
+  assert.doesNotMatch(html, /s2-night-place">2nd</);
   assert.match(html, /s2-night-left-label">Left early</);
 });
 
@@ -572,11 +650,17 @@ test('demo career wins sum from completed nights, including ties and assisted', 
   assert.match(tally.rule, /One counting rule/);
   assert.match(tally.rule, /Every tied winner gets a win/);
   assert.match(tally.rule, /never a winner/);
-  assert.equal(tally.counted, 23);
-  assert.equal(tally.winSum, 29);
+  assert.equal(tally.counted, 7);
+  assert.equal(tally.winSum, 8);
   assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
-  assert.equal(tally.rows.some((row) => row.counts && row.assisted), true);
-  assert.equal(tally.rows.filter((row) => row.counts && row.tied).reduce((sum, row) => sum + row.winners.length, 0) > 0, true);
+  assert.equal(tally.rows.some((row) => row.assisted && !row.counts), true);
+  const assisted = book.history.find((row) => row.id === 1786100000008);
+  const countedAssisted = Records.careerWinTally([{...assisted, countResult: true}], {scorebook: Scorebook});
+  assert.equal(countedAssisted.counted, 1);
+  assert.equal(countedAssisted.winSum, 3);
+  const tied = book.history.find((row) => row.id === 1784390400000);
+  const countedTie = Records.careerWinTally([{...tied, countResult: true}], {scorebook: Scorebook});
+  assert.equal(countedTie.winSum, 2);
 });
 
 test('Passport career stats equal the per-match tally for every demo player', () => {
@@ -589,9 +673,35 @@ test('Passport career stats equal the per-match tally for every demo player', ()
   });
 });
 
+test('Canasta partners share a counted win and an uncounted night stays at zero', () => {
+  const match = {
+    game: 'Hand and Foot',
+    outcome: 'uncertain',
+    totals: {Ann: 11, Bo: 11, Cy: 6, Dee: 6},
+    winners: ['Ann'],
+    handFoot: {
+      format: 'teams',
+      sides: [{members: ['Ann', 'Bo']}, {members: ['Cy', 'Dee']}]
+    },
+    originalRoster: ['Ann', 'Bo', 'Cy', 'Dee'],
+    rounds: [{round: 1, scores: {Ann: 11, Bo: 11, Cy: 6, Dee: 6}}]
+  };
+  const rows = Records.nightStandings(match, helpers);
+  assert.deepEqual(rows.map((row) => [row.name, row.place]), [['Ann', 1], ['Bo', 1], ['Cy', 2], ['Dee', 2]]);
+  const hidden = Records.careerWinTally([match], {scorebook: Scorebook});
+  assert.equal(hidden.counted, 0);
+  const counted = Records.careerWinTally([{...match, countResult: true}], {scorebook: Scorebook});
+  assert.equal(counted.players.Ann.wins, 1);
+  assert.equal(counted.players.Bo.wins, 1);
+  assert.equal(counted.players.Cy.wins, 0);
+  assert.equal(counted.players.Dee.games, 1);
+  assert.equal(counted.players.Bo.games, 1);
+});
+
 test('tied winners each get a win on the shared career function', () => {
   const match = {
     game: 'Flip 7 Vengeance',
+    outcome: 'finished',
     completed: true,
     totals: {Ada: 40, Beau: 40, Cy: 10},
     winners: ['Ada', 'Beau'],
@@ -617,6 +727,7 @@ test('unfinished nights are excluded from wins, win %, and games', () => {
     },
     {
       game: 'Five Crowns',
+      outcome: 'finished',
       completed: true,
       totals: {Ada: 10, Beau: 8},
       winners: ['Beau'],
@@ -636,6 +747,7 @@ test('unfinished nights are excluded from wins, win %, and games', () => {
 test('left-early player who would have won is not a winner; remaining finishers win', () => {
   const match = {
     game: 'Five Crowns',
+    outcome: 'finished',
     completed: true,
     totals: {Ada: 4, Beau: 10, Cy: 12},
     winners: ['Ada'],
@@ -660,5 +772,223 @@ test('demo Rook night has a left-early player and does not change the stored win
   assert.deepEqual(Records.eligibleWinners(rook, {scorebook: Scorebook}).slice().sort(), ['Nora', 'Owen']);
   const theo = Records.playerCareerStats([rook], {scorebook: Scorebook, player: 'Theo'});
   assert.equal(theo.wins, 0);
-  assert.equal(theo.games, 1);
+  assert.equal(theo.games, 0);
+});
+
+test('Delete night is on a past night and stays off the live match', () => {
+  const model = {
+    id: 9,
+    game: 'Wizard',
+    gameTitle: 'Wizard',
+    incomplete: false,
+    winners: ['Ava'],
+    standings: [{name: 'Ava', score: 10, place: 1, isWinner: true, leftEarly: false, retired: false}],
+    retired: [],
+    rounds: 1,
+    assisted: false,
+    winnerText: 'Ava',
+    showResume: false,
+    showCountToggle: false,
+    throughRound: 1
+  };
+  const ctx = {
+    escapeHtml: (value) => String(value ?? ''),
+    getAvatarImg: () => '',
+    table: {currentGame: {id: 3}},
+    expandedNights: new Set()
+  };
+  assert.match(Records.nightCardHtml(model, ctx, false), /Delete night/);
+  assert.doesNotMatch(Records.nightCardHtml({...model, id: 3}, ctx, false), /Delete night/);
+});
+
+test('biggest single-game comeback uses round totals, not Turbo', () => {
+  const rounds = [];
+  for (let i = 1; i <= 15; i += 1) {
+    rounds.push({
+      round: i,
+      scores: i <= 7
+        ? {Ada: i === 1 ? 100 : 0, Bea: 10, Cleo: 0, Dee: 5}
+        : {Ada: 0, Bea: 0, Cleo: 20, Dee: 0}
+    });
+  }
+  const match = {
+    game: 'Wizard',
+    date: '10/27/2026',
+    originalRoster: ['Ada', 'Bea', 'Cleo', 'Dee'],
+    winners: ['Cleo'],
+    totals: {Ada: 100, Bea: 70, Cleo: 160, Dee: 35},
+    rounds
+  };
+  assert.equal(Scorebook.countsForScoreMagnitude(match), true);
+  const row = Records.biggestSingleGameComeback([match], helpers);
+  assert.equal(row.player, 'Cleo');
+  assert.equal(row.value, 100);
+  assert.equal(row.label, 'Last at halfway, won Wizard');
+  assert.equal(Records.shouldShowComebackStats([match]), false);
+  const book = QA_SCENARIOS['records-book'].data.history;
+  const shown = Records.biggestSingleGameComeback(book, helpers);
+  assert.equal(shown.player, 'Cleo');
+  assert.equal(shown.value, 100);
+  assert.equal(shown.label, 'Last at halfway, won Wizard');
+});
+
+test('a team comeback uses the shelf name and both partners', () => {
+  const match = QA_SCENARIOS['canasta-comeback'].data.history[0];
+  const row = Records.biggestSingleGameComeback([match], helpers);
+  assert.equal(row.label, 'Last at halfway, won Canasta');
+  assert.equal(Records.recordHolderText(row), 'Cat and Mike');
+  assert.equal(row.value, 180);
+  assert.equal(Records.publicGamePhrase('Hand and Foot'), 'Canasta');
+  assert.equal(Records.publicGamePhrase('Flip 7 Vengeance'), 'Flip 7');
+  assert.equal(Records.publicGamePhrase('Most played Hand and Foot'), 'Most played Canasta');
+  const book = QA_SCENARIOS['records-book'].data.history;
+  const shown = Records.biggestSingleGameComeback(book, helpers);
+  assert.equal(shown.player, 'Cleo');
+  assert.equal(shown.label, 'Last at halfway, won Wizard');
+  const mixed = QA_SCENARIOS['comeback-by-game'].data.history;
+  assert.equal(Records.biggestSingleGameComeback(mixed, helpers), null);
+  const rows = Records.biggestComebacksByGame(mixed, helpers);
+  const wizard = rows.find((row) => row.game === 'Wizard');
+  const canasta = rows.find((row) => row.game === 'Hand and Foot');
+  assert.equal(rows.length, 2);
+  assert.equal(wizard.player, 'Cleo');
+  assert.equal(wizard.value, 100);
+  assert.equal(wizard.label, 'Last at halfway, won Wizard');
+  assert.equal(canasta.value, 180);
+  assert.equal(canasta.label, 'Last at halfway, won Canasta');
+  assert.equal(Records.recordHolderText(canasta), 'Cat and Mike');
+  assert.ok(rows.indexOf(wizard) < rows.indexOf(canasta));
+});
+
+test('Hall of Fame names a three-way tie at laptop width', () => {
+  const html = paintHtml([{
+    id: 1,
+    game: 'Five Crowns',
+    date: '10/1/2026',
+    rounds: Array.from({length: 11}, (_, index) => ({round: index + 1, scores: {Ada: 1, Cleo: 1, Bea: 1}})),
+    totals: {Ada: 11, Cleo: 11, Bea: 11},
+    winners: ['Ada', 'Cleo', 'Bea'],
+    completed: true
+  }], 'overview', {
+    games: {
+      'Five Crowns': {
+        bestGame: {
+          player: 'Ada',
+          value: 11,
+          ties: [
+            {player: 'Ada', value: 11},
+            {player: 'Cleo', value: 11},
+            {player: 'Bea', value: 11}
+          ]
+        }
+      }
+    }
+  });
+  assert.match(html, /Ada, Cleo, and Bea/);
+  assert.doesNotMatch(html, /\+ 1 more/);
+});
+
+test('Player Career Cards are on the records overview and say Canasta', () => {
+  const html = paintHtml([{
+    id: 2,
+    game: 'Hand and Foot',
+    date: '10/2/2026',
+    rounds: [{round: 1, scores: {Ada: 10}}],
+    totals: {Ada: 10},
+    winners: ['Ada'],
+    completed: true
+  }], 'overview', {
+    playerCards: [{
+      player: 'Ada',
+      wins: 1,
+      games: 3,
+      winRate: 33,
+      favorite: 'Hand and Foot',
+      currentStreak: 'W1',
+      bestGameType: 'Hand and Foot (100%)',
+      nemesisGame: 'Hand and Foot (0%)',
+      trend: 'Holding steady',
+      bests: [{name: 'Hand and Foot', best: {value: 10}, worst: {value: 4}}]
+    }]
+  });
+  assert.match(html, /Player Career Cards/);
+  assert.match(html, /Most played Canasta/);
+  assert.doesNotMatch(html, /Most played Hand and Foot/);
+  assert.match(html, /Best type Canasta/);
+});
+
+test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
+  require('../public/assets/hand-foot-logic.js');
+  const html = paintHtml([{
+    id: 3,
+    game: 'Hand and Foot',
+    date: '10/3/2026',
+    originalRoster: ['Ann', 'Bo'],
+    totals: {Ann: 100, Bo: 40},
+    winners: ['Ann'],
+    rounds: [{
+      round: 1,
+      scores: {Ann: 100, Bo: 40},
+      handFootParts: {
+        Ann: {basic: 1, count: 20, got22: true, wentOut: true, cardsLeft: 0, roundScore: 100},
+        Bo: {basic: 1, count: 20, got22: false, wentOut: false, cardsLeft: 12, roundScore: 40}
+      }
+    }]
+  }], 'explore');
+  assert.match(html, /Got the 22/);
+  assert.match(html, /Went out/);
+  assert.match(html, /Cards left/);
+  assert.match(html, /Ann/);
+  const overview = paintHtml([{
+    id: 3,
+    game: 'Hand and Foot',
+    date: '10/3/2026',
+    originalRoster: ['Ann', 'Bo'],
+    totals: {Ann: 100, Bo: 40},
+    winners: ['Ann'],
+    rounds: [{
+      round: 1,
+      scores: {Ann: 100, Bo: 40},
+      handFootParts: {
+        Ann: {basic: 1, count: 20, got22: true, wentOut: true, cardsLeft: 0, roundScore: 100},
+        Bo: {basic: 1, count: 20, got22: false, wentOut: false, cardsLeft: 12, roundScore: 40}
+      }
+    }]
+  }], 'overview', {
+    playerCards: [{
+      player: 'Ann',
+      wins: 1,
+      games: 1,
+      winRate: 100,
+      favorite: 'Hand and Foot',
+      currentStreak: 'W1',
+      bestGameType: 'Hand and Foot (100%)',
+      nemesisGame: 'Hand and Foot (0%)',
+      trend: 'Holding steady',
+      bests: []
+    }]
+  });
+  assert.match(overview, /data-canasta-events="overview"/);
+  assert.match(overview, /Got the 22/);
+  assert.match(overview, /Went out/);
+  assert.match(overview, /Cards left/);
+  assert.match(overview, /data-canasta-events="career"/);
+  const phone = paintHtml([{
+    id: 3,
+    game: 'Hand and Foot',
+    date: '10/3/2026',
+    originalRoster: ['Ann', 'Bo'],
+    totals: {Ann: 100, Bo: 40},
+    winners: ['Ann'],
+    rounds: [{
+      round: 1,
+      scores: {Ann: 100, Bo: 40},
+      handFootParts: {
+        Ann: {basic: 1, count: 20, got22: true, wentOut: true, cardsLeft: 0, roundScore: 100},
+        Bo: {basic: 1, count: 20, got22: false, wentOut: false, cardsLeft: 12, roundScore: 40}
+      }
+    }]
+  }], 'explore', {}, {compact: true});
+  assert.match(phone, /<details class="s2-disclose" open>/);
+  assert.match(phone, /Got the 22/);
 });

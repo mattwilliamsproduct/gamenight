@@ -107,10 +107,10 @@ test('Home quick-add typing m suggests only Michelle and no comma names', () => 
 test('a comma name is rejected at the write boundary', () => {
   const { context, errors, hidden } = makeRosterSandbox();
   assert.equal(context.playerNameWriteError('Michelle'), '');
-  assert.equal(context.playerNameWriteError('Megan,Matt'), 'Use one name — commas aren’t allowed.');
-  assert.equal(context.playerNameWriteError(['Megan', 'Matt']), 'Use one name — commas aren’t allowed.');
+  assert.equal(context.playerNameWriteError('Megan,Matt'), 'Use one name. Commas are not allowed.');
+  assert.equal(context.playerNameWriteError(['Megan', 'Matt']), 'Use one name. Commas are not allowed.');
   assert.equal(context.rejectUnsavablePlayerName('Megan,Matt', 'home-player-name-error'), true);
-  assert.equal(errors['home-player-name-error'].textContent, 'Use one name — commas aren’t allowed.');
+  assert.equal(errors['home-player-name-error'].textContent, 'Use one name. Commas are not allowed.');
   assert.equal(hidden['home-player-name-error'], false);
   assert.equal(context.rejectUnsavablePlayerName('Michelle', 'home-player-name-error'), false);
   const incoming = Backup.parseBackup(JSON.stringify({
@@ -118,7 +118,7 @@ test('a comma name is rejected at the write boundary', () => {
     players: ['Megan'],
     playerProfiles: { Megan: {} }
   }));
-  assert.equal(context.incomingPlayerNameWriteError(incoming), 'Use one name — commas aren’t allowed.');
+  assert.equal(context.incomingPlayerNameWriteError(incoming), 'Use one name. Commas are not allowed.');
   assert.equal(context.incomingPlayerNameWriteError({
     allPlayers: ['Megan'],
     players: ['Megan'],
@@ -133,6 +133,8 @@ test('Home, mid-game, rename, and import write paths call the comma guard', () =
   const importFn = extractFunction(html, 'importBackupText');
   assert.match(add, /rejectUnsavablePlayerName\(name,'home-player-name-error'\)/);
   assert.match(mid, /rejectUnsavablePlayerName\(name,'midgame-player-name-error'\)/);
+  assert.match(mid, /originalRoster\.push/);
+  assert.doesNotMatch(mid, /Tonight\\'s Table/);
   assert.match(rename, /rejectUnsavablePlayerName\(newName,'rename-player-name-error'\)/);
   assert.match(importFn, /incomingPlayerNameWriteError\(incoming\)/);
 });

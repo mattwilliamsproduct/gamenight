@@ -785,6 +785,28 @@ function canastaFinishedNight(){
   });
 }
 
+function canastaComebackNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const ahead=canastaHouseParts({cardPoints:100, cardsLeft:0});
+  const behind=canastaHouseParts({cardPoints:10, cardsLeft:0});
+  const quiet=canastaHouseParts({cardPoints:10, cardsLeft:0});
+  const surge=canastaHouseParts({cardPoints:200, cardsLeft:0});
+  const rounds=[
+    canastaTeamRound(1, ahead, behind, ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(2, ahead, behind, ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(3, quiet, surge, ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(4, quiet, surge, ['Megan','Matt'], ['Cat','Mike'])
+  ];
+  return finishedNight(1783353600001,'Hand and Foot','10/2/2026',roster,rounds,{
+    handFoot:{format:'teams', sides},
+    maxRounds:4
+  });
+}
+
 function rookFinishedNight(){
   const roster=['Megan','Matt','Cat','Mike'];
   const rounds=[{
@@ -888,6 +910,28 @@ function demoJointWinNight(){
     scoreRound(1,roster,[20,20,8,11]),
     scoreRound(2,roster,[15,15,12,9])
   ]);
+}
+
+function cleoComebackNight(){
+  // Legal Wizard. After 7 rounds Cleo is last by 100. She then takes every
+  // remaining trick and wins. Records shows Cleo · 100 · Last at halfway.
+  const roster=['Ada','Bea','Cleo','Dee'];
+  const taken=[
+    {Ada:1,Bea:0,Cleo:0,Dee:0},
+    {Ada:2,Bea:0,Cleo:0,Dee:0},
+    {Ada:3,Bea:0,Cleo:0,Dee:0},
+    {Ada:4,Bea:0,Cleo:0,Dee:0},
+    {Ada:0,Bea:5,Cleo:0,Dee:0},
+    {Ada:0,Bea:5,Cleo:0,Dee:1},
+    {Ada:0,Bea:0,Cleo:0,Dee:7}
+  ];
+  for(let round=8; round<=15; round+=1) taken.push({Ada:0,Bea:0,Cleo:round,Dee:0});
+  const rounds=taken.map((row,index)=>{
+    const pairs={};
+    roster.forEach((name)=>{ pairs[name]=[row[name], row[name]]; });
+    return wizardHand(index+1, roster, pairs);
+  });
+  return finishedNight(1786100000099,'Wizard','10/27/2026',roster,rounds,{maxRounds:15});
 }
 
 function demoHistory(){
@@ -1122,6 +1166,18 @@ export const QA_SCENARIOS = {
     description:'Six seated players, six on deck, and full profile history.',
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
+  },
+  'home-live-8':{
+    label:'Home · Live Five Crowns · 8',
+    description:'Landscape Home during an eight-player Five Crowns night. Standings sit beside the game cards.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:[...lateCrowns8Players],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrowns8Game}
+  },
+  'home-resume-unfinished':{
+    label:'Home · Resume unfinished',
+    description:'No live match. Two unfinished Five Crowns nights. Home shows the newest with Resume. The older night stays in Records.',
+    defaultSurface:'home',
+    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:[demoIncompleteNight(),{...demoIncompleteNight(),id:1784476800000,date:'10/18/2026',currentRound:5}],playerProfiles:profiles(),currentGame:null}
   },
   'wizard-10':{
     label:'Wizard · 10 Players',
@@ -1388,7 +1444,25 @@ export const QA_SCENARIOS = {
     label:'Records book',
     description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match, a joint win, a completed Canasta night, and existing Rook history.',
     defaultSurface:'records',
-    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight()]),playerProfiles:profiles(),currentGame:null}
+    data:{allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight(),cleoComebackNight()]),playerProfiles:profiles(),currentGame:null}
+  },
+  'comeback-by-game':{
+    label:'Comebacks · one row per game',
+    description:'Wizard Cleo by 100 and Canasta Cat and Mike by 180. Each game keeps its own comeback. Raw points do not pick a winner.',
+    defaultSurface:'records',
+    data:{
+      allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],
+      players:['Ada','Bea','Cleo','Dee','Megan','Matt','Cat','Mike'],
+      history:[cleoComebackNight(), canastaComebackNight()],
+      playerProfiles:profiles(),
+      currentGame:null
+    }
+  },
+  'canasta-comeback':{
+    label:'Canasta · team comeback',
+    description:'Cat and Mike were last at halfway, then won the Canasta night. The comeback row names both partners and the shelf name.',
+    defaultSurface:'records',
+    data:{allPlayers:[...NAMES],players:['Megan','Matt','Cat','Mike'],history:[canastaComebackNight()],playerProfiles:profiles(),currentGame:null}
   },
   'empty-home':{
     label:'Empty first start',

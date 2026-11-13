@@ -10,6 +10,48 @@ Ready-to-test language waits on a filled `docs/prove-it-packet.md`. After a dura
 
 `gate-log.md` in this folder is the append-only Gate B and Gate C log. It is not a lesson note. Column rules are in `docs/jev-gates.md`.
 
+Standing trap: [select-chevron.md](select-chevron.md) — one `select.bp-select` chevron, 14px in from the right. Do not draw a second arrow per screen.
+
+Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave game choice. A counted partial total stays out of full-game score records. History does not inherit today's targets. Flip 7 Leave still uses the seated 200 rule.
+
+Standing trap: [bs-polish.md](bs-polish.md) — the wheel control stays on the right of the name. A comeback uses the shelf name and both partners. A Canasta round in progress is a labeled sum.
+
+Standing trap: [bm-entry-and-parity.md](bm-entry-and-parity.md) — `bffd216` restored a `00` key for parity. Matt's Nov 12, 4:12 PM ET keypad spec removed that key from score entry, and that decision wins.
+
+Standing trap: [cc-sheet-and-teams.md](cc-sheet-and-teams.md) — phone score boxes and the progress line stay inside the sheet. A pad with no minus uses one wide 0. Canasta teams are tap-to-swap cards. A live match starts with a small Start another game action.
+Standing trap: [ce-sentence-case.md](ce-sentence-case.md) — buttons and labels are regular-width sentence case. A long single name does not split mid-word. Phone nav buttons size to their words. The Canasta teams modal opens only for Canasta.
+Standing trap: [cd-pads-and-badge.md](cd-pads-and-badge.md) — no pad has a 00 key. A blank Wizard bid stays missing. An 818 blank bid still becomes 0 only when the round is checked. Spin ready stays inside the player cell.
+
+Standing trap: [cb-readable-entry.md](cb-readable-entry.md) — the score helper stays one short line. The 999 note sits in that player's score box. Score pads use Skip.
+
+Standing trap: [bv-bw-by-missed-decisions.md](bv-bw-by-missed-decisions.md) — Skip replaces 00 on score pads. Minus follows the non-negative game list. Home has no View all. The card edge is an inset ring on top of the cover.
+
+Standing trap: [bu-pin-and-nav.md](bu-pin-and-nav.md) — The Canasta card sits under the header. Only its own height hugs. The phone bottom nav has equal columns and a gap. [bt-board-and-comeback.md](bt-board-and-comeback.md) — Canasta team names stay one line. Phone nav says Player Passports and Settings. Biggest comeback is one row per game.
+
+Standing trap: [rc4-live-records.md](rc4-live-records.md) — Canasta places use the team key. Biggest comeback is ordinary round history. A cleared Canasta breakdown does not keep the old parts.
+
+Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round rules are already counting. Canasta is complete at 4 saved rounds (Matt, 7:13 PM ET, amendment 11). Flip 7 is a full game when a seated total reached 200 (Matt, Nov 12, 7:10 PM ET). Do not invent a Rook target.
+
+Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals skip to the next place. The scoreboard uses the page width and caps row height.
+
+Standing trap: [late-join-start.md](late-join-start.md) — mid-match Add Player uses the ceiling of the seated average. A departure does not change the Wizard length. Canasta and Rook do not add a seat.
+
+Standing trap: [restore-keeps-live-match.md](restore-keeps-live-match.md) — an empty backup table does not clear the live match. A different match in the file is parked first.
+
+Standing trap: [left-early-stays-visible.md](left-early-stays-visible.md) — a player who left early stays on the board with their score and the words Left early. Passport Best score skips that partial total.
+
+Standing trap: [ao-provenance.md](ao-provenance.md) — AO's Q2 and Q4 were not Matt's words. Records exclusion of a left-early partial is his 5:25 PM ET line. End-screen celebrations and shared 1, 1, 3 naming are recommendations, pending him. The late-join ceiling, including Wizard and 818, is his ~4:00 PM ET Nov 12 approval. Behavior stays.
+
+Standing trap: [end-screen-eligibility.md](end-screen-eligibility.md) — an uncounted ended-early night says Ended early. It does not name a winner or celebrate a score. The celebration skip and the shared 1, 1, 3 naming are recommendations, pending Matt.
+
+Standing trap: [exact-bid-open-nights.md](exact-bid-open-nights.md) — exact-bid stats include paused and ended-early rounds that have both a bid and the tricks taken. A late-join starting adjustment does not count.
+
+Standing trap: [two-tab-revision.md](two-tab-revision.md) — a second tab loads the newer match instead of writing over it.
+
+Standing trap: [round-celebrations.md](round-celebrations.md) — WHAMMY, Nolie, and Cami Whammi open from a submitted round. The final counted round of a fixed-length game does not. Cami is Wizard and Flip 7 only.
+
+Standing trap: [special-round-labels.md](special-round-labels.md) — passport lines stay Only player to score, Everyone made their bid, and Everyone missed. The round modals keep the names WHAMMY, NOLIE, and CAMI WHAMMI.
+
 Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Remap the QA seed to a fictional cast in the demo path only. Bare `?demo` still does nothing.
 
 Standing trap: [add-player-suggestions-joined-name.md](add-player-suggestions-joined-name.md) — spread profile keys into the known-name list, or Add Player offers one comma-joined fake row.
@@ -50,7 +92,15 @@ Standing trap: [home-night-podium.md](home-night-podium.md) — Recent nights po
 
 Standing trap: [home-seat-reorder.md](home-seat-reorder.md) — Home reorder writes `players` only. A live match keeps its own roster and dealer.
 
-Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook stays hidden. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
+Standing trap: [scoreboard-header-tiles.md](scoreboard-header-tiles.md) — header is Home, Actions, Enter Scores. Save & End stays in Actions. Entered scores use one light tile. A Life Preserver cell grows in height instead of shrinking the digits.
+
+Standing trap: [home-live-standings.md](home-live-standings.md) — landscape Home fills under the nav and ends a margin above the viewport. A `100dvh` height taken from the wrong top slices Start, Add Player, and the last row. Live standings use `scoreboardStandings` and do not sort the seats. Start confirms before `parkActiveMatch`. Unfinished nights resume from the banner, not a Home history list.
+
+Standing trap: [avatar-photo.md](avatar-photo.md) — uploads are shrunk to a JPEG data URL before `gn_profiles` or `bpg_demo_profiles`. A failed save keeps the previous portrait. A broken ref shows the silhouette.
+
+Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
+
+Standing trap: [cf-prod-parity.md](cf-prod-parity.md) — Rook is on the picker with the existing 300/500/1000 target. Comeback Extra is the stored mark and the two Records lines. Do not load `comeback-logic.js`. Porch Cloud fetches only on `cardknight.vercel.app`, with `gn_porch_key` and `/api/sync`. Do not change `mergeCloud` or `api/sync.js`.
 
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
 
@@ -68,4 +118,4 @@ Standing trap: [rc3d-phone-entry-roster.md](rc3d-phone-entry-roster.md) — phon
 
 Standing trap: [rc4-usability.md](rc4-usability.md) — scorecard width stays stable, not edge-to-edge then hugged. Nine-seat wrap was not reproduced. Passport filters scope every number. Demo records are computed, never planted. Safari on a real phone stays Matt's check.
 
-Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phone scoreboard that locks the shell to `100dvh` clips the last seats and hides the app nav. Scroll the seat list inside the visual viewport. Phone header is Home, Enter Score, Actions, Save & End on one row. Desktop keeps `← Table`.
+Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phone scoreboard that locks the shell to `100dvh` clips the last seats and hides the app nav. Scroll the seat list inside the visual viewport. Phone header is Home, Enter Score, Actions, Save & End on one row. The back control says Home at every size and does not end the match. See [rc4-ipad-landscape.md](rc4-ipad-landscape.md).

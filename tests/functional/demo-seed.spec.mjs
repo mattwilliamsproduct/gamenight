@@ -13,10 +13,11 @@ function hidden(page, id) {
 const VIEW_ASSERT = {
   home: async (page) => {
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
-    await expect(page.locator('#slice2-home')).toContainText(/Tonight's Table/);
-    await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
-    await expect(page.locator('#slice2-home')).toContainText(/Recent nights/);
-    await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
+    await expect(page.locator('#slice2-home')).toContainText(/Current standings/);
+    await expect(page.locator('#slice2-home')).toContainText(/Start a new match/i);
+    await expect(page.locator('#slice2-home .s2-home-start')).toBeVisible();
+    await expect(page.locator('#slice2-home')).not.toContainText(/Recent nights/);
+    await expect(page.locator('#slice2-home .s2-banner:not(.s2-unfinished-banner) .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
   },
   'active-match': async (page) => {
     await expect(hidden(page, 'game-screen')).not.toHaveClass(/hidden/);
@@ -77,7 +78,7 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#wheel-result')).not.toHaveClass(/hidden/);
     await expect(page.locator('#btn-spin')).toBeHidden();
-    await expect(page.locator('#wheel-mode-label')).toHaveText('Life Preserver Unlocked');
+    await expect(page.locator('#wheel-mode-label')).toHaveText('Back Porch Wheel Unlocked');
     await expect(page.locator('#wheel-result-adjustment')).toContainText('+20 points');
     await expect(page.locator('#wheel-result-total')).toContainText('41 → 61');
     await expect(page.locator('#wheel-result-standing')).toContainText('3rd → 2nd');
@@ -118,7 +119,7 @@ const VIEW_ASSERT = {
   'records-nights': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-nights')).toHaveClass(/is-on/);
-    await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Incomplete/);
+    await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Unfinished/);
     await expect(page.locator('.s2-night-winner', {hasText: / and /}).first()).toBeVisible();
   },
   'records-shame': async (page) => {
@@ -251,13 +252,15 @@ test.describe('test-only fixture views', () => {
     await expect(page.locator('#rook-bid-amount-input')).toBeVisible();
   });
 
-  test('Rook stays off the demo picker without games=rook', async ({page}) => {
+  test('Rook is on the demo picker', async ({page}) => {
     test.setTimeout(45000);
     await openDemo(page, 'home');
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
+    const reveal = page.locator('[data-s2-action="reveal-picker"]');
+    if (await reveal.count()) await reveal.click();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
-    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
+    await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
   });
 
   test('?demo does nothing on a first-time book', async ({page}) => {

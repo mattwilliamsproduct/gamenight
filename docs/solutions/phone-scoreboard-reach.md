@@ -29,3 +29,5 @@ The phone header (`max-width: 767px`) stacked the board bar and wrapped `.s2-boa
 ## What fixed it
 
 On a phone active match the app shell is fixed to the visual viewport (`visualViewport`, falling back to `100dvh`) and padded under the Try a demo bar. The scorecard wrap scrolls. `#top-nav` is shown at the bottom of that shell (Table, Records, Profiles, Settings). The four header controls are one grid row. Rows still size to the visible remainder, and they stop shrinking at 44px so a shorter viewport scrolls instead of clipping. Standings updated sits in the hint strip under that row (`--bp-board-bottom`), so the shorter header does not drop the toast onto the first total.
+
+Later correction (2026-11-08): the back control says Home at iPad and laptop sizes too. It sits with the other actions so it does not indent the title. It still calls `leaveMatchToTable()`. See [rc4-ipad-landscape.md](rc4-ipad-landscape.md).

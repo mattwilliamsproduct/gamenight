@@ -18,7 +18,7 @@ const FACES = [
   'rook.webp'
 ];
 
-test('the shelf shows six games and keeps Rook hidden', () => {
+test('the shelf shows seven games and includes Rook', () => {
   const visible = Games.visibleGames('');
   const ids = visible.map((game) => game.id);
   assert.deepEqual(ids, [
@@ -27,9 +27,10 @@ test('the shelf shows six games and keeps Rook hidden', () => {
     'Wizard',
     'Flip 7 Vengeance',
     'Beat the Heat',
-    'Hand and Foot'
+    'Hand and Foot',
+    'Rook'
   ]);
-  assert.equal(Games.gameById('Rook').hidden, true);
+  assert.equal(Games.gameById('Rook').hidden, false);
   assert.equal(Games.displayName('Hand and Foot'), 'Canasta');
 });
 
@@ -50,13 +51,23 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.match(css, /min-width:\s*1280px/);
   assert.match(css, /repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(css, /min-width:\s*1280px\) \{[\s\S]*?\.s2-home-grid \{\s*align-items:\s*start/);
-  assert.doesNotMatch(css, /margin-top:\s*auto/);
+  const landscapeAt = css.indexOf('orientation: landscape');
+  assert.ok(landscapeAt > 0, 'landscape dashboard block missing');
+  assert.doesNotMatch(css.slice(0, landscapeAt), /margin-top:\s*auto/);
+  assert.match(css.slice(landscapeAt), /margin-top:\s*auto/);
   assert.match(css, /min-width:\s*1440px/);
   assert.match(css, /minmax\(348px,\s*360px\)/);
   assert.match(css, /\.s2-card-frame/);
-  assert.match(css, /object-fit:\s*cover/);
+  assert.match(css, /inset 0 0 0 3px #9a8874/);
+  assert.match(css, /s2-card-frame::after/);
+  assert.doesNotMatch(css, /inset 0 0 0 2px #cfc6b6/);
+  assert.match(slice, /inset 0 0 0 3px #9a8874/);
+  assert.match(slice, /inset 0 0 0 6px #0a5c54/);
+  assert.match(css, /s2-game-name/);
+  assert.match(css, /object-fit:\s*contain/);
   assert.doesNotMatch(css, /background-size:\s*contain/);
-  assert.match(css, /\.s2-game-copy\s*\{\s*display:\s*none/);
+  assert.match(css, /\.s2-game-name/);
+  assert.match(js, /s2-game-name/);
   assert.doesNotMatch(css, /repeat\(4,\s*var\(--bp-card-max\)\)/);
   assert.match(css, /background-image:\s*none\s*!important/);
   assert.match(js, /s2-card-frame/);

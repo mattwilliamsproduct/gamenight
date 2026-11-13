@@ -132,7 +132,6 @@ export function buildDemoBook(qaScenarios) {
 export function demoBookHasPorchCast(blob) {
   const text = typeof blob === 'string' ? blob : JSON.stringify(blob || '');
   if (!text) return false;
-  if (/\.png/i.test(text)) return true;
-  if (/avatars\/(?!neutral-|silhouette-)[^"\s]+/i.test(text)) return true;
-  return QA_PORCH_CAST.some((name) => text.includes(name));
+  const visible = text.replace(/data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+/gi, '');
+  return QA_PORCH_CAST.some((name) => visible.includes(name));
 }

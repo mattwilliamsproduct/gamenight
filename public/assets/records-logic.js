@@ -14,7 +14,7 @@
     { id: 'Flip 7 Vengeance', title: 'Flip 7', unit: 'pts', winLow: false, art: 'flip7' },
     { id: 'Beat the Heat', title: 'Beat the Heat', unit: 'heat', winLow: true, art: 'heat' },
     { id: 'Hand and Foot', title: 'Canasta', unit: 'pts', winLow: false, art: 'canasta' },
-    { id: 'Rook', title: 'Rook', unit: 'pts', winLow: false, art: 'rook', hidden: true }
+    { id: 'Rook', title: 'Rook', unit: 'pts', winLow: false, art: 'rook', hidden: false }
   ];
 
   // Single-match exact-bid rate needs this many classified bids. Career Wizard
@@ -192,17 +192,54 @@
     return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
   }
 
+  function tieRows(record) {
+    const ties = record && Array.isArray(record.ties) ? record.ties : null;
+    if (ties && ties.length && ties[0] && ties[0] !== record && (ties[0].player || ties[0].name)) return ties;
+    return record ? [record] : [];
+  }
+
   function keepBestWithTies(current, next, better) {
     if (!next) return current || null;
-    if (!current) return Object.assign({}, next, { ties: [next] });
+    if (!current) return Object.assign({}, next, { ties: tieRows(next) });
     if (next.value === current.value) {
-      const existing = current.ties || [current];
-      const name = next.player || next.name;
-      if (name && existing.some((row) => (row.player || row.name) === name)) return current;
-      return Object.assign({}, current, { ties: existing.concat([next]) });
+      const merged = tieRows(current).slice();
+      tieRows(next).forEach((row) => {
+        const name = row.player || row.name;
+        if (name && !merged.some((item) => (item.player || item.name) === name)) merged.push(row);
+      });
+      return Object.assign({}, current, { ties: merged });
     }
-    if (better(next, current)) return Object.assign({}, next, { ties: [next] });
+    if (better(next, current)) return Object.assign({}, next, { ties: tieRows(next) });
     return current;
+  }
+
+  function competitionListRank(rows, index) {
+    const list = Array.isArray(rows) ? rows : [];
+    if (index < 0 || index >= list.length) return index + 1;
+    let rank = index + 1;
+    for (let i = index; i > 0; i -= 1) {
+      if (list[i] && list[i - 1] && list[i].value === list[i - 1].value) rank = i;
+      else break;
+    }
+    return rank;
+  }
+
+  function closestMarginRecord(sorted, totals) {
+    const order = Array.isArray(sorted) ? sorted.filter(Boolean) : [];
+    if (order.length < 2) return null;
+    const scoreOf = (name) => Number(totals && totals[name]) || 0;
+    const top = scoreOf(order[0]);
+    const tied = order.filter((name) => scoreOf(name) === top);
+    const next = order[tied.length];
+    const margin = next == null ? 0 : Math.abs(top - scoreOf(next));
+    const names = formatTiedNames(tied.map((player) => ({player})));
+    return {
+      player: tied[0],
+      value: margin,
+      label: tied.length > 1 ? 'tied' : `${order[0]} by ${margin} over ${order[1]}`,
+      ties: tied.map((player) => ({player, value: margin})),
+      names
+    };
   }
 
   function pairKey(a, b) {
@@ -344,6 +381,109 @@
     return (history || []).some(matchHasComebackData);
   }
 
+  // Biggest comeback is ranked inside each game. A Canasta deficit
+  // does not erase a Wizard comeback. Each row keeps that game's points.
+  // Turbo extras stay behind shouldShowComebackStats. This one does not.
+  function biggestComebacksByGame(history, helpers) {
+    const book = helpers && helpers.scorebook;
+    const configs = (helpers && helpers.configs) || {};
+    const byGame = new Map();
+    (history || []).forEach((match) => {
+      if (!match) return;
+      // Same nights main scores: any saved round history. A full-game gate
+      // hid every short night in the records book, so the row stayed empty.
+      const rounds = (match.rounds || []).filter((round) => {
+        if (!round || round.hailMaryBonus) return false;
+        if (book && typeof book.isSyntheticAdjustmentRound === 'function' && book.isSyntheticAdjustmentRound(round)) return false;
+        return true;
+      });
+      if (rounds.length < 2 || typeof helpers.sortPlayersByTotal !== 'function') return;
+      const cfg = configs[match.game] || { winLow: match.game === 'Five Crowns' || match.game === 'Beat the Heat' };
+      const roster = typeof helpers.getDisplayPlayers === 'function'
+        ? helpers.getDisplayPlayers(match)
+        : (match.originalRoster || Object.keys(match.totals || {}));
+      const players = (roster || []).filter((name) => name && match.totals && match.totals[name] !== undefined);
+      if (players.length < 2) return;
+      const winners = (match.winners || []).filter((name) => players.includes(name));
+      if (!winners.length) return;
+      const half = Math.max(1, Math.floor(rounds.length / 2));
+      const totals = {};
+      players.forEach((name) => { totals[name] = 0; });
+      rounds.slice(0, half).forEach((round) => {
+        Object.entries(round.scores || {}).forEach(([name, score]) => {
+          if (totals[name] === undefined || (round.joinBonus && round.joinBonus[name])) return;
+          totals[name] += Number(score) || 0;
+        });
+      });
+      const sorted = helpers.sortPlayersByTotal(players, totals, cfg);
+      if (!sorted.length) return;
+      const lastScore = totals[sorted[sorted.length - 1]];
+      const leaderScore = totals[sorted[0]];
+      const lastNames = players.filter((name) => totals[name] === lastScore);
+      const groups = [];
+      const claimed = new Set();
+      const sides = match.handFoot && Array.isArray(match.handFoot.sides) ? match.handFoot.sides : [];
+      sides.forEach((side) => {
+        const members = (side && side.members || []).filter((name) => winners.includes(name) && lastNames.includes(name));
+        if (members.length < 2) return;
+        members.forEach((name) => claimed.add(name));
+        groups.push(members);
+      });
+      winners.forEach((name) => {
+        if (!claimed.has(name) && lastNames.includes(name)) groups.push([name]);
+      });
+      groups.forEach((members) => {
+        const name = members[0];
+        const deficit = cfg.winLow ? (totals[name] - leaderScore) : (leaderScore - totals[name]);
+        if (!(deficit > 0)) return;
+        const row = {
+          player: name,
+          value: deficit,
+          game: match.game,
+          date: match.date,
+          id: match.id,
+          label: `Last at halfway, won ${shownGameName(match.game)}`
+        };
+        if (members.length > 1) {
+          row.ties = members.map((player) => ({player, value: deficit}));
+        }
+        const current = byGame.get(match.game);
+        if (!current || deficit > current.value) byGame.set(match.game, row);
+      });
+    });
+    const order = GAMES.map((game) => game.id);
+    return [...byGame.values()].sort((left, right) => {
+      const leftAt = order.indexOf(left.game);
+      const rightAt = order.indexOf(right.game);
+      return (leftAt < 0 ? order.length : leftAt) - (rightAt < 0 ? order.length : rightAt);
+    });
+  }
+
+  function biggestSingleGameComeback(history, helpers) {
+    const rows = biggestComebacksByGame(history, helpers);
+    return rows.length === 1 ? rows[0] : null;
+  }
+
+  function shownGameName(id) {
+    const api = gamesApi();
+    if (api && typeof api.displayName === 'function') {
+      const named = api.displayName(id);
+      if (named && named !== 'Unknown') return named;
+    }
+    const game = GAMES.find((item) => item.id === id);
+    return (game && game.title) || id || '';
+  }
+
+  function publicGamePhrase(text) {
+    const raw = String(text || '');
+    if (!raw) return '';
+    const exact = shownGameName(raw);
+    if (exact && exact !== raw) return exact;
+    return raw
+      .split('Hand and Foot').join(shownGameName('Hand and Foot'))
+      .split('Flip 7 Vengeance').join(shownGameName('Flip 7 Vengeance'));
+  }
+
   function nightStandings(match, helpers) {
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
@@ -355,12 +495,16 @@
     const recorded = (source || []).filter((name) => name && !retiredSet.has(name));
     const sorted = helpers.sortPlayersByTotal(recorded, match.totals || {}, cfg)
       .filter((name) => name && !retiredSet.has(name));
-    const places = helpers.competitionPlaces(sorted, match.totals || {});
+    const team = helpers.scorebook && typeof helpers.scorebook.canastaTeamPlaces === 'function'
+      ? helpers.scorebook.canastaTeamPlaces(match, sorted)
+      : null;
+    const places = team ? team.places : helpers.competitionPlaces(sorted, match.totals || {});
+    const finishOrder = team ? team.ordered.filter((name) => sorted.includes(name)) : sorted;
     const winners = eligibleWinners(match, {
       scorebook: helpers && helpers.scorebook,
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
     });
-    const finishers = sorted.map((name) => ({
+    const finishers = finishOrder.map((name) => ({
       name,
       score: match.totals ? match.totals[name] : undefined,
       place: places[name],
@@ -415,9 +559,10 @@
     const scorebook = helpers.scorebook;
     const incomplete = !isCompletedMatch(match, scorebook);
     const assisted = isAssistedMatch(match, scorebook);
-    const endedEarly = !incomplete && scorebook && typeof scorebook.isEndedEarlyMatch === 'function'
-      ? scorebook.isEndedEarlyMatch(match)
-      : (!incomplete && match.endedEarly === true);
+    const endedEarlyLabel = scorebook && typeof scorebook.endedEarlyLabel === 'function'
+      ? scorebook.endedEarlyLabel(match)
+      : '';
+    const endedEarly = !!endedEarlyLabel;
     const winners = incomplete ? [] : eligibleWinners(match, {
       scorebook: scorebook,
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
@@ -432,6 +577,11 @@
       evening: eveningLabel(match),
       incomplete,
       endedEarly,
+      endedEarlyLabel,
+      countOverride: match.countResult === true || match.countOverride === true,
+      showCountToggle: !incomplete && scorebook && typeof scorebook.showCountResult === 'function'
+        ? scorebook.showCountResult(match)
+        : (!incomplete && !!endedEarlyLabel),
       assisted,
       retired: (match.retired || []).filter(Boolean),
       throughRound: throughRound(match, scorebook),
@@ -474,7 +624,7 @@
   function lifePreserverEvents(history, helpers) {
     const events = [];
     (history || []).forEach((match) => {
-      if (!isCompletedMatch(match, helpers && helpers.scorebook)) return;
+      if (!match || !Array.isArray(match.rounds)) return;
       (match.rounds || []).forEach((round, index) => {
         if (!round || !round.hailMaryBonus) return;
         Object.entries(round.scores || {}).forEach(([player, raw]) => {
@@ -639,12 +789,12 @@
   }
 
   const CAREER_WIN_RULE = [
-    'One counting rule for Passports, Records, wins, win %, streaks, and games.',
-    'A night counts only when it is finished (completed is not false), the game is on the shelf, totals exist, and at least one stored round exists.',
-    'Unfinished, incomplete, and reopened-not-completed nights do not count for wins, win %, or games.',
-    'Assisted nights still count for wins and games; they only skip unassisted best-score records.',
+    'One counting rule for wins, win %, win streak, and games played.',
+    'A finished night counts. An ended-early or needs-review night counts only when Count this result is on. A paused night does not.',
+    'Counting that result never makes the partial total a full-game score record.',
+    'Assisted nights can still count for wins and games; they skip unassisted best-score records.',
     'Every tied winner gets a win.',
-    'A player marked left early keeps their scores and the game, but is never a winner, even if their total would otherwise win.',
+    'A player marked left early keeps their scores, but is never a winner, even if their total would otherwise win.',
     'If that leaves no stored winner, the remaining finishers’ scores decide the winner(s).'
   ].join(' ');
 
@@ -696,16 +846,33 @@
     return names.filter((name) => totals[name] !== undefined);
   }
 
-  function isCareerCountableMatch(match, options) {
-    const scorebook = options && options.scorebook;
+  function careerShape(match, options) {
     const gameScope = options && options.gameScope;
     const known = new Set(GAMES.map((game) => game.id));
-    const completed = isCompletedMatch(match, scorebook);
-    const hasTotals = !!(match && match.totals && typeof match.totals === 'object');
-    const hasRounds = Array.isArray(match && match.rounds) && match.rounds.length > 0;
-    const knownGame = !!(match && known.has(match.game));
-    const inScope = !gameScope || match.game === gameScope;
-    return !!(completed && hasTotals && hasRounds && knownGame && inScope);
+    return {
+      hasTotals: !!(match && match.totals && typeof match.totals === 'object'),
+      hasRounds: Array.isArray(match && match.rounds) && match.rounds.length > 0,
+      knownGame: !!(match && known.has(match.game)),
+      inScope: !gameScope || (match && match.game === gameScope)
+    };
+  }
+
+  function isCareerCountableMatch(match, options) {
+    const scorebook = options && options.scorebook;
+    const shape = careerShape(match, options);
+    const tallies = scorebook && typeof scorebook.countsForTallies === 'function'
+      ? scorebook.countsForTallies(match)
+      : isCompletedMatch(match, scorebook);
+    return !!(tallies && shape.hasTotals && shape.hasRounds && shape.knownGame && shape.inScope);
+  }
+
+  function isScoreMagnitudeMatch(match, options) {
+    const scorebook = options && options.scorebook;
+    const shape = careerShape(match, options);
+    const scores = scorebook && typeof scorebook.countsForScoreMagnitude === 'function'
+      ? scorebook.countsForScoreMagnitude(match)
+      : isCompletedMatch(match, scorebook);
+    return !!(scores && shape.hasTotals && shape.hasRounds && shape.knownGame && shape.inScope);
   }
 
   function gameWinLow(gameId) {
@@ -725,12 +892,29 @@
     return finishers.filter((name) => (Number(totals[name]) || 0) === target);
   }
 
+  function withCanastaPartners(match, names) {
+    const sides = match && match.handFoot && Array.isArray(match.handFoot.sides) ? match.handFoot.sides : [];
+    const left = new Set(leftEarlyNames(match));
+    const out = names.slice();
+    names.forEach((name) => {
+      sides.forEach((side) => {
+        const members = (side && side.members || []).filter(Boolean);
+        if (!members.includes(name)) return;
+        members.forEach((member) => {
+          if (left.has(member) || out.includes(member)) return;
+          out.push(member);
+        });
+      });
+    });
+    return out;
+  }
+
   function eligibleWinners(match, options) {
     if (!isCompletedMatch(match, options && options.scorebook)) return [];
     const left = new Set(leftEarlyNames(match));
     const stored = uniqueNames(match && match.winners).filter((name) => !left.has(name));
-    if (stored.length) return stored;
-    return winnersFromFinishers(match, options);
+    if (stored.length) return withCanastaPartners(match, stored);
+    return withCanastaPartners(match, winnersFromFinishers(match, options));
   }
 
   function careerEligibleWinners(match, options) {
@@ -777,6 +961,7 @@
       else if (!hasRounds) reason = 'no-rounds';
       else if (!hasTotals) reason = 'no-totals';
       else if (!knownGame) reason = 'unknown-game';
+      else if (!counts) reason = 'not-counted';
       rows.push({
         id: match && match.id,
         game: match && match.game,
@@ -816,8 +1001,13 @@
   }
 
   function collectRecordAlerts(match, hall, options) {
+    const scorebook = options && options.scorebook;
+    if (scorebook && typeof scorebook.countsForScoreMagnitude === 'function' && !scorebook.countsForScoreMagnitude(match)) {
+      return [];
+    }
+    const left = new Set(leftEarlyNames(match));
     const r = hall || {};
-    const recorded = matchSitters(match, options);
+    const recorded = matchSitters(match, options).filter((name) => !left.has(name));
     const groups = [];
     const add = (key, label, score, player) => {
       let group = groups.find((row) => row.key === key && row.score === score);
@@ -882,6 +1072,9 @@
       unit = Number(value) === 1 ? 'heat' : 'heats';
     }
     else if (/\btrick/i.test(text)) unit = Number(value) === 1 ? 'trick' : 'tricks';
+    else if (/highest bid made|biggest set/i.test(text)) {
+      unit = '';
+    }
     else if (/\bbid/i.test(text) && !/exact-bid rate|exact bid percentage|exact rate/i.test(text)) {
       unit = Number(value) === 1 ? 'bid' : 'bids';
     }
@@ -1051,14 +1244,14 @@
         || (hall._coverage && hall._coverage[game.id]);
       const noUnassisted = !!(coverage && coverage.assisted > 0 && coverage.unassisted === 0);
       const matchValue = noUnassisted
-        ? '-'
-        : (bestFinal && finite(bestFinal.value) ? scoreLabel(bestFinal.value, game.unit) : scoreLabel(card.bestScore, game.unit));
+        ? 'No record yet'
+        : (bestFinal && finite(bestFinal.value) ? scoreLabel(bestFinal.value, game.unit) : (finite(card.bestScore) ? scoreLabel(card.bestScore, game.unit) : 'No record yet'));
       const matchWho = noUnassisted
-        ? 'No unassisted matches yet'
-        : (bestFinal ? recordHolderText(bestFinal, true) : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : ''));
-      const roundValue = round && finite(round.value) ? scoreLabel(round.value, game.unit) : '-';
-      const roundWho = round ? recordHolderText(round, true) : '';
-      const matchNote = noUnassisted || matchValue === '-' ? '' : 'Unassisted matches only';
+        ? ''
+        : (bestFinal ? recordHolderText(bestFinal, compact) : (card.bestPlayer && card.bestPlayer !== '-' ? card.bestPlayer : ''));
+      const roundValue = round && finite(round.value) ? scoreLabel(round.value, game.unit) : 'No record yet';
+      const roundWho = round ? recordHolderText(round, compact) : '';
+      const matchNote = '';
       return `<div class="s2-ledger-row">
         <div class="s2-ledger-game">${gameThumbnailHtml(game.id, 's2-ledger-mark s2-game-thumb')}<div><strong>${esc(game.title)}</strong></div></div>
         ${ledgerStat(esc(matchValue), esc(matchWho), matchNote, 'Best final')}
@@ -1071,32 +1264,91 @@
     const selectedKey = ctx.pairFilter || '';
     const rival = pairs.find((row) => `${row.a}|${row.b}` === selectedKey) || pairs[0];
     const recent = sortNights(table.history);
-    return `<div class="s2-records-pane s2-fame-col" data-pane="overview">
-      <section class="s2-panel">
+    return `<div class="s2-records-pane s2-fame-col s2-overview-layout" data-pane="overview">
+      <section class="s2-panel s2-career">
         <div class="s2-headline">${headlines.map((card) => `<article class="s2-headline-card">
           <small>${esc(card.kicker)}</small>
           <strong>${esc(card.value)}</strong>
           ${(card.people || []).map((row) => playerLink(row.player || row.name, esc, avatar)).join('')}
           <small>${esc(card.sub)}</small>
         </article>`).join('')}</div>
-        <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
-        <div class="s2-ledger-table">
-          <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
-          ${rows}
-        </div>
       </section>
-      <div class="s2-overview-side">
-        <section class="s2-panel s2-shame-panel">
-          <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
-          ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
-        </section>
-        ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
+      <div class="s2-overview-mid">
         <section class="s2-panel">
-          <div class="s2-panel-head"><h2>Recent results</h2></div>
-          ${nightsSplitHtml(recent, helpers, ctx, compact)}
+          <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
+          <p class="s2-assisted-note">Final-score records exclude assisted matches</p>
+          <div class="s2-ledger-table">
+            <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
+            ${rows}
+          </div>
         </section>
+        <div class="s2-overview-side">
+          <section class="s2-panel s2-shame-panel">
+            <div class="s2-panel-head"><h2>Hall of Shame</h2></div>
+            ${shame || '<p class="s2-sub">No infamous nights yet.</p>'}
+          </section>
+          ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
+        </div>
       </div>
+      ${canastaEventSection(table.history, esc)}
+      ${careerCardsHtml(data.playerCards, esc, avatar, table.history)}
+      <section class="s2-panel s2-recent-board">
+        <div class="s2-panel-head"><h2>Recent results</h2></div>
+        ${nightsSplitHtml(recent, helpers, ctx, compact)}
+      </section>
     </div>`;
+  }
+
+  function canastaEventSection(history, esc) {
+    const hasCanasta = (history || []).some((match) => match && (match.game === 'Hand and Foot' || match.game === 'Canasta' || match.name === 'Hand and Foot'));
+    const leaders = hasCanasta && root.BPGHandFoot && typeof root.BPGHandFoot.eventLeaders === 'function'
+      ? root.BPGHandFoot.eventLeaders(history)
+      : null;
+    if (!leaders) return '';
+    const rows = [
+      statLine('Got the 22', leaders.got22, esc),
+      statLine('Went out', leaders.wentOut, esc),
+      statLine('Cards left', leaders.cardsLeft, esc)
+    ].join('');
+    return `<section class="s2-panel s2-canasta-events" data-canasta-events="overview">
+      <div class="s2-panel-head"><h2>Canasta</h2></div>
+      <div class="s2-book">${rows}</div>
+    </section>`;
+  }
+
+  function careerCanastaLine(history, player, esc) {
+    const events = root.BPGHandFoot && typeof root.BPGHandFoot.playerEventTotals === 'function'
+      ? root.BPGHandFoot.playerEventTotals(history, player)
+      : null;
+    if (!events || !events.rounds) return '';
+    return `<p class="s2-canasta-events" data-canasta-events="career"><span>Got the 22 ${esc(String(events.got22))}</span><span>Went out ${esc(String(events.wentOut))}</span><span>Cards left ${esc(String(events.cardsLeft))}</span></p>`;
+  }
+
+  function careerCardsHtml(cards, esc, avatar, history) {
+    const list = cards || [];
+    if (!list.length) return '';
+    const body = list.map((card) => {
+      const bests = (card.bests || []).map((row) => {
+        const best = row.best && finite(row.best.value) ? row.best.value : '—';
+        const worst = row.worst && finite(row.worst.value) ? row.worst.value : '—';
+        return `<div class="s2-career-line"><span>${esc(publicGamePhrase(row.name))}</span><span>Best ${esc(String(best))} · Worst ${esc(String(worst))}</span></div>`;
+      }).join('');
+      return `<article class="s2-career-card">
+        <h3>${playerLink(card.player, esc, avatar)}</h3>
+        <p>${esc(formatWinsGames(card.wins, card.games) || '')} · ${esc(String(card.winRate))}%</p>
+        <p>Most played ${esc(publicGamePhrase(card.favorite))}</p>
+        <p>Current streak ${esc(String(card.currentStreak || ''))}</p>
+        <p>Best type ${esc(publicGamePhrase(card.bestGameType))}</p>
+        <p>Nemesis game ${esc(publicGamePhrase(card.nemesisGame))}</p>
+        <p>${esc(card.trend || '')}</p>
+        ${careerCanastaLine(history, card.player, esc)}
+        ${bests}
+      </article>`;
+    }).join('');
+    return `<section class="s2-panel s2-career-cards" id="records-player-cards">
+      <div class="s2-panel-head"><h2>Player Career Cards</h2></div>
+      <div class="s2-career-grid">${body}</div>
+    </section>`;
   }
 
   function shameRow(award, esc, avatar) {
@@ -1143,24 +1395,26 @@
     })).join('');
     const lpEvents = lifePreserverEvents(table.history, helpers);
     const lpRows = lifePreserverSummary(lpEvents);
-    const sections = [];
-    sections.push(exploreLeaders(data, playerFilter, esc, avatar));
-    sections.push(explorePerGame(data, table.history, gameFilter, playerFilter, esc, compact));
-    sections.push(exploreBids(data, hall, gameFilter, playerFilter, esc));
-    sections.push(exploreStreaks(data, playerFilter, esc));
-    if (lpRows.length) sections.push(exploreLifePreserver(lpRows, playerFilter, esc));
-    sections.push(exploreShame(data, playerFilter, esc, avatar));
-    sections.push(exploreRivalries(data, playerFilter, esc, avatar, compact));
-    sections.push(explorePlayers(data, playerFilter, esc, avatar));
+    const side = [
+      exploreLeaders(data, playerFilter, esc, avatar),
+      exploreDrama(data, playerFilter, esc),
+      exploreBids(data, hall, gameFilter, playerFilter, esc),
+      exploreStreaks(data, playerFilter, esc),
+      lpRows.length ? exploreLifePreserver(lpRows, playerFilter, esc) : '',
+      exploreShame(data, playerFilter, esc, avatar),
+      exploreRivalries(data, playerFilter, esc, avatar, compact),
+      explorePlayers(data, playerFilter, esc, avatar)
+    ].filter(Boolean).join('');
+    const games = explorePerGame(data, table.history, gameFilter, playerFilter, esc, compact);
     return `<div class="s2-records-pane s2-shame-col s2-explore-col" data-pane="explore">
       <section class="s2-panel">
         <div class="s2-panel-head"><h2>Explore records</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
         <div class="s2-records-filters">
-          <label>Game <select id="s2-records-game" data-s2-action="filter-game">${gameOptions}</select></label>
-          <label>Player <select id="s2-records-player" data-s2-action="filter-player">${playerOptions}</select></label>
+          <label>Game <select id="s2-records-game" class="bp-select" data-s2-action="filter-game">${gameOptions}</select></label>
+          <label>Player <select id="s2-records-player" class="bp-select" data-s2-action="filter-player">${playerOptions}</select></label>
         </div>
       </section>
-      <div class="s2-explore-grid">${sections.filter(Boolean).join('')}</div>
+      <div class="s2-explore-grid"><div class="s2-explore-side">${side}</div>${games}</div>
     </div>`;
   }
 
@@ -1209,8 +1463,8 @@
         if (title === 'Win rate' && finite(row.value)) return `${formatDisplayNumber(row.value)}%`;
         return finite(row.value) ? formatDisplayNumber(row.value) : String(row.value ?? '-');
       };
-      return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row, index) => `<div class="s2-book-row s2-leader-row">
-        <span class="s2-leader-rank">${index + 1}.</span>
+      return `<div class="s2-book-block"><h4>${esc(title)}</h4>${shown.map((row) => `<div class="s2-book-row s2-leader-row">
+        <span class="s2-leader-rank">${competitionListRank(rows, rows.indexOf(row))}.</span>
         <div class="s2-leader-main">
           ${playerLink(row.player, esc, avatar)}
           <span class="s2-book-who">${esc(row.label || formatWinRate(row.wins, row.games) || '')}</span>
@@ -1222,6 +1476,28 @@
       lines(data.allTime && data.allTime.mostWins, 'Career wins'),
       lines(data.allTime && data.allTime.bestWinRate, 'Win rate'),
       lines(data.allTime && data.allTime.mostGames, 'Most matches')
+    ]);
+  }
+
+  function exploreDrama(data, playerFilter, esc) {
+    const all = data.allTime || {};
+    const derby = (all.mostLasts || [])[0] || null;
+    const decided = (all.finalRoundDecisions || [])[0] || null;
+    const comebackRows = Array.isArray(all.biggestComebacksByGame) ? all.biggestComebacksByGame : [];
+    const comebackLines = comebackRows.length
+      ? comebackRows.map((row) => statLine(`Biggest ${shownGameName(row.game)} comeback`, row, esc, '', playerFilter)).join('')
+      : statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter);
+    const extraLines = (all.mostComebackExtras || all.biggestComebackExtra)
+      ? [
+          statLine('Most Comeback Extras In One Game', all.mostComebackExtras, esc, '', playerFilter),
+          statLine('Biggest Comeback Extra', all.biggestComebackExtra, esc, '', playerFilter)
+        ]
+      : [];
+    return listBlock('Comebacks', [
+      statLine('Dead Last Derby', derby, esc, '', playerFilter),
+      comebackLines,
+      ...extraLines,
+      statLine('Decided in the final round', decided, esc, '', playerFilter)
     ]);
   }
 
@@ -1294,9 +1570,18 @@
         push('Closest margin of victory', rec.closestMargin);
         push('Most lopsided match', rec.mostLopsided);
         push('Longest match', rec.longestMatch);
+        push('Closest finish to 66', rec.closestFinish);
       }
       if (game.id === 'Hand and Foot') {
         if (rec.closestMargin && rec.closestMargin.value > 0) push('Closest margin of victory', rec.closestMargin);
+        const leaders = root.BPGHandFoot && typeof root.BPGHandFoot.eventLeaders === 'function'
+          ? root.BPGHandFoot.eventLeaders(history)
+          : null;
+        if (leaders) {
+          push('Got the 22', leaders.got22);
+          push('Went out', leaders.wentOut);
+          push('Cards left', leaders.cardsLeft);
+        }
       }
       if (game.id === 'Rook') {
         push('Most successful bids in one match', rec.mostSuccessfulBids);
@@ -1307,7 +1592,8 @@
       const body = rows.filter(Boolean).join('');
       if (!body) return '';
       const title = `${gameThumbnailHtml(game.id, 's2-game-thumb s2-explore-thumb')}<span>${esc(game.title)}</span>`;
-      const wrap = compact ? `<details class="s2-disclose"><summary>${title}</summary><div class="s2-book">${body}</div></details>` : `<h3 class="s2-explore-game-title">${title}</h3><div class="s2-book">${body}</div>`;
+      const open = compact && game.id === 'Hand and Foot' ? ' open' : '';
+      const wrap = compact ? `<details class="s2-disclose"${open}><summary>${title}</summary><div class="s2-book">${body}</div></details>` : `<h3 class="s2-explore-game-title">${title}</h3><div class="s2-book">${body}</div>`;
       return `<section class="s2-panel">${wrap}</section>`;
     }).join('');
     return blocks ? `<div class="s2-explore-games">${blocks}</div>` : '';
@@ -1342,7 +1628,7 @@
     </div>`).join('');
     if (!body) return '';
     return `<section class="s2-panel">
-      <h3>Life Preserver</h3>
+      <h3>${esc((root.BPGLifePreserver && root.BPGLifePreserver.BACK_PORCH_WHEEL && root.BPGLifePreserver.BACK_PORCH_WHEEL.name) || '')}</h3>
       <p class="s2-sub">Places gained are measured immediately after each spin. A later win is not credited to the wheel.</p>
       <div class="s2-book">${body}</div>
     </section>`;
@@ -1428,7 +1714,7 @@
         <div class="s2-rival-person">${avatar(pair.b, 'avatar-img s2-mini-avatar')}${playerLink(pair.b, esc, avatar)}<strong>${esc(String(pair.bWins))}</strong></div>
       </div>
       <p class="s2-sub">${esc(lead.text)}${esc(ties)} · ${esc(String(pair.together))} shared matches</p>
-      ${options ? `<label class="s2-rival-pick">Pick another pairing <select data-s2-action="filter-pair">${options}</select></label>` : ''}
+      ${options ? `<label class="s2-rival-pick">Pick another pairing <select class="bp-select" data-s2-action="filter-pair">${options}</select></label>` : ''}
     </article>`;
   }
 
@@ -1448,7 +1734,7 @@
       ? `<div class="s2-in-progress"><h3>In progress</h3>${live.slice(0, liveLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}</div>`
       : '';
     const doneHtml = done.length
-      ? `${live.length ? '<h3>Finished nights</h3>' : ''}${done.slice(0, doneLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}`
+      ? `<div class="s2-night-grid">${live.length ? '<h3>Finished nights</h3>' : ''}${done.slice(0, doneLimit).map((row) => nightCardHtml(row.model, ctx, compact)).join('')}</div>`
       : (live.length ? '' : '<p class="s2-sub">No nights saved yet.</p>');
     return liveHtml + doneHtml;
   }
@@ -1479,12 +1765,13 @@
     const shownFinishers = finishersAll.slice(0, finisherLimit);
     const shown = shownFinishers.concat(leftAll);
     const more = finishersAll.length - shownFinishers.length;
+    const names = (model.standings || []).map((row) => row.name).filter(Boolean).slice(0, 6).join(', ');
+    const earlyText = model.endedEarlyLabel || '';
     const meta = model.incomplete
-      ? `Incomplete · through Round ${model.throughRound}`
-      : (model.endedEarly
-        ? `Ended early · through Round ${model.throughRound}`
-        : `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
+      ? `Unfinished${earlyText ? ` · ${earlyText}` : ''} · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
+      : (earlyText || `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
+      model.incomplete ? '<span class="s2-night-badge">Unfinished</span>' : '',
       model.assisted ? '<span class="s2-night-badge">Assisted</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
@@ -1505,7 +1792,7 @@
     </li>`).join('')
       : '';
     const rows = rankedHtml + leftHtml;
-    // Meta already sits in the header once. Do not repeat Incomplete / Ended early below.
+    // Meta already sits in the header once. Do not repeat Unfinished / Ended early below.
     const winner = model.incomplete
       ? ''
       : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`;
@@ -1515,6 +1802,13 @@
     const resume = model.showResume
       ? `<button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${id}">Resume</button>`
       : '';
+    const countToggle = model.showCountToggle
+      ? `<button type="button" class="s2-btn" data-s2-action="count-toggle" data-s2-id="${id}" data-count-override="${model.countOverride ? 'true' : 'false'}">${model.countOverride ? 'Counting this result' : 'Count this result'}</button>`
+      : '';
+    const liveId = ctx.table && ctx.table.currentGame ? ctx.table.currentGame.id : null;
+    const deleteNight = liveId != null && String(liveId) === String(model.id)
+      ? ''
+      : `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="night-delete" data-s2-id="${id}">Delete night</button>`;
     return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.winners.length > 1 ? ' is-joint' : ''}"${model.assisted ? ' data-assisted-match="true"' : ''} data-s2-action="night-open" data-s2-id="${id}">
       <header class="s2-night-head">
         ${gameThumbnailHtml(model.game, 's2-game-thumb s2-night-thumb')}
@@ -1523,14 +1817,117 @@
         ${badges}
       </header>
       ${winner}
-      ${model.assisted ? '<p class="s2-assisted-note">A Life Preserver was used. Best-score records skip this night.</p>' : ''}
+      ${model.assisted ? `<p class="s2-assisted-note">The ${esc((root.BPGLifePreserver && root.BPGLifePreserver.BACK_PORCH_WHEEL && root.BPGLifePreserver.BACK_PORCH_WHEEL.name) || 'wheel')} was used. Best-score records skip this night.</p>` : ''}
       <ol class="s2-night-standings">${rows}</ol>
       ${expand}
       <div class="s2-night-actions">
         <button type="button" class="s2-btn" data-s2-action="night-scorecard" data-s2-id="${id}">View scorecard</button>
+        ${countToggle}
         ${resume}
+        ${deleteNight}
       </div>
     </article>`;
+  }
+
+  function bestFinalSnapshot(history, scorebook) {
+    const map = {};
+    (history || []).forEach((row) => {
+      if (!scorebook.countsForScoreMagnitude(row)) return;
+      const retired = new Set(leftEarlyNames(row));
+      const low = row.game === 'Five Crowns' || row.game === 'Beat the Heat';
+      Object.entries(row.totals || {}).forEach(([player, raw]) => {
+        if (!player || retired.has(player) || !Number.isFinite(Number(raw))) return;
+        const value = Number(raw);
+        const key = `${player}\t${row.game}`;
+        const prev = map[key];
+        const better = !prev || (low ? value < prev.value : value > prev.value);
+        if (better) map[key] = {player, game: row.game, value, date: row.date || '', id: row.id};
+      });
+    });
+    return map;
+  }
+
+  function countingSnapshot(history, scorebook) {
+    const tally = careerWinTally(history, {scorebook});
+    const nights = (history || []).map((row) => ({
+      id: row && row.id,
+      game: row && row.game,
+      date: row && row.date,
+      outcome: scorebook.resolveOutcome(row),
+      counts: scorebook.countsForTallies(row),
+      score: scorebook.countsForScoreMagnitude(row)
+    }));
+    return {
+      counted: tally.counted,
+      winSum: tally.winSum,
+      players: tally.players,
+      nights,
+      finals: bestFinalSnapshot(history, scorebook)
+    };
+  }
+
+  function historyReviewReport(history, scorebook) {
+    const book = scorebook;
+    const rows = Array.isArray(history) ? history.map((row) => row) : [];
+    const beforeJson = JSON.stringify(rows);
+    const counts = {};
+    rows.forEach((row) => {
+      const game = (row && row.game) || 'Unknown';
+      const status = book.legacyCompletion(row).status;
+      if (!counts[game]) counts[game] = {complete: 0, partial: 0, uncertain: 0};
+      counts[game][status] += 1;
+    });
+    const previous = book.legacyReviewAppliedNow();
+    let before;
+    let after;
+    try {
+      book.setLegacyReviewApplied(false);
+      before = countingSnapshot(rows, book);
+      book.setLegacyReviewApplied(true);
+      after = countingSnapshot(rows, book);
+    } finally {
+      book.setLegacyReviewApplied(previous);
+    }
+    const lines = [];
+    Object.keys(counts).sort().forEach((game) => {
+      const row = counts[game];
+      lines.push(`${game}: ${row.complete} complete, ${row.partial} partial, ${row.uncertain} uncertain`);
+    });
+    lines.push(`counted wins ${before.winSum} -> ${after.winSum}`);
+    const names = new Set([...Object.keys(before.players), ...Object.keys(after.players)]);
+    rows.forEach((row) => {
+      Object.keys((row && row.totals) || {}).forEach((name) => { if (name) names.add(name); });
+      uniqueNames(row && row.winners).forEach((name) => names.add(name));
+      uniqueNames((row && row.originalRoster) || (row && row.players)).forEach((name) => names.add(name));
+    });
+    [...names].sort().forEach((name) => {
+      const oldRow = before.players[name] || {wins: 0, games: 0};
+      const newRow = after.players[name] || {wins: 0, games: 0};
+      lines.push(`${name}: wins ${oldRow.wins} -> ${newRow.wins}, games ${oldRow.games} -> ${newRow.games}`);
+    });
+    before.nights.forEach((night, index) => {
+      const next = after.nights[index];
+      if (night.outcome === next.outcome && night.counts === next.counts && night.score === next.score) return;
+      lines.push(`${night.date || 'no date'} · ${night.game} · ${night.outcome} -> ${next.outcome} · counted ${night.counts ? 'yes' : 'no'} -> ${next.counts ? 'yes' : 'no'}`);
+    });
+    const finalKeys = new Set([...Object.keys(before.finals), ...Object.keys(after.finals)]);
+    [...finalKeys].sort().forEach((key) => {
+      const oldFinal = before.finals[key];
+      const newFinal = after.finals[key];
+      if (oldFinal && newFinal && oldFinal.value === newFinal.value && String(oldFinal.id) === String(newFinal.id)) return;
+      const who = (oldFinal || newFinal).player;
+      const game = (oldFinal || newFinal).game;
+      const oldText = oldFinal ? `${oldFinal.value} on ${oldFinal.date || 'no date'}` : 'none';
+      const newText = newFinal ? `${newFinal.value} on ${newFinal.date || 'no date'}` : 'none';
+      lines.push(`${who} · ${game} · best final ${oldText} -> ${newText}`);
+    });
+    return {
+      counts,
+      before,
+      after,
+      lines,
+      unchanged: beforeJson === JSON.stringify(rows)
+    };
   }
 
   const api = {
@@ -1569,6 +1966,7 @@
     leftEarlyNames,
     matchSitters,
     isCareerCountableMatch,
+    isScoreMagnitudeMatch,
     eligibleWinners,
     careerEligibleWinners,
     playerWonMatch,
@@ -1588,6 +1986,9 @@
     formatTiedNames,
     recordHolderText,
     keepBestWithTies,
+    competitionListRank,
+    closestMarginRecord,
+    historyReviewReport,
     pairKey,
     addPairFinish,
     pairWinnerFromScores,
@@ -1604,6 +2005,9 @@
     nightPodium,
     matchHasComebackData,
     shouldShowComebackStats,
+    biggestSingleGameComeback,
+    biggestComebacksByGame,
+    publicGamePhrase,
     lifePreserverEvents,
     lifePreserverSummary,
     recordMatchesPlayer,

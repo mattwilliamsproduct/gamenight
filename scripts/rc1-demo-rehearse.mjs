@@ -100,7 +100,9 @@ for (const size of SIZES) {
         return el && !el.classList.contains('hidden');
       });
       await page.screenshot({path: join(dir, '04-end-confirm.png')});
-      await page.locator('#end-match-confirm').click();
+      await page.locator('#leave-end-now').click();
+      const count = page.locator('#leave-count-yes');
+      if (await count.isVisible().catch(() => false)) await count.click();
       await page.waitForTimeout(400);
       await page.evaluate(() => {
         document.getElementById('victory-modal')?.classList.add('hidden');

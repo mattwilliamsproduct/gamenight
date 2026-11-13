@@ -10,7 +10,10 @@ async function typeOneDraft(page, digit = '7') {
 async function draftValue(page) {
   return page.evaluate(() => {
     const drafts = currentGame?.currentScoreDrafts || {};
-    const first = (currentGame?.originalRoster || [])[0];
+    const order = typeof getScoreEntryDisplayPlayers === 'function'
+      ? getScoreEntryDisplayPlayers(getActivePlayers(currentGame))
+      : (currentGame?.originalRoster || []);
+    const first = order[0];
     return {first, value: drafts[first], all: drafts};
   });
 }
@@ -23,13 +26,13 @@ test('Table parks an unfinished entry and Resume restores it after Records', asy
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
   const parked = await draftValue(page);
   expect(String(parked.value)).toBe('7');
-  await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
+  await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
 
   await page.evaluate(() => showHistory());
   await expect(page.locator('#history-screen')).not.toHaveClass(/hidden/);
   await page.evaluate(() => goHome());
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
-  await page.locator('#slice2-home [data-s2-action="resume"]').click();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-table-btn')).toBeVisible();
   const resumed = await draftValue(page);
@@ -37,7 +40,10 @@ test('Table parks an unfinished entry and Resume restores it after Records', asy
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
   const shown = await page.evaluate(() => {
-    const first = (currentGame?.originalRoster || [])[0];
+    const order = typeof getScoreEntryDisplayPlayers === 'function'
+      ? getScoreEntryDisplayPlayers(getActivePlayers(currentGame))
+      : (currentGame?.originalRoster || []);
+    const first = order[0];
     const safe = String(first || '').replace(/[^A-Za-z0-9_-]/g, '');
     return document.getElementById(`score-entry-value-${safe}`)?.textContent || '';
   });
@@ -52,7 +58,7 @@ test('Table parks an unfinished entry and Resume restores it after Settings', as
   await page.evaluate(() => openSettings());
   await expect(page.locator('#settings-modal')).not.toHaveClass(/hidden/);
   await page.evaluate(() => closeSettings());
-  await page.locator('[data-s2-action="resume"]').click();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   const resumed = await draftValue(page);
   expect(String(resumed.value)).toBe('8');
@@ -86,7 +92,7 @@ test('standalone Table leaves the match without ending it', async ({page}) => {
   await page.locator('#slice2-table-btn').click();
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#end-match-modal')).toHaveClass(/hidden/);
-  await expect(page.locator('[data-s2-action="resume"]')).toBeVisible();
+  await expect(page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]')).toBeVisible();
   const parked = await page.evaluate(() => ({
     name: currentGame?.name,
     totals: {...(currentGame?.totals || {})},
@@ -95,7 +101,7 @@ test('standalone Table leaves the match without ending it', async ({page}) => {
   expect(parked.name).toBe(before.name);
   expect(parked.totals).toEqual(before.totals);
   expect(parked.history).toBe(before.history);
-  await page.locator('[data-s2-action="resume"]').click();
+  await page.locator('.s2-banner:not(.s2-unfinished-banner) [data-s2-action="resume"]').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-table-btn')).toBeVisible();
 });
@@ -107,10 +113,11 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
     history: (history || []).length,
     totals: JSON.stringify(currentGame?.totals || {})
   }));
-  await page.locator('.match-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-menu .match-end-btn').click();
   await expect(page.locator('#end-match-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#end-match-copy')).toContainText(/still in progress|finished night|Records/);
-  await page.locator('#end-match-cancel').click();
+  await expect(page.locator('#leave-keep-playing')).toBeVisible();
+  await page.locator('#leave-keep-playing').click();
   await expect(page.locator('#end-match-modal')).toHaveClass(/hidden/);
   const afterCancel = await page.evaluate(() => ({
     name: currentGame?.name,
@@ -121,8 +128,11 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
   expect(afterCancel.history).toBe(before.history);
   expect(afterCancel.totals).toBe(before.totals);
 
-  await page.locator('.match-end-btn').click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-menu .match-end-btn').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   const after = await page.evaluate(() => ({
     current: currentGame,
@@ -140,9 +150,9 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
     await expect(page.locator('#slice2-board-line')).not.toContainText(/Wild|Dealer/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Wild/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Dealer/);
-    await expect(page.locator('th.scorecard-col-now')).toHaveText(/^R\d+$/);
-    const nowWraps = await page.locator('th.scorecard-col-now').evaluate((el) => getComputedStyle(el).whiteSpace !== 'nowrap');
-    expect(nowWraps).toBe(false);
+    await expect(page.locator('th.scorecard-col-now')).toHaveText('This round');
+    const nowClipped = await page.locator('th.scorecard-col-now').evaluate((el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
+    expect(nowClipped).toBe(false);
     const overflow = await page.evaluate(() => {
       return [...document.querySelectorAll('#scorecard-capture .scorecard-total-value')].some((value) => {
         const cell = value.closest('.scorecard-col-total');
@@ -259,7 +269,7 @@ test('Life Preserver picker opens from Actions and a badge goes straight to that
   expect(afterCancel).not.toContain('Cat');
   expect(afterCancel).not.toContain('Brick');
 
-  await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
+  await page.getByRole('button', {name: /Spin ready for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-name')).toHaveText('Cat');
 });
@@ -271,23 +281,23 @@ test('1440 and 1024 keep the current round on screen and pad the header', async 
     const fit = await page.evaluate(() => {
       const wrap = document.querySelector('#scorecard-capture .scorecard-table-wrap');
       const now = document.querySelector('#scorecard-capture thead th.scorecard-col-now');
-      const end = document.querySelector('#slice2-board-bar .match-end-btn');
+      const enter = document.getElementById('slice2-enter-btn');
       const visible = [...document.querySelectorAll('#scorecard-capture thead th.scorecard-round-th')]
         .filter((el) => getComputedStyle(el).display !== 'none' && !el.classList.contains('scorecard-round--hidden'));
-      if (!wrap || !now || !end) return {ok: false};
+      if (!wrap || !now || !enter) return {ok: false};
       const wrapBox = wrap.getBoundingClientRect();
       const nowBox = now.getBoundingClientRect();
-      const endBox = end.getBoundingClientRect();
+      const enterBox = enter.getBoundingClientRect();
       return {
         ok: true,
         nowInside: nowBox.width >= 36 && nowBox.right <= wrapBox.right + 1 && nowBox.left >= wrapBox.left - 1,
-        endPad: window.innerWidth - endBox.right,
+        endPad: window.innerWidth - enterBox.right,
         visibleRounds: visible.length
       };
     });
-    expect(fit.ok, `${size.width} missing NOW or Save & End`).toBe(true);
+    expect(fit.ok, `${size.width} missing NOW or Enter Scores`).toBe(true);
     expect(fit.nowInside, `${size.width} NOW clipped`).toBe(true);
-    expect(fit.endPad, `${size.width} Save & End flush`).toBeGreaterThanOrEqual(12);
+    expect(fit.endPad, `${size.width} Enter Scores flush`).toBeGreaterThanOrEqual(12);
     expect(fit.visibleRounds, `${size.width} no past rounds`).toBeGreaterThanOrEqual(1);
   }
 });
@@ -317,7 +327,7 @@ test('1440 late Five Crowns shows every hand', async ({page}) => {
   expect(fit.ok, 'missing NOW').toBe(true);
   expect(fit.visible, `visible rounds ${fit.visible} of ${fit.total}`).toBe(fit.total);
   expect(fit.visible, 'late card lost a completed hand').toBeGreaterThanOrEqual(10);
-  expect(fit.label, 'NOW header should stay a short R11 Now').toMatch(/^R\d+ Now$/);
+  expect(fit.label, 'current round header').toBe('This round');
   expect(fit.clipped, `NOW text clipped as ${fit.label}`).toBe(false);
   expect(fit.nowInside, 'NOW clipped on the late card').toBe(true);
   expect(fit.hintOn, 'trim hint on a card that should show every hand').toBe(false);

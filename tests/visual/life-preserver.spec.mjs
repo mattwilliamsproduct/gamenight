@@ -9,14 +9,15 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(available).not.toHaveCount(0);
   await expect(page.locator('.scorecard-life-preserver-rank-used')).toHaveCount(1);
 
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-why-line')).toBeHidden();
   await expect(page.locator('#wheel-commit-line')).toContainText('Best help:');
   await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
   await expect(page.locator('#wheel-game-line')).toContainText('lower scores win');
-  await expect(page.locator('#wheel-why-line')).not.toContainText('Spin range');
-  await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
+  await expect(page.locator('#wheel-player-meta')).not.toContainText('Spin range');
+  await expect(page.getByRole('button', {name: 'How Back Porch Wheel works'})).toBeVisible();
   await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-help')).toContainText('Who can spin');
@@ -84,7 +85,7 @@ test('closing the Life Preserver wheel after commit keeps the locked result', as
     throw new Error(`Life Preserver should not alert after close: ${dialog.message()}`);
   });
 
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   const locked = await page.evaluate(() => {
     spinWheel();
@@ -166,7 +167,9 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
   await page.getByRole('button', {name: 'Save & End', exact: true}).click();
-  await page.locator('#end-match-confirm').click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#game-screen')).toHaveClass(/hidden/);
 
@@ -202,7 +205,7 @@ test('apostrophe names can still open Life Preserver', async ({page}, testInfo) 
     });
     renderGame();
   });
-  await page.getByRole('button', {name: /Life Preserver available for O'Brien/}).click();
+  await page.getByRole('button', {name: /Spin ready for O'Brien/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wheel-player-name')).toHaveText("O'Brien");
 });
@@ -234,13 +237,14 @@ test('porch 818 Life Preserver offers Cat +20, not a ticket to 1st', async ({pag
   await page.goto('/?gnqa=1&gallery=0&scenario=eight18-porch-lp&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
-  await page.getByRole('button', {name: /Life Preserver available for Cat/}).click();
+  await page.getByRole('button', {name: /Spin ready for Cat/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#wheel-why-line')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-player-meta')).toContainText('behind 1st');
+  await expect(page.locator('#wheel-why-line')).toBeHidden();
   await expect(page.locator('#wheel-commit-line')).toContainText('Best help: +20');
   await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
   await expect(page.locator('#wheel-game-line')).toContainText('higher scores win');
-  await expect(page.locator('#wheel-why-line')).not.toContainText('Spin range');
+  await expect(page.locator('#wheel-player-meta')).not.toContainText('Spin range');
 
   const snapshot = await page.evaluate(() => ({
     player: lifePreserverOfferSnapshot?.player,
@@ -300,7 +304,7 @@ test('iPad wheel keeps Spin and Help tappable and ignores backdrop taps', async 
   test.skip(testInfo.project.name !== 'ipad-landscape-webkit', 'This is the porch iPad size');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
-  await page.getByRole('button', {name: /Life Preserver available for Brick/}).click();
+  await page.getByRole('button', {name: /Spin ready for Brick/}).click();
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
 
   const geometry = await page.evaluate(() => {
@@ -323,7 +327,7 @@ test('iPad wheel keeps Spin and Help tappable and ignores backdrop taps', async 
   await page.locator('#wheel-modal > .absolute.inset-0').click({position: {x: 12, y: 12}});
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
 
-  await page.getByRole('button', {name: 'How Life Preserver works'}).click();
+  await page.getByRole('button', {name: 'How Back Porch Wheel works'}).click();
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await page.getByRole('button', {name: 'Back to the wheel'}).click();
   await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);

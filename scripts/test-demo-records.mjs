@@ -109,7 +109,7 @@ test('demo book exposes honest full nights for the real records functions', () =
     escapeHtml(value) { return String(value == null ? '' : value); },
     getAvatarImg() { return ''; }
   });
-  assert.match(assistedCard, /A Life Preserver was used/);
+  assert.match(assistedCard, /The wheel was used/);
   assert.match(assistedCard, /Best-score records skip this night/);
 });
 

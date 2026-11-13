@@ -2,6 +2,12 @@
   'use strict';
 
   const SUPPORTED_GAMES = Object.freeze(['818', 'Wizard', 'Five Crowns', 'Flip 7 Vengeance']);
+  // User-facing feature name. Swap this object to rename the wheel. Do not scatter the name.
+  const BACK_PORCH_WHEEL = Object.freeze({
+    name: 'Back Porch Wheel',
+    ready: 'Spin ready',
+    used: 'Spin used'
+  });
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
   const EIGHT18_BID_BONUS = 10;
@@ -67,12 +73,31 @@
 
   // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
   // and then clamped by max helpful / max setback. Do not change eligibility here.
-  const OUTCOME_TABLE = Object.freeze({
+  // Previous known-good draw, kept for comparison. 40 pockets were 18/12/2/5/3
+  // (32 help, 5 no-change, 3 setback). Setback was 8% of the draw and 3 of 40 slices.
+  const PREVIOUS_OUTCOME_TABLE = Object.freeze({
     smallHelp: 0.45,
     mediumHelp: 0.30,
     bigHelp: 0.05,
     noChange: 0.12,
     smallSetback: 0.08
+  });
+  const PREVIOUS_POCKET_COUNTS = Object.freeze({
+    pockets: 40,
+    smallHelp: 18,
+    mediumHelp: 12,
+    bigHelp: 2,
+    noChange: 5,
+    smallSetback: 3
+  });
+  // Live draw. Setback slices went from 3 to 5 of 40 (+67%, the modest rounding of +70%).
+  // The two extra slices come from no-change. Help stays 32 of 40 and 80% of the draw.
+  const OUTCOME_TABLE = Object.freeze({
+    smallHelp: 0.45,
+    mediumHelp: 0.30,
+    bigHelp: 0.05,
+    noChange: 0.075,
+    smallSetback: 0.125
   });
 
   function clamp(value, min, max) {
@@ -287,7 +312,7 @@
     bullets.push(`${gameLine} ${rangeLine}`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
-      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
+      bullets.push(`Flip 7 plays to 200, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
     } else if (Number.isFinite(remaining) && remaining > 0) {
       bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to catch 1st from ${leaderGap} back.`);
     } else {
@@ -297,11 +322,11 @@
     if (binding === 'rank') {
       bullets.push(`Best is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
-      bullets.push(`Best is ${bestShort} — ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
+      bullets.push(`Best is ${bestShort}. ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
     } else if (binding === 'rescue') {
-      bullets.push(`Best is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
+      bullets.push(`Best is ${bestShort}. That is enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
-      bullets.push(`Best is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
+      bullets.push(`Best is ${bestShort}. That is about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
     }
 
     const lesser = [...new Set((offer.slices || [])
@@ -346,7 +371,7 @@
       return {
         supported: false,
         gameName: display,
-        lead: `${display} does not use Life Preservers.`,
+        lead: `${display} does not use the ${BACK_PORCH_WHEEL.name}.`,
         how: ['Keep playing this one without a rescue spin.'],
         wheel: []
       };
@@ -355,7 +380,7 @@
     let timing = `Once 4 ${unit} are scored.`;
     let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
-      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 12% no change, and 8% a small setback.',
+      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 7.5% no change, and 12.5% a small setback.',
       'Most slices help. Some do nothing. A few hurt a little.',
       'Cannot tie or pass the leader.'
     ];
@@ -387,7 +412,7 @@
     return {
       supported: true,
       gameName: display,
-      lead: `A one-time rescue if you are truly out of the hunt in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      lead: `A one-time rescue if you are truly out of the hunt in ${display}, not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
       how,
       wheel
     };
@@ -559,18 +584,18 @@
       smallHelp: 18,
       mediumHelp: 12,
       bigHelp: 2,
-      noChange: 5,
-      smallSetback: 3
+      noChange: 3,
+      smallSetback: 5
     }),
     implied: Object.freeze({
       smallHelp: 0.45,
       mediumHelp: 0.30,
       bigHelp: 0.05,
-      noChange: 0.125,
-      smallSetback: 0.075
+      noChange: 0.075,
+      smallSetback: 0.125
     }),
     live: OUTCOME_TABLE,
-    note: 'Default visual plan. Category shares stay exact via subtle pocket widths (neutral a hair narrower, setback a hair wider). The draw still uses 12% and 8%.'
+    note: 'Default visual plan. 5 setback slices of 40 (was 3). Help stays 32 of 40. No-change is 3. Draw matches those shares: 45/30/5/7.5/12.5. Setback amounts are unchanged.'
   });
 
   function outcomeKey(slice) {
@@ -1547,6 +1572,7 @@
 
   const api = {
     SUPPORTED_GAMES,
+    BACK_PORCH_WHEEL,
     EIGHT18_ROUND_TRICKS,
     EIGHT18_BID_BONUS,
     RECOVERY_LOAD_THRESHOLD,
@@ -1566,6 +1592,8 @@
     rankWithScore,
     bestAllowedRankFor,
     scoringRounds,
+    PREVIOUS_OUTCOME_TABLE,
+    PREVIOUS_POCKET_COUNTS,
     OUTCOME_TABLE,
     PROPOSED_OUTCOME_TABLE,
     PROPOSED_HELP_FRACTIONS,

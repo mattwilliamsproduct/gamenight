@@ -41,9 +41,11 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   await expect(page.locator('#score-entry-review-btn')).toHaveText(/Review Bids/i);
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hf-no-minus/);
   const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'-\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
-  const dblVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'00\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
   expect(minusVisible).toBe(false);
-  expect(dblVisible).toBe(false);
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
+  await expect(page.locator('#score-entry-skip-slot')).toBeVisible();
+  const keyLabels = await page.locator('#score-entry-modal .score-entry-keypad button').allTextContents();
+  expect(keyLabels.map((text) => text.trim())).not.toContain('00');
 
   const digitOrder = await page.evaluate(() => {
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-keypad .score-entry-key')]
@@ -74,7 +76,7 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   let status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Entered 0/i);
   const progressAfterZero = await page.locator('#score-entry-progress').textContent();
-  expect(progressAfterZero, progressAfterZero).toMatch(/1 of 8 bids entered/i);
+  expect(progressAfterZero, progressAfterZero).toMatch(/1 of 8 bids in/i);
   await page.locator('#score-entry-modal button.score-entry-key.next').click();
   status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Confirmed:\s*0/i);
@@ -94,7 +96,7 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   expect(phase).toBe('scoring');
 });
 
-test('Departed player leaves live scorecard with disclosure', async ({page}) => {
+test('Departed player stays on the live scorecard with Left early', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   const result = await page.evaluate(() => {
@@ -103,31 +105,34 @@ test('Departed player leaves live scorecard with disclosure', async ({page}) => 
     if (!currentGame.retired) currentGame.retired = [];
     if (!currentGame.retired.includes(name)) currentGame.retired.push(name);
     renderGame();
-    const disc = document.getElementById('left-early-disclosure');
-    const box = disc ? disc.getBoundingClientRect() : null;
+    const row = [...document.querySelectorAll('#scorecard-body tr')].find((el) => (el.textContent || '').includes(name));
+    if (row) row.scrollIntoView({block: 'nearest'});
+    const box = row ? row.getBoundingClientRect() : null;
     const inView = !!(box && box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.width > 0 && box.height > 0);
+    const total = row ? (row.querySelector('.scorecard-total-value') || {}).textContent : '';
     return {
       name,
       beforeRows,
       afterRows: document.querySelectorAll('#scorecard-body tr').length,
-      disclosure: disc ? disc.textContent || '' : '',
+      disclosure: !!document.getElementById('left-early-disclosure'),
+      place: row ? (row.querySelector('.scoreboard-rank-badge') || {}).textContent : '',
+      total,
       inView,
       box: box ? {top: box.top, bottom: box.bottom, height: box.height} : null,
       boardLine: (document.getElementById('slice2-board-line') || {}).textContent || '',
       bidHeader: (document.querySelector('.scorecard-bid-header') || {}).textContent || '',
-      retiredRows: document.querySelectorAll('#scorecard-body tr.row-retired').length,
-      recorded: typeof getRecordedPlayers === 'function' ? getRecordedPlayers(currentGame) : null
+      retiredRows: document.querySelectorAll('#scorecard-body tr.row-retired').length
     };
   });
-  expect(result.afterRows, JSON.stringify(result)).toBe(result.beforeRows - 1);
-  expect(result.retiredRows).toBe(0);
-  expect(result.disclosure).toMatch(/1 player left early/i);
+  expect(result.afterRows, JSON.stringify(result)).toBe(result.beforeRows);
+  expect(result.retiredRows).toBe(1);
+  expect(result.disclosure).toBe(false);
+  expect(result.place).toMatch(/Left early/i);
+  expect(result.total).toMatch(/-?\d+/);
   expect(result.inView, JSON.stringify(result.box)).toBe(true);
   expect(result.boardLine).toMatch(/Round \d+ of \d+ · \d+ tricks? · bids total \d+ \((exact|\d+ over|\d+ under)\)/i);
   expect(result.bidHeader).toMatch(/^\s*Bids\s*$/i);
-  await page.locator('#left-early-disclosure').click();
-  await expect(page.locator('#left-early-names')).toBeVisible();
-  await expect(page.locator('#left-early-names')).toContainText(result.name);
+  await expect(page.locator('#scorecard-body tr').filter({hasText: result.name})).toContainText(result.total.trim());
 });
 
 test('Start confirm parks live match incomplete', async ({page}) => {
@@ -135,11 +140,13 @@ test('Start confirm parks live match incomplete', async ({page}) => {
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
   await page.waitForTimeout(300);
-  page.once('dialog', async (d) => {
-    expect(d.message()).toMatch(/incomplete/i);
-    await d.dismiss();
-  });
-  await page.locator('#slice2-start-btn, button:has-text("Start")').first().click();
-  const stillLive = await page.evaluate(() => !!currentGame);
+  // Five Crowns plays up to 7. This Wizard has 8, so Start stays off until a game that seats them is picked.
+  // Matt 5:25 PM ET: starting another game opens Leave game. Keep playing leaves the match on the table.
+  await page.locator('[data-s2-action="reveal-picker"]').click();
+  await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Wizard"]').click();
+  await page.locator('#slice2-start-btn').click();
+  await expect(page.locator('#leave-keep-playing')).toBeVisible();
+  await page.locator('#leave-keep-playing').click();
+  const stillLive = await page.evaluate(() => !!currentGame && currentGame.name === 'Wizard');
   expect(stillLive).toBe(true);
 });
