@@ -16,6 +16,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Home shows the newest unfinished game, with Resume. Older unfinished games stay in Records, marked Unfinished, with Resume.
 - Skip sits above Next. A blank score stays blank. 0 & Next stores a confirmed 0. Minus shows only when that game allows a negative score.
 - A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
+- Home is the blue porch mat. The six decks sit on a calm center, a quiet geometric edge frames them, and the heading, Game Instructions, the selection line, and Start are small ivory pieces. Tonight's Table, the score sheet, and score entry stay ivory, so the numbers are not on the pattern.
 - The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
 - Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
 - Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
@@ -145,7 +146,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A compact Tonight's Table name centered away from the badge. The name sits left, the same gap after the badge as the bench row, and Deals first sits right after the name.
 - A phone score-entry row whose total box is cut off. All four rows, including that total, show whole. The skip line can be one smaller line to make the room.
 - A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
-- A dark wood-grain page as the direction. Flat fields are the trial. Cream sheets stay cream, and teal stays on the actions.
+- A dark wood page, a flat swatch, or a patterned field behind the score numbers. The picker is the blue mat. The pattern stays at the edge. Numbers sit on ivory. Felt, texture, stitch, and deck shadow live in the mat tokens.
+- A cream rectangle behind the decks, a brown top edge on an ivory panel, or a dark brown demo bar. The decks sit on the felt. The demo bar stays in the mat palette.
+- Casino lettering, chips, glossy green, heavy wood, or a spotlight on the mat. The Back Porch sign is the brand.
 - A selected game card ring thinner than the base 6px, or a ring that sits under the cover. The ring is at least that thick and paints on top of the art.
 - A phone nav label under 13px, or Player Passports on two lines in the match bar. Home, Records, Player Passports, and Settings stay one line at 13px or larger.
 - A phone page field that stops short of the right edge. The field runs to the screen edge. The scrollbar thumb does not paint a strip there.

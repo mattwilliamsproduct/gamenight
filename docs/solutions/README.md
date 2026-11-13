@@ -116,3 +116,5 @@ Standing trap: [rc4-usability.md](rc4-usability.md) — scorecard width stays st
 Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phone scoreboard that locks the shell to `100dvh` clips the last seats and hides the app nav. Scroll the seat list inside the visual viewport. Phone header is Home, Enter Score, Actions, Save & End on one row. The back control says Home at every size and does not end the match. See [rc4-ipad-landscape.md](rc4-ipad-landscape.md).
 
 Standing trap: [porch-ledger-phone-edge.md](porch-ledger-phone-edge.md) — the phone ledger field runs to the screen edge. Do not leave the 6px hairline scrollbar thumb as a cream strip. Match-bar labels stay one line at 13px or larger. Player Passports is not abbreviated, and the buttons are not forced to equal widths.
+
+Standing trap: [porch-mat.md](porch-mat.md) — the home picker is the blue mat. Decks sit on the calm center. The cube tile stays at the edge. Numbers stay on ivory. Swap `--mat-felt`, `--mat-felt-texture`, `--mat-stitch`, and `--deck-shadow` in one place. Do not put the decks back inside a cream rectangle.

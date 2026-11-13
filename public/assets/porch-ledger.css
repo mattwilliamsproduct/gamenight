@@ -11,17 +11,27 @@
 */
 
 html.porch-ledger {
-  --ledger-felt: #3c2e22;
-  --ledger-felt-deep: #2c2118;
+  /* Blue porch mat. Swap the surface here.
+     --mat-felt is the calm center. --mat-felt-texture is the quiet
+     edge tile. --mat-stitch is the single inset line. --deck-shadow
+     is the lift under every deck. */
+  --mat-felt: #141c2e;
+  --mat-felt-texture: url("./porch-mat-edge.svg");
+  --mat-stitch: rgba(244, 239, 228, 0.78);
+  --mat-deck-line: #f4efe4;
+  --deck-shadow: 0 12px 18px -10px rgba(4, 8, 16, 0.72), 0 1px 2px rgba(4, 8, 16, 0.45);
+  --mat-bar: #0c1422;
+  --ledger-felt: var(--mat-felt);
+  --ledger-felt-deep: var(--mat-bar);
   --ledger-paper: #fbf6ec;
   --ledger-paper-2: #f3eadc;
   --ledger-rule: rgba(92, 62, 36, 0.16);
-  --ledger-line: #e0d0bc;
+  --ledger-line: #e4d8c6;
   --ledger-ink: #1a140f;
   --ledger-ink-soft: #3a3128;
   --ledger-muted: #5c5348;
-  --ledger-teal: #0b5f56;
-  --ledger-teal-deep: #084840;
+  --ledger-teal: #11786c;
+  --ledger-teal-deep: #0c5c54;
   --ledger-teal-wash: #e5f3ef;
   --ledger-brass: #6e4e24;
   --ledger-brass-soft: #f3e6cf;
@@ -35,8 +45,8 @@ html.porch-ledger {
   --ledger-space-3: 12px;
   --ledger-space-4: 16px;
   --ledger-space-5: 24px;
-  --ledger-shadow-sheet: 0 1px 0 rgba(255, 252, 246, 0.7) inset, 0 18px 36px -22px rgba(28, 16, 8, 0.62);
-  --ledger-shadow-key: 0 2px 0 #c9b59a;
+  --ledger-shadow-sheet: 0 14px 28px -18px rgba(28, 46, 38, 0.28), 0 2px 8px rgba(28, 46, 38, 0.06);
+  --ledger-shadow-key: 0 1px 2px rgba(28, 46, 38, 0.14);
   --ledger-type-display: "Bree Serif", Georgia, serif;
   --ledger-type-text: "Nunito Sans", "Plus Jakarta Sans", system-ui, sans-serif;
   --ledger-type-body: 1.0625rem;
@@ -70,13 +80,15 @@ html.porch-ledger {
 }
 
 html.porch-ledger.slice2-tv,
-html.porch-ledger.slice2-tv body {
-  background-color: var(--ledger-felt) !important;
+html.porch-ledger.slice2-tv body,
+html.porch-ledger.slice2-tv body.active-match-view {
+  background-color: var(--mat-felt) !important;
   background-image:
-    radial-gradient(1100px 420px at 12% -8%, rgba(255, 220, 180, 0.14), transparent 58%),
-    radial-gradient(800px 520px at 100% 110%, rgba(0, 0, 0, 0.2), transparent 52%),
-    repeating-linear-gradient(90deg, rgba(255, 236, 214, 0.03) 0 1px, transparent 1px 7px) !important;
-  color: var(--ledger-ink);
+    radial-gradient(ellipse 90% 70% at 50% 28%, rgba(92, 128, 186, 0.09), transparent 62%),
+    radial-gradient(ellipse 130% 80% at 50% 110%, rgba(0, 0, 0, 0.28), transparent 58%) !important;
+  background-repeat: no-repeat !important;
+  background-size: auto !important;
+  color: var(--ledger-paper);
 }
 
 html.porch-ledger.slice2-tv::before {
@@ -84,7 +96,7 @@ html.porch-ledger.slice2-tv::before {
 }
 
 html.porch-ledger.slice2-tv body:not(.active-match-view) #top-nav::before {
-  background: var(--ledger-felt) !important;
+  background: transparent !important;
 }
 
 html.porch-ledger.slice2-tv body.home-view #top-nav::before {
@@ -93,7 +105,7 @@ html.porch-ledger.slice2-tv body.home-view #top-nav::before {
 
 html.porch-ledger.slice2-tv body:not(.active-match-view) #top-nav {
   background: var(--ledger-paper) !important;
-  border: 1px solid #cbbba4 !important;
+  border: 1px solid var(--ledger-line) !important;
   border-radius: var(--ledger-radius-sheet) !important;
   box-shadow: var(--ledger-shadow-sheet) !important;
 }
@@ -221,11 +233,102 @@ html.porch-ledger.slice2-tv .s2-panel,
 html.porch-ledger.slice2-tv .s2-banner,
 html.porch-ledger.slice2-tv .s2-unfinished-row {
   background: var(--ledger-paper) !important;
-  border: 1px solid #d9c7b0 !important;
-  border-top: 4px solid var(--ledger-brass) !important;
+  border: 1px solid var(--ledger-line) !important;
   border-radius: var(--ledger-radius-sheet) !important;
   box-shadow: var(--ledger-shadow-sheet) !important;
   color: var(--ledger-ink);
+}
+
+/* The picker is the mat. Decks sit on the calm center. A quiet cube
+   tile and one ivory line stay at the edge. Heading, instructions,
+   summary, and Start are small ivory pieces beside the decks. */
+html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: visible;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background-image: var(--mat-felt-texture);
+  background-size: 56px 30px;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: radial-gradient(ellipse 72% 64% at 50% 48%, transparent 46%, #000 74%);
+  mask-image: radial-gradient(ellipse 72% 64% at 50% 48%, transparent 46%, #000 74%);
+}
+
+html.porch-ledger.slice2-tv .s2-home-start::after {
+  content: "";
+  position: absolute;
+  inset: 8px 6px;
+  border: 1.5px solid var(--mat-stitch);
+  border-radius: 18px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start > * {
+  position: relative;
+  z-index: 2;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head {
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head > div,
+html.porch-ledger.slice2-tv .s2-home-start #slice2-start-summary {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  background: var(--ledger-paper);
+  color: var(--ledger-ink);
+  border: 1px solid var(--ledger-line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: var(--ledger-shadow-sheet);
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head h2,
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head > div .s2-sub,
+html.porch-ledger.slice2-tv .s2-home-start #slice2-start-summary {
+  margin: 0;
+  color: var(--ledger-ink);
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-startbar {
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-rules-select {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1px solid var(--ledger-line) !important;
+  box-shadow: var(--ledger-shadow-sheet);
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game-grid {
+  justify-content: center;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
+  color: var(--ledger-paper) !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
 }
 
 html.porch-ledger.slice2-tv .s2-kicker,
@@ -338,22 +441,34 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected {
   background: transparent !important;
 }
 
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame {
+  box-shadow: var(--deck-shadow) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame::after {
+  border: 0 !important;
+  box-shadow: inset 0 0 0 3px var(--mat-deck-line) !important;
+}
+
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   position: relative;
   outline: none !important;
   outline-offset: 0 !important;
-  box-shadow: none !important;
+  /* Ivory halo sits on the blue. The teal rim stays on the art. */
+  box-shadow: 0 0 0 4px #f4efe4, var(--deck-shadow) !important;
 }
 
+/* #86 locks this rim at #0a5c54. The halo above is what reads on navy. */
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::after {
   content: "";
   position: absolute;
   inset: 0;
-  border: 6px solid var(--ledger-teal);
+  border: 0 !important;
   border-radius: inherit;
   box-sizing: border-box;
   pointer-events: none;
-  z-index: 2;
+  z-index: 4;
+  box-shadow: inset 0 0 0 6px #0a5c54 !important;
 }
 
 @media (min-width: 761px) {
@@ -593,13 +708,13 @@ html.porch-ledger.slice2-tv body.active-match-view {
 }
 
 html.porch-ledger.slice2-tv #slice2-board-bar {
-  color: var(--ledger-on-teal);
+  color: var(--ledger-paper);
 }
 
 html.porch-ledger.slice2-tv #slice2-board-line,
 html.porch-ledger.slice2-tv #slice2-board-sub,
 html.porch-ledger.slice2-tv .s2-board-round {
-  color: var(--ledger-on-teal) !important;
+  color: var(--ledger-paper) !important;
 }
 
 html.porch-ledger.slice2-tv .s2-board-copy {
@@ -712,12 +827,12 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
 
 html.porch-ledger.slice2-tv #slice2-board-line .s2-board-title {
   font-family: var(--ledger-type-display) !important;
-  color: var(--ledger-on-teal) !important;
+  color: var(--ledger-paper) !important;
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture {
   background: var(--ledger-paper) !important;
-  border: 1px solid #d9c7b0 !important;
+  border: 1px solid var(--ledger-line) !important;
   border-radius: var(--ledger-radius-sheet) !important;
   box-shadow: var(--ledger-shadow-sheet) !important;
   color: var(--ledger-ink);
@@ -896,11 +1011,11 @@ html.porch-ledger #score-entry-modal:not(.hidden) {
   position: fixed !important;
   inset: 0 !important;
   z-index: 240 !important;
-  background: #24180e !important;
+  background: color-mix(in srgb, var(--mat-felt) 46%, #05080f 54%) !important;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal > .absolute {
-  background: #24180e !important;
+  background: color-mix(in srgb, var(--mat-felt) 36%, #05080f 64%) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -919,7 +1034,7 @@ html.porch-ledger:has(#score-entry-modal:not(.hidden))::before {
 html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidden) {
   padding: 0 !important;
   z-index: 400 !important;
-  background: #24180e !important;
+  background: color-mix(in srgb, var(--mat-felt) 36%, #05080f 64%) !important;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell > .score-entry-panel {
@@ -1200,9 +1315,9 @@ html.porch-ledger #bpg-try-demo-bar {
   box-sizing: border-box !important;
   padding: 4px 14px !important;
   overflow: hidden !important;
-  background: var(--ledger-felt-deep) !important;
+  background: var(--mat-bar) !important;
   color: var(--ledger-on-teal) !important;
-  border-bottom: 1px solid rgba(255, 236, 214, 0.18) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-felt) 70%, #fffaf3 30%) !important;
   font-family: var(--ledger-type-text) !important;
 }
 
@@ -1261,8 +1376,18 @@ html.porch-ledger #bpg-try-demo-tip {
   html.porch-ledger.slice2-tv #slice2-board-line,
   html.porch-ledger.slice2-tv #slice2-board-sub {
     font-size: 16px !important;
-    color: var(--ledger-on-teal) !important;
+    color: var(--ledger-paper) !important;
     line-height: 1.2 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
+    font-size: 13px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-start .s2-rules-select,
+  html.porch-ledger.slice2-tv .s2-home-start .s2-btn,
+  html.porch-ledger.slice2-tv .s2-home-start #slice2-start-btn {
+    min-height: 44px !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows,
@@ -1280,7 +1405,7 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-hug-rows {
-    background: var(--ledger-felt) !important;
+    background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
@@ -1304,8 +1429,58 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen #scorecard-capture.scorecard-fit-cols td.scorecard-col-player:has(.wheel-badge) {
-    min-width: max-content !important;
+    min-width: 132px !important;
+    width: 132px !important;
+    max-width: 148px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols th.scorecard-col-player {
+    min-width: 132px !important;
+    width: 132px !important;
+    max-width: 148px !important;
+  }
+
+  /* "Spin ready" does not fit beside the name. Stack it under the name. */
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex {
+    display: grid !important;
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    grid-template-areas: "avatar name" "avatar badge" !important;
+    align-items: center !important;
+    column-gap: 6px !important;
+    row-gap: 1px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
+    display: contents !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-avatar-slot {
+    grid-area: avatar !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-name-slot {
+    grid-area: name !important;
+    min-width: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name {
+    font-size: 15px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .wheel-badge {
+    grid-area: badge !important;
+    margin: 0 !important;
+    justify-self: start !important;
+    align-self: center !important;
     width: auto !important;
+    max-width: 100% !important;
+    min-height: 22px !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    padding: 1px 6px !important;
+    white-space: nowrap !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
@@ -1507,8 +1682,8 @@ html.porch-ledger #bpg-try-demo-tip {
     scroll-snap-align: start;
   }
 
-  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)),
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:not(:has(.hf-team-line)) > .flex,
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)):not(:has(.wheel-badge)),
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:not(:has(.hf-team-line)):not(:has(.wheel-badge)) > .flex,
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot:not(:has(.hf-team-line)) {
     display: flex !important;
     flex-direction: row !important;
@@ -1777,7 +1952,7 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 }
 
-/* Flat page trials. Default stays the wood felt. ?bg= picks one field. */
+/* Flat page trials. The mat is the default. ?bg= still paints one flat field. */
 html.porch-ledger[data-ledger-bg="seaglass"] { --ledger-page: #8eaea6; }
 html.porch-ledger[data-ledger-bg="slate"] { --ledger-page: #95a6b6; }
 html.porch-ledger[data-ledger-bg="sage"] { --ledger-page: #c9d5bf; }
