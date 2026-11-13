@@ -418,8 +418,21 @@
       if (!sorted.length) return;
       const lastScore = totals[sorted[sorted.length - 1]];
       const leaderScore = totals[sorted[0]];
+      const lastNames = players.filter((name) => totals[name] === lastScore);
+      const groups = [];
+      const claimed = new Set();
+      const sides = match.handFoot && Array.isArray(match.handFoot.sides) ? match.handFoot.sides : [];
+      sides.forEach((side) => {
+        const members = (side && side.members || []).filter((name) => winners.includes(name) && lastNames.includes(name));
+        if (members.length < 2) return;
+        members.forEach((name) => claimed.add(name));
+        groups.push(members);
+      });
       winners.forEach((name) => {
-        if (totals[name] !== lastScore) return;
+        if (!claimed.has(name) && lastNames.includes(name)) groups.push([name]);
+      });
+      groups.forEach((members) => {
+        const name = members[0];
         const deficit = cfg.winLow ? (totals[name] - leaderScore) : (leaderScore - totals[name]);
         if (!(deficit > 0)) return;
         const row = {
@@ -428,16 +441,35 @@
           game: match.game,
           date: match.date,
           id: match.id,
-          label: `Last at halfway, won ${match.game}`
+          label: `Last at halfway, won ${shownGameName(match.game)}`
         };
+        if (members.length > 1) {
+          row.ties = members.map((player) => ({player, value: deficit}));
+        }
         if (!best || deficit > best.value) best = row;
       });
     });
     return best;
   }
 
+  function shownGameName(id) {
+    const api = gamesApi();
+    if (api && typeof api.displayName === 'function') {
+      const named = api.displayName(id);
+      if (named && named !== 'Unknown') return named;
+    }
+    const game = GAMES.find((item) => item.id === id);
+    return (game && game.title) || id || '';
+  }
+
   function publicGamePhrase(text) {
-    return String(text || '').replace(/Hand and Foot/g, 'Canasta').replace(/Flip 7 Vengeance/g, 'Flip 7');
+    const raw = String(text || '');
+    if (!raw) return '';
+    const exact = shownGameName(raw);
+    if (exact && exact !== raw) return exact;
+    return raw
+      .split('Hand and Foot').join(shownGameName('Hand and Foot'))
+      .split('Flip 7 Vengeance').join(shownGameName('Flip 7 Vengeance'));
   }
 
   function nightStandings(match, helpers) {

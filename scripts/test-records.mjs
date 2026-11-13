@@ -806,6 +806,21 @@ test('biggest single-game comeback uses round totals, not Turbo', () => {
   assert.equal(shown.label, 'Last at halfway, won Wizard');
 });
 
+test('a team comeback uses the shelf name and both partners', () => {
+  const match = QA_SCENARIOS['canasta-comeback'].data.history[0];
+  const row = Records.biggestSingleGameComeback([match], helpers);
+  assert.equal(row.label, 'Last at halfway, won Canasta');
+  assert.equal(Records.recordHolderText(row), 'Cat and Mike');
+  assert.equal(row.value, 180);
+  assert.equal(Records.publicGamePhrase('Hand and Foot'), 'Canasta');
+  assert.equal(Records.publicGamePhrase('Flip 7 Vengeance'), 'Flip 7');
+  assert.equal(Records.publicGamePhrase('Most played Hand and Foot'), 'Most played Canasta');
+  const book = QA_SCENARIOS['records-book'].data.history;
+  const shown = Records.biggestSingleGameComeback(book, helpers);
+  assert.equal(shown.player, 'Cleo');
+  assert.equal(shown.label, 'Last at halfway, won Wizard');
+});
+
 test('Hall of Fame names a three-way tie at laptop width', () => {
   const html = paintHtml([{
     id: 1,

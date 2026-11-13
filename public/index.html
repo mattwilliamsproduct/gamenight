@@ -22482,7 +22482,7 @@ ${isDealer
           const wasBehind = halfwayLeader && halfwayLeader !== w;
           const winnerHalfScore = halfwaySorted.find(x=>x.p===w)?.score ?? halfwayLeaderScore ?? 0;
           const deficit = cfg.winLow ? winnerHalfScore-halfwayLeaderScore : halfwayLeaderScore-winnerHalfScore;
-          if(wasLast) update(allTime,'biggestComeback',entry(w,deficit,h,{label:`Last at halfway, won ${h.game}`}),betterHigh);
+          if(wasLast) update(allTime,'biggestComeback',entry(w,deficit,h,{label:`Last at halfway, won ${displayGameName(h.game)}`}),betterHigh);
           if(wasBehind) comebackWins[w]=(comebackWins[w]||0)+1;
         });
       }
