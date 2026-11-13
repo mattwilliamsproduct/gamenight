@@ -11704,9 +11704,18 @@ button.dealer-name-indicator .dealer-player-label {
     let width;
     if(phone){
       const rounds=[...card.querySelectorAll('thead th.scorecard-round-th')].filter(el=>getComputedStyle(el).display!=='none'&&!el.classList.contains('scorecard-round--hidden'));
-      const guard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
-      const guardLeft=guard?guard.getBoundingClientRect().left:box.left+box.width*0.55;
-      width=Math.max(72, Math.round(Math.min(guardLeft-8, box.right-8)-left));
+      const roundGuard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
+      const roundLeft=roundGuard?roundGuard.getBoundingClientRect().left:box.right;
+      const wide=Math.max(72, Math.round(Math.min(roundLeft-8, box.right-8)-left));
+      const toastTop=window.innerHeight-bottom-56;
+      const hitsTotal=[...card.querySelectorAll('.scorecard-total-value')].some(el=>{
+        const band=el.getBoundingClientRect();
+        return band.width>8&&band.bottom>toastTop&&band.top<window.innerHeight-bottom&&band.left<left+wide;
+      });
+      const total=card.querySelector('thead th.scorecard-col-total, td.scorecard-total-cell');
+      const totalLeft=total?total.getBoundingClientRect().left:roundLeft;
+      const narrow=Math.max(72, Math.round(Math.min(totalLeft-8, box.right-8)-left));
+      width=hitsTotal?narrow:wide;
     }else{
       width=Math.max(72, Math.round(box.right-8-left));
     }
