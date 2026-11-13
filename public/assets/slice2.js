@@ -14,6 +14,13 @@
     return (window.BPGGames && BPGGames.visibleGames()) || [];
   }
 
+  // The Home picker shows the six f2c81a4 decks. Rook keeps its registry
+  // entry, rules, history, Records, and Passports; it just has no Home deck.
+  const HOME_PICKER_SKIP = new Set(['Rook']);
+  function homePickerGames() {
+    return registryGames().filter((game) => !HOME_PICKER_SKIP.has(game.id));
+  }
+
   function cardAriaLabel(game, seated, selected) {
     const title = game.title || game.id;
     const detail = String(game.detail(seated) || '').toLowerCase();
@@ -416,7 +423,7 @@
     const count = addPicks.size;
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
     return `<div class="s2-picker">
-      ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>'}
+      ${bench.length ? `<div class="s2-pick-list">${rows}</div><button type="button" class="s2-btn s2-btn-quiet s2-bench-more" data-s2-action="bench-more" hidden></button>` : '<p class="s2-sub">All saved players are seated.</p>'}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
@@ -469,7 +476,7 @@
     const table = state();
     if (!table.currentGame) clearAnotherMatch();
     const dealer = dealerOf(table);
-    const picker = registryGames();
+    const picker = homePickerGames();
     if (!picker.some((game) => game.id === selected)) selected = picker[0]?.id || 'Five Crowns';
     const meta = gameMeta(selected);
     const seated = table.players.length;
@@ -510,7 +517,7 @@
         </div>
       </article>`;
     }).join('') || '<p class="s2-sub" id="slice2-empty-table">Add a name to seat tonight\'s table. Then pick a game and tap Start.</p>';
-    const cards = registryGames().map((game) => {
+    const cards = picker.map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
         <span class="s2-card-frame">
@@ -606,6 +613,70 @@
     restoreSeatGrab(root);
     parkSaveIndicator();
     wireStandingsMore(root);
+    wireBench(root);
+  }
+
+  // Laptop and iPad landscape: the bench uses the free height under Tonight's
+  // table, so every saved player shows whole when they fit. A longer bench ends
+  // on a whole row with "N more below" instead of cutting a name in half.
+  const BENCH_FIT_QUERY = '(min-width: 861px) and (orientation: landscape) and (min-height: 700px)';
+  function fitBench() {
+    const table = document.querySelector('#slice2-home .s2-home-table');
+    const list = table && table.querySelector('.s2-pick-list');
+    if (!list) return;
+    const cue = list.parentElement && list.parentElement.querySelector('.s2-bench-more');
+    list.style.removeProperty('max-height');
+    if (cue) { cue.hidden = true; cue.textContent = ''; }
+    if (!window.matchMedia(BENCH_FIT_QUERY).matches || document.documentElement.dataset.bpKb === '1') {
+      syncBenchMore(list);
+      return;
+    }
+    list.style.maxHeight = 'none';
+    const over = () => table.scrollHeight - table.clientHeight;
+    if (over() > 1) {
+      // Count the cue's own line before choosing how many whole rows fit.
+      if (cue) { cue.hidden = false; cue.textContent = 'More below ↓'; }
+      const picks = [...list.querySelectorAll('.s2-pick')];
+      const gap = parseFloat(getComputedStyle(list).rowGap) || 0;
+      const rowH = picks.length ? picks[0].getBoundingClientRect().height : 0;
+      const room = list.getBoundingClientRect().height - over();
+      if (rowH > 0) {
+        const whole = Math.max(1, Math.floor((room + gap) / (rowH + gap)));
+        list.style.maxHeight = `${Math.ceil(whole * rowH + (whole - 1) * gap)}px`;
+      }
+    }
+    syncBenchMore(list);
+  }
+
+  function syncBenchMore(list) {
+    const cue = list && list.parentElement && list.parentElement.querySelector('.s2-bench-more');
+    if (!cue) return;
+    const box = list.getBoundingClientRect();
+    const rows = [...list.querySelectorAll('.s2-pick')];
+    const below = rows.filter((row) => row.getBoundingClientRect().bottom > box.bottom + 2).length;
+    const above = rows.filter((row) => row.getBoundingClientRect().top < box.top - 2).length;
+    const scrolls = list.scrollHeight > list.clientHeight + 1;
+    if (scrolls && below > 0) {
+      cue.textContent = `${below} more below ↓`;
+      cue.dataset.dir = 'down';
+      cue.hidden = false;
+    } else if (scrolls && above > 0) {
+      cue.textContent = 'Back to top ↑';
+      cue.dataset.dir = 'up';
+      cue.hidden = false;
+    } else {
+      cue.hidden = true;
+      cue.textContent = '';
+    }
+  }
+
+  function wireBench(root) {
+    const list = root && root.querySelector('.s2-home-table .s2-pick-list');
+    if (!list) return;
+    list.addEventListener('scroll', () => syncBenchMore(list), {passive: true});
+    fitBench();
+    requestAnimationFrame(fitBench);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBench).catch(() => {});
   }
 
   // When the standings list is taller than its card, say so: fade the last visible
@@ -1368,6 +1439,9 @@
       else if (typeof openLifePreserverRules === 'function') openLifePreserverRules();
     } else if (action === 'history') {
       openAuditLog();
+    } else if (action === 'bench-more') {
+      const list = target.parentElement?.querySelector('.s2-pick-list');
+      if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
     } else if (action === 'standings-more') {
       const list = target.closest('.s2-home-standings')?.querySelector('.s2-standings');
       if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
@@ -1527,6 +1601,7 @@
     window.addEventListener('resize', () => {
       syncHomeChrome();
       syncStandingsMore(document.querySelector('#slice2-home .s2-home-standings .s2-standings'));
+      fitBench();
       syncPhoneBoardViewport();
       if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;

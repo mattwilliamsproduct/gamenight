@@ -40,9 +40,6 @@ html.porch-ledger {
   --felt-sizes: 256px 256px, 100% 100%, var(--felt-suit-size) var(--felt-suit-size), 100% 100%;
   --felt-repeat: repeat, no-repeat, repeat, no-repeat;
   --mat-felt: var(--felt-base);
-  --mat-stitch: rgba(244, 239, 228, 0.5);
-  --mat-deck-line: #f4efe4;
-  --deck-shadow: 0 12px 18px -10px rgba(4, 10, 28, 0.6), 0 1px 2px rgba(4, 10, 28, 0.4);
   --mat-bar: color-mix(in srgb, var(--felt-edge) 70%, #061226 30%);
   --ledger-felt: var(--mat-felt);
   --ledger-felt-deep: var(--mat-bar);
@@ -265,100 +262,11 @@ html.porch-ledger.slice2-tv .s2-panel,
 html.porch-ledger.slice2-tv .s2-banner,
 html.porch-ledger.slice2-tv .s2-unfinished-row {
   background: var(--ledger-paper) !important;
-  border: 1px solid var(--ledger-line) !important;
+  border: 1px solid #d9c7b0 !important;
+  border-top: 4px solid var(--ledger-brass) !important;
   border-radius: var(--ledger-radius-sheet) !important;
   box-shadow: var(--ledger-shadow-sheet) !important;
   color: var(--ledger-ink);
-}
-
-/* The picker is the mat: the page felt shows through, and one quiet ivory
-   stitch line sits --mat-band in from the edge. The decks begin about 52px
-   in at 1024 and about 24px in at 390. */
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
-  --mat-band: 44px;
-  position: relative;
-  isolation: isolate;
-  background: transparent !important;
-  background-image: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  border-radius: 18px !important;
-  overflow: hidden;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start::before {
-  content: none;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start::after {
-  content: "";
-  position: absolute;
-  inset: var(--mat-band);
-  border: 1.5px solid var(--mat-stitch);
-  border-radius: 12px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start > * {
-  position: relative;
-  z-index: 2;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head {
-  justify-content: flex-start !important;
-  align-items: center !important;
-  gap: 10px !important;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head > div,
-html.porch-ledger.slice2-tv .s2-home-start #slice2-start-summary {
-  flex: 0 1 auto;
-  width: auto;
-  max-width: 100%;
-  background: var(--ledger-paper);
-  color: var(--ledger-ink);
-  border: 1px solid var(--ledger-line);
-  border-radius: 12px;
-  padding: 8px 12px;
-  box-shadow: var(--ledger-shadow-sheet);
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head h2,
-html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head > div .s2-sub,
-html.porch-ledger.slice2-tv .s2-home-start #slice2-start-summary {
-  margin: 0;
-  color: var(--ledger-ink);
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-startbar {
-  justify-content: flex-start !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-rules-select {
-  background-color: var(--ledger-paper) !important;
-  background-image: var(--bp-select-chevron) !important;
-  background-repeat: no-repeat !important;
-  background-position: right 14px center !important;
-  background-size: 14px 8px !important;
-  color: var(--ledger-ink) !important;
-  border: 1px solid var(--ledger-line) !important;
-  box-shadow: var(--ledger-shadow-sheet);
-  min-height: 44px;
-  border-radius: 12px;
-  padding-right: 36px !important;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-game-grid {
-  justify-content: center;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
-  color: var(--ledger-paper) !important;
-  font-size: 15px !important;
-  line-height: 1.2 !important;
 }
 
 html.porch-ledger.slice2-tv .s2-kicker,
@@ -471,24 +379,15 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected {
   background: transparent !important;
 }
 
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame {
-  box-shadow: var(--deck-shadow) !important;
-}
-
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame::after {
-  border: 0 !important;
-  box-shadow: inset 0 0 0 3px var(--mat-deck-line) !important;
-}
-
+/* Home decks match f2c81a4: the plain card-picker edge, and the selected deck
+   gets the #86 teal rim (#0a5c54) drawn on top of the art. */
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   position: relative;
   outline: none !important;
   outline-offset: 0 !important;
-  /* Ivory halo sits on the blue. The teal rim stays on the art. */
-  box-shadow: 0 0 0 4px #f4efe4, var(--deck-shadow) !important;
+  box-shadow: none !important;
 }
 
-/* #86 locks this rim at #0a5c54. The halo above is what reads on navy. */
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::after {
   content: "";
   position: absolute;
@@ -600,6 +499,7 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::
     display: contents;
   }
 
+  /* fitBench (slice2.js) opens the bench to the free height below the seats. */
   html.porch-ledger.slice2-tv .s2-home-table .s2-pick-list {
     flex: 0 0 auto;
     max-height: 56px;
@@ -610,6 +510,8 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-pick {
+    flex: 0 0 auto;
+    height: 48px;
     min-height: 48px;
     box-sizing: border-box;
     scroll-snap-align: start;
@@ -1415,14 +1317,6 @@ html.porch-ledger #bpg-try-demo-tip {
     line-height: 1.2 !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
-    --mat-band: 16px;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
-    font-size: 13px !important;
-  }
-
   html.porch-ledger.slice2-tv .s2-home-start .s2-rules-select,
   html.porch-ledger.slice2-tv .s2-home-start .s2-btn,
   html.porch-ledger.slice2-tv .s2-home-start #slice2-start-btn {
@@ -2139,263 +2033,6 @@ html.porch-ledger #scorecard-capture .score-cell-life-preserver[hidden] {
   }
 }
 
-/* The mat composition.
-   One ivory line sits --mat-band in from every edge, so it is even on all
-   four sides. Everything on the mat sits --mat-gap inside that line: the
-   title sheet, the decks, and the start bar never cross it or the cube band.
-   Seven decks: 4 over 3 on a laptop or iPad, 3 over 3 over 1 on a phone,
-   each short row centered under the full one. */
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
-  --mat-band: 26px;
-  --mat-gap: 12px;
-  --mat-deck-gap-x: 18px;
-  --mat-deck-gap-y: 12px;
-  padding: calc(var(--mat-band) + var(--mat-gap)) !important;
-  gap: 10px !important;
-  border-radius: 18px !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start::after {
-  inset: var(--mat-band) !important;
-  border-width: 1.5px !important;
-  border-radius: 10px !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-panel-head {
-  margin: 0 !important;
-  flex-wrap: wrap !important;
-  justify-content: space-between !important;
-  row-gap: 10px !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-panel-head > div {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-panel-head .s2-sub {
-  white-space: normal !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-rules-picker {
-  flex: 0 0 auto !important;
-  margin: 0 !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-startbar {
-  margin: 0 !important;
-  padding: 0 !important;
-  border-top: 0 !important;
-  justify-content: center !important;
-  align-items: center !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game-grid {
-  display: grid !important;
-  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
-  column-gap: var(--mat-deck-gap-x) !important;
-  row-gap: var(--mat-deck-gap-y) !important;
-  justify-content: stretch !important;
-  justify-items: center !important;
-  align-content: center !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 6px 0 0 !important;
-  box-sizing: border-box !important;
-  overflow: visible !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game {
-  grid-column: span 2 !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  justify-self: stretch !important;
-  align-items: center !important;
-}
-
-/* Laptop and iPad: a 56-track grid so four across (14 tracks each), a
-   centered short row (offset by half a deck), and one row of seven (8 tracks
-   each) all line up. Spacing lives inside each deck cell, not in 55 gaps. */
-@media (min-width: 761px) {
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game-grid {
-    grid-template-columns: repeat(56, minmax(0, 1fr)) !important;
-    column-gap: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game {
-    grid-column: span 14 !important;
-    padding-inline: calc(var(--mat-deck-gap-x) / 2) !important;
-    box-sizing: border-box !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(5):nth-last-child(3) { grid-column: 8 / span 14 !important; }
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(5):nth-last-child(2) { grid-column: 15 / span 14 !important; }
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(5):last-child { grid-column: 22 / span 14 !important; }
-
-  /* Too short for two good rows (Start another game with its notes): one row. */
-  @container mat-decks (max-height: 240px) {
-    html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game,
-    html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(5):nth-last-child(3),
-    html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(5):nth-last-child(2),
-    html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(5):last-child {
-      grid-column: auto / span 8 !important;
-      grid-row: 1 !important;
-      padding-inline: 4px !important;
-    }
-
-    html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game .s2-game-name {
-      font-size: 13px !important;
-      line-height: 1.15 !important;
-      height: 2.3em !important;
-      flex: 0 0 2.3em !important;
-      white-space: normal !important;
-      overflow-wrap: normal !important;
-    }
-
-    html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game .s2-card-frame {
-      width: min(100cqw, calc((100cqh - 2.4rem) * 5 / 7), 140px) !important;
-    }
-  }
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-card-frame {
-  width: min(100%, 112px) !important;
-  max-width: 112px !important;
-  margin-inline: auto !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game-name {
-  width: 100% !important;
-  margin-top: 4px !important;
-  line-height: 1.15 !important;
-  text-align: center !important;
-  white-space: nowrap !important;
-  overflow: visible !important;
-}
-
-/* A match on the table: the mat holds one short note and one button, centered. */
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact {
-  justify-content: center !important;
-  align-items: center !important;
-  text-align: center !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact .s2-panel-head {
-  justify-content: center !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact .s2-panel-head > div {
-  flex: 0 1 auto !important;
-}
-
-html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-btn {
-  align-self: center !important;
-}
-
-@media (min-width: 761px) {
-  /* Title sheet and Game Instructions share one row above the decks. */
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start:not(.s2-home-start-compact) .s2-panel-head {
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start:not(.s2-home-start-compact) .s2-panel-head > div {
-    flex: 0 1 auto !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start:not(.s2-home-start-compact) .s2-panel-head .s2-sub {
-    font-size: 14px !important;
-    line-height: 1.3 !important;
-  }
-}
-
-/* Laptop and iPad landscape dashboard: two deck rows share the height left
-   after the title and start bar, and each deck fits its cell at 5:7. */
-@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
-  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game-grid {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    grid-template-rows: none !important;
-    grid-auto-rows: minmax(0, 1fr) !important;
-    /* Only the landscape dashboard gives the deck area a fixed height. */
-    container-type: size;
-    container-name: mat-decks;
-  }
-
-  /* Each deck sits at the bottom of its cell, so spare height opens above
-     the rows and the last row stays close to Start. */
-  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game {
-    height: 100% !important;
-    justify-content: flex-end !important;
-    gap: 4px !important;
-    container-type: size;
-  }
-
-  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game-name {
-    margin-top: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-card-frame {
-    width: min(100cqw, calc((100cqh - 1.6rem) * 5 / 7), 140px) !important;
-    max-width: 140px !important;
-  }
-}
-
-@media (min-width: 1280px) {
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
-    --mat-band: 36px;
-    --mat-gap: 16px;
-    --mat-deck-gap-x: 24px;
-  }
-}
-
-@media (max-width: 760px) {
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
-    --mat-band: 14px;
-    --mat-gap: 10px;
-    --mat-deck-gap-x: 12px;
-    --mat-deck-gap-y: 12px;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start::after {
-    border-radius: 8px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    padding: 6px 4px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(n) {
-    grid-column: span 2 !important;
-  }
-
-  /* 3 over 3, then a lone seventh deck in the middle. */
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(3n+1):last-child { grid-column: 3 / span 2 !important; }
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game:nth-child(3n+1):nth-last-child(2) { grid-column: 2 / span 2 !important; }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-card-frame {
-    width: min(100%, 104px) !important;
-    max-width: 104px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-panel-head > div {
-    flex: 1 1 100% !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-startbar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-startbar > * {
-    width: 100% !important;
-    text-align: center !important;
-    justify-content: center !important;
-  }
-}
-
 /* Four or fewer score rows never scroll on the phone, so the keypad side does
    not need its 28px cover strip; it was hiding the bottom of the last row. */
 @media (max-width: 760px) {
@@ -2428,4 +2065,19 @@ html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="tr
 
 html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="true"] .scorecard-view-toggle-track {
   background: var(--ledger-teal) !important;
+}
+
+/* Bench "N more below" cue: only when the laptop bench still cannot show
+   every saved player whole. */
+html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more {
+  align-self: flex-start;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 4px 12px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more[hidden] {
+  display: none !important;
 }
