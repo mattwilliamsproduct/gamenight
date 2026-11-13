@@ -609,9 +609,9 @@ html.porch-ledger.slice2-tv .s2-unfinished-row p {
   }
 }
 
-/* Live scoreboard */
+/* Live scoreboard: the felt photo layer (body::after) shows through. */
 html.porch-ledger.slice2-tv body.active-match-view {
-  background-color: var(--felt-base) !important;
+  background-color: transparent !important;
 }
 
 html.porch-ledger.slice2-tv #slice2-board-bar {
