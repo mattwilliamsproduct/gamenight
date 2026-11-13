@@ -120,6 +120,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A phone Home nav that still says Profiles, or a Settings control that is only a gear. The words are Player Passports and Settings, on one row. The longer label may break inside its own button.
 - A cream band between the last phone score-entry row and the skip line. A short list shares that space, or the help line and the keypad sit against the rows.
 - A phone identity lock that lays Canasta team names beside the avatars and past the cell. Those names stay stacked. The clip test stays as written.
+- A 1024 Tonight's Table that scrolls the seated rows when four or five are seated. Those rows, and the first person on the bench, show whole. A longer list may scroll.
+- A phone score-entry DEALER chip beside the name when that cuts the name. The chip sits under the name. All four rows stay whole, with no cream band above the skip line.
+- A phone scorecard that squeezes R1 and This Round off the sheet, or leaves a cream block under four rows. Round pills stay readable. The sheet ends at the last row. This Round stays on the sheet or scrolls the way the base scorecard does.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - "Saved on this device" while Try a demo is on.
