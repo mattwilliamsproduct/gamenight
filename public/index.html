@@ -13513,7 +13513,8 @@ button.dealer-name-indicator .dealer-player-label {
     if(modal && !modal.classList.contains('hidden')){
       const player=scoreEntryModalState?.activePlayer;
       const row=cap&&player?document.getElementById(`score-entry-row-${rookElementId(player)}`):null;
-      const cell=row?.querySelector('.score-entry-input-cell, .hf-field.active, .hf-round.active')||row?.querySelector('.hf-field.hf-num');
+      const cell=row?.querySelector('.score-entry-input-cell, .hf-field.active, .hf-round.active')
+        || document.querySelector('#score-entry-modal .hf-team-card.is-active .hf-field.active, #score-entry-modal .hf-field.active');
       if(cell){
         const note=document.createElement('div');
         note.className='score-entry-cap-note';
