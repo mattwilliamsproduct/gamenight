@@ -392,8 +392,11 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   pointer-events: none;
 }
 
-/* Landscape dashboard: the shell ends a margin above the viewport, both panels
-   fill that shell, art shrinks at 5:7, and a long list scrolls inside its panel.
+/* Landscape dashboard: the shell ends a margin above the viewport. The two
+   panels share one height set by the taller panel's content (never the
+   viewport), so nothing stretches into empty felt. If that content is taller
+   than the space under the nav, both stop there and a long list scrolls inside
+   its panel. Decks keep the fixed --bp-card-max size at 5:7 and sit centered.
    Phone, portrait, short screens, and an open keyboard keep their own height. */
 @media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
   html.slice2-tv:not([data-bp-kb="1"]) body.home-view {
@@ -414,7 +417,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     height: auto;
     max-height: none;
     min-height: 0;
@@ -424,8 +427,9 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     align-items: stretch;
+    grid-template-rows: minmax(0, 1fr);
     height: auto;
     min-height: 0;
   }
@@ -451,7 +455,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-seat-grid,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standings {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
@@ -477,25 +481,21 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     overflow: visible;
   }
 
+  /* Spare height (when Tonight's Table is the taller panel) splits above and
+     below the decks; Start stays at the bottom. */
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-grid {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    margin-block: auto;
     min-height: 0;
-    overflow: hidden;
-    align-content: stretch;
-    justify-content: stretch;
-    grid-template-rows: repeat(3, minmax(0, 1fr));
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+    align-content: center;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game {
-    height: 100% !important;
+    height: auto !important;
     min-height: 0;
-    max-width: none;
-    width: 100%;
-    align-self: stretch;
-    justify-self: stretch;
-    justify-content: center;
-    container-type: size;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-art {
@@ -509,8 +509,8 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc((100cqh - 1.5rem) * 5 / 7), 220px);
-    max-width: 220px;
+    width: min(100%, var(--bp-card-max));
+    max-width: var(--bp-card-max);
     height: auto !important;
     margin-inline: auto;
     aspect-ratio: 5 / 7;
@@ -529,12 +529,6 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 }
 
-@media (min-width: 1600px) and (orientation: landscape) and (min-height: 700px) {
-  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc((100cqh - 1.5rem) * 5 / 7));
-    max-width: none;
-  }
-}
 
 html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-standing {
   grid-template-columns: auto 40px minmax(0, 1fr) auto minmax(6.4rem, auto);
