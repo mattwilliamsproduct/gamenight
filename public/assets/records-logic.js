@@ -14,7 +14,7 @@
     { id: 'Flip 7 Vengeance', title: 'Flip 7', unit: 'pts', winLow: false, art: 'flip7' },
     { id: 'Beat the Heat', title: 'Beat the Heat', unit: 'heat', winLow: true, art: 'heat' },
     { id: 'Hand and Foot', title: 'Canasta', unit: 'pts', winLow: false, art: 'canasta' },
-    { id: 'Rook', title: 'Rook', unit: 'pts', winLow: false, art: 'rook', hidden: true }
+    { id: 'Rook', title: 'Rook', unit: 'pts', winLow: false, art: 'rook', hidden: false }
   ];
 
   // Single-match exact-bid rate needs this many classified bids. Career Wizard
@@ -1487,9 +1487,16 @@
     const comebackLines = comebackRows.length
       ? comebackRows.map((row) => statLine(`Biggest ${shownGameName(row.game)} comeback`, row, esc, '', playerFilter)).join('')
       : statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter);
+    const extraLines = (all.mostComebackExtras || all.biggestComebackExtra)
+      ? [
+          statLine('Most Comeback Extras In One Game', all.mostComebackExtras, esc, '', playerFilter),
+          statLine('Biggest Comeback Extra', all.biggestComebackExtra, esc, '', playerFilter)
+        ]
+      : [];
     return listBlock('Comebacks', [
       statLine('Dead Last Derby', derby, esc, '', playerFilter),
       comebackLines,
+      ...extraLines,
       statLine('Decided in the final round', decided, esc, '', playerFilter)
     ]);
   }

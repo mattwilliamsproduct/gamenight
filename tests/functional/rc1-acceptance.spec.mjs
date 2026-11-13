@@ -341,7 +341,8 @@ test('Settings and Records say history is local, and Restore copy matches mergeB
   await expect(page.locator('#backup-restore-copy')).toContainText('leaves the match here');
   await expect(page.locator('#backup-restore-copy')).toContainText('Neither match is discarded');
   await expect(page.locator('#settings-modal')).toContainText('Clearing browser data or losing this device');
-  await expect(page.locator('#porch-cloud-key')).toHaveCount(0);
+  await expect(page.locator('#porch-cloud-key')).toBeVisible();
+  await expect(page.locator('#porch-cloud-status')).toContainText('preview cannot overwrite');
   await page.evaluate(() => closeSettings());
 
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2view=records', {waitUntil: 'networkidle'});

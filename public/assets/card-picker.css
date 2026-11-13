@@ -483,7 +483,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     overflow: hidden;
     align-content: stretch;
     justify-content: stretch;
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

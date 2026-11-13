@@ -6,6 +6,10 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Rook is on the shelf. The win target is the one already in the setup: 300, 500, or 1000, and 300 starts selected. A table bigger than 6 confirms before it starts.
+- Comeback Extra is the extra already stored on a night. The score cell shows it. Records names Most Comeback Extras In One Game and Biggest Comeback Extra. The live turbo script stays unloaded, the same as production.
+- Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.
+- Buttons, modal labels, and player names use regular-width sentence case at a readable size. Names stay as typed. A long single name stays on one line: it shrinks or ends in an ellipsis, and it never splits mid-word. Phone nav buttons size to their words, so Player Passports stays one line at 13px or larger.
 - No pad has a 00 key. When there is no minus, 0 fills that whole row. Spin ready sits fully inside the player cell, toward the right of the name.
 - A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. A live match offers a small Start another game until the picker opens.
 - The score-entry sentence fits on one phone line. A too-big entry says so inside that player's score box.
@@ -104,6 +108,10 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- A new Rook win target. Production already offers 300, 500, and 1000.
+- Loading `comeback-logic.js`. Production does not, and the check fails if the page does.
+- A porch sync from a preview, from localhost, or from Try demo. The live site is the only copy that talks to `/api/sync`.
+- Small condensed all-caps on buttons and labels: Teams, Back, Start match, Apply order, the score subhead, the progress line, and player names. A name broken mid-word. A dealer mark covering the face. Phone nav wrapping Player Passports onto two lines.
 - A 00 key on any pad. A Spin ready badge cut off by the score column.
 - A score box or progress line cut off by the phone edge. A lone 0 with empty keypad cells. Canasta pair dropdowns. A full game picker beside a live match.
 - A score-entry sentence that runs off the phone, or a cap note that covers the player's name.

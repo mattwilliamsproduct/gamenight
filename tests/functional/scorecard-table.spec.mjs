@@ -151,8 +151,8 @@ test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({p
     await expect(page.locator('#slice2-board-sub')).toContainText(/Wild/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Dealer/);
     await expect(page.locator('th.scorecard-col-now')).toHaveText('This round');
-    const nowWraps = await page.locator('th.scorecard-col-now').evaluate((el) => getComputedStyle(el).whiteSpace !== 'nowrap');
-    expect(nowWraps).toBe(false);
+    const nowClipped = await page.locator('th.scorecard-col-now').evaluate((el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
+    expect(nowClipped).toBe(false);
     const overflow = await page.evaluate(() => {
       return [...document.querySelectorAll('#scorecard-capture .scorecard-total-value')].some((value) => {
         const cell = value.closest('.scorecard-col-total');

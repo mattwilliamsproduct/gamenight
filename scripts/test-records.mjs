@@ -75,9 +75,9 @@ test('records copy uses singular nouns for a count of one', () => {
   assert.equal(Records.formatPlural(2, 'straight last-place finish', 'straight last-place finishes'), '2 straight last-place finishes');
 });
 
-test('hidden Rook stays off the championship ledger', () => {
+test('Rook stays on the championship ledger', () => {
   const ids = Records.visibleRecordGames().map((game) => game.id);
-  assert.ok(!ids.includes('Rook'));
+  assert.ok(ids.includes('Rook'));
   assert.ok(ids.includes('Five Crowns'));
   assert.ok(ids.includes('Beat the Heat'));
   assert.ok(ids.includes('Hand and Foot'));
@@ -103,7 +103,7 @@ test('completed Hand and Foot nights appear as Canasta on Records', () => {
   assert.doesNotMatch(nights, /Retired/);
 });
 
-test('completed Rook history appears on Records without unhiding the start card', () => {
+test('Rook history appears on Records', () => {
   const rook = {
     id: 2,
     game: 'Rook',
@@ -115,9 +115,35 @@ test('completed Rook history appears on Records without unhiding the start card'
     rounds: [{round: 1, scores: {Ann: 110, Bo: 90}}]
   };
   assert.ok(Records.visibleRecordGames([rook]).some((game) => game.id === 'Rook'));
-  assert.ok(!Records.visibleRecordGames([{...rook, completed: false}]).some((game) => game.id === 'Rook'));
+  assert.ok(Records.visibleRecordGames([{...rook, completed: false}]).some((game) => game.id === 'Rook'));
   const html = paintHtml([rook], 'overview');
   assert.match(html, />Rook</);
+});
+
+test('Comeback Extra uses the production labels when a night stored an extra', () => {
+  const night = [{
+    id: 9,
+    game: 'Wizard',
+    date: '11/1/2026',
+    completed: true,
+    originalRoster: ['Ada', 'Bea'],
+    totals: {Ada: 30, Bea: 20},
+    winners: ['Ada'],
+    rounds: [{round: 1, scores: {Ada: 10, Bea: 20}, comeback: {Ada: 20}}]
+  }];
+  const html = paintHtml(night, 'explore', {
+    allTime: {
+      mostComebackExtras: {player: 'Ada', value: 2, label: '2 Comeback extras', date: '11/1/2026'},
+      biggestComebackExtra: {player: 'Bea', value: 20, label: '+20 extra', date: '11/1/2026'}
+    }
+  });
+  assert.match(html, /Most Comeback Extras In One Game/);
+  assert.match(html, /Biggest Comeback Extra/);
+  assert.match(html, /Ada/);
+  assert.match(html, /Bea/);
+  const empty = paintHtml(night, 'explore');
+  assert.doesNotMatch(empty, /Most Comeback Extras In One Game/);
+  assert.doesNotMatch(empty, /Biggest Comeback Extra/);
 });
 
 test('win rate always prints the denominator and hides thin samples from the lead', () => {

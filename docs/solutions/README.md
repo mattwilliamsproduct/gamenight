@@ -19,6 +19,7 @@ Standing trap: [bs-polish.md](bs-polish.md) — the wheel control stays on the r
 Standing trap: [bm-entry-and-parity.md](bm-entry-and-parity.md) — `bffd216` restored a `00` key for parity. Matt's Nov 12, 4:12 PM ET keypad spec removed that key from score entry, and that decision wins.
 
 Standing trap: [cc-sheet-and-teams.md](cc-sheet-and-teams.md) — phone score boxes and the progress line stay inside the sheet. A pad with no minus uses one wide 0. Canasta teams are tap-to-swap cards. A live match starts with a small Start another game action.
+Standing trap: [ce-sentence-case.md](ce-sentence-case.md) — buttons and labels are regular-width sentence case. A long single name does not split mid-word. Phone nav buttons size to their words. The Canasta teams modal opens only for Canasta.
 Standing trap: [cd-pads-and-badge.md](cd-pads-and-badge.md) — no pad has a 00 key. A blank Wizard bid stays missing. An 818 blank bid still becomes 0 only when the round is checked. Spin ready stays inside the player cell.
 
 Standing trap: [cb-readable-entry.md](cb-readable-entry.md) — the score helper stays one short line. The 999 note sits in that player's score box. Score pads use Skip.
@@ -97,7 +98,9 @@ Standing trap: [home-live-standings.md](home-live-standings.md) — landscape Ho
 
 Standing trap: [avatar-photo.md](avatar-photo.md) — uploads are shrunk to a JPEG data URL before `gn_profiles` or `bpg_demo_profiles`. A failed save keeps the previous portrait. A broken ref shows the silhouette.
 
-Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot; Rook stays hidden. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
+Standing trap: [canasta-on-rc1.md](canasta-on-rc1.md) — shelf says Canasta, saved id stays Hand and Foot. `.hf-rate-bar.hidden` must stay `display:none` so Canasta rates do not leak onto other games.
+
+Standing trap: [cf-prod-parity.md](cf-prod-parity.md) — Rook is on the picker with the existing 300/500/1000 target. Comeback Extra is the stored mark and the two Records lines. Do not load `comeback-logic.js`. Porch Cloud fetches only on `cardknight.vercel.app`, with `gn_porch_key` and `/api/sync`. Do not change `mergeCloud` or `api/sync.js`.
 
 Standing trap: [toast-route-dismiss.md](toast-route-dismiss.md) — parking a toast is not enough; `navigateTo` must clear the tray so Standings updated does not follow the table to Records.
 

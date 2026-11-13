@@ -38,7 +38,7 @@ House notes already in the rules cards (`gameRulesText`):
 - Wizard does **not** block the dealer from making bids sum to the tricks. 818 does. Leave Wizard that way unless the porch asks.
 - Flip 7 Vengeance is the stored name. The shelf says Flip 7.
 - Canasta is the shelf label. The saved game id is `Hand and Foot`. Four or six players open Choose your teams. Teams and Singles show which is on. Each team is a card with large portraits and names. Tap a player, then someone on the other team, to swap. Each team enters one score. That swap does not change dealer order. There is no Pick who sits together line and no pair dropdown.
-- Rook stays in code. The picker hides it. `?demo` and `?demo&games=rook` do nothing. Saved Rook nights still open.
+- Rook is on the picker. The win target is the setup choice already in the modal: 300, 500, or 1000. The default is 300. `?demo` and `?demo&games=rook` do not change that. Saved Rook nights still open.
 - Rook needs 4 players. 4–6 is the usual table; more than 6 asks for a confirm.
 - Life Preserver needs 4 active players and is off for Rook, Beat the Heat, and Canasta.
 
