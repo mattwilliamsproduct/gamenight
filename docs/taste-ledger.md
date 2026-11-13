@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
 - A Canasta team name stays on one line (`Megan & Matt`) when the cell has room beside it. The live card ends at the last team row.
 - The wheel control sits toward the right of the player cell and does not cover the name.
 - A comeback uses the shelf name. A team win names both partners.
@@ -90,6 +91,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- A phone nav that says Profiles, or a Settings control that is only a gear.
 - Wrapping a Canasta team name onto two lines when `Megan & Matt` fits beside the avatars, or leaving a cream block under two team rows.
 - Squeezing three to six Canasta cards onto one iPad screen, or inventing Basic, Count, and bonuses on an older round. Three or more scroll at the same size as two teams. An older round says Older round · total only. Turning that round into components waits.
 - Zeroing every old night because a Flip 7 or Rook target was not stored on it. Canasta's 4-round config is not a history rule. A game's minimum does not lock the seat checkboxes.

@@ -346,13 +346,14 @@
     const actions = row?.children?.[1];
     if (!actions) return;
     document.getElementById('slice2-saved')?.remove();
+    const phoneNav = window.matchMedia('(max-width: 760px)').matches;
     const compactNav = window.matchMedia('(max-width: 1023px)').matches;
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
       if (action.includes('goHome')) button.textContent = 'Home';
       if (action.includes('showHistory')) button.textContent = compactNav ? 'Records' : `Records (${table.history.length})`;
-      if (action.includes('showProfiles')) button.textContent = compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`;
-      if (action.includes('openSettings')) button.textContent = compactNav ? '⚙' : 'Settings';
+      if (action.includes('showProfiles')) button.textContent = phoneNav ? 'Player Passports' : (compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`);
+      if (action.includes('openSettings')) button.textContent = phoneNav || !compactNav ? 'Settings' : '⚙';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
     });
     parkSaveIndicator();
@@ -1478,6 +1479,7 @@
     document.addEventListener('keydown', onKeyDown);
     if (window.matchMedia) {
       window.matchMedia('(max-width: 760px)').addEventListener('change', () => {
+        paintNav();
         paintRecords();
         paintBoard();
         syncPhoneBoardViewport();

@@ -64,6 +64,45 @@ async function boardState(page) {
   });
 }
 
+test('phone home nav says Player Passports and Settings', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  const nav = await page.evaluate(() => {
+    return [...document.querySelectorAll('#top-nav .nav-btn')].filter((el) => {
+      const box = el.getBoundingClientRect();
+      return getComputedStyle(el).display !== 'none' && box.width > 0 && box.height > 0;
+    }).map((el) => {
+      const box = el.getBoundingClientRect();
+      return {
+        text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        left: box.left,
+        right: box.right,
+        top: box.top
+      };
+    });
+  });
+  const labels = nav.map((button) => button.text);
+  expect(labels).toContain('Player Passports');
+  expect(labels).toContain('Settings');
+  expect(labels.join(' ')).not.toMatch(/Profiles|⚙/);
+  const tops = nav.map((button) => button.top);
+  expect(Math.max(...tops) - Math.min(...tops), JSON.stringify(nav)).toBeLessThanOrEqual(4);
+  const brand = await page.evaluate(() => {
+    const mark = document.querySelector('#top-nav .bp-brand');
+    const home = [...document.querySelectorAll('#top-nav .nav-btn')].find((el) => (el.textContent || '').trim() === 'Home');
+    const markBox = mark.getBoundingClientRect();
+    const homeBox = home.getBoundingClientRect();
+    return {markRight: markBox.right, markBottom: markBox.bottom, homeLeft: homeBox.left, homeTop: homeBox.top};
+  });
+  const clear = brand.homeLeft >= brand.markRight - 1 || brand.homeTop >= brand.markBottom - 2;
+  expect(clear, `Home covers the wordmark ${JSON.stringify(brand)}`).toBe(true);
+  nav.forEach((button) => {
+    expect(button.left, button.text).toBeGreaterThanOrEqual(-1);
+    expect(button.right, `${button.text} past the phone`).toBeLessThanOrEqual(391);
+  });
+});
+
 test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async ({page}) => {
   for (const size of [{width: 390, height: 844}, {width: 390, height: 700}, {width: 375, height: 667}]) {
     await page.setViewportSize(size);
@@ -89,8 +128,21 @@ test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async 
     expect(state.nav.top, 'nav is not on the bottom').toBeGreaterThan(size.height * 0.55);
     expect(state.nav.height, 'nav too short to tap').toBeGreaterThanOrEqual(44);
     expect(state.nav.text).toMatch(/Records/);
-    expect(state.nav.text).toMatch(/Profiles/);
-    expect(state.nav.gear, 'settings gear dropped').toBe(true);
+    expect(state.nav.text).toMatch(/Player Passports/);
+    expect(state.nav.text).toMatch(/Settings/);
+    expect(state.nav.text).not.toMatch(/Profiles/);
+    expect(state.nav.gear, 'settings control dropped').toBe(true);
+    const navButtons = await page.evaluate(() => [...document.querySelectorAll('#top-nav .nav-btn')].filter((el) => {
+      const box = el.getBoundingClientRect();
+      return getComputedStyle(el).display !== 'none' && box.width > 0;
+    }).map((el) => {
+      const box = el.getBoundingClientRect();
+      return {text: (el.textContent || '').trim(), left: box.left, right: box.right};
+    }));
+    navButtons.forEach((button) => {
+      expect(button.left, button.text).toBeGreaterThanOrEqual(-1);
+      expect(button.right, `${button.text} past the phone`).toBeLessThanOrEqual(size.width + 1);
+    });
     expect(state.last?.text).toMatch(/Marco/);
     expect(state.last?.inWrap, `${size.width}x${size.height} last seat not in the scrollport`).toBe(true);
     expect(state.last?.inView, `${size.width}x${size.height} last seat stays off screen`).toBe(true);
