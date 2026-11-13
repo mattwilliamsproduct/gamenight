@@ -30,6 +30,10 @@ Standing trap: [exact-bid-open-nights.md](exact-bid-open-nights.md) — exact-bi
 
 Standing trap: [two-tab-revision.md](two-tab-revision.md) — a second tab loads the newer match instead of writing over it.
 
+Standing trap: [round-celebrations.md](round-celebrations.md) — WHAMMY, Nolie, and Cami Whammi open from a submitted round. The final counted round of a fixed-length game does not. Cami is Wizard and Flip 7 only.
+
+Standing trap: [special-round-labels.md](special-round-labels.md) — passport lines stay Only player to score, Everyone made their bid, and Everyone missed. The round modals keep the names WHAMMY, NOLIE, and CAMI WHAMMI.
+
 Standing trap: [try-demo.md](try-demo.md) — `?demo=try` is an isolated sample on `bpg_demo_*`. Remap the QA seed to a fictional cast in the demo path only. Bare `?demo` still does nothing.
 
 Standing trap: [add-player-suggestions-joined-name.md](add-player-suggestions-joined-name.md) — spread profile keys into the known-name list, or Add Player offers one comma-joined fake row.
