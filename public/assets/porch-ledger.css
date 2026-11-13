@@ -741,6 +741,39 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-
   background: #e7f4ef !important;
 }
 
+/* Leader round highlight is the cell itself. An inset chip stops short of the column and reads as a step. */
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td {
+  background: var(--ledger-teal-wash) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered),
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-input,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-input.is-entered {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table-wrap {
+  padding-bottom: 8px !important;
+  box-sizing: border-box;
+}
+
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-cell,
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .scorecard-total-value {
   color: var(--ledger-teal-deep) !important;
@@ -975,6 +1008,12 @@ html.porch-ledger.slice2-tv #score-entry-selected-kicker {
   letter-spacing: 0.04em;
 }
 
+html.porch-ledger #score-entry-modal .score-entry-keypad {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key,
 html.porch-ledger.slice2-tv #custom-numpad .numpad-btn {
   background: var(--ledger-paper) !important;
@@ -1010,6 +1049,39 @@ html.porch-ledger.slice2-tv #score-entry-modal .score-entry-progress {
   color: var(--ledger-teal-deep) !important;
   border-color: #9dcec4 !important;
   border-radius: var(--ledger-radius-control) !important;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-rows,
+html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows,
+html.porch-ledger #score-entry-modal.score-entry-tablet-land .score-entry-rows,
+html.porch-ledger #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  scrollbar-gutter: auto !important;
+  padding-right: 0 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list,
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows,
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  overflow: hidden !important;
+  scrollbar-gutter: auto !important;
+  scrollbar-width: none !important;
+  padding-right: 0 !important;
+  border-right: 0 !important;
+}
+
+html.porch-ledger #score-entry-modal {
+  --score-entry-scroll-pad: 0px;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-row,
+html.porch-ledger #score-entry-modal .score-entry-lane-label {
+  padding-right: 0 !important;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-rows::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal .btn-ghost,
@@ -1262,5 +1334,239 @@ html.porch-ledger #bpg-try-demo-tip {
   html.porch-ledger body.home-view .s2-seat,
   html.porch-ledger body.home-view .s2-pick {
     scroll-snap-align: start;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-player,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-roomy-identity-4 .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
+    width: auto !important;
+    min-width: 9rem !important;
+    max-width: none !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
+    width: 2.35rem !important;
+    min-width: 2.35rem !important;
+    max-width: 2.35rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player > .flex,
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-avatar-slot {
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator,
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 16px !important;
+    line-height: 1.1 !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-total-cell {
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-rank-badge {
+    font-size: 10px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 1px 5px !important;
+    line-height: 1.2 !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-total-cell,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-total {
+    width: 5.1rem !important;
+    min-width: 0 !important;
+    max-width: 5.1rem !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
+    height: 104px !important;
+    min-height: 104px !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-heading,
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-progress {
+    grid-column: 1 !important;
+    max-width: 100% !important;
+    justify-self: start !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-progress {
+    grid-row: 2 !important;
+    width: auto !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    text-transform: none !important;
+    letter-spacing: 0.01em !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    padding: 6px 10px !important;
+    text-align: left !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-lane-label {
+    display: none !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-list {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-rows,
+  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    padding: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 64px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    grid-template-columns: minmax(0, 1fr) 68px !important;
+    align-items: stretch !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-player-card,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card {
+    height: auto !important;
+    min-height: 64px !important;
+    grid-template-columns: 36px minmax(0, 1fr) 46px !important;
+    align-items: center !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-input-cell,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-input-cell {
+    height: auto !important;
+    min-height: 0 !important;
+    align-self: center !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name {
+    font-size: 17px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-dealer-badge {
+    flex: 0 0 auto !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-name-line {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-dealer-badge {
+    font-size: 9px !important;
+    letter-spacing: 0.04em !important;
+    padding: 2px 5px !important;
+    line-height: 1.1 !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-side {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-keypad,
+  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
+    flex: 1 1 auto !important;
+    min-height: 188px !important;
+    height: auto !important;
+    max-height: none !important;
   }
 }
