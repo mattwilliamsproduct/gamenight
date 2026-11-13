@@ -8,7 +8,7 @@ test('?demo is a no-op on a first-time device', async ({page}) => {
   await page.goto('/?demo&view=demo-path&art=dusk&logo=dusk', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('body')).toHaveAttribute('data-gn-demo-ready', 'ignored');
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
+  await expect(page.locator('#slice2-home')).toContainText(/Start a new match/);
   await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toHaveCount(0);
   await expect(page.locator('#demo-seed-msg')).toHaveCount(0);
   const stored = await page.evaluate(() => ({
@@ -53,7 +53,7 @@ test('an older-format save still opens after the upgrade', async ({page}) => {
 test('first-time empty home and Records are understandable', async ({page}) => {
   await openTestView(page, 'empty-home');
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
+  await expect(page.locator('#slice2-home')).toContainText(/Start a new match/);
   await expect(page.locator('#slice2-empty-table')).toContainText(/Add a name to seat tonight's table/);
   await expect(page.locator('#slice2-home')).not.toContainText(/Try a sample night/i);
   await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toHaveCount(0);

@@ -143,7 +143,7 @@ async function homeCardLayout(page) {
   });
 }
 
-test('1920 TV cards stay inside Start a New Match and stay identical', async ({page}) => {
+test('1920 TV cards stay inside Start a new match and stay identical', async ({page}) => {
   await page.setViewportSize({width: 1920, height: 1080});
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
@@ -157,7 +157,7 @@ test('1920 TV cards stay inside Start a New Match and stay identical', async ({p
   expect(layout.widths[0] / layout.heights[0]).toBeLessThan(0.724);
 });
 
-test('1024 landscape fills the start panel and Saved misses Game Instructions', async ({page}) => {
+test('1024 landscape fills the start panel and Saved misses Game instructions', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
@@ -173,7 +173,7 @@ test('1024 landscape fills the start panel and Saved misses Game Instructions', 
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
   expect(layout.band, `dead band between cards and Start ${layout.band}px`).toBeLessThanOrEqual(36);
-  expect(layout.toastHitsRules, 'Saved does not cover Game Instructions').toBe(false);
+  expect(layout.toastHitsRules, 'Saved does not cover Game instructions').toBe(false);
   expect(layout.toastText).toMatch(/Saved on this device/);
   expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(96);
 });
@@ -256,10 +256,10 @@ test('1440 and 1280 keep Start on screen without clipping Tonight\'s Table', asy
         };
       });
       expect(layout.startOnScreen, `${size.width} ${count}p Start below the fold at ${layout.startBtnBottom}`).toBe(true);
-      expect(layout.tableOpen, `${size.width} ${count}p Tonight's Table clipped`).toBe(true);
+      expect(layout.tableOpen, `${size.width} ${count}p Tonight's table clipped`).toBe(true);
       expect(layout.startOpen, `${size.width} ${count}p Start panel clipped`).toBe(true);
       expect(layout.titleInTable, `${size.width} ${count}p table title clipped`).toBe(true);
-      expect(layout.addInTable, `${size.width} ${count}p Add Player clipped`).toBe(true);
+      expect(layout.addInTable, `${size.width} ${count}p Add player clipped`).toBe(true);
       expect(['visible', 'auto']).toContain(layout.seatScroll);
       expect(layout.cardCount, `${size.width} missing cards`).toBe(7);
       expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(420);
@@ -318,7 +318,7 @@ test('clean first start explains what to tap and writes no sample data', async (
   await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#slice2-empty-table')).toContainText(/Add a name to seat tonight's table/);
-  await expect(page.locator('#slice2-home')).toContainText(/Add players, pick a game, then tap Start/);
+  await expect(page.locator('#slice2-home')).toContainText(/Add players, pick a game, then tap start/);
   await expect(page.locator('#slice2-home')).not.toContainText(/Try a sample night/i);
   await expect(page.locator('#slice2-start-btn')).toBeVisible();
   const stored = await page.evaluate(() => ({

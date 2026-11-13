@@ -8,7 +8,7 @@ test('adding a seventh Wizard player shortens a 6-player match from 10 rounds to
   await expect(page.locator('#round-intel')).toContainText('R3 / 10');
 
   await page.getByRole('button', {name: /Actions/}).click();
-  await page.getByRole('button', {name: 'Add Player Mid-Game', exact: true}).click();
+  await page.getByRole('button', {name: 'Add player mid-game', exact: true}).click();
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
   await page.locator('#midgame-add-player-input').fill('Alexis');
   await page.locator('#add-player-modal').getByRole('button', {name: 'Add', exact: true}).click();

@@ -191,7 +191,7 @@
     if (game.name === 'Five Crowns') {
       const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
       const wild = wilds[(game.currentRound || 1) - 1];
-      if (wild) bits.push(`${wild}s Wild`);
+      if (wild) bits.push(`${wild}s wild`);
     }
     const dealer = getCurrentDealerName(game);
     if (dealer) bits.push(`${dealer} dealing`);
@@ -255,7 +255,7 @@
     if (game.name === 'Five Crowns') {
       const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
       const wild = wilds[(game.currentRound || 1) - 1];
-      if (wild) bits.push(`${wild}s\u00a0Wild`);
+      if (wild) bits.push(`${wild}s\u00a0wild`);
     }
     const dealer = getCurrentDealerName(game);
     if (dealer) bits.push(`Dealer:\u00a0${dealer}`);
@@ -271,10 +271,10 @@
     if (isMatchOver(game)) return 'Match complete';
     if (isBidTrickGame(game)) {
       const bidding = getBidTrickPhase(game) === 'bidding';
-      if (phoneScoreboard()) return bidding ? 'Enter Bids' : 'Enter Tricks';
-      return bidding ? `Enter Round ${round} Bids` : `Enter Round ${round} Tricks`;
+      if (phoneScoreboard()) return bidding ? 'Enter bids' : 'Enter tricks';
+      return bidding ? `Enter round ${round} bids` : `Enter round ${round} tricks`;
     }
-    return 'Enter Scores';
+    return 'Enter scores';
   }
 
   function eligibleLifePreserverPlayers() {
@@ -334,7 +334,7 @@
     }
     const scratch = document.querySelector('#actions-menu button[onclick*="scratchMatch"] span:last-child');
     if (scratch && !/discard/i.test(scratch.textContent || '')) {
-      scratch.textContent = 'Scratch Match (discard)';
+      scratch.textContent = 'Scratch match (discard)';
     }
     if (!actions) return;
     const menuWrap = document.querySelector('#game-screen .active-match-actions');
@@ -411,7 +411,7 @@
       </label>`;
     }).join('');
     const count = addPicks.size;
-    const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add Player';
+    const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
     return `<div class="s2-picker">
       ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>'}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(room.message || max.message || 'No room for another player.')}</p>` : ''}
@@ -477,8 +477,8 @@
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
       const title = maxR && maxR < 900
-        ? `Resume ${displayGameName(game.name)} · Round ${game.currentRound} of ${maxR} · ${getActivePlayers(game).length} Players`
-        : `Resume ${displayGameName(game.name)} · Round ${game.currentRound} · ${getActivePlayers(game).length} Players`;
+        ? `Resume ${displayGameName(game.name)} · Round ${game.currentRound} of ${maxR} · ${getActivePlayers(game).length} players`
+        : `Resume ${displayGameName(game.name)} · Round ${game.currentRound} · ${getActivePlayers(game).length} players`;
       return `<section class="s2-banner">
         <div>
           <div class="s2-kicker">Active match</div>
@@ -519,7 +519,7 @@
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
           <div class="s2-panel-head">
             <div>
-              <h2>Tonight's Table · ${seated} Seated</h2>
+              <h2>Tonight's table · ${seated} seated</h2>
               <p class="s2-sub">${dealer ? escapeHtml(dealer) + (table.currentGame ? ' is dealing' : ' deals first') : 'In dealing order'}</p>
             </div>
           </div>
@@ -548,14 +548,14 @@
       : `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
-              <h2>Start a New Match</h2>
+              <h2>Start a new match</h2>
               <p class="s2-sub">${live
                 ? `Next match players · ${seated} seated. Changing them does not change the match in progress.`
-                : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap Start')}</p>
+                : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap start')}</p>
             </div>
             <label class="s2-rules-picker">
               <select class="bp-select s2-rules-select" data-s2-action="game-rules" aria-label="Game instructions">
-                <option value="">Game Instructions</option>
+                <option value="">Game instructions</option>
                 ${picker.map((game) => `<option value="${escapeHtml(game.id)}">${escapeHtml(game.title)}</option>`).join('')}
               </select>
             </label>
@@ -582,7 +582,7 @@
           </div>
           <div class="s2-standings">${standingRows(live)}</div>
           <div class="s2-standings-foot">
-            <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${typeof isMatchOver === 'function' && isMatchOver(live) ? ' disabled' : ''}>Enter Scores</button>
+            <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${typeof isMatchOver === 'function' && isMatchOver(live) ? ' disabled' : ''}>Enter scores</button>
           </div>
         </section>` : '';
     const ask = live && anotherStep === 'confirm'

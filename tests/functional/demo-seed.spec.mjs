@@ -78,7 +78,7 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'wheel-modal')).not.toHaveClass(/hidden/);
     await expect(page.locator('#wheel-result')).not.toHaveClass(/hidden/);
     await expect(page.locator('#btn-spin')).toBeHidden();
-    await expect(page.locator('#wheel-mode-label')).toHaveText('Back Porch Wheel Unlocked');
+    await expect(page.locator('#wheel-mode-label')).toHaveText('Back Porch Wheel unlocked');
     await expect(page.locator('#wheel-result-adjustment')).toContainText('+20 points');
     await expect(page.locator('#wheel-result-total')).toContainText('41 → 61');
     await expect(page.locator('#wheel-result-standing')).toContainText('3rd → 2nd');

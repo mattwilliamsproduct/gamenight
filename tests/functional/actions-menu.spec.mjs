@@ -15,7 +15,7 @@ test('Actions dropdown opens a visible list below the button', async ({page})=>{
 
   const undo=page.locator('#actions-undo');
   await expect(undo).toBeVisible();
-  await expect(undo).toContainText('Undo Last Round');
+  await expect(undo).toContainText('Undo last round');
 
   const geometry=await page.evaluate(()=>{
     const btn=document.getElementById('actions-btn');
@@ -41,8 +41,8 @@ test('Actions dropdown opens a visible list below the button', async ({page})=>{
   expect(geometry.menuHidden,'Actions menu should drop open').toBe(false);
   expect(geometry.menuHeight,'Actions menu should have a real list height').toBeGreaterThan(200);
   expect(geometry.menuBelowButton,'Actions menu should appear under the button').toBe(true);
-  expect(geometry.itemVisible,'Undo Last Round should occupy a clickable box').toBe(true);
-  expect(geometry.hitIsItem,'Undo Last Round should not be clipped by the board bar').toBe(true);
+  expect(geometry.itemVisible,'Undo last round should occupy a clickable box').toBe(true);
+  expect(geometry.hitIsItem,'Undo last round should not be clipped by the board bar').toBe(true);
   expect(geometry.hostAllowsOverflow,'open Actions menu must escape board-bar overflow clipping').toBe(true);
 
   await page.locator('#scorecard-capture').click({position:{x:24,y:24}});

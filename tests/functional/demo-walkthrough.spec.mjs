@@ -58,7 +58,7 @@ test('demo walkthrough: start, score, correct, end, resume, records', async ({pa
   await back.click();
   await back.click();
   await pad.locator('button[onclick="numpadPress(\'9\')"]').click();
-  await page.getByRole('button', {name: 'Close Keypad', exact: true}).click();
+  await page.getByRole('button', {name: 'Close keypad', exact: true}).click();
   await expect(pad).toBeHidden({timeout: 8000});
   report.correctPast = await page.evaluate((name) => {
     const last = (currentGame.rounds || []).filter((round) => !round.hailMaryBonus).at(-1);

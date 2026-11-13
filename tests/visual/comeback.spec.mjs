@@ -122,13 +122,13 @@ test('undo last round keeps Comeback chips for whoever is still stranded', async
 
   await page.getByRole('button', {name: /Actions/}).click();
   page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('button', {name: 'Undo Last Round', exact: true}).click();
+  await page.getByRole('button', {name: 'Undo last round', exact: true}).click();
 
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
   await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
 });
 
-test('skipping a dealer roll does not steal the next game\'s Roll Die button', async ({page}, testInfo) => {
+test('skipping a dealer roll does not steal the next game\'s Roll die button', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -146,14 +146,14 @@ test('skipping a dealer roll does not steal the next game\'s Roll Die button', a
     showDealerRoll();
     return document.getElementById('dealer-roll-btn').textContent;
   });
-  expect(label).toContain('Roll Die');
+  expect(label).toContain('Roll die');
   await page.locator('#dealer-roll-btn').click();
   await expect(page.locator('#dealer-roll-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#dealer-roll-btn')).toBeDisabled();
 });
 
-test('View Pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
-  test.skip(true, 'Obsolete View Pace leftover. The pace panel is retired.');
+test('View pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete View pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});

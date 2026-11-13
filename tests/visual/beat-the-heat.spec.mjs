@@ -50,13 +50,13 @@ test('Beat the Heat auto-ends at 66 and continues through winner, loser, and met
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#score-entry-context')).toContainText('Ends at 66 heat');
-  await expect(page.locator('#score-entry-primary-btn')).toHaveText('Submit Heat');
+  await expect(page.locator('#score-entry-primary-btn')).toHaveText('Submit heat');
 
   await page.locator('#score-entry-row-Megan').click();
   await page.locator('.score-entry-keypad').getByRole('button',{name:'1',exact:true}).click();
   await page.locator('.score-entry-keypad').getByRole('button',{name:'1',exact:true}).click();
   await page.locator('.score-entry-key.next').click();
-  await page.getByRole('button',{name:'Submit Heat',exact:true}).click();
+  await page.getByRole('button',{name:'Submit heat',exact:true}).click();
 
   await expect(page.locator('#score-entry-modal')).toBeHidden();
   await expect(page.locator('#game-over-section')).toBeVisible();

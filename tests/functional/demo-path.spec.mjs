@@ -44,7 +44,7 @@ async function correctJuneLast(page, nextScore) {
   await back.click();
   await back.click();
   await pad.locator(`button[onclick="numpadPress('${nextScore}')"]`).click();
-  await page.getByRole('button', {name: /Close Keypad/i}).click();
+  await page.getByRole('button', {name: /Close keypad/i}).click();
   await expect(pad).toBeHidden({timeout: 5000});
 }
 

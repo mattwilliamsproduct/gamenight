@@ -38,7 +38,7 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   await page.setViewportSize({width: 1024, height: 768});
   await openScenario(page, {scenario: 'wizard-early-8', surface: 'entry-bids'});
   await expect(page.locator('#score-entry-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#score-entry-review-btn')).toHaveText(/Review Bids/i);
+  await expect(page.locator('#score-entry-review-btn')).toHaveText(/Review bids/i);
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hf-no-minus/);
   const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'-\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
   expect(minusVisible).toBe(false);

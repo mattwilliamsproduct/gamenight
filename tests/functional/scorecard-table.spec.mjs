@@ -142,13 +142,13 @@ test('Save & End confirm writes records and Cancel changes nothing', async ({pag
   expect(after.history).toBe(before.history + 1);
 });
 
-test('phone scorecard keeps Js Wild together and fits 3-digit totals', async ({page}) => {
+test('phone scorecard keeps Js wild together and fits 3-digit totals', async ({page}) => {
   for (const width of [375, 390]) {
     await page.setViewportSize({width, height: 844});
     await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
     await expect(page.locator('#slice2-board-line')).toContainText(/Round \d+ of \d+/);
-    await expect(page.locator('#slice2-board-line')).not.toContainText(/Wild|Dealer/);
-    await expect(page.locator('#slice2-board-sub')).toContainText(/Wild/);
+    await expect(page.locator('#slice2-board-line')).not.toContainText(/[Ww]ild|Dealer/);
+    await expect(page.locator('#slice2-board-sub')).toContainText(/wild/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Dealer/);
     await expect(page.locator('th.scorecard-col-now')).toHaveText('This round');
     const nowClipped = await page.locator('th.scorecard-col-now').evaluate((el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
@@ -295,9 +295,9 @@ test('1440 and 1024 keep the current round on screen and pad the header', async 
         visibleRounds: visible.length
       };
     });
-    expect(fit.ok, `${size.width} missing NOW or Enter Scores`).toBe(true);
+    expect(fit.ok, `${size.width} missing NOW or Enter scores`).toBe(true);
     expect(fit.nowInside, `${size.width} NOW clipped`).toBe(true);
-    expect(fit.endPad, `${size.width} Enter Scores flush`).toBeGreaterThanOrEqual(12);
+    expect(fit.endPad, `${size.width} Enter scores flush`).toBeGreaterThanOrEqual(12);
     expect(fit.visibleRounds, `${size.width} no past rounds`).toBeGreaterThanOrEqual(1);
   }
 });

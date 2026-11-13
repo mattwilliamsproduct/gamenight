@@ -189,7 +189,7 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     });
     expect(setupTargets, `${viewport.name} setup targets`).toEqual([]);
 
-    await page.getByRole('button', {name:/Start Match/}).click();
+    await page.getByRole('button', {name:/Start match/}).click();
     await expect(page.locator('#game-screen')).toBeVisible();
     await openScoreEntry(page);
     await typeRound(page, [{basic:'1600', count:'450', got22:true, cardsLeft:'95'}]);
@@ -409,7 +409,7 @@ test('Four-player and eight-player boards stay under the header', async ({page})
   }
 });
 
-test('Canasta rules open from Game Instructions and in-game Actions', async ({page}) => {
+test('Canasta rules open from Game instructions and in-game Actions', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.goto('/?wipe=1&slice2', {waitUntil: 'domcontentloaded'});
   await page.waitForSelector('.s2-rules-select');

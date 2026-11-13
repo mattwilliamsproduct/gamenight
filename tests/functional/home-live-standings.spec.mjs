@@ -131,8 +131,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(idle.panelBottom, `${size.width} idle ${count} panels`).toBeLessThanOrEqual(size.height - 12);
       expect(idle.startBtn.bottom, `${size.width} idle ${count} Start`).toBeLessThanOrEqual(size.height - 12);
       expect(idle.startBtn.visibleBottom, `${size.width} idle ${count} Start clipped`).toBeGreaterThanOrEqual(idle.startBtn.bottom - 1);
-      expect(idle.addBtn.bottom, `${size.width} idle ${count} Add Player`).toBeLessThanOrEqual(size.height - 12);
-      expect(idle.addBtn.visibleBottom, `${size.width} idle ${count} Add Player clipped`).toBeGreaterThanOrEqual(idle.addBtn.bottom - 1);
+      expect(idle.addBtn.bottom, `${size.width} idle ${count} Add player`).toBeLessThanOrEqual(size.height - 12);
+      expect(idle.addBtn.visibleBottom, `${size.width} idle ${count} Add player clipped`).toBeGreaterThanOrEqual(idle.addBtn.bottom - 1);
       expect(idle.summary.visibleBottom, `${size.width} idle ${count} summary clipped`).toBeGreaterThanOrEqual(idle.summary.bottom - 1);
       expect(idle.pageScroll, `${size.width} idle ${count} page scroll`).toBeLessThanOrEqual(1);
       expect(idle.bottoms, `${size.width} idle ${count} panel bottoms`).toBeLessThanOrEqual(4);

@@ -53,7 +53,7 @@ async function correctJune(page) {
   await back.click();
   await back.click();
   await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
-  await page.getByRole('button', {name: /Close Keypad/i}).click();
+  await page.getByRole('button', {name: /Close keypad/i}).click();
   await pad.waitFor({state: 'hidden', timeout: 5000});
 }
 

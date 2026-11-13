@@ -26,7 +26,7 @@ test('porch night can score a full Hand and Foot table without calling the cloud
   await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
   await playRound(page, [{basic:'100', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', wentOut:true}]);
   await playRound(page, [{basic:'0', count:'10', cardsLeft:'0'}, {basic:'300', count:'0', cardsLeft:'0'}]);
-  await expect(page.locator('#game-over-section')).toContainText('Match Complete');
+  await expect(page.locator('#game-over-section')).toContainText('Match complete');
   await endMatch(page);
   await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
 

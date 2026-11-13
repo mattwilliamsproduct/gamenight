@@ -58,10 +58,10 @@ async function showBoard(page) {
 
 test('1194 scoreboard header, tiles, and Life Preserver cells', async ({page}) => {
   await showBoard(page);
-  await expect(page.locator('#slice2-enter-btn')).toHaveText('Enter Scores');
+  await expect(page.locator('#slice2-enter-btn')).toHaveText('Enter scores');
   await expect(page.locator('#slice2-board-line')).toContainText('Five Crowns');
   await expect(page.locator('#slice2-board-line')).toContainText('Round 9 of 11');
-  await expect(page.locator('#slice2-board-sub')).toContainText('Wild');
+  await expect(page.locator('#slice2-board-sub')).toContainText('wild');
   await expect(page.locator('#slice2-board-sub')).toContainText('Dealer');
   await expect(page.locator('.s2-board-mark')).toBeVisible();
   const order = await page.evaluate(() => {

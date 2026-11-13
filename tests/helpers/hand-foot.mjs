@@ -185,7 +185,7 @@ export async function startHandFoot(page, {names, format}){
     sides:document.querySelectorAll('#hand-foot-setup-sides .hf-setup-side').length,
     seats:[...document.querySelectorAll('button.hf-team-person')].map(el=>el.dataset.name||'')
   }));
-  await page.getByRole('button', {name:/Start Match/}).click();
+  await page.getByRole('button', {name:/Start match/}).click();
   await expect(page.locator('#game-screen')).toBeVisible();
   await expect(page.locator('#scorecard-body tr').first()).toBeVisible();
   return setup;

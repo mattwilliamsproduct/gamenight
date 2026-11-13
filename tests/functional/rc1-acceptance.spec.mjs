@@ -227,7 +227,7 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
   }
 });
 
-test('Saved chip stays off header text and phone entry drops Selected Player', async ({page}) => {
+test('Saved chip stays off header text and phone entry drops Selected player', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   const scorecard = await page.evaluate(() => {
@@ -274,7 +274,7 @@ test('Saved chip stays off header text and phone entry drops Selected Player', a
       prefix: getComputedStyle(name, '::before').content
     };
   });
-  expect(entry.labelShown, 'Selected Player label is gone on 375').toBe(false);
+  expect(entry.labelShown, 'Selected player label is gone on 375').toBe(false);
   const leader = await page.evaluate(() => getScoreEntryDisplayPlayers(getActivePlayers(currentGame))[0]);
   expect(entry.nameText, 'selected name is the standings leader').toBe(leader);
 });

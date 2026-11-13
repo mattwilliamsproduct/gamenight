@@ -30,7 +30,7 @@
   // Primary labels are the claim. Fun subtitles stay on a few Shame rows only.
   const SHAME_CATALOG = [
     { id: 'fc-worst-final', name: 'Worst final score · Five Crowns', subtitle: '', oldName: 'The Disaster Award' },
-    { id: 'fc-worst-round', name: 'Highest single-round score', subtitle: 'Crash and Burn', oldName: 'The Crash and Burn' },
+    { id: 'fc-worst-round', name: 'Highest single-round score', subtitle: 'Crash and burn', oldName: 'The Crash and Burn' },
     { id: 'e818-worst-final', name: 'Worst final score · 818', subtitle: '', oldName: 'The 818 Brick' },
     { id: 'heat-worst-final', name: 'Worst final score · Beat the Heat', subtitle: 'Meltdown', oldName: 'The Meltdown' },
     { id: 'wizard-missed', name: 'Most missed bids · Wizard', subtitle: '', oldName: 'The Overconfident' },
@@ -764,7 +764,7 @@
     const row = result || matchResult([], []);
     if (row.allTied) return 'Shared night';
     if (row.winners.length > 1) return 'Tied champions';
-    return 'Sunset Champion';
+    return 'Sunset champion';
   }
 
   function formatLoserHeadline(result) {
@@ -779,7 +779,7 @@
   function formatLoserKicker(result) {
     const row = result || matchResult([], []);
     if (row.skipLoser) return '';
-    return row.lastTied ? 'Shared low tide' : 'Low Tide';
+    return row.lastTied ? 'Shared low tide' : 'Low tide';
   }
 
   function formatLoserSub(result) {
@@ -1346,7 +1346,7 @@
       </article>`;
     }).join('');
     return `<section class="s2-panel s2-career-cards" id="records-player-cards">
-      <div class="s2-panel-head"><h2>Player Career Cards</h2></div>
+      <div class="s2-panel-head"><h2>Player career cards</h2></div>
       <div class="s2-career-grid">${body}</div>
     </section>`;
   }
@@ -1489,12 +1489,12 @@
       : statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter);
     const extraLines = (all.mostComebackExtras || all.biggestComebackExtra)
       ? [
-          statLine('Most Comeback Extras In One Game', all.mostComebackExtras, esc, '', playerFilter),
+          statLine('Most comeback extras in one game', all.mostComebackExtras, esc, '', playerFilter),
           statLine('Biggest Comeback Extra', all.biggestComebackExtra, esc, '', playerFilter)
         ]
       : [];
     return listBlock('Comebacks', [
-      statLine('Dead Last Derby', derby, esc, '', playerFilter),
+      statLine('Dead last derby', derby, esc, '', playerFilter),
       comebackLines,
       ...extraLines,
       statLine('Decided in the final round', decided, esc, '', playerFilter)
@@ -1768,7 +1768,7 @@
     const names = (model.standings || []).map((row) => row.name).filter(Boolean).slice(0, 6).join(', ');
     const earlyText = model.endedEarlyLabel || '';
     const meta = model.incomplete
-      ? `Unfinished${earlyText ? ` · ${earlyText}` : ''} · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
+      ? `Unfinished${earlyText ? ` · ${earlyText}` : ''} · through round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
       : (earlyText || `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
       model.incomplete ? '<span class="s2-night-badge">Unfinished</span>' : '',

@@ -69,7 +69,7 @@ test('a 2-player Hand and Foot match scores four rounds, survives reload, and la
   expect(game.rounds).toHaveLength(4);
   expect(game.currentRound).toBe(5);
   await expect(page.locator('#game-over-section')).toBeVisible();
-  await expect(page.locator('#game-over-section')).toContainText('Match Complete');
+  await expect(page.locator('#game-over-section')).toContainText('Match complete');
 
   await endMatch(page);
   await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
@@ -178,7 +178,7 @@ test('tapping the other team swaps the pair and leaves dealer order', async ({pa
   await expect(page.locator('.hf-team-person').nth(1)).toHaveAttribute('data-name', 'Cy');
   await expect(page.locator('.hf-team-person').nth(2)).toHaveAttribute('data-name', 'Bo');
   await expect(page.locator('.hf-team-person').nth(3)).toHaveAttribute('data-name', 'Dee');
-  await page.getByRole('button', {name:/Start Match/}).click();
+  await page.getByRole('button', {name:/Start match/}).click();
   await expect(page.locator('#game-screen')).toBeVisible();
   const order=await page.evaluate(()=>({
     roster: currentGame.originalRoster.slice(),

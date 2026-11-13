@@ -14,11 +14,11 @@ async function seedKnownNames(page, {seated=['Megan','Matt','Mike'], midgame=fal
   },{seated,profiles:PROFILES,midgame});
 }
 
-test('mid-game Add Player typing m suggests only Michelle', async ({page})=>{
+test('mid-game Add player typing m suggests only Michelle', async ({page})=>{
   await openScenario(page,{scenario:'wizard-6-mid'});
   await seedKnownNames(page,{midgame:true});
   await page.getByRole('button',{name:/Actions/}).click();
-  await page.getByRole('button',{name:'Add Player Mid-Game',exact:true}).click();
+  await page.getByRole('button',{name:'Add player mid-game',exact:true}).click();
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
   await page.locator('#midgame-add-player-input').fill('m');
   const labels=page.locator('#midgame-player-suggestions .player-name-label');
@@ -41,7 +41,7 @@ test('Home quick-add rejects a comma name without saving', async ({page})=>{
   await openScenario(page,{scenario:'home-party',surface:'home'});
   const before=await page.evaluate(()=>({allPlayers:[...allPlayers],players:[...players]}));
   await page.locator('#quick-add-player').fill('Megan,Matt');
-  await page.locator('#home-screen form.s2-add').getByRole('button',{name:'Add Player',exact:true}).click();
+  await page.locator('#home-screen form.s2-add').getByRole('button',{name:'Add player',exact:true}).click();
   await expect(page.locator('#home-player-name-error')).toBeVisible();
   await expect(page.locator('#home-player-name-error')).toContainText(/commas/i);
   const after=await page.evaluate(()=>({allPlayers:[...allPlayers],players:[...players]}));

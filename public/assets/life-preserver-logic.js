@@ -213,8 +213,8 @@
   }
 
   function formatPointLabel(adjustment) {
-    if (!adjustment) return '0 Pts';
-    return `${formatSignedPoints(adjustment)} Pts`;
+    if (!adjustment) return '0 pts';
+    return `${formatSignedPoints(adjustment)} pts`;
   }
 
   function formatWheelLabel(adjustment, kind) {

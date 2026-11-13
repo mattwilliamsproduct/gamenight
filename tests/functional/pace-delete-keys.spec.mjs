@@ -2,7 +2,7 @@ import {expect, test} from '@playwright/test';
 
 test.use({serviceWorkers: 'block'});
 
-test('View Pace at 1024 keeps the pace columns on the card and the player names intact', async ({page}) => {
+test('View pace at 1024 keeps the pace columns on the card and the player names intact', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await page.goto('/', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof startGame === 'function');
@@ -57,7 +57,7 @@ test('View Pace at 1024 keeps the pace columns on the card and the player names 
     };
   });
   expect(paceType.size).toBeGreaterThanOrEqual(13);
-  expect(paceType.text).toBe('View Pace');
+  expect(paceType.text).toBe('View pace');
   expect(paceType.max).toBe('none');
   expect(paceType.full).toBe(true);
   expect(boxes.names.map((row) => row.text)).toEqual(['Ava', 'Ben']);
@@ -67,7 +67,7 @@ test('View Pace at 1024 keeps the pace columns on the card and the player names 
   }
 });
 
-test('View Pace opens, delete removes a past night, and Skip replaces 00', async ({page}) => {
+test('View pace opens, delete removes a past night, and Skip replaces 00', async ({page}) => {
   page.on('dialog', (dialog) => dialog.accept());
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/', {waitUntil: 'domcontentloaded'});

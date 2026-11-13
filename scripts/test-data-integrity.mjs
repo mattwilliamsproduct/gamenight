@@ -453,7 +453,7 @@ test('a Beat the Heat correction under 66 reopens the match and clears the winne
     completed: true,
     winners: ['Alice'],
     totals: { Alice: 10, Bob: 70 },
-    auditLog: [{ action: 'Match Started' }],
+    auditLog: [{ action: 'Match started' }],
     rounds: [{ round: 1, scores: { Alice: 10, Bob: 70 } }]
   };
   const result = Scorebook.commitRoundCorrection(game, { roundIndex: 0, scores: { Bob: 20 } });
@@ -537,7 +537,7 @@ test('records copy keeps the assisted-match rules on the page', () => {
   const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
   assert.match(page, /Unassisted matches only/);
   assert.match(page, /No unassisted matches yet/);
-  assert.match(page, /Assisted Match/);
+  assert.match(page, /Assisted match/);
   assert.match(page, /BPGScorebook\.isSyntheticAdjustmentRound/);
   assert.match(page, /BPGScorebook\.isAssistedMatch/);
   assert.match(page, /BPGScorebook\.recordLifePreserverSpin/);
@@ -562,7 +562,7 @@ test('records copy keeps the assisted-match rules on the page', () => {
   assert.match(page, /function parkActiveMatch/);
   assert.match(page, /Save the game on the table and resume this match\?/);
   assert.match(page, /data-match-status="incomplete"/);
-  assert.match(page, /Resume Match/);
+  assert.match(page, /Resume match/);
   assert.match(page, /score-entry-confirm-status/);
   assert.match(page, /function jsAttrArg/);
   const scorebook = fs.readFileSync(new URL('../public/assets/scorebook.js', import.meta.url), 'utf8');

@@ -19,7 +19,7 @@ test('blowout Five Crowns gives Linda and Vikki Comeback chips',async({page},tes
   await page.goto(blowoutUrl,{waitUntil:'networkidle'});
   await ready(page);
 
-  await expect(page.locator('#round-intel')).toHaveText('Hand of 9 · 9s Wild');
+  await expect(page.locator('#round-intel')).toHaveText('Hand of 9 · 9s wild');
   const chips=page.locator('button.scorecard-comeback-chip');
   await expect(chips).toHaveCount(2);
   const linda=page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('button.scorecard-comeback-chip');

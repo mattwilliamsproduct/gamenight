@@ -88,7 +88,7 @@ test('undo clears the Back Porch Wheel that followed the removed hand', async ({
 
   await page.getByRole('button',{name:/Actions/}).click();
   page.once('dialog',dialog=>dialog.accept());
-  await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
+  await page.getByRole('button',{name:'Undo last round',exact:true}).click();
 
   await expect(page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('.score-cell-life-preserver')).toHaveCount(0);
   await expect(page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('[aria-label="Back Porch Wheel +15"]')).toBeVisible();

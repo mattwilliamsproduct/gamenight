@@ -17,7 +17,7 @@ test('empty home has Start and no sample-night CTA', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await openDemo(page, 'empty-home');
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
+  await expect(page.locator('#slice2-home')).toContainText(/Start a new match/);
   await expect(page.locator('#slice2-home')).not.toContainText(/Try a sample night/i);
   await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toHaveCount(0);
   await page.screenshot({path: `${SHOT}/empty-home-390.png`, fullPage: false});

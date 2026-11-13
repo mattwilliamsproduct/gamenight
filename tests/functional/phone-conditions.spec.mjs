@@ -407,7 +407,7 @@ test('Standings updated toast does not cover Save & End or Match complete', asyn
     await back.click();
     await back.click();
     await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
-    await page.getByRole('button', {name: /Close Keypad/i}).click();
+    await page.getByRole('button', {name: /Close keypad/i}).click();
     await pad.waitFor({state: 'hidden', timeout: 5000});
     await page.waitForFunction(() => {
       const toast = document.querySelector('#toast-container .toast');
@@ -450,7 +450,7 @@ test('Standings updated toast leaves when Records opens', async ({page}) => {
     await back.click();
     await back.click();
     await pad.locator('button[onclick="numpadPress(\'0\')"]').click();
-    await page.getByRole('button', {name: /Close Keypad/i}).click();
+    await page.getByRole('button', {name: /Close keypad/i}).click();
     await pad.waitFor({state: 'hidden', timeout: 5000});
     await page.waitForFunction(() => {
       const toast = document.querySelector('#toast-container .toast');

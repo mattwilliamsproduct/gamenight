@@ -291,16 +291,16 @@ test('wizard-scorecard-fits-after-text-size-change',async({page})=>{
 });
 
 test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-runtime-state',async({page})=>{
-  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel and the pace toggle.');
+  test.skip(true,'Obsolete View pace chrome. Slice 2 hides #record-chase-panel and the pace toggle.');
   await page.goto('/?gnqa=1&gallery=0&scenario=wizard-10&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
   const toggle=page.locator('#scorecard-view-pace-toggle');
   await expect(page.locator('#scorecard-view-toggle-wrap')).toBeVisible();
-  await expect(toggle).toHaveRole('switch',{name:'View Pace'});
-  await expect(toggle).toHaveAttribute('aria-label','View Pace');
+  await expect(toggle).toHaveRole('switch',{name:'View pace'});
+  await expect(toggle).toHaveAttribute('aria-label','View pace');
   await expect(toggle).toHaveAttribute('aria-checked','true');
-  await expect(toggle).toContainText('View Pace');
+  await expect(toggle).toContainText('View pace');
   await expect(toggle).not.toContainText('ON');
   await expect(toggle).not.toContainText('OFF');
   await expect(page.locator('#scorecard-view-toggle-state')).toHaveCount(0);
@@ -325,14 +325,14 @@ test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-r
       labelWhiteSpace:label?getComputedStyle(label).whiteSpace:''
     };
   });
-  expect(toggleGeometry.width,'View Pace switch should have a painted width').toBeGreaterThan(0);
-  expect(toggleGeometry.width,'View Pace switch should be materially narrower without visible state text').toBeLessThanOrEqual(135);
-  expect(toggleGeometry.height,'View Pace switch should have a painted height').toBeGreaterThan(0);
-  expect(toggleGeometry.fitsViewport,'View Pace switch should remain inside each target viewport').toBe(true);
-  expect(toggleGeometry.labelWhiteSpace,'View Pace label should remain on one line').toBe('nowrap');
+  expect(toggleGeometry.width,'View pace switch should have a painted width').toBeGreaterThan(0);
+  expect(toggleGeometry.width,'View pace switch should be materially narrower without visible state text').toBeLessThanOrEqual(135);
+  expect(toggleGeometry.height,'View pace switch should have a painted height').toBeGreaterThan(0);
+  expect(toggleGeometry.fitsViewport,'View pace switch should remain inside each target viewport').toBe(true);
+  expect(toggleGeometry.labelWhiteSpace,'View pace label should remain on one line').toBe('nowrap');
 
   await toggle.focus();
-  expect(await toggle.evaluate(element=>document.activeElement===element),'View Pace switch should be keyboard focusable').toBe(true);
+  expect(await toggle.evaluate(element=>document.activeElement===element),'View pace switch should be keyboard focusable').toBe(true);
   await page.keyboard.press('Space');
   await expect(page.locator('#record-chase-panel')).toBeHidden();
   await expect(toggle).toHaveAttribute('aria-checked','false');
@@ -353,14 +353,14 @@ test('view-pace-switch-is-compact-and-controls-pace-and-rounds-with-accessible-r
 });
 
 test('record-chase-preview keeps real player history and aligned metrics',async({page})=>{
-  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel.');
+  test.skip(true,'Obsolete View pace chrome. Slice 2 hides #record-chase-panel.');
   await page.goto('/?gnqa=1&gallery=0&scenario=record-chase-preview&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
   const rows=page.locator('.record-chase-row');
   await expect(rows).toHaveCount(8);
   await expectRowsInsideContainer(page,'.record-chase-row','#record-chase-list');
-  await expect(page.locator('#record-chase-panel')).toHaveAttribute('aria-label','Player Pace metrics');
+  await expect(page.locator('#record-chase-panel')).toHaveAttribute('aria-label','Player pace metrics');
   await expect(page.locator('.record-chase-head-label')).toHaveText(['Best','Avg','Worst']);
   await expect(page.locator('.record-chase-head-now')).toHaveCount(0);
   await expect(page.locator('.record-chase-head')).not.toContainText('Record Chase');
@@ -426,7 +426,7 @@ test('record-chase-preview keeps real player history and aligned metrics',async(
 });
 
 test('beat-the-heat pace still opens the best finished scorecard',async({page})=>{
-  test.skip(true,'Obsolete View Pace chrome. Slice 2 hides #record-chase-panel.');
+  test.skip(true,'Obsolete View pace chrome. Slice 2 hides #record-chase-panel.');
   await page.goto('/?gnqa=1&gallery=0&scenario=beat-the-heat-pace&surface=scorecard',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
 
@@ -449,7 +449,7 @@ test('beat-the-heat pace still opens the best finished scorecard',async({page})=
 });
 
 test('late eight-player five crowns shows five rounds beside Best Avg Worst',async({page},testInfo)=>{
-  test.skip(true,'Obsolete View Pace leftover. The pace panel is retired.');
+  test.skip(true,'Obsolete View pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name!=='laptop-chromium','Check the late eight-player pace layout once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-late-8&surface=scorecard',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
@@ -462,7 +462,7 @@ test('late eight-player five crowns shows five rounds beside Best Avg Worst',asy
   await expect(page.locator('#scorecard-head [data-sc-round]').last()).toHaveAttribute('data-sc-round-label','10');
   await expect(page.locator('.record-chase-row')).toHaveCount(8);
   await expect(page.locator('.record-chase-row').first().locator('.record-chase-score')).toHaveCount(3);
-  await expect(page.locator('#round-intel')).toHaveText(/Hand of 13|Ks Wild|R11/);
+  await expect(page.locator('#round-intel')).toHaveText(/Hand of 13|Ks wild|R11/);
 });
 
 test('late five-crowns totals stay centered and names stay whole',async({page})=>{
@@ -666,7 +666,7 @@ test('Actions dropdown opens a visible list below the button',async({page})=>{
 
   const undo=page.locator('#actions-undo');
   await expect(undo).toBeVisible();
-  await expect(undo).toContainText('Undo Last Round');
+  await expect(undo).toContainText('Undo last round');
 
   const geometry=await page.evaluate(()=>{
     const btn=document.getElementById('actions-btn');
@@ -691,8 +691,8 @@ test('Actions dropdown opens a visible list below the button',async({page})=>{
   expect(geometry.menuHidden,'Actions menu should drop open').toBe(false);
   expect(geometry.menuHeight,'Actions menu should have a real list height').toBeGreaterThan(200);
   expect(geometry.menuBelowButton,'Actions menu should appear under the button').toBe(true);
-  expect(geometry.itemVisible,'Undo Last Round should occupy a clickable box').toBe(true);
-  expect(geometry.hitIsItem,'Undo Last Round should not be clipped by the match banner').toBe(true);
+  expect(geometry.itemVisible,'Undo last round should occupy a clickable box').toBe(true);
+  expect(geometry.hitIsItem,'Undo last round should not be clipped by the match banner').toBe(true);
   expect(geometry.bannerAllowsOverflow,'open Actions menu must escape banner overflow clipping').toBe(true);
 
   await page.locator('#scorecard-capture').click({position:{x:24,y:24}});
@@ -818,7 +818,7 @@ test('score-entry shows progress and live entered states',async({page})=>{
   await expect(page.locator('.score-entry-row.is-empty')).toHaveCount(7);
   await expect(page.locator('.score-entry-row.is-complete .score-entry-row-status')).toHaveText('✓');
   await expect(page.locator('.score-entry-row.is-complete')).toHaveAttribute('aria-label',/Confirmed|Entered/i);
-  await expect(page.getByRole('button',{name:'Review Scores',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Review scores',exact:true})).toBeVisible();
 });
 
 test('score-entry acknowledgement handles explicit zero and blank Next',async({page})=>{
@@ -902,7 +902,7 @@ test('Wizard rejects bids outside the available trick range',async({page})=>{
     });
     updateScoreEntryProgress();
   });
-  await page.getByRole('button',{name:'Lock Bids',exact:true}).click();
+  await page.getByRole('button',{name:'Lock bids',exact:true}).click();
   await expect(page.locator('#score-entry-error')).toContainText(/Wizard bids must be from 0 to/);
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#round-intel')).toContainText('Bidding');
@@ -1031,7 +1031,7 @@ test('undo last Five Crowns hand keeps Comeback chips on stranded players',async
 
   await page.getByRole('button',{name:/Actions/}).click();
   page.once('dialog',dialog=>dialog.accept());
-  await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
+  await page.getByRole('button',{name:'Undo last round',exact:true}).click();
 
   await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');

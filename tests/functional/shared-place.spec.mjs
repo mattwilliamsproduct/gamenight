@@ -44,10 +44,10 @@ test('tied Wizard places are shared on the live card and profiles', async ({page
 
   await page.evaluate(()=>showProfiles());
   await page.locator('.profile-passport-name',{hasText:'Megan'}).click();
-  await expect(page.locator('.profile-stat-tile',{hasText:'Avg Rank'}).locator('strong')).toHaveText('-');
+  await expect(page.locator('.profile-stat-tile',{hasText:'Avg rank'}).locator('strong')).toHaveText('-');
   await page.evaluate(()=>closeProfileDetail());
   await page.locator('.profile-passport-name',{hasText:'Matt'}).click();
-  await expect(page.locator('.profile-stat-tile',{hasText:'Avg Rank'}).locator('strong')).toHaveText('-');
+  await expect(page.locator('.profile-stat-tile',{hasText:'Avg rank'}).locator('strong')).toHaveText('-');
 });
 
 test('scorecard places read as visible ordinals on lowest-wins, highest-wins, and ties', async ({page}) => {

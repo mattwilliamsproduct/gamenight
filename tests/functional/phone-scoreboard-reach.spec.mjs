@@ -103,7 +103,7 @@ test('phone home nav says Player Passports and Settings', async ({page}) => {
   });
 });
 
-test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async ({page}) => {
+test('phone scoreboard keeps Home, Actions, and Enter scores on one row', async ({page}) => {
   for (const size of [{width: 390, height: 844}, {width: 390, height: 700}, {width: 375, height: 667}]) {
     await page.setViewportSize(size);
     await openDemoBoard(page);
@@ -113,7 +113,7 @@ test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async 
     expect(state.controls[0].text, 'phone back control').toBe('Home');
     expect(state.controls[0].text, 'phone back control still says Table').not.toMatch(/Table/);
     expect(state.controls[1].text).toMatch(/^Actions/);
-    expect(state.controls[2].text).toBe('Enter Scores');
+    expect(state.controls[2].text).toBe('Enter scores');
     state.controls.forEach((control) => {
       expect(control.height, control.text).toBeGreaterThanOrEqual(44);
       expect(control.scrollWidth, `${control.text} truncated`).toBeLessThanOrEqual(control.clientWidth + 2);
@@ -168,12 +168,12 @@ test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async 
   }
 });
 
-test('laptop and iPad scoreboard say Home, Actions, then Enter Scores', async ({page}) => {
+test('laptop and iPad scoreboard say Home, Actions, then Enter scores', async ({page}) => {
   for (const size of [{width: 768, height: 1024}, {width: 1024, height: 768}, {width: 1440, height: 900}]) {
     await page.setViewportSize(size);
     await openDemoBoard(page);
     await expect(page.locator('#slice2-table-btn')).toHaveText('Home');
-    await expect(page.locator('#slice2-enter-btn')).toHaveText('Enter Scores');
+    await expect(page.locator('#slice2-enter-btn')).toHaveText('Enter scores');
     await expect(page.locator('#slice2-board-line')).toContainText(/Round \d+ of \d+/);
     await expect(page.locator('#actions-menu .match-end-btn')).toHaveCount(1);
     await expect(page.locator('#top-nav')).toBeHidden();

@@ -209,7 +209,7 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
     rounds:[],
     totals:{Alice:0, Bob:0},
     winners:[],
-    auditLog:[{ts:1, action:'Match Started', detail:'Wizard'}],
+    auditLog:[{ts:1, action:'Match started', detail:'Wizard'}],
     hailMaryUsed:[],
     retired:[],
     completed:false
@@ -379,7 +379,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
     winners:['Cat'],
     rounds:[{round:1, scores:{Matt:15, Cat:8}}],
     totals:{Matt:15, Cat:8},
-    auditLog:[{ts:1, action:'Match Started', detail:'Five Crowns'}],
+    auditLog:[{ts:1, action:'Match started', detail:'Five Crowns'}],
     hailMaryUsed:[],
     retired:[],
     currentScoreDrafts:{}
@@ -393,7 +393,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   await page.keyboard.press('Escape');
   await expect(cell).toHaveValue('15');
   let audit=await page.evaluate(()=>currentGame.auditLog.map(entry=>entry.action));
-  expect(audit).toEqual(['Match Started']);
+  expect(audit).toEqual(['Match started']);
 
   await cell.click();
   await page.locator('#numpad-cancel').click();
@@ -403,7 +403,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
 
   const beforeNoop=await persisted(page);
   await cell.click();
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
+  await page.getByRole('button',{name:'Close keypad', exact:true}).click();
   await expect.poll(async ()=>page.evaluate(()=>currentGame.auditLog.length)).toBe(1);
   const afterNoop=await persisted(page);
   expect(afterNoop.game).toBe(beforeNoop.game);
@@ -412,7 +412,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   await cell.click();
   await (await padKey(page,'-')).click();
   await expect(cell).toHaveValue('-15');
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
+  await page.getByRole('button',{name:'Close keypad', exact:true}).click();
   await expect(page.locator('#numpad-error')).toBeVisible();
   await expect(page.locator('#numpad-error')).toContainText('0 or higher');
   await expect(page.locator('#numpad-error')).toContainText('Matt');
@@ -431,7 +431,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   await (await padKey(page,'3')).click();
   await expect(cell).toHaveValue('3');
   await page.locator('#scorecard-capture').screenshot({path:`${ARTIFACTS}/slice1-score-edit-15-to-3-typing.png`}).catch(()=>{});
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
+  await page.getByRole('button',{name:'Close keypad', exact:true}).click();
   await expect(page.locator('#custom-numpad')).toBeHidden();
   await expect.poll(async ()=>page.evaluate(()=>currentGame.auditLog.at(-1)?.detail)).toBe('Matt: 15 -> 3');
   const committed=await page.evaluate(()=>{
@@ -454,7 +454,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   expect(committed.winners).toEqual(['Matt']);
   expect(committed.completed).toBe(true);
   expect(committed.round).toBe(2);
-  expect(committed.actions).toEqual(['Match Started','R1 Score Edited']);
+  expect(committed.actions).toEqual(['Match started','R1 Score Edited']);
   expect(committed.savedScore).toBe(3);
   expect(committed.savedWinners).toEqual(['Matt']);
   expect(committed.savedTotal).toBe(3);
@@ -463,7 +463,7 @@ test('P0-04 a past Five Crowns cell commits once, and cancel or a bad score writ
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#scorecard-capture').screenshot({path:`${ARTIFACTS}/slice1-score-edit-15-to-3.png`});
   await page.locator('#actions-btn').click();
-  await page.getByRole('button',{name:'Audit Log'}).click();
+  await page.getByRole('button',{name:'Audit log'}).click();
   await expect(page.locator('#audit-modal')).toBeVisible();
   await expect(page.locator('#audit-list')).toContainText('R1 Score Edited');
   await expect(page.locator('#audit-list')).toContainText('Matt: 15 -> 3');
@@ -484,7 +484,7 @@ test('P0-06 a Wizard round correction rejects a bad table, then saves the balanc
     currentBids:{},
     rounds:[{round:1, bids:{Alice:1, Bob:1}, actuals:{Alice:0, Bob:1}, scores:{Alice:-10, Bob:30}}],
     totals:{Alice:-10, Bob:30},
-    auditLog:[{ts:1, action:'Match Started', detail:'Wizard'}],
+    auditLog:[{ts:1, action:'Match started', detail:'Wizard'}],
     hailMaryUsed:[],
     retired:[]
   };
@@ -650,7 +650,7 @@ test('P0-06 a Beat the Heat correction under 66 reopens the saved match', async 
     winners:['Alice'],
     rounds:[{round:1, scores:{Alice:10, Bob:70}}],
     totals:{Alice:10, Bob:70},
-    auditLog:[{ts:1, action:'Match Started', detail:'Beat the Heat'}],
+    auditLog:[{ts:1, action:'Match started', detail:'Beat the Heat'}],
     hailMaryUsed:[],
     retired:[]
   };
@@ -659,7 +659,7 @@ test('P0-06 a Beat the Heat correction under 66 reopens the saved match', async 
   await (await padKey(page,'2')).click();
   await (await padKey(page,'0')).click();
   await expect(page.locator('#score-past-0-Bob')).toHaveValue('20');
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
+  await page.getByRole('button',{name:'Close keypad', exact:true}).click();
   await expect.poll(async ()=>page.evaluate(()=>currentGame.completed)).toBe(false);
   const saved=await page.evaluate(()=>{
     const row=history.find(match=>match.id===currentGame.id);
@@ -1229,7 +1229,7 @@ test('a zero-point spin stays assisted until undo, then reload clears it', async
   expect(spun.used).toEqual(['Matt']);
   expect(spun.total).toBe(spun.before);
   await page.evaluate(()=>undoLastRound());
-  expect(dialogs.some(dialog=>dialog.message.includes('Undo Round'))).toBe(true);
+  expect(dialogs.some(dialog=>dialog.message.includes('Undo round'))).toBe(true);
   const cleared=await page.evaluate(()=>({
     assisted:BPGScorebook.isAssistedMatch(currentGame),
     flag:currentGame.assistedMatch===true,
@@ -1308,7 +1308,7 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   await page.locator('#score-past-0-Cara').click();
   await (await padKey(page,'backspace')).click();
   await expect(page.locator('#score-past-0-Cara')).toHaveValue('');
-  await page.getByRole('button',{name:'Close Keypad', exact:true}).click();
+  await page.getByRole('button',{name:'Close keypad', exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>currentGame.rounds[0].scores.Cara)).toBe(0);
   const afterEdit=await page.evaluate(()=>({
     scores:currentGame.rounds[0].scores,
@@ -1538,7 +1538,7 @@ test('boot backfills a legacy match that has no id and no gameId', async ({page}
   expect(second.cloud).toBe(false);
 });
 
-test('an incomplete history match stays out of the book until Resume Match is confirmed', async ({page})=>{
+test('an incomplete history match stays out of the book until Resume match is confirmed', async ({page})=>{
   const live={
     id:111,
     gameId:111,

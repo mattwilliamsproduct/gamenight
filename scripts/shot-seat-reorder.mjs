@@ -124,7 +124,7 @@ for (const size of SIZES.filter((item) => item.width >= 800)) {
 }
 
 await writeFile(`${OUT}/metrics.json`, JSON.stringify(report, null, 2));
-await writeFile(`${OUT}/README.md`, `Tonight's Table seating before / after.
+await writeFile(`${OUT}/README.md`, `Tonight's table seating before / after.
 
 Before: rc1-records two-across + Edit Seating (port 4174)
 After: /?gnqa=1&gallery=0&scenario=home-party

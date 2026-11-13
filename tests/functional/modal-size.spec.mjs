@@ -165,7 +165,7 @@ async function openAddPlayerDemo(page) {
   }, {timeout: 3000}).toBeGreaterThanOrEqual(0.58);
 }
 
-test('Add Player uses the form modal size at 1440 and a near-full sheet on 375', async ({page}) => {
+test('Add player uses the form modal size at 1440 and a near-full sheet on 375', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await openAddPlayerDemo(page);
   const laptop = await measureAddPlayer(page);
@@ -202,7 +202,7 @@ test('Settings form at 1440 keeps Backup and Restore on screen', async ({page}) 
     const device = [...document.querySelectorAll('#settings-modal p')].find((el) => /saved in this browser on this device/i.test(el.textContent || ''));
     const deviceBox = device?.getBoundingClientRect();
     const foot = document.querySelector('#settings-modal .bp-modal-foot')?.getBoundingClientRect();
-    const textSize = [...document.querySelectorAll('#settings-modal .settings-appearance-row')].find((el) => /Text Size/i.test(el.textContent || ''))?.getBoundingClientRect();
+    const textSize = [...document.querySelectorAll('#settings-modal .settings-appearance-row')].find((el) => /Text size/i.test(el.textContent || ''))?.getBoundingClientRect();
     return {
       wpct: panel ? panel.width / innerWidth : 0,
       backupOn: !!(backup && backup.top >= 0 && backup.bottom <= innerHeight + 2),
@@ -221,10 +221,10 @@ test('Settings form at 1440 keeps Backup and Restore on screen', async ({page}) 
   expect(fit.closeInside, 'close X sits on the border').toBe(true);
   expect(fit.deviceVisible, 'This device copy clipped').toBe(true);
   expect(fit.deviceAboveFoot, 'This device copy hidden behind Backup').toBe(true);
-  expect(fit.textSizeOn, 'Text Size row clipped').toBe(true);
+  expect(fit.textSizeOn, 'Text size row clipped').toBe(true);
 });
 
-test('Settings on 375 keeps Restore and Text Size inside the panel', async ({page}) => {
+test('Settings on 375 keeps Restore and Text size inside the panel', async ({page}) => {
   await page.setViewportSize({width: 375, height: 667});
   await openScenario(page, {scenario: 'home-party', surface: 'home'});
   await page.evaluate(() => {
@@ -234,7 +234,7 @@ test('Settings on 375 keeps Restore and Text Size inside the panel', async ({pag
   const fit = await page.evaluate(() => {
     const panel = document.querySelector('#settings-modal .bp-modal-panel')?.getBoundingClientRect();
     const restore = [...document.querySelectorAll('#settings-modal .bp-modal-foot button')].find((el) => (el.textContent || '').trim() === 'Restore' && el.getClientRects().length)?.getBoundingClientRect();
-    const textSize = [...document.querySelectorAll('#settings-modal .settings-appearance-row')].find((el) => /Text Size/i.test(el.textContent || ''))?.getBoundingClientRect();
+    const textSize = [...document.querySelectorAll('#settings-modal .settings-appearance-row')].find((el) => /Text size/i.test(el.textContent || ''))?.getBoundingClientRect();
     const close = document.querySelector('#settings-modal .bp-modal-panel > button.absolute')?.getBoundingClientRect();
     const body = document.querySelector('#settings-modal .bp-modal-body');
     return {
@@ -247,7 +247,7 @@ test('Settings on 375 keeps Restore and Text Size inside the panel', async ({pag
   });
   expect(fit.restoreOn, `Restore clipped by panel ${JSON.stringify(fit)}`).toBe(true);
   expect(fit.restoreInView, 'Restore clipped by viewport').toBe(true);
-  expect(fit.textSizeOn, 'Text Size clipped').toBe(true);
+  expect(fit.textSizeOn, 'Text size clipped').toBe(true);
   expect(fit.closeInside, 'close X sits on the border').toBe(true);
 });
 

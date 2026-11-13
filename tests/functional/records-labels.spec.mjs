@@ -24,7 +24,7 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   const explore = page.locator('.s2-explore-col');
   await expect(explore).toContainText('Canasta');
   await expect(explore).toContainText('Rook');
-  await expect(explore).toContainText('Dead Last Derby');
+  await expect(explore).toContainText('Dead last derby');
   await expect(explore).toContainText('Biggest Wizard comeback');
   const comeback = explore.locator('.s2-book-row').filter({hasText: 'Biggest Wizard comeback'});
   await expect(comeback).toContainText('100');

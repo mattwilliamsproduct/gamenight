@@ -137,12 +137,12 @@ test('Comeback Extra uses the production labels when a night stored an extra', (
       biggestComebackExtra: {player: 'Bea', value: 20, label: '+20 extra', date: '11/1/2026'}
     }
   });
-  assert.match(html, /Most Comeback Extras In One Game/);
+  assert.match(html, /Most comeback extras in one game/);
   assert.match(html, /Biggest Comeback Extra/);
   assert.match(html, /Ada/);
   assert.match(html, /Bea/);
   const empty = paintHtml(night, 'explore');
-  assert.doesNotMatch(empty, /Most Comeback Extras In One Game/);
+  assert.doesNotMatch(empty, /Most comeback extras in one game/);
   assert.doesNotMatch(empty, /Biggest Comeback Extra/);
 });
 
@@ -395,7 +395,7 @@ test('818 Brick is retired as a primary Shame label', () => {
   assert.equal(brick.subtitle, '');
   const crash = Records.SHAME_CATALOG.find((row) => row.id === 'fc-worst-round');
   assert.equal(crash.name, 'Highest single-round score');
-  assert.equal(crash.subtitle, 'Crash and Burn');
+  assert.equal(crash.subtitle, 'Crash and burn');
 });
 
 test('Explore copy hides catch-alls and moves positive records out of Shame', () => {
@@ -888,7 +888,7 @@ test('Hall of Fame names a three-way tie at laptop width', () => {
   assert.doesNotMatch(html, /\+ 1 more/);
 });
 
-test('Player Career Cards are on the records overview and say Canasta', () => {
+test('Player career cards are on the records overview and say Canasta', () => {
   const html = paintHtml([{
     id: 2,
     game: 'Hand and Foot',
@@ -911,7 +911,7 @@ test('Player Career Cards are on the records overview and say Canasta', () => {
       bests: [{name: 'Hand and Foot', best: {value: 10}, worst: {value: 4}}]
     }]
   });
-  assert.match(html, /Player Career Cards/);
+  assert.match(html, /Player career cards/);
   assert.match(html, /Most played Canasta/);
   assert.doesNotMatch(html, /Most played Hand and Foot/);
   assert.match(html, /Best type Canasta/);

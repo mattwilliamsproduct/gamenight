@@ -329,7 +329,7 @@ test('merging Hand and Foot history from a different night adds the points once'
   assert.deepEqual(night.originalRoster, ['Bo']);
 });
 
-test('Add Player suggestions spread profile names and drop comma ghosts', () => {
+test('Add player suggestions spread profile names and drop comma ghosts', () => {
   const allPlayers = ['Megan', 'Matt', 'Mike', 'Michelle'];
   const profiles = {
     Megan: {},

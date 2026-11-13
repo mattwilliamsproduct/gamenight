@@ -62,11 +62,11 @@ test('390 scorecard names share one column size', async ({page})=>{
   expect(fit.min,'shared name size stays readable').toBeGreaterThanOrEqual(12);
 });
 
-test('mid-game Add Player typing m only suggests Michelle', async ({page}) => {
+test('mid-game Add player typing m only suggests Michelle', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 650});
   await openScenario(page, {scenario: 'five-crowns-comeback', surface: 'scorecard'});
   await page.locator('#actions-btn').click();
-  await page.getByRole('button', {name: /Add Player Mid-Game/}).click();
+  await page.getByRole('button', {name: /Add player mid-game/}).click();
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
   await page.locator('#midgame-add-player-input').fill('m');
   const names = await page.locator('#midgame-player-suggestions .player-suggest-option .player-name-label').allTextContents();

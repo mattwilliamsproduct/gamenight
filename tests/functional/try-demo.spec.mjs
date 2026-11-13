@@ -191,7 +191,7 @@ async function correctPastDemoScore(page, player, nextScore) {
   await back.click();
   await back.click();
   await pad.locator(`button[onclick="numpadPress('${nextScore}')"]`).click();
-  await page.getByRole('button', {name: 'Close Keypad', exact: true}).click();
+  await page.getByRole('button', {name: 'Close keypad', exact: true}).click();
   await expect(pad).toBeHidden({timeout: 8000});
 }
 

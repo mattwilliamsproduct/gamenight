@@ -99,7 +99,7 @@ try {
     await openScenario(page, 'home-live-8');
     await shot(page, `home-live-8-${width}`);
     const homeText = await page.locator('#slice2-home').innerText();
-    record(`home enter scores ${width}`, /Enter Scores/.test(homeText), homeText.slice(0, 180));
+    record(`home enter scores ${width}`, /Enter scores/.test(homeText), homeText.slice(0, 180));
     await openScenario(page, 'home-party');
     await shot(page, `home-table-6-${width}`);
     await page.evaluate(() => {

@@ -10,8 +10,8 @@ test('scoreboard header, tiles, and Life Preserver cells stay on the porch type'
   const css = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
   const html = await readFile(join(root, 'public/index.html'), 'utf8');
 
-  assert.match(js, /return 'Enter Scores'/);
-  assert.doesNotMatch(js, /Enter Round \$\{round\} Scores/);
+  assert.match(js, /return 'Enter scores'/);
+  assert.doesNotMatch(js, /Enter round \$\{round\} Scores/);
   assert.match(js, /s2-board-mark/);
   assert.match(js, /updateNavButton\(\)/);
   assert.match(html, /function goHome\(\)\{[^}]*updateNavButton\(\)/);
