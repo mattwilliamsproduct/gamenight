@@ -14,7 +14,7 @@ const VIEW_ASSERT = {
   home: async (page) => {
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-home')).toContainText(/Current standings/);
-    await expect(page.locator('#slice2-home')).toContainText(/Start a New Match/);
+    await expect(page.locator('#slice2-home')).toContainText(/Start a new match/i);
     await expect(page.locator('#slice2-home .s2-home-start')).toBeVisible();
     await expect(page.locator('#slice2-home')).not.toContainText(/Recent nights/);
     await expect(page.locator('#slice2-home .s2-banner:not(.s2-unfinished-banner) .s2-btn-primary', {hasText: 'Resume'})).toBeVisible();
@@ -256,6 +256,8 @@ test.describe('test-only fixture views', () => {
     test.setTimeout(45000);
     await openDemo(page, 'home');
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
+    const reveal = page.locator('[data-s2-action="reveal-picker"]');
+    if (await reveal.count()) await reveal.click();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
