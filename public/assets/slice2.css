@@ -4629,6 +4629,10 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
   justify-content: center !important;
   align-items: stretch;
 }
+/* Canasta's two-team card stays short, and it sits under the header like every other board. */
+html.slice2-tv body.active-match-view:has(#game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows) .landscape-only {
+  justify-content: flex-start !important;
+}
 
 /* Phone scoreboard: visual-viewport shell, scrolling seats, one header row.
    Desktop and iPad (761px and up) keep the long header. */
@@ -5470,7 +5474,7 @@ html.slice2-tv .s2-standing .wheel-badge {
   margin-left: auto !important;
   flex: 0 0 auto !important;
 }
-/* A two-team Canasta card ends at the last row. The phone shell still fills the screen. */
+/* A two-team Canasta card ends at the last row and stays at the top. The phone shell still fills the screen. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows,
   html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,

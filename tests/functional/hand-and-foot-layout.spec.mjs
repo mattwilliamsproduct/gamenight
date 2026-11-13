@@ -337,15 +337,26 @@ test('Canasta team names stay on one line and the card hugs two rows', async ({p
       }).length;
       const card = document.getElementById('scorecard-capture').getBoundingClientRect();
       const last = document.querySelector('#scorecard-capture tbody tr:last-child').getBoundingClientRect();
+      const bar = document.getElementById('slice2-board-bar').getBoundingClientRect();
+      const land = document.querySelector('#game-screen .landscape-only').getBoundingClientRect();
       return {
         split,
         gap: Math.round(card.bottom - last.bottom),
-        hugged: document.getElementById('scorecard-capture').classList.contains('scorecard-hug-rows')
+        above: Math.round(card.top - bar.bottom),
+        fromLand: Math.round(card.top - land.top),
+        cardH: Math.round(card.height),
+        hugged: document.getElementById('scorecard-capture').classList.contains('scorecard-hug-rows'),
+        justify: getComputedStyle(document.querySelector('#game-screen .landscape-only')).justifyContent
       };
     });
     expect(fit.hugged, `${size.width} card is not hugged ${JSON.stringify(fit)}`).toBe(true);
     expect(fit.split, `${size.width} names wrap ${JSON.stringify(fit)}`).toBe(0);
     expect(fit.gap, `${size.width} empty card ${JSON.stringify(fit)}`).toBeLessThan(72);
+    expect(fit.justify, `${size.width} card floats ${JSON.stringify(fit)}`).toBe('flex-start');
+    expect(fit.fromLand, `${size.width} card is not at the top ${JSON.stringify(fit)}`).toBeLessThan(12);
+    expect(fit.above, `${size.width} cream above the card ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(0);
+    expect(fit.above, `${size.width} cream above the card ${JSON.stringify(fit)}`).toBeLessThan(24);
+    expect(fit.cardH, `${size.width} card stretched ${JSON.stringify(fit)}`).toBeLessThan(280);
   }
 
   await page.setViewportSize({width: 390, height: 844});
@@ -376,6 +387,26 @@ test('Canasta team names stay on one line and the card hugs two rows', async ({p
     expect(box.h, JSON.stringify(box)).toBeLessThanOrEqual(48);
   });
   expect(laptop.names).toEqual(expect.arrayContaining(['Megan &', 'Matt']));
+});
+
+test('Four-player and eight-player boards stay under the header', async ({page}) => {
+  for (const scenario of ['five-crowns-4', 'five-crowns-late-8']) {
+    for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
+      await page.setViewportSize(size);
+      await openScenario(page, {scenario, surface: 'scorecard'});
+      const fit = await page.evaluate(() => {
+        const card = document.getElementById('scorecard-capture').getBoundingClientRect();
+        const bar = document.getElementById('slice2-board-bar').getBoundingClientRect();
+        return {
+          above: Math.round(card.top - bar.bottom),
+          cardH: Math.round(card.height)
+        };
+      });
+      expect(fit.above, `${scenario} ${size.width} moved ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(0);
+      expect(fit.above, `${scenario} ${size.width} moved ${JSON.stringify(fit)}`).toBeLessThan(20);
+      expect(fit.cardH, `${scenario} ${size.width} shrunk ${JSON.stringify(fit)}`).toBeGreaterThan(500);
+    }
+  }
 });
 
 test('Canasta rules open from Game Instructions and in-game Actions', async ({page}) => {
