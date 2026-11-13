@@ -585,6 +585,7 @@
           </div>
           <div class="s2-standings">${standingRows(live)}</div>
           <div class="s2-standings-foot">
+            <button type="button" class="s2-btn s2-btn-quiet s2-standings-more" data-s2-action="standings-more" hidden></button>
             <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${typeof isMatchOver === 'function' && isMatchOver(live) ? ' disabled' : ''}>Enter scores</button>
           </div>
         </section>` : '';
@@ -604,6 +605,41 @@
     root.innerHTML = `${banner}<div class="s2-home-grid">${left}${startBlock}</div>${ask}`;
     restoreSeatGrab(root);
     parkSaveIndicator();
+    wireStandingsMore(root);
+  }
+
+  // When the standings list is taller than its card, say so: fade the last visible
+  // row and show "N more below" beside Enter scores. Tapping it scrolls the list.
+  function syncStandingsMore(list) {
+    const panel = list && list.closest('.s2-home-standings');
+    const cue = panel && panel.querySelector('.s2-standings-more');
+    if (!cue) return;
+    const box = list.getBoundingClientRect();
+    const rows = [...list.querySelectorAll('.s2-standing')];
+    const below = rows.filter((row) => row.getBoundingClientRect().bottom > box.bottom + 2).length;
+    const above = rows.filter((row) => row.getBoundingClientRect().top < box.top - 2).length;
+    const scrolls = list.scrollHeight > list.clientHeight + 1;
+    panel.classList.toggle('s2-standings-has-more', scrolls && below > 0);
+    if (scrolls && below > 0) {
+      cue.textContent = `${below} more below ↓`;
+      cue.dataset.dir = 'down';
+      cue.hidden = false;
+    } else if (scrolls && above > 0) {
+      cue.textContent = 'Back to top ↑';
+      cue.dataset.dir = 'up';
+      cue.hidden = false;
+    } else {
+      cue.hidden = true;
+      cue.textContent = '';
+    }
+  }
+
+  function wireStandingsMore(root) {
+    const list = root && root.querySelector('.s2-home-standings .s2-standings');
+    if (!list) return;
+    list.addEventListener('scroll', () => syncStandingsMore(list), {passive: true});
+    syncStandingsMore(list);
+    requestAnimationFrame(() => syncStandingsMore(list));
   }
 
   function moveSeatList(list, from, to) {
@@ -1332,6 +1368,9 @@
       else if (typeof openLifePreserverRules === 'function') openLifePreserverRules();
     } else if (action === 'history') {
       openAuditLog();
+    } else if (action === 'standings-more') {
+      const list = target.closest('.s2-home-standings')?.querySelector('.s2-standings');
+      if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
     } else if (action === 'enter-round') {
       enterRound();
     } else if (action === 'save-end') {
@@ -1487,6 +1526,7 @@
     }
     window.addEventListener('resize', () => {
       syncHomeChrome();
+      syncStandingsMore(document.querySelector('#slice2-home .s2-home-standings .s2-standings'));
       syncPhoneBoardViewport();
       if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
