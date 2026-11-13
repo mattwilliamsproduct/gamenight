@@ -5,16 +5,16 @@ async function openVisiblePreserver(page){
   await openScenario(page,{scenario:'wizard-life-preserver-visible'});
 }
 
-test('a Life Preserver shows on the hand it followed, or beside Total when that hand is hidden', async ({page})=>{
+test('a Back Porch Wheel shows on the hand it followed, or beside Total when that hand is hidden', async ({page})=>{
   await openVisiblePreserver(page);
 
   const mikeRow=page.locator('#scorecard-body tr',{hasText:'Mike'});
   const lindaRow=page.locator('#scorecard-body tr',{hasText:'Linda'});
   await expect(mikeRow.locator('.score-cell-life-preserver')).toHaveCount(1);
-  await expect(mikeRow.locator('[aria-label="Life Preserver +40"]')).toBeVisible();
+  await expect(mikeRow.locator('[aria-label="Back Porch Wheel +40"]')).toBeVisible();
   await expect(mikeRow.locator('.scorecard-round-td').last()).toContainText('0');
   await expect(lindaRow.locator('.score-cell-life-preserver')).toHaveCount(1);
-  await expect(lindaRow.locator('[aria-label="Life Preserver +15"]')).toBeVisible();
+  await expect(lindaRow.locator('[aria-label="Back Porch Wheel +15"]')).toBeVisible();
   await expect(lindaRow.locator('.score-total-life-preserver')).toHaveCount(0);
 
   const path=await page.evaluate(()=>{
@@ -43,12 +43,12 @@ test('a Life Preserver shows on the hand it followed, or beside Total when that 
   await page.locator('#hall-of-fame-view [data-s2-action="night-scorecard"]').first().click();
   const historyLinda=page.locator('#modal-scorecard-body tr',{hasText:'Linda'});
   const historyMike=page.locator('#modal-scorecard-body tr',{hasText:'Mike'});
-  await expect(historyLinda.locator('[aria-label="Life Preserver +15"]')).toBeVisible();
+  await expect(historyLinda.locator('[aria-label="Back Porch Wheel +15"]')).toBeVisible();
   await expect(historyLinda.locator('.score-total-life-preserver')).toHaveCount(0);
-  await expect(historyMike.locator('[aria-label="Life Preserver +40"]')).toBeVisible();
+  await expect(historyMike.locator('[aria-label="Back Porch Wheel +40"]')).toBeVisible();
 });
 
-test('a phone hides trimmed hands and keeps each Life Preserver beside Total', async ({page})=>{
+test('a phone hides trimmed hands and keeps each Back Porch Wheel beside Total', async ({page})=>{
   await page.setViewportSize({width:390,height:844});
   await openVisiblePreserver(page);
   await expect.poll(async()=>page.locator('#scorecard-body td.scorecard-round--hidden').count()).toBeGreaterThan(0);
@@ -75,23 +75,23 @@ test('a phone hides trimmed hands and keeps each Life Preserver beside Total', a
   expect(mike?.hiddenHands).toBeGreaterThan(0);
   expect(linda?.hiddenHands).toBeGreaterThan(0);
   // Linda's LP followed a trimmed early hand → badge moves beside Total.
-  expect(linda?.totalLabel).toBe('Life Preserver +15');
+  expect(linda?.totalLabel).toBe('Back Porch Wheel +15');
   // Mike's LP followed the latest visible hand (R7) → stays on that cell, not Total.
   expect(mike?.totalLabel).toBe('');
-  const mikeCell=await page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('[aria-label="Life Preserver +40"]');
+  const mikeCell=await page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('[aria-label="Back Porch Wheel +40"]');
   await expect(mikeCell).toBeVisible();
 });
 
-test('undo clears the Life Preserver that followed the removed hand', async ({page})=>{
+test('undo clears the Back Porch Wheel that followed the removed hand', async ({page})=>{
   await openVisiblePreserver(page);
-  await expect(page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('[aria-label="Life Preserver +40"]')).toBeVisible();
+  await expect(page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('[aria-label="Back Porch Wheel +40"]')).toBeVisible();
 
   await page.getByRole('button',{name:/Actions/}).click();
   page.once('dialog',dialog=>dialog.accept());
   await page.getByRole('button',{name:'Undo Last Round',exact:true}).click();
 
   await expect(page.locator('#scorecard-body tr',{hasText:'Mike'}).locator('.score-cell-life-preserver')).toHaveCount(0);
-  await expect(page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('[aria-label="Life Preserver +15"]')).toBeVisible();
+  await expect(page.locator('#scorecard-body tr',{hasText:'Linda'}).locator('[aria-label="Back Porch Wheel +15"]')).toBeVisible();
   const after=await page.evaluate(()=>({
     used:[...(currentGame.hailMaryUsed||[])],
     scoring:currentGame.rounds.filter(round=>!round.hailMaryBonus).length,
@@ -102,7 +102,7 @@ test('undo clears the Life Preserver that followed the removed hand', async ({pa
   expect(after.bonus).toBe(1);
 });
 
-test('Share Receipt keeps the Life Preserver mark from the live card', async ({page})=>{
+test('Share Receipt keeps the Back Porch Wheel mark from the live card', async ({page})=>{
   await openVisiblePreserver(page);
   await page.locator('#actions-btn').click();
   await page.locator('#actions-save-end').click();

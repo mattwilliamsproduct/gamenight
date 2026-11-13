@@ -17,7 +17,7 @@ test('life preserver wheel uses dynamic point values and stores a bonus round', 
   await expect(page.locator('#wheel-commit-line')).toContainText('Largest setback:');
   await expect(page.locator('#wheel-game-line')).toContainText('lower scores win');
   await expect(page.locator('#wheel-player-meta')).not.toContainText('Spin range');
-  await expect(page.getByRole('button', {name: 'How Life Preserver works'})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'How Back Porch Wheel works'})).toBeVisible();
   await page.evaluate(() => showLifePreserverHelp());
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await expect(page.locator('#life-preserver-help')).toContainText('Who can spin');
@@ -327,7 +327,7 @@ test('iPad wheel keeps Spin and Help tappable and ignores backdrop taps', async 
   await page.locator('#wheel-modal > .absolute.inset-0').click({position: {x: 12, y: 12}});
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
 
-  await page.getByRole('button', {name: 'How Life Preserver works'}).click();
+  await page.getByRole('button', {name: 'How Back Porch Wheel works'}).click();
   await expect(page.locator('#life-preserver-help')).not.toHaveClass(/hidden/);
   await page.getByRole('button', {name: 'Back to the wheel'}).click();
   await expect(page.locator('#life-preserver-help')).toHaveClass(/hidden/);

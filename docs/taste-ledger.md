@@ -6,8 +6,11 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Canasta is 4 rounds. A legacy night with 4 saved rounds is complete. A game finished in the app is finished. A legacy night with fewer than 4 rounds, or with an ambiguous row, stays needs review. Matt, 7:13 PM ET, amendment 11.
+- The user-facing wheel name is Back Porch Wheel, from one constant.
+- Flip 7 finishes at 200. The decision is Nov 12, 7:10 PM ET.
 - Passport and Records special-round lines stay the plain sentences: Only player to score, Everyone made their bid, Everyone missed. The round modals stay WHAMMY!, NOLIE!, and CAMI WHAMMI!.
-- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. That rule is already counting. The summary shows how it differs from the old stored-field rule, and the original night is not rewritten. Canasta stays uncertain. Beat the Heat is complete only when a seated player reached 66. Flip 7 is a full game when a seated total reached 200 (Matt, 7:26 PM ET Oct 29).
+- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. That rule is already counting. The summary shows how it differs from the old stored-field rule, and the original night is not rewritten. Canasta is complete at 4 saved rounds. Fewer than 4, or an ambiguous row, stays needs review. Beat the Heat is complete only when a seated player reached 66. Flip 7 is a full game when a seated total reached 200 (Matt, Nov 12, 7:10 PM ET).
 - A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it. Passports sort reads Recent activity in full.
 - One Leave game choice: Save for later, End game now, or Keep playing. Save for later stays resumable and does not ask about wins. Count this result never puts a partial total into a full-game score record. Flip 7 Leave uses the seated 200 rule. A game that reached 200 does not ask. A game that ended under 200 says so.
 - Biggest single-game comeback comes from the round totals. Last at halfway, then won. It does not wait on Turbo.

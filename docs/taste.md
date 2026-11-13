@@ -10,8 +10,11 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- Canasta is 4 rounds. A legacy night with 4 saved rounds is complete. A game finished in the app is finished. A legacy night with fewer than 4 rounds, or with an ambiguous row, stays needs review. Matt, 7:13 PM ET, amendment 11.
+- The user-facing wheel name is Back Porch Wheel, from one constant.
+- Flip 7 finishes at 200. The decision is Nov 12, 7:10 PM ET.
 - Passport and Records special-round lines stay the plain sentences: Only player to score, Everyone made their bid, Everyone missed. The round modals stay WHAMMY!, NOLIE!, and CAMI WHAMMI!.
-- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. That rule is already counting. The summary shows how it differs from the old stored-field rule, and the original night is not rewritten. Canasta stays uncertain. Beat the Heat is complete only when a seated player reached 66. Flip 7 is a full game when a seated total reached 200 (Matt, 7:26 PM ET Oct 29).
+- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. That rule is already counting. The summary shows how it differs from the old stored-field rule, and the original night is not rewritten. Canasta is complete at 4 saved rounds. Fewer than 4, or an ambiguous row, stays needs review. Beat the Heat is complete only when a seated player reached 66. Flip 7 is a full game when a seated total reached 200 (Matt, Nov 12, 7:10 PM ET).
 - A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it. Passports sort reads Recent activity in full.
 - Tied totals share a place and the next total skips. Two 2nds, then 4th. The scoreboard uses the page width, and a short table does not stretch its rows to fill the screen.
 - Add Player Mid-Game is on. The start is the ceiling of the seated average, missed rounds say Did not play, and a departure does not change the Wizard length fixed at the start. Canasta and Rook keep their seats.
@@ -226,7 +229,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ## Copy voice
 
-- Prefer: porch-table English. People play. The app keeps score. UI says Life Preserver. The spin is not a hand.
+- Prefer: porch-table English. People play. The app keeps score. UI says Back Porch Wheel. The spin is not a hand.
 - Avoid: a second Hail Mary feature. That string is the save format, not a button.
 - Avoid: Flip 7 Vengeance on the shelf. The shelf says Flip 7.
 

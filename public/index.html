@@ -987,6 +987,30 @@
       line-height: 1.35;
     }
     .round-correction-actual { font-variant-numeric: tabular-nums; font-weight: 800; }
+    @media (max-width: 760px) {
+      .round-correction-head { display: none; }
+      .round-correction-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.35rem;
+      }
+      .round-correction-row .player-name-label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-width: 0;
+      }
+      .round-correction-delta,
+      .round-correction-running {
+        white-space: normal;
+        font-size: 1rem;
+      }
+      .round-correction-bid,
+      .round-correction-actual,
+      .round-correction-score {
+        justify-self: start;
+        min-width: 0;
+      }
+    }
     .round-correction-score.score-cell-hit,
     .round-correction-score.score-cell-miss {
       border-radius: 10px;
@@ -4497,9 +4521,21 @@ button.dealer-name-indicator .dealer-player-label {
       max-width: min(40rem, 92vw);
     }
     @media (max-width: 760px) {
-      body.active-match-view #toast-container {
-        top: calc(var(--bp-board-bottom, 108px) + 6px);
-        bottom: auto;
+      body.active-match-view #toast-container,
+      #game-screen:not(.hidden) ~ #toast-container,
+      body:has(#game-screen:not(.hidden)) #toast-container {
+        top: auto;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        left: 8px;
+        right: auto;
+        transform: none;
+        max-width: 42vw;
+      }
+      #toast-container.toast-parked-clear .toast {
+        max-width: 100%;
+        min-width: 0;
+        white-space: normal;
+        border-radius: 16px;
       }
     }
     .toast {
@@ -5028,9 +5064,23 @@ button.dealer-name-indicator .dealer-player-label {
       margin-top: 0.12rem;
       font-size: 0.62rem;
       font-weight: 800;
-      letter-spacing: 0.06em;
+      letter-spacing: 0;
       text-transform: uppercase;
       opacity: 0.78;
+      white-space: normal;
+      line-height: 1.05;
+      overflow-wrap: anywhere;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-round-th {
+      white-space: normal !important;
+      overflow: hidden;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-round-label,
+    #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-meld-hint {
+      display: block;
+      white-space: normal;
     }
     /* Canasta scorecard: Five Crowns density at every width. Two-line team names. No clipped cells. */
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table,
@@ -11598,6 +11648,8 @@ button.dealer-name-indicator .dealer-player-label {
     const c=document.getElementById('toast-container');
     if(!c) return;
     const clearPlace=()=>{
+      c.classList.remove('toast-parked-clear');
+      c.style.removeProperty('--toast-clear-width');
       c.style.left='';
       c.style.right='';
       c.style.transform='';
@@ -11607,21 +11659,32 @@ button.dealer-name-indicator .dealer-player-label {
       c.style.bottom='';
     };
     const pinRight=()=>{
+      c.classList.remove('toast-parked-clear');
+      c.style.removeProperty('--toast-clear-width');
       c.style.left='auto';
       c.style.right='8px';
       c.style.transform='none';
       c.style.width='max-content';
       c.style.maxWidth='min(18rem, 34vw)';
     };
-    if(window.innerWidth<=760&&document.body.classList.contains('active-match-view')){
-      const nodes=['slice2-board-bar','slice2-enter-btn','slice2-end-btn']
-        .map(id=>document.getElementById(id))
-        .filter(Boolean);
-      const floor=nodes.reduce((max, el)=>Math.max(max, el.getBoundingClientRect().bottom), 0);
-      c.style.top=Math.round(floor+8)+'px';
-      c.style.bottom='auto';
-      pinRight();
-      c.style.maxWidth='22vw';
+    const phoneCard=document.getElementById('scorecard-capture');
+    const phoneGame=document.getElementById('game-screen');
+    const phoneMatch=window.innerWidth<=760 && phoneCard && phoneGame && !phoneGame.classList.contains('hidden') && phoneCard.getBoundingClientRect().width>0;
+    if(phoneMatch){
+      const card=phoneCard;
+      const rounds=card?[...card.querySelectorAll('thead th.scorecard-round-th')].filter((el)=>getComputedStyle(el).display!=='none' && !el.classList.contains('scorecard-round--hidden')):[];
+      const guard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
+      const guardLeft=guard?guard.getBoundingClientRect().left:Math.round(window.innerWidth*0.52);
+      const room=Math.max(72, Math.round(guardLeft-16));
+      c.classList.add('toast-parked-clear');
+      c.style.setProperty('--toast-clear-width', `${room}px`);
+      c.style.top='auto';
+      c.style.bottom='max(12px, env(safe-area-inset-bottom))';
+      c.style.left='8px';
+      c.style.right='auto';
+      c.style.transform='none';
+      c.style.width=`${room}px`;
+      c.style.maxWidth=`${room}px`;
       return;
     }
     const over=document.getElementById('game-over-section');
@@ -13678,6 +13741,14 @@ button.dealer-name-indicator .dealer-player-label {
     return String(game).replace('Flip 7 Vengeance','Flip 7').replace(' Vengeance','');
   }
 
+  function passportCanastaLine(name){
+    const events=window.BPGHandFoot&&typeof BPGHandFoot.playerEventTotals==='function'
+      ? BPGHandFoot.playerEventTotals(history, name)
+      : null;
+    if(!events||!events.rounds) return '';
+    return `<div class="profile-canasta-events" data-canasta-events="passport">Got the 22 ${events.got22} · Went out ${events.wentOut} · Cards left ${events.cardsLeft}</div>`;
+  }
+
   function careerCardHtml(summary){
     const lines=Object.entries(summary?.gameStats||{}).filter(([,row])=>row&&row.best).slice(0,3).map(([game,row])=>{
       const worst=row.worst?` · worst ${row.worst.score}`:'';
@@ -13796,6 +13867,7 @@ button.dealer-name-indicator .dealer-player-label {
           : `<div class="profile-big-stat"><span>Most played</span><strong>${escapeHtml(fav)}</strong></div>
         <div class="profile-big-stat"><span>Best Game</span><strong>${escapeHtml(best)}</strong></div>`}
         ${careerCardHtml(s)}
+        ${passportCanastaLine(p)}
         <div class="profile-badge-row">${badges||renderProfileBadge('New passport')}</div>`;
       d.querySelector('.profile-avatar-quick-btn')?.addEventListener('click', event=>openAvatarPickerForProfile(p,event));
       c.appendChild(d);
@@ -13982,9 +14054,9 @@ button.dealer-name-indicator .dealer-player-label {
         ? BPGHandFoot.playerEventTotals(history, name)
         : null;
       const hfTiles=hfEvents&&hfEvents.rounds?`
-        <div class="profile-stat-tile"><span>Got the 22</span><strong>${hfEvents.got22}</strong></div>
-        <div class="profile-stat-tile"><span>Went out</span><strong>${hfEvents.wentOut}</strong></div>
-        <div class="profile-stat-tile"><span>Cards left</span><strong>${hfEvents.cardsLeft}</strong></div>`:'';
+        <div class="profile-stat-tile canasta-event-stats" data-canasta-events="passport-open"><span>Got the 22</span><strong>${hfEvents.got22}</strong></div>
+        <div class="profile-stat-tile canasta-event-stats" data-canasta-events="passport-open"><span>Went out</span><strong>${hfEvents.wentOut}</strong></div>
+        <div class="profile-stat-tile canasta-event-stats" data-canasta-events="passport-open"><span>Cards left</span><strong>${hfEvents.cardsLeft}</strong></div>`:'';
       boardwalk.innerHTML=`
         <div class="profile-stat-tile"><span>Matches</span><strong>${summary.games}</strong></div>
         <div class="profile-stat-tile"><span>Wins</span><strong>${summary.wins}</strong></div>
@@ -14394,7 +14466,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(result) result.classList.remove('hidden');
     document.getElementById('wheel-modal')?.classList.add('wheel-has-result');
     const mode=document.getElementById('wheel-mode-label');
-    if(mode) mode.textContent='Life Preserver Unlocked';
+    if(mode) mode.textContent=`${wheelCopy()?.name || 'Back Porch Wheel'} Unlocked`;
     document.getElementById('wheel-player-name')?.classList.add('hidden');
     if(detail.player&&!wheelPlayer) wheelPlayer=detail.player;
     const slices=(typeof getWheelSlices==='function'?getWheelSlices():[])||[];
@@ -17785,7 +17857,8 @@ ${isDealer
     const targetRound=Math.max(desiredRound, minRatioRound);
     const phoneHF=handFoot && window.innerWidth<=400;
     const colFloor=handFoot?(phoneHF?40:24):(targetRound?Math.ceil(targetRound*2.6+12):28);
-    const colMax=handFoot?(phoneHF?56:52):wide?Math.max(96,colFloor):desktop?56:tablet?64:72;
+    const canastaTablet=handFoot && window.innerWidth>=1024 && window.innerWidth<1280;
+    const colMax=handFoot?(phoneHF?56:(canastaTablet?96:52)):wide?Math.max(96,colFloor):desktop?56:tablet?64:72;
     // Never force colFloor above available/n — that blew Five Crowns 8p past the wrap.
     const rawCol=available/Math.max(1,visible.length+nowExtra);
     // Prefer colFloor when there is room. When the floor is wider than the wrap,
@@ -20206,12 +20279,7 @@ ${isDealer
 
     // Capture leader BEFORE this submission for change detection (excluding retired)
     const cfg=configs[currentGame.name];
-    const prevLeader = (() => {
-      const pp = getActivePlayers(currentGame).filter(p => currentGame.totals[p] !== undefined);
-      if(!pp.length) return null;
-      const s = pp.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a]);
-      return s[0];
-    })();
+    const prevLeader = currentLeaders(currentGame, getActivePlayers(currentGame));
 
     if(currentGame.name==='Wizard'){
       if(currentGame.wizardPhase==='bidding'){
@@ -20339,7 +20407,7 @@ ${isDealer
         return (scores[name]||0)===0;
       });
       if(allZero&&!skipConfirm&&!confirm('Every side scored 0? Submit?')){isSubmitting=false;return;}
-      const prevSide=columns.slice().sort((a,b)=>(currentGame.totals[b]||0)-(currentGame.totals[a]||0))[0]||null;
+      const prevSide=currentLeaders(currentGame, columns);
       const roundData={round:currentGame.currentRound,scores,handFootParts};
       currentGame.rounds.push(roundData);
       addAuditEntry(`R${roundData.round} Submitted`, columns.map(p=>`${p}: ${handFootColumnScore(currentGame, roundData, p)??''}`).join(', '));
@@ -20505,17 +20573,40 @@ ${isDealer
       modal.classList.remove('opacity-0');
     });
   }
+  function currentLeaders(game, players){
+    const cfg=game&&configs[game.name];
+    const pp=(players||[]).filter(p=>game&&game.totals&&game.totals[p]!==undefined);
+    if(!cfg||!pp.length) return [];
+    const ranked=pp.slice().sort((a,b)=>cfg.winLow?game.totals[a]-game.totals[b]:game.totals[b]-game.totals[a]);
+    const best=game.totals[ranked[0]];
+    return ranked.filter(name=>game.totals[name]===best);
+  }
+  function leadChangeCopy(names){
+    const list=(names||[]).filter(Boolean);
+    if(!list.length) return '';
+    const who=list.length===1
+      ? list[0]
+      : list.length===2
+        ? `${list[0]} and ${list[1]}`
+        : `${list.slice(0,-1).join(', ')}, and ${list[list.length-1]}`;
+    const team=/[&,]|\band\b/.test(list[0]||'');
+    const verb=list.length>1||team?'take':'takes';
+    return `👑 ${who} ${verb} the lead!`;
+  }
+  function sameLeaderSet(left, right){
+    if(left.length!==right.length) return false;
+    const seen=new Set(left);
+    return right.every(name=>seen.has(name));
+  }
   function checkLeaderChange(prevLeader){
-    if(!currentGame || !prevLeader) return;
+    const previous=Array.isArray(prevLeader)?prevLeader.filter(Boolean):(prevLeader?[prevLeader]:[]);
+    if(!currentGame || !previous.length) return;
     const cfg=configs[currentGame.name];
     const pool=isHandFootGame(currentGame)?getHandFootColumns(currentGame):getActivePlayers(currentGame);
-    const pp = pool.filter(p => currentGame.totals[p] !== undefined);
-    if(!pp.length) return;
-    const newLeader = pp.sort((a,b)=>cfg.winLow?currentGame.totals[a]-currentGame.totals[b]:currentGame.totals[b]-currentGame.totals[a])[0];
-    if(newLeader && newLeader !== prevLeader){
-      toast(`👑 ${newLeader} takes the lead!`, 'success');
-      soundLeader();
-    }
+    const leaders=currentLeaders(currentGame, pool.filter(p=>currentGame.totals[p]!==undefined));
+    if(!cfg||!leaders.length||sameLeaderSet(leaders, previous)) return;
+    toast(leadChangeCopy(leaders), 'success');
+    soundLeader();
   }
 
   // ── Undo last submitted round ──

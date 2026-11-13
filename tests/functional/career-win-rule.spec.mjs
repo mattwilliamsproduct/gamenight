@@ -19,15 +19,17 @@ test('Passports and Records show the same career wins and games', async ({page})
     });
     return {players: rows.players, counted: rows.counted, winSum: rows.winSum};
   });
-  // Matt 5:55 PM ET: only a full saved night counts. The demo book has six:
-  // 10/28 Five Crowns (11 rounds, Nora), 10/27 and 10/26 Wizard (15 rounds, Owen and June),
-  // 10/25 818 (15 rounds, Priya), 10/23 Beat the Heat (seated 70, Nora).
-  // 10/24 Flip 7 (Nora 210) counts under Matt 7:26 PM ET Oct 29, a seated total of 200+.
-  // 10/3 Hand and Foot is 4 rounds with no stored finish, so it stays uncertain and is not the seventh night.
-  expect(tally.counted).toBe(6);
-  expect(tally.winSum).toBe(6);
-  expect(tally.players.Nora).toEqual({name: 'Nora', wins: 3, games: 5});
-  expect(tally.players.Theo).toEqual({name: 'Theo', wins: 0, games: 5});
+  // Matt, 7:13 PM ET, amendment 11: Canasta is 4 rounds. The demo book's 10/3 Hand and Foot
+  // night has 4 saved rounds, so it counts. Nora and Owen both win that night.
+  // The other counted nights are 10/28 Five Crowns (Nora), 10/27 and 10/26 Wizard (Owen and June),
+  // 10/25 818 (Priya), 10/23 Beat the Heat (Nora), and 10/24 Flip 7 (Nora, seated 210).
+  // That is 7 nights and 8 wins. The named legacy book Ada 5/12, Ben 4/10, Cleo 5/11,
+  // Dev 3/11, Eli 1/8, Fay 2/3 is not in this repository.
+  expect(tally.counted).toBe(7);
+  expect(tally.winSum).toBe(8);
+  expect(tally.players.Nora).toEqual({name: 'Nora', wins: 4, games: 6});
+  expect(tally.players.Owen).toEqual({name: 'Owen', wins: 2, games: 6});
+  expect(tally.players.Theo).toEqual({name: 'Theo', wins: 0, games: 6});
 
   await page.evaluate(() => {
     if (typeof showProfiles === 'function') showProfiles();

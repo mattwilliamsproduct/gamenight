@@ -723,16 +723,55 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
     totals: {Ava: 400, Ben: 200},
     winners: ['Ava']
   });
-  assert.equal(Scorebook.legacyCompletion(canasta).status, 'uncertain');
-  assert.equal(Scorebook.legacyCompletion(canasta).fixed, null);
+  assert.equal(Scorebook.legacyCompletion(canasta).status, 'complete');
+  assert.equal(Scorebook.legacyCompletion(canasta).fixed, 4);
+  assert.equal(Scorebook.resolveOutcome(canasta), 'finished');
   const shortCanasta = night({
     game: 'Hand and Foot',
+    id: 'legacy-short-canasta',
+    date: '10/2/2026',
     outcome: 'finished',
+    maxRounds: 4,
     rounds: rounds(2, {Ava: 10, Ben: 5}),
     totals: {Ava: 20, Ben: 10}
   });
   assert.equal(Scorebook.legacyCompletion(shortCanasta).status, 'uncertain');
   assert.equal(Scorebook.resolveOutcome(shortCanasta), 'uncertain');
+  const ambiguousCanasta = night({
+    game: 'Hand and Foot',
+    id: 'legacy-ambiguous-canasta',
+    date: '10/1/2026',
+    rounds: [
+      {round: 1, scores: {Ava: 10, Ben: 5}},
+      {round: 2, scores: {Ava: 10, Ben: ''}},
+      {round: 3, scores: {Ava: 10, Ben: 5}},
+      {round: 4, scores: {Ava: 10, Ben: 5}}
+    ]
+  });
+  assert.equal(Scorebook.legacyCompletion(ambiguousCanasta).status, 'uncertain');
+  assert.equal(Scorebook.resolveOutcome(ambiguousCanasta), 'uncertain');
+  const liveFinished = {
+    name: 'Hand and Foot',
+    game: 'Hand and Foot',
+    completed: true,
+    maxRounds: 4,
+    rounds: rounds(4, {Ann: 20, Bo: 5}),
+    totals: {Ann: 80, Bo: 20},
+    winners: ['Ann']
+  };
+  assert.equal(Scorebook.resolveOutcome(liveFinished), 'finished');
+  assert.equal(Scorebook.countsForTallies(liveFinished), true);
+  assert.equal(Scorebook.legacyCompletion(liveFinished).status, 'complete');
+  const liveShort = {
+    name: 'Hand and Foot',
+    game: 'Hand and Foot',
+    completed: true,
+    maxRounds: 4,
+    rounds: rounds(2, {Ann: 20, Bo: 5}),
+    totals: {Ann: 40, Bo: 10}
+  };
+  assert.equal(Scorebook.leaveFinishState(liveShort), 'short');
+  assert.equal(Scorebook.resolveOutcome(liveShort), 'ended_early');
   const emptyCanasta = night({game: 'Hand and Foot', rounds: [], totals: {}});
   assert.equal(Scorebook.legacyCompletion(emptyCanasta).status, 'uncertain');
   const pausedCanasta = night({game: 'Hand and Foot', outcome: 'paused', rounds: rounds(4)});
@@ -741,14 +780,15 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
   delete heatLeft.maxRounds;
   delete heatLeft.endScore;
   assert.equal(Scorebook.legacyCompletion(heatLeft).status, 'uncertain');
-  const storedCanasta = Object.assign({}, canasta, {outcome: 'finished'});
-  assert.equal(Scorebook.resolveOutcome(storedCanasta), 'uncertain');
+  const storedCanasta = Object.assign({}, canasta, {outcome: 'finished', id: 'legacy-four-canasta', date: '10/3/2026'});
+  assert.equal(Scorebook.resolveOutcome(storedCanasta), 'finished');
   try {
     Scorebook.setLegacyReviewApplied(false);
     assert.equal(Scorebook.resolveOutcome(fullCrowns), 'uncertain');
-    assert.equal(Scorebook.resolveOutcome(storedCanasta), 'uncertain');
-    assert.equal(Scorebook.resolveOutcome(canasta), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(storedCanasta), 'finished');
+    assert.equal(Scorebook.resolveOutcome(canasta), 'finished');
     assert.equal(Scorebook.resolveOutcome(shortCanasta), 'uncertain');
+    assert.equal(Scorebook.resolveOutcome(liveFinished), 'finished');
   } finally {
     Scorebook.setLegacyReviewApplied(true);
     Scorebook.setHistoryReview({});
@@ -760,7 +800,7 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
   assert.equal(Scorebook.resolveOutcome(shortCrowns), 'ended_early');
   assert.match(Scorebook.endedEarlyLabel(shortCrowns), /Ended early, 1 of 11 rounds/);
   assert.equal(Scorebook.countsForScoreMagnitude(shortCrowns), false);
-  assert.equal(Scorebook.resolveOutcome(canasta), 'uncertain');
+  assert.equal(Scorebook.resolveOutcome(canasta), 'finished');
   assert.equal(Scorebook.resolveOutcome(night({completed: false, rounds: rounds(11)})), 'paused');
   assert.equal(Scorebook.resolveOutcome(night({outcome: 'ended_early', rounds: rounds(11)})), 'ended_early');
   Scorebook.setHistoryReview({x: {decision: 'counted', reviewedAt: '2026-11-12T00:00:00.000Z'}});

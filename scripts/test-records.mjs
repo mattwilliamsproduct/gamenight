@@ -23,7 +23,7 @@ const helpers = {
   scorebook: Scorebook
 };
 
-function paintHtml(history, pane = 'overview', extra = {}) {
+function paintHtml(history, pane = 'overview', extra = {}, options = {}) {
   const view = {classList: {contains: () => false}, className: '', dataset: {}, innerHTML: ''};
   const completed = (history || []).filter((match) => Scorebook.isCompletedHistoryMatch(match));
   Records.paint({
@@ -47,7 +47,7 @@ function paintHtml(history, pane = 'overview', extra = {}) {
     competitionPlaces: helpers.competitionPlaces,
     escapeHtml(value) { return String(value == null ? '' : value); },
     getAvatarImg() { return ''; },
-    compact: false
+    compact: !!options.compact
   });
   return view.innerHTML;
 }
@@ -624,8 +624,8 @@ test('demo career wins sum from completed nights, including ties and assisted', 
   assert.match(tally.rule, /One counting rule/);
   assert.match(tally.rule, /Every tied winner gets a win/);
   assert.match(tally.rule, /never a winner/);
-  assert.equal(tally.counted, 6);
-  assert.equal(tally.winSum, 6);
+  assert.equal(tally.counted, 7);
+  assert.equal(tally.winSum, 8);
   assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
   assert.equal(tally.rows.some((row) => row.assisted && !row.counts), true);
   const assisted = book.history.find((row) => row.id === 1786100000008);
@@ -885,4 +885,56 @@ test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
   assert.match(html, /Went out/);
   assert.match(html, /Cards left/);
   assert.match(html, /Ann/);
+  const overview = paintHtml([{
+    id: 3,
+    game: 'Hand and Foot',
+    date: '10/3/2026',
+    originalRoster: ['Ann', 'Bo'],
+    totals: {Ann: 100, Bo: 40},
+    winners: ['Ann'],
+    rounds: [{
+      round: 1,
+      scores: {Ann: 100, Bo: 40},
+      handFootParts: {
+        Ann: {basic: 1, count: 20, got22: true, wentOut: true, cardsLeft: 0, roundScore: 100},
+        Bo: {basic: 1, count: 20, got22: false, wentOut: false, cardsLeft: 12, roundScore: 40}
+      }
+    }]
+  }], 'overview', {
+    playerCards: [{
+      player: 'Ann',
+      wins: 1,
+      games: 1,
+      winRate: 100,
+      favorite: 'Hand and Foot',
+      currentStreak: 'W1',
+      bestGameType: 'Hand and Foot (100%)',
+      nemesisGame: 'Hand and Foot (0%)',
+      trend: 'Holding steady',
+      bests: []
+    }]
+  });
+  assert.match(overview, /data-canasta-events="overview"/);
+  assert.match(overview, /Got the 22/);
+  assert.match(overview, /Went out/);
+  assert.match(overview, /Cards left/);
+  assert.match(overview, /data-canasta-events="career"/);
+  const phone = paintHtml([{
+    id: 3,
+    game: 'Hand and Foot',
+    date: '10/3/2026',
+    originalRoster: ['Ann', 'Bo'],
+    totals: {Ann: 100, Bo: 40},
+    winners: ['Ann'],
+    rounds: [{
+      round: 1,
+      scores: {Ann: 100, Bo: 40},
+      handFootParts: {
+        Ann: {basic: 1, count: 20, got22: true, wentOut: true, cardsLeft: 0, roundScore: 100},
+        Bo: {basic: 1, count: 20, got22: false, wentOut: false, cardsLeft: 12, roundScore: 40}
+      }
+    }]
+  }], 'explore', {}, {compact: true});
+  assert.match(phone, /<details class="s2-disclose" open>/);
+  assert.match(phone, /Got the 22/);
 });

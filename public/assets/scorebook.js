@@ -768,7 +768,7 @@
     if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
       const retired = new Set(match.retired || []);
       const totals = match.totals || {};
-      // Matt 7:26 PM: full game when any stored total reaches 200+.
+      // Matt, Nov 12, 7:10 PM ET: full game when any stored total reaches 200+.
       return Object.keys(totals).some((player) => !retired.has(player) && (Number(totals[player]) || 0) >= 200);
     }
     return match.completed === true;
@@ -824,7 +824,7 @@
     return (roundsMet || scoreMet) ? 'finished' : 'short';
   }
 
-  // Leave game only. Flip 7 finishes at 200 for a seated player (Matt, 7:26 PM ET Oct 29).
+  // Leave game only. Flip 7 finishes at 200 for a seated player (Matt, Nov 12, 7:10 PM ET).
   // A game that scored and stayed under 200 is short. Rook stays on the saved-target rule.
   function leaveFinishState(match) {
     if (!match || typeof match !== 'object') return null;
@@ -836,6 +836,37 @@
       return null;
     }
     return completionFromSavedRules(match);
+  }
+
+  function canastaScoreFinite(value) {
+    if (value === '' || value === null || value === undefined || value === '-') return false;
+    const number = Number(value);
+    return Number.isFinite(number);
+  }
+
+  // A saved Canasta row is ambiguous when a scoring round has no numeric score,
+  // a blank score, or the same round number twice. Four clean rounds are not ambiguous.
+  function canastaRowsAmbiguous(match) {
+    const rounds = ((match && match.rounds) || []).filter(isScoringRound);
+    const seen = new Set();
+    return rounds.some((round) => {
+      if (!round || typeof round !== 'object') return true;
+      const number = Number(round.round);
+      if (Number.isFinite(number)) {
+        if (seen.has(number)) return true;
+        seen.add(number);
+      }
+      const scores = round.scores;
+      if (!scores || typeof scores !== 'object' || Array.isArray(scores)) return true;
+      const keys = Object.keys(scores).filter(Boolean);
+      if (!keys.length) return true;
+      return keys.some((key) => !canastaScoreFinite(scores[key]));
+    });
+  }
+
+  // The live Leave probe has no saved id or date. A history row does.
+  function canastaLiveProbe(match) {
+    return !!(match && match.id == null && !match.date);
   }
 
   function outcomeFromLegacy(match) {
@@ -852,8 +883,19 @@
     if (!match || typeof match !== 'object') return 'uncertain';
     const name = gameName(match);
     if (name === 'Hand and Foot' || name === 'Canasta') {
-      // Matt 5:55 PM ET: a round count is not a Canasta finish, and a stored finished flag does not finish the night.
+      // Matt, 7:13 PM ET, amendment 11. This replaces the 5:55 note that left every Canasta night uncertain.
+      // Four saved rounds are complete. A game finished in the app is finished.
+      // A legacy night with fewer than 4 rounds, or with an ambiguous row, stays uncertain.
       if (match.outcome === 'paused' || match.completed === false) return 'paused';
+      if (canastaRowsAmbiguous(match)) return 'uncertain';
+      const played = scoringRoundCount(match.rounds || []);
+      if (played >= 4) return 'finished';
+      if (match.outcome === 'ended_early') return 'ended_early';
+      if (canastaLiveProbe(match)) {
+        const known = completionFromSavedRules(match);
+        if (known === 'finished') return 'finished';
+        if (known === 'short') return 'ended_early';
+      }
       return 'uncertain';
     }
     const stored = match.outcome;
@@ -904,8 +946,8 @@
 
   // Isolated legacy rule. 'complete' | 'partial' | 'uncertain', plus a reason.
   // Known fixed lengths come from saved rounds, not from a round-count field.
-    // Flip 7 finishes at 200 for a seated player (Matt 7:26 PM ET Oct 29). Rook stays uncertain unless a target saved on that night was reached.
-    // Canasta stays uncertain no matter the round count (Matt 5:55 PM ET). A stored finished flag does not finish it.
+    // Flip 7 finishes at 200 for a seated player (Matt, Nov 12, 7:10 PM ET). Rook stays uncertain unless a target saved on that night was reached.
+    // Canasta is 4 saved scoring rounds (Matt, 7:13 PM ET, amendment 11). Fewer than 4, or an ambiguous row, stays uncertain.
   function legacyCompletion(match) {
     if (!match || typeof match !== 'object') {
       return {status: 'uncertain', reason: 'No saved night.', played: 0, fixed: null};
@@ -913,7 +955,13 @@
     const name = gameName(match);
     const played = scoringRoundCount(match.rounds || []);
     if (name === 'Hand and Foot' || name === 'Canasta') {
-      return {status: 'uncertain', reason: 'A Canasta round count is not a finish. Needs review.', played, fixed: null};
+      if (canastaRowsAmbiguous(match)) {
+        return {status: 'uncertain', reason: 'A Canasta row is ambiguous. Needs review.', played, fixed: 4};
+      }
+      if (played >= 4) {
+        return {status: 'complete', reason: played + ' saved rounds meet the 4-round length.', played, fixed: 4};
+      }
+      return {status: 'uncertain', reason: played + ' of 4 rounds. Needs review.', played, fixed: 4};
     }
     if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
       if (anyActiveTotalAtLeast(match, 200)) {

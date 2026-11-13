@@ -11,3 +11,5 @@ A Hall of Fame tie names every holder when the row is not the phone compact layo
 Editing an older Canasta total writes `breakdownCleared` on the column and each member. The title says the old parts no longer apply. Do not leave a breakdown that no longer adds up to the total.
 
 The shelf name is Canasta. The saved id stays `Hand and Foot`.
+
+Canasta is 4 rounds (Matt, 7:13 PM ET, amendment 11). A legacy night with 4 unambiguous saved rounds is complete, and a game finished in the app is finished. A legacy night with fewer than 4 rounds, or with an ambiguous row, stays needs review. A stored finished flag does not finish a short legacy night. The user-facing wheel name is Back Porch Wheel, from `BACK_PORCH_WHEEL`.

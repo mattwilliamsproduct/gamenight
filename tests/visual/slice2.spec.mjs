@@ -118,7 +118,7 @@ test('life preserver wheel keeps the odds and auto-applies', async ({page}) => {
   await page.goto('/?gnqa=1&gallery=0&scenario=eight18-porch-lp&slice2&slice2view=wheel', {waitUntil: 'networkidle'});
   await ready(page);
   await expect(page.locator('#wheel-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#wheel-mode-label')).toHaveText('Life Preserver');
+  await expect(page.locator('#wheel-mode-label')).toHaveText('Back Porch Wheel');
   await expect(page.locator('#btn-spin')).toHaveText('Use your one spin');
   await expect(page.getByRole('button', {name: /Apply/})).toHaveCount(0);
   await expect(page.locator('#wheel-canvas')).toHaveAttribute('data-slice2-wheel', '1');

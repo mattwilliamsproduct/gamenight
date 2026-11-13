@@ -16,7 +16,7 @@ Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave ga
 
 Standing trap: [rc4-live-records.md](rc4-live-records.md) — Canasta places use the team key. Biggest comeback is ordinary round history. A cleared Canasta breakdown does not keep the old parts.
 
-Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round rules are already counting. Canasta stays uncertain. Flip 7 is a full game when a seated total reached 200 (Matt, 7:26 PM ET Oct 29). Do not invent a Rook target.
+Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round rules are already counting. Canasta is complete at 4 saved rounds (Matt, 7:13 PM ET, amendment 11). Flip 7 is a full game when a seated total reached 200 (Matt, Nov 12, 7:10 PM ET). Do not invent a Rook target.
 
 Standing trap: [rc4-place-and-board.md](rc4-place-and-board.md) — tied totals skip to the next place. The scoreboard uses the page width and caps row height.
 

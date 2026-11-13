@@ -1246,7 +1246,8 @@
           ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
         </div>
       </div>
-      ${careerCardsHtml(data.playerCards, esc, avatar)}
+      ${canastaEventSection(table.history, esc)}
+      ${careerCardsHtml(data.playerCards, esc, avatar, table.history)}
       <section class="s2-panel s2-recent-board">
         <div class="s2-panel-head"><h2>Recent results</h2></div>
         ${nightsSplitHtml(recent, helpers, ctx, compact)}
@@ -1254,7 +1255,32 @@
     </div>`;
   }
 
-  function careerCardsHtml(cards, esc, avatar) {
+  function canastaEventSection(history, esc) {
+    const hasCanasta = (history || []).some((match) => match && (match.game === 'Hand and Foot' || match.game === 'Canasta' || match.name === 'Hand and Foot'));
+    const leaders = hasCanasta && root.BPGHandFoot && typeof root.BPGHandFoot.eventLeaders === 'function'
+      ? root.BPGHandFoot.eventLeaders(history)
+      : null;
+    if (!leaders) return '';
+    const rows = [
+      statLine('Got the 22', leaders.got22, esc),
+      statLine('Went out', leaders.wentOut, esc),
+      statLine('Cards left', leaders.cardsLeft, esc)
+    ].join('');
+    return `<section class="s2-panel s2-canasta-events" data-canasta-events="overview">
+      <div class="s2-panel-head"><h2>Canasta</h2></div>
+      <div class="s2-book">${rows}</div>
+    </section>`;
+  }
+
+  function careerCanastaLine(history, player, esc) {
+    const events = root.BPGHandFoot && typeof root.BPGHandFoot.playerEventTotals === 'function'
+      ? root.BPGHandFoot.playerEventTotals(history, player)
+      : null;
+    if (!events || !events.rounds) return '';
+    return `<p class="s2-canasta-events" data-canasta-events="career">Got the 22 ${esc(String(events.got22))} · Went out ${esc(String(events.wentOut))} · Cards left ${esc(String(events.cardsLeft))}</p>`;
+  }
+
+  function careerCardsHtml(cards, esc, avatar, history) {
     const list = cards || [];
     if (!list.length) return '';
     const body = list.map((card) => {
@@ -1271,6 +1297,7 @@
         <p>Best type ${esc(publicGamePhrase(card.bestGameType))}</p>
         <p>Nemesis game ${esc(publicGamePhrase(card.nemesisGame))}</p>
         <p>${esc(card.trend || '')}</p>
+        ${careerCanastaLine(history, card.player, esc)}
         ${bests}
       </article>`;
     }).join('');
@@ -1510,7 +1537,8 @@
       const body = rows.filter(Boolean).join('');
       if (!body) return '';
       const title = `${gameThumbnailHtml(game.id, 's2-game-thumb s2-explore-thumb')}<span>${esc(game.title)}</span>`;
-      const wrap = compact ? `<details class="s2-disclose"><summary>${title}</summary><div class="s2-book">${body}</div></details>` : `<h3 class="s2-explore-game-title">${title}</h3><div class="s2-book">${body}</div>`;
+      const open = compact && game.id === 'Hand and Foot' ? ' open' : '';
+      const wrap = compact ? `<details class="s2-disclose"${open}><summary>${title}</summary><div class="s2-book">${body}</div></details>` : `<h3 class="s2-explore-game-title">${title}</h3><div class="s2-book">${body}</div>`;
       return `<section class="s2-panel">${wrap}</section>`;
     }).join('');
     return blocks ? `<div class="s2-explore-games">${blocks}</div>` : '';

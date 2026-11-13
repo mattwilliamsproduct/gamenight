@@ -2348,21 +2348,23 @@ html.slice2-tv #toast-container {
   max-width: 90vw;
 }
 
-/* Phone board: keep Standings updated off Save & End, Match complete, and the totals.
-   The one-row header sits higher than the old two-row header, so a fixed 10.75rem
-   lands on the first total. Park the toast in the hint strip under the buttons. */
+/* Phone board: keep the lead toast at the bottom left, ending before the R3 column.
+   A right-side park under the header lands on R3 and R4. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #toast-container {
-    top: calc(var(--bp-board-bottom, 108px) + 6px);
-    bottom: auto;
-    left: auto !important;
-    right: 8px !important;
+    top: auto !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    left: 8px !important;
+    right: auto !important;
     transform: none !important;
-    width: max-content !important;
-    max-width: 22vw !important;
+    width: var(--toast-clear-width, 42vw) !important;
+    max-width: var(--toast-clear-width, 42vw) !important;
   }
   html.slice2-tv body.active-match-view .toast {
-    max-width: 22vw !important;
+    max-width: 100% !important;
+    min-width: 0;
+    white-space: normal;
+    border-radius: 16px;
   }
 }
 
