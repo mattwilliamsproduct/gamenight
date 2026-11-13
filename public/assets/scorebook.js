@@ -567,6 +567,10 @@
     // even when deferAck keeps acknowledged false (bids/tricks "Entered" status).
     // Pending "-" is blank for status but must keep the sign (P1-05).
     const dirty = !!source.dirty;
+    // 00 is not a key. A blank bid stays blank. A typed 0 is still a zero bid.
+    if (token === '00') {
+      return { value, acknowledged, replaced: false, dirty, rejected: false };
+    }
     if (!acknowledged && digit && !dirty) {
       const replaced = String(value).trim() === '-' ? '-' + token : token;
       const blocked = trickLimitRejection(replaced, source);
@@ -580,10 +584,6 @@
     }
     const cap = Number.isFinite(Number(source.digitCap)) ? Number(source.digitCap) : 3;
     const limitLabel = cap >= 4 ? '9,999' : '999';
-    const scoreLike = mode !== 'bids' && mode !== 'tricks' && mode !== 'bid' && mode !== 'trick';
-    if (token === '00' && scoreLike) {
-      return { value, acknowledged, replaced: false, dirty, rejected: false };
-    }
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
     else if (digit) {

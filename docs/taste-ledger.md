@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- No pad has a 00 key. When there is no minus, 0 fills that whole row. Spin ready sits fully inside the player cell, toward the right of the name.
 - A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. A live match offers a small Start another game until the picker opens.
 - The score-entry sentence fits on one phone line. A too-big entry says so inside that player's score box.
 - The game-card edge is drawn on top of the cover, so Flip 7's white art still has a visible rim. The selected rim is thicker and teal.
@@ -103,6 +104,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- A 00 key on any pad. A Spin ready badge cut off by the score column.
 - A score box or progress line cut off by the phone edge. A lone 0 with empty keypad cells. Canasta pair dropdowns. A full game picker beside a live match.
 - A score-entry sentence that runs off the phone, or a cap note that covers the player's name.
 - A card border that sits under the cover art, so Flip 7's white face has no edge.

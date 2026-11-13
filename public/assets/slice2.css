@@ -5532,14 +5532,35 @@ html.slice2-tv .s2-standing .wheel-badge {
   }
 }
 @media (max-width: 760px) {
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) {
+    padding-left: 0.4rem !important;
+    padding-right: 0.35rem !important;
+    overflow: hidden;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    row-gap: 0.15rem;
+    max-width: 100%;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
   html.slice2-tv #scorecard-capture .wheel-badge {
-    font-size: 0.6rem !important;
-    padding: 0.04rem 0.22rem !important;
-    min-height: 24px !important;
-    gap: 0.1rem !important;
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+    max-width: 100%;
+    font-size: 0.72rem !important;
+    padding: 0.12rem 0.4rem !important;
+    min-height: 28px !important;
+    gap: 0.2rem !important;
+    white-space: normal !important;
+    overflow: visible !important;
   }
   html.slice2-tv #scorecard-capture .wheel-badge-icon {
-    width: 0.7rem !important;
-    height: 0.7rem !important;
+    width: 0.85rem !important;
+    height: 0.85rem !important;
   }
 }
