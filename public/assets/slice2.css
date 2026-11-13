@@ -2874,6 +2874,12 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     box-shadow: 0 -1.75rem 0 var(--s2-card);
   }
 
+  /* Canasta cards scroll inside a clipped list, so the cream lift above
+     Scoring would only hide the bottom of the field being typed. */
+  html.slice2-tv #score-entry-modal.score-entry-hand-foot .score-entry-side {
+    box-shadow: none;
+  }
+
   html.slice2-tv #score-entry-modal .score-entry-row .score-entry-input-cell,
   html.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-input-cell {
     z-index: 0;

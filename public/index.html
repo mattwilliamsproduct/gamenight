@@ -20167,16 +20167,19 @@ ${isDealer
     }
     syncHandFootRateBar();
     updateScoreEntryProgress();
+    scrollHandFootActiveFieldIntoView();
   }
-  function scrollHandFootActiveRowIntoView(){
+  // The keypad stays pinned on a phone and the team card scrolls above it.
+  // Keep the field the keypad is typing into fully inside that scroll area.
+  function scrollHandFootActiveFieldIntoView(){
     const scroller=document.getElementById('score-entry-rows');
-    const active=scroller?.querySelector('.score-entry-hf-row.active');
-    if(!scroller||!active) return;
-    const top=active.offsetTop;
-    const bottom=top+active.offsetHeight;
-    const viewBottom=scroller.scrollTop+scroller.clientHeight;
-    if(top<scroller.scrollTop) scroller.scrollTop=top;
-    else if(bottom>viewBottom) scroller.scrollTop=bottom-scroller.clientHeight;
+    const active=scroller?.querySelector('.hf-team-card.is-active .hf-field.active');
+    if(!scroller||!active||scroller.scrollHeight<=scroller.clientHeight) return;
+    const box=scroller.getBoundingClientRect();
+    const rect=active.getBoundingClientRect();
+    const margin=8;
+    if(rect.top<box.top+margin) scroller.scrollTop-=box.top+margin-rect.top;
+    else if(rect.bottom>box.bottom-margin) scroller.scrollTop+=rect.bottom-(box.bottom-margin);
   }
 
   function handFootConfirmCurrent(){
