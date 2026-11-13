@@ -21,9 +21,12 @@ async function openCanastaCard(page) {
 
 test('Actions names the wheel Back Porch Wheel', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
-  await openCanastaCard(page);
-  await page.evaluate(() => openActionsMenu());
-  await expect(page.locator('#actions-life-preserver-btn .actions-menu-label-text')).toHaveText('Back Porch Wheel');
+  await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-preservers&surface=scorecard', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
+  await page.getByRole('button', {name: /Actions/}).click();
+  const item = page.locator('#actions-life-preserver-btn');
+  await expect(item).toBeVisible();
+  await expect(item.locator('.actions-menu-label-text')).toHaveText('Back Porch Wheel');
   await expect(page.locator('#actions-menu')).not.toContainText('Life Preserver');
 });
 
