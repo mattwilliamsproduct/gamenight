@@ -1233,6 +1233,27 @@ html.porch-ledger #bpg-try-demo-tip {
 }
 
 @media (max-width: 760px) {
+  /* The document scrollbar is a 6px hairline thumb. On a phone it leaves a
+     cream strip at the right edge, including through the header. The nav
+     veil used to stick out past the card and opened that scrollbar. */
+  html.porch-ledger,
+  html.porch-ledger body {
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+  }
+
+  html.porch-ledger::-webkit-scrollbar,
+  html.porch-ledger body::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+
+  html.porch-ledger.slice2-tv #top-nav::before {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
   html.porch-ledger.slice2-tv body.active-match-view #game-screen .landscape-only {
     justify-content: flex-start !important;
   }
@@ -1372,10 +1393,24 @@ html.porch-ledger #bpg-try-demo-tip {
     white-space: nowrap !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #top-nav .nav-btn {
-    white-space: normal !important;
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav > div > div:last-child {
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav .nav-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav .nav-btn:not(.hidden) {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.15 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidden) {

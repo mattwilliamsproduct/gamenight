@@ -11,7 +11,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 ### Likes
 
 - A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
-- The phone bottom nav gives Home, Records, Player Passports, and Settings equal widths, with a gap between them. Player Passports may take two lines.
+- The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
 - Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
 - Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
 - A Canasta team name stays on one line (`Megan & Matt`) when the cell has room beside it. The live card ends at the last team row.
@@ -121,7 +121,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
 - Life Preserver copy that claims the wheel caused a later win.
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
-- A phone Home nav that still says Profiles, or a Settings control that is only a gear. The words are Player Passports and Settings, on one row. The longer label may break inside its own button.
+- A phone Home nav that still says Profiles, or a Settings control that is only a gear. The words are Player Passports and Settings, on one row, each on one line.
 - A cream band between the last phone score-entry row and the skip line. A short list shares that space, or the help line and the keypad sit against the rows.
 - A phone identity lock that lays Canasta team names beside the avatars and past the cell. Those names stay stacked. The clip test stays as written.
 - A 1024 Tonight's Table that scrolls the seated rows when four or five are seated. Those rows, and the first person on the bench, show whole. A longer list may scroll.
@@ -132,7 +132,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
 - A dark wood-grain page as the direction. Flat fields are the trial. Cream sheets stay cream, and teal stays on the actions.
 - A selected game card ring thinner than the base 6px, or a ring that sits under the cover. The ring is at least that thick and paints on top of the art.
-- A phone nav label under 13px. Home, Records, Player Passports, and Settings stay at 13px or larger, and on the home row they stay one line.
+- A phone nav label under 13px, or Player Passports on two lines in the match bar. Home, Records, Player Passports, and Settings stay one line at 13px or larger.
+- A phone page field that stops short of the right edge. The field runs to the screen edge. The scrollbar thumb does not paint a strip there.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - "Saved on this device" while Try a demo is on.
