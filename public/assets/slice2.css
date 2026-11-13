@@ -5100,6 +5100,28 @@ html.slice2-tv .s2-kicker {
 html.slice2-tv .s2-headline-card strong {
   font-size: clamp(2rem, 3vw, 3.2rem);
 }
+/* Overview stat cards: several leaders (a tied Career wins) sit on their own
+   spaced line and wrap inside the card instead of running into each other or
+   the next card. */
+html.slice2-tv .s2-career .s2-headline-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  column-gap: 14px;
+  row-gap: 6px;
+}
+html.slice2-tv .s2-career .s2-headline-card > small,
+html.slice2-tv .s2-career .s2-headline-card > strong {
+  flex: 0 0 100%;
+}
+html.slice2-tv .s2-career .s2-headline-card .s2-player-link {
+  max-width: 100%;
+}
+html.slice2-tv .s2-career .s2-headline-card .player-name-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 html.slice2-tv .s2-night-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
