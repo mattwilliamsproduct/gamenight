@@ -17283,7 +17283,9 @@ ${isDealer
         const playerCell=root.querySelector('td.scorecard-col-player');
         if(playerCell){
           const cellStyle=getComputedStyle(playerCell);
-          const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+          const badge=playerCell.querySelector('.wheel-badge');
+          const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?Math.ceil(badge.getBoundingClientRect().width)+8:0;
+          const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth;
           const canvas=fitActiveScorecardRows._nameCanvas||(fitActiveScorecardRows._nameCanvas=document.createElement('canvas'));
           const ctx=canvas.getContext('2d');
           let longest=0;
@@ -17401,7 +17403,11 @@ ${isDealer
     if(!cell||!lane)return 0;
     const nameBox=name.closest('.scorecard-player-name-slot')||name;
     const cellStyle=getComputedStyle(cell);
-    const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+    const badge=cell.querySelector('.wheel-badge');
+    const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?badge.getBoundingClientRect().width:0;
+    const outer=cell.querySelector(':scope > .flex')||cell;
+    const outerGap=badgeWidth?(parseFloat(getComputedStyle(outer).columnGap||getComputedStyle(outer).gap)||0):0;
+    const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth-outerGap;
     const laneStyle=getComputedStyle(lane);
     const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
     const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
@@ -17456,8 +17462,10 @@ ${isDealer
         chip.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
         const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
         const fittedSlot=name.closest('.scorecard-player-name-slot');
+        const fittedBadge=cell.querySelector('.wheel-badge');
+        const badgeLimit=fittedBadge&&getComputedStyle(fittedBadge).display!=='none'?fittedBadge.getBoundingClientRect().left-1:cellBox.right-1;
         const slotOk=!fittedSlot||name.scrollWidth<=fittedSlot.clientWidth+1;
-        if(fittedBox.right<=cellBox.right - 1&&slotOk){
+        if(fittedBox.right<=badgeLimit&&slotOk){
           best=mid;
           lo=mid;
         }else{
