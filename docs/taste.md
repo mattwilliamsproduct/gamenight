@@ -10,6 +10,9 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- The wheel control sits toward the right of the player cell and does not cover the name.
+- A comeback uses the shelf name. A team win names both partners.
+- A Canasta round in progress is a labeled sum. A blank round says Not ready.
 - Canasta is 4 rounds. A legacy night with 4 saved rounds is complete. A game finished in the app is finished. A legacy night with fewer than 4 rounds, or with an ambiguous row, stays needs review. Matt, 7:13 PM ET, amendment 11.
 - The user-facing wheel name is Back Porch Wheel, from one constant.
 - Flip 7 finishes at 200. The decision is Nov 12, 7:10 PM ET.
