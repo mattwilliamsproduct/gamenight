@@ -248,6 +248,11 @@ html.porch-ledger.slice2-tv .s2-standing {
   overflow: visible;
 }
 
+html.porch-ledger.slice2-tv .s2-seat,
+html.porch-ledger.slice2-tv .s2-standing {
+  column-gap: 14px !important;
+}
+
 html.porch-ledger.slice2-tv .s2-seat {
   grid-template-columns: 1.35rem 44px minmax(0, 1fr) auto !important;
   min-height: 64px;
@@ -477,7 +482,7 @@ html.porch-ledger.slice2-tv .s2-unfinished-row p {
     max-width: 100% !important;
     box-sizing: border-box !important;
     padding: 2px 8px !important;
-    gap: 6px !important;
+    gap: 10px !important;
     overflow: hidden !important;
     grid-template-columns: auto 36px minmax(0, 1fr) auto auto !important;
   }
@@ -671,7 +676,13 @@ html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity {
-  gap: 14px !important;
+  gap: 18px !important;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.items-center.scorecard-player-identity {
+    gap: 14px !important;
+  }
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scorecard-avatar-slot {
@@ -737,8 +748,21 @@ html.porch-ledger.slice2-tv #scorecard-capture .tv-stat-num {
   color: var(--ledger-ink) !important;
 }
 
-html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-cell {
-  background: #e7f4ef !important;
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row > td,
+html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols tr.leader-row td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total tr.leader-row td.scorecard-col-total,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .scorecard-total-value,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .tv-stat-num {
+  background: var(--ledger-teal-wash) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row > td.scorecard-col-player {
+  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
 }
 
 /* Leader round cells use the same gray pill as every other entered score.
@@ -887,6 +911,7 @@ html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active {
 
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-player-card {
+  column-gap: 14px !important;
   background: transparent !important;
   background-image: none !important;
   border: 0 !important;
@@ -1314,6 +1339,36 @@ html.porch-ledger #bpg-try-demo-tip {
     padding: 8px 12px !important;
   }
 
+  html.porch-ledger body.home-view .s2-banner h2 {
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"],
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"] {
+    font-size: 0 !important;
+    line-height: 0 !important;
+  }
+
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"]::after,
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"]::after {
+    font-family: var(--ledger-type-text);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"]::after {
+    content: "Player Passports";
+  }
+
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"]::after {
+    content: "Settings";
+  }
+
   html.porch-ledger body.home-view .s2-seat {
     min-height: 52px !important;
     padding-top: 3px !important;
@@ -1370,7 +1425,7 @@ html.porch-ledger #bpg-try-demo-tip {
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    gap: 6px !important;
+    gap: 10px !important;
     min-width: 0 !important;
     width: auto !important;
     max-width: 100% !important;
@@ -1541,7 +1596,7 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger #score-entry-modal .score-entry-list:not(:has(.score-entry-row:nth-child(5))) {
-    min-height: calc(68px * 4 + 6px * 3) !important;
+    min-height: 0 !important;
   }
 
   html.porch-ledger #score-entry-modal .score-entry-rows,
@@ -1556,7 +1611,7 @@ html.porch-ledger #bpg-try-demo-tip {
     max-height: none !important;
     overflow: visible !important;
     justify-content: flex-start !important;
-    gap: 6px !important;
+    gap: 4px !important;
     padding: 0 !important;
     scrollbar-width: none !important;
   }
@@ -1565,8 +1620,8 @@ html.porch-ledger #bpg-try-demo-tip {
   html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows:has(.score-entry-row:nth-child(5)),
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows:has(.score-entry-row:nth-child(5)) {
     flex: 0 0 auto !important;
-    height: calc(68px * 3 + 6px * 2) !important;
-    max-height: calc(68px * 3 + 6px * 2) !important;
+    height: calc(56px * 3 + 4px * 2) !important;
+    max-height: calc(56px * 3 + 4px * 2) !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
     scroll-snap-type: y mandatory !important;
@@ -1591,21 +1646,21 @@ html.porch-ledger #bpg-try-demo-tip {
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row,
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row,
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row {
-    flex: 1 1 0 !important;
-    height: auto !important;
-    min-height: 68px !important;
-    max-height: none !important;
+    flex: 0 0 56px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
     overflow: visible !important;
-    grid-template-columns: minmax(0, 1fr) 68px !important;
+    grid-template-columns: minmax(0, 1fr) 56px !important;
     align-items: stretch !important;
     scroll-snap-align: start;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-rows:has(.score-entry-row:nth-child(5)) .score-entry-row {
-    flex: 0 0 68px !important;
-    height: 68px !important;
-    min-height: 68px !important;
-    max-height: 68px !important;
+    flex: 0 0 56px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
     scroll-snap-align: start !important;
     scroll-snap-stop: always !important;
   }
@@ -1617,9 +1672,32 @@ html.porch-ledger #bpg-try-demo-tip {
     height: 100% !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
-    grid-template-columns: 36px minmax(0, 1fr) 46px !important;
+    grid-template-columns: 32px minmax(0, 1fr) 56px !important;
     align-items: center !important;
     overflow: visible !important;
+    padding: 2px 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-avatar,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-value,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-value {
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    font-size: 16px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-meta-label,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-meta-label {
+    font-size: 10px !important;
+    letter-spacing: 0.04em !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-input-cell,
