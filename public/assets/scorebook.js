@@ -670,7 +670,7 @@
   }
 
   function scoreEntryBlankHelper() {
-    return 'Skip leaves a score blank. Submit names anyone still missing.';
+    return 'Skip leaves a score blank.';
   }
 
   function historyScoreOrNull(raw) {

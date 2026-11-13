@@ -312,7 +312,7 @@
     bullets.push(`${gameLine} ${rangeLine}`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
-      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
+      bullets.push(`Flip 7 plays to 200, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
     } else if (Number.isFinite(remaining) && remaining > 0) {
       bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to catch 1st from ${leaderGap} back.`);
     } else {

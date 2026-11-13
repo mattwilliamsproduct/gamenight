@@ -18,6 +18,8 @@ Standing trap: [bs-polish.md](bs-polish.md) — the wheel control stays on the r
 
 Standing trap: [bm-entry-and-parity.md](bm-entry-and-parity.md) — `bffd216` restored a `00` key for parity. Matt's Nov 12, 4:12 PM ET keypad spec removed that key from score entry, and that decision wins.
 
+Standing trap: [cb-readable-entry.md](cb-readable-entry.md) — the score helper stays one short line. The 999 note sits in that player's score box. Score pads use Skip. Bid and trick pads keep 00.
+
 Standing trap: [bv-bw-by-missed-decisions.md](bv-bw-by-missed-decisions.md) — Skip replaces 00 on score pads. Minus follows the non-negative game list. Home has no View all. The card edge is an inset ring on top of the cover.
 
 Standing trap: [bu-pin-and-nav.md](bu-pin-and-nav.md) — The Canasta card sits under the header. Only its own height hugs. The phone bottom nav has equal columns and a gap. [bt-board-and-comeback.md](bt-board-and-comeback.md) — Canasta team names stay one line. Phone nav says Player Passports and Settings. Biggest comeback is one row per game.

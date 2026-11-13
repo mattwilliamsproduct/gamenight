@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- The score-entry sentence fits on one phone line. A too-big entry says so inside that player's score box.
 - The game-card edge is drawn on top of the cover, so Flip 7's white art still has a visible rim. The selected rim is thicker and teal.
 - A late player sees their starting score and confirms it before they join. A bad name is an inline message.
 - Popup headings are sentence case and a readable size. Settings says Match moments and On this device. The long restore explanation sits behind How restore works.
@@ -101,6 +102,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- A score-entry sentence that runs off the phone, or a cap note that covers the player's name.
 - A card border that sits under the cover art, so Flip 7's white face has no edge.
 - A browser alert for a name, or adding a late player before showing the starting score.
 - Small all-caps popup headings. An em dash in a sentence the player reads. Edit or Use score on an unusual-score check. A column hint written as an arrow plus round shorthand.
