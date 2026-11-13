@@ -88,3 +88,15 @@ test('old Rook history still has a registry row and high-score win direction', (
   assert.ok(names.includes('Matt'));
   assert.equal(Games.displayName(match.game), 'Rook');
 });
+
+test('every Unseat count is seated minus the game max', () => {
+  assert.equal(Games.seatExtra('Five Crowns', 8), 1);
+  assert.equal(Games.seatExtra('Five Crowns', 7), 0);
+  assert.equal(Games.seatExtra('Hand and Foot', 8), 2);
+  assert.equal(Games.seatExtra('Wizard', 12), 0);
+  assert.equal(Games.seatRoomMessage('Five Crowns', 8), Games.seatLimit('Five Crowns', 8).message);
+  assert.equal(Games.seatRoomMessage('Five Crowns', 8), 'Five Crowns plays up to 7. Unseat 1 player.');
+  assert.equal(Games.seatRoomMessage('Hand and Foot', 8), 'Canasta plays up to 6. Unseat 2 players.');
+  assert.equal(Games.seatRoomMessage('Five Crowns', 7), 'Five Crowns plays up to 7. The table is full.');
+  assert.equal(Games.seatRoomMessage('Five Crowns', 6), '');
+});

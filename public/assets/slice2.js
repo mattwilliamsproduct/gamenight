@@ -400,6 +400,9 @@
     const room = window.BPGGames && typeof BPGGames.seatLimit === 'function'
       ? BPGGames.seatLimit(selected, seated + addPicks.size + 1, 'seat')
       : { ok: true, message: '' };
+    const roomNote = window.BPGGames && typeof BPGGames.seatRoomMessage === 'function'
+      ? BPGGames.seatRoomMessage(selected, seated + addPicks.size)
+      : (max.message || room.message);
     const rows = bench.map((player) => {
       const on = addPicks.has(player);
       const blocked = !on && !room.ok;
@@ -414,7 +417,7 @@
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
     return `<div class="s2-picker">
       ${bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>'}
-      ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(room.message || max.message || 'No room for another player.')}</p>` : ''}
+      ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
           <input id="quick-add-player" type="text" placeholder="Add someone new" autocomplete="off" aria-label="Add a player"

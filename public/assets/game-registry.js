@@ -100,11 +100,31 @@
       if (gate === 'seat') return { ok: true, message: '' };
       return { ok: false, message: message };
     }
-    if (max != null && seated > max) {
-      const extra = seated - max;
+    const extra = seatExtra(id, seated);
+    if (extra > 0) {
       return { ok: false, message: title + ' plays up to ' + max + '. Unseat ' + extra + ' player' + (extra === 1 ? '' : 's') + '.' };
     }
     return { ok: true, message: '' };
+  }
+
+  // One count for every "Unseat N" message: seated minus the game's max, never below 0.
+  function seatExtra(id, count) {
+    const game = gameById(id);
+    const max = game && game.players && game.players.max != null ? game.players.max : null;
+    if (max == null) return 0;
+    return Math.max(0, (Number(count) || 0) - max);
+  }
+
+  // Note under the add-player list. Over the max it is the same message as the start bar;
+  // exactly at the max it says the table is full instead of asking for an unseat.
+  function seatRoomMessage(id, count) {
+    if (seatExtra(id, count) > 0) return seatLimit(id, count).message;
+    const game = gameById(id);
+    const max = game && game.players && game.players.max != null ? game.players.max : null;
+    if (max != null && (Number(count) || 0) >= max) {
+      return ((game && game.title) || id) + ' plays up to ' + max + '. The table is full.';
+    }
+    return '';
   }
 
   const CARD_FACES = Object.freeze({
@@ -145,6 +165,8 @@
     displayName,
     winLow,
     seatLimit,
+    seatExtra,
+    seatRoomMessage,
     isDemo,
     demoGameKeys,
     rememberDemoGames,
