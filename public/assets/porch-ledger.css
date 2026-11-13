@@ -239,38 +239,48 @@ html.porch-ledger.slice2-tv .s2-unfinished-row {
   color: var(--ledger-ink);
 }
 
-/* The picker is the mat. Decks sit on the calm center. A quiet cube
-   tile and one ivory line stay at the edge. Heading, instructions,
-   summary, and Start are small ivory pieces beside the decks. */
+/* The picker is the mat. The cube tile is only the outer band.
+   The center is plain felt. One ivory line sits between them.
+   The band stops before the decks: they begin about 52px in at
+   1024 and about 24px in at 390. */
 html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
+  --mat-band: 44px;
   position: relative;
   isolation: isolate;
-  background: transparent !important;
+  background: var(--mat-felt) !important;
+  background-image: none !important;
   border: 0 !important;
   box-shadow: none !important;
-  border-radius: 0 !important;
-  overflow: visible;
+  border-radius: 18px !important;
+  overflow: hidden;
 }
 
 html.porch-ledger.slice2-tv .s2-home-start::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 18px;
+  border-radius: inherit;
+  padding: var(--mat-band);
   background-image: var(--mat-felt-texture);
   background-size: 56px 30px;
   pointer-events: none;
   z-index: 0;
-  -webkit-mask-image: radial-gradient(ellipse 72% 64% at 50% 48%, transparent 46%, #000 74%);
-  mask-image: radial-gradient(ellipse 72% 64% at 50% 48%, transparent 46%, #000 74%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
 }
 
 html.porch-ledger.slice2-tv .s2-home-start::after {
   content: "";
   position: absolute;
-  inset: 8px 6px;
+  inset: var(--mat-band);
   border: 1.5px solid var(--mat-stitch);
-  border-radius: 18px;
+  border-radius: 12px;
   pointer-events: none;
   z-index: 1;
 }
@@ -1379,6 +1389,10 @@ html.porch-ledger #bpg-try-demo-tip {
     font-size: 16px !important;
     color: var(--ledger-paper) !important;
     line-height: 1.2 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
+    --mat-band: 16px;
   }
 
   html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
