@@ -17,7 +17,7 @@ const GAMES = [
   {id: 'Hand and Foot', title: 'Canasta'}
 ];
 
-test('Home shows six equal 5:7 cards with no visible captions and no Rook (f2c81a4); select then Start opens the game', async ({page}) => {
+test('Home shows six equal 5:7 named cards and no Rook (f2c81a4); select then Start opens the game', async ({page}) => {
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
 
@@ -25,7 +25,7 @@ test('Home shows six equal 5:7 cards with no visible captions and no Rook (f2c81
   await expect(cards).toHaveCount(6);
   await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
   await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(6);
-  for (const name of await page.locator('.s2-home-start .s2-game-name').all()) await expect(name).toBeHidden();
+  for (const name of await page.locator('.s2-home-start .s2-game-name').all()) await expect(name).toBeVisible();
   await expect(page.locator('.s2-home-start [data-s2-action="start-game-now"]')).toHaveCount(0);
 
   for (const game of GAMES) {

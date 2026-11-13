@@ -21,7 +21,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Home shows the newest unfinished game, with Resume. Older unfinished games stay in Records, marked Unfinished, with Resume.
 - Skip sits above Next. A blank score stays blank. 0 & Next stores a confirmed 0. Minus shows only when that game allows a negative score.
 - A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
-- Home is the f2c81a4 layout exactly (Matt, 2026-11-13 6:13 PM): ivory Tonight's table (360 wide) and Start a new match panels with the brass top edge, the 115px wordmark, six uncaptioned decks three per row (Five Crowns, 818, Wizard / Flip 7, Beat the Heat, Canasta). The only change from f2c81a4 is the page background: the blue porch felt from Matt's reference (textured felt, lighter center, darker vignette, a faint card-suit lattice only in the outer band). On a laptop the bench shows every saved player whole; a longer bench ends on a whole row with N more below.
+- Home is the f2c81a4 layout exactly (Matt, 2026-11-13 6:13 PM): ivory Tonight's table (360 wide) and Start a new match panels with the brass top edge, the 115px wordmark, six named decks three per row (Five Crowns, 818, Wizard / Flip 7, Beat the Heat, Canasta). The page background is Matt's own felt photo at cover. On a laptop the panels run nav edge to nav edge with one gap and the same top and bottom; the roster scrolls inside Tonight's table on whole rows with N more below, and Add sits outside the scroll.
 - The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
 - Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
 - Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
@@ -156,8 +156,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A compact Tonight's Table name centered away from the badge. The name sits left, the same gap after the badge as the bench row, and Deals first sits right after the name.
 - A phone score-entry row whose total box is cut off. All four rows, including that total, show whole. The skip line can be one smaller line to make the room.
 - A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
-- A dark wood page, a flat swatch, or a patterned field behind the score numbers. The felt is the page; the pattern stays at the edge. Numbers sit on ivory. Felt knobs live in the `--felt-*` tokens.
-- A Home layout that drifts from f2c81a4 (bigger wordmark, wider table, a seventh deck, captions under decks, decks on a see-through mat), or a dark brown demo bar. The demo bar stays in the felt palette.
+- A dark wood page, a flat swatch, or a patterned field behind the score numbers. The felt is the page; the pattern stays at the edge. Numbers sit on ivory. The felt is one photo at cover, not a drawn pattern.
+- A Home layout that drifts from f2c81a4 (bigger wordmark, wider table, a seventh deck, decks on a see-through mat, extra boxes around the heading, instructions, or summary), or a dark brown demo bar. The demo bar stays in the felt palette.
 - Casino lettering, chips, glossy green, heavy wood, or a spotlight on the mat. The Back Porch sign is the brand.
 - A selected game card ring thinner than the base 6px, or a ring that sits under the cover. The ring is at least that thick and paints on top of the art.
 - A phone nav label under 13px, or Player Passports on two lines in the match bar. Home, Records, Player Passports, and Settings stay one line at 13px or larger.
