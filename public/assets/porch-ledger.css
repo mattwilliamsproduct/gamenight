@@ -375,23 +375,9 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
 /* Landscape home: the seated list keeps the room. The bench scrolls inside
    the leftover so Add Player and the seats stay on screen. */
 @media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat {
-    min-height: 48px;
-    padding-top: 2px;
-    padding-bottom: 2px;
-  }
-
   html.porch-ledger.slice2-tv .s2-home-table .s2-seat .avatar-img {
     width: 40px !important;
     height: 40px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid {
-    flex: 0 0 auto !important;
-    min-height: 0;
-    max-height: none;
-    gap: 4px;
-    overflow: visible;
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-picker {
@@ -469,14 +455,15 @@ html.porch-ledger.slice2-tv .s2-unfinished-row p {
 }
 
   html.porch-ledger.slice2-tv .s2-home-standings .s2-standings {
-    flex: 0 0 auto !important;
+    flex: 1 1 auto !important;
     min-height: 0 !important;
-    gap: 4px !important;
-    overflow: visible !important;
+    gap: 10px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
   }
 
   html.porch-ledger.slice2-tv .s2-home-standings .s2-standing {
-    min-height: 40px !important;
+    min-height: 64px !important;
     height: auto !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -569,15 +556,10 @@ html.porch-ledger.slice2-tv #slice2-board-sub {
   }
 }
 
-html.porch-ledger.bpg-try-demo:has(body.active-match-view) {
-  padding-top: 0 !important;
-}
-
 html.porch-ledger.bpg-try-demo body.active-match-view .bp-app-shell {
   box-sizing: border-box !important;
   height: 100dvh !important;
   max-height: 100dvh !important;
-  padding-top: 64px !important;
 }
 
 html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
@@ -675,7 +657,7 @@ html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
   box-shadow: inset 8px 0 0 var(--ledger-player) !important;
 }
 
-html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity {
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)) {
   gap: 18px !important;
 }
 
@@ -696,31 +678,6 @@ html.porch-ledger.slice2-tv #scorecard-capture tbody td {
 
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td {
   background: var(--ledger-teal-wash) !important;
-}
-
-@media (min-width: 761px) {
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
-    width: 4.75rem !important;
-    min-width: 4.75rem !important;
-    max-width: 4.75rem !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
-    width: 8rem !important;
-    min-width: 8rem !important;
-    max-width: 8rem !important;
-    white-space: nowrap !important;
-    line-height: 1.1;
-    overflow: visible;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
-    width: auto !important;
-    max-width: none !important;
-  }
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
@@ -765,8 +722,7 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row > td.scorecard-col-
   box-shadow: inset 8px 0 0 var(--ledger-player) !important;
 }
 
-/* Leader round cells use the same gray pill as every other entered score.
-   The row tint stays on the cell, behind the pill, and runs through This Round as one wash. */
+/* The leader wash runs through This Round. Entered leader scores keep the tested green pill. */
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td,
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-col-now {
   background: var(--ledger-teal-wash) !important;
@@ -775,21 +731,20 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-col-no
   border-bottom: 1px solid var(--ledger-rule) !important;
 }
 
-html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
+  background: rgb(213, 235, 227) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+}
+
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
   background: #e8e3da !important;
   background-image: none !important;
   box-shadow: none !important;
   border: 0 !important;
   border-radius: 9px !important;
-  width: calc(100% - 8px) !important;
-  min-width: 0 !important;
-  max-width: calc(100% - 8px) !important;
-  min-height: 2.35rem !important;
-  height: auto !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding: 0.2rem 0.15rem !important;
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) .score-cell-input {
@@ -804,7 +759,6 @@ html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table tbody tr:last-ch
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table-wrap {
-  padding-bottom: 8px !important;
   box-sizing: border-box;
 }
 
@@ -874,8 +828,6 @@ html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidd
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell > .score-entry-panel {
-  width: min(96vw, 1180px) !important;
-  max-width: min(96vw, 1180px) !important;
   height: min(calc(100dvh - 28px), 880px) !important;
   max-height: min(calc(100dvh - 28px), 880px) !important;
 }
@@ -1037,6 +989,12 @@ html.porch-ledger #score-entry-modal.score-entry-plain #score-entry-key-0 {
   }
 }
 
+@media (min-width: 900px) {
+  html.porch-ledger #score-entry-modal.hf-basic-entry .hf-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-meta-label,
 html.porch-ledger.slice2-tv #score-entry-selected-kicker {
   color: var(--ledger-muted) !important;
@@ -1055,8 +1013,6 @@ html.porch-ledger.slice2-tv #custom-numpad .numpad-btn {
   color: var(--ledger-ink) !important;
   border: 1.5px solid #d9c7b0 !important;
   border-radius: var(--ledger-radius-control) !important;
-  min-height: 44px !important;
-  min-width: 44px !important;
   font-family: var(--ledger-type-text) !important;
   font-weight: 800 !important;
   box-shadow: var(--ledger-shadow-key) !important;
@@ -1182,10 +1138,6 @@ html.porch-ledger #bpg-try-demo-tip {
 }
 
 @media (max-width: 760px) {
-  html.porch-ledger.bpg-try-demo.slice2-tv body.active-match-view .bp-app-shell {
-    padding-top: 64px !important;
-  }
-
   html.porch-ledger.slice2-tv body.active-match-view #game-screen .landscape-only {
     justify-content: flex-start !important;
   }
@@ -1212,7 +1164,7 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now {
-    white-space: normal !important;
+    white-space: nowrap !important;
     line-height: 1.05 !important;
     font-size: 11px !important;
     letter-spacing: 0 !important;
@@ -1221,27 +1173,12 @@ html.porch-ledger #bpg-try-demo-tip {
     overflow: hidden !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-avatar {
     width: 40px !important;
     height: 40px !important;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-avatar {
-    width: 40px !important;
-    height: 40px !important;
-  }
-
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.no-context .score-entry-player-card {
-    grid-template-columns: 44px minmax(0, 1fr) 54px !important;
-  }
-
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-value {
-    min-height: 40px !important;
-    font-size: 1.35rem !important;
-  }
-
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-rows {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows {
     gap: 6px !important;
   }
 
@@ -1261,43 +1198,6 @@ html.porch-ledger #bpg-try-demo-tip {
     overflow: visible !important;
     white-space: nowrap !important;
     justify-content: center !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-total-cell,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-total {
-    width: 4.5rem !important;
-    min-width: 0 !important;
-    max-width: 4.5rem !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
-    width: 4.7rem !important;
-    min-width: 4.7rem !important;
-    max-width: 4.7rem !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
-    width: var(--scorecard-round-col, 1.6rem) !important;
-    min-width: 0 !important;
-    max-width: var(--scorecard-round-col, 1.6rem) !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-roomy-identity-4 .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-player {
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture table.scorecard-table {
-    width: 100% !important;
-    max-width: 100% !important;
-    table-layout: fixed !important;
   }
 
   html.porch-ledger.slice2-tv #top-nav .nav-btn {
@@ -1325,10 +1225,10 @@ html.porch-ledger #bpg-try-demo-tip {
     line-height: 1.2 !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-list,
-  html.porch-ledger #score-entry-modal .score-entry-rows,
-  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows {
-    flex: 0 0 auto !important;
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-list,
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows,
+  html.porch-ledger #score-entry-modal.score-entry-plain.score-entry-managed-fit:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows {
+    flex: 1 1 auto !important;
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
@@ -1369,6 +1269,39 @@ html.porch-ledger #bpg-try-demo-tip {
     content: "Settings";
   }
 
+  html.porch-ledger body.home-view #top-nav {
+    flex-wrap: nowrap !important;
+  }
+
+  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"],
+  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"] {
+    font-size: 0 !important;
+    line-height: 1.05 !important;
+    min-width: 0 !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"]::after,
+  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"]::after {
+    font-family: var(--ledger-type-text);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: 0;
+    white-space: pre;
+    text-align: center;
+  }
+
+  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"]::after {
+    content: "Player\A Passports";
+  }
+
+  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"]::after {
+    content: "Settings";
+  }
+
   html.porch-ledger body.home-view .s2-seat {
     min-height: 52px !important;
     padding-top: 3px !important;
@@ -1401,25 +1334,9 @@ html.porch-ledger #bpg-try-demo-tip {
     scroll-snap-align: start;
   }
 
-  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-roomy-identity .scorecard-table.scorecard-table--identity-total .scorecard-col-player,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-roomy-identity-4 .scorecard-table.scorecard-table--identity-total .scorecard-col-player {
-    width: auto !important;
-    min-width: 9rem !important;
-    max-width: none !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
-    width: 2.35rem !important;
-    min-width: 2.35rem !important;
-    max-width: 2.35rem !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity,
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player > .flex,
-  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)),
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:not(:has(.hf-team-line)) > .flex,
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot:not(:has(.hf-team-line)) {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
@@ -1427,15 +1344,11 @@ html.porch-ledger #bpg-try-demo-tip {
     justify-content: flex-start !important;
     gap: 10px !important;
     min-width: 0 !important;
-    width: auto !important;
     max-width: 100% !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-avatar-slot {
     position: relative !important;
-    flex: 0 0 40px !important;
-    width: 40px !important;
-    height: 40px !important;
     overflow: visible !important;
   }
 
@@ -1446,29 +1359,20 @@ html.porch-ledger #bpg-try-demo-tip {
 
   html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
   html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
-    display: block !important;
-    width: auto !important;
     white-space: nowrap !important;
     overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    line-height: 1.15 !important;
+    text-overflow: clip !important;
     min-width: 0 !important;
     max-width: 100% !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
-    flex: 0 0 auto !important;
-    width: max-content !important;
-    min-width: max-content !important;
-    max-width: none !important;
     padding: 0 !important;
     border: 0 !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name .dealer-player-label,
@@ -1484,11 +1388,6 @@ html.porch-ledger #bpg-try-demo-tip {
     width: auto !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
-    width: 40px !important;
-    height: 40px !important;
-  }
-
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-avatar-badge {
     position: absolute !important;
     right: -2px !important;
@@ -1498,13 +1397,24 @@ html.porch-ledger #bpg-try-demo-tip {
     font-size: 9px !important;
   }
 
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
+    box-sizing: border-box !important;
+    height: var(--scorecard-row-height) !important;
+    max-height: var(--scorecard-row-height) !important;
+    padding-top: var(--scorecard-row-pad-y, 2px) !important;
+    padding-bottom: var(--scorecard-row-pad-y, 2px) !important;
+    overflow: hidden !important;
+  }
+
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
     display: flex !important;
     flex-direction: column !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 2px !important;
+    gap: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-total-cell {
@@ -1518,25 +1428,6 @@ html.porch-ledger #bpg-try-demo-tip {
     height: auto !important;
     padding: 1px 5px !important;
     line-height: 1.2 !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-total-cell,
-  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-total {
-    width: 5.1rem !important;
-    min-width: 0 !important;
-    max-width: 5.1rem !important;
-  }
-
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
-    height: 104px !important;
-    min-height: 104px !important;
-    max-height: none !important;
-    overflow: hidden !important;
-  }
-
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td.scorecard-col-player {
-    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
@@ -1567,7 +1458,7 @@ html.porch-ledger #bpg-try-demo-tip {
     text-align: left !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-layout {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-layout {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
@@ -1580,12 +1471,12 @@ html.porch-ledger #bpg-try-demo-tip {
     padding-bottom: 8px !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-lane-label {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-lane-label {
     display: none !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-list,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-list,
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
@@ -1593,82 +1484,21 @@ html.porch-ledger #bpg-try-demo-tip {
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-  }
-
-  html.porch-ledger #score-entry-modal .score-entry-list:not(:has(.score-entry-row:nth-child(5))) {
-    min-height: 0 !important;
-  }
-
-  html.porch-ledger #score-entry-modal .score-entry-rows,
-  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    justify-content: flex-start !important;
-    gap: 4px !important;
+    justify-content: stretch !important;
+    gap: 6px !important;
     padding: 0 !important;
-    scrollbar-width: none !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-rows:has(.score-entry-row:nth-child(5)),
-  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows:has(.score-entry-row:nth-child(5)),
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows:has(.score-entry-row:nth-child(5)) {
-    flex: 0 0 auto !important;
-    height: calc(56px * 3 + 4px * 2) !important;
-    max-height: calc(56px * 3 + 4px * 2) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    scroll-snap-type: y mandatory !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: #b7a28a transparent !important;
-  }
-
-  html.porch-ledger #score-entry-modal .score-entry-list:has(.score-entry-row:nth-child(5))::after {
-    content: "";
-    flex: 0 0 auto;
-    width: 8px;
-    height: 8px;
-    margin: 2px auto 0;
-    border-right: 2px solid var(--ledger-brass);
-    border-bottom: 2px solid var(--ledger-brass);
-    transform: rotate(45deg);
-    pointer-events: none;
-  }
-
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row {
-    flex: 0 0 56px !important;
-    height: 56px !important;
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-row {
+    flex: 1 1 0 !important;
+    height: auto !important;
     min-height: 56px !important;
-    max-height: 56px !important;
+    max-height: none !important;
     overflow: visible !important;
-    grid-template-columns: minmax(0, 1fr) 56px !important;
     align-items: stretch !important;
-    scroll-snap-align: start;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-rows:has(.score-entry-row:nth-child(5)) .score-entry-row {
-    flex: 0 0 56px !important;
-    height: 56px !important;
-    min-height: 56px !important;
-    max-height: 56px !important;
-    scroll-snap-align: start !important;
-    scroll-snap-stop: always !important;
-  }
-
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-player-card,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-player-card {
     height: 100% !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
@@ -1678,78 +1508,46 @@ html.porch-ledger #bpg-try-demo-tip {
     padding: 2px 6px !important;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-avatar,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-avatar {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-avatar {
     width: 32px !important;
     height: 32px !important;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-value,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-value {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-value {
     height: 30px !important;
     min-height: 30px !important;
     max-height: 30px !important;
     font-size: 16px !important;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-meta-label,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-meta-label {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-meta-label {
     font-size: 10px !important;
     letter-spacing: 0.04em !important;
     white-space: nowrap !important;
     line-height: 1 !important;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-input-cell,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-input-cell {
-    height: auto !important;
-    min-height: 0 !important;
-    align-self: center !important;
-  }
-
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name {
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-name {
     font-size: 17px !important;
     line-height: 1.1 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    text-overflow: clip !important;
   }
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-dealer-badge {
-    flex: 0 0 auto !important;
-  }
-
-  html.porch-ledger #score-entry-modal .score-entry-name-line {
+  html.porch-ledger #score-entry-modal.score-entry-plain .score-entry-name-line {
     flex-wrap: nowrap !important;
     align-items: center !important;
     min-width: 0 !important;
     gap: 6px !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-dealer-badge {
+  html.porch-ledger #score-entry-modal.score-entry-plain .score-entry-dealer-badge {
+    flex: 0 0 auto !important;
     font-size: 9px !important;
     letter-spacing: 0.04em !important;
     padding: 2px 5px !important;
     line-height: 1.1 !important;
-  }
-
-  html.porch-ledger #score-entry-modal .score-entry-side,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-side {
-    flex: 0 0 auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    height: auto !important;
-  }
-
-  html.porch-ledger #score-entry-modal .score-entry-keypad,
-  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
-    flex: 0 0 auto !important;
-    min-height: 176px !important;
-    height: auto !important;
-    max-height: none !important;
   }
 
   html.porch-ledger #score-entry-modal .score-entry-panel > .border-t {

@@ -19378,6 +19378,7 @@ ${isDealer
     if(!currentGame||currentGame.name==='Rook')return;
     const mode=getScoreEntryMode();
     if(!mode||isMatchOver(currentGame))return;
+    isSubmitting=false;
     gnPerfAction('opened score modal', mode.kind);
     if(activeInputId)closeNumpad({render:false});
 
