@@ -137,13 +137,9 @@ test('every dropdown uses one inset chevron at iPad size', async ({page}) => {
   await page.evaluate(() => closeSettings());
 
   await page.evaluate(() => startGame('Hand and Foot'));
-  await expect(page.locator('#hand-foot-setup-modal select.hf-pair-select').first()).toBeVisible();
-  const pairs = page.locator('#hand-foot-setup-modal select.hf-pair-select');
-  const pairCount = await pairs.count();
-  expect(pairCount).toBeGreaterThan(0);
-  for (let i = 0; i < pairCount; i += 1) {
-    await shoot(page, pairs.nth(i), `canasta-pair-${i + 1}`, 'public/index.html');
-  }
+  await expect(page.locator('#hand-foot-setup-modal')).toBeVisible();
+  await expect(page.locator('#hand-foot-setup-modal select')).toHaveCount(0);
+  await expect(page.locator('#hand-foot-setup-modal')).not.toContainText('Pick who sits together');
 
   await page.goto('/?gnqa=1', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#gn-qa-scenario')).toBeVisible();

@@ -41,9 +41,9 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   await expect(page.locator('#score-entry-review-btn')).toHaveText(/Review Bids/i);
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hf-no-minus/);
   const minusVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'-\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
-  const dblVisible = await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'00\')"]').evaluate((el) => getComputedStyle(el).display !== 'none');
   expect(minusVisible).toBe(false);
-  expect(dblVisible).toBe(false);
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('00');
+  await expect(page.locator('#score-entry-skip-slot')).toBeVisible();
 
   const digitOrder = await page.evaluate(() => {
     const keys = [...document.querySelectorAll('#score-entry-modal .score-entry-keypad .score-entry-key')]
@@ -140,6 +140,7 @@ test('Start confirm parks live match incomplete', async ({page}) => {
   await page.waitForTimeout(300);
   // Five Crowns plays up to 7. This Wizard has 8, so Start stays off until a game that seats them is picked.
   // Matt 5:25 PM ET: starting another game opens Leave game. Keep playing leaves the match on the table.
+  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Wizard"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#leave-keep-playing')).toBeVisible();

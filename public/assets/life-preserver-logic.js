@@ -312,7 +312,7 @@
     bullets.push(`${gameLine} ${rangeLine}`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
-      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
+      bullets.push(`Flip 7 plays to 200, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
     } else if (Number.isFinite(remaining) && remaining > 0) {
       bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to catch 1st from ${leaderGap} back.`);
     } else {
@@ -322,11 +322,11 @@
     if (binding === 'rank') {
       bullets.push(`Best is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
-      bullets.push(`Best is ${bestShort} — ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
+      bullets.push(`Best is ${bestShort}. ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
     } else if (binding === 'rescue') {
-      bullets.push(`Best is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
+      bullets.push(`Best is ${bestShort}. That is enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
-      bullets.push(`Best is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
+      bullets.push(`Best is ${bestShort}. That is about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
     }
 
     const lesser = [...new Set((offer.slices || [])

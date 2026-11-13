@@ -53,7 +53,7 @@ test('View Pace at 1024 keeps the pace columns on the card and the player names 
   }
 });
 
-test('View Pace opens, delete removes a past night, and minus and 00 stay reachable', async ({page}) => {
+test('View Pace opens, delete removes a past night, and Skip replaces 00', async ({page}) => {
   page.on('dialog', (dialog) => dialog.accept());
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/', {waitUntil: 'domcontentloaded'});
@@ -93,12 +93,22 @@ test('View Pace opens, delete removes a past night, and minus and 00 stay reacha
 
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
-  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeVisible();
-  await expect(page.locator('#score-entry-skip-slot')).toHaveText('00');
-  await page.locator('#score-entry-modal .score-entry-minus-key').click();
+  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeHidden();
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
+  await expect(page.locator('#score-entry-next-btn')).toHaveText('0 & Next');
+  const span = await page.evaluate(() => {
+    const zero = document.getElementById('score-entry-key-0').getBoundingClientRect();
+    const seven = document.querySelector('#score-entry-modal .score-entry-keypad button[onclick="scoreEntryKey(\'7\')"]').getBoundingClientRect();
+    return {zero: zero.width, seven: seven.width, zeroH: zero.height, sevenH: seven.height};
+  });
+  expect(span.zero).toBeGreaterThan(span.seven * 2.4);
+  expect(Math.abs(span.zeroH - span.sevenH)).toBeLessThan(12);
+  const skippedName = await page.evaluate(() => scoreEntryModalState.activePlayer);
   await page.locator('#score-entry-skip-slot').click();
-  const crowns = await page.evaluate(() => scoreEntryModalState.values[scoreEntryModalState.activePlayer]);
-  expect(crowns).toBe('-00');
+  const crowns = await page.evaluate((name) => scoreEntryModalState.values[name], skippedName);
+  expect(crowns).toBe('');
+  await expect(page.locator(`#score-entry-row-${skippedName}`)).toHaveClass(/is-skipped/);
+  await expect(page.locator(`#score-entry-row-${skippedName}`)).not.toHaveClass(/is-complete/);
   await page.locator('#score-entry-modal').getByRole('button', {name: 'Cancel'}).click();
 
   await page.evaluate(() => {
@@ -107,6 +117,7 @@ test('View Pace opens, delete removes a past night, and minus and 00 stay reacha
     if (typeof goActiveMatch === 'function') goActiveMatch();
   });
   await page.locator('#slice2-enter-btn').click();
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
   await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeVisible();
   await page.locator('#score-entry-modal .score-entry-minus-key').click();
   await page.locator('#score-entry-modal .score-entry-keypad').getByRole('button', {name: '8', exact: true}).click();
@@ -115,4 +126,84 @@ test('View Pace opens, delete removes a past night, and minus and 00 stay reacha
     return document.getElementById(`score-entry-value-${name}`)?.textContent || '';
   });
   expect(flipValue).toContain('-8');
+  const flipSpan = await page.evaluate(() => {
+    const zero = document.getElementById('score-entry-key-0').getBoundingClientRect();
+    const seven = document.querySelector('#score-entry-modal .score-entry-keypad button[onclick="scoreEntryKey(\'7\')"]').getBoundingClientRect();
+    return {zero: zero.width, seven: seven.width};
+  });
+  expect(flipSpan.zero).toBeLessThan(flipSpan.seven * 1.6);
+});
+
+test('a phone score sheet keeps the boxes and the progress line inside', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => typeof startGame === 'function');
+  await page.evaluate(() => {
+    const names = ['Ava', 'Ben', 'Cora', 'Dev', 'Eve', 'Fay', 'Gus', 'Hal'];
+    allPlayers = names.slice();
+    players = names.slice();
+    history = [];
+    prefs.lineupIntro = false;
+    prefs.dealerRoll = false;
+    currentGame = null;
+    startGame('Flip 7 Vengeance');
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+  });
+  await page.locator('#slice2-enter-btn').click();
+  await expect(page.locator('#score-entry-modal')).toBeVisible();
+  const fit = await page.evaluate(() => {
+    const panel = document.querySelector('#score-entry-modal .score-entry-panel').getBoundingClientRect();
+    const cells = [...document.querySelectorAll('.score-entry-input-cell')].map((el) => el.getBoundingClientRect());
+    const progress = document.getElementById('score-entry-progress');
+    const box = progress.getBoundingClientRect();
+    return {
+      panelRight: panel.right,
+      panelLeft: panel.left,
+      cellRight: Math.max(...cells.map((box) => box.right)),
+      cellLeft: Math.min(...cells.map((box) => box.left)),
+      progressRight: box.right,
+      progressLeft: box.left,
+      progressOverflow: progress.scrollWidth > progress.clientWidth + 2,
+      text: progress.textContent
+    };
+  });
+  expect(fit.text).toMatch(/0 of 8 scores entered/i);
+  expect(fit.cellLeft).toBeGreaterThanOrEqual(fit.panelLeft);
+  expect(fit.cellRight).toBeLessThanOrEqual(fit.panelRight - 8);
+  expect(fit.progressLeft).toBeGreaterThanOrEqual(fit.panelLeft);
+  expect(fit.progressRight).toBeLessThanOrEqual(fit.panelRight - 4);
+  expect(fit.progressOverflow).toBe(false);
+});
+
+test('the Wizard bid line stays inside the sheet', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => typeof startGame === 'function');
+  await page.evaluate(() => {
+    allPlayers = ['Ava', 'Ben', 'Cora', 'Dev'];
+    players = ['Ava', 'Ben', 'Cora', 'Dev'];
+    history = [];
+    prefs.lineupIntro = false;
+    prefs.dealerRoll = false;
+    currentGame = null;
+    startGame('Wizard');
+    if (typeof goActiveMatch === 'function') goActiveMatch();
+  });
+  await page.locator('#slice2-enter-btn').click();
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('00');
+  const bid = await page.evaluate(() => {
+    const panel = document.querySelector('#score-entry-modal .score-entry-panel').getBoundingClientRect();
+    const progress = document.getElementById('score-entry-progress');
+    const box = progress.getBoundingClientRect();
+    return {
+      text: progress.textContent,
+      panelRight: panel.right,
+      right: box.right,
+      overflow: progress.scrollWidth > progress.clientWidth + 2
+    };
+  });
+  expect(bid.text).toMatch(/bids entered/i);
+  expect(bid.text).toMatch(/trick/i);
+  expect(bid.right).toBeLessThanOrEqual(bid.panelRight - 4);
+  expect(bid.overflow).toBe(false);
 });

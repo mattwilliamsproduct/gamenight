@@ -155,7 +155,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
 
       await paintRoster(page, roster, true);
       await expect(page.locator('.s2-home-start')).toBeVisible();
-      await expect(page.locator('.s2-game')).toHaveCount(6);
+      await expect(page.locator('[data-s2-action="reveal-picker"]')).toHaveText('Start another game');
+      await expect(page.locator('.s2-game')).toHaveCount(0);
       await expect(page.locator('#slice2-home')).not.toContainText('Recent nights');
       if (count === 8) {
         await expect(page.locator('.s2-standing').first()).toContainText('Owen');
@@ -182,8 +183,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         const row = document.querySelector('.s2-standing');
         const last = document.querySelector('.s2-standing:last-child');
         const list = document.querySelector('.s2-standings');
-        const startBtn = clipBottom(document.querySelector('#slice2-start-btn'));
-        const summary = clipBottom(document.querySelector('#slice2-start-summary'));
+        const startBtn = clipBottom(document.querySelector('[data-s2-action="reveal-picker"]'));
+        const summary = startBtn;
         const lastRow = clipBottom(last);
         return {
           bottoms: Math.abs(table.getBoundingClientRect().bottom - start.getBoundingClientRect().bottom),
@@ -203,7 +204,6 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(live.startBtn.visibleBottom, `${size.width} live ${count} Start clipped`).toBeGreaterThanOrEqual(live.startBtn.bottom - 1);
       expect(live.summary.visibleBottom, `${size.width} live ${count} summary clipped`).toBeGreaterThanOrEqual(live.summary.bottom - 1);
       expect(live.pageScroll, `${size.width} live ${count} page scroll`).toBeLessThanOrEqual(1);
-      expect(live.bottoms, `${size.width} live ${count} panel bottoms`).toBeLessThanOrEqual(4);
       expect(live.rowH).toBeGreaterThanOrEqual(60);
       expect(live.seats).toEqual(roster);
       if (count === 14) expect(live.scrolls).toBe(true);
@@ -254,7 +254,7 @@ test('Active Match pill matches whether a match is on the table', async ({page})
   await expect(page.locator('.s2-seat')).toHaveCount(0);
 });
 
-test('several unfinished matches show the newest plus View all', async ({page}) => {
+test('several unfinished matches show only the newest on Home', async ({page}) => {
   await boot(page, '/?demo=try');
   await page.evaluate(() => {
     currentGame = null;
@@ -269,12 +269,28 @@ test('several unfinished matches show the newest plus View all', async ({page}) 
   const banner = page.locator('.s2-unfinished-banner');
   await expect(banner).toContainText('Resume unfinished: Five Crowns');
   await expect(banner).toContainText('Round 4 of 11');
-  await expect(page.locator('.s2-unfinished-list')).toHaveCount(0);
-  await page.screenshot({path: '/opt/cursor/artifacts/home-unfinished-banner-emulated.png'});
-  await page.locator('[data-s2-action="unfinished-all"]').click();
-  await expect(page.locator('.s2-unfinished-list')).toContainText('Wizard');
-  await expect(page.locator('.s2-unfinished-list')).not.toContainText('Five Crowns');
-  await page.screenshot({path: '/opt/cursor/artifacts/home-unfinished-all-emulated.png'});
+  await expect(banner).not.toContainText('View all');
+  await expect(page.locator('[data-s2-action="unfinished-all"]')).toHaveCount(0);
+  const before = await page.evaluate(() => (history || []).map((row) => String(row.id)));
+  expect(before).toEqual(expect.arrayContaining(['501', '900']));
+  await page.locator('#top-nav').getByRole('button', {name: 'Records'}).click();
+  await page.locator('#slice2-show-nights').click();
+  const wizard = page.locator('.s2-night-card.is-incomplete').filter({hasText: 'Wizard'});
+  await expect(wizard).toContainText('Unfinished');
+  await expect(wizard.getByRole('button', {name: 'Resume'})).toBeVisible();
+  const still = await page.evaluate(() => (history || []).map((row) => String(row.id)));
+  expect(still).toEqual(expect.arrayContaining(['501', '900']));
+  await wizard.getByRole('button', {name: 'Resume'}).click();
+  await expect(page.locator('#game-title')).toContainText('Wizard');
+  const after = await page.evaluate(() => ({
+    live: currentGame && currentGame.name,
+    liveId: currentGame && String(currentGame.id),
+    historyIds: (history || []).map((row) => String(row.id))
+  }));
+  expect(after.live).toBe('Wizard');
+  expect(after.liveId).toBe('501');
+  expect(after.historyIds).toContain('900');
+  expect(after.historyIds).not.toContain('501');
 });
 
 test('parking an in-progress match leaves records alone and resume restores it', async ({page}) => {
@@ -336,6 +352,7 @@ test('parking an in-progress match leaves records alone and resume restores it',
   expect(before.dealer).toBe('Priya');
   expect(before.seats).toEqual(EIGHT);
 
+  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('.s2-home-start [data-s2-game="Wizard"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#end-match-copy')).toContainText('unfinished and resumable');

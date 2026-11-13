@@ -46,6 +46,7 @@
   let anotherParkOk = false;
   let unfinishedOpen = false;
   let nextRosterOpen = false;
+  let pickerRevealed = false;
   let addPicks = new Set();
 
   function state() {
@@ -100,6 +101,7 @@
   function clearAnotherMatch() {
     anotherStep = null;
     anotherParkOk = false;
+    pickerRevealed = false;
   }
 
   function takeAnotherParkOk() {
@@ -440,37 +442,15 @@
     const top = open[0];
     const label = displayGameName(top.game || top.name);
     const round = liveRoundLabel(historyAsGame(top));
-    const more = open.length > 1;
-    const others = open.slice(1);
-    const chooser = unfinishedOpen && more
-      ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
-          <section class="s2-panel s2-chooser bp-modal-panel" role="dialog" aria-label="Unfinished matches">
-            <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
-            <div class="s2-unfinished-list">
-            ${others.map((match) => {
-              const name = displayGameName(match.game || match.name);
-              const who = (match.originalRoster || match.players || []).filter(Boolean).join(', ');
-              const when = match.date || match.savedAt || '';
-              return `<div class="s2-unfinished-row">
-                <span><strong>${escapeHtml(name)}</strong> · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}${who ? ` · ${escapeHtml(who)}` : ''}${when ? ` · ${escapeHtml(String(when))}` : ''}</span>
-                <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}" aria-label="Resume unfinished ${escapeHtml(name)}">Resume</button>
-              </div>`;
-            }).join('')}
-            </div>
-            <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-close">Close</button>
-          </section>
-        </div>`
-      : '';
     return `<section class="s2-banner s2-unfinished-banner">
       <div>
         <div class="s2-kicker">Unfinished</div>
         <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
       </div>
       <div class="s2-banner-actions">
-        ${more ? `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all (${open.length})</button>` : ''}
         <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}" aria-label="Resume unfinished ${escapeHtml(label)}">Resume</button>
       </div>
-    </section>${chooser}`;
+    </section>`;
   }
 
   function paintHome() {
@@ -533,6 +513,7 @@
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
+        <span class="s2-game-name">${escapeHtml(game.title)}</span>
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
@@ -554,7 +535,17 @@
     const startSummary = limit.ok
       ? `${meta.title} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
       : limit.message;
-    const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
+    const startBlock = live && !pickerRevealed
+      ? `<section class="s2-panel s2-home-start s2-home-start-compact" aria-label="Start a new match">
+          <div class="s2-panel-head">
+            <div>
+              <h2>Start a new match</h2>
+              <p class="s2-sub">The match on the table stays until you save it.</p>
+            </div>
+          </div>
+          <button type="button" class="s2-btn" data-s2-action="reveal-picker">Start another game</button>
+        </section>`
+      : `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
               <h2>Start a New Match</h2>
@@ -1283,6 +1274,9 @@
       anotherParkOk = true;
       anotherStep = null;
       startGame(selected);
+    } else if (action === 'reveal-picker') {
+      pickerRevealed = true;
+      paintHome();
     } else if (action === 'start-game') {
       startGame(selected);
     } else if (action === 'unfinished-all') {

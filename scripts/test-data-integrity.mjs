@@ -752,7 +752,7 @@ test('Next leaves a blank score empty, and a submitted blank matches a typed 0',
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).state, 'unentered');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: true }).label, 'Not entered');
   assert.equal(Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label, 'Not entered');
-  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Skip leaves a score blank. Submit names anyone still missing.');
+  assert.equal(Scorebook.scoreEntryBlankHelper(), 'Skip leaves a score blank.');
   assert.notEqual(
     Scorebook.scoreEntryStatus({ value: '', acknowledged: false }).label,
     Scorebook.scoreEntryStatus({ value: '3', acknowledged: false }).label

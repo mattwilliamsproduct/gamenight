@@ -187,7 +187,7 @@ try {
   });
   await page.waitForTimeout(200);
   const confirmText = await page.locator('#score-entry-error').innerText();
-  record('unusual confirm', /Is that correct/.test(confirmText) && /Use score/.test(confirmText), confirmText);
+  record('unusual confirm', /Is that correct/.test(confirmText) && /Fix it/.test(confirmText) && /It's fine, save anyway/.test(confirmText) && !/Use score/.test(confirmText), confirmText);
   await shot(page, 'unusual-confirm-1194');
 
   await page.evaluate(() => {
@@ -351,10 +351,8 @@ try {
     history = [base, { ...base, id: 2, date: '11/2/2026', currentRound: 4 }, { ...base, id: 3, game: 'Wizard', name: 'Wizard', date: '11/3/2026', currentRound: 2 }];
     if (window.BPGSlice2) BPGSlice2.refresh();
   });
-  await page.locator('[data-s2-action="unfinished-all"]').click();
-  await shot(page, 'unfinished-3-chooser-1194');
-  const chooser = await page.locator('.s2-chooser').innerText();
-  record('view all popover', /Unfinished matches/.test(chooser) && /Wizard/.test(chooser), chooser.slice(0, 160));
+  const three = await page.locator('#slice2-home').innerText();
+  record('three unfinished still hides view all', /Resume unfinished/.test(three) && !/View all/.test(three) && !/Unfinished matches/.test(three), three.slice(0, 160));
 
   await openScenario(page, 'home-party');
   await page.locator('.s2-game').nth(0).click();

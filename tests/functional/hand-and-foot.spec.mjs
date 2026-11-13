@@ -2,6 +2,8 @@ import {expect, test} from '@playwright/test';
 import {
   editFirstRoundCardsLeft,
   freshTable,
+  openHandFootSetup,
+  seatPlayers,
   endMatch,
   playFourRounds,
   playRound,
@@ -159,4 +161,35 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
   history=await readHistory(page);
   expect(history.filter(item=>item.game==='Hand and Foot' && item.handFoot?.format==='singles' && item.originalRoster?.length===6)).toHaveLength(1);
+});
+
+test('tapping the other team swaps the pair and leaves dealer order', async ({page})=>{
+  await freshTable(page);
+  await seatPlayers(page, ['Ann','Bo','Cy','Dee']);
+  await openHandFootSetup(page);
+  await expect(page.locator('#hand-foot-setup-title')).toHaveText('Choose your teams');
+  await expect(page.locator('#hand-foot-setup-modal select')).toHaveCount(0);
+  await expect(page.locator('#hand-foot-setup-modal')).not.toContainText('Pick who sits together');
+  await expect(page.locator('#hand-foot-setup-order')).toHaveText('Tap a player, then someone on the other team to swap.');
+  await expect(page.locator('#hand-foot-setup-score')).toHaveText('Enter one score per team each round.');
+  await page.locator('.hf-team-person[data-name="Bo"]').click();
+  await page.locator('.hf-team-person[data-name="Cy"]').click();
+  await expect(page.locator('.hf-team-person').nth(0)).toHaveAttribute('data-name', 'Ann');
+  await expect(page.locator('.hf-team-person').nth(1)).toHaveAttribute('data-name', 'Cy');
+  await expect(page.locator('.hf-team-person').nth(2)).toHaveAttribute('data-name', 'Bo');
+  await expect(page.locator('.hf-team-person').nth(3)).toHaveAttribute('data-name', 'Dee');
+  await page.getByRole('button', {name:/Start Match/}).click();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  const order=await page.evaluate(()=>({
+    roster: currentGame.originalRoster.slice(),
+    seats: players.slice(),
+    dealer: currentGame.dealerOffset||0,
+    sides: currentGame.handFoot.sides.map(side=>side.key)
+  }));
+  expect(order).toEqual({
+    roster:['Ann','Bo','Cy','Dee'],
+    seats:['Ann','Bo','Cy','Dee'],
+    dealer:0,
+    sides:['Ann & Cy','Bo & Dee']
+  });
 });

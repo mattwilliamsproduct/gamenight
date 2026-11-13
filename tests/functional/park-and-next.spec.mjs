@@ -38,6 +38,7 @@ test('a parked match is still there after reload and a closed page', async ({pag
     goHome();
     if (window.BPGSlice2) BPGSlice2.refresh('home');
   });
+  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('.s2-home-start [data-s2-game="Beat the Heat"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#leave-save-later')).toBeVisible();
@@ -186,7 +187,7 @@ test('double-tap Next stays on screen order and a filled row replaces', async ({
   const shown = (await page.locator('.score-entry-name').allTextContents()).map((text) => text.trim());
   expect(shown).toEqual(['Dev', 'Cora', 'Ben', 'Ava']);
   await expect(page.locator('.score-entry-row.active .score-entry-name')).toHaveText('Dev');
-  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeVisible();
+  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeHidden();
 
   await page.locator('#score-entry-modal').getByRole('button', {name: '1', exact: true}).click();
   await page.locator('#score-entry-next-btn').click();

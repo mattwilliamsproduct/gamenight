@@ -1761,9 +1761,10 @@
     const names = (model.standings || []).map((row) => row.name).filter(Boolean).slice(0, 6).join(', ');
     const earlyText = model.endedEarlyLabel || '';
     const meta = model.incomplete
-      ? `Incomplete${earlyText ? ` · ${earlyText}` : ''} · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
+      ? `Unfinished${earlyText ? ` · ${earlyText}` : ''} · through Round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
       : (earlyText || `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
+      model.incomplete ? '<span class="s2-night-badge">Unfinished</span>' : '',
       model.assisted ? '<span class="s2-night-badge">Assisted</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
@@ -1784,7 +1785,7 @@
     </li>`).join('')
       : '';
     const rows = rankedHtml + leftHtml;
-    // Meta already sits in the header once. Do not repeat Incomplete / Ended early below.
+    // Meta already sits in the header once. Do not repeat Unfinished / Ended early below.
     const winner = model.incomplete
       ? ''
       : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`;

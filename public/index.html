@@ -262,6 +262,27 @@
     #settings-modal .text-\[11px\] {
       font-size: max(13px, 0.8rem);
     }
+    .settings-plain-label,
+    #how-restore-works > summary {
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      font-stretch: normal;
+      text-transform: none;
+      color: var(--ink);
+      margin-bottom: 0.65rem;
+    }
+    #how-restore-works > summary { cursor: pointer; margin-bottom: 0; }
+    .bp-modal-panel [class~='text-[10px]'].font-extrabold.uppercase,
+    .bp-modal-panel [class~='text-[9px]'].font-extrabold.uppercase {
+      font-family: "Nunito Sans", sans-serif !important;
+      font-size: 1.05rem !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      line-height: 1.3;
+    }
     #scorecard-modal .bp-modal-panel {
       width: var(--bp-modal-leftover-w);
       max-width: var(--bp-modal-leftover-w);
@@ -1085,9 +1106,21 @@
     .score-entry-unconfirmed {
       width: 100%;
       margin-top: 0.35rem;
-      font-size: 0.85rem;
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-stretch: normal;
+      letter-spacing: 0;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+    #score-entry-modal .score-entry-panel > .border-t button {
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.15rem;
       font-weight: 800;
-      color: var(--muted);
+      font-stretch: normal;
+      letter-spacing: 0;
+      white-space: nowrap;
     }
     #score-entry-primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .score-current-input {
@@ -1748,10 +1781,14 @@
       padding: 0.72rem 1.08rem;
       font-size: clamp(1.08rem, 2.05vw, 1.48rem);
       font-weight: 950;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      white-space: normal;
+      max-width: 100%;
+      min-width: 0;
+      line-height: 1.25;
+      text-align: center;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
     }
     .score-entry-progress:empty { display: none; }
@@ -1843,6 +1880,30 @@
     .score-entry-row.is-empty .score-entry-input-cell {
       border-style: dashed;
       background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,250,249,0.95));
+    }
+    .score-entry-row.is-skipped .score-entry-input-cell {
+      border-style: dashed;
+      border-color: #8a6a32;
+      background: #fff4df;
+    }
+    .score-entry-row.is-skipped .score-entry-value {
+      color: #8a6a32;
+      font-family: "Nunito Sans", sans-serif !important;
+      font-size: 1rem !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      overflow: visible;
+    }
+    .score-entry-row.is-skipped .score-entry-value::before { content: "Skip"; }
+    .score-entry-row.is-skipped .score-entry-row-status {
+      border-style: solid;
+      border-color: #8a6a32;
+      color: #8a6a32;
+      background: #fff4df;
+    }
+    #score-entry-modal.score-entry-reviewing .score-entry-side { display: none !important; }
+    #score-entry-modal.score-entry-reviewing #score-entry-context::before {
+      content: "Review scores · ";
     }
     .score-entry-row-status {
       display: inline-flex;
@@ -2262,8 +2323,12 @@
       flex: 0 0 auto;
     }
     #score-entry-modal .score-entry-progress {
+      flex: 1 1 14rem;
+      align-self: center;
       padding: 10px 14px;
       font-size: 20px !important;
+      white-space: normal;
+      max-width: 100%;
     }
     #score-entry-modal .score-entry-lane-title,
     #score-entry-modal .score-entry-meta-label {
@@ -5215,6 +5280,46 @@ button.dealer-name-indicator .dealer-player-label {
       align-items: center;
       gap: 0.45rem;
     }
+    .hf-team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+    }
+    .hf-team-people { display: flex; gap: 0.75rem; margin-top: 0.65rem; }
+    .hf-team-person {
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 7.5rem;
+      padding: 0.65rem 0.4rem;
+      border-radius: 16px;
+      border: 2px solid var(--hairline);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Nunito Sans", sans-serif;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .hf-team-person .avatar-img { width: 72px; height: 72px; }
+    .hf-team-kicker {
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: var(--ink);
+    }
+    .hf-team-person.is-swap-from {
+      border-color: #0a5c54;
+      box-shadow: 0 0 0 3px rgba(10, 92, 84, 0.28);
+      background: #e7f4ef;
+    }
+    #hand-foot-format-toggle .rook-setup-btn.rook-opt-active {
+      background: #0a5c54;
+      color: #fff;
+      border-color: #0a5c54;
+    }
     .hf-pair-select {
       box-sizing: border-box;
       flex: 1 1 0;
@@ -5294,9 +5399,9 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #score-entry-modal.score-entry-hand-foot .score-entry-rows { overflow-y: auto !important; }
     #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('-')"],
-    #score-entry-modal.hf-no-minus button[onclick="scoreEntryKey('00')"],
     #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('-')"],
-    #score-entry-modal.hf-cards-left button[onclick="scoreEntryKey('00')"] {
+    #score-entry-modal.score-entry-hand-foot #score-entry-skip-slot,
+    #score-entry-modal.hf-cards-left #score-entry-skip-slot {
       display: none;
     }
     /* Default keypad (minus + 00 present): 0 spans two columns like live */
@@ -5329,7 +5434,11 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('2')"] { grid-area: k2; }
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
     #score-entry-modal.score-entry-plain #score-entry-next-btn { grid-area: next; grid-row: auto; }
-    #score-entry-modal.score-entry-plain #score-entry-key-0 { grid-area: k0 !important; grid-column: auto !important; }
+    #score-entry-modal.score-entry-plain #score-entry-key-0 { grid-area: k0 !important; height: 100%; }
+    #score-entry-modal.score-entry-plain.score-entry-no-minus #score-entry-key-0 {
+      grid-column: 1 / 4 !important;
+      grid-row: 4 !important;
+    }
     #score-entry-modal.score-entry-plain .score-entry-minus-key { grid-area: minus; }
     #score-entry-modal.score-entry-plain.score-entry-no-minus .score-entry-minus-key { display: none !important; }
     #score-entry-modal.score-entry-plain #score-entry-delete-key,
@@ -5341,17 +5450,44 @@ button.dealer-name-indicator .dealer-player-label {
       font-size: 1.05rem;
       font-weight: 800;
     }
+    #score-entry-modal.score-entry-plain #score-entry-skip-slot {
+      min-height: 44pt;
+    }
     #score-entry-modal.score-entry-plain #score-entry-next-btn {
       font-family: "Nunito Sans", sans-serif;
       font-size: clamp(1.05rem, 1.6vw, 1.35rem);
       font-weight: 800;
     }
     .score-entry-cap-note {
-      margin-top: 0.2rem;
+      position: static;
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      margin: 0.25rem 0 0;
+      transform: none;
+      padding: 0.3rem 0.35rem;
+      text-align: center;
+      white-space: normal;
       color: var(--rose);
+      background: #fff;
+      border: 2px solid var(--rose);
+      border-radius: 12px;
       font-size: 0.95rem;
       font-weight: 800;
       line-height: 1.2;
+      z-index: 8;
+      box-shadow: 0 8px 18px -12px rgba(80, 20, 30, 0.85);
+    }
+    .score-entry-row:has(.score-entry-cap-note),
+    .score-entry-input-cell:has(.score-entry-cap-note) {
+      overflow: visible;
+      z-index: 6;
+    }
+    .score-entry-value.is-confirmed-zero::after {
+      content: "✓";
+      margin-left: 0.16em;
+      color: var(--emerald, #047857);
+      font-size: 0.62em;
     }
         /* No-minus keypad: 789 bk / 456 nx / 123 nx / 0 0 . nx */
     #score-entry-modal.hf-no-minus .score-entry-keypad,
@@ -8878,6 +9014,28 @@ button.dealer-name-indicator .dealer-player-label {
     .numpad-btn:not(.font-mono-num) {
       text-transform: uppercase;
     }
+    #score-entry-modal .score-entry-panel > .border-t .btn-ghost,
+    #score-entry-modal .score-entry-panel > .border-t .btn-accent,
+    #score-entry-modal .score-entry-panel > .border-t .btn-primary,
+    #score-entry-modal #score-entry-unconfirmed,
+    .bp-modal-panel [class~='text-[10px]'].font-extrabold.uppercase,
+    .bp-modal-panel [class~='text-[9px]'].font-extrabold.uppercase {
+      font-family: "Nunito Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      font-stretch: normal !important;
+    }
+    #score-entry-modal .score-entry-panel > .border-t button {
+      font-size: 1.15rem !important;
+      white-space: nowrap !important;
+    }
+    #score-entry-modal #score-entry-unconfirmed,
+    html.slice2-tv #score-entry-modal.score-entry-tablet-land #score-entry-unconfirmed {
+      font-size: 1.05rem !important;
+      line-height: 1.3 !important;
+      white-space: nowrap !important;
+    }
     .bp-modal-kicker,
     .score-entry-meta-label,
     .score-entry-chip,
@@ -9442,6 +9600,19 @@ button.dealer-name-indicator .dealer-player-label {
         height: 100%;
         overflow: hidden;
       }
+      #score-entry-modal .score-entry-progress {
+        flex: 1 0 100%;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin-top: 0.35rem;
+        font-size: 0.95rem !important;
+        letter-spacing: 0;
+        padding: 0.35rem 0.7rem;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.25;
+      }
       #score-entry-modal .score-entry-side > #score-entry-unconfirmed {
         flex: 0 0 auto;
         margin: 0;
@@ -9457,20 +9628,36 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-rows {
         flex: 1 1 0 !important;
+        overflow-x: hidden !important;
         overflow-y: auto !important;
         min-height: 0 !important;
+        box-sizing: border-box;
+        scrollbar-gutter: stable;
+        padding-right: 12px !important;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-row,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
         flex: 0 0 auto !important;
         min-height: 44px !important;
         height: auto !important;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        grid-template-columns: minmax(0, 1fr) minmax(72px, 92px) !important;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-input-cell {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-row.active .score-entry-input-cell {
+        box-shadow: inset 0 0 0 3px rgba(4, 120, 87, 0.35);
       }
       #score-entry-modal .score-entry-player-card,
       #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
       #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-player-card {
-        grid-template-columns: 44px minmax(min-content, 1fr) 52px !important;
+        grid-template-columns: 40px minmax(0, 1fr) 46px !important;
+        min-width: 0;
       }
       #score-entry-modal .score-entry-name-line {
         flex-wrap: wrap;
@@ -9480,9 +9667,10 @@ button.dealer-name-indicator .dealer-player-label {
       #score-entry-modal.score-entry-managed-fit .score-entry-name,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-name {
         flex: 1 1 auto;
-        min-width: max-content;
+        min-width: 0;
         overflow: visible !important;
         text-overflow: clip !important;
+        white-space: normal;
         font-size: 16px !important;
       }
       #score-entry-modal .score-entry-selected-card {
@@ -10174,15 +10362,16 @@ button.dealer-name-indicator .dealer-player-label {
         <div class="text-center mb-5">
           <div class="text-5xl mb-3">🃏</div>
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Before round 1</div>
-          <h3 class="font-display text-3xl">Canasta</h3>
-          <p id="hand-foot-setup-note" class="text-sm font-semibold mt-2" style="color:var(--muted);"></p>
+          <h3 id="hand-foot-setup-title" class="font-display text-3xl">Choose your teams</h3>
+          <p id="hand-foot-setup-note" class="text-base font-semibold mt-2" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;"></p>
         </div>
         <div id="hand-foot-format-toggle" class="hidden flex gap-2 mb-4">
           <button type="button" id="hf-format-teams" onclick="handFootSetupFormat('teams')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Teams</button>
           <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
         </div>
         <div id="hand-foot-setup-sides" class="space-y-3"></div>
-        <p id="hand-foot-setup-order" class="hidden text-[11px] font-semibold mt-3 leading-snug" style="color:var(--muted);">Pick who sits together. Each pair enters one score, and both players keep that round.</p>
+        <p id="hand-foot-setup-order" class="hidden text-base font-semibold mt-3 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Tap a player, then someone on the other team to swap.</p>
+        <p id="hand-foot-setup-score" class="hidden text-base font-semibold mt-1 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Enter one score per team each round.</p>
         <div class="flex gap-2 mt-6">
           <button type="button" onclick="cancelHandFootSetup()" class="btn-ghost flex-1 py-4 font-extrabold">Back</button>
           <button type="button" onclick="commitHandFootSetup()" class="btn-primary flex-[1.4] py-4 font-display text-xl">Start Match →</button>
@@ -10290,7 +10479,7 @@ button.dealer-name-indicator .dealer-player-label {
 
         <!-- Header -->
         <div class="px-6 pt-6 pb-4 border-b hairline flex-shrink-0">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Hand Complete — Score the Round</div>
+          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Hand complete. Score the round</div>
           <div class="flex items-baseline gap-3">
             <h3 class="player-name-label text-2xl" id="rook-results-bidder-header"></h3>
             <span class="chip" style="background:var(--blue-bg);color:var(--blue);" id="rook-results-bid-chip"></span>
@@ -10513,7 +10702,7 @@ button.dealer-name-indicator .dealer-player-label {
               <button type="button" onclick="scoreEntryKey('2')" class="score-entry-key">2</button>
               <button type="button" onclick="scoreEntryKey('3')" class="score-entry-key">3</button>
               <button type="button" id="score-entry-next-btn" onclick="scoreEntryNext()" class="score-entry-key next">Next</button>
-              <button type="button" id="score-entry-skip-slot" onclick="scoreEntryKey('00')" class="score-entry-key">00</button>
+              <button type="button" id="score-entry-skip-slot" onclick="scoreEntrySkip()" class="score-entry-key" aria-label="Skip">Skip</button>
               <button type="button" id="score-entry-key-0" onclick="scoreEntryKey('0')" class="score-entry-key">0</button>
             </div>
           </div>
@@ -10552,6 +10741,13 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div id="midgame-player-suggestions" class="player-suggest-menu add-player-suggest hidden"></div>
         <p id="midgame-player-name-error" class="hidden inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
+        <div id="midgame-add-confirm" class="hidden mt-4">
+          <p id="midgame-add-confirm-copy" class="text-base font-semibold" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;"></p>
+          <div class="flex gap-2 mt-3">
+            <button type="button" class="btn-ghost flex-1 py-3 text-base font-extrabold" style="font-family:'Nunito Sans',sans-serif;letter-spacing:0;" onclick="cancelLateJoinConfirm()">Back</button>
+            <button type="button" class="btn-primary flex-1 py-3 text-base font-extrabold" style="font-family:'Nunito Sans',sans-serif;letter-spacing:0;" onclick="submitAddPlayerMidGame()">Add player</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -10598,7 +10794,7 @@ button.dealer-name-indicator .dealer-player-label {
         <div id="life-preserver-help" class="life-preserver-help hidden absolute inset-0 z-50 flex flex-col p-6 md:p-7 text-left">
           <div id="wheel-help-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--bp-coral);"></div>
           <h3 class="player-name-label text-3xl md:text-4xl mb-2 pr-12">How it works</h3>
-          <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game — not to hand them the win.</p>
+          <p class="text-sm md:text-base font-semibold mb-1" style="color:var(--ink-2);">A one-time rescue when somebody is truly out of the hunt. It is meant to get them back in the game. It is not meant to hand them the win.</p>
           <div class="flex-1 min-h-0 overflow-y-auto pr-1 text-sm md:text-[15px] font-semibold">
             <div id="life-preserver-why" class="life-preserver-why hidden">
               <h4>Why these numbers</h4>
@@ -10612,7 +10808,7 @@ button.dealer-name-indicator .dealer-player-label {
               <li>If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.</li>
               <li>One spin per player per match.</li>
               <li>Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.</li>
-              <li>Not used in Rook, Beat the Heat, or Hand and Foot.</li>
+              <li>Not used in Rook, Beat the Heat, or Canasta.</li>
             </ul>
             <h4>What the wheel does</h4>
             <ul>
@@ -10720,14 +10916,12 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-8 relative">
         <button onclick="closeSettings()" class="absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
         <div class="bp-modal-head text-center mb-6">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--muted);">App Management</div>
           <h3 class="font-display text-3xl">Settings</h3>
         </div>
         <div class="bp-modal-body">
 
         <!-- Appearance -->
         <div class="mb-6">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Appearance</div>
           <div class="space-y-2">
             <div class="settings-appearance-row">
               <div class="min-w-0">
@@ -10743,9 +10937,9 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
 
-        <!-- Preferences -->
+        <!-- Match moments -->
         <div class="mb-6">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">Animations &amp; Flow</div>
+          <div class="settings-plain-label">Match moments</div>
           <div class="space-y-2">
             <label class="flex items-center justify-between py-2.5 px-4 rounded-xl border hairline cursor-pointer" style="background:var(--surface-2);">
               <div>
@@ -10771,13 +10965,16 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
 
-        <!-- Data -->
+        <!-- On this device -->
         <div class="border-t hairline pt-5">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-3" style="color:var(--muted);">This device</div>
+          <div class="settings-plain-label">On this device</div>
           <div class="space-y-3">
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
             <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
-            <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Restore adds players and games this device does not already have. It does not remove players or games already here, and it does not change a game that has the same id. People already seated stay seated. An empty table in the file leaves the match here. A file with a different match saves the one here, then puts the file's match on the table. Neither match is discarded. Photos, text size, lineup intro, path replay, and dealer roll in the file overwrite the ones here. You see what this file will change and can cancel. Nothing changes until you confirm. Confirming saves a recovery copy and downloads a file of what is here now. If the restore does not finish, this device is put back.</p>
+            <details id="how-restore-works">
+              <summary>How restore works</summary>
+              <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed mt-2" style="color:var(--ink-2);">Restore adds players and games this device does not already have. It does not remove players or games already here, and it does not change a game that has the same id. People already seated stay seated. An empty table in the file leaves the match here. A file with a different match saves the one here, then puts the file's match on the table. Neither match is discarded. Photos, text size, lineup intro, path replay, and dealer roll in the file overwrite the ones here. You see what this file will change and can cancel. Nothing changes until you confirm. Confirming saves a recovery copy and downloads a file of what is here now. If the restore does not finish, this device is put back.</p>
+            </details>
             <div id="restore-preview" class="hidden rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
               <p id="restore-preview-title" class="text-base font-extrabold" style="color:var(--ink);">Restore this file?</p>
               <div id="restore-preview-body" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);white-space:pre-line;"></div>
@@ -10810,12 +11007,10 @@ button.dealer-name-indicator .dealer-player-label {
           <p class="local-storage-statement text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Scores and history are saved in this browser on this device.</p>
           <div class="grid gap-3 sm:grid-cols-2">
           <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Backup</div>
             <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">Save a file of the games, players, and the match on this table.</p>
             <button type="button" onclick="exportData()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">Backup</button>
           </div>
           <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
-            <div class="text-[10px] font-extrabold uppercase tracking-[0.18em]" style="color:var(--emerald);">Restore</div>
             <button type="button" onclick="document.getElementById('import-file').click()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Restore</button>
             <input id="import-file" type="file" accept="application/json,.json,text/plain" class="hidden" onchange="importDataFromFile(event)">
           </div>
@@ -10947,7 +11142,7 @@ button.dealer-name-indicator .dealer-player-label {
         <div id="reorder-players-list" class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1"></div>
         <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-2 border-t hairline">
           <button type="button" onclick="closeReorderPlayersModal()" class="btn-ghost flex-1 py-3.5 text-base font-extrabold">Cancel</button>
-          <button type="button" onclick="applyReorderPlayersFromModal()" class="btn-primary flex-1 py-3.5 text-base font-extrabold">Apply New Order</button>
+          <button type="button" onclick="applyReorderPlayersFromModal()" class="btn-primary flex-1 py-3.5 text-lg font-extrabold" style="font-family:'Nunito Sans',sans-serif;letter-spacing:0;font-stretch:normal;">Apply order</button>
         </div>
       </div>
     </div>
@@ -12641,7 +12836,7 @@ button.dealer-name-indicator .dealer-player-label {
     const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
     const others=live.notYet.filter(entry=>entry.reason!=='too-early');
     if(!live.timingOpen && tooEarly.length && !others.length){
-      lines.push('Nobody has a turbo yet — the game is still too early.');
+      lines.push('Nobody has a turbo yet. The game is still too early.');
     } else {
       const groups=[];
       others.forEach(entry=>{
@@ -12658,7 +12853,7 @@ button.dealer-name-indicator .dealer-player-label {
           const showGap=Number.isFinite(gap)&&gap>0&&(entry.reason==='leader-gap'||entry.reason==='pack-gap'||entry.reason==='recovery-load');
           return showGap ? `${entry.player} (${Math.round(gap)} behind)` : entry.player;
         });
-        lines.push(`${escapeHtml(joinLiveNames(names))} — ${escapeHtml(group.label)}.`);
+        lines.push(`${escapeHtml(joinLiveNames(names))}. ${escapeHtml(group.label)}.`);
       });
     }
     return `<div class="comeback-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
@@ -12949,7 +13144,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   function openRetirePlayerModal(){
     if(!currentGame)return;
-    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
+    if(isHandFootGame(currentGame)){ toast('Canasta keeps the same sides for the match','warning'); return; }
     const list=document.getElementById('retire-player-list');
     list.innerHTML='';
     const active=getActivePlayers(currentGame);
@@ -13319,10 +13514,11 @@ button.dealer-name-indicator .dealer-player-label {
   function showScoreEntryError(message){
     const modal=document.getElementById('score-entry-modal');
     document.querySelectorAll('.score-entry-cap-note').forEach(el=>el.remove());
-    const cap=/stops at/.test(message||'');
+    const cap=/stops? at/i.test(message||'');
     if(modal && !modal.classList.contains('hidden')){
       const player=scoreEntryModalState?.activePlayer;
-      const cell=cap&&player?document.querySelector(`#score-entry-row-${rookElementId(player)} .score-entry-input-cell`):null;
+      const row=cap&&player?document.getElementById(`score-entry-row-${rookElementId(player)}`):null;
+      const cell=row?.querySelector('.score-entry-input-cell, .hf-field.active, .hf-round.active')||row?.querySelector('.hf-field.hf-num');
       if(cell){
         const note=document.createElement('div');
         note.className='score-entry-cap-note';
@@ -13343,7 +13539,7 @@ button.dealer-name-indicator .dealer-player-label {
       return;
     }
     host.classList.remove('hidden');
-    host.innerHTML=`You entered ${Number(sample).toLocaleString()}. Is that correct? <button type="button" id="unusual-score-edit">Edit</button> <button type="button" id="unusual-score-use">Use score</button>`;
+    host.innerHTML=`You entered ${Number(sample).toLocaleString()}. Is that correct? <button type="button" id="unusual-score-edit">Fix it</button> <button type="button" id="unusual-score-use">It's fine, save anyway</button>`;
     host.querySelector('#unusual-score-edit')?.addEventListener('click', ()=>host.classList.add('hidden'));
     host.querySelector('#unusual-score-use')?.addEventListener('click', ()=>{
       if(scoreEntryModalState) scoreEntryModalState.unusualOk=true;
@@ -13375,7 +13571,7 @@ button.dealer-name-indicator .dealer-player-label {
     const modeKey=isScoreEntryBidMode(scoreEntryModalState.mode)?'bids':(isScoreEntryTrickMode(scoreEntryModalState.mode)?'tricks':'scores');
     const cap=BPGScorebook.entryDigitCap(currentGame, modeKey);
     if(String(text).replace(/\D/g,'').length>cap){
-      showScoreEntryError(cap>=4?'Hand and Foot scores stop at 9,999.':'That entry stops at 999.');
+      showScoreEntryError(cap>=4?'Canasta scores stop at 9,999.':'That entry stops at 999.');
       return;
     }
     scoreEntryModalState.values[player]=text;
@@ -13634,7 +13830,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
     "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
     "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`,
-    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Canasta (Hand and Foot), scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two pairs in lineup order. Six start as three pairs in lineup order. Three or five play singles. Four or six can switch to singles. The setup can still change those seats before round 1.</li><li><strong>Teams:</strong> A pair enters one set of numbers. Both players keep that round total and the same breakdown.</li><li><strong>Each round:</strong> Type Basic and Count. Basic is one total for red 3s, clean canastas, dirty canastas, and sevens canastas (1,500). Count is the card points. Got the 22 adds 100. Went out adds 100, and only one team can go out. Cards left is a positive number and is subtracted. Round total = Basic + Count + 100 if Got the 22 + 100 if Went out − Cards left. There is no all-wild canasta rule.</li><li><strong>Got the 22:</strong> Picking up the deck and getting 22 cards is +100 for that team. It is its own checkbox.</li><li><strong>Went out:</strong> +100 for the one team that goes out. That team's Cards left is 0.</li><li><strong>Card values:</strong> Jokers 50, 2s 20 (wild), aces 20, K/Q/J/10 = 10, 9 and below = 5 including 8s, 9s, and black 3s. Those points are typed in Count.</li><li><strong>Meld minimum:</strong> 50, then 90, then 110, then 150. That hint is on the round. You do not type it.</li></ul></div>`
+    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two pairs in lineup order. Six start as three pairs in lineup order. Three or five play singles. Four or six can switch to singles. The setup can still change those seats before round 1.</li><li><strong>Teams:</strong> A pair enters one set of numbers. Both players keep that round total and the same breakdown.</li><li><strong>Each round:</strong> Type Basic and Count. Basic is one total for red 3s, clean canastas, dirty canastas, and sevens canastas (1,500). Count is the card points. Got the 22 adds 100. Went out adds 100, and only one team can go out. Cards left is a positive number and is subtracted. Round total = Basic + Count + 100 if Got the 22 + 100 if Went out − Cards left. There is no all-wild canasta rule.</li><li><strong>Got the 22:</strong> Picking up the deck and getting 22 cards is +100 for that team. It is its own checkbox.</li><li><strong>Went out:</strong> +100 for the one team that goes out. That team's Cards left is 0.</li><li><strong>Card values:</strong> Jokers 50, 2s 20 (wild), aces 20, K/Q/J/10 = 10, 9 and below = 5 including 8s, 9s, and black 3s. Those points are typed in Count.</li><li><strong>Meld minimum:</strong> 50, then 90, then 110, then 150. That hint is on the round. You do not type it.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -14751,7 +14947,7 @@ button.dealer-name-indicator .dealer-player-label {
     return String(str??'').replace(/\\/g,'\\\\').replace(/'/g,'\\\'');
   }
   const playerSuggestHideTimers={};
-  const PLAYER_NAME_COMMA_MSG='Use one name — commas aren’t allowed.';
+  const PLAYER_NAME_COMMA_MSG='Use one name. Commas are not allowed.';
   function playerNameWriteError(name){
     if(typeof name!=='string') return PLAYER_NAME_COMMA_MSG;
     if(name.includes(',')) return PLAYER_NAME_COMMA_MSG;
@@ -14898,7 +15094,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(rc) rc.innerHTML=`<span class="font-mono-num">${players.length}</span><span style="opacity:0.6;margin:0 0.3rem;">·</span><span class="font-mono-num">${bench.length}</span> on deck`;
 
     let lh='';
-    if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Tonight's Table is empty — tap an On Deck player to play</div>`;
+    if(!players.length) lh=`<div class="text-center py-10 font-bold text-sm" style="color:var(--muted);">Tonight's Table is empty. Tap an On Deck player to play</div>`;
     else players.forEach((p,i)=>{
       lh+=`<div onclick="moveToBench('${escapeJsString(p)}')" class="lineup-enter roster-row-lineup" style="animation-delay:${i*35}ms">
         <div class="flex items-center gap-3">${getStreakAvatarHtml(p,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(p)}</span></div>
@@ -15266,27 +15462,45 @@ button.dealer-name-indicator .dealer-player-label {
     if(note) note.textContent=noteText;
     const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
     if(order) order.classList.toggle('hidden', !teamPairs);
+    const scoreLine=document.getElementById('hand-foot-setup-score');
+    if(scoreLine) scoreLine.classList.toggle('hidden', !teamPairs);
     if(!_hfSetup.pairs) _hfSetup.pairs=api?api.defaultPairs(_hfSetup.roster):[];
     const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
     const box=document.getElementById('hand-foot-setup-sides');
     if(!box) return;
     if(teamPairs){
-      const roster=_hfSetup.roster;
-      box.innerHTML=(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<div class="hf-setup-side">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">Pair ${pairIndex+1}</div>
-        <div class="hf-pair-row mt-2">
-          ${[0,1].map(seat=>`<select class="bp-select hf-pair-select" aria-label="Pair ${pairIndex+1}, player ${seat+1}" onchange="handFootSetPairMember(${pairIndex},${seat},this.value)">${roster.map(name=>`<option value="${escapeHtml(name)}"${name===pair[seat]?' selected':''}>${escapeHtml(name)}</option>`).join('')}</select>`).join('<span style="color:var(--muted);" aria-hidden="true">&amp;</span>')}
+      const pick=_hfSetup.swapPick;
+      box.innerHTML=`<div class="hf-team-grid">${(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<section class="hf-setup-side" aria-label="Team ${pairIndex+1}">
+        <div class="hf-team-kicker">Team ${pairIndex+1}</div>
+        <div class="hf-team-people">
+          ${[0,1].map(seat=>{
+            const name=pair[seat];
+            const on=!!(pick&&pick.pairIndex===pairIndex&&pick.seat===seat);
+            return `<button type="button" class="hf-team-person${on?' is-swap-from':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})">${getAvatarImg(name,'avatar-img')}<span class="player-name-label">${escapeHtml(name)}</span></button>`;
+          }).join('')}
         </div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score for both</div>
-      </div>`).join('');
+      </section>`).join('')}</div>`;
       return;
     }
-    box.innerHTML=sides.map(side=>`<div class="hf-setup-side">
-      <div class="flex items-center gap-2 flex-wrap">
-        ${side.members.map(name=>`${getAvatarImg(name,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(name)}</span>`).join('<span style="color:var(--muted);">·</span>')}
+    box.innerHTML=`<div class="hf-team-grid">${sides.map(side=>`<section class="hf-setup-side">
+      <div class="hf-team-people">
+        ${side.members.map(name=>`<div class="hf-team-person hf-solo-person">${getAvatarImg(name,'avatar-img')}<span class="player-name-label">${escapeHtml(name)}</span></div>`).join('')}
       </div>
-      <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score column</div>
-    </div>`).join('');
+    </section>`).join('')}</div>`;
+  }
+  function handFootTapPerson(pairIndex, seat){
+    if(!_hfSetup||!_hfSetup.pairs) return;
+    const pick=_hfSetup.swapPick;
+    if(!pick||pick.pairIndex===pairIndex){
+      if(pick&&pick.pairIndex===pairIndex&&pick.seat===seat) _hfSetup.swapPick=null;
+      else _hfSetup.swapPick={pairIndex:Number(pairIndex), seat:Number(seat)};
+      renderHandFootSetup();
+      return;
+    }
+    const name=_hfSetup.pairs[pairIndex]&&_hfSetup.pairs[pairIndex][seat];
+    handFootSetPairMember(pick.pairIndex, pick.seat, name);
+    if(_hfSetup) _hfSetup.swapPick=null;
+    renderHandFootSetup();
   }
   function handFootSetPairMember(pairIndex, seat, name){
     if(!_hfSetup) return;
@@ -15300,6 +15514,7 @@ button.dealer-name-indicator .dealer-player-label {
     const api=handFootApi();
     if(api&&!api.canSwitchToSingles(_hfSetup.roster.length)) return;
     _hfSetup.format=format==='teams'?'teams':'singles';
+    _hfSetup.swapPick=null;
     renderHandFootSetup();
   }
   function closeHandFootSetupModal(){
@@ -15874,7 +16089,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="scorecard-player-identity flex items-center gap-2 min-w-0">
             <span class="scorecard-avatar-slot">${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}</span>
 ${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}" title="Dealer — tap to change" aria-label="${escapeHtml(p)} is dealer — tap to change"><span class="dealer-player-label">${p}</span></button>`
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}" title="Dealer. Tap to change" aria-label="${escapeHtml(p)} is dealer. Tap to change"><span class="dealer-player-label">${p}</span></button>`
               : `<span class="scoreboard-player-name font-jakarta font-bold text-xl ${isLeader?'leader-text':''}">${p}</span>`}
           </div>
           ${progressBar}
@@ -15989,7 +16204,7 @@ ${isDealer
       if(partnerName){
         const opponents=activePlayers.filter(p=>p!==currentGame.rookHighBidder&&p!==partnerName);
         rookUI+=`<div class="rounded-xl p-3 mb-3 border-2" style="border-color:var(--blue-border);background:var(--blue-bg);">
-          <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--blue);">Bidder's Team — Target: ${currentGame.rookHighBid}+</div>
+          <div class="text-[9px] font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--blue);">Bidder's team. Target: ${currentGame.rookHighBid}+</div>
           <div class="flex gap-2 flex-wrap">
             <div class="flex items-center gap-1.5">${getAvatarImg(currentGame.rookHighBidder,'avatar-img')}<span class="player-name-label text-sm">${currentGame.rookHighBidder}</span><span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Bidder</span></div>
             <div class="flex items-center gap-1.5">${getAvatarImg(partnerName,'avatar-img')}<span class="player-name-label text-sm">${partnerName}</span><span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style="background:var(--blue);color:#fff;">Partner</span></div>
@@ -16905,7 +17120,7 @@ ${isDealer
   let _reorderModalTouch = null;
 
   function openReorderPlayersModal(){
-    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
+    if(isHandFootGame(currentGame)){ toast('Canasta keeps the same sides for the match','warning'); return; }
     if(!currentGame || !currentGame.originalRoster){ toast('No active match', 'warning'); return; }
     const retired = currentGame.retired || [];
     _reorderPlayersWorking = currentGame.originalRoster.filter(p => p && !retired.includes(p)).slice();
@@ -17113,7 +17328,7 @@ ${isDealer
       return order[i++];
     });
     if(i !== order.length){
-      toast('Could not apply order — roster changed.', 'warning');
+      toast('Could not apply order. The roster changed.', 'warning');
       return;
     }
     _reorderPlayersWorking = null;
@@ -17151,7 +17366,7 @@ ${isDealer
       } else {
         if(diff===0){cls='trick-counter-exact';status=`All ${round} accounted for`;}
         else if(diff<0){cls='trick-counter-under';status=`${Math.abs(diff)} still unaccounted`;}
-        else{cls='trick-counter-over';status=`${diff} too many — recount`;}
+        else{cls='trick-counter-over';status=`${diff} too many. Recount`;}
       }
       wrap.className=`inline-flex flex-row flex-nowrap items-center min-w-0 rounded-xl border-2 px-4 py-2 transition-colors ${cls}`;
       wrap.innerHTML=`<span class="whm-frac font-mono-num">${total} / ${round}${status?` · ${status}`:''}</span>`;
@@ -17217,7 +17432,7 @@ ${isDealer
           const lastHTh=table.querySelector(`thead th[data-sc-round="${roundIdxs[hidden-1]}"]`);
           const a=firstTh?.getAttribute('data-sc-round-label')||'';
           const b=lastHTh?.getAttribute('data-sc-round-label')||'';
-          hint.textContent=hidden===1?`← R${a}`:`← R${a}–R${b}`;
+          hint.textContent=hidden===1?`Round ${a} is off to the left.`:`Rounds ${a} through ${b} are off to the left.`;
           hint.classList.remove('hidden');
         } else {
           hint.classList.add('hidden');
@@ -18737,7 +18952,7 @@ ${isDealer
     pe.innerHTML=ph;
 
     const rc=document.getElementById('portrait-records');
-    if(!history.length){ rc.innerHTML=`<div class="md:col-span-2 surface p-6 text-center font-bold" style="color:var(--muted);">No records yet — play a match to build history.</div>`; return; }
+    if(!history.length){ rc.innerHTML=`<div class="md:col-span-2 surface p-6 text-center font-bold" style="color:var(--muted);">No records yet. Play a match to build history.</div>`; return; }
     const recs=getHallOfFame();
     const row=(ttl,val,player,icon,pos)=>{
       const dv=(val===Infinity||val===-Infinity||(val===0&&player==='-'))?'—':val;
@@ -19212,6 +19427,7 @@ ${isDealer
     return BPGScorebook.scoreEntryStatus({
       value:scoreEntryModalState?.values?.[player]??'',
       acknowledged:scoreEntryPlayerIsAcknowledged(player),
+      skipped:!!scoreEntryModalState?.skipped?.[player],
       mode:modeKey
     });
   }
@@ -19233,16 +19449,18 @@ ${isDealer
     const complete=status.state==='confirmed';
     row.classList.toggle('is-complete',complete);
     row.classList.toggle('is-empty',status.state==='unentered');
+    row.classList.toggle('is-skipped',status.state==='skipped');
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${status.label}`);
     row.querySelector('.score-entry-input-cell')?.setAttribute('data-entry-state', status.state);
     const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
     if(valueEl){
       const shown=scoreEntryModalState.values?.[player];
       if(typeof shown!=='object') valueEl.textContent=shown!==''&&shown!=null?String(shown):'';
+      valueEl.classList.toggle('is-confirmed-zero', complete && String(shown??'')==='0');
       valueEl.setAttribute('aria-label', `${scoreEntryModalState.mode.valueLabel}: ${status.label}`);
     }
     const indicator=row.querySelector('.score-entry-row-status');
-    if(indicator)indicator.textContent=complete?'✓':'○';
+    if(indicator)indicator.textContent=complete?'✓':(status.state==='skipped'?'–':'○');
     paintScoreEntryStatus(player);
     const slot=row.querySelector('.score-entry-comeback-slot');
     if(slot) slot.innerHTML=previewComebackForEntry(player, scoreEntryModalState.values[player]);
@@ -19302,27 +19520,31 @@ ${isDealer
     const modal=document.getElementById('score-entry-modal');
     const mode=scoreEntryModalState?.mode;
     const plain=scoreEntryUsesPlainPad(mode);
+    const handFoot=mode?.kind==='hand-foot';
+    const bids=isScoreEntryBidMode(mode);
     modal?.classList.toggle('score-entry-plain', plain);
-    const noMinus=plain&&currentGame?.name==='Beat the Heat';
+    const noMinus=plain&&!!(currentGame && window.BPGScorebook && BPGScorebook.playedScoreMustBeNonNegative(currentGame));
     modal?.classList.toggle('score-entry-no-minus', noMinus);
     const skip=document.getElementById('score-entry-skip-slot');
     const next=document.getElementById('score-entry-next-btn');
     const del=document.getElementById('score-entry-delete-key');
     if(del) del.textContent=plain?'Delete':'⌫';
     if(skip){
-      const keepDoubleZero=!plain||currentGame?.name==='Five Crowns'||currentGame?.name==='Flip 7 Vengeance'||currentGame?.name==='Wizard';
-      if(plain&&!keepDoubleZero){
+      if(plain){
         skip.textContent='Skip';
-        skip.onclick=()=>scoreEntryPlainAdvance('skip');
+        skip.setAttribute('aria-label','Skip');
+        skip.onclick=()=>scoreEntrySkip();
       } else {
         skip.textContent='00';
+        skip.setAttribute('aria-label','00');
         skip.onclick=()=>scoreEntryKey('00');
       }
     }
-    if(next&&plain&&scoreEntryModalState){
+    if(next&&scoreEntryModalState&&plain&&!bids&&!handFoot){
       const player=scoreEntryModalState.activePlayer;
       const blank=BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]);
-      next.textContent=blank?'0 & Next':'Next';
+      const skipped=!!scoreEntryModalState.skipped?.[player];
+      next.textContent=(blank&&!skipped)?'0 & Next':'Next';
     } else if(next){
       next.textContent='Next';
     }
@@ -19476,6 +19698,8 @@ ${isDealer
       tablePlayers,
       values,
       acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,false])),
+      skipped:{},
+      skippedPass:false,
       dirty:{},
       replaceArmed:false,
       typedSinceAdvance:false,
@@ -19588,7 +19812,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}" aria-hidden="true">${escapeHtml(entryStatus.label)}</div></div>
+        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value${isComplete&&String(values[p]??'')==='0'?' is-confirmed-zero':''}" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}" aria-hidden="true">${escapeHtml(entryStatus.label)}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;
@@ -19904,6 +20128,10 @@ ${isDealer
 
   function selectScoreEntryPlayer(idx){
     if(!scoreEntryModalState||idx<0||idx>=scoreEntryModalState.players.length)return;
+    if(scoreEntryModalState.reviewing){
+      scoreEntryModalState.reviewing=false;
+      document.getElementById('score-entry-modal')?.classList.remove('score-entry-reviewing');
+    }
     if(scoreEntryModalState.mode?.kind==='hand-foot'&&scoreEntryModalState.players[idx]!==scoreEntryModalState.activePlayer){
       scoreEntryModalState.activePlayer=scoreEntryModalState.players[idx];
       renderHandFootScoreEntryRows();
@@ -19970,7 +20198,8 @@ ${isDealer
     else if(v==='-'){
       if(!allowMinus) return false;
       c=c.startsWith('-')?c.slice(1):(c?'-'+c:'-');
-    } else if((c==='0'||c==='-0')&&v!=='0'&&v!=='00') c=(c.startsWith('-')?'-':'')+v;
+    } else if(v==='00') return false;
+    else if((c==='0'||c==='-0')&&v!=='0') c=(c.startsWith('-')?'-':'')+v;
     else {
       const next=c+String(v);
       if(String(next).replace(/\D/g,'').length>4){
@@ -20086,6 +20315,9 @@ ${isDealer
       scoreEntryModalState.values[p]=next.value;
       scoreEntryModalState.acknowledged[p]=next.acknowledged;
       scoreEntryModalState.dirty[p]=!!next.dirty;
+      if(scoreEntryUsesPlainPad(scoreEntryModalState.mode)&&v!=='00'&&scoreEntryModalState.skipped){
+        scoreEntryModalState.skipped[p]=false;
+      }
       updateScoreEntryActiveValue();
     });
   }
@@ -20125,17 +20357,68 @@ ${isDealer
     const order=scoreEntryModalState.players||[];
     const current=scoreEntryModalState.activePlayer||order[0];
     if(!current)return;
+    if(!scoreEntryModalState.skipped) scoreEntryModalState.skipped={};
     if(kind==='skip'){
       scoreEntryModalState.values[current]='';
       scoreEntryModalState.acknowledged[current]=false;
       scoreEntryModalState.dirty[current]=false;
+      scoreEntryModalState.skipped[current]=true;
     } else if(BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[current])){
       scoreEntryModalState.values[current]='0';
       scoreEntryModalState.acknowledged[current]=true;
       scoreEntryModalState.dirty[current]=true;
+      scoreEntryModalState.skipped[current]=false;
     } else {
       markScoreEntryPlayerComplete(current);
+      scoreEntryModalState.skipped[current]=false;
     }
+    const idx=order.indexOf(current);
+    const skippedSeats=()=>order.filter(player=>!!scoreEntryModalState.skipped?.[player]&&BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]));
+    let following=null;
+    let review=false;
+    if(idx>=0&&idx<order.length-1&&!scoreEntryModalState.skippedPass){
+      following=order[idx+1];
+    } else {
+      scoreEntryModalState.skippedPass=true;
+      const left=skippedSeats();
+      following=left.find(player=>order.indexOf(player)>idx)||null;
+      if(!following&&left[0]&&left[0]!==current) following=left[0];
+      if(!left.length) review=true;
+    }
+    updateScoreEntryRowState(current);
+    updateScoreEntryActiveValue();
+    if(following&&following!==current){
+      const displayIdx=order.indexOf(following);
+      if(displayIdx>=0) selectScoreEntryPlayer(displayIdx);
+    } else if(review){
+      syncScoreEntryPad();
+      scoreEntryModalState.reviewing=true;
+      document.getElementById('score-entry-modal')?.classList.add('score-entry-reviewing');
+      const ctx=document.getElementById('score-entry-context');
+      if(ctx) ctx.textContent='Review the scores, then submit.';
+    } else {
+      syncScoreEntryPad();
+    }
+  }
+
+  function scoreEntrySkip(){
+    if(!scoreEntryModalState)return;
+    if(scoreEntryModalState.mode?.kind==='hand-foot')return;
+    if(scoreEntryUsesPlainPad(scoreEntryModalState.mode)){
+      scoreEntryPlainAdvance('skip');
+      return;
+    }
+    const now=(typeof performance!=='undefined'&&performance.now)?performance.now():Date.now();
+    const typed=!!scoreEntryModalState.typedSinceAdvance;
+    if(!typed&&now-(scoreEntryModalState._advanceAt||0)<400)return;
+    scoreEntryModalState._advanceAt=now;
+    scoreEntryModalState.typedSinceAdvance=false;
+    const order=scoreEntryModalState.players||[];
+    const current=scoreEntryModalState.activePlayer||order[0];
+    if(!current)return;
+    scoreEntryModalState.values[current]='';
+    scoreEntryModalState.acknowledged[current]=false;
+    scoreEntryModalState.dirty[current]=false;
     const idx=order.indexOf(current);
     let following=null;
     if(idx>=0&&idx<order.length-1) following=order[idx+1];
@@ -20737,7 +21020,7 @@ ${isDealer
 
   /* ═══ ADD PLAYER MID-GAME (bottom-half avg) ═══ */
   function addPlayerMidGame(){
-    if(isHandFootGame(currentGame)){ toast('Hand and Foot keeps the same sides for the match','warning'); return; }
+    if(isHandFootGame(currentGame)){ toast('Canasta keeps the same sides for the match','warning'); return; }
     if(currentGame&&currentGame.name==='Rook'){ toast('Rook keeps the same seats for the match','warning'); return; }
     const input=document.getElementById('midgame-add-player-input');
     if(input)input.value='';
@@ -20748,27 +21031,52 @@ ${isDealer
   }
   function closeAddPlayerModal(){
     hidePlayerSuggestions('midgame');
+    const confirm=document.getElementById('midgame-add-confirm');
+    if(confirm){
+      confirm.classList.add('hidden');
+      delete confirm.dataset.ready;
+      delete confirm.dataset.name;
+    }
     closeModal('add-player-modal');
+  }
+  function cancelLateJoinConfirm(){
+    const confirm=document.getElementById('midgame-add-confirm');
+    if(confirm){
+      confirm.classList.add('hidden');
+      delete confirm.dataset.ready;
+    }
   }
   function submitAddPlayerMidGame(selectedName){
     const input=document.getElementById('midgame-add-player-input');
     const raw=selectedName!=null?selectedName:(input?.value||'');
     if(typeof raw!=='string'){ showPlayerNameWriteError('midgame-player-name-error',PLAYER_NAME_COMMA_MSG); return; }
     const name=raw.trim();
-    if(!name){alert('Invalid name.');return;}
+    if(!name){ showPlayerNameWriteError('midgame-player-name-error','Enter a name.'); return; }
     if(rejectUnsavablePlayerName(name,'midgame-player-name-error')) return;
-    if(currentGame.originalRoster.includes(name)){alert('Already in match.');return;}
+    if(currentGame.originalRoster.includes(name)){ showPlayerNameWriteError('midgame-player-name-error','Already in this match.'); return; }
+    const seatedPreview=getActivePlayers(currentGame).filter(p=>p!==name);
+    const previewStart=window.BPGScorebook?BPGScorebook.ceilingAverage(seatedPreview.map(p=>Number(currentGame.totals?.[p])||0)):0;
+    const confirm=document.getElementById('midgame-add-confirm');
+    const copy=document.getElementById('midgame-add-confirm-copy');
+    if(confirm&&copy&&!confirm.dataset.ready){
+      copy.textContent=`${name} starts at ${previewStart}. That is the ceiling of the scores already at the table.`;
+      confirm.classList.remove('hidden');
+      confirm.dataset.ready='1';
+      confirm.dataset.name=name;
+      confirm.dataset.start=String(previewStart);
+      return;
+    }
     closeAddPlayerModal();
     if(!players.includes(name))players.push(name);
     if(!allPlayers.includes(name))allPlayers.push(name);
     currentGame.originalRoster.push(name);
     if(!currentGame.retired)currentGame.retired=[];
     if(isBidTrickGame(currentGame)&&!currentGame.currentBids)currentGame.currentBids={};
-    const seated=getActivePlayers(currentGame).filter(p=>p!==name);
+    const seatedNow=getActivePlayers(currentGame).filter(p=>p!==name);
     const start=BPGScorebook.recordLateJoin(
       currentGame,
       name,
-      seated.map(p=>Number(currentGame.totals?.[p])||0),
+      seatedNow.map(p=>Number(currentGame.totals?.[p])||0),
       Number(currentGame.currentRound)||1
     );
     if(isBidTrickGame(currentGame)&&getBidTrickPhase(currentGame)!=='bidding'){
@@ -21979,7 +22287,7 @@ ${isDealer
       const earlyLabel=BPGScorebook.endedEarlyLabel?BPGScorebook.endedEarlyLabel(h):'';
       const canToggle=!!(BPGScorebook.showCountResult&&BPGScorebook.showCountResult(h));
       const statusBits=[
-        BPGScorebook.isCompletedHistoryMatch(h)?'':('<span class="incomplete-match-badge" data-match-status="incomplete">Incomplete</span>'),
+        BPGScorebook.isCompletedHistoryMatch(h)?'':('<span class="incomplete-match-badge" data-match-status="incomplete">Unfinished</span>'),
         earlyLabel?`<span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:'',
         BPGScorebook.isAssistedMatch(h)?'<span class="assisted-match-badge" data-assisted-match="true">Assisted Match</span>':''
       ].filter(Boolean).join(' · ');
@@ -22883,7 +23191,7 @@ ${isDealer
       return recordCard(title, shown.record, pos, shown.note, shown.empty);
     };
     const section = (id,title,body) => `<section id="${id}" class="space-y-4"><h2 class="font-display text-3xl border-b-2 hairline pb-3">${title}</h2>${body}</section>`;
-    const gameSection = (name,items) => `<div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">${configs[name]?.emoji||''} ${name}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${items.join('')}</div></div>`;
+    const gameSection = (name,items) => `<div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">${configs[name]?.emoji||''} ${displayGameName(name)}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${items.join('')}</div></div>`;
 
     const allTimeHtml = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <div class="space-y-3"><h3 class="font-display text-2xl" style="color:var(--emerald);">Leaders</h3>${[
@@ -23112,8 +23420,8 @@ ${isDealer
       fmt('Comeback Extra: Biggest Help',r.Overall.biggestComebackExtra,r.Overall.biggestComebackExtraPlayer,true),
       fameLine('Rook: Best Score','Rook',r.Rook.bestScore,r.Rook.bestPlayer,true),
       fmt('Rook: Most Bids Won',r.Rook.mostBids,r.Rook.mostBidsPlayer,true),
-      fmt('Hand and Foot: Best Score',r['Hand and Foot'].bestScore,r['Hand and Foot'].bestPlayer,true),
-      fmt('Hand and Foot: Best Round',r['Hand and Foot'].bestRound,r['Hand and Foot'].bestRoundPlayer,true),
+      fmt('Canasta: Best Score',r['Hand and Foot'].bestScore,r['Hand and Foot'].bestPlayer,true),
+      fmt('Canasta: Best Round',r['Hand and Foot'].bestRound,r['Hand and Foot'].bestRoundPlayer,true),
     ].join('');
     document.getElementById('shame-content').innerHTML=[
       fmt('Bronze Medal (Dead Lasts)',r.Overall.mostLastPlace,r.Overall.mostLastPlacePlayer,false),
@@ -23133,8 +23441,8 @@ ${isDealer
       fmt('Beat the Heat: Most Lopsided',deepRecords.games['Beat the Heat'].mostLopsided?.value??0,deepRecords.games['Beat the Heat'].mostLopsided?.player||'-',false),
       fameLine('Rook: Worst Score','Rook',r.Rook.worstScore,r.Rook.worstPlayer,false),
       fmt('Rook: Most Times Set',r.Rook.mostSets,r.Rook.mostSetsPlayer,false),
-      fmt('Hand and Foot: Worst Score',r['Hand and Foot'].worstScore,r['Hand and Foot'].worstPlayer,false),
-      fmt('Hand and Foot: Worst Round',r['Hand and Foot'].worstRound,r['Hand and Foot'].worstRoundPlayer,false),
+      fmt('Canasta: Worst Score',r['Hand and Foot'].worstScore,r['Hand and Foot'].worstPlayer,false),
+      fmt('Canasta: Worst Round',r['Hand and Foot'].worstRound,r['Hand and Foot'].worstRoundPlayer,false),
     ].join('');
     if(window.BPGSlice2) window.BPGSlice2.refresh('records');
   }

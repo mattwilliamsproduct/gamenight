@@ -1175,7 +1175,7 @@ export const QA_SCENARIOS = {
   },
   'home-resume-unfinished':{
     label:'Home · Resume unfinished',
-    description:'No live match. Two unfinished Five Crowns nights, so the newest banner and View all are both on screen.',
+    description:'No live match. Two unfinished Five Crowns nights. Home shows the newest with Resume. The older night stays in Records.',
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:[demoIncompleteNight(),{...demoIncompleteNight(),id:1784476800000,date:'10/18/2026',currentRound:5}],playerProfiles:profiles(),currentGame:null}
   },
