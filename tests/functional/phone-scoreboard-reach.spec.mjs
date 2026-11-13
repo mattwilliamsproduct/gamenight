@@ -137,11 +137,27 @@ test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async 
       return getComputedStyle(el).display !== 'none' && box.width > 0;
     }).map((el) => {
       const box = el.getBoundingClientRect();
-      return {text: (el.textContent || '').trim(), left: box.left, right: box.right};
+      return {
+        text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        left: box.left,
+        right: box.right,
+        width: box.width,
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth
+      };
     }));
-    navButtons.forEach((button) => {
+    const labels = navButtons.map((button) => button.text);
+    expect(labels, `${size.width} nav labels`).toEqual(expect.arrayContaining(['Home', 'Records', 'Player Passports', 'Settings']));
+    expect(labels.filter((text) => text !== 'Perf'), `${size.width} nav labels`).toEqual(['Home', 'Records', 'Player Passports', 'Settings']);
+    const widths = navButtons.map((button) => button.width);
+    expect(Math.max(...widths) - Math.min(...widths), `${size.width} nav widths ${JSON.stringify(navButtons)}`).toBeLessThanOrEqual(2);
+    navButtons.forEach((button, index) => {
       expect(button.left, button.text).toBeGreaterThanOrEqual(-1);
       expect(button.right, `${button.text} past the phone`).toBeLessThanOrEqual(size.width + 1);
+      expect(button.scrollWidth, `${button.text} clipped`).toBeLessThanOrEqual(button.clientWidth + 2);
+      if (index > 0) {
+        expect(button.left - navButtons[index - 1].right, `${navButtons[index - 1].text} touches ${button.text}`).toBeGreaterThanOrEqual(4);
+      }
     });
     expect(state.last?.text).toMatch(/Marco/);
     expect(state.last?.inWrap, `${size.width}x${size.height} last seat not in the scrollport`).toBe(true);

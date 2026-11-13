@@ -9625,12 +9625,24 @@ button.dealer-name-indicator .dealer-player-label {
       }
       html.slice2-tv body.active-match-view #top-nav > div > div:last-child {
         flex: 1 1 auto;
+        flex-wrap: nowrap;
         width: 100%;
-        justify-content: space-between;
+        gap: 0.35rem;
+        justify-content: stretch;
       }
-      html.slice2-tv body.active-match-view #top-nav .nav-btn {
+      html.slice2-tv body.active-match-view #top-nav .nav-btn:not(.hidden) {
         flex: 1 1 0;
+        width: 0;
+        min-width: 0 !important;
+        box-sizing: border-box;
         min-height: 44px;
+        height: auto;
+        padding: 0.28rem 0.2rem;
+        white-space: normal;
+        line-height: 1.15;
+        text-align: center;
+        display: flex;
+        align-items: center;
         justify-content: center;
       }
     }

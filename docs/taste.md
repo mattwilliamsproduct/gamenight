@@ -10,6 +10,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
+- The phone bottom nav gives Home, Records, Player Passports, and Settings equal widths, with a gap between them. Player Passports may take two lines.
 - Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
 - Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
 - A Canasta team name stays on one line (`Megan & Matt`) when the cell has room beside it. The live card ends at the last team row.
@@ -96,6 +98,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Kills
 
+- Floating a short Canasta card in the middle of the cream, or letting the phone bottom-nav labels touch.
 - Comparing raw comeback points across games, so a Canasta 180 always outranks a Wizard 100.
 - A phone nav that says Profiles, or a Settings control that is only a gear.
 - Wrapping a Canasta team name onto two lines when `Megan & Matt` fits beside the avatars, or leaving a cream block under two team rows.
