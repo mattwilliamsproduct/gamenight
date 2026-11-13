@@ -58,6 +58,10 @@ function parseStored(result) {
 
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  // Previews share this project's env, so only production may reach Porch Cloud.
+  if (process.env.VERCEL_ENV !== 'production') {
+    return res.status(503).json({ ok: false, error: 'not-production' });
+  }
   const { url, token } = redisEnv();
   if (!process.env.GN_SYNC_PASSWORD || !url || !token) {
     return res.status(503).json({ ok: false, error: 'not-configured' });
