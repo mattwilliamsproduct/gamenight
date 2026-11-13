@@ -445,6 +445,13 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     flex-direction: column;
   }
 
+  /* With a match on the table the mat holds only a note and one button: it
+     keeps that natural height instead of stretching beside the standings. */
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start.s2-home-start-compact {
+    align-self: start;
+    height: auto;
+  }
+
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-panel-head,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-panel-head,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-deck,
