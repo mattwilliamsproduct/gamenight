@@ -823,6 +823,33 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
     max-width: 100% !important;
     table-layout: fixed !important;
   }
+
+  /* #86 hugs a short sheet to the last row. The ivory stays on that sheet.
+     The navy under it is the mat, not an empty cream block. */
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    background: var(--ledger-paper) !important;
+    border: 1px solid var(--ledger-line) !important;
+    border-radius: var(--ledger-radius-sheet) !important;
+    box-shadow: var(--ledger-shadow-sheet) !important;
+    overflow: hidden !important;
+  }
 }
 
 html.porch-ledger.slice2-tv #slice2-board-line .s2-board-title {
@@ -858,13 +885,6 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-
 
 html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
   box-shadow: inset 8px 0 0 var(--ledger-player) !important;
-}
-
-html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
-  flex: 0 0 auto !important;
-  width: auto !important;
-  min-width: max-content !important;
-  max-width: none !important;
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)) {
@@ -1422,80 +1442,19 @@ html.porch-ledger #bpg-try-demo-tip {
     overflow: hidden !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols th.scorecard-col-player,
-  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols td.scorecard-col-player {
-    min-width: 0 !important;
-    width: auto !important;
-  }
-
-  html.porch-ledger.slice2-tv body.active-match-view #game-screen #scorecard-capture.scorecard-fit-cols td.scorecard-col-player:has(.wheel-badge) {
-    min-width: 132px !important;
-    width: 132px !important;
-    max-width: 148px !important;
-  }
-
-  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols th.scorecard-col-player {
-    min-width: 132px !important;
-    width: 132px !important;
-    max-width: 148px !important;
-  }
-
-  /* "Spin ready" does not fit beside the name. Stack it under the name. */
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex {
-    display: grid !important;
-    grid-template-columns: 32px minmax(0, 1fr) !important;
-    grid-template-areas: "avatar name" "avatar badge" !important;
-    align-items: center !important;
-    column-gap: 6px !important;
-    row-gap: 1px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
-    display: contents !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-avatar-slot {
-    grid-area: avatar !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-name-slot {
-    grid-area: name !important;
-    min-width: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name {
-    font-size: 15px !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture .wheel-badge {
-    grid-area: badge !important;
-    margin: 0 !important;
-    justify-self: start !important;
-    align-self: center !important;
-    width: auto !important;
-    max-width: 100% !important;
-    min-height: 22px !important;
-    font-size: 12px !important;
-    line-height: 1.1 !important;
-    padding: 1px 6px !important;
-    white-space: nowrap !important;
-  }
-
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols td.scorecard-total-cell,
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols td.scorecard-col-total {
-    width: 72px !important;
-    min-width: 72px !important;
-    max-width: 72px !important;
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
-    width: max(40px, var(--scorecard-round-col, 40px)) !important;
-    min-width: 40px !important;
-    max-width: 52px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered,
@@ -1514,20 +1473,20 @@ html.porch-ledger #bpg-try-demo-tip {
   html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
-    width: 78px !important;
-    min-width: 78px !important;
-    max-width: 78px !important;
-    white-space: nowrap !important;
+    width: auto !important;
+    min-width: 4.4rem !important;
+    max-width: none !important;
     line-height: 1.05 !important;
     letter-spacing: 0 !important;
     text-align: center !important;
-    padding: 4px 1px !important;
+    padding: 4px 2px !important;
     overflow: hidden !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now {
-    font-size: 10px !important;
+    font-size: 12px !important;
+    white-space: normal !important;
   }
 
   html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-avatar {
@@ -1712,15 +1671,6 @@ html.porch-ledger #bpg-try-demo-tip {
     text-overflow: clip !important;
     min-width: 4.8em !important;
     max-width: 100% !important;
-  }
-
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-name-indicator,
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
-    overflow: visible !important;
-    min-width: max-content !important;
-    max-width: none !important;
-    width: auto !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
