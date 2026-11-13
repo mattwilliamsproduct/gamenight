@@ -526,6 +526,16 @@ test('bid/trick deferAck still appends digits after the first entry', () => {
   assert.equal(next.acknowledged, false);
 });
 
+test('a 00 key does not write a score', () => {
+  const kept = Scorebook.applyScoreEntryKey({value: '4', acknowledged: true, dirty: true, mode: 'scores'}, '00');
+  assert.equal(kept.value, '4');
+  assert.equal(kept.rejected, false);
+  assert.equal(Scorebook.playedScoreMustBeNonNegative('Five Crowns'), true);
+  assert.equal(Scorebook.playedScoreMustBeNonNegative('Beat the Heat'), true);
+  assert.equal(Scorebook.playedScoreMustBeNonNegative('Flip 7 Vengeance'), false);
+  assert.equal(Scorebook.playedScoreMustBeNonNegative('Wizard'), false);
+});
+
 test('score entry stops at 999 and Canasta scores stop at 9999', () => {
   const crowns = Scorebook.applyScoreEntryKey({ value: '99', acknowledged: true, digitCap: 3, dirty: true }, '9');
   assert.equal(crowns.value, '999');

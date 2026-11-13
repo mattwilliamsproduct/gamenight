@@ -254,7 +254,7 @@ test('Active Match pill matches whether a match is on the table', async ({page})
   await expect(page.locator('.s2-seat')).toHaveCount(0);
 });
 
-test('several unfinished matches show the newest plus View all', async ({page}) => {
+test('several unfinished matches show only the newest on Home', async ({page}) => {
   await boot(page, '/?demo=try');
   await page.evaluate(() => {
     currentGame = null;
@@ -269,12 +269,28 @@ test('several unfinished matches show the newest plus View all', async ({page}) 
   const banner = page.locator('.s2-unfinished-banner');
   await expect(banner).toContainText('Resume unfinished: Five Crowns');
   await expect(banner).toContainText('Round 4 of 11');
-  await expect(page.locator('.s2-unfinished-list')).toHaveCount(0);
-  await page.screenshot({path: '/opt/cursor/artifacts/home-unfinished-banner-emulated.png'});
-  await page.locator('[data-s2-action="unfinished-all"]').click();
-  await expect(page.locator('.s2-unfinished-list')).toContainText('Wizard');
-  await expect(page.locator('.s2-unfinished-list')).not.toContainText('Five Crowns');
-  await page.screenshot({path: '/opt/cursor/artifacts/home-unfinished-all-emulated.png'});
+  await expect(banner).not.toContainText('View all');
+  await expect(page.locator('[data-s2-action="unfinished-all"]')).toHaveCount(0);
+  const before = await page.evaluate(() => (history || []).map((row) => String(row.id)));
+  expect(before).toEqual(expect.arrayContaining(['501', '900']));
+  await page.locator('#top-nav').getByRole('button', {name: 'Records'}).click();
+  await page.locator('#slice2-show-nights').click();
+  const wizard = page.locator('.s2-night-card.is-incomplete').filter({hasText: 'Wizard'});
+  await expect(wizard).toContainText('Unfinished');
+  await expect(wizard.getByRole('button', {name: 'Resume'})).toBeVisible();
+  const still = await page.evaluate(() => (history || []).map((row) => String(row.id)));
+  expect(still).toEqual(expect.arrayContaining(['501', '900']));
+  await wizard.getByRole('button', {name: 'Resume'}).click();
+  await expect(page.locator('#game-title')).toContainText('Wizard');
+  const after = await page.evaluate(() => ({
+    live: currentGame && currentGame.name,
+    liveId: currentGame && String(currentGame.id),
+    historyIds: (history || []).map((row) => String(row.id))
+  }));
+  expect(after.live).toBe('Wizard');
+  expect(after.liveId).toBe('501');
+  expect(after.historyIds).toContain('900');
+  expect(after.historyIds).not.toContain('501');
 });
 
 test('parking an in-progress match leaves records alone and resume restores it', async ({page}) => {

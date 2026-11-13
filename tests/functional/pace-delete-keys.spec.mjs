@@ -53,7 +53,7 @@ test('View Pace at 1024 keeps the pace columns on the card and the player names 
   }
 });
 
-test('View Pace opens, delete removes a past night, and minus and 00 stay reachable', async ({page}) => {
+test('View Pace opens, delete removes a past night, and Skip replaces 00', async ({page}) => {
   page.on('dialog', (dialog) => dialog.accept());
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/', {waitUntil: 'domcontentloaded'});
@@ -93,12 +93,15 @@ test('View Pace opens, delete removes a past night, and minus and 00 stay reacha
 
   await page.locator('#slice2-enter-btn').click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
-  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeVisible();
-  await expect(page.locator('#score-entry-skip-slot')).toHaveText('00');
-  await page.locator('#score-entry-modal .score-entry-minus-key').click();
+  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeHidden();
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
+  await expect(page.locator('#score-entry-next-btn')).toHaveText('0 & Next');
+  const skippedName = await page.evaluate(() => scoreEntryModalState.activePlayer);
   await page.locator('#score-entry-skip-slot').click();
-  const crowns = await page.evaluate(() => scoreEntryModalState.values[scoreEntryModalState.activePlayer]);
-  expect(crowns).toBe('-00');
+  const crowns = await page.evaluate((name) => scoreEntryModalState.values[name], skippedName);
+  expect(crowns).toBe('');
+  await expect(page.locator(`#score-entry-row-${skippedName}`)).toHaveClass(/is-skipped/);
+  await expect(page.locator(`#score-entry-row-${skippedName}`)).not.toHaveClass(/is-complete/);
   await page.locator('#score-entry-modal').getByRole('button', {name: 'Cancel'}).click();
 
   await page.evaluate(() => {
@@ -107,6 +110,7 @@ test('View Pace opens, delete removes a past night, and minus and 00 stay reacha
     if (typeof goActiveMatch === 'function') goActiveMatch();
   });
   await page.locator('#slice2-enter-btn').click();
+  await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
   await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeVisible();
   await page.locator('#score-entry-modal .score-entry-minus-key').click();
   await page.locator('#score-entry-modal .score-entry-keypad').getByRole('button', {name: '8', exact: true}).click();

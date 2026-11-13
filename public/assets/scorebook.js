@@ -580,6 +580,10 @@
     }
     const cap = Number.isFinite(Number(source.digitCap)) ? Number(source.digitCap) : 3;
     const limitLabel = cap >= 4 ? '9,999' : '999';
+    const scoreLike = mode !== 'bids' && mode !== 'tricks' && mode !== 'bid' && mode !== 'trick';
+    if (token === '00' && scoreLike) {
+      return { value, acknowledged, replaced: false, dirty, rejected: false };
+    }
     if (token === 'backspace') value = value.slice(0, -1);
     else if (token === '-') value = value.startsWith('-') ? value.substring(1) : '-' + value;
     else if (digit) {
@@ -681,6 +685,9 @@
     const value = source.value == null ? '' : String(source.value);
     const mode = source.mode || '';
     const bidLike = mode === 'bids' || mode === 'tricks' || mode === 'bid' || mode === 'trick';
+    if (source.skipped && scoreEntryValueIsBlank(value)) {
+      return { state: 'skipped', label: 'Skipped' };
+    }
     if (scoreEntryValueIsBlank(value)) {
       return { state: 'unentered', label: 'Not entered' };
     }

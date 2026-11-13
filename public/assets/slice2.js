@@ -440,37 +440,15 @@
     const top = open[0];
     const label = displayGameName(top.game || top.name);
     const round = liveRoundLabel(historyAsGame(top));
-    const more = open.length > 1;
-    const others = open.slice(1);
-    const chooser = unfinishedOpen && more
-      ? `<div class="s2-chooser-layer" data-s2-action="unfinished-close">
-          <section class="s2-panel s2-chooser bp-modal-panel" role="dialog" aria-label="Unfinished matches">
-            <div class="s2-panel-head"><h2>Unfinished matches</h2></div>
-            <div class="s2-unfinished-list">
-            ${others.map((match) => {
-              const name = displayGameName(match.game || match.name);
-              const who = (match.originalRoster || match.players || []).filter(Boolean).join(', ');
-              const when = match.date || match.savedAt || '';
-              return `<div class="s2-unfinished-row">
-                <span><strong>${escapeHtml(name)}</strong> · ${escapeHtml(liveRoundLabel(historyAsGame(match)))}${who ? ` · ${escapeHtml(who)}` : ''}${when ? ` · ${escapeHtml(String(when))}` : ''}</span>
-                <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(match.id || ''))}" aria-label="Resume unfinished ${escapeHtml(name)}">Resume</button>
-              </div>`;
-            }).join('')}
-            </div>
-            <button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-close">Close</button>
-          </section>
-        </div>`
-      : '';
     return `<section class="s2-banner s2-unfinished-banner">
       <div>
         <div class="s2-kicker">Unfinished</div>
         <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
       </div>
       <div class="s2-banner-actions">
-        ${more ? `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="unfinished-all">View all (${open.length})</button>` : ''}
         <button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${escapeHtml(String(top.id || ''))}" aria-label="Resume unfinished ${escapeHtml(label)}">Resume</button>
       </div>
-    </section>${chooser}`;
+    </section>`;
   }
 
   function paintHome() {
@@ -533,6 +511,7 @@
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
         </span>
+        <span class="s2-game-name">${escapeHtml(game.title)}</span>
       </button>`;
     }).join('');
     const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">

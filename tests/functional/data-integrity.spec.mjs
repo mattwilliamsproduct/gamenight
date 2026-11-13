@@ -1636,9 +1636,9 @@ test('an incomplete history match stays out of the book until Resume Match is co
   expect(stats.liveId).toBe(111);
   const heat=page.locator('#hall-of-fame-view .s2-night',{hasText:'Beat the Heat'});
   const wizard=page.locator('#hall-of-fame-view .s2-night',{hasText:'Wizard'});
-  await expect(heat).toContainText('Incomplete');
+  await expect(heat).toContainText('Unfinished');
   await expect(heat.locator('[data-s2-action="night-resume"]')).toBeVisible();
-  await expect(wizard).not.toContainText('Incomplete');
+  await expect(wizard).not.toContainText('Unfinished');
   await expect(wizard.locator('[data-s2-action="night-resume"]')).toHaveCount(0);
   await expect(wizard.locator('[data-s2-action="night-scorecard"]')).toBeVisible();
   await heat.screenshot({path:`${ARTIFACTS}/slice1-incomplete-resume.png`});

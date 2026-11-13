@@ -24,13 +24,13 @@ test('Home shows six equal 5:7 cards with no labels; select then Start opens the
   const cards = page.locator('.s2-home-start [data-s2-action="pick-game"]');
   await expect(cards).toHaveCount(6);
   await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
-  await expect(page.locator('.s2-home-start .s2-game-copy')).toHaveCount(0);
+  await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(6);
   await expect(page.locator('.s2-home-start [data-s2-action="start-game-now"]')).toHaveCount(0);
 
   for (const game of GAMES) {
     const tile = page.locator(`.s2-home-start [data-s2-action="pick-game"][data-s2-game="${game.id}"]`);
     await expect(tile).toHaveAttribute('aria-label', new RegExp(game.title, 'i'));
-    await expect(tile).not.toContainText(game.title);
+    await expect(tile.locator('.s2-game-name')).toHaveText(game.title);
   }
 
   const metrics = await page.evaluate(() => {
@@ -70,6 +70,38 @@ test('Home shows six equal 5:7 cards with no labels; select then Start opens the
   for (let i = 0; i < 6; i += 1) {
     await expect(photos.nth(i)).toHaveCSS('object-fit', 'cover');
   }
+
+  const borderOf = (id) => page.locator(`.s2-home-start [data-s2-game="${id}"] .s2-card-frame`).evaluate((node) => {
+    const ring = getComputedStyle(node, '::after').boxShadow || '';
+    const px = (ring.match(/(\d+(?:\.\d+)?)px/g) || []).map((part) => parseFloat(part));
+    const spread = px.length >= 4 ? px[3] : 0;
+    const color = (ring.match(/rgba?\([^)]+\)/) || [])[0] || '';
+    return {
+      width: spread,
+      style: spread > 0 ? 'solid' : 'none',
+      color,
+      text: (node.closest('button')?.innerText || '').trim()
+    };
+  });
+  const flipIdle = await borderOf('Flip 7 Vengeance');
+  const crownsIdle = await borderOf('Five Crowns');
+  expect(flipIdle.width).toBeGreaterThanOrEqual(2);
+  expect(flipIdle.style).toBe('solid');
+  expect(flipIdle.text).not.toMatch(/Selected/);
+  expect(crownsIdle.width).toBeGreaterThan(flipIdle.width);
+  expect(crownsIdle.color).toBe('rgb(10, 92, 84)');
+  await page.locator('.s2-home-start [data-s2-game="Flip 7 Vengeance"]').click();
+  const flipOn = await borderOf('Flip 7 Vengeance');
+  const crownsOff = await borderOf('Five Crowns');
+  expect(flipOn.width).toBeGreaterThan(crownsOff.width);
+  expect(flipOn.color).toBe('rgb(10, 92, 84)');
+  expect(flipOn.text).not.toMatch(/Selected/);
+  await page.locator('.s2-home-start [data-s2-game="Wizard"]').click();
+  const wizardOn = await borderOf('Wizard');
+  const flipOff = await borderOf('Flip 7 Vengeance');
+  expect(wizardOn.width).toBeGreaterThan(flipOff.width);
+  expect(wizardOn.color).toBe('rgb(10, 92, 84)');
+  expect(flipOff.color).not.toBe('rgb(10, 92, 84)');
 
   const wizard = page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Wizard"]');
   await wizard.click();

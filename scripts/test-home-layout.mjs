@@ -17,7 +17,7 @@ test('laptop Home keeps a content-sized default and a landscape fill', async () 
   assert.match(js, /s2-podium-person[\s\S]*s2-podium-rank/);
   assert.match(js, /homePlaceLabel/);
   assert.match(js, /Resume unfinished/);
-  assert.match(js, /View all/);
+  assert.doesNotMatch(js, /View all/);
   assert.doesNotMatch(js, /s2-podium-faces/);
   assert.doesNotMatch(js, /s2-podium-badge/);
   assert.doesNotMatch(js, /edit-seating/);
