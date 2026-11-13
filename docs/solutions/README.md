@@ -122,4 +122,4 @@ Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phon
 
 Standing trap: [porch-ledger-phone-edge.md](porch-ledger-phone-edge.md) — the phone ledger field runs to the screen edge. Do not leave the 6px hairline scrollbar thumb as a cream strip. Match-bar labels stay one line at 13px or larger. Player Passports is not abbreviated, and the buttons are not forced to equal widths.
 
-Standing trap: [porch-mat.md](porch-mat.md) — the home picker is the blue mat. Decks sit on the calm center. The cube tile stays at the edge. Numbers stay on ivory. Swap `--mat-felt`, `--mat-felt-texture`, `--mat-stitch`, and `--deck-shadow` in one place. Do not put the decks back inside a cream rectangle.
+Standing trap: [porch-mat.md](porch-mat.md) — the home picker is the blue mat. Decks sit on the calm center of the blue felt; the suit lattice stays toward the edges. Numbers stay on ivory. Tweak the `--felt-*` tokens, `--mat-stitch`, and `--deck-shadow` in one place. Do not put the decks back inside a cream rectangle.
