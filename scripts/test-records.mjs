@@ -774,3 +774,29 @@ test('Delete night is on a past night and stays off the live match', () => {
   assert.match(Records.nightCardHtml(model, ctx, false), /Delete night/);
   assert.doesNotMatch(Records.nightCardHtml({...model, id: 3}, ctx, false), /Delete night/);
 });
+
+test('biggest single-game comeback uses round totals, not Turbo', () => {
+  const rounds = [];
+  for (let i = 1; i <= 15; i += 1) {
+    rounds.push({
+      round: i,
+      scores: i <= 7
+        ? {Ada: i === 1 ? 100 : 0, Bea: 10, Cleo: 0, Dee: 5}
+        : {Ada: 0, Bea: 0, Cleo: 20, Dee: 0}
+    });
+  }
+  const match = {
+    game: 'Wizard',
+    date: '10/27/2026',
+    originalRoster: ['Ada', 'Bea', 'Cleo', 'Dee'],
+    winners: ['Cleo'],
+    totals: {Ada: 100, Bea: 70, Cleo: 160, Dee: 35},
+    rounds
+  };
+  assert.equal(Scorebook.countsForScoreMagnitude(match), true);
+  const row = Records.biggestSingleGameComeback([match], helpers);
+  assert.equal(row.player, 'Cleo');
+  assert.equal(row.value, 100);
+  assert.equal(row.label, 'Last at halfway, won Wizard');
+  assert.equal(Records.shouldShowComebackStats([match]), false);
+});

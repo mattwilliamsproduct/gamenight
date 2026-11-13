@@ -381,6 +381,60 @@
     return (history || []).some(matchHasComebackData);
   }
 
+  // Biggest single-game comeback comes from ordinary round totals.
+  // Turbo extras stay behind shouldShowComebackStats. This one does not.
+  function biggestSingleGameComeback(history, helpers) {
+    const book = helpers && helpers.scorebook;
+    const configs = (helpers && helpers.configs) || {};
+    let best = null;
+    (history || []).forEach((match) => {
+      if (!match) return;
+      if (book && typeof book.countsForScoreMagnitude === 'function' && !book.countsForScoreMagnitude(match)) return;
+      const rounds = (match.rounds || []).filter((round) => {
+        if (!round || round.hailMaryBonus) return false;
+        if (book && typeof book.isSyntheticAdjustmentRound === 'function' && book.isSyntheticAdjustmentRound(round)) return false;
+        return true;
+      });
+      if (rounds.length < 2 || typeof helpers.sortPlayersByTotal !== 'function') return;
+      const cfg = configs[match.game] || { winLow: match.game === 'Five Crowns' || match.game === 'Beat the Heat' };
+      const roster = typeof helpers.getDisplayPlayers === 'function'
+        ? helpers.getDisplayPlayers(match)
+        : (match.originalRoster || Object.keys(match.totals || {}));
+      const players = (roster || []).filter((name) => name && match.totals && match.totals[name] !== undefined);
+      if (players.length < 2) return;
+      const winners = (match.winners || []).filter((name) => players.includes(name));
+      if (!winners.length) return;
+      const half = Math.max(1, Math.floor(rounds.length / 2));
+      const totals = {};
+      players.forEach((name) => { totals[name] = 0; });
+      rounds.slice(0, half).forEach((round) => {
+        Object.entries(round.scores || {}).forEach(([name, score]) => {
+          if (totals[name] === undefined || (round.joinBonus && round.joinBonus[name])) return;
+          totals[name] += Number(score) || 0;
+        });
+      });
+      const sorted = helpers.sortPlayersByTotal(players, totals, cfg);
+      if (!sorted.length) return;
+      const lastScore = totals[sorted[sorted.length - 1]];
+      const leaderScore = totals[sorted[0]];
+      winners.forEach((name) => {
+        if (totals[name] !== lastScore) return;
+        const deficit = cfg.winLow ? (totals[name] - leaderScore) : (leaderScore - totals[name]);
+        if (!(deficit > 0)) return;
+        const row = {
+          player: name,
+          value: deficit,
+          game: match.game,
+          date: match.date,
+          id: match.id,
+          label: `Last at halfway, won ${match.game}`
+        };
+        if (!best || deficit > best.value) best = row;
+      });
+    });
+    return best;
+  }
+
   function nightStandings(match, helpers) {
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
@@ -1827,6 +1881,7 @@
     nightPodium,
     matchHasComebackData,
     shouldShowComebackStats,
+    biggestSingleGameComeback,
     lifePreserverEvents,
     lifePreserverSummary,
     recordMatchesPlayer,

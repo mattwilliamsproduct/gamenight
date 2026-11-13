@@ -22429,9 +22429,17 @@ ${isDealer
     const lopsidedRivalries = rivalries.slice().sort((a,b)=>b.edgePct-a.edgePct||b.together-a.together).slice(0,5);
     const showComeback = window.BPGRecords ? BPGRecords.shouldShowComebackStats(completed) : false;
     if(!showComeback){
-      allTime.biggestComeback = null;
       allTime.mostComebackExtras = null;
       allTime.biggestComebackExtra = null;
+    }
+    if(window.BPGRecords&&typeof BPGRecords.biggestSingleGameComeback==='function'){
+      const fromRounds=BPGRecords.biggestSingleGameComeback(completed,{
+        configs,
+        getDisplayPlayers:getRecordedPlayers,
+        sortPlayersByTotal,
+        scorebook:BPGScorebook
+      });
+      if(fromRounds) allTime.biggestComeback=fromRounds;
     }
     const shameAwards = window.BPGRecords
       ? BPGRecords.buildShameAwards({games,allTime}, playerList, wizardBidStats, comebackWins, showComeback)
