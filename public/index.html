@@ -5317,7 +5317,8 @@ button.dealer-name-indicator .dealer-player-label {
       box-shadow: 0 0 0 3px rgba(10, 92, 84, 0.28);
       background: #e7f4ef;
     }
-    #hand-foot-format-toggle .rook-setup-btn.rook-opt-active {
+    #hand-foot-format-toggle .rook-setup-btn.rook-opt-active,
+    #rook-setup-modal .rook-setup-btn.rook-opt-active {
       background: #0a5c54;
       color: #fff;
       border-color: #0a5c54;
@@ -10444,7 +10445,7 @@ button.dealer-name-indicator .dealer-player-label {
 
         <div class="space-y-5">
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Win Target</div>
+            <div class="text-xs font-extrabold mb-2" style="color:var(--muted);">Win target</div>
             <div class="flex gap-2">
               <button onclick="rookSetupSelect('winTarget',300,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all rook-opt-active">300</button>
               <button onclick="rookSetupSelect('winTarget',500,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">500</button>
@@ -10453,7 +10454,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
 
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Minimum bid (validation)</div>
+            <div class="text-xs font-extrabold mb-2" style="color:var(--muted);">Minimum bid</div>
             <p class="text-[11px] font-semibold mb-2 leading-snug" style="color:var(--muted);">When you enter who won the bid, their bid can’t be below this.</p>
             <div class="flex gap-2">
               <button onclick="rookSetupSelect('minBid',50,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">50</button>
@@ -10463,7 +10464,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
 
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Points in a full hand</div>
+            <div class="text-xs font-extrabold mb-2" style="color:var(--muted);">Points in a full hand</div>
             <p class="text-[11px] font-semibold mb-2 leading-snug" style="color:var(--muted);">Used as a friendly check when you enter both teams’ points at the end of the round.</p>
             <div class="flex gap-2">
               <button onclick="rookSetupSelect('totalCounters',120,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">120</button>
