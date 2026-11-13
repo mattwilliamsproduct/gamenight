@@ -1377,24 +1377,43 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-avatar-slot {
-    flex: 0 0 auto !important;
-    width: auto !important;
+    position: relative !important;
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot {
     flex: 1 1 auto !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
   html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
     display: block !important;
+    width: auto !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     line-height: 1.15 !important;
     min-width: 0 !important;
     max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
+    flex: 0 0 auto !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
+    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name .dealer-player-label,
@@ -1416,6 +1435,9 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-avatar-badge {
+    position: absolute !important;
+    right: -2px !important;
+    bottom: -2px !important;
     width: 16px !important;
     height: 16px !important;
     font-size: 9px !important;
@@ -1456,6 +1478,10 @@ html.porch-ledger #bpg-try-demo-tip {
     min-height: 104px !important;
     max-height: none !important;
     overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td.scorecard-col-player {
+    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
