@@ -59,7 +59,7 @@ test('home has the table, games, and inline seating', async ({page}) => {
   await expect(page.locator('html')).toHaveClass(/slice2-tv/);
   await expect(page.locator('#slice2-home')).toBeVisible();
   await expect(page.locator('.s2-seat')).toHaveCount(6);
-  await expect(page.locator('.s2-game')).toHaveCount(6);
+  await expect(page.locator('.s2-game')).toHaveCount(7);
   await expect(page.locator('#slice2-edit-seating')).toHaveCount(0);
   await expect(page.locator('.s2-seat-handle')).toHaveCount(6);
   const before = await page.locator('.s2-seat-name').allTextContents();

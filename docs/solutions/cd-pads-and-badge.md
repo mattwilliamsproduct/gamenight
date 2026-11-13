@@ -19,11 +19,11 @@ Bid and trick pads use the same no-minus grid as the score pads: Delete, Skip, N
 
 ## Spin ready
 
-On a phone the player column is `min(11.5rem, 42vw)`. A nowrap name plus a nowrap badge pushed `Spin ready` into the score column. Under 760px the badge stays on the right of the name, in the same row. Duke, Brick, and Linda stay on one line. A longer name wraps inside its slot (`overflow-wrap: break-word`, not `anywhere`). The badge does not paint over the score. Other rows do not wrap.
+On a phone the player column is `min(11.5rem, 42vw)`. A nowrap name plus a nowrap badge pushed `Spin ready` into the score column. Under 760px the badge stays on the right of the name, in the same row. Duke, Brick, and Linda stay on one line. A longer single name stays on one line too: it shrinks or ellipsizes, and it does not split mid-word. The badge does not paint over the score.
 
 ## Do not
 
 - Do not put a `00` key back on any pad.
 - Do not make a blank Wizard bid into 0.
 - Do not change the 818 blank-bid path in `validateEntries`.
-- Do not ellipsis the player name to make room for the badge.
+- Do not split a player name mid-word. A long single name may shrink or ellipsize.

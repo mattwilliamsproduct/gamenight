@@ -76,7 +76,7 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   let status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Entered 0/i);
   const progressAfterZero = await page.locator('#score-entry-progress').textContent();
-  expect(progressAfterZero, progressAfterZero).toMatch(/1 of 8 bids entered/i);
+  expect(progressAfterZero, progressAfterZero).toMatch(/1 of 8 bids in/i);
   await page.locator('#score-entry-modal button.score-entry-key.next').click();
   status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Confirmed:\s*0/i);

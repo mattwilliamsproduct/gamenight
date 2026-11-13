@@ -17,14 +17,14 @@ const GAMES = [
   {id: 'Hand and Foot', title: 'Canasta'}
 ];
 
-test('Home shows six equal 5:7 cards with no labels; select then Start opens the game', async ({page}) => {
+test('Home shows seven equal 5:7 cards with no labels; select then Start opens the game', async ({page}) => {
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
 
   const cards = page.locator('.s2-home-start [data-s2-action="pick-game"]');
-  await expect(cards).toHaveCount(6);
-  await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);
-  await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(6);
+  await expect(cards).toHaveCount(7);
+  await expect(page.locator('.s2-home-start [data-s2-action="pick-game"][data-s2-game="Rook"]')).toBeVisible();
+  await expect(page.locator('.s2-home-start .s2-game-name')).toHaveCount(7);
   await expect(page.locator('.s2-home-start [data-s2-action="start-game-now"]')).toHaveCount(0);
 
   for (const game of GAMES) {
@@ -53,7 +53,7 @@ test('Home shows six equal 5:7 cards with no labels; select then Start opens the
       };
     });
   });
-  expect(metrics).toHaveLength(6);
+  expect(metrics).toHaveLength(7);
   const widths = metrics.map((card) => card.width);
   const heights = metrics.map((card) => card.height);
   expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
@@ -66,8 +66,8 @@ test('Home shows six equal 5:7 cards with no labels; select then Start opens the
   }
 
   const photos = page.locator('.s2-home-start .s2-card-photo');
-  await expect(photos).toHaveCount(6);
-  for (let i = 0; i < 6; i += 1) {
+  await expect(photos).toHaveCount(7);
+  for (let i = 0; i < 7; i += 1) {
     await expect(photos.nth(i)).toHaveCSS('object-fit', 'cover');
   }
 
@@ -148,7 +148,7 @@ test('1920 TV cards stay inside Start a New Match and stay identical', async ({p
   await freshTable(page);
   await seatPlayers(page, ['Ada', 'Bea', 'Cal', 'Dee']);
   const layout = await homeCardLayout(page);
-  expect(layout.count).toBe(6);
+  expect(layout.count).toBe(7);
   expect(layout.inside, '1920 cards stay inside the Start panel').toBe(true);
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
@@ -168,14 +168,14 @@ test('1024 landscape fills the start panel and Saved misses Game Instructions', 
     toast.classList.add('show');
   });
   const layout = await homeCardLayout(page);
-  expect(layout.count).toBe(6);
+  expect(layout.count).toBe(7);
   expect(layout.inside, '1024 cards stay inside the Start panel').toBe(true);
   expect(Math.max(...layout.widths) - Math.min(...layout.widths)).toBeLessThanOrEqual(1);
   expect(Math.max(...layout.heights) - Math.min(...layout.heights)).toBeLessThanOrEqual(1);
   expect(layout.band, `dead band between cards and Start ${layout.band}px`).toBeLessThanOrEqual(36);
   expect(layout.toastHitsRules, 'Saved does not cover Game Instructions').toBe(false);
   expect(layout.toastText).toMatch(/Saved on this device/);
-  expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(110);
+  expect(Math.min(...layout.widths), `1024 cards too narrow ${Math.min(...layout.widths)}`).toBeGreaterThanOrEqual(96);
 });
 
 async function startFold(page) {
@@ -261,7 +261,7 @@ test('1440 and 1280 keep Start on screen without clipping Tonight\'s Table', asy
       expect(layout.titleInTable, `${size.width} ${count}p table title clipped`).toBe(true);
       expect(layout.addInTable, `${size.width} ${count}p Add Player clipped`).toBe(true);
       expect(['visible', 'auto']).toContain(layout.seatScroll);
-      expect(layout.cardCount, `${size.width} missing cards`).toBe(6);
+      expect(layout.cardCount, `${size.width} missing cards`).toBe(7);
       expect(layout.cardMaxW, `${size.width} cards oversized`).toBeLessThanOrEqual(420);
       expect(layout.cardMaxW, `${size.width} cards collapsed`).toBeGreaterThan(40);
     }
@@ -306,7 +306,7 @@ test('Heat and Five Crowns load the default 5:7 faces', async ({page}) => {
     './assets/cards/wizard.webp',
     './assets/cards/canasta.webp'
   ]));
-  expect(defaults).not.toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
+  expect(defaults).toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
   expect(defaults.some((src) => src && src.includes('/fill/'))).toBe(false);
 });
 

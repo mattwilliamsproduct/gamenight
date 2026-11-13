@@ -18,7 +18,7 @@ const FACES = [
   'rook.webp'
 ];
 
-test('the shelf shows six games and keeps Rook hidden', () => {
+test('the shelf shows seven games and includes Rook', () => {
   const visible = Games.visibleGames('');
   const ids = visible.map((game) => game.id);
   assert.deepEqual(ids, [
@@ -27,9 +27,10 @@ test('the shelf shows six games and keeps Rook hidden', () => {
     'Wizard',
     'Flip 7 Vengeance',
     'Beat the Heat',
-    'Hand and Foot'
+    'Hand and Foot',
+    'Rook'
   ]);
-  assert.equal(Games.gameById('Rook').hidden, true);
+  assert.equal(Games.gameById('Rook').hidden, false);
   assert.equal(Games.displayName('Hand and Foot'), 'Canasta');
 });
 

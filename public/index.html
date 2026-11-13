@@ -1779,10 +1779,12 @@
       background: var(--emerald-bg);
       color: var(--emerald);
       padding: 0.72rem 1.08rem;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif;
       font-size: clamp(1.08rem, 2.05vw, 1.48rem);
-      font-weight: 950;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: none;
+      font-stretch: normal;
       font-variant-numeric: tabular-nums;
       white-space: normal;
       max-width: 100%;
@@ -1792,6 +1794,8 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
     }
     .score-entry-progress:empty { display: none; }
+    .score-entry-progress-line { display: block; min-width: 0; max-width: 100%; white-space: normal; }
+    .score-entry-progress-seg { white-space: nowrap; }
     .score-entry-list {
       position: relative;
       min-height: 0;
@@ -1818,10 +1822,12 @@
       border-radius: 999px;
       background: var(--surface);
       padding: 0.32rem 0.72rem;
-      font-size: 0.76rem;
-      font-weight: 950;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: none;
+      font-stretch: normal;
     }
     .score-entry-rows {
       position: relative;
@@ -5315,7 +5321,8 @@ button.dealer-name-indicator .dealer-player-label {
       box-shadow: 0 0 0 3px rgba(10, 92, 84, 0.28);
       background: #e7f4ef;
     }
-    #hand-foot-format-toggle .rook-setup-btn.rook-opt-active {
+    #hand-foot-format-toggle .rook-setup-btn.rook-opt-active,
+    #rook-setup-modal .rook-setup-btn.rook-opt-active {
       background: #0a5c54;
       color: #fff;
       border-color: #0a5c54;
@@ -5433,7 +5440,11 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('1')"] { grid-area: k1; }
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('2')"] { grid-area: k2; }
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
-    #score-entry-modal.score-entry-plain #score-entry-next-btn { grid-area: next; grid-row: auto; }
+    #score-entry-modal.score-entry-plain #score-entry-next-btn {
+      grid-area: next;
+      grid-column: 4 !important;
+      grid-row: 3 / span 2 !important;
+    }
     #score-entry-modal.score-entry-plain #score-entry-key-0 { grid-area: k0 !important; height: 100%; }
     #score-entry-modal.score-entry-plain.score-entry-no-minus #score-entry-key-0 {
       grid-column: 1 / 4 !important;
@@ -5539,6 +5550,8 @@ button.dealer-name-indicator .dealer-player-label {
     }
     #score-entry-modal.hf-no-minus .score-entry-keypad button.score-entry-key.next {
       grid-area: next !important;
+      grid-column: 4 !important;
+      grid-row: 3 / span 2 !important;
     }
     #score-entry-modal.hf-cards-left .score-entry-keypad button.score-entry-key.next {
       grid-area: nx !important;
@@ -8993,7 +9006,6 @@ button.dealer-name-indicator .dealer-player-label {
     .score-cell-input,
     .score-entry-meta-value,
     .score-entry-value,
-    .score-entry-progress,
     .settings-size-label,
     #wizard-header-metrics,
     #score-entry-context,
@@ -9018,10 +9030,11 @@ button.dealer-name-indicator .dealer-player-label {
     .btn-ghost,
     .rook-setup-btn,
     .settings-choice {
-      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
-      font-weight: 400 !important;
-      letter-spacing: 0.035em;
-      text-transform: uppercase;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      font-stretch: normal !important;
+      text-transform: none !important;
     }
     .quest-badge,
     .chip {
@@ -9038,7 +9051,11 @@ button.dealer-name-indicator .dealer-player-label {
     }
     .score-entry-key.next,
     .numpad-btn:not(.font-mono-num) {
-      text-transform: uppercase;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      font-stretch: normal !important;
+      text-transform: none;
     }
     #score-entry-modal .score-entry-panel > .border-t .btn-ghost,
     #score-entry-modal .score-entry-panel > .border-t .btn-accent,
@@ -9070,12 +9087,20 @@ button.dealer-name-indicator .dealer-player-label {
     #numpad-label,
     #numpad-context-bid,
     #score-entry-context,
+    .score-entry-progress,
     [class~='text-[10px]'].font-extrabold.uppercase,
     [class~='text-xs'].font-extrabold.uppercase {
-      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
-      font-weight: 400 !important;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+      font-stretch: normal !important;
+      text-transform: none !important;
+    }
+    [class~='text-[10px]'].font-extrabold.uppercase,
+    [class~='text-[9px]'].font-extrabold.uppercase,
+    [class~='text-xs'].font-extrabold.uppercase {
+      font-size: 1rem !important;
+      line-height: 1.3 !important;
     }
     .actions-menu-item,
     .bp-rules-picker,
@@ -9126,22 +9151,24 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0;
     }
     .scoreboard-player-name {
-      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
-      font-weight: 400 !important;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
       letter-spacing: 0 !important;
+      font-stretch: normal !important;
       line-height: 1.05;
-      text-transform: uppercase;
+      text-transform: none !important;
     }
     .player-name-label,
     .score-entry-name,
     .score-entry-selected-name,
     .intro-player-name,
     .profile-passport-name {
-      font-family: 'Londrina Solid', 'Bree Serif', Georgia, serif !important;
-      font-weight: 400 !important;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif !important;
+      font-weight: 800 !important;
       letter-spacing: 0 !important;
+      font-stretch: normal !important;
       line-height: 1.05;
-      text-transform: uppercase;
+      text-transform: none !important;
     }
     .roster-row-lineup .player-name-label,
     .bench-row-content .player-name-label {
@@ -9503,10 +9530,15 @@ button.dealer-name-indicator .dealer-player-label {
       padding-right: 0.85rem;
     }
     #game-screen .scorecard-view-toggle {
-      min-height: 2.35rem;
-      padding: 0.28rem 0.36rem 0.28rem 0.5rem;
-      font-size: 0.7rem;
-      gap: 0.24rem;
+      min-height: 44px;
+      padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+      font-family: "Nunito Sans", "Plus Jakarta Sans", sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      font-stretch: normal;
+      letter-spacing: 0;
+      text-transform: none;
+      gap: 0.4rem;
     }
     #game-screen .scorecard-view-toggle-track {
       width: 1.9rem;
@@ -9548,9 +9580,9 @@ button.dealer-name-indicator .dealer-player-label {
         font-size: 12px;
       }
       #game-screen .scorecard-view-toggle-label {
-        max-width: 4.6rem;
-        overflow: hidden;
-        text-overflow: clip;
+        max-width: none;
+        overflow: visible;
+        font-size: 0.95rem;
       }
     }
     @media (max-width: 760px) {
@@ -9846,17 +9878,18 @@ button.dealer-name-indicator .dealer-player-label {
         flex-wrap: nowrap;
         width: 100%;
         gap: 0.35rem;
-        justify-content: stretch;
+        justify-content: space-between;
       }
       html.slice2-tv body.active-match-view #top-nav .nav-btn:not(.hidden) {
-        flex: 1 1 0;
-        width: 0;
+        flex: 0 0 auto;
+        width: auto;
         min-width: 0 !important;
         box-sizing: border-box;
         min-height: 44px;
         height: auto;
-        padding: 0.28rem 0.2rem;
-        white-space: normal;
+        padding: 0.28rem 0.35rem;
+        font-size: 13px !important;
+        white-space: nowrap;
         line-height: 1.15;
         text-align: center;
         display: flex;
@@ -10417,7 +10450,7 @@ button.dealer-name-indicator .dealer-player-label {
 
         <div class="space-y-5">
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Win Target</div>
+            <div class="text-xs font-extrabold mb-2" style="color:var(--muted);">Win target</div>
             <div class="flex gap-2">
               <button onclick="rookSetupSelect('winTarget',300,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all rook-opt-active">300</button>
               <button onclick="rookSetupSelect('winTarget',500,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">500</button>
@@ -10426,7 +10459,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
 
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Minimum bid (validation)</div>
+            <div class="text-xs font-extrabold mb-2" style="color:var(--muted);">Minimum bid</div>
             <p class="text-[11px] font-semibold mb-2 leading-snug" style="color:var(--muted);">When you enter who won the bid, their bid can’t be below this.</p>
             <div class="flex gap-2">
               <button onclick="rookSetupSelect('minBid',50,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">50</button>
@@ -10436,7 +10469,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
 
           <div>
-            <div class="text-xs font-extrabold uppercase tracking-[0.15em] mb-2" style="color:var(--muted);">Points in a full hand</div>
+            <div class="text-xs font-extrabold mb-2" style="color:var(--muted);">Points in a full hand</div>
             <p class="text-[11px] font-semibold mb-2 leading-snug" style="color:var(--muted);">Used as a friendly check when you enter both teams’ points at the end of the round.</p>
             <div class="flex gap-2">
               <button onclick="rookSetupSelect('totalCounters',120,this)" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">120</button>
@@ -10995,7 +11028,14 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="settings-plain-label">On this device</div>
           <div class="space-y-3">
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
-            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
+            <p id="backup-empty-hint" class="hidden text-xs font-semibold leading-relaxed" style="color:var(--muted);">Safari and the home-screen app keep separate copies on iPad unless Porch Cloud is connected. Look in the Files app for a gamenight backup, or export from the copy that still has your nights.</p>
+            <div class="rounded-2xl border hairline p-4 space-y-3" style="background:var(--surface-2);">
+              <div class="text-sm font-extrabold" style="color:var(--emerald);">Porch Cloud</div>
+              <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">One scorebook for the live website. Safari and the home-screen app then share the same nights, even if you delete the icon.</p>
+              <p id="porch-cloud-status" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);"></p>
+              <input id="porch-cloud-key" type="password" autocomplete="off" class="w-full rounded-xl p-3 text-sm font-bold outline-none border hairline" style="background:var(--bg-2);color:var(--ink);" placeholder="Porch password">
+              <button type="button" onclick="savePorchPassword()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Save &amp; Sync</button>
+            </div>
             <details id="how-restore-works">
               <summary>How restore works</summary>
               <p id="backup-restore-copy" class="text-sm font-bold leading-relaxed mt-2" style="color:var(--ink-2);">Restore adds players and games this device does not already have. It does not remove players or games already here, and it does not change a game that has the same id. People already seated stay seated. An empty table in the file leaves the match here. A file with a different match saves the one here, then puts the file's match on the table. Neither match is discarded. Photos, text size, lineup intro, path replay, and dealer roll in the file overwrite the ones here. You see what this file will change and can cancel. Nothing changes until you confirm. Confirming saves a recovery copy and downloads a file of what is here now. If the restore does not finish, this device is put back.</p>
@@ -12381,8 +12421,9 @@ button.dealer-name-indicator .dealer-player-label {
     const exec = () => {
       const execTimer = gnPerfStart('GN saveData exec');
       try{
-        /* Porch cloud is off this release. Local persist only. */
-        return _persistGamenightState({ fullPersist, syncCold })!==false;
+        const saved=_persistGamenightState({ fullPersist, syncCold })!==false;
+        if(!_porchApplying) schedulePorchPush();
+        return saved;
       } finally {
         gnPerfEnd(execTimer);
       }
@@ -12701,6 +12742,7 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('pref-statmontage').checked = prefs.statMontage;
     document.getElementById('pref-dealerroll').checked  = prefs.dealerRoll;
     refreshBackupSummary();
+    refreshPorchCloudSettings();
     openModal('settings-modal');
   }
   function closeSettings(){ closeModal('settings-modal'); }
@@ -13825,28 +13867,129 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   const GN_PORCH_KEY='gn_porch_key';
+  let _porchPushTimer=null;
+  let _porchBusy=false;
+  let _porchApplying=false;
   function canPorchCloud(){
-    return false;
+    if(window.BPGTryDemo&&typeof BPGTryDemo.backupBlocked==='function'&&BPGTryDemo.backupBlocked()) return false;
+    return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
   }
   function getPorchKey(){
     try{return localStorage.getItem(gnKey(GN_PORCH_KEY))||'';}catch(e){return '';}
   }
-  function setPorchKey(){
-    /* Leave gn_porch_key alone. Cloud sync is off this release. */
+  function setPorchKey(value){
+    try{
+      if(value) localStorage.setItem(gnKey(GN_PORCH_KEY),value);
+      else localStorage.removeItem(gnKey(GN_PORCH_KEY));
+    }catch(e){}
   }
-  function setPorchStatus(){}
-  function refreshPorchCloudSettings(){}
-  async function porchRequest(){
-    throw Object.assign(new Error('cloud-off'),{status:0});
+  function setPorchStatus(text){
+    const el=document.getElementById('porch-cloud-status');
+    if(el) el.textContent=text||'';
+  }
+  function refreshPorchCloudSettings(){
+    const input=document.getElementById('porch-cloud-key');
+    if(input && !input.value) input.value=getPorchKey();
+    if(!canPorchCloud()){
+      setPorchStatus('Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
+      return;
+    }
+    if(!getPorchKey()){
+      setPorchStatus('Enter the porch password once. After that, this copy stays in sync.');
+      return;
+    }
+    setPorchStatus('Password saved on this copy. Tap Save & Sync if the status is stale.');
+  }
+  async function porchRequest(method,body){
+    const key=getPorchKey();
+    if(!canPorchCloud()||!key) throw Object.assign(new Error('no-cloud'),{status:0});
+    const res=await fetch('/api/sync',{
+      method,
+      headers:{
+        'Content-Type':'application/json',
+        'x-porch-key':key
+      },
+      body:method==='PUT'?JSON.stringify(body):undefined
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw Object.assign(new Error(data.error||'cloud-failed'),{status:res.status,data});
+    return data;
   }
   async function pullPorchCloud(){
-    return null;
+    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return null;
+    if(_porchBusy) return null;
+    _porchBusy=true;
+    try{
+      setPorchStatus('Checking the porch cloud…');
+      const data=await porchRequest('GET');
+      if(!data.backup){
+        setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
+        return {empty:true};
+      }
+      const {next,added}=BPGBackup.mergeCloud(currentBackupState(),data.backup);
+      if(added.games||added.players){
+        _porchApplying=true;
+        allPlayers=next.allPlayers;
+        players=next.players;
+        history=next.history;
+        playerProfiles=next.playerProfiles;
+        if(!currentGame && next.currentGame) currentGame=next.currentGame;
+        if(added.games) markHistoryChanged();
+        saveData({fullPersist:true,syncCold:true});
+        _porchApplying=false;
+      }
+      const snap=BPGBackup.summarizeHistory(history);
+      setPorchStatus(`Cloud is connected. ${snap.line}`);
+      refreshBackupSummary();
+      return {added,empty:false};
+    }catch(error){
+      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
+      else if(error.status===401) setPorchStatus('That porch password did not match.');
+      else setPorchStatus('Could not reach the porch cloud.');
+      return null;
+    }finally{
+      _porchApplying=false;
+      _porchBusy=false;
+    }
   }
   async function pushPorchCloud(){
-    return;
+    if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
+    if(_porchBusy) return;
+    _porchBusy=true;
+    try{
+      const payload=BPGBackup.buildBackup(currentBackupState());
+      await porchRequest('PUT',payload);
+      const snap=BPGBackup.summarizeHistory(payload.history);
+      setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
+    }catch(error){
+      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
+      else if(error.status===401) setPorchStatus('That porch password did not match.');
+      else setPorchStatus('Could not save to the porch cloud.');
+    }finally{
+      _porchBusy=false;
+    }
   }
-  function schedulePorchPush(){}
-  function savePorchPassword(){}
+  function schedulePorchPush(){
+    if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
+    if(_porchPushTimer) clearTimeout(_porchPushTimer);
+    _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
+  }
+  async function savePorchPassword(){
+    const input=document.getElementById('porch-cloud-key');
+    const key=(input&&input.value||'').trim();
+    if(!key){alert('Enter a porch password first.');return;}
+    if(!canPorchCloud()){
+      setPorchKey(key);
+      setPorchStatus('Password saved here, but cloud save only runs on the live site.');
+      return;
+    }
+    setPorchKey(key);
+    const pulled=await pullPorchCloud();
+    if(pulled&&pulled.empty) await pushPorchCloud();
+    else if(pulled) await pushPorchCloud();
+    if(currentGame) goActiveMatch();
+    else goHome();
+  }
 
   /* ═══ RULES TEXT ═══ */
   const gameRulesText = {
@@ -15380,6 +15523,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   function startGame(name, options){
     if(!players.length){alert('Add players to the Lineup first!');return;}
+    if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
     const seatLimit=window.BPGGames&&typeof BPGGames.seatLimit==='function'?BPGGames.seatLimit(name, players.length):{ok:true};
     if(!seatLimit.ok) return;
     warmCelebrationAssets();
@@ -15460,6 +15604,13 @@ button.dealer-name-indicator .dealer-player-label {
 
   let _hfSetup=null;
   function openHandFootSetupModal(){
+    if(_pendingGameName && _pendingGameName!=='Hand and Foot') return;
+    const canastaLive=!!(currentGame && currentGame.name==='Hand and Foot');
+    if(!canastaLive){
+      document.getElementById('game-screen')?.classList.add('hidden');
+      document.getElementById('home-screen')?.classList.remove('hidden');
+      document.body.classList.remove('active-match-view');
+    }
     const roster=players.filter(Boolean);
     const api=handFootApi();
     const format=api?api.defaultFormat(roster.length):'singles';
@@ -15586,9 +15737,10 @@ button.dealer-name-indicator .dealer-player-label {
     // Reset all buttons to defaults
     document.querySelectorAll('#rook-setup-modal .rook-setup-btn').forEach(btn=>btn.classList.remove('rook-opt-active'));
     // Activate defaults
-    document.querySelectorAll('#rook-setup-modal [onclick*="winTarget,300"]').forEach(b=>b.classList.add('rook-opt-active'));
-    document.querySelectorAll('#rook-setup-modal [onclick*="minBid,70"]').forEach(b=>b.classList.add('rook-opt-active'));
-    document.querySelectorAll('#rook-setup-modal [onclick*="totalCounters,200"]').forEach(b=>b.classList.add('rook-opt-active'));
+    // The buttons read rookSetupSelect('winTarget',300,this), so match the quoted key and the value with its trailing comma.
+    Object.entries(_rookSetupConfig).forEach(([key,val])=>{
+      document.querySelectorAll(`#rook-setup-modal [onclick*="'${key}',${val},"]`).forEach(b=>b.classList.add('rook-opt-active'));
+    });
     const m=document.getElementById('rook-setup-modal');
     m.classList.remove('hidden');
     setTimeout(()=>m.classList.remove('opacity-0'),10);
@@ -17607,7 +17759,10 @@ ${isDealer
           const gaps=16; // rank/avatar/name flex gaps + turbo slot slack
           let avatar=Math.max(22, Math.min(rowHeight-8, avatarCap));
           let budget=cellInner-nameNeed-gaps;
-          if(budget>0 && rankSize+avatar>budget){
+          // A long single name ellipsizes. On a phone the avatar stays at the
+          // readable cap instead of shrinking until the dealer mark covers the face.
+          if(phone) budget=rankSize+avatar;
+          if(!phone && budget>0 && rankSize+avatar>budget){
             avatar=Math.max(Math.round(playerFont*1.15), Math.min(avatar, budget-rankSize));
             if(rankSize+avatar>budget){
               rankSize=Math.max(22, budget-avatar);
@@ -17825,7 +17980,7 @@ ${isDealer
     // size has to live on the var or Megan stays large while Matt shrinks.
     if(root.style) root.style.setProperty('--scorecard-player-font',`${columnSize.toFixed(1)}px`);
     // On a phone the badge keeps its width. Cap only those names so Duke, Brick,
-    // and Linda stay one line and a longer name wraps in the same slot.
+    // and Linda stay one line. A longer single name shrinks, then ellipsizes.
     if(window.innerWidth<=760){
       names.forEach(name=>{
         const cell=name.closest('td.scorecard-col-player');
@@ -18142,9 +18297,15 @@ ${isDealer
     const tablet=window.innerWidth>=1024;
     const wide=window.innerWidth>=1280;
     const nowW=(!handFoot&&nowPresent&&tablet)?scorecardNowReserveWidth(table):0;
-    const nowExtra=(!handFoot&&nowPresent&&!tablet)?1:0;
+    // Phones get a sized This round column. Without it the 7.5rem fallback pushed
+    // the column past the right edge on 390 with 8 players. Leave room for one
+    // 44px round so the last finished hand can stay on the card.
+    const phoneNowPx=(!handFoot&&nowPresent&&window.innerWidth<=760)
+      ? Math.round(Math.min(72, Math.max(48, wrap.clientWidth-leadW-44-6)))
+      : 0;
+    const nowExtra=(!handFoot&&nowPresent&&!tablet&&!phoneNowPx)?1:0;
     let leadForFit=leadW;
-    let nowForFit=nowW;
+    let nowForFit=nowW||phoneNowPx;
     if(!handFoot&&window.innerWidth>900&&visible.length){
       const totalCap=112;
       const nowCap=nowPresent?144:0;
@@ -19328,18 +19489,23 @@ ${isDealer
     return null;
   }
 
+  function scoreEntryContextTitle(title){
+    const text=String(title||'');
+    return text ? text.charAt(0)+text.slice(1).replace(/[A-Z]/g, (ch)=>ch.toLowerCase()) : '';
+  }
   function getScoreEntryRoundContext(mode){
     if(!currentGame||!mode)return '';
     const maxR=getMaxRoundsForGame(currentGame);
-    if(currentGame.name==='Wizard')return `Round ${currentGame.currentRound} of ${maxR} · ${mode.title}`;
+    const title=scoreEntryContextTitle(mode.title);
+    if(currentGame.name==='Wizard')return `Round ${currentGame.currentRound} of ${maxR} · ${title}`;
     if(currentGame.name==='818'){
       const tricks=getRoundTrickCount(currentGame);
-      return `Round ${currentGame.currentRound} of ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${mode.title}`;
+      return `Round ${currentGame.currentRound} of ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${title}`;
     }
-    if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${mode.title}`;
+    if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${title}`;
     if(currentGame.name==='Beat the Heat'){
       const endScore=getEndScoreForGame(currentGame);
-      return endScore?`Round ${currentGame.currentRound} · Ends at ${endScore} heat · ${mode.title}`:`Round ${currentGame.currentRound} · ${mode.title}`;
+      return endScore?`Round ${currentGame.currentRound} · Ends at ${endScore} heat · ${title}`:`Round ${currentGame.currentRound} · ${title}`;
     }
     if(currentGame.name==='Hand and Foot'){
       const roundNum=scoreEntryModalState?.editingRoundNumber||currentGame.currentRound;
@@ -19347,7 +19513,7 @@ ${isDealer
       const editing=scoreEntryModalState?.editingRoundIndex!=null;
       return `Round ${roundNum} of 4${meld!=null?` · Meld minimum ${meld}`:''}`;
     }
-    return `Round ${currentGame.currentRound} · ${mode.title}`;
+    return `Round ${currentGame.currentRound} · ${title}`;
   }
 
   function isScoreEntryBidMode(mode){
@@ -19521,6 +19687,22 @@ ${isDealer
     updateScoreEntryProgress();
   }
 
+  // Each dot-separated part stays on one line so a narrow pill breaks only between parts.
+  // The pill is a flex box, so one inner span keeps normal text flow inside it.
+  function setScoreEntryProgressSegments(el, parts){
+    el.textContent='';
+    const line=document.createElement('span');
+    line.className='score-entry-progress-line';
+    parts.forEach((part,i)=>{
+      if(i) line.appendChild(document.createTextNode(' · '));
+      const seg=document.createElement('span');
+      seg.className='score-entry-progress-seg';
+      seg.textContent=part;
+      line.appendChild(seg);
+    });
+    el.appendChild(line);
+  }
+
   function updateScoreEntryProgress(){
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
@@ -19549,9 +19731,9 @@ ${isDealer
       const tricks=getRoundTrickCount(currentGame);
       const total=getScoreEntryDraftTotal();
       if(isScoreEntryBidMode(mode)){
-        progress.textContent=`${enteredText} · Bids total ${total} · ${tricks} trick${tricks===1?'':'s'} this round`;
+        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} bids in`,`total ${total}`,`${tricks} trick${tricks===1?'':'s'}`]);
       } else {
-        progress.textContent=`${enteredText} · Tricks total ${total} · need ${tricks}`;
+        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} tricks in`,`total ${total}`,`need ${tricks}`]);
       }
     } else {
       progress.textContent=enteredText;
@@ -23631,6 +23813,9 @@ ${isDealer
         },
         showHome(){ goHome(); }
       });
+    }
+    if(canPorchCloud()&&getPorchKey()){
+      await pullPorchCloud();
     }
     if(currentGame){goActiveMatch(); requestWakeLock();}
     else{navigateTo('home-screen'); const t=gnPerfStart('GN renderHome'); try{renderRoster();}finally{gnPerfEnd(t);}}

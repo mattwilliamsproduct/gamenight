@@ -46,6 +46,20 @@ test('View Pace at 1024 keeps the pace columns on the card and the player names 
   });
   expect(boxes.panel.left).toBeGreaterThan(boxes.card.left);
   expect(boxes.panel.right).toBeLessThanOrEqual(boxes.card.right + 1);
+  const paceType = await page.evaluate(() => {
+    const label = document.querySelector('#scorecard-view-pace-toggle .scorecard-view-toggle-label');
+    const cs = getComputedStyle(label);
+    return {
+      size: parseFloat(cs.fontSize),
+      text: label.textContent,
+      max: cs.maxWidth,
+      full: label.scrollWidth <= label.clientWidth + 1
+    };
+  });
+  expect(paceType.size).toBeGreaterThanOrEqual(13);
+  expect(paceType.text).toBe('View Pace');
+  expect(paceType.max).toBe('none');
+  expect(paceType.full).toBe(true);
   expect(boxes.names.map((row) => row.text)).toEqual(['Ava', 'Ben']);
   for (const name of boxes.names) {
     expect(name.left, name.text).toBeGreaterThanOrEqual(boxes.card.left + 8);
@@ -99,10 +113,14 @@ test('View Pace opens, delete removes a past night, and Skip replaces 00', async
   const span = await page.evaluate(() => {
     const zero = document.getElementById('score-entry-key-0').getBoundingClientRect();
     const seven = document.querySelector('#score-entry-modal .score-entry-keypad button[onclick="scoreEntryKey(\'7\')"]').getBoundingClientRect();
-    return {zero: zero.width, seven: seven.width, zeroH: zero.height, sevenH: seven.height};
+    const next = document.getElementById('score-entry-next-btn').getBoundingClientRect();
+    return {zero: zero.width, seven: seven.width, zeroH: zero.height, sevenH: seven.height, nextH: next.height, zeroRight: zero.right, nextLeft: next.left, nextBottom: next.bottom, zeroBottom: zero.bottom};
   });
   expect(span.zero).toBeGreaterThan(span.seven * 2.4);
   expect(Math.abs(span.zeroH - span.sevenH)).toBeLessThan(12);
+  expect(span.nextH).toBeGreaterThan(span.sevenH * 1.7);
+  expect(span.nextLeft).toBeGreaterThan(span.zeroRight - 8);
+  expect(Math.abs(span.nextBottom - span.zeroBottom)).toBeLessThan(8);
   const skippedName = await page.evaluate(() => scoreEntryModalState.activePlayer);
   await page.locator('#score-entry-skip-slot').click();
   const crowns = await page.evaluate((name) => scoreEntryModalState.values[name], skippedName);
@@ -197,15 +215,18 @@ test('the Wizard bid line stays inside the sheet', async ({page}) => {
   const span = await page.evaluate(() => {
     const seven = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'7\')"]');
     const zero = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]');
+    const next = document.getElementById('score-entry-next-btn').getBoundingClientRect();
     return {
       sevenW: seven.getBoundingClientRect().width,
       zeroW: zero.getBoundingClientRect().width,
       sevenH: seven.getBoundingClientRect().height,
-      zeroH: zero.getBoundingClientRect().height
+      zeroH: zero.getBoundingClientRect().height,
+      nextH: next.height
     };
   });
   expect(span.zeroW).toBeGreaterThan(span.sevenW * 2.4);
   expect(Math.abs(span.zeroH - span.sevenH)).toBeLessThan(12);
+  expect(span.nextH).toBeGreaterThan(span.sevenH * 1.7);
   const bid = await page.evaluate(() => {
     const panel = document.querySelector('#score-entry-modal .score-entry-panel').getBoundingClientRect();
     const progress = document.getElementById('score-entry-progress');
@@ -217,7 +238,7 @@ test('the Wizard bid line stays inside the sheet', async ({page}) => {
       overflow: progress.scrollWidth > progress.clientWidth + 2
     };
   });
-  expect(bid.text).toMatch(/bids entered/i);
+  expect(bid.text).toMatch(/bids in/i);
   expect(bid.text).toMatch(/trick/i);
   expect(bid.right).toBeLessThanOrEqual(bid.panelRight - 4);
   expect(bid.overflow).toBe(false);
@@ -246,14 +267,17 @@ test('the 818 bid pad has no 00 key and a wide 0', async ({page}) => {
     const span = await page.evaluate(() => {
       const seven = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'7\')"]');
       const zero = document.querySelector('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]');
+      const next = document.getElementById('score-entry-next-btn').getBoundingClientRect();
       return {
         sevenW: seven.getBoundingClientRect().width,
         zeroW: zero.getBoundingClientRect().width,
         sevenH: seven.getBoundingClientRect().height,
-        zeroH: zero.getBoundingClientRect().height
+        zeroH: zero.getBoundingClientRect().height,
+        nextH: next.height
       };
     });
     expect(span.zeroW, `${size.width}`).toBeGreaterThan(span.sevenW * 2.4);
     expect(Math.abs(span.zeroH - span.sevenH), `${size.width}`).toBeLessThan(12);
+    expect(span.nextH, `${size.width}`).toBeGreaterThan(span.sevenH * 1.7);
   }
 });

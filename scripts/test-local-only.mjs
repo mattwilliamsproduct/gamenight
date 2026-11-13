@@ -7,16 +7,19 @@ const slice2 = readFileSync(new URL('../public/assets/slice2.js', import.meta.ur
 const records = readFileSync(new URL('../public/assets/records-logic.js', import.meta.url), 'utf8');
 const sync = readFileSync(new URL('../api/sync.js', import.meta.url), 'utf8');
 
-test('the client never fetches /api/sync and leaves the Redis function in place', () => {
-  assert.doesNotMatch(html, /fetch\(\s*['"`]\/api\/sync/);
-  assert.match(html, /function canPorchCloud\(\)\{\s*return false;/);
-  assert.match(html, /function schedulePorchPush\(\)\{\}/);
-  assert.match(html, /function pullPorchCloud\(\)\{/);
-  assert.match(html, /function pushPorchCloud\(\)\{/);
-  assert.doesNotMatch(html, /await pullPorchCloud\(\)/);
-  assert.doesNotMatch(html, /if\(!_porchApplying\) schedulePorchPush/);
-  assert.doesNotMatch(html, /id="porch-cloud-key"/);
-  assert.match(sync, /gamenight:backup:v1|PORCH|redis|Redis/i);
+test('porch cloud keeps the production gate, key, and endpoint', () => {
+  assert.match(html, /const GN_PORCH_KEY='gn_porch_key'/);
+  assert.match(html, /location\.hostname==='cardknight\.vercel\.app' && !GN_QA_MODE/);
+  assert.match(html, /BPGTryDemo\.backupBlocked\(\)/);
+  assert.match(html, /fetch\('\/api\/sync'/);
+  assert.match(html, /'x-porch-key':key/);
+  assert.match(html, /if\(!_porchApplying\) schedulePorchPush\(\)/);
+  assert.match(html, /id="porch-cloud-key"/);
+  assert.match(html, /if\(canPorchCloud\(\)&&getPorchKey\(\)\)/);
+  assert.doesNotMatch(html, /function canPorchCloud\(\)\{\s*return false;/);
+  assert.match(sync, /gamenight:backup:v1/);
+  assert.doesNotMatch(slice2, /\/api\/sync/);
+  assert.doesNotMatch(records, /\/api\/sync/);
 });
 
 test('Settings and Records keep the local-storage sentence', () => {
