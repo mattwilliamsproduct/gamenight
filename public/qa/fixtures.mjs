@@ -1446,6 +1446,18 @@ export const QA_SCENARIOS = {
     defaultSurface:'records',
     data:{allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight(),cleoComebackNight()]),playerProfiles:profiles(),currentGame:null}
   },
+  'comeback-by-game':{
+    label:'Comebacks · one row per game',
+    description:'Wizard Cleo by 100 and Canasta Cat and Mike by 180. Each game keeps its own comeback. Raw points do not pick a winner.',
+    defaultSurface:'records',
+    data:{
+      allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],
+      players:['Ada','Bea','Cleo','Dee','Megan','Matt','Cat','Mike'],
+      history:[cleoComebackNight(), canastaComebackNight()],
+      playerProfiles:profiles(),
+      currentGame:null
+    }
+  },
   'canasta-comeback':{
     label:'Canasta · team comeback',
     description:'Cat and Mike were last at halfway, then won the Canasta night. The comeback row names both partners and the shelf name.',

@@ -22792,15 +22792,16 @@ ${isDealer
       allTime.mostComebackExtras = null;
       allTime.biggestComebackExtra = null;
     }
-    if(window.BPGRecords&&typeof BPGRecords.biggestSingleGameComeback==='function'){
+    if(window.BPGRecords&&typeof BPGRecords.biggestComebacksByGame==='function'){
       const comebackHistory=history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
-      const fromRounds=BPGRecords.biggestSingleGameComeback(comebackHistory,{
+      const fromRounds=BPGRecords.biggestComebacksByGame(comebackHistory,{
         configs,
         getDisplayPlayers:getRecordedPlayers,
         sortPlayersByTotal,
         scorebook:BPGScorebook
       });
-      if(fromRounds) allTime.biggestComeback=fromRounds;
+      allTime.biggestComebacksByGame=fromRounds;
+      allTime.biggestComeback=fromRounds.length===1?fromRounds[0]:null;
     }
     const shameAwards = window.BPGRecords
       ? BPGRecords.buildShameAwards({games,allTime}, playerList, wizardBidStats, comebackWins, showComeback)
@@ -22874,7 +22875,9 @@ ${isDealer
         ${recordCard('Longest Winning Streak Ever',data.allTime.longestWinningStreak,true)}
         ${recordCard('Longest Losing Streak Ever',data.allTime.longestLosingStreak,false)}
         ${recordCard('Most Consecutive Games Without Last',data.allTime.longestNoLastStreak,true)}
-        ${recordCard('Biggest Single-Game Comeback',data.allTime.biggestComeback,true)}
+        ${(data.allTime.biggestComebacksByGame||[]).length
+          ? data.allTime.biggestComebacksByGame.map(row=>recordCard(`Biggest ${displayGameName(row.game)} comeback`, row, true)).join('')
+          : recordCard('Biggest single-game comeback', data.allTime.biggestComeback, true)}
         ${recordCard('Most Comeback Extras In One Game',data.allTime.mostComebackExtras,true)}
         ${recordCard('Biggest Comeback Extra',data.allTime.biggestComebackExtra,true)}
         <div><div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--muted);">Games Decided In The Final Round</div><div class="space-y-2">${data.allTime.finalRoundDecisions.length?data.allTime.finalRoundDecisions.slice(0,8).map(playerLine).join(''):empty}</div></div>

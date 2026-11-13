@@ -57,7 +57,7 @@ test('a team comeback names both partners and Canasta', async ({page}) => {
   await page.goto('/?gnqa=1&gallery=0&scenario=canasta-comeback&surface=records', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
   await page.locator('#slice2-show-shame').click();
-  const comeback = page.locator('.s2-book-row').filter({hasText: 'Biggest single-game comeback'});
+  const comeback = page.locator('.s2-book-row').filter({hasText: 'Biggest Canasta comeback'});
   await expect(comeback).toContainText('Cat and Mike');
   await expect(comeback).toContainText('Last at halfway, won Canasta');
   await expect(comeback).not.toContainText('Hand and Foot');

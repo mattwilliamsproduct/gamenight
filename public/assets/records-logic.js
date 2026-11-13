@@ -381,12 +381,13 @@
     return (history || []).some(matchHasComebackData);
   }
 
-  // Biggest single-game comeback comes from ordinary round totals.
+  // Biggest comeback is ranked inside each game. A Canasta deficit
+  // does not erase a Wizard comeback. Each row keeps that game's points.
   // Turbo extras stay behind shouldShowComebackStats. This one does not.
-  function biggestSingleGameComeback(history, helpers) {
+  function biggestComebacksByGame(history, helpers) {
     const book = helpers && helpers.scorebook;
     const configs = (helpers && helpers.configs) || {};
-    let best = null;
+    const byGame = new Map();
     (history || []).forEach((match) => {
       if (!match) return;
       // Same nights main scores: any saved round history. A full-game gate
@@ -446,10 +447,21 @@
         if (members.length > 1) {
           row.ties = members.map((player) => ({player, value: deficit}));
         }
-        if (!best || deficit > best.value) best = row;
+        const current = byGame.get(match.game);
+        if (!current || deficit > current.value) byGame.set(match.game, row);
       });
     });
-    return best;
+    const order = GAMES.map((game) => game.id);
+    return [...byGame.values()].sort((left, right) => {
+      const leftAt = order.indexOf(left.game);
+      const rightAt = order.indexOf(right.game);
+      return (leftAt < 0 ? order.length : leftAt) - (rightAt < 0 ? order.length : rightAt);
+    });
+  }
+
+  function biggestSingleGameComeback(history, helpers) {
+    const rows = biggestComebacksByGame(history, helpers);
+    return rows.length === 1 ? rows[0] : null;
   }
 
   function shownGameName(id) {
@@ -1471,9 +1483,13 @@
     const all = data.allTime || {};
     const derby = (all.mostLasts || [])[0] || null;
     const decided = (all.finalRoundDecisions || [])[0] || null;
+    const comebackRows = Array.isArray(all.biggestComebacksByGame) ? all.biggestComebacksByGame : [];
+    const comebackLines = comebackRows.length
+      ? comebackRows.map((row) => statLine(`Biggest ${shownGameName(row.game)} comeback`, row, esc, '', playerFilter)).join('')
+      : statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter);
     return listBlock('Comebacks', [
       statLine('Dead Last Derby', derby, esc, '', playerFilter),
-      statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter),
+      comebackLines,
       statLine('Decided in the final round', decided, esc, '', playerFilter)
     ]);
   }
@@ -1982,6 +1998,7 @@
     matchHasComebackData,
     shouldShowComebackStats,
     biggestSingleGameComeback,
+    biggestComebacksByGame,
     publicGamePhrase,
     lifePreserverEvents,
     lifePreserverSummary,

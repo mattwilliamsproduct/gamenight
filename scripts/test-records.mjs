@@ -819,6 +819,19 @@ test('a team comeback uses the shelf name and both partners', () => {
   const shown = Records.biggestSingleGameComeback(book, helpers);
   assert.equal(shown.player, 'Cleo');
   assert.equal(shown.label, 'Last at halfway, won Wizard');
+  const mixed = QA_SCENARIOS['comeback-by-game'].data.history;
+  assert.equal(Records.biggestSingleGameComeback(mixed, helpers), null);
+  const rows = Records.biggestComebacksByGame(mixed, helpers);
+  const wizard = rows.find((row) => row.game === 'Wizard');
+  const canasta = rows.find((row) => row.game === 'Hand and Foot');
+  assert.equal(rows.length, 2);
+  assert.equal(wizard.player, 'Cleo');
+  assert.equal(wizard.value, 100);
+  assert.equal(wizard.label, 'Last at halfway, won Wizard');
+  assert.equal(canasta.value, 180);
+  assert.equal(canasta.label, 'Last at halfway, won Canasta');
+  assert.equal(Records.recordHolderText(canasta), 'Cat and Mike');
+  assert.ok(rows.indexOf(wizard) < rows.indexOf(canasta));
 });
 
 test('Hall of Fame names a three-way tie at laptop width', () => {
