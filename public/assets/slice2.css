@@ -5216,6 +5216,16 @@ html.slice2-tv .s2-career-line {
   justify-content: space-between;
   gap: 8px;
 }
+html.slice2-tv .s2-career-card .s2-canasta-events {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+}
+html.slice2-tv .s2-career-card .s2-canasta-events span {
+  min-width: 0;
+}
 
 html.slice2-tv #scorecard-capture .scorecard-player-name-slot {
   flex: 1 1 auto !important;

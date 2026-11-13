@@ -986,6 +986,23 @@
       font-weight: 800;
       line-height: 1.35;
     }
+    .profile-canasta-events {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
+      margin-bottom: 0.45rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .profile-canasta-events span {
+      min-width: 0;
+    }
     .round-correction-actual { font-variant-numeric: tabular-nums; font-weight: 800; }
     @media (max-width: 760px) {
       .round-correction-head { display: none; }
@@ -13754,7 +13771,7 @@ button.dealer-name-indicator .dealer-player-label {
       ? BPGHandFoot.playerEventTotals(history, name)
       : null;
     if(!events||!events.rounds) return '';
-    return `<div class="profile-canasta-events" data-canasta-events="passport">Got the 22 ${events.got22} · Went out ${events.wentOut} · Cards left ${events.cardsLeft}</div>`;
+    return `<div class="profile-canasta-events" data-canasta-events="passport"><span>Got the 22 ${events.got22}</span><span>Went out ${events.wentOut}</span><span>Cards left ${events.cardsLeft}</span></div>`;
   }
 
   function careerCardHtml(summary){

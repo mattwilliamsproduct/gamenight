@@ -1309,7 +1309,7 @@
       ? root.BPGHandFoot.playerEventTotals(history, player)
       : null;
     if (!events || !events.rounds) return '';
-    return `<p class="s2-canasta-events" data-canasta-events="career">Got the 22 ${esc(String(events.got22))} · Went out ${esc(String(events.wentOut))} · Cards left ${esc(String(events.cardsLeft))}</p>`;
+    return `<p class="s2-canasta-events" data-canasta-events="career"><span>Got the 22 ${esc(String(events.got22))}</span><span>Went out ${esc(String(events.wentOut))}</span><span>Cards left ${esc(String(events.cardsLeft))}</span></p>`;
   }
 
   function careerCardsHtml(cards, esc, avatar, history) {
