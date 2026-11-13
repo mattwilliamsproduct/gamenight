@@ -21,7 +21,8 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Home shows the newest unfinished game, with Resume. Older unfinished games stay in Records, marked Unfinished, with Resume.
 - Skip sits above Next. A blank score stays blank. 0 & Next stores a confirmed 0. Minus shows only when that game allows a negative score.
 - A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
-- The phone bottom nav gives Home, Records, Player Passports, and Settings equal widths, with a gap between them. Player Passports may take two lines.
+- Home is the blue porch mat. The six decks sit on a calm center, a quiet geometric edge frames them, and the heading, Game Instructions, the selection line, and Start are small ivory pieces. Tonight's Table, the score sheet, and score entry stay ivory, so the numbers are not on the pattern.
+- The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
 - Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
 - Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
 - A Canasta team name stays on one line (`Megan & Matt`) when the cell has room beside it. The live card ends at the last team row.
@@ -140,6 +141,21 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
 - Life Preserver copy that claims the wheel caused a later win.
 - Phone nav wrapping onto a second line, or Saved taking a nav slot.
+- A phone Home nav that still says Profiles, or a Settings control that is only a gear. The words are Player Passports and Settings, on one row, each on one line.
+- A cream band between the last phone score-entry row and the skip line. A short list shares that space, or the help line and the keypad sit against the rows.
+- A phone identity lock that lays Canasta team names beside the avatars and past the cell. Those names stay stacked. The clip test stays as written.
+- A 1024 Tonight's Table that scrolls the seated rows when four or five are seated. Those rows, and the first person on the bench, show whole. A longer list may scroll.
+- A phone score-entry DEALER chip beside the name when that cuts the name. The chip sits under the name. All four rows stay whole, with no cream band above the skip line.
+- A phone scorecard that squeezes R1 and This Round off the sheet, or leaves a cream block under four rows. Round pills stay readable. The sheet ends at the last row. This Round stays on the sheet or scrolls the way the base scorecard does.
+- A compact Tonight's Table name centered away from the badge. The name sits left, the same gap after the badge as the bench row, and Deals first sits right after the name.
+- A phone score-entry row whose total box is cut off. All four rows, including that total, show whole. The skip line can be one smaller line to make the room.
+- A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
+- A dark wood page, a flat swatch, or a patterned field behind the score numbers. The picker is the blue mat. The pattern stays at the edge. Numbers sit on ivory. Felt, texture, stitch, and deck shadow live in the mat tokens.
+- A cream rectangle behind the decks, a brown top edge on an ivory panel, or a dark brown demo bar. The decks sit on the felt. The demo bar stays in the mat palette.
+- Casino lettering, chips, glossy green, heavy wood, or a spotlight on the mat. The Back Porch sign is the brand.
+- A selected game card ring thinner than the base 6px, or a ring that sits under the cover. The ring is at least that thick and paints on top of the art.
+- A phone nav label under 13px, or Player Passports on two lines in the match bar. Home, Records, Player Passports, and Settings stay one line at 13px or larger.
+- A phone page field that stops short of the right edge. The field runs to the screen edge. The scrollbar thumb does not paint a strip there.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - "Saved on this device" while Try a demo is on.

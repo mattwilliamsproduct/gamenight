@@ -143,14 +143,18 @@ test('phone scoreboard keeps Home, Actions, and Enter Scores on one row', async 
         right: box.right,
         width: box.width,
         scrollWidth: el.scrollWidth,
-        clientWidth: el.clientWidth
+        clientWidth: el.clientWidth,
+        fontSize: parseFloat(getComputedStyle(el).fontSize),
+        whiteSpace: getComputedStyle(el).whiteSpace
       };
     }));
     const labels = navButtons.map((button) => button.text);
     expect(labels, `${size.width} nav labels`).toEqual(expect.arrayContaining(['Home', 'Records', 'Player Passports', 'Settings']));
     expect(labels.filter((text) => text !== 'Perf'), `${size.width} nav labels`).toEqual(['Home', 'Records', 'Player Passports', 'Settings']);
-    const widths = navButtons.map((button) => button.width);
-    expect(Math.max(...widths) - Math.min(...widths), `${size.width} nav widths ${JSON.stringify(navButtons)}`).toBeLessThanOrEqual(2);
+    navButtons.forEach((button) => {
+      expect(button.fontSize, `${button.text} smaller than 13px`).toBeGreaterThanOrEqual(13);
+      expect(button.whiteSpace, `${button.text} wraps`).toBe('nowrap');
+    });
     navButtons.forEach((button, index) => {
       expect(button.left, button.text).toBeGreaterThanOrEqual(-1);
       expect(button.right, `${button.text} past the phone`).toBeLessThanOrEqual(size.width + 1);

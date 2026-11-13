@@ -1,0 +1,1973 @@
+/* Warm Porch Ledger
+   A skin layered after the inline styles and slice2.css.
+   Rebase surface: this file, plus one class and one link in public/index.html.
+   No scoring, storage, or registry changes.
+
+   Tokens live on html.porch-ledger. Screen rules are scoped to Home
+   (.s2-home, .s2-seat, .s2-panel, .s2-btn), the live board
+   (#slice2-board-bar, #scorecard-capture), and score entry
+   (#score-entry-modal, .score-entry-key). Player color follows the
+   silhouette badge already on the row.
+*/
+
+html.porch-ledger {
+  /* Blue porch mat. Swap the surface here.
+     --mat-felt is the calm center. --mat-felt-texture is the quiet
+     edge tile. --mat-stitch is the single inset line. --deck-shadow
+     is the lift under every deck. */
+  --mat-felt: #141c2e;
+  --mat-felt-texture: url("./porch-mat-edge.svg");
+  --mat-stitch: rgba(244, 239, 228, 0.78);
+  --mat-deck-line: #f4efe4;
+  --deck-shadow: 0 12px 18px -10px rgba(4, 8, 16, 0.72), 0 1px 2px rgba(4, 8, 16, 0.45);
+  --mat-bar: #0c1422;
+  --ledger-felt: var(--mat-felt);
+  --ledger-felt-deep: var(--mat-bar);
+  --ledger-paper: #fbf6ec;
+  --ledger-paper-2: #f3eadc;
+  --ledger-rule: rgba(92, 62, 36, 0.16);
+  --ledger-line: #e4d8c6;
+  --ledger-ink: #1a140f;
+  --ledger-ink-soft: #3a3128;
+  --ledger-muted: #5c5348;
+  --ledger-teal: #11786c;
+  --ledger-teal-deep: #0c5c54;
+  --ledger-teal-wash: #e5f3ef;
+  --ledger-brass: #6e4e24;
+  --ledger-brass-soft: #f3e6cf;
+  --ledger-danger: #8d2f3a;
+  --ledger-on-teal: #fffaf3;
+  --ledger-radius-sheet: 16px;
+  --ledger-radius-control: 12px;
+  --ledger-radius-badge: 14px;
+  --ledger-space-1: 4px;
+  --ledger-space-2: 8px;
+  --ledger-space-3: 12px;
+  --ledger-space-4: 16px;
+  --ledger-space-5: 24px;
+  --ledger-shadow-sheet: 0 14px 28px -18px rgba(28, 46, 38, 0.28), 0 2px 8px rgba(28, 46, 38, 0.06);
+  --ledger-shadow-key: 0 1px 2px rgba(28, 46, 38, 0.14);
+  --ledger-type-display: "Bree Serif", Georgia, serif;
+  --ledger-type-text: "Nunito Sans", "Plus Jakarta Sans", system-ui, sans-serif;
+  --ledger-type-body: 1.0625rem;
+  --ledger-type-score: clamp(2rem, 4.2vw, 3.4rem);
+  --bg: var(--ledger-paper);
+  --bg-2: var(--ledger-paper-2);
+  --surface: var(--ledger-paper);
+  --surface-2: var(--ledger-paper-2);
+  --ink: var(--ledger-ink);
+  --ink-2: var(--ledger-ink-soft);
+  --muted: var(--ledger-muted);
+  --hairline: var(--ledger-line);
+  --emerald: var(--ledger-teal);
+  --emerald-bg: var(--ledger-teal-wash);
+  --emerald-border: #9dcec4;
+  --emerald-lift: #d7eee6;
+  --nav-bg: var(--ledger-paper);
+  --shadow-sm: 0 1px 0 rgba(255, 252, 246, 0.6) inset, 0 8px 16px -12px rgba(28, 16, 8, 0.35);
+  --shadow-md: var(--ledger-shadow-sheet);
+  --shadow-lg: 0 24px 48px -28px rgba(28, 16, 8, 0.55);
+  --s2-paper: var(--ledger-felt);
+  --s2-card: var(--ledger-paper);
+  --s2-ink: var(--ledger-ink);
+  --s2-teal: var(--ledger-teal);
+  --s2-teal-deep: var(--ledger-teal-deep);
+  --s2-muted: var(--ledger-muted);
+  --s2-line: var(--ledger-line);
+  --s2-brass: var(--ledger-brass);
+  --s2-good-bg: var(--ledger-teal-wash);
+  --ledger-player: var(--ledger-brass);
+}
+
+html.porch-ledger.slice2-tv,
+html.porch-ledger.slice2-tv body,
+html.porch-ledger.slice2-tv body.active-match-view {
+  background-color: var(--mat-felt) !important;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 50% 28%, rgba(92, 128, 186, 0.09), transparent 62%),
+    radial-gradient(ellipse 130% 80% at 50% 110%, rgba(0, 0, 0, 0.28), transparent 58%) !important;
+  background-repeat: no-repeat !important;
+  background-size: auto !important;
+  color: var(--ledger-paper);
+}
+
+html.porch-ledger.slice2-tv::before {
+  background: var(--ledger-teal);
+}
+
+html.porch-ledger.slice2-tv body:not(.active-match-view) #top-nav::before {
+  background: transparent !important;
+}
+
+html.porch-ledger.slice2-tv body.home-view #top-nav::before {
+  background: transparent !important;
+}
+
+html.porch-ledger.slice2-tv body:not(.active-match-view) #top-nav {
+  background: var(--ledger-paper) !important;
+  border: 1px solid var(--ledger-line) !important;
+  border-radius: var(--ledger-radius-sheet) !important;
+  box-shadow: var(--ledger-shadow-sheet) !important;
+}
+
+html.porch-ledger.slice2-tv #top-nav .nav-btn {
+  color: var(--ledger-ink) !important;
+  font-family: var(--ledger-type-text) !important;
+}
+
+html.porch-ledger.slice2-tv #top-nav .nav-btn.s2-nav-on,
+html.porch-ledger.slice2-tv #top-nav .nav-btn.active {
+  background: var(--ledger-teal) !important;
+  color: var(--ledger-on-teal) !important;
+  border-color: var(--ledger-teal-deep) !important;
+}
+
+/* Type: Bree for titles, Nunito tabular for every score. */
+html.porch-ledger .font-display,
+html.porch-ledger.slice2-tv .s2-panel h2,
+html.porch-ledger.slice2-tv .s2-banner h2,
+html.porch-ledger.slice2-tv #score-entry-game,
+html.porch-ledger.slice2-tv .s2-board-title {
+  font-family: var(--ledger-type-display) !important;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ledger-ink);
+}
+
+html.porch-ledger .font-mono-num,
+html.porch-ledger .tv-stat-num,
+html.porch-ledger .tv-round-cell-num,
+html.porch-ledger .scorecard-total-value,
+html.porch-ledger .score-entry-value,
+html.porch-ledger .score-entry-meta-value,
+html.porch-ledger .s2-standing-score,
+html.porch-ledger .score-entry-key {
+  font-family: var(--ledger-type-text) !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+  font-feature-settings: "tnum" 1, "lnum" 1 !important;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv .s2-sub,
+  html.porch-ledger.slice2-tv .s2-seat-name,
+  html.porch-ledger.slice2-tv #slice2-board-sub,
+  html.porch-ledger.slice2-tv #score-entry-context,
+  html.porch-ledger.slice2-tv .score-entry-confirm-status {
+    font-size: max(16px, 1rem) !important;
+  }
+}
+
+/* Seat and entry names wrap on word boundaries. They do not ellipsize. */
+html.porch-ledger.slice2-tv .s2-seat-name,
+html.porch-ledger.slice2-tv .s2-podium-name,
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name,
+html.porch-ledger.slice2-tv #score-entry-selected-name {
+  overflow: visible !important;
+  text-overflow: unset !important;
+  white-space: normal !important;
+  overflow-wrap: break-word;
+  word-break: normal;
+  max-width: 100%;
+}
+
+/* Scorecard names stay one line. The fit script shrinks them; wrapping here
+   collapses the name under the Life Preserver chip. */
+html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
+html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  text-overflow: clip !important;
+}
+
+/* Player color rides with the silhouette badge. */
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-pirate"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-pirate"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-pirate"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-pirate"]) { --ledger-player: #8c2f2f; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-cowboy"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-cowboy"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-cowboy"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-cowboy"]) { --ledger-player: #9a5410; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-wizard"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-wizard"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-wizard"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-wizard"]) { --ledger-player: #3c4f8a; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-fisherman"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-fisherman"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-fisherman"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-fisherman"]) { --ledger-player: #1d6278; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-flamingo"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-flamingo"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-flamingo"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-flamingo"]) { --ledger-player: #a33b62; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-dealer"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-dealer"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-dealer"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-dealer"]) { --ledger-player: #6e4e24; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-surfer"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-surfer"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-surfer"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-surfer"]) { --ledger-player: #c45c26; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-grandma"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-grandma"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-grandma"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-grandma"]) { --ledger-player: #7a3e6d; }
+html.porch-ledger.slice2-tv .s2-seat:has(img[src*="silhouette-pelican"]),
+html.porch-ledger.slice2-tv .s2-standing:has(img[src*="silhouette-pelican"]),
+html.porch-ledger.slice2-tv .score-entry-row:has(img[src*="silhouette-pelican"]),
+html.porch-ledger.slice2-tv #scorecard-capture tbody tr:has(img[src*="silhouette-pelican"]) { --ledger-player: #4f6b22; }
+
+html.porch-ledger.slice2-tv .s2-seat .avatar-img,
+html.porch-ledger.slice2-tv .s2-standing .avatar-img,
+html.porch-ledger.slice2-tv .score-entry-avatar,
+html.porch-ledger.slice2-tv .avatar-img-sc {
+  border-radius: var(--ledger-radius-badge) !important;
+  border: 2px solid var(--ledger-paper) !important;
+  box-shadow: 0 0 0 3px var(--ledger-player) !important;
+  background-color: var(--ledger-paper-2);
+}
+
+/* Home */
+html.porch-ledger.slice2-tv .s2-panel,
+html.porch-ledger.slice2-tv .s2-banner,
+html.porch-ledger.slice2-tv .s2-unfinished-row {
+  background: var(--ledger-paper) !important;
+  border: 1px solid var(--ledger-line) !important;
+  border-radius: var(--ledger-radius-sheet) !important;
+  box-shadow: var(--ledger-shadow-sheet) !important;
+  color: var(--ledger-ink);
+}
+
+/* The picker is the mat. The cube tile is only the outer band.
+   The center is plain felt. One ivory line sits between them.
+   The band stops before the decks: they begin about 52px in at
+   1024 and about 24px in at 390. */
+html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
+  --mat-band: 44px;
+  position: relative;
+  isolation: isolate;
+  background: var(--mat-felt) !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--mat-band);
+  background-image: var(--mat-felt-texture);
+  background-size: 56px 30px;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start::after {
+  content: "";
+  position: absolute;
+  inset: var(--mat-band);
+  border: 1.5px solid var(--mat-stitch);
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start > * {
+  position: relative;
+  z-index: 2;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head {
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head > div,
+html.porch-ledger.slice2-tv .s2-home-start #slice2-start-summary {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  background: var(--ledger-paper);
+  color: var(--ledger-ink);
+  border: 1px solid var(--ledger-line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: var(--ledger-shadow-sheet);
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head h2,
+html.porch-ledger.slice2-tv .s2-home-start .s2-panel-head > div .s2-sub,
+html.porch-ledger.slice2-tv .s2-home-start #slice2-start-summary {
+  margin: 0;
+  color: var(--ledger-ink);
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-startbar {
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-rules-select {
+  background-color: var(--ledger-paper) !important;
+  background-image: var(--bp-select-chevron) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 14px 8px !important;
+  color: var(--ledger-ink) !important;
+  border: 1px solid var(--ledger-line) !important;
+  box-shadow: var(--ledger-shadow-sheet);
+  min-height: 44px;
+  border-radius: 12px;
+  padding-right: 36px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game-grid {
+  justify-content: center;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
+  color: var(--ledger-paper) !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+}
+
+html.porch-ledger.slice2-tv .s2-kicker,
+html.porch-ledger.slice2-tv .s2-sub {
+  color: var(--ledger-ink-soft);
+}
+
+html.porch-ledger.slice2-tv .s2-kicker::before {
+  background: var(--ledger-teal);
+  box-shadow: 0 0 0 4px rgba(11, 95, 86, 0.16);
+}
+
+html.porch-ledger.slice2-tv .s2-seat,
+html.porch-ledger.slice2-tv .s2-standing {
+  background: var(--ledger-paper-2) !important;
+  border: 1px solid var(--ledger-line) !important;
+  border-radius: var(--ledger-radius-control) !important;
+  box-shadow: inset 7px 0 0 var(--ledger-player);
+  color: var(--ledger-ink);
+  overflow: visible;
+}
+
+html.porch-ledger.slice2-tv .s2-seat,
+html.porch-ledger.slice2-tv .s2-standing {
+  column-gap: 14px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-seat {
+  grid-template-columns: 1.35rem 44px minmax(0, 1fr) auto !important;
+  min-height: 64px;
+  height: auto !important;
+  align-items: center;
+}
+
+html.porch-ledger.slice2-tv .s2-seat .avatar-img,
+html.porch-ledger.slice2-tv .s2-standing .avatar-img {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-seat-name {
+  font-family: var(--ledger-type-text) !important;
+  font-weight: 800;
+  color: var(--ledger-ink) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-seat-num,
+html.porch-ledger.slice2-tv .s2-standing-score {
+  color: var(--ledger-ink) !important;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+html.porch-ledger.slice2-tv .s2-standing-score {
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem) !important;
+  font-weight: 800;
+}
+
+html.porch-ledger.slice2-tv .s2-dealer-tag {
+  color: var(--ledger-brass) !important;
+  background: var(--ledger-brass-soft) !important;
+  font-size: 12px !important;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html.porch-ledger.slice2-tv .s2-seat-out,
+html.porch-ledger.slice2-tv .s2-seat-nudge,
+html.porch-ledger.slice2-tv .s2-seat-handle {
+  width: 44px !important;
+  height: 44px !important;
+  color: var(--ledger-ink-soft);
+}
+
+html.porch-ledger.slice2-tv .s2-btn,
+html.porch-ledger.slice2-tv .s2-table-btn {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1.5px solid #cbbba4 !important;
+  border-radius: var(--ledger-radius-control) !important;
+  min-height: 44px;
+  font-family: var(--ledger-type-text);
+}
+
+html.porch-ledger.slice2-tv .s2-btn-primary,
+html.porch-ledger.slice2-tv #slice2-enter-btn,
+html.porch-ledger.slice2-tv #score-entry-primary-btn,
+html.porch-ledger.slice2-tv .btn-primary,
+html.porch-ledger.slice2-tv .btn-accent {
+  background: var(--ledger-teal) !important;
+  border-color: var(--ledger-teal-deep) !important;
+  color: var(--ledger-on-teal) !important;
+  border-radius: var(--ledger-radius-control) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset, 0 10px 18px -14px rgba(8, 40, 36, 0.85);
+}
+
+html.porch-ledger.slice2-tv .s2-add input,
+html.porch-ledger.slice2-tv .s2-home-table .s2-add input {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1.5px solid #cbbba4 !important;
+  border-radius: var(--ledger-radius-control) !important;
+  font-size: 16px !important;
+  min-height: 48px;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame {
+  box-shadow: var(--deck-shadow) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame::after {
+  border: 0 !important;
+  box-shadow: inset 0 0 0 3px var(--mat-deck-line) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
+  position: relative;
+  outline: none !important;
+  outline-offset: 0 !important;
+  /* Ivory halo sits on the blue. The teal rim stays on the art. */
+  box-shadow: 0 0 0 4px #f4efe4, var(--deck-shadow) !important;
+}
+
+/* #86 locks this rim at #0a5c54. The halo above is what reads on navy. */
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 0 !important;
+  border-radius: inherit;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 4;
+  box-shadow: inset 0 0 0 6px #0a5c54 !important;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv .s2-seat {
+    grid-template-columns: 1.75rem 52px minmax(0, 1fr) auto !important;
+    min-height: 64px;
+  }
+
+  html.porch-ledger.slice2-tv .s2-seat .avatar-img,
+  html.porch-ledger.slice2-tv .s2-standing .avatar-img {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing {
+    grid-template-columns: auto 44px max-content minmax(0, 1fr) auto !important;
+    min-height: 56px;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing .s2-seat-name {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    overflow-wrap: normal !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standing-score {
+    font-size: 22px !important;
+  }
+}
+
+/* Landscape home: the seated list keeps the room. The bench scrolls inside
+   the leftover so Add Player and the seats stay on screen. */
+@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat .avatar-img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Four or five seated rows stay whole. A longer list still scrolls so Start
+     and Add Player remain on the panel. */
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    gap: 2px !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat {
+    grid-template-columns: 1.35rem 32px minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
+    min-height: 42px !important;
+    height: auto !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .avatar-img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-who {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-name {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    text-align: left !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-dealer-tag {
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    padding: 1px 5px !important;
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-out,
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-handle {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table:has(.s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6)))) {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-picker {
+    display: contents;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-pick-list {
+    flex: 0 0 auto;
+    max-height: 56px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scroll-snap-type: y mandatory;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-pick {
+    min-height: 48px;
+    box-sizing: border-box;
+    scroll-snap-align: start;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-add {
+    flex: 0 0 auto;
+  }
+
+  html.porch-ledger.slice2-tv .s2-unfinished-row {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-unfinished-row h2,
+  html.porch-ledger.slice2-tv .s2-banner h2,
+  html.porch-ledger.slice2-tv .s2-panel h2 {
+    font-size: 22px !important;
+    line-height: 1.15;
+  }
+
+  html.porch-ledger.slice2-tv .s2-banner,
+  html.porch-ledger.slice2-tv .s2-unfinished-row,
+  html.porch-ledger.slice2-tv .s2-panel .s2-sub {
+    font-size: 16px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-startbar {
+    flex-wrap: wrap !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-startbar .s2-btn,
+  html.porch-ledger.slice2-tv #slice2-start-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    font-size: 16px !important;
+    height: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html.porch-ledger.slice2-tv .s2-banner,
+html.porch-ledger.slice2-tv .s2-unfinished-row {
+  padding: 8px 14px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-banner h2,
+html.porch-ledger.slice2-tv .s2-unfinished-row h2,
+html.porch-ledger.slice2-tv .s2-banner p,
+html.porch-ledger.slice2-tv .s2-unfinished-row p {
+  font-size: 16px !important;
+  line-height: 1.25 !important;
+}
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standings {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    gap: 10px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standing {
+    min-height: 64px !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 2px 8px !important;
+    gap: 10px !important;
+    overflow: hidden !important;
+    grid-template-columns: auto 36px minmax(0, 1fr) auto auto !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standing > * {
+    min-width: 0;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-dealer-tag {
+    font-size: 12px !important;
+    padding: 2px 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standing-score {
+    font-size: 20px !important;
+    justify-self: end;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .scoreboard-rank-badge {
+    font-size: 13px !important;
+    padding: 2px 8px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-seat-name,
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-seat-who {
+    overflow: visible !important;
+    white-space: nowrap !important;
+    min-width: max-content !important;
+    text-overflow: clip !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standing .avatar-img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-standings-foot {
+    flex: 0 0 auto;
+    background: var(--ledger-paper);
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .bp-app-shell {
+    overflow-y: auto !important;
+  }
+}
+
+/* Live scoreboard */
+html.porch-ledger.slice2-tv body.active-match-view {
+  background-color: var(--ledger-felt) !important;
+}
+
+html.porch-ledger.slice2-tv #slice2-board-bar {
+  color: var(--ledger-paper);
+}
+
+html.porch-ledger.slice2-tv #slice2-board-line,
+html.porch-ledger.slice2-tv #slice2-board-sub,
+html.porch-ledger.slice2-tv .s2-board-round {
+  color: var(--ledger-paper) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-board-copy {
+  min-width: 0;
+}
+
+html.porch-ledger.slice2-tv #slice2-board-line {
+  font-size: clamp(18px, 2vw, 28px) !important;
+  white-space: nowrap !important;
+}
+
+html.porch-ledger.slice2-tv #slice2-board-sub {
+  font-size: 15px !important;
+  white-space: nowrap !important;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-enter-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-table-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #actions-btn,
+  html.porch-ledger.slice2-tv body.active-match-view .match-end-btn {
+    font-size: 16px !important;
+    padding: 8px 14px !important;
+  }
+}
+
+html.porch-ledger.bpg-try-demo body.active-match-view .bp-app-shell {
+  box-sizing: border-box !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+}
+
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
+  padding-top: 10px !important;
+  margin-bottom: 10px !important;
+  overflow: visible !important;
+}
+
+@media (min-width: 761px) and (max-height: 820px) and (orientation: landscape) {
+  html.porch-ledger.slice2-tv body.active-match-view .bp-app-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen .landscape-only {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen {
+    padding-bottom: 16px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    width: min(62rem, calc(100% - 2.5rem)) !important;
+    max-width: 62rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+    width: min(62rem, calc(100% - 2.5rem)) !important;
+    max-width: 62rem !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table-wrap,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-table-wrap {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture table.scorecard-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  /* #86 hugs a short sheet to the last row. The ivory stays on that sheet.
+     The navy under it is the mat, not an empty cream block. */
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    background: var(--ledger-paper) !important;
+    border: 1px solid var(--ledger-line) !important;
+    border-radius: var(--ledger-radius-sheet) !important;
+    box-shadow: var(--ledger-shadow-sheet) !important;
+    overflow: hidden !important;
+  }
+}
+
+html.porch-ledger.slice2-tv #slice2-board-line .s2-board-title {
+  font-family: var(--ledger-type-display) !important;
+  color: var(--ledger-paper) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture {
+  background: var(--ledger-paper) !important;
+  border: 1px solid var(--ledger-line) !important;
+  border-radius: var(--ledger-radius-sheet) !important;
+  box-shadow: var(--ledger-shadow-sheet) !important;
+  color: var(--ledger-ink);
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture th {
+  background: #f6efe3 !important;
+  color: var(--ledger-ink-soft) !important;
+  font-family: var(--ledger-type-text) !important;
+  border-bottom: 1px solid #d9c7b0 !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td:first-child {
+  background: var(--ledger-paper) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-col-player,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-cell {
+  background: var(--ledger-teal-wash) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
+  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)) {
+  gap: 18px !important;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-col-player .flex.items-center.scorecard-player-identity {
+    gap: 14px !important;
+  }
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-avatar-slot {
+  margin-right: 2px;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tbody td {
+  border-bottom: 1px solid var(--ledger-rule) !important;
+  background: var(--ledger-paper) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td {
+  background: var(--ledger-teal-wash) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
+html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
+  color: var(--ledger-ink) !important;
+  font-family: var(--ledger-type-text) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total th.scorecard-col-total,
+html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-total {
+  background: #f3efe6 !important;
+  color: var(--ledger-ink-soft) !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total td.scorecard-col-total,
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-value,
+html.porch-ledger.slice2-tv #scorecard-capture .tv-stat-num {
+  background: #fbf6ec !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--ledger-ink) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row > td,
+html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols tr.leader-row td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table.scorecard-table--identity-total tr.leader-row td.scorecard-col-total,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .scorecard-total-value,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .tv-stat-num {
+  background: var(--ledger-teal-wash) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row > td.scorecard-col-player {
+  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+}
+
+/* The leader wash runs through This Round. Entered leader scores keep the tested green pill. */
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-col-now {
+  background: var(--ledger-teal-wash) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--ledger-rule) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered {
+  background: rgb(213, 235, 227) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
+  background: #e8e3da !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) .score-cell-input {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table-wrap {
+  box-sizing: border-box;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-cell,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .scorecard-total-value {
+  color: var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-value,
+html.porch-ledger.slice2-tv #scorecard-capture .tv-stat-num {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+html.porch-ledger.slice2-tv .scoreboard-rank-badge {
+  border-radius: 999px !important;
+  font-family: var(--ledger-type-text) !important;
+  font-weight: 800 !important;
+  color: var(--ledger-ink) !important;
+  background: var(--ledger-paper-2) !important;
+  border: 1px solid #d9c7b0 !important;
+}
+
+html.porch-ledger.slice2-tv .scoreboard-rank-badge.is-place-1 {
+  background: var(--ledger-teal) !important;
+  color: var(--ledger-on-teal) !important;
+  border-color: var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv .scoreboard-rank-badge.is-place-2,
+html.porch-ledger.slice2-tv .scoreboard-rank-badge.is-place-3,
+html.porch-ledger.slice2-tv .scoreboard-rank-badge.is-place-rest {
+  background: var(--ledger-paper-2) !important;
+  color: var(--ledger-ink) !important;
+  border: 1px solid #d9c7b0 !important;
+}
+
+/* Score entry */
+html.porch-ledger #score-entry-modal:not(.hidden) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 240 !important;
+  background: color-mix(in srgb, var(--mat-felt) 46%, #05080f 54%) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal > .absolute {
+  background: color-mix(in srgb, var(--mat-felt) 36%, #05080f 64%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.porch-ledger.bp-modal-open #bpg-try-demo-bar,
+html.porch-ledger.bp-modal-open #bpg-try-demo-tip,
+html.porch-ledger:has(#score-entry-modal:not(.hidden)) #bpg-try-demo-bar,
+html.porch-ledger:has(#score-entry-modal:not(.hidden)) #bpg-try-demo-tip {
+  visibility: hidden !important;
+}
+
+html.porch-ledger:has(#score-entry-modal:not(.hidden))::before {
+  visibility: hidden !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidden) {
+  padding: 0 !important;
+  z-index: 400 !important;
+  background: color-mix(in srgb, var(--mat-felt) 36%, #05080f 64%) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell > .score-entry-panel {
+  height: min(calc(100dvh - 28px), 880px) !important;
+  max-height: min(calc(100dvh - 28px), 880px) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent 42px),
+    var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1px solid #d9c7b0 !important;
+  border-radius: var(--ledger-radius-sheet) !important;
+  box-shadow: var(--ledger-shadow-sheet) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row {
+  background: var(--ledger-paper-2) !important;
+  border: 1px solid var(--ledger-line) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+  transform: none !important;
+  color: var(--ledger-ink) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 8px 0 0 !important;
+  overflow: hidden !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active {
+  background: color-mix(in srgb, var(--ledger-player) 12%, var(--ledger-paper)) !important;
+  border-color: color-mix(in srgb, var(--ledger-player) 40%, var(--ledger-line)) !important;
+  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-player-card {
+  column-gap: 14px !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: auto !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-input-cell,
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-input-cell {
+  align-self: center !important;
+  margin: 0 !important;
+  height: auto !important;
+  padding: 8px 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name,
+html.porch-ledger.slice2-tv #score-entry-selected-name {
+  color: var(--ledger-ink) !important;
+  font-family: var(--ledger-type-text) !important;
+  font-weight: 800 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-value,
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-meta-value {
+  color: var(--ledger-ink) !important;
+  font-weight: 800 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-value {
+  border: 1.5px solid #d9c7b0 !important;
+  border-radius: 12px !important;
+  background: var(--ledger-paper) !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-value {
+  color: var(--ledger-ink) !important;
+  border-color: var(--ledger-teal) !important;
+  box-shadow: none !important;
+  background: var(--ledger-paper) !important;
+}
+
+/* Keypad placement stays #86's. The skin only paints the keys.
+   A no-minus pad uses areas "k0 k0 k0 next" so 0 fills the bottom row. */
+
+@media (min-width: 761px) and (max-width: 900px) and (orientation: portrait) {
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-list {
+    min-height: 180px !important;
+    overflow: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row {
+    min-height: 48px !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-layout {
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-list {
+    flex: 0 0 auto !important;
+    max-height: 260px !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-panel > .border-t {
+    position: static !important;
+    margin-top: 8px !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-side {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-keypad {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 208px !important;
+    max-height: none !important;
+    grid-template-rows: repeat(4, 48px) !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-panel {
+    overflow-y: auto !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-key {
+    min-height: 44px !important;
+  }
+}
+
+@media (min-width: 900px) {
+  html.porch-ledger #score-entry-modal.hf-basic-entry .hf-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-meta-label,
+html.porch-ledger.slice2-tv #score-entry-selected-kicker {
+  color: var(--ledger-muted) !important;
+  letter-spacing: 0.04em;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-keypad {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1.5px solid #d9c7b0 !important;
+  border-radius: var(--ledger-radius-control) !important;
+  font-family: var(--ledger-type-text) !important;
+  font-weight: 800 !important;
+  box-shadow: var(--ledger-shadow-key) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key.subtle,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn[onclick*="backspace"],
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn[onclick*="' -'"],
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn[onclick*="'-'"] {
+  background: #f3e6d4 !important;
+  color: var(--ledger-ink) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key.next,
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-primary-btn,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn[onclick*="numpadNext"] {
+  background: var(--ledger-teal) !important;
+  border-color: var(--ledger-teal-deep) !important;
+  color: var(--ledger-on-teal) !important;
+  box-shadow: 0 2px 0 #063832 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-progress {
+  background: var(--ledger-teal-wash) !important;
+  color: var(--ledger-teal-deep) !important;
+  border-color: #9dcec4 !important;
+  border-radius: var(--ledger-radius-control) !important;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-rows,
+html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows,
+html.porch-ledger #score-entry-modal.score-entry-tablet-land .score-entry-rows,
+html.porch-ledger #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  scrollbar-gutter: auto !important;
+  padding-right: 0 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list,
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows,
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
+  overflow: hidden !important;
+  scrollbar-gutter: auto !important;
+  scrollbar-width: none !important;
+  padding-right: 0 !important;
+  border-right: 0 !important;
+}
+
+html.porch-ledger #score-entry-modal {
+  --score-entry-scroll-pad: 0px;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-row,
+html.porch-ledger #score-entry-modal .score-entry-lane-label {
+  padding-right: 0 !important;
+}
+
+html.porch-ledger #score-entry-modal .score-entry-rows::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .btn-ghost,
+html.porch-ledger.slice2-tv .btn-ghost {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border: 1.5px solid #cbbba4 !important;
+  border-radius: var(--ledger-radius-control) !important;
+  min-height: 44px;
+}
+
+/* Sample bar stays visible and matches the felt. */
+html.porch-ledger.bpg-try-demo {
+  --bp-demo-offset: 48px;
+}
+
+html.porch-ledger.bpg-try-demo:not(.bpg-try-demo-tip) {
+  padding-top: 48px !important;
+}
+
+html.porch-ledger.bpg-try-demo.bpg-try-demo-tip {
+  --bp-demo-offset: 104px;
+  padding-top: 104px !important;
+}
+
+html.porch-ledger #bpg-try-demo-bar {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  box-sizing: border-box !important;
+  padding: 4px 14px !important;
+  overflow: hidden !important;
+  background: var(--mat-bar) !important;
+  color: var(--ledger-on-teal) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-felt) 70%, #fffaf3 30%) !important;
+  font-family: var(--ledger-type-text) !important;
+}
+
+html.porch-ledger #bpg-try-demo-bar strong {
+  color: var(--ledger-on-teal);
+  font-size: 14px;
+}
+
+html.porch-ledger #bpg-try-demo-bar button {
+  min-height: 36px !important;
+  height: 36px !important;
+}
+
+html.porch-ledger #bpg-try-demo-bar button,
+html.porch-ledger #bpg-try-demo-tip button {
+  min-height: 36px !important;
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-teal-deep) !important;
+  border-color: #cbbba4 !important;
+  border-radius: var(--ledger-radius-control) !important;
+}
+
+html.porch-ledger #bpg-try-demo-tip {
+  top: 48px !important;
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-ink) !important;
+  border-bottom-color: var(--ledger-line) !important;
+}
+
+@media (max-width: 760px) {
+  /* The document scrollbar is a 6px hairline thumb. On a phone it leaves a
+     cream strip at the right edge, including through the header. The nav
+     veil used to stick out past the card and opened that scrollbar. */
+  html.porch-ledger,
+  html.porch-ledger body {
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+  }
+
+  html.porch-ledger::-webkit-scrollbar,
+  html.porch-ledger body::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+
+  html.porch-ledger.slice2-tv #top-nav::before {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen .landscape-only {
+    justify-content: flex-start !important;
+  }
+
+  html.porch-ledger.slice2-tv #slice2-board-line,
+  html.porch-ledger.slice2-tv #slice2-board-sub {
+    font-size: 16px !important;
+    color: var(--ledger-paper) !important;
+    line-height: 1.2 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-panel.s2-home-start {
+    --mat-band: 16px;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
+    font-size: 13px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-start .s2-rules-select,
+  html.porch-ledger.slice2-tv .s2-home-start .s2-btn,
+  html.porch-ledger.slice2-tv .s2-home-start #slice2-start-btn {
+    min-height: 44px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    height: auto !important;
+    flex: 0 0 auto !important;
+    max-height: none !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 2px;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-hug-rows {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: 100% !important;
+    background: var(--ledger-paper) !important;
+    border: 1px solid #d9c7b0 !important;
+    border-radius: var(--ledger-radius-sheet) !important;
+    box-shadow: var(--ledger-shadow-sheet) !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols th.scorecard-col-total,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols td.scorecard-total-cell,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols td.scorecard-col-total {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture td.scorecard-round-td .score-cell-input {
+    width: calc(100% - 6px) !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 6px) !important;
+    min-height: 38px !important;
+    height: auto !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+    padding: 4px 2px !important;
+    box-sizing: border-box !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
+    width: auto !important;
+    min-width: 4.4rem !important;
+    max-width: none !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+    text-align: center !important;
+    padding: 4px 2px !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now {
+    font-size: 12px !important;
+    white-space: normal !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows {
+    gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 1.35fr) minmax(0, 0.95fr) !important;
+    column-gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-enter-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #actions-btn,
+  html.porch-ledger.slice2-tv body.active-match-view .match-end-btn {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+  }
+
+  html.porch-ledger.slice2-tv #top-nav .nav-btn {
+    min-height: 44px;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.porch-ledger body.home-view #top-nav .nav-btn {
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav > div > div:last-child {
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav .nav-btn,
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav .nav-btn:not(.hidden) {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.15 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidden) {
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell > .score-entry-panel {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    padding: 18px 14px 12px !important;
+  }
+
+  html.porch-ledger #score-entry-modal #score-entry-game,
+  html.porch-ledger #score-entry-modal #score-entry-context {
+    overflow: visible !important;
+    line-height: 1.2 !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-list,
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows,
+  html.porch-ledger #score-entry-modal.score-entry-plain.score-entry-managed-fit:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger body.home-view .s2-banner,
+  html.porch-ledger body.home-view .s2-unfinished-row {
+    padding: 8px 12px !important;
+  }
+
+  html.porch-ledger body.home-view .s2-banner h2 {
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"]::after,
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"]::after,
+  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"]::after,
+  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"]::after {
+    content: none !important;
+  }
+
+  html.porch-ledger body.home-view #top-nav {
+    flex-wrap: nowrap !important;
+  }
+
+  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"],
+  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"] {
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger body.home-view .s2-seat {
+    min-height: 52px !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  html.porch-ledger body.home-view .s2-seat .avatar-img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  html.porch-ledger body.home-view .s2-home-table .s2-pick-list {
+    max-height: 58px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+  }
+
+  html.porch-ledger body.home-view .s2-pick {
+    min-height: 52px;
+    box-sizing: border-box;
+  }
+
+  html.porch-ledger body.home-view,
+  html.porch-ledger body.home-view #home-screen,
+  html.porch-ledger body.home-view .s2-home {
+    padding-bottom: 8px !important;
+  }
+
+  html.porch-ledger body.home-view .s2-seat,
+  html.porch-ledger body.home-view .s2-pick {
+    scroll-snap-align: start;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)):not(:has(.wheel-badge)),
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:not(:has(.hf-team-line)):not(:has(.wheel-badge)) > .flex,
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot:not(:has(.hf-team-line)) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-avatar-slot {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+    flex: 1 1 auto !important;
+    overflow: visible !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    min-width: 4.8em !important;
+    max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name .dealer-player-label,
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
+    display: inline !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-avatar-badge {
+    position: absolute !important;
+    right: -5px !important;
+    bottom: -4px !important;
+    width: 13px !important;
+    height: 13px !important;
+    font-size: 8px !important;
+    line-height: 13px !important;
+    z-index: 2 !important;
+  }
+
+  /* Same avatar and name size on every phone row. Spin ready moves under
+     the name so it does not shrink the portrait or the type. */
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    align-content: center !important;
+    column-gap: 8px !important;
+    row-gap: 2px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-avatar-slot,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .avatar-img-sc {
+    width: min(28px, var(--scorecard-avatar-size, 28px)) !important;
+    height: min(28px, var(--scorecard-avatar-size, 28px)) !important;
+    flex: 0 0 auto !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-name-indicator,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
+    font-size: min(1.375rem, var(--scorecard-player-font, 1.375rem)) !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .wheel-badge {
+    flex: 1 0 100% !important;
+    margin: 0 0 0 36px !important;
+    align-self: start !important;
+    width: auto !important;
+    max-width: calc(100% - 36px) !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table tbody td {
+    box-sizing: border-box !important;
+    height: var(--scorecard-row-height) !important;
+    max-height: var(--scorecard-row-height) !important;
+    padding-top: var(--scorecard-row-pad-y, 2px) !important;
+    padding-bottom: var(--scorecard-row-pad-y, 2px) !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-total-cell {
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-rank-badge {
+    font-size: 10px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 1px 5px !important;
+    line-height: 1.2 !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-panel > .border-b {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 6px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-heading,
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-progress {
+    grid-column: 1 !important;
+    max-width: 100% !important;
+    justify-self: start !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-progress {
+    grid-row: 2 !important;
+    width: auto !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    text-transform: none !important;
+    letter-spacing: 0.01em !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    padding: 6px 10px !important;
+    text-align: left !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+    padding-top: 4px !important;
+    padding-bottom: 2px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) #score-entry-unconfirmed {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-lane-label {
+    display: none !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-list,
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-rows {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    justify-content: stretch !important;
+    gap: 6px !important;
+    padding: 0 !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-row {
+    flex: 1 1 0 !important;
+    height: auto !important;
+    min-height: 56px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    align-items: stretch !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-player-card {
+    height: 100% !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    grid-template-columns: 32px minmax(0, 1fr) 56px !important;
+    align-items: center !important;
+    overflow: visible !important;
+    padding: 2px 6px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-value {
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    font-size: 16px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-meta-label {
+    font-size: 10px !important;
+    letter-spacing: 0.04em !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-identity {
+    position: relative !important;
+    align-self: center !important;
+    overflow: visible !important;
+    min-height: 36px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-name {
+    flex: 1 1 auto !important;
+    font-size: 17px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-name-line {
+    position: relative !important;
+    flex: 0 1 auto !important;
+    height: auto !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    gap: 4px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain .score-entry-comeback-slot:empty {
+    display: none !important;
+  }
+
+  /* The chip sits under the name, out of the line, so the name stays whole
+     and the row paints the same closed card as the other seats. */
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-dealer-badge {
+    position: absolute !important;
+    top: calc(100% + 1px) !important;
+    left: 0 !important;
+    z-index: 2 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: 100% !important;
+    font-size: 9px !important;
+    letter-spacing: 0.04em !important;
+    padding: 1px 5px !important;
+    line-height: 1.1 !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-panel > .border-t {
+    margin-top: 0 !important;
+    padding-top: 8px !important;
+  }
+}
+
+/* Flat page trials. The mat is the default. ?bg= still paints one flat field. */
+html.porch-ledger[data-ledger-bg="seaglass"] { --ledger-page: #8eaea6; }
+html.porch-ledger[data-ledger-bg="slate"] { --ledger-page: #95a6b6; }
+html.porch-ledger[data-ledger-bg="sage"] { --ledger-page: #c9d5bf; }
+
+html.porch-ledger[data-ledger-bg].slice2-tv,
+html.porch-ledger[data-ledger-bg].slice2-tv body,
+html.porch-ledger[data-ledger-bg].slice2-tv body.active-match-view {
+  background-color: var(--ledger-page) !important;
+  background-image: none !important;
+}
+
+html.porch-ledger[data-ledger-bg].slice2-tv body:not(.active-match-view) #top-nav::before {
+  background: var(--ledger-page) !important;
+}
+
+html.porch-ledger[data-ledger-bg].slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-hug-rows {
+  background: var(--ledger-page) !important;
+}

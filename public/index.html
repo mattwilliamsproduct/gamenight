@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" id="html-root">
+<html lang="en" id="html-root" class="porch-ledger">
 <head>
   <script>
   (function(){
@@ -7,6 +7,10 @@
       document.documentElement.classList.add('slice2-tv');
       if(new URLSearchParams(location.search).has('standings')){
         document.documentElement.classList.add('s2-standings-only');
+      }
+      var ledgerBg = new URLSearchParams(location.search).get('bg');
+      if(ledgerBg === 'seaglass' || ledgerBg === 'slate' || ledgerBg === 'sage'){
+        document.documentElement.setAttribute('data-ledger-bg', ledgerBg);
       }
     }catch(err){}
   })();
@@ -9884,6 +9888,7 @@ button.dealer-name-indicator .dealer-player-label {
       max-width: 100%;
     }
   </style>
+  <link rel="stylesheet" href="./assets/porch-ledger.css">
 </head>
 
 <body class="min-h-screen relative pb-24" id="main-body">
@@ -17829,6 +17834,10 @@ ${isDealer
         const slot=name.closest('.scorecard-player-name-slot');
         const slotW=slot?slot.clientWidth:0;
         if(slotW<24)return;
+        const nameBox=name.getBoundingClientRect();
+        const badgeBox=badge.getBoundingClientRect();
+        const nameBottom=nameBox.bottom;
+        if(badgeBox.top + 2 >= nameBottom)return;
         const cap=Math.max(16, Math.min(columnSize, slotW/2.95));
         const size=`${cap.toFixed(1)}px`;
         name.style.setProperty('font-size',size,'important');
@@ -19711,6 +19720,7 @@ ${isDealer
     if(!currentGame||currentGame.name==='Rook')return;
     const mode=getScoreEntryMode();
     if(!mode||isMatchOver(currentGame))return;
+    isSubmitting=false;
     gnPerfAction('opened score modal', mode.kind);
     if(activeInputId)closeNumpad({render:false});
 
