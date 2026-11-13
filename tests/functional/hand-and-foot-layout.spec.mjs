@@ -403,7 +403,7 @@ test('Canasta entry header and rate bar stay unclipped at 1024, 1440, and 390', 
   }
 });
 
-test('Left early disclosure stays in view and expands the retired name at 1024, 1440, and 390', async ({page}) => {
+test('Left early score stays on the card at 1024, 1440, and 390', async ({page}) => {
   for (const viewport of [{width: 1024, height: 768}, {width: 1440, height: 900}, {width: 390, height: 844}]) {
     await page.setViewportSize(viewport);
     await openScenario(page, {scenario: 'five-crowns-late-8', surface: 'scorecard'});
@@ -412,21 +412,17 @@ test('Left early disclosure stays in view and expands the retired name at 1024, 
       currentGame.retired = ['Linda'];
       if (typeof renderGame === 'function') renderGame();
     });
-    const disc = page.locator('#left-early-disclosure');
-    await expect(disc).toContainText(/1 player left early/i);
-    const inView = await page.evaluate(() => {
-      const el = document.getElementById('left-early-disclosure');
-      if (!el) return false;
+    await expect(page.locator('#left-early-disclosure')).toHaveCount(0);
+    const row = page.locator('#scorecard-body tr').filter({hasText: 'Linda'});
+    await expect(row).toHaveCount(1);
+    await expect(row.locator('.scoreboard-rank-badge')).toHaveText('Left early');
+    const total = (await row.locator('.scorecard-total-value').innerText()).trim();
+    expect(total, `${viewport.width} Linda total`).toMatch(/-?\d+/);
+    await row.scrollIntoViewIfNeeded();
+    const inView = await row.evaluate((el) => {
       const box = el.getBoundingClientRect();
       return box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.width > 0 && box.height > 0;
     });
-    expect(inView, `${viewport.width} disclosure in view`).toBe(true);
-    await disc.click();
-    await expect(page.locator('#left-early-names')).toBeVisible();
-    await expect(page.locator('#left-early-names')).toContainText('Linda');
-    const hiddenRow = await page.evaluate(() => {
-      return [...document.querySelectorAll('#scorecard-body tr')].some((row) => /Linda/i.test(row.textContent || ''));
-    });
-    expect(hiddenRow, `${viewport.width} Linda still in active rows`).toBe(false);
+    expect(inView, `${viewport.width} Linda row in view`).toBe(true);
   }
 });

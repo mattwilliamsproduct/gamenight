@@ -94,7 +94,7 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   expect(phase).toBe('scoring');
 });
 
-test('Departed player leaves live scorecard with disclosure', async ({page}) => {
+test('Departed player stays on the live scorecard with Left early', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await openScenario(page, {scenario: 'wizard-scoring-8', surface: 'scorecard'});
   const result = await page.evaluate(() => {
@@ -103,31 +103,34 @@ test('Departed player leaves live scorecard with disclosure', async ({page}) => 
     if (!currentGame.retired) currentGame.retired = [];
     if (!currentGame.retired.includes(name)) currentGame.retired.push(name);
     renderGame();
-    const disc = document.getElementById('left-early-disclosure');
-    const box = disc ? disc.getBoundingClientRect() : null;
+    const row = [...document.querySelectorAll('#scorecard-body tr')].find((el) => (el.textContent || '').includes(name));
+    if (row) row.scrollIntoView({block: 'nearest'});
+    const box = row ? row.getBoundingClientRect() : null;
     const inView = !!(box && box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.width > 0 && box.height > 0);
+    const total = row ? (row.querySelector('.scorecard-total-value') || {}).textContent : '';
     return {
       name,
       beforeRows,
       afterRows: document.querySelectorAll('#scorecard-body tr').length,
-      disclosure: disc ? disc.textContent || '' : '',
+      disclosure: !!document.getElementById('left-early-disclosure'),
+      place: row ? (row.querySelector('.scoreboard-rank-badge') || {}).textContent : '',
+      total,
       inView,
       box: box ? {top: box.top, bottom: box.bottom, height: box.height} : null,
       boardLine: (document.getElementById('slice2-board-line') || {}).textContent || '',
       bidHeader: (document.querySelector('.scorecard-bid-header') || {}).textContent || '',
-      retiredRows: document.querySelectorAll('#scorecard-body tr.row-retired').length,
-      recorded: typeof getRecordedPlayers === 'function' ? getRecordedPlayers(currentGame) : null
+      retiredRows: document.querySelectorAll('#scorecard-body tr.row-retired').length
     };
   });
-  expect(result.afterRows, JSON.stringify(result)).toBe(result.beforeRows - 1);
-  expect(result.retiredRows).toBe(0);
-  expect(result.disclosure).toMatch(/1 player left early/i);
+  expect(result.afterRows, JSON.stringify(result)).toBe(result.beforeRows);
+  expect(result.retiredRows).toBe(1);
+  expect(result.disclosure).toBe(false);
+  expect(result.place).toMatch(/Left early/i);
+  expect(result.total).toMatch(/-?\d+/);
   expect(result.inView, JSON.stringify(result.box)).toBe(true);
   expect(result.boardLine).toMatch(/Round \d+ of \d+ · \d+ tricks? · bids total \d+ \((exact|\d+ over|\d+ under)\)/i);
   expect(result.bidHeader).toMatch(/^\s*Bids\s*$/i);
-  await page.locator('#left-early-disclosure').click();
-  await expect(page.locator('#left-early-names')).toBeVisible();
-  await expect(page.locator('#left-early-names')).toContainText(result.name);
+  await expect(page.locator('#scorecard-body tr').filter({hasText: result.name})).toContainText(result.total.trim());
 });
 
 test('Start confirm parks live match incomplete', async ({page}) => {
