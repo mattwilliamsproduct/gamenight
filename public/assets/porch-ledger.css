@@ -382,7 +382,7 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
 
   /* Four or five seated rows stay whole. A longer list still scrolls so Start
      and Add Player remain on the panel. */
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) {
     flex: 0 0 auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -390,19 +390,19 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
     overflow: visible !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) .s2-seat {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat {
     min-height: 42px !important;
     height: auto !important;
     padding-top: 1px !important;
     padding-bottom: 1px !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) .avatar-img {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .avatar-img {
     width: 32px !important;
     height: 32px !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) .s2-seat-who {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-who {
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
@@ -410,22 +410,22 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
     min-width: 0 !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) .s2-dealer-tag {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-dealer-tag {
     font-size: 10px !important;
     line-height: 1.1 !important;
     padding: 1px 5px !important;
     white-space: nowrap !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) .s2-seat-out,
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) .s2-seat-handle {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-out,
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-handle {
     width: 28px !important;
     height: 28px !important;
     min-width: 28px !important;
     min-height: 28px !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table:has(.s2-seat-grid:not(:has(.s2-seat:nth-child(6)))) {
+  html.porch-ledger.slice2-tv .s2-home-table:has(.s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6)))) {
     padding-top: 8px !important;
     padding-bottom: 8px !important;
   }
@@ -1293,16 +1293,20 @@ html.porch-ledger #bpg-try-demo-tip {
   html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
-    width: 70px !important;
-    min-width: 70px !important;
-    max-width: 70px !important;
-    white-space: normal !important;
+    width: 78px !important;
+    min-width: 78px !important;
+    max-width: 78px !important;
+    white-space: nowrap !important;
     line-height: 1.05 !important;
-    font-size: 10px !important;
     letter-spacing: 0 !important;
     text-align: center !important;
-    padding: 4px 2px !important;
-    overflow: visible !important;
+    padding: 4px 1px !important;
+    overflow: hidden !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now {
+    font-size: 10px !important;
   }
 
   html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-avatar {
