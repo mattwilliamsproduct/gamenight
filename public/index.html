@@ -18217,7 +18217,9 @@ ${isDealer
     const wrap=host.querySelector('.scorecard-table-wrap');
     const table=host.querySelector('table.scorecard-table');
     if(!wrap||!table||wrap.clientWidth<40)return;
-    table.querySelectorAll('.scorecard-col-player').forEach((el)=>{
+    // Clear the widths a wider layout pinned (e.g. the 112px Total cap above 900px),
+    // so narrowing the window re-fits instead of pushing This round off the card.
+    table.querySelectorAll('.scorecard-col-player, .scorecard-col-total').forEach((el)=>{
       el.style.removeProperty('width');
       el.style.removeProperty('max-width');
       el.style.removeProperty('min-width');
