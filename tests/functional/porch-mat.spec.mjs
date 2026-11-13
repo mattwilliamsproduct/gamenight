@@ -37,8 +37,8 @@ function matGeometry() {
   };
 }
 
-for (const size of [{width: 1024, height: 768}, {width: 768, height: 1024}, {width: 390, height: 844}]) {
-  test(`the mat line is even and the seven decks sit inside it at ${size.width}`, async ({page}) => {
+for (const size of [{width: 1024, height: 768}, {width: 768, height: 1024}, {width: 390, height: 844}, {width: 1280, height: 720}]) {
+  test(`the mat line is even and the seven decks sit inside it at ${size.width}x${size.height}`, async ({page}) => {
     await page.setViewportSize(size);
     await openScenario(page, {scenario: 'home-party', surface: 'home'});
     await expect(page.locator('#home-screen .s2-home-start .s2-game')).toHaveCount(7);
