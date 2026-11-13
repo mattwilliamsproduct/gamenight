@@ -1790,6 +1790,8 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
     }
     .score-entry-progress:empty { display: none; }
+    .score-entry-progress-line { display: block; min-width: 0; max-width: 100%; white-space: normal; }
+    .score-entry-progress-seg { white-space: nowrap; }
     .score-entry-list {
       position: relative;
       min-height: 0;
@@ -19675,6 +19677,22 @@ ${isDealer
     updateScoreEntryProgress();
   }
 
+  // Each dot-separated part stays on one line so a narrow pill breaks only between parts.
+  // The pill is a flex box, so one inner span keeps normal text flow inside it.
+  function setScoreEntryProgressSegments(el, parts){
+    el.textContent='';
+    const line=document.createElement('span');
+    line.className='score-entry-progress-line';
+    parts.forEach((part,i)=>{
+      if(i) line.appendChild(document.createTextNode(' · '));
+      const seg=document.createElement('span');
+      seg.className='score-entry-progress-seg';
+      seg.textContent=part;
+      line.appendChild(seg);
+    });
+    el.appendChild(line);
+  }
+
   function updateScoreEntryProgress(){
     if(!scoreEntryModalState||!currentGame)return;
     const {mode}=scoreEntryModalState;
@@ -19703,9 +19721,9 @@ ${isDealer
       const tricks=getRoundTrickCount(currentGame);
       const total=getScoreEntryDraftTotal();
       if(isScoreEntryBidMode(mode)){
-        progress.textContent=`${entered} of ${players.length} bids in · total ${total} · ${tricks} trick${tricks===1?'':'s'}`;
+        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} bids in`,`total ${total}`,`${tricks} trick${tricks===1?'':'s'}`]);
       } else {
-        progress.textContent=`${entered} of ${players.length} tricks in · total ${total} · need ${tricks}`;
+        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} tricks in`,`total ${total}`,`need ${tricks}`]);
       }
     } else {
       progress.textContent=enteredText;
