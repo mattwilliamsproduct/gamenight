@@ -322,7 +322,32 @@ test('Canasta score cells never clip 4-digit or 5-digit totals', async ({page}) 
   }
 });
 
-test('Canasta team rows stay dense and show full two-line names', async ({page}) => {
+test('Canasta team names stay on one line and the card hugs two rows', async ({page}) => {
+  for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
+    await page.setViewportSize(size);
+    await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
+    const fit = await page.evaluate(() => {
+      const names = [...document.querySelectorAll('#scorecard-capture .hf-team-name')];
+      const split = names.filter((el) => {
+        const parts = [...el.querySelectorAll('.hf-team-line')];
+        if (parts.length < 2) return true;
+        const first = parts[0].getBoundingClientRect();
+        const second = parts[1].getBoundingClientRect();
+        return Math.abs(first.top - second.top) > 3 || second.left < first.right - 2;
+      }).length;
+      const card = document.getElementById('scorecard-capture').getBoundingClientRect();
+      const last = document.querySelector('#scorecard-capture tbody tr:last-child').getBoundingClientRect();
+      return {
+        split,
+        gap: Math.round(card.bottom - last.bottom),
+        hugged: document.getElementById('scorecard-capture').classList.contains('scorecard-hug-rows')
+      };
+    });
+    expect(fit.hugged, `${size.width} card is not hugged ${JSON.stringify(fit)}`).toBe(true);
+    expect(fit.split, `${size.width} names wrap ${JSON.stringify(fit)}`).toBe(0);
+    expect(fit.gap, `${size.width} empty card ${JSON.stringify(fit)}`).toBeLessThan(72);
+  }
+
   await page.setViewportSize({width: 390, height: 844});
   await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
   const phone = await canastaNameOverflow(page);

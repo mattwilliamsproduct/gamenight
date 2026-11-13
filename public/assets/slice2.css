@@ -5459,6 +5459,17 @@ html.slice2-tv .s2-standing .wheel-badge {
   margin-left: auto !important;
   flex: 0 0 auto !important;
 }
+/* A two-team Canasta card ends at the last row. The phone shell still fills the screen. */
+@media (max-width: 760px) {
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows,
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}
 @media (max-width: 760px) {
   html.slice2-tv #scorecard-capture .wheel-badge {
     font-size: 0.6rem !important;

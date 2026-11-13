@@ -5099,7 +5099,7 @@ button.dealer-name-indicator .dealer-player-label {
       display: block;
       white-space: normal;
     }
-    /* Canasta scorecard: Five Crowns density at every width. Two-line team names. No clipped cells. */
+    /* Canasta scorecard: Five Crowns density at every width. Team names stay one line. No clipped cells. */
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table,
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total {
       table-layout: fixed;
@@ -5123,24 +5123,28 @@ button.dealer-name-indicator .dealer-player-label {
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name.hf-team-name,
     body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .hf-team-name {
       display: flex !important;
-      flex-direction: column;
-      align-items: flex-start;
-      white-space: normal !important;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.16em;
+      white-space: nowrap !important;
       overflow: visible !important;
       text-overflow: clip !important;
       line-height: 1.12 !important;
       font-size: clamp(1rem, 1.5vw, 1.4rem) !important;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-line {
-      display: block;
+      display: inline;
       white-space: nowrap;
       overflow: visible;
       max-width: none;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-name .dealer-player-label {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.16em;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars {
       display: inline-flex;
@@ -17234,7 +17238,12 @@ ${isDealer
       root.classList.toggle('scorecard-roomy-identity-4',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
-      if(handFoot&&window.innerWidth<1280)return;
+      // Two team rows do not fill the viewport. Hug the card to the rows.
+      // Row fitting below 1280 was sizing those rows like an eight-player card.
+      if(handFoot&&window.innerWidth<1280){
+        root.classList.add('scorecard-hug-rows');
+        return;
+      }
       const overEl=document.getElementById('game-over-section');
       const overVisible=!!(overEl&&!overEl.classList.contains('hidden'));
       // Row-fit must use the on-screen remainder. wrap.clientHeight follows the
