@@ -8,6 +8,10 @@
       if(new URLSearchParams(location.search).has('standings')){
         document.documentElement.classList.add('s2-standings-only');
       }
+      var ledgerBg = new URLSearchParams(location.search).get('bg');
+      if(ledgerBg === 'seaglass' || ledgerBg === 'slate' || ledgerBg === 'sage'){
+        document.documentElement.setAttribute('data-ledger-bg', ledgerBg);
+      }
     }catch(err){}
   })();
   </script>

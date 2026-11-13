@@ -126,6 +126,9 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A compact Tonight's Table name centered away from the badge. The name sits left, the same gap after the badge as the bench row, and Deals first sits right after the name.
 - A phone score-entry row whose total box is cut off. All four rows, including that total, show whole. The skip line can be one smaller line to make the room.
 - A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
+- A dark wood-grain page as the direction. Flat fields are the trial. Cream sheets stay cream, and teal stays on the actions.
+- A selected game card ring thinner than the base 6px, or a ring that sits under the cover. The ring is at least that thick and paints on top of the art.
+- A phone nav label under 13px. Home, Records, Player Passports, and Settings stay at 13px or larger, and on the home row they stay one line.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - "Saved on this device" while Try a demo is on.

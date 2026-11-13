@@ -339,9 +339,21 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected {
 }
 
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
+  position: relative;
   outline: none !important;
   outline-offset: 0 !important;
-  box-shadow: 0 0 0 3px var(--ledger-teal) !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 6px solid var(--ledger-teal);
+  border-radius: inherit;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 2;
 }
 
 @media (min-width: 761px) {
@@ -1351,6 +1363,19 @@ html.porch-ledger #bpg-try-demo-tip {
 
   html.porch-ledger.slice2-tv #top-nav .nav-btn {
     min-height: 44px;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.porch-ledger body.home-view #top-nav .nav-btn {
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #top-nav .nav-btn {
+    white-space: normal !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidden) {
@@ -1395,27 +1420,11 @@ html.porch-ledger #bpg-try-demo-tip {
     letter-spacing: 0 !important;
   }
 
-  html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"],
-  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"] {
-    font-size: 0 !important;
-    line-height: 0 !important;
-  }
-
   html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"]::after,
-  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"]::after {
-    font-family: var(--ledger-type-text);
-    font-size: 11px;
-    font-weight: 800;
-    line-height: 1.1;
-    white-space: normal;
-  }
-
-  html.porch-ledger body.active-match-view #top-nav button[onclick*="showProfiles"]::after {
-    content: "Player Passports";
-  }
-
-  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"]::after {
-    content: "Settings";
+  html.porch-ledger body.active-match-view #top-nav button[onclick*="openSettings"]::after,
+  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"]::after,
+  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"]::after {
+    content: none !important;
   }
 
   html.porch-ledger body.home-view #top-nav {
@@ -1424,31 +1433,11 @@ html.porch-ledger #bpg-try-demo-tip {
 
   html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"],
   html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"] {
-    font-size: 0 !important;
-    line-height: 1.05 !important;
-    min-width: 0 !important;
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
     white-space: nowrap !important;
-  }
-
-  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"]::after,
-  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"]::after {
-    font-family: var(--ledger-type-text);
-    font-size: 10px;
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: 0;
-    white-space: pre;
-    text-align: center;
-  }
-
-  html.porch-ledger body.home-view #top-nav button[onclick*="showProfiles"]::after {
-    content: "Player\A Passports";
-  }
-
-  html.porch-ledger body.home-view #top-nav button[onclick*="openSettings"]::after {
-    content: "Settings";
   }
 
   html.porch-ledger body.home-view .s2-seat {
@@ -1751,4 +1740,24 @@ html.porch-ledger #bpg-try-demo-tip {
     margin-top: 0 !important;
     padding-top: 8px !important;
   }
+}
+
+/* Flat page trials. Default stays the wood felt. ?bg= picks one field. */
+html.porch-ledger[data-ledger-bg="seaglass"] { --ledger-page: #8eaea6; }
+html.porch-ledger[data-ledger-bg="slate"] { --ledger-page: #95a6b6; }
+html.porch-ledger[data-ledger-bg="sage"] { --ledger-page: #c9d5bf; }
+
+html.porch-ledger[data-ledger-bg].slice2-tv,
+html.porch-ledger[data-ledger-bg].slice2-tv body,
+html.porch-ledger[data-ledger-bg].slice2-tv body.active-match-view {
+  background-color: var(--ledger-page) !important;
+  background-image: none !important;
+}
+
+html.porch-ledger[data-ledger-bg].slice2-tv body:not(.active-match-view) #top-nav::before {
+  background: var(--ledger-page) !important;
+}
+
+html.porch-ledger[data-ledger-bg].slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-hug-rows {
+  background: var(--ledger-page) !important;
 }
