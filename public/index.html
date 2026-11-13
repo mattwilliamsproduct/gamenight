@@ -18285,9 +18285,15 @@ ${isDealer
     const tablet=window.innerWidth>=1024;
     const wide=window.innerWidth>=1280;
     const nowW=(!handFoot&&nowPresent&&tablet)?scorecardNowReserveWidth(table):0;
-    const nowExtra=(!handFoot&&nowPresent&&!tablet)?1:0;
+    // Phones get a sized This round column. Without it the 7.5rem fallback pushed
+    // the column past the right edge on 390 with 8 players. Leave room for one
+    // 44px round so the last finished hand can stay on the card.
+    const phoneNowPx=(!handFoot&&nowPresent&&window.innerWidth<=760)
+      ? Math.round(Math.min(72, Math.max(48, wrap.clientWidth-leadW-44-6)))
+      : 0;
+    const nowExtra=(!handFoot&&nowPresent&&!tablet&&!phoneNowPx)?1:0;
     let leadForFit=leadW;
-    let nowForFit=nowW;
+    let nowForFit=nowW||phoneNowPx;
     if(!handFoot&&window.innerWidth>900&&visible.length){
       const totalCap=112;
       const nowCap=nowPresent?144:0;
