@@ -426,89 +426,74 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::
     height: 40px !important;
   }
 
-  /* Four or five seated rows stay whole. A longer list still scrolls so Start
-     and Add Player remain on the panel. */
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-picker {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* One roster (seated, then the bench) scrolls inside Tonight's table. Add
+     sits below it, outside the scroll, so no row hides behind the input. The
+     roster stops on a whole row (fitRoster), a hairline marks an edge with
+     more players, and "N more below" says how many. */
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-snap-type: y proximity;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px 2px 4px;
+    margin: 0 -2px;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster.s2-roster-more-below {
+    border-bottom-color: var(--ledger-line);
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster.s2-roster-more-above {
+    border-top-color: var(--ledger-line);
+  }
+
+
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster .s2-seat-grid {
     flex: 0 0 auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    gap: 2px !important;
     overflow: visible !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat {
-    grid-template-columns: 1.35rem 32px minmax(0, 1fr) auto !important;
-    column-gap: 10px !important;
-    min-height: 42px !important;
-    height: auto !important;
-    padding-top: 1px !important;
-    padding-bottom: 1px !important;
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster > :first-child,
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster .s2-seat,
+  html.porch-ledger.slice2-tv .s2-home-table .s2-roster .s2-pick {
+    scroll-snap-align: start;
+    scroll-margin-top: 2px;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .avatar-img {
-    width: 32px !important;
-    height: 32px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-who {
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 6px !important;
-    min-width: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-name {
-    flex: 0 1 auto !important;
-    width: auto !important;
-    text-align: left !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-dealer-tag {
-    font-size: 10px !important;
-    line-height: 1.1 !important;
-    padding: 1px 5px !important;
-    white-space: nowrap !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-out,
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-handle {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    min-height: 28px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table:has(.s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6)))) {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-picker {
-    display: contents;
-  }
-
-  /* fitBench (slice2.js) opens the bench to the free height below the seats. */
   html.porch-ledger.slice2-tv .s2-home-table .s2-pick-list {
     flex: 0 0 auto;
-    max-height: 56px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scroll-snap-type: y mandatory;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-pick {
     flex: 0 0 auto;
-    height: 48px;
-    min-height: 48px;
+    min-height: 52px;
     box-sizing: border-box;
-    scroll-snap-align: start;
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-add {
     flex: 0 0 auto;
+    margin-top: auto !important;
+    padding-top: 12px;
   }
 
   html.porch-ledger.slice2-tv .s2-unfinished-row {
@@ -2059,17 +2044,34 @@ html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="tr
   background: var(--ledger-teal) !important;
 }
 
-/* Bench "N more below" cue: only when the laptop bench still cannot show
-   every saved player whole. */
-html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more {
-  align-self: flex-start;
-  min-height: 36px;
-  margin-top: 6px;
-  padding: 4px 12px;
-  font-size: 15px;
-  font-weight: 800;
+/* Laptop and iPad Home: one bounded layout under the nav. Tonight's table
+   starts at the nav's left edge, Start a new match ends at its right edge,
+   both share the same top and bottom, and the felt shows around them. */
+@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
+  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) body.home-view .s2-home {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) body.home-view .s2-home-grid {
+    column-gap: 16px !important;
+  }
 }
 
-html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more[hidden] {
+/* Tonight's table: a quiet "N more below" under the roster when it scrolls. */
+html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more {
+  align-self: flex-start;
+  margin: 4px 0 0;
+  padding: 2px 4px;
+  min-height: 28px;
+  background: none;
+  border: 0;
+  color: var(--ledger-teal-deep);
+  font: 800 14px/1.2 var(--ledger-type-text);
+  cursor: pointer;
+}
+
+html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more[hidden] {
   display: none !important;
 }

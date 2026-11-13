@@ -84,10 +84,21 @@ html.slice2-tv .s2-home-start [class*="s2-art-"] {
   background-image: none !important;
 }
 
-/* f2c81a4 Home: the deck art carries the name, so no caption under it. */
-html.slice2-tv .s2-home-start .s2-game-copy,
-html.slice2-tv .s2-home-start .s2-game-name {
+html.slice2-tv .s2-home-start .s2-game-copy {
   display: none;
+}
+
+/* Each deck keeps a readable name under it, dark on the ivory panel. */
+html.slice2-tv .s2-home-start .s2-game-name {
+  display: block;
+  margin-top: 6px;
+  text-align: center;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.15;
+  color: var(--s2-ink, #14312e);
 }
 
 html.slice2-tv .s2-home-start .s2-game.is-selected {
@@ -351,6 +362,9 @@ html.slice2-tv .s2-seat-grid {
   html.slice2-tv .s2-home-start .s2-game-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  html.slice2-tv .s2-home-start .s2-game-name {
+    font-size: 0.78rem;
+  }
 }
 
 /* Home: Saved sits under the table title, fully inside the card. */
@@ -497,12 +511,24 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     min-height: 0;
   }
 
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game {
+    gap: 4px;
+  }
+
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc(100cqh * 5 / 7), 220px);
+    width: min(100cqw, calc((100cqh - 1.5rem) * 5 / 7), 220px);
     max-width: 220px;
     height: auto !important;
     margin-inline: auto;
     aspect-ratio: 5 / 7;
+    flex: 0 1 auto;
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-name {
+    flex: 0 0 1.25rem;
+    height: 1.25rem;
+    margin-top: 0;
+    line-height: 1.25rem;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-startbar {
@@ -512,7 +538,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
 @media (min-width: 1600px) and (orientation: landscape) and (min-height: 700px) {
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc(100cqh * 5 / 7));
+    width: min(100cqw, calc((100cqh - 1.5rem) * 5 / 7));
     max-width: none;
   }
 }

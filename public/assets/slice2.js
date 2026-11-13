@@ -400,7 +400,7 @@
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
-  function addPlayerPickerMarkup(bench, seated) {
+  function addPlayerPickerMarkup(bench, seated, seatsHtml) {
     const max = window.BPGGames && typeof BPGGames.seatLimit === 'function'
       ? BPGGames.seatLimit(selected, seated + addPicks.size, 'seat')
       : { ok: true, message: '' };
@@ -422,8 +422,14 @@
     }).join('');
     const count = addPicks.size;
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
+    const benchHtml = bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>';
+    // Tonight's table: seats and bench share one roster that scrolls inside
+    // the panel on a laptop; Add stays below it, outside the scroll.
+    const rosterHtml = seatsHtml == null
+      ? benchHtml
+      : `<div class="s2-roster" aria-label="Seated and saved players">${seatsHtml}${benchHtml}</div><button type="button" class="s2-roster-more" data-s2-action="roster-more" hidden></button>`;
     return `<div class="s2-picker">
-      ${bench.length ? `<div class="s2-pick-list">${rows}</div><button type="button" class="s2-btn s2-btn-quiet s2-bench-more" data-s2-action="bench-more" hidden></button>` : '<p class="s2-sub">All saved players are seated.</p>'}
+      ${rosterHtml}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
@@ -534,8 +540,7 @@
             </div>
           </div>
           <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
-          <div class="s2-seat-grid">${seats}</div>
-          ${addPlayerPickerMarkup(bench, seated)}
+          ${addPlayerPickerMarkup(bench, seated, `<div class="s2-seat-grid">${seats}</div>`)}
           <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
     const live = table.currentGame;
@@ -613,54 +618,26 @@
     restoreSeatGrab(root);
     parkSaveIndicator();
     wireStandingsMore(root);
-    wireBench(root);
+    wireRoster(root);
   }
 
-  // Laptop and iPad landscape: the bench uses the free height under Tonight's
-  // table, so every saved player shows whole when they fit. A longer bench ends
-  // on a whole row with "N more below" instead of cutting a name in half.
-  const BENCH_FIT_QUERY = '(min-width: 861px) and (orientation: landscape) and (min-height: 700px)';
-  function fitBench() {
-    const table = document.querySelector('#slice2-home .s2-home-table');
-    const list = table && table.querySelector('.s2-pick-list');
-    if (!list) return;
-    const cue = list.parentElement && list.parentElement.querySelector('.s2-bench-more');
-    list.style.removeProperty('max-height');
-    if (cue) { cue.hidden = true; cue.textContent = ''; }
-    if (!window.matchMedia(BENCH_FIT_QUERY).matches || document.documentElement.dataset.bpKb === '1') {
-      syncBenchMore(list);
-      return;
-    }
-    list.style.maxHeight = 'none';
-    const over = () => table.scrollHeight - table.clientHeight;
-    if (over() > 1) {
-      // Count the cue's own line before choosing how many whole rows fit.
-      if (cue) { cue.hidden = false; cue.textContent = 'More below ↓'; }
-      const picks = [...list.querySelectorAll('.s2-pick')];
-      const gap = parseFloat(getComputedStyle(list).rowGap) || 0;
-      const rowH = picks.length ? picks[0].getBoundingClientRect().height : 0;
-      const room = list.getBoundingClientRect().height - over();
-      if (rowH > 0) {
-        const whole = Math.max(1, Math.floor((room + gap) / (rowH + gap)));
-        list.style.maxHeight = `${Math.ceil(whole * rowH + (whole - 1) * gap)}px`;
-      }
-    }
-    syncBenchMore(list);
-  }
-
-  function syncBenchMore(list) {
-    const cue = list && list.parentElement && list.parentElement.querySelector('.s2-bench-more');
+  // The laptop roster scrolls inside Tonight's table. A soft fade on the edge
+  // that has more players says so; whole rows snap into place.
+  function syncRoster(roster) {
+    if (!roster) return;
+    const scrolls = roster.scrollHeight > roster.clientHeight + 1;
+    roster.classList.toggle('s2-roster-more-below', scrolls && roster.scrollTop + roster.clientHeight < roster.scrollHeight - 2);
+    roster.classList.toggle('s2-roster-more-above', scrolls && roster.scrollTop > 2);
+    const cue = roster.parentElement && roster.parentElement.querySelector('.s2-roster-more');
     if (!cue) return;
-    const box = list.getBoundingClientRect();
-    const rows = [...list.querySelectorAll('.s2-pick')];
+    const box = roster.getBoundingClientRect();
+    const rows = [...roster.querySelectorAll('.s2-seat, .s2-pick')].filter((row) => !row.hidden);
     const below = rows.filter((row) => row.getBoundingClientRect().bottom > box.bottom + 2).length;
-    const above = rows.filter((row) => row.getBoundingClientRect().top < box.top - 2).length;
-    const scrolls = list.scrollHeight > list.clientHeight + 1;
     if (scrolls && below > 0) {
       cue.textContent = `${below} more below ↓`;
       cue.dataset.dir = 'down';
       cue.hidden = false;
-    } else if (scrolls && above > 0) {
+    } else if (scrolls) {
       cue.textContent = 'Back to top ↑';
       cue.dataset.dir = 'up';
       cue.hidden = false;
@@ -670,13 +647,44 @@
     }
   }
 
-  function wireBench(root) {
-    const list = root && root.querySelector('.s2-home-table .s2-pick-list');
-    if (!list) return;
-    list.addEventListener('scroll', () => syncBenchMore(list), {passive: true});
-    fitBench();
-    requestAnimationFrame(fitBench);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBench).catch(() => {});
+  // Laptop roster height stops on a whole row, so nothing shows half cut.
+  const ROSTER_FIT_QUERY = '(min-width: 861px) and (orientation: landscape) and (min-height: 700px)';
+  function fitRoster(roster) {
+    if (!roster) return;
+    roster.style.removeProperty('max-height');
+    const cue = roster.parentElement && roster.parentElement.querySelector('.s2-roster-more');
+    if (window.matchMedia(ROSTER_FIT_QUERY).matches && document.documentElement.dataset.bpKb !== '1'
+      && roster.scrollHeight > roster.clientHeight + 1) {
+      // Leave room for the cue line before choosing the last whole row.
+      if (cue) { cue.hidden = false; cue.textContent = 'More below ↓'; }
+      const top = roster.getBoundingClientRect().top - roster.scrollTop;
+      const limit = roster.clientHeight;
+      const bottoms = [...roster.querySelectorAll('.s2-seat, .s2-pick')]
+        .filter((row) => !row.hidden)
+        .map((row) => row.getBoundingClientRect().bottom - top);
+      const fits = bottoms.filter((bottom) => bottom <= limit);
+      if (fits.length) roster.style.maxHeight = `${Math.ceil(Math.max(...fits)) + 4}px`;
+    }
+    syncRoster(roster);
+  }
+
+  function wireRoster(root) {
+    const roster = root && root.querySelector('.s2-home-table .s2-roster');
+    if (!roster) return;
+    roster.addEventListener('scroll', () => syncRoster(roster), {passive: true});
+    fitRoster(roster);
+    requestAnimationFrame(() => fitRoster(roster));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitRoster(roster)).catch(() => {});
+    // Avatars and fonts can settle after paint; refit when the rows change height.
+    if (typeof ResizeObserver === 'function') {
+      let queued = false;
+      const ro = new ResizeObserver(() => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => { queued = false; if (roster.isConnected) fitRoster(roster); else ro.disconnect(); });
+      });
+      [...roster.children, roster.parentElement].forEach((node) => node && ro.observe(node));
+    }
   }
 
   // When the standings list is taller than its card, say so: fade the last visible
@@ -1439,9 +1447,9 @@
       else if (typeof openLifePreserverRules === 'function') openLifePreserverRules();
     } else if (action === 'history') {
       openAuditLog();
-    } else if (action === 'bench-more') {
-      const list = target.parentElement?.querySelector('.s2-pick-list');
-      if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
+    } else if (action === 'roster-more') {
+      const roster = target.parentElement?.querySelector('.s2-roster');
+      if (roster) roster.scrollTo({top: target.dataset.dir === 'up' ? 0 : roster.scrollTop + roster.clientHeight * 0.8, behavior: 'smooth'});
     } else if (action === 'standings-more') {
       const list = target.closest('.s2-home-standings')?.querySelector('.s2-standings');
       if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
@@ -1601,7 +1609,7 @@
     window.addEventListener('resize', () => {
       syncHomeChrome();
       syncStandingsMore(document.querySelector('#slice2-home .s2-home-standings .s2-standings'));
-      fitBench();
+      fitRoster(document.querySelector('#slice2-home .s2-home-table .s2-roster'));
       syncPhoneBoardViewport();
       if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       if (document.getElementById('wheel-modal')?.classList.contains('hidden')) return;
