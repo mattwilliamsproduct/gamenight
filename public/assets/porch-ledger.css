@@ -537,39 +537,72 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::
     height: 40px !important;
   }
 
-  /* Seat rows: name left beside the photo, Deals first on the same line. */
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat {
-    grid-template-columns: 1.35rem 40px minmax(0, 1fr) auto !important;
-    column-gap: 12px !important;
+  /* Four or five seated rows stay whole. A longer list still scrolls so Start
+     and Add Player remain on the panel. */
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    gap: 2px !important;
+    overflow: visible !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat .s2-seat-who {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat {
+    grid-template-columns: 1.35rem 32px minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
+    min-height: 42px !important;
+    height: auto !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .avatar-img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-who {
     flex-direction: row !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    column-gap: 8px !important;
-    row-gap: 2px !important;
+    gap: 6px !important;
     min-width: 0 !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat .s2-seat-name {
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-name {
     flex: 0 1 auto !important;
     width: auto !important;
     text-align: left !important;
-    font-size: 17px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-dealer-tag {
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    padding: 1px 5px !important;
+    white-space: nowrap !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-out,
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-handle {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table:has(.s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6)))) {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-picker {
     display: contents;
   }
 
-  /* The bench shows whole when there is room and is the first thing to
-     scroll inside the panel when there is not. */
   html.porch-ledger.slice2-tv .s2-home-table .s2-pick-list {
-    flex: 0 100 auto;
-    min-height: 48px;
-    max-height: none;
+    flex: 0 0 auto;
+    max-height: 56px;
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -2227,8 +2260,8 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game {
 }
 
 html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-card-frame {
-  width: min(100%, var(--bp-card-max, 132px), var(--bp-deck-fit, 999px)) !important;
-  max-width: var(--bp-card-max, 132px) !important;
+  width: min(100%, 112px) !important;
+  max-width: 112px !important;
   margin-inline: auto !important;
 }
 
@@ -2277,104 +2310,35 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-
   }
 }
 
-/* Short landscape Home (fitHomeDecks): seven decks in one row, and four or
-   five seated rows tightened only when they would otherwise scroll. */
-@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-decks-one-row .s2-game,
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-decks-one-row .s2-game:nth-child(n) {
-    grid-column: auto / span 8 !important;
-    grid-row: 1 !important;
-    padding-inline: 4px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-decks-one-row .s2-game-name {
-    font-size: 13px !important;
-    white-space: normal !important;
-    min-height: 2.3em;
-  }
-
-  /* Bench tight (fitHomeDecks): Add on one line, slightly shorter rows, so
-     all saved players show whole on a 1024 or 1180 laptop. */
-  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-add {
-    flex-wrap: nowrap !important;
-    margin-top: 10px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-add .player-suggest-wrap {
-    flex: 1 1 auto !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-add .s2-btn {
-    flex: 0 0 auto !important;
-    min-height: 48px !important;
-    padding-inline: 18px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-pick-list {
-    gap: 6px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-pick {
-    min-height: 44px !important;
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-bench-tight .s2-seat {
-    min-height: 56px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) {
-    flex-shrink: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat-grid {
-    gap: 2px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-pick-list {
-    min-height: 0 !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat {
-    grid-template-columns: 1.35rem 32px minmax(0, 1fr) auto !important;
-    column-gap: 10px !important;
-    min-height: 44px !important;
-    padding-top: 1px !important;
-    padding-bottom: 1px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .avatar-img {
-    width: 32px !important;
-    height: 32px !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat-out,
-  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat-handle {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-  }
-}
-
-/* Laptop and iPad landscape: decks keep the fixed --bp-card-max size and sit
-   as a compact centered block; spare panel height never spreads them apart. */
+/* Laptop and iPad landscape dashboard: two deck rows share the height left
+   after the title and start bar, and each deck fits its cell at 5:7. */
 @media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
   html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game-grid {
-    flex: 0 0 auto !important;
-    margin-block: auto !important;
-    grid-auto-rows: auto !important;
-    align-content: center !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: minmax(0, 1fr) !important;
+    /* Only the landscape dashboard gives the deck area a fixed height. */
+    container-type: size;
+    container-name: mat-decks;
   }
 
+  /* Each deck sits at the bottom of its cell, so spare height opens above
+     the rows and the last row stays close to Start. */
   html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game {
-    height: auto !important;
+    height: 100% !important;
+    justify-content: flex-end !important;
     gap: 4px !important;
+    container-type: size;
   }
 
   html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-game-name {
     margin-top: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) .s2-panel.s2-home-start .s2-card-frame {
+    width: min(100cqw, calc((100cqh - 1.6rem) * 5 / 7), 140px) !important;
+    max-width: 140px !important;
   }
 }
 
@@ -2438,21 +2402,6 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-side {
     box-shadow: none !important;
   }
-}
-
-/* Bench "N more below" cue: only when the bench still cannot show every
-   saved player whole. */
-html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more {
-  align-self: flex-start;
-  min-height: 36px;
-  margin-top: 6px;
-  padding: 4px 12px;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-html.porch-ledger.slice2-tv .s2-home-table .s2-bench-more[hidden] {
-  display: none !important;
 }
 
 /* View pace sits on the felt, so it is a solid ivory pill like Home and
