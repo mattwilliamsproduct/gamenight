@@ -192,6 +192,8 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
       const overlaps = (a, b) => !!(a && b && a.width && b.width && !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right));
       return {
         navHeight: box.height,
+        buttonTops: buttons.map((button) => button.getBoundingClientRect().top),
+        buttonH: buttons.length ? Math.max(...buttons.map((button) => button.getBoundingClientRect().height)) : 0,
         labels: buttons.map((button) => (button.textContent || '').replace(/\s+/g, ' ').trim()),
         titles: buttons.map((button) => button.getAttribute('title') || ''),
         boxes: buttons.map((button) => {
@@ -211,7 +213,9 @@ test('phone nav stays one line and Saved is not a nav slot', async ({page}) => {
         toastOverlapsName: names.some((cell) => overlaps(toast, cell))
       };
     });
-    expect(chrome.navHeight, `${size.width} nav stays one line`).toBeLessThanOrEqual(72);
+    expect(Math.max(...chrome.buttonTops) - Math.min(...chrome.buttonTops), `${size.width} nav stays one line`).toBeLessThanOrEqual(8);
+    expect(chrome.buttonH, `${size.width} home label wrapped`).toBeLessThanOrEqual(48);
+    expect(chrome.navHeight, `${size.width} nav height ${chrome.navHeight}`).toBeLessThanOrEqual(120);
     expect(chrome.savedInNav, `${size.width} Saved is not a nav slot`).toBe(false);
     expect(chrome.labels.join(' '), `${size.width} nav labels`).not.toMatch(/Active Match|Saved/i);
     expect(chrome.titles.join(' '), `${size.width} settings gear on screen`).toMatch(/Settings/);

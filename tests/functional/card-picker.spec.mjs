@@ -252,13 +252,15 @@ test('phone wordmark stays readable and nav stays one row at 390 and 375', async
         markW: mark ? mark.width : 0,
         markH: mark ? mark.height : 0,
         navH: row ? row.height : 0,
+        buttonH: buttons.length ? Math.max(...buttons.map((box) => box.height)) : 0,
         oneRow: tops.length ? Math.max(...tops) - Math.min(...tops) <= 8 : false
       };
     });
     expect(chrome.markW, `${size.width} wordmark ${chrome.markW}px`).toBeGreaterThanOrEqual(108);
     expect(chrome.markW, `${size.width} wordmark too wide ${chrome.markW}px`).toBeLessThanOrEqual(140);
     expect(chrome.oneRow, `${size.width} nav wrapped`).toBe(true);
-    expect(chrome.navH, `${size.width} nav height ${chrome.navH}`).toBeLessThanOrEqual(72);
+    expect(chrome.buttonH, `${size.width} home label wrapped ${chrome.buttonH}`).toBeLessThanOrEqual(48);
+    expect(chrome.navH, `${size.width} nav height ${chrome.navH}`).toBeLessThanOrEqual(120);
   }
 });
 
