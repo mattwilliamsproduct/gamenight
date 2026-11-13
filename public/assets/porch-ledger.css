@@ -591,8 +591,6 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
     padding-bottom: 16px !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture,
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows,
   html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows,
   html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit {
     flex: 1 1 auto !important;
@@ -605,14 +603,33 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
     flex-direction: column !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-layout,
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-main,
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-table-wrap {
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+    width: min(62rem, calc(100% - 2.5rem)) !important;
+    max-width: 62rem !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scorecard-table-wrap,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit .scorecard-table-wrap {
     flex: 1 1 auto !important;
     min-height: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture table.scorecard-table {
@@ -1149,12 +1166,12 @@ html.porch-ledger #bpg-try-demo-tip {
     line-height: 1.2 !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture,
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-live-layout,
-  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-table-wrap {
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
     height: auto !important;
-    flex: 0 1 auto !important;
-    margin-top: 8px !important;
+    flex: 0 0 auto !important;
+    max-height: none !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
@@ -1364,6 +1381,15 @@ html.porch-ledger #bpg-try-demo-tip {
     text-overflow: clip !important;
     min-width: 0 !important;
     max-width: 100% !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-name-indicator,
+  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
+    overflow: visible !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    width: auto !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
