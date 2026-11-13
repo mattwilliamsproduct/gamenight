@@ -127,6 +127,9 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - A 1024 Tonight's Table that scrolls the seated rows when four or five are seated. Those rows, and the first person on the bench, show whole. A longer list may scroll.
 - A phone score-entry DEALER chip beside the name when that cuts the name. The chip sits under the name. All four rows stay whole, with no cream band above the skip line.
 - A phone scorecard that squeezes R1 and This Round off the sheet, or leaves a cream block under four rows. Round pills stay readable. The sheet ends at the last row. This Round stays on the sheet or scrolls the way the base scorecard does.
+- A compact Tonight's Table name centered away from the badge. The name sits left, the same gap after the badge as the bench row, and Deals first sits right after the name.
+- A phone score-entry row whose total box is cut off. All four rows, including that total, show whole. The skip line can be one smaller line to make the room.
+- A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
 - Life Preserver header copy that says only the best help while the wheel still has negative slices.
 - Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
 - "Saved on this device" while Try a demo is on.

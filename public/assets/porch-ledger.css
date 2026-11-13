@@ -391,6 +391,8 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat {
+    grid-template-columns: 1.35rem 32px minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
     min-height: 42px !important;
     height: auto !important;
     padding-top: 1px !important;
@@ -406,8 +408,15 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
-    gap: 4px !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
     min-width: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-seat-name {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    text-align: left !important;
   }
 
   html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:has(.s2-seat:nth-child(4)):not(:has(.s2-seat:nth-child(6))) .s2-dealer-tag {
@@ -1281,12 +1290,16 @@ html.porch-ledger #bpg-try-demo-tip {
     max-width: 52px !important;
   }
 
-  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture td.scorecard-round-td .score-cell-stack,
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered,
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture td.scorecard-round-td .score-cell-input {
-    width: calc(100% - 4px) !important;
+    width: calc(100% - 6px) !important;
     min-width: 0 !important;
-    max-width: calc(100% - 4px) !important;
-    min-height: 32px !important;
+    max-width: calc(100% - 6px) !important;
+    min-height: 38px !important;
+    height: auto !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+    padding: 4px 2px !important;
     box-sizing: border-box !important;
   }
 
@@ -1611,9 +1624,20 @@ html.porch-ledger #bpg-try-demo-tip {
     overflow: hidden !important;
     justify-content: flex-start !important;
     align-items: stretch !important;
-    gap: 8px !important;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    gap: 4px !important;
+    padding-top: 4px !important;
+    padding-bottom: 2px !important;
+  }
+
+  html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) #score-entry-unconfirmed {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   html.porch-ledger #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(5))) .score-entry-lane-label {
