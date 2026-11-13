@@ -741,28 +741,38 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-
   background: #e7f4ef !important;
 }
 
-/* Leader round highlight is the cell itself. An inset chip stops short of the column and reads as a step. */
-html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td {
+/* Leader round cells use the same gray pill as every other entered score.
+   The row tint stays on the cell, behind the pill, and runs through This Round as one wash. */
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td,
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-col-now {
   background: var(--ledger-teal-wash) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--ledger-rule) !important;
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered,
-html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered),
-html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-input,
-html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-input.is-entered {
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) {
+  background: #e8e3da !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  width: calc(100% - 8px) !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 8px) !important;
+  min-height: 2.35rem !important;
+  height: auto !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 0.2rem 0.15rem !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-round-td .score-cell-stack:is(.has-comeback, .has-life-preserver):has(.is-entered) .score-cell-input {
   background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
   border: 0 !important;
-  border-radius: 0 !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  min-height: 0 !important;
-  height: auto !important;
-  margin: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scorecard-table tbody tr:last-child td {
@@ -1377,21 +1387,38 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
-  html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator,
-  html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-name-indicator {
     display: block !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    font-size: 16px !important;
-    line-height: 1.1 !important;
+    line-height: 1.15 !important;
     min-width: 0 !important;
     max-width: 100% !important;
   }
 
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .scoreboard-player-name .dealer-player-label,
+  html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
+    display: inline !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+
   html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .avatar-img-sc {
-    width: 30px !important;
-    height: 30px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-avatar-badge {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 9px !important;
   }
 
   html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
@@ -1476,19 +1503,28 @@ html.porch-ledger #bpg-try-demo-tip {
     display: none !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-list {
-    flex: 0 0 auto !important;
+  html.porch-ledger #score-entry-modal .score-entry-list,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-list {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
   }
 
+  html.porch-ledger #score-entry-modal .score-entry-list:not(:has(.score-entry-row:nth-child(5))) {
+    min-height: calc(68px * 4 + 6px * 3) !important;
+  }
+
   html.porch-ledger #score-entry-modal .score-entry-rows,
-  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows {
+  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-rows {
     display: flex !important;
     flex-direction: column !important;
-    flex: 0 0 auto !important;
+    flex: 1 1 auto !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -1496,28 +1532,68 @@ html.porch-ledger #bpg-try-demo-tip {
     justify-content: flex-start !important;
     gap: 6px !important;
     padding: 0 !important;
+    scrollbar-width: none !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-rows:has(.score-entry-row:nth-child(5)),
+  html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-rows:has(.score-entry-row:nth-child(5)),
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-rows:has(.score-entry-row:nth-child(5)) {
+    flex: 0 0 auto !important;
+    height: calc(68px * 3 + 6px * 2) !important;
+    max-height: calc(68px * 3 + 6px * 2) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scroll-snap-type: y mandatory !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #b7a28a transparent !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-list:has(.score-entry-row:nth-child(5))::after {
+    content: "";
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    margin: 2px auto 0;
+    border-right: 2px solid var(--ledger-brass);
+    border-bottom: 2px solid var(--ledger-brass);
+    transform: rotate(45deg);
+    pointer-events: none;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row,
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row,
-  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
-    flex: 0 0 auto !important;
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-row,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit .score-entry-row {
+    flex: 1 1 0 !important;
     height: auto !important;
-    min-height: 64px !important;
+    min-height: 68px !important;
     max-height: none !important;
     overflow: visible !important;
     grid-template-columns: minmax(0, 1fr) 68px !important;
     align-items: stretch !important;
+    scroll-snap-align: start;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-rows:has(.score-entry-row:nth-child(5)) .score-entry-row {
+    flex: 0 0 68px !important;
+    height: 68px !important;
+    min-height: 68px !important;
+    max-height: 68px !important;
+    scroll-snap-align: start !important;
+    scroll-snap-stop: always !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-player-card,
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card {
-    height: auto !important;
-    min-height: 64px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
     grid-template-columns: 36px minmax(0, 1fr) 46px !important;
     align-items: center !important;
+    overflow: visible !important;
   }
 
   html.porch-ledger.slice2-tv #score-entry-modal .score-entry-input-cell,
@@ -1553,20 +1629,27 @@ html.porch-ledger #bpg-try-demo-tip {
     line-height: 1.1 !important;
   }
 
-  html.porch-ledger #score-entry-modal .score-entry-side {
-    flex: 1 1 auto !important;
+  html.porch-ledger #score-entry-modal .score-entry-side,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land .score-entry-side {
+    flex: 0 0 auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
+    height: auto !important;
   }
 
   html.porch-ledger #score-entry-modal .score-entry-keypad,
   html.porch-ledger #score-entry-modal.score-entry-managed-fit .score-entry-keypad {
-    flex: 1 1 auto !important;
-    min-height: 188px !important;
+    flex: 0 0 auto !important;
+    min-height: 176px !important;
     height: auto !important;
     max-height: none !important;
+  }
+
+  html.porch-ledger #score-entry-modal .score-entry-panel > .border-t {
+    margin-top: 0 !important;
+    padding-top: 8px !important;
   }
 }
