@@ -51,6 +51,8 @@ test('iPad landscape shows the five Canasta inputs and blocks a blank round', as
   await page.setViewportSize({width: 1024, height: 768});
   await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
   await expect(page.locator('.hf-team-card')).toHaveCount(2);
+  await expect(page.locator('.hf-team-card.is-active .hf-total')).toHaveText('Not ready');
+  await expect(page.locator('.hf-team-card.is-active .hf-total')).not.toContainText('—');
   await expect(page.locator('.score-entry-selected-card')).toBeHidden();
   await expect(page.locator('#hf-rate-bar')).toBeHidden();
   await expect(page.locator('.hf-help', {hasText: 'Card points before subtracting cards left.'}).first()).toBeVisible();
@@ -61,7 +63,8 @@ test('iPad landscape shows the five Canasta inputs and blocks a blank round', as
   await press(page, '-40');
   await page.locator('.hf-team-card.is-active input[data-check="got22"]').click();
   await expect(page.locator('.hf-team-card.is-active .hf-total')).toHaveAttribute('data-ready', '0');
-  await expect(page.locator('.hf-team-card.is-active')).toContainText('So far');
+  await expect(page.locator('.hf-team-card.is-active .hf-total')).toHaveText('Basic 1600 + Count -40 + Got the 22 100 = 1660 so far');
+  await expect(page.locator('.hf-team-card.is-active .hf-total-num')).toHaveText('');
   await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
   await saveShot(page, 'canasta-partial-1024x768-chromium');
 

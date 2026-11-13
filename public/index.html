@@ -5613,6 +5613,14 @@ button.dealer-name-indicator .dealer-player-label {
       color: var(--muted);
       font-size: 1.35rem !important;
     }
+    #score-entry-modal.hf-basic-entry .hf-total[data-blank="1"] .hf-total-num {
+      color: var(--ink);
+      font-size: 1.35rem !important;
+      letter-spacing: 0;
+    }
+    #score-entry-modal.hf-basic-entry .hf-total-state:empty {
+      display: none;
+    }
     #score-entry-modal.hf-basic-entry .hf-total[data-ready="1"] {
       background: #e7f6ee;
     }
@@ -18865,14 +18873,25 @@ ${isDealer
     const total=ready?(basic||0)+(count||0)+got+out-(entry.wentOut?0:(left||0)):null;
     return {basic, count, left, got, out, ready, soFar, total};
   }
-  function handFootTerm(value){
-    return value==null?'—':String(value);
+  function handFootLiveLine(math){
+    if(!math) return '';
+    const plus=[];
+    if(math.basic!=null) plus.push(`Basic ${math.basic}`);
+    if(math.count!=null) plus.push(`Count ${math.count}`);
+    if(math.got) plus.push(`Got the 22 ${math.got}`);
+    if(math.out) plus.push(`Went out ${math.out}`);
+    let body=plus.join(' + ');
+    if(!math.out&&math.left!=null){
+      const cards=`Cards left ${math.left}`;
+      body=body?`${body} − ${cards}`:cards;
+    }
+    if(!body) return '';
+    const value=math.ready?math.total:math.soFar;
+    if(value==null) return '';
+    return math.ready?`${body} = ${value}`:`${body} = ${value} so far`;
   }
   function handFootEquation(math){
-    if(!math) return '';
-    const left=math.left==null?'—':String(math.left);
-    const body=`${handFootTerm(math.basic)} + ${handFootTerm(math.count)} + ${math.got} + ${math.out} − ${left}`;
-    return math.ready?`${body} = ${math.total}`:body;
+    return handFootLiveLine(math);
   }
   function handFootSelectionCaption(){
     const side=scoreEntryModalState?.activePlayer;
@@ -19541,8 +19560,10 @@ ${isDealer
     const members=handFootMembersOf(currentGame, side);
     const math=handFootLiveMath(entry);
     const ready=!!math?.ready;
-    const totalText=ready?String(math.total):'—';
-    const stateText=ready?handFootEquation(math):(math&&math.soFar!=null?`<span class="hf-so-far">So far ${math.soFar}</span>`:'Not ready');
+    const line=handFootLiveLine(math);
+    const blank=!line;
+    const totalText=ready?String(math.total):(blank?'Not ready':'');
+    const aria=blank?'Round total not ready':(ready?`Round total ${math.total}`:line);
     return `<article class="hf-team-card${active?' is-active':''}${phone?' is-phone-current':''}${handFootSideReady(entry)?' is-complete':''}" data-side="${escapeHtml(side)}">
       <header class="hf-team-id">
         <span class="hf-side-avatars">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
@@ -19562,10 +19583,9 @@ ${isDealer
         <span>Went out · +100</span>
       </label>
       ${handFootFieldHtml(idx,'cardsLeft','Cards left · subtract','',entry,active&&scoreEntryModalState.activeField==='cardsLeft')}
-      <div class="hf-total" data-ready="${ready?'1':'0'}" aria-label="${ready?`Round total ${math.total}`:'Round total not ready'}">
-        <div class="hf-total-eq">${ready?'':handFootEquation(math)}</div>
-        <div class="hf-total-num">${totalText}</div>
-        <div class="hf-total-state">${ready?handFootEquation(math):stateText}</div>
+      <div class="hf-total" data-ready="${ready?'1':'0'}" data-blank="${blank?'1':'0'}" aria-label="${escapeHtml(aria)}">
+        <div class="hf-total-num">${escapeHtml(totalText)}</div>
+        <div class="hf-total-state">${line?escapeHtml(line):''}</div>
       </div>
     </article>`;
   }
@@ -19607,7 +19627,7 @@ ${isDealer
       const entry=scoreEntryModalState.values[side];
       const math=entry?.shape==='basic'?handFootLiveMath(entry):null;
       const total=entry?.shape==='saved'?(entry.totalConfirmed?entry.total:entry.savedTotal):(math&&math.ready?math.total:'Not ready');
-      const eq=math?handFootEquation(math):'Saved total';
+      const eq=math?(handFootLiveLine(math)||'Not ready'):'Saved total';
       return `<div class="hf-review-row"><div class="hf-side-names">${escapeHtml(handFootSideLabel(side))}</div><div><div class="hf-review-total">${escapeHtml(String(total))}</div><div class="hf-review-eq">${escapeHtml(eq)}</div></div></div>`;
     }).join('');
     return `<div class="hf-review"><div class="hf-review-title">Review round</div>${rows}<button type="button" class="hf-review-back" onclick="handFootLeaveReview()">Back</button></div>`;
