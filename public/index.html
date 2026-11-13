@@ -17834,6 +17834,10 @@ ${isDealer
         const slot=name.closest('.scorecard-player-name-slot');
         const slotW=slot?slot.clientWidth:0;
         if(slotW<24)return;
+        const nameBox=name.getBoundingClientRect();
+        const badgeBox=badge.getBoundingClientRect();
+        const nameBottom=nameBox.bottom;
+        if(badgeBox.top + 2 >= nameBottom)return;
         const cap=Math.max(16, Math.min(columnSize, slotW/2.95));
         const size=`${cap.toFixed(1)}px`;
         name.style.setProperty('font-size',size,'important');
