@@ -2347,14 +2347,22 @@ html.slice2-tv #toast-container {
   width: max-content;
   max-width: 90vw;
 }
+html.slice2-tv #toast-container.toast-parked-clear {
+  align-items: flex-start;
+}
+html.slice2-tv #toast-container.toast-parked-clear .toast {
+  width: max-content;
+  max-width: 100% !important;
+  white-space: normal;
+}
 
 /* Phone board: keep the lead toast at the bottom left, ending before the R3 column.
    A right-side park under the header lands on R3 and R4. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #toast-container {
     top: auto !important;
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
-    left: 8px !important;
+    bottom: var(--toast-clear-bottom, calc(4.75rem + env(safe-area-inset-bottom))) !important;
+    left: var(--toast-clear-left, 8px) !important;
     right: auto !important;
     transform: none !important;
     width: var(--toast-clear-width, 42vw) !important;

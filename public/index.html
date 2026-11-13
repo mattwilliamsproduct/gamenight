@@ -4525,11 +4525,11 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen:not(.hidden) ~ #toast-container,
       body:has(#game-screen:not(.hidden)) #toast-container {
         top: auto;
-        bottom: max(12px, env(safe-area-inset-bottom));
-        left: 8px;
+        bottom: var(--toast-clear-bottom, calc(4.75rem + env(safe-area-inset-bottom)));
+        left: var(--toast-clear-left, 8px);
         right: auto;
         transform: none;
-        max-width: 42vw;
+        max-width: var(--toast-clear-width, 42vw);
       }
       #toast-container.toast-parked-clear .toast {
         max-width: 100%;
@@ -11657,7 +11657,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!c) return;
     const clearPlace=()=>{
       c.classList.remove('toast-parked-clear');
-      c.style.removeProperty('--toast-clear-width');
+      ['--toast-clear-width','--toast-clear-left','--toast-clear-right','--toast-clear-bottom'].forEach(name=>c.style.removeProperty(name));
       c.style.left='';
       c.style.right='';
       c.style.transform='';
@@ -11666,44 +11666,44 @@ button.dealer-name-indicator .dealer-player-label {
       c.style.top='';
       c.style.bottom='';
     };
-    const pinRight=()=>{
-      c.classList.remove('toast-parked-clear');
-      c.style.removeProperty('--toast-clear-width');
-      c.style.left='auto';
-      c.style.right='8px';
-      c.style.transform='none';
-      c.style.width='max-content';
-      c.style.maxWidth='min(18rem, 34vw)';
-    };
-    const phoneCard=document.getElementById('scorecard-capture');
-    const phoneGame=document.getElementById('game-screen');
-    const phoneMatch=window.innerWidth<=760 && phoneCard && phoneGame && !phoneGame.classList.contains('hidden') && phoneCard.getBoundingClientRect().width>0;
-    if(phoneMatch){
-      const card=phoneCard;
-      const rounds=card?[...card.querySelectorAll('thead th.scorecard-round-th')].filter((el)=>getComputedStyle(el).display!=='none' && !el.classList.contains('scorecard-round--hidden')):[];
-      const guard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
-      const guardLeft=guard?guard.getBoundingClientRect().left:Math.round(window.innerWidth*0.52);
-      const room=Math.max(72, Math.round(guardLeft-16));
-      c.classList.add('toast-parked-clear');
-      c.style.setProperty('--toast-clear-width', `${room}px`);
-      c.style.top='auto';
-      c.style.bottom='max(12px, env(safe-area-inset-bottom))';
-      c.style.left='8px';
-      c.style.right='auto';
-      c.style.transform='none';
-      c.style.width=`${room}px`;
-      c.style.maxWidth=`${room}px`;
+    const card=document.getElementById('scorecard-capture');
+    const game=document.getElementById('game-screen');
+    const box=card&&game&&!game.classList.contains('hidden')?card.getBoundingClientRect():null;
+    if(!box||box.width<40){
+      clearPlace();
       return;
     }
+    const phone=window.innerWidth<=760;
+    const nav=document.getElementById('top-nav');
+    const navBox=nav&&getComputedStyle(nav).display!=='none'?nav.getBoundingClientRect():null;
+    const navOnScreen=!!(phone&&navBox&&navBox.height>8&&navBox.top>=0&&navBox.top<window.innerHeight);
+    let bottom=navOnScreen?Math.max(12, Math.round(window.innerHeight-navBox.top+8)):12;
     const over=document.getElementById('game-over-section');
     const overBox=over&&!over.classList.contains('hidden')?over.getBoundingClientRect():null;
     if(overBox&&overBox.height>8&&overBox.top<window.innerHeight-8){
-      c.style.top='auto';
-      c.style.bottom=Math.max(12, Math.round(window.innerHeight-overBox.top+10))+'px';
-      pinRight();
-      return;
+      bottom=Math.max(bottom, Math.round(window.innerHeight-overBox.top+10));
     }
-    clearPlace();
+    const left=Math.max(8, Math.round(box.left+8));
+    let width;
+    if(phone){
+      const rounds=[...card.querySelectorAll('thead th.scorecard-round-th')].filter(el=>getComputedStyle(el).display!=='none'&&!el.classList.contains('scorecard-round--hidden'));
+      const guard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
+      const guardLeft=guard?guard.getBoundingClientRect().left:box.left+box.width*0.55;
+      width=Math.max(72, Math.round(Math.min(guardLeft-8, box.right-8)-left));
+    }else{
+      width=Math.max(72, Math.round(box.right-8-left));
+    }
+    c.classList.add('toast-parked-clear');
+    c.style.setProperty('--toast-clear-width', `${width}px`);
+    c.style.setProperty('--toast-clear-left', `${left}px`);
+    c.style.setProperty('--toast-clear-bottom', `${bottom}px`);
+    c.style.top='auto';
+    c.style.bottom=`${bottom}px`;
+    c.style.left=`${left}px`;
+    c.style.right='auto';
+    c.style.transform='none';
+    c.style.width=`${width}px`;
+    c.style.maxWidth=`${width}px`;
   }
   function toast(message, type='default'){
     const c = document.getElementById('toast-container'); if(!c) return;

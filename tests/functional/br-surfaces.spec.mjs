@@ -88,6 +88,43 @@ test('a phone lead toast stays off R3 and R4 and agrees with the leader', async 
   expect(boxes.r3Left, JSON.stringify(boxes)).toBeGreaterThan(0);
   expect(boxes.toastRight, JSON.stringify(boxes)).toBeLessThanOrEqual(boxes.r3Left + 1);
   expect(boxes.toastRight, JSON.stringify(boxes)).toBeLessThanOrEqual(boxes.r4Left + 1);
+  const clearance = await page.evaluate(() => {
+    const toastBox = document.querySelector('#toast-container .toast').getBoundingClientRect();
+    const card = document.getElementById('scorecard-capture').getBoundingClientRect();
+    const nav = document.getElementById('top-nav');
+    const navBox = nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect() : null;
+    return {
+      toastBottom: toastBox.bottom,
+      toastLeft: toastBox.left,
+      toastRight: toastBox.right,
+      cardLeft: card.left,
+      cardRight: card.right,
+      navTop: navBox && navBox.height > 8 ? navBox.top : null
+    };
+  });
+  expect(clearance.toastLeft, JSON.stringify(clearance)).toBeGreaterThanOrEqual(clearance.cardLeft - 1);
+  expect(clearance.toastRight, JSON.stringify(clearance)).toBeLessThanOrEqual(clearance.cardRight + 1);
+  if (clearance.navTop != null) expect(clearance.toastBottom, JSON.stringify(clearance)).toBeLessThanOrEqual(clearance.navTop + 1);
+});
+
+test('a 1024 lead toast stays inside the scorecard', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await openCanastaCard(page);
+  await page.evaluate(() => toast(leadChangeCopy(['Ann', 'Bo']), 'success'));
+  await expect(page.locator('#toast-container .toast')).toContainText('Ann and Bo take the lead!');
+  const boxes = await page.evaluate(() => {
+    const toastBox = document.querySelector('#toast-container .toast').getBoundingClientRect();
+    const card = document.getElementById('scorecard-capture').getBoundingClientRect();
+    return {
+      toastLeft: toastBox.left,
+      toastRight: toastBox.right,
+      cardLeft: card.left,
+      cardRight: card.right
+    };
+  });
+  expect(boxes.toastLeft, JSON.stringify(boxes)).toBeGreaterThanOrEqual(boxes.cardLeft - 1);
+  expect(boxes.toastRight, JSON.stringify(boxes)).toBeLessThanOrEqual(boxes.cardRight + 1);
+  expect(boxes.cardRight - boxes.toastRight, JSON.stringify(boxes)).toBeGreaterThanOrEqual(4);
 });
 
 test('the phone correction sheet gives was and now the row width', async ({page}) => {
