@@ -57,6 +57,21 @@ test('Canasta team places are 1st and 2nd for both partners', () => {
   const standing = Scorebook.scoreboardStandings(game, ['Ann', 'Bo', 'Cy', 'Dee']);
   assert.deepEqual(standing.places, {Ann: 1, Bo: 1, Cy: 2, Dee: 2});
   assert.deepEqual(standing.ordered, ['Ann', 'Bo', 'Cy', 'Dee']);
+  const keyed = Scorebook.scoreboardStandings({
+    name: 'Hand and Foot',
+    currentRound: 5,
+    totals: {Ann: 20, Bo: 20, Cy: 9, Dee: 9},
+    handFoot: {
+      sides: [
+        {key: 'Ann & Bo', members: ['Ann', 'Bo']},
+        {key: 'Cy & Dee', members: ['Cy', 'Dee']}
+      ]
+    }
+  }, ['Ann & Bo', 'Cy & Dee']);
+  assert.equal(keyed.places['Ann & Bo'], 1);
+  assert.equal(keyed.places['Cy & Dee'], 2);
+  assert.equal(keyed.places.Ann, 1);
+  assert.deepEqual(keyed.ordered, ['Ann & Bo', 'Cy & Dee']);
   const tied = Scorebook.canastaTeamPlaces({
     name: 'Hand and Foot',
     totals: {A: 10, B: 10, C: 10, D: 10, E: 4, F: 4},

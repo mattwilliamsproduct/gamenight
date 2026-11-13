@@ -1184,7 +1184,10 @@
     const sides = game && game.handFoot && Array.isArray(game.handFoot.sides) ? game.handFoot.sides : null;
     if (!sides || !sides.length) return null;
     const teams = sides
-      .map((side) => ({ members: (side && side.members || []).filter(Boolean) }))
+      .map((side) => ({
+        key: side && side.key ? String(side.key) : '',
+        members: (side && side.members || []).filter(Boolean)
+      }))
       .filter((side) => side.members.length >= 2);
     if (!teams.length) return null;
     const totals = (game && game.totals) || {};
@@ -1204,6 +1207,12 @@
           places[member] = rank;
           if (!wanted || wanted.has(member)) ordered.push(member);
         });
+        if (orderedTeams[i].key) {
+          places[orderedTeams[i].key] = rank;
+          if (wanted && wanted.has(orderedTeams[i].key) && !ordered.includes(orderedTeams[i].key)) {
+            ordered.push(orderedTeams[i].key);
+          }
+        }
       }
       cursor = end;
     }
