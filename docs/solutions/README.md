@@ -24,7 +24,9 @@ Standing trap: [restore-keeps-live-match.md](restore-keeps-live-match.md) — an
 
 Standing trap: [left-early-stays-visible.md](left-early-stays-visible.md) — a player who left early stays on the board with their score and the words Left early. Passport Best score skips that partial total.
 
-Standing trap: [end-screen-eligibility.md](end-screen-eligibility.md) — an uncounted ended-early night says Ended early. It does not name a winner or celebrate a score.
+Standing trap: [ao-provenance.md](ao-provenance.md) — AO's Q2 and Q4 were not Matt's words. Records exclusion of a left-early partial is his 5:25 PM ET line. End-screen celebrations and shared 1, 1, 3 naming are recommendations, pending him. The late-join ceiling, including Wizard and 818, is his ~4:00 PM ET Nov 12 approval. Behavior stays.
+
+Standing trap: [end-screen-eligibility.md](end-screen-eligibility.md) — an uncounted ended-early night says Ended early. It does not name a winner or celebrate a score. The celebration skip and the shared 1, 1, 3 naming are recommendations, pending Matt.
 
 Standing trap: [exact-bid-open-nights.md](exact-bid-open-nights.md) — exact-bid stats include paused and ended-early rounds that have both a bid and the tricks taken. A late-join starting adjustment does not count.
 
