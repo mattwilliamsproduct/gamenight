@@ -1587,8 +1587,10 @@ html.porch-ledger #bpg-try-demo-tip {
     height: 40px !important;
   }
 
+  /* The phone page scrolls, so the bench shows about four players instead of
+     one row with a hidden scroll. */
   html.porch-ledger body.home-view .s2-home-table .s2-pick-list {
-    max-height: 58px !important;
+    max-height: 240px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
     scrollbar-width: thin;
