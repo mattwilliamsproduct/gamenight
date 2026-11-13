@@ -11,32 +11,33 @@
 */
 
 html.porch-ledger {
-  /* Porch felt. Tweak the whole surface here; every screen that shows the
-     mat uses --felt-layers.
-     --felt-base       the felt color (calm center).
-     --felt-edge       the slightly deeper felt toward the edges.
+  /* Porch felt (matches Matt's blue felt reference). Tweak the whole surface
+     here; every screen that shows the mat uses --felt-layers.
+     --felt-center     the lighter felt in the middle of the screen.
+     --felt-base       the main felt color (also the flat fallback).
+     --felt-edge       the darker vignette at the edges and corners.
+     --felt-mid        where (of the farthest corner) the felt reaches --felt-base.
      --felt-suits      the card-suit diamond lattice tile, and --felt-suit-size.
-     --felt-calm       radius (of the farthest corner) that stays plain felt.
-     --felt-reveal     radius where the lattice reaches full strength.
-     --felt-veil       how much felt still covers the lattice at the edge
-                       (0% = lattice at full strength, 100% = hidden).
-     --felt-noise      the fine fiber texture over everything.
-     --mat-stitch is the single inset line on the Home mat. --deck-shadow
-     is the lift under every deck. */
-  --felt-base: #1f4f9a;
-  --felt-edge: #18427f;
+     --felt-calm       inside this radius the lattice is fully hidden.
+     --felt-reveal     from this radius out the lattice is at full strength,
+                       so it only lives in the outer band.
+     --felt-noise      the felt grain and mottling over everything. */
+  --felt-center: #04457f;
+  --felt-base: #033b79;
+  --felt-edge: #011a40;
+  --felt-mid: 52%;
   --felt-suits: url("./porch-felt-suits.svg");
-  --felt-suit-size: 112px;
-  --felt-calm: 34%;
-  --felt-reveal: 88%;
-  --felt-veil: 30%;
+  --felt-suit-size: 224px;
+  --felt-calm: 42%;
+  --felt-reveal: 64%;
   --felt-noise: url("./porch-felt-noise.svg");
+  --felt-shape: ellipse 72% 64% at 50% 50%;
   --felt-layers:
     var(--felt-noise),
-    radial-gradient(farthest-corner at 50% 45%, var(--felt-base) var(--felt-calm), color-mix(in srgb, var(--felt-edge) var(--felt-veil), transparent) var(--felt-reveal)),
+    radial-gradient(var(--felt-shape), var(--felt-center) 0%, color-mix(in srgb, var(--felt-center), var(--felt-base)) calc(var(--felt-calm) * 0.75), color-mix(in srgb, var(--felt-base) 85%, transparent) var(--felt-calm), transparent var(--felt-reveal)),
     var(--felt-suits),
-    radial-gradient(farthest-corner at 50% 45%, var(--felt-base) 40%, var(--felt-edge) 100%);
-  --felt-sizes: 180px 180px, 100% 100%, var(--felt-suit-size) var(--felt-suit-size), 100% 100%;
+    radial-gradient(var(--felt-shape), var(--felt-center) 0%, var(--felt-base) var(--felt-mid), var(--felt-edge) 100%);
+  --felt-sizes: 256px 256px, 100% 100%, var(--felt-suit-size) var(--felt-suit-size), 100% 100%;
   --felt-repeat: repeat, no-repeat, repeat, no-repeat;
   --mat-felt: var(--felt-base);
   --mat-stitch: rgba(244, 239, 228, 0.5);
@@ -99,6 +100,16 @@ html.porch-ledger {
   --s2-brass: var(--ledger-brass);
   --s2-good-bg: var(--ledger-teal-wash);
   --ledger-player: var(--ledger-brass);
+}
+
+/* Phones: smaller diamonds, and a wider calm middle so the lattice stays
+   at the edges of a narrow screen instead of behind the decks. */
+@media (max-width: 760px) {
+  html.porch-ledger {
+    --felt-suit-size: 160px;
+    --felt-calm: 58%;
+    --felt-reveal: 84%;
+  }
 }
 
 html.porch-ledger.slice2-tv,

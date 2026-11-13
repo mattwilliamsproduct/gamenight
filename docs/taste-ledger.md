@@ -21,7 +21,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Home shows the newest unfinished game, with Resume. Older unfinished games stay in Records, marked Unfinished, with Resume.
 - Skip sits above Next. A blank score stays blank. 0 & Next stores a confirmed 0. Minus shows only when that game allows a negative score.
 - A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
-- Home is the blue porch felt (mid royal blue, a faint card-suit lattice toward the edges, plain in the center; no geometric frame). The decks sit as a compact centered block on the calm center, and the heading, Game Instructions, the selection line, and Start are small ivory pieces. Tonight's Table, the score sheet, and score entry stay ivory, so the numbers are not on the pattern.
+- Home is the blue porch felt from Matt's reference (textured felt, lighter center, darker vignette, a faint card-suit lattice only in the outer band that fades to nothing in the center; no geometric frame). The decks sit as a compact centered block on the calm center, and the heading, Game Instructions, the selection line, and Start are small ivory pieces. Tonight's Table, the score sheet, and score entry stay ivory, so the numbers are not on the pattern.
 - The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
 - Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
 - Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
