@@ -20572,7 +20572,9 @@ ${isDealer
   function leaveEndNow(){
     if(!currentGame)return;
     const probe=liveRuleProbe(currentGame);
-    const known=window.BPGScorebook&&BPGScorebook.completionFromSavedRules?BPGScorebook.completionFromSavedRules(probe):null;
+    const known=window.BPGScorebook&&BPGScorebook.leaveFinishState
+      ? BPGScorebook.leaveFinishState(probe)
+      : (window.BPGScorebook&&BPGScorebook.completionFromSavedRules?BPGScorebook.completionFromSavedRules(probe):null);
     if(known==='finished'){
       const after=_leaveAfter;
       _leaveAfter=null;
@@ -20585,8 +20587,11 @@ ${isDealer
     document.getElementById('leave-count-step')?.classList.remove('hidden');
     const countCopy=document.getElementById('leave-count-copy');
     if(countCopy){
+      const flip=probe.name==='Flip 7 Vengeance'||probe.name==='Flip 7';
       countCopy.textContent=known==='short'
-        ? 'This game ended before its saved finish. Count this result toward wins? The partial total stays out of best and worst scores.'
+        ? (flip
+          ? 'This Flip 7 ended before 200. Count this result toward wins? The partial total stays out of best and worst scores.'
+          : 'This game ended before its saved finish. Count this result toward wins? The partial total stays out of best and worst scores.')
         : 'This game has no saved finishing rule, so it stays needs-review. Count this result toward wins? The partial total stays out of best and worst scores.';
     }
   }

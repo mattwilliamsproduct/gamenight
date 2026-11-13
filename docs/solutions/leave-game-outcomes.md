@@ -4,7 +4,7 @@ Matt's rule (5:25 PM ET, after the 5:23 outcome rule): one Leave game action. Sa
 
 Save for later stores `outcome: 'paused'`. It keeps the scores and stays resumable. It does not ask about wins.
 
-End game now stores `finished` when the row's own maxRounds, endScore, or Rook `winTarget` is already met. No count question. If that saved rule is missed, or no rule is stored, the only extra question is Count this result. Yes stores `countResult: true` on `ended_early` or `uncertain`. No stores the same outcome with `countResult` false.
+End game now stores `finished` when the row's own maxRounds, endScore, or Rook `winTarget` is already met. No count question. Flip 7 Leave also treats a seated total of 200 or more as finished, even when that night did not store `endScore`. A Flip 7 that was played and stayed under 200 asks Count this result, and the copy says it ended before 200. That Leave check is `leaveFinishState`. It does not change `completionFromSavedRules`, so a review-off history row with no stored Flip 7 target stays uncertain. If another game's saved rule is missed, or no rule is stored, the only extra question is Count this result. Yes stores `countResult: true` on `ended_early` or `uncertain`. No stores the same outcome with `countResult` false.
 
 `countsForTallies` is wins, games played, win rate, win streak, losing streak, last place, and head-to-head. `countsForScoreMagnitude` is finished only. Counting the winner does not make the partial total a best score, worst score, personal best, or average.
 

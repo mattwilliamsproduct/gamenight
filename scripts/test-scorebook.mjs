@@ -694,6 +694,17 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
   const flipEmpty = night({game: 'Flip 7 Vengeance', totals: {}, rounds: []});
   delete flipEmpty.maxRounds;
   assert.equal(Scorebook.legacyCompletion(flipEmpty).status, 'uncertain');
+  const flipReached = night({game: 'Flip 7 Vengeance', totals: {Ava: 210, Ben: 40}, rounds: rounds(4)});
+  delete flipReached.maxRounds;
+  delete flipReached.endScore;
+  assert.equal(Scorebook.leaveFinishState(flipReached), 'finished');
+  assert.equal(Scorebook.completionFromSavedRules(flipReached), null);
+  const flipShort = night({game: 'Flip 7 Vengeance', totals: {Ava: 80, Ben: 40}, rounds: rounds(3)});
+  delete flipShort.maxRounds;
+  delete flipShort.endScore;
+  assert.equal(Scorebook.leaveFinishState(flipShort), 'short');
+  assert.equal(Scorebook.completionFromSavedRules(flipShort), null);
+  assert.equal(Scorebook.leaveFinishState(night({game: 'Rook', totals: {Ava: 400, Ben: 10}, rounds: rounds(2)})), null);
   const overBid = Scorebook.applyScoreEntryKey({value: '', acknowledged: false, trickLimit: 1, mode: 'bids'}, '3');
   assert.equal(overBid.rejected, true);
   assert.equal(overBid.value, '');

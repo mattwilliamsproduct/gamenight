@@ -811,7 +811,8 @@
   }
 
   // 'finished' when a stored rule is met, 'short' when a stored rule is missed, null when no rule is stored.
-  // Today's config targets are not applied here. Flip 7 and Rook stay unknown unless the row saved a target.
+  // Today's config targets are not applied here. Rook stays unknown unless the row saved a target.
+  // Leave game asks leaveFinishState, which applies Flip 7's 200 rule without changing review-off history.
   function completionFromSavedRules(match) {
     if (!match || typeof match !== 'object') return null;
     const rounds = storedRoundTarget(match);
@@ -820,6 +821,20 @@
     const roundsMet = rounds != null && scoringRoundCount(match.rounds || []) >= rounds;
     const scoreMet = score != null && anyActiveTotalAtLeast(match, score);
     return (roundsMet || scoreMet) ? 'finished' : 'short';
+  }
+
+  // Leave game only. Flip 7 finishes at 200 for a seated player (Matt, 7:26 PM ET Oct 29).
+  // A game that scored and stayed under 200 is short. Rook stays on the saved-target rule.
+  function leaveFinishState(match) {
+    if (!match || typeof match !== 'object') return null;
+    const name = gameName(match);
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
+      const played = scoringRoundCount(match.rounds || []);
+      if (anyActiveTotalAtLeast(match, 200)) return 'finished';
+      if (played >= 1) return 'short';
+      return null;
+    }
+    return completionFromSavedRules(match);
   }
 
   function outcomeFromLegacy(match) {
@@ -1618,6 +1633,7 @@
     storedRoundTarget,
     storedScoreTarget,
     completionFromSavedRules,
+    leaveFinishState,
     legacyCompletion,
     setLegacyReviewApplied,
     legacyReviewAppliedNow,
