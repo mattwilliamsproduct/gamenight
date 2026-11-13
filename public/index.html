@@ -986,6 +986,23 @@
       font-weight: 800;
       line-height: 1.35;
     }
+    .profile-canasta-events {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
+      margin-bottom: 0.45rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .profile-canasta-events span {
+      min-width: 0;
+    }
     .round-correction-actual { font-variant-numeric: tabular-nums; font-weight: 800; }
     @media (max-width: 760px) {
       .round-correction-head { display: none; }
@@ -4525,11 +4542,11 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen:not(.hidden) ~ #toast-container,
       body:has(#game-screen:not(.hidden)) #toast-container {
         top: auto;
-        bottom: max(12px, env(safe-area-inset-bottom));
-        left: 8px;
+        bottom: var(--toast-clear-bottom, calc(4.75rem + env(safe-area-inset-bottom)));
+        left: var(--toast-clear-left, 8px);
         right: auto;
         transform: none;
-        max-width: 42vw;
+        max-width: var(--toast-clear-width, 42vw);
       }
       #toast-container.toast-parked-clear .toast {
         max-width: 100%;
@@ -5082,7 +5099,7 @@ button.dealer-name-indicator .dealer-player-label {
       display: block;
       white-space: normal;
     }
-    /* Canasta scorecard: Five Crowns density at every width. Two-line team names. No clipped cells. */
+    /* Canasta scorecard: Five Crowns density at every width. Team names stay one line. No clipped cells. */
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table,
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-table.scorecard-table--identity-total {
       table-layout: fixed;
@@ -5106,24 +5123,28 @@ button.dealer-name-indicator .dealer-player-label {
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .scoreboard-player-name.hf-team-name,
     body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-fit-rows .hf-team-name {
       display: flex !important;
-      flex-direction: column;
-      align-items: flex-start;
-      white-space: normal !important;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.16em;
+      white-space: nowrap !important;
       overflow: visible !important;
       text-overflow: clip !important;
       line-height: 1.12 !important;
       font-size: clamp(1rem, 1.5vw, 1.4rem) !important;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-line {
-      display: block;
+      display: inline;
       white-space: nowrap;
       overflow: visible;
       max-width: none;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-name .dealer-player-label {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.16em;
     }
     #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-team-avatars {
       display: inline-flex;
@@ -5612,6 +5633,14 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.hf-basic-entry .hf-total[data-ready="0"] .hf-total-num {
       color: var(--muted);
       font-size: 1.35rem !important;
+    }
+    #score-entry-modal.hf-basic-entry .hf-total[data-blank="1"] .hf-total-num {
+      color: var(--ink);
+      font-size: 1.35rem !important;
+      letter-spacing: 0;
+    }
+    #score-entry-modal.hf-basic-entry .hf-total-state:empty {
+      display: none;
     }
     #score-entry-modal.hf-basic-entry .hf-total[data-ready="1"] {
       background: #e7f6ee;
@@ -9596,12 +9625,24 @@ button.dealer-name-indicator .dealer-player-label {
       }
       html.slice2-tv body.active-match-view #top-nav > div > div:last-child {
         flex: 1 1 auto;
+        flex-wrap: nowrap;
         width: 100%;
-        justify-content: space-between;
+        gap: 0.35rem;
+        justify-content: stretch;
       }
-      html.slice2-tv body.active-match-view #top-nav .nav-btn {
+      html.slice2-tv body.active-match-view #top-nav .nav-btn:not(.hidden) {
         flex: 1 1 0;
+        width: 0;
+        min-width: 0 !important;
+        box-sizing: border-box;
         min-height: 44px;
+        height: auto;
+        padding: 0.28rem 0.2rem;
+        white-space: normal;
+        line-height: 1.15;
+        text-align: center;
+        display: flex;
+        align-items: center;
         justify-content: center;
       }
     }
@@ -9724,9 +9765,9 @@ button.dealer-name-indicator .dealer-player-label {
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1.5 animate-pulse"></span>Active Match
           </button>
           <button onclick="showHistory()" class="nav-btn">Records</button>
-          <button onclick="showProfiles()" class="nav-btn">Profiles</button>
+          <button onclick="showProfiles()" class="nav-btn">Player Passports</button>
           <button onclick="openPerfReport()" id="perf-report-btn" class="hidden nav-btn accent" title="Performance Report">Perf</button>
-          <button onclick="openSettings()" class="nav-btn" title="Settings">⚙</button>
+          <button onclick="openSettings()" class="nav-btn" title="Settings">Settings</button>
         </div>
       </div>
     </div>
@@ -11650,7 +11691,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!c) return;
     const clearPlace=()=>{
       c.classList.remove('toast-parked-clear');
-      c.style.removeProperty('--toast-clear-width');
+      ['--toast-clear-width','--toast-clear-left','--toast-clear-right','--toast-clear-bottom'].forEach(name=>c.style.removeProperty(name));
       c.style.left='';
       c.style.right='';
       c.style.transform='';
@@ -11659,44 +11700,53 @@ button.dealer-name-indicator .dealer-player-label {
       c.style.top='';
       c.style.bottom='';
     };
-    const pinRight=()=>{
-      c.classList.remove('toast-parked-clear');
-      c.style.removeProperty('--toast-clear-width');
-      c.style.left='auto';
-      c.style.right='8px';
-      c.style.transform='none';
-      c.style.width='max-content';
-      c.style.maxWidth='min(18rem, 34vw)';
-    };
-    const phoneCard=document.getElementById('scorecard-capture');
-    const phoneGame=document.getElementById('game-screen');
-    const phoneMatch=window.innerWidth<=760 && phoneCard && phoneGame && !phoneGame.classList.contains('hidden') && phoneCard.getBoundingClientRect().width>0;
-    if(phoneMatch){
-      const card=phoneCard;
-      const rounds=card?[...card.querySelectorAll('thead th.scorecard-round-th')].filter((el)=>getComputedStyle(el).display!=='none' && !el.classList.contains('scorecard-round--hidden')):[];
-      const guard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
-      const guardLeft=guard?guard.getBoundingClientRect().left:Math.round(window.innerWidth*0.52);
-      const room=Math.max(72, Math.round(guardLeft-16));
-      c.classList.add('toast-parked-clear');
-      c.style.setProperty('--toast-clear-width', `${room}px`);
-      c.style.top='auto';
-      c.style.bottom='max(12px, env(safe-area-inset-bottom))';
-      c.style.left='8px';
-      c.style.right='auto';
-      c.style.transform='none';
-      c.style.width=`${room}px`;
-      c.style.maxWidth=`${room}px`;
+    const card=document.getElementById('scorecard-capture');
+    const game=document.getElementById('game-screen');
+    const box=card&&game&&!game.classList.contains('hidden')?card.getBoundingClientRect():null;
+    if(!box||box.width<40){
+      clearPlace();
       return;
     }
+    const phone=window.innerWidth<=760;
+    const nav=document.getElementById('top-nav');
+    const navBox=nav&&getComputedStyle(nav).display!=='none'?nav.getBoundingClientRect():null;
+    const navOnScreen=!!(phone&&navBox&&navBox.height>8&&navBox.top>=0&&navBox.top<window.innerHeight);
+    let bottom=navOnScreen?Math.max(12, Math.round(window.innerHeight-navBox.top+8)):12;
     const over=document.getElementById('game-over-section');
     const overBox=over&&!over.classList.contains('hidden')?over.getBoundingClientRect():null;
     if(overBox&&overBox.height>8&&overBox.top<window.innerHeight-8){
-      c.style.top='auto';
-      c.style.bottom=Math.max(12, Math.round(window.innerHeight-overBox.top+10))+'px';
-      pinRight();
-      return;
+      bottom=Math.max(bottom, Math.round(window.innerHeight-overBox.top+10));
     }
-    clearPlace();
+    const left=Math.max(8, Math.round(box.left+8));
+    let width;
+    if(phone){
+      const rounds=[...card.querySelectorAll('thead th.scorecard-round-th')].filter(el=>getComputedStyle(el).display!=='none'&&!el.classList.contains('scorecard-round--hidden'));
+      const roundGuard=rounds.length>=3?rounds[2]:rounds[rounds.length-1];
+      const roundLeft=roundGuard?roundGuard.getBoundingClientRect().left:box.right;
+      const wide=Math.max(72, Math.round(Math.min(roundLeft-8, box.right-8)-left));
+      const toastTop=window.innerHeight-bottom-56;
+      const hitsTotal=[...card.querySelectorAll('.scorecard-total-value')].some(el=>{
+        const band=el.getBoundingClientRect();
+        return band.width>8&&band.bottom>toastTop&&band.top<window.innerHeight-bottom&&band.left<left+wide;
+      });
+      const total=card.querySelector('thead th.scorecard-col-total, td.scorecard-total-cell');
+      const totalLeft=total?total.getBoundingClientRect().left:roundLeft;
+      const narrow=Math.max(72, Math.round(Math.min(totalLeft-8, box.right-8)-left));
+      width=hitsTotal?narrow:wide;
+    }else{
+      width=Math.max(72, Math.round(box.right-8-left));
+    }
+    c.classList.add('toast-parked-clear');
+    c.style.setProperty('--toast-clear-width', `${width}px`);
+    c.style.setProperty('--toast-clear-left', `${left}px`);
+    c.style.setProperty('--toast-clear-bottom', `${bottom}px`);
+    c.style.top='auto';
+    c.style.bottom=`${bottom}px`;
+    c.style.left=`${left}px`;
+    c.style.right='auto';
+    c.style.transform='none';
+    c.style.width=`${width}px`;
+    c.style.maxWidth=`${width}px`;
   }
   function toast(message, type='default'){
     const c = document.getElementById('toast-container'); if(!c) return;
@@ -13747,7 +13797,7 @@ button.dealer-name-indicator .dealer-player-label {
       ? BPGHandFoot.playerEventTotals(history, name)
       : null;
     if(!events||!events.rounds) return '';
-    return `<div class="profile-canasta-events" data-canasta-events="passport">Got the 22 ${events.got22} · Went out ${events.wentOut} · Cards left ${events.cardsLeft}</div>`;
+    return `<div class="profile-canasta-events" data-canasta-events="passport"><span>Got the 22 ${events.got22}</span><span>Went out ${events.wentOut}</span><span>Cards left ${events.cardsLeft}</span></div>`;
   }
 
   function careerCardHtml(summary){
@@ -17201,7 +17251,12 @@ ${isDealer
       root.classList.toggle('scorecard-roomy-identity-4',rows.length>0&&rows.length<=4);
       if(!wrap||!table||!rows.length||wrap.clientHeight<80)return;
       const handFoot=!!(currentGame&&currentGame.name==='Hand and Foot');
-      if(handFoot&&window.innerWidth<1280)return;
+      // Two team rows do not fill the viewport. Hug the card to the rows.
+      // Row fitting below 1280 was sizing those rows like an eight-player card.
+      if(handFoot&&window.innerWidth<1280){
+        root.classList.add('scorecard-hug-rows');
+        return;
+      }
       const overEl=document.getElementById('game-over-section');
       const overVisible=!!(overEl&&!overEl.classList.contains('hidden'));
       // Row-fit must use the on-screen remainder. wrap.clientHeight follows the
@@ -17284,7 +17339,9 @@ ${isDealer
         const playerCell=root.querySelector('td.scorecard-col-player');
         if(playerCell){
           const cellStyle=getComputedStyle(playerCell);
-          const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+          const badge=playerCell.querySelector('.wheel-badge');
+          const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?Math.ceil(badge.getBoundingClientRect().width)+8:0;
+          const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth;
           const canvas=fitActiveScorecardRows._nameCanvas||(fitActiveScorecardRows._nameCanvas=document.createElement('canvas'));
           const ctx=canvas.getContext('2d');
           let longest=0;
@@ -17402,7 +17459,11 @@ ${isDealer
     if(!cell||!lane)return 0;
     const nameBox=name.closest('.scorecard-player-name-slot')||name;
     const cellStyle=getComputedStyle(cell);
-    const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0);
+    const badge=cell.querySelector('.wheel-badge');
+    const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?badge.getBoundingClientRect().width:0;
+    const outer=cell.querySelector(':scope > .flex')||cell;
+    const outerGap=badgeWidth?(parseFloat(getComputedStyle(outer).columnGap||getComputedStyle(outer).gap)||0):0;
+    const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth-outerGap;
     const laneStyle=getComputedStyle(lane);
     const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
     const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
@@ -17457,8 +17518,10 @@ ${isDealer
         chip.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
         const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
         const fittedSlot=name.closest('.scorecard-player-name-slot');
+        const fittedBadge=cell.querySelector('.wheel-badge');
+        const badgeLimit=fittedBadge&&getComputedStyle(fittedBadge).display!=='none'?fittedBadge.getBoundingClientRect().left-1:cellBox.right-1;
         const slotOk=!fittedSlot||name.scrollWidth<=fittedSlot.clientWidth+1;
-        if(fittedBox.right<=cellBox.right - 1&&slotOk){
+        if(fittedBox.right<=badgeLimit&&slotOk){
           best=mid;
           lo=mid;
         }else{
@@ -18858,14 +18921,25 @@ ${isDealer
     const total=ready?(basic||0)+(count||0)+got+out-(entry.wentOut?0:(left||0)):null;
     return {basic, count, left, got, out, ready, soFar, total};
   }
-  function handFootTerm(value){
-    return value==null?'—':String(value);
+  function handFootLiveLine(math){
+    if(!math) return '';
+    const plus=[];
+    if(math.basic!=null) plus.push(`Basic ${math.basic}`);
+    if(math.count!=null) plus.push(`Count ${math.count}`);
+    if(math.got) plus.push(`Got the 22 ${math.got}`);
+    if(math.out) plus.push(`Went out ${math.out}`);
+    let body=plus.join(' + ');
+    if(!math.out&&math.left!=null){
+      const cards=`Cards left ${math.left}`;
+      body=body?`${body} − ${cards}`:cards;
+    }
+    if(!body) return '';
+    const value=math.ready?math.total:math.soFar;
+    if(value==null) return '';
+    return math.ready?`${body} = ${value}`:`${body} = ${value} so far`;
   }
   function handFootEquation(math){
-    if(!math) return '';
-    const left=math.left==null?'—':String(math.left);
-    const body=`${handFootTerm(math.basic)} + ${handFootTerm(math.count)} + ${math.got} + ${math.out} − ${left}`;
-    return math.ready?`${body} = ${math.total}`:body;
+    return handFootLiveLine(math);
   }
   function handFootSelectionCaption(){
     const side=scoreEntryModalState?.activePlayer;
@@ -19535,8 +19609,10 @@ ${isDealer
     const members=handFootMembersOf(currentGame, side);
     const math=handFootLiveMath(entry);
     const ready=!!math?.ready;
-    const totalText=ready?String(math.total):'—';
-    const stateText=ready?handFootEquation(math):(math&&math.soFar!=null?`<span class="hf-so-far">So far ${math.soFar}</span>`:'Not ready');
+    const line=handFootLiveLine(math);
+    const blank=!line;
+    const totalText=ready?String(math.total):(blank?'Not ready':'');
+    const aria=blank?'Round total not ready':(ready?`Round total ${math.total}`:line);
     return `<article class="hf-team-card${active?' is-active':''}${phone?' is-phone-current':''}${handFootSideReady(entry)?' is-complete':''}" data-side="${escapeHtml(side)}">
       <header class="hf-team-id">
         <span class="hf-side-avatars">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
@@ -19556,10 +19632,9 @@ ${isDealer
         <span>Went out · +100</span>
       </label>
       ${handFootFieldHtml(idx,'cardsLeft','Cards left · subtract','',entry,active&&scoreEntryModalState.activeField==='cardsLeft')}
-      <div class="hf-total" data-ready="${ready?'1':'0'}" aria-label="${ready?`Round total ${math.total}`:'Round total not ready'}">
-        <div class="hf-total-eq">${ready?'':handFootEquation(math)}</div>
-        <div class="hf-total-num">${totalText}</div>
-        <div class="hf-total-state">${ready?handFootEquation(math):stateText}</div>
+      <div class="hf-total" data-ready="${ready?'1':'0'}" data-blank="${blank?'1':'0'}" aria-label="${escapeHtml(aria)}">
+        <div class="hf-total-num">${escapeHtml(totalText)}</div>
+        <div class="hf-total-state">${line?escapeHtml(line):''}</div>
       </div>
     </article>`;
   }
@@ -19601,7 +19676,7 @@ ${isDealer
       const entry=scoreEntryModalState.values[side];
       const math=entry?.shape==='basic'?handFootLiveMath(entry):null;
       const total=entry?.shape==='saved'?(entry.totalConfirmed?entry.total:entry.savedTotal):(math&&math.ready?math.total:'Not ready');
-      const eq=math?handFootEquation(math):'Saved total';
+      const eq=math?(handFootLiveLine(math)||'Not ready'):'Saved total';
       return `<div class="hf-review-row"><div class="hf-side-names">${escapeHtml(handFootSideLabel(side))}</div><div><div class="hf-review-total">${escapeHtml(String(total))}</div><div class="hf-review-eq">${escapeHtml(eq)}</div></div></div>`;
     }).join('');
     return `<div class="hf-review"><div class="hf-review-title">Review round</div>${rows}<button type="button" class="hf-review-back" onclick="handFootLeaveReview()">Back</button></div>`;
@@ -22476,7 +22551,7 @@ ${isDealer
           const wasBehind = halfwayLeader && halfwayLeader !== w;
           const winnerHalfScore = halfwaySorted.find(x=>x.p===w)?.score ?? halfwayLeaderScore ?? 0;
           const deficit = cfg.winLow ? winnerHalfScore-halfwayLeaderScore : halfwayLeaderScore-winnerHalfScore;
-          if(wasLast) update(allTime,'biggestComeback',entry(w,deficit,h,{label:`Last at halfway, won ${h.game}`}),betterHigh);
+          if(wasLast) update(allTime,'biggestComeback',entry(w,deficit,h,{label:`Last at halfway, won ${displayGameName(h.game)}`}),betterHigh);
           if(wasBehind) comebackWins[w]=(comebackWins[w]||0)+1;
         });
       }
@@ -22731,15 +22806,16 @@ ${isDealer
       allTime.mostComebackExtras = null;
       allTime.biggestComebackExtra = null;
     }
-    if(window.BPGRecords&&typeof BPGRecords.biggestSingleGameComeback==='function'){
+    if(window.BPGRecords&&typeof BPGRecords.biggestComebacksByGame==='function'){
       const comebackHistory=history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
-      const fromRounds=BPGRecords.biggestSingleGameComeback(comebackHistory,{
+      const fromRounds=BPGRecords.biggestComebacksByGame(comebackHistory,{
         configs,
         getDisplayPlayers:getRecordedPlayers,
         sortPlayersByTotal,
         scorebook:BPGScorebook
       });
-      if(fromRounds) allTime.biggestComeback=fromRounds;
+      allTime.biggestComebacksByGame=fromRounds;
+      allTime.biggestComeback=fromRounds.length===1?fromRounds[0]:null;
     }
     const shameAwards = window.BPGRecords
       ? BPGRecords.buildShameAwards({games,allTime}, playerList, wizardBidStats, comebackWins, showComeback)
@@ -22813,7 +22889,9 @@ ${isDealer
         ${recordCard('Longest Winning Streak Ever',data.allTime.longestWinningStreak,true)}
         ${recordCard('Longest Losing Streak Ever',data.allTime.longestLosingStreak,false)}
         ${recordCard('Most Consecutive Games Without Last',data.allTime.longestNoLastStreak,true)}
-        ${recordCard('Biggest Single-Game Comeback',data.allTime.biggestComeback,true)}
+        ${(data.allTime.biggestComebacksByGame||[]).length
+          ? data.allTime.biggestComebacksByGame.map(row=>recordCard(`Biggest ${displayGameName(row.game)} comeback`, row, true)).join('')
+          : recordCard('Biggest single-game comeback', data.allTime.biggestComeback, true)}
         ${recordCard('Most Comeback Extras In One Game',data.allTime.mostComebackExtras,true)}
         ${recordCard('Biggest Comeback Extra',data.allTime.biggestComebackExtra,true)}
         <div><div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--muted);">Games Decided In The Final Round</div><div class="space-y-2">${data.allTime.finalRoundDecisions.length?data.allTime.finalRoundDecisions.slice(0,8).map(playerLine).join(''):empty}</div></div>

@@ -785,6 +785,28 @@ function canastaFinishedNight(){
   });
 }
 
+function canastaComebackNight(){
+  const roster=['Megan','Matt','Cat','Mike'];
+  const sides=[
+    {key:'Megan & Matt', members:['Megan','Matt']},
+    {key:'Cat & Mike', members:['Cat','Mike']}
+  ];
+  const ahead=canastaHouseParts({cardPoints:100, cardsLeft:0});
+  const behind=canastaHouseParts({cardPoints:10, cardsLeft:0});
+  const quiet=canastaHouseParts({cardPoints:10, cardsLeft:0});
+  const surge=canastaHouseParts({cardPoints:200, cardsLeft:0});
+  const rounds=[
+    canastaTeamRound(1, ahead, behind, ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(2, ahead, behind, ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(3, quiet, surge, ['Megan','Matt'], ['Cat','Mike']),
+    canastaTeamRound(4, quiet, surge, ['Megan','Matt'], ['Cat','Mike'])
+  ];
+  return finishedNight(1783353600001,'Hand and Foot','10/2/2026',roster,rounds,{
+    handFoot:{format:'teams', sides},
+    maxRounds:4
+  });
+}
+
 function rookFinishedNight(){
   const roster=['Megan','Matt','Cat','Mike'];
   const rounds=[{
@@ -1423,6 +1445,24 @@ export const QA_SCENARIOS = {
     description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match, a joint win, a completed Canasta night, and existing Rook history.',
     defaultSurface:'records',
     data:{allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight(),cleoComebackNight()]),playerProfiles:profiles(),currentGame:null}
+  },
+  'comeback-by-game':{
+    label:'Comebacks · one row per game',
+    description:'Wizard Cleo by 100 and Canasta Cat and Mike by 180. Each game keeps its own comeback. Raw points do not pick a winner.',
+    defaultSurface:'records',
+    data:{
+      allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],
+      players:['Ada','Bea','Cleo','Dee','Megan','Matt','Cat','Mike'],
+      history:[cleoComebackNight(), canastaComebackNight()],
+      playerProfiles:profiles(),
+      currentGame:null
+    }
+  },
+  'canasta-comeback':{
+    label:'Canasta · team comeback',
+    description:'Cat and Mike were last at halfway, then won the Canasta night. The comeback row names both partners and the shelf name.',
+    defaultSurface:'records',
+    data:{allPlayers:[...NAMES],players:['Megan','Matt','Cat','Mike'],history:[canastaComebackNight()],playerProfiles:profiles(),currentGame:null}
   },
   'empty-home':{
     label:'Empty first start',

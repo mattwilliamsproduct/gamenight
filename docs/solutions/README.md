@@ -14,6 +14,10 @@ Standing trap: [select-chevron.md](select-chevron.md) — one `select.bp-select`
 
 Standing trap: [leave-game-outcomes.md](leave-game-outcomes.md) — one Leave game choice. A counted partial total stays out of full-game score records. History does not inherit today's targets. Flip 7 Leave still uses the seated 200 rule.
 
+Standing trap: [bs-polish.md](bs-polish.md) — the wheel control stays on the right of the name. A comeback uses the shelf name and both partners. A Canasta round in progress is a labeled sum.
+
+Standing trap: [bu-pin-and-nav.md](bu-pin-and-nav.md) — The Canasta card sits under the header. Only its own height hugs. The phone bottom nav has equal columns and a gap. [bt-board-and-comeback.md](bt-board-and-comeback.md) — Canasta team names stay one line. Phone nav says Player Passports and Settings. Biggest comeback is one row per game.
+
 Standing trap: [rc4-live-records.md](rc4-live-records.md) — Canasta places use the team key. Biggest comeback is ordinary round history. A cleared Canasta breakdown does not keep the old parts.
 
 Standing trap: [legacy-history-review.md](legacy-history-review.md) — saved-round rules are already counting. Canasta is complete at 4 saved rounds (Matt, 7:13 PM ET, amendment 11). Flip 7 is a full game when a seated total reached 200 (Matt, Nov 12, 7:10 PM ET). Do not invent a Rook target.

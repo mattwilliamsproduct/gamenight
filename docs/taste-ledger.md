@@ -6,6 +6,14 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
+- The phone bottom nav gives Home, Records, Player Passports, and Settings equal widths, with a gap between them. Player Passports may take two lines.
+- Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
+- Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
+- A Canasta team name stays on one line (`Megan & Matt`) when the cell has room beside it. The live card ends at the last team row.
+- The wheel control sits toward the right of the player cell and does not cover the name.
+- A comeback uses the shelf name. A team win names both partners.
+- A Canasta round in progress is a labeled sum. A blank round says Not ready.
 - Canasta is 4 rounds. A legacy night with 4 saved rounds is complete. A game finished in the app is finished. A legacy night with fewer than 4 rounds, or with an ambiguous row, stays needs review. Matt, 7:13 PM ET, amendment 11.
 - The user-facing wheel name is Back Porch Wheel, from one constant.
 - Flip 7 finishes at 200. The decision is Nov 12, 7:10 PM ET.
@@ -23,7 +31,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Wizard and 818 exact-bid stats count every round with a bid and the tricks taken, including a paused or ended-early night. A late-join starting adjustment does not count.
 - Two tabs do not overwrite each other. The tab with the older copy shows the newer match.
 - Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
-- Full two-line Canasta team names (`Megan &` / `Matt`) with no ellipsis, and the dusk Canasta tile used in both art sets until Matt picks a beach tile.
+- The dusk Canasta tile stays in both art sets until Matt picks a beach tile. Team names stay whole, with no ellipsis.
 - Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.
 - Add Player suggestions stay one real name; a comma never becomes a player.
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
@@ -86,6 +94,10 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- Floating a short Canasta card in the middle of the cream, or letting the phone bottom-nav labels touch.
+- Comparing raw comeback points across games, so a Canasta 180 always outranks a Wizard 100.
+- A phone nav that says Profiles, or a Settings control that is only a gear.
+- Wrapping a Canasta team name onto two lines when `Megan & Matt` fits beside the avatars, or leaving a cream block under two team rows.
 - Squeezing three to six Canasta cards onto one iPad screen, or inventing Basic, Count, and bonuses on an older round. Three or more scroll at the same size as two teams. An older round says Older round · total only. Turning that round into components waits.
 - Zeroing every old night because a Flip 7 or Rook target was not stored on it. Canasta's 4-round config is not a history rule. A game's minimum does not lock the seat checkboxes.
 - A profile-name array dropped into a suggestion list as one item, so typing a letter offers a comma-joined fake player.

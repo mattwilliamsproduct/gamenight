@@ -381,12 +381,13 @@
     return (history || []).some(matchHasComebackData);
   }
 
-  // Biggest single-game comeback comes from ordinary round totals.
+  // Biggest comeback is ranked inside each game. A Canasta deficit
+  // does not erase a Wizard comeback. Each row keeps that game's points.
   // Turbo extras stay behind shouldShowComebackStats. This one does not.
-  function biggestSingleGameComeback(history, helpers) {
+  function biggestComebacksByGame(history, helpers) {
     const book = helpers && helpers.scorebook;
     const configs = (helpers && helpers.configs) || {};
-    let best = null;
+    const byGame = new Map();
     (history || []).forEach((match) => {
       if (!match) return;
       // Same nights main scores: any saved round history. A full-game gate
@@ -418,8 +419,21 @@
       if (!sorted.length) return;
       const lastScore = totals[sorted[sorted.length - 1]];
       const leaderScore = totals[sorted[0]];
+      const lastNames = players.filter((name) => totals[name] === lastScore);
+      const groups = [];
+      const claimed = new Set();
+      const sides = match.handFoot && Array.isArray(match.handFoot.sides) ? match.handFoot.sides : [];
+      sides.forEach((side) => {
+        const members = (side && side.members || []).filter((name) => winners.includes(name) && lastNames.includes(name));
+        if (members.length < 2) return;
+        members.forEach((name) => claimed.add(name));
+        groups.push(members);
+      });
       winners.forEach((name) => {
-        if (totals[name] !== lastScore) return;
+        if (!claimed.has(name) && lastNames.includes(name)) groups.push([name]);
+      });
+      groups.forEach((members) => {
+        const name = members[0];
         const deficit = cfg.winLow ? (totals[name] - leaderScore) : (leaderScore - totals[name]);
         if (!(deficit > 0)) return;
         const row = {
@@ -428,16 +442,46 @@
           game: match.game,
           date: match.date,
           id: match.id,
-          label: `Last at halfway, won ${match.game}`
+          label: `Last at halfway, won ${shownGameName(match.game)}`
         };
-        if (!best || deficit > best.value) best = row;
+        if (members.length > 1) {
+          row.ties = members.map((player) => ({player, value: deficit}));
+        }
+        const current = byGame.get(match.game);
+        if (!current || deficit > current.value) byGame.set(match.game, row);
       });
     });
-    return best;
+    const order = GAMES.map((game) => game.id);
+    return [...byGame.values()].sort((left, right) => {
+      const leftAt = order.indexOf(left.game);
+      const rightAt = order.indexOf(right.game);
+      return (leftAt < 0 ? order.length : leftAt) - (rightAt < 0 ? order.length : rightAt);
+    });
+  }
+
+  function biggestSingleGameComeback(history, helpers) {
+    const rows = biggestComebacksByGame(history, helpers);
+    return rows.length === 1 ? rows[0] : null;
+  }
+
+  function shownGameName(id) {
+    const api = gamesApi();
+    if (api && typeof api.displayName === 'function') {
+      const named = api.displayName(id);
+      if (named && named !== 'Unknown') return named;
+    }
+    const game = GAMES.find((item) => item.id === id);
+    return (game && game.title) || id || '';
   }
 
   function publicGamePhrase(text) {
-    return String(text || '').replace(/Hand and Foot/g, 'Canasta').replace(/Flip 7 Vengeance/g, 'Flip 7');
+    const raw = String(text || '');
+    if (!raw) return '';
+    const exact = shownGameName(raw);
+    if (exact && exact !== raw) return exact;
+    return raw
+      .split('Hand and Foot').join(shownGameName('Hand and Foot'))
+      .split('Flip 7 Vengeance').join(shownGameName('Flip 7 Vengeance'));
   }
 
   function nightStandings(match, helpers) {
@@ -1277,7 +1321,7 @@
       ? root.BPGHandFoot.playerEventTotals(history, player)
       : null;
     if (!events || !events.rounds) return '';
-    return `<p class="s2-canasta-events" data-canasta-events="career">Got the 22 ${esc(String(events.got22))} · Went out ${esc(String(events.wentOut))} · Cards left ${esc(String(events.cardsLeft))}</p>`;
+    return `<p class="s2-canasta-events" data-canasta-events="career"><span>Got the 22 ${esc(String(events.got22))}</span><span>Went out ${esc(String(events.wentOut))}</span><span>Cards left ${esc(String(events.cardsLeft))}</span></p>`;
   }
 
   function careerCardsHtml(cards, esc, avatar, history) {
@@ -1439,9 +1483,13 @@
     const all = data.allTime || {};
     const derby = (all.mostLasts || [])[0] || null;
     const decided = (all.finalRoundDecisions || [])[0] || null;
+    const comebackRows = Array.isArray(all.biggestComebacksByGame) ? all.biggestComebacksByGame : [];
+    const comebackLines = comebackRows.length
+      ? comebackRows.map((row) => statLine(`Biggest ${shownGameName(row.game)} comeback`, row, esc, '', playerFilter)).join('')
+      : statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter);
     return listBlock('Comebacks', [
       statLine('Dead Last Derby', derby, esc, '', playerFilter),
-      statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter),
+      comebackLines,
       statLine('Decided in the final round', decided, esc, '', playerFilter)
     ]);
   }
@@ -1950,6 +1998,7 @@
     matchHasComebackData,
     shouldShowComebackStats,
     biggestSingleGameComeback,
+    biggestComebacksByGame,
     publicGamePhrase,
     lifePreserverEvents,
     lifePreserverSummary,

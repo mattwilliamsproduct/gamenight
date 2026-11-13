@@ -2347,14 +2347,22 @@ html.slice2-tv #toast-container {
   width: max-content;
   max-width: 90vw;
 }
+html.slice2-tv #toast-container.toast-parked-clear {
+  align-items: flex-start;
+}
+html.slice2-tv #toast-container.toast-parked-clear .toast {
+  width: max-content;
+  max-width: 100% !important;
+  white-space: normal;
+}
 
 /* Phone board: keep the lead toast at the bottom left, ending before the R3 column.
    A right-side park under the header lands on R3 and R4. */
 @media (max-width: 760px) {
   html.slice2-tv body.active-match-view #toast-container {
     top: auto !important;
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
-    left: 8px !important;
+    bottom: var(--toast-clear-bottom, calc(4.75rem + env(safe-area-inset-bottom))) !important;
+    left: var(--toast-clear-left, 8px) !important;
     right: auto !important;
     transform: none !important;
     width: var(--toast-clear-width, 42vw) !important;
@@ -2724,6 +2732,17 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
     font-size: 0.74rem;
     white-space: nowrap;
     min-width: 2.4rem !important;
+  }
+
+  html.slice2-tv body:not(.active-match-view) #top-nav > div {
+    flex-wrap: wrap !important;
+    row-gap: 0.15rem;
+  }
+
+  html.slice2-tv body:not(.active-match-view) #top-nav > div > div:last-child {
+    flex: 1 1 100% !important;
+    width: 100%;
+    justify-content: space-between;
   }
 
   html.slice2-tv #nav-active-btn {
@@ -4610,6 +4629,10 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
   justify-content: center !important;
   align-items: stretch;
 }
+/* Canasta's two-team card stays short, and it sits under the header like every other board. */
+html.slice2-tv body.active-match-view:has(#game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows) .landscape-only {
+  justify-content: flex-start !important;
+}
 
 /* Phone scoreboard: visual-viewport shell, scrolling seats, one header row.
    Desktop and iPad (761px and up) keep the long header. */
@@ -5208,6 +5231,16 @@ html.slice2-tv .s2-career-line {
   justify-content: space-between;
   gap: 8px;
 }
+html.slice2-tv .s2-career-card .s2-canasta-events {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+}
+html.slice2-tv .s2-career-card .s2-canasta-events span {
+  min-width: 0;
+}
 
 html.slice2-tv #scorecard-capture .scorecard-player-name-slot {
   flex: 1 1 auto !important;
@@ -5254,13 +5287,14 @@ html.slice2-tv #scorecard-live-layout.record-chase-active .scorecard-col-player 
   padding-left: 0.85rem !important;
 }
 html.slice2-tv #scorecard-live-layout.record-chase-active .scorecard-col-player .flex.items-center {
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 0;
 }
 html.slice2-tv #scorecard-live-layout.record-chase-active .wheel-badge {
-  margin-left: 0;
-  flex: 1 1 100%;
-  max-width: 100%;
+  margin-left: auto;
+  flex: 0 0 auto;
+  max-width: none;
   font-size: 0.78rem;
   padding: 0.2rem 0.5rem;
   min-height: 32px;
@@ -5342,13 +5376,23 @@ html.slice2-tv #scorecard-capture.scorecard-fit-cols table.scorecard-table {
   html.slice2-tv #scorecard-capture td.scorecard-col-player .flex.items-center {
     flex-wrap: wrap;
   }
+  html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .flex.items-center {
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: 0;
+  }
   html.slice2-tv #scorecard-capture .wheel-badge {
-    margin-left: 0;
-    flex: 1 1 100%;
-    max-width: 100%;
-    font-size: 0.68rem;
-    padding: 0.15rem 0.35rem;
-    min-height: 28px;
+    margin-left: auto;
+    flex: 0 0 auto;
+    max-width: none;
+    font-size: 0.6rem;
+    padding: 0.04rem 0.22rem;
+    gap: 0.1rem;
+    min-height: 24px;
+  }
+  html.slice2-tv #scorecard-capture .wheel-badge-icon {
+    width: 0.7rem;
+    height: 0.7rem;
   }
 }
 
@@ -5368,4 +5412,88 @@ html.slice2-tv #round-correction-modal .bp-modal-panel {
   width: min(960px, calc(100vw - 24px)) !important;
   max-height: calc(100dvh - 16px) !important;
   overflow: auto !important;
+}
+
+/* The wheel control stays on the right of the player cell. The name ends before it. */
+html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) > .flex {
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  min-width: 0;
+  width: 100%;
+}
+html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-identity {
+  width: auto !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scorecard-player-name-slot {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .scoreboard-player-name,
+html.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .dealer-player-label {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+html.slice2-tv #scorecard-capture .wheel-badge,
+html.slice2-tv #scorecard-live-layout.record-chase-active .wheel-badge {
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+  max-width: none !important;
+  align-self: center !important;
+  font-size: 0.82rem !important;
+  gap: 0.28rem !important;
+  padding: 0.15rem 0.55rem !important;
+  min-height: 32px !important;
+  min-width: 0 !important;
+}
+html.slice2-tv #scorecard-capture .wheel-badge-icon,
+html.slice2-tv #scorecard-live-layout.record-chase-active .wheel-badge-icon {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+html.slice2-tv .s2-standing .s2-seat-who:has(.wheel-badge) {
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  width: 100%;
+}
+html.slice2-tv .s2-standing .s2-seat-who:has(.wheel-badge) .s2-seat-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html.slice2-tv .s2-standing .wheel-badge {
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+}
+/* A two-team Canasta card ends at the last row and stays at the top. The phone shell still fills the screen. */
+@media (max-width: 760px) {
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows,
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-layout,
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-live-main,
+  html.slice2-tv body.active-match-view #game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows .scorecard-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}
+@media (max-width: 760px) {
+  html.slice2-tv #scorecard-capture .wheel-badge {
+    font-size: 0.6rem !important;
+    padding: 0.04rem 0.22rem !important;
+    min-height: 24px !important;
+    gap: 0.1rem !important;
+  }
+  html.slice2-tv #scorecard-capture .wheel-badge-icon {
+    width: 0.7rem !important;
+    height: 0.7rem !important;
+  }
 }
