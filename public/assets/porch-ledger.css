@@ -2206,7 +2206,7 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-game {
 }
 
 html.porch-ledger.slice2-tv .s2-panel.s2-home-start .s2-card-frame {
-  width: min(100%, var(--bp-card-max, 132px)) !important;
+  width: min(100%, var(--bp-card-max, 132px), var(--bp-deck-fit, 999px)) !important;
   max-width: var(--bp-card-max, 132px) !important;
   margin-inline: auto !important;
 }
@@ -2253,6 +2253,56 @@ html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-home-start-compact > .s2-
   html.porch-ledger.slice2-tv .s2-panel.s2-home-start:not(.s2-home-start-compact) .s2-panel-head .s2-sub {
     font-size: 14px !important;
     line-height: 1.3 !important;
+  }
+}
+
+/* Short landscape Home (fitHomeDecks): seven decks in one row, and four or
+   five seated rows tightened only when they would otherwise scroll. */
+@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
+  html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-decks-one-row .s2-game,
+  html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-decks-one-row .s2-game:nth-child(n) {
+    grid-column: auto / span 8 !important;
+    grid-row: 1 !important;
+    padding-inline: 4px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-panel.s2-home-start.s2-decks-one-row .s2-game-name {
+    font-size: 13px !important;
+    white-space: normal !important;
+    min-height: 2.3em;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table .s2-seat-grid:not(:has(.s2-seat:nth-child(6))) {
+    flex-shrink: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat-grid {
+    gap: 2px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-pick-list {
+    min-height: 0 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat {
+    grid-template-columns: 1.35rem 32px minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
+    min-height: 44px !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .avatar-img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat-out,
+  html.porch-ledger.slice2-tv .s2-home-table.s2-seats-tight .s2-seat-handle {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
   }
 }
 

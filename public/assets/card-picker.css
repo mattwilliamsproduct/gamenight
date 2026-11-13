@@ -509,7 +509,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100%, var(--bp-card-max));
+    width: min(100%, var(--bp-card-max), var(--bp-deck-fit, var(--bp-card-max)));
     max-width: var(--bp-card-max);
     height: auto !important;
     margin-inline: auto;

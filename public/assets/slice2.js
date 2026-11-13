@@ -606,6 +606,56 @@
     restoreSeatGrab(root);
     parkSaveIndicator();
     wireStandingsMore(root);
+    fitHomeDecks();
+    requestAnimationFrame(fitHomeDecks);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHomeDecks).catch(() => {});
+  }
+
+  // Landscape Home ends above the viewport. Decks keep --bp-card-max, but when
+  // a demo bar, a Resume banner, or a short window leaves the start panel less
+  // height than its content, shrink the decks just enough that Start stays on
+  // the panel. Never grows them past --bp-card-max.
+  const HOME_FIT_QUERY = '(min-width: 861px) and (orientation: landscape) and (min-height: 700px)';
+  function fitHomeDecks() {
+    const home = document.getElementById('slice2-home');
+    const start = home && home.querySelector('.s2-home-start');
+    const seats = home && home.querySelector('.s2-home-table .s2-seat-grid');
+    if (seats) seats.closest('.s2-home-table').classList.remove('s2-seats-tight');
+    if (!start) return;
+    start.style.removeProperty('--bp-deck-fit');
+    start.classList.remove('s2-decks-one-row');
+    if (!window.matchMedia(HOME_FIT_QUERY).matches || document.documentElement.dataset.bpKb === '1') return;
+    // Up to five seated rows stay whole and the bench gives up its height first.
+    // If the panel still overflows, tighten those rows instead of scrolling them.
+    const table = seats && seats.closest('.s2-home-table');
+    if (table && seats.children.length <= 5 && table.scrollHeight > table.clientHeight + 1) {
+      table.classList.add('s2-seats-tight');
+    }
+    const frames = [...start.querySelectorAll('.s2-card-frame')];
+    if (!frames.length) return;
+    const width = () => frames[0].getBoundingClientRect().width;
+    const fit = () => {
+      const rows = new Set(frames.map((frame) => Math.round(frame.getBoundingClientRect().top))).size || 1;
+      for (let pass = 0; pass < 3; pass += 1) {
+        const over = start.scrollHeight - start.clientHeight;
+        if (over <= 1) return width();
+        // A 5:7 deck loses 7/5 of a pixel of height per pixel of width, per row.
+        const next = Math.max(48, Math.floor(width() - ((over + 2) * 5) / (7 * rows)));
+        start.style.setProperty('--bp-deck-fit', `${next}px`);
+      }
+      return start.scrollHeight - start.clientHeight <= 1 ? width() : 0;
+    };
+    const twoRows = fit();
+    if (twoRows >= 88) return;
+    const twoRowFit = start.style.getPropertyValue('--bp-deck-fit');
+    // Too short for two readable rows (demo bar, tip, and a Resume banner on a
+    // short laptop): one row of seven if that row is the larger deck.
+    start.style.removeProperty('--bp-deck-fit');
+    start.classList.add('s2-decks-one-row');
+    const oneRow = fit();
+    if (oneRow > twoRows) return;
+    start.classList.remove('s2-decks-one-row');
+    if (twoRowFit) start.style.setProperty('--bp-deck-fit', twoRowFit); else start.style.removeProperty('--bp-deck-fit');
   }
 
   // When the standings list is taller than its card, say so: fade the last visible
@@ -1526,6 +1576,7 @@
     }
     window.addEventListener('resize', () => {
       syncHomeChrome();
+      fitHomeDecks();
       syncStandingsMore(document.querySelector('#slice2-home .s2-home-standings .s2-standings'));
       syncPhoneBoardViewport();
       if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
@@ -1536,6 +1587,7 @@
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
         syncHomeChrome();
+        fitHomeDecks();
         syncPhoneBoardViewport();
         if (typeof scheduleScorecardColumnTrimAll === 'function') scheduleScorecardColumnTrimAll();
       });
