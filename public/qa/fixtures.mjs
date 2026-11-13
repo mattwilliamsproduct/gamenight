@@ -890,6 +890,28 @@ function demoJointWinNight(){
   ]);
 }
 
+function cleoComebackNight(){
+  // Legal Wizard. After 7 rounds Cleo is last by 100. She then takes every
+  // remaining trick and wins. Records shows Cleo · 100 · Last at halfway.
+  const roster=['Ada','Bea','Cleo','Dee'];
+  const taken=[
+    {Ada:1,Bea:0,Cleo:0,Dee:0},
+    {Ada:2,Bea:0,Cleo:0,Dee:0},
+    {Ada:3,Bea:0,Cleo:0,Dee:0},
+    {Ada:4,Bea:0,Cleo:0,Dee:0},
+    {Ada:0,Bea:5,Cleo:0,Dee:0},
+    {Ada:0,Bea:5,Cleo:0,Dee:1},
+    {Ada:0,Bea:0,Cleo:0,Dee:7}
+  ];
+  for(let round=8; round<=15; round+=1) taken.push({Ada:0,Bea:0,Cleo:round,Dee:0});
+  const rounds=taken.map((row,index)=>{
+    const pairs={};
+    roster.forEach((name)=>{ pairs[name]=[row[name], row[name]]; });
+    return wizardHand(index+1, roster, pairs);
+  });
+  return finishedNight(1786100000099,'Wizard','10/27/2026',roster,rounds,{maxRounds:15});
+}
+
 function demoHistory(){
   const fc6=NAMES.slice(0,6);
   const fc5=NAMES.slice(0,5);
@@ -1400,7 +1422,7 @@ export const QA_SCENARIOS = {
     label:'Records book',
     description:'Restored Records ledger: Overview, Explore, and Past nights with an incomplete match, a joint win, a completed Canasta night, and existing Rook history.',
     defaultSurface:'records',
-    data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight()]),playerProfiles:profiles(),currentGame:null}
+    data:{allPlayers:[...NAMES,'Ada','Bea','Cleo','Dee'],players:NAMES.slice(0,6),history:demoHistory().concat([canastaFinishedNight(),cleoComebackNight()]),playerProfiles:profiles(),currentGame:null}
   },
   'empty-home':{
     label:'Empty first start',

@@ -389,7 +389,8 @@
     let best = null;
     (history || []).forEach((match) => {
       if (!match) return;
-      if (book && typeof book.countsForScoreMagnitude === 'function' && !book.countsForScoreMagnitude(match)) return;
+      // Same nights main scores: any saved round history. A full-game gate
+      // hid every short night in the records book, so the row stayed empty.
       const rounds = (match.rounds || []).filter((round) => {
         if (!round || round.hailMaryBonus) return false;
         if (book && typeof book.isSyntheticAdjustmentRound === 'function' && book.isSyntheticAdjustmentRound(round)) return false;

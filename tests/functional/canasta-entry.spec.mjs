@@ -78,6 +78,12 @@ test('iPad landscape shows the five Canasta inputs and blocks a blank round', as
   await expect(page.locator('.hf-team-card').first()).toContainText('0 · Went out');
   await page.locator('.hf-team-card').nth(1).locator('input[data-check="wentOut"]').click();
   await expect(page.locator('.hf-confirm')).toContainText('moves off');
+  const confirmPaint = await page.locator('#hf-confirm-ok').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {color: style.color, background: style.backgroundColor};
+  });
+  expect(confirmPaint.color).toBe('rgb(255, 255, 255)');
+  expect(confirmPaint.background).toBe('rgb(20, 92, 50)');
   await saveShot(page, 'canasta-went-out-confirm-1024x768-chromium');
   await page.locator('#hf-confirm-cancel').click();
   await expect(page.locator('.hf-team-card').first().locator('input[data-check="wentOut"]')).toBeChecked();
@@ -196,13 +202,19 @@ async function entryMeasure(page) {
     const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
     if (!keypad || getComputedStyle(keypad).display === 'none' || !keyBox || keyBox.height < 40) problems.push('keypad closed');
     if (keyBox && (keyBox.bottom > window.innerHeight + 1 || keyBox.right > window.innerWidth + 1 || keyBox.left < 0)) problems.push('keypad off screen');
+    const nextKey = keypad && keypad.querySelector('.score-entry-key.next');
+    if (nextKey) {
+      const nextText = (nextKey.textContent || '').replace(/\s+/g, '');
+      if (!/^next$/i.test(nextText)) problems.push(`next key ${nextText}`);
+      if (nextKey.scrollWidth > nextKey.clientWidth + 2) problems.push('NEXT clipped');
+    }
     const lastBox = cards.at(-1)?.getBoundingClientRect();
     const lastPast = !!(lastBox && lastBox.bottom > listBox.bottom + 12);
     cards.forEach((card) => {
       card.scrollIntoView({block: 'center'});
       if (card.scrollHeight > card.clientHeight + 2) problems.push('card clipped');
       if (card.getBoundingClientRect().height < 180) problems.push(`short card ${Math.round(card.getBoundingClientRect().height)}`);
-      card.querySelectorAll('.hf-help, .hf-field-value, .hf-check span, .hf-side-names').forEach((el) => {
+      card.querySelectorAll('.hf-help, .hf-field-value, .hf-check span, .hf-side-names, .hf-match-total .score-entry-meta-label').forEach((el) => {
         const text = (el.textContent || '').trim();
         if (!text) return;
         if (el.scrollWidth > el.clientWidth + 4) problems.push(`wide ${text.slice(0, 36)}`);

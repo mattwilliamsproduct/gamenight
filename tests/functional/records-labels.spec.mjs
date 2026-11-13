@@ -26,6 +26,10 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   await expect(explore).toContainText('Rook');
   await expect(explore).toContainText('Dead Last Derby');
   await expect(explore).toContainText('Biggest single-game comeback');
+  const comeback = explore.locator('.s2-book-row').filter({hasText: 'Biggest single-game comeback'});
+  await expect(comeback).toContainText('100');
+  await expect(comeback).toContainText('Cleo');
+  await expect(comeback).toContainText('Last at halfway, won Wizard');
   await expect(explore).toContainText('Decided in the final round');
   await expect(explore).toContainText('Closest finish to 66');
   await expect(explore).toContainText('Longest stretch without a win');

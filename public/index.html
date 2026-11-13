@@ -22637,7 +22637,8 @@ ${isDealer
       allTime.biggestComebackExtra = null;
     }
     if(window.BPGRecords&&typeof BPGRecords.biggestSingleGameComeback==='function'){
-      const fromRounds=BPGRecords.biggestSingleGameComeback(completed,{
+      const comebackHistory=history.filter(h=>configs[h.game]&&h.totals&&Array.isArray(h.rounds)&&h.rounds.length>0);
+      const fromRounds=BPGRecords.biggestSingleGameComeback(comebackHistory,{
         configs,
         getDisplayPlayers:getRecordedPlayers,
         sortPlayersByTotal,

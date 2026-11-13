@@ -93,7 +93,7 @@ test('completed Hand and Foot nights appear as Canasta on Records', () => {
   const html = paintHtml(QA_SCENARIOS['records-book'].data.history, 'overview');
   assert.match(html, /Canasta/);
   assert.match(html, /Hall of Fame/);
-  assert.match(html, /16 completed matches/);
+  assert.match(html, /17 completed matches/);
   assert.doesNotMatch(html, /Game Championship Ledger/);
   assert.doesNotMatch(html, /Unassisted matches only on best final/);
   assert.match(paintHtml(QA_SCENARIOS['records-book'].data.history, 'explore'), /Unassisted matches only/);
@@ -799,6 +799,11 @@ test('biggest single-game comeback uses round totals, not Turbo', () => {
   assert.equal(row.value, 100);
   assert.equal(row.label, 'Last at halfway, won Wizard');
   assert.equal(Records.shouldShowComebackStats([match]), false);
+  const book = QA_SCENARIOS['records-book'].data.history;
+  const shown = Records.biggestSingleGameComeback(book, helpers);
+  assert.equal(shown.player, 'Cleo');
+  assert.equal(shown.value, 100);
+  assert.equal(shown.label, 'Last at halfway, won Wizard');
 });
 
 test('Hall of Fame names a three-way tie at laptop width', () => {

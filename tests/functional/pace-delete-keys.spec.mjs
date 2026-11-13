@@ -2,6 +2,57 @@ import {expect, test} from '@playwright/test';
 
 test.use({serviceWorkers: 'block'});
 
+test('View Pace at 1024 keeps the pace columns on the card and the player names intact', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => typeof startGame === 'function');
+  await page.evaluate(() => {
+    allPlayers = ['Ava', 'Ben'];
+    players = ['Ava', 'Ben'];
+    history = [{
+      id: 4402,
+      game: 'Five Crowns',
+      date: '11/1/2026',
+      outcome: 'finished',
+      completed: true,
+      maxRounds: 11,
+      originalRoster: ['Ava', 'Ben'],
+      totals: {Ava: 80, Ben: 20},
+      winners: ['Ava'],
+      rounds: Array.from({length: 11}, (_, index) => ({
+        round: index + 1,
+        scores: {Ava: index === 0 ? 80 : 0, Ben: index === 0 ? 20 : 0}
+      })),
+      retired: []
+    }];
+    prefs.lineupIntro = false;
+    prefs.dealerRoll = false;
+    currentGame = null;
+    startGame('Five Crowns');
+  });
+  await page.locator('#scorecard-view-pace-toggle').click();
+  await expect(page.locator('#record-chase-panel')).toBeVisible();
+  await expect(page.locator('#record-chase-panel')).toContainText('Best');
+  const boxes = await page.evaluate(() => {
+    const card = document.querySelector('#scorecard-capture').getBoundingClientRect();
+    const panel = document.querySelector('#record-chase-panel').getBoundingClientRect();
+    const names = [...document.querySelectorAll('#scorecard-capture .scoreboard-player-name')].map((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const box = range.getBoundingClientRect();
+      return {text: (el.textContent || '').trim(), left: box.left, right: box.right};
+    });
+    return {card: {left: card.left, right: card.right}, panel: {left: panel.left, right: panel.right}, names};
+  });
+  expect(boxes.panel.left).toBeGreaterThan(boxes.card.left);
+  expect(boxes.panel.right).toBeLessThanOrEqual(boxes.card.right + 1);
+  expect(boxes.names.map((row) => row.text)).toEqual(['Ava', 'Ben']);
+  for (const name of boxes.names) {
+    expect(name.left, name.text).toBeGreaterThanOrEqual(boxes.card.left + 8);
+    expect(name.right, name.text).toBeLessThanOrEqual(boxes.card.right);
+  }
+});
+
 test('View Pace opens, delete removes a past night, and minus and 00 stay reachable', async ({page}) => {
   page.on('dialog', (dialog) => dialog.accept());
   await page.setViewportSize({width: 1440, height: 900});
