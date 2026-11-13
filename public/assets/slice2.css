@@ -5072,3 +5072,30 @@ html.slice2-tv .s2-another-ask button {
   font-size: 1.25rem !important;
   padding: 0 22px !important;
 }
+
+html.slice2-tv .s2-career-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 12px;
+}
+html.slice2-tv .s2-career-card {
+  border: 1px solid rgba(120, 90, 50, 0.22);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #fffaf4;
+}
+html.slice2-tv .s2-career-card h3 {
+  margin: 0 0 6px;
+}
+html.slice2-tv .s2-career-card p,
+html.slice2-tv .s2-career-line {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+html.slice2-tv .s2-career-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}

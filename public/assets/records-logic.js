@@ -1241,11 +1241,42 @@
           ${rivalCardHtml(rival, pairs, ctx, selectedKey)}
         </div>
       </div>
+      ${careerCardsHtml(data.playerCards, esc, avatar)}
       <section class="s2-panel s2-recent-board">
         <div class="s2-panel-head"><h2>Recent results</h2></div>
         ${nightsSplitHtml(recent, helpers, ctx, compact)}
       </section>
     </div>`;
+  }
+
+  function publicGamePhrase(text) {
+    return String(text || '').replace(/Hand and Foot/g, 'Canasta').replace(/Flip 7 Vengeance/g, 'Flip 7');
+  }
+
+  function careerCardsHtml(cards, esc, avatar) {
+    const list = cards || [];
+    if (!list.length) return '';
+    const body = list.map((card) => {
+      const bests = (card.bests || []).map((row) => {
+        const best = row.best && finite(row.best.value) ? row.best.value : '—';
+        const worst = row.worst && finite(row.worst.value) ? row.worst.value : '—';
+        return `<div class="s2-career-line"><span>${esc(publicGamePhrase(row.name))}</span><span>Best ${esc(String(best))} · Worst ${esc(String(worst))}</span></div>`;
+      }).join('');
+      return `<article class="s2-career-card">
+        <h3>${playerLink(card.player, esc, avatar)}</h3>
+        <p>${esc(formatWinsGames(card.wins, card.games) || '')} · ${esc(String(card.winRate))}%</p>
+        <p>Most played ${esc(publicGamePhrase(card.favorite))}</p>
+        <p>Current streak ${esc(String(card.currentStreak || ''))}</p>
+        <p>Best type ${esc(publicGamePhrase(card.bestGameType))}</p>
+        <p>Nemesis game ${esc(publicGamePhrase(card.nemesisGame))}</p>
+        <p>${esc(card.trend || '')}</p>
+        ${bests}
+      </article>`;
+    }).join('');
+    return `<section class="s2-panel s2-career-cards" id="records-player-cards">
+      <div class="s2-panel-head"><h2>Player Career Cards</h2></div>
+      <div class="s2-career-grid">${body}</div>
+    </section>`;
   }
 
   function shameRow(award, esc, avatar) {
@@ -1882,6 +1913,7 @@
     matchHasComebackData,
     shouldShowComebackStats,
     biggestSingleGameComeback,
+    publicGamePhrase,
     lifePreserverEvents,
     lifePreserverSummary,
     recordMatchesPlayer,

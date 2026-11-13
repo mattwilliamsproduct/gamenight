@@ -800,3 +800,32 @@ test('biggest single-game comeback uses round totals, not Turbo', () => {
   assert.equal(row.label, 'Last at halfway, won Wizard');
   assert.equal(Records.shouldShowComebackStats([match]), false);
 });
+
+test('Player Career Cards are on the records overview and say Canasta', () => {
+  const html = paintHtml([{
+    id: 2,
+    game: 'Hand and Foot',
+    date: '10/2/2026',
+    rounds: [{round: 1, scores: {Ada: 10}}],
+    totals: {Ada: 10},
+    winners: ['Ada'],
+    completed: true
+  }], 'overview', {
+    playerCards: [{
+      player: 'Ada',
+      wins: 1,
+      games: 3,
+      winRate: 33,
+      favorite: 'Hand and Foot',
+      currentStreak: 'W1',
+      bestGameType: 'Hand and Foot (100%)',
+      nemesisGame: 'Hand and Foot (0%)',
+      trend: 'Holding steady',
+      bests: [{name: 'Hand and Foot', best: {value: 10}, worst: {value: 4}}]
+    }]
+  });
+  assert.match(html, /Player Career Cards/);
+  assert.match(html, /Most played Canasta/);
+  assert.doesNotMatch(html, /Most played Hand and Foot/);
+  assert.match(html, /Best type Canasta/);
+});
