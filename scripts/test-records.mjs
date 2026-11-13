@@ -624,8 +624,8 @@ test('demo career wins sum from completed nights, including ties and assisted', 
   assert.match(tally.rule, /One counting rule/);
   assert.match(tally.rule, /Every tied winner gets a win/);
   assert.match(tally.rule, /never a winner/);
-  assert.equal(tally.counted, 5);
-  assert.equal(tally.winSum, 5);
+  assert.equal(tally.counted, 7);
+  assert.equal(tally.winSum, 8);
   assert.equal(tally.rows.filter((row) => !row.counts && row.reason === 'unfinished').length >= 1, true);
   assert.equal(tally.rows.some((row) => row.assisted && !row.counts), true);
   const assisted = book.history.find((row) => row.id === 1786100000008);
@@ -747,4 +747,30 @@ test('demo Rook night has a left-early player and does not change the stored win
   const theo = Records.playerCareerStats([rook], {scorebook: Scorebook, player: 'Theo'});
   assert.equal(theo.wins, 0);
   assert.equal(theo.games, 0);
+});
+
+test('Delete night is on a past night and stays off the live match', () => {
+  const model = {
+    id: 9,
+    game: 'Wizard',
+    gameTitle: 'Wizard',
+    incomplete: false,
+    winners: ['Ava'],
+    standings: [{name: 'Ava', score: 10, place: 1, isWinner: true, leftEarly: false, retired: false}],
+    retired: [],
+    rounds: 1,
+    assisted: false,
+    winnerText: 'Ava',
+    showResume: false,
+    showCountToggle: false,
+    throughRound: 1
+  };
+  const ctx = {
+    escapeHtml: (value) => String(value ?? ''),
+    getAvatarImg: () => '',
+    table: {currentGame: {id: 3}},
+    expandedNights: new Set()
+  };
+  assert.match(Records.nightCardHtml(model, ctx, false), /Delete night/);
+  assert.doesNotMatch(Records.nightCardHtml({...model, id: 3}, ctx, false), /Delete night/);
 });

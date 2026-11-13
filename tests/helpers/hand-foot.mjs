@@ -88,15 +88,47 @@ export async function openScoreEntry(page){
   });
 }
 
-export async function typeRound(page, sides){
-  const tokens=sides.flatMap(tokensFor);
+function normalizeBasic(raw){
+  if(Array.isArray(raw)) throw new Error('Canasta entry takes Basic, Count, and Cards left');
+  return {
+    basic:raw.basic==null?'0':String(raw.basic),
+    count:raw.count==null?'0':String(raw.count),
+    cardsLeft:raw.cardsLeft==null?'0':String(raw.cardsLeft),
+    got22:!!raw.got22,
+    wentOut:!!raw.wentOut
+  };
+}
+
+async function pressTokens(page, value){
   await page.evaluate(list=>{
     list.forEach(token=>token==='next'?scoreEntryNext():scoreEntryKey(token));
-  }, tokens);
+  }, tokensFor([value]));
+}
+
+export async function typeRound(page, sides){
+  for(const raw of sides){
+    const side=normalizeBasic(raw);
+    await pressTokens(page, side.basic);
+    await pressTokens(page, side.count);
+    const card=page.locator('#score-entry-modal .hf-team-card.is-active');
+    if(side.got22) await card.locator('input[data-check="got22"]').click();
+    if(side.wentOut){
+      await card.locator('input[data-check="wentOut"]').click();
+      await page.evaluate(()=>scoreEntryNext());
+    } else {
+      await pressTokens(page, side.cardsLeft);
+    }
+  }
 }
 
 export async function submitEntry(page){
-  await page.locator('#score-entry-primary-btn').click();
+  const primary=page.locator('#score-entry-primary-btn');
+  const label=((await primary.innerText())||'').trim();
+  await primary.click();
+  if(/^review$/i.test(label)){
+    await expect(page.locator('.hf-review')).toBeVisible();
+    await primary.click();
+  }
   await page.waitForFunction(()=>document.getElementById('score-entry-modal')?.classList.contains('hidden'));
   // The scorekeeper ignores a second submit for half a second.
   await page.waitForTimeout(600);
@@ -110,7 +142,7 @@ export function withSevensField(values){
 export async function playRound(page, sides){
   const before=await readGame(page);
   await openScoreEntry(page);
-  await typeRound(page, sides.map(withSevensField));
+  await typeRound(page, sides);
   await submitEntry(page);
   await page.waitForFunction(count=>{
     const game=JSON.parse(localStorage.getItem('gn_current')||'null');
@@ -126,16 +158,20 @@ export async function readHistory(page){
   return page.evaluate(()=>JSON.parse(localStorage.getItem('gn_history')||'[]'));
 }
 
-const BIG=['2','1','0','2','1','450','95'];
-const SMALL=['0','0','0','0','0','-40','10'];
-const QUIET=['0','1','0','0','0','0','0'];
+const HIGH={basic:'1600', count:'450', got22:true, cardsLeft:'0'};
+const LOW={basic:'0', count:'-40', cardsLeft:'10'};
+const DIRTY={basic:'300', count:'0', cardsLeft:'20'};
+const CLEAN={basic:'500', count:'0', cardsLeft:'0'};
+const ZERO={basic:'0', count:'0', cardsLeft:'0'};
+const TEN={basic:'0', count:'10', cardsLeft:'0'};
+const SMALL_BASIC={basic:'100', count:'0', cardsLeft:'0'};
 
 export function roundsFor(kind){
-  if(kind==='pairs2') return [BIG, SMALL];
-  if(kind==='pairs4') return [BIG, ['0','1','0','0','0','20']];
-  if(kind==='pairs6') return [BIG, QUIET, ['1','0','0','0','0','0']];
-  if(kind==='singles4') return [BIG, SMALL, QUIET, ['0','0','1','0','0','0']];
-  return [BIG, SMALL, QUIET, ['0','0','1','0','0','0'], ['0','0','0','1','0','0'], ['1','0','0','0','10','0']];
+  if(kind==='pairs2') return [HIGH, LOW];
+  if(kind==='pairs4') return [HIGH, DIRTY];
+  if(kind==='pairs6') return [HIGH, ZERO, CLEAN];
+  if(kind==='singles4') return [HIGH, LOW, ZERO, SMALL_BASIC];
+  return [HIGH, LOW, ZERO, SMALL_BASIC, TEN, CLEAN];
 }
 
 export async function startHandFoot(page, {names, format}){
@@ -161,7 +197,7 @@ export async function playFourRounds(page, kind){
 }
 
 export async function endMatch(page){
-  await page.getByRole('button', {name:/Leave game/}).click();
+  await page.locator('#slice2-end-btn').click();
   const confirm=page.locator('#leave-end-now');
   await expect(confirm).toBeVisible();
   await confirm.click();
@@ -172,13 +208,13 @@ export async function endMatch(page){
 export async function editFirstRoundCardsLeft(page, cellId){
   await page.locator(cellId).click();
   await page.waitForFunction(()=>getComputedStyle(document.getElementById('score-entry-modal')).opacity==='1');
-  await page.locator('.score-entry-hf-row').first().locator('button.hf-field', {hasText:'Cards left'}).click();
+  await page.locator('#score-entry-modal .hf-num[data-field="cardsLeft"]:not([disabled])').first().click();
   await page.evaluate(()=>{
-    for(let i=0;i<5;i++) scoreEntryKey('backspace');
+    for(let i=0;i<6;i++) scoreEntryKey('backspace');
     scoreEntryKey('0');
+    scoreEntryNext();
   });
-  await page.locator('#score-entry-primary-btn').click();
-  await page.waitForFunction(()=>document.getElementById('score-entry-modal')?.classList.contains('hidden'));
+  await submitEntry(page);
 }
 
 export function overlap(a, b){

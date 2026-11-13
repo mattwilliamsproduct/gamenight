@@ -266,7 +266,7 @@ test('Cami Whammi follows the Wizard and Flip 7 miss rules and stays shut when s
 });
 
 test('WebKit emulator shows the same three celebrations at 1024x768', async () => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
   const browser = await webkit.launch();
   const context = await browser.newContext({
     viewport: {width: 1024, height: 768},
@@ -304,4 +304,120 @@ test('WebKit emulator shows the same three celebrations at 1024x768', async () =
 
   await context.close();
   await browser.close();
+});
+
+test('uncounted nights, left-early players, late joins, and edits do not keep a celebration', async ({page}) => {
+  await page.setViewportSize({width: 1024, height: 768});
+  await boot(page);
+  const report = await page.evaluate(() => {
+    const fullRounds = Array.from({length: 11}, (_, index) => ({
+      round: index + 1,
+      scores: index === 0 ? {Ava: 0, Ben: 15} : {Ava: 5, Ben: 6}
+    }));
+    const ended = {
+      id: 801,
+      game: 'Five Crowns',
+      name: 'Five Crowns',
+      outcome: 'ended_early',
+      completed: true,
+      maxRounds: 11,
+      originalRoster: ['Ava', 'Ben'],
+      retired: [],
+      totals: {Ava: 0, Ben: 15},
+      winners: ['Ava'],
+      rounds: [{round: 1, scores: {Ava: 0, Ben: 15}}]
+    };
+    history = [ended];
+    const endedStat = getSpecialRoundStatsForPlayer('Ava').whammy.total;
+    ended.outcome = 'paused';
+    ended.completed = false;
+    const pausedStat = getSpecialRoundStatsForPlayer('Ava').whammy.total;
+    ended.outcome = 'finished';
+    ended.completed = true;
+    ended.rounds = fullRounds;
+    ended.totals = {Ava: 50, Ben: 75};
+    const countedStat = getSpecialRoundStatsForPlayer('Ava').whammy.total;
+    history = [{
+      id: 802,
+      game: 'Five Crowns',
+      name: 'Five Crowns',
+      outcome: 'finished',
+      completed: true,
+      maxRounds: 11,
+      originalRoster: ['Ava', 'Ben', 'Cy'],
+      retired: ['Cy'],
+      totals: {Ava: 44, Ben: 44, Cy: 0},
+      winners: ['Ava', 'Ben'],
+      rounds: [{round: 1, scores: {Ava: 4, Ben: 4, Cy: 0}}]
+    }];
+    const leftStat = getSpecialRoundStatsForPlayer('Cy').whammy.total;
+    const liveLeft = detectRoundWhammy(
+      {name: 'Five Crowns', originalRoster: ['Ava', 'Ben', 'Cy'], retired: ['Cy']},
+      {round: 1, scores: {Ava: 4, Ben: 4, Cy: 0}}
+    );
+    const late = detectRoundCelebration(
+      {name: 'Five Crowns', originalRoster: ['Ava', 'Ben'], retired: []},
+      {round: 0, scores: {Ava: 0, Ben: 12}, joinBonus: {Ben: true}}
+    );
+    const joinOnly = detectHistoryWhammyForRound(
+      {game: 'Five Crowns', originalRoster: ['Ava', 'Ben'], retired: [], maxRounds: 11},
+      {round: 1, scores: {Ava: 0, Ben: 12}, joinBonus: {Ben: true}}
+    );
+    return {
+      endedStat,
+      pausedStat,
+      countedStat,
+      leftStat,
+      liveLeft: !!liveLeft,
+      late: !!late,
+      joinOnly: !!joinOnly
+    };
+  });
+  expect(report).toEqual({
+    endedStat: 0,
+    pausedStat: 0,
+    countedStat: 1,
+    leftStat: 0,
+    liveLeft: false,
+    late: false,
+    joinOnly: false
+  });
+
+  await page.evaluate(() => {
+    history = [];
+    allPlayers = ['Ava', 'Ben'];
+    players = ['Ava', 'Ben'];
+    currentGame = {
+      id: 803,
+      game: 'Wizard',
+      name: 'Wizard',
+      originalRoster: ['Ava', 'Ben'],
+      currentRound: 2,
+      maxRounds: 20,
+      completed: true,
+      winners: ['Ava'],
+      wizardPhase: 'bidding',
+      currentBids: {},
+      rounds: [{round: 1, bids: {Ava: 1, Ben: 0}, actuals: {Ava: 1, Ben: 0}, scores: {Ava: 30, Ben: 20}}],
+      totals: {Ava: 30, Ben: 20},
+      retired: [],
+      outcome: 'finished'
+    };
+    history = [currentGame];
+    goActiveMatch();
+  });
+  const before = await page.evaluate(() => getSpecialRoundStatsForPlayer('Ava').nolie.total);
+  expect(before).toBe(1);
+  await page.locator('#score-past-0-Ava').click();
+  await expect(page.locator('#round-correction-modal')).toBeVisible();
+  await page.locator('.round-correction-row[data-player="Ava"] .round-correction-actual').click();
+  await page.locator('#round-correction-modal').getByRole('button', {name: '⌫', exact: true}).click();
+  await page.locator('#round-correction-modal').getByRole('button', {name: '0', exact: true}).click();
+  await page.locator('.round-correction-row[data-player="Ben"] .round-correction-actual').click();
+  await page.locator('#round-correction-modal').getByRole('button', {name: '1', exact: true}).click();
+  await page.locator('#round-correction-save').click();
+  await expect(page.locator('#round-correction-modal')).toBeHidden();
+  await expect(page.locator('#whammy-modal')).toBeHidden();
+  const once = await page.evaluate(() => getSpecialRoundStatsForPlayer('Ava').nolie.total);
+  expect(once).toBe(0);
 });

@@ -80,8 +80,8 @@ test('a blank trick becomes 0 before the round total is checked', () => {
   assert.match(bid.message, /Still need a bid from Alice/);
 });
 
-test('Five Crowns, Flip 7, and Beat the Heat reject negative played-round inputs', () => {
-  ['Five Crowns', 'Flip 7 Vengeance', 'Beat the Heat'].forEach(game => {
+test('Five Crowns and Beat the Heat reject negative played-round inputs', () => {
+  ['Five Crowns', 'Beat the Heat'].forEach(game => {
     const result = Scorebook.validateEntries({
       game,
       kind: 'scores',
@@ -93,15 +93,14 @@ test('Five Crowns, Flip 7, and Beat the Heat reject negative played-round inputs
     assert.match(result.message, /0 or higher/);
     assert.match(result.message, /Alice/);
   });
-  assert.match(
-    Scorebook.validateEntries({
-      game: 'Flip 7 Vengeance',
-      kind: 'scores',
-      players: ['Alice'],
-      values: { Alice: -1 }
-    }).message,
-    /^Flip 7 scores/
-  );
+  const flip = Scorebook.validateEntries({
+    game: 'Flip 7 Vengeance',
+    kind: 'scores',
+    players: ['Alice'],
+    values: { Alice: -15 }
+  });
+  assert.equal(flip.ok, true);
+  assert.equal(flip.values.Alice, -15);
 });
 
 test('Wizard and Rook calculated scores stay legal when they are negative', () => {
@@ -323,7 +322,7 @@ test('an out-of-bounds or unbalanced historical trick table changes nothing', ()
     actuals: { Alice: '', Bob: '' }
   });
   assert.equal(short.ok, false);
-  assert.equal(short.message, 'Wizard round 1 must total 1 tricks. This table totals 0.');
+  assert.equal(short.message, 'Wizard round 1 must total 1 trick. This table totals 0.');
   assert.deepEqual(game, before);
 
   const unbalanced = Scorebook.commitRoundCorrection(game, {
@@ -331,7 +330,7 @@ test('an out-of-bounds or unbalanced historical trick table changes nothing', ()
     actuals: { Alice: 1, Bob: 1 }
   });
   assert.equal(unbalanced.ok, false);
-  assert.equal(unbalanced.message, 'Wizard round 1 must total 1 tricks. This table totals 2.');
+  assert.equal(unbalanced.message, 'Wizard round 1 must total 1 trick. This table totals 2.');
   assert.deepEqual(game, before);
 });
 

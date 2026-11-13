@@ -186,7 +186,7 @@ test('double-tap Next stays on screen order and a filled row replaces', async ({
   const shown = (await page.locator('.score-entry-name').allTextContents()).map((text) => text.trim());
   expect(shown).toEqual(['Dev', 'Cora', 'Ben', 'Ava']);
   await expect(page.locator('.score-entry-row.active .score-entry-name')).toHaveText('Dev');
-  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeHidden();
+  await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeVisible();
 
   await page.locator('#score-entry-modal').getByRole('button', {name: '1', exact: true}).click();
   await page.locator('#score-entry-next-btn').click();

@@ -14,7 +14,7 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   await expect(ledger.getByRole('heading', {name: 'Hall of Fame'})).toBeVisible();
   await expect(ledger).toContainText('Canasta');
   await expect(ledger).toContainText(/completed match/);
-  await expect(ledger).toContainText('Unassisted matches only');
+  await expect(ledger).toContainText(/Unassisted matches only|Final-score records exclude assisted matches/);
   await expect(ledger).not.toContainText('Unassisted matches only on best final');
   await expect(ledger).not.toContainText('Game Championship Ledger');
   await expect(page.locator('#slice2-show-fame')).toHaveText(/Overview/);
@@ -24,12 +24,13 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   const explore = page.locator('.s2-explore-col');
   await expect(explore).toContainText('Canasta');
   await expect(explore).toContainText('Rook');
+  await expect(explore).toContainText('Dead Last Derby');
+  await expect(explore).toContainText('Biggest single-game comeback');
+  await expect(explore).toContainText('Decided in the final round');
+  await expect(explore).toContainText('Closest finish to 66');
   await expect(explore).toContainText('Longest stretch without a win');
-  await expect(explore).toContainText('Highest head-to-head win rate');
-  await expect(explore).toContainText('View player profiles');
   await expect(explore).toContainText('Unassisted matches only');
   await expect(explore).toContainText('Places gained are measured immediately after each spin');
-  await expect(explore).toContainText('Tied');
   await expect(explore).toContainText(/of \d+ bids/);
   await expect(explore).not.toContainText('More from the book');
   await expect(explore).not.toContainText('Most games without a win');

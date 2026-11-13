@@ -85,6 +85,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Kills
 
+- Squeezing three to six Canasta cards onto one iPad screen, or inventing Basic, Count, and bonuses on an older round. Three or more scroll at the same size as two teams. An older round says Older round · total only. Turning that round into components waits.
 - Zeroing every old night because a Flip 7 or Rook target was not stored on it. Canasta's 4-round config is not a history rule. A game's minimum does not lock the seat checkboxes.
 - A profile-name array dropped into a suggestion list as one item, so typing a letter offers a comma-joined fake player.
 - Calling ready without opening the real UI.

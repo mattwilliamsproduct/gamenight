@@ -47,18 +47,18 @@ test('history review is read-only and reports fixture and demo changes', () => {
     '818': {complete: 1, partial: 4, uncertain: 0},
     'Beat the Heat': {complete: 1, partial: 0, uncertain: 2},
     'Five Crowns': {complete: 1, partial: 5, uncertain: 0},
-    'Flip 7 Vengeance': {complete: 0, partial: 0, uncertain: 4},
-    'Hand and Foot': {complete: 0, partial: 0, uncertain: 1},
+    'Flip 7 Vengeance': {complete: 1, partial: 3, uncertain: 0},
+    'Hand and Foot': {complete: 1, partial: 0, uncertain: 0},
     Rook: {complete: 0, partial: 0, uncertain: 1},
     Wizard: {complete: 2, partial: 3, uncertain: 0}
   });
-  assert.equal(demoReport.before.winSum, 5);
-  assert.equal(demoReport.after.winSum, 5);
-  assert.ok(demoReport.lines.includes('Nora: wins 2 -> 2, games 4 -> 4'));
+  assert.equal(demoReport.before.winSum, 7);
+  assert.equal(demoReport.after.winSum, 8);
+  assert.ok(demoReport.lines.includes('Nora: wins 3 -> 4, games 5 -> 6'));
   assert.ok(demoReport.lines.includes('June: wins 1 -> 1, games 1 -> 1'));
-  assert.ok(demoReport.lines.includes('Owen: wins 1 -> 1, games 4 -> 4'));
-  assert.ok(demoReport.lines.includes('Priya: wins 1 -> 1, games 4 -> 4'));
-  assert.equal(demoReport.lines.some((line) => line.includes('best final')), false);
-  sameCounts(demoReport.lines);
+  assert.ok(demoReport.lines.includes('Owen: wins 2 -> 2, games 5 -> 6'));
+  assert.ok(demoReport.lines.includes('Priya: wins 1 -> 1, games 5 -> 6'));
+  assert.ok(demoReport.lines.includes('10/24/2026 · Flip 7 Vengeance · uncertain -> finished · counted no -> yes'));
+  assert.ok(demoReport.lines.includes('Nora · Flip 7 Vengeance · best final none -> 210 on 10/24/2026'));
   assert.equal(Scorebook.legacyReviewAppliedNow(), true);
 });

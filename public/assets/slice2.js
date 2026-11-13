@@ -20,7 +20,7 @@
     let summary;
     if (game.id === 'Beat the Heat') summary = `lowest heat wins, ${detail}`;
     else if (game.id === 'Rook') summary = 'highest total wins, teams';
-    else if (game.id === 'Flip 7 Vengeance') summary = 'highest total wins, open match';
+    else if (game.id === 'Flip 7 Vengeance') summary = 'highest total wins, first to 200';
     else if (game.winLow) summary = `lowest total wins, ${detail}`;
     else summary = `highest total wins, ${detail}`;
     return `${title}, ${summary}${selected ? ', selected' : ''}`;
@@ -1305,6 +1305,21 @@
     } else if (action === 'count-toggle') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof toggleCountResult === 'function') toggleCountResult(id);
+    } else if (action === 'night-delete') {
+      event.preventDefault();
+      event.stopPropagation();
+      const id = coerceMatchId(target.dataset.s2Id);
+      const table = state();
+      if (id == null) return;
+      if (table.currentGame && String(table.currentGame.id) === String(id)) {
+        if (typeof toast === 'function') toast('The live match stays on the table.');
+        return;
+      }
+      const match = (table.history || []).find((row) => row && String(row.id) === String(id));
+      const label = match && (match.game || match.name) ? (match.game || match.name) : 'this night';
+      if (!window.confirm(`Delete this past ${label} night? The live match is not deleted.`)) return;
+      if (typeof deletePastNight === 'function') deletePastNight(id);
+      paintRecords();
     } else if (action === 'night-resume') {
       const id = coerceMatchId(target.dataset.s2Id);
       if (id != null && typeof resumeMatch === 'function') resumeMatch(id);

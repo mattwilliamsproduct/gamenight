@@ -175,8 +175,6 @@ html.slice2-tv #home-screen > :not(#slice2-home) {
 
 html.slice2-tv #game-screen .active-match-banner,
 html.slice2-tv #leader-banner,
-html.slice2-tv #record-chase-panel,
-html.slice2-tv #scorecard-view-toggle-wrap,
 html.slice2-tv #submit-section {
   display: none !important;
 }
@@ -199,8 +197,12 @@ html.slice2-tv body.active-match-view #game-screen {
 }
 
 html.slice2-tv #scorecard-live-layout.record-chase-active > .scorecard-live-main {
-  width: 100% !important;
+  width: auto !important;
   flex: 1 1 auto !important;
+  min-width: 0;
+}
+html.slice2-tv #scorecard-live-layout.record-chase-active > .record-chase-panel {
+  display: flex !important;
 }
 
 html.slice2-tv body[class*="370px"] {
@@ -3049,6 +3051,30 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows .sco
   html.slice2-tv #scorecard-capture.scorecard-fit-cols td.score-cell.scorecard-round-td .score-cell-input {
     min-width: 0;
   }
+
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
+  html.slice2-tv #scorecard-capture.scorecard-fit-cols .scorecard-table tbody td.scorecard-round-td:not(.scorecard-round--hidden) {
+    min-width: 2.75rem !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-input {
+    width: 100% !important;
+    font-size: 0.95rem !important;
+  }
+  html.slice2-tv #scorecard-capture td.scorecard-total-cell,
+  html.slice2-tv #scorecard-capture th.scorecard-col-total {
+    width: 5.4rem !important;
+    min-width: 5.4rem !important;
+    max-width: none !important;
+  }
+  html.slice2-tv #scorecard-capture .scorecard-total-value {
+    flex: 0 0 auto;
+    font-size: 1rem !important;
+  }
+  html.slice2-tv .scorecard-total-stack {
+    gap: 0.15rem;
+  }
 }
 
 @media (max-width: 760px) {
@@ -4686,6 +4712,11 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
 /* RC4 items 1–19: page-width board, capped rows, covers, type, records. */
 html.slice2-tv .s2-home-grid {
   grid-template-columns: minmax(280px, 0.67fr) minmax(0, 1fr);
+}
+@media (max-width: 860px) {
+  html.slice2-tv .s2-home-grid {
+    grid-template-columns: 1fr;
+  }
 }
 html.slice2-tv .s2-home-table,
 html.slice2-tv .s2-home-start {

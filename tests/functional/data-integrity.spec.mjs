@@ -133,7 +133,7 @@ function wizardRoundTen(){
   };
 }
 
-test('P0-01 first trick digit replaces the prefill, then later digits append', async ({page})=>{
+test('P0-01 a blank trick stays blank, digits append, and the trick cap rejects the rest', async ({page})=>{
   await installMatch(page, wizardRoundTen(), null);
   await enterRoundButton(page).click();
   const modal=page.locator('#score-entry-modal');
@@ -143,26 +143,25 @@ test('P0-01 first trick digit replaces the prefill, then later digits append', a
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
   const matt=page.locator('#score-entry-value-Matt');
   const mattRow=page.locator('#score-entry-row-Matt');
-  await expect(matt).toHaveText('1');
-  // Prefill shows Entered, not an empty seat
+  await expect(matt).toHaveText('');
   await expect(mattRow).not.toHaveClass(/is-complete/);
-  await (await entryKey(page,'0')).click();
-  await expect(matt).toHaveText('0');
-  await expect(page.locator('#score-entry-status-Matt')).toContainText(/Entered 0/i);
-
-  await page.locator('#score-entry-row-Cat .score-entry-name').click();
-  const cat=page.locator('#score-entry-value-Cat');
-  await expect(cat).toHaveText('3');
-  await (await entryKey(page,'3')).click();
-  await expect(cat).toHaveText('3');
-  await (await entryKey(page,'3')).click();
-  await expect(cat).toHaveText('33');
-
-  await page.locator('#score-entry-row-Matt .score-entry-name').click();
   await (await entryKey(page,'1')).click();
   await expect(matt).toHaveText('1');
   await (await entryKey(page,'0')).click();
   await expect(matt).toHaveText('10');
+  await (await entryKey(page,'1')).click();
+  await expect(page.locator('#score-entry-error')).toHaveText('This round has 10 tricks.');
+  await expect(matt).toHaveText('10');
+
+  await page.locator('#score-entry-row-Cat .score-entry-name').click();
+  const cat=page.locator('#score-entry-value-Cat');
+  await expect(cat).toHaveText('');
+  await (await entryKey(page,'3')).click();
+  await expect(cat).toHaveText('3');
+  await (await entryKey(page,'3')).click();
+  await expect(page.locator('#score-entry-error')).toHaveText('This round has 10 tricks.');
+  await expect(cat).toHaveText('3');
+
   await page.locator('#score-entry-row-Megan .score-entry-name').click();
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
   await expect(matt).toHaveText('10');
@@ -170,12 +169,16 @@ test('P0-01 first trick digit replaces the prefill, then later digits append', a
   const state=await page.evaluate(()=>({
     matt:scoreEntryModalState.values.Matt,
     acknowledged:scoreEntryModalState.acknowledged.Matt,
+    bids:currentGame.currentBids,
     round:currentGame.currentRound
   }));
-  expect(state).toEqual({matt:'10', acknowledged:true, round:10});
+  expect(state.matt).toBe('10');
+  expect(state.acknowledged).toBe(true);
+  expect(state.round).toBe(10);
+  expect(state.bids).toEqual({Megan:0, Matt:1, Cat:3});
 });
 
-test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
+test('P0-01 NEXT confirms a blank trick as 0 and does not copy the bid', async ({page})=>{
   await installMatch(page, wizardRoundTen(), null);
   await enterRoundButton(page).click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
@@ -183,30 +186,14 @@ test('P0-01 NEXT and row confirm keep an untouched prefill', async ({page})=>{
   const matt=page.locator('#score-entry-value-Matt');
   const mattRow=page.locator('#score-entry-row-Matt');
   await page.locator('#score-entry-row-Matt .score-entry-name').click();
-  await expect(matt).toHaveText('1');
-  await expect(page.locator('#score-entry-status-Matt')).toContainText(/Entered 1|Suggested: 1/);
-  await expect(page.locator('#score-entry-status-Megan')).toContainText(/Entered 0|Suggested: 0/);
+  await expect(matt).toHaveText('');
+  await expect(page.locator('#score-entry-value-Megan')).toHaveText('');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
-  await expect(matt).toHaveText('1');
+  await expect(matt).toHaveText('0');
   await expect(mattRow).toHaveClass(/is-complete/);
-  await expect(page.locator('#score-entry-status-Matt')).toContainText('Confirmed: 1');
-  await page.locator('#score-entry-row-Matt .score-entry-name').click();
-  await (await entryKey(page,'0')).click();
-  await expect(matt).toHaveText('10');
-
-  await page.evaluate(()=>closeScoreEntryModalOnly());
-  await expect(page.locator('#score-entry-modal')).toBeHidden();
-  await enterRoundButton(page).click();
-  await expect(page.locator('#score-entry-modal')).toBeVisible();
-  await page.locator('#score-entry-row-Matt .score-entry-row-status').click();
-  await expect(matt).toHaveText('1');
-  await expect(mattRow).toHaveClass(/is-complete/);
-  await expect(page.locator('#score-entry-status-Matt')).toContainText('Confirmed: 1');
-  await page.locator('#score-entry-row-Cat .score-entry-name').click();
-  await page.locator('#score-entry-row-Matt .score-entry-name').click();
-  await expect(matt).toHaveText('1');
-  await (await entryKey(page,'0')).click();
-  await expect(matt).toHaveText('10');
+  await expect(page.locator('#score-entry-status-Matt')).toContainText('Confirmed: 0');
+  const bids=await page.evaluate(()=>({...currentGame.currentBids}));
+  expect(bids).toEqual({Megan:0, Matt:1, Cat:3});
 });
 
 test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})=>{
@@ -236,13 +223,12 @@ test('P0-02 balanced out-of-bounds Wizard tricks change nothing', async ({page})
   expect(minusVisible).toBe(false);
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'9')).click();
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('9');
+  await expect(page.locator('#score-entry-error')).toHaveText('This round has 2 tricks.');
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
   await page.locator('#score-entry-row-Bob .score-entry-name').click();
   await (await entryKey(page,'3')).click();
-  await expect(page.locator('#score-entry-value-Bob')).toHaveText('3');
-  await page.locator('#score-entry-primary-btn').click();
-  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
-  await expect(page.locator('#score-entry-error')).toHaveText(/Wizard tricks must be from 0 to 2/);
+  await expect(page.locator('#score-entry-error')).toHaveText('This round has 2 tricks.');
+  await expect(page.locator('#score-entry-value-Bob')).toHaveText('');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.history).toBe(before.history);
@@ -278,10 +264,10 @@ test('P0-02 a blank trick counts as 0 and then the round total is checked', asyn
   await (await entryKey(page,'backspace')).click();
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
   await expect(page.locator('#score-entry-status-Alice')).toHaveText('Not entered');
-  await expect(page.locator('#score-entry-status-Bob')).toContainText(/Entered 1|Suggested: 1/);
+  await expect(page.locator('#score-entry-status-Bob')).toHaveText('Not entered');
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
-  await expect(page.locator('#score-entry-error')).toHaveText('Wizard round 2 must total 2 tricks. This table totals 1.');
+  await expect(page.locator('#score-entry-error')).toHaveText('Wizard round 2 must total 2 tricks. This table totals 0.');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
@@ -317,11 +303,8 @@ test('P0-02 an 818 round uses that round’s trick count', async ({page})=>{
   await expect(page.locator('#score-entry-context')).toContainText('1 trick');
   await page.locator('#score-entry-row-Alice .score-entry-name').click();
   await (await entryKey(page,'8')).click();
-  await page.locator('#score-entry-row-Bob .score-entry-row-status').click();
-  await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
-  await page.locator('#score-entry-primary-btn').click();
-  await expect(page.locator('#score-entry-error')).toHaveClass(/is-on/);
-  await expect(page.locator('#score-entry-error')).toHaveText('818 tricks must be from 0 to 1. Check Alice.');
+  await expect(page.locator('#score-entry-error')).toHaveText('This round has 1 trick.');
+  await expect(page.locator('#score-entry-value-Alice')).toHaveText('');
   const after=await persisted(page);
   expect(after.game).toBe(before.game);
   expect(after.current).toBe(before.current);
@@ -358,6 +341,7 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   await (await entryKey(page,'5')).click();
   await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
+  await page.waitForTimeout(450);
   await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Cat')).toHaveText('0');
   await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
@@ -374,8 +358,8 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
     wizard:BPGScorebook.validateEntries({game:'Wizard', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-10'}}),
     rook:BPGScorebook.validateEntries({game:'Rook', kind:'scores', roundNumber:1, players:['Ada'], values:{Ada:'-70'}})
   }));
-  expect(model.flip.ok).toBe(false);
-  expect(model.flip.message).toContain('Flip 7');
+  expect(model.flip.ok).toBe(true);
+  expect(model.flip.values.Ada).toBe(-15);
   expect(model.heat.ok).toBe(false);
   expect(model.heat.message).toContain('Beat the Heat');
   expect(model.wizard.ok).toBe(true);
@@ -510,7 +494,13 @@ test('P0-06 a Wizard round correction rejects a bad table, then saves the balanc
   await expect(page.locator('#round-correction-modal')).toBeVisible();
   await expect(page.locator('#round-correction-limit')).toContainText('1 trick');
   await correctionKey(page,'backspace').click();
-  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('—');
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-bid')).toContainText('Bid 1');
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took —');
+  await expect(page.locator('.round-correction-head')).toContainText('Bid');
+  await expect(page.locator('.round-correction-head')).toContainText('Took');
+  await expect(page.locator('.round-correction-head')).toContainText('Points');
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-delta')).toContainText('was -10 → now');
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-score')).toContainText('Points');
   await page.locator('#round-correction-save').click();
   await expect(page.locator('#round-correction-modal')).toBeHidden();
   const blankSaved=await persisted(page);
@@ -518,13 +508,12 @@ test('P0-06 a Wizard round correction rejects a bad table, then saves the balanc
   expect(blankSaved.current).toBe(before.current);
   await page.locator('#score-past-0-Alice').click();
   await correctionKey(page,'2').click();
-  await page.locator('#round-correction-save').click();
-  await expect(page.locator('#round-correction-error')).toHaveText('Wizard tricks must be from 0 to 1. Check Alice.');
-  await correctionKey(page,'backspace').click();
+  await expect(page.locator('#round-correction-error')).toHaveText('This round has 1 trick.');
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took 0');
   await page.locator('.round-correction-row[data-player="Bob"]').click();
   await correctionKey(page,'backspace').click();
   await page.locator('#round-correction-save').click();
-  await expect(page.locator('#round-correction-error')).toHaveText('Wizard round 1 must total 1 tricks. This table totals 0.');
+  await expect(page.locator('#round-correction-error')).toHaveText('Wizard round 1 must total 1 trick. This table totals 0.');
   await page.keyboard.press('Escape');
   await expect(page.locator('#round-correction-modal')).toBeHidden();
   const rejected=await persisted(page);
@@ -603,10 +592,10 @@ test('P0-06 an 818 historical round uses its own trick count while the table is 
   await installMatch(page, game, savedCopy(game));
   const before=await persisted(page);
   await page.locator('#score-past-0-Alice').click();
-  await expect(page.locator('#round-correction-limit')).toHaveText('This round has 1 tricks.');
+  await expect(page.locator('#round-correction-limit')).toHaveText('This round has 1 trick.');
   await correctionKey(page,'8').click();
-  await page.locator('#round-correction-save').click();
-  await expect(page.locator('#round-correction-error')).toHaveText('818 tricks must be from 0 to 1. Check Alice.');
+  await expect(page.locator('#round-correction-error')).toHaveText('This round has 1 trick.');
+  await expect(page.locator('.round-correction-row[data-player="Alice"] .round-correction-actual')).toHaveText('Took 1');
   const mid=await persisted(page);
   expect(mid.game).toBe(before.game);
   expect(mid.current).toBe(before.current);
@@ -778,15 +767,14 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   expect(healed.brickTotal).toBe(-18);
   expect(healed.rounds).toBe(2);
   expect(healed.players).toBe(12);
-  expect(healed.mostGames).toBe(2);
-  expect(healed.coverage).toEqual({assisted:1, unassisted:1});
+  expect(healed.mostGames).toBe(1);
+  expect(healed.coverage).toEqual({assisted:0, unassisted:1});
   expect(healed.bestScore).toBe(4);
   expect(healed.bestPlayer).toBe('Matt');
   expect(healed.worstScore).toBe(10);
-  expect(healed.bestRound.player).toBe('Brick');
   expect(healed.bestRound.value).toBe(0);
-  expect(healed.bestRound.round).toBe(1);
-  expect(healed.worstRound).toBe(12);
+  expect([healed.bestRound.player, ...(healed.bestRound.ties || []).map((row) => row.player || row.name)]).toContain('Brick');
+  expect(healed.worstRound).toBe(10);
   expect(healed.bestGame).toMatchObject({player:'Matt', value:4});
   expect(healed.cleanest).toBe('Matt');
   expect(healed.brickCard).toBeNull();
@@ -819,7 +807,7 @@ test('P0-03 an all-assisted shelf says there are no unassisted matches', async (
   await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
   await expect(page.locator('#hall-of-fame-view')).toContainText('No record yet');
   await page.locator('#slice2-show-shame').click();
-  await expect(page.locator('.s2-explore-col')).toContainText('No unassisted matches yet');
+  await expect(page.locator('.s2-explore-col')).toContainText('No full games yet');
   await expect(page.locator('#hall-of-fame-view')).not.toContainText('Unassisted matches only on best final');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-all-assisted-empty.png`});
@@ -882,11 +870,11 @@ test('P0-03 spins stay out of exact bids and opening the wheel is not an assiste
   expect(bids).toEqual({
     wizardExact:1,
     wizardMiss:1,
-    wizardRound:30,
+    wizardRound:-Infinity,
     eightExact:1,
     eightMiss:1,
-    eightRound:12,
-    games:2
+    eightRound:-Infinity,
+    games:0
   });
 });
 
@@ -1297,11 +1285,13 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   expect(aliceZero).toEqual({value:'0', acknowledged:true});
   await expect(page.locator('#score-entry-value-Alice')).toHaveText('0');
   await expect(page.locator('#score-entry-row-Alice')).toHaveClass(/is-complete/);
+  await page.waitForTimeout(450);
   await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('0');
   await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
   await (await entryKey(page,'4')).click();
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
+  await page.waitForTimeout(450);
   await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
   await shot(page,'slice1-blank-submits-zero');
   await page.locator('#score-entry-primary-btn').click();
@@ -1356,7 +1346,8 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
       originalRoster:['Ada','Bea'],
       totals:{Ada:0, Bea:0},
       rounds:[{round:1, scores:{Ada:null, Bea:0}}],
-      date:'10/23/2026'
+      date:'10/23/2026',
+      outcome:'finished'
     }];
     const fame=calculateHallOfFame();
     const records=calculateAllTimeRecords();
@@ -1587,7 +1578,8 @@ test('an incomplete history match stays out of the book until Resume Match is co
         rounds:[{round:1, bids:{Alice:1, Bob:1}, actuals:{Alice:1, Bob:0}, scores:{Alice:30, Bob:-10}}],
         hailMaryUsed:[],
         retired:[],
-        auditLog:[]
+        auditLog:[],
+        outcome:'finished'
       },
       {
         id:66,

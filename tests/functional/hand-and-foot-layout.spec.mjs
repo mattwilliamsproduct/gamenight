@@ -77,9 +77,17 @@ async function entryProblems(page){
       if(parseFloat(getComputedStyle(document.querySelector('#score-entry-modal .score-entry-panel > .border-t button')).fontSize)<12) problems.push('footer font');
     });
     const labels=[...document.querySelectorAll('#score-entry-modal .hf-field .score-entry-meta-label')].map(el=>el.textContent.trim());
-    ['Clean','Dirty','Sevens','Red 3s','Going out','Card points','Cards left'].forEach(label=>{
+    ['Basic','Count','Cards left · subtract'].forEach(label=>{
       if(!labels.includes(label)) problems.push(`missing label ${label}`);
     });
+    const helper=[...document.querySelectorAll('#score-entry-modal .hf-help')].map(el=>el.textContent.trim());
+    if(!helper.includes('Card points before subtracting cards left.')) problems.push('missing count helper');
+    const checks=[...document.querySelectorAll('#score-entry-modal .hf-check span')].map(el=>el.textContent.trim());
+    ['Got the 22 · +100','Went out · +100'].forEach(label=>{
+      if(!checks.includes(label)) problems.push(`missing check ${label}`);
+    });
+    const boxes=[...document.querySelectorAll('#score-entry-modal .hf-check input[type="checkbox"]')];
+    if(boxes.length<2) problems.push('missing real checkboxes');
     return problems;
   });
 }
@@ -88,16 +96,17 @@ async function activeRowProblems(page){
   return page.evaluate(()=>{
     const problems=[];
     const scroller=document.getElementById('score-entry-rows');
-    const active=scroller?.querySelector('.score-entry-hf-row.active');
+    const active=scroller?.querySelector('.hf-team-card.is-active, .hf-team-card.is-phone-current');
     const keypad=document.querySelector('#score-entry-modal .score-entry-keypad')?.getBoundingClientRect();
     const panel=document.querySelector('#score-entry-modal .score-entry-panel')?.getBoundingClientRect();
     const view=scroller?.getBoundingClientRect();
-    const footer=[...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].map(el=>el.getBoundingClientRect());
-    if(!active||!keypad||!view||!panel) return ['missing active row, keypad, or list'];
+    const footer=[...document.querySelectorAll('#score-entry-modal .score-entry-panel > .border-t button')].filter(el=>getComputedStyle(el).display!=='none').map(el=>el.getBoundingClientRect());
+    if(!active||!keypad||!view||!panel) return ['missing active card, keypad, or list'];
     const hit=(a,b)=>a.width>0 && b.width>0 && a.x<b.right-0.5 && a.right>b.x+0.5 && a.y<b.bottom-0.5 && a.bottom>b.y+0.5;
-    const fields=[...active.querySelectorAll('.hf-field, .hf-round')];
-    if(fields.filter(el=>el.classList.contains('hf-field')).length<7) problems.push('active row has fewer than 7 inputs');
+    const fields=[...active.querySelectorAll('.hf-field, .hf-num')];
+    if(fields.filter(el=>el.classList.contains('hf-num')).length<3) problems.push('active card has fewer than 3 numeric fields');
     fields.forEach(el=>{
+      if(scroller && scroller.contains(el)) el.scrollIntoView({block:'nearest'});
       const r=el.getBoundingClientRect();
       const label=(el.querySelector('.score-entry-meta-label')?.textContent||'').trim()||'field';
       if(r.width<44 || r.height<44) problems.push(`${label} ${Math.round(r.width)}x${Math.round(r.height)}`);
@@ -183,7 +192,7 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     await page.getByRole('button', {name:/Start Match/}).click();
     await expect(page.locator('#game-screen')).toBeVisible();
     await openScoreEntry(page);
-    await typeRound(page, [['2','1','2','1','450','95']].map(withSevensField));
+    await typeRound(page, [{basic:'1600', count:'450', got22:true, cardsLeft:'95'}]);
     if(viewport.name==='phone'){
       await page.evaluate(()=>{
         const scroller=document.getElementById('score-entry-rows');
@@ -201,17 +210,17 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     if(viewport.name==='ipad'){
       await page.screenshot({path:`${MEDIA_DIR}/${viewport.entry}`, fullPage:false});
     }
-    await typeRound(page, [['0','1','0','0','0','20']].map(withSevensField));
+    await typeRound(page, [{basic:'300', count:'0', cardsLeft:'20'}]);
     await submitEntry(page);
     await page.waitForFunction(()=>{
       const game=JSON.parse(localStorage.getItem('gn_current')||'null');
-      return game && game.rounds && game.rounds.length===1 && game.rounds[0].scores.Ann===1955;
+      return game && game.rounds && game.rounds.length===1 && game.rounds[0].scores.Ann===2055;
     });
 
-    await playRound(page, [['0','0','0','0','0','0'], ['0','0','0','1','0','0']]);
-    await playRound(page, [['1','0','0','0','0','0'], ['0','0','0','0','10','0']]);
-    await playRound(page, [['0','0','1','0','0','0'], ['0','0','0','0','0','0']]);
-    await expect(page.locator('#scorecard-body .score-cell-input').first()).toHaveValue('1955');
+    await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
+    await playRound(page, [{basic:'100', count:'0', cardsLeft:'0'}, {basic:'0', count:'10', cardsLeft:'0'}]);
+    await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
+    await expect(page.locator('#scorecard-body .score-cell-input').first()).toHaveValue('2055');
     const card=await scorecardProblems(page);
     expect(card.problems, `${viewport.name} scorecard ${JSON.stringify(card.headers)}`).toEqual([]);
     await page.screenshot({path:`${MEDIA_DIR}/${viewport.card}`, fullPage:false});
@@ -221,23 +230,23 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
       await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'singles'});
       await openScoreEntry(page);
       const scroll=await page.evaluate(()=>{
-        const scroller=document.getElementById('score-entry-rows');
-        const rows=[...scroller.querySelectorAll('.score-entry-hf-row')];
-        const last=rows[rows.length-1];
+        const cards=[...document.querySelectorAll('#score-entry-modal .hf-team-card')];
+        const visible=cards.filter(el=>getComputedStyle(el).display!=='none');
+        const tabs=[...document.querySelectorAll('#score-entry-modal .hf-team-tab')];
         const keypad=document.querySelector('#score-entry-modal .score-entry-keypad').getBoundingClientRect();
-        scroller.scrollTop=scroller.scrollHeight;
-        const field=last.querySelector('.hf-field').getBoundingClientRect();
-        const first=rows[0].getBoundingClientRect();
+        const field=visible[0]?.querySelector('.hf-field')?.getBoundingClientRect();
         return {
-          count:rows.length,
-          scrollable:scroller.scrollHeight>scroller.clientHeight+4,
-          fieldBottom:field.bottom,
+          count:cards.length,
+          visible:visible.length,
+          tabs:tabs.length,
+          fieldBottom:field?field.bottom:0,
           keypadTop:keypad.top,
-          firstHeight:first.height
+          firstHeight:visible[0]?visible[0].getBoundingClientRect().height:0
         };
       });
       expect(scroll.count).toBe(6);
-      expect(scroll.scrollable).toBe(true);
+      expect(scroll.visible).toBe(1);
+      expect(scroll.tabs).toBe(6);
       expect(scroll.firstHeight).toBeGreaterThan(120);
       expect(scroll.fieldBottom).toBeLessThanOrEqual(scroll.keypadTop+1);
     }
@@ -355,7 +364,7 @@ test('Canasta rules open from Game Instructions and in-game Actions', async ({pa
     return parseFloat(getComputedStyle(modal).opacity) > 0.95;
   });
   await expect(page.locator('#rules-title')).toHaveText('Canasta');
-  await expect(page.locator('#rules-content')).toContainText('Clean canastas');
+  await expect(page.locator('#rules-content')).toContainText('Got the 22');
   await page.evaluate(() => { if (typeof closeRules === 'function') closeRules(); });
 
   await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
@@ -389,14 +398,10 @@ test('Canasta entry header and rate bar stay unclipped at 1024, 1440, and 390', 
       const modal = document.querySelector('#score-entry-modal .score-entry-panel');
       const issues = [];
       if (context && progress && hit(box(context), box(progress))) issues.push('context overlaps progress');
-      if (rates.length !== 3) issues.push(`rate cards ${rates.length}`);
-      const panel = modal ? box(modal) : null;
-      rates.forEach((el, index) => {
-        const r = box(el);
-        if (r.width < 40 || r.height < 32) issues.push(`rate ${index} ${Math.round(r.width)}x${Math.round(r.height)}`);
-        if (panel && (r.right > panel.right + 1 || r.left < panel.left - 1)) issues.push(`rate ${index} clipped`);
-        if (el.scrollWidth > el.clientWidth + 1) issues.push(`rate ${index} text clipped`);
-      });
+      const rateBar=document.getElementById('hf-rate-bar');
+      if (rateBar && !rateBar.classList.contains('hidden') && getComputedStyle(rateBar).display!=='none') issues.push('rate bar still visible');
+      const contextText=context?context.textContent:'';
+      if (!/Meld minimum/.test(contextText)) issues.push(`context ${contextText}`);
       return issues;
     });
     expect(problems, `${viewport.width}x${viewport.height}`).toEqual([]);

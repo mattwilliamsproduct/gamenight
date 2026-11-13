@@ -270,14 +270,28 @@
   const EIGHT18_ROUND_TRICKS = [8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8];
   const NON_NEGATIVE_PLAYED_GAMES = {
     'Five Crowns': true,
-    'Flip 7': true,
-    'Flip 7 Vengeance': true,
     'Beat the Heat': true
   };
 
   function gameName(game) {
     if (typeof game === 'string') return game;
     return (game && (game.name || game.game)) || '';
+  }
+
+  function trickCountLabel(count) {
+    const n = Number(count) || 0;
+    return n === 1 ? '1 trick' : `${n} tricks`;
+  }
+
+  function trickLimitRejection(nextValue, source) {
+    if (!source || source.trickLimit == null || source.trickLimit === '') return '';
+    const limit = Number(source.trickLimit);
+    if (!Number.isFinite(limit)) return '';
+    const text = String(nextValue == null ? '' : nextValue).trim();
+    if (text === '' || text === '-') return '';
+    const n = parseInt(text, 10);
+    if (!Number.isFinite(n) || n <= limit) return '';
+    return `This round has ${trickCountLabel(limit)}.`;
   }
 
   function roundTrickLimit(game, roundNumber) {
@@ -553,6 +567,11 @@
     // Pending "-" is blank for status but must keep the sign (P1-05).
     const dirty = !!source.dirty;
     if (!acknowledged && digit && !dirty) {
+      const replaced = String(value).trim() === '-' ? '-' + token : token;
+      const blocked = trickLimitRejection(replaced, source);
+      if (blocked) {
+        return { value, acknowledged, replaced: false, dirty, rejected: true, message: blocked };
+      }
       if (String(value).trim() === '-') {
         return { value: '-' + token, acknowledged: deferAck ? false : true, replaced: false, dirty: true };
       }
@@ -573,6 +592,10 @@
           rejected: true,
           message: `That entry stops at ${limitLabel}.`
         };
+      }
+      const blocked = trickLimitRejection(nextValue, source);
+      if (blocked) {
+        return { value, acknowledged, replaced: false, dirty, rejected: true, message: blocked };
       }
       value = nextValue;
     }
@@ -800,8 +823,6 @@
   }
 
   function outcomeFromLegacy(match) {
-    const name = gameName(match);
-    if (name === 'Hand and Foot' || name === 'Canasta') return 'uncertain';
     const known = completionFromSavedRules(match);
     if (known === 'finished') return 'finished';
     if (known === 'short') return 'ended_early';
@@ -816,6 +837,9 @@
     const name = gameName(match);
     if (name === 'Hand and Foot' || name === 'Canasta') {
       if (match.outcome === 'paused' || match.completed === false) return 'paused';
+      const legacy = legacyCompletion(match);
+      if (legacy.status === 'complete') return 'finished';
+      if (legacy.status === 'partial') return 'ended_early';
       return 'uncertain';
     }
     const stored = match.outcome;
@@ -866,8 +890,8 @@
 
   // Isolated legacy rule. 'complete' | 'partial' | 'uncertain', plus a reason.
   // Known fixed lengths come from saved rounds, not from a round-count field.
-  // Flip 7 and Rook stay uncertain unless a target saved on that night was reached.
-  // Canasta stays uncertain until its round rule is confirmed.
+    // Flip 7 finishes at 200 for a seated player. Rook stays uncertain unless a target saved on that night was reached.
+    // Canasta is 4 saved scoring rounds. A stored finished flag does not override a short count.
   function legacyCompletion(match) {
     if (!match || typeof match !== 'object') {
       return {status: 'uncertain', reason: 'No saved night.', played: 0, fixed: null};
@@ -875,9 +899,24 @@
     const name = gameName(match);
     const played = scoringRoundCount(match.rounds || []);
     if (name === 'Hand and Foot' || name === 'Canasta') {
-      return {status: 'uncertain', reason: 'Canasta round rules are not confirmed. Needs review.', played, fixed: null};
+      if (played >= 4) {
+        return {status: 'complete', reason: played + ' saved rounds meet the 4-round length.', played, fixed: 4};
+      }
+      if (played >= 1) {
+        return {status: 'partial', reason: played + ' of 4 rounds. Ended early.', played, fixed: 4};
+      }
+      return {status: 'uncertain', reason: 'No saved Canasta rounds. Needs review.', played, fixed: 4};
     }
-    if (name === 'Flip 7 Vengeance' || name === 'Flip 7' || name === 'Rook') {
+    if (name === 'Flip 7 Vengeance' || name === 'Flip 7') {
+      if (anyActiveTotalAtLeast(match, 200)) {
+        return {status: 'complete', reason: 'A seated player reached 200.', played, fixed: null};
+      }
+      if (played >= 1) {
+        return {status: 'partial', reason: 'Flip 7 ended before 200.', played, fixed: null};
+      }
+      return {status: 'uncertain', reason: 'Flip 7 has no saved rounds. Needs review.', played, fixed: null};
+    }
+    if (name === 'Rook') {
       const target = storedScoreTarget(match);
       if (target != null && anySavedTotalAtLeast(match, target)) {
         return {status: 'complete', reason: 'A target saved on this night was reached.', played, fixed: null};
@@ -1384,7 +1423,7 @@
             values: checked.values,
             limit: checked.limit,
             sum: balanced.sum,
-            message: `${entryGameLabel(draft)} round ${round.round} must total ${checked.limit} tricks. This table totals ${balanced.sum}.`
+            message: `${entryGameLabel(draft)} round ${round.round} must total ${trickCountLabel(checked.limit)}. This table totals ${balanced.sum}.`
           };
         }
         const dealerBlock = eight18DealerBidViolation(draft, Object.assign({}, round, { bids: checkedBids.values }), players);
@@ -1539,6 +1578,7 @@
     rookHandScores,
     gameName,
     roundTrickLimit,
+    trickCountLabel,
     parseEntryInteger,
     playedScoreMustBeNonNegative,
     validateEntries,

@@ -1240,6 +1240,7 @@
     const lpRows = lifePreserverSummary(lpEvents);
     const side = [
       exploreLeaders(data, playerFilter, esc, avatar),
+      exploreDrama(data, playerFilter, esc),
       exploreBids(data, hall, gameFilter, playerFilter, esc),
       exploreStreaks(data, playerFilter, esc),
       lpRows.length ? exploreLifePreserver(lpRows, playerFilter, esc) : '',
@@ -1321,6 +1322,17 @@
     ]);
   }
 
+  function exploreDrama(data, playerFilter, esc) {
+    const all = data.allTime || {};
+    const derby = (all.mostLasts || [])[0] || null;
+    const decided = (all.finalRoundDecisions || [])[0] || null;
+    return listBlock('Comebacks', [
+      statLine('Dead Last Derby', derby, esc, '', playerFilter),
+      statLine('Biggest single-game comeback', all.biggestComeback, esc, '', playerFilter),
+      statLine('Decided in the final round', decided, esc, '', playerFilter)
+    ]);
+  }
+
   function coverageNote(data, gameId) {
     const row = data.games && data.games._coverage && data.games._coverage[gameId];
     if (row && row.assisted > 0 && row.unassisted === 0) return 'No unassisted matches yet';
@@ -1390,6 +1402,7 @@
         push('Closest margin of victory', rec.closestMargin);
         push('Most lopsided match', rec.mostLopsided);
         push('Longest match', rec.longestMatch);
+        push('Closest finish to 66', rec.closestFinish);
       }
       if (game.id === 'Hand and Foot') {
         if (rec.closestMargin && rec.closestMargin.value > 0) push('Closest margin of victory', rec.closestMargin);
@@ -1614,6 +1627,10 @@
     const countToggle = model.showCountToggle
       ? `<button type="button" class="s2-btn" data-s2-action="count-toggle" data-s2-id="${id}" data-count-override="${model.countOverride ? 'true' : 'false'}">${model.countOverride ? 'Counting this result' : 'Count this result'}</button>`
       : '';
+    const liveId = ctx.table && ctx.table.currentGame ? ctx.table.currentGame.id : null;
+    const deleteNight = liveId != null && String(liveId) === String(model.id)
+      ? ''
+      : `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="night-delete" data-s2-id="${id}">Delete night</button>`;
     return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.winners.length > 1 ? ' is-joint' : ''}"${model.assisted ? ' data-assisted-match="true"' : ''} data-s2-action="night-open" data-s2-id="${id}">
       <header class="s2-night-head">
         ${gameThumbnailHtml(model.game, 's2-game-thumb s2-night-thumb')}
@@ -1629,6 +1646,7 @@
         <button type="button" class="s2-btn" data-s2-action="night-scorecard" data-s2-id="${id}">View scorecard</button>
         ${countToggle}
         ${resume}
+        ${deleteNight}
       </div>
     </article>`;
   }

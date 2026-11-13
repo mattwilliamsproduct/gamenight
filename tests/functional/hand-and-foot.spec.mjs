@@ -24,34 +24,45 @@ test('a 2-player Hand and Foot match scores four rounds, survives reload, and la
   expect(setup.seats).toEqual([]);
   expect(setup.note).toMatch(/1 versus 1/);
 
-  await playRound(page, [['2','1','2','1','450','95'], ['0','0','0','0','-40','10']]);
+  await playRound(page, [
+    {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
+    {basic:'0', count:'-40', cardsLeft:'10'}
+  ]);
   let game=await readGame(page);
   expect(game.rounds).toHaveLength(1);
-  expect(game.rounds[0].scores.Ann).toBe(1955);
+  expect(game.rounds[0].scores.Ann).toBe(2055);
   expect(game.rounds[0].scores.Bo).toBe(-50);
-  expect(game.rounds[0].handFootParts.Ann.cleanCanastas).toBe(2);
-  expect(game.rounds[0].handFootParts.Ann.dirtyCanastas).toBe(1);
-  expect(game.rounds[0].handFootParts.Ann.redThrees).toBe(2);
-  expect(game.rounds[0].handFootParts.Ann.goingOut).toBe(1);
-  expect(game.rounds[0].handFootParts.Ann.cardPoints).toBe(450);
+  expect(game.rounds[0].handFootParts.Ann.basic).toBe(1600);
+  expect(game.rounds[0].handFootParts.Ann.count).toBe(450);
+  expect(game.rounds[0].handFootParts.Ann.got22).toBe(true);
+  expect(game.rounds[0].handFootParts.Ann.wentOut).toBe(false);
   expect(game.rounds[0].handFootParts.Ann.cardsLeft).toBe(95);
-  expect(game.rounds[0].handFootParts.Ann.footPenalty).toBeUndefined();
+  expect(game.rounds[0].handFootParts.Ann.cleanCanastas).toBeUndefined();
   expect(game.rounds[0].scores['Ann & Bo']).toBeUndefined();
 
   await page.reload({waitUntil:'domcontentloaded'});
-  await expect(page.locator('#scorecard-body')).toContainText('1955');
+  await expect(page.locator('#scorecard-body')).toContainText('2055');
   game=await readGame(page);
   expect(game.currentRound).toBe(2);
-  expect(game.rounds[0].scores.Ann).toBe(1955);
+  expect(game.rounds[0].scores.Ann).toBe(2055);
 
   await editFirstRoundCardsLeft(page, '#score-past-0-Ann');
   game=await readGame(page);
   expect(game.rounds[0].handFootParts.Ann.cardsLeft).toBe(0);
-  expect(game.rounds[0].scores.Ann).toBe(2050);
+  expect(game.rounds[0].scores.Ann).toBe(2150);
 
-  await playRound(page, [['2','1','2','1','450','95'], ['0','0','0','0','-40','10']]);
-  await playRound(page, [['2','1','2','1','450','95'], ['0','0','0','0','-40','10']]);
-  await playRound(page, [['2','1','2','1','450','95'], ['0','0','0','0','-40','10']]);
+  await playRound(page, [
+    {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
+    {basic:'0', count:'-40', cardsLeft:'10'}
+  ]);
+  await playRound(page, [
+    {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
+    {basic:'0', count:'-40', cardsLeft:'10'}
+  ]);
+  await playRound(page, [
+    {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
+    {basic:'0', count:'-40', cardsLeft:'10'}
+  ]);
   game=await readGame(page);
   expect(game.rounds).toHaveLength(4);
   expect(game.currentRound).toBe(5);
@@ -74,11 +85,14 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   expect(setup.sides).toBe(2);
   expect(setup.seats).toEqual(['Ann','Bo','Cy','Dee']);
   expect(setup.note).toMatch(/Two pairs/);
-  await playRound(page, [['2','1','2','1','450','95'], ['0','1','0','0','0','20']]);
+  await playRound(page, [
+    {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
+    {basic:'300', count:'0', cardsLeft:'20'}
+  ]);
   let game=await readGame(page);
   expect(game.handFoot.sides.map(side=>side.key)).toEqual(['Ann & Bo','Cy & Dee']);
-  expect(game.rounds[0].scores.Ann).toBe(1955);
-  expect(game.rounds[0].scores.Bo).toBe(1955);
+  expect(game.rounds[0].scores.Ann).toBe(2055);
+  expect(game.rounds[0].scores.Bo).toBe(2055);
   expect(game.rounds[0].scores.Cy).toBe(280);
   expect(game.rounds[0].scores.Dee).toBe(280);
   expect(game.rounds[0].scores['Ann & Bo']).toBeUndefined();
@@ -86,11 +100,11 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
 
   await page.reload({waitUntil:'domcontentloaded'});
   game=await readGame(page);
-  expect(game.rounds[0].handFootParts.Bo.dirtyCanastas).toBe(1);
+  expect(game.rounds[0].handFootParts.Bo.basic).toBe(1600);
   expect(game.currentRound).toBe(2);
-  await playRound(page, [['0','0','0','0','0','0'], ['0','0','0','1','0','0']]);
-  await playRound(page, [['1','0','0','0','0','0'], ['0','0','0','0','10','0']]);
-  await playRound(page, [['0','0','1','0','0','0'], ['0','0','0','0','0','0']]);
+  await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
+  await playRound(page, [{basic:'100', count:'0', cardsLeft:'0'}, {basic:'0', count:'10', cardsLeft:'0'}]);
+  await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
   await expect(page.locator('#game-over-section')).toBeVisible();
   await endMatch(page);
   await expect(page.locator('#victory-names')).toBeVisible();
@@ -118,7 +132,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   game=await readGame(page);
   expect(game.handFoot.sides).toHaveLength(3);
   expect(game.handFoot.sides.every(side=>side.members.length===2)).toBe(true);
-  expect(game.rounds[0].scores.Ann).toBe(1955);
+  expect(game.rounds[0].scores.Ann).toBe(2150);
   expect(game.rounds[0].scores.Eve).toBe(500);
   expect(game.rounds[0].scores.Fay).toBe(500);
   expect(game.rounds).toHaveLength(4);
