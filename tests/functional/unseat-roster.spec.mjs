@@ -98,6 +98,7 @@ test('unseating the next roster does not change the live match', async ({page}) 
     phase: currentGame.eight18Phase,
     bids: currentGame.currentBids
   }));
+  await page.locator('[data-s2-action="reveal-picker"]').click();
   await expect(page.locator('.s2-home-start')).toContainText('Next match players');
   await page.locator('[data-s2-action="edit-next-roster"]').click();
   await expect(page.locator('#slice2-next-roster')).toContainText('Unseat from next match (keeps their profile)');

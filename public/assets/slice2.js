@@ -46,6 +46,7 @@
   let anotherParkOk = false;
   let unfinishedOpen = false;
   let nextRosterOpen = false;
+  let pickerRevealed = false;
   let addPicks = new Set();
 
   function state() {
@@ -100,6 +101,7 @@
   function clearAnotherMatch() {
     anotherStep = null;
     anotherParkOk = false;
+    pickerRevealed = false;
   }
 
   function takeAnotherParkOk() {
@@ -533,7 +535,17 @@
     const startSummary = limit.ok
       ? `${meta.title} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
       : limit.message;
-    const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
+    const startBlock = live && !pickerRevealed
+      ? `<section class="s2-panel s2-home-start s2-home-start-compact" aria-label="Start a new match">
+          <div class="s2-panel-head">
+            <div>
+              <h2>Start a new match</h2>
+              <p class="s2-sub">The match on the table stays until you save it.</p>
+            </div>
+          </div>
+          <button type="button" class="s2-btn" data-s2-action="reveal-picker">Start another game</button>
+        </section>`
+      : `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
               <h2>Start a New Match</h2>
@@ -1262,6 +1274,9 @@
       anotherParkOk = true;
       anotherStep = null;
       startGame(selected);
+    } else if (action === 'reveal-picker') {
+      pickerRevealed = true;
+      paintHome();
     } else if (action === 'start-game') {
       startGame(selected);
     } else if (action === 'unfinished-all') {

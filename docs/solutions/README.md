@@ -18,6 +18,7 @@ Standing trap: [bs-polish.md](bs-polish.md) — the wheel control stays on the r
 
 Standing trap: [bm-entry-and-parity.md](bm-entry-and-parity.md) — `bffd216` restored a `00` key for parity. Matt's Nov 12, 4:12 PM ET keypad spec removed that key from score entry, and that decision wins.
 
+Standing trap: [cc-sheet-and-teams.md](cc-sheet-and-teams.md) — phone score boxes and the progress line stay inside the sheet. A pad with no minus uses one wide 0. Canasta teams are tap-to-swap cards. A live match starts with a small Start another game action.
 Standing trap: [cb-readable-entry.md](cb-readable-entry.md) — the score helper stays one short line. The 999 note sits in that player's score box. Score pads use Skip. Bid and trick pads keep 00.
 
 Standing trap: [bv-bw-by-missed-decisions.md](bv-bw-by-missed-decisions.md) — Skip replaces 00 on score pads. Minus follows the non-negative game list. Home has no View all. The card edge is an inset ring on top of the cover.

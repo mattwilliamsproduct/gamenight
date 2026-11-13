@@ -183,7 +183,7 @@ export async function startHandFoot(page, {names, format}){
   const setup=await page.evaluate(()=>({
     note:document.getElementById('hand-foot-setup-note')?.textContent||'',
     sides:document.querySelectorAll('#hand-foot-setup-sides .hf-setup-side').length,
-    seats:[...document.querySelectorAll('.hf-pair-select')].map(el=>el.value)
+    seats:[...document.querySelectorAll('button.hf-team-person')].map(el=>el.dataset.name||'')
   }));
   await page.getByRole('button', {name:/Start Match/}).click();
   await expect(page.locator('#game-screen')).toBeVisible();

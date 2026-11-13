@@ -1777,10 +1777,14 @@
       padding: 0.72rem 1.08rem;
       font-size: clamp(1.08rem, 2.05vw, 1.48rem);
       font-weight: 950;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      white-space: normal;
+      max-width: 100%;
+      min-width: 0;
+      line-height: 1.25;
+      text-align: center;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
     }
     .score-entry-progress:empty { display: none; }
@@ -2315,8 +2319,12 @@
       flex: 0 0 auto;
     }
     #score-entry-modal .score-entry-progress {
+      flex: 1 1 14rem;
+      align-self: center;
       padding: 10px 14px;
       font-size: 20px !important;
+      white-space: normal;
+      max-width: 100%;
     }
     #score-entry-modal .score-entry-lane-title,
     #score-entry-modal .score-entry-meta-label {
@@ -5291,6 +5299,13 @@ button.dealer-name-indicator .dealer-player-label {
       letter-spacing: 0;
     }
     .hf-team-person .avatar-img { width: 72px; height: 72px; }
+    .hf-team-kicker {
+      font-family: "Nunito Sans", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: var(--ink);
+    }
     .hf-team-person.is-swap-from {
       border-color: #0a5c54;
       box-shadow: 0 0 0 3px rgba(10, 92, 84, 0.28);
@@ -5415,7 +5430,11 @@ button.dealer-name-indicator .dealer-player-label {
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('2')"] { grid-area: k2; }
     #score-entry-modal.score-entry-plain .score-entry-keypad button[onclick="scoreEntryKey('3')"] { grid-area: k3; }
     #score-entry-modal.score-entry-plain #score-entry-next-btn { grid-area: next; grid-row: auto; }
-    #score-entry-modal.score-entry-plain #score-entry-key-0 { grid-area: k0 !important; grid-column: auto !important; }
+    #score-entry-modal.score-entry-plain #score-entry-key-0 { grid-area: k0 !important; height: 100%; }
+    #score-entry-modal.score-entry-plain.score-entry-no-minus #score-entry-key-0 {
+      grid-column: 1 / 4 !important;
+      grid-row: 4 !important;
+    }
     #score-entry-modal.score-entry-plain .score-entry-minus-key { grid-area: minus; }
     #score-entry-modal.score-entry-plain.score-entry-no-minus .score-entry-minus-key { display: none !important; }
     #score-entry-modal.score-entry-plain #score-entry-delete-key,
@@ -9579,14 +9598,16 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #score-entry-modal .score-entry-progress {
         flex: 1 0 100%;
-        width: auto;
+        width: 100%;
         max-width: 100%;
         box-sizing: border-box;
         margin-top: 0.35rem;
         font-size: 0.95rem !important;
-        letter-spacing: 0.02em;
+        letter-spacing: 0;
         padding: 0.35rem 0.7rem;
-        white-space: nowrap;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.25;
       }
       #score-entry-modal .score-entry-side > #score-entry-unconfirmed {
         flex: 0 0 auto;
@@ -9603,20 +9624,36 @@ button.dealer-name-indicator .dealer-player-label {
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-rows {
         flex: 1 1 0 !important;
+        overflow-x: hidden !important;
         overflow-y: auto !important;
         min-height: 0 !important;
+        box-sizing: border-box;
+        scrollbar-gutter: stable;
+        padding-right: 12px !important;
       }
       #score-entry-modal.score-entry-managed-fit .score-entry-row,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-row {
         flex: 0 0 auto !important;
         min-height: 44px !important;
         height: auto !important;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        grid-template-columns: minmax(0, 1fr) minmax(72px, 92px) !important;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-input-cell {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      #score-entry-modal.score-entry-managed-fit .score-entry-row.active .score-entry-input-cell {
+        box-shadow: inset 0 0 0 3px rgba(4, 120, 87, 0.35);
       }
       #score-entry-modal .score-entry-player-card,
       #score-entry-modal.score-entry-managed-fit .score-entry-row.no-context .score-entry-player-card,
       #score-entry-modal.score-entry-managed-fit .score-entry-row:not(.no-context) .score-entry-player-card,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-player-card {
-        grid-template-columns: 44px minmax(min-content, 1fr) 52px !important;
+        grid-template-columns: 40px minmax(0, 1fr) 46px !important;
+        min-width: 0;
       }
       #score-entry-modal .score-entry-name-line {
         flex-wrap: wrap;
@@ -9626,9 +9663,10 @@ button.dealer-name-indicator .dealer-player-label {
       #score-entry-modal.score-entry-managed-fit .score-entry-name,
       #score-entry-modal.score-entry-managed-fit .score-entry-panel.score-entry-many-players .score-entry-name {
         flex: 1 1 auto;
-        min-width: max-content;
+        min-width: 0;
         overflow: visible !important;
         text-overflow: clip !important;
+        white-space: normal;
         font-size: 16px !important;
       }
       #score-entry-modal .score-entry-selected-card {
@@ -13474,7 +13512,8 @@ button.dealer-name-indicator .dealer-player-label {
     const cap=/stops? at/i.test(message||'');
     if(modal && !modal.classList.contains('hidden')){
       const player=scoreEntryModalState?.activePlayer;
-      const cell=cap&&player?document.querySelector(`#score-entry-row-${rookElementId(player)} .score-entry-input-cell`):null;
+      const row=cap&&player?document.getElementById(`score-entry-row-${rookElementId(player)}`):null;
+      const cell=row?.querySelector('.score-entry-input-cell, .hf-field.active, .hf-round.active')||row?.querySelector('.hf-field.hf-num');
       if(cell){
         const note=document.createElement('div');
         note.className='score-entry-cap-note';
@@ -15418,27 +15457,45 @@ button.dealer-name-indicator .dealer-player-label {
     if(note) note.textContent=noteText;
     const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
     if(order) order.classList.toggle('hidden', !teamPairs);
+    const scoreLine=document.getElementById('hand-foot-setup-score');
+    if(scoreLine) scoreLine.classList.toggle('hidden', !teamPairs);
     if(!_hfSetup.pairs) _hfSetup.pairs=api?api.defaultPairs(_hfSetup.roster):[];
     const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
     const box=document.getElementById('hand-foot-setup-sides');
     if(!box) return;
     if(teamPairs){
-      const roster=_hfSetup.roster;
-      box.innerHTML=(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<div class="hf-setup-side">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.14em]" style="color:var(--muted);">Pair ${pairIndex+1}</div>
-        <div class="hf-pair-row mt-2">
-          ${[0,1].map(seat=>`<select class="bp-select hf-pair-select" aria-label="Pair ${pairIndex+1}, player ${seat+1}" onchange="handFootSetPairMember(${pairIndex},${seat},this.value)">${roster.map(name=>`<option value="${escapeHtml(name)}"${name===pair[seat]?' selected':''}>${escapeHtml(name)}</option>`).join('')}</select>`).join('<span style="color:var(--muted);" aria-hidden="true">&amp;</span>')}
+      const pick=_hfSetup.swapPick;
+      box.innerHTML=`<div class="hf-team-grid">${(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<section class="hf-setup-side" aria-label="Team ${pairIndex+1}">
+        <div class="hf-team-kicker">Team ${pairIndex+1}</div>
+        <div class="hf-team-people">
+          ${[0,1].map(seat=>{
+            const name=pair[seat];
+            const on=!!(pick&&pick.pairIndex===pairIndex&&pick.seat===seat);
+            return `<button type="button" class="hf-team-person${on?' is-swap-from':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})">${getAvatarImg(name,'avatar-img')}<span class="player-name-label">${escapeHtml(name)}</span></button>`;
+          }).join('')}
         </div>
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score for both</div>
-      </div>`).join('');
+      </section>`).join('')}</div>`;
       return;
     }
-    box.innerHTML=sides.map(side=>`<div class="hf-setup-side">
-      <div class="flex items-center gap-2 flex-wrap">
-        ${side.members.map(name=>`${getAvatarImg(name,'avatar-img')}<span class="player-name-label text-lg">${escapeHtml(name)}</span>`).join('<span style="color:var(--muted);">·</span>')}
+    box.innerHTML=`<div class="hf-team-grid">${sides.map(side=>`<section class="hf-setup-side">
+      <div class="hf-team-people">
+        ${side.members.map(name=>`<div class="hf-team-person hf-solo-person">${getAvatarImg(name,'avatar-img')}<span class="player-name-label">${escapeHtml(name)}</span></div>`).join('')}
       </div>
-      <div class="text-[10px] font-extrabold uppercase tracking-[0.14em] mt-2" style="color:var(--muted);">One score column</div>
-    </div>`).join('');
+    </section>`).join('')}</div>`;
+  }
+  function handFootTapPerson(pairIndex, seat){
+    if(!_hfSetup||!_hfSetup.pairs) return;
+    const pick=_hfSetup.swapPick;
+    if(!pick||pick.pairIndex===pairIndex){
+      if(pick&&pick.pairIndex===pairIndex&&pick.seat===seat) _hfSetup.swapPick=null;
+      else _hfSetup.swapPick={pairIndex:Number(pairIndex), seat:Number(seat)};
+      renderHandFootSetup();
+      return;
+    }
+    const name=_hfSetup.pairs[pairIndex]&&_hfSetup.pairs[pairIndex][seat];
+    handFootSetPairMember(pick.pairIndex, pick.seat, name);
+    if(_hfSetup) _hfSetup.swapPick=null;
+    renderHandFootSetup();
   }
   function handFootSetPairMember(pairIndex, seat, name){
     if(!_hfSetup) return;
@@ -15452,6 +15509,7 @@ button.dealer-name-indicator .dealer-player-label {
     const api=handFootApi();
     if(api&&!api.canSwitchToSingles(_hfSetup.roster.length)) return;
     _hfSetup.format=format==='teams'?'teams':'singles';
+    _hfSetup.swapPick=null;
     renderHandFootSetup();
   }
   function closeHandFootSetupModal(){

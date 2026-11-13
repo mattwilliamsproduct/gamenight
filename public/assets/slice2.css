@@ -4793,6 +4793,17 @@ html.slice2-tv .s2-home-table,
 html.slice2-tv .s2-home-start {
   min-height: 0;
 }
+html.slice2-tv .s2-home-start-compact {
+  align-self: start;
+  height: auto;
+  gap: 0.75rem;
+}
+html.slice2-tv .s2-home-start-compact .s2-btn {
+  width: auto;
+  align-self: flex-start;
+  min-height: 44px;
+  font-size: 1rem;
+}
 html.slice2-tv .s2-standings {
   display: flex;
   flex-direction: column;

@@ -181,7 +181,7 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
     await openHandFootSetup(page);
     await page.screenshot({path:`${MEDIA_DIR}/${viewport.setup}`, fullPage:false});
     const setupTargets=await page.evaluate(()=>{
-      const nodes=[...document.querySelectorAll('#hand-foot-setup-modal .hf-pair-select, #hand-foot-setup-modal button')];
+      const nodes=[...document.querySelectorAll('#hand-foot-setup-modal .hf-team-person, #hand-foot-setup-modal button')];
       return nodes.map(el=>{
         const r=el.getBoundingClientRect();
         return {text:(el.textContent||el.getAttribute('aria-label')||'').trim().slice(0,24), width:r.width, height:r.height};

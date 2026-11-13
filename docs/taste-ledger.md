@@ -6,6 +6,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. A live match offers a small Start another game until the picker opens.
 - The score-entry sentence fits on one phone line. A too-big entry says so inside that player's score box.
 - The game-card edge is drawn on top of the cover, so Flip 7's white art still has a visible rim. The selected rim is thicker and teal.
 - A late player sees their starting score and confirms it before they join. A bad name is an inline message.
@@ -102,6 +103,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Kills
 
+- A score box or progress line cut off by the phone edge. A lone 0 with empty keypad cells. Canasta pair dropdowns. A full game picker beside a live match.
 - A score-entry sentence that runs off the phone, or a cap note that covers the player's name.
 - A card border that sits under the cover art, so Flip 7's white face has no edge.
 - A browser alert for a name, or adding a late player before showing the starting score.

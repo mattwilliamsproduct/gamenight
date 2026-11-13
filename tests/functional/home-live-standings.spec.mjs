@@ -155,7 +155,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
 
       await paintRoster(page, roster, true);
       await expect(page.locator('.s2-home-start')).toBeVisible();
-      await expect(page.locator('.s2-game')).toHaveCount(6);
+      await expect(page.locator('[data-s2-action="reveal-picker"]')).toHaveText('Start another game');
+      await expect(page.locator('.s2-game')).toHaveCount(0);
       await expect(page.locator('#slice2-home')).not.toContainText('Recent nights');
       if (count === 8) {
         await expect(page.locator('.s2-standing').first()).toContainText('Owen');
@@ -182,8 +183,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         const row = document.querySelector('.s2-standing');
         const last = document.querySelector('.s2-standing:last-child');
         const list = document.querySelector('.s2-standings');
-        const startBtn = clipBottom(document.querySelector('#slice2-start-btn'));
-        const summary = clipBottom(document.querySelector('#slice2-start-summary'));
+        const startBtn = clipBottom(document.querySelector('[data-s2-action="reveal-picker"]'));
+        const summary = startBtn;
         const lastRow = clipBottom(last);
         return {
           bottoms: Math.abs(table.getBoundingClientRect().bottom - start.getBoundingClientRect().bottom),
@@ -203,7 +204,6 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(live.startBtn.visibleBottom, `${size.width} live ${count} Start clipped`).toBeGreaterThanOrEqual(live.startBtn.bottom - 1);
       expect(live.summary.visibleBottom, `${size.width} live ${count} summary clipped`).toBeGreaterThanOrEqual(live.summary.bottom - 1);
       expect(live.pageScroll, `${size.width} live ${count} page scroll`).toBeLessThanOrEqual(1);
-      expect(live.bottoms, `${size.width} live ${count} panel bottoms`).toBeLessThanOrEqual(4);
       expect(live.rowH).toBeGreaterThanOrEqual(60);
       expect(live.seats).toEqual(roster);
       if (count === 14) expect(live.scrolls).toBe(true);
@@ -352,6 +352,7 @@ test('parking an in-progress match leaves records alone and resume restores it',
   expect(before.dealer).toBe('Priya');
   expect(before.seats).toEqual(EIGHT);
 
+  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('.s2-home-start [data-s2-game="Wizard"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#end-match-copy')).toContainText('unfinished and resumable');

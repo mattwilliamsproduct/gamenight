@@ -38,6 +38,7 @@ test('a parked match is still there after reload and a closed page', async ({pag
     goHome();
     if (window.BPGSlice2) BPGSlice2.refresh('home');
   });
+  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('.s2-home-start [data-s2-game="Beat the Heat"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#leave-save-later')).toBeVisible();
