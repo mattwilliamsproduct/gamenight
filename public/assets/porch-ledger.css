@@ -1024,16 +1024,20 @@ html.porch-ledger.slice2-tv .scoreboard-rank-badge.is-place-rest {
   border: 1px solid #d9c7b0 !important;
 }
 
-/* Score entry */
+/* Score entry sits on the same felt as the mat, not a dark scrim. */
 html.porch-ledger #score-entry-modal:not(.hidden) {
   position: fixed !important;
   inset: 0 !important;
   z-index: 240 !important;
-  background: color-mix(in srgb, var(--mat-felt) 46%, #05080f 54%) !important;
+  background-color: var(--felt-base) !important;
+  background-image: var(--felt-layers) !important;
+  background-repeat: var(--felt-repeat) !important;
+  background-size: var(--felt-sizes) !important;
+  background-position: 0 0 !important;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal > .absolute {
-  background: color-mix(in srgb, var(--mat-felt) 36%, #05080f 64%) !important;
+  background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -1052,7 +1056,11 @@ html.porch-ledger:has(#score-entry-modal:not(.hidden))::before {
 html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidden) {
   padding: 0 !important;
   z-index: 400 !important;
-  background: color-mix(in srgb, var(--mat-felt) 36%, #05080f 64%) !important;
+  background-color: var(--felt-base) !important;
+  background-image: var(--felt-layers) !important;
+  background-repeat: var(--felt-repeat) !important;
+  background-size: var(--felt-sizes) !important;
+  background-position: 0 0 !important;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell > .score-entry-panel {
