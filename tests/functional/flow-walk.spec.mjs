@@ -12,11 +12,12 @@ function lum([r, g, b]) {
 }
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
 
-async function boot(page, {live = false} = {}) {
+async function boot(page, {live = false, roster: seated = ROSTER, bigger = false} = {}) {
   await page.addInitScript(() => { ['gn_pref_lineupintro', 'gn_pref_statmontage', 'gn_pref_dealerroll'].forEach((k) => localStorage.setItem(k, '0')); });
   await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof goActiveMatch === 'function' && window.BPGSlice2);
-  await page.evaluate(({roster, live}) => {
+  await page.evaluate(({roster, live, bigger}) => {
+    if (bigger) { adjustUI(1); adjustUI(1); }
     allPlayers = roster.slice();
     players = roster.slice();
     history = [];
@@ -24,7 +25,7 @@ async function boot(page, {live = false} = {}) {
       rounds: [], totals: Object.fromEntries(roster.map((p) => [p, 0])), retired: [], completed: false, winners: []} : null;
     saveData();
     if (live) goActiveMatch(); else goHome();
-  }, {roster: ROSTER, live});
+  }, {roster: seated, live, bigger});
 }
 
 // Every word of the name sits on one line: wrapping happens between words only.
@@ -58,14 +59,18 @@ for (const [width, height] of [[1024, 768], [1180, 820], [1440, 900], [390, 844]
 }
 
 for (const [width, height] of [[1024, 768], [1180, 820], [1440, 900]]) {
-  test(`a long name wraps between words in score entry at ${width}x${height}`, async ({page}) => {
-    await page.setViewportSize({width, height});
-    await boot(page, {live: true});
-    await page.locator('#slice2-enter-btn').click();
-    const name = page.locator('#score-entry-modal .score-entry-name', {hasText: LONG});
-    await expect(name).toBeVisible();
-    expect(await wordsUnbroken(name)).toEqual([]);
-  });
+  for (const bigger of [false, true]) {
+    test(`names wrap between words in score entry at ${width}x${height}${bigger ? ' with bigger text and 8 seats' : ''}`, async ({page}) => {
+      await page.setViewportSize({width, height});
+      await boot(page, {live: true, roster: bigger ? ['Marigold', ...ROSTER, 'Rafael', 'Bea', 'Silas'] : ROSTER, bigger});
+      await page.locator('#slice2-enter-btn').click();
+      await expect(page.locator('#score-entry-modal .score-entry-name', {hasText: LONG})).toBeVisible();
+      await page.waitForTimeout(300);
+      for (const name of await page.locator('#score-entry-modal .score-entry-name').all()) {
+        expect(await wordsUnbroken(name), await name.innerText()).toEqual([]);
+      }
+    });
+  }
 }
 
 test('an unusual score shows its prompt, and saving anyway logs the round', async ({page}) => {

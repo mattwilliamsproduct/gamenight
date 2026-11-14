@@ -19910,11 +19910,11 @@ ${isDealer
     scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
 
-  // Long words shrink to fit the row (about 0.56em per letter) so names wrap between words, not mid-word.
+  // Long words shrink to fit the row (about 0.6em per letter) so names wrap between words, not mid-word.
   function scoreEntryNameFitAttrs(name){
     const longestWord=Math.max(0,...String(name||'').split(/\s+/).map(word=>word.length));
     if(longestWord<8) return 'class="score-entry-name truncate"';
-    return `class="score-entry-name truncate is-fit" style="--fit-em:${(longestWord*0.56).toFixed(2)}"`;
+    return `class="score-entry-name truncate is-fit" style="--fit-em:${(longestWord*0.6).toFixed(2)}"`;
   }
   function openScoreEntryModal(ev){
     const timer=gnPerfStart('GN score modal open');

@@ -2078,27 +2078,14 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more[hidden] {
 }
 
 /* Score entry: a long word shrinks to the row width so the name breaks between words.
-   --fit-em is the longest word's width in em, set by scoreEntryNameFitAttrs. The cap is the normal name size. */
+   --fit-em is the longest word's width in em, set by scoreEntryNameFitAttrs. The cap is the fitted name size, --se-fit-name. */
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name-line:has(.score-entry-name.is-fit) {
   container-type: inline-size;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-fit {
-  --fit-cap: 2.125rem;
-  font-size: min(var(--fit-cap), max(12px, calc((100cqi - 34px) / var(--fit-em)))) !important;
+  font-size: min(var(--se-fit-name, 2.125rem), max(12px, calc((100cqi - 48px) / var(--fit-em)))) !important;
   line-height: 1.12 !important;
-}
-
-@media (max-width: 1100px) {
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-fit {
-    --fit-cap: 1.75rem;
-  }
-}
-
-@media (max-width: 760px) {
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-fit {
-    --fit-cap: 1.0625rem;
-  }
 }
 
 /* The ledger ink rule for .font-display made the WHAMMY "Respect" button dark on dark green. */

@@ -6,6 +6,6 @@ The walk was Home, start Five Crowns, two rounds with large scores, correct a sc
 - `score-entry-reviewing` stayed on the modal after Submit. On the next round at 1440 the keypad stayed hidden, and tapping a row did not bring it back, because the new state was not reviewing. The entry now syncs the class to the state when it opens.
 - The ledger `.font-display` ink rule turned the WHAMMY Respect label dark on a dark button.
 - The shared 92vh modal height stretched the victory and low-tide cards. Post-game cards hug their content.
-- Long single words split mid-word. Score entry shrinks a name by its longest word (`--fit-em`, about 0.56em per letter) to the row width, capped at the normal size. Tonight's table steps seat names down at 10+ and 13+ letters.
+- Long single words split mid-word. Score entry shrinks a name by its longest word (`--fit-em`, about 0.6em per letter) to the row width, capped at `--se-fit-name`. Tonight's table steps seat names down at 10+ and 13+ letters.
 
 Do not repeat: a status line that sits on the felt needs the paper color, not `--s2-muted`. Check any new modal against the 92vh panel rule. Test review-state classes across two rounds, not one.
