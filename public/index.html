@@ -19968,6 +19968,8 @@ ${isDealer
     const modal=document.getElementById('score-entry-modal');
     modal.classList.toggle('score-entry-hand-foot', mode.kind==='hand-foot');
     modal.classList.toggle('hf-basic-entry', mode.kind==='hand-foot');
+    // Canasta never uses the plain pad; drop the classes a Five Crowns or Flip 7 entry left behind (they stop the team card scrolling on a phone).
+    if(mode.kind==='hand-foot') modal.classList.remove('score-entry-plain','score-entry-no-minus');
     modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', mode.kind!=='hand-foot' && players.length>=6);
     const openVw=window.visualViewport?.width||window.innerWidth||0;
     const openVh=window.visualViewport?.height||window.innerHeight||0;
@@ -21182,6 +21184,7 @@ ${isDealer
     renderScoreEntryModal();
     const modal=document.getElementById('score-entry-modal');
     modal.classList.add('score-entry-hand-foot','score-entry-managed-fit','hf-basic-entry');
+    modal.classList.remove('score-entry-plain','score-entry-no-minus');
     modal.querySelector('.score-entry-panel')?.classList.toggle('score-entry-many-players', false);
     modal.classList.remove('hidden');
     modal.classList.add('flex');
