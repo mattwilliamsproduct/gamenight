@@ -2099,7 +2099,16 @@ html.porch-ledger.slice2-tv .bp-modal-viewport-shell > .bp-modal-panel.postgame-
   height: auto !important;
 }
 
-/* Tonight's table: seat names match the bench names. Long names step down and hyphenate. */
+/* Tonight's table: seat names match the bench names. A long word shrinks to the seat width
+   (--fit-em from slice2.js) so it never splits. */
+html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-who:has(.s2-seat-name.is-fit) {
+  container-type: inline-size;
+}
+
+html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-fit {
+  font-size: min(var(--seat-name-size, max(18.4px, 1.15rem)), max(12px, calc((100cqi - 2px) / var(--fit-em)))) !important;
+}
+
 @media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
   html.porch-ledger.slice2-tv .s2-home .s2-seat {
     grid-template-columns: 1.75rem 44px minmax(0, 1fr) auto !important;
@@ -2107,29 +2116,15 @@ html.porch-ledger.slice2-tv .bp-modal-viewport-shell > .bp-modal-panel.postgame-
   }
 
   html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name {
-    font-size: max(18px, 1.125rem) !important;
+    --seat-name-size: max(18px, 1.125rem);
+    font-size: var(--seat-name-size) !important;
     line-height: 1.15 !important;
   }
 
-  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-long {
-    font-size: max(16px, 1rem) !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-very-long {
-    font-size: max(14px, 0.875rem) !important;
+  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-fit {
+    font-size: min(var(--seat-name-size), max(12px, calc((100cqi - 2px) / var(--fit-em)))) !important;
   }
 }
-
-@media (max-width: 760px) {
-  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-long {
-    font-size: max(16px, 1rem) !important;
-  }
-
-  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-very-long {
-    font-size: max(13.5px, 0.85rem) !important;
-  }
-}
-
 
 /* Word keys (Delete, Skip, Next) size to the keypad so they never clip in a narrow side column. */
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-keypad {

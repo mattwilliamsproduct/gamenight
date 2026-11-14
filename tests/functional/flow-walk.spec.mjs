@@ -49,13 +49,16 @@ async function wordsUnbroken(locator) {
 }
 
 for (const [width, height] of [[1024, 768], [1180, 820], [1440, 900], [390, 844]]) {
-  test(`a long seated name wraps between words at ${width}x${height}`, async ({page}) => {
-    await page.setViewportSize({width, height});
-    await boot(page);
-    const name = page.locator('#slice2-home .s2-seat .s2-seat-name', {hasText: LONG});
-    await expect(name).toBeVisible();
-    expect(await wordsUnbroken(name)).toEqual([]);
-  });
+  for (const bigger of [false, true]) {
+    test(`seated names wrap between words at ${width}x${height}${bigger ? ' with bigger text' : ''}`, async ({page}) => {
+      await page.setViewportSize({width, height});
+      await boot(page, {roster: ['Marigold', ...ROSTER], bigger});
+      await expect(page.locator('#slice2-home .s2-seat .s2-seat-name', {hasText: LONG})).toBeAttached();
+      for (const name of await page.locator('#slice2-home .s2-seat .s2-seat-name').all()) {
+        expect(await wordsUnbroken(name), await name.innerText()).toEqual([]);
+      }
+    });
+  }
 }
 
 for (const [width, height] of [[1024, 768], [1180, 820], [1440, 900]]) {
