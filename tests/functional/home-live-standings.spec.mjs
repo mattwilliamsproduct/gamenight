@@ -115,7 +115,8 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
           panelBottom: Math.max(tableBox.bottom, startBox.bottom),
           rowH: rowBox.height,
           ratio: frameBox.width / frameBox.height,
-          scrolls: list.scrollHeight > list.clientHeight + 1,
+          // Since 0d4760b the roster wrapper (.s2-roster) is the laptop scroller, not the seat grid.
+          scrolls: [list, document.querySelector('.s2-roster')].some((el) => el && el.scrollHeight > el.clientHeight + 1),
           overlaps: [...list.querySelectorAll('.s2-seat')].some((seat, index, seats) => {
             if (!index) return false;
             return seat.getBoundingClientRect().top < seats[index - 1].getBoundingClientRect().bottom - 1;
