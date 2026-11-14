@@ -116,3 +116,21 @@ test('the post-game cards hug their content', async ({page}) => {
     expect(h, id).toBeLessThan(820 * 0.7);
   }
 });
+
+test('the next round opens with the keypad after the last round ended in review at 1440x900', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 900});
+  await boot(page, {live: true});
+  const keypad = page.locator('#score-entry-modal .score-entry-side');
+  for (const round of [1, 2]) {
+    await page.locator('#slice2-enter-btn').click();
+    await expect(keypad, `round ${round} keypad`).toBeVisible();
+    for (let i = 0; i < 4; i++) {
+      await page.locator(`#score-entry-modal button[onclick="scoreEntryKey('5')"]:visible`).first().click();
+      await page.locator('#score-entry-modal .score-entry-keypad .score-entry-key.next:visible').first().click();
+    }
+    await expect(page.locator('#score-entry-modal')).toHaveClass(/score-entry-reviewing/);
+    await page.locator('#score-entry-primary-btn').click();
+    await expect.poll(() => page.evaluate(() => currentGame.rounds.length)).toBe(round);
+    await page.evaluate(() => { try { hideWhammyModal(); } catch {} });
+  }
+});

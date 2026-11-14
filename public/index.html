@@ -19910,13 +19910,11 @@ ${isDealer
     scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
 
-  // Long names step down a size so they wrap between words, not mid-word.
-  function scoreEntryNameFitClass(name){
-    const text=String(name||'');
-    const longestWord=Math.max(0,...text.split(/\s+/).map(word=>word.length));
-    if(longestWord>=15||text.length>=26) return ' is-very-long';
-    if(longestWord>=10||text.length>=16) return ' is-long';
-    return '';
+  // Long words shrink to fit the row (about 0.56em per letter) so names wrap between words, not mid-word.
+  function scoreEntryNameFitAttrs(name){
+    const longestWord=Math.max(0,...String(name||'').split(/\s+/).map(word=>word.length));
+    if(longestWord<8) return 'class="score-entry-name truncate"';
+    return `class="score-entry-name truncate is-fit" style="--fit-em:${(longestWord*0.56).toFixed(2)}"`;
   }
   function openScoreEntryModal(ev){
     const timer=gnPerfStart('GN score modal open');
@@ -19974,6 +19972,8 @@ ${isDealer
     const openVw=window.visualViewport?.width||window.innerWidth||0;
     const openVh=window.visualViewport?.height||window.innerHeight||0;
     modal.classList.toggle('score-entry-tablet-land', openVw>=900&&openVw<=1400&&openVh<=1100&&openVw>openVh);
+    // A new entry starts out of review. The class used to carry over from the last round and hide the keypad.
+    modal.classList.toggle('score-entry-reviewing', !!scoreEntryModalState.reviewing);
     modal.classList.add('score-entry-managed-fit');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -20054,7 +20054,7 @@ ${isDealer
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
               <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':'○'}</span>
-              <div class="score-entry-name truncate${scoreEntryNameFitClass(p)}">${p}</div>
+              <div ${scoreEntryNameFitAttrs(p)}>${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
               <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
             </div>

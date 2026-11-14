@@ -2077,29 +2077,27 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more[hidden] {
   display: none !important;
 }
 
-/* Score entry: long names step down so they break between words. */
-html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name.is-long {
-  font-size: 1.3rem !important;
-  line-height: 1.12 !important;
-}
-
-html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name-line:has(.score-entry-name.is-very-long) {
+/* Score entry: a long word shrinks to the row width so the name breaks between words.
+   --fit-em is the longest word's width in em, set by scoreEntryNameFitAttrs. The cap is the normal name size. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name-line:has(.score-entry-name.is-fit) {
   container-type: inline-size;
 }
 
-/* A 15+ letter word scales to the row width (about 9.5em wide), so it never splits. */
-html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name.is-very-long {
-  font-size: clamp(12px, calc((100cqi - 34px) / 9.5), 1.05rem) !important;
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-fit {
+  --fit-cap: 2.125rem;
+  font-size: min(var(--fit-cap), max(12px, calc((100cqi - 34px) / var(--fit-em)))) !important;
   line-height: 1.12 !important;
 }
 
-@media (max-width: 760px) {
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-long {
-    font-size: 1rem !important;
+@media (max-width: 1100px) {
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-fit {
+    --fit-cap: 1.75rem;
   }
+}
 
-  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-very-long {
-    font-size: clamp(12px, calc((100cqi - 34px) / 9.5), 0.9rem) !important;
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-fit {
+    --fit-cap: 1.0625rem;
   }
 }
 
@@ -2145,8 +2143,16 @@ html.porch-ledger.slice2-tv .bp-modal-viewport-shell > .bp-modal-panel.postgame-
   }
 }
 
-html.porch-ledger.slice2-tv .s2-seat-name.is-very-long,
-html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name.is-very-long {
-  -webkit-hyphens: auto;
-  hyphens: auto;
+
+/* Word keys (Delete, Skip, Next) size to the keypad so they never clip in a narrow side column. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-keypad {
+  container-type: inline-size;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-delete-key,
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-skip-slot,
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-next-btn {
+  font-size: min(1.45rem, max(13px, calc(100cqi / 16.5))) !important;
+  overflow-wrap: normal;
+  padding-inline: 4px !important;
 }
