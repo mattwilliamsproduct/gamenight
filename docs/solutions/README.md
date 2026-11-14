@@ -123,3 +123,5 @@ Standing trap: [phone-scoreboard-reach.md](phone-scoreboard-reach.md) — a phon
 Standing trap: [porch-ledger-phone-edge.md](porch-ledger-phone-edge.md) — the phone ledger field runs to the screen edge. Do not leave the 6px hairline scrollbar thumb as a cream strip. Match-bar labels stay one line at 13px or larger. Player Passports is not abbreviated, and the buttons are not forced to equal widths.
 
 Standing trap: [porch-mat.md](porch-mat.md) — Home is the f2c81a4 layout on the blue felt page. The suit lattice stays toward the edges. Numbers stay on ivory. Tweak the `--felt-*` tokens in one place. Do not drift the Home layout from f2c81a4.
+
+Standing trap: [flow-walk.md](flow-walk.md) — the unusual-score prompt must be visible, or Submit looks dead. Review state resets when entry opens. Post-game cards hug their content. A long word shrinks to fit and never splits.
