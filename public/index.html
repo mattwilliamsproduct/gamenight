@@ -4724,6 +4724,22 @@ button.dealer-name-indicator .dealer-player-label {
       color: var(--rose);
     }
     .inline-form-error.is-on { display: block; }
+    /* The unusual-score prompt sets its buttons without .is-on. Show it so Submit never looks dead. */
+    #score-entry-error:has(#unusual-score-use):not(.hidden) { display: block; }
+    #score-entry-error #unusual-score-edit,
+    #score-entry-error #unusual-score-use {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin: 0.35rem 0.35rem 0 0;
+      padding: 0 1rem;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      background: #fffaf2;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+    #score-entry-error #unusual-score-use { background: var(--teal, #0f766e); border-color: transparent; color: #fff; }
 
     /* ════════ AUDIT LOG ════════ */
     .audit-lead {
@@ -19894,6 +19910,14 @@ ${isDealer
     scroller.scrollTop=Math.max(0,Math.min(top,max));
   }
 
+  // Long names step down a size so they wrap between words, not mid-word.
+  function scoreEntryNameFitClass(name){
+    const text=String(name||'');
+    const longestWord=Math.max(0,...text.split(/\s+/).map(word=>word.length));
+    if(longestWord>=15||text.length>=26) return ' is-very-long';
+    if(longestWord>=10||text.length>=16) return ' is-long';
+    return '';
+  }
   function openScoreEntryModal(ev){
     const timer=gnPerfStart('GN score modal open');
     try{
@@ -20030,7 +20054,7 @@ ${isDealer
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
               <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':'○'}</span>
-              <div class="score-entry-name truncate">${p}</div>
+              <div class="score-entry-name truncate${scoreEntryNameFitClass(p)}">${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
               <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
             </div>

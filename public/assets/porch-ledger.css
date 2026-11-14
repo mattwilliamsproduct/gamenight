@@ -619,6 +619,7 @@ html.porch-ledger.slice2-tv #slice2-board-bar {
 }
 
 html.porch-ledger.slice2-tv #slice2-score-legend,
+html.porch-ledger.slice2-tv #slice2-score-note,
 html.porch-ledger.slice2-tv #slice2-board-line,
 html.porch-ledger.slice2-tv #slice2-board-sub,
 html.porch-ledger.slice2-tv .s2-board-round {
@@ -2074,4 +2075,78 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more {
 
 html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more[hidden] {
   display: none !important;
+}
+
+/* Score entry: long names step down so they break between words. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name.is-long {
+  font-size: 1.3rem !important;
+  line-height: 1.12 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name-line:has(.score-entry-name.is-very-long) {
+  container-type: inline-size;
+}
+
+/* A 15+ letter word scales to the row width (about 9.5em wide), so it never splits. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name.is-very-long {
+  font-size: clamp(12px, calc((100cqi - 34px) / 9.5), 1.05rem) !important;
+  line-height: 1.12 !important;
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-long {
+    font-size: 1rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row .score-entry-name-line .score-entry-name.is-very-long {
+    font-size: clamp(12px, calc((100cqi - 34px) / 9.5), 0.9rem) !important;
+  }
+}
+
+/* The ledger ink rule for .font-display made the WHAMMY "Respect" button dark on dark green. */
+html.porch-ledger .whammy-card button.font-display {
+  color: #fff !important;
+  font-size: 1.5rem !important;
+}
+
+/* Post-game cards hug their content. The shared 92vh modal height left most of the card empty. */
+html.porch-ledger.slice2-tv .bp-modal-viewport-shell > .bp-modal-panel.postgame-card {
+  height: auto !important;
+}
+
+/* Tonight's table: seat names match the bench names. Long names step down and hyphenate. */
+@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
+  html.porch-ledger.slice2-tv .s2-home .s2-seat {
+    grid-template-columns: 1.75rem 44px minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name {
+    font-size: max(18px, 1.125rem) !important;
+    line-height: 1.15 !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-long {
+    font-size: max(16px, 1rem) !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-very-long {
+    font-size: max(14px, 0.875rem) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-long {
+    font-size: max(16px, 1rem) !important;
+  }
+
+  html.porch-ledger.slice2-tv .s2-home .s2-seat .s2-seat-name.is-very-long {
+    font-size: max(13.5px, 0.85rem) !important;
+  }
+}
+
+html.porch-ledger.slice2-tv .s2-seat-name.is-very-long,
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-name.is-very-long {
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }

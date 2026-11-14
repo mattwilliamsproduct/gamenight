@@ -506,13 +506,21 @@
         </div>
       </section>${parkedBanner}`;
     })() : parkedBanner;
+    // Long names step down a size so they wrap between words, not mid-word.
+    const seatNameFit = (name) => {
+      const text = String(name || '');
+      const longestWord = Math.max(0, ...text.split(/\s+/).map((word) => word.length));
+      if (longestWord >= 13 || text.length >= 24) return ' is-very-long';
+      if (longestWord >= 10 || text.length >= 16) return ' is-long';
+      return '';
+    };
     const seats = table.players.map((player, index) => {
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
       return `<article class="s2-seat" data-s2-index="${index}" data-s2-player="${escapeHtml(player)}">
         <span class="s2-seat-num">${index + 1}</span>
         ${getStreakAvatarHtml(player, 'avatar-img')}
         <span class="s2-seat-who">
-          <span class="s2-seat-name">${escapeHtml(player)}</span>
+          <span class="s2-seat-name${seatNameFit(player)}">${escapeHtml(player)}</span>
           ${tag}
         </span>
         <div class="s2-seat-tools">
