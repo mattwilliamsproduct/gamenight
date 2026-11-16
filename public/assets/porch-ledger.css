@@ -2754,3 +2754,17 @@ html.porch-ledger #bpg-try-demo-tip { top: 56px !important; min-height: 60px; pa
     padding-right: 0 !important;
   }
 }
+
+/* Previews: the cloud password and Save & sync give way to one plain notice. */
+html.porch-ledger .bp-cloud-preview-notice {
+  display: flex; align-items: center; gap: var(--bp-space-2);
+  min-height: var(--bp-touch);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-radius: var(--bp-radius-md, 12px);
+  background: var(--bp-secondary-wash, #f1ebe0);
+  border: 1px dashed #a89a85;
+  color: var(--bp-ink) !important;
+  font-size: var(--bp-type-sm); font-weight: 800;
+}
+html.porch-ledger .bp-cloud-preview-notice.hidden { display: none !important; }
+html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(--bp-muted); font-size: 18px; }

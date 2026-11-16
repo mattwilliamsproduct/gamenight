@@ -11076,8 +11076,11 @@ button.dealer-name-indicator .dealer-player-label {
               <div class="text-sm font-extrabold" style="color:var(--emerald);">Porch Cloud</div>
               <p class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);">One scorebook for the live website. Safari and the home-screen app then share the same nights, even if you delete the icon.</p>
               <p id="porch-cloud-status" class="text-xs font-semibold leading-relaxed" style="color:var(--muted);"></p>
-              <input id="porch-cloud-key" type="password" autocomplete="off" class="w-full rounded-xl p-3 text-sm font-bold outline-none border hairline" style="background:var(--bg-2);color:var(--ink);" placeholder="Porch password">
-              <button type="button" onclick="savePorchPassword()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Save &amp; sync</button>
+              <p id="porch-cloud-preview-notice" class="bp-cloud-preview-notice hidden" role="status">Cloud unavailable in this preview</p>
+              <div id="porch-cloud-controls" class="space-y-3">
+                <input id="porch-cloud-key" type="password" autocomplete="off" class="w-full rounded-xl p-3 text-sm font-bold outline-none border hairline" style="background:var(--bg-2);color:var(--ink);" placeholder="Porch password">
+                <button type="button" onclick="savePorchPassword()" class="w-full py-3.5 rounded-2xl font-bold text-base border transition-colors hover:opacity-80" style="background:var(--emerald-bg);color:var(--emerald);border-color:var(--emerald-border);">Save &amp; sync</button>
+              </div>
             </div>
             <details id="how-restore-works">
               <summary>How restore works</summary>
@@ -14034,8 +14037,17 @@ button.dealer-name-indicator .dealer-player-label {
   function refreshPorchCloudSettings(){
     const input=document.getElementById('porch-cloud-key');
     if(input && !input.value) input.value=getPorchKey();
-    if(!canPorchCloud()){
-      setPorchStatus('Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
+    // Previews (and the demo/QA on the live site) never show the password field or Save & sync.
+    // canPorchCloud() and the server guard decide; this only changes what Settings shows.
+    const live=canPorchCloud();
+    document.getElementById('porch-cloud-controls')?.classList.toggle('hidden', !live);
+    const notice=document.getElementById('porch-cloud-preview-notice');
+    if(notice){
+      notice.classList.toggle('hidden', live);
+      notice.textContent=location.hostname==='cardknight.vercel.app'?'Cloud unavailable in the demo':'Cloud unavailable in this preview';
+    }
+    if(!live){
+      setPorchStatus('Scores stay in this browser. Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
       return;
     }
     if(!getPorchKey()){
