@@ -86,3 +86,29 @@ for (const [width, height, bigger] of [[1180, 820, false], [1024, 768, false], [
     }
   });
 }
+
+for (const [width, height] of [[1024, 768], [1180, 820], [1366, 1024]]) {
+  test(`tricks phase at ${width}x${height}: the header line wraps between parts and never runs under the buttons`, async ({page}) => {
+    await page.setViewportSize({width, height});
+    await page.goto('/', {waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => typeof goActiveMatch === 'function' && window.BPGSlice2);
+    const m = await page.evaluate((names) => {
+      localStorage.clear(); allPlayers = names.slice(); players = names.slice(); history = []; prefs.lineupIntro = false; prefs.dealerRoll = false;
+      currentGame = {id: 8802, name: 'Wizard', originalRoster: names.slice(), currentRound: 3, maxRounds: 7, rounds: [], totals: Object.fromEntries(names.map((n) => [n, 0])),
+        wizardPhase: 'scoring', currentBids: Object.fromEntries(names.map((n, i) => [n, i % 3 ? 1 : 0])), hailMaryUsed: [], retired: [], currentScoreDrafts: {}, completed: false, winners: [], auditLog: []};
+      saveData(); goActiveMatch();
+      const line = document.getElementById('slice2-board-line');
+      const lineBox = line.getBoundingClientRect();
+      const firstButton = Math.min(...['slice2-table-btn', 'actions-btn', 'slice2-enter-btn', 'slice2-end-btn'].map((id) => document.getElementById(id)).filter(Boolean).map((el) => el.getBoundingClientRect().left));
+      const range = document.createRange(); range.selectNodeContents(line);
+      const textRight = Math.max(...[...range.getClientRects()].map((r) => r.right));
+      const parts = [...line.querySelectorAll('.s2-board-part')].map((el) => new Set([...el.getClientRects()].map((r) => Math.round(r.top))).size);
+      return {text: line.textContent, textRight, firstButton, overflow: line.scrollWidth - line.clientWidth, parts, top: lineBox.top, barTop: document.getElementById('slice2-board-bar').getBoundingClientRect().top};
+    }, NAMES);
+    expect(m.text).toMatch(/Wizard · Round 3 of 7 · 3 tricks · bids total \d+ \((exact|\d+ over|\d+ under)\)/);
+    expect(m.overflow, 'line fits its column').toBeLessThanOrEqual(1);
+    expect(m.textRight, 'text stops before the first header button').toBeLessThanOrEqual(m.firstButton);
+    expect(m.top, 'line sits inside the header sheet').toBeGreaterThanOrEqual(m.barTop);
+    for (const lines of m.parts) expect(lines, 'each part stays on one line').toBe(1);
+  });
+}

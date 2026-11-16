@@ -2783,3 +2783,10 @@ html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(
   /* Phone board: a little more room for a long name beside the avatar. */
   html.porch-ledger.slice2-tv #game-screen:not([data-game='Hand and Foot']) #scorecard-capture .scorecard-player-identity { column-gap: 6px !important; }
 }
+@media (min-width: 761px) {
+  /* Board header line (iPad and up): wraps between its parts ("Round 3 of 7 · 3 tricks · bids total 5 (2 over)")
+     instead of running under the header buttons. */
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line,
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line .s2-board-round { white-space: normal !important; }
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line :is(.s2-board-title, .s2-board-part) { white-space: nowrap !important; }
+}

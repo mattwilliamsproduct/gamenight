@@ -901,7 +901,10 @@
       const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => (
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])
       ));
-      line.innerHTML = `<strong class="s2-board-title">${esc(title)}</strong><span class="s2-board-round"> · ${esc(rest)}</span>`;
+      // Each part ("Round 3 of 7", "3 tricks", "bids total 5 (2 over)") stays whole; the line wraps between parts
+      // so it never runs under the header buttons. textContent is unchanged.
+      const parts = String(rest).split(' · ').map((part) => `<span class="s2-board-part">${esc(part)}</span>`).join(' · ');
+      line.innerHTML = `<strong class="s2-board-title">${esc(title)}</strong><span class="s2-board-round"> · ${parts}</span>`;
     }
     const sub = document.getElementById('slice2-board-sub');
     if (sub) {
