@@ -84,7 +84,7 @@ test.afterEach(async ({page}) => {
   expect(page.pageErrors || []).toEqual([]);
 });
 
-for (const size of [{width: 1180, height: 820}, {width: 390, height: 844}]) {
+for (const size of [{width: 1180, height: 820}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
   test(`partial lock at ${size.width}: missing bids look pending or skipped, the alert names them, and Lock with 0s stores explicit 0s`, async ({page}) => {
     await page.setViewportSize(size);
     await boot(page);
