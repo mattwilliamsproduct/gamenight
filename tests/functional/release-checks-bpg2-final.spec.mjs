@@ -104,6 +104,40 @@ test('renaming a player keeps one person with one history in Records and Passpor
   await check();
 });
 
+test('renaming into an existing name merges into one person, from the setup sheet, after a confirm', async ({page}) => {
+  // The brief's example is a nickname that already has its own history; fictional stand-ins here.
+  await boot(page);
+  await page.evaluate(() => {
+    const night = (id, scores, winner) => ({id, game: 'Five Crowns', date: '11/0' + (id % 10) + '/2026', originalRoster: Object.keys(scores), maxRounds: 1,
+      rounds: [{round: 1, scores}], totals: {...scores}, winners: [winner], retired: [], auditLog: [], completed: true, gameOver: true, outcome: 'finished'});
+    localStorage.clear(); currentGame = null;
+    allPlayers = ['Hazel', 'Otis', 'Rafael', 'Bea']; players = ['Hazel', 'Otis'];
+    history = [night(9201, {Rafael: 5, Hazel: 20}, 'Rafael'), night(9202, {Bea: 3, Otis: 10}, 'Bea')];
+    saveData({fullPersist: true, syncCold: true}); goHome();
+  });
+  await page.locator('.s2-pick .s2-avatar-edit[data-s2-player="Rafael"]').click();
+  await page.locator('#player-edit-rename').click();
+  await page.locator('#rename-input').fill('Bea');
+  let asked = '';
+  page.once('dialog', (d) => { asked = d.message(); d.accept(); });
+  await page.keyboard.press('Enter');
+  expect(asked).toMatch(/Merge "Rafael" into "Bea"\?/);
+  await expect(page.locator('#player-edit-name')).toHaveText('Bea');
+  expect(await page.evaluate(() => editingPlayerProfile), 'the sheet still edits the merged player').toBe('Bea');
+  const check = async () => {
+    const s = await page.evaluate(() => {
+      const t = BPGRecords.careerWinTally(history, {scorebook: BPGScorebook});
+      return {bea: Object.values(t.players || {}).find((r) => r.name === 'Bea'), old: JSON.stringify(history).includes('Rafael'), beas: allPlayers.filter((n) => n === 'Bea').length, rafael: allPlayers.includes('Rafael')};
+    });
+    expect(s).toMatchObject({old: false, beas: 1, rafael: false});
+    expect(s.bea).toMatchObject({wins: 2});
+  };
+  await check();
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await page.waitForFunction(() => window.BPGRecords && Array.isArray(history) && history.length === 2);
+  await check();
+});
+
 test('"Saved on this device" appears only after a real save', async ({page}) => {
   await boot(page);
   await page.evaluate(() => localStorage.clear());

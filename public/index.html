@@ -14927,8 +14927,8 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(mergePlayerRecords(oldName, newName)===false) return;
       closeRenameModal();
-      if(playerEditSheetOpen()){ editingPlayerProfile=newName; afterPlayerEditFromSheet(); }
       closeProfileDetail();
+      if(playerEditSheetOpen()){ editingPlayerProfile=newName; afterPlayerEditFromSheet(); }
       renderProfilesGrid();
       toast(`✓ "${oldName}" merged into "${newName}"`, 'success');
       return;
