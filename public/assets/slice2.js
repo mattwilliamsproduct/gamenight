@@ -266,6 +266,11 @@
     }
     const dealer = getCurrentDealerName(game);
     if (dealer) bits.push(`Dealer:\u00a0${dealer}`);
+    // Bidding context reads from across the room: who deals, and that bids are due for N tricks.
+    if (isBidTrickGame(game) && !isMatchOver(game) && getBidTrickPhase(game) === 'bidding') {
+      const tricks = getRoundTrickCount(game);
+      bits.push(`Bidding\u00a0·\u00a0${tricks}\u00a0${tricks === 1 ? 'trick' : 'tricks'} this round`);
+    }
     return bits.join(' · ');
   }
 

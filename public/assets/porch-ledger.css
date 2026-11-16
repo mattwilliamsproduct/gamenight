@@ -2338,3 +2338,75 @@ html.porch-ledger [role="dialog"][tabindex="-1"]:focus { outline: none; }
   }
   html.porch-ledger.slice2-tv #rules-content { padding: var(--bp-space-4) !important; font-size: var(--bp-type-md) !important; }
 }
+
+/* ═══ Live board: width and header (bpg2) ═══
+   The scoreboard uses the viewport with a modest felt margin (the game screen's own
+   padding), instead of the old 62rem column. The header is one ivory sheet that
+   matches the board width, so nothing reads through a transparent layer. */
+html.porch-ledger {
+  --bp-board-max: 1760px;
+}
+html.porch-ledger.slice2-tv body.active-match-view .bp-app-shell {
+  max-width: none !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture,
+html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-hug-rows,
+html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit,
+html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture.scorecard-fit-rows,
+html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game] #scorecard-capture.scorecard-hug-rows,
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
+  width: 100% !important;
+  max-width: var(--bp-board-max) !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
+  background: var(--ledger-paper) !important;
+  color: var(--bp-ink) !important;
+  border: 1px solid var(--ledger-line) !important;
+  border-radius: var(--bp-radius-lg) !important;
+  box-shadow: var(--bp-shadow-2) !important;
+  padding: var(--bp-space-2) var(--bp-space-4) !important;
+  margin-top: var(--bp-space-3) !important;
+  margin-bottom: var(--bp-space-3) !important;
+  row-gap: var(--bp-space-1);
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar :is(#slice2-board-line, #slice2-board-sub, #slice2-score-legend, #slice2-score-note, .s2-board-round),
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line .s2-board-title {
+  color: var(--bp-ink) !important;
+  text-shadow: none !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line {
+  font-size: clamp(22px, 2.3vw, 34px) !important;
+  line-height: 1.15 !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line .s2-board-round {
+  color: var(--bp-primary-deep) !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-sub {
+  font-size: clamp(16px, 1.55vw, 22px) !important;
+  font-weight: 800 !important;
+  color: var(--bp-ink-soft) !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-score-legend,
+html.porch-ledger.slice2-tv body.active-match-view #slice2-score-note {
+  font-size: var(--bp-type-sm) !important;
+  color: var(--bp-muted) !important;
+}
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-rule {
+  background: var(--ledger-line) !important;
+}
+/* Phone: a long name wraps between words onto a second line instead of being cut off.
+   Canasta team names keep their own one-line rule. */
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #game-screen:not([data-game='Hand and Foot']) #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name {
+    white-space: normal !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    line-height: 1.12 !important;
+    text-overflow: clip !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
