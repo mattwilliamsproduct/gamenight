@@ -1900,7 +1900,7 @@
       letter-spacing: 0 !important;
       overflow: visible;
     }
-    .score-entry-row.is-skipped .score-entry-value::before { content: "Skip"; }
+    .score-entry-row.is-skipped .score-entry-value::before { content: "Skipped"; }
     .score-entry-row.is-skipped .score-entry-row-status {
       border-style: solid;
       border-color: #8a6a32;
@@ -4724,6 +4724,19 @@ button.dealer-name-indicator .dealer-player-label {
       color: var(--rose);
     }
     .inline-form-error.is-on { display: block; }
+    /* Score entry: the reason Lock bids or Submit did nothing sits right above those buttons. */
+    #score-entry-error.score-entry-alert {
+      margin: 0 0 0.75rem;
+      padding: 0.7rem 0.95rem;
+      border: 2px solid var(--rose);
+      border-radius: 14px;
+      background: #fff1f0;
+      color: #9f1239;
+      font-size: 1.02rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    #score-entry-error.score-entry-alert:not(.is-on):not(:has(#unusual-score-use)) { display: none; }
     /* The unusual-score prompt sets its buttons without .is-on. Show it so Submit never looks dead. */
     #score-entry-error:has(#unusual-score-use):not(.hidden) { display: block; }
     #score-entry-error #unusual-score-edit,
@@ -10725,7 +10738,6 @@ button.dealer-name-indicator .dealer-player-label {
             <div id="score-entry-context" class="mt-1 text-sm md:text-base font-extrabold uppercase tracking-[0.16em]" style="color:var(--muted);"></div>
           </div>
           <div id="score-entry-progress" class="score-entry-progress"></div>
-          <p id="score-entry-error" class="inline-form-error" role="alert"></p>
           <div id="hf-rate-bar" class="hf-rate-bar hidden">
             <button type="button" id="hf-rate-clean" class="hf-rate" onclick="selectHandFootRate('cleanCanastaEach')">
               <div class="score-entry-meta-label">Each clean</div>
@@ -10782,6 +10794,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
 
+        <p id="score-entry-error" class="inline-form-error score-entry-alert" role="alert"></p>
         <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t hairline">
           <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Cancel</button>
           <button type="button" id="score-entry-review-btn" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Review scores</button>
@@ -19672,6 +19685,13 @@ ${isDealer
     el.textContent=status.label;
   }
 
+  function scoreEntryRowStateClass(state){
+    if(state==='confirmed') return 'is-complete';
+    if(state==='skipped') return 'is-skipped';
+    if(state==='unentered') return 'is-empty';
+    return '';
+  }
+
   function updateScoreEntryRowState(player){
     if(!scoreEntryModalState||!currentGame||!player)return;
     const row=document.getElementById(`score-entry-row-${rookElementId(player)}`);
@@ -19681,6 +19701,7 @@ ${isDealer
     row.classList.toggle('is-complete',complete);
     row.classList.toggle('is-empty',status.state==='unentered');
     row.classList.toggle('is-skipped',status.state==='skipped');
+    row.classList.toggle('is-missing',(status.state==='unentered'||status.state==='skipped')&&!!scoreEntryModalState.missing?.[player]);
     row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${status.label}`);
     row.querySelector('.score-entry-input-cell')?.setAttribute('data-entry-state', status.state);
     const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
@@ -19748,10 +19769,15 @@ ${isDealer
     if(isBidTrickGame(currentGame)){
       const tricks=getRoundTrickCount(currentGame);
       const total=getScoreEntryDraftTotal();
+      const skippedCount=players.filter(p=>scoreEntryStatusFor(p).state==='skipped').length;
+      const skippedPart=skippedCount?[`${skippedCount} skipped`]:[];
       if(isScoreEntryBidMode(mode)){
-        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} bids in`,`total ${total}`,`${tricks} trick${tricks===1?'':'s'}`]);
+        // 818 already locks a blank bid as 0. Say so, so a blank never looks like a hidden 0.
+        const blankRule=currentGame.name==='818'&&entered<players.length?['blank bids lock as 0']:[];
+        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} bids in`,...skippedPart,`total ${total}`,`${tricks} trick${tricks===1?'':'s'}`,...blankRule]);
       } else {
-        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} tricks in`,`total ${total}`,`need ${tricks}`]);
+        const blankRule=entered<players.length?['blank tricks count as 0']:[];
+        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} tricks in`,...skippedPart,`total ${total}`,`need ${tricks}`,...blankRule]);
       }
     } else {
       progress.textContent=enteredText;
@@ -19776,6 +19802,8 @@ ${isDealer
     const next=document.getElementById('score-entry-next-btn');
     const del=document.getElementById('score-entry-delete-key');
     const bidTrick=isScoreEntryBidMode(mode)||isScoreEntryTrickMode(mode);
+    modal?.classList.toggle('score-entry-bidlike', bidTrick&&!handFoot);
+    modal?.classList.toggle('score-entry-trick-entry', isScoreEntryTrickMode(mode)&&!handFoot);
     if(del) del.textContent=(plain||bidTrick)?'Delete':'⌫';
     if(skip){
       skip.textContent='Skip';
@@ -19814,8 +19842,10 @@ ${isDealer
       return;
     }
     if(note.parentElement!==header){
-      const error=document.getElementById('score-entry-error');
-      header.insertBefore(note, error||null);
+      // The note sits right after the progress pill. The error box now lives above the footer buttons.
+      const progress=document.getElementById('score-entry-progress');
+      const anchor=progress&&progress.parentElement===header?progress.nextSibling:null;
+      header.insertBefore(note, anchor);
     }
   }
 
@@ -20050,12 +20080,12 @@ ${isDealer
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${isComplete?'is-complete':'is-empty'}" aria-label="${escapeHtml(`${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${scoreEntryRowStateClass(entryStatus.state)}" aria-label="${escapeHtml(`${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
         <div class="score-entry-player-card">
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
             <div class="score-entry-name-line">
-              <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':'○'}</span>
+              <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':(entryStatus.state==='skipped'?'–':'○')}</span>
               <div ${scoreEntryNameFitAttrs(p)}>${p}</div>
               ${isDealer?'<span class="score-entry-dealer-badge">Dealer</span>':''}
               <span class="score-entry-comeback-slot">${previewComebackForEntry(p, values[p])}</span>
@@ -20570,7 +20600,7 @@ ${isDealer
       scoreEntryModalState.values[p]=next.value;
       scoreEntryModalState.acknowledged[p]=next.acknowledged;
       scoreEntryModalState.dirty[p]=!!next.dirty;
-      if(scoreEntryUsesPlainPad(scoreEntryModalState.mode)&&v!=='00'&&scoreEntryModalState.skipped){
+      if(v!=='00'&&scoreEntryModalState.skipped){
         scoreEntryModalState.skipped[p]=false;
       }
       updateScoreEntryActiveValue();
@@ -20671,14 +20701,23 @@ ${isDealer
     const order=scoreEntryModalState.players||[];
     const current=scoreEntryModalState.activePlayer||order[0];
     if(!current)return;
-    scoreEntryModalState.values[current]='';
-    scoreEntryModalState.acknowledged[current]=false;
-    scoreEntryModalState.dirty[current]=false;
+    // Bids and tricks: Skip moves on. An entered value stays; a blank seat is marked skipped, never 0.
+    if(!scoreEntryModalState.skipped) scoreEntryModalState.skipped={};
+    if(BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[current])){
+      scoreEntryModalState.values[current]='';
+      scoreEntryModalState.acknowledged[current]=false;
+      scoreEntryModalState.dirty[current]=false;
+      scoreEntryModalState.skipped[current]=true;
+    } else {
+      markScoreEntryPlayerComplete(current);
+      scoreEntryModalState.skipped[current]=false;
+    }
     const idx=order.indexOf(current);
     let following=null;
     if(idx>=0&&idx<order.length-1) following=order[idx+1];
-    else following=order.find(player=>BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[player]))||null;
+    else following=order.find(player=>player!==current&&BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values[player]))||null;
     updateScoreEntryRowState(current);
+    updateScoreEntryProgress();
     updateScoreEntryActiveValue();
     if(following&&following!==current){
       const displayIdx=order.indexOf(following);
@@ -20778,6 +20817,8 @@ ${isDealer
 
   function rejectScoreEntries(result){
     if(result&&Array.isArray(result.missingPlayers)&&result.missingPlayers.length&&scoreEntryModalState){
+      scoreEntryModalState.missing=Object.fromEntries(result.missingPlayers.map(player=>[player,true]));
+      result.missingPlayers.forEach(player=>updateScoreEntryRowState(player));
       const idx=scoreEntryModalState.players.indexOf(result.missingPlayers[0]);
       if(idx>=0) selectScoreEntryPlayer(idx);
     }

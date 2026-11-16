@@ -1061,6 +1061,52 @@ html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-en
   background: var(--ledger-paper) !important;
 }
 
+/* Entry states. Pending, skipped, missing and entered each read differently, and a missing value never reads as 0.
+   Skipped applies to every pad; the pending dash and missing mark apply to bids and tricks. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.is-skipped .score-entry-value {
+  border: 2px dashed #8a6a32 !important;
+  background: #fff4df !important;
+  color: #8a6a32 !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-empty .score-entry-value {
+  border: 2px dashed #b9a58c !important;
+  background: #f3ece1 !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-empty .score-entry-value:empty::before {
+  content: "—";
+  color: #8c7b66;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-complete .score-entry-value {
+  border: 2px solid var(--ledger-teal) !important;
+  background: #ffffff !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-missing .score-entry-value {
+  border: 2px dashed #be123c !important;
+  background: #fff1f0 !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-missing .score-entry-value:empty::before {
+  content: "Needs bid";
+  color: #9f1239;
+  font-family: var(--ledger-type-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-trick-entry .score-entry-row.is-missing .score-entry-value:empty::before { content: "Needs tricks"; }
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-skipped .score-entry-value::before {
+  font-family: var(--ledger-type-text);
+  font-size: 0.95rem;
+}
+/* The running total is not the bid. Keep it quiet so a 0 total never looks like a 0 bid. */
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-total .score-entry-meta-value {
+  color: #8c7b66 !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-total {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 /* Keypad placement stays #86's. The skin only paints the keys.
    A no-minus pad uses areas "k0 k0 k0 next" so 0 fills the bottom row. */
 
@@ -2137,4 +2183,12 @@ html.porch-ledger.slice2-tv #score-entry-modal #score-entry-next-btn {
   font-size: min(1.45rem, max(13px, calc(100cqi / 16.5))) !important;
   overflow-wrap: normal;
   padding-inline: 4px !important;
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-missing .score-entry-value:empty::before,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-row.is-skipped .score-entry-value::before {
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
 }
