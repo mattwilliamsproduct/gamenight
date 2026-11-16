@@ -19999,6 +19999,11 @@ ${isDealer
     if(note) note.textContent=(!isScoreEntryBidMode(mode)&&!isScoreEntryTrickMode(mode))?BPGScorebook.scoreEntryBlankHelper():'';
     const submit=document.getElementById('score-entry-primary-btn');
     if(submit) submit.disabled=false;
+    // One primary action at a time: Next leads while entries are missing; once all are in, Lock bids / Submit leads.
+    // Submit stays tappable either way (a partial lock still asks first).
+    const complete=entered>=players.length;
+    if(submit) submit.classList.toggle('is-waiting', !complete);
+    document.getElementById('score-entry-modal')?.classList.toggle('is-entry-complete', complete);
     syncScoreEntryPad();
   }
 

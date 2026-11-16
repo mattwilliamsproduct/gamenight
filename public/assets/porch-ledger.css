@@ -2875,3 +2875,12 @@ html.porch-ledger #save-indicator.is-blocked {
   background: #fbeee0 !important; color: #7a3d0a !important; border-color: #e3b98a !important;
   text-transform: none !important; letter-spacing: 0 !important; white-space: normal !important;
 }
+/* Score entry: one primary action at a time (bpg2 Phase 4). */
+html.porch-ledger.slice2-tv body #score-entry-modal #score-entry-primary-btn.is-waiting {
+  background: var(--bp-secondary-bg, #fffaf3) !important; color: #0a5c54 !important;
+  border: 2px solid #0a5c54 !important; box-shadow: none !important;
+}
+html.porch-ledger.slice2-tv body #score-entry-modal.is-entry-complete .score-entry-keypad .score-entry-key.next {
+  background: var(--bp-secondary-bg, #fffaf3) !important; color: #0a5c54 !important;
+  border: 2px solid #0a5c54 !important; box-shadow: none !important;
+}
