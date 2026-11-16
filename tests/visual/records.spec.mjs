@@ -15,7 +15,7 @@ test('Hall of Fame and Shame include 818, Beat the Heat, and Comeback extras',as
   await expect(ledger).toContainText('Hall of Fame');
   await expect(ledger).toContainText('818');
   await expect(ledger).toContainText('Beat the Heat');
-  await expect(ledger).toContainText('Unassisted matches only');
+  await expect(ledger).toContainText('Only games without the Wheel');
   await expect(ledger).toContainText('Hall of Shame');
   await expect(ledger).toContainText('Past nights');
   await expect(page.locator('#tab-records')).toBeHidden();

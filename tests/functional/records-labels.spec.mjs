@@ -14,8 +14,8 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   await expect(ledger.getByRole('heading', {name: 'Hall of Fame'})).toBeVisible();
   await expect(ledger).toContainText('Canasta');
   await expect(ledger).toContainText(/completed match/);
-  await expect(ledger).toContainText(/Unassisted matches only|Final-score records exclude assisted matches/);
-  await expect(ledger).not.toContainText('Unassisted matches only on best final');
+  await expect(ledger).toContainText(/Only games without the Wheel|Best and worst final scores skip games that used the Back Porch Wheel/);
+  await expect(ledger).not.toContainText('Only games without the Wheel on best final');
   await expect(ledger).not.toContainText('Game Championship Ledger');
   await expect(page.locator('#slice2-show-fame')).toHaveText(/Overview/);
   await expect(page.locator('#slice2-show-shame')).toHaveText(/Explore records/);
@@ -33,7 +33,7 @@ test('records-book shows Canasta and completed-match Hall of Fame copy', async (
   await expect(explore).toContainText('Decided in the final round');
   await expect(explore).toContainText('Closest finish to 66');
   await expect(explore).toContainText('Longest stretch without a win');
-  await expect(explore).toContainText('Unassisted matches only');
+  await expect(explore).toContainText('Only games without the Wheel');
   await expect(explore).toContainText('Places gained are measured immediately after each spin');
   await expect(explore).toContainText(/of \d+ bids/);
   await expect(explore).not.toContainText('More from the book');

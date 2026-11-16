@@ -22951,7 +22951,7 @@ ${isDealer
         BPGScorebook.isCompletedHistoryMatch(h)?'':(`<span class="incomplete-match-badge" data-match-status="incomplete">${BPGScorebook.GAME_STATUS_LABELS.unfinished}</span>`),
         earlyLabel?`<span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:'',
         BPGScorebook.gameStatus(h).countLabel?`<span class="count-status-badge" data-match-status="${BPGScorebook.countsForTallies(h)?'counted':'not-counted'}">${BPGScorebook.gameStatus(h).countLabel}</span>`:'',
-        BPGScorebook.isAssistedMatch(h)?'<span class="assisted-match-badge" data-assisted-match="true">Assisted match</span>':''
+        BPGScorebook.isAssistedMatch(h)?'<span class="assisted-match-badge" data-assisted-match="true">Wheel used</span>':''
       ].filter(Boolean).join(' · ');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4 gap-3">
@@ -22992,7 +22992,7 @@ ${isDealer
     const countToggle=BPGScorebook.showCountResult(g) && BPGScorebook.isCompletedHistoryMatch(g)
       ? ` · <button type="button" class="btn-ghost px-2 py-1 text-xs" data-count-toggle="${escapeHtml(String(g.id))}" data-count-override="${BPGScorebook.countsForTallies(g)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(g.id)})">${BPGScorebook.countsForTallies(g)?BPGScorebook.GAME_STATUS_LABELS.stopCounting:BPGScorebook.gameStatus(g).countAction}</button>`
       : '';
-    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${earlyLabel?` · <span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:''}${countLabel?` · <span class="count-status-badge">${escapeHtml(countLabel)}</span>`:''}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted match</span>':''}${countToggle}`;
+    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${earlyLabel?` · <span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:''}${countLabel?` · <span class="count-status-badge">${escapeHtml(countLabel)}</span>`:''}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Wheel used</span>':''}${countToggle}`;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
     const leftEarly=(g.retired||[]).filter(Boolean);
@@ -23845,10 +23845,10 @@ ${isDealer
         <div class="font-jakarta font-extrabold text-3xl font-mono-num" style="color:${pos?'var(--emerald)':'var(--rose)'};">${formatProfileValue(title,r)}</div>
       </div>`;
     };
-    const UNASSISTED='Unassisted matches only';
+    const UNASSISTED='Only games without the Wheel';
     const scoreRecord=(gameName,record)=>{
       const row=data.games._coverage?.[gameName];
-      if(row && row.assisted>0 && row.unassisted===0) return {record:null, note:UNASSISTED, empty:'No unassisted matches yet'};
+      if(row && row.assisted>0 && row.unassisted===0) return {record:null, note:UNASSISTED, empty:'No games without the Wheel yet'};
       return {record, note:UNASSISTED, empty:'No qualifying history'};
     };
     const unassistedCard=(gameName,title,record,pos)=> {
@@ -24032,10 +24032,10 @@ ${isDealer
         <h2 class="font-display text-3xl border-b-2 hairline pb-3 bp-illustrated-heading bp-heading-shame" style="color:var(--rose);">Hall of Shame</h2>
         <div id="shame-content" class="space-y-3"></div>
       </div>`;
-    const UNASSISTED='Unassisted matches only';
+    const UNASSISTED='Only games without the Wheel';
     const fameScore=(gameName,value,player)=>{
       const row=r._coverage?.[gameName];
-      if(row && row.assisted>0 && row.unassisted===0) return {value:NaN, player:'No unassisted matches yet'};
+      if(row && row.assisted>0 && row.unassisted===0) return {value:NaN, player:'No games without the Wheel yet'};
       return {value, player};
     };
     const fmt=(ttl,val,player,pos,sfx='',note='')=>{

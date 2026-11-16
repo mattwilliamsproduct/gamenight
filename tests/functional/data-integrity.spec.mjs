@@ -786,7 +786,7 @@ test('P0-03 the 12-player fixture heals Brick’s spin and keeps unassisted scor
   const nights=page.locator('#hall-of-fame-view .s2-night');
   await expect(nights).toHaveCount(2);
   await expect(page.locator('#hall-of-fame-view .s2-night[data-assisted-match="true"]')).toHaveCount(1);
-  await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Best and worst final scores skip games that used the Back Porch Wheel');
   await expect(page.locator('#hall-of-fame-view')).toContainText('Matt');
   await expect(page.locator('#hall-of-fame-view')).toContainText('4 pts');
   await expect(page.locator('.s2-ledger-table')).not.toContainText('-18');
@@ -809,7 +809,7 @@ test('P0-03 an all-assisted shelf says there are no unassisted matches', async (
   // Records shows the one empty state instead of a table of "No record yet" rows.
   const counted = await page.evaluate(()=>history.filter((h)=>BPGScorebook.countsForTallies(h)).length);
   if(counted){
-    await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
+    await expect(page.locator('#hall-of-fame-view')).toContainText('Best and worst final scores skip games that used the Back Porch Wheel');
     await expect(page.locator('#hall-of-fame-view')).toContainText('No record yet');
     await page.locator('#slice2-show-shame').click();
     await expect(page.locator('.s2-explore-col')).toContainText('No full games yet');
@@ -819,7 +819,7 @@ test('P0-03 an all-assisted shelf says there are no unassisted matches', async (
     await page.locator('#slice2-show-shame').click();
     await expect(page.locator('#hall-of-fame-view [data-records-empty]')).toHaveCount(1);
   }
-  await expect(page.locator('#hall-of-fame-view')).not.toContainText('Unassisted matches only on best final');
+  await expect(page.locator('#hall-of-fame-view')).not.toContainText('Only games without the Wheel on best final');
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await page.locator('#hall-of-fame-view').screenshot({path:`${ARTIFACTS}/slice1-all-assisted-empty.png`});
 });
@@ -1039,7 +1039,7 @@ test('P0-03 phone width still shows the assisted badge and the healed round', as
   await expect(page.locator('[data-assisted-match="true"]').first()).toBeVisible();
   fs.mkdirSync(ARTIFACTS,{recursive:true});
   await shot(page,'slice1-phone-timeline');
-  await expect(page.locator('#hall-of-fame-view')).toContainText('Final-score records exclude assisted matches');
+  await expect(page.locator('#hall-of-fame-view')).toContainText('Best and worst final scores skip games that used the Back Porch Wheel');
   await shot(page,'slice1-phone-hall-of-fame');
   await shot(page,'slice1-phone-records');
 });

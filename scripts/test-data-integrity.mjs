@@ -533,11 +533,12 @@ test('recording a Life Preserver spin is included once and stays put when totals
   assert.equal(game.lifePreserverHeld[0], 'Brick');
 });
 
-test('records copy keeps the assisted-match rules on the page', () => {
+test('records copy keeps the Back Porch Wheel rules on the page in plain words', () => {
   const page = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-  assert.match(page, /Unassisted matches only/);
-  assert.match(page, /No unassisted matches yet/);
-  assert.match(page, /Assisted match/);
+  assert.match(page, /Only games without the Wheel/);
+  assert.match(page, /No games without the Wheel yet/);
+  assert.match(page, /data-assisted-match="true">Wheel used</);
+  assert.doesNotMatch(page, />Assisted match</);
   assert.match(page, /BPGScorebook\.isSyntheticAdjustmentRound/);
   assert.match(page, /BPGScorebook\.isAssistedMatch/);
   assert.match(page, /BPGScorebook\.recordLifePreserverSpin/);

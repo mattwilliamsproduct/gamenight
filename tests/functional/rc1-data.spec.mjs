@@ -87,7 +87,7 @@ test('pre-Slice-1 history, incomplete, retired, correction, and assisted records
       assisted: BPGScorebook.isAssistedMatch(currentGame),
       used: currentGame.hailMaryUsed,
       bestWizard: fame.Wizard?.bestScore,
-      unassistedNote: JSON.stringify(book).includes('Unassisted matches only')
+      unassistedNote: JSON.stringify(book).includes('Only games without the Wheel')
     };
   });
   expect(hall.assisted).toBe(true);

@@ -804,8 +804,8 @@
   const CAREER_WIN_RULE = [
     'One counting rule for wins, win %, win streak, and games played.',
     'A finished night counts. An ended-early or needs-review night counts only after Count partial result. A paused night, or a game with no scored rounds, does not.',
-    'Counting that result never makes the partial total a full-game score record.',
-    'Assisted nights can still count for wins and games; they skip unassisted best-score records.',
+    'A counted partial result never sets a best or worst final score.',
+    'A night that used the Back Porch Wheel still counts for wins and games. It sits out best and worst final scores.',
     'Every tied winner gets a win.',
     'A player marked left early keeps their scores, but is never a winner, even if their total would otherwise win.',
     'If that leaves no stored winner, the remaining finishers’ scores decide the winner(s).'
@@ -1327,7 +1327,7 @@
       <div class="s2-overview-mid">
         <section class="s2-panel">
           <div class="s2-panel-head"><h2>Hall of Fame</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
-          <p class="s2-assisted-note">Final-score records exclude assisted matches</p>
+          <p class="s2-assisted-note">Best and worst final scores skip games that used the Back Porch Wheel</p>
           <div class="s2-ledger-table">
             <div class="s2-ledger-row is-head"><span>Game</span><span>Best final</span><span>Best round</span></div>
             ${rows}
@@ -1480,14 +1480,14 @@
     if (playerFilter && !recordMatchesPlayer(record, playerFilter)) return '';
     const gated = isFullGameGatedLabel(label);
     const noteText = (() => {
-      if (note === 'No unassisted matches yet') return gated ? fullGameNote('Unassisted matches only') : note;
-      if (gated && note === 'Unassisted matches only') return fullGameNote(note);
+      if (note === 'No games without the Wheel yet') return gated ? fullGameNote('Only games without the Wheel') : note;
+      if (gated && note === 'Only games without the Wheel') return fullGameNote(note);
       if (gated && !note) return 'Full games only';
       return note || '';
     })();
     if (!record) {
       let empty = 'No qualifying history';
-      if (note === 'No unassisted matches yet') empty = 'No unassisted matches yet';
+      if (note === 'No games without the Wheel yet') empty = 'No games without the Wheel yet';
       else if (gated) empty = fullGameEmptyCopy();
       const noteHtml = noteText ? `<small class="s2-unassisted-note">${esc(noteText)}</small>` : '';
       return `<div class="s2-book-row"><span class="s2-book-label">${esc(label)}</span><span class="s2-book-empty">${esc(empty)}</span>${noteHtml}</div>`;
@@ -1557,8 +1557,8 @@
 
   function coverageNote(data, gameId) {
     const row = data.games && data.games._coverage && data.games._coverage[gameId];
-    if (row && row.assisted > 0 && row.unassisted === 0) return 'No unassisted matches yet';
-    return 'Unassisted matches only';
+    if (row && row.assisted > 0 && row.unassisted === 0) return 'No games without the Wheel yet';
+    return 'Only games without the Wheel';
   }
 
   function explorePerGame(data, history, gameFilter, playerFilter, esc, compact) {
@@ -1835,7 +1835,7 @@
       : (earlyText || `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
       model.incomplete ? `<span class="s2-night-badge">${esc(labels.unfinished)}</span>` : '',
-      model.assisted ? '<span class="s2-night-badge">Assisted</span>' : '',
+      model.assisted ? '<span class="s2-night-badge">Wheel used</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
     const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
@@ -1886,7 +1886,7 @@
         ${badges}
       </header>
       ${winner}
-      ${model.assisted ? `<p class="s2-assisted-note">The ${esc((root.BPGLifePreserver && root.BPGLifePreserver.BACK_PORCH_WHEEL && root.BPGLifePreserver.BACK_PORCH_WHEEL.name) || 'wheel')} was used. Best-score records skip this night.</p>` : ''}
+      ${model.assisted ? `<p class="s2-assisted-note">The ${esc((root.BPGLifePreserver && root.BPGLifePreserver.BACK_PORCH_WHEEL && root.BPGLifePreserver.BACK_PORCH_WHEEL.name) || 'wheel')} was used. Best and worst scores skip this night.</p>` : ''}
       <ol class="s2-night-standings">${rows}</ol>
       ${expand}
       <div class="s2-night-actions">

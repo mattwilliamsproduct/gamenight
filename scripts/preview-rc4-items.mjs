@@ -137,7 +137,7 @@ try {
     await shot(page, `records-${width}`);
     await page.screenshot({ path: `${out}/records-full-${width}.png`, fullPage: true });
     const recordsText = await page.locator('#hall-of-fame-view').innerText();
-    record(`records note ${width}`, /Final-score records exclude assisted matches/.test(recordsText), '');
+    record(`records note ${width}`, /Best and worst final scores skip games that used the Back Porch Wheel/.test(recordsText), '');
     record(`no record yet ${width}`, /No record yet/.test(recordsText) && !/\n-\n/.test(recordsText), '');
     const thumbs = await page.evaluate(() => [...document.querySelectorAll('.s2-game-thumb, .s2-ledger-mark')].slice(0, 8).map((img) => {
       const box = img.getBoundingClientRect();

@@ -110,7 +110,7 @@ test('demo book exposes honest full nights for the real records functions', () =
     getAvatarImg() { return ''; }
   });
   assert.match(assistedCard, /The wheel was used/);
-  assert.match(assistedCard, /Best-score records skip this night/);
+  assert.match(assistedCard, /Best and worst scores skip this night/);
 });
 
 test('demo Flip 7 has a tight finish and a multi-zero night', () => {

@@ -95,8 +95,8 @@ test('completed Hand and Foot nights appear as Canasta on Records', () => {
   assert.match(html, /Hall of Fame/);
   assert.match(html, /17 completed matches/);
   assert.doesNotMatch(html, /Game Championship Ledger/);
-  assert.doesNotMatch(html, /Unassisted matches only on best final/);
-  assert.match(paintHtml(QA_SCENARIOS['records-book'].data.history, 'explore'), /Unassisted matches only/);
+  assert.doesNotMatch(html, /Only games without the Wheel on best final/);
+  assert.match(paintHtml(QA_SCENARIOS['records-book'].data.history, 'explore'), /Only games without the Wheel/);
   const nights = paintHtml(QA_SCENARIOS['records-book'].data.history, 'nights');
   assert.match(nights, /Canasta/);
   assert.match(nights, /Left early/);
@@ -476,8 +476,8 @@ test('addendum labels stay relabel-only', () => {
   assert.match(overview, />Overview</);
   assert.match(overview, /Explore<span class="s2-tab-rest"> records<\/span>/);
   assert.match(overview, />Past nights</);
-  assert.doesNotMatch(overview, /Unassisted matches only on best final/);
-  assert.match(explore, /Unassisted matches only/);
+  assert.doesNotMatch(overview, /Only games without the Wheel on best final/);
+  assert.match(explore, /Only games without the Wheel/);
   assert.match(explore, /8 of 10 bids/);
   assert.match(explore, /Best single-match exact rate/);
   assert.match(explore, /Linda 2 · Matt 4 · Tied 1/);
