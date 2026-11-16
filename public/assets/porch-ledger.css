@@ -2237,6 +2237,7 @@ html.porch-ledger {
   --bp-on-felt: #fffaf3;
   --bp-on-felt-soft: #e8eef7;     /* 8.3:1 on the felt center, 10:1 on felt base */
   --bp-focus-ring: 0 0 0 3px #fffaf3, 0 0 0 6px #11786c;
+  --bp-focus-color: #0c5c54;
   --bp-disabled-bg: #ece4d6;
   --bp-disabled-ink: #6f6557;     /* 4.53:1 on the disabled fill */
 }
@@ -2638,3 +2639,118 @@ html.porch-ledger .s2-records-empty-lead { font-size: var(--bp-type-md); color: 
 html.porch-ledger .s2-records-empty-note { margin-top: var(--bp-space-2); font-size: var(--bp-type-sm); color: var(--bp-muted); max-width: 40rem; }
 html.porch-ledger .s2-records-empty-actions { display: flex; flex-wrap: wrap; gap: var(--bp-space-3); margin-top: var(--bp-space-5); }
 html.porch-ledger .s2-records-empty-actions .s2-btn { min-height: var(--bp-touch); padding-inline: var(--bp-space-5); }
+
+/* ---- Touch, states and contrast (bpg2) ---- */
+/* 44pt floor for controls that measured short at 1180x820 and 390x844. */
+html.porch-ledger button.dealer-name-indicator { min-height: var(--bp-touch) !important; margin-block: -12px !important; padding-block: 12px !important; }
+/* Past-round score cells: the doubled id outranks the older leader-row and phone cell rules. */
+html.porch-ledger.slice2-tv #scorecard-capture#scorecard-capture .score-cell-stack .score-cell-input[id^="score-past-"] {
+  min-height: var(--bp-touch) !important;
+  min-width: var(--bp-touch) !important;
+}
+html.porch-ledger .s2-player-link { min-height: var(--bp-touch) !important; margin-block: -8px; }
+html.porch-ledger .s2-seat-out,
+html.porch-ledger .s2-seat-handle { min-width: var(--bp-touch) !important; min-height: var(--bp-touch) !important; }
+html.porch-ledger .s2-roster-more { min-height: var(--bp-touch) !important; display: inline-flex; align-items: center; }
+html.porch-ledger .profile-avatar-filter { min-height: var(--bp-touch); display: inline-flex; align-items: center; gap: var(--bp-space-2); cursor: pointer; }
+html.porch-ledger .profile-avatar-filter input { width: 22px; height: 22px; }
+
+/* States: enabled, disabled, selected, focused, pressed and loading each look different. */
+html.porch-ledger button:focus-visible,
+html.porch-ledger a[href]:focus-visible,
+html.porch-ledger input:focus-visible,
+html.porch-ledger select:focus-visible,
+html.porch-ledger [role="button"]:focus-visible,
+html.porch-ledger [role="tab"]:focus-visible {
+  outline: 3px solid var(--bp-focus-color) !important;
+  outline-offset: 2px !important;
+}
+html.porch-ledger button:not(:disabled):active,
+html.porch-ledger .s2-btn:not(:disabled):active { transform: translateY(1px); filter: brightness(.93); }
+html.porch-ledger button:disabled,
+html.porch-ledger button[aria-disabled="true"],
+html.porch-ledger .s2-btn:disabled,
+html.porch-ledger .btn-primary:disabled,
+html.porch-ledger .btn-ghost:disabled {
+  background: var(--bp-disabled-bg) !important;
+  background-image: none !important;
+  color: var(--bp-disabled-ink) !important;
+  border: 1px dashed #a89a85 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  filter: none !important;
+  transform: none !important;
+}
+html.porch-ledger button[aria-busy="true"],
+html.porch-ledger .s2-btn.is-loading {
+  cursor: progress !important;
+  position: relative;
+  color: transparent !important;
+}
+html.porch-ledger button[aria-busy="true"]::after,
+html.porch-ledger .s2-btn.is-loading::after {
+  content: ""; position: absolute; inset: 0; margin: auto; width: 18px; height: 18px;
+  border-radius: 50%; border: 3px solid currentColor; border-color: var(--bp-primary) transparent var(--bp-primary) transparent;
+  animation: bp-spin .8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.porch-ledger button[aria-busy="true"]::after, html.porch-ledger .s2-btn.is-loading::after { animation: none; border-style: dotted; }
+}
+@keyframes bp-spin { to { transform: rotate(360deg); } }
+/* Selected reads as selected: teal border plus a check, not just a tint. */
+html.porch-ledger .s2-pick.is-on { border: 2px solid var(--bp-primary) !important; background: var(--bp-primary-wash) !important; }
+html.porch-ledger .s2-pick.is-on .s2-pick-mark { color: var(--bp-primary-deep) !important; font-weight: 900; }
+
+/* Add player: the field and the button read as ready to use, not disabled. */
+html.porch-ledger #quick-add-player {
+  background: #fffdf8 !important;
+  border: 1.5px solid #9c8e79 !important;
+  color: var(--bp-ink) !important;
+  min-height: var(--bp-touch);
+  opacity: 1 !important;
+}
+html.porch-ledger #quick-add-player::placeholder { color: var(--bp-muted) !important; opacity: 1; }
+html.porch-ledger .s2-add .s2-btn-primary:not(:disabled) {
+  background: var(--bp-primary) !important; color: #fff !important; opacity: 1 !important; min-height: var(--bp-touch);
+}
+
+/* WCAG AA text contrast. */
+html.porch-ledger #actions-menu .actions-menu-label { color: var(--bp-muted) !important; font-size: 12px !important; opacity: 1 !important; }
+/* The running total stays quieter than the bid, but readable (AA). */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-meta-value,
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-total .score-entry-meta-value { color: #665c4f !important; opacity: 1 !important; }
+html.porch-ledger #score-entry-modal .score-entry-dealer-badge { color: #1d5f75 !important; font-size: 11px !important; }
+html.porch-ledger #score-entry-modal .score-entry-skip-key,
+html.porch-ledger #score-entry-modal #score-entry-skip-slot { color: var(--bp-ink) !important; opacity: 1 !important; }
+html.porch-ledger #settings-modal [style*="--emerald"] { color: var(--bp-primary-deep) !important; }
+/* Passports: the shared accent tokens get AA-safe depths inside the Passport views only. */
+html.porch-ledger #profiles-screen {
+  --emerald: #0a5f56;
+  --rose: #9a2f45;
+  --blue: #1d5f75;
+  --bp-coral: #a3402a;
+}
+html.porch-ledger #profiles-screen .profile-big-stat,
+html.porch-ledger #profiles-screen .profile-passport-sub,
+html.porch-ledger #profiles-screen .profile-badge { opacity: 1 !important; }
+html.porch-ledger #profiles-screen .profile-big-stat > :not(strong) { color: var(--bp-muted) !important; }
+
+/* Sample bar: 44pt buttons; the bar and the tip offsets grow to match. */
+html.porch-ledger.bpg-try-demo { --bp-demo-offset: 56px; }
+html.porch-ledger.bpg-try-demo:not(.bpg-try-demo-tip) { padding-top: 56px !important; }
+html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 116px; padding-top: 116px !important; }
+html.porch-ledger #bpg-try-demo-bar { height: 56px !important; min-height: 56px !important; max-height: 56px !important; padding: 6px 14px !important; }
+html.porch-ledger #bpg-try-demo-bar button,
+html.porch-ledger #bpg-try-demo-tip button { min-height: var(--bp-touch) !important; height: var(--bp-touch) !important; padding-inline: 14px !important; }
+html.porch-ledger #bpg-try-demo-tip { top: 56px !important; min-height: 60px; padding-block: 8px !important; align-items: center !important; box-sizing: border-box; }
+@media (max-width: 760px) {
+  /* Phone: past-round cells reach 44pt. The input fills its cell (inline width), so the cell gives up its side padding. */
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen #scorecard-capture#scorecard-capture .score-cell-stack .score-cell-input[id^="score-past-"] {
+    min-height: var(--bp-touch) !important;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen #scorecard-capture td:has(> .score-cell-stack > .score-cell-input[id^="score-past-"]) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
