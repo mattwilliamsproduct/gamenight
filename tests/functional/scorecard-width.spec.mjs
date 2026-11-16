@@ -89,7 +89,8 @@ async function tableBoxes(page) {
 
 function expectFilledCard(before, viewportWidth) {
   expect(before.cardW, `card ${before.cardW} vs viewport ${viewportWidth}`).toBeGreaterThan(840);
-  expect(before.cardW).toBeLessThanOrEqual(1000);
+  // bpg2: the board uses the viewport (modest felt margin) up to --bp-board-max.
+  expect(before.cardW).toBeLessThanOrEqual(1760);
   expect(before.cardW).toBeLessThan(viewportWidth - 24);
   expect(Math.abs(before.tableLeft - before.cardInnerLeft)).toBeLessThanOrEqual(2);
   expect(Math.abs(before.tableRight - before.cardInnerRight)).toBeLessThanOrEqual(2);

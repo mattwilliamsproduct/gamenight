@@ -2410,3 +2410,162 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-r
     -webkit-line-clamp: 2;
   }
 }
+
+/* ═══ Bidding (bpg2) ═══
+   Wizard and 818 bids and tricks on iPad and up: whose turn it is, the progress, the keypad
+   and Lock bids read as one group in the right column. The round context returns to the
+   header. Other games' entry is unchanged. */
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-side {
+    gap: var(--bp-space-2) !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-selected-card {
+    display: flex !important;
+    align-items: baseline;
+    gap: var(--bp-space-3);
+    flex: 0 0 auto;
+    min-height: 0;
+    margin: 0 !important;
+    padding: var(--bp-space-2) var(--bp-space-3) 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-selected-card > #score-entry-selected-kicker {
+    display: block !important;
+    margin: 0 !important;
+    font-size: var(--bp-type-sm) !important;
+    letter-spacing: 0.08em !important;
+    color: var(--bp-muted) !important;
+    white-space: nowrap;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-selected-head {
+    display: block !important;
+    min-width: 0;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad #score-entry-selected-avatar,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-selected-detail {
+    display: none !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad #score-entry-selected-name {
+    font-family: var(--ledger-type-display) !important;
+    font-size: clamp(24px, 2.4vw, 32px) !important;
+    line-height: 1.1 !important;
+    color: var(--bp-ink) !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal #score-entry-progress.is-by-keypad {
+    display: block !important;
+    flex: 0 0 auto;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: var(--bp-space-2) var(--bp-space-3) !important;
+    box-sizing: border-box;
+    text-align: left !important;
+    font-size: var(--bp-type-md) !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    color: var(--bp-primary-deep) !important;
+    background: var(--bp-primary-wash) !important;
+    border: 1px solid var(--bp-primary-border) !important;
+    border-radius: var(--bp-radius-md) !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal #score-entry-progress.is-by-keypad .score-entry-progress-seg:first-child {
+    font-size: var(--bp-type-xl);
+    color: var(--bp-ink);
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-keypad {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  /* Round context next to the game name, readable at arm's length. */
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-heading {
+    display: flex !important;
+    align-items: baseline;
+    gap: var(--bp-space-3);
+    flex-wrap: wrap;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad #score-entry-context {
+    display: block !important;
+    margin: 0 !important;
+    font-size: var(--bp-type-md) !important;
+    letter-spacing: 0.04em !important;
+    color: var(--bp-muted) !important;
+  }
+  /* Players and keypad sit close; the list no longer floats away from the pad. */
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad .score-entry-layout {
+    column-gap: var(--bp-space-3) !important;
+  }
+}
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-selected-name::before { content: "Bid for: "; }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike.score-entry-trick-entry .score-entry-selected-name::before { content: "Tricks for: "; }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike #score-entry-progress {
+    font-size: var(--bp-type-sm) !important;
+    font-weight: 800 !important;
+    color: var(--bp-primary-deep) !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike #score-entry-progress .score-entry-progress-seg:first-child {
+    font-size: var(--bp-type-md);
+    color: var(--bp-ink);
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-progress-seg { white-space: nowrap; }
+}
+/* Phone board header: the sheet stays, the type returns to phone size so rows keep their room. */
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
+    padding: var(--bp-space-2) var(--bp-space-3) !important;
+    margin-top: var(--bp-space-2) !important;
+    margin-bottom: var(--bp-space-2) !important;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line {
+    font-size: clamp(17px, 5vw, 21px) !important;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-sub {
+    font-size: 15px !important;
+  }
+}
+/* Narrow iPad header (portrait): context lines wrap instead of running under the buttons. */
+@media (min-width: 761px) and (max-width: 1099px) {
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line,
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-sub {
+    white-space: normal !important;
+  }
+}
+/* iPad portrait entry (761–1100px, not the tablet-landscape layout): the side column is a flex
+   column whose old grid rule left align-items:start, so the keypad shrank to its content and
+   the keys collapsed. Stretch the card and keypad to the sheet, with 56px keys in thumb reach. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-side {
+    align-items: stretch !important;
+    gap: var(--bp-space-2) !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-selected-card {
+    width: auto !important;
+    align-self: stretch !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-tablet-land):not(.hf-mode) .score-entry-keypad {
+    align-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: minmax(56px, auto) !important;
+    gap: var(--bp-space-2) !important;
+    height: auto !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-tablet-land) .score-entry-keypad .score-entry-key {
+    min-height: 56px !important;
+    height: auto !important;
+  }
+}
+/* Phone keypad keys meet the 44pt floor. */
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-keypad .score-entry-key {
+    min-height: var(--bp-touch) !important;
+  }
+}

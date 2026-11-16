@@ -19920,6 +19920,30 @@ ${isDealer
     } else if(next){
       next.textContent='Next';
     }
+    const kicker=document.getElementById('score-entry-selected-kicker');
+    if(kicker&&bidTrick&&!handFoot) kicker.textContent=isScoreEntryTrickMode(mode)?'Tricks for':'Bid for';
+    placeScoreEntryProgress();
+  }
+
+  // Bids and tricks on iPad and up: progress sits in the keypad column, under whose turn it is,
+  // so the active player, progress, keypad and confirm read as one group. Phones and every other
+  // entry mode keep it in the header.
+  function placeScoreEntryProgress(){
+    const modal=document.getElementById('score-entry-modal');
+    const progress=document.getElementById('score-entry-progress');
+    const side=modal?.querySelector('.score-entry-side');
+    const head=modal?.querySelector('.score-entry-panel > .border-b');
+    if(!modal||!progress||!side||!head)return;
+    // Side-by-side layouts only (iPad landscape and up). Portrait iPad and phones stack the pad under the list.
+    const byKeypad=modal.classList.contains('score-entry-bidlike')&&window.matchMedia('(min-width: 900px) and (orientation: landscape)').matches;
+    if(byKeypad){
+      const card=side.querySelector('.score-entry-selected-card');
+      if(progress.parentElement!==side||progress.previousElementSibling!==card) side.insertBefore(progress, card?card.nextSibling:side.firstChild);
+    }else if(progress.parentElement!==head){
+      head.insertBefore(progress, document.getElementById('hf-rate-bar'));
+    }
+    progress.classList.toggle('is-by-keypad', byKeypad);
+    modal.classList.toggle('score-entry-progress-by-keypad', byKeypad);
   }
 
   function scheduleScoreEntryModalFit(){
@@ -20164,7 +20188,7 @@ ${isDealer
       modalEl.classList.toggle('hf-no-minus', isScoreEntryBidMode(mode)||isScoreEntryTrickMode(mode));
     }
     const kicker=document.getElementById('score-entry-selected-kicker');
-    if(kicker) kicker.textContent=mode.kind==='hand-foot'?'Selected side':'Selected player';
+    if(kicker) kicker.textContent=mode.kind==='hand-foot'?'Selected side':(isScoreEntryBidMode(mode)?'Bid for':(isScoreEntryTrickMode(mode)?'Tricks for':'Selected player'));
     updateScoreEntryHeaderMeta();
     if(mode.kind==='hand-foot'){
       renderHandFootScoreEntryRows();
