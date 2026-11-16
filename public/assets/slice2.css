@@ -4022,6 +4022,8 @@ html.slice2-tv .s2-records-filters select:focus {
 
   html.slice2-tv .s2-night-actions {
     justify-content: flex-start;
+    /* Phone: three night actions do not fit one row at 390. Wrap instead of widening the card. */
+    flex-wrap: wrap;
   }
 
   html.slice2-tv .s2-book-row:not(.s2-leader-row) {

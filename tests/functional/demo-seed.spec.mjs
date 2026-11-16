@@ -120,7 +120,9 @@ const VIEW_ASSERT = {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-nights')).toHaveClass(/is-on/);
     await expect(page.locator('.s2-night-card.is-incomplete')).toContainText(/Unfinished/);
-    await expect(page.locator('.s2-night-winner', {hasText: / and /}).first()).toBeVisible();
+    // Nov 15: the seeded ended-early nights are uncounted, so they name no winner.
+    await expect(page.locator('.s2-night-winner.is-no-winner').first()).toBeVisible();
+    await expect(page.locator('.s2-night-card', {hasText: 'Not counted'}).locator('.s2-night-winner', {hasText: / won$/})).toHaveCount(0);
   },
   'records-shame': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);

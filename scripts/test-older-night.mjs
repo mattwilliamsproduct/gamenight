@@ -75,6 +75,10 @@ test('Records still treat the older Rook night as Rook, not a Canasta row', () =
   assert.equal(card.gameTitle, 'Rook');
   assert.notEqual(card.gameTitle, 'Canasta');
   assert.equal(card.incomplete, false);
-  assert.ok(card.winners.includes('Cal'));
+  // Nov 15: this older Rook night reads Ended early and is not counted, so it names no winner until counted.
+  assert.deepEqual(card.winners, []);
+  assert.match(card.noWinnerText, /Not counted/);
+  const counted = Records.nightCardModel({...rook, countResult: true}, helpers);
+  assert.ok(counted.winners.includes('Cal'));
   assert.equal(Records.gameTitle('Rook'), 'Rook');
 });

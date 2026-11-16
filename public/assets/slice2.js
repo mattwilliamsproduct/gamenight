@@ -360,7 +360,8 @@
     actions.querySelectorAll('.nav-btn').forEach((button) => {
       const action = button.getAttribute('onclick') || '';
       if (action.includes('goHome')) button.textContent = 'Home';
-      if (action.includes('showHistory')) button.textContent = compactNav ? 'Records' : `Records (${table.history.length})`;
+      // No count here: the number mixed counted, uncounted and unfinished games and read like a record count.
+      if (action.includes('showHistory')) button.textContent = 'Records';
       if (action.includes('showProfiles')) button.textContent = phoneNav ? 'Player Passports' : (compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`);
       if (action.includes('openSettings')) button.textContent = phoneNav || !compactNav ? 'Settings' : '⚙';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
@@ -460,7 +461,7 @@
     const round = liveRoundLabel(historyAsGame(top));
     return `<section class="s2-banner s2-unfinished-banner">
       <div>
-        <div class="s2-kicker">Unfinished</div>
+        <div class="s2-kicker">${escapeHtml((window.BPGScorebook && BPGScorebook.GAME_STATUS_LABELS && BPGScorebook.GAME_STATUS_LABELS.unfinished) || 'Unfinished')}</div>
         <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
       </div>
       <div class="s2-banner-actions">
@@ -1438,7 +1439,7 @@
       if (id != null && typeof openScorecard === 'function') openScorecard(id);
     } else if (action === 'count-toggle') {
       const id = coerceMatchId(target.dataset.s2Id);
-      if (id != null && typeof toggleCountResult === 'function') toggleCountResult(id);
+      if (id != null && typeof toggleCountResult === 'function' && toggleCountResult(id)) paintRecords();
     } else if (action === 'night-delete') {
       event.preventDefault();
       event.stopPropagation();

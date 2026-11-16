@@ -1019,11 +1019,39 @@
     return resolveOutcome(match) === 'finished';
   }
 
+  // One set of game-status words for the result screen, Past nights, Records, Passports and Settings.
+  const GAME_STATUS_LABELS = Object.freeze({
+    completed: 'Completed',
+    unfinished: 'Unfinished',
+    endedEarly: 'Ended early',
+    needsReview: 'Needs review',
+    counted: 'Counted',
+    notCounted: 'Not counted',
+    noRounds: 'No rounds played',
+    noWinnerNotCounted: 'Not counted, so no winner',
+    noWinnerNoRounds: 'No rounds played, so no winner',
+    countPartial: 'Count partial result',
+    countResult: 'Count result',
+    stopCounting: 'Stop counting',
+    saveWithoutCounting: 'Save without counting',
+    deleteGame: 'Delete game'
+  });
+
+  function playedRoundCount(match) {
+    return scoringRoundCount((match && match.rounds) || []);
+  }
+
+  // A saved game whose rounds list is empty. Legacy rows with no rounds list keep their old reading.
+  function hasNoScoredRounds(match) {
+    return !!(match && Array.isArray(match.rounds) && playedRoundCount(match) === 0);
+  }
+
   // Wins, games played, win rate, and win/loss streak. A counted early or uncertain result is included. A pause is not.
+  // A game with no scored rounds never counts: there is no result to count.
   function countsForTallies(match) {
     const outcome = resolveOutcome(match);
     if (outcome === 'finished') return true;
-    if (outcome === 'ended_early' || outcome === 'uncertain') return resultIsCounted(match);
+    if (outcome === 'ended_early' || outcome === 'uncertain') return !hasNoScoredRounds(match) && resultIsCounted(match);
     return false;
   }
 
@@ -1037,22 +1065,58 @@
   }
 
   function endedEarlyLabel(match) {
+    const L = GAME_STATUS_LABELS;
     const outcome = resolveOutcome(match);
     if (outcome === 'ended_early') {
       const rounds = storedRoundTarget(match);
-      const played = scoringRoundCount((match && match.rounds) || []);
-      if (rounds != null) return `Ended early, ${played} of ${rounds} rounds`;
+      const played = playedRoundCount(match);
+      if (hasNoScoredRounds(match)) return `${L.endedEarly}, ${L.noRounds.toLowerCase()}`;
+      if (rounds != null) return `${L.endedEarly}, ${played} of ${rounds} rounds`;
       const legacy = legacyCompletion(match);
-      if (legacy.status === 'partial' && legacy.fixed) return `Ended early, ${legacy.played} of ${legacy.fixed} rounds`;
-      return 'Ended early';
+      if (legacy.status === 'partial' && legacy.fixed) return `${L.endedEarly}, ${legacy.played} of ${legacy.fixed} rounds`;
+      return L.endedEarly;
     }
-    if (outcome === 'uncertain') return 'Needs review';
+    if (outcome === 'uncertain') return L.needsReview;
     return '';
   }
 
+  // Counting is offered only when there is a partial result to count.
   function showCountResult(match) {
     const outcome = resolveOutcome(match);
-    return outcome === 'ended_early' || outcome === 'uncertain';
+    return (outcome === 'ended_early' || outcome === 'uncertain') && !hasNoScoredRounds(match);
+  }
+
+  // The one status every screen shows for a saved game.
+  function gameStatus(match) {
+    const L = GAME_STATUS_LABELS;
+    const outcome = resolveOutcome(match);
+    const played = playedRoundCount(match);
+    const counted = countsForTallies(match);
+    let label = L.needsReview;
+    if (outcome === 'finished') label = L.completed;
+    else if (outcome === 'paused') label = L.unfinished;
+    else if (outcome === 'ended_early') label = endedEarlyLabel(match) || L.endedEarly;
+    const partial = outcome === 'ended_early' || outcome === 'uncertain';
+    // An ended-early or needs-review game with no scored rounds has no result at all.
+    const noResult = partial && hasNoScoredRounds(match);
+    // Ended early: winners show only once counted. Needs review keeps its stored winners on view, as before,
+    // under the Needs review label (docs/solutions/legacy-history-review.md). Neither feeds tallies until counted.
+    const showsWinners = !noResult && (outcome === 'finished' || counted || outcome === 'uncertain');
+    let noWinnerText = '';
+    if (noResult) noWinnerText = L.noWinnerNoRounds;
+    else if (outcome === 'ended_early' && !counted) noWinnerText = L.noWinnerNotCounted;
+    return {
+      outcome,
+      played,
+      counted,
+      label,
+      countLabel: outcome === 'ended_early' || (partial && counted) || noResult ? (counted ? L.counted : L.notCounted) : '',
+      noResult,
+      showsWinners,
+      noWinnerText,
+      countAction: outcome === 'uncertain' ? L.countResult : L.countPartial,
+      canCount: showCountResult(match)
+    };
   }
 
   function needsCountDecision(match) {
@@ -1694,6 +1758,9 @@
     countsForScoreMagnitude,
     endedEarlyLabel,
     showCountResult,
+    gameStatus,
+    playedRoundCount,
+    GAME_STATUS_LABELS,
     needsCountDecision,
     missingBidsMessage,
     isSyntheticAdjustmentRound,

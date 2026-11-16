@@ -10952,8 +10952,9 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div id="leave-count-step" class="hidden flex flex-col gap-3">
           <p id="leave-count-copy" class="text-sm font-semibold leading-relaxed" style="color:var(--ink-2);"></p>
-          <button type="button" id="leave-count-yes" onclick="leaveCountResult(true)" class="btn-primary px-5 py-3 text-sm">Count this result</button>
-          <button type="button" id="leave-count-no" onclick="leaveCountResult(false)" class="btn-ghost px-5 py-3 text-sm">Don't count this result</button>
+          <button type="button" id="leave-count-yes" onclick="leaveCountResult(true)" class="btn-primary px-5 py-3 text-sm">Count partial result</button>
+          <button type="button" id="leave-count-no" onclick="leaveCountResult(false)" class="btn-ghost px-5 py-3 text-sm">Save without counting</button>
+          <button type="button" id="leave-delete-game" onclick="leaveDeleteGame()" class="btn-ghost px-5 py-3 text-sm hidden" style="color:var(--rose);">Delete game</button>
           <button type="button" id="leave-count-back" onclick="leaveShowChoices()" class="btn-ghost px-5 py-3 text-sm">Back</button>
         </div>
       </div>
@@ -21519,6 +21520,9 @@ ${isDealer
 
   let _leaveAfter=null;
   function leaveShowChoices(){
+    document.getElementById('end-match-copy')?.classList.remove('hidden');
+    document.getElementById('leave-count-yes')?.classList.remove('hidden');
+    document.getElementById('leave-delete-game')?.classList.add('hidden');
     document.getElementById('leave-game-choices')?.classList.remove('hidden');
     document.getElementById('leave-count-step')?.classList.add('hidden');
   }
@@ -21566,15 +21570,67 @@ ${isDealer
     }
     document.getElementById('leave-game-choices')?.classList.add('hidden');
     document.getElementById('leave-count-step')?.classList.remove('hidden');
+    // The first step's line names Keep playing, which this step does not offer.
+    document.getElementById('end-match-copy')?.classList.add('hidden');
+    const played=BPGScorebook.scoringRoundCount(currentGame.rounds||[]);
+    const L=BPGScorebook.GAME_STATUS_LABELS;
+    // No scored rounds: there is no result to count, so the only choices are keep it or delete it.
+    const yes=document.getElementById('leave-count-yes');
+    yes?.classList.toggle('hidden', played===0);
+    if(yes) yes.textContent=known==='short'?L.countPartial:L.countResult;
+    document.getElementById('leave-delete-game')?.classList.toggle('hidden', played!==0);
     const countCopy=document.getElementById('leave-count-copy');
     if(countCopy){
+      if(played===0){
+        countCopy.textContent=`No rounds were scored, so there is nothing to count. ${L.saveWithoutCounting} keeps it in Past nights with no winner. ${L.deleteGame} removes it.`;
+        return;
+      }
       const flip=probe.name==='Flip 7 Vengeance'||probe.name==='Flip 7';
-      countCopy.textContent=known==='short'
+      const target=Number(probe.maxRounds);
+      const leaders=partialResultLeaders(currentGame);
+      const who=leaders.length?formatNameList(leaders):'The leader';
+      const gets=leaders.length>1?'each get a win':'gets a win';
+      const lead=known==='short'
         ? (flip
-          ? 'This Flip 7 ended before 200. Count this result toward wins? The partial total stays out of best and worst scores.'
-          : 'This game ended before its saved finish. Count this result toward wins? The partial total stays out of best and worst scores.')
-        : 'This game has no saved finishing rule, so it stays needs-review. Count this result toward wins? The partial total stays out of best and worst scores.';
+          ? 'This Flip 7 stopped before anyone reached 200.'
+          : (target>0&&target<999?`This game stopped after ${played} of ${target} rounds.`:'This game stopped before its normal finish.'))
+        : 'This game has no set finish, so the app cannot tell whether it is done.';
+      countCopy.textContent=`${lead} ${known==='short'?L.countPartial:L.countResult}: ${who} ${gets} in Records and Passports. ${L.saveWithoutCounting}: the scorecard is kept with no winner. Games that end early never set best or worst score records.`;
     }
+  }
+  // The same top-of-table rule commitEndGame uses. A player who left early never wins.
+  function partialResultLeaders(game){
+    if(!game)return [];
+    const cfg=configs[game.name];
+    const retired=new Set(game.retired||[]);
+    const keys=getRecordedPlayers(game).filter(p=>!retired.has(p));
+    if(!cfg||!keys.length)return [];
+    const sorted=sortPlayersByTotal(keys, game.totals, cfg);
+    const top=game.totals[sorted[0]];
+    return sorted.filter(p=>game.totals[p]===top);
+  }
+  function formatNameList(names){
+    const list=(names||[]).filter(Boolean);
+    if(list.length<=1) return list[0]||'';
+    if(list.length===2) return `${list[0]} and ${list[1]}`;
+    return `${list.slice(0,-1).join(', ')}, and ${list[list.length-1]}`;
+  }
+  function leaveDeleteGame(){
+    if(!currentGame)return;
+    if(BPGScorebook.scoringRoundCount(currentGame.rounds||[])!==0)return;
+    if(!confirm(`Delete this ${typeof displayGameName==="function"?displayGameName(currentGame.name):currentGame.name} game? No rounds were scored. It will not appear in Past nights.`))return;
+    const after=_leaveAfter;
+    _leaveAfter=null;
+    closeModal('end-match-modal');
+    const id=currentGame.id;
+    const idx=history.findIndex(h=>h&&String(h.id)===String(id));
+    if(idx>=0){ history.splice(idx,1); markHistoryChanged(); }
+    releaseWakeLock();
+    currentGame=null;
+    saveData({fullPersist:true, syncCold:true});
+    toast('Game deleted. Nothing was saved to Records.');
+    if(after) after();
+    else goHome();
   }
   function leaveCountResult(count){
     const after=_leaveAfter;
@@ -21642,11 +21698,15 @@ ${isDealer
     const outcome=window.BPGScorebook&&BPGScorebook.resolveOutcome
       ? BPGScorebook.resolveOutcome(Object.assign({}, probe, {completed:true}))
       : 'uncertain';
-    const data=createSavedMatchSnapshot(currentGame,tied,{endedEarly:outcome==='ended_early'});
+    // A game with no scored rounds has no result: everyone tied at the start is not a win.
+    const played=BPGScorebook.scoringRoundCount(currentGame.rounds||[]);
+    const noResult=played===0&&(outcome==='ended_early'||outcome==='uncertain');
+    const data=createSavedMatchSnapshot(currentGame,noResult?[]:tied,{endedEarly:outcome==='ended_early'});
     data.outcome=outcome;
     if(Number(probe.maxRounds)>0 && probe.maxRounds<999) data.maxRounds=probe.maxRounds;
     if(Number(probe.endScore)>0) data.endScore=probe.endScore;
-    if(outcome==='ended_early' || outcome==='uncertain') data.countResult=countResult===true;
+    if(outcome==='ended_early' || outcome==='uncertain') data.countResult=!noResult&&countResult===true;
+    if(noResult) data.winners=[];
     finishMatch(data, silent);
   }
 
@@ -21713,10 +21773,12 @@ ${isDealer
     const retired=new Set((data&&data.retired)||[]);
     const scoreNight=!!(counted && window.BPGScorebook && BPGScorebook.countsForScoreMagnitude && BPGScorebook.countsForScoreMagnitude(data));
     const shownAlerts=scoreNight?(alerts||[]):[];
-    let headline='Ended early';
-    let kicker='Not counted';
+    const L=BPGScorebook.GAME_STATUS_LABELS;
+    let headline=L.endedEarly;
+    let kicker=L.notCounted;
     let names=[];
-    if(!counted && outcome==='uncertain') headline='Needs review';
+    if(!counted && outcome==='uncertain') headline=L.needsReview;
+    if(!counted && BPGScorebook.scoringRoundCount((data&&data.rounds)||[])===0) headline=L.noRounds;
     if(counted){
       const winners=uniqueResultNames(data&&data.winners).filter(name=>!retired.has(name));
       const losers=uniqueResultNames(currentLosers).filter(name=>!retired.has(name));
@@ -22528,39 +22590,52 @@ ${isDealer
     return true;
   }
 
+  // Count partial result / Stop counting. Changing a counted result asks first, then says what changed.
   function toggleCountResult(id){
+    const fail=(message)=>{ toast(message||'Could not change this result. Nothing was saved.', 'warning'); return false; };
     const row=history.find(h=>h&&String(h.id)===String(id));
-    if(!row||!window.BPGScorebook||!BPGScorebook.showCountResult(row)) return;
-    const explicit=row.outcome==='finished'||row.outcome==='paused'||row.outcome==='ended_early'||row.outcome==='uncertain';
-    if(!explicit){
-      const scores=JSON.stringify(row.totals||{});
-      const winners=JSON.stringify(row.winners||[]);
-      const rounds=JSON.stringify(row.rounds||[]);
-      const counted=BPGScorebook.resultIsCounted(row);
-      if(!writeHistoryReviewDecision(row.id, counted?'not_counted':'counted')) return;
-      if(JSON.stringify(row.totals||{})!==scores||JSON.stringify(row.winners||[])!==winners||JSON.stringify(row.rounds||[])!==rounds){
-        return;
-      }
-      renderHistoryList();
-      if(typeof renderHallOfFame==='function') renderHallOfFame();
-      const card=document.getElementById('scorecard-modal');
-      if(card&&!card.classList.contains('hidden')) openScorecard(row.id);
-      return;
+    if(!row||!window.BPGScorebook) return fail('Could not find that game. Nothing changed.');
+    if(!BPGScorebook.showCountResult(row)){
+      return fail(BPGScorebook.playedRoundCount(row)===0
+        ? 'This game has no scored rounds, so there is nothing to count.'
+        : 'This result cannot be counted.');
     }
+    const wasCounted=BPGScorebook.countsForTallies(row);
+    const names=window.BPGRecords&&typeof BPGRecords.eligibleWinners==='function'
+      ? BPGRecords.eligibleWinners(row, careerCountOptions())
+      : uniqueResultNames(row.winners).filter(p=>!(row.retired||[]).includes(p));
+    const who=formatNameList(names)||'No one';
+    const many=names.length>1;
+    const ask=wasCounted
+      ? `Stop counting this result? ${who} will lose this win in Records and Passports.`
+      : `Count this ${BPGScorebook.resolveOutcome(row)==='uncertain'?'':'partial '}result? ${who} ${many?'each get':'gets'} a win in Records and Passports.`;
+    if(!confirm(ask)) return false;
     const scores=JSON.stringify(row.totals||{});
     const winners=JSON.stringify(row.winners||[]);
     const rounds=JSON.stringify(row.rounds||[]);
-    row.countResult=!(row.countResult===true||row.countOverride===true);
-    if(row.countOverride!=null) delete row.countOverride;
-    if(JSON.stringify(row.totals||{})!==scores||JSON.stringify(row.winners||[])!==winners||JSON.stringify(row.rounds||[])!==rounds){
-      return;
+    const explicit=row.outcome==='finished'||row.outcome==='paused'||row.outcome==='ended_early'||row.outcome==='uncertain';
+    if(!explicit){
+      if(!writeHistoryReviewDecision(row.id, wasCounted?'not_counted':'counted')) return fail();
+    } else {
+      row.countResult=!wasCounted;
+      if(row.countOverride!=null) delete row.countOverride;
     }
-    markHistoryChanged();
-    saveData({fullPersist:true, syncCold:true});
+    if(JSON.stringify(row.totals||{})!==scores||JSON.stringify(row.winners||[])!==winners||JSON.stringify(row.rounds||[])!==rounds){
+      return fail();
+    }
+    if(BPGScorebook.countsForTallies(row)===wasCounted) return fail();
+    if(explicit){
+      markHistoryChanged();
+      saveData({fullPersist:true, syncCold:true});
+    }
     renderHistoryList();
     if(typeof renderHallOfFame==='function') renderHallOfFame();
     const card=document.getElementById('scorecard-modal');
     if(card&&!card.classList.contains('hidden')) openScorecard(row.id);
+    toast(wasCounted
+      ? `Not counted. ${who} no longer ${many?'get':'gets'} a win from this game.`
+      : `Counted. ${who} ${many?'each get':'gets'} a win in Records and Passports.`);
+    return true;
   }
   function renderHistoryList(){
     const c=document.getElementById('history-list-view');
@@ -22570,8 +22645,9 @@ ${isDealer
       const sorted=sortPlayersByTotal(getRecordedPlayers(h), h.totals, cfg);
       const places=matchPlaces(h, sorted);
       const leftEarly=(h.retired||[]).filter(Boolean);
+      const shownWinners=BPGScorebook.gameStatus(h).showsWinners?(h.winners||[]):[];
       const finisherRows=sorted.map(p=>`<div class="flex items-center justify-between py-2">
-        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${h.winners?.includes(p)?'leader-text':''}">${h.winners?.includes(p)?'🏆 ':''}${p}</span></div>
+        <div class="flex items-center gap-3"><span class="font-mono-num text-sm font-bold w-6" style="color:var(--muted);">${places[p]}.</span>${getAvatarImg(p,'avatar-img')}<span class="player-name-label ${shownWinners.includes(p)?'leader-text':''}">${shownWinners.includes(p)?'🏆 ':''}${p}</span></div>
         <span class="font-mono-num font-extrabold text-xl">${h.totals[p]}</span>
       </div>`).join('');
       const leftRows=leftEarly.length
@@ -22585,8 +22661,9 @@ ${isDealer
       const earlyLabel=BPGScorebook.endedEarlyLabel?BPGScorebook.endedEarlyLabel(h):'';
       const canToggle=!!(BPGScorebook.showCountResult&&BPGScorebook.showCountResult(h));
       const statusBits=[
-        BPGScorebook.isCompletedHistoryMatch(h)?'':('<span class="incomplete-match-badge" data-match-status="incomplete">Unfinished</span>'),
+        BPGScorebook.isCompletedHistoryMatch(h)?'':(`<span class="incomplete-match-badge" data-match-status="incomplete">${BPGScorebook.GAME_STATUS_LABELS.unfinished}</span>`),
         earlyLabel?`<span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:'',
+        BPGScorebook.gameStatus(h).countLabel?`<span class="count-status-badge" data-match-status="${BPGScorebook.countsForTallies(h)?'counted':'not-counted'}">${BPGScorebook.gameStatus(h).countLabel}</span>`:'',
         BPGScorebook.isAssistedMatch(h)?'<span class="assisted-match-badge" data-assisted-match="true">Assisted match</span>':''
       ].filter(Boolean).join(' · ');
       return `<div class="surface p-6 hover:shadow-md transition-shadow">
@@ -22597,7 +22674,7 @@ ${isDealer
           </div>
           <div class="flex gap-2 flex-shrink-0">
             <button onclick="openScorecard(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">Scorecard</button>
-            ${canToggle?`<button type="button" data-count-toggle="${escapeHtml(String(h.id))}" data-count-override="${(h.countResult===true||h.countOverride===true)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">${(h.countResult===true||h.countOverride===true)?'Counting this result':'Count this result'}</button>`:''}
+            ${canToggle?`<button type="button" data-count-toggle="${escapeHtml(String(h.id))}" data-count-override="${BPGScorebook.countsForTallies(h)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs">${BPGScorebook.countsForTallies(h)?BPGScorebook.GAME_STATUS_LABELS.stopCounting:BPGScorebook.gameStatus(h).countAction}</button>`:''}
             <button onclick="resumeMatch(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--blue);">${BPGScorebook.isCompletedHistoryMatch(h)?'Resume':'Resume match'}</button>
             <button onclick="deleteMatchRecord(${jsAttrArg(h.id)})" class="btn-ghost px-3 py-2 text-xs" style="color:var(--rose);" title="Delete this record">🗑</button>
           </div>
@@ -22624,10 +22701,11 @@ ${isDealer
     document.getElementById('modal-scorecard-block')?.classList.toggle('scorecard-hand-foot', g.game==='Hand and Foot');
     document.getElementById('modal-game-name').textContent=`${configs[g.game]?.emoji||''} ${displayGameName(g.game)}`;
     const earlyLabel=BPGScorebook.endedEarlyLabel?BPGScorebook.endedEarlyLabel(g):'';
-    const countToggle=earlyLabel && BPGScorebook.isCompletedHistoryMatch(g)
-      ? ` · <button type="button" class="btn-ghost px-2 py-1 text-xs" data-count-toggle="${escapeHtml(String(g.id))}" data-count-override="${(g.countResult===true||g.countOverride===true)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(g.id)})">${(g.countResult===true||g.countOverride===true)?'Counting this result':'Count this result'}</button>`
+    const countLabel=BPGScorebook.gameStatus(g).countLabel;
+    const countToggle=BPGScorebook.showCountResult(g) && BPGScorebook.isCompletedHistoryMatch(g)
+      ? ` · <button type="button" class="btn-ghost px-2 py-1 text-xs" data-count-toggle="${escapeHtml(String(g.id))}" data-count-override="${BPGScorebook.countsForTallies(g)?'true':'false'}" onclick="toggleCountResult(${jsAttrArg(g.id)})">${BPGScorebook.countsForTallies(g)?BPGScorebook.GAME_STATUS_LABELS.stopCounting:BPGScorebook.gameStatus(g).countAction}</button>`
       : '';
-    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${earlyLabel?` · <span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:''}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted match</span>':''}${countToggle}`;
+    document.getElementById('modal-game-date').innerHTML=`${escapeHtml(g.date||'')}${earlyLabel?` · <span class="ended-early-badge" data-match-status="ended-early">${escapeHtml(earlyLabel)}</span>`:''}${countLabel?` · <span class="count-status-badge">${escapeHtml(countLabel)}</span>`:''}${BPGScorebook.isAssistedMatch(g)?' · <span class="assisted-match-badge" data-assisted-match="true">Assisted match</span>':''}${countToggle}`;
     const cfg=configs[g.game];
     const sorted=sortPlayersByTotal(getRecordedPlayers(g), g.totals, cfg);
     const leftEarly=(g.retired||[]).filter(Boolean);
@@ -22659,7 +22737,9 @@ ${isDealer
       });
       body+=`</tr>`;
     };
-    sorted.forEach(p=>paintRow(p,{winner:g.winners?.includes(p)}));
+    // An uncounted or zero-round game shows no trophy.
+    const scorecardWinners=BPGScorebook.gameStatus(g).showsWinners?(g.winners||[]):[];
+    sorted.forEach(p=>paintRow(p,{winner:scorecardWinners.includes(p)}));
     leftEarly.forEach(p=>paintRow(p,{leftEarly:true}));
     document.getElementById('modal-scorecard-body').innerHTML=body;
     openModal('scorecard-modal');

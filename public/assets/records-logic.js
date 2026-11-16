@@ -484,7 +484,7 @@
       .split('Flip 7 Vengeance').join(shownGameName('Flip 7 Vengeance'));
   }
 
-  function nightStandings(match, helpers) {
+  function nightStandings(match, helpers, shown) {
     const cfg = helpers.configs[match.game];
     if (!cfg) return [];
     const retiredSet = new Set((match.retired || []).filter(Boolean));
@@ -500,14 +500,16 @@
       : null;
     const places = team ? team.places : helpers.competitionPlaces(sorted, match.totals || {});
     const finishOrder = team ? team.ordered.filter((name) => sorted.includes(name)) : sorted;
-    const winners = eligibleWinners(match, {
+    // A card shows winners only when the game counts. Callers pass the winners they show.
+    const winners = shown && Array.isArray(shown.winners) ? shown.winners : eligibleWinners(match, {
       scorebook: helpers && helpers.scorebook,
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
     });
+    const ranked = !(shown && shown.noPlaces);
     const finishers = finishOrder.map((name) => ({
       name,
       score: match.totals ? match.totals[name] : undefined,
-      place: places[name],
+      place: ranked ? places[name] : null,
       isWinner: winners.includes(name),
       retired: false,
       leftEarly: false
@@ -526,8 +528,12 @@
   function nightPodium(match, helpers) {
     const incomplete = !isCompletedMatch(match, helpers && helpers.scorebook);
     if (incomplete) return { incomplete: true, places: [] };
+    const book = helpers && helpers.scorebook;
+    const status = book && typeof book.gameStatus === 'function' ? book.gameStatus(match) : null;
+    if (status && status.noResult) return { incomplete: false, places: [] };
+    const shown = status && !status.showsWinners ? {winners: []} : undefined;
     const grouped = new Map();
-    nightStandings(match, helpers).forEach((row) => {
+    nightStandings(match, helpers, shown).forEach((row) => {
       const place = Number(row.place);
       if (!Number.isFinite(place) || place < 1 || place > 3) return;
       if (!grouped.has(place)) grouped.set(place, []);
@@ -563,12 +569,15 @@
       ? scorebook.endedEarlyLabel(match)
       : '';
     const endedEarly = !!endedEarlyLabel;
-    const winners = incomplete ? [] : eligibleWinners(match, {
+    const status = scorebook && typeof scorebook.gameStatus === 'function' ? scorebook.gameStatus(match) : null;
+    // An uncounted or zero-round game never names a winner, here or in Recent results.
+    const showsWinners = !incomplete && (!status || status.showsWinners);
+    const winners = showsWinners ? eligibleWinners(match, {
       scorebook: scorebook,
       recordedPlayers: helpers && (helpers.getDisplayPlayers || helpers.getRecordedPlayers)
-    });
-    const standings = nightStandings(match, helpers);
+    }) : [];
     const rounds = scoringRoundCount(match, scorebook);
+    const standings = nightStandings(match, helpers, {winners, noPlaces: !!status && status.noResult});
     return {
       id: match.id,
       game: match.game,
@@ -579,6 +588,10 @@
       endedEarly,
       endedEarlyLabel,
       countOverride: match.countResult === true || match.countOverride === true,
+      counted: status ? status.counted : true,
+      countLabel: status ? status.countLabel : '',
+      noWinnerText: status ? status.noWinnerText : '',
+      countAction: status ? status.countAction : '',
       showCountToggle: !incomplete && scorebook && typeof scorebook.showCountResult === 'function'
         ? scorebook.showCountResult(match)
         : (!incomplete && !!endedEarlyLabel),
@@ -587,7 +600,7 @@
       throughRound: throughRound(match, scorebook),
       rounds,
       winners,
-      winnerText: incomplete ? '' : winnerText(winners, standings),
+      winnerText: incomplete || !showsWinners ? '' : winnerText(winners, standings),
       standings,
       showResume: shouldShowResume(match, scorebook),
       showScorecard: true,
@@ -790,7 +803,7 @@
 
   const CAREER_WIN_RULE = [
     'One counting rule for wins, win %, win streak, and games played.',
-    'A finished night counts. An ended-early or needs-review night counts only when Count this result is on. A paused night does not.',
+    'A finished night counts. An ended-early or needs-review night counts only after Count partial result. A paused night, or a game with no scored rounds, does not.',
     'Counting that result never makes the partial total a full-game score record.',
     'Assisted nights can still count for wins and games; they skip unassisted best-score records.',
     'Every tied winner gets a win.',
@@ -1754,6 +1767,14 @@
     return `${n}th`;
   }
 
+  // Status words live in BPGScorebook.GAME_STATUS_LABELS. This is only a fallback for tests without it.
+  function statusLabels() {
+    const book = root.BPGScorebook;
+    return (book && book.GAME_STATUS_LABELS) || {
+      unfinished: 'Unfinished', countPartial: 'Count partial result', stopCounting: 'Stop counting'
+    };
+  }
+
   function nightCardHtml(model, ctx, compact) {
     const esc = ctx.escapeHtml;
     const avatar = ctx.getAvatarImg;
@@ -1766,12 +1787,13 @@
     const shown = shownFinishers.concat(leftAll);
     const more = finishersAll.length - shownFinishers.length;
     const names = (model.standings || []).map((row) => row.name).filter(Boolean).slice(0, 6).join(', ');
-    const earlyText = model.endedEarlyLabel || '';
+    const labels = statusLabels();
+    const earlyText = [model.endedEarlyLabel || '', model.countLabel || ''].filter(Boolean).join(' · ');
     const meta = model.incomplete
-      ? `Unfinished${earlyText ? ` · ${earlyText}` : ''} · through round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
+      ? `${labels.unfinished}${earlyText ? ` · ${earlyText}` : ''} · through round ${model.throughRound}${names ? ` · ${names}` : ''}${model.evening ? ` · ${model.evening}` : ''}`
       : (earlyText || `${model.rounds} round${model.rounds === 1 ? '' : 's'}`);
     const badges = [
-      model.incomplete ? '<span class="s2-night-badge">Unfinished</span>' : '',
+      model.incomplete ? `<span class="s2-night-badge">${esc(labels.unfinished)}</span>` : '',
       model.assisted ? '<span class="s2-night-badge">Assisted</span>' : '',
       model.retired.length ? `<span class="s2-night-badge">Left early · ${esc(model.retired.join(', '))}</span>` : ''
     ].join('');
@@ -1795,7 +1817,7 @@
     // Meta already sits in the header once. Do not repeat Unfinished / Ended early below.
     const winner = model.incomplete
       ? ''
-      : `<p class="s2-night-winner">${esc(model.winnerText || 'No winner stored')}</p>`;
+      : `<p class="s2-night-winner${model.winnerText ? '' : ' is-no-winner'}">${esc(model.winnerText || model.noWinnerText || 'No winner stored')}</p>`;
     const expand = more > 0
       ? `<button type="button" class="s2-night-more" data-s2-action="night-expand" data-s2-id="${id}">Show all ${model.standings.length}</button>`
       : '';
@@ -1803,7 +1825,7 @@
       ? `<button type="button" class="s2-btn s2-btn-primary" data-s2-action="night-resume" data-s2-id="${id}">Resume</button>`
       : '';
     const countToggle = model.showCountToggle
-      ? `<button type="button" class="s2-btn" data-s2-action="count-toggle" data-s2-id="${id}" data-count-override="${model.countOverride ? 'true' : 'false'}">${model.countOverride ? 'Counting this result' : 'Count this result'}</button>`
+      ? `<button type="button" class="s2-btn" data-s2-action="count-toggle" data-s2-id="${id}" data-count-override="${model.counted ? 'true' : 'false'}">${esc(model.counted ? labels.stopCounting : (model.countAction || labels.countPartial))}</button>`
       : '';
     const liveId = ctx.table && ctx.table.currentGame ? ctx.table.currentGame.id : null;
     const deleteNight = liveId != null && String(liveId) === String(model.id)

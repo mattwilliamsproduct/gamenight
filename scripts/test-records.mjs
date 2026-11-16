@@ -197,7 +197,7 @@ test('past nights sort by real date, newest first, and group one evening', () =>
 });
 
 test('completed matches do not get Resume', () => {
-  const done = {completed: true, winners: ['Matt'], totals: {Matt: 10, Cat: 4}, game: 'Wizard', originalRoster: ['Matt', 'Cat'], rounds: []};
+  const done = {completed: true, outcome: 'finished', winners: ['Matt'], totals: {Matt: 10, Cat: 4}, game: 'Wizard', originalRoster: ['Matt', 'Cat'], rounds: [{round: 1, scores: {Matt: 10, Cat: 4}}]};
   const open = {completed: false, winners: [], totals: {Matt: 10, Cat: 4}, game: 'Wizard', originalRoster: ['Matt', 'Cat'], rounds: [{round: 1, scores: {Matt: 10, Cat: 4}}], currentRound: 2};
   assert.equal(Records.shouldShowResume(done, Scorebook), false);
   assert.equal(Records.shouldShowResume(open, Scorebook), true);
@@ -213,8 +213,15 @@ test('completed matches do not get Resume', () => {
 });
 
 test('joint winners stay joint on the night card', () => {
-  const match = QA_SCENARIOS['demo-seed'].data.history.find((row) => (row.winners || []).length > 1);
-  assert.ok(match, 'demo-seed needs a joint win');
+  const seeded = QA_SCENARIOS['demo-seed'].data.history.find((row) => (row.winners || []).length > 1);
+  assert.ok(seeded, 'demo-seed needs a joint win');
+  // Nov 15: an uncounted night never names a winner. The seeded joint night is uncounted.
+  const uncounted = Records.nightCardModel(seeded, helpers);
+  assert.equal(uncounted.winnerText, '');
+  assert.deepEqual(uncounted.winners, []);
+  assert.match(uncounted.noWinnerText, /no winner/);
+  assert.equal(uncounted.standings.some((row) => row.isWinner), false);
+  const match = {...seeded, countResult: true};
   const card = Records.nightCardModel(match, helpers);
   assert.ok(card.winners.length > 1);
   assert.match(card.winnerText, / and /);
