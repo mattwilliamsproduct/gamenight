@@ -104,3 +104,21 @@ test('Add player and its field look ready, not disabled', async ({page}) => {
   expect(look.btnOpacity).toBe('1');
   expect(look.btnH).toBeGreaterThanOrEqual(44);
 });
+
+test('the sample tip never covers the app header at 390, 1024 and 1180', async ({page}) => {
+  for (const [width, height] of [[390, 844], [1024, 768], [1180, 820]]) {
+    await page.setViewportSize({width, height});
+    await boot(page);
+    await page.evaluate(() => showHistory());
+    await expect(page.locator('#bpg-try-demo-tip')).toBeVisible();
+    const geo = await page.evaluate(() => {
+      const tip = document.getElementById('bpg-try-demo-tip').getBoundingClientRect();
+      const nav = [...document.querySelectorAll('button, a')].filter((el) => /^Home$/.test(el.textContent.trim()) && el.getBoundingClientRect().height > 0)
+        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0];
+      let card = nav;
+      while (card && card.parentElement && !(parseFloat(getComputedStyle(card).borderTopLeftRadius) > 0 && card.getBoundingClientRect().width > innerWidth * 0.8)) card = card.parentElement;
+      return {tipBottom: tip.bottom, headerTop: card.getBoundingClientRect().top};
+    });
+    expect(geo.headerTop, `${width}: header card starts below the tip`).toBeGreaterThanOrEqual(geo.tipBottom);
+  }
+});

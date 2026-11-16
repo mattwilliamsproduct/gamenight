@@ -2739,7 +2739,7 @@ html.porch-ledger #profiles-screen .profile-big-stat > :not(strong) { color: var
 /* Sample bar: 44pt buttons; the bar and the tip offsets grow to match. */
 html.porch-ledger.bpg-try-demo { --bp-demo-offset: 56px; }
 html.porch-ledger.bpg-try-demo:not(.bpg-try-demo-tip) { padding-top: 56px !important; }
-html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 116px; padding-top: 116px !important; }
+html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 118px; padding-top: 118px !important; }
 html.porch-ledger #bpg-try-demo-bar { height: 56px !important; min-height: 56px !important; max-height: 56px !important; padding: 6px 14px !important; }
 html.porch-ledger #bpg-try-demo-bar button,
 html.porch-ledger #bpg-try-demo-tip button { min-height: var(--bp-touch) !important; height: var(--bp-touch) !important; padding-inline: 14px !important; }
@@ -2768,3 +2768,10 @@ html.porch-ledger .bp-cloud-preview-notice {
 }
 html.porch-ledger .bp-cloud-preview-notice.hidden { display: none !important; }
 html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(--bp-muted); font-size: 18px; }
+@media (max-width: 600px) {
+  /* Phone: the sample tip is one row (text beside Got it) so it no longer covers the logo under it. */
+  html.porch-ledger #bpg-try-demo-tip { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 10px !important; padding: 6px 12px !important; }
+  html.porch-ledger #bpg-try-demo-tip > :first-child { flex: 1 1 auto; min-width: 0; font-size: 13px; line-height: 1.35; }
+  html.porch-ledger #bpg-try-demo-tip button { flex: 0 0 auto; }
+  html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 124px; padding-top: 124px !important; }
+}
