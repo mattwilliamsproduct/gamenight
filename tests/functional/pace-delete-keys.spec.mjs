@@ -2,7 +2,7 @@ import {expect, test} from '@playwright/test';
 
 test.use({serviceWorkers: 'block'});
 
-test('View pace at 1024 keeps the pace columns on the card and the player names intact', async ({page}) => {
+test('Pace is out of the UI at 1024: no toggle, no panel, names intact, saved rounds untouched', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
   await page.goto('/', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof startGame === 'function');
@@ -30,36 +30,20 @@ test('View pace at 1024 keeps the pace columns on the card and the player names 
     currentGame = null;
     startGame('Five Crowns');
   });
-  await page.locator('#scorecard-view-pace-toggle').click();
-  await expect(page.locator('#record-chase-panel')).toBeVisible();
-  await expect(page.locator('#record-chase-panel')).toContainText('Best');
+  await expect(page.locator('#scorecard-view-pace-toggle')).toBeHidden();
+  await expect(page.locator('#scorecard-view-toggle-wrap')).toBeHidden();
+  await expect(page.locator('#record-chase-panel')).toBeHidden();
+  expect(await page.evaluate(() => history[0].rounds.length)).toBe(11);
   const boxes = await page.evaluate(() => {
     const card = document.querySelector('#scorecard-capture').getBoundingClientRect();
-    const panel = document.querySelector('#record-chase-panel').getBoundingClientRect();
     const names = [...document.querySelectorAll('#scorecard-capture .scoreboard-player-name')].map((el) => {
       const range = document.createRange();
       range.selectNodeContents(el);
       const box = range.getBoundingClientRect();
       return {text: (el.textContent || '').trim(), left: box.left, right: box.right};
     });
-    return {card: {left: card.left, right: card.right}, panel: {left: panel.left, right: panel.right}, names};
+    return {card: {left: card.left, right: card.right}, names};
   });
-  expect(boxes.panel.left).toBeGreaterThan(boxes.card.left);
-  expect(boxes.panel.right).toBeLessThanOrEqual(boxes.card.right + 1);
-  const paceType = await page.evaluate(() => {
-    const label = document.querySelector('#scorecard-view-pace-toggle .scorecard-view-toggle-label');
-    const cs = getComputedStyle(label);
-    return {
-      size: parseFloat(cs.fontSize),
-      text: label.textContent,
-      max: cs.maxWidth,
-      full: label.scrollWidth <= label.clientWidth + 1
-    };
-  });
-  expect(paceType.size).toBeGreaterThanOrEqual(13);
-  expect(paceType.text).toBe('View pace');
-  expect(paceType.max).toBe('none');
-  expect(paceType.full).toBe(true);
   expect(boxes.names.map((row) => row.text)).toEqual(['Ava', 'Ben']);
   for (const name of boxes.names) {
     expect(name.left, name.text).toBeGreaterThanOrEqual(boxes.card.left + 8);
@@ -67,7 +51,7 @@ test('View pace at 1024 keeps the pace columns on the card and the player names 
   }
 });
 
-test('View pace opens, delete removes a past night, and Skip replaces 00', async ({page}) => {
+test('Pace stays hidden at 1440, delete removes a past night, and Skip replaces 00', async ({page}) => {
   page.on('dialog', (dialog) => dialog.accept());
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/', {waitUntil: 'domcontentloaded'});
@@ -93,11 +77,8 @@ test('View pace opens, delete removes a past night, and Skip replaces 00', async
     startGame('Five Crowns');
     if (typeof goActiveMatch === 'function') goActiveMatch();
   });
-  await expect(page.locator('#scorecard-view-pace-toggle')).toBeVisible();
+  await expect(page.locator('#scorecard-view-pace-toggle')).toBeHidden();
   await expect(page.locator('#record-chase-panel')).toBeHidden();
-  await page.locator('#scorecard-view-pace-toggle').click();
-  await expect(page.locator('#record-chase-panel')).toBeVisible();
-  await expect(page.locator('#record-chase-panel')).toContainText('Best');
   const liveId = await page.evaluate(() => currentGame && currentGame.id);
   expect(await page.evaluate((id) => deletePastNight(id), liveId)).toBe(false);
   expect(await page.evaluate(() => !!currentGame)).toBe(true);

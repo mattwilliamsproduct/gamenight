@@ -11,7 +11,7 @@ function lum([r, g, b]) {
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
 
 for (const [width, height] of [[1024, 768], [1440, 900]]) {
-  test(`View pace reads clearly on the felt at ${width}x${height}`, async ({page}) => {
+  test(`Board header Home button reads clearly at ${width}x${height}, and Pace is gone`, async ({page}) => {
     await page.setViewportSize({width, height});
     await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
     await page.waitForFunction(() => typeof goActiveMatch === 'function' && window.BPGSlice2);
@@ -26,11 +26,12 @@ for (const [width, height] of [[1024, 768], [1440, 900]]) {
       saveData();
       goActiveMatch();
     });
-    const pill = page.locator('#scorecard-view-pace-toggle');
+    await expect(page.locator('#scorecard-view-pace-toggle')).toBeHidden();
+    const pill = page.locator('#slice2-table-btn');
     await expect(pill).toBeVisible();
     const style = await pill.evaluate((el) => {
       const c = getComputedStyle(el);
-      const label = getComputedStyle(el.querySelector('.scorecard-view-toggle-label'));
+      const label = c;
       const rgb = (s) => (s.match(/[\d.]+/g) || []).map(Number);
       return {bg: rgb(c.backgroundColor), fg: rgb(label.color)};
     });

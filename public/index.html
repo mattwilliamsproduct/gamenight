@@ -11341,6 +11341,7 @@ button.dealer-name-indicator .dealer-player-label {
 
   let currentGame = null;
   let recordChaseVisible = false;
+  const PACE_VIEW_IN_UI = false;
   let recordChaseLayoutActive = false;
 
   function resetRecordChaseView(){
@@ -18587,7 +18588,8 @@ ${isDealer
   function setRecordChaseLayout(enabled){
     const layout=document.getElementById('scorecard-live-layout');
     const panel=document.getElementById('record-chase-panel');
-    const available=window.matchMedia('(min-width: 901px)').matches&&currentGame?.name!=='Rook';
+    // Pace is out of the UI (Nov 15). The panel code and every saved round stay; only the toggle is gone.
+    const available=PACE_VIEW_IN_UI&&window.matchMedia('(min-width: 901px)').matches&&currentGame?.name!=='Rook';
     recordChaseLayoutActive=!!enabled&&available;
     if(layout)layout.classList.toggle('record-chase-active',recordChaseLayoutActive);
     if(panel){
