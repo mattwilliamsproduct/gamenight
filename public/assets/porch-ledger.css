@@ -2192,3 +2192,63 @@ html.porch-ledger.slice2-tv #score-entry-modal #score-entry-next-btn {
     white-space: nowrap;
   }
 }
+
+/* ═══ Design tokens (bpg2) ═══
+   Small shared scale for new work. Spacing is on a 4/8 grid. Color roles:
+   teal = primary and selected, neutral = secondary, red = destructive.
+   Player colors identify people only; they never carry a role. */
+html.porch-ledger {
+  --bp-space-1: 4px;
+  --bp-space-2: 8px;
+  --bp-space-3: 12px;
+  --bp-space-4: 16px;
+  --bp-space-5: 24px;
+  --bp-space-6: 32px;
+  --bp-space-7: 48px;
+  --bp-radius-sm: 8px;
+  --bp-radius-md: 12px;
+  --bp-radius-lg: 16px;
+  --bp-radius-pill: 999px;
+  --bp-shadow-1: 0 1px 2px rgba(28, 46, 38, 0.14);
+  --bp-shadow-2: 0 14px 28px -18px rgba(28, 46, 38, 0.28), 0 2px 8px rgba(28, 46, 38, 0.06);
+  --bp-shadow-3: 0 24px 48px -28px rgba(28, 16, 8, 0.55);
+  --bp-type-xs: 0.8125rem;   /* 13px: smallest allowed label */
+  --bp-type-sm: 0.9375rem;   /* 15px */
+  --bp-type-md: 1.0625rem;   /* 17px body */
+  --bp-type-lg: 1.25rem;     /* 20px */
+  --bp-type-xl: 1.5rem;      /* 24px */
+  --bp-type-2xl: 2rem;       /* 32px */
+  --bp-touch: 44px;
+  --bp-primary: #11786c;          /* 4.96:1 on ivory; ivory on teal 5.15:1 */
+  --bp-primary-deep: #0c5c54;
+  --bp-primary-ink: #fffaf3;
+  --bp-primary-wash: #e5f3ef;
+  --bp-primary-border: #5fa99c;
+  --bp-secondary-bg: #fbf6ec;
+  --bp-secondary-border: #b9a68c;
+  --bp-secondary-ink: #1a140f;
+  --bp-danger: #a1263a;           /* 6.83:1 on ivory */
+  --bp-danger-deep: #7e1a2b;
+  --bp-danger-wash: #fbeaec;
+  --bp-danger-border: #d98d99;
+  --bp-ink: #1a140f;
+  --bp-ink-soft: #3a3128;
+  --bp-muted: #554b40;            /* 7.9:1 on ivory, 7.1:1 on ivory-2 */
+  --bp-on-felt: #fffaf3;
+  --bp-on-felt-soft: #e8eef7;     /* 8.3:1 on the felt center, 10:1 on felt base */
+  --bp-focus-ring: 0 0 0 3px #fffaf3, 0 0 0 6px #11786c;
+  --bp-disabled-bg: #ece4d6;
+  --bp-disabled-ink: #6f6557;     /* 4.53:1 on the disabled fill */
+}
+
+/* Scores line up in columns everywhere they appear. */
+html.porch-ledger #scorecard-capture,
+html.porch-ledger #score-entry-modal,
+html.porch-ledger #round-correction-modal,
+html.porch-ledger #scorecard-modal,
+html.porch-ledger #hall-of-fame-view,
+html.porch-ledger #profiles-screen,
+html.porch-ledger #victory-modal,
+html.porch-ledger .s2-night-card {
+  font-variant-numeric: tabular-nums lining-nums;
+}
