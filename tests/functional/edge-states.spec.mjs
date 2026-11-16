@@ -26,7 +26,10 @@ test('empty home has Start and no sample-night CTA', async ({page}) => {
 test('empty records is honest, not a blank crash', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await openDemo(page, 'empty-records');
-  await expect(page.locator('#hall-of-fame-view')).toContainText(/Hall of Fame stays empty until a night is saved/);
+  await expect(page.locator('#hall-of-fame-view')).toContainText(/No records yet/);
+  await expect(page.locator('#hall-of-fame-view')).toContainText(/Records start when a game finishes/);
+  await expect(page.locator('#hall-of-fame-view')).not.toContainText(/No record yet/);
+  await expect(page.locator('#hall-of-fame-view').getByRole('button', {name: 'Start a game'})).toBeVisible();
   await page.screenshot({path: `${SHOT}/empty-records-390.png`, fullPage: false});
 });
 

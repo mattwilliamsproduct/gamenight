@@ -1479,6 +1479,8 @@
     } else if (action === 'save-end') {
       if (typeof requestLeaveGame === 'function') requestLeaveGame();
       else if (typeof requestEndGame === 'function') requestEndGame();
+    } else if (action === 'records-start') {
+      if (typeof goHome === 'function') goHome();
     } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
       setRecordsPane(action === 'show-shame' ? 'explore' : (action === 'show-nights' ? 'nights' : 'overview'));
     } else if (action === 'night-expand') {

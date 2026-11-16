@@ -1171,7 +1171,8 @@
     const avatar = ctx.getAvatarImg || function () { return ''; };
     if (!table.history.length) {
       view.className = `s2-ledger${hidden ? ' hidden' : ''}`;
-      view.innerHTML = '<section class="s2-panel"><h2>Records</h2><p class="s2-sub local-storage-statement">Scores and history are saved in this browser on this device.</p><p class="s2-sub">Hall of Fame stays empty until a night is saved.</p></section>';
+      view.innerHTML = recordsEmptyStateHtml(0, ctx.escapeHtml)
+        + '<p class="s2-sub s2-records-footer local-storage-statement">Scores and history are saved in this browser on this device.</p>';
       return;
     }
     const hall = ctx.hall;
@@ -1195,6 +1196,34 @@
     view.className = `s2-ledger s2-pane-${pane}${hidden ? ' hidden' : ''}`;
     view.dataset.recordsPane = pane;
     view.innerHTML = html;
+  }
+
+  // One useful empty state (bpg2) instead of a table of "No record yet" rows.
+  // Unfinished and uncounted games stay under Past nights.
+  function recordsEmptyStateHtml(nightCount, esc) {
+    const nights = Number(nightCount) || 0;
+    const nightsLine = nights
+      ? `<p class="s2-records-empty-note">${nights === 1 ? 'Your 1 saved game is' : `Your ${nights} saved games are`} under Past nights. Unfinished and uncounted games never set records.</p>`
+      : '';
+    const nightsBtn = nights
+      ? `<button type="button" class="s2-btn" data-s2-action="show-nights">See Past nights</button>`
+      : '';
+    return `<section class="s2-panel s2-records-empty" data-records-empty="true">
+      <h2>No records yet</h2>
+      <p class="s2-records-empty-lead">Records start when a game finishes, or when you count a partial result. Winners, best scores and streaks show up here.</p>
+      ${nightsLine}
+      <div class="s2-records-empty-actions">
+        <button type="button" class="s2-btn s2-btn-primary" data-s2-action="records-start">Start a game</button>
+        ${nightsBtn}
+      </div>
+    </section>`;
+  }
+
+  // Records exist once any saved game counts (finished, or a partial result someone chose to count).
+  function hasCountedRecords(table, scorebook) {
+    const rows = (table && table.history) || [];
+    if (!scorebook || typeof scorebook.countsForTallies !== 'function') return rows.length > 0;
+    return rows.some((match) => match && scorebook.countsForTallies(match));
   }
 
   function tabsHtml(pane) {
@@ -1277,6 +1306,15 @@
     const selectedKey = ctx.pairFilter || '';
     const rival = pairs.find((row) => `${row.a}|${row.b}` === selectedKey) || pairs[0];
     const recent = sortNights(table.history);
+    if (!hasCountedRecords(table, ctx.scorebook)) {
+      return `<div class="s2-records-pane s2-fame-col s2-overview-layout" data-pane="overview">
+      ${recordsEmptyStateHtml(table.history.length, esc)}
+      <section class="s2-panel s2-recent-board">
+        <div class="s2-panel-head"><h2>Recent results</h2></div>
+        ${nightsSplitHtml(recent, helpers, ctx, compact)}
+      </section>
+    </div>`;
+    }
     return `<div class="s2-records-pane s2-fame-col s2-overview-layout" data-pane="overview">
       <section class="s2-panel s2-career">
         <div class="s2-headline">${headlines.map((card) => `<article class="s2-headline-card">
@@ -1392,6 +1430,9 @@
 
   function exploreHtml(hall, data, table, helpers, ctx, compact) {
     const esc = ctx.escapeHtml;
+    if (!hasCountedRecords(table, ctx.scorebook)) {
+      return `<div class="s2-records-pane" data-pane="explore">${recordsEmptyStateHtml(table.history.length, esc)}</div>`;
+    }
     const avatar = ctx.getAvatarImg;
     const gameFilter = ctx.gameFilter || '';
     const playerFilter = ctx.playerFilter || '';
@@ -1800,7 +1841,8 @@
     const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
     const leftEarlyRows = shown.filter((row) => row.leftEarly || row.retired);
     // A game that does not count is not a ranking: no 1st/1st/3rd, and say so once.
-    const uncounted = model.counted === false;
+    // Needs-review games still name a provisional winner (gameStatus.showsWinners), so they keep their places.
+    const uncounted = model.counted === false && !model.winnerText;
     const uncountedLabel = uncounted && ranked.length
       ? `<li class="s2-night-left-label s2-night-uncounted-label">${esc(model.incomplete ? 'Scores so far · not counted' : 'Scores when it stopped · not counted')}</li>`
       : '';

@@ -129,6 +129,8 @@ test('Comeback Extra uses the production labels when a night stored an extra', (
     originalRoster: ['Ada', 'Bea'],
     totals: {Ada: 30, Bea: 20},
     winners: ['Ada'],
+    completed: true,
+    countResult: true, // bpg2: a counted result, so Records renders instead of the empty state
     rounds: [{round: 1, scores: {Ada: 10, Bea: 20}, comeback: {Ada: 20}}]
   }];
   const html = paintHtml(night, 'explore', {
@@ -911,6 +913,8 @@ test('Player career cards are on the records overview and say Canasta', () => {
     rounds: [{round: 1, scores: {Ada: 10}}],
     totals: {Ada: 10},
     winners: ['Ada'],
+    completed: true,
+    countResult: true, // bpg2: a counted result, so Records renders instead of the empty state
     completed: true
   }], 'overview', {
     playerCards: [{
@@ -941,6 +945,8 @@ test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
     originalRoster: ['Ann', 'Bo'],
     totals: {Ann: 100, Bo: 40},
     winners: ['Ann'],
+    completed: true,
+    countResult: true, // bpg2: a counted result, so Records renders instead of the empty state
     rounds: [{
       round: 1,
       scores: {Ann: 100, Bo: 40},
@@ -961,6 +967,8 @@ test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
     originalRoster: ['Ann', 'Bo'],
     totals: {Ann: 100, Bo: 40},
     winners: ['Ann'],
+    completed: true,
+    countResult: true, // bpg2: a counted result, so Records renders instead of the empty state
     rounds: [{
       round: 1,
       scores: {Ann: 100, Bo: 40},
@@ -995,6 +1003,8 @@ test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
     originalRoster: ['Ann', 'Bo'],
     totals: {Ann: 100, Bo: 40},
     winners: ['Ann'],
+    completed: true,
+    countResult: true, // bpg2: a counted result, so Records renders instead of the empty state
     rounds: [{
       round: 1,
       scores: {Ann: 100, Bo: 40},

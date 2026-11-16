@@ -109,12 +109,22 @@ const VIEW_ASSERT = {
   'records-overview': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-fame')).toHaveClass(/is-on/);
-    await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Unassisted matches only/);
+    // bpg2: this seeded book has no counted game (all ended early, needs review or paused), so Overview shows
+    // the one empty state instead of 0-win career cards and "No record yet" rows.
+    const counted = await page.evaluate(() => history.filter((h) => BPGScorebook.countsForTallies(h)).length);
+    if (counted) await expect(page.locator('.s2-fame-col')).toContainText(/Career wins|Unassisted matches only/);
+    else {
+      await expect(page.locator('.s2-fame-col [data-records-empty]')).toContainText('No records yet');
+      await expect(page.locator('.s2-fame-col')).not.toContainText('No record yet');
+      await expect(page.locator('.s2-fame-col .s2-recent-board')).toBeVisible();
+    }
   },
   'records-explore': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
     await expect(page.locator('#slice2-show-shame')).toHaveClass(/is-on/);
-    await expect(page.locator('.s2-explore-col')).toContainText(/Explore records|Most games without a win|Most consecutive last-place finishes/);
+    const counted = await page.evaluate(() => history.filter((h) => BPGScorebook.countsForTallies(h)).length);
+    if (counted) await expect(page.locator('.s2-explore-col')).toContainText(/Explore records|Most games without a win|Most consecutive last-place finishes/);
+    else await expect(page.locator('#hall-of-fame-view [data-records-empty]')).toContainText('No records yet');
   },
   'records-nights': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
@@ -155,7 +165,7 @@ const VIEW_ASSERT = {
   },
   'empty-records': async (page) => {
     await expect(hidden(page, 'history-screen')).not.toHaveClass(/hidden/);
-    await expect(page.locator('#hall-of-fame-view, .s2-ledger')).toContainText(/No infamous nights yet|Hall of Fame|Shame/);
+    await expect(page.locator('#hall-of-fame-view, .s2-ledger')).toContainText(/No records yet|No infamous nights yet|Hall of Fame|Shame/);
   },
   'error-entry': async (page) => {
     await expect(hidden(page, 'score-entry-modal')).not.toHaveClass(/hidden/);

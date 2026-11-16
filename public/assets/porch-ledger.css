@@ -2608,3 +2608,33 @@ html.porch-ledger .s2-night-uncounted-label { color: var(--bp-muted) !important;
 html.porch-ledger #bid-lock-modal { z-index: 420 !important; }
 html.porch-ledger #bid-lock-modal .bp-bid-lock-copy { font-size: var(--bp-type-md); color: var(--bp-ink) !important; }
 html.porch-ledger #bid-lock-modal button { min-height: var(--bp-touch); font-size: var(--bp-type-sm) !important; }
+
+/* ---- Records (bpg2) ---- */
+/* Explore: every panel flows through balanced columns instead of two fixed stacks
+   (the games stack ran ~1500px longer than the side stack at 1180). */
+@media (min-width: 901px) {
+  html.porch-ledger.slice2-tv .s2-explore-grid {
+    display: block !important;
+    column-count: 2;
+    column-gap: var(--bp-space-4);
+  }
+  html.porch-ledger.slice2-tv .s2-explore-side,
+  html.porch-ledger.slice2-tv .s2-explore-games { display: contents !important; }
+  html.porch-ledger.slice2-tv .s2-explore-grid .s2-panel {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    display: block;
+    width: 100%;
+    margin: 0 0 var(--bp-space-4) !important;
+  }
+}
+@media (min-width: 1500px) {
+  html.porch-ledger.slice2-tv .s2-explore-grid { column-count: 3; }
+}
+/* One useful empty state. */
+html.porch-ledger .s2-records-empty { padding: var(--bp-space-6) !important; text-align: left; }
+html.porch-ledger .s2-records-empty h2 { font-size: var(--bp-type-xl) !important; margin-bottom: var(--bp-space-2); }
+html.porch-ledger .s2-records-empty-lead { font-size: var(--bp-type-md); color: var(--bp-ink); font-weight: 600; max-width: 40rem; line-height: 1.5; }
+html.porch-ledger .s2-records-empty-note { margin-top: var(--bp-space-2); font-size: var(--bp-type-sm); color: var(--bp-muted); max-width: 40rem; }
+html.porch-ledger .s2-records-empty-actions { display: flex; flex-wrap: wrap; gap: var(--bp-space-3); margin-top: var(--bp-space-5); }
+html.porch-ledger .s2-records-empty-actions .s2-btn { min-height: var(--bp-touch); padding-inline: var(--bp-space-5); }
