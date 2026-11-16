@@ -334,10 +334,13 @@ test('clean first start explains what to tap and writes no sample data', async (
   expect(stored.flag).toBeNull();
 });
 
-test('Saved chip stays inside Tonight\'s Table at 1440, 1024, and 390', async ({page}) => {
+test('Saved chip shows only after a save, and stays inside Tonight\'s Table at 1440, 1024, and 390', async ({page}) => {
   for (const size of [{width: 1440, height: 900}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
     await openScenario(page, {scenario: 'empty-home', surface: 'home'});
+    // Nothing has been saved yet on a fresh Home, so no chip; after a real save it sits inside the card.
+    await expect(page.locator('#save-indicator')).toBeHidden();
+    await page.evaluate(() => saveData({fullPersist: true}));
     const fit = await page.evaluate(() => {
       const chip = document.getElementById('save-indicator');
       const card = document.querySelector('#slice2-home .s2-home-table');
