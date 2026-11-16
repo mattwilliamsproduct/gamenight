@@ -1799,8 +1799,13 @@
     ].join('');
     const ranked = shown.filter((row) => !row.leftEarly && !row.retired);
     const leftEarlyRows = shown.filter((row) => row.leftEarly || row.retired);
-    const rankedHtml = ranked.map((row) => `<li class="s2-night-finish${row.isWinner ? ' is-winner' : ''}">
-      <span class="s2-night-place">${esc(densePlaceLabel(row.place))}</span>
+    // A game that does not count is not a ranking: no 1st/1st/3rd, and say so once.
+    const uncounted = model.counted === false;
+    const uncountedLabel = uncounted && ranked.length
+      ? `<li class="s2-night-left-label s2-night-uncounted-label">${esc(model.incomplete ? 'Scores so far · not counted' : 'Scores when it stopped · not counted')}</li>`
+      : '';
+    const rankedHtml = uncountedLabel + ranked.map((row) => `<li class="s2-night-finish${row.isWinner ? ' is-winner' : ''}">
+      <span class="s2-night-place"${uncounted ? ' aria-hidden="true"' : ''}>${uncounted ? '' : esc(densePlaceLabel(row.place))}</span>
       ${avatar(row.name, 'avatar-img s2-mini-avatar')}
       <span class="player-name-label">${esc(row.name)}</span>
       <strong>${esc(scoreLabel(row.score))}</strong>
@@ -1830,7 +1835,7 @@
     const liveId = ctx.table && ctx.table.currentGame ? ctx.table.currentGame.id : null;
     const deleteNight = liveId != null && String(liveId) === String(model.id)
       ? ''
-      : `<button type="button" class="s2-btn s2-btn-quiet" data-s2-action="night-delete" data-s2-id="${id}">Delete night</button>`;
+      : `<button type="button" class="s2-btn s2-btn-quiet s2-btn-danger" data-s2-action="night-delete" data-s2-id="${id}">Delete game</button>`;
     return `<article class="s2-night s2-night-card${model.incomplete ? ' is-incomplete' : ''}${model.winners.length > 1 ? ' is-joint' : ''}"${model.assisted ? ' data-assisted-match="true"' : ''} data-s2-action="night-open" data-s2-id="${id}">
       <header class="s2-night-head">
         ${gameThumbnailHtml(model.game, 's2-game-thumb s2-night-thumb')}

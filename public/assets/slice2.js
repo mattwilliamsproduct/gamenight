@@ -344,10 +344,6 @@
       leave.textContent = phoneScoreboard() ? 'Leave' : 'Leave game';
       leave.setAttribute('aria-label', 'Leave game');
     }
-    const scratch = document.querySelector('#actions-menu button[onclick*="scratchMatch"] span:last-child');
-    if (scratch && !/discard/i.test(scratch.textContent || '')) {
-      scratch.textContent = 'Scratch match (discard)';
-    }
     if (!actions) return;
     const menuWrap = document.querySelector('#game-screen .active-match-actions');
     if (menuWrap && menuWrap.parentElement !== actions) actions.appendChild(menuWrap);
@@ -1458,7 +1454,7 @@
       const match = (table.history || []).find((row) => row && String(row.id) === String(id));
       const rawLabel = match && (match.game || match.name) ? String(match.game || match.name) : '';
       const label = rawLabel && typeof displayGameName === 'function' ? displayGameName(rawLabel) : (rawLabel || 'saved');
-      if (!window.confirm(`Delete this past ${label} night? The live match is not deleted.`)) return;
+      if (!window.confirm(`Delete this past ${label} game? It leaves Past nights and Records. The live match is not deleted.`)) return;
       if (typeof deletePastNight === 'function') deletePastNight(id);
       paintRecords();
     } else if (action === 'night-resume') {

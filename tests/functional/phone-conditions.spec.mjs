@@ -471,23 +471,25 @@ test('Standings updated toast leaves when Records opens', async ({page}) => {
   }
 });
 
-test('Scratch Match stays on screen in the 375 and 390 Actions menu', async ({page}) => {
+test('Delete game sits at the bottom of Leave game and stays on screen at 375 and 390 (Scratch merged in)', async ({page}) => {
   for (const size of [{width: 375, height: 667}, {width: 390, height: 844}]) {
     await page.setViewportSize(size);
     await openDemoPath(page);
     await page.locator('#actions-btn').click();
-    const scratch = page.locator('#actions-menu .actions-menu-item--danger');
-    await expect(scratch, `${size.width} Scratch visible`).toBeVisible();
-    const box = await scratch.evaluate((el) => {
+    await expect(page.locator('#actions-menu'), `${size.width} no Scratch in Actions`).not.toContainText(/Scratch/i);
+    await page.locator('#actions-menu .match-end-btn').click();
+    const del = page.locator('#leave-delete-any');
+    await expect(del, `${size.width} Delete game visible`).toBeVisible();
+    await expect(del).toHaveText('Delete game');
+    const box = await del.evaluate((el) => {
       const r = el.getBoundingClientRect();
       return {top: r.top, bottom: r.bottom, height: r.height};
     });
-    expect(box.height, `${size.width} Scratch height`).toBeGreaterThan(20);
-    expect(box.top, `${size.width} Scratch top`).toBeGreaterThanOrEqual(-1);
-    expect(box.bottom, `${size.width} Scratch bottom`).toBeLessThanOrEqual(size.height + 2);
-    await expect(scratch).toContainText(/Scratch Match/i);
+    expect(box.height, `${size.width} Delete game height`).toBeGreaterThanOrEqual(44);
+    expect(box.top, `${size.width} Delete game top`).toBeGreaterThanOrEqual(-1);
+    expect(box.bottom, `${size.width} Delete game bottom`).toBeLessThanOrEqual(size.height + 2);
     await page.screenshot({path: `${SHOT}/discard-actions-${size.width}-after.png`, fullPage: false});
-    await page.evaluate(() => closeActionsMenu());
+    await page.evaluate(() => closeEndMatchModal());
   }
 });
 

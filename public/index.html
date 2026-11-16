@@ -10221,12 +10221,6 @@ button.dealer-name-indicator .dealer-player-label {
                 </button>
               </div>
               <div class="actions-menu-section">
-                <button onclick="scratchMatch();closeActionsMenu();" class="actions-menu-item actions-menu-item--danger">
-                  <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></span>
-                  <span>Scratch match (discard scores)</span>
-                </button>
-              </div>
-              <div class="actions-menu-section">
                 <span class="actions-menu-label">Leave game</span>
                 <button type="button" id="actions-save-end" onclick="requestLeaveGame();closeActionsMenu();" class="actions-menu-item match-end-btn">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg></span>
@@ -10941,20 +10935,25 @@ button.dealer-name-indicator .dealer-player-label {
     <!-- End match confirm -->
     <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
-      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
-        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Leave game</div>
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm bp-leave-panel p-7 relative pop-in">
+        <button type="button" onclick="closeEndMatchModal()" class="bp-modal-close absolute top-3 right-3 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
+        <div id="end-match-kicker" class="bp-leave-kicker text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);"></div>
         <h3 class="font-display text-3xl mb-3" id="end-match-title">Leave game</h3>
         <p class="text-sm font-semibold leading-relaxed mb-6" style="color:var(--ink-2);" id="end-match-copy">Choose one. Keep playing changes nothing.</p>
         <div id="leave-game-choices" class="flex flex-col gap-3">
           <button type="button" id="leave-save-later" onclick="leaveSaveForLater()" class="btn-primary px-5 py-3 text-sm">Save for later</button>
           <button type="button" id="leave-end-now" onclick="leaveEndNow()" class="btn-ghost px-5 py-3 text-sm">End game now</button>
           <button type="button" id="leave-keep-playing" onclick="leaveKeepPlaying()" class="btn-ghost px-5 py-3 text-sm">Keep playing</button>
+          <div class="bp-leave-danger-zone">
+            <button type="button" id="leave-delete-any" onclick="leaveDeleteGame()" class="bp-btn-danger px-5 py-3 text-sm w-full">Delete game</button>
+            <p class="bp-leave-danger-note">Removes it from Past nights and Records. Asks first.</p>
+          </div>
         </div>
         <div id="leave-count-step" class="hidden flex flex-col gap-3">
           <p id="leave-count-copy" class="text-sm font-semibold leading-relaxed" style="color:var(--ink-2);"></p>
           <button type="button" id="leave-count-yes" onclick="leaveCountResult(true)" class="btn-primary px-5 py-3 text-sm">Count partial result</button>
           <button type="button" id="leave-count-no" onclick="leaveCountResult(false)" class="btn-ghost px-5 py-3 text-sm">Save without counting</button>
-          <button type="button" id="leave-delete-game" onclick="leaveDeleteGame()" class="btn-ghost px-5 py-3 text-sm hidden" style="color:var(--rose);">Delete game</button>
+          <button type="button" id="leave-delete-game" onclick="leaveDeleteGame()" class="bp-btn-danger px-5 py-3 text-sm hidden">Delete game</button>
           <button type="button" id="leave-count-back" onclick="leaveShowChoices()" class="btn-ghost px-5 py-3 text-sm">Back</button>
         </div>
       </div>
@@ -11178,11 +11177,11 @@ button.dealer-name-indicator .dealer-player-label {
         <h3 id="victory-names" class="font-display text-4xl sm:text-5xl mb-1 leading-tight"></h3>
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
         <div id="victory-records" class="w-full space-y-2 mb-5"></div>
-        <div class="flex flex-col sm:flex-row gap-2 w-full mb-2">
+        <div id="victory-extra-actions" class="flex flex-col sm:flex-row gap-2 w-full mb-2">
           <button onclick="runItBack()" class="btn-ghost flex-1 py-4 text-base font-bold">🔄 Run it back</button>
           <button onclick="shareReceipt()" class="btn-ghost flex-1 py-4 text-base font-bold">📸 Share receipt</button>
         </div>
-        <button onclick="showLoserModal()" class="btn-primary w-full py-4 text-lg">Next →</button>
+        <button id="victory-next" onclick="showLoserModal()" class="btn-primary w-full py-4 text-lg">Next →</button>
       </div>
     </div>
     <div id="scorecard-receipt-stash" class="scorecard-receipt-stash" aria-hidden="true"></div>
@@ -17121,11 +17120,8 @@ ${isDealer
     if(done) done();
   }
 
-  function scratchMatch(){
-    if(!currentGame)return;
-    if(!confirm('Scratch this match? The scores on the table are discarded. Saved profiles stay.'))return;
-    releaseWakeLock(); currentGame=null; saveData(); goHome();
-  }
+  // Scratch merged into Leave game > Delete game (one destructive path, one confirm).
+  function scratchMatch(){ leaveDeleteGame(); }
 
   function parkActiveMatch(){
     if(!currentGame) return null;
@@ -21656,6 +21652,8 @@ ${isDealer
     if(typeof closeActionsMenu==='function') closeActionsMenu();
     _leaveAfter=typeof after==='function'?after:null;
     leaveShowChoices();
+    const kicker=document.getElementById('end-match-kicker');
+    if(kicker) kicker.textContent=leaveContextLine(currentGame);
     const copy=document.getElementById('end-match-copy');
     if(copy){
       copy.textContent=_leaveAfter
@@ -21665,6 +21663,15 @@ ${isDealer
     openModal('end-match-modal');
   }
   function requestEndGame(){ requestLeaveGame(); }
+  // The kicker names the game and how far it got, so it never repeats the "Leave game" title.
+  function leaveContextLine(game){
+    if(!game) return '';
+    const name=typeof displayGameName==='function'?displayGameName(game.name):game.name;
+    const played=window.BPGScorebook&&BPGScorebook.scoringRoundCount?BPGScorebook.scoringRoundCount(game.rounds||[]):(game.rounds||[]).length;
+    const max=Number(game.maxRounds);
+    const of=max>0&&max<999?` of ${max}`:'';
+    return played===0?`${name} · no rounds scored yet`:`${name} · ${played}${of} round${played===1&&!of?'':'s'} scored`;
+  }
   function closeEndMatchModal(){
     _leaveAfter=null;
     closeModal('end-match-modal');
@@ -21742,8 +21749,12 @@ ${isDealer
   }
   function leaveDeleteGame(){
     if(!currentGame)return;
-    if(BPGScorebook.scoringRoundCount(currentGame.rounds||[])!==0)return;
-    if(!confirm(`Delete this ${typeof displayGameName==="function"?displayGameName(currentGame.name):currentGame.name} game? No rounds were scored. It will not appear in Past nights.`))return;
+    const played=BPGScorebook.scoringRoundCount(currentGame.rounds||[]);
+    const gameLabel=typeof displayGameName==="function"?displayGameName(currentGame.name):currentGame.name;
+    const ask=played===0
+      ? `Delete this ${gameLabel} game? No rounds were scored. It will not appear in Past nights.`
+      : `Delete this ${gameLabel} game? ${played} scored round${played===1?' is':'s are'} discarded. It will not appear in Past nights or Records. Saved profiles stay.`;
+    if(!confirm(ask))return;
     const after=_leaveAfter;
     _leaveAfter=null;
     closeModal('end-match-modal');
@@ -21903,7 +21914,12 @@ ${isDealer
     let kicker=L.notCounted;
     let names=[];
     if(!counted && outcome==='uncertain') headline=L.needsReview;
-    if(!counted && BPGScorebook.scoringRoundCount((data&&data.rounds)||[])===0) headline=L.noRounds;
+    const noRounds=!counted && BPGScorebook.scoringRoundCount((data&&data.rounds)||[])===0;
+    if(noRounds) headline=L.noRounds;
+    // No rounds means no result: nothing to share and nothing to run back.
+    document.getElementById('victory-extra-actions')?.classList.toggle('hidden', noRounds);
+    const nextBtn=document.getElementById('victory-next');
+    if(nextBtn) nextBtn.textContent=noRounds?'Done':'Next →';
     if(counted){
       const winners=uniqueResultNames(data&&data.winners).filter(name=>!retired.has(name));
       const losers=uniqueResultNames(currentLosers).filter(name=>!retired.has(name));

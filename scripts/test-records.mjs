@@ -631,6 +631,7 @@ test('Past nights competition ranks: ties read 1, 1, 3 and departed take no spot
     retired: ['Linda'],
     originalRoster: ['Megan', 'Matt', 'Cat', 'Linda'],
     completed: true,
+    countResult: true,
     rounds: [{ round: 1, scores: { Megan: 50, Matt: 50, Cat: 20, Linda: 5 } }]
   };
   const rows = Records.nightStandings(match, helpers);
@@ -649,6 +650,13 @@ test('Past nights competition ranks: ties read 1, 1, 3 and departed take no spot
   assert.match(html, /s2-night-place">3rd</);
   assert.doesNotMatch(html, /s2-night-place">2nd</);
   assert.match(html, /s2-night-left-label">Left early</);
+  // bpg2: the same game left uncounted is not a ranking.
+  const uncounted = Records.nightCardHtml(Records.nightCardModel({...match, countResult: false}, helpers), {
+    escapeHtml: (s) => String(s),
+    getAvatarImg: () => '<img>'
+  }, false);
+  assert.doesNotMatch(uncounted, /s2-night-place">(1st|3rd)</);
+  assert.match(uncounted, /not counted/);
 });
 
 test('demo career wins sum from completed nights, including ties and assisted', () => {
@@ -782,7 +790,7 @@ test('demo Rook night has a left-early player and does not change the stored win
   assert.equal(theo.games, 0);
 });
 
-test('Delete night is on a past night and stays off the live match', () => {
+test('Delete game is on a past night and stays off the live match', () => {
   const model = {
     id: 9,
     game: 'Wizard',
@@ -804,8 +812,8 @@ test('Delete night is on a past night and stays off the live match', () => {
     table: {currentGame: {id: 3}},
     expandedNights: new Set()
   };
-  assert.match(Records.nightCardHtml(model, ctx, false), /Delete night/);
-  assert.doesNotMatch(Records.nightCardHtml({...model, id: 3}, ctx, false), /Delete night/);
+  assert.match(Records.nightCardHtml(model, ctx, false), /Delete game/);
+  assert.doesNotMatch(Records.nightCardHtml({...model, id: 3}, ctx, false), /Delete game/);
 });
 
 test('biggest single-game comeback uses round totals, not Turbo', () => {
