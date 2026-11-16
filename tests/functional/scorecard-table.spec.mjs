@@ -187,9 +187,14 @@ test('laptop scorecard keeps a Table button and a one-line title', async ({page}
     return style.borderStyle !== 'none' && parseFloat(style.borderWidth) > 0 && style.backgroundColor !== 'rgba(0, 0, 0, 0)';
   });
   expect(tableLooksLikeButton).toBe(true);
+  // Behavior, not the white-space value: the short laptop title renders on one line. (bpg2: the line may wrap
+  // between parts when it is long, e.g. the Wizard tricks phase, instead of running under the buttons.)
   const titleWraps = await page.locator('#slice2-board-line').evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
     const style = getComputedStyle(el);
-    return style.whiteSpace !== 'nowrap' || el.getClientRects().length > 1;
+    const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
+    return range.getBoundingClientRect().height > lineHeight * 1.5;
   });
   expect(titleWraps).toBe(false);
   await expect(page.locator('#slice2-board-line')).not.toContainText(/Dealer/);
