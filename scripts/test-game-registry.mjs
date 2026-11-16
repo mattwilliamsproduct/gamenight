@@ -100,3 +100,10 @@ test('every Unseat count is seated minus the game max', () => {
   assert.equal(Games.seatRoomMessage('Five Crowns', 7), 'Five Crowns plays up to 7. The table is full.');
   assert.equal(Games.seatRoomMessage('Five Crowns', 6), '');
 });
+
+test('an empty table says what to do instead of a player count', () => {
+  const r = Games.seatLimit('Five Crowns', 0, 'start');
+  assert.equal(r.ok, false);
+  assert.doesNotMatch(r.message, /\b1 players\b/);
+  assert.match(r.message, /^Add players to start Five Crowns\.$/);
+});

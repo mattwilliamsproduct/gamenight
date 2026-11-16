@@ -2868,3 +2868,10 @@ html.porch-ledger .bp-icon-btn {
   min-width: var(--bp-touch); min-height: var(--bp-touch); display: inline-grid; place-items: center;
   font-size: 1.25rem; border-radius: 12px; border: 1px solid var(--bp-line, #ddd0bb); background: var(--bp-surface, #fffaf3);
 }
+/* Save indicator: a blocked save is a steady warning, on Home and on the board. */
+html.porch-ledger #save-indicator[hidden] { display: none !important; }
+html.porch-ledger #save-indicator.is-blocked {
+  display: inline-flex !important; opacity: 1 !important;
+  background: #fbeee0 !important; color: #7a3d0a !important; border-color: #e3b98a !important;
+  text-transform: none !important; letter-spacing: 0 !important; white-space: normal !important;
+}

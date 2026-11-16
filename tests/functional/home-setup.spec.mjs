@@ -143,3 +143,20 @@ test.describe('setup editing', () => {
     for (const [r, g, b] of corners) expect(r > 200 && g > 200 && b > 200, `corner pixel ${r},${g},${b}`).toBe(false);
   });
 });
+
+test.describe('empty Home', () => {
+  test.use({viewport: {width: 1024, height: 768}});
+
+  test('a first visit reads as empty, not as a broken table, and claims no save', async ({page}) => {
+    await page.goto('/', {waitUntil: 'domcontentloaded'});
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => window.BPGSlice2);
+    const home = page.locator('.s2-home');
+    await expect(home).toContainText('Nobody seated yet');
+    await expect(home).toContainText('Add players to start Five Crowns.');
+    await expect(home).not.toContainText('All saved players are seated');
+    await expect(home).not.toContainText(/\b1 players\b/);
+    await expect(page.locator('#save-indicator')).toBeHidden();
+  });
+});

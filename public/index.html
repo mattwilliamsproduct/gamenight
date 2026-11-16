@@ -32,6 +32,10 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./bp-apple-touch-icon.png?v=6">
   <link rel="icon" type="image/png" sizes="32x32" href="./bp-favicon-32.png?v=4">
   <title>Back Porch Games</title>
+  <link rel="preload" href="./assets/fonts/bree-serif-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/nunito-sans-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/nunito-sans-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/nunito-sans-800.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="./assets/fonts/londrina-solid-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./assets/app-utilities.css">
@@ -12169,10 +12173,26 @@ button.dealer-name-indicator .dealer-player-label {
       return;
     }
     const el = document.getElementById('save-indicator'); if(!el) return;
+    window.__bpSaveState='saved';
+    el.textContent='✓ Saved on this device';
+    el.classList.remove('is-blocked');
+    el.removeAttribute('role');
     if (window.BPGSlice2 && typeof BPGSlice2.parkSaveIndicator === 'function') BPGSlice2.parkSaveIndicator();
     el.classList.add('show');
     clearTimeout(flashSaveIndicator._t);
     flashSaveIndicator._t = setTimeout(()=>el.classList.remove('show'), 900);
+  }
+
+  // A blocked save stays visible until a later save lands. Nothing on screen is lost.
+  function markSaveBlocked(){
+    if(window.BPGTryDemo&&BPGTryDemo.active()) return;
+    const el = document.getElementById('save-indicator'); if(!el) return;
+    window.__bpSaveState='blocked';
+    clearTimeout(flashSaveIndicator._t);
+    el.textContent='Not saved yet: this device is full. Your scores are still here.';
+    el.classList.add('is-blocked','show');
+    el.setAttribute('role','status');
+    if (window.BPGSlice2 && typeof BPGSlice2.parkSaveIndicator === 'function') BPGSlice2.parkSaveIndicator();
   }
 
   // ── Audit log (in-match action history) ──
@@ -12459,7 +12479,8 @@ button.dealer-name-indicator .dealer-player-label {
     bumpStorageRev();
 
     updateNavButton();
-    flashSaveIndicator();
+    // "Saved on this device" only after a write that landed; a blocked write says so instead.
+    if(_persistBlocked) markSaveBlocked(); else flashSaveIndicator();
     return !_persistBlocked;
   }
   /** Flush any debounced save scheduled from numpad typing (must run before navigation / round submit). */

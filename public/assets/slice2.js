@@ -386,7 +386,9 @@
       el.hidden = true;
       return;
     }
-    el.hidden = false;
+    // Only after a real save (or a blocked one, which warns). Never on a fresh load.
+    const saveState = window.__bpSaveState || 'none';
+    el.hidden = saveState === 'none';
     const game = document.getElementById('game-screen');
     const row = document.querySelector('#slice2-board-bar .s2-board-line-row');
     const onBoard = !!(game && !game.classList.contains('hidden') && row);
@@ -432,7 +434,7 @@
     // Seated vs not seated read as two labelled groups (Matt, Nov 15).
     const benchHtml = bench.length
       ? `<h3 class="s2-roster-label" id="s2-bench-label">Not seated <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">Check names, then Add</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
-      : '<p class="s2-sub">All saved players are seated.</p>';
+      : (seated ? '<p class="s2-sub">All saved players are seated.</p>' : '');
     // Tonight's table: seats and bench share one roster that scrolls inside
     // the panel on a laptop; Add stays below it, outside the scroll.
     const rosterHtml = seatsHtml == null
@@ -552,7 +554,7 @@
           <div class="s2-panel-head">
             <div>
               <h2>Tonight's table · ${seated} seated</h2>
-              <p class="s2-sub">${dealer ? escapeHtml(dealer) + (table.currentGame ? ' is dealing' : ' deals first') : 'In dealing order'}</p>
+              <p class="s2-sub">${dealer ? escapeHtml(dealer) + (table.currentGame ? ' is dealing' : ' deals first') : (table.players.length ? 'In dealing order' : 'Nobody seated yet')}</p>
             </div>
           </div>
           <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
