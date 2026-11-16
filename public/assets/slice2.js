@@ -402,6 +402,11 @@
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
 
+  // Setup: the avatar is the Edit button (name, avatar, color, delete). Visible pencil, no hover needed.
+  function avatarEditButton(player) {
+    return `<button type="button" class="s2-avatar-edit" data-s2-action="edit-player" data-s2-player="${escapeHtml(player)}" aria-label="Edit ${escapeHtml(player)}">${getStreakAvatarHtml(player, 'avatar-img')}<span class="s2-edit-badge" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M10.6 2.6l2.8 2.8L6 12.8l-3.4.6.6-3.4z"/></svg></span></button>`;
+  }
+
   function addPlayerPickerMarkup(bench, seated, seatsHtml) {
     const max = window.BPGGames && typeof BPGGames.seatLimit === 'function'
       ? BPGGames.seatLimit(selected, seated + addPicks.size, 'seat')
@@ -417,25 +422,28 @@
       const blocked = !on && !room.ok;
       return `<label class="s2-pick${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}">
         <input type="checkbox" data-s2-action="pick-add" data-s2-player="${escapeHtml(player)}"${on ? ' checked' : ''}${blocked ? ' disabled' : ''}>
-        ${getStreakAvatarHtml(player, 'avatar-img')}
+        ${avatarEditButton(player)}
         <span>${escapeHtml(player)}</span>
         <span class="s2-pick-mark" aria-hidden="true">${on ? '✓' : ''}</span>
       </label>`;
     }).join('');
     const count = addPicks.size;
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
-    const benchHtml = bench.length ? `<div class="s2-pick-list">${rows}</div>` : '<p class="s2-sub">All saved players are seated.</p>';
+    // Seated vs not seated read as two labelled groups (Matt, Nov 15).
+    const benchHtml = bench.length
+      ? `<h3 class="s2-roster-label" id="s2-bench-label">Not seated <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">Check names, then Add</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
+      : '<p class="s2-sub">All saved players are seated.</p>';
     // Tonight's table: seats and bench share one roster that scrolls inside
     // the panel on a laptop; Add stays below it, outside the scroll.
     const rosterHtml = seatsHtml == null
       ? benchHtml
-      : `<div class="s2-roster" aria-label="Seated and saved players">${seatsHtml}${benchHtml}</div><button type="button" class="s2-roster-more" data-s2-action="roster-more" hidden></button>`;
+      : `<div class="s2-roster" aria-label="Seated and saved players">${seated ? `<h3 class="s2-roster-label" id="s2-seated-label">Seated <span class="s2-roster-count">${seated}</span><span class="s2-roster-hint">In dealing order</span></h3>` : ''}${seatsHtml}${benchHtml}</div><button type="button" class="s2-roster-more" data-s2-action="roster-more" hidden></button>`;
     return `<div class="s2-picker">
       ${rosterHtml}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
-          <input id="quick-add-player" type="text" placeholder="Add someone new" autocomplete="off" aria-label="Add a player"
+          <input id="quick-add-player" type="text" placeholder="Add someone new" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Add a player"
             oninput="updatePlayerSuggestions('home'); window.BPGSlice2 && BPGSlice2.filterAddPicker(this.value)"
             onfocus="updatePlayerSuggestions('home')"
             onblur="hidePlayerSuggestionsSoon('home')"
@@ -517,7 +525,7 @@
       const tag = player === dealer ? `<span class="s2-dealer-tag">${table.currentGame ? 'Dealer' : 'Deals first'}</span>` : '';
       return `<article class="s2-seat" data-s2-index="${index}" data-s2-player="${escapeHtml(player)}">
         <span class="s2-seat-num">${index + 1}</span>
-        ${getStreakAvatarHtml(player, 'avatar-img')}
+        ${avatarEditButton(player)}
         <span class="s2-seat-who">
           <span ${seatNameFit(player)}>${escapeHtml(player)}</span>
           ${tag}
@@ -535,6 +543,7 @@
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
         <span class="s2-card-frame">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
+          ${on ? '<span class="s2-card-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 10.5l3.2 3.2L15 6.8"/></svg></span>' : ''}
         </span>
         <span class="s2-game-name">${escapeHtml(game.title)}</span>
       </button>`;
@@ -828,16 +837,25 @@
     seatLive(`${seatGrab.name} would be seat ${seatGrab.index + 1} of ${count}.`);
   }
 
-  function clearSeatDragStyles() {
+  function clearSeatDragStyles(keepTransforms) {
     document.querySelectorAll('#slice2-home .s2-seat.is-dragging, #slice2-home .s2-seat.is-drop-before, #slice2-home .s2-seat.is-drop-after').forEach((el) => {
       el.classList.remove('is-dragging', 'is-drop-before', 'is-drop-after');
     });
+    if (!keepTransforms) {
+      document.querySelectorAll('#slice2-home .s2-seat').forEach((el) => { el.style.transform = ''; });
+    }
     document.querySelectorAll('#slice2-home .s2-seat-handle.is-grabbed').forEach((el) => {
       el.classList.remove('is-grabbed');
     });
   }
 
   function seatIndexFromPoint(clientY) {
+    // During a drag the rows are translated, so use the midpoints measured when the drag began.
+    const mids = seatPointer?.mids;
+    if (mids?.length) {
+      const hit = mids.findIndex((mid) => clientY < mid);
+      return hit === -1 ? mids.length - 1 : hit;
+    }
     const seats = [...document.querySelectorAll('#slice2-home .s2-seat')];
     if (!seats.length) return -1;
     for (const seat of seats) {
@@ -1404,6 +1422,10 @@
       else if (player) moveToBench(player);
     } else if (action === 'deck-add') {
       moveToLineup(target.dataset.s2Player || '');
+    } else if (action === 'edit-player') {
+      event.preventDefault();
+      const name = target.dataset.s2Player || '';
+      if (name && typeof openPlayerEditSheet === 'function') openPlayerEditSheet(name);
     } else if (action === 'pick-game') {
       selected = target.dataset.s2Game || selected;
       paintHome();
@@ -1541,14 +1563,19 @@
   function onPointerDown(event) {
     if (event.button != null && event.button !== 0) return;
     const seat = event.target.closest?.('#slice2-home .s2-seat');
-    if (!seat || event.target.closest?.('.s2-seat-out, a, input, select, textarea')) return;
+    if (!seat || event.target.closest?.('.s2-seat-out, .s2-avatar-edit, a, input, select, textarea')) return;
     const from = Number(seat.dataset.s2Index);
     if (!Number.isInteger(from)) return;
     event.preventDefault();
     if (seat.setPointerCapture) {
       try { seat.setPointerCapture(event.pointerId); } catch (error) {}
     }
-    seatPointer = { from, over: from, pointerId: event.pointerId, startY: event.clientY, active: false };
+    const startRects = [...document.querySelectorAll('#slice2-home .s2-seat')].map((el) => el.getBoundingClientRect());
+    seatPointer = {
+      from, over: from, pointerId: event.pointerId, startY: event.clientY, active: false,
+      mids: startRects.map((box) => box.top + box.height / 2),
+      pitch: startRects.length > 1 ? startRects[1].top - startRects[0].top : 0,
+    };
   }
 
   function onPointerMove(event) {
@@ -1558,12 +1585,24 @@
     const over = seatIndexFromPoint(event.clientY);
     if (!Number.isInteger(over) || over < 0) return;
     seatPointer.over = over;
-    clearSeatDragStyles();
-    const seats = document.querySelectorAll('#slice2-home .s2-seat');
-    seats[seatPointer.from]?.classList.add('is-dragging');
-    if (over !== seatPointer.from) {
-      seats[over]?.classList.add(over < seatPointer.from ? 'is-drop-before' : 'is-drop-after');
+    clearSeatDragStyles(true);
+    const seats = [...document.querySelectorAll('#slice2-home .s2-seat')];
+    const from = seatPointer.from;
+    const dragged = seats[from];
+    dragged?.classList.add('is-dragging');
+    if (over !== from) {
+      seats[over]?.classList.add(over < from ? 'is-drop-before' : 'is-drop-after');
     }
+    // Smooth feedback: the held row follows the finger; the rows it passes slide one seat to make room.
+    const pitch = seatPointer.pitch || 0;
+    if (dragged) dragged.style.transform = `translateY(${event.clientY - seatPointer.startY}px)`;
+    seats.forEach((seat, index) => {
+      if (index === from) return;
+      let shift = 0;
+      if (from < over && index > from && index <= over) shift = -pitch;
+      if (from > over && index < from && index >= over) shift = pitch;
+      seat.style.transform = shift ? `translateY(${shift}px)` : '';
+    });
   }
 
   function onPointerUp(event) {

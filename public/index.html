@@ -10352,18 +10352,18 @@ button.dealer-name-indicator .dealer-player-label {
       <div id="profile-detail-view" class="hidden mt-8 surface-raised p-7 relative profile-passport-detail">
         <button type="button" onclick="closeProfileDetail()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="profile-passport-hero mb-7">
-          <div class="relative group cursor-pointer profile-passport-avatar" onclick="openAvatarPicker()">
+          <div class="relative group cursor-pointer profile-passport-avatar" role="button" tabindex="0" aria-label="Change avatar or photo" onclick="openAvatarPicker()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAvatarPicker();}">
             <img id="detail-avatar" src="" class="avatar-img-lg">
-            <div class="absolute inset-0 bg-black/55 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <span class="text-white font-bold text-xs tracking-widest">EDIT</span>
+            <div class="bp-avatar-edit-badge" aria-hidden="true">
+              <span>Edit</span>
             </div>
           </div>
           <div class="profile-passport-title">
             <div class="profile-script-label">Player Passport</div>
             <div class="flex items-center gap-2 justify-center sm:justify-start">
               <h2 id="detail-name" class="player-name-label text-4xl">Name</h2>
-              <button onclick="openRenameModal()" class="text-xl opacity-50 hover:opacity-100 transition-opacity" title="Rename">✏️</button>
-              <button onclick="openColorPicker()" class="text-xl opacity-50 hover:opacity-100 transition-opacity" title="Signature color">🎨</button>
+              <button type="button" onclick="openRenameModal()" class="bp-icon-btn" title="Rename" aria-label="Change name">✏️</button>
+              <button type="button" onclick="openColorPicker()" class="bp-icon-btn" title="Signature color" aria-label="Change color">🎨</button>
             </div>
             <div id="detail-quick-stats" class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start"></div>
           </div>
@@ -10640,6 +10640,29 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- Rename Player -->
+    <!-- Edit a player from setup (bpg2 Phase 3): reuses the Passports rename, avatar and color editors. -->
+    <div id="player-edit-modal" class="hidden fixed inset-0 flex items-center justify-center z-[115] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closePlayerEditSheet()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
+      <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in bp-player-edit">
+        <button type="button" onclick="closePlayerEditSheet()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
+        <h3 class="font-display text-3xl mb-4">Edit player</h3>
+        <div class="bp-player-edit-who">
+          <img id="player-edit-avatar" src="" alt="" class="avatar-img">
+          <span id="player-edit-name" class="player-name-label"></span>
+        </div>
+        <div class="bp-player-edit-actions">
+          <button type="button" id="player-edit-rename" class="s2-btn" onclick="openRenameModal()">Change name</button>
+          <button type="button" id="player-edit-avatar-btn" class="s2-btn" onclick="openAvatarPicker()">Change avatar or photo</button>
+          <button type="button" id="player-edit-color" class="s2-btn" onclick="openColorPicker()">Change color</button>
+        </div>
+        <div id="player-edit-danger" class="bp-leave-danger-zone">
+          <button type="button" id="player-edit-delete" class="bp-btn-danger px-5 py-3 text-sm w-full" onclick="deletePlayerFromSheet()">Delete player</button>
+          <p class="bp-player-edit-note">Removes their saved profile and photo. Past scores stay in Records. Asks first.</p>
+        </div>
+        <p id="player-edit-seated-note" class="bp-player-edit-note">Unseat them first to delete their profile.</p>
+      </div>
+    </div>
+
     <div id="rename-modal" class="hidden fixed inset-0 flex items-center justify-center z-[130] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRenameModal()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
@@ -10649,7 +10672,7 @@ button.dealer-name-indicator .dealer-player-label {
           <h3 class="font-display text-3xl">Rename player</h3>
         </div>
         <div class="mb-3 text-center text-sm font-bold" style="color:var(--muted);">Current name: <span id="rename-current" class="player-name-label" style="color:var(--ink);"></span></div>
-        <input id="rename-input" type="text" placeholder="New name…"
+        <input id="rename-input" autocapitalize="off" autocorrect="off" spellcheck="false" type="text" placeholder="New name…"
           onkeypress="if(event.key==='Enter')doRenamePlayer()"
           class="w-full rounded-xl px-4 py-3 text-base font-bold outline-none border hairline mb-3"
           style="background:var(--bg-2);color:var(--ink);">
@@ -10809,7 +10832,7 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div class="flex gap-2">
           <div class="player-suggest-wrap">
-            <input id="midgame-add-player-input" type="text" placeholder="Start typing a name..."
+            <input id="midgame-add-player-input" autocapitalize="off" autocorrect="off" spellcheck="false" type="text" placeholder="Start typing a name..."
               autocomplete="off"
               oninput="updatePlayerSuggestions('midgame')"
               onfocus="updatePlayerSuggestions('midgame')"
@@ -12847,6 +12870,7 @@ button.dealer-name-indicator .dealer-player-label {
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bpWatchModalShells);
   else bpWatchModalShells();
   const MODAL_CLOSE_BY_ID={
+    'player-edit-modal':'closePlayerEditSheet',
     'bid-lock-modal':'closeBidLockConfirm',
     'scorecard-modal':'closeScorecard',
     'wheel-modal':'closeWheel',
@@ -14740,6 +14764,40 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function closeProfileDetail(){ document.getElementById('profile-detail-view').classList.add('hidden'); editingPlayerProfile=null; }
+  // ── Edit a player from setup (Home) ──
+  function playerEditSheetOpen(){ const m=document.getElementById('player-edit-modal'); return !!(m&&!m.classList.contains('hidden')); }
+  function openPlayerEditSheet(name){
+    if(!name) return;
+    editingPlayerProfile=name;
+    paintPlayerEditSheet();
+    openModal('player-edit-modal');
+  }
+  function paintPlayerEditSheet(){
+    const name=editingPlayerProfile;
+    if(!name){ closePlayerEditSheet(); return; }
+    const av=document.getElementById('player-edit-avatar');
+    if(av){ const fb=getAvatarFallback(name); av.onerror=function(){ if(this.getAttribute('src')!==fb){ this.onerror=null; this.src=fb; } }; av.src=getAvatarSrc(name); av.className=`avatar-img ${getColorRingClass(name)}`; }
+    const label=document.getElementById('player-edit-name'); if(label) label.textContent=name;
+    const seatedNow=players.includes(name)||!!(currentGame&&BPGScorebook.participantNames(currentGame).has(name));
+    document.getElementById('player-edit-danger')?.classList.toggle('hidden', seatedNow);
+    document.getElementById('player-edit-seated-note')?.classList.toggle('hidden', !seatedNow);
+  }
+  // After a rename, avatar or color change made from setup: refresh the sheet and Home, and keep Passports closed.
+  function afterPlayerEditFromSheet(){
+    if(!playerEditSheetOpen()) return;
+    document.getElementById('profile-detail-view')?.classList.add('hidden');
+    paintPlayerEditSheet();
+    if(window.BPGSlice2&&typeof BPGSlice2.refresh==='function') BPGSlice2.refresh('home');
+  }
+  function closePlayerEditSheet(){ closeModal('player-edit-modal'); if(document.getElementById('profile-detail-view')?.classList.contains('hidden')) editingPlayerProfile=null; }
+  function deletePlayerFromSheet(){
+    const name=editingPlayerProfile;
+    if(!name||players.includes(name)) return;
+    const before=allPlayers.length;
+    permanentlyDeletePlayer(name);
+    if(allPlayers.length<before){ closePlayerEditSheet(); toast(`${name} was deleted. Past scores stay in Records.`,'success'); }
+  }
+
   function openAvatarPickerForProfile(name,event){
     event?.stopPropagation?.();
     editingPlayerProfile=name;
@@ -14772,6 +14830,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(detailWasOpen&&editedName)openProfileDetail(editedName);
     if(currentGame)scheduleRender();
     if(window.BPGSlice2&&typeof BPGSlice2.refresh==='function') BPGSlice2.refresh('home');
+    afterPlayerEditFromSheet();
   }
   async function uploadPlayerPhoto(event){
     const input=event&&event.target;
@@ -14792,6 +14851,7 @@ button.dealer-name-indicator .dealer-player-label {
     closeAvatarPicker();
     renderProfilesGrid();
     openProfileDetail(name);
+    afterPlayerEditFromSheet();
     if(currentGame)scheduleRender();
     if(window.BPGSlice2&&typeof BPGSlice2.refresh==='function') BPGSlice2.refresh('home');
   }
@@ -14817,6 +14877,7 @@ button.dealer-name-indicator .dealer-player-label {
     openProfileDetail(editingPlayerProfile);
     renderProfilesGrid();
     if(currentGame) scheduleRender();
+    afterPlayerEditFromSheet();
   }
 
   // ── Rename Player ──
@@ -14845,6 +14906,7 @@ button.dealer-name-indicator .dealer-player-label {
       }
       if(mergePlayerRecords(oldName, newName)===false) return;
       closeRenameModal();
+      if(playerEditSheetOpen()){ editingPlayerProfile=newName; afterPlayerEditFromSheet(); }
       closeProfileDetail();
       renderProfilesGrid();
       toast(`✓ "${oldName}" merged into "${newName}"`, 'success');
@@ -14856,6 +14918,7 @@ button.dealer-name-indicator .dealer-player-label {
     editingPlayerProfile = newName;
     openProfileDetail(newName);
     renderProfilesGrid();
+    afterPlayerEditFromSheet();
     toast(`✓ Renamed to "${newName}"`, 'success');
   }
 
@@ -15443,7 +15506,7 @@ button.dealer-name-indicator .dealer-player-label {
             ${getStreakAvatarHtml(p,'avatar-img')}
             <span class="player-name-label text-lg">${p}</span>
           </div>
-          <button onclick="event.stopPropagation();permanentlyDeletePlayer('${safe}')" class="text-2xl leading-none opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" style="color:var(--rose);">&times;</button>
+          <button onclick="event.stopPropagation();permanentlyDeletePlayer('${safe}')" class="text-2xl leading-none" style="color:var(--rose);min-width:44px;min-height:44px;" aria-label="Delete ${escapeHtml(p)}">&times;</button>
         </div>
       </div>`;
     });
@@ -15462,6 +15525,9 @@ button.dealer-name-indicator .dealer-player-label {
     input.value='';
     hidePlayerSuggestions('home');
     saveData({ fullPersist: true, syncCold: true }); renderRoster();
+    // Home re-renders the form: put the cursor back in the fresh name field so the next name can follow.
+    const next=document.getElementById('quick-add-player');
+    if(next&&next.offsetParent!==null){ try{ next.focus({preventScroll:true}); }catch(e){ next.focus(); } next.scrollIntoView({block:'nearest'}); }
   }
   function moveToLineup(n){ if(!players.includes(n))players.push(n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
   function moveToBench(n){ players=players.filter(p=>p!==n); saveData({ fullPersist: true, syncCold: true }); renderRoster(); }
@@ -15599,7 +15665,7 @@ button.dealer-name-indicator .dealer-player-label {
     moveToLineup(name);
   }
   function permanentlyDeletePlayer(n){
-    if(!confirm(`Delete ${n} and their photo? Their saved profile is removed. Past scores stay in history.`))return;
+    if(!confirm(`Delete ${n}? Their saved profile and photo are removed. Past scores stay in Records.`))return;
     allPlayers=allPlayers.filter(p=>p!==n); players=players.filter(p=>p!==n);
     saveData({ fullPersist: true, syncCold: true }); renderRoster();
   }

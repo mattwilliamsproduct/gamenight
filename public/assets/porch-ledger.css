@@ -2790,3 +2790,81 @@ html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(
   html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line .s2-board-round { white-space: normal !important; }
   html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line :is(.s2-board-title, .s2-board-part) { white-space: nowrap !important; }
 }
+
+/* ═══ Phase 3 · Home and setup (bpg2) ═══ */
+/* Decks: every deck's art at full strength; the selected deck gets the teal rim plus a check, never a dimmed neighbour. */
+html.porch-ledger.slice2-tv .s2-home-start .s2-game .s2-card-photo { opacity: 1 !important; filter: none !important; }
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-check {
+  position: absolute; top: 8px; right: 8px; z-index: 5;
+  width: 30px; height: 30px; border-radius: 999px;
+  display: grid; place-items: center;
+  background: #0a5c54; border: 2px solid #fffaf3;
+  box-shadow: var(--bp-shadow-1, 0 2px 6px rgba(0,0,0,.25));
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-check svg { width: 18px; height: 18px; fill: none; stroke: #fffaf3; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-name { color: #0a5c54 !important; }
+/* Add someone new: suggestions open upward over the roster so the field and Add player never move. */
+html.porch-ledger.slice2-tv .s2-home-table .s2-add .player-suggest-menu,
+html.porch-ledger.slice2-tv .s2-next-roster .s2-add .player-suggest-menu {
+  position: absolute !important; top: auto !important; bottom: calc(100% + 6px) !important;
+  left: 0; right: 0; margin: 0 !important; z-index: 40; max-height: min(16rem, 40vh);
+}
+/* Seated and Not seated: two labelled groups in Tonight's table. */
+html.porch-ledger.slice2-tv .s2-roster-label {
+  display: flex; align-items: baseline; gap: var(--bp-space-2); flex-wrap: wrap;
+  margin: var(--bp-space-3) 2px var(--bp-space-2); font-family: var(--ledger-type-text);
+  font-size: var(--bp-type-sm); font-weight: 800; letter-spacing: .02em; color: var(--bp-ink-soft) !important;
+}
+html.porch-ledger.slice2-tv .s2-roster > .s2-roster-label:first-child { margin-top: 0; }
+html.porch-ledger.slice2-tv .s2-roster-count {
+  min-width: 22px; padding: 0 6px; border-radius: 999px; text-align: center;
+  background: var(--bp-secondary-bg, #efe6d6); color: var(--bp-ink) !important; font-variant-numeric: tabular-nums;
+}
+html.porch-ledger.slice2-tv .s2-roster-hint { margin-left: auto; font-weight: 600; color: var(--bp-muted) !important; }
+/* Drag: the held row lifts and follows the finger; the others glide. */
+html.porch-ledger.slice2-tv #slice2-home .s2-seat { transition: transform 160ms ease, box-shadow 160ms ease; will-change: transform; }
+html.porch-ledger.slice2-tv #slice2-home .s2-seat.is-dragging {
+  transition: box-shadow 160ms ease; position: relative; z-index: 6;
+  box-shadow: 0 14px 28px -12px rgba(20, 40, 36, .45) !important; cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.porch-ledger.slice2-tv #slice2-home .s2-seat { transition: none; }
+}
+/* Setup: the avatar is the Edit button. The pencil badge is always visible (no hover on iPad). */
+html.porch-ledger .s2-avatar-edit {
+  position: relative; display: inline-grid; place-items: center; flex: 0 0 auto;
+  min-width: var(--bp-touch); min-height: var(--bp-touch); padding: 0; margin: 0;
+  border: 0; background: transparent; border-radius: 12px; cursor: pointer;
+}
+html.porch-ledger .s2-avatar-edit .s2-edit-badge {
+  position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 999px;
+  display: grid; place-items: center; background: #fffaf3; border: 1.5px solid #0a5c54;
+  box-shadow: var(--bp-shadow-1);
+}
+html.porch-ledger .s2-avatar-edit .s2-edit-badge svg { width: 11px; height: 11px; fill: #0a5c54; }
+html.porch-ledger .s2-pick .s2-avatar-edit .avatar-img { width: 40px; height: 40px; }
+/* Edit player sheet: a compact card, not a full-screen panel. */
+html.porch-ledger.slice2-tv #player-edit-modal > .bp-modal-panel {
+  width: min(30rem, calc(100vw - 2 * var(--bp-space-4))) !important;
+  max-width: min(30rem, calc(100vw - 2 * var(--bp-space-4))) !important;
+  height: auto !important; max-height: min(88dvh, calc(100dvh - 2 * var(--bp-space-4))) !important; overflow-y: auto !important;
+  padding: var(--bp-space-6) var(--bp-space-5) var(--bp-space-5) !important; border-radius: var(--bp-radius-lg) !important;
+}
+html.porch-ledger .bp-player-edit-who { display: flex; align-items: center; gap: var(--bp-space-3); margin-bottom: var(--bp-space-4); }
+html.porch-ledger .bp-player-edit-who .avatar-img { width: 56px; height: 56px; }
+html.porch-ledger .bp-player-edit-who .player-name-label { font-size: 1.5rem; font-weight: 800; color: var(--bp-ink); overflow-wrap: anywhere; }
+html.porch-ledger .bp-player-edit-actions { display: grid; gap: var(--bp-space-2); }
+html.porch-ledger .bp-player-edit-actions .s2-btn { width: 100%; min-height: var(--bp-touch); justify-content: center; }
+html.porch-ledger #player-edit-delete { width: 100%; min-height: var(--bp-touch); }
+html.porch-ledger .bp-player-edit-note { margin-top: var(--bp-space-2); font-size: var(--bp-type-sm); color: var(--bp-muted); }
+html.porch-ledger #player-edit-modal .bp-leave-danger-zone { margin-top: var(--bp-space-4); }
+/* Passport detail: the Edit cue on the avatar is always visible; Rename and Color are full-strength 44pt buttons. */
+html.porch-ledger .bp-avatar-edit-badge {
+  position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%);
+  padding: 2px 10px; border-radius: 999px; background: #0a5c54; color: #fffaf3;
+  font-size: 12px; font-weight: 800; letter-spacing: .04em; box-shadow: var(--bp-shadow-1); pointer-events: none;
+}
+html.porch-ledger .bp-icon-btn {
+  min-width: var(--bp-touch); min-height: var(--bp-touch); display: inline-grid; place-items: center;
+  font-size: 1.25rem; border-radius: 12px; border: 1px solid var(--bp-line, #ddd0bb); background: var(--bp-surface, #fffaf3);
+}
