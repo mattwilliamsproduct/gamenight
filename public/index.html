@@ -18047,7 +18047,8 @@ ${isDealer
     const cellBox=cell.getBoundingClientRect();
     const chipBox=chip.getBoundingClientRect();
     const available=scorecardNameAvailableWidth(name);
-    const floor=14;
+    // Phone: a very long single word may go to 12px (the seat-name floor) so it stays whole.
+    const floor=window.innerWidth<=760?12:14;
     const finish=size=>{
       name.style.removeProperty('font-size');
       chip.style.removeProperty('font-size');

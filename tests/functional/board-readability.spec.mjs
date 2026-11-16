@@ -5,17 +5,18 @@ import {expect, test} from '@playwright/test';
 test.use({serviceWorkers: 'block'});
 const NAMES = ['Hazel', 'Otis', 'Juniper', 'Rafael', 'Bea', 'Silas', 'Marigold Fairweather', 'Teddy Abernathy'];
 
-async function seedWizard(page) {
+async function seedWizard(page, names = NAMES, bigger = false) {
   await page.goto('/', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof goActiveMatch === 'function' && window.BPGSlice2);
-  await page.evaluate((names) => {
+  await page.evaluate(({names, bigger}) => {
+    if (bigger) { adjustUI(1); adjustUI(1); }
     localStorage.clear(); allPlayers = names.slice(); players = names.slice(); history = [];
     prefs.lineupIntro = false; prefs.dealerRoll = false;
     const rounds = [1, 2].map((r) => ({round: r, bids: Object.fromEntries(names.map((n) => [n, 1])), actuals: Object.fromEntries(names.map((n) => [n, 1])), scores: Object.fromEntries(names.map((n, i) => [n, 30 - 10 * (i % 3)]))}));
     const totals = Object.fromEntries(names.map((n) => [n, rounds.reduce((s, r) => s + r.scores[n], 0)]));
     currentGame = {id: 8801, name: 'Wizard', originalRoster: names.slice(), currentRound: 3, maxRounds: 7, rounds, totals, wizardPhase: 'bidding', currentBids: {}, hailMaryUsed: [], retired: [], currentScoreDrafts: {}, completed: false, winners: [], auditLog: []};
     saveData(); goActiveMatch();
-  }, NAMES);
+  }, {names, bigger});
 }
 
 for (const [width, height] of [[1180, 820], [1024, 768], [1366, 1024], [1920, 1080]]) {
@@ -59,3 +60,29 @@ test('390 phone: long names wrap between words instead of being cut off', async 
   const names = await page.evaluate(() => [...document.querySelectorAll('#scorecard-capture .scoreboard-player-name')].map((el) => ({t: el.textContent.trim(), w: el.scrollWidth <= el.clientWidth + 2, h: el.scrollHeight <= el.clientHeight + 2})));
   for (const n of names) { expect(n.w, n.t).toBe(true); expect(n.h, n.t).toBe(true); }
 });
+
+const LONG = ['Hazel', 'Otis', 'Juniper', 'Rafael', 'Bea', 'Silas', 'Wilhelmina Featherstonehaugh', 'Bartholomew Underhill-Quince'];
+for (const [width, height, bigger] of [[1180, 820, false], [1024, 768, false], [1024, 768, true], [390, 844, false], [390, 844, true]]) {
+  test(`8 players with long names at ${width}x${height}${bigger ? ' with bigger text' : ''}: every word whole, all rows readable`, async ({page}) => {
+    await page.setViewportSize({width, height});
+    await seedWizard(page, LONG, bigger);
+    const m = await page.evaluate(() => [...document.querySelectorAll('#scorecard-capture .scoreboard-player-name')].map((el) => {
+      const broken = []; const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const text = node.textContent; let at = 0;
+        for (const word of text.split(/\s+/).filter(Boolean)) {
+          const start = text.indexOf(word, at); const r = document.createRange(); r.setStart(node, start); r.setEnd(node, start + word.length);
+          if (new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size > 1) broken.push(word);
+          at = start + word.length;
+        }
+      }
+      return {t: el.textContent.trim(), broken, fitsW: el.scrollWidth <= el.clientWidth + 2, fitsH: el.scrollHeight <= el.clientHeight + 2, fs: parseFloat(getComputedStyle(el).fontSize)};
+    }));
+    expect(m.length).toBe(8);
+    for (const n of m) {
+      expect(n.broken, `${n.t} breaks mid-word`).toEqual([]);
+      expect(n.fitsW && n.fitsH, `${n.t} is not cut off`).toBe(true);
+      expect(n.fs, n.t).toBeGreaterThanOrEqual(width >= 900 ? 18 : 12);
+    }
+  });
+}

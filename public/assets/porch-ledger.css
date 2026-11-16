@@ -2775,3 +2775,11 @@ html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(
   html.porch-ledger #bpg-try-demo-tip button { flex: 0 0 auto; }
   html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 124px; padding-top: 124px !important; }
 }
+@media (max-width: 600px) {
+  /* Phone seats: the 44pt Remove and Move targets take 8px more, so the seat gaps give it back and a long word still fits. */
+  html.porch-ledger.slice2-tv .s2-home .s2-seat { column-gap: 10px !important; }
+}
+@media (max-width: 760px) {
+  /* Phone board: a little more room for a long name beside the avatar. */
+  html.porch-ledger.slice2-tv #game-screen:not([data-game='Hand and Foot']) #scorecard-capture .scorecard-player-identity { column-gap: 6px !important; }
+}
