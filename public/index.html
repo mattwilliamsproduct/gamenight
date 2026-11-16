@@ -10932,6 +10932,20 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </div>
 
+    <!-- Wizard: lock with missing bids (Matt's rule, option A: a missing bid counts as 0) -->
+    <div id="bid-lock-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+      <div onclick="closeBidLockConfirm()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+      <div class="surface-raised bp-modal-panel bp-modal-panel--confirm bp-bid-lock-panel p-7 relative pop-in">
+        <div id="bid-lock-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);"></div>
+        <h3 class="font-display text-3xl mb-3" id="bid-lock-title">Missing bids</h3>
+        <p id="bid-lock-copy" class="bp-bid-lock-copy font-semibold leading-relaxed mb-6" style="color:var(--ink-2);"></p>
+        <div class="flex flex-col gap-3">
+          <button type="button" id="bid-lock-confirm" onclick="confirmBidLockZeros()" class="btn-primary px-5 py-3 text-sm">Lock with 0s</button>
+          <button type="button" id="bid-lock-back" onclick="closeBidLockConfirm()" class="btn-ghost px-5 py-3 text-sm">Back</button>
+        </div>
+      </div>
+    </div>
+
     <!-- End match confirm -->
     <div id="end-match-modal" class="hidden fixed inset-0 flex items-center justify-center z-[160] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeEndMatchModal()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
@@ -12830,6 +12844,7 @@ button.dealer-name-indicator .dealer-player-label {
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bpWatchModalShells);
   else bpWatchModalShells();
   const MODAL_CLOSE_BY_ID={
+    'bid-lock-modal':'closeBidLockConfirm',
     'scorecard-modal':'closeScorecard',
     'wheel-modal':'closeWheel',
     'audit-modal':'closeAuditLog',
@@ -20937,6 +20952,28 @@ ${isDealer
     closeScoreEntryModalOnly();
   }
 
+  let _bidLockConfirm=null;
+  function showBidLockConfirm(missingPlayers, onConfirm){
+    _bidLockConfirm=typeof onConfirm==='function'?onConfirm:null;
+    const copy=document.getElementById('bid-lock-copy');
+    if(copy) copy.textContent=BPGScorebook.missingBidsLockMessage(missingPlayers);
+    const kicker=document.getElementById('bid-lock-kicker');
+    if(kicker&&currentGame) kicker.textContent=`Wizard · round ${currentGame.currentRound}`;
+    openModal('bid-lock-modal');
+  }
+  function closeBidLockConfirm(){
+    _bidLockConfirm=null;
+    closeModal('bid-lock-modal');
+  }
+  function confirmBidLockZeros(){
+    // One tap locks once: the callback is taken before it runs, so a second tap finds nothing to run.
+    const run=_bidLockConfirm;
+    _bidLockConfirm=null;
+    if(!run)return;
+    closeModal('bid-lock-modal');
+    run();
+  }
+
   function rejectScoreEntries(result){
     if(result&&Array.isArray(result.missingPlayers)&&result.missingPlayers.length&&scoreEntryModalState){
       scoreEntryModalState.missing=Object.fromEntries(result.missingPlayers.map(player=>[player,true]));
@@ -20969,8 +21006,26 @@ ${isDealer
 
     if(isScoreEntryBidMode(mode)){
       const checked=BPGScorebook.validateEntries({game:currentGame,kind:'bids',roundNumber,players,values});
+      if(!checked.ok&&checked.reason==='missing'&&currentGame.name==='Wizard'){
+        // Matt's rule: Lock bids is allowed with missing bids, which count as 0 once locked. Say so first.
+        const filled=BPGScorebook.validateEntries({game:currentGame,kind:'bids',roundNumber,players,values:BPGScorebook.wizardBidsWithZeros(players, values)});
+        if(!filled.ok) return rejectScoreEntries(filled);
+        showBidLockConfirm(checked.missingPlayers, ()=>{
+          if(!scoreEntryModalState)return;
+          const zeroed=BPGScorebook.wizardBidsWithZeros(players, scoreEntryModalState.values);
+          checked.missingPlayers.forEach(player=>{
+            scoreEntryModalState.values[player]=zeroed[player];
+            if(scoreEntryModalState.skipped) scoreEntryModalState.skipped[player]=false;
+            if(scoreEntryModalState.missing) delete scoreEntryModalState.missing[player];
+          });
+          scoreEntryModalState.zeroLockConfirmed=true;
+          submitScoreEntryModal();
+        });
+        return false;
+      }
       if(!checked.ok) return rejectScoreEntries(checked);
       const allZero=players.every(p=>checked.values[p]===0);
+      if(scoreEntryModalState.zeroLockConfirmed) return true;
       return !allZero||confirm('Lock in all 0 bids?');
     }
     if(isScoreEntryTrickMode(mode)){
@@ -21066,13 +21121,20 @@ ${isDealer
     if(currentGame.name==='Wizard'){
       if(currentGame.wizardPhase==='bidding'){
         if(!currentGame.currentBids)currentGame.currentBids={};
+        const liveBids=readLiveEntryMap(gp, currentGame.currentBids);
         const checked=BPGScorebook.validateEntries({
           game:currentGame.name,
           kind:'bids',
           roundNumber:currentGame.currentRound,
           players:gp,
-          values:readLiveEntryMap(gp, currentGame.currentBids)
+          values:options?.lockWithZeros?BPGScorebook.wizardBidsWithZeros(gp, liveBids):liveBids
         });
+        if(!checked.ok&&checked.reason==='missing'){
+          // Matt's rule: missing bids may be locked, and then count as 0. Ask with the names first.
+          isSubmitting=false;
+          showBidLockConfirm(checked.missingPlayers, ()=>submitRound({...(options||{}), lockWithZeros:true, skipConfirm:true}));
+          return;
+        }
         if(!checked.ok){showScoreEntryError(checked.message);isSubmitting=false;return;}
         const totalBids=checked.sum;
         const allZero=gp.every(p=>checked.values[p]===0);

@@ -842,3 +842,20 @@ test('legacyCompletion reads saved rounds and stays off until the review is appl
   assert.equal(marked.countResult, undefined);
   Scorebook.setHistoryReview({});
 });
+
+test('Wizard missing bids: the lock alert names them and a lock stores explicit 0s (Matt, option A)', () => {
+  assert.equal(Scorebook.missingBidsLockMessage(['Teddy', 'Silas']), 'Teddy and Silas have no bid. Locking counts them as 0.');
+  assert.equal(Scorebook.missingBidsLockMessage(['Teddy']), 'Teddy has no bid. Locking counts it as 0.');
+  assert.deepEqual(Scorebook.wizardBidsWithZeros(['Hazel', 'Teddy', 'Silas'], { Hazel: '2', Teddy: '', Silas: undefined }), { Hazel: '2', Teddy: '0', Silas: '0' });
+  // Before the lock a missing bid is still missing, never 0.
+  const before = Scorebook.validateEntries({ game: 'Wizard', kind: 'bids', roundNumber: 3, players: ['Hazel', 'Teddy'], values: { Hazel: 1, Teddy: '' } });
+  assert.equal(before.ok, false);
+  assert.equal(before.reason, 'missing');
+  // A correction on a locked round counts a cleared bid as 0.
+  const game = { name: 'Wizard', game: 'Wizard', originalRoster: ['Hazel', 'Teddy'], maxRounds: 7, currentRound: 2, retired: [],
+    rounds: [{ round: 1, bids: { Hazel: 1, Teddy: 0 }, actuals: { Hazel: 1, Teddy: 0 }, scores: { Hazel: 30, Teddy: 20 } }], totals: { Hazel: 30, Teddy: 20 } };
+  const out = Scorebook.commitRoundCorrection(game, { roundIndex: 0, bids: { Hazel: '', Teddy: 0 }, actuals: { Hazel: 1, Teddy: 0 } });
+  assert.equal(out.ok, true);
+  assert.equal(game.rounds[0].bids.Hazel, 0);
+  assert.equal(game.rounds[0].scores.Hazel, Scorebook.wizardRoundScore(0, 1));
+});

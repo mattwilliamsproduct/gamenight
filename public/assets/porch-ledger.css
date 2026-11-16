@@ -2602,3 +2602,9 @@ html.porch-ledger #end-match-modal #leave-count-step #leave-delete-game { margin
 html.porch-ledger .s2-btn.s2-btn-danger { color: var(--bp-danger) !important; border-color: var(--bp-danger-border) !important; background: transparent !important; min-height: var(--bp-touch); }
 html.porch-ledger .s2-btn.s2-btn-danger:active { background: var(--bp-danger-wash) !important; }
 html.porch-ledger .s2-night-uncounted-label { color: var(--bp-muted) !important; }
+
+/* ---- Wizard: lock with missing bids (Matt's rule, option A) ---- */
+/* Score entry rises to z 400 while open; this alert sits above it. */
+html.porch-ledger #bid-lock-modal { z-index: 420 !important; }
+html.porch-ledger #bid-lock-modal .bp-bid-lock-copy { font-size: var(--bp-type-md); color: var(--bp-ink) !important; }
+html.porch-ledger #bid-lock-modal button { min-height: var(--bp-touch); font-size: var(--bp-type-sm) !important; }

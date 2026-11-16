@@ -116,31 +116,40 @@ for (const game of ['Wizard', '818']) {
   });
 }
 
-test('Wizard Lock bids with missing bids says which seats are missing, beside the bid controls', async ({page}) => {
+test('Wizard Lock bids with missing bids names them and locks nothing until Lock with 0s (Matt, option A)', async ({page}) => {
   const order = await openBids(page, 'Wizard', 3);
   await key(page, '1');
   await page.locator('#score-entry-next-btn').click();
   await page.locator('#score-entry-primary-btn').click();
+  const alert = page.getByRole('dialog', {name: 'Missing bids'});
+  await expect(alert).toBeVisible();
+  await expect(page.locator('#bid-lock-copy')).toContainText('have no bid. Locking counts them as 0.');
+  for (const name of order.slice(1)) await expect(page.locator('#bid-lock-copy')).toContainText(name);
+  await alert.getByRole('button', {name: 'Back'}).click();
+  await expect(alert).toBeHidden();
+  // Nothing was locked, and the missing seats are still blank, not 0.
+  expect(await page.evaluate(() => ({phase: currentGame.wizardPhase, rounds: currentGame.rounds.length}))).toEqual({phase: 'bidding', rounds: 0});
+  for (const name of order.slice(1)) await expect(page.locator(`#score-entry-value-${name}`)).toHaveText('');
+});
+
+test('Wizard Lock bids with a bad bid and missing bids shows the error beside the bid controls, not the 0s alert', async ({page}) => {
+  const order = await openBids(page, 'Wizard', 3);
+  await page.evaluate((name) => { scoreEntryModalState.values[name] = '9'; }, order[0]);
+  await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-modal')).toBeVisible();
+  await expect(page.getByRole('dialog', {name: 'Missing bids'})).toBeHidden();
   const error = page.locator('#score-entry-error');
   await expect(error).toBeVisible();
-  await expect(error).toContainText('Still need bids from');
   const box = await page.evaluate(() => {
     const el = document.getElementById('score-entry-error');
     const cs = getComputedStyle(el);
     const r = el.getBoundingClientRect();
-    const pad = document.querySelector('#score-entry-modal .score-entry-keypad').getBoundingClientRect();
-    const primary = document.getElementById('score-entry-primary-btn').getBoundingClientRect();
-    return {font: parseFloat(cs.fontSize), weight: Number(cs.fontWeight), top: r.top, bottom: r.bottom, padTop: pad.top, primaryTop: primary.top, vh: innerHeight, role: el.getAttribute('role')};
+    return {font: parseFloat(cs.fontSize), weight: Number(cs.fontWeight), bottom: r.bottom, vh: innerHeight, role: el.getAttribute('role')};
   });
   expect(box.font).toBeGreaterThanOrEqual(16);
   expect(box.weight).toBeGreaterThanOrEqual(700);
   expect(box.role).toBe('alert');
   expect(box.bottom).toBeLessThanOrEqual(box.vh);
-  // Missing seats are marked on their rows.
-  for (const name of order.slice(1)) await expect(page.locator(`#score-entry-row-${name}`)).toHaveClass(/is-missing/);
-  await expect(page.locator(`#score-entry-row-${order[0]}`)).not.toHaveClass(/is-missing/);
-  // Nothing was locked.
   expect(await page.evaluate(() => ({phase: currentGame.wizardPhase, bids: Object.keys(currentGame.currentBids || {}).length, rounds: currentGame.rounds.length}))).toEqual({phase: 'bidding', bids: 0, rounds: 0});
 });
 

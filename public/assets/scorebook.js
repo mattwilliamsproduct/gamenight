@@ -351,6 +351,28 @@
     return `Still need bids from ${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}.`;
   }
 
+  // Matt's rule (Nov 15, option A): when Wizard bids are locked, a missing bid counts as 0.
+  // Before the lock a missing bid stays pending or skipped; this is the alert line that names them.
+  function missingBidsLockMessage(players) {
+    const list = (players || []).filter(Boolean);
+    if (!list.length) return '';
+    if (list.length === 1) return `${list[0]} has no bid. Locking counts it as 0.`;
+    const names = list.length === 2
+      ? `${list[0]} and ${list[1]}`
+      : `${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}`;
+    return `${names} have no bid. Locking counts them as 0.`;
+  }
+
+  // The bids a Wizard lock stores: every blank seat becomes an explicit 0, entered values are kept.
+  function wizardBidsWithZeros(players, values) {
+    const out = {};
+    (players || []).forEach(player => {
+      const raw = values ? values[player] : undefined;
+      out[player] = scoreEntryValueIsBlank(raw) ? '0' : raw;
+    });
+    return out;
+  }
+
   function validateEntries(spec) {
     const source = spec || {};
     const kind = source.kind;
@@ -366,6 +388,8 @@
       let raw = rawValues[player];
       if ((kind === 'scores' || kind === 'tricks') && scoreEntryValueIsBlank(raw)) raw = 0;
       if (kind === 'bids' && gameName(source.game) === '818' && scoreEntryValueIsBlank(raw)) raw = 0;
+      // A locked Wizard round (corrections) counts a missing bid as 0.
+      if (kind === 'bids' && source.blankBidsAsZero === true && scoreEntryValueIsBlank(raw)) raw = 0;
       if (kind === 'bids' && gameName(source.game) !== '818' && scoreEntryValueIsBlank(raw)) {
         missingPlayers.push(player);
         return;
@@ -1539,7 +1563,8 @@
           kind: 'bids',
           roundNumber: round.round,
           players,
-          values: rawBids
+          values: rawBids,
+          blankBidsAsZero: gameName(draft) === 'Wizard'
         });
         if (!checkedBids.ok) return checkedBids;
         const checked = validateEntries({
@@ -1763,6 +1788,8 @@
     GAME_STATUS_LABELS,
     needsCountDecision,
     missingBidsMessage,
+    missingBidsLockMessage,
+    wizardBidsWithZeros,
     isSyntheticAdjustmentRound,
     isPlayedScoringRound,
     isAssistedMatch,
