@@ -10022,7 +10022,7 @@ button.dealer-name-indicator .dealer-player-label {
   <div id="audit-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
     <div onclick="closeAuditLog()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
     <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
-      <button onclick="closeAuditLog()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+      <button type="button" onclick="closeAuditLog()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
       <div class="mb-5">
         <h3 class="font-display text-3xl">Audit log</h3>
         <p class="audit-lead" id="audit-log-lead"></p>
@@ -10356,7 +10356,7 @@ button.dealer-name-indicator .dealer-player-label {
       <p id="profile-scope-note" class="s2-scope-note" hidden></p>
       <div id="profiles-grid" class="profile-passport-grid"></div>
       <div id="profile-detail-view" class="hidden mt-8 surface-raised p-7 relative profile-passport-detail">
-        <button onclick="closeProfileDetail()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeProfileDetail()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="profile-passport-hero mb-7">
           <div class="relative group cursor-pointer profile-passport-avatar" onclick="openAvatarPicker()">
             <img id="detail-avatar" src="" class="avatar-img-lg">
@@ -10406,7 +10406,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="avatar-modal" class="hidden fixed inset-0 flex items-center justify-center z-[120] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAvatarPicker()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative flex flex-col items-center text-center pop-in">
-        <button onclick="closeAvatarPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light z-20" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeAvatarPicker()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-20" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Select icon</div>
         <h2 class="font-display text-3xl mb-1">Choose avatar</h2>
         <p class="text-xs font-bold mb-4" style="color:var(--muted);">Use a photo from this device, or pick one below.</p>
@@ -10423,7 +10423,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="color-modal" class="hidden fixed inset-0 flex items-center justify-center z-[125] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeColorPicker()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--confirm p-7 relative pop-in">
-        <button onclick="closeColorPicker()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeColorPicker()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Signature color</div>
           <h3 class="font-display text-3xl">Choose accent</h3>
@@ -10649,7 +10649,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="rename-modal" class="hidden fixed inset-0 flex items-center justify-center z-[130] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRenameModal()" class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
-        <button onclick="closeRenameModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeRenameModal()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--blue);">Fix typo</div>
           <h3 class="font-display text-3xl">Rename player</h3>
@@ -10807,7 +10807,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeAddPlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-6 md:p-7 relative pop-in">
-        <button onclick="closeAddPlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeAddPlayerModal()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="bp-modal-head text-center mb-5 pr-8">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Mid-game add</div>
           <h3 class="font-display text-3xl">Add player</h3>
@@ -10843,7 +10843,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="wheel-modal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-1 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-dialog bp-modal-panel p-5 relative flex flex-col items-center text-center pop-in" style="border-width:3px;">
-        <button type="button" onclick="closeWheel()" class="absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeWheel()" class="bp-modal-close absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div id="wheel-mode-label" class="wheel-mode-label"></div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
         <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
@@ -10917,7 +10917,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel p-8 md:p-12 relative">
-        <button onclick="closeRules()" class="absolute top-6 right-8 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeRules()" class="bp-modal-close absolute top-6 right-8 text-5xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-6">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--muted);">Quick reference</div>
           <h3 class="font-display text-4xl md:text-5xl" id="rules-title"></h3>
@@ -10964,7 +10964,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="life-preserver-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeLifePreserverRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised life-preserver-rules-card bp-modal-panel p-7 md:p-10 relative">
-        <button type="button" onclick="closeLifePreserverRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeLifePreserverRules()" class="bp-modal-close absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-5 pr-8">
           <div id="wheel-rules-kicker" class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);"></div>
           <h3 class="font-display text-4xl md:text-5xl leading-tight" id="life-preserver-rules-title">How you get one</h3>
@@ -10977,7 +10977,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="comeback-rules-modal" class="hidden fixed inset-0 flex items-center justify-center z-[90] p-4 md:p-8 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeComebackRules()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised comeback-rules-card bp-modal-panel p-7 md:p-10 relative">
-        <button type="button" onclick="closeComebackRules()" class="absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeComebackRules()" class="bp-modal-close absolute top-5 right-6 text-5xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-5 pr-8">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Turbo</div>
           <h3 class="font-display text-4xl md:text-5xl leading-tight" id="comeback-rules-title">How Turbos work</h3>
@@ -10990,7 +10990,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="comeback-explain-modal" class="hidden fixed inset-0 flex items-center justify-center z-[95] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeComebackExplain()" class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
       <div class="surface-raised comeback-rules-card bp-modal-panel bp-modal-panel--confirm p-7 relative">
-        <button type="button" onclick="closeComebackExplain()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeComebackExplain()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style="color:var(--bp-coral);">Turbo</div>
         <h3 class="font-display text-3xl mb-3 pr-8" id="comeback-explain-title">Why this extra</h3>
         <p id="comeback-explain-lead" class="text-sm font-extrabold mb-3" style="color:var(--ink);"></p>
@@ -11002,7 +11002,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="settings-modal" class="hidden fixed inset-0 flex items-center justify-center z-[180] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeSettings()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-8 relative">
-        <button onclick="closeSettings()" class="absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeSettings()" class="bp-modal-close absolute top-5 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="bp-modal-head text-center mb-6">
           <h3 class="font-display text-3xl">Settings</h3>
         </div>
@@ -11118,7 +11118,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="perf-report-modal" class="hidden fixed inset-0 flex items-center justify-center z-[170] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closePerfReport()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel p-6 md:p-8 relative">
-        <button onclick="closePerfReport()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closePerfReport()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="mb-5 pr-10">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style="color:var(--emerald);">Diagnostics</div>
           <h3 class="font-display text-3xl md:text-4xl">Performance report</h3>
@@ -11138,7 +11138,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="scorecard-modal" class="hidden fixed inset-0 flex items-center justify-center z-[80] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeScorecard()" class="absolute inset-0 bg-black/35 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel p-6 relative">
-        <button onclick="closeScorecard()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeScorecard()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="bp-modal-head mb-5">
           <div id="modal-game-name" class="font-display text-3xl"></div>
           <div id="modal-game-date" class="text-[10px] font-extrabold uppercase tracking-[0.18em] mt-1" style="color:var(--muted);"></div>
@@ -11203,7 +11203,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="dealer-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeDealerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel p-7 relative pop-in">
-        <button onclick="closeDealerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeDealerModal()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-5">
           <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--muted);">Dealer override</div>
           <h3 class="font-display text-3xl">Pass the deck</h3>
@@ -11216,7 +11216,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="retire-player-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeRetirePlayerModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel p-7 relative pop-in">
-        <button onclick="closeRetirePlayerModal()" class="absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeRetirePlayerModal()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-5">
           <h3 class="font-display text-3xl">Mark left early</h3>
           <p class="text-base font-semibold mt-2" style="color:var(--ink);">They keep the scores already entered. They leave the rest of this match and cannot win it.</p>
@@ -11229,7 +11229,7 @@ button.dealer-name-indicator .dealer-player-label {
     <div id="reorder-players-modal" class="hidden fixed inset-0 flex items-center justify-center z-[85] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="closeReorderPlayersModal()" class="absolute inset-0 bg-black/45 backdrop-blur-md"></div>
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-7 relative pop-in">
-        <button onclick="closeReorderPlayersModal()" class="absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);">&times;</button>
+        <button type="button" onclick="closeReorderPlayersModal()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="text-center mb-4 pr-8">
           <h3 class="font-display text-3xl">Reorder players</h3>
           <p class="text-xs font-semibold mt-2" style="color:var(--muted);">Drag to match seating order around the table</p>
@@ -12731,6 +12731,105 @@ button.dealer-name-indicator .dealer-player-label {
       syncModalScrollLock();
     },280);
   }
+  /* Every modal shell is a named dialog. Focus moves inside when it opens, stays inside while it is
+     on top, and returns to the control that opened it when it closes. One layer for all shells,
+     so new modals get the same behavior without per-modal wiring. */
+  const BP_MODAL_NAMES={
+    'score-entry-modal':'Enter scores',
+    'victory-modal':'Game result',
+    'loser-modal':'Game result',
+    'whammy-modal':'Whammy',
+    'dealer-roll-modal':'Roll for dealer',
+    'wheel-modal':'Back Porch Wheel',
+    'scorecard-modal':'Scorecard'
+  };
+  const bpModalTrigger=new WeakMap();
+  let bpLastOutsideControl=null;
+  function bpModalPanel(shell){
+    return shell.querySelector('[role="dialog"]')||shell.querySelector('.bp-modal-panel')||shell.firstElementChild||shell;
+  }
+  function bpModalName(shell,panel){
+    if(BP_MODAL_NAMES[shell.id]) return {label:BP_MODAL_NAMES[shell.id]};
+    const heading=panel.querySelector('h1, h2, h3, [id$="-title"]');
+    if(heading){
+      if(!heading.id) heading.id=`${shell.id||'bp-modal'}-heading`;
+      return {labelledby:heading.id};
+    }
+    return {label:BP_MODAL_NAMES[shell.id]||'Dialog'};
+  }
+  function bpDecorateModal(shell){
+    const panel=bpModalPanel(shell);
+    const dialog=shell.querySelector('[role="dialog"]')||panel;
+    dialog.setAttribute('role','dialog');
+    dialog.setAttribute('aria-modal','true');
+    if(!dialog.hasAttribute('tabindex')) dialog.setAttribute('tabindex','-1');
+    // Markup that names itself keeps its name. Otherwise the name is recomputed on every open,
+    // because some headings (Rules) are filled in only when the modal opens.
+    const ownName=!dialog.dataset.bpNamed&&(dialog.getAttribute('aria-labelledby')||dialog.getAttribute('aria-label'));
+    if(!ownName){
+      const name=bpModalName(shell,dialog);
+      dialog.removeAttribute('aria-labelledby'); dialog.removeAttribute('aria-label');
+      if(name.labelledby) dialog.setAttribute('aria-labelledby',name.labelledby);
+      else dialog.setAttribute('aria-label',name.label);
+      dialog.dataset.bpNamed='1';
+    }
+    return dialog;
+  }
+  function bpModalIsOpen(shell){ return !shell.classList.contains('hidden'); }
+  function bpOnModalShown(shell){
+    const dialog=bpDecorateModal(shell);
+    const active=document.activeElement;
+    if(!bpModalTrigger.has(shell)){
+      const opener=(active&&active!==document.body&&!shell.contains(active))?active:bpLastOutsideControl;
+      if(opener) bpModalTrigger.set(shell,opener);
+    }
+    requestAnimationFrame(()=>{
+      if(!bpModalIsOpen(shell)) return;
+      if(!shell.contains(document.activeElement)) dialog.focus({preventScroll:true});
+    });
+  }
+  function bpOnModalHidden(shell){
+    const opener=bpModalTrigger.get(shell);
+    bpModalTrigger.delete(shell);
+    const active=document.activeElement;
+    const focusLost=!active||active===document.body||shell.contains(active);
+    if(!focusLost||!opener||!opener.isConnected) return;
+    const next=topOpenModalShell();
+    if(next&&!next.contains(opener)) return;
+    let target=opener;
+    if(target.offsetParent===null&&getComputedStyle(target).position!=='fixed'){
+      // A menu item that opened the modal is hidden once its menu closes: return to the menu button.
+      const menu=target.closest('[role="menu"][id]');
+      target=menu?document.querySelector(`[aria-controls="${menu.id}"]`):null;
+      if(!target||target.offsetParent===null) return;
+    }
+    target.focus({preventScroll:true});
+  }
+  function bpWatchModalShells(){
+    const shells=[...document.querySelectorAll('.bp-modal-viewport-shell')];
+    const seen=new WeakMap();
+    shells.forEach(shell=>{ seen.set(shell,bpModalIsOpen(shell)); bpDecorateModal(shell); if(bpModalIsOpen(shell)) bpOnModalShown(shell); });
+    const obs=new MutationObserver(records=>{
+      records.forEach(r=>{
+        const shell=r.target;
+        const open=bpModalIsOpen(shell);
+        if(open===seen.get(shell)) return;
+        seen.set(shell,open);
+        if(open) bpOnModalShown(shell); else bpOnModalHidden(shell);
+      });
+    });
+    shells.forEach(shell=>obs.observe(shell,{attributes:true,attributeFilter:['class']}));
+  }
+  document.addEventListener('pointerdown', event=>{
+    const control=event.target&&event.target.closest&&event.target.closest('button, [href], select, input, [tabindex]');
+    if(control&&!control.closest('.bp-modal-viewport-shell')) bpLastOutsideControl=control;
+  }, true);
+  document.addEventListener('focusin', event=>{
+    const t=event.target;
+    if(t&&t!==document.body&&!t.closest?.('.bp-modal-viewport-shell')) bpLastOutsideControl=t;
+  }, true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bpWatchModalShells);
+  else bpWatchModalShells();
   const MODAL_CLOSE_BY_ID={
     'scorecard-modal':'closeScorecard',
     'wheel-modal':'closeWheel',
@@ -22335,6 +22434,11 @@ ${isDealer
     const nodes=modalFocusables(shell);
     if(!nodes.length) return;
     const first=nodes[0], last=nodes[nodes.length-1];
+    if(!shell.contains(document.activeElement)||!nodes.includes(document.activeElement)&&document.activeElement.getAttribute('role')==='dialog'){
+      event.preventDefault();
+      (event.shiftKey?last:first).focus();
+      return;
+    }
     if(event.shiftKey && document.activeElement===first){
       event.preventDefault();
       last.focus();

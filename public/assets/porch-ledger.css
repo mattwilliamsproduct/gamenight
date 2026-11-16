@@ -2252,3 +2252,89 @@ html.porch-ledger #victory-modal,
 html.porch-ledger .s2-night-card {
   font-variant-numeric: tabular-nums lining-nums;
 }
+
+/* ═══ Modals (bpg2) ═══
+   Reading and small-form modals size to their content and sit centered.
+   Long content scrolls inside the body, not the page. */
+html.porch-ledger.slice2-tv :is(#rules-modal, #life-preserver-rules-modal, #comeback-rules-modal, #comeback-explain-modal, #audit-modal, #rename-modal, #color-modal, #dealer-modal, #retire-player-modal, #reorder-players-modal) > .bp-modal-panel {
+  width: min(46rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+  max-width: min(46rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+  height: auto !important;
+  max-height: min(88dvh, calc(100dvh - 2 * var(--bp-space-5))) !important;
+  padding: var(--bp-space-6) var(--bp-space-6) var(--bp-space-5) !important;
+  border-radius: var(--bp-radius-lg) !important;
+}
+html.porch-ledger.slice2-tv #audit-modal > .bp-modal-panel {
+  width: min(52rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+  max-width: min(52rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+}
+html.porch-ledger.slice2-tv :is(#rules-modal, #life-preserver-rules-modal, #comeback-rules-modal) .bp-modal-body,
+html.porch-ledger.slice2-tv #rules-content {
+  flex: 0 1 auto !important;
+  font-size: var(--bp-type-lg) !important;
+  line-height: 1.6 !important;
+  color: var(--bp-ink-soft) !important;
+  padding: var(--bp-space-5) !important;
+  border-radius: var(--bp-radius-md) !important;
+}
+html.porch-ledger.slice2-tv #rules-content :is(ul, ol) {
+  margin: var(--bp-space-3) 0 0;
+  padding-left: var(--bp-space-5);
+  list-style: disc;
+}
+html.porch-ledger.slice2-tv #rules-content li + li { margin-top: var(--bp-space-2); }
+html.porch-ledger.slice2-tv #rules-content strong { color: var(--bp-ink); }
+html.porch-ledger.slice2-tv #rules-title {
+  font-size: var(--bp-type-2xl) !important;
+  line-height: 1.15;
+}
+html.porch-ledger.slice2-tv #rules-modal .text-center > div:first-child {
+  font-size: var(--bp-type-xs) !important;
+  color: var(--bp-muted) !important;
+}
+html.porch-ledger.slice2-tv #audit-modal h3 { font-size: var(--bp-type-2xl) !important; }
+html.porch-ledger.slice2-tv #audit-modal .audit-lead {
+  font-size: var(--bp-type-md) !important;
+  line-height: 1.5;
+  color: var(--bp-muted) !important;
+  padding-right: var(--bp-space-7);
+}
+html.porch-ledger.slice2-tv #audit-list {
+  flex: 0 1 auto !important;
+  min-height: 0;
+  font-size: var(--bp-type-md);
+  line-height: 1.5;
+}
+
+/* One close control for every modal: 44px, labeled "Close", visible focus. */
+html.porch-ledger .bp-modal-close {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: var(--bp-touch) !important;
+  height: var(--bp-touch) !important;
+  min-height: var(--bp-touch) !important;
+  top: var(--bp-space-3) !important;
+  right: var(--bp-space-3) !important;
+  padding: 0 !important;
+  border-radius: var(--bp-radius-pill);
+  font-size: 2rem !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  color: var(--bp-ink-soft) !important;
+  background: transparent;
+  border: 1px solid transparent;
+  z-index: 30;
+}
+html.porch-ledger .bp-modal-close:hover { background: var(--ledger-paper-2); border-color: var(--ledger-line); }
+html.porch-ledger .bp-modal-close:active { background: #e8dcc8; }
+html.porch-ledger .bp-modal-close:focus-visible { outline: none; box-shadow: var(--bp-focus-ring); }
+html.porch-ledger [role="dialog"][tabindex="-1"]:focus { outline: none; }
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv :is(#rules-modal, #life-preserver-rules-modal, #comeback-rules-modal, #comeback-explain-modal, #audit-modal, #rename-modal, #color-modal, #dealer-modal, #retire-player-modal, #reorder-players-modal) > .bp-modal-panel {
+    width: calc(100vw - 2 * var(--bp-space-4)) !important;
+    max-width: calc(100vw - 2 * var(--bp-space-4)) !important;
+    padding: var(--bp-space-5) var(--bp-space-4) var(--bp-space-4) !important;
+  }
+  html.porch-ledger.slice2-tv #rules-content { padding: var(--bp-space-4) !important; font-size: var(--bp-type-md) !important; }
+}
