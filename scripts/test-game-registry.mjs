@@ -105,5 +105,6 @@ test('an empty table says what to do instead of a player count', () => {
   const r = Games.seatLimit('Five Crowns', 0, 'start');
   assert.equal(r.ok, false);
   assert.doesNotMatch(r.message, /\b1 players\b/);
-  assert.match(r.message, /^Add players to start Five Crowns\.$/);
+  assert.match(r.message, /^Add a player to start Five Crowns\.$/);
+  assert.equal(Games.seatLimit('Hand and Foot', 0, 'start').message, 'Add at least 2 players to start Canasta.');
 });

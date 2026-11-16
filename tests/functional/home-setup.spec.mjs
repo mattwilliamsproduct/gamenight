@@ -154,7 +154,7 @@ test.describe('empty Home', () => {
     await page.waitForFunction(() => window.BPGSlice2);
     const home = page.locator('.s2-home');
     await expect(home).toContainText('Nobody seated yet');
-    await expect(home).toContainText('Add players to start Five Crowns.');
+    await expect(home).toContainText('Add a player to start Five Crowns.');
     await expect(home).not.toContainText('All saved players are seated');
     await expect(home).not.toContainText(/\b1 players\b/);
     await expect(page.locator('#save-indicator')).toBeHidden();

@@ -98,7 +98,7 @@
       const need = min - seated;
       // Nobody seated yet: say what to do, not a count.
       const message = seated === 0
-        ? 'Add players to start ' + title + '.'
+        ? (min > 1 ? 'Add at least ' + min + ' players to start ' + title + '.' : 'Add a player to start ' + title + '.')
         : title + ' needs at least ' + min + ' player' + (min === 1 ? '' : 's') + '. Seat ' + need + ' more.';
       if (gate === 'seat') return { ok: true, message: '' };
       return { ok: false, message: message };
