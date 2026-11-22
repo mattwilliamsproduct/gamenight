@@ -116,26 +116,26 @@ test('demo keeps a large photo and a normal PNG on the passport, home, and score
   expect(stored.photo.startsWith('data:image/jpeg')).toBe(true);
   expect(stored.photo.length).toBeLessThan(180000);
   expect(stored.leaked).toBe(false);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-demo-passport-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-demo-passport-emulated.png'});
 
   await page.reload({waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on');
   await page.evaluate(() => { if (typeof openProfileDetail === 'function') openProfileDetail('Priya'); });
   await expect(page.locator('#detail-avatar')).toHaveAttribute('src', /^data:image\/jpeg/);
   await expect.poll(async () => page.locator('#detail-avatar').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-demo-passport-after-reload-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-demo-passport-after-reload-emulated.png'});
 
   await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
   const home = page.locator('#slice2-home img[alt="Priya"]').first();
   await expect(home).toHaveAttribute('src', /^data:image\/jpeg/);
   await expect.poll(async () => home.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-demo-home-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-demo-home-emulated.png'});
 
   await page.evaluate(() => { if (typeof goActiveMatch === 'function') goActiveMatch(); });
   const board = page.locator('#game-screen img[alt="Priya"]').first();
   await expect(board).toHaveAttribute('src', /^data:image\/jpeg/);
   await expect.poll(async () => board.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-demo-scoreboard-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-demo-scoreboard-emulated.png'});
 
   await page.evaluate(() => {
     if (typeof showProfiles === 'function') showProfiles();
@@ -186,12 +186,12 @@ test('real games keep a large photo and a normal PNG separate from the demo', as
   expect(stored.photo.startsWith('data:image/jpeg')).toBe(true);
   expect(stored.photo.length).toBeLessThan(180000);
   expect(stored.demo.includes(stored.photo)).toBe(false);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-real-passport-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-real-passport-emulated.png'});
   await page.reload({waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof openProfileDetail === 'function');
   await page.evaluate(() => { if (typeof openProfileDetail === 'function') openProfileDetail('Priya'); });
   await expect(page.locator('#detail-avatar')).toHaveAttribute('src', /^data:image\/jpeg/);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-real-passport-after-reload-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-real-passport-after-reload-emulated.png'});
   await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
   await expect(page.locator('#slice2-home img[alt="Priya"]').first()).toHaveAttribute('src', /^data:image\/jpeg/);
   await page.evaluate(() => { if (typeof goActiveMatch === 'function') goActiveMatch(); });
@@ -206,7 +206,7 @@ test('real games keep a large photo and a normal PNG separate from the demo', as
   await putPhoto(page, SMALL_PNG);
   await expect(page.locator('#detail-avatar')).toHaveAttribute('src', /^data:image\/jpeg/);
   await expect.poll(async () => page.locator('#detail-avatar').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-real-home-score-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-real-home-score-emulated.png'});
 });
 
 test('a quota failure keeps the previous portrait and says so', async ({page}) => {
@@ -235,7 +235,7 @@ test('a quota failure keeps the previous portrait and says so', async ({page}) =
   await expect.poll(async () => page.locator('#detail-avatar').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
   const still = await page.evaluate(() => playerProfiles.Priya.avatar);
   expect(still).toBe('donkey.png');
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-quota-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-quota-emulated.png'});
 });
 
 test('a broken stored photo falls back to the stock silhouette', async ({page}) => {
@@ -252,5 +252,5 @@ test('a broken stored photo falls back to the stock silhouette', async ({page}) 
   await expect.poll(async () => avatar.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
   const stored = await page.evaluate(() => playerProfiles.Priya.avatar);
   expect(stored).toBe('');
-  await page.screenshot({path: '/opt/cursor/artifacts/avatar-broken-fallback-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/avatar-broken-fallback-emulated.png'});
 });

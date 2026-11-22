@@ -7,7 +7,7 @@ import {chromium, expect, test, webkit} from '@playwright/test';
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const sha = execSync('git rev-parse --short HEAD', {cwd: root}).toString().trim();
 const evidenceDir = join(root, 'docs/prove-it/round-celebrations');
-const artifactDir = '/opt/cursor/artifacts';
+const artifactDir = 'test-results/functional-evidence';
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 
 const COPY = {

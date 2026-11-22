@@ -1227,7 +1227,7 @@
   }
 
   function tabsHtml(pane) {
-    const tab = (id, action, label, on) => `<button type="button" class="s2-btn${on ? ' is-on' : ''}" id="${id}" data-s2-action="${action}">${label}</button>`;
+    const tab = (id, action, label, on) => `<button type="button" class="s2-btn${on ? ' is-on' : ''}" role="tab" aria-selected="${on}" id="${id}" data-s2-action="${action}">${label}</button>`;
     return `<div class="s2-segment" role="tablist" aria-label="Records">
       ${tab('slice2-show-fame', 'show-fame', 'Overview', pane === 'overview')}
       ${tab('slice2-show-shame', 'show-shame', 'Explore<span class="s2-tab-rest"> records</span>', pane === 'explore')}
@@ -1459,7 +1459,16 @@
       exploreRivalries(data, playerFilter, esc, avatar, compact),
       explorePlayers(data, playerFilter, esc, avatar)
     ].filter(Boolean).join('');
-    const games = explorePerGame(data, table.history, gameFilter, playerFilter, esc, compact);
+    const games = explorePerGame(data, table.history, gameFilter, playerFilter, esc);
+    const flip7='Flip 7 Vengeance';
+    const spotlightRows = [
+      [flip7, 'Highest Flip 7 final score', data.games?.[flip7]?.bestGame],
+      ['Wizard', 'Wizard wins', (data.gameWinLeaders?.Wizard||[])
+        .filter(row=>!playerFilter||row.player===playerFilter)
+        .reduce((best,row)=>keepBestWithTies(best,row,(next,current)=>next.value>current.value),null)],
+      ['Five Crowns', 'Highest Five Crowns round', data.games?.['Five Crowns']?.worstRound]
+    ].filter(([id,,record])=>record&&(!gameFilter||gameFilter===id)&&(!playerFilter||recordMatchesPlayer(record,playerFilter)));
+    const spotlight=listBlock('Standout records',spotlightRows.map(([,label,record])=>statLine(label,record,esc,'',playerFilter)));
     return `<div class="s2-records-pane s2-shame-col s2-explore-col" data-pane="explore">
       <section class="s2-panel">
         <div class="s2-panel-head"><h2>Explore records</h2><span class="s2-sub">${recordsCountSubtitle(data, table)}</span></div>
@@ -1468,7 +1477,7 @@
           <label>Player <select id="s2-records-player" class="bp-select" data-s2-action="filter-player">${playerOptions}</select></label>
         </div>
       </section>
-      <div class="s2-explore-grid"><div class="s2-explore-side">${side}</div>${games}</div>
+      <div class="s2-explore-grid">${spotlight}${games}<div class="s2-explore-side">${side}</div></div>
     </div>`;
   }
 
@@ -1561,7 +1570,7 @@
     return 'Only games without the Wheel';
   }
 
-  function explorePerGame(data, history, gameFilter, playerFilter, esc, compact) {
+  function explorePerGame(data, history, gameFilter, playerFilter, esc) {
     const blocks = visibleRecordGames(history).map((game) => {
       if (gameFilter && gameFilter !== game.id) return '';
       const rec = data.games && data.games[game.id];
@@ -1646,8 +1655,8 @@
       const body = rows.filter(Boolean).join('');
       if (!body) return '';
       const title = `${gameThumbnailHtml(game.id, 's2-game-thumb s2-explore-thumb')}<span>${esc(game.title)}</span>`;
-      const open = compact && game.id === 'Hand and Foot' ? ' open' : '';
-      const wrap = compact ? `<details class="s2-disclose"${open}><summary>${title}</summary><div class="s2-book">${body}</div></details>` : `<h3 class="s2-explore-game-title">${title}</h3><div class="s2-book">${body}</div>`;
+      const open = gameFilter === game.id ? ' open' : '';
+      const wrap = `<details class="s2-disclose"${open}><summary class="s2-explore-game-title">${title}</summary><div class="s2-book">${body}</div></details>`;
       return `<section class="s2-panel">${wrap}</section>`;
     }).join('');
     return blocks ? `<div class="s2-explore-games">${blocks}</div>` : '';

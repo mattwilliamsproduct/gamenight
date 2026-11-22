@@ -1037,8 +1037,9 @@ function demoHistory(){
   ];
 }
 
-function demoCrownsGame(){
-  return makeCurrentGame('Five Crowns',NAMES.slice(0,8),demoFiveCrownsLiveRounds(NAMES.slice(0,8)));
+function demoCrownsGame(size){
+  const roster=NAMES.slice(0,size);
+  return makeCurrentGame('Five Crowns',roster,demoFiveCrownsLiveRounds(roster));
 }
 
 // Isolated 90-second demo: last Five Crowns hand still open. After 10 hands
@@ -1228,13 +1229,13 @@ export const QA_SCENARIOS = {
     data:{allPlayers:[...NAMES],players:[...wizardLate5Players],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardLate5Game}
   },
   'five-crowns-late-8':{
-    label:'Five Crowns · Late · 8 Players',
+    label:'Stress fixture · Five Crowns late, eight seats',
     description:'Eight players on Hand of 13 with View Pace on, so Best/Avg/Worst sit beside the latest five rounds.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...lateCrowns8Players],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrowns8Game}
   },
   'five-crowns-comeback':{
-    label:'Five Crowns · Comeback',
+    label:'Stress fixture · Five Crowns comeback, eight seats',
     description:'Eight players on Hand of 11, with Brick and Linda out of reach of first and Comeback extras on.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
@@ -1429,10 +1430,16 @@ export const QA_SCENARIOS = {
     }
   },
   'demo-seed':{
-    label:'TEMP Demo Seed',
-    description:'Preview-only porch night pack: finished nights for all six games, Fame and Shame, one assisted 818, one retired seat, one live Resume match, one incomplete night, one joint win, and a Rook night with contracts.',
+    label:'Stress fixture · Eight-seat Five Crowns',
+    description:'Over-limit live roster for layout and wheel tests.',
     defaultSurface:'home',
-    data:demoTable(demoCrownsGame())
+    data:demoTable(demoCrownsGame(8))
+  },
+  'try-demo-seed':{
+    label:'Sample game night · Seven-seat Five Crowns',
+    description:'Playable example with a full Five Crowns table and a sample Records book.',
+    defaultSurface:'home',
+    data:demoTable(demoCrownsGame(7))
   },
   'home-nights-podium':{
     label:'Home · Recent nights podium',

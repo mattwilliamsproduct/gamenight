@@ -48,3 +48,29 @@ test('Home quick-add rejects a comma name without saving', async ({page})=>{
   expect(after).toEqual(before);
   expect(after.allPlayers.some(name=>String(name).includes(','))).toBe(false);
 });
+
+test('mid-game picker lists the bench before typing and confirms the chosen late join', async ({page})=>{
+  await openScenario(page,{scenario:'wizard-6-mid'});
+  const bench=['Iris','Nora','Owen','Ruby'];
+  const start=await page.evaluate(bench=>{
+    players=[...currentGame.originalRoster];
+    allPlayers=[...players,...bench];
+    playerProfiles={};
+    renderRoster();
+    const scores=players.map(name=>currentGame.totals[name]);
+    return Math.ceil(scores.reduce((sum,score)=>sum+score,0)/scores.length);
+  },bench);
+  await expect(page.locator('#bench-list .player-name-label')).toHaveText(bench);
+  await page.getByRole('button',{name:/Actions/}).click();
+  await page.getByRole('button',{name:'Add player mid-game',exact:true}).click();
+  const picker=page.locator('#midgame-player-suggestions');
+  await expect(picker.locator('.player-name-label')).toHaveText(bench);
+  await picker.getByRole('button',{name:'Nora',exact:true}).click();
+  await expect(page.locator('#midgame-add-confirm-copy')).toContainText(`Nora starts at ${start}`);
+  await page.locator('#midgame-add-confirm').getByRole('button',{name:'Add player'}).click();
+  await expect(page.locator('#add-player-modal')).toHaveClass(/hidden/);
+  expect(await page.evaluate(()=>({
+    total:currentGame.totals.Nora,
+    missed:BPGScorebook.missedRoundText(currentGame,'Nora',1)
+  }))).toEqual({total:start,missed:'Did not play'});
+});

@@ -266,7 +266,7 @@
       'html.bpg-try-demo-pending body{visibility:hidden}',
       'html.bpg-try-demo{padding-top:42px}',
       'html.bpg-try-demo.bpg-try-demo-tip{padding-top:88px}',
-      '#bpg-try-demo-bar{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 14px;background:#efe7d6;color:#14312e;border-bottom:1px solid #d7cbb3;font-family:"Nunito Sans",sans-serif}',
+      '#bpg-try-demo-bar{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:8px;min-height:42px;padding:4px 12px;background:#efe7d6;color:#14312e;border-bottom:1px solid #d7cbb3;font-family:"Nunito Sans",sans-serif}',
       '#bpg-try-demo-bar strong{font-size:13px;font-weight:800;letter-spacing:.02em}',
       '#bpg-try-demo-bar .bpg-try-demo-actions{margin-left:auto;display:flex;gap:8px}',
       '#bpg-try-demo-bar button,#bpg-try-demo-tip button,.bpg-try-demo-start,#bpg-try-demo-about button{min-height:32px;padding:0 12px;border:1px solid #08766c;border-radius:999px;background:#fffdf8;color:#075e57;font-size:12px;font-weight:800}',

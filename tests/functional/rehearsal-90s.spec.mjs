@@ -3,7 +3,7 @@ import {mkdirSync} from 'node:fs';
 import {DEMO_PATH_LAST_ROUND} from '../../public/qa/fixtures.mjs';
 import {openTestView} from '../helpers/inject-book.mjs';
 
-const STRIP = process.env.REHEARSAL_DIR || '/opt/cursor/artifacts/screenshots/rehearsal-90s';
+const STRIP = process.env.REHEARSAL_DIR || 'test-results/functional-evidence/screenshots/rehearsal-90s';
 mkdirSync(STRIP, {recursive: true});
 
 async function enterScores(page, values) {

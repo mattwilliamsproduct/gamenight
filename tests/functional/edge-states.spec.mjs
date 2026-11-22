@@ -2,7 +2,7 @@ import {mkdirSync} from 'node:fs';
 import {expect, test} from '@playwright/test';
 import {openTestView} from '../helpers/inject-book.mjs';
 
-const SHOT = process.env.EDGE_SHOT_DIR || '/opt/cursor/artifacts/screenshots/edge-states';
+const SHOT = process.env.EDGE_SHOT_DIR || 'test-results/functional-evidence/screenshots/edge-states';
 mkdirSync(SHOT, {recursive: true});
 
 async function openDemo(page, view) {

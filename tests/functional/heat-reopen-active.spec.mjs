@@ -120,7 +120,7 @@ test('editing a finished Heat night keeps the live match and says the winner is 
   expect(edited.toast).toContain('The winner is removed');
   expect(edited.toast).toContain('drops out of wins and records');
   expect(edited.toast).toContain('The game on the table stayed put');
-  await page.locator('#toast-container .toast').screenshot({ path: '/opt/cursor/artifacts/heat-reopen-notice.png' });
+  await page.locator('#toast-container .toast').screenshot({ path: 'test-results/functional-evidence/heat-reopen-notice.png' });
 
   await page.goto('/');
   await page.waitForFunction(() => currentGame && currentGame.id === 'live-crowns');

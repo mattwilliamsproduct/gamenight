@@ -460,7 +460,7 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
     'Nora', 'Owen', 'Priya', 'Theo', 'Ruby', 'Felix',
     'June', 'Marco', 'Iris', 'Quinn', 'Vera', 'Hugo'
   ]);
-  expect(first.seated).toHaveLength(8);
+  expect(first.seated).toHaveLength(7);
   expect(first.nav.some((label) => label === 'Player Passports (12)')).toBe(true);
   // The Records nav no longer carries a count (Nov 15: it mixed counted and uncounted games).
   expect(first.nav).toContain('Records');

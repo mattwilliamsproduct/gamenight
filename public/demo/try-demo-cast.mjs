@@ -122,7 +122,7 @@ export function attachDemoCanastaNight(seed, qaScenarios) {
 }
 
 export function buildDemoBook(qaScenarios) {
-  const seed = qaScenarios && qaScenarios['demo-seed'] && qaScenarios['demo-seed'].data;
+  const seed = qaScenarios && qaScenarios['try-demo-seed'] && qaScenarios['try-demo-seed'].data;
   if (!seed) throw new Error('try-demo seed missing');
   const cloned = attachDemoCanastaNight(JSON.parse(JSON.stringify(seed)), qaScenarios);
   const remapped = applyNeutralDemoAvatars(remapDemoBook(cloned));

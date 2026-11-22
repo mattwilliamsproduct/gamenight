@@ -11,18 +11,11 @@
 */
 
 html.porch-ledger {
-  /* Porch felt: Matt's own felt photo (visual-reset/matt-blue-felt-reference.png,
-     1586x992), drawn once at `cover` behind every screen. Quiet center, the
-     card-suit lattice only near the edges.
-     --felt-photo      WebP with a JPEG fallback (porch-felt.webp / .jpg).
-     --felt-center     the felt color in the middle of the photo.
-     --felt-base       the average felt color (flat fallback while it loads).
-     --felt-edge       the darker corner color (demo bar, deep accents). */
-  --felt-center: #034583;
-  --felt-base: #023871;
-  --felt-edge: #012a5e;
-  --felt-photo-jpg: url("./porch-felt.jpg");
-  --felt-photo: image-set(url("./porch-felt.webp") type("image/webp"), url("./porch-felt.jpg") type("image/jpeg"));
+  /* Backdrop shared by the live board, score entry and Home. */
+  --felt-center: #24564f;
+  --felt-base: #173e38;
+  --felt-edge: #102b28;
+  --felt-photo: radial-gradient(ellipse at 50% 32%, var(--felt-center), var(--felt-edge));
   --mat-felt: var(--felt-base);
   --mat-bar: color-mix(in srgb, var(--felt-edge) 70%, #061226 30%);
   --ledger-felt: var(--mat-felt);
@@ -103,7 +96,6 @@ html.porch-ledger.slice2-tv body::after {
   z-index: -1;
   pointer-events: none;
   background-color: var(--felt-base);
-  background-image: var(--felt-photo-jpg);
   background-image: var(--felt-photo);
   background-size: cover;
   background-position: center;
@@ -111,7 +103,7 @@ html.porch-ledger.slice2-tv body::after {
 }
 
 html.porch-ledger.slice2-tv::before {
-  background: var(--ledger-teal);
+  display: none;
 }
 
 html.porch-ledger.slice2-tv body:not(.active-match-view) #top-nav::before {
@@ -793,7 +785,7 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row td.scorecard-total-
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player {
-  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+  box-shadow: none !important;
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity:not(:has(.hf-team-line)) {
@@ -858,7 +850,7 @@ html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row .tv-stat-num {
 }
 
 html.porch-ledger.slice2-tv #scorecard-capture tr.leader-row > td.scorecard-col-player {
-  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+  box-shadow: none !important;
 }
 
 /* The leader wash runs through This Round. Entered leader scores keep the tested green pill. */
@@ -941,7 +933,6 @@ html.porch-ledger #score-entry-modal:not(.hidden) {
   inset: 0 !important;
   z-index: 240 !important;
   background-color: var(--felt-base) !important;
-  background-image: var(--felt-photo-jpg) !important;
   background-image: var(--felt-photo) !important;
   background-repeat: no-repeat !important;
   background-size: cover !important;
@@ -969,7 +960,6 @@ html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.hidd
   padding: 0 !important;
   z-index: 400 !important;
   background-color: var(--felt-base) !important;
-  background-image: var(--felt-photo-jpg) !important;
   background-image: var(--felt-photo) !important;
   background-repeat: no-repeat !important;
   background-size: cover !important;
@@ -995,7 +985,7 @@ html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row {
   background: var(--ledger-paper-2) !important;
   border: 1px solid var(--ledger-line) !important;
   border-radius: 16px !important;
-  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+  box-shadow: none !important;
   transform: none !important;
   color: var(--ledger-ink) !important;
   align-items: center !important;
@@ -1007,7 +997,7 @@ html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row {
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active {
   background: color-mix(in srgb, var(--ledger-player) 12%, var(--ledger-paper)) !important;
   border-color: color-mix(in srgb, var(--ledger-player) 40%, var(--ledger-line)) !important;
-  box-shadow: inset 8px 0 0 var(--ledger-player) !important;
+  box-shadow: none !important;
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
@@ -2736,14 +2726,14 @@ html.porch-ledger #profiles-screen .profile-passport-sub,
 html.porch-ledger #profiles-screen .profile-badge { opacity: 1 !important; }
 html.porch-ledger #profiles-screen .profile-big-stat > :not(strong) { color: var(--bp-muted) !important; }
 
-/* Sample bar: 44pt buttons; the bar and the tip offsets grow to match. */
-html.porch-ledger.bpg-try-demo { --bp-demo-offset: 56px; }
-html.porch-ledger.bpg-try-demo:not(.bpg-try-demo-tip) { padding-top: 56px !important; }
-html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 118px; padding-top: 118px !important; }
-html.porch-ledger #bpg-try-demo-bar { height: 56px !important; min-height: 56px !important; max-height: 56px !important; padding: 6px 14px !important; }
+/* The demo bar keeps 44px controls and uses the same offset throughout. */
+html.porch-ledger.bpg-try-demo { --bp-demo-offset: 48px; }
+html.porch-ledger.bpg-try-demo:not(.bpg-try-demo-tip) { padding-top: 48px !important; }
+html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 110px; padding-top: 110px !important; }
+html.porch-ledger #bpg-try-demo-bar { height: 48px !important; min-height: 48px !important; max-height: 48px !important; padding: 2px 12px !important; }
 html.porch-ledger #bpg-try-demo-bar button,
 html.porch-ledger #bpg-try-demo-tip button { min-height: var(--bp-touch) !important; height: var(--bp-touch) !important; padding-inline: 14px !important; }
-html.porch-ledger #bpg-try-demo-tip { top: 56px !important; min-height: 60px; padding-block: 8px !important; align-items: center !important; box-sizing: border-box; }
+html.porch-ledger #bpg-try-demo-tip { top: 48px !important; min-height: 60px; padding-block: 8px !important; align-items: center !important; box-sizing: border-box; }
 @media (max-width: 760px) {
   /* Phone: past-round cells reach 44pt. The input fills its cell (inline width), so the cell gives up its side padding. */
   html.porch-ledger.slice2-tv body.active-match-view #game-screen #scorecard-capture#scorecard-capture .score-cell-stack .score-cell-input[id^="score-past-"] {
@@ -2773,7 +2763,7 @@ html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(
   html.porch-ledger #bpg-try-demo-tip { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 10px !important; padding: 6px 12px !important; }
   html.porch-ledger #bpg-try-demo-tip > :first-child { flex: 1 1 auto; min-width: 0; font-size: 13px; line-height: 1.35; }
   html.porch-ledger #bpg-try-demo-tip button { flex: 0 0 auto; }
-  html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 124px; padding-top: 124px !important; }
+  html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 116px; padding-top: 116px !important; }
 }
 @media (max-width: 600px) {
   /* Phone seats: the 44pt Remove and Move targets take 8px more, so the seat gaps give it back and a long word still fits. */
@@ -2883,4 +2873,60 @@ html.porch-ledger.slice2-tv body #score-entry-modal #score-entry-primary-btn.is-
 html.porch-ledger.slice2-tv body #score-entry-modal.is-entry-complete .score-entry-keypad .score-entry-key.next {
   background: var(--bp-secondary-bg, #fffaf3) !important; color: #0a5c54 !important;
   border: 2px solid #0a5c54 !important; box-shadow: none !important;
+}
+
+/* The seat is dealing order. Place stays beside the total. */
+html.porch-ledger .scorecard-seat {
+  position: absolute;
+  inset: auto auto -2px -2px;
+  min-width: 1.1rem;
+  padding: 0 0.18rem;
+  border: 1px solid var(--ledger-line);
+  border-radius: 0.35rem;
+  background: var(--ledger-paper);
+  color: var(--ledger-muted);
+  text-align: center;
+  font: 800 0.7rem/1.3 var(--ledger-type-text);
+}
+
+html.porch-ledger #scorecard-capture .scorecard-round-td:not(.scorecard-round-td--exact) .score-cell-input.is-entered {
+  color: var(--ledger-ink-soft) !important;
+}
+
+html.porch-ledger #scorecard-capture .scorecard-col-now:not(:has(.is-entered)) {
+  color: var(--ledger-muted);
+}
+
+html.porch-ledger #scorecard-capture .wheel-badge-ready {
+  background: var(--ledger-teal-wash) !important;
+  color: var(--ledger-teal-deep) !important;
+  border-color: var(--ledger-teal);
+  font-size: 0.75rem !important;
+}
+
+html.porch-ledger #slice2-board-sub {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+}
+
+.s2-board-player-count-slot {
+  display: inline-block;
+  inline-size: min(5rem, 14vw);
+}
+
+@media (min-width: 900px) and (max-width: 1180px) {
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-line {
+    font-size: max(22px, 1.35rem) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name .dealer-player-label {
+    max-width: 100%;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
 }

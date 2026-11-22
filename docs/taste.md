@@ -299,3 +299,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - App changes need visual plus backend prove-it: `npm run check`, the gallery scenarios you opened, and `npm run test:visual` when snapshots apply. Put that evidence in the PR.
 - Game-behavior merges wait for Matt's morning click while that overnight rule is standing.
 - Docs-only OS (taste, AGENTS.md pointers, spec edits with no game behavior) may merge without that click.
+
+### MVP walkthrough
+
+- Keep names, totals and ordinal places prominent even when a small lineup leaves viewport space. Keep a separate spot by round and dealer for the active-player count.

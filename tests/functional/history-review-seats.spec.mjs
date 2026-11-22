@@ -66,7 +66,7 @@ test('Canasta seating stays open, history review is read-only, and Recent activi
   expect(shown.seen).toBeNull();
   expect(shown.applied).toBe(true);
 
-  await page.locator('#history-review-body').screenshot({path: '/opt/cursor/artifacts/history-review-summary-1024.png'});
+  await page.locator('#history-review-body').screenshot({path: 'test-results/functional-evidence/history-review-summary-1024.png'});
   await page.locator('#history-review-apply').click();
   const applied = await page.evaluate(() => ({
     history: JSON.stringify(history),
@@ -95,7 +95,7 @@ test('Canasta seating stays open, history review is read-only, and Recent activi
   });
   expect(fit.text).toBe('Recent activity');
   expect(fit.fits, `${fit.text} is ${fit.width}px in ${fit.room}px`).toBe(true);
-  await page.locator('#profile-sort-select').screenshot({path: '/opt/cursor/artifacts/passports-recent-activity-1024.png'});
+  await page.locator('#profile-sort-select').screenshot({path: 'test-results/functional-evidence/passports-recent-activity-1024.png'});
 
   await page.setViewportSize({width: 390, height: 844});
   const phone = await page.locator('#profile-sort-select').evaluate((el) => {
@@ -112,5 +112,5 @@ test('Canasta seating stays open, history review is read-only, and Recent activi
   });
   expect(phone.text).toBe('Recent activity');
   expect(phone.fits, `${phone.text} is ${phone.width}px in ${phone.room}px`).toBe(true);
-  await page.locator('.profile-toolbar').screenshot({path: '/opt/cursor/artifacts/passports-recent-activity-390.png'});
+  await page.locator('.profile-toolbar').screenshot({path: 'test-results/functional-evidence/passports-recent-activity-390.png'});
 });

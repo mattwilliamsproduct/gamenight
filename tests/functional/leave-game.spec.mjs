@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {mkdirSync} from 'node:fs';
 
-const SHOTS = '/opt/cursor/artifacts/screenshots/leave-game';
+const SHOTS = 'test-results/functional-evidence/screenshots/leave-game';
 mkdirSync(SHOTS, {recursive: true});
 
 async function boot(page) {

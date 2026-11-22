@@ -10,7 +10,7 @@ async function boot(page) {
   await page.goto('/', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => typeof saveData === 'function' && window.BPGSlice2 && window.BPGRecords);
 }
-test.afterEach(async ({page}) => { expect(page.pageErrors || []).toEqual([]); });
+test.afterEach(async ({page}) => { expect(page?.pageErrors || []).toEqual([]); });
 
 async function liveFiveCrowns(page) {
   await page.evaluate(() => {
@@ -58,6 +58,19 @@ test('reloading or leaving mid-entry keeps committed scores and adds no half rou
   await expect(page.locator('#game-screen')).toBeVisible();
   await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
   expect(await committed(page)).toEqual(before);
+  await page.locator('#slice2-enter-btn').click();
+  const values = () => page.evaluate(() => Object.values(scoreEntryModalState.values));
+  expect((await values()).filter(Boolean).sort()).toEqual(['4','9']);
+  expect(await committed(page)).toEqual(before);
+  page.once('dialog', d => d.accept());
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
+  await page.reload();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  await page.locator('#slice2-enter-btn').click();
+  expect((await values()).filter(Boolean)).toEqual([]);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
   // Leave for the table and come back: same game, same round.
   await page.locator('#slice2-table-btn').click();
   await expect(page.locator('#slice2-home')).toBeVisible();

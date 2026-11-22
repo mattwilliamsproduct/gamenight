@@ -124,11 +124,11 @@ test('1194 scoreboard header, tiles, and Life Preserver cells', async ({page}) =
   expect(paint.padBottom).toBeGreaterThanOrEqual(4);
   expect(paint.scoreInside).toBe(true);
   expect(paint.markInside).toBe(true);
-  await page.screenshot({path: '/opt/cursor/artifacts/scoreboard-header-1194-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/scoreboard-header-1194-emulated.png'});
 
   await page.locator('#actions-btn').click();
   await expect(page.locator('#actions-menu .match-end-btn')).toBeVisible();
   // Matt 5:25 PM ET: the menu action is Leave game. Save for later, End game now, and Keep playing are the sheet.
   await expect(page.locator('#actions-menu .actions-menu-section').last()).toContainText('Leave game');
-  await page.screenshot({path: '/opt/cursor/artifacts/scoreboard-actions-1194-emulated.png'});
+  await page.screenshot({path: 'test-results/functional-evidence/scoreboard-actions-1194-emulated.png'});
 });

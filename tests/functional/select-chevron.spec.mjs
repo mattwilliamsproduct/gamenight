@@ -14,7 +14,7 @@ test.use({
   serviceWorkers: 'block'
 });
 
-const OUT = `/opt/cursor/artifacts/screenshots/select-chevron/${sha}/${browser}`;
+const OUT = `test-results/functional-evidence/screenshots/select-chevron/${sha}/${browser}`;
 mkdirSync(OUT, {recursive: true});
 
 const shots = [];

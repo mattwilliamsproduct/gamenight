@@ -5663,3 +5663,20 @@ html.slice2-tv .s2-standings-foot .s2-standings-more {
 html.slice2-tv .s2-standings-foot .s2-standings-more[hidden] {
   display: none !important;
 }
+
+html.slice2-tv .s2-pane-explore .s2-explore-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html.slice2-tv .s2-pane-explore .s2-explore-grid > * {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+html.slice2-tv .s2-explore-game-title {
+  min-height: 44px;
+}
+
+html.slice2-tv .s2-ledger .s2-segment [aria-selected="true"] {
+  text-decoration: none;
+}

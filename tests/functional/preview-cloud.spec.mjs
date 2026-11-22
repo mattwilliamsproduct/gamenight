@@ -16,7 +16,7 @@ test('a preview shows the notice, hides the password and Save & sync, and sends 
     const notice = page.locator('#porch-cloud-preview-notice');
     await notice.scrollIntoViewIfNeeded();
     await expect(notice).toBeVisible();
-    await expect(notice).toHaveText('Cloud unavailable in this preview');
+    await expect(notice).toHaveText('Cloud saving is unavailable in this preview; games save on this device.');
     await expect(page.locator('#porch-cloud-key')).toBeHidden();
     await expect(page.locator('#settings-modal button', {hasText: /Save & sync/})).toBeHidden();
     expect((await notice.boundingBox()).height).toBeGreaterThanOrEqual(44);

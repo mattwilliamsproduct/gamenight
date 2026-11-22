@@ -29,8 +29,8 @@ test('measured localStorage cap leaves room for a score after photos fill the de
     }
     return {usedBefore: used, probeChars: fit, approxCap: used + fit, hitQuota: hit};
   });
-  mkdirSync('/opt/cursor/artifacts', {recursive: true});
-  writeFileSync('/opt/cursor/artifacts/quota-measure.json', JSON.stringify(measured, null, 2));
+  mkdirSync('test-results/functional-evidence', {recursive: true});
+  writeFileSync('test-results/functional-evidence/quota-measure.json', JSON.stringify(measured, null, 2));
   expect(measured.hitQuota).toBe(true);
   expect(measured.approxCap).toBeGreaterThan(500000);
 
@@ -74,5 +74,5 @@ test('measured localStorage cap leaves room for a score after photos fill the de
   expect(saved.memoryScore).toBe(4);
   expect(saved.storedScore).toBe(4);
   expect(saved.persisted).not.toBe(false);
-  writeFileSync('/opt/cursor/artifacts/quota-measure.json', JSON.stringify({measured, saved}, null, 2));
+  writeFileSync('test-results/functional-evidence/quota-measure.json', JSON.stringify({measured, saved}, null, 2));
 });

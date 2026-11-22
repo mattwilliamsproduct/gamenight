@@ -8,7 +8,7 @@ import {freshTable, openScoreEntry, readGame, silencePorchPrompts, startHandFoot
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const sha = execSync('git rev-parse --short HEAD', {cwd: root}).toString().trim();
 const evidenceDir = join(root, 'docs/prove-it/canasta-entry');
-const artifactDir = '/opt/cursor/artifacts';
+const artifactDir = 'test-results/functional-evidence';
 mkdirSync(evidenceDir, {recursive: true});
 mkdirSync(artifactDir, {recursive: true});
 

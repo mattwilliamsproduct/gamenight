@@ -3,7 +3,7 @@ import {expect, test} from '@playwright/test';
 import {openTestView} from '../helpers/inject-book.mjs';
 import {openScenario} from '../helpers/qa.mjs';
 
-const SHOT = process.env.PHONE_COND_DIR || '/opt/cursor/artifacts/screenshots/phone-conditions';
+const SHOT = process.env.PHONE_COND_DIR || 'test-results/functional-evidence/screenshots/phone-conditions';
 mkdirSync(SHOT, {recursive: true});
 
 async function openDemoPath(page, {fontScale} = {}) {

@@ -243,3 +243,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - A scoreboard header with Save & End beside Enter Scores. Save & End is last in Actions. The enter control says Enter Scores. The round stays in the header.
 - A sticky nav that goes flat, loses its inset, or lets the page and the green accent slide through it.
 - Landscape Home panels that run past the viewport, so Start, Add Player, the summary line, or the last row is sliced off the bottom. Size the panels to the space under the nav, leave a margin, and scroll the list inside the panel.
+
+## 2026-11-22 MVP walkthrough
+
+- Keep names, totals and ordinal places prominent even when a small lineup leaves viewport space. Keep a separate spot by round and dealer for the active-player count.

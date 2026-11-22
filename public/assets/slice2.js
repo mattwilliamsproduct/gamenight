@@ -566,7 +566,7 @@
       ? BPGGames.seatLimit(selected, seated)
       : { ok: true, message: '' };
     const startSummary = limit.ok
-      ? `${meta.title} · ${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
+      ? `${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
       : limit.message;
     const startBlock = live && !pickerRevealed
       ? `<section class="s2-panel s2-home-start s2-home-start-compact" aria-label="Start a new match">
@@ -929,7 +929,10 @@
     const sub = document.getElementById('slice2-board-sub');
     if (sub) {
       const wild = boardSubLine(currentGame);
-      sub.textContent = wild;
+      const space = document.createElement('span');
+      space.className = 's2-board-player-count-slot';
+      space.setAttribute('aria-hidden', 'true');
+      sub.replaceChildren(document.createTextNode(wild), space);
       sub.hidden = !wild;
     }
     if (legend) {

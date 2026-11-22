@@ -146,13 +146,13 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         await expect(page.locator('#slice2-start-btn')).toBeDisabled();
         await expect(page.locator('#slice2-start-summary')).toHaveText('Five Crowns plays up to 7. Unseat 7 players.');
         if (size.width === 1194) {
-          await page.screenshot({path: '/opt/cursor/artifacts/home-over-limit-14-1194-emulated.png'});
+          await page.screenshot({path: 'test-results/functional-evidence/home-over-limit-14-1194-emulated.png'});
         }
       } else if (!idle.scrolls) {
         expect(idle.lastRow.bottom, `${size.width} idle ${count} last row`).toBeLessThanOrEqual(size.height - 12);
         expect(idle.lastRow.visibleBottom, `${size.width} idle ${count} last row clipped`).toBeGreaterThanOrEqual(idle.lastRow.bottom - 1);
       }
-      await page.screenshot({path: `/opt/cursor/artifacts/home-idle-${count}-${size.width}-emulated.png`});
+      await page.screenshot({path: `test-results/functional-evidence/home-idle-${count}-${size.width}-emulated.png`});
 
       await paintRoster(page, roster, true);
       await expect(page.locator('.s2-home-start')).toBeVisible();
@@ -213,7 +213,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         expect(live.lastRow.visibleBottom, `${size.width} live ${count} last row clipped`).toBeGreaterThanOrEqual(live.lastRow.bottom - 1);
       }
       if (count === 2) expect(live.offset).toBe(0);
-      await page.screenshot({path: `/opt/cursor/artifacts/home-live-${count}-${size.width}-emulated.png`});
+      await page.screenshot({path: `test-results/functional-evidence/home-live-${count}-${size.width}-emulated.png`});
     }
   }
 });

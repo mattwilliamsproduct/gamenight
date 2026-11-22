@@ -3,7 +3,7 @@ import {mkdirSync, writeFileSync} from 'node:fs';
 import {DEMO_PATH_LAST_ROUND} from '../../public/qa/fixtures.mjs';
 import {openTestView} from '../helpers/inject-book.mjs';
 
-const STRIP = process.env.DEMO_STRIP_DIR || '/opt/cursor/artifacts/screenshots/demo-path';
+const STRIP = process.env.DEMO_STRIP_DIR || 'test-results/functional-evidence/screenshots/demo-path';
 mkdirSync(STRIP, {recursive: true});
 
 const LINK = 'test inject: demo-path';

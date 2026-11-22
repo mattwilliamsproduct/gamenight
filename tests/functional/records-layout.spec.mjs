@@ -57,7 +57,7 @@ for (const size of [{width: 1180, height: 820}, {width: 390, height: 844}]) {
 }
 
 for (const size of [{width: 1180, height: 820}, {width: 1024, height: 768}]) {
-  test(`Explore records at ${size.width} balances its panels across the width`, async ({page}) => {
+  test(`Explore records at ${size.width} shows summaries first and opens full-width details on demand`, async ({page}) => {
     await page.setViewportSize(size);
     await boot(page, '/?demo=try');
     await page.waitForFunction(() => Array.isArray(history) && history.length > 5, null, {timeout: 15000});
@@ -65,19 +65,17 @@ for (const size of [{width: 1180, height: 820}, {width: 1024, height: 768}]) {
     await page.locator('#slice2-show-shame').click();
     const layout = await page.evaluate(() => {
       const grid = document.querySelector('.s2-explore-grid');
-      const top = grid.getBoundingClientRect().top;
-      const cols = {};
-      grid.querySelectorAll('.s2-panel').forEach((panel) => {
-        const r = panel.getBoundingClientRect();
-        const key = Math.round(r.left);
-        cols[key] = Math.max(cols[key] || 0, r.bottom - top);
-      });
-      return {cols: Object.values(cols), width: grid.getBoundingClientRect().width, vw: innerWidth};
+      const width = grid.getBoundingClientRect().width;
+      const panels = [...grid.querySelectorAll('.s2-panel')];
+      return {width, vw:innerWidth, panels:panels.every(panel=>panel.getBoundingClientRect().width>=width-2)};
     });
-    expect(layout.cols.length).toBe(2);
-    const [a, b] = layout.cols.sort((x, y) => x - y);
-    // Before bpg2 the short column ended at 77% of the long one (4810 vs 6275 at 1180).
-    expect(a / b, `columns ${a} vs ${b}`).toBeGreaterThanOrEqual(0.88);
+    expect(layout.panels).toBe(true);
+    const grid=page.locator('.s2-explore-grid');
+    await expect(grid.locator('h3').first()).toHaveText('Standout records');
+    const detail=grid.locator('.s2-explore-games details').first();
+    await expect(detail).not.toHaveAttribute('open','');
+    await detail.locator('summary').click();
+    await expect(detail).toHaveAttribute('open','');
     expect(layout.width).toBeGreaterThanOrEqual(layout.vw - 120);
   });
 }

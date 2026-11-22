@@ -1,4 +1,4 @@
-import {readFileSync, mkdirSync, writeFileSync} from 'node:fs';
+import {readFileSync, writeFileSync} from 'node:fs';
 import {expect, test} from '@playwright/test';
 
 const book = JSON.parse(readFileSync(new URL('../fixtures/main-format-backup.json', import.meta.url), 'utf8'));
@@ -266,7 +266,7 @@ function photoUrl(chars) {
   return prefix + 'A'.repeat(chars - prefix.length);
 }
 
-test('nine uploaded photos and a long history report bytes and keep the saved book when the disk is full', async ({page}) => {
+test('nine uploaded photos and a long history report bytes and keep the saved book when the disk is full', async ({page}, testInfo) => {
   test.setTimeout(60000);
   const names = ['Ada', 'Bea', 'Cal', 'Dan', 'Eve', 'Fay', 'Gus', 'Hal', 'Ivy'];
   const photo = photoUrl(180000);
@@ -323,8 +323,7 @@ test('nine uploaded photos and a long history report bytes and keep the saved bo
       photos: Object.values(playerProfiles).filter((row) => String(row.avatar || '').startsWith('data:image/')).length
     };
   });
-  mkdirSync('/opt/cursor/artifacts', {recursive: true});
-  writeFileSync('/opt/cursor/artifacts/storage-quota.json', JSON.stringify(measured, null, 2));
+  writeFileSync(testInfo.outputPath('storage-quota.json'), JSON.stringify(measured, null, 2));
   expect(measured.photos).toBe(9);
   expect(measured.bytes).toBeGreaterThan(9 * 180000);
 

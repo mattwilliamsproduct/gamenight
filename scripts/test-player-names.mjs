@@ -133,7 +133,7 @@ test('Home, mid-game, rename, and import write paths call the comma guard', () =
   const importFn = extractFunction(html, 'importBackupText');
   assert.match(add, /rejectUnsavablePlayerName\(name,'home-player-name-error'\)/);
   assert.match(mid, /rejectUnsavablePlayerName\(name,'midgame-player-name-error'\)/);
-  assert.match(mid, /originalRoster\.push/);
+  assert.match(extractFunction(html, 'confirmAddPlayerMidGame'), /originalRoster\.push/);
   assert.doesNotMatch(mid, /Tonight\\'s Table/);
   assert.match(rename, /rejectUnsavablePlayerName\(newName,'rename-player-name-error'\)/);
   assert.match(importFn, /incomingPlayerNameWriteError\(incoming\)/);

@@ -46,10 +46,10 @@ test('the page loads try-demo and the worker precaches it', () => {
 });
 
 test('try-demo seed is the fictional QA demo-seed book', () => {
-  assert.ok(QA_SCENARIOS['demo-seed'], 'demo-seed scenario missing');
-  const issues = validateScenario('demo-seed', QA_SCENARIOS['demo-seed']);
+  assert.ok(QA_SCENARIOS['try-demo-seed'], 'demo-seed scenario missing');
+  const issues = validateScenario('try-demo-seed', QA_SCENARIOS['try-demo-seed']);
   assert.deepEqual(issues, [], issues.join('\n'));
-  const data = QA_SCENARIOS['demo-seed'].data;
+  const data = QA_SCENARIOS['try-demo-seed'].data;
   assert.ok(data.players.includes('Megan'));
   assert.ok(data.players.includes('Matt'));
   assert.ok((data.history || []).length > 5);
@@ -68,13 +68,14 @@ test('demo forks the QA seed to a fictional cast with neutral SVG avatars', () =
     'Nora', 'Owen', 'Priya', 'Theo', 'Ruby', 'Felix',
     'June', 'Marco', 'Iris', 'Quinn', 'Vera', 'Hugo'
   ]);
-  const qa = QA_SCENARIOS['demo-seed'].data;
+  const qa = QA_SCENARIOS['try-demo-seed'].data;
   const book = buildDemoBook(QA_SCENARIOS);
   const blob = JSON.stringify(book);
   assert.ok(book.players.includes('Nora'));
   assert.ok(book.players.includes('Owen'));
   assert.ok(book.players.includes('Priya'));
-  assert.ok(book.currentGame.originalRoster.includes('Marco'));
+  assert.equal(book.currentGame.originalRoster.length, 7);
+  assert.deepEqual(book.players, book.currentGame.originalRoster);
   QA_PORCH_CAST.forEach((name) => {
     assert.equal(blob.includes(name), false, `demo book still has ${name}`);
   });
@@ -100,7 +101,7 @@ test('demo forks the QA seed to a fictional cast with neutral SVG avatars', () =
 
 test('demo book adds a remapped Canasta night without changing QA fixtures', () => {
   assert.match(demo, /buildDemoBook/);
-  const qa = QA_SCENARIOS['demo-seed'].data;
+  const qa = QA_SCENARIOS['try-demo-seed'].data;
   const records = QA_SCENARIOS['records-book'].data;
   const book = buildDemoBook(QA_SCENARIOS);
   const canasta = (book.history || []).find(isCanastaNight);

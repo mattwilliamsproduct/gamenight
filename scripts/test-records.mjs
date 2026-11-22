@@ -1014,6 +1014,6 @@ test('Canasta Got the 22, Went out, and Cards left show on Records', () => {
       }
     }]
   }], 'explore', {}, {compact: true});
-  assert.match(phone, /<details class="s2-disclose" open>/);
+  assert.match(phone, /<details class="s2-disclose">/);
   assert.match(phone, /Got the 22/);
 });
