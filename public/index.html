@@ -17943,7 +17943,6 @@ ${isDealer
       // table, so large type was sizing rows that painted through Match Complete.
       const wrapBox=wrap.getBoundingClientRect();
       const phone = window.innerWidth <= 760;
-      const tablet = window.innerWidth <= 1180;
       if(phone && window.BPGSlice2 && typeof window.BPGSlice2.syncPhoneBoardViewport==='function'){
         window.BPGSlice2.syncPhoneBoardViewport();
       }
@@ -17964,56 +17963,49 @@ ${isDealer
       const fitHeight=visibleWrap;
       const availableRowsHeight=fitHeight-(head?.offsetHeight||0);
       if(availableRowsHeight<=0)return;
-      // Two team rows must not eat the leftover viewport. Size them like an 8-player Five Crowns card.
-      // Cap row height so leftover space stays below the table (no tall empty rows / dead strip).
+      // The team board uses the density of an eight-player board so it stays compact.
       const rowSlots=handFoot?8:rows.length;
-      // Fill the visible scorecard height. Clamp by player count so 3p stays
-      // readable and 8p still fits without a dead strip under the table.
-      const count = rowSlots;
-      const fillRow = Math.floor(availableRowsHeight / rowSlots);
-      // Height-derived size for small tables so 2–4p fill large screens. Keep
-      // a sensible upper bound (~320) so rows don't become absurd on huge TVs,
-      // and keep 6p/8p + phone caps so dense tables still fit.
-      let comfortMax;
+      const fillRow=Math.floor(availableRowsHeight/rowSlots);
+      let contentMax;
       let comfortMin;
       if (phone) {
-        comfortMax = count <= 3 ? 88 : count <= 6 ? 76 : 64;
+        contentMax = rowSlots <= 3 ? 88 : rowSlots <= 6 ? 76 : 64;
         comfortMin = 44;
-      } else if (count <= 2) {
-        comfortMax = 200;
+      } else if (rowSlots <= 2) {
+        contentMax = 200;
         comfortMin = 120;
-      } else if (count === 4) {
-        comfortMax = window.innerWidth >= 1600 ? 120 : 96;
+      } else if (rowSlots === 4) {
+        contentMax = window.innerWidth >= 1600 ? 120 : 96;
         comfortMin = 72;
-      } else if (count === 3) {
-        comfortMax = 320;
+      } else if (rowSlots === 3) {
+        contentMax = 320;
         comfortMin = 108;
-      } else if (count <= 8) {
-        comfortMax = 160;
+      } else if (rowSlots <= 8) {
+        contentMax = 160;
         comfortMin = 64;
       } else {
-        comfortMax = 120;
+        contentMax = 120;
         comfortMin = 64;
       }
-      const targetRow = Math.max(comfortMin, Math.min(comfortMax, fillRow));
+      const targetRow=Math.max(comfortMin,handFoot?Math.min(contentMax,fillRow):fillRow);
       const currentRow=Math.max(...rows.map(r=>Math.ceil(r.getBoundingClientRect().height)||0));
       if(currentRow<=0||targetRow<20)return;
       root.classList.add('scorecard-fit-rows');
       let scale=Math.max(0.55, Math.min(1, targetRow/currentRow));
       let rowHeight=targetRow;
       const applyFit=()=>{
-        const phone=window.innerWidth<=760;
-        const tablet=window.innerWidth<=1180;
+        // Row height follows the viewport. Keep type and avatars at a readable scale.
+        const contentHeight=Math.min(rowHeight,contentMax);
         // Names and ranks track row height with totals/rounds. Cap the avatar
         // at ~2.5× the name size so it never dwarfs the label on tall 2–4p rows.
         const wideScreen=window.innerWidth>=1280;
-        const nameCap=phone?22:Math.min(wideScreen?64:56, rowHeight*0.34);
-        const playerFont=Math.max(phone?17:20, Math.min(nameCap, rowHeight*0.34));
-        let avatarCap=phone?28:Math.min(Math.round(playerFont*2.5), Math.round(rowHeight*0.55));
-        const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,rowHeight*0.7),rowHeight*0.62));
+        const nameCap=phone?22:Math.min(wideScreen?64:56, contentHeight*0.34);
+        const playerFont=Math.max(phone?17:20, Math.min(nameCap, contentHeight*0.34));
+        let avatarCap=phone?28:Math.min(Math.round(playerFont*2.5), Math.round(contentHeight*0.55));
+        const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,contentHeight*0.7),contentHeight*0.62));
         // Rank pill tracks the name but stays compact — a huge min-width stole
         // the name slot on 2–4p TV rows and triggered width-crush to 12px.
-        let rankSize=Math.max(22, Math.min(Math.round(playerFont*0.72), Math.round(rowHeight*0.2)));
+        let rankSize=Math.max(22, Math.min(Math.round(playerFont*0.72), Math.round(contentHeight*0.2)));
         const rankFontFloor=phone?11:14;
         const rankFont=Math.max(rankFontFloor, Math.min(playerFont*0.55, rankSize*0.48));
         // Keep enough horizontal room for the scaled name; shrink avatar (then
@@ -18043,7 +18035,7 @@ ${isDealer
           }
           const nameNeed=Math.ceil(Math.max(longest*1.04, playerFont*2.2));
           const gaps=16; // rank/avatar/name flex gaps + turbo slot slack
-          let avatar=Math.max(22, Math.min(rowHeight-8, avatarCap));
+          let avatar=Math.max(22, Math.min(contentHeight-8, avatarCap));
           let budget=cellInner-nameNeed-gaps;
           // A long single name ellipsizes. On a phone the avatar stays at the
           // readable cap instead of shrinking until the dealer mark covers the face.
@@ -18057,13 +18049,13 @@ ${isDealer
             avatarCap=avatar;
           }
         }
-        let avatarPx=Math.max(22,Math.min(rowHeight-8,avatarCap));
+        let avatarPx=Math.max(22,Math.min(contentHeight-8,avatarCap));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
-        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(10,Math.round(rowHeight*0.04)))}px`);
+        root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(10,Math.round(contentHeight*0.04)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-avatar-size',`${avatarPx.toFixed(0)}px`);
         root.style.setProperty('--scorecard-total-font',`${(handFoot?Math.min(totalFont,36):totalFont).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-input-height',`${Math.max(24,Math.min(64,rowHeight-8)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-input-height',`${Math.max(24,Math.min(64,contentHeight-8)).toFixed(0)}px`);
         root.style.setProperty('--scorecard-input-pad-y',`${Math.max(1,6*scale).toFixed(0)}px`);
         // Round cells share one type scale with totals (~60–70% of total size).
         const totalForRound = handFoot ? Math.min(totalFont, 36) : totalFont;
@@ -18072,15 +18064,15 @@ ${isDealer
         root.style.setProperty('--scorecard-input-font',`${inputFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-round-font',`${roundFont.toFixed(1)}px`);
         root.style.setProperty('--scorecard-round-detail-font',`${Math.max(phone?10:12, roundFont*0.55).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-width',`${Math.max(40,Math.min(100,rowHeight*0.9)).toFixed(0)}px`);
-        root.style.setProperty('--scorecard-bid-pad-y',`${Math.max(2,Math.min(7,rowHeight*0.045)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-pad-x',`${Math.max(4,Math.min(10,rowHeight*0.08)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-label-font',`${Math.max(8,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-label-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-value-font',`${Math.max(18,Math.min(42,rowHeight*0.42)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,rowHeight*0.14)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,rowHeight*0.025)).toFixed(1)}px`);
-        root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,rowHeight*0.12)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-width',`${Math.max(40,Math.min(100,contentHeight*0.9)).toFixed(0)}px`);
+        root.style.setProperty('--scorecard-bid-pad-y',`${Math.max(2,Math.min(7,contentHeight*0.045)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-pad-x',`${Math.max(4,Math.min(10,contentHeight*0.08)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-label-font',`${Math.max(8,Math.min(12,contentHeight*0.12)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-label-gap',`${Math.max(1,Math.min(3,contentHeight*0.025)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-value-font',`${Math.max(18,Math.min(42,contentHeight*0.42)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-status-font',`${Math.max(8,Math.min(14,contentHeight*0.14)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-status-gap',`${Math.max(1,Math.min(3,contentHeight*0.025)).toFixed(1)}px`);
+        root.style.setProperty('--scorecard-bid-dot-size',`${Math.max(6,Math.min(12,contentHeight*0.12)).toFixed(1)}px`);
         root.style.setProperty('--scorecard-rank-size',`${rankSize}px`);
         // Keep ordinals readable on dense tables (≥14 desktop / ≥11 phone) while
         // still tracking the scaled name on tall 2–4p rows.
@@ -18111,14 +18103,9 @@ ${isDealer
           break;
         }
       }
-      // When comfortMax leaves unused height, hug the table so the card ends at the last row
-      // (no empty cream block inside the card). Use actual row count — Hand and Foot
-      // sizes with rowSlots=8 but only has 2 team rows; using rowSlots here left the
-      // table stretched to the wrap and blew row height past the dense-names cap.
-      const huggedHeight=(head?.offsetHeight||0)+rowHeight*rows.length;
-      const cappedBelowFill = targetRow + 1 < fillRow;
-      const allowHug = true;
-      root.classList.toggle('scorecard-hug-rows', allowHug && huggedHeight < fitHeight - 28);
+      // Keep the Canasta card around its actual team rows.
+      const teamTableHeight=(head?.offsetHeight||0)+rowHeight*rows.length;
+      root.classList.toggle('scorecard-hug-rows',handFoot&&teamTableHeight<fitHeight-28);
       root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
       root.querySelectorAll('.scorecard-total-value').forEach(value=>value.style.removeProperty('font-size'));
       const recordPanel=document.getElementById('record-chase-panel');

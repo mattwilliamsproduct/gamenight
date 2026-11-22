@@ -186,6 +186,8 @@ const crownsPreserverGame=makeCurrentGame('Five Crowns',crownsPlayers,buriedFive
 const blowoutCrownsGame=makeCurrentGame('Five Crowns',crownsPlayers,fiveCrownsBlowoutRounds(crownsPlayers));
 const compactCrownsPlayers=NAMES.slice(0,4);
 const compactCrownsGame=makeCurrentGame('Five Crowns',compactCrownsPlayers,fiveCrownsRounds(compactCrownsPlayers,5));
+const fiveSeatCrownsPlayers=NAMES.slice(0,5);
+const fiveSeatCrownsGame=makeCurrentGame('Five Crowns',fiveSeatCrownsPlayers,[]);
 const nameFitCrownsPlayers=['Megan','Vikki','Matt','Duke','Linda','Mike','Michelle'];
 const nameFitCrownsGame=makeCurrentGame('Five Crowns',nameFitCrownsPlayers,[],{dealerOffset:0});
 const heatPlayers=NAMES.slice(0,4);
@@ -1311,6 +1313,12 @@ export const QA_SCENARIOS = {
     description:'A short table that should use the full scoreboard height with large names, totals, and avatars.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...compactCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:compactCrownsGame}
+  },
+  'five-crowns-5-first':{
+    label:'Five Crowns · 5 Players · Round 1',
+    description:'Five seats in the first round for checking scoreboard height on tall and short windows.',
+    defaultSurface:'scorecard',
+    data:{allPlayers:[...NAMES],players:[...fiveSeatCrownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:fiveSeatCrownsGame}
   },
   'five-crowns-name-fit-7':{
     label:'Five Crowns · Name Fit · 7 Players',

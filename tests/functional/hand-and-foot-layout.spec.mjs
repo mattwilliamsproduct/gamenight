@@ -389,7 +389,7 @@ test('Canasta team names stay on one line and the card hugs two rows', async ({p
   expect(laptop.names).toEqual(expect.arrayContaining(['Megan &', 'Matt']));
 });
 
-test('Four-player and eight-player boards stay under the header', async ({page}) => {
+test('Individual player boards fill the space below the header', async ({page}) => {
   for (const scenario of ['five-crowns-4', 'five-crowns-late-8']) {
     for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
       await page.setViewportSize(size);
@@ -397,18 +397,42 @@ test('Four-player and eight-player boards stay under the header', async ({page})
       const fit = await page.evaluate(() => {
         const card = document.getElementById('scorecard-capture').getBoundingClientRect();
         const bar = document.getElementById('slice2-board-bar').getBoundingClientRect();
+        const nav = document.getElementById('top-nav').getBoundingClientRect();
+        const bottom = nav.height > 20 && nav.top > bar.bottom ? nav.top : innerHeight;
+        const lastRow = document.querySelector('#scorecard-capture tbody tr:last-child').getBoundingClientRect();
         return {
           above: Math.round(card.top - bar.bottom),
           rowHeights: [...document.querySelectorAll('#scorecard-capture tbody tr')].map(row=>row.getBoundingClientRect().height),
-          bottom: card.bottom
+          bottom: card.bottom,
+          unused: bottom - lastRow.bottom
         };
       });
       expect(fit.above, `${scenario} ${size.width} moved ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(0);
       expect(fit.above, `${scenario} ${size.width} moved ${JSON.stringify(fit)}`).toBeLessThan(20);
       expect(fit.bottom).toBeLessThanOrEqual(size.height);
       expect(Math.min(...fit.rowHeights)).toBeGreaterThanOrEqual(44);
-      if(scenario==='five-crowns-4')expect(Math.max(...fit.rowHeights)).toBeLessThanOrEqual(120);
+      if (scenario === 'five-crowns-4') {
+        expect(fit.unused, `Last row at ${size.width}px`).toBeGreaterThanOrEqual(0);
+        expect(fit.unused, `Space below last row at ${size.width}px`).toBeLessThanOrEqual(32);
+      }
     }
+  }
+});
+
+test('A five-player board keeps filling the window after resize', async ({page}) => {
+  await page.setViewportSize({width: 1920, height: 1080});
+  await openScenario(page, {scenario: 'five-crowns-5-first', surface: 'scorecard'});
+  await expect(page.locator('#scorecard-capture tbody tr')).toHaveCount(5);
+
+  for (const height of [1080, 760, 1266]) {
+    await page.setViewportSize({width: 1920, height});
+    await expect.poll(() => page.evaluate(() => {
+      const header = document.getElementById('slice2-board-bar').getBoundingClientRect();
+      const table = document.querySelector('#scorecard-capture table').getBoundingClientRect();
+      const gapAbove = table.top - header.bottom;
+      const gapBelow = innerHeight - table.bottom;
+      return gapAbove >= 0 && gapAbove <= 24 && gapBelow >= 0 && gapBelow <= 32;
+    }), {message: `The table fits the ${height}px window`}).toBe(true);
   }
 });
 

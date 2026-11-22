@@ -4665,14 +4665,10 @@ html.slice2-tv body.active-match-view #scorecard-capture.scorecard-card-fit tabl
     box-sizing: border-box;
   }
 }
-/* A short table (two players, capped) sits in the middle. Leftover cream is shared. */
+/* Canasta's compact card sits just below the header. */
 html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows) .landscape-only {
-  justify-content: center !important;
-  align-items: stretch;
-}
-/* Canasta's two-team card stays short, and it sits under the header like every other board. */
-html.slice2-tv body.active-match-view:has(#game-screen[data-game='Hand and Foot'] #scorecard-capture.scorecard-hug-rows) .landscape-only {
   justify-content: flex-start !important;
+  align-items: stretch;
 }
 
 /* Phone scoreboard: visual-viewport shell, scrolling seats, one header row.

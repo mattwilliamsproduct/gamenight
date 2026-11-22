@@ -38,7 +38,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - One Leave game choice: Save for later, End game now, or Keep playing. Save for later stays resumable and does not ask about wins. Count this result never puts a partial total into a full-game score record. Flip 7 Leave uses the seated 200 rule. A game that reached 200 does not ask. A game that ended under 200 says so.
 - Biggest single-game comeback comes from the round totals. Last at halfway, then won. It does not wait on Turbo.
 - A Hall of Fame tie names everyone who fits. Three names at 1024 stay on the line. The phone line may still say + 1 more.
-- Tied totals share a place and the next total skips. Two 2nds, then 4th. The scoreboard uses the page width, and a short table does not stretch its rows to fill the screen.
+- Tied totals share a place and the next total skips. Two 2nds, then 4th. The individual-player scoreboard uses the page width and fills the visible space below the header. Keep names, totals, and avatars readable as rows grow.
 - Add Player Mid-Game is on. The start is the ceiling of the seated average, missed rounds say Did not play, and a departure does not change the Wizard length fixed at the start. Canasta and Rook keep their seats.
 - A restore file with an empty table leaves the match here. A different match in the file is saved here first. Neither match is discarded.
 - A player who left early keeps their score on the board. The place says Left early. That partial total is not a Passport best.
