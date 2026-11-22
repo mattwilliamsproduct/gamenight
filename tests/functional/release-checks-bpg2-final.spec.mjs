@@ -226,3 +226,25 @@ test('Wizard recovery keeps an interrupted bid with its match, round, and phase'
     await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
   }
 });
+
+test('discard also clears interrupted scores saved by a visit to Home', async ({page}) => {
+  await boot(page);
+  await liveFiveCrowns(page);
+  const before=await committed(page);
+  await page.locator('#slice2-enter-btn').click();
+  await keyBtn(page, '7').click();
+  await page.evaluate(()=>leaveMatchToTable());
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
+  await page.reload();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  await page.locator('#slice2-enter-btn').click();
+  expect(await page.evaluate(()=>Object.values(scoreEntryModalState.values).filter(Boolean))).toEqual(['7']);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
+  await page.reload();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  await page.locator('#slice2-enter-btn').click();
+  expect(await page.evaluate(()=>Object.values(scoreEntryModalState.values).filter(Boolean))).toEqual([]);
+  expect(await committed(page)).toEqual(before);
+});

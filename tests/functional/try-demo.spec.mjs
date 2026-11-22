@@ -160,7 +160,7 @@ test('demo edits and Reset touch demo data only', async ({page}) => {
   }
   await expect(page.locator('#scorecard-body')).toContainText('Nora');
   const beforeDemo = await snapshotDemo(page);
-  await enterRound(page, [0, 1, 2, 3, 4, 5, 6, 7]);
+  await enterRound(page, [0, 1, 2, 3, 4, 5, 6]);
   const afterEdit = await snapshotDemo(page);
   expect(afterEdit).not.toEqual(beforeDemo);
   expect(await snapshotGn(page)).toEqual(before);
@@ -226,7 +226,7 @@ test('try-demo past score correction changes demo only and Reset restores the se
   expect(JSON.stringify(seedDemo)).not.toContain('Sam');
   expect(await snapshotGn(page)).toEqual(beforeGn);
 
-  await enterRound(page, [0, 1, 2, 3, 4, 5, 6, 7]);
+  await enterRound(page, [0, 1, 2, 3, 4, 5, 6]);
   const afterEnter = await snapshotDemo(page);
   expect(afterEnter).not.toEqual(seedDemo);
   expect(await snapshotGn(page)).toEqual(beforeGn);

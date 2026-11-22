@@ -12652,8 +12652,12 @@ button.dealer-name-indicator .dealer-player-label {
     if(typeof closeActionsMenu==='function') closeActionsMenu();
     if(typeof closeEndMatchModal==='function') closeEndMatchModal();
     if(typeof scoreEntryModalState!=='undefined' && scoreEntryModalState){
-      persistInterruptedEntry();
-      saveData();
+      if(scoreEntryModalState.editingRoundIndex==null){
+        scoreEntryModalState.parkedDraft=!!scoreEntryModalState.lastDraft||scoreEntryStateJson()!==scoreEntryModalState.initialJson;
+        persistInterruptedEntry();
+        saveOpenScoreEntryModalDrafts();
+        saveData();
+      }
       closeScoreEntryModalOnly();
     } else if(currentGame){
       saveData();
@@ -19898,9 +19902,10 @@ ${isDealer
     if(JSON.stringify(state.draftScope)!==JSON.stringify(interruptedEntryScope()))return;
     const draft=JSON.stringify({
       values:state.values, acknowledged:state.acknowledged, skipped:state.skipped, skippedPass:state.skippedPass,
-      dirty:state.dirty, rates:state.rates, activePlayer:state.activePlayer, activeField:state.activeField
+      dirty:state.dirty, rates:state.rates, activePlayer:state.activePlayer, activeField:state.activeField,
+      parkedDraft:!!state.parkedDraft
     });
-    if(draft===state.lastDraft||(!state.lastDraft&&scoreEntryStateJson()===state.initialJson))return;
+    if(draft===state.lastDraft||(!state.lastDraft&&!state.parkedDraft&&scoreEntryStateJson()===state.initialJson))return;
     try {
       localStorage.setItem(interruptedEntryKey(state.draftScope), draft);
       state.lastDraft=draft;
@@ -20314,6 +20319,7 @@ ${isDealer
       dirty:restored?.dirty||{},
       draftScope,
       lastDraft:restored?JSON.stringify(restored):null,
+      parkedDraft:!!restored?.parkedDraft,
       replaceArmed:false,
       typedSinceAdvance:false,
       dealer:shouldShowScoreEntryDealer(currentGame)?getCurrentDealerName(currentGame, tablePlayers):null,
@@ -21148,8 +21154,15 @@ ${isDealer
   function cancelScoreEntryModal(){
     if(!scoreEntryModalState)return;
     if((scoreEntryModalState.lastDraft||scoreEntryStateJson()!==scoreEntryModalState.initialJson)&&!confirm('Discard score entry changes?'))return;
-    clearInterruptedEntry(scoreEntryModalState.draftScope);
+    const {draftScope,mode,parkedDraft}=scoreEntryModalState;
+    clearInterruptedEntry(draftScope);
+    if(parkedDraft&&JSON.stringify(draftScope)===JSON.stringify(interruptedEntryScope())){
+      if(isScoreEntryBidMode(mode)) currentGame.currentBids={};
+      else currentGame.currentScoreDrafts={};
+      saveData();
+    }
     closeScoreEntryModalOnly();
+    if(parkedDraft)scheduleRender();
   }
 
   let _bidLockConfirm=null;

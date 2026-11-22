@@ -345,7 +345,7 @@ test('Settings and Records say history is local, and Restore copy matches mergeB
   await expect(page.locator('#porch-cloud-key')).toBeHidden();
   await expect(page.locator('#settings-modal button', {hasText: /Save & sync/})).toBeHidden();
   await expect(page.locator('#porch-cloud-preview-notice')).toHaveText('Cloud saving is unavailable in this preview; games save on this device.');
-  await expect(page.locator('#porch-cloud-status')).toContainText('preview cannot overwrite');
+  await expect(page.locator('#porch-cloud-status')).toBeEmpty();
   await page.evaluate(() => closeSettings());
 
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&slice2view=records', {waitUntil: 'networkidle'});

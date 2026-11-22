@@ -14,6 +14,7 @@ async function homeWithEightSeated(page) {
     await page.locator('button:visible', {hasText: /^Leave( game)?$/}).first().click();
     await page.locator('#leave-save-later').click();
   }
+  await page.evaluate(()=>addPlayerToAll('Marco'));
   await expect(page.locator('#home-screen .s2-home-table .s2-seat')).toHaveCount(8);
 }
 
