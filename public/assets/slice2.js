@@ -1030,7 +1030,7 @@
     dialog.style.width = `${dialogW}px`;
     dialog.style.maxWidth = `${dialogW}px`;
     dialog.style.maxHeight = `${dialogH}px`;
-    dialog.style.minHeight = landscape ? `${dialogH}px` : '';
+    dialog.style.minHeight = '';
     const cs = getComputedStyle(dialog);
     const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);

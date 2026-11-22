@@ -159,20 +159,18 @@ async function openAddPlayerDemo(page) {
   await openTestView(page, 'add-player-m');
   const modal = page.locator('#add-player-modal');
   await expect(modal).not.toHaveClass(/hidden/);
-  await expect.poll(async () => {
-    const measure = await measureAddPlayer(page);
-    return measure.panel ? measure.panel.width / measure.viewport.width : 0;
-  }, {timeout: 3000}).toBeGreaterThanOrEqual(0.58);
+  await expect(modal.locator('.player-suggest-option').first()).toBeVisible();
 }
 
-test('Add player uses the form modal size at 1440 and a near-full sheet on 375', async ({page}) => {
+test('Add player fits its list and leaves the controls readable at 1440 and 375', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await openAddPlayerDemo(page);
   const laptop = await measureAddPlayer(page);
   expect(laptop.panel, '1440 panel').not.toBeNull();
   expect(laptop.formClass, 'form class').toBe(true);
-  expect(laptop.panel.width / laptop.viewport.width, '1440 width share').toBeGreaterThanOrEqual(0.58);
-  expect(laptop.panel.width / laptop.viewport.width, '1440 not leftover').toBeLessThanOrEqual(0.75);
+  expect(laptop.panel.width, '1440 readable form').toBeGreaterThanOrEqual(400);
+  expect(laptop.panel.width, '1440 bounds').toBeLessThanOrEqual(560);
+  expect(laptop.panel.height, '1440 fits its content').toBeLessThan(450);
   expect(laptop.inputFont, `1440 input ${laptop.inputFont}`).toBeGreaterThanOrEqual(18);
   expect(laptop.optionHeight, `1440 option ${laptop.optionHeight}`).toBeGreaterThanOrEqual(56);
 
@@ -180,7 +178,7 @@ test('Add player uses the form modal size at 1440 and a near-full sheet on 375',
   await openAddPlayerDemo(page);
   const phone = await measureAddPlayer(page);
   expect(phone.panel.width / phone.viewport.width, '375 width share').toBeGreaterThanOrEqual(0.9);
-  expect(phone.panel.height / phone.viewport.height, '375 height share').toBeGreaterThanOrEqual(0.8);
+  expect(phone.panel.height, '375 fits its content').toBeLessThan(500);
   expect(phone.inputFont, `375 input ${phone.inputFont}`).toBeGreaterThanOrEqual(18);
   expect(phone.optionHeight, `375 option ${phone.optionHeight}`).toBeGreaterThanOrEqual(56);
 });

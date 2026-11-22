@@ -109,7 +109,7 @@ test('Home shows six equal 5:7 named cards and no Rook (f2c81a4); select then St
   await wizard.click();
   await expect(wizard).toHaveClass(/is-selected/);
   await expect(page.locator('#slice2-start-btn')).toHaveText('Start Wizard');
-  await expect(page.locator('#slice2-start-summary')).toContainText('Wizard');
+  await expect(page.locator('#slice2-start-summary')).toHaveText('4 players · 15 rounds');
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
   await expect(page.locator('#game-title')).toContainText('Wizard');

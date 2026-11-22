@@ -194,3 +194,35 @@ test('a full device warns, keeps every score on screen, keeps the last saved cop
   await expect(ind).toHaveText(/Saved on this device/, {timeout: 8000});
   expect(await stored(page)).toEqual({rounds: 2, totals: {Hazel: 16, Otis: 3, Juniper: 27}});
 });
+
+test('Wizard recovery keeps an interrupted bid with its match, round, and phase', async ({page}) => {
+  await boot(page);
+  await liveFiveCrowns(page);
+  await page.evaluate(() => {
+    Object.assign(currentGame,{name:'Wizard',wizardPhase:'bidding',currentBids:{}});
+    saveData();
+    renderGame();
+  });
+  await page.locator('#slice2-enter-btn').click();
+  await keyBtn(page, '1').click();
+  const readDraft = () => page.evaluate(() => ({
+    phase:scoreEntryModalState.mode.kind, values:Object.values(scoreEntryModalState.values).filter(Boolean)
+  }));
+  await page.reload();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  await page.locator('#slice2-enter-btn').click();
+  expect(await readDraft()).toEqual({phase:'wizard-bids',values:['1']});
+  await page.reload();
+  for (const [patch,phase] of [
+    [{wizardPhase:'scoring'},'wizard-tricks'],
+    [{wizardPhase:'bidding',currentRound:3},'wizard-bids'],
+    [{currentRound:2,id:'different-match',gameId:'different-match'},'wizard-bids']
+  ]) {
+    await expect(page.locator('#game-screen')).toBeVisible();
+    await page.evaluate(change=>{Object.assign(currentGame,change);saveData();renderGame();},patch);
+    await page.locator('#slice2-enter-btn').click();
+    expect(await readDraft()).toEqual({phase,values:[]});
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#score-entry-modal')).toHaveClass(/hidden/);
+  }
+});

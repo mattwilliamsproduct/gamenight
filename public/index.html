@@ -5289,7 +5289,7 @@ button.dealer-name-indicator .dealer-player-label {
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-col-total,
       #game-screen[data-game='Hand and Foot'] #scorecard-capture .scorecard-total-cell {
         min-width: 7.5rem !important;
-        width: 8rem !important;
+        width: 8.5rem !important;
         max-width: 8.5rem !important;
         overflow: hidden;
       }
@@ -14131,7 +14131,7 @@ button.dealer-name-indicator .dealer-player-label {
       notice.textContent=location.hostname==='cardknight.vercel.app'?'Cloud unavailable in the demo':'Cloud saving is unavailable in this preview; games save on this device.';
     }
     if(!live){
-      setPorchStatus('Scores stay in this browser. Cloud save only runs on the live site, so a preview cannot overwrite tomorrow night.');
+      setPorchStatus('');
       return;
     }
     if(!getPorchKey()){
@@ -19171,11 +19171,14 @@ ${isDealer
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
+      const nameText=hfTeam?hfNameLines:String(p).split(/(\s+)/).map(word=>
+        /\S/.test(word)?`<span class="scorecard-name-word">${escapeHtml(word)}</span>`:escapeHtml(word)
+      ).join('');
       const seat=hfTeam?0:currentGame.originalRoster.indexOf(p)+1;
       const seatBadge=seat?`<span class="scorecard-seat" aria-label="Seat ${seat}" title="Seat ${seat}">${seat}</span>`:'';
       const nameInner=`${isDealer
-  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${hfTeam?hfNameLines:escapeHtml(p)}</span></button>`
-              : `<span class="${nameClass}">${hfTeam?hfNameLines:escapeHtml(p)}</span>`}${retiredTag}`;
+  ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${nameText}</span></button>`
+              : `<span class="${nameClass}">${nameText}</span>`}${retiredTag}`;
       body+=`<tr class="${rowCls}" ${rowDragAttrs}>
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
@@ -19894,7 +19897,7 @@ ${isDealer
     if(!state?.draftScope||GN_QA_MODE)return;
     if(JSON.stringify(state.draftScope)!==JSON.stringify(interruptedEntryScope()))return;
     const draft=JSON.stringify({
-      values:state.values, acknowledged:state.acknowledged, skipped:state.skipped,
+      values:state.values, acknowledged:state.acknowledged, skipped:state.skipped, skippedPass:state.skippedPass,
       dirty:state.dirty, rates:state.rates, activePlayer:state.activePlayer, activeField:state.activeField
     });
     if(draft===state.lastDraft||(!state.lastDraft&&scoreEntryStateJson()===state.initialJson))return;
@@ -20307,7 +20310,7 @@ ${isDealer
       values,
       acknowledged:Object.fromEntries(tablePlayers.map(player=>[player,!!restored?.acknowledged?.[player]])),
       skipped:restored?.skipped||{},
-      skippedPass:false,
+      skippedPass:!!restored?.skippedPass,
       dirty:restored?.dirty||{},
       draftScope,
       lastDraft:restored?JSON.stringify(restored):null,
@@ -23860,8 +23863,7 @@ ${isDealer
     const gameWinLeaders=Object.fromEntries(Object.keys(games).map(game=>{
       const rows=playerList.filter(player=>player.byGame[game]?.wins>0).map(player=>({
         player:player.name,
-        value:player.byGame[game].wins,
-        label:`${player.byGame[game].wins} of ${player.byGame[game].games} matches`
+        value:player.byGame[game].wins
       }));
       return [game,rows];
     }));

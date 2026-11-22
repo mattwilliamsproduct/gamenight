@@ -344,7 +344,7 @@ test('Settings and Records say history is local, and Restore copy matches mergeB
   // bpg2: on a preview the password field and Save & sync give way to one notice.
   await expect(page.locator('#porch-cloud-key')).toBeHidden();
   await expect(page.locator('#settings-modal button', {hasText: /Save & sync/})).toBeHidden();
-  await expect(page.locator('#porch-cloud-preview-notice')).toHaveText('Cloud unavailable in this preview');
+  await expect(page.locator('#porch-cloud-preview-notice')).toHaveText('Cloud saving is unavailable in this preview; games save on this device.');
   await expect(page.locator('#porch-cloud-status')).toContainText('preview cannot overwrite');
   await page.evaluate(() => closeSettings());
 

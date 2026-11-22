@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 
-// bpg2 Phase 2: on non-production hosts, Settings shows "Cloud unavailable in this preview" instead of the
+// On non-production hosts, Settings shows a local-saving notice instead of the
 // password field and Save & sync. The production gate (canPorchCloud) and the server guard are unchanged.
 test('a preview shows the notice, hides the password and Save & sync, and sends nothing to /api', async ({page}) => {
   const api = [];

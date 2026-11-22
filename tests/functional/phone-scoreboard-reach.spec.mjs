@@ -162,7 +162,7 @@ test('phone scoreboard keeps Home, Actions, and Enter scores on one row', async 
         expect(button.left - navButtons[index - 1].right, `${navButtons[index - 1].text} touches ${button.text}`).toBeGreaterThanOrEqual(4);
       }
     });
-    expect(state.last?.text).toMatch(/Marco/);
+    expect(state.last?.text).toBe('June');
     expect(state.last?.inWrap, `${size.width}x${size.height} last seat not in the scrollport`).toBe(true);
     expect(state.last?.inView, `${size.width}x${size.height} last seat stays off screen`).toBe(true);
   }

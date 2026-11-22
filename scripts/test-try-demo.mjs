@@ -76,6 +76,7 @@ test('demo forks the QA seed to a fictional cast with neutral SVG avatars', () =
   assert.ok(book.players.includes('Priya'));
   assert.equal(book.currentGame.originalRoster.length, 7);
   assert.deepEqual(book.players, book.currentGame.originalRoster);
+  assert.ok(book.history.filter(row=>row.game==='Five Crowns').every(row=>row.originalRoster.length<=7));
   QA_PORCH_CAST.forEach((name) => {
     assert.equal(blob.includes(name), false, `demo book still has ${name}`);
   });

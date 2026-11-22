@@ -75,6 +75,7 @@ There is no framework and no per-player account. State is `localStorage` on the 
 ### PORCH-MEMORY
 
 - `gn_current` is enough to resume the live match after a refresh, including bids, drafts, Rook phase, and Life Preserver holds.
+- The open score-entry sheet stores unsubmitted input under `gn_entry_draft_*`, keyed by stable game ID, round, and entry phase. Reloading restores the sheet values when reopened. Accepting Discard removes that draft. These values stay out of backups, cloud sync, and result tallies until the normal save or submit action.
 - History merge is by match `id`. A merge never double-counts a match and never drops a match whose id is new.
 - This release is local-only. The client does not call `/api/sync`. `api/sync.js` and the existing Redis blob stay in place, untouched. GitHub `#37` stays parked.
 - In-app Try a demo (`?demo=try` or session `bpg_try_demo`) remaps `gn_*` reads and writes to `bpg_demo_*` through `gnKey` / `BPGTryDemo.storageKey`. Demo code lives in `public/demo/try-demo.js`. A boot hook in `public/index.html` hydrates the QA `demo-seed` book when the demo store is empty, then `public/demo/try-demo-cast.mjs` remaps porch names to the fictional demo cast and strips character avatars. `public/demo/try-demo-records.mjs` attaches completed and interrupted sample nights in the demo path only. Displayed records come from `calculateAllTimeRecords` / `getHallOfFame`. QA fixtures stay unchanged. Bare `?demo` stays a no-op.

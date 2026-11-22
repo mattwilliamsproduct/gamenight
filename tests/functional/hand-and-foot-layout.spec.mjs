@@ -399,12 +399,15 @@ test('Four-player and eight-player boards stay under the header', async ({page})
         const bar = document.getElementById('slice2-board-bar').getBoundingClientRect();
         return {
           above: Math.round(card.top - bar.bottom),
-          cardH: Math.round(card.height)
+          rowHeights: [...document.querySelectorAll('#scorecard-capture tbody tr')].map(row=>row.getBoundingClientRect().height),
+          bottom: card.bottom
         };
       });
       expect(fit.above, `${scenario} ${size.width} moved ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(0);
       expect(fit.above, `${scenario} ${size.width} moved ${JSON.stringify(fit)}`).toBeLessThan(20);
-      expect(fit.cardH, `${scenario} ${size.width} shrunk ${JSON.stringify(fit)}`).toBeGreaterThan(500);
+      expect(fit.bottom).toBeLessThanOrEqual(size.height);
+      expect(Math.min(...fit.rowHeights)).toBeGreaterThanOrEqual(44);
+      if(scenario==='five-crowns-4')expect(Math.max(...fit.rowHeights)).toBeLessThanOrEqual(120);
     }
   }
 });

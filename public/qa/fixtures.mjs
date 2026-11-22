@@ -934,10 +934,10 @@ function cleoComebackNight(){
   return finishedNight(1786100000099,'Wizard','10/27/2026',roster,rounds,{maxRounds:15});
 }
 
-function demoHistory(){
+function demoHistory({playable=false}={}){
   const fc6=NAMES.slice(0,6);
   const fc5=NAMES.slice(0,5);
-  const fc8=NAMES.slice(0,8);
+  const wideCrowns=NAMES.slice(0,playable?7:8);
   const wz6=NAMES.slice(0,6);
   const wz5=NAMES.slice(0,5);
   const e6=['Megan','Matt','Cat','Mike','Vikki','Duke'];
@@ -1020,12 +1020,12 @@ function demoHistory(){
       scoreRound(3,h5,[4,11,8,6,10]),
       scoreRound(4,h5,[9,3,7,5,12])
     ]),
-    finishedNight(1783526400000,'Five Crowns','10/5/2026',fc8,[
-      scoreRound(1,fc8,[0,6,8,5,10,13,18,21]),
-      scoreRound(2,fc8,[7,0,5,9,8,12,20,17]),
-      scoreRound(3,fc8,[4,8,0,6,11,9,16,22]),
-      scoreRound(4,fc8,[5,3,9,0,7,14,19,15]),
-      scoreRound(5,fc8,[8,6,4,10,0,11,23,18])
+    finishedNight(1783526400000,'Five Crowns','10/5/2026',wideCrowns,[
+      scoreRound(1,wideCrowns,[0,6,8,5,10,13,18,21]),
+      scoreRound(2,wideCrowns,[7,0,5,9,8,12,20,17]),
+      scoreRound(3,wideCrowns,[4,8,0,6,11,9,16,22]),
+      scoreRound(4,wideCrowns,[5,3,9,0,7,14,19,15]),
+      scoreRound(5,wideCrowns,[8,6,4,10,0,11,23,18])
     ]),
     finishedNight(1783440000000,'Wizard','10/4/2026',NAMES.slice(0,7),[
       wizardHand(1,NAMES.slice(0,7),{Megan:[0,0],Matt:[0,0],Cat:[1,1],Mike:[0,0],Vikki:[0,0],Duke:[0,0],Brick:[0,0]}),
@@ -1086,11 +1086,11 @@ export function demoPathTable(){
   };
 }
 
-function demoTable(currentGame){
+function demoTable(currentGame, options){
   return {
     allPlayers:[...NAMES],
     players:[...(currentGame.originalRoster||NAMES.slice(0,6))],
-    history:demoHistory(),
+    history:demoHistory(options),
     playerProfiles:profiles(),
     currentGame
   };
@@ -1169,7 +1169,7 @@ export const QA_SCENARIOS = {
     data:{allPlayers:[...NAMES],players:NAMES.slice(0,6),history:sharedHistory,playerProfiles:profiles(),currentGame:null}
   },
   'home-live-8':{
-    label:'Home · Live Five Crowns · 8',
+    label:'Stress fixture · Home with eight Five Crowns seats',
     description:'Landscape Home during an eight-player Five Crowns night. Standings sit beside the game cards.',
     defaultSurface:'home',
     data:{allPlayers:[...NAMES],players:[...lateCrowns8Players],history:sharedHistory,playerProfiles:profiles(),currentGame:lateCrowns8Game}
@@ -1241,13 +1241,13 @@ export const QA_SCENARIOS = {
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsGame}
   },
   'five-crowns-preservers':{
-    label:'Five Crowns · Life Preservers',
+    label:'Stress fixture · Five Crowns Life Preservers',
     description:'Eight players on Hand of 11, with Brick crushed in seventh and still holding a Life Preserver while Linda has used hers.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...crownsPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:crownsPreserverGame}
   },
   'five-crowns-turbo-ladder':{
-    label:'Five Crowns · Turbo Ladder',
+    label:'Stress fixture · Five Crowns Turbo Ladder',
     description:'Eight-player Five Crowns after 8 of 11: Matt and Cat have no extra, then Megan −10 through Duke −35.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:fiveCrownsLadderGame}
@@ -1289,7 +1289,7 @@ export const QA_SCENARIOS = {
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:wizardThresholdGame}
   },
   'five-crowns-life-preserver-threshold':{
-    label:'Five Crowns · Life Preserver Threshold',
+    label:'Stress fixture · Five Crowns Life Preserver Threshold',
     description:'Eight-player Five Crowns after 8 of 11. Duke is 30 behind 1st — the closest hole that still unlocks a Life Preserver. Nobody else has one.',
     defaultSurface:'scorecard',
     data:{allPlayers:[...NAMES],players:[...turboLadderPlayers],history:sharedHistory,playerProfiles:profiles(),currentGame:fiveCrownsThresholdGame}
@@ -1439,7 +1439,7 @@ export const QA_SCENARIOS = {
     label:'Sample game night · Seven-seat Five Crowns',
     description:'Playable example with a full Five Crowns table and a sample Records book.',
     defaultSurface:'home',
-    data:demoTable(demoCrownsGame(7))
+    data:demoTable(demoCrownsGame(7),{playable:true})
   },
   'home-nights-podium':{
     label:'Home · Recent nights podium',

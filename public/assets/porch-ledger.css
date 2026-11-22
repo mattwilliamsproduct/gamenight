@@ -2601,27 +2601,6 @@ html.porch-ledger #bid-lock-modal .bp-bid-lock-copy { font-size: var(--bp-type-m
 html.porch-ledger #bid-lock-modal button { min-height: var(--bp-touch); font-size: var(--bp-type-sm) !important; }
 
 /* ---- Records (bpg2) ---- */
-/* Explore: every panel flows through balanced columns instead of two fixed stacks
-   (the games stack ran ~1500px longer than the side stack at 1180). */
-@media (min-width: 901px) {
-  html.porch-ledger.slice2-tv .s2-explore-grid {
-    display: block !important;
-    column-count: 2;
-    column-gap: var(--bp-space-4);
-  }
-  html.porch-ledger.slice2-tv .s2-explore-side,
-  html.porch-ledger.slice2-tv .s2-explore-games { display: contents !important; }
-  html.porch-ledger.slice2-tv .s2-explore-grid .s2-panel {
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    display: block;
-    width: 100%;
-    margin: 0 0 var(--bp-space-4) !important;
-  }
-}
-@media (min-width: 1500px) {
-  html.porch-ledger.slice2-tv .s2-explore-grid { column-count: 3; }
-}
 /* One useful empty state. */
 html.porch-ledger .s2-records-empty { padding: var(--bp-space-6) !important; text-align: left; }
 html.porch-ledger .s2-records-empty h2 { font-size: var(--bp-type-xl) !important; margin-bottom: var(--bp-space-2); }
@@ -2922,11 +2901,86 @@ html.porch-ledger #slice2-board-sub {
   }
 }
 
+
+html.porch-ledger.slice2-tv #wheel-modal .life-preserver-dialog {
+  width: min(calc(100vw - 24px), 42rem) !important;
+  max-width: min(calc(100vw - 24px), 42rem) !important;
+  height: auto !important;
+  max-height: calc(100dvh - 16px) !important;
+  overflow-y: auto;
+}
+
+html.porch-ledger.slice2-tv #wheel-result-player {
+  font-size: clamp(1.55rem, 3vw, 2rem) !important;
+}
+
+html.porch-ledger.slice2-tv #btn-spin:not(.hidden) {
+  width: auto !important;
+}
+
+html.porch-ledger.slice2-tv #btn-life-preserver-help:not(.hidden) {
+  width: auto !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv #hall-of-fame-view .s2-segment .s2-btn[aria-selected="true"] {
+  background: var(--ledger-teal-deep) !important;
+  border-color: var(--ledger-teal-deep) !important;
+  color: var(--ledger-on-teal) !important;
+}
+
+html.porch-ledger.slice2-tv :is(#rules-modal, #lp-picker-modal, #player-edit-modal, #avatar-modal, #add-player-modal) .bp-modal-panel {
+  width: min(calc(100vw - 24px), 32rem) !important;
+  height: auto !important;
+  max-height: calc(100dvh - 28px) !important;
+}
+
+html.porch-ledger.slice2-tv #rules-modal .bp-modal-panel {
+  width: min(calc(100vw - 24px), 46rem) !important;
+}
+
 @media (max-width: 760px) {
-  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
-  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name .dealer-player-label {
-    max-width: 100%;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+  html.porch-ledger.slice2-tv #btn-spin:not(.hidden) { width: 100% !important; }
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name:not(.hf-team-name),
+  html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name:not(.hf-team-name) .dealer-player-label {
+    white-space: normal !important;
+    line-height: 1.1 !important;
   }
+  .scorecard-name-word {
+    display: inline-block;
+    white-space: nowrap;
+  }
+}
+
+html.porch-ledger.slice2-tv :is(#rules-modal, #lp-picker-modal, #player-edit-modal, #avatar-modal, #add-player-modal) .bp-modal-panel {
+  background: var(--ledger-paper) !important;
+}
+
+html.porch-ledger .s2-pane-explore .s2-explore-grid {
+  margin-top: 0.75rem;
+}
+
+html.porch-ledger .s2-explore-game-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+html.porch-ledger .s2-explore-game-title::after {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border: solid var(--ledger-teal-deep);
+  border-width: 0 2px 2px 0;
+  margin-inline-start: auto;
+  transform: rotate(45deg);
+}
+
+html.porch-ledger details[open] > .s2-explore-game-title::after {
+  transform: rotate(225deg);
 }
