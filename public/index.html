@@ -10022,6 +10022,8 @@ button.dealer-name-indicator .dealer-player-label {
     <button type="button" onclick="applyPwaUpdate()" class="btn-primary px-4 py-2 text-sm">Refresh</button>
   </div>
 
+  <div id="scorecard-full-name" popover="manual" aria-hidden="true"></div>
+
   <!-- Save indicator -->
   <div id="save-indicator">✓ Saved on this device</div>
 
@@ -18057,23 +18059,8 @@ ${isDealer
           const badge=playerCell.querySelector('.wheel-badge');
           const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?Math.ceil(badge.getBoundingClientRect().width)+8:0;
           const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth;
-          const canvas=fitActiveScorecardRows._nameCanvas||(fitActiveScorecardRows._nameCanvas=document.createElement('canvas'));
-          const ctx=canvas.getContext('2d');
-          let longest=0;
-          if(ctx){
-            const probe=root.querySelector('.scoreboard-player-name');
-            const chip=probe?(probe.querySelector('.dealer-player-label')||probe):null;
-            const chipStyle=chip?getComputedStyle(chip):null;
-            const weight=chipStyle?.fontWeight||'700';
-            const family=chipStyle?.fontFamily||'Jakarta, system-ui, sans-serif';
-            ctx.font=`${weight} ${playerFont}px ${family}`;
-            root.querySelectorAll('.scoreboard-player-name').forEach(name=>{
-              const label=name.querySelector('.dealer-player-label')||name;
-              const t=(label.textContent||'').trim();
-              if(t) longest=Math.max(longest, ctx.measureText(t).width);
-            });
-          }
-          const nameNeed=Math.ceil(Math.max(longest*1.04, playerFont*2.2));
+          // Keep the roster geometry independent of player name length.
+          const nameNeed=Math.ceil(playerFont*2.8);
           const gaps=16; // rank/avatar/name flex gaps + turbo slot slack
           let avatar=Math.max(22, Math.min(contentHeight-8, avatarCap));
           let budget=cellInner-nameNeed-gaps;
@@ -18166,157 +18153,108 @@ ${isDealer
       gnPerfEnd(fitTimer);
     }
   }
-  function scorecardNameAvailableWidth(name){
-    const cell=name.closest('td.scorecard-col-player');
-    const lane=name.closest('.scorecard-player-identity')||name.parentElement;
-    if(!cell||!lane)return 0;
-    const nameBox=name.closest('.scorecard-player-name-slot')||name;
-    const cellStyle=getComputedStyle(cell);
-    const badge=cell.querySelector('.wheel-badge');
-    const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?badge.getBoundingClientRect().width:0;
-    const outer=cell.querySelector(':scope > .flex')||cell;
-    const outerGap=badgeWidth?(parseFloat(getComputedStyle(outer).columnGap||getComputedStyle(outer).gap)||0):0;
-    const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth-outerGap;
-    const laneStyle=getComputedStyle(lane);
-    const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
-    const visibleChildren=[...lane.children].filter(node=>{
-      const style=getComputedStyle(node);
-      return style.display!=='none'&&style.position!=='absolute';
-    });
-    const siblings=visibleChildren.filter(node=>node!==nameBox);
-    return cellInner
-      - siblings.reduce((sum,node)=>sum+node.getBoundingClientRect().width,0)
-      - gap*Math.max(0,visibleChildren.length-1);
-  }
   function scorecardNameChipEl(name){
     return name.querySelector('.dealer-player-label')||name;
   }
-  function scorecardNameDisplayText(name){
-    const label=scorecardNameChipEl(name);
-    const text=(label.textContent||'').trim();
-    const transform=getComputedStyle(label).textTransform;
-    if(transform==='uppercase')return text.toUpperCase();
-    if(transform==='lowercase')return text.toLowerCase();
-    return text;
-  }
-  function scorecardNameChipWidth(name){
-    return scorecardNameChipEl(name).getBoundingClientRect().width;
+  function showScorecardFullName(name){
+    const tooltip=document.getElementById('scorecard-full-name');
+    tooltip.textContent=scorecardNameChipEl(name).textContent.trim();
+    if(!tooltip.matches(':popover-open')) tooltip.showPopover();
   }
 
-  function neededScorecardNameSize(name,maximum,context){
-    const cell=name.closest('td.scorecard-col-player');
-    if(!cell)return maximum;
-    const chip=scorecardNameChipEl(name);
-    const cellBox=cell.getBoundingClientRect();
-    const chipBox=chip.getBoundingClientRect();
-    const available=scorecardNameAvailableWidth(name);
-    const floor=window.innerWidth<=760?12:14;
-    const finish=size=>{
-      name.style.removeProperty('font-size');
-      chip.style.removeProperty('font-size');
-      return Math.max(floor,Math.min(maximum,size));
-    };
-    const slot=name.closest('.scorecard-player-name-slot');
-    const slotBox=slot?.getBoundingClientRect();
-    const slotOverflow=!!(slot&&(
-      name.scrollWidth>slot.clientWidth+1||
-      chip.scrollWidth>slot.clientWidth+1||
-      chip.scrollWidth>chip.clientWidth+1||
-      (slotBox&&chipBox.right>slotBox.right+1)
-    ));
-    const textOverflows=chip.scrollWidth>available+1||name.scrollWidth>available+1||chip.scrollWidth>chip.clientWidth+1;
-    if(available<=0||slotOverflow||textOverflows){
-      let lo=floor,hi=maximum,best=floor;
-      for(let i=0;i<12;i++){
-
-        const mid=(lo+hi)/2;
-        name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
-        chip.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
-        const fittedBox=scorecardNameChipEl(name).getBoundingClientRect();
-        const fittedSlot=name.closest('.scorecard-player-name-slot');
-        const fittedBadge=cell.querySelector('.wheel-badge');
-        const badgeLimit=fittedBadge&&getComputedStyle(fittedBadge).display!=='none'?fittedBadge.getBoundingClientRect().left-1:cellBox.right-1;
-        const slotOk=!fittedSlot||name.scrollWidth<=fittedSlot.clientWidth+1;
-        if(fittedBox.right<=badgeLimit&&slotOk){
-          best=mid;
-          lo=mid;
-        }else{
-          hi=mid;
-        }
-      }
-      return finish(best);
-    }
-    if(chipBox.right<=cellBox.right+2&&chip.scrollWidth<=available+1&&name.scrollWidth<=available+1)return finish(maximum);
-    const chipStyle=getComputedStyle(chip);
-    const text=scorecardNameDisplayText(name);
-    const horizontalChrome=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth']
-      .reduce((sum,property)=>sum+(parseFloat(chipStyle[property])||0),0);
-    const letterSpacing=parseFloat(chipStyle.letterSpacing)||0;
-    const measureAt=size=>{
-      context.font=`${chipStyle.fontStyle} ${chipStyle.fontVariant} ${chipStyle.fontWeight} ${size}px ${chipStyle.fontFamily}`;
-      return context.measureText(text).width+letterSpacing*Math.max(0,text.length-1)+horizontalChrome;
-    };
-    let fitted=maximum;
-    const natural=measureAt(maximum);
-    if(natural>available){
-      fitted=Math.max(floor,maximum*((available-1)/Math.max(1,natural))*0.98);
-    }
-    name.style.setProperty('font-size',`${Math.min(maximum,fitted).toFixed(1)}px`,'important');
-    if(scorecardNameChipWidth(name)<=available+1)return finish(Math.min(maximum,fitted));
-    let lo=floor,hi=Math.min(maximum,fitted),best=floor;
-    for(let i=0;i<10;i++){
-      const mid=(lo+hi)/2;
-      name.style.setProperty('font-size',`${mid.toFixed(1)}px`,'important');
-      if(scorecardNameChipWidth(name)<=available){
-        best=mid;
-        lo=mid;
-      }else{
-        hi=mid;
-      }
-    }
-    return finish(best);
+  function hideScorecardFullName(){
+    const tooltip=document.getElementById('scorecard-full-name');
+    if(tooltip.matches(':popover-open')) tooltip.hidePopover();
   }
+
   function fitScorecardPlayerNames(root){
     if(!root||root.offsetParent===null)return;
-    const canvas=fitScorecardPlayerNames.canvas||(fitScorecardPlayerNames.canvas=document.createElement('canvas'));
-    const context=canvas.getContext('2d');
-    if(!context)return;
-    const names=[...root.querySelectorAll('.scoreboard-player-name')].filter(name=>!name.classList.contains('hf-team-name')&&!name.closest('.hf-team-name'));
-    names.forEach(name=>name.style.removeProperty('font-size'));
-    if(!names.length)return;
-    const sharedMax=names.reduce((max,name)=>Math.max(max,parseFloat(getComputedStyle(name).fontSize)||16),12);
-    const phone=window.innerWidth<=760;
-    const sizes=names.map(name=>neededScorecardNameSize(name,sharedMax,context));
-    const columnSize=Math.max(phone?17:14,Math.min(sharedMax,...sizes));
-    names.forEach((name,index)=>{
-      const size=phone?Math.min(columnSize,sizes[index]):columnSize;
-      name.style.setProperty('font-size',`${size.toFixed(1)}px`,'important');
-    });
-    // Dealer labels read --scorecard-player-font with !important, so the shared
-    // size has to live on the var or Megan stays large while Matt shrinks.
-    if(root.style) root.style.setProperty('--scorecard-player-font',`${columnSize.toFixed(1)}px`);
-    // On a phone the badge keeps its width. Cap only those names so Duke, Brick,
-    // and Linda stay one line. A longer single name shrinks, then ellipsizes.
-    if(window.innerWidth<=760){
-      names.forEach(name=>{
-        const cell=name.closest('td.scorecard-col-player');
-        const badge=cell&&cell.querySelector('.wheel-badge');
-        if(!badge||getComputedStyle(badge).display==='none')return;
-        const slot=name.closest('.scorecard-player-name-slot');
-        const slotW=slot?slot.clientWidth:0;
-        if(slotW<24)return;
-        const nameBox=name.getBoundingClientRect();
-        const badgeBox=badge.getBoundingClientRect();
-        const nameBottom=nameBox.bottom;
-        if(badgeBox.top + 2 >= nameBottom)return;
-        const currentSize=parseFloat(getComputedStyle(name).fontSize)||columnSize;
-        const cap=Math.min(currentSize,Math.max(16,slotW/2.95));
-        const size=`${cap.toFixed(1)}px`;
-        name.style.setProperty('font-size',size,'important');
-        const chip=name.querySelector('.dealer-player-label');
-        if(chip) chip.style.setProperty('font-size',size,'important');
-      });
+    const names=[...root.querySelectorAll('.scorecard-player-name-slot .scoreboard-player-name:not(.hf-team-name)')];
+    let focusedClipped=false;
+    for(const name of names){
+      const cell=name.closest('.scorecard-col-player');
+      const slot=name.closest('.scorecard-player-name-slot');
+      const label=scorecardNameChipEl(name);
+      const dealer=label!==name;
+      cell.classList.remove('is-name-wrapped','is-name-stacked','is-name-clipped');
+      name.style.removeProperty('font-size');
+      label.style.removeProperty('font-size');
+      cell.removeAttribute('data-name-avatar');
+      cell.style.removeProperty('--scorecard-name-avatar');
+      cell.style.removeProperty('--scorecard-name-lines');
+      if(!dealer && document.activeElement!==name) name.removeAttribute('tabindex');
+      name.onfocus=null;
+      name.onblur=null;
+      name.onkeydown=null;
+      if(!dealer) name.onclick=null;
+
+      const font=parseFloat(getComputedStyle(label).fontSize);
+      const rowHeight=parseFloat(root.style.getPropertyValue('--scorecard-row-height'))||cell.clientHeight;
+      const cellStyle=getComputedStyle(cell);
+      const padding=(parseFloat(cellStyle.paddingTop)||0)+(parseFloat(cellStyle.paddingBottom)||0);
+      const room=rowHeight-padding;
+      const fits=()=>{
+        const bounds=label.getBoundingClientRect();
+        return label.scrollWidth<=slot.clientWidth+1
+          && label.scrollWidth<=Math.max(label.clientWidth,bounds.width)+1
+          && label.scrollHeight<=Math.max(label.clientHeight,bounds.height)+Math.ceil(font*0.22)
+          && scorecardGlyphBox(label).right<=slot.getBoundingClientRect().right+1;
+      };
+      if(fits()) continue;
+
+      const avatarHeight=cell.querySelector('.scorecard-avatar-slot')?.getBoundingClientRect().height||0;
+      const minimumAvatar=window.innerWidth<=760?24:30;
+      const nameWidth=scorecardGlyphBox(label).width;
+      const deficit=nameWidth-slot.clientWidth;
+      if(deficit>0&&avatarHeight-deficit-3>=minimumAvatar){
+        cell.setAttribute('data-name-avatar','');
+        cell.style.setProperty('--scorecard-name-avatar',`${Math.floor(avatarHeight-deficit-3)}px`);
+        if(fits()) continue;
+        cell.removeAttribute('data-name-avatar');
+        cell.style.removeProperty('--scorecard-name-avatar');
+      }
+
+      if(room>=font*2.35) cell.classList.add('is-name-wrapped');
+      if(fits()) continue;
+
+      const stackRoom=room-12;
+      const gap=4;
+      if(avatarHeight&&stackRoom>=minimumAvatar+font*1.2+gap){
+        const lines=stackRoom>=minimumAvatar+font*2.35+gap?2:1;
+        const avatar=Math.min(avatarHeight, Math.floor(stackRoom-font*1.16*lines-gap));
+        cell.setAttribute('data-name-avatar','');
+        cell.style.setProperty('--scorecard-name-avatar',`${avatar}px`);
+        cell.style.setProperty('--scorecard-name-lines',lines);
+        cell.classList.add('is-name-wrapped','is-name-stacked');
+        if(fits()) continue;
+      }
+
+      // Adjust only this name, then clip at a readable floor if it still exceeds two lines.
+      const minimum=window.innerWidth<=760?12:Math.max(20, font*0.78);
+      for(let size=font-1;size>=minimum;size--){
+        const value=`${size}px`;
+        name.style.setProperty('font-size',value,'important');
+        label.style.setProperty('font-size',value,'important');
+        if(fits()) break;
+      }
+      if(fits()) continue;
+      if(window.innerWidth<=760 && font>=16){
+        name.style.setProperty('font-size','16px','important');
+        label.style.setProperty('font-size','16px','important');
+      }
+      cell.classList.add('is-name-clipped');
+      if(!dealer){
+        name.tabIndex=0;
+        name.onclick=()=>{name.focus();showScorecardFullName(name);};
+      }
+      name.onfocus=()=>showScorecardFullName(name);
+      name.onblur=hideScorecardFullName;
+      name.onkeydown=event=>{
+        if(event.key==='Escape') hideScorecardFullName();
+      };
+      if(document.activeElement===name) focusedClipped=true;
     }
+    if(!focusedClipped) hideScorecardFullName();
   }
   function scorecardGlyphBox(el){
     if(!el) return null;

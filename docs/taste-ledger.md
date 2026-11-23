@@ -62,7 +62,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Honest gap lists. Say what you did not look at.
 - A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
 - When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
-- Scorecard names in one column share one size. Shrink the column for a long name. Do not grow Cat past Megan.
+- Scoreboard names start at the same readable size. Fit long names within their own row with a second line or room beneath the avatar. If a name still needs shortening, focus or tap it to see the full name.
 - Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
 - Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
 - Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.

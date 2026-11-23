@@ -91,3 +91,44 @@ test('8p long names still fit without overflow', async ({page}) => {
     expect(row.labelRight, `${row.text} stays in cell`).toBeLessThanOrEqual(row.cellRight + 2);
   }
 });
+
+test('a mid-match rename fits only that player and leaves the full name accessible', async ({page}) => {
+  await page.setViewportSize({width: 1920, height: 1080});
+  await page.goto('/?demo=try');
+  await page.waitForFunction(() => document.body.dataset.bpgTryDemo === 'on' && typeof goActiveMatch === 'function');
+  await page.evaluate(() => goActiveMatch());
+  const playerNames = page.locator('#scorecard-capture .scoreboard-player-name');
+  await expect(playerNames.filter({hasText: 'Theo'})).toBeVisible();
+  async function fontSizes() {
+    await page.evaluate(() => document.fonts.ready.then(() => new Promise(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    })));
+    return Object.fromEntries((await measure(page)).rows.map(row => [row.text, row.nameFont]));
+  }
+  const before = await fontSizes();
+  const fullName = 'Theodoruous Everlasting Featherstone';
+  await page.evaluate(name => renamePlayerEverywhere('Theo', name), fullName);
+  const renamed = playerNames.filter({hasText: fullName});
+  await expect(renamed).toBeVisible();
+  const after = await fontSizes();
+  const {Theo: original, ...unchangedBefore} = before;
+  const {[fullName]: fitted, ...unchangedAfter} = after;
+  expect(unchangedAfter).toEqual(unchangedBefore);
+  expect(fitted).toBeGreaterThanOrEqual(original * 0.78 - 1);
+  const cell = renamed.locator('xpath=ancestor::td');
+  await expect(cell).toHaveClass(/is-name-stacked/);
+  const overlap = await cell.evaluate(el => {
+    const name = el.querySelector('.scoreboard-player-name').getBoundingClientRect();
+    const wheel = el.querySelector('.wheel-badge').getBoundingClientRect();
+    const total = el.nextElementSibling.getBoundingClientRect();
+    return name.right > wheel.left + 1 || name.right > total.left + 1;
+  });
+  expect(overlap).toBe(false);
+  await expect(cell).toHaveClass(/is-name-clipped/);
+  await renamed.focus();
+  const popover = page.locator('#scorecard-full-name');
+  await expect(popover).toBeVisible();
+  await expect(popover).toHaveText(fullName);
+  await renamed.press('Escape');
+  await expect(popover).toBeHidden();
+});

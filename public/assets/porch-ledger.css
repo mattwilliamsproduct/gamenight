@@ -187,8 +187,7 @@ html.porch-ledger.slice2-tv #score-entry-selected-name {
   max-width: 100%;
 }
 
-/* Scorecard names stay one line. The fit script shrinks them; wrapping here
-   collapses the name under the Life Preserver chip. */
+/* Keep a single line by default. The fit script enables wrapping for individual names. */
 html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
 html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
   white-space: nowrap !important;
@@ -3495,4 +3494,71 @@ html.porch-ledger.slice2-tv #lineup-intro {
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain.score-entry-reviewing .score-entry-layout {
     grid-template-columns: minmax(0, 960px);
   }
+}
+
+/* Long names use space in their own player cell before their type is reduced. */
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecard-player-name-slot .scoreboard-player-name {
+  min-width: 0 !important;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-stacked .scorecard-player-identity {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center !important;
+  justify-items: start;
+  row-gap: 4px !important;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player[data-name-avatar] :is(.scorecard-avatar-slot, .avatar-img-sc) {
+  width: var(--scorecard-name-avatar) !important;
+  height: var(--scorecard-name-avatar) !important;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-stacked .scorecard-player-name-slot {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-wrapped .scorecard-player-name {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-wrapped :is(span.scoreboard-player-name, .dealer-player-label) {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--scorecard-name-lines, 2);
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+  line-height: 1.12 !important;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-wrapped .scorecard-name-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-clipped :is(span.scoreboard-player-name, .dealer-player-label) {
+  max-height: calc(var(--scorecard-name-lines, 2) * 1.12em);
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+html.porch-ledger.slice2-tv #scorecard-capture td.is-name-clipped.is-name-wrapped .scorecard-name-word {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+#scorecard-full-name {
+  position: fixed;
+  inset: auto auto max(1rem, env(safe-area-inset-bottom)) 50%;
+  translate: -50% 0;
+  margin: 0;
+  max-width: min(32rem, calc(100vw - 2rem));
+  padding: 0.65em 1em;
+  border: 1px solid var(--hairline);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  font-size: clamp(1.125rem, 1.9vw, 1.8rem);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  pointer-events: none;
 }
