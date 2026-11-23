@@ -268,8 +268,6 @@ test.describe('test-only fixture views', () => {
     test.setTimeout(45000);
     await openDemo(page, 'home');
     await expect(hidden(page, 'home-screen')).not.toHaveClass(/hidden/);
-    const reveal = page.locator('[data-s2-action="reveal-picker"]');
-    if (await reveal.count()) await reveal.click();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toBeVisible();
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]')).toHaveAttribute('aria-label', /Canasta/i);
     await expect(page.locator('[data-s2-action="pick-game"][data-s2-game="Rook"]')).toHaveCount(0);

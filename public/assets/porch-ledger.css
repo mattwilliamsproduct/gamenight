@@ -11,11 +11,11 @@
 */
 
 html.porch-ledger {
-  /* Backdrop shared by the live board, score entry and Home. */
-  --felt-center: #24564f;
-  --felt-base: #173e38;
-  --felt-edge: #102b28;
-  --felt-photo: radial-gradient(ellipse at 50% 32%, var(--felt-center), var(--felt-edge));
+  /* The table's blue felt photo and sampled fallback colors. */
+  --felt-center: #034583;
+  --felt-base: #023871;
+  --felt-edge: #012a5e;
+  --felt-photo: url("./porch-felt.jpg");
   --mat-felt: var(--felt-base);
   --mat-bar: color-mix(in srgb, var(--felt-edge) 70%, #061226 30%);
   --ledger-felt: var(--mat-felt);
@@ -74,6 +74,12 @@ html.porch-ledger {
   --s2-brass: var(--ledger-brass);
   --s2-good-bg: var(--ledger-teal-wash);
   --ledger-player: var(--ledger-brass);
+}
+
+@supports (background-image: image-set(url("./porch-felt.webp") type("image/webp"))) {
+  html.porch-ledger {
+    --felt-photo: image-set(url("./porch-felt.webp") type("image/webp"), url("./porch-felt.jpg") type("image/jpeg"));
+  }
 }
 
 /* The felt photo sits on a fixed layer the size of the screen, so `cover`
@@ -2107,6 +2113,54 @@ html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="tr
 
   html.porch-ledger.slice2-tv:not([data-bp-kb="1"]) body.home-view .s2-home-grid {
     column-gap: 16px !important;
+  }
+}
+
+/* Home on a TV: keep the live status on one line when it fits. */
+@media (min-width: 1280px) {
+  html.porch-ledger.slice2-tv body.home-view .s2-active-copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: clamp(12px, 1.25vw, 22px);
+    row-gap: 4px;
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .s2-active-banner h2 {
+    font-size: clamp(24px, 1.7vw, 34px) !important;
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .s2-active-banner .s2-sub {
+    margin: 0;
+    font-size: clamp(18px, 1.12vw, 23px) !important;
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .s2-active-banner .s2-btn {
+    font-size: clamp(18px, 1.1vw, 22px) !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  html.porch-ledger.slice2-tv body.home-view .bp-app-shell {
+    width: min(90vw, 1780px) !important;
+    max-width: 1780px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .s2-home-standings .s2-panel-head h2,
+  html.porch-ledger.slice2-tv body.home-view .s2-home-start .s2-panel-head h2 {
+    font-size: 28px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .s2-home-standings .s2-sub,
+  html.porch-ledger.slice2-tv body.home-view .s2-home-start .s2-sub,
+  html.porch-ledger.slice2-tv body.home-view .s2-home-standings .s2-standing .s2-seat-name,
+  html.porch-ledger.slice2-tv body.home-view .s2-standings-foot .s2-btn,
+  html.porch-ledger.slice2-tv body.home-view .s2-home-start #slice2-start-btn {
+    font-size: 20px !important;
+  }
+
+  html.porch-ledger.slice2-tv body.home-view .s2-home-standings .s2-standing-score {
+    font-size: 26px !important;
   }
 }
 

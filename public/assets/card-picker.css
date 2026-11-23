@@ -449,11 +449,11 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     flex-direction: column;
   }
 
-  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid:has(> .s2-home-start-compact) {
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid {
     grid-template-rows: minmax(0, 1fr);
   }
 
-  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid:has(> .s2-home-start-compact) > .s2-panel {
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid > .s2-home-standings {
     align-self: start;
     height: auto;
     max-height: 100%;

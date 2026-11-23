@@ -74,3 +74,24 @@ test('mid-game picker lists the bench before typing and confirms the chosen late
     missed:BPGScorebook.missedRoundText(currentGame,'Nora',1)
   }))).toEqual({total:start,missed:'Did not play'});
 });
+
+test('mid-game Add Player keeps the empty bench compact and leaves the new-name field ready', async ({page}) => {
+  await page.setViewportSize({width:1920,height:1080});
+  await openScenario(page,{scenario:'five-crowns-4'});
+  await page.evaluate(()=>{
+    allPlayers=[...currentGame.originalRoster];
+    players=allPlayers.slice();
+    playerProfiles={};
+  });
+
+  await page.getByRole('button',{name:/Actions/}).click();
+  await page.getByRole('button',{name:'Add player mid-game',exact:true}).click();
+  const modal=page.locator('#add-player-modal');
+  await expect(modal.getByText('No saved players available to add.')).toBeVisible();
+  await expect(modal.getByRole('textbox')).toBeVisible();
+  const size=await modal.locator('.bp-modal-panel').boundingBox();
+  expect(size.height).toBeLessThan(340);
+  await modal.getByRole('textbox').fill('Hazel');
+  await modal.getByRole('button',{name:'Add',exact:true}).click();
+  await expect(modal.locator('#midgame-add-confirm-copy')).toContainText('Hazel starts at');
+});

@@ -18,7 +18,7 @@ Standing trap: [bs-polish.md](bs-polish.md) — the wheel control stays on the r
 
 Standing trap: [bm-entry-and-parity.md](bm-entry-and-parity.md) — `bffd216` restored a `00` key for parity. Matt's Nov 12, 4:12 PM ET keypad spec removed that key from score entry, and that decision wins.
 
-Standing trap: [cc-sheet-and-teams.md](cc-sheet-and-teams.md) — phone score boxes and the progress line stay inside the sheet. A pad with no minus uses one wide 0. Canasta teams are tap-to-swap cards. A live match starts with a small Start another game action.
+Standing trap: [cc-sheet-and-teams.md](cc-sheet-and-teams.md) — phone score boxes and the progress line stay inside the sheet. A pad with no minus uses one wide 0. Canasta teams are tap-to-swap cards. The full picker stays visible on Home during a live match.
 Standing trap: [ce-sentence-case.md](ce-sentence-case.md) — buttons and labels are regular-width sentence case. A long single name does not split mid-word. Phone nav buttons size to their words. The Canasta teams modal opens only for Canasta.
 Standing trap: [cd-pads-and-badge.md](cd-pads-and-badge.md) — no pad has a 00 key. A blank Wizard bid stays missing. An 818 blank bid still becomes 0 only when the round is checked. Spin ready stays inside the player cell.
 

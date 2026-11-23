@@ -221,6 +221,17 @@
       min-height: 56px;
       font-size: 18px;
     }
+    #add-player-modal .player-suggest-empty {
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+    }
+    @media (min-width: 1600px) {
+      #add-player-modal .bp-modal-head h3 { font-size: 2.5rem; }
+      #add-player-modal .bp-modal-head p,
+      #add-player-modal #midgame-add-player-input,
+      #add-player-modal .player-suggest-option,
+      #add-player-modal .player-suggest-empty { font-size: 1.25rem; }
+    }
     .bp-modal-head {
       flex: 0 0 auto;
       position: sticky;
@@ -10871,9 +10882,8 @@ button.dealer-name-indicator .dealer-player-label {
       <div class="surface-raised bp-modal-panel bp-modal-panel--form p-6 md:p-7 relative pop-in">
         <button type="button" onclick="closeAddPlayerModal()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="bp-modal-head text-center mb-5 pr-8">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Mid-game add</div>
           <h3 class="font-display text-3xl">Add player</h3>
-          <p class="text-sm font-semibold mt-2" style="color:var(--muted);">Pick an on-deck player or type a new name.</p>
+          <p class="text-sm font-semibold mt-2" style="color:var(--muted);">Choose a saved player or type a new name.</p>
         </div>
         <div class="flex gap-2">
           <div class="player-suggest-wrap">
@@ -10886,7 +10896,7 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
           <button onclick="submitAddPlayerMidGame()" class="btn-primary px-6 py-3.5 text-lg">Add</button>
         </div>
-        <div id="midgame-player-suggestions" class="player-suggest-menu add-player-suggest hidden"></div>
+        <div id="midgame-player-suggestions" class="player-suggest-menu add-player-suggest hidden" aria-live="polite"></div>
         <p id="midgame-player-name-error" class="hidden inline-form-error text-sm font-semibold mt-3" style="color:var(--rose);"></p>
         <div id="midgame-add-confirm" class="hidden mt-4">
           <p id="midgame-add-confirm-copy" class="text-base font-semibold" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;"></p>

@@ -156,8 +156,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
 
       await paintRoster(page, roster, true);
       await expect(page.locator('.s2-home-start')).toBeVisible();
-      await expect(page.locator('[data-s2-action="reveal-picker"]')).toHaveText('Start another game');
-      await expect(page.locator('.s2-game')).toHaveCount(0);
+      await expect(page.locator('.s2-game')).toHaveCount(6);
       await expect(page.locator('#slice2-home')).not.toContainText('Recent nights');
       if (count === 8) {
         await expect(page.locator('.s2-standing').first()).toContainText('Owen');
@@ -184,7 +183,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         const row = document.querySelector('.s2-standing');
         const last = document.querySelector('.s2-standing:last-child');
         const list = document.querySelector('.s2-standings');
-        const startBtn = clipBottom(document.querySelector('[data-s2-action="reveal-picker"]'));
+        const startBtn = clipBottom(document.getElementById('slice2-start-btn'));
         const summary = startBtn;
         const lastRow = clipBottom(last);
         return {
@@ -353,7 +352,6 @@ test('parking an in-progress match leaves records alone and resume restores it',
   expect(before.dealer).toBe('Priya');
   expect(before.seats).toEqual(EIGHT);
 
-  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('.s2-home-start [data-s2-game="Wizard"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#end-match-copy')).toContainText('unfinished and resumable');
@@ -428,22 +426,37 @@ test('parking an in-progress match leaves records alone and resume restores it',
 });
 
 
-test('four live standings and the collapsed Start panel hug their content', async ({page}) => {
-  for (const viewport of [{width: 1440, height: 1100}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
+test('Home keeps the picker visible and four standings compact after leaving the scoreboard', async ({page}) => {
+  for (const viewport of [{width: 1920, height: 1080}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
     await page.setViewportSize(viewport);
     await boot(page, '/');
     await paintRoster(page, EIGHT.slice(0, 4), true);
-    const emptySpace = await page.evaluate(() => {
+    await page.locator('.s2-active-banner [data-s2-action="resume"]').click();
+    await page.locator('#slice2-table-btn').click();
+
+    await expect(page.locator('.s2-game:visible')).toHaveCount(6);
+    await expect(page.locator('#slice2-start-btn')).toBeVisible();
+    const layout = await page.evaluate(() => {
       const box = selector => document.querySelector(selector).getBoundingClientRect();
+      const banner = document.querySelector('.s2-active-banner h2');
+      const text = document.createRange();
+      text.selectNodeContents(banner);
       return {
-        start: box('.s2-home-start-compact').bottom - box('[data-s2-action="reveal-picker"]').bottom,
-        scores: box('[data-s2-action="enter-round"]').top - box('.s2-standing:last-child').bottom
+        scoreGap: box('[data-s2-action="enter-round"]').top - box('.s2-standing:last-child').bottom,
+        headingLines: text.getClientRects().length,
+        headingFont: parseFloat(getComputedStyle(banner).fontSize),
+        pickerBottom: box('#slice2-start-btn').bottom,
+        shellWidth: box('.bp-app-shell').width,
+        felt: getComputedStyle(document.body, '::after').backgroundImage
       };
     });
-    expect(emptySpace.start, `Start panel at ${viewport.width}px`).toBeLessThanOrEqual(24);
-    expect(emptySpace.scores, `Enter scores at ${viewport.width}px`).toBeLessThanOrEqual(28);
-    await page.getByRole('button', {name: 'Start another game', exact: true}).click();
-    await expect(page.locator('.s2-game')).toHaveCount(6);
-    await expect(page.locator('#slice2-start-btn')).toBeVisible();
+    expect(layout.scoreGap, `Enter scores at ${viewport.width}px`).toBeLessThanOrEqual(28);
+    expect(layout.felt).toContain('porch-felt');
+    if (viewport.width === 1920) {
+      expect(layout.headingLines).toBe(1);
+      expect(layout.headingFont).toBeGreaterThanOrEqual(30);
+      expect(layout.shellWidth).toBeGreaterThan(1650);
+      expect(layout.pickerBottom).toBeLessThanOrEqual(viewport.height);
+    }
   }
 });

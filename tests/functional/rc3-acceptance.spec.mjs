@@ -142,7 +142,6 @@ test('Start confirm parks live match incomplete', async ({page}) => {
   await page.waitForTimeout(300);
   // Five Crowns plays up to 7. This Wizard has 8, so Start stays off until a game that seats them is picked.
   // Matt 5:25 PM ET: starting another game opens Leave game. Keep playing leaves the match on the table.
-  await page.locator('[data-s2-action="reveal-picker"]').click();
   await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Wizard"]').click();
   await page.locator('#slice2-start-btn').click();
   await expect(page.locator('#leave-keep-playing')).toBeVisible();

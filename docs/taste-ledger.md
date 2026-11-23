@@ -11,7 +11,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.
 - Buttons, modal labels, and player names use regular-width sentence case at a readable size. Names stay as typed. A long single name stays on one line: it shrinks or ends in an ellipsis, and it never splits mid-word. Phone nav buttons size to their words, so Player Passports stays one line at 13px or larger.
 - No pad has a 00 key. When there is no minus, 0 fills that whole row. Spin ready sits fully inside the player cell, toward the right of the name.
-- A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. A live match offers a small Start another game until the picker opens.
+- A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. The full game picker stays visible on Home during an active match.
 - The score-entry sentence fits on one phone line. A too-big entry says so inside that player's score box.
 - The game-card edge is drawn on top of the cover, so Flip 7's white art still has a visible rim. The selected rim is thicker and teal.
 - A late player sees their starting score and confirms it before they join. A bad name is an inline message.
