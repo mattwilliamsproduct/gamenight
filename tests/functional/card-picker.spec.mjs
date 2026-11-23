@@ -298,13 +298,13 @@ test('phone wordmark stays readable and nav stays one row at 390 and 375', async
   }
 });
 
-test('Heat and Five Crowns load the default 5:7 faces', async ({page}) => {
+test('Home loads the upright Five Crowns and default Heat faces', async ({page}) => {
   await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#home-screen')).toBeVisible();
   const defaults = await page.locator('.s2-home-start .s2-card-photo').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
   expect(defaults).toEqual(expect.arrayContaining([
     './assets/cards/beat-the-heat.webp',
-    './assets/cards/five-crowns.webp',
+    './assets/cards/five-crowns-picker.webp',
     './assets/cards/wizard.webp',
     './assets/cards/canasta.webp'
   ]));

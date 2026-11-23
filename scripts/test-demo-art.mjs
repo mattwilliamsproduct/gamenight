@@ -29,12 +29,12 @@ test('card faces stay on the shelf without demo-art', async () => {
   const js = await readFile(join(root, 'public/assets/slice2.js'), 'utf8');
   const slice2 = await readFile(join(root, 'public/assets/slice2.css'), 'utf8');
   assert.match(css, /\.s2-card-frame/);
-  assert.match(js, /assets\/cards\/five-crowns\.webp/);
+  assert.match(js, /assets\/cards\/five-crowns-picker\.webp/);
   assert.match(js, /assets\/cards\/canasta\.webp/);
   assert.match(js, /assets\/cards\/rook\.webp/);
   assert.doesNotMatch(js, /demo-art|applyDemoChrome|data-bp-art/);
   assert.match(slice2, /\.s2-art-canasta[\s\S]*?url\("\.\/cards\/canasta\.webp"\)/);
-  for (const face of ['five-crowns.webp', '818.webp', 'wizard.webp', 'flip7.webp', 'beat-the-heat.webp', 'canasta.webp', 'rook.webp']) {
+  for (const face of ['five-crowns.webp', 'five-crowns-picker.webp', '818.webp', 'wizard.webp', 'flip7.webp', 'beat-the-heat.webp', 'canasta.webp', 'rook.webp']) {
     await access(join(root, 'public/assets/cards', face));
   }
   await access(join(root, 'public/theme/back-porch-mark.jpg'));

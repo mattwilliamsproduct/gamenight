@@ -1,13 +1,15 @@
 /* Warm Porch Ledger interactions. Always loaded. */
 (function () {
-  const CARD_FACES = (window.BPGGames && BPGGames.CARD_FACES) || {
-    five: './assets/cards/five-crowns.webp',
-    '818': './assets/cards/818.webp',
-    wizard: './assets/cards/wizard.webp',
-    flip7: './assets/cards/flip7.webp',
-    heat: './assets/cards/beat-the-heat.webp',
-    canasta: './assets/cards/canasta.webp',
-    rook: './assets/cards/rook.webp'
+  const PICKER_FACES = {
+    ...((window.BPGGames && BPGGames.CARD_FACES) || {
+      '818': './assets/cards/818.webp',
+      wizard: './assets/cards/wizard.webp',
+      flip7: './assets/cards/flip7.webp',
+      heat: './assets/cards/beat-the-heat.webp',
+      canasta: './assets/cards/canasta.webp',
+      rook: './assets/cards/rook.webp'
+    }),
+    five: './assets/cards/five-crowns-picker.webp'
   };
 
   function registryGames() {
@@ -534,7 +536,7 @@
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
         <span class="s2-card-frame" data-card-art="${escapeHtml(game.art)}">
-          <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
+          <img class="s2-card-photo" src="${PICKER_FACES[game.art] || ''}" alt="" draggable="false">
           ${on ? '<span class="s2-card-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 10.5l3.2 3.2L15 6.8"/></svg></span>' : ''}
         </span>
         <span class="s2-game-name">${escapeHtml(game.title)}</span>

@@ -3338,12 +3338,9 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-pick:not(.is-on) {
   background: var(--ledger-paper) !important;
 }
 
-/* Orient the existing box faces for reading while keeping the common portrait tile. */
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame:is([data-card-art="five"], [data-card-art="wizard"]) {
+/* Orient the Wizard box face for reading inside its portrait tile. */
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="wizard"] {
   container-type: inline-size;
-}
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="five"] {
-  background: #38216b;
 }
 html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="wizard"] {
   background: #111f4a;
@@ -3351,17 +3348,13 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="wizard"
 html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="818"] {
   --bp-card-photo-filter: saturate(.7) hue-rotate(-13deg) brightness(.97);
 }
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame:is([data-card-art="five"], [data-card-art="wizard"]) .s2-card-photo {
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="wizard"] .s2-card-photo {
   position: absolute;
   inset: 50% auto auto 50%;
   width: 71.4cqw;
   height: 100cqw;
   mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
   transform: translate(-50%, -50%) rotate(90deg);
-}
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="five"] .s2-card-photo {
-  width: 85.7cqw;
-  height: 120cqw;
 }
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   box-shadow: 0 0 0 3px #f9cf73 !important;

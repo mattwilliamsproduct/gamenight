@@ -10,6 +10,7 @@ const root = process.cwd();
 
 const FACES = [
   'five-crowns.webp',
+  'five-crowns-picker.webp',
   '818.webp',
   'wizard.webp',
   'flip7.webp',
@@ -94,5 +95,5 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.doesNotMatch(js, /cardFillOn|CARD_FILL|cards\/fill\//);
   assert.match(js, /assets\/cards\/rook\.webp/);
   assert.match(js, /assets\/cards\/beat-the-heat\.webp/);
-  assert.match(js, /assets\/cards\/five-crowns\.webp/);
+  assert.match(js, /assets\/cards\/five-crowns-picker\.webp/);
 });
