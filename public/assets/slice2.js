@@ -10,6 +10,7 @@
     }),
     five: './assets/cards/five-crowns-picker.webp',
     wizard: './assets/cards/wizard-picker.webp',
+    flip7: './assets/cards/flip7-picker.webp',
     heat: './assets/cards/beat-the-heat-picker.webp'
   };
 
@@ -17,11 +18,10 @@
     return (window.BPGGames && BPGGames.visibleGames()) || [];
   }
 
-  // The Home picker shows the six f2c81a4 decks. Rook keeps its registry
-  // entry, rules, history, Records, and Passports; it just has no Home deck.
-  const HOME_PICKER_SKIP = new Set(['Rook']);
+  const HOME_PICKER_ORDER = ['Wizard', 'Hand and Foot', 'Flip 7 Vengeance', 'Five Crowns', 'Beat the Heat', '818'];
   function homePickerGames() {
-    return registryGames().filter((game) => !HOME_PICKER_SKIP.has(game.id));
+    const gamesById = new Map(registryGames().map((game) => [game.id, game]));
+    return HOME_PICKER_ORDER.map((id) => gamesById.get(id)).filter(Boolean);
   }
 
   function cardAriaLabel(game, seated, selected) {

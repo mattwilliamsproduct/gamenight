@@ -298,19 +298,25 @@ test('phone wordmark stays readable and nav stays one row at 390 and 375', async
   }
 });
 
-test('Home loads the portrait Five Crowns, Wizard, and Beat the Heat covers', async ({page}) => {
+test('Home shows the six decks in order with the approved picker covers', async ({page}) => {
   await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#home-screen')).toBeVisible();
-  const defaults = await page.locator('.s2-home-start .s2-card-photo').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
-  expect(defaults).toEqual(expect.arrayContaining([
-    './assets/cards/beat-the-heat-picker.webp',
-    './assets/cards/five-crowns-picker.webp',
+  const picker = page.locator('.s2-home-start');
+  await expect(picker.locator('.s2-game-name')).toHaveText([
+    'Wizard', 'Canasta', 'Flip 7', 'Five Crowns', 'Beat the Heat', '818'
+  ]);
+  const covers = await picker.locator('.s2-card-photo').evaluateAll((nodes) => Promise.all(nodes.map(async (img) => {
+    await img.decode();
+    return img.getAttribute('src');
+  })));
+  expect(covers).toEqual([
     './assets/cards/wizard-picker.webp',
-    './assets/cards/canasta.webp'
-  ]));
-  // Rook has no Home deck (f2c81a4 picker); rook.webp stays for saved Rook nights.
-  expect(defaults).not.toEqual(expect.arrayContaining(['./assets/cards/rook.webp']));
-  expect(defaults.some((src) => src && src.includes('/fill/'))).toBe(false);
+    './assets/cards/canasta.webp',
+    './assets/cards/flip7-picker.webp',
+    './assets/cards/five-crowns-picker.webp',
+    './assets/cards/beat-the-heat-picker.webp',
+    './assets/cards/818.webp'
+  ]);
 });
 
 test('clean first start explains what to tap and writes no sample data', async ({page}) => {

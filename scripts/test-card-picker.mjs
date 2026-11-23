@@ -15,6 +15,7 @@ const FACES = [
   'wizard.webp',
   'wizard-picker.webp',
   'flip7.webp',
+  'flip7-picker.webp',
   'beat-the-heat.webp',
   'beat-the-heat-picker.webp',
   'canasta.webp',

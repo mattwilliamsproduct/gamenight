@@ -7,10 +7,8 @@ test.beforeEach(async ({page}) => {
   await silencePorchPrompts(page);
 });
 
-// Matt, 2026-11-13 6:13 PM: Home matches the f2c81a4 layout exactly, on the
-// blue felt. Six decks, three per row (Five Crowns, 818, Wizard / Flip 7,
-// Beat the Heat, Canasta). Rook is off the Home picker only.
-const DECKS = ['Five Crowns', '818', 'Wizard', 'Flip 7 Vengeance', 'Beat the Heat', 'Hand and Foot'];
+// Six Home decks in reading order. Rook remains available through the registry.
+const DECKS = ['Wizard', 'Hand and Foot', 'Flip 7 Vengeance', 'Five Crowns', 'Beat the Heat', '818'];
 const SAVED = ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay', 'Gus', 'Hal'];
 
 async function homeWith(page, saved, seated) {
