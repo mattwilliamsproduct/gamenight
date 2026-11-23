@@ -882,7 +882,7 @@ test('bid-entry acknowledgement accepts an explicit zero',async({page})=>{
   await expect(page.locator(`#${activeRowId} .score-entry-confirm-status`)).toContainText(/Entered 0/);
   await page.getByRole('button',{name:'Next',exact:true}).click();
   await expect(page.locator(`#${activeRowId}`)).toHaveClass(/is-complete/);
-  await expect(page.locator('#score-entry-progress')).toHaveText(/1 of 10 bids in/);
+  await expect(page.locator('#score-entry-progress')).toHaveText(/0 of \d+ tricks? called/);
 });
 
 test('Wizard rejects bids outside the available trick range',async({page})=>{

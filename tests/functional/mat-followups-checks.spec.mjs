@@ -54,8 +54,8 @@ test('Wizard bid progress keeps each part on one line at 390 and 1024', async ({
       const rects = s.getClientRects();
       return {text: s.textContent, lines: new Set([...rects].map((r) => Math.round(r.top))).size};
     }));
-    expect(segs.length, `${size.width}`).toBe(3);
-    expect(segs[0].text).toMatch(/^\d+ of 8 bids in$/);
+    expect(segs.length, `${size.width}`).toBe(2);
+    expect(segs[0].text).toMatch(/^0 of 3 tricks called$/);
     for (const s of segs) expect(s.lines, `${size.width} "${s.text}"`).toBe(1);
   }
 });

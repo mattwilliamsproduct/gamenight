@@ -219,8 +219,7 @@ test('the Wizard bid line stays inside the sheet', async ({page}) => {
       overflow: progress.scrollWidth > progress.clientWidth + 2
     };
   });
-  expect(bid.text).toMatch(/bids in/i);
-  expect(bid.text).toMatch(/trick/i);
+  expect(bid.text).toMatch(/\d+ of \d+ tricks? called/i);
   expect(bid.right).toBeLessThanOrEqual(bid.panelRight - 4);
   expect(bid.overflow).toBe(false);
 });

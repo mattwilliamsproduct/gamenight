@@ -71,12 +71,12 @@ test('Wizard bid lock: invalid then corrected, status labels, hide minus/00', as
   const completeAfterClear = await page.locator('#score-entry-modal .score-entry-row').first().evaluate((el) => el.classList.contains('is-complete'));
   expect(completeAfterClear).toBe(false);
 
-  // Enter 0 and confirm -> Entered 0 then Confirmed; header counts Entered 0
+  // A zero bid changes the row status and leaves the tricks-called tally at zero.
   await page.locator('#score-entry-modal button[onclick="scoreEntryKey(\'0\')"]').click();
   let status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Entered 0/i);
   const progressAfterZero = await page.locator('#score-entry-progress').textContent();
-  expect(progressAfterZero, progressAfterZero).toMatch(/1 of 8 bids in/i);
+  expect(progressAfterZero).toBe('0 of 3 tricks called · 3 left');
   await page.locator('#score-entry-modal button.score-entry-key.next').click();
   status = await page.locator('#score-entry-modal .score-entry-confirm-status').first().textContent();
   expect(status).toMatch(/Confirmed:\s*0/i);
