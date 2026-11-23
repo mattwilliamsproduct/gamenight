@@ -139,11 +139,11 @@
       return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
         ${badge}
         ${getStreakAvatarHtml(player, 'avatar-img')}
-        <span class="s2-seat-who">
-          <span class="s2-seat-name">${escapeHtml(player)}</span>
+        <span class="s2-seat-who"><span class="s2-seat-name">${escapeHtml(player)}</span></span>
+        <span class="s2-standing-status">
+          ${dealerTag}
           ${wheel ? `<span class="wheel-badge wheel-badge-${wheel}" aria-hidden="true">${wheelIconSvg()}</span>` : ''}
         </span>
-        ${dealerTag}
         <span class="s2-standing-score">${escapeHtml(String(score))}</span>
       </button>`;
     }).join('');
@@ -155,7 +155,7 @@
         <span class="scoreboard-rank-badge is-place-rest">Left early</span>
         ${getStreakAvatarHtml(player, 'avatar-img')}
         <span class="s2-seat-who"><span class="s2-seat-name">${escapeHtml(player)}</span></span>
-        <span class="s2-dealer-tag s2-dealer-tag-empty" aria-hidden="true"></span>
+        <span class="s2-standing-status" aria-hidden="true"></span>
         <span class="s2-standing-score">${escapeHtml(String(score))}</span>
       </button>`;
     }).join('');
@@ -468,7 +468,7 @@
     const label = displayGameName(top.game || top.name);
     const round = liveRoundLabel(historyAsGame(top));
     return `<section class="s2-banner s2-unfinished-banner">
-      <div>
+      <div class="s2-active-copy">
         <div class="s2-kicker">${escapeHtml((window.BPGScorebook && BPGScorebook.GAME_STATUS_LABELS && BPGScorebook.GAME_STATUS_LABELS.unfinished) || 'Unfinished')}</div>
         <h2>Resume unfinished: ${escapeHtml(label)} · ${escapeHtml(round)}</h2>
       </div>

@@ -24,7 +24,7 @@ test('a 2-player Hand and Foot match scores four rounds, survives reload, and la
   const setup=await startHandFoot(page, {names:['Ann','Bo'], format:'singles'});
   expect(setup.sides).toBe(2);
   expect(setup.seats).toEqual([]);
-  expect(setup.note).toMatch(/1 versus 1/);
+
 
   await playRound(page, [
     {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
@@ -80,6 +80,18 @@ test('a 2-player Hand and Foot match scores four rounds, survives reload, and la
   expect(match.rounds).toHaveLength(4);
   expect(match.totals.Ann).toBeGreaterThan(match.totals.Bo);
 });
+
+for(const count of [3, 5]){
+  test(`Canasta starts straight into singles with ${count} players`, async ({page})=>{
+    await freshTable(page);
+    const names=['Ann','Bo','Cy','Dee','Eve'].slice(0,count);
+    const setup=await startHandFoot(page, {names, format:'singles'});
+    expect(setup.sides).toBe(count);
+    const game=await readGame(page);
+    expect(game.handFoot.format).toBe('singles');
+    expect(game.handFoot.sides.map(side=>side.members)).toEqual(names.map(name=>[name]));
+  });
+}
 
 test('4 players are two pairs and 6 players are three pairs, and singles stay one column each', async ({page})=>{
   test.setTimeout(120000);

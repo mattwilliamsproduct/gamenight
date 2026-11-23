@@ -51,11 +51,15 @@ export async function seatPlayers(page, names){
   }
 }
 
-export async function openHandFootSetup(page){
+async function startHandFootFromHome(page){
   const tile=page.locator('[data-s2-action="pick-game"][data-s2-game="Hand and Foot"]');
   await tile.click();
   const start=page.locator('#slice2-start-btn');
-  if(await start.count()) await start.click();
+  await start.click();
+}
+
+export async function openHandFootSetup(page){
+  await startHandFootFromHome(page);
   const modal=page.locator('#hand-foot-setup-modal');
   await expect(modal).toBeVisible();
   await page.waitForFunction(()=>getComputedStyle(document.getElementById('hand-foot-setup-modal')).opacity==='1');
@@ -176,8 +180,15 @@ export function roundsFor(kind){
 
 export async function startHandFoot(page, {names, format}){
   await seatPlayers(page, names);
+  if(names.length!==4 && names.length!==6){
+    await startHandFootFromHome(page);
+    await expect(page.locator('#game-screen')).toBeVisible();
+    await expect(page.locator('#hand-foot-setup-modal')).toBeHidden();
+    const match=await readGame(page);
+    return {sides:match.handFoot.sides.length, seats:[], note:''};
+  }
   await openHandFootSetup(page);
-  if(format==='singles' && (names.length===4 || names.length===6)){
+  if(format==='singles'){
     await page.locator('#hf-format-singles').click();
   }
   const setup=await page.evaluate(()=>({

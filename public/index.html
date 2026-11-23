@@ -10500,25 +10500,23 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ ROOK: Setup Modal ═══ -->
-    <div id="hand-foot-setup-modal" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
+    <div id="hand-foot-setup-modal" role="dialog" aria-modal="true" aria-labelledby="hand-foot-setup-title" class="hidden fixed inset-0 flex items-center justify-center z-[150] p-4 opacity-0 transition-opacity bp-modal-viewport-shell">
       <div onclick="cancelHandFootSetup()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
       <div class="surface-raised hf-setup-card bp-modal-panel w-full p-7 relative pop-in">
         <div class="text-center mb-5">
-          <div class="text-5xl mb-3">🃏</div>
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1" style="color:var(--emerald);">Before round 1</div>
           <h3 id="hand-foot-setup-title" class="font-display text-3xl">Choose your teams</h3>
           <p id="hand-foot-setup-note" class="text-base font-semibold mt-2" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;"></p>
         </div>
-        <div id="hand-foot-format-toggle" class="hidden flex gap-2 mb-4">
-          <button type="button" id="hf-format-teams" onclick="handFootSetupFormat('teams')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Teams</button>
-          <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn flex-1 py-3 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
+        <div id="hand-foot-format-toggle" class="hidden flex justify-center gap-2 mb-4">
+          <button type="button" id="hf-format-teams" onclick="handFootSetupFormat('teams')" class="rook-setup-btn py-2 px-5 rounded-xl text-sm font-extrabold border hairline transition-all">Teams</button>
+          <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn py-2 px-5 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
         </div>
+        <p id="hand-foot-setup-order" aria-live="polite" class="hidden text-base font-semibold mb-3 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Tap a player, then someone on the other team to swap.</p>
         <div id="hand-foot-setup-sides" class="space-y-3"></div>
-        <p id="hand-foot-setup-order" class="hidden text-base font-semibold mt-3 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Tap a player, then someone on the other team to swap.</p>
         <p id="hand-foot-setup-score" class="hidden text-base font-semibold mt-1 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Enter one score per team each round.</p>
-        <div class="flex gap-2 mt-6">
-          <button type="button" onclick="cancelHandFootSetup()" class="btn-ghost flex-1 py-4 font-extrabold">Back</button>
-          <button type="button" onclick="commitHandFootSetup()" class="btn-primary flex-[1.4] py-4 font-display text-xl">Start match →</button>
+        <div class="bp-match-actions mt-6">
+          <button type="button" onclick="cancelHandFootSetup()" class="btn-ghost font-extrabold">Back</button>
+          <button type="button" onclick="commitHandFootSetup()" class="btn-primary font-extrabold">Start match →</button>
         </div>
       </div>
     </div>
@@ -10875,10 +10873,10 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
 
         <p id="score-entry-error" class="inline-form-error score-entry-alert" role="alert"></p>
-        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t hairline">
-          <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Cancel</button>
-          <button type="button" id="score-entry-review-btn" onclick="doneScoreEntryModal()" class="btn-ghost flex-1 py-4 text-base font-extrabold">Review scores</button>
-          <button type="button" id="score-entry-primary-btn" onclick="submitScoreEntryModal()" class="btn-accent flex-[1.3] py-4 text-base font-extrabold">Submit scores</button>
+        <div class="bp-match-actions pt-4 border-t hairline">
+          <button type="button" onclick="cancelScoreEntryModal()" class="btn-ghost font-extrabold">Cancel</button>
+          <button type="button" id="score-entry-review-btn" onclick="doneScoreEntryModal()" class="btn-ghost font-extrabold">Review scores</button>
+          <button type="button" id="score-entry-primary-btn" onclick="submitScoreEntryModal()" class="btn-accent font-extrabold">Submit scores</button>
         </div>
       </div>
     </div>
@@ -15857,9 +15855,6 @@ button.dealer-name-indicator .dealer-player-label {
       requestLeaveGame((parkedId)=>startGame(name, {continueAfterLeave:true, parkedId, roster}));
       return;
     }
-    if(options&&options.continueAfterLeave && name==='Hand and Foot'){
-      _handFootCancelSnapshotId=options.parkedId||null;
-    }
     if(options?.roster) players=roster.slice();
     _pendingGameName = name;
     // Rook: show setup modal before animation chain
@@ -15867,7 +15862,8 @@ button.dealer-name-indicator .dealer-player-label {
       openRookSetupModal();
       return;
     }
-    if(name==='Hand and Foot'){
+    if(name==='Hand and Foot' && handFootApi()?.canSwitchToSingles(roster.length)){
+      _handFootCancelSnapshotId=options?.parkedId||null;
       openHandFootSetupModal();
       return;
     }
@@ -15951,21 +15947,24 @@ button.dealer-name-indicator .dealer-player-label {
     if(!_hfSetup) return;
     const api=handFootApi();
     const count=_hfSetup.roster.length;
-    const canSwitch=api?api.canSwitchToSingles(count):count===4||count===6;
     const toggle=document.getElementById('hand-foot-format-toggle');
-    if(toggle) toggle.classList.toggle('hidden', !canSwitch);
+    if(toggle) toggle.classList.remove('hidden');
     document.getElementById('hf-format-teams')?.classList.toggle('rook-opt-active', _hfSetup.format==='teams');
     document.getElementById('hf-format-singles')?.classList.toggle('rook-opt-active', _hfSetup.format==='singles');
     const note=document.getElementById('hand-foot-setup-note');
     const order=document.getElementById('hand-foot-setup-order');
     let noteText='Each player scores their own column.';
-    if(count===2) noteText='1 versus 1. Each player scores their own column.';
-    else if(_hfSetup.format==='teams'&&count===4) noteText='Two pairs. Each pair enters one score. Both players keep that round.';
-    else if(_hfSetup.format==='teams'&&count===6) noteText='Three pairs. Each pair enters one score. Both players keep that round.';
-    else if(count===3||count===5) noteText='Singles. Each player scores their own column.';
+    if(_hfSetup.format==='teams'&&count===4) noteText='Two pairs. Both partners keep the team score.';
+    else if(_hfSetup.format==='teams'&&count===6) noteText='Three pairs. Both partners keep the team score.';
     if(note) note.textContent=noteText;
     const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
-    if(order) order.classList.toggle('hidden', !teamPairs);
+    if(order){
+      const pick=_hfSetup.swapPick;
+      order.classList.toggle('hidden', !teamPairs);
+      order.textContent=pick
+        ? `Tap a player on another team to swap with ${_hfSetup.pairs[pick.pairIndex][pick.seat]}.`
+        : 'Tap a player, then someone on the other team to swap.';
+    }
     const scoreLine=document.getElementById('hand-foot-setup-score');
     if(scoreLine) scoreLine.classList.toggle('hidden', !teamPairs);
     if(!_hfSetup.pairs) _hfSetup.pairs=api?api.defaultPairs(_hfSetup.roster):[];
@@ -15980,7 +15979,8 @@ button.dealer-name-indicator .dealer-player-label {
           ${[0,1].map(seat=>{
             const name=pair[seat];
             const on=!!(pick&&pick.pairIndex===pairIndex&&pick.seat===seat);
-            return `<button type="button" class="hf-team-person${on?' is-swap-from':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})">${getAvatarImg(name,'avatar-img')}<span class="player-name-label">${escapeHtml(name)}</span></button>`;
+            const target=pick&&pick.pairIndex!==pairIndex;
+            return `<button type="button" class="hf-team-person${on?' is-swap-from':target?' is-swap-target':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})"><span class="hf-team-portrait">${getAvatarImg(name,'avatar-img')}</span><span class="player-name-label">${escapeHtml(name)}</span></button>`;
           }).join('')}
         </div>
       </section>`).join('')}</div>`;
@@ -15988,30 +15988,25 @@ button.dealer-name-indicator .dealer-player-label {
     }
     box.innerHTML=`<div class="hf-team-grid">${sides.map(side=>`<section class="hf-setup-side">
       <div class="hf-team-people">
-        ${side.members.map(name=>`<div class="hf-team-person hf-solo-person">${getAvatarImg(name,'avatar-img')}<span class="player-name-label">${escapeHtml(name)}</span></div>`).join('')}
+        ${side.members.map(name=>`<div class="hf-team-person hf-solo-person"><span class="hf-team-portrait">${getAvatarImg(name,'avatar-img')}</span><span class="player-name-label">${escapeHtml(name)}</span></div>`).join('')}
       </div>
     </section>`).join('')}</div>`;
   }
   function handFootTapPerson(pairIndex, seat){
-    if(!_hfSetup||!_hfSetup.pairs) return;
+    if(!_hfSetup?.pairs) return;
+    const previousFocus=document.activeElement?.matches('#hand-foot-setup-sides button.hf-team-person');
     const pick=_hfSetup.swapPick;
-    if(!pick||pick.pairIndex===pairIndex){
-      if(pick&&pick.pairIndex===pairIndex&&pick.seat===seat) _hfSetup.swapPick=null;
-      else _hfSetup.swapPick={pairIndex:Number(pairIndex), seat:Number(seat)};
-      renderHandFootSetup();
-      return;
+    if(pick&&pick.pairIndex!==pairIndex){
+      const name=_hfSetup.pairs[pairIndex][seat];
+      _hfSetup.pairs=handFootApi().swapPairMember(_hfSetup.pairs, pick.pairIndex, pick.seat, name);
+      _hfSetup.swapPick=null;
+    } else {
+      _hfSetup.swapPick=pick?.seat===seat?null:{pairIndex, seat};
     }
-    const name=_hfSetup.pairs[pairIndex]&&_hfSetup.pairs[pairIndex][seat];
-    handFootSetPairMember(pick.pairIndex, pick.seat, name);
-    if(_hfSetup) _hfSetup.swapPick=null;
     renderHandFootSetup();
-  }
-  function handFootSetPairMember(pairIndex, seat, name){
-    if(!_hfSetup) return;
-    const api=handFootApi();
-    const pairs=_hfSetup.pairs||[];
-    _hfSetup.pairs=api&&typeof api.swapPairMember==='function'?api.swapPairMember(pairs, pairIndex, Number(seat), name):pairs;
-    renderHandFootSetup();
+    if(previousFocus){
+      document.querySelectorAll('#hand-foot-setup-sides button.hf-team-person')[pairIndex*2+seat]?.focus({preventScroll:true});
+    }
   }
   function handFootSetupFormat(format){
     if(!_hfSetup) return;
@@ -20089,6 +20084,7 @@ ${isDealer
     modal.classList.add('score-entry-managed-fit');
 
     const rowArea=Math.max(0,rows.getBoundingClientRect().height);
+    const roomyDisplay=vw>=1401&&vh>=900;
     const tightWidth=vw<1180;
     const shortHeight=vh<820;
     // Smaller tables have room for a clearer visual lane between each player.
@@ -20101,10 +20097,10 @@ ${isDealer
       : Math.max(tabletMin, fitted);
     const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
     const avatar=Math.floor(clamp(30,rowHeight-12,shortHeight?48:54));
-    const name=Math.floor(clamp(18,rowHeight*0.42,tightWidth?28:34));
-    const metaValue=Math.floor(clamp(17,rowHeight*0.34,tightWidth?22:26));
-    const valueHeight=Math.floor(clamp(28,rowHeight*0.56,48));
-    const valueFont=Math.floor(clamp(22,rowHeight*0.48,tightWidth?30:38));
+    const name=Math.floor(clamp(18,rowHeight*0.42,tightWidth?28:roomyDisplay?42:34));
+    const metaValue=Math.floor(clamp(17,rowHeight*0.34,tightWidth?22:roomyDisplay?32:26));
+    const valueHeight=Math.floor(clamp(28,rowHeight*0.6,roomyDisplay?60:48));
+    const valueFont=Math.floor(clamp(22,rowHeight*0.48,tightWidth?30:roomyDisplay?44:38));
     const rowPad=Math.floor(clamp(4,rowHeight*0.09,8));
     const totalCol=Math.floor(clamp(50,rowHeight*0.9,72));
     const inputCol=Math.floor(clamp(tightWidth?78:90,rowHeight*1.45,tightWidth?96:116));
@@ -20122,7 +20118,7 @@ ${isDealer
     panel.style.setProperty('--se-fit-card-gap',`${Math.floor(colGap*0.78)}px`);
     panel.style.setProperty('--se-fit-avatar-radius',`${Math.floor(avatar*0.24)}px`);
     panel.style.setProperty('--se-fit-input-radius',`${Math.floor(avatar*0.34)}px`);
-    panel.style.setProperty('--se-fit-meta-label',`${clamp(8,rowHeight*0.13,11).toFixed(0)}px`);
+    panel.style.setProperty('--se-fit-meta-label',`${clamp(10,rowHeight*0.16,roomyDisplay?16:12).toFixed(0)}px`);
     panel.style.setProperty('--se-fit-meta-value',`${metaValue}px`);
     panel.style.setProperty('--se-fit-value-height',`${valueHeight}px`);
     panel.style.setProperty('--se-fit-value-font',`${valueFont}px`);
@@ -20142,7 +20138,7 @@ ${isDealer
     panel.style.setProperty('--se-fit-selected-gap',`${Math.floor(colGap*1.1)}px`);
     panel.style.setProperty('--se-fit-selected-radius',`${Math.floor(selectedAvatar*0.24)}px`);
     panel.style.setProperty('--se-fit-selected-name',`${Math.floor(clamp(24,keyHeight*0.52,36))}px`);
-    panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(9,keyHeight*0.18,12))}px`);
+    panel.style.setProperty('--se-fit-chip-font',`${Math.floor(clamp(10,keyHeight*0.18,roomyDisplay?16:12))}px`);
 
     rows.style.maxHeight='';
     requestAnimationFrame(()=>scrollScoreEntryActiveIntoView());

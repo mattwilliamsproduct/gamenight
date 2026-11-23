@@ -132,11 +132,17 @@ html.porch-ledger.slice2-tv #top-nav .nav-btn {
   font-family: var(--ledger-type-text) !important;
 }
 
-html.porch-ledger.slice2-tv #top-nav .nav-btn.s2-nav-on,
 html.porch-ledger.slice2-tv #top-nav .nav-btn.active {
   background: var(--ledger-teal) !important;
   color: var(--ledger-on-teal) !important;
   border-color: var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv #top-nav .nav-btn.s2-nav-on {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-teal-deep) !important;
+  border-color: var(--ledger-teal) !important;
+  box-shadow: none !important;
 }
 
 /* Type: Bree for titles, Nunito tabular for every score. */
@@ -2120,7 +2126,7 @@ html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="tr
     row-gap: 4px;
   }
 
-  html.porch-ledger.slice2-tv body.home-view .s2-active-banner h2 {
+  html.porch-ledger.slice2-tv body.home-view :is(.s2-active-banner, .s2-unfinished-banner) h2 {
     font-size: clamp(24px, 1.7vw, 34px) !important;
   }
 
@@ -2129,7 +2135,7 @@ html.porch-ledger.slice2-tv #game-screen .scorecard-view-toggle[aria-checked="tr
     font-size: clamp(18px, 1.12vw, 23px) !important;
   }
 
-  html.porch-ledger.slice2-tv body.home-view .s2-active-banner .s2-btn {
+  html.porch-ledger.slice2-tv body.home-view :is(.s2-active-banner, .s2-unfinished-banner) .s2-btn {
     font-size: clamp(18px, 1.1vw, 22px) !important;
   }
 }
@@ -2160,7 +2166,7 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-roster-more {
   background: none;
   border: 0;
   color: var(--ledger-teal-deep);
-  font: 800 14px/1.2 var(--ledger-type-text);
+  font: 800 var(--bp-type-sm)/1.2 var(--ledger-type-text);
   cursor: pointer;
 }
 
@@ -2496,7 +2502,7 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-r
     padding: var(--bp-space-2) var(--bp-space-3) !important;
     box-sizing: border-box;
     text-align: left !important;
-    font-size: var(--bp-type-md) !important;
+    font-size: var(--entry-progress-size, var(--bp-type-md)) !important;
     font-weight: 800 !important;
     line-height: 1.35 !important;
     color: var(--bp-primary-deep) !important;
@@ -2523,8 +2529,8 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-r
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-progress-by-keypad #score-entry-context {
     display: block !important;
     margin: 0 !important;
-    font-size: var(--bp-type-md) !important;
-    letter-spacing: 0.04em !important;
+    font-size: var(--entry-context-size, var(--bp-type-md)) !important;
+    letter-spacing: 0 !important;
     color: var(--bp-muted) !important;
   }
   /* Players and keypad sit close; the list no longer floats away from the pad. */
@@ -3100,7 +3106,7 @@ html.porch-ledger.slice2-tv .s2-live-bench {
 
 html.porch-ledger.slice2-tv .s2-live-bench h3 {
   margin: 0 0 0.38rem;
-  font-size: max(16px, 1rem);
+  font-size: var(--bp-type-lg);
 }
 
 html.porch-ledger.slice2-tv .s2-live-bench-list {
@@ -3117,7 +3123,8 @@ html.porch-ledger.slice2-tv .s2-live-bench-seat {
   min-width: 0;
   align-items: center;
   gap: 6px;
-  font-size: max(15px, 0.95rem);
+  font-size: var(--bp-type-md);
+  font-weight: 700;
 }
 
 html.porch-ledger.slice2-tv .s2-live-bench-seat .avatar-img {
@@ -3513,4 +3520,196 @@ html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecar
   font-weight: 800;
   overflow-wrap: anywhere;
   pointer-events: none;
+}
+
+/* Keep the icon column anchored even as the totals gain digits. */
+html.porch-ledger.slice2-tv .s2-home-standings .s2-standing {
+  --standings-total-width: 4.25rem;
+  grid-template-columns: auto 36px minmax(0, 1fr) auto var(--standings-total-width) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-standing-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+html.porch-ledger.slice2-tv .s2-standing-status .s2-dealer-tag-empty {
+  display: none;
+}
+
+html.porch-ledger.slice2-tv .s2-home-standings .s2-standing-score {
+  min-width: 0 !important;
+  justify-self: end;
+}
+
+html.porch-ledger.slice2-tv .s2-unfinished-banner .s2-kicker {
+  font-size: var(--bp-type-md) !important;
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal.bp-modal-viewport-shell > .hf-setup-card {
+  width: min(calc(100% - 16px), 68rem) !important;
+  height: auto !important;
+  margin-inline: auto;
+  background: var(--ledger-paper);
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-setup-side {
+  min-width: 0;
+  border-radius: var(--bp-radius-md);
+  background: var(--ledger-paper-2);
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-people {
+  justify-content: center;
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-person {
+  flex: 0 1 8.25rem;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: stretch;
+  align-items: stretch;
+  width: min(100%, 8.25rem);
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 5 / 7;
+  gap: 0.25rem;
+  margin-inline: auto;
+  padding: 0.4rem;
+  border: 2px solid var(--ledger-line);
+  border-radius: 0.65rem;
+  background: var(--ledger-paper);
+  box-shadow: 0 2px 3px #1c150f1c;
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-portrait {
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 0.3rem;
+  background: var(--ledger-paper-2);
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-portrait .avatar-img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  object-fit: cover;
+  object-position: center 44%;
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-person .player-name-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ledger-ink);
+  font: 800 var(--bp-type-md)/1.25 var(--ledger-type-text);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-person.is-swap-from {
+  border-color: var(--bp-primary-deep);
+  box-shadow: 0 0 0 2px var(--bp-primary-deep);
+}
+
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-person.is-swap-target {
+  border-color: var(--bp-primary-border);
+  background: var(--bp-primary-wash);
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-setup-card {
+    padding: 1rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-setup-side:has(button.hf-team-person) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-people {
+    gap: 0.5rem;
+    margin-top: 0;
+  }
+
+  html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-person {
+    flex-basis: 4.75rem;
+    padding: 0.25rem;
+  }
+
+  html.porch-ledger.slice2-tv #hand-foot-setup-modal .hf-team-person .player-name-label {
+    font-size: var(--bp-type-sm);
+  }
+}
+
+html.porch-ledger.slice2-tv .bp-match-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+html.porch-ledger.slice2-tv :is(#score-entry-modal, #hand-foot-setup-modal) .bp-match-actions > button {
+  min-height: 44px !important;
+  padding: 0.6em 1.15em !important;
+  font-size: var(--bp-type-md) !important;
+  line-height: 1.15 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-unconfirmed {
+  white-space: normal !important;
+  font-size: var(--bp-type-md) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-context {
+  font-size: var(--entry-context-size, var(--bp-type-md)) !important;
+  letter-spacing: 0 !important;
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standing {
+    --standings-total-width: 3.65rem;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .bp-match-actions > button {
+    padding-inline: 0.75em !important;
+    font-size: var(--bp-type-sm) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain #score-entry-unconfirmed {
+    font-size: var(--bp-type-xs) !important;
+  }
+}
+
+@media (min-width: 1401px) and (min-height: 900px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.bp-modal-viewport-shell:not(.score-entry-hand-foot) > .score-entry-panel {
+    height: calc(100dvh - 48px) !important;
+    max-height: calc(100dvh - 48px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-hand-foot) {
+    --entry-context-size: var(--bp-type-xl);
+    --entry-progress-size: var(--bp-type-lg);
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-hand-foot) :is(#score-entry-unconfirmed, #score-entry-progress, #score-entry-selected-kicker) {
+    font-size: var(--bp-type-lg) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal .score-entry-lane-title {
+    font-size: var(--bp-type-sm) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-keypad .score-entry-key {
+    font-size: clamp(26px, 2.2vw, 40px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-keypad .score-entry-key:is(.subtle, .next) {
+    font-size: clamp(20px, 1.35vw, 26px) !important;
+  }
 }
