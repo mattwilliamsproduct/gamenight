@@ -2920,8 +2920,10 @@ html.porch-ledger #save-indicator.is-blocked {
 }
 /* Score entry: one primary action at a time (bpg2 Phase 4). */
 html.porch-ledger.slice2-tv body #score-entry-modal #score-entry-primary-btn.is-waiting {
-  background: var(--bp-secondary-bg, #fffaf3) !important; color: #0a5c54 !important;
-  border: 2px solid #0a5c54 !important; box-shadow: none !important;
+  background: var(--ledger-paper-2) !important;
+  color: var(--ledger-ink-soft) !important;
+  border: 1px solid var(--ledger-line) !important;
+  box-shadow: none !important;
 }
 html.porch-ledger.slice2-tv body #score-entry-modal.is-entry-complete .score-entry-keypad .score-entry-key.next {
   background: var(--bp-secondary-bg, #fffaf3) !important; color: #0a5c54 !important;
@@ -3085,12 +3087,12 @@ html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-b
 
 html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge-ready {
   background: #e2f0e6 !important;
-  color: #236044 !important;
+  color: #174e34 !important;
 }
 
 html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge-used {
   background: #f2e4e1 !important;
-  color: #875d57 !important;
+  color: #733f37 !important;
 }
 
 html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge .wheel-badge-icon {
@@ -3845,4 +3847,60 @@ html.porch-ledger #life-preserver-help h4 {
   html.porch-ledger #wheel-modal .wheel-legend .wheel-legend-chip {
     font-size: var(--bp-type-sm) !important;
   }
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-btn-start-secondary:not(:disabled) {
+  background: var(--ledger-paper) !important;
+  color: var(--ledger-teal-deep) !important;
+  border-color: var(--ledger-teal-deep) !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-table #save-indicator.bpg-try-demo-save,
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-round-td:not(.scorecard-round-td--exact) .score-cell-input.is-entered {
+  color: var(--ledger-ink) !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-label {
+  align-self: flex-start;
+  padding: 0.12em 0.45em;
+  border-radius: 999px;
+  background: var(--ledger-brass-soft);
+  color: #5b3d14;
+  font: 800 var(--bp-type-xs)/1.15 var(--ledger-type-text);
+}
+
+html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge-icon {
+  stroke-width: 2.1;
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-label {
+    display: none;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike #score-entry-unconfirmed {
+    font-size: var(--bp-type-xs) !important;
+    line-height: 1.2 !important;
+  }
+}
+
+@media (min-width: 1401px) {
+  html.porch-ledger.slice2-tv .s2-home-start :is(.s2-rules-select, #slice2-start-summary) {
+    font-size: var(--bp-type-sm) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-trick-entry .bp-match-actions {
+    gap: 5px !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-trick-entry .bp-match-actions > button {
+    padding-inline: 0.25em !important;
+  }
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit.score-entry-plain .score-entry-panel.score-entry-many-players #score-entry-context {
+  display: block;
 }

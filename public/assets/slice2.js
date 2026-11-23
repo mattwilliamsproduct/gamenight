@@ -572,7 +572,7 @@
             <div>
               <h2>Start a new match</h2>
               <p class="s2-sub">${live
-                ? 'Starts with the current table. You’ll choose what to do with the active match first.'
+                ? 'You’ll be asked to save the active match before starting another.'
                 : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap start')}</p>
             </div>
             <label class="s2-rules-picker">
@@ -586,7 +586,7 @@
           <div class="s2-startbar">
             <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
             ${live && !limit.ok ? '<button type="button" class="s2-btn" data-s2-action="leave-active">Leave active match</button>' : ''}
-            <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
+            <button type="button" class="s2-btn${live ? ' s2-btn-start-secondary' : ' s2-btn-primary'}" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
     const liveBench = live ? getKnownPlayerNames().filter(player =>

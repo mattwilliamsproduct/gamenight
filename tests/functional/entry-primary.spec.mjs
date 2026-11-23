@@ -20,6 +20,8 @@ for (const [width, height] of [[1180, 820], [1024, 768]]) {
     const next = page.locator('#score-entry-modal .score-entry-key.next');
     const teal = (loc) => loc.evaluate((el) => getComputedStyle(el).backgroundColor === 'rgb(17, 120, 108)');
     await expect(lock).toHaveText('Lock bids');
+    await expect(page.locator('#score-entry-unconfirmed')).toHaveText('Skip leaves a bid blank.');
+    await expect(page.locator('#score-entry-rows .score-entry-dealer-badge')).toHaveText('Dealer');
     await expect(lock).toBeEnabled();
     await expect.poll(() => teal(lock), {message: 'Lock bids is secondary while bids are missing'}).toBe(false);
     await expect.poll(() => teal(next), {message: 'Next is the primary'}).toBe(true);

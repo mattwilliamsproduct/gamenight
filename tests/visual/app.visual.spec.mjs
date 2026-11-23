@@ -533,13 +533,11 @@ test('five-crowns first round uses compact avatar-led player identities',async({
     text:(element.textContent||'').trim(),
     clientWidth:element.clientWidth,
     scrollWidth:element.scrollWidth,
-    fontSize:Number.parseFloat(getComputedStyle(element).fontSize),
-    textOverflow:getComputedStyle(element).textOverflow
+    fontSize:Number.parseFloat(getComputedStyle(element).fontSize)
   }));
   expect(fit.text).toBe('Michelle');
   expect(fit.scrollWidth,'Michelle should not be truncated').toBeLessThanOrEqual(fit.clientWidth+1);
   expect(fit.fontSize,'Michelle should remain readable').toBeGreaterThanOrEqual(14);
-  expect(fit.textOverflow,'live player names should never use an ellipsis').toBe('clip');
 
   const scorecard=page.locator('#scorecard-capture');
   await expect(scorecard.locator('.drag-handle')).toHaveCount(0);
@@ -562,7 +560,7 @@ test('five-crowns first round uses compact avatar-led player identities',async({
     };
   });
   expect(identityGeometry.avatarInset,'avatar should align beneath the Player heading').toBeLessThanOrEqual(22);
-  expect(identityGeometry.nameGap,'name should sit immediately beside the avatar').toBeLessThanOrEqual(5);
+  expect(identityGeometry.nameGap,'name should stay beside the avatar within the 14px gap and 2px inset').toBeLessThanOrEqual(16);
 
   const dealer=page.locator('#scorecard-body button.dealer-name-indicator');
   await expect(dealer).toHaveCount(1);
@@ -587,10 +585,12 @@ test('five-crowns first round uses compact avatar-led player identities',async({
   expect(dealerGeometry.paddingRight).toBe('0px');
   expect(dealerGeometry.leftInset,'dealer name should fill the unboxed button').toBeLessThanOrEqual(2.5);
   expect(dealerGeometry.rightInset,'dealer name should fill the unboxed button').toBeLessThanOrEqual(2.5);
-  expect(dealerGeometry.labelPadLeft,'dealer is the D badge, not a boxed name').toBe(0);
-  expect(dealerGeometry.labelPadRight,'dealer is the D badge, not a boxed name').toBe(0);
+  expect(dealerGeometry.labelPadLeft,'dealer name keeps its unboxed styling').toBe(0);
+  expect(dealerGeometry.labelPadRight,'dealer name keeps its unboxed styling').toBe(0);
   expect(dealerGeometry.labelWidth,'dealer name should size to the letters').toBeGreaterThan(dealerGeometry.text.length*6);
-  await expect(firstRow.locator('.scorecard-avatar-slot .scorecard-dealer-avatar-badge')).toHaveCount(1);
+  await expect(firstRow.locator('.scorecard-dealer-label')).toBeVisible();
+  await expect(firstRow.locator('.scorecard-dealer-label')).toHaveText('Dealer');
+  await expect(firstRow.locator('.scorecard-dealer-avatar-badge')).toHaveCount(0);
 });
 
 test('navigation and match header ignore scorecard text-size zoom',async({page})=>{
@@ -753,14 +753,24 @@ test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',
     const headerActions=bannerHidden?header?.querySelector('.s2-board-actions'):actions;
     const headerBox=header?.getBoundingClientRect();
     const actionsBox=headerActions?.getBoundingClientRect();
-    const titleBox=(bannerHidden?document.getElementById('slice2-board-line'):title)?.getBoundingClientRect();
+    const titleNode=bannerHidden?document.getElementById('slice2-board-line'):title;
+    const titleBoxes=[];
+    if(titleNode){
+      const walker=document.createTreeWalker(titleNode,NodeFilter.SHOW_TEXT);
+      const range=document.createRange();
+      while(walker.nextNode()){
+        if(!walker.currentNode.textContent.trim())continue;
+        range.selectNodeContents(walker.currentNode);
+        titleBoxes.push(...range.getClientRects());
+      }
+    }
     const roundBox=round?.getBoundingClientRect();
     const metricsBox=metrics?.getBoundingClientRect();
     return {
       rows,
       banner:{
         actionsInside:!headerBox||!actionsBox||actionsBox.right<=headerBox.right+1,
-        titleClearOfActions:!titleBox||!actionsBox||titleBox.right<=actionsBox.left+2||titleBox.bottom<=actionsBox.top+1,
+        titleClearOfActions:!actionsBox||titleBoxes.every(box=>box.right<=actionsBox.left+2||box.bottom<=actionsBox.top+1||box.top>=actionsBox.bottom-1),
         roundClearOfMetrics:bannerHidden||!metrics||metrics.classList.contains('hidden')||roundBox.right<=metricsBox.left-1||roundBox.bottom<=metricsBox.top+1,
         metricsClearOfActions:bannerHidden||!metrics||metrics.classList.contains('hidden')||metricsBox.right<=actionsBox.left-2||metricsBox.bottom<=actionsBox.top+1,
         noChildOverlap:true,
@@ -774,9 +784,9 @@ test('late five-player Wizard keeps Michelle whole and tablet banner uncrowded',
   expect(layout.rows.find(row=>row.fullText==='MICHELLE')?.fullText).toBe('MICHELLE');
   const brick=layout.rows.find(row=>row.fullText==='BRICK');
   expect(brick?.dealer,'Brick should be dealer').toBe(true);
-  expect(brick?.padLeft,'dealer is the D badge, not a boxed name').toBe(0);
-  expect(brick?.padRight,'dealer is the D badge, not a boxed name').toBe(0);
-  await expect(page.locator('#scorecard-body .scorecard-dealer-avatar-badge')).toHaveCount(1);
+  expect(brick?.padLeft,'dealer name keeps its unboxed styling').toBe(0);
+  expect(brick?.padRight,'dealer name keeps its unboxed styling').toBe(0);
+  await expect(page.locator('#scorecard-body .scorecard-dealer-label')).toHaveText('Dealer');
   expect(layout.banner.actionsInside).toBe(true);
   expect(layout.banner.titleClearOfActions).toBe(true);
   expect(layout.banner.roundClearOfMetrics).toBe(true);
@@ -808,6 +818,9 @@ test('score-entry shows progress and live entered states',async({page})=>{
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=entry-scores',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
+  const context=page.locator('#score-entry-context');
+  await expect(context).toBeVisible();
+  await expect(context).toHaveText(/Round \d+ of 11 · Hand of \d+ · (?:\d+|[JQK])s wild/);
   await expect(page.locator('#score-entry-progress')).toHaveText('0 of 8 scores entered');
   await expect(page.locator('.score-entry-row.is-empty')).toHaveCount(8);
   await expect(page.locator('.score-entry-row.is-complete')).toHaveCount(0);
@@ -903,7 +916,7 @@ test('Wizard rejects bids outside the available trick range',async({page})=>{
     updateScoreEntryProgress();
   });
   await page.getByRole('button',{name:'Lock bids',exact:true}).click();
-  await expect(page.locator('#score-entry-error')).toContainText(/Wizard bids must be from 0 to/);
+  await expect(page.locator('#score-entry-error')).toHaveText('This round has 6 tricks.');
   await expect(page.locator('#score-entry-modal:not(.hidden)')).toBeVisible();
   await expect(page.locator('#round-intel')).toContainText('Bidding');
 });

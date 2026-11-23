@@ -497,7 +497,11 @@ test('starting from a live table uses active seats rather than a stale Home line
     goHome();
     return {active,id:currentGame.id,round:currentGame.currentRound};
   });
-  await page.locator('#slice2-start-btn').click();
+  const start=page.locator('#slice2-start-btn');
+  await expect(start).toHaveClass(/s2-btn-start-secondary/);
+  await start.click();
+  await expect(page.locator('#leave-save-later')).toBeVisible();
+  expect(await page.evaluate(()=>currentGame.id)).toBe(table.id);
   await page.locator('#leave-save-later').click();
   await expect(page.locator('#slice2-board-line')).toContainText('Round 1 of 11');
   const started=await page.evaluate(id=>({roster:currentGame.originalRoster, parked:history.find(match=>match.id===id)?.currentRound}),table.id);

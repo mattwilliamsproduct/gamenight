@@ -18931,8 +18931,7 @@ ${isDealer
 
     let intel=`R${currentGame.currentRound}`;
     if(currentGame.name==='Five Crowns'){
-      const wilds=['3','4','5','6','7','8','9','10','J','Q','K'];
-      if(!over) intel=`Hand of ${currentGame.currentRound+2} · ${wilds[currentGame.currentRound-1]}s wild`;
+      if(!over) intel=fiveCrownsHandContext(currentGame.currentRound);
     } else if(isWiz){
       intel=`R${currentGame.currentRound} / ${maxR} · ${wPhase==='bidding'?'Bidding':'Scoring'}`;
     } else if(is818){
@@ -19090,8 +19089,8 @@ ${isDealer
       const hfMembers=isHandFootGame(currentGame)?handFootMembersOf(currentGame,p):[];
       const hfTeam=hfMembers.length>1;
       const avatarInner=hfTeam
-        ? `<span class="hf-team-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`
-        : `${getStreakAvatarHtml(p,'avatar-img-sc')}${isDealer?'<span class="scorecard-dealer-avatar-badge" aria-hidden="true">D</span>':''}`;
+        ? `<span class="hf-team-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>`
+        : getStreakAvatarHtml(p,'avatar-img-sc');
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
@@ -19105,7 +19104,7 @@ ${isDealer
             <div class="scorecard-player-identity flex items-center gap-2 min-w-0 flex-1">
               ${rankBadge}
               <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${avatarInner}</span>
-              <span class="scorecard-player-name-slot">${nameInner}</span>
+              <span class="scorecard-player-name-slot">${nameInner}${isDealer?'<span class="scorecard-dealer-label" aria-hidden="true">Dealer</span>':''}</span>
               <span class="scorecard-turbo-slot">${comebackChip}</span>
             </div>
             ${wheelBadge}
@@ -19706,6 +19705,11 @@ ${isDealer
     const text=String(title||'');
     return text ? text.charAt(0)+text.slice(1).replace(/[A-Z]/g, (ch)=>ch.toLowerCase()) : '';
   }
+  function fiveCrownsHandContext(round){
+    const wild=['3','4','5','6','7','8','9','10','J','Q','K'][round-1];
+    return `Hand of ${round+2}${wild?' · '+wild+'s wild':''}`;
+  }
+
   function getScoreEntryRoundContext(mode){
     if(!currentGame||!mode)return '';
     const maxR=getMaxRoundsForGame(currentGame);
@@ -19715,7 +19719,7 @@ ${isDealer
       const tricks=getRoundTrickCount(currentGame);
       return `Round ${currentGame.currentRound} of ${maxR} · ${tricks} trick${tricks!==1?'s':''} · ${title}`;
     }
-    if(currentGame.name==='Five Crowns')return `Hand of ${currentGame.currentRound+2} · ${title}`;
+    if(currentGame.name==='Five Crowns')return `Round ${currentGame.currentRound} of ${maxR} · ${fiveCrownsHandContext(currentGame.currentRound)} · ${title}`;
     if(currentGame.name==='Beat the Heat'){
       const endScore=getEndScoreForGame(currentGame);
       return endScore?`Round ${currentGame.currentRound} · Ends at ${endScore} heat · ${title}`:`Round ${currentGame.currentRound} · ${title}`;
@@ -20012,7 +20016,11 @@ ${isDealer
       progress.textContent=enteredText;
     }
     const note=document.getElementById('score-entry-unconfirmed');
-    if(note) note.textContent=(!isScoreEntryBidMode(mode)&&!isScoreEntryTrickMode(mode))?BPGScorebook.scoreEntryBlankHelper():'';
+    if(note){
+      note.textContent=isScoreEntryBidMode(mode)
+        ? 'Skip leaves a bid blank.'
+        : isScoreEntryTrickMode(mode)?'':BPGScorebook.scoreEntryBlankHelper();
+    }
     const submit=document.getElementById('score-entry-primary-btn');
     if(submit) submit.disabled=false;
     // One primary action at a time: Next leads while entries are missing; once all are in, Lock bids / Submit leads.
@@ -20337,7 +20345,7 @@ ${isDealer
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${scoreEntryRowStateClass(entryStatus.state)}" aria-label="${escapeHtml(`${active?'Up now: ':''}${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${scoreEntryRowStateClass(entryStatus.state)}" aria-label="${escapeHtml(`${active?'Up now: ':''}${p}${isDealer?', dealer':''}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
         <div class="score-entry-player-card">
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
