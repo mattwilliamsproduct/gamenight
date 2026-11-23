@@ -197,7 +197,8 @@ export async function playFourRounds(page, kind){
 }
 
 export async function endMatch(page){
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   const confirm=page.locator('#leave-end-now');
   await expect(confirm).toBeVisible();
   await confirm.click();

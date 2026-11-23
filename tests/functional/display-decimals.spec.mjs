@@ -96,7 +96,9 @@ test('passport chips use plain-language labels', async ({page}) => {
   });
   const grid = page.locator('#profiles-grid');
   await expect(grid).toBeVisible({timeout: 15000});
-  const text = await grid.innerText();
+  const detail = page.locator('#detail-career-summary');
+  await grid.getByRole('button', {name: /^Details for /}).first().press('Enter');
+  const text = await detail.innerText();
   expect(text).not.toMatch(/\bW\d\b/);
   expect(text).not.toMatch(/\bL\d\b/);
   expect(text).not.toContain('Nolie');
@@ -105,22 +107,26 @@ test('passport chips use plain-language labels', async ({page}) => {
   expect(text).toMatch(/Won the last match|Lost the last match|Won the last \d+ matches|Lost the last \d+ matches|Everyone made their bid|Only player to score|Everyone missed/);
   expect(text).not.toMatch(/Only one scored \d+|Everyone made bid \d+|Everyone missed \d+/);
   await page.locator('#profile-game-filter').selectOption('Wizard');
-  const wizardText = await grid.innerText();
+  await grid.getByRole('button', {name: /^Details for /}).first().press('Enter');
+  const wizardText = await detail.innerText();
   expect(wizardText).not.toMatch(/\bW\d\b/);
   expect(wizardText).not.toContain('Nolie');
   expect(wizardText).not.toContain('All scored');
 });
 
-test('passport chips stay one line at 1440, 1280, 390, and 375', async ({page}) => {
+test('passport details stay within the sheet at 1440, 1280, 390, and 375', async ({page}) => {
   for (const width of [1440, 1280, 390, 375]) {
     await page.setViewportSize({width, height: width >= 1024 ? 900 : 844});
     await openDemo(page);
     await page.evaluate(() => { if (typeof showProfiles === 'function') showProfiles(); });
     const grid = page.locator('#profiles-grid');
     await expect(grid).toBeVisible({timeout: 15000});
+    await expect(grid.locator('.profile-badge')).toHaveCount(0);
+    await grid.getByRole('button', {name: /^Details for /}).first().press('Enter');
+    await expect(page.locator('#profile-detail-view .profile-badge').first()).toBeVisible();
     const wrapped = await page.evaluate(() => {
-      return [...document.querySelectorAll('#profiles-grid .profile-badge')].filter((chip) => {
-        const card = chip.closest('.profile-passport-card');
+      return [...document.querySelectorAll('#profile-detail-view .profile-badge')].filter((chip) => {
+        const card = chip.closest('#profile-detail-view');
         return chip.scrollWidth > chip.clientWidth + 1 || (card && chip.getBoundingClientRect().right > card.getBoundingClientRect().right + 1);
       }).map((chip) => chip.textContent.trim());
     });

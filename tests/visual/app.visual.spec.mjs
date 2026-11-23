@@ -101,7 +101,7 @@ async function expectScorecardUsesRowHeight(page){
   expect(rowBox,'scorecard row should be visible').not.toBeNull();
   const sizes=await page.locator('#scorecard-body tr').first().evaluate(element=>({
     name:Number.parseFloat(getComputedStyle(element.querySelector('.scoreboard-player-name')).fontSize),
-    total:Number.parseFloat(getComputedStyle(element.querySelector('.scorecard-total-cell')).fontSize),
+    total:Number.parseFloat(getComputedStyle(element.querySelector('.scorecard-total-value')).fontSize),
     avatar:element.querySelector('.avatar-img-sc')?.getBoundingClientRect().height||0,
     row:element.getBoundingClientRect().height
   }));

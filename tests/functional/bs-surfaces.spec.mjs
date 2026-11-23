@@ -68,8 +68,13 @@ test('the passport Canasta line matches its siblings and stays one line', async 
   await page.goto('/?gnqa=1&gallery=0&scenario=records-book&surface=records', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
   await page.evaluate(() => showProfiles());
-  const card = page.locator('.profile-passport-card', {has: page.locator('[data-canasta-events="passport"]')}).first();
-  await expect(card).toBeVisible();
+  const player = await page.evaluate(() => allPlayers.find(name => BPGHandFoot.playerEventTotals(history, name)?.rounds));
+  const summary = page.getByRole('button', {name: `Details for ${player}`, exact: true});
+  await expect(page.locator('#profiles-grid [data-canasta-events="passport"]')).toHaveCount(0);
+  await summary.focus();
+  await summary.press('Enter');
+  const card = page.locator('#detail-career-summary');
+  await expect(card.locator('[data-canasta-events="passport"]')).toBeVisible();
   const fit = await card.evaluate((root) => {
     const line = root.querySelector('.profile-canasta-events');
     const sibling = root.querySelector('.profile-career-card');

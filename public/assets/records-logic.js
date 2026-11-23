@@ -1772,9 +1772,9 @@
     return `<article class="s2-rival">
       <small class="s2-kicker">Head-to-head</small>
       <div class="s2-rival-pair">
-        <div class="s2-rival-person">${avatar(pair.a, 'avatar-img s2-mini-avatar')}${playerLink(pair.a, esc, avatar)}<strong>${esc(String(pair.aWins))}</strong></div>
+        <div class="s2-rival-person">${playerLink(pair.a, esc, avatar)}<strong>${esc(String(pair.aWins))}</strong></div>
         <span class="s2-rival-vs">vs</span>
-        <div class="s2-rival-person">${avatar(pair.b, 'avatar-img s2-mini-avatar')}${playerLink(pair.b, esc, avatar)}<strong>${esc(String(pair.bWins))}</strong></div>
+        <div class="s2-rival-person">${playerLink(pair.b, esc, avatar)}<strong>${esc(String(pair.bWins))}</strong></div>
       </div>
       <p class="s2-sub">${esc(lead.text)}${esc(ties)} · ${esc(String(pair.together))} shared matches</p>
       ${options ? `<label class="s2-rival-pick">Pick another pairing <select class="bp-select" data-s2-action="filter-pair">${options}</select></label>` : ''}

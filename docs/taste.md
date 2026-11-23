@@ -13,6 +13,11 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Rook is off the Home picker (Matt, 2026-11-13 6:13 PM: six decks, f2c81a4). Do not add another way to start a Rook game. Rook's code, rules, setup (300, 500, or 1000; 300 selected), history, Records, and Passports stay.
 - Comeback Extra is the extra already stored on a night. The score cell shows it. Records names Most Comeback Extras In One Game and Biggest Comeback Extra. The live turbo script stays unloaded, the same as production.
 - Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.
+- Use shared page rails across Home, the live board, Records, and Passports. Use wider layouts for readable type and useful content, and give long Records sections the full grid width.
+- Keep the wild rank, dealer, name, place, and total readable across the room. Put place near the avatar and use the wheel icon with two quiet status colors.
+- Put first-use instructions beside Add player. Label the bench and ready players, make selection visible on the card face, and keep titles upright.
+- Give two-team Canasta readable team identities, adjacent totals, and a keypad sized for the entry form.
+- Start Passports with Photo and a short summary. Open the full career view on Details. Make room for Settings side by side on wide displays.
 - Buttons, modal labels, and player names use regular-width sentence case at a readable size. Names stay as typed. A long single name stays on one line: it shrinks or ends in an ellipsis, and it never splits mid-word. Phone nav buttons size to their words, so Player Passports stays one line at 13px or larger.
 - No pad has a 00 key. When there is no minus, 0 fills that whole row. Spin ready sits fully inside the player cell, toward the right of the name.
 - A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. The full game picker stays visible on Home during an active match.

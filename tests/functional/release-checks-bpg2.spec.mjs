@@ -51,7 +51,8 @@ test('double-tapping Submit tricks adds one round, and double-tapping End game n
     .toEqual({rounds: 2, round: 3, phase: 'bidding', totals: {Hazel: 60, Otis: 50, Juniper: 40}});
 
   // Finish: End game now on a complete game, tapped twice, saves one game.
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').evaluate((button) => { button.click(); button.click(); });
   await page.waitForTimeout(800);
   const after = await page.evaluate(() => ({

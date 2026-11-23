@@ -38,12 +38,12 @@ async function bootTable(page, {live} = {}) {
 async function touchDrag(page, fromName, toName) {
   await page.evaluate(({fromName, toName}) => {
     const seat = (name) => [...document.querySelectorAll('#slice2-home .s2-seat')].find((row) => (row.dataset.s2Player || '') === name);
-    const from = seat(fromName).getBoundingClientRect();
     const to = seat(toName).getBoundingClientRect();
-    const start = document.elementFromPoint(from.left + 24, from.top + from.height / 2);
+    const start = seat(fromName).querySelector('.s2-seat-handle');
+    const handle = start.getBoundingClientRect();
     const down = new PointerEvent('pointerdown', {
       bubbles: true, cancelable: true, pointerId: 7, pointerType: 'touch', isPrimary: true,
-      clientX: from.left + 24, clientY: from.top + from.height / 2
+      clientX: handle.left + handle.width / 2, clientY: handle.top + handle.height / 2
     });
     start.dispatchEvent(down);
     document.dispatchEvent(new PointerEvent('pointermove', {
@@ -85,53 +85,13 @@ test('touch drag reorders, Undo restores the seat, and a live match is untouched
   expect(stillSaved).toBe(true);
 });
 
-test('unseating the next roster does not change the live match', async ({page}) => {
-  await page.setViewportSize({width: 1440, height: 900});
-  await bootTable(page, {live: true});
-  await expect(page.locator('.s2-home-standings .s2-seat-out')).toHaveCount(0);
-  await expect(page.locator('.s2-home-standings .s2-seat-handle')).toHaveCount(0);
-  await expect(page.locator('.s2-home-standings .s2-seat-nudge')).toHaveCount(0);
-  const before = await page.evaluate(() => JSON.stringify({
-    roster: currentGame.originalRoster,
-    totals: currentGame.totals,
-    rounds: currentGame.rounds,
-    phase: currentGame.eight18Phase,
-    bids: currentGame.currentBids
-  }));
-  await expect(page.locator('.s2-home-start')).toContainText('Next match players');
-  await page.locator('[data-s2-action="edit-next-roster"]').click();
-  await expect(page.locator('#slice2-next-roster')).toContainText('Unseat from next match (keeps their profile)');
-  await expect(page.locator('#slice2-next-roster .s2-seat[data-s2-player="Katie"] .s2-seat-out')).toHaveAttribute('aria-label', 'Unseat Katie from next match (keeps their profile)');
-  await page.locator('#slice2-next-roster .s2-seat[data-s2-player="Katie"] .s2-seat-out').click();
-  await expect(page.locator('#toast-container')).toHaveText('Katie unseated · Undo');
-  const after = await page.evaluate(() => JSON.stringify({
-    roster: currentGame.originalRoster,
-    totals: currentGame.totals,
-    rounds: currentGame.rounds,
-    phase: currentGame.eight18Phase,
-    bids: currentGame.currentBids,
-    seated: players.slice()
-  }));
-  const parsed = JSON.parse(after);
-  expect(JSON.stringify({
-    roster: parsed.roster,
-    totals: parsed.totals,
-    rounds: parsed.rounds,
-    phase: parsed.phase,
-    bids: parsed.bids
-  })).toBe(before);
-  expect(parsed.seated).not.toContain('Katie');
-  await page.locator('.toast-undo').click();
-  const restored = await page.evaluate(() => players.slice());
-  expect(restored).toEqual(ROSTER);
-  const still = await page.evaluate(() => JSON.stringify({
-    roster: currentGame.originalRoster,
-    totals: currentGame.totals,
-    rounds: currentGame.rounds
-  }));
-  expect(still).toBe(JSON.stringify({
-    roster: JSON.parse(before).roster,
-    totals: JSON.parse(before).totals,
-    rounds: JSON.parse(before).rounds
-  }));
+test('Home shows the live roster and bench without a next-match editor', async ({page}) => {
+  await page.setViewportSize({width:1440,height:900});
+  await bootTable(page,{live:true});
+  await page.evaluate(()=>{ allPlayers.push('Morgan'); goHome(); });
+  await expect(page.locator('.s2-standing')).toHaveCount(ROSTER.length);
+  await expect(page.locator('.s2-live-bench-seat')).toContainText('Morgan');
+  await expect(page.locator('.s2-home-grid .s2-seat-out, .s2-home-grid .s2-seat-handle')).toHaveCount(0);
+  await expect(page.locator('.s2-game:visible')).toHaveCount(6);
+  await expect(page.locator('#slice2-next-roster')).toHaveCount(0);
 });

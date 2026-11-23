@@ -10277,7 +10277,7 @@ button.dealer-name-indicator .dealer-player-label {
               </div>
               <div class="actions-menu-section">
                 <span class="actions-menu-label">Leave game</span>
-                <button type="button" id="actions-save-end" onclick="requestLeaveGame();closeActionsMenu();" class="actions-menu-item match-end-btn">
+                <button type="button" id="actions-save-end" onclick="document.getElementById('actions-btn').focus();requestLeaveGame();" class="actions-menu-item match-end-btn">
                   <span class="actions-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg></span>
                   <span>Leave game</span>
                 </button>
@@ -10367,12 +10367,11 @@ button.dealer-name-indicator .dealer-player-label {
     </div>
 
     <!-- ═══ PROFILES ═══ -->
-    <div id="profiles-screen" class="hidden max-w-6xl mx-auto">
+    <div id="profiles-screen" class="hidden w-full mx-auto">
       <div class="bp-view-heading profile-yearbook-heading mb-7 border-b hairline pb-5">
         <div>
           <div class="profile-script-label">Cabana crew</div>
           <h2 class="font-display text-4xl bp-illustrated-heading bp-heading-profiles">Player Passports</h2>
-          <p class="text-sm font-bold mt-1.5" style="color:var(--muted);">A beach-club yearbook for every game night regular.</p>
         </div>
         <div id="profiles-summary-strip" class="profile-summary-strip"></div>
       </div>
@@ -10404,7 +10403,7 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
       <p id="profile-scope-note" class="s2-scope-note" hidden></p>
       <div id="profiles-grid" class="profile-passport-grid"></div>
-      <div id="profile-detail-view" class="hidden mt-8 surface-raised p-7 relative profile-passport-detail">
+      <div id="profile-detail-view" class="hidden mt-8 surface-raised p-7 relative profile-passport-detail" tabindex="-1" aria-labelledby="detail-name">
         <button type="button" onclick="closeProfileDetail()" class="bp-modal-close absolute top-4 right-6 text-4xl leading-none font-light z-10" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div class="profile-passport-hero mb-7">
           <div class="relative group cursor-pointer profile-passport-avatar" role="button" tabindex="0" aria-label="Change avatar or photo" onclick="openAvatarPicker()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAvatarPicker();}">
@@ -10425,6 +10424,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="detail-passport-stamp" class="profile-passport-stamp"></div>
         </div>
         <div id="detail-boardwalk-stats" class="profile-stat-grid mb-7"></div>
+        <div id="detail-career-summary" class="mb-7"></div>
         <div id="detail-game-breakdown-section" class="hidden mb-7">
           <h3 class="font-display text-2xl mb-3" style="color:var(--emerald);">Boardwalk stats</h3>
           <div id="detail-game-breakdown" class="profile-game-breakdown"></div>
@@ -11097,6 +11097,7 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <div class="bp-modal-body">
 
+        <div class="settings-preferences">
         <!-- Appearance -->
         <div class="mb-6">
           <div class="space-y-2">
@@ -11142,8 +11143,10 @@ button.dealer-name-indicator .dealer-player-label {
           </div>
         </div>
 
+        </div>
+
         <!-- On this device -->
-        <div class="border-t hairline pt-5">
+        <div class="settings-device border-t hairline pt-5">
           <div class="settings-plain-label">On this device</div>
           <div class="space-y-3">
             <p id="backup-device-summary" class="text-sm font-bold leading-relaxed" style="color:var(--ink-2);"></p>
@@ -11367,9 +11370,9 @@ button.dealer-name-indicator .dealer-player-label {
     const label=kind==='ready'?copy.ready:copy.used;
     const spoken=`${label} for ${player}`;
     if(kind==='ready'){
-      return `<button type="button" class="wheel-badge wheel-badge-ready" onclick="authorizeHailMary('${escapeJsString(player)}')" aria-label="${escapeHtml(spoken)}">${wheelIconSvg()}<span>${escapeHtml(label)}</span></button>`;
+      return `<button type="button" class="wheel-badge wheel-badge-ready" onclick="authorizeHailMary('${escapeJsString(player)}')" aria-label="${escapeHtml(spoken)}" title="${escapeHtml(spoken)}">${wheelIconSvg()}</button>`;
     }
-    return `<span class="wheel-badge wheel-badge-used" aria-label="${escapeHtml(spoken)}">${wheelIconSvg()}<span>${escapeHtml(label)}</span></span>`;
+    return `<span class="wheel-badge wheel-badge-used" role="img" aria-label="${escapeHtml(spoken)}" title="${escapeHtml(spoken)}">${wheelIconSvg()}</span>`;
   }
   function applyWheelChrome(){
     const copy=wheelCopy();
@@ -14492,39 +14495,15 @@ button.dealer-name-indicator .dealer-player-label {
       const accent=getProfileAccentColor(p);
       d.className='profile-passport-card';
       d.style.setProperty('--profile-accent', accent);
-      d.onclick=()=>openProfileDetail(p);
-      const scoped=!!s.gameScope;
-      const scopedBest=scoped && s.gameStats[s.gameScope] && s.gameStats[s.gameScope].best
-        ? String(s.gameStats[s.gameScope].best.score)
-        : '-';
-      const fav=s.favoriteGame?profileGameLabel(s.favoriteGame[0]):'No games yet';
-      const best=s.bestGame?`${profileGameLabel(s.bestGame[0])} · ${Math.round(s.bestGame[1].wins/s.bestGame[1].games*100)}%`:'Building history';
+      d.addEventListener('click', event=>{
+        if(!event.target.closest('button')) d.querySelector('.profile-details-btn').click();
+      });
       const recent=s.recent?`${profileGameLabel(s.recent.game)} · ${s.recent.won?'Won':'Played'} ${s.recent.date||''}`:'Ready for first match';
-      const streakLabel=window.BPGRecords&&typeof BPGRecords.formatStreakPhrase==='function'
-        ? BPGRecords.formatStreakPhrase(s.currentStreak)
-        : '';
-      const streakTip=window.BPGRecords&&typeof BPGRecords.formatStreakTitle==='function'
-        ? BPGRecords.formatStreakTitle(s.currentStreak)
-        : '';
-      const specialChip=(kind, count, tone, title)=>{
-        if(!count) return '';
-        const label=window.BPGRecords&&typeof BPGRecords.formatSpecialChip==='function'
-          ? BPGRecords.formatSpecialChip(kind, count)
-          : '';
-        return label?renderProfileBadge(label, undefined, tone, title):'';
-      };
-      const badges=[
-        streakLabel?renderProfileBadge(streakLabel, undefined, s.currentStreak.startsWith('W')?'hot':'storm', streakTip):'',
-        specialChip('whammy', s.specialTotals.whammy, 'hot', 'A round where only one player scored well and everyone else missed.'),
-        specialChip('nolie', s.specialTotals.nolie, 'good', 'A round where everyone at the table made their bid, scored 0 in Five Crowns, or scored in Flip 7.'),
-        specialChip('cami', s.specialTotals.cami, 'storm', 'A round where everyone missed their bid, or everyone scored 0.'),
-        s.needsAvatar?renderProfileBadge('Needs avatar', undefined, 'neutral'):''
-      ].filter(Boolean).slice(0,4).join('');
       d.innerHTML=`
         <div class="profile-passport-top">
           <div class="profile-card-avatar-action">
             ${getStreakAvatarHtml(p,'avatar-img-lg')}
-            <button type="button" class="profile-avatar-quick-btn">Photo</button>
+            <button type="button" class="profile-avatar-quick-btn" aria-label="Photo for ${escapeHtml(p)}">Photo</button>
           </div>
           <div class="min-w-0">
             <div class="profile-passport-name">${escapeHtml(p)}</div>
@@ -14536,16 +14515,49 @@ button.dealer-name-indicator .dealer-player-label {
           <div class="profile-mini-stat"><span>Wins</span><strong>${s.wins}</strong></div>
           <div class="profile-mini-stat"><span>Win rate</span><strong>${s.games?`${s.winRate}%`:'-'}</strong>${s.games?`<span>${s.wins} of ${s.games}</span>`:''}</div>
         </div>
-        ${scoped
-          ? `<div class="profile-big-stat"><span>Best score</span><strong>${escapeHtml(scopedBest)}</strong></div>`
-          : `<div class="profile-big-stat"><span>Most played</span><strong>${escapeHtml(fav)}</strong></div>
-        <div class="profile-big-stat"><span>Best game</span><strong>${escapeHtml(best)}</strong></div>`}
-        ${careerCardHtml(s)}
-        ${passportCanastaLine(p)}
-        <div class="profile-badge-row">${badges||renderProfileBadge('New passport')}</div>`;
+        <button type="button" class="s2-btn profile-details-btn" aria-label="Details for ${escapeHtml(p)}" aria-controls="profile-detail-view">Details</button>`;
       d.querySelector('.profile-avatar-quick-btn')?.addEventListener('click', event=>openAvatarPickerForProfile(p,event));
+      d.querySelector('.profile-details-btn').addEventListener('click', event=>openProfileDetail(p, event.currentTarget));
       c.appendChild(d);
     });
+  }
+
+  function passportCareerSummaryHtml(s){
+    const p=s.name;
+    const scoped=!!s.gameScope;
+    const scopedBest=scoped && s.gameStats[s.gameScope] && s.gameStats[s.gameScope].best
+      ? String(s.gameStats[s.gameScope].best.score)
+      : '-';
+    const fav=s.favoriteGame?profileGameLabel(s.favoriteGame[0]):'No games yet';
+    const best=s.bestGame?`${profileGameLabel(s.bestGame[0])} · ${Math.round(s.bestGame[1].wins/s.bestGame[1].games*100)}%`:'Building history';
+    const streakLabel=window.BPGRecords&&typeof BPGRecords.formatStreakPhrase==='function'
+      ? BPGRecords.formatStreakPhrase(s.currentStreak)
+      : '';
+    const streakTip=window.BPGRecords&&typeof BPGRecords.formatStreakTitle==='function'
+      ? BPGRecords.formatStreakTitle(s.currentStreak)
+      : '';
+    const specialChip=(kind, count, tone, title)=>{
+      if(!count) return '';
+      const label=window.BPGRecords&&typeof BPGRecords.formatSpecialChip==='function'
+        ? BPGRecords.formatSpecialChip(kind, count)
+        : '';
+      return label?renderProfileBadge(label, undefined, tone, title):'';
+    };
+    const badges=[
+      streakLabel?renderProfileBadge(streakLabel, undefined, s.currentStreak.startsWith('W')?'hot':'storm', streakTip):'',
+      specialChip('whammy', s.specialTotals.whammy, 'hot', 'A round where only one player scored well and everyone else missed.'),
+      specialChip('nolie', s.specialTotals.nolie, 'good', 'A round where everyone at the table made their bid, scored 0 in Five Crowns, or scored in Flip 7.'),
+      specialChip('cami', s.specialTotals.cami, 'storm', 'A round where everyone missed their bid, or everyone scored 0.'),
+      s.needsAvatar?renderProfileBadge('Needs avatar', undefined, 'neutral'):''
+    ].filter(Boolean).slice(0,4).join('');
+    const gameHighlights=scoped
+      ? `<div class="profile-big-stat"><span>Best score</span><strong>${escapeHtml(scopedBest)}</strong></div>`
+      : `<div class="profile-big-stat"><span>Most played</span><strong>${escapeHtml(fav)}</strong></div>
+         <div class="profile-big-stat"><span>Best game</span><strong>${escapeHtml(best)}</strong></div>`;
+    return `<div class="profile-detail-highlights">${gameHighlights}</div>
+      ${careerCardHtml(s)}
+      ${passportCanastaLine(p)}
+      <div class="profile-badge-row">${badges||renderProfileBadge('New passport')}</div>`;
   }
 
   function getHistoryRoundParticipants(gameData, roundData){
@@ -14672,7 +14684,9 @@ button.dealer-name-indicator .dealer-player-label {
     }).join('');
   }
 
-  async function openProfileDetail(name){
+  let passportDetailsTrigger=null;
+  async function openProfileDetail(name, trigger){
+    passportDetailsTrigger=trigger||null;
     editingPlayerProfile=name;
     const summary=getProfileSummary(name, profileGameScope());
     document.getElementById('detail-name').textContent=name;
@@ -14682,6 +14696,7 @@ button.dealer-name-indicator .dealer-player-label {
     av.onerror=function(){ if(this.getAttribute('src')!==fb){ this.onerror=null; this.src=fb; } };
     av.src=getAvatarSrc(name);
     av.className=`avatar-img-lg ${getColorRingClass(name)}`;
+    document.getElementById('detail-career-summary').innerHTML=passportCareerSummaryHtml(summary);
     const stamp=document.getElementById('detail-passport-stamp');
     if(stamp){
       const stampStreak=window.BPGRecords&&typeof BPGRecords.formatStreakPhrase==='function'
@@ -14763,8 +14778,10 @@ button.dealer-name-indicator .dealer-player-label {
       }
     }
     renderSpecialRoundStats(name);
-    document.getElementById('profile-detail-view').classList.remove('hidden');
-    window.scrollTo({top:document.getElementById('profile-detail-view').offsetTop-100,behavior:'smooth'});
+    const detail=document.getElementById('profile-detail-view');
+    detail.classList.remove('hidden');
+    detail.focus({preventScroll:true});
+    detail.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
     try{
       await loadOptionalAsset('chart');
     }catch(error){
@@ -14837,7 +14854,12 @@ button.dealer-name-indicator .dealer-player-label {
     }
   }
 
-  function closeProfileDetail(){ document.getElementById('profile-detail-view').classList.add('hidden'); editingPlayerProfile=null; }
+  function closeProfileDetail(){
+    document.getElementById('profile-detail-view').classList.add('hidden');
+    editingPlayerProfile=null;
+    if(passportDetailsTrigger?.isConnected) passportDetailsTrigger.focus();
+    passportDetailsTrigger=null;
+  }
   // ── Edit a player from setup (Home) ──
   function playerEditSheetOpen(){ const m=document.getElementById('player-edit-modal'); return !!(m&&!m.classList.contains('hidden')); }
   function openPlayerEditSheet(name){
@@ -15818,18 +15840,20 @@ button.dealer-name-indicator .dealer-player-label {
   let _handFootCancelSnapshotId=null;
 
   function startGame(name, options){
-    if(!players.length){alert('Add players to the lineup first!');return;}
-    if(name==='Rook'&&players.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
-    const seatLimit=window.BPGGames&&typeof BPGGames.seatLimit==='function'?BPGGames.seatLimit(name, players.length):{ok:true};
+    const roster=options?.roster||(currentGame&&!options?.continueAfterLeave?getActivePlayers(currentGame):players);
+    if(!roster.length){alert('Add players to the lineup first!');return;}
+    if(name==='Rook'&&roster.length>6&&!confirm('Call-your-partner Rook is usually played with 4-6 players. Start anyway?'))return;
+    const seatLimit=window.BPGGames&&typeof BPGGames.seatLimit==='function'?BPGGames.seatLimit(name, roster.length):{ok:true};
     if(!seatLimit.ok) return;
     warmCelebrationAssets();
     if(currentGame && !(options&&options.continueAfterLeave)){
-      requestLeaveGame((parkedId)=>startGame(name, {continueAfterLeave:true, parkedId}));
+      requestLeaveGame((parkedId)=>startGame(name, {continueAfterLeave:true, parkedId, roster}));
       return;
     }
     if(options&&options.continueAfterLeave && name==='Hand and Foot'){
       _handFootCancelSnapshotId=options.parkedId||null;
     }
+    if(options?.roster) players=roster.slice();
     _pendingGameName = name;
     // Rook: show setup modal before animation chain
     if(name==='Rook'){
@@ -17290,7 +17314,7 @@ ${isDealer
   // Scratch merged into Leave game > Delete game (one destructive path, one confirm).
   function scratchMatch(){ leaveDeleteGame(); }
 
-  function parkActiveMatch(){
+  function parkActiveMatch({persist=true}={}){
     if(!currentGame) return null;
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     const finished=currentGame.completed===true||currentGame.gameOver===true;
@@ -17301,27 +17325,29 @@ ${isDealer
       snapshot.winners=[];
       snapshot.endedEarly=false;
       snapshot.outcome='paused';
+      snapshot.parkedAt=Date.now();
       snapshot.completed=false;
       snapshot.gameOver=false;
       snapshot.countResult=false;
     }
     const idx=history.findIndex(h=>h&&String(h.id)===String(snapshot.id));
-    if(idx>=0) history[idx]=snapshot;
-    else history.unshift(snapshot);
+    if(idx>=0) history.splice(idx,1);
+    history.unshift(snapshot);
     markHistoryChanged();
     // History is skipped while a match is live. The match being parked is still current here.
-    saveData({ fullPersist: true, syncCold: true });
+    if(persist) saveData({ fullPersist: true, syncCold: true });
     return snapshot;
   }
 
   function resumeMatch(id, options){
     const force=!!(options&&options.force);
+    const g=history.find(h=>h&&String(h.id)===String(id));
+    if(!g||(!force&&currentGame&&String(currentGame.id)===String(g.id)))return;
     if(currentGame&&!force){
       if(!confirm('Save the game on the table and resume this match?'))return;
-      parkActiveMatch();
+      parkActiveMatch({persist:false});
     }
-    const idx=history.findIndex(h=>h&&String(h.id)===String(id)); if(idx<0)return;
-    const g=history[idx]; history.splice(idx,1);
+    history.splice(history.indexOf(g),1);
     markHistoryChanged();
     resetRecordChaseView();
     currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
@@ -18009,8 +18035,8 @@ ${isDealer
         // Names and ranks track row height with totals/rounds. Cap the avatar
         // at ~2.5× the name size so it never dwarfs the label on tall 2–4p rows.
         const wideScreen=window.innerWidth>=1280;
-        const nameCap=phone?22:Math.min(wideScreen?64:56, contentHeight*0.34);
-        const playerFont=Math.max(phone?17:20, Math.min(nameCap, contentHeight*0.34));
+        const nameCap=phone?22:Math.min(wideScreen?64:56, contentHeight*0.37);
+        const playerFont=Math.max(phone?19:22, Math.min(nameCap, contentHeight*0.37));
         let avatarCap=phone?28:Math.min(Math.round(playerFont*2.5), Math.round(contentHeight*0.55));
         const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,contentHeight*0.7),contentHeight*0.62));
         // Rank pill tracks the name but stays compact — a huge min-width stole
@@ -18149,7 +18175,10 @@ ${isDealer
     const cellInner=cell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth-outerGap;
     const laneStyle=getComputedStyle(lane);
     const gap=parseFloat(laneStyle.columnGap||laneStyle.gap)||0;
-    const visibleChildren=[...lane.children].filter(node=>getComputedStyle(node).display!=='none');
+    const visibleChildren=[...lane.children].filter(node=>{
+      const style=getComputedStyle(node);
+      return style.display!=='none'&&style.position!=='absolute';
+    });
     const siblings=visibleChildren.filter(node=>node!==nameBox);
     return cellInner
       - siblings.reduce((sum,node)=>sum+node.getBoundingClientRect().width,0)
@@ -18308,10 +18337,9 @@ ${isDealer
     const roundFs=close?Math.min(varFs,chipFs):(chipFs||varFs);
     const liveTotal=parseFloat(getComputedStyle(total).fontSize)||0;
     if(!(roundFs>0&&liveTotal>0)||roundFs/liveTotal>=0.55) return;
-    const rows=root.querySelectorAll('tbody tr').length;
     const nameEl=root.querySelector('.scoreboard-player-name');
     const nameFs=parseFloat(nameEl?getComputedStyle(nameEl).fontSize:'')||0;
-    const nameFloor=rows<=4&&nameFs>0?nameFs*1.15:28;
+    const nameFloor=Math.max(28,nameFs*1.15);
     const raw=Math.max(28, nameFloor, roundFs/0.55);
     const next=nameFloor>28?Math.ceil(raw*10)/10:Math.floor(raw*10)/10;
     root.style.setProperty('--scorecard-total-font',`${next.toFixed(1)}px`);
@@ -19090,7 +19118,7 @@ ${isDealer
       const meld=isHandFootGame(currentGame)?handFootMeldForRound(r.round):null;
       head+=`<th data-sc-round="${rIdx}" data-sc-round-label="${r.round}" class="px-2 py-3 text-center scorecard-round-th">${meld?`<span class="hf-round-label">R${r.round}</span><span class="hf-meld-hint">Meld ${meld}</span>`:`R${r.round}`}</th>`;
     });
-    const nowLabel='This round';
+    const nowLabel='Now';
     if(!over) head+=`<th class="scorecard-col-now px-2 py-3 text-center">${nowLabel}</th>`;
 
     head+=`</tr>`;
@@ -19136,9 +19164,9 @@ ${isDealer
       const hasAvailablePreserver=isDesperate&&!currentGame.hailMaryUsed.includes(p);
       const hasUsedPreserver=currentGame.hailMaryUsed.includes(p);
       const placeNum=places?places[p]:ri+1;
-      const placeLabel=isRetired?'Left early':ordinalLive(placeNum);
-      const placeTone=isRetired?' is-place-rest':placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
-      const rankBadge=(isRetired||currentGame.currentRound>1)&&placeLabel?`<span class="scoreboard-rank-badge${placeTone} shrink-0" aria-label="${placeLabel}">${placeLabel}</span>`:'';
+      const placeLabel=ordinalLive(placeNum);
+      const placeTone=placeNum===1?' is-place-1':placeNum===2?' is-place-2':placeNum===3?' is-place-3':' is-place-rest';
+      const rankBadge=!isRetired&&currentGame.currentRound>1&&placeLabel?`<span class="scoreboard-rank-badge${placeTone} shrink-0" aria-label="${placeLabel}">${placeLabel}</span>`:'';
       const wheelBadge=isRetired?'':wheelBadgeMarkup(p, hasAvailablePreserver?'ready':(hasUsedPreserver?'used':''));
 
       const retiredTag=retiredBadgeMarkup(currentGame,p);
@@ -19175,8 +19203,6 @@ ${isDealer
       const nameText=hfTeam?hfNameLines:String(p).split(/(\s+)/).map(word=>
         /\S/.test(word)?`<span class="scorecard-name-word">${escapeHtml(word)}</span>`:escapeHtml(word)
       ).join('');
-      const seat=hfTeam?0:currentGame.originalRoster.indexOf(p)+1;
-      const seatBadge=seat?`<span class="scorecard-seat" aria-label="Seat ${seat}" title="Seat ${seat}">${seat}</span>`:'';
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${nameText}</span></button>`
               : `<span class="${nameClass}">${nameText}</span>`}${retiredTag}`;
@@ -19184,7 +19210,8 @@ ${isDealer
         <td data-sc-part="lead" class="scorecard-col-player ${playerCellPad} py-2 sticky left-0 z-10 border-r hairline" style="background:${cellBg};">
           <div class="flex items-center gap-2 min-w-0">
             <div class="scorecard-player-identity flex items-center gap-2 min-w-0 flex-1">
-              <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${avatarInner}${seatBadge}</span>
+              ${rankBadge}
+              <span class="scorecard-avatar-slot${avatarDragAttrs?' scorecard-avatar-reorder-handle':''}" ${avatarDragAttrs}>${avatarInner}</span>
               <span class="scorecard-player-name-slot">${nameInner}</span>
               <span class="scorecard-turbo-slot">${comebackChip}</span>
             </div>
@@ -19193,7 +19220,7 @@ ${isDealer
           ${lateJoinNoteMarkup(currentGame,p)}
         </td>
         ${showSubmittedBids?`<td data-sc-part="lead" class="scorecard-col-bid scorecard-col-bid--wizard py-2 text-center align-middle">${wizardCurrentBid}</td>`:''}
-        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><div class="scorecard-total-stack"><span class="scorecard-total-value">${currentGame.totals[p]}</span>${rankBadge}</div>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
+        <td data-sc-part="lead" class="scorecard-col-total scorecard-total-cell px-2 py-2 font-jakarta font-extrabold tv-stat-num font-mono-num ${isLeader?'leader-text':''}"><div class="scorecard-total-stack"><span class="scorecard-total-value">${currentGame.totals[p]}</span></div>${hiddenLifePreserverMarkup(currentGame.rounds, visibleScorecardRounds.map(entry=>entry.index), p)}</td>`;
       // Past rounds
       visibleScorecardRounds.forEach(({round:r,index:rIdx})=>{
         let missClass='', missTitle='', exactTdClass='';
@@ -20550,6 +20577,7 @@ ${isDealer
     const sides=scoreEntryModalState.tablePlayers||scoreEntryModalState.players||[];
     const modal=document.getElementById('score-entry-modal');
     modal?.classList.remove('hf-dense');
+    modal?.classList.toggle('hf-two-sides', sides.length === 2);
     const saved=sides.some(side=>scoreEntryModalState.values[side]?.shape==='saved');
     const editingTotal=sides.some(side=>scoreEntryModalState.values[side]?.edit==='total');
     modal?.classList.toggle('hf-keypad-idle', (saved&&!editingTotal) || !!scoreEntryModalState.phoneReview);
@@ -20564,6 +20592,15 @@ ${isDealer
       }).join('');
       const actions=saved&&!editingTotal?`<div class="hf-legacy-actions"><button type="button" id="hf-edit-total" onclick="handFootStartTotalEdit()">Edit total</button></div>`:'';
       rows.innerHTML=`${handFootPhoneNav(sides)}${handFootConfirmHtml()}<div class="hf-card-grid">${cards}</div>${actions}`;
+    }
+    const context = document.getElementById('score-entry-context');
+    if(context){
+      const round = getScoreEntryRoundContext(scoreEntryModalState.mode);
+      const side = scoreEntryModalState.activePlayer;
+      const field = HAND_FOOT_FIELD_LABELS[scoreEntryModalState.activeField];
+      context.textContent = side && field && !modal?.classList.contains('hf-keypad-idle')
+        ? `${round} · ${handFootSideLabel(side)}: ${field}`
+        : round;
     }
     syncHandFootRateBar();
     updateScoreEntryProgress();

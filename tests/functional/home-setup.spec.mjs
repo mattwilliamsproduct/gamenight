@@ -35,10 +35,10 @@ for (const [width, height] of [[1180, 820], [1024, 768], [390, 844]]) {
       expect(cards.filter((c) => c.selected)).toHaveLength(1);
     });
 
-    test('names column: Seated and Not seated are labelled, and every avatar opens Edit player by touch', async ({page}) => {
+    test('names column: Ready to play and On the bench are labelled, and every avatar opens Edit player by touch', async ({page}) => {
       await seedHome(page);
-      await expect(page.locator('#s2-seated-label')).toContainText('Seated');
-      await expect(page.locator('#s2-bench-label')).toContainText('Not seated');
+      await expect(page.locator('#s2-seated-label')).toContainText('Ready to play');
+      await expect(page.locator('#s2-bench-label')).toContainText('On the bench');
       const edits = page.locator('.s2-home .s2-avatar-edit');
       await expect(edits).toHaveCount(SEATED.length + BENCH.length);
       const sizes = await edits.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); const b = e.querySelector('.s2-edit-badge'); return {w: r.width, h: r.height, badge: b ? Number(getComputedStyle(b).opacity) : 0}; }));
@@ -153,7 +153,7 @@ test.describe('empty Home', () => {
     await page.reload({waitUntil: 'domcontentloaded'});
     await page.waitForFunction(() => window.BPGSlice2);
     const home = page.locator('.s2-home');
-    await expect(home).toContainText('Nobody seated yet');
+    await expect(home).toContainText('Add a name to seat');
     await expect(home).toContainText('Add a player to start Five Crowns.');
     await expect(home).not.toContainText('All saved players are seated');
     await expect(home).not.toContainText(/\b1 players\b/);

@@ -10,7 +10,7 @@ test.use({
 });
 
 const EIGHT = ['Nora', 'Owen', 'Priya', 'Theo', 'Ruby', 'Felix', 'June', 'Marco'];
-const FOURTEEN = EIGHT.concat(['Iris', 'Quinn', 'Vera', 'Hugo', 'Ada', 'Bea']);
+const FIFTEEN = EIGHT.concat(['Iris', 'Quinn', 'Vera', 'Hugo', 'Ada', 'Bea', 'Morgan']);
 const SIZES = [{width: 1194, height: 834}, {width: 1440, height: 900}];
 
 function totalsFor(roster) {
@@ -31,7 +31,8 @@ async function boot(page, url) {
   if (url.includes('demo=try')) {
     await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on', null, {timeout: 20000});
   }
-  await page.evaluate(() => { if (typeof goHome === 'function') goHome(); });
+  await page.waitForFunction(() => window.BPGSlice2 && typeof goHome === 'function');
+  await page.evaluate(() => goHome());
   await page.waitForSelector('#home-screen:not(.hidden) #slice2-home', {timeout: 20000});
 }
 
@@ -71,13 +72,13 @@ async function paintRoster(page, roster, live) {
   await page.waitForSelector('#slice2-home .s2-home-grid');
 }
 
-test('landscape home fills both panels for 2, 8, and 14 players', async ({page}) => {
+test('landscape home fills both panels for 2, 8, and 15 players', async ({page}) => {
   await boot(page, '/?demo=try');
   await page.waitForFunction(() => document.body?.dataset?.bpgTryDemo === 'on');
   for (const size of SIZES) {
     await page.setViewportSize(size);
-    for (const count of [2, 8, 14]) {
-      const roster = count === 2 ? ['Nora', 'Owen'] : (count === 8 ? EIGHT : FOURTEEN);
+    for (const count of [2, 8, 15]) {
+      const roster = count === 2 ? ['Nora', 'Owen'] : (count === 8 ? EIGHT : FIFTEEN);
       await paintRoster(page, roster, false);
       const idle = await page.evaluate(() => {
         const clipBottom = (el) => {
@@ -141,12 +142,12 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(idle.badgeInside, `${size.width} idle ${count} Deals first clipped`).toBe(true);
       expect(idle.overlaps, `${size.width} idle ${count} rows overlap`).toBe(false);
       expect(Math.abs(idle.ratio - (5 / 7)), `${size.width} idle art`).toBeLessThan(0.08);
-      if (count === 14) {
-        expect(idle.scrolls, `${size.width} idle 14 should scroll inside the list`).toBe(true);
+      if (count === 15) {
+        expect(idle.scrolls, `${size.width} idle 15 should scroll inside the list`).toBe(true);
         await expect(page.locator('#slice2-start-btn')).toBeDisabled();
-        await expect(page.locator('#slice2-start-summary')).toHaveText('Five Crowns plays up to 7. Unseat 7 players.');
+        await expect(page.locator('#slice2-start-summary')).toHaveText('Five Crowns plays up to 7. Unseat 8 players.');
         if (size.width === 1194) {
-          await page.screenshot({path: 'test-results/functional-evidence/home-over-limit-14-1194-emulated.png'});
+          await page.screenshot({path: 'test-results/functional-evidence/home-over-limit-15-1194-emulated.png'});
         }
       } else if (!idle.scrolls) {
         expect(idle.lastRow.bottom, `${size.width} idle ${count} last row`).toBeLessThanOrEqual(size.height - 12);
@@ -181,7 +182,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
         const table = document.querySelector('.s2-home-standings');
         const start = document.querySelector('.s2-home-start');
         const row = document.querySelector('.s2-standing');
-        const last = document.querySelector('.s2-standing:last-child');
+        const last = [...document.querySelectorAll('.s2-standing')].at(-1);
         const list = document.querySelector('.s2-standings');
         const startBtn = clipBottom(document.getElementById('slice2-start-btn'));
         const summary = startBtn;
@@ -206,7 +207,7 @@ test('landscape home fills both panels for 2, 8, and 14 players', async ({page})
       expect(live.pageScroll, `${size.width} live ${count} page scroll`).toBeLessThanOrEqual(1);
       expect(live.rowH).toBeGreaterThanOrEqual(60);
       expect(live.seats).toEqual(roster);
-      if (count === 14) expect(live.scrolls).toBe(true);
+      if (count === 15) expect(live.scrolls).toBe(true);
       else if (!live.scrolls) {
         expect(live.lastRow.bottom, `${size.width} live ${count} last row`).toBeLessThanOrEqual(size.height - 12);
         expect(live.lastRow.visibleBottom, `${size.width} live ${count} last row clipped`).toBeGreaterThanOrEqual(live.lastRow.bottom - 1);
@@ -426,7 +427,7 @@ test('parking an in-progress match leaves records alone and resume restores it',
 });
 
 
-test('Home keeps the picker visible and four standings compact after leaving the scoreboard', async ({page}) => {
+test('Home keeps the picker and aligned panels after leaving the scoreboard', async ({page}) => {
   for (const viewport of [{width: 1920, height: 1080}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
     await page.setViewportSize(viewport);
     await boot(page, '/');
@@ -442,7 +443,8 @@ test('Home keeps the picker visible and four standings compact after leaving the
       const text = document.createRange();
       text.selectNodeContents(banner);
       return {
-        scoreGap: box('[data-s2-action="enter-round"]').top - box('.s2-standing:last-child').bottom,
+        panelGap: Math.abs(box('.s2-home-standings').bottom - box('.s2-home-start').bottom),
+        firstRow: box('.s2-standing').height,
         headingLines: text.getClientRects().length,
         headingFont: parseFloat(getComputedStyle(banner).fontSize),
         pickerBottom: box('#slice2-start-btn').bottom,
@@ -450,7 +452,9 @@ test('Home keeps the picker visible and four standings compact after leaving the
         felt: getComputedStyle(document.body, '::after').backgroundImage
       };
     });
-    expect(layout.scoreGap, `Enter scores at ${viewport.width}px`).toBeLessThanOrEqual(28);
+    if(viewport.width > 760) expect(layout.panelGap).toBeLessThanOrEqual(2);
+    if(viewport.width === 1920) expect(layout.firstRow).toBeGreaterThanOrEqual(85);
+    await expect(page.locator('.s2-standings-foot [data-s2-action="enter-round"]')).toBeVisible();
     expect(layout.felt).toContain('porch-felt');
     if (viewport.width === 1920) {
       expect(layout.headingLines).toBe(1);
@@ -459,4 +463,43 @@ test('Home keeps the picker visible and four standings compact after leaving the
       expect(layout.pickerBottom).toBeLessThanOrEqual(viewport.height);
     }
   }
+});
+
+
+test('switching from Past nights keeps exactly one active match and parks UUID saves in recency order', async ({page}) => {
+  await boot(page,'/?demo=try');
+  const original=await page.evaluate(()=>({id:currentGame.id,round:currentGame.currentRound}));
+  expect(original.round).toBe(9);
+  await expect(page.locator('.s2-unfinished-banner')).toHaveCount(0);
+  await page.getByRole('button',{name:'Records',exact:true}).click();
+  await page.locator('#slice2-show-nights').click();
+  const resume=page.locator('[data-s2-action="night-resume"]').first();
+  const picked=await resume.getAttribute('data-s2-id');
+  page.once('dialog',dialog=>dialog.accept());
+  await resume.click();
+  await expect(page.locator('#slice2-board-line')).toContainText('Round 3 of 11');
+  await page.locator('#slice2-table-btn').click();
+  await expect(page.locator('.s2-active-banner')).toContainText('Round 3 of 11');
+  await expect(page.locator('.s2-unfinished-banner')).toHaveCount(0);
+  await page.reload();
+  await page.waitForFunction(id=>String(currentGame?.id)===id,picked);
+  expect(await page.evaluate(id=>history.find(match=>match.id===id)?.currentRound,original.id)).toBe(9);
+  await page.evaluate(()=>{ currentGame=null; goHome(); });
+  await expect(page.locator('.s2-unfinished-banner [data-s2-action="night-resume"]')).toHaveAttribute('data-s2-id',String(original.id));
+});
+
+test('starting from a live table uses active seats rather than a stale Home lineup', async ({page}) => {
+  await boot(page,'/?demo=try');
+  const table=await page.evaluate(()=>{
+    const active=getActivePlayers(currentGame).slice().reverse();
+    currentGame.originalRoster=active;
+    players=['Stale seat'];
+    goHome();
+    return {active,id:currentGame.id,round:currentGame.currentRound};
+  });
+  await page.locator('#slice2-start-btn').click();
+  await page.locator('#leave-save-later').click();
+  await expect(page.locator('#slice2-board-line')).toContainText('Round 1 of 11');
+  const started=await page.evaluate(id=>({roster:currentGame.originalRoster, parked:history.find(match=>match.id===id)?.currentRound}),table.id);
+  expect(started).toEqual({roster:table.active,parked:table.round});
 });

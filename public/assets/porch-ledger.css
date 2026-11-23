@@ -1446,7 +1446,7 @@ html.porch-ledger #bpg-try-demo-tip {
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 1.35fr) minmax(0, 0.95fr) !important;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 1.5fr) !important;
     column-gap: 6px !important;
   }
 
@@ -1966,18 +1966,13 @@ html.porch-ledger[data-ledger-bg].slice2-tv body.active-match-view #game-screen:
     white-space: nowrap !important;
   }
 
-  /* The words carry it on a phone; the wheel glyph would cost a name letter. */
-  html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player:has(.wheel-badge) .wheel-badge .wheel-badge-icon {
-    display: none !important;
-  }
-
-  /* This round wraps its header onto two lines, so it gives the name room. */
+  /* Keep the Now column compact and give the player name more room. */
   html.porch-ledger.slice2-tv #scorecard-capture th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols th.scorecard-col-now,
   html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols td.scorecard-col-now {
-    width: 56px !important;
-    min-width: 56px !important;
-    max-width: 56px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
   }
 
   html.porch-ledger.slice2-tv body.active-match-view #game-screen:not([data-game='Hand and Foot']) #scorecard-capture.scorecard-fit-cols .scorecard-table thead th.scorecard-round-th:not(.scorecard-round--hidden),
@@ -2939,19 +2934,6 @@ html.porch-ledger.slice2-tv body #score-entry-modal.is-entry-complete .score-ent
 }
 
 /* The seat is dealing order. Place stays beside the total. */
-html.porch-ledger .scorecard-seat {
-  position: absolute;
-  inset: auto auto -2px -2px;
-  min-width: 1.1rem;
-  padding: 0 0.18rem;
-  border: 1px solid var(--ledger-line);
-  border-radius: 0.35rem;
-  background: var(--ledger-paper);
-  color: var(--ledger-muted);
-  text-align: center;
-  font: 800 0.7rem/1.3 var(--ledger-type-text);
-}
-
 html.porch-ledger #scorecard-capture .scorecard-round-td:not(.scorecard-round-td--exact) .score-cell-input.is-entered {
   color: var(--ledger-ink-soft) !important;
 }
@@ -3067,4 +3049,383 @@ html.porch-ledger .s2-explore-game-title::after {
 
 html.porch-ledger details[open] > .s2-explore-game-title::after {
   transform: rotate(225deg);
+}
+
+
+/* Live scoreboard hierarchy and icon-only Life Preserver status. */
+html.porch-ledger.slice2-tv body.active-match-view #slice2-board-sub {
+  color: var(--ledger-ink) !important;
+  font-size: clamp(16px, 1.45vw, 26px) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-board-context-wild {
+  padding: 0.13em 0.54em;
+  border-radius: 0.4em;
+  color: #211600;
+  background: #ffdb83;
+  font-size: 1.15em;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+html.porch-ledger.slice2-tv .s2-board-context-dealer {
+  font-weight: 850;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-total-stack {
+  justify-content: center !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-identity > .scoreboard-rank-badge {
+  min-width: 2.1em;
+  font-size: clamp(12px, 1.1vw, 19px) !important;
+  padding-inline: 4px;
+}
+
+html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge {
+  box-sizing: border-box;
+  padding: 0 !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  min-height: 32px !important;
+  border: 1px solid currentColor !important;
+  margin-left: 0 !important;
+}
+
+html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge-ready {
+  background: #e2f0e6 !important;
+  color: #236044 !important;
+}
+
+html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge-used {
+  background: #f2e4e1 !important;
+  color: #875d57 !important;
+}
+
+html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge .wheel-badge-icon {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+html.porch-ledger.slice2-tv .s2-live-bench {
+  flex: 0 0 auto;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--ledger-line);
+}
+
+html.porch-ledger.slice2-tv .s2-live-bench h3 {
+  margin: 0 0 0.38rem;
+  font-size: max(16px, 1rem);
+}
+
+html.porch-ledger.slice2-tv .s2-live-bench-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+html.porch-ledger.slice2-tv .s2-live-bench-seat {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  font-size: max(15px, 0.95rem);
+}
+
+html.porch-ledger.slice2-tv .s2-live-bench-seat .avatar-img {
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+}
+
+html.porch-ledger.slice2-tv .s2-live-bench-seat span {
+  overflow-wrap: anywhere;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
+  font-size: clamp(15px, 1vw, 20px) !important;
+  line-height: 1.25;
+}
+
+@media (min-width: 861px) and (orientation: landscape) and (min-height: 700px) {
+  html.porch-ledger.slice2-tv .s2-home-standings .s2-standings-roomy .s2-standing {
+    flex: 1 0 auto;
+    min-height: clamp(66px, 8.5vh, 104px) !important;
+    max-height: 106px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-player-identity {
+    position: relative;
+  }
+
+  /* Use the avatar’s old seat-number corner for place at phone widths. */
+  html.porch-ledger.slice2-tv body.active-match-view #scorecard-capture .scorecard-player-identity > .scoreboard-rank-badge {
+    position: absolute;
+    z-index: 1;
+    left: -2px;
+    bottom: -3px;
+    min-width: 22px !important;
+    font-size: 10px !important;
+    padding: 1px 2px !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge {
+    width: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge .wheel-badge-icon {
+    width: 15px !important;
+    height: 15px !important;
+  }
+}
+
+/* Shared page rails for the nav, Home, Records, Passports, and live board. */
+html.porch-ledger.slice2-tv {
+  --bp-page-gutter: 12px;
+}
+html.porch-ledger.slice2-tv body:not(.active-match-view) .bp-app-shell,
+html.porch-ledger.slice2-tv body.home-view .bp-app-shell {
+  width: 100% !important;
+  max-width: calc(var(--bp-board-max) + 2 * var(--bp-page-gutter)) !important;
+  padding-inline: var(--bp-page-gutter) !important;
+}
+html.porch-ledger.slice2-tv :is(#profiles-screen, #history-screen, #slice2-home, #hall-of-fame-view.s2-ledger) {
+  width: 100%;
+  max-width: none;
+}
+html.porch-ledger.slice2-tv #history-screen { padding-inline: 0; }
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv { --bp-page-gutter: clamp(20px, 2.5vw, 48px); }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen {
+    padding-inline: var(--bp-page-gutter) !important;
+  }
+}
+
+html.porch-ledger .profile-passport-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 315px), 1fr));
+}
+html.porch-ledger .profile-passport-card { min-height: 0; }
+html.porch-ledger .profile-passport-name { font-size: clamp(1.7rem, 2.5vw, 2.45rem); line-height: 1.1; }
+html.porch-ledger .profile-passport-sub { font-size: 0.94rem; letter-spacing: 0; text-transform: none; }
+html.porch-ledger .profile-mini-stat span { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
+html.porch-ledger .profile-mini-stat strong { font-size: 1.55rem; line-height: 1.15; }
+html.porch-ledger .profile-details-btn { min-height: 44px; padding-inline: 16px; }
+html.porch-ledger #profile-detail-view { scroll-margin-top: 6rem; }
+html.porch-ledger .profile-detail-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 12px;
+}
+html.porch-ledger #detail-career-summary .profile-badge { font-size: 0.9rem; max-width: 100%; white-space: normal; }
+
+html.porch-ledger.slice2-tv .s2-overview-layout { align-items: stretch; }
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv .s2-career .s2-headline {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+}
+html.porch-ledger.slice2-tv .s2-overview-mid > .s2-panel,
+html.porch-ledger.slice2-tv .s2-overview-side > .s2-panel,
+html.porch-ledger.slice2-tv .s2-overview-layout > .s2-panel { width: 100%; min-width: 0; }
+html.porch-ledger.slice2-tv .s2-overview-mid .s2-panel-head h2 { font-size: clamp(1.25rem, 1.65vw, 1.75rem); }
+html.porch-ledger.slice2-tv .s2-ledger-stat { min-width: 0; overflow-wrap: anywhere; }
+html.porch-ledger.slice2-tv .s2-ledger-stat strong { line-height: 1.15; }
+html.porch-ledger.slice2-tv #hall-of-fame-view .s2-ledger-stat small {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(1rem, 1.15vw, 1.2rem);
+  line-height: 1.3;
+}
+html.porch-ledger.slice2-tv .s2-ledger-game strong,
+html.porch-ledger.slice2-tv .s2-shame-row b { font-size: clamp(1rem, 1.15vw, 1.2rem); line-height: 1.3; }
+html.porch-ledger.slice2-tv .s2-overview-mid .s2-ledger-row,
+html.porch-ledger.slice2-tv .s2-overview-mid .s2-shame-row { padding-block: 14px; }
+html.porch-ledger.slice2-tv .s2-rival-person strong { color: var(--bp-primary-deep); }
+html.porch-ledger.slice2-tv .s2-rival .s2-sub { font-size: 1rem; }
+html.porch-ledger.slice2-tv .s2-overview-layout > .s2-canasta-events .s2-book {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 12px;
+}
+html.porch-ledger.slice2-tv .s2-overview-layout > .s2-canasta-events .s2-book > * {
+  padding: 8px 12px;
+  border: 1px solid var(--ledger-line);
+  border-radius: 10px;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv #settings-modal.bp-modal-viewport-shell > .bp-modal-panel {
+    width: min(78rem, calc(100vw - 2 * var(--bp-page-gutter))) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 32px) !important;
+    padding-block: 22px !important;
+  }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-head { margin-bottom: 14px; }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+  }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-foot > .grid { margin: 0; }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-foot > .grid > div {
+    padding: 0;
+    border: 0;
+    background: transparent !important;
+  }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-foot > .grid > div > p {
+    display: none;
+  }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-foot > .grid button {
+    margin-block: 0;
+    min-width: 100px;
+    padding-inline: 16px;
+  }
+  html.porch-ledger.slice2-tv #settings-modal .bp-modal-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-items: start;
+    gap: clamp(16px, 2vw, 32px);
+  }
+  html.porch-ledger.slice2-tv #settings-modal .settings-device {
+    border-top: 0;
+    padding-top: 0;
+    border-inline-start: 1px solid var(--ledger-line);
+    padding-inline-start: 16px;
+  }
+}
+
+/* Home setup keeps the first action beside its instructions and makes the two roster states explicit. */
+html.porch-ledger.slice2-tv .s2-home-empty .s2-picker {
+  flex: 0 0 auto !important;
+  margin-top: 12px;
+}
+html.porch-ledger.slice2-tv .s2-home-empty .s2-add {
+  margin-top: 0 !important;
+}
+html.porch-ledger.slice2-tv .s2-home-empty .s2-panel-head {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+}
+html.porch-ledger.slice2-tv .s2-home-empty .s2-panel-head #save-indicator {
+  flex: 0 0 auto;
+}
+html.porch-ledger.slice2-tv .s2-home-table .s2-add [type="submit"] {
+  font-size: clamp(17px, 1.15vw, 22px) !important;
+}
+html.porch-ledger.slice2-tv .s2-home-table .s2-roster-label {
+  font-size: 1rem;
+}
+html.porch-ledger.slice2-tv .s2-home-table .s2-seat-out {
+  width: auto !important;
+  min-width: 44px;
+  padding-inline: 6px;
+  font: 800 0.875rem/1.1 "Nunito Sans", sans-serif;
+}
+html.porch-ledger.slice2-tv .s2-home-table .s2-pick:not(.is-on) {
+  background: var(--ledger-paper) !important;
+}
+
+/* Orient the existing box faces for reading while keeping the common portrait tile. */
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame:is([data-card-art="five"], [data-card-art="wizard"]) {
+  container-type: inline-size;
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="five"] {
+  background: #38216b;
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="wizard"] {
+  background: #111f4a;
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame:is([data-card-art="five"], [data-card-art="wizard"]) .s2-card-photo {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 71.4cqw;
+  height: 100cqw;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
+  box-shadow: 0 0 0 3px #f9cf73 !important;
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame::after {
+  box-shadow: inset 0 0 0 4px #fff0c8, inset 0 0 0 8px #0a5c54;
+}
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-name {
+  font-weight: 900;
+  text-decoration: underline 2px;
+  text-underline-offset: 3px;
+}
+
+/* Canasta has a compact two-team sheet. Its larger keys and totals stay visible
+   while long rosters can continue to scroll in the entry list. */
+html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .score-entry-panel > .border-b {
+  padding-bottom: 10px !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry #score-entry-context {
+  font-size: clamp(0.9rem, 1.2vw, 1.15rem) !important;
+  color: var(--bp-ink-soft) !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .hf-team-card.is-active {
+  border-color: var(--bp-primary);
+  background: #f0f8f3;
+  box-shadow: inset 0 0 0 1px var(--bp-primary);
+}
+html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .hf-num.active {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--bp-primary);
+}
+html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .hf-side-names {
+  font-size: clamp(1.05rem, 1.65vw, 1.45rem) !important;
+}
+html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .hf-match-num {
+  font-size: 1.45rem;
+}
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry.hf-two-sides > .score-entry-panel {
+    width: min(94vw, 82rem) !important;
+    max-width: min(94vw, 82rem) !important;
+    height: auto !important;
+    max-height: calc(100dvh - 24px) !important;
+    padding: clamp(12px, 1.7vw, 24px) !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry.hf-two-sides .score-entry-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(230px, 24vw, 320px) !important;
+    gap: clamp(10px, 1.3vw, 20px) !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry.hf-two-sides .hf-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry.hf-two-sides .score-entry-key:not(.next) {
+    height: clamp(52px, 6.8vh, 68px) !important;
+    max-height: none !important;
+  }
+  html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry.hf-two-sides .hf-team-id {
+    margin-block: 4px;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture:has(#scorecard-body tr:nth-child(2):last-child) .scorecard-col-player {
+    width: clamp(250px, 31vw, 530px) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture:has(#scorecard-body tr:nth-child(2):last-child) #scorecard-body td {
+    height: clamp(135px, 18vh, 205px);
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .scoreboard-player-name.hf-team-name {
+    font-size: clamp(1.3rem, 2.15vw, 2.5rem) !important;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .hf-team-avatars .avatar-img-sc {
+    width: clamp(34px, 3.6vw, 62px) !important;
+    height: clamp(34px, 3.6vw, 62px) !important;
+  }
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .scorecard-total-value {
+    font-size: clamp(2.25rem, 3.7vw, 4.5rem) !important;
+  }
 }

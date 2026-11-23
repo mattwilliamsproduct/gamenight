@@ -52,7 +52,6 @@
   let anotherStep = null;
   let anotherParkOk = false;
   let unfinishedOpen = false;
-  let nextRosterOpen = false;
   let addPicks = new Set();
 
   function state() {
@@ -101,7 +100,7 @@
     return (history || [])
       .filter((match) => window.BPGScorebook && !BPGScorebook.isCompletedHistoryMatch(match))
       .slice()
-      .sort((a, b) => (Number(b && b.id) || 0) - (Number(a && a.id) || 0));
+      .sort((a, b) => (Number(b.parkedAt) || Number(b.id) || 0) - (Number(a.parkedAt) || Number(a.id) || 0));
   }
 
   function clearAnotherMatch() {
@@ -131,13 +130,15 @@
       const dealerTag = isDealer
         ? '<span class="s2-dealer-tag">Dealer</span>'
         : '<span class="s2-dealer-tag s2-dealer-tag-empty" aria-hidden="true"></span>';
-      const spoken = [label, player, String(score), isDealer ? 'dealer' : ''].filter(Boolean).join(', ');
+      const wheel = lifePreserverStatus(game, player);
+      const wheelLabel = wheel ? wheelCopy()[wheel] : '';
+      const spoken = [label, player, String(score), isDealer ? 'dealer' : '', wheelLabel].filter(Boolean).join(', ');
       return `<button type="button" class="s2-standing" data-s2-action="resume" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(spoken)}">
         ${badge}
         ${getStreakAvatarHtml(player, 'avatar-img')}
         <span class="s2-seat-who">
           <span class="s2-seat-name">${escapeHtml(player)}</span>
-          ${lifePreserverStatusMarkup(game, player)}
+          ${wheel ? `<span class="wheel-badge wheel-badge-${wheel}" aria-hidden="true">${wheelIconSvg()}</span>` : ''}
         </span>
         ${dealerTag}
         <span class="s2-standing-score">${escapeHtml(String(score))}</span>
@@ -166,17 +167,16 @@
     return '<svg class="wheel-badge-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M4 12h3"></path><path d="M17 12h3"></path></svg>';
   }
 
-  function lifePreserverStatusMarkup(game, player) {
+  function lifePreserverStatus(game, player) {
     const copy = wheelCopy();
-    const supported = new Set(['Five Crowns', 'Wizard', '818', 'Flip 7 Vengeance']);
-    if (!copy || !game || !supported.has(game.name) || typeof isHailMaryEligible !== 'function') return '';
+    if (!copy || !game || !['Five Crowns', 'Wizard', '818', 'Flip 7 Vengeance'].includes(game.name) || typeof isHailMaryEligible !== 'function') return '';
     const used = (game.hailMaryUsed || []).includes(player);
     if (used) {
-      return `<span class="wheel-badge wheel-badge-used" aria-label="${copy.used}">${wheelIconSvg()}<span>${copy.used}</span></span>`;
+      return 'used';
     }
     const table = typeof getActivePlayers === 'function' ? getActivePlayers(game) : [];
     if (isHailMaryEligible(game, player, table, { gameOver: false })) {
-      return `<span class="wheel-badge wheel-badge-ready" aria-label="${copy.ready}">${wheelIconSvg()}<span>${copy.ready}</span></span>`;
+      return 'ready';
     }
     return '';
   }
@@ -260,16 +260,16 @@
     if (game.name === 'Five Crowns') {
       const wilds = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
       const wild = wilds[(game.currentRound || 1) - 1];
-      if (wild) bits.push(`${wild}s\u00a0wild`);
+      if (wild) bits.push({ text: `${wild}s\u00a0wild`, kind: 'wild' });
     }
     const dealer = getCurrentDealerName(game);
-    if (dealer) bits.push(`Dealer:\u00a0${dealer}`);
+    if (dealer) bits.push({ text: `Dealer:\u00a0${dealer}`, kind: 'dealer' });
     // Bidding context reads from across the room: who deals, and that bids are due for N tricks.
     if (isBidTrickGame(game) && !isMatchOver(game) && getBidTrickPhase(game) === 'bidding') {
       const tricks = getRoundTrickCount(game);
-      bits.push(`Bidding\u00a0·\u00a0${tricks}\u00a0${tricks === 1 ? 'trick' : 'tricks'} this round`);
+      bits.push({ text: `Bidding\u00a0·\u00a0${tricks}\u00a0${tricks === 1 ? 'trick' : 'tricks'} this round`, kind: 'bidding' });
     }
-    return bits.join(' · ');
+    return bits;
   }
 
   function phoneScoreboard() {
@@ -321,7 +321,6 @@
       </div>
       <div class="s2-board-actions">
         <button type="button" class="s2-btn s2-btn-primary" id="slice2-enter-btn" data-s2-action="enter-round"></button>
-        <button type="button" class="s2-btn" id="slice2-end-btn" data-s2-action="save-end" aria-label="Leave game">Leave game</button>
       </div>`;
   }
 
@@ -337,11 +336,6 @@
     if (endBtn) {
       endBtn.title = 'Leave game. Save for later, end the game, or keep playing.';
     }
-    const leave = document.getElementById('slice2-end-btn');
-    if (leave) {
-      leave.textContent = phoneScoreboard() ? 'Leave' : 'Leave game';
-      leave.setAttribute('aria-label', 'Leave game');
-    }
     if (!actions) return;
     const menuWrap = document.querySelector('#game-screen .active-match-actions');
     if (menuWrap && menuWrap.parentElement !== actions) actions.appendChild(menuWrap);
@@ -349,7 +343,6 @@
 
   function paintNav() {
     if (typeof updateNavButton === 'function') updateNavButton();
-    const table = state();
     const row = document.querySelector('#top-nav > div');
     const actions = row?.children?.[1];
     if (!actions) return;
@@ -361,7 +354,7 @@
       if (action.includes('goHome')) button.textContent = 'Home';
       // No count here: the number mixed counted, uncounted and unfinished games and read like a record count.
       if (action.includes('showHistory')) button.textContent = 'Records';
-      if (action.includes('showProfiles')) button.textContent = phoneNav ? 'Player Passports' : (compactNav ? 'Profiles' : `Player Passports (${table.allPlayers.length})`);
+      if (action.includes('showProfiles')) button.textContent = phoneNav || !compactNav ? 'Player Passports' : 'Profiles';
       if (action.includes('openSettings')) button.textContent = phoneNav || !compactNav ? 'Settings' : '⚙';
       button.classList.toggle('s2-nav-on', action.includes('goHome') && !document.getElementById('home-screen')?.classList.contains('hidden'));
     });
@@ -431,15 +424,15 @@
     const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
     // Seated vs not seated read as two labelled groups (Matt, Nov 15).
     const benchHtml = bench.length
-      ? `<h3 class="s2-roster-label" id="s2-bench-label">Not seated <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">Check names, then Add</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
+      ? `<h3 class="s2-roster-label" id="s2-bench-label">On the bench <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">Check names, then Add</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
       : (seated ? '<p class="s2-sub">All saved players are seated.</p>' : '');
     // Tonight's table: seats and bench share one roster that scrolls inside
     // the panel on a laptop; Add stays below it, outside the scroll.
     const rosterHtml = seatsHtml == null
       ? benchHtml
-      : `<div class="s2-roster" aria-label="Seated and saved players">${seated ? `<h3 class="s2-roster-label" id="s2-seated-label">Seated <span class="s2-roster-count">${seated}</span><span class="s2-roster-hint">In dealing order</span></h3>` : ''}${seatsHtml}${benchHtml}</div><button type="button" class="s2-roster-more" data-s2-action="roster-more" hidden></button>`;
+      : `<div class="s2-roster" tabindex="0" role="region" aria-label="Seated and saved players">${seated ? `<h3 class="s2-roster-label" id="s2-seated-label">Ready to play <span class="s2-roster-count">${seated}</span></h3>` : ''}${seatsHtml}${benchHtml}</div><button type="button" class="s2-roster-more" data-s2-action="roster-more" hidden></button>`;
     return `<div class="s2-picker">
-      ${rosterHtml}
+      ${!seated && !bench.length ? '' : rosterHtml}
       ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
@@ -495,10 +488,9 @@
     const picker = homePickerGames();
     if (!picker.some((game) => game.id === selected)) selected = picker[0]?.id || 'Five Crowns';
     const meta = gameMeta(selected);
-    const seated = table.players.length;
+    const live = table.currentGame;
+    const seated = live ? getActivePlayers(live).length : table.players.length;
     const bench = table.allPlayers.filter((player) => !table.players.includes(player));
-    const open = unfinishedMatches(table.history);
-    const parkedBanner = unfinishedBannerMarkup(open);
     const banner = table.currentGame ? (() => {
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
@@ -514,8 +506,8 @@
         <div class="s2-banner-actions">
           <button type="button" class="s2-btn s2-btn-primary" data-s2-action="resume">Resume</button>
         </div>
-      </section>${parkedBanner}`;
-    })() : parkedBanner;
+      </section>`;
+    })() : unfinishedBannerMarkup(unfinishedMatches(table.history));
     // A long word shrinks to the seat width (about 0.56em per letter) so names wrap between words, not mid-word.
     const seatNameFit = (name) => {
       const longestWord = Math.max(0, ...String(name || '').split(/\s+/).map((word) => word.length));
@@ -531,47 +523,49 @@
           ${tag}
         </span>
         <div class="s2-seat-tools">
-          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="${escapeHtml(table.currentGame ? `Unseat ${player} from next match (keeps their profile)` : `Unseat ${player} from tonight (keeps their profile)`)}" title="${escapeHtml(table.currentGame ? 'Unseat from next match (keeps their profile)' : 'Unseat from tonight (keeps their profile)')}">×</button>
+          <button type="button" class="s2-seat-out" data-s2-action="seat-out" data-s2-index="${index}" aria-label="Unseat ${escapeHtml(player)} and move to the bench" title="Move to the bench">Bench</button>
           <button type="button" class="s2-seat-handle" data-s2-action="seat-handle" data-s2-index="${index}" aria-label="Reorder ${escapeHtml(player)}">
             <svg viewBox="0 0 12 16" aria-hidden="true"><circle cx="4" cy="3" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="4" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="4" cy="13" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>
           </button>
         </div>
       </article>`;
-    }).join('') || '<p class="s2-sub" id="slice2-empty-table">Add a name to seat tonight\'s table. Then pick a game and tap Start.</p>';
+    }).join('');
     const cards = picker.map((game) => {
       const on = game.id === selected;
       return `<button type="button" class="s2-game${on ? ' is-selected' : ''}" data-s2-action="pick-game" data-s2-game="${escapeHtml(game.id)}" aria-pressed="${on}" aria-label="${escapeHtml(cardAriaLabel(game, seated, on))}">
-        <span class="s2-card-frame">
+        <span class="s2-card-frame" data-card-art="${escapeHtml(game.art)}">
           <img class="s2-card-photo" src="${CARD_FACES[game.art] || ''}" alt="" draggable="false">
           ${on ? '<span class="s2-card-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 10.5l3.2 3.2L15 6.8"/></svg></span>' : ''}
         </span>
         <span class="s2-game-name">${escapeHtml(game.title)}</span>
       </button>`;
     }).join('');
-    const tableBlock = `<section class="s2-panel s2-home-table" aria-label="Tonight's table">
+    const emptyTable = !seated && !bench.length;
+    const tableBlock = `<section class="s2-panel s2-home-table${emptyTable ? ' s2-home-empty' : ''}" aria-label="Tonight's table">
           <div class="s2-panel-head">
             <div>
-              <h2>Tonight's table · ${seated} seated</h2>
-              <p class="s2-sub">${dealer ? escapeHtml(dealer) + (table.currentGame ? ' is dealing' : ' deals first') : (table.players.length ? 'In dealing order' : 'Nobody seated yet')}</p>
+              <h2>Tonight's table</h2>
+              ${emptyTable
+                ? `<p class="s2-sub" id="slice2-empty-table">Add a name to seat tonight's table. Then pick a game and tap Start.</p>`
+                : dealer ? `<p class="s2-sub">${escapeHtml(dealer)} deals first</p>` : ''}
             </div>
           </div>
           <p id="slice2-seat-live" class="s2-seat-live" aria-live="polite"></p>
           ${addPlayerPickerMarkup(bench, seated, `<div class="s2-seat-grid">${seats}</div>`)}
           <p id="home-player-name-error" class="hidden inline-form-error text-sm font-semibold" style="color:var(--rose);"></p>
         </section>`;
-    const live = table.currentGame;
     const limit = window.BPGGames && typeof BPGGames.seatLimit === 'function'
       ? BPGGames.seatLimit(selected, seated)
       : { ok: true, message: '' };
     const startSummary = limit.ok
       ? `${seated} ${seated === 1 ? 'player' : 'players'} · ${meta.detail(seated)}`
-      : limit.message;
+      : limit.message + (live ? ' Save the active match for later to change seats.' : '');
     const startBlock = `<section class="s2-panel s2-home-start" aria-label="Start a new match">
           <div class="s2-panel-head">
             <div>
               <h2>Start a new match</h2>
               <p class="s2-sub">${live
-                ? `Next match players · ${seated} seated. Changing them does not change the match in progress.`
+                ? 'Starts with the current table. You’ll choose what to do with the active match first.'
                 : (seated ? `Choose a game for tonight's ${seated} seated ${seated === 1 ? 'player' : 'players'}` : 'Add players, pick a game, then tap start')}</p>
             </div>
             <label class="s2-rules-picker">
@@ -582,18 +576,17 @@
             </label>
           </div>
           <div class="s2-game-grid">${cards}</div>
-          ${live && nextRosterOpen ? `<div class="s2-next-roster" id="slice2-next-roster">
-            <h3>Next match players</h3>
-            <p class="s2-sub">Unseat from next match (keeps their profile). This does not change the match in progress.</p>
-            <div class="s2-seat-grid">${seats}</div>
-            ${addPlayerPickerMarkup(bench, seated)}
-          </div>` : ''}
           <div class="s2-startbar">
             <p id="slice2-start-summary">${escapeHtml(startSummary)}</p>
-            ${live ? `<button type="button" class="s2-btn" data-s2-action="edit-next-roster">Next match players (${seated})</button>` : ''}
+            ${live && !limit.ok ? '<button type="button" class="s2-btn" data-s2-action="leave-active">Leave active match</button>' : ''}
             <button type="button" class="s2-btn s2-btn-primary" id="slice2-start-btn" data-s2-action="start-game"${limit.ok ? '' : ' disabled'}>Start ${escapeHtml(meta.title)}</button>
           </div>
         </section>`;
+    const liveBench = live ? getKnownPlayerNames().filter(player =>
+      !live.originalRoster?.some(seat => seat.toLowerCase() === player.toLowerCase())) : [];
+    const liveBenchMarkup = liveBench.length ? `<ul class="s2-live-bench-list">
+      ${liveBench.map(name => `<li class="s2-live-bench-seat">${getStreakAvatarHtml(name, 'avatar-img')}<span>${escapeHtml(name)}</span></li>`).join('')}
+      </ul>` : '<p class="s2-sub">Nobody on the bench</p>';
     const standings = live ? `<section class="s2-panel s2-home-table s2-home-standings" ${anotherStep === 'confirm' ? '' : 'data-s2-action="resume"'} aria-label="Current standings">
           <div class="s2-panel-head">
             <div>
@@ -601,7 +594,10 @@
               <p class="s2-sub">${escapeHtml(displayGameName(live.name))} · ${escapeHtml(liveRoundLabel(live))}</p>
             </div>
           </div>
-          <div class="s2-standings">${standingRows(live)}</div>
+          <div class="s2-standings${seated <= 4 ? ' s2-standings-roomy' : ''}" tabindex="0" role="region" aria-label="Standings and bench">
+            ${standingRows(live)}
+            <section class="s2-live-bench" aria-label="On the bench"><h3>On the bench</h3>${liveBenchMarkup}</section>
+          </div>
           <div class="s2-standings-foot">
             <button type="button" class="s2-btn s2-btn-quiet s2-standings-more" data-s2-action="standings-more" hidden></button>
             <button type="button" class="s2-btn s2-btn-primary" data-s2-action="enter-round"${typeof isMatchOver === 'function' && isMatchOver(live) ? ' disabled' : ''}>Enter scores</button>
@@ -713,7 +709,7 @@
     const cue = panel && panel.querySelector('.s2-standings-more');
     if (!cue) return;
     const box = list.getBoundingClientRect();
-    const rows = [...list.querySelectorAll('.s2-standing')];
+    const rows = [...list.querySelectorAll('.s2-standing, .s2-live-bench-seat')];
     const below = rows.filter((row) => row.getBoundingClientRect().bottom > box.bottom + 2).length;
     const above = rows.filter((row) => row.getBoundingClientRect().top < box.top - 2).length;
     const scrolls = list.scrollHeight > list.clientHeight + 1;
@@ -916,12 +912,18 @@
     }
     const sub = document.getElementById('slice2-board-sub');
     if (sub) {
-      const wild = boardSubLine(currentGame);
+      const parts = boardSubLine(currentGame);
       const space = document.createElement('span');
       space.className = 's2-board-player-count-slot';
       space.setAttribute('aria-hidden', 'true');
-      sub.replaceChildren(document.createTextNode(wild), space);
-      sub.hidden = !wild;
+      const pieces = parts.flatMap(({ text, kind }, index) => {
+        const part = document.createElement('span');
+        part.className = `s2-board-context s2-board-context-${kind}`;
+        part.textContent = text;
+        return index ? [document.createTextNode(' · '), part] : [part];
+      });
+      sub.replaceChildren(...pieces, space);
+      sub.hidden = !parts.length;
     }
     if (legend) {
       const bidTrick = isBidTrickGame(currentGame);
@@ -1432,15 +1434,14 @@
       startGame(selected);
     } else if (action === 'start-game') {
       startGame(selected);
+    } else if (action === 'leave-active') {
+      requestLeaveGame();
     } else if (action === 'unfinished-all') {
       unfinishedOpen = true;
       paintHome();
     } else if (action === 'unfinished-close') {
       if (target.closest('.s2-chooser') && target.dataset.s2Action !== 'unfinished-close') return;
       unfinishedOpen = false;
-      paintHome();
-    } else if (action === 'edit-next-roster') {
-      nextRosterOpen = !nextRosterOpen;
       paintHome();
     } else if (action === 'pick-add') {
       const name = target.dataset.s2Player || target.closest('.s2-pick')?.querySelector('span')?.textContent || '';
@@ -1491,9 +1492,6 @@
       if (list) list.scrollTo({top: target.dataset.dir === 'up' ? 0 : list.scrollHeight, behavior: 'smooth'});
     } else if (action === 'enter-round') {
       enterRound();
-    } else if (action === 'save-end') {
-      if (typeof requestLeaveGame === 'function') requestLeaveGame();
-      else if (typeof requestEndGame === 'function') requestEndGame();
     } else if (action === 'records-start') {
       if (typeof goHome === 'function') goHome();
     } else if (action === 'show-fame' || action === 'show-shame' || action === 'show-nights') {
@@ -1504,7 +1502,10 @@
       paintRecords();
     } else if (action === 'open-profile') {
       const name = target.dataset.s2Player || '';
-      if (name && typeof openProfileDetail === 'function') openProfileDetail(name);
+      if (name && typeof openProfileDetail === 'function') {
+        if (typeof showProfiles === 'function') showProfiles();
+        openProfileDetail(name);
+      }
     }
   }
 
@@ -1554,6 +1555,7 @@
     if (event.button != null && event.button !== 0) return;
     const seat = event.target.closest?.('#slice2-home .s2-seat');
     if (!seat || event.target.closest?.('.s2-seat-out, .s2-avatar-edit, a, input, select, textarea')) return;
+    if (event.pointerType === 'touch' && !event.target.closest?.('.s2-seat-handle')) return;
     const from = Number(seat.dataset.s2Index);
     if (!Number.isInteger(from)) return;
     event.preventDefault();
@@ -1705,8 +1707,7 @@
     root.style.setProperty('--bp-vv-top', `${top}px`);
     const bar = document.getElementById('slice2-board-bar');
     const enter = document.getElementById('slice2-enter-btn');
-    const end = document.getElementById('slice2-end-btn');
-    const bottoms = [bar, enter, end].filter(Boolean).map((el) => el.getBoundingClientRect().bottom);
+    const bottoms = [bar, enter].filter(Boolean).map((el) => el.getBoundingClientRect().bottom);
     if (bottoms.length) {
       root.style.setProperty('--bp-board-bottom', `${Math.round(Math.max(...bottoms))}px`);
     }

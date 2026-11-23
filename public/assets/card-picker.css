@@ -453,12 +453,6 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     grid-template-rows: minmax(0, 1fr);
   }
 
-  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid > .s2-home-standings {
-    align-self: start;
-    height: auto;
-    max-height: 100%;
-  }
-
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-panel-head,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-panel-head,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-deck,
@@ -526,7 +520,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc((100cqh - 1.5rem) * 5 / 7), 220px);
+    width: min(100cqw, calc((100cqh - 2rem) * 5 / 7), 220px);
     max-width: 220px;
     height: auto !important;
     margin-inline: auto;
@@ -535,10 +529,10 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-game-name {
-    flex: 0 0 1.25rem;
-    height: 1.25rem;
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
     margin-top: 0;
-    line-height: 1.25rem;
+    line-height: 1.5rem;
   }
 
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-startbar {
@@ -548,7 +542,7 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
 
 @media (min-width: 1600px) and (orientation: landscape) and (min-height: 700px) {
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-card-frame {
-    width: min(100cqw, calc((100cqh - 1.5rem) * 5 / 7));
+    width: min(100cqw, calc((100cqh - 2rem) * 5 / 7));
     max-width: none;
   }
 }

@@ -35,7 +35,7 @@ async function liveGame(page, {name, roster, rounds, totals, maxRounds}) {
     navigateTo('game-screen');
     if (window.BPGSlice2) BPGSlice2.refresh('game');
   }, {name, roster, rounds, totals, maxRounds});
-  await expect(page.locator('#slice2-end-btn')).toBeVisible();
+  await expect(page.locator('#actions-btn')).toBeVisible();
 }
 
 const twoRounds = {
@@ -52,7 +52,8 @@ for (const size of [{width: 1180, height: 820}, {width: 1024, height: 768}, {wid
     await page.locator('#actions-btn').click();
     await expect(page.locator('#actions-menu')).not.toContainText(/Scratch/i);
     await page.evaluate(() => closeActionsMenu());
-    await page.locator('#slice2-end-btn').click();
+    await page.locator('#actions-btn').click();
+    await page.locator('#actions-save-end').click();
     const modal = page.locator('#end-match-modal');
     await expect(page.locator('#end-match-title')).toHaveText('Leave game');
     const kicker = page.locator('#end-match-kicker');
@@ -88,7 +89,8 @@ for (const size of [{width: 1180, height: 820}, {width: 1024, height: 768}, {wid
 test('Delete game on a scored game asks first; dismissing keeps everything', async ({page}) => {
   await boot(page);
   await liveGame(page, twoRounds);
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   page.dialogAnswer = false;
   await page.locator('#leave-delete-any').click();
   expect(page.dialogs.at(-1)).toMatch(/^Delete this Five Crowns game\? 2 scored rounds are discarded\./);
@@ -102,7 +104,8 @@ test('Delete game on a scored game asks first; dismissing keeps everything', asy
 test('a zero-round result screen offers no Run it back or Share receipt', async ({page}) => {
   await boot(page);
   await liveGame(page, {name: 'Five Crowns', roster: FOUR, maxRounds: 11, rounds: [], totals: {Hazel: 0, Otis: 0, Juniper: 0, Rafael: 0}});
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await page.locator('#leave-count-no').click();
   await expect(page.locator('#victory-names')).toHaveText('No rounds played');
@@ -114,7 +117,8 @@ test('a zero-round result screen offers no Run it back or Share receipt', async 
 test('a counted result still offers Run it back and Share receipt', async ({page}) => {
   await boot(page);
   await liveGame(page, twoRounds);
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await page.locator('#leave-count-yes').click();
   await expect(page.locator('#victory-modal').getByRole('button', {name: /Run it back/})).toBeVisible();
@@ -125,7 +129,8 @@ test('a counted result still offers Run it back and Share receipt', async ({page
 test('an uncounted past night shows no 1st/1st/3rd and says it is not counted; Delete game is red', async ({page}) => {
   await boot(page);
   await liveGame(page, twoRounds);
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await page.locator('#leave-count-no').click();
   await page.evaluate(() => { document.getElementById('victory-modal').classList.add('hidden'); goHome(); showHistory(); });

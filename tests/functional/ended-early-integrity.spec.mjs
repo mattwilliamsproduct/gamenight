@@ -35,7 +35,7 @@ async function liveGame(page, {name, roster, rounds, totals, maxRounds}) {
     navigateTo('game-screen');
     if (window.BPGSlice2) BPGSlice2.refresh('game');
   }, {name, roster, rounds, totals, maxRounds});
-  await expect(page.locator('#slice2-end-btn')).toBeVisible();
+  await expect(page.locator('#actions-btn')).toBeVisible();
 }
 
 const stored = (page) => page.evaluate(() => {
@@ -58,7 +58,8 @@ test('a zero-round game ended early offers no count, stores no winners and never
   await boot(page);
   const zero = Object.fromEntries(EIGHT.map((name) => [name, 0]));
   await liveGame(page, {name: 'Wizard', roster: EIGHT, rounds: [], totals: zero, maxRounds: 7});
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await expect(page.locator('#leave-count-copy')).toContainText('No rounds were scored, so there is nothing to count.');
   await expect(page.locator('#leave-count-yes')).toBeHidden();
@@ -112,7 +113,8 @@ test('Delete game on a zero-round game asks first and leaves nothing behind', as
   await boot(page);
   const zero = Object.fromEntries(EIGHT.map((name) => [name, 0]));
   await liveGame(page, {name: 'Wizard', roster: EIGHT, rounds: [], totals: zero, maxRounds: 7});
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await page.locator('#leave-delete-game').click();
   expect(page.dialogs.some((text) => /^Delete this Wizard game\? No rounds were scored\./.test(text))).toBe(true);
@@ -129,7 +131,8 @@ test('Count partial result asks, says what changed, updates Records and Passport
     rounds: [{round: 1, scores: {Hazel: 3, Otis: 10, Juniper: 3}}, {round: 2, scores: {Hazel: 5, Otis: 2, Juniper: 5}}],
     totals: {Hazel: 8, Otis: 12, Juniper: 8}
   });
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await expect(page.locator('#leave-count-yes')).toHaveText('Count partial result');
   await expect(page.locator('#leave-count-no')).toHaveText('Save without counting');

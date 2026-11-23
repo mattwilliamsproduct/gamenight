@@ -477,7 +477,7 @@ html.slice2-tv .s2-seat {
   border-radius: 16px;
   border: 1.5px solid var(--s2-line);
   background: #fffaf4;
-  touch-action: none;
+  touch-action: pan-y;
   cursor: grab;
 }
 
@@ -4575,8 +4575,8 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
 @media (min-width: 761px) {
   html.slice2-tv body.active-match-view #slice2-board-bar {
     display: grid;
-    grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content max-content max-content;
-    grid-template-areas: "logo rule copy home actions enter end";
+    grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content max-content;
+    grid-template-areas: "logo rule copy home actions enter";
     align-items: center;
     column-gap: 8px;
   }
@@ -4608,9 +4608,6 @@ html.slice2-tv body.active-match-view #slice2-board-bar {
   }
   html.slice2-tv body.active-match-view #slice2-enter-btn {
     grid-area: enter;
-  }
-  html.slice2-tv body.active-match-view #slice2-end-btn {
-    grid-area: end;
   }
   html.slice2-tv body.active-match-view .s2-board-actions .active-match-actions > .relative {
     grid-area: actions;
@@ -4737,10 +4734,10 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
 
   html.slice2-tv body.active-match-view #slice2-board-bar {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-      "copy copy copy copy"
-      "home actions enter end";
+      "copy copy copy"
+      "home actions enter";
     align-items: center;
     column-gap: 4px;
     row-gap: 6px;
@@ -4773,9 +4770,6 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
     grid-area: actions;
   }
 
-  html.slice2-tv body.active-match-view #slice2-end-btn {
-    grid-area: end;
-  }
 
   html.slice2-tv body.active-match-view .s2-board-mark,
   html.slice2-tv body.active-match-view .s2-board-rule {
@@ -4784,8 +4778,7 @@ html.slice2-tv body.active-match-view:has(#scorecard-capture.scorecard-hug-rows)
 
   html.slice2-tv body.active-match-view #slice2-table-btn,
   html.slice2-tv body.active-match-view #slice2-enter-btn,
-  html.slice2-tv body.active-match-view #actions-btn,
-  html.slice2-tv body.active-match-view #slice2-end-btn {
+  html.slice2-tv body.active-match-view #actions-btn {
     justify-self: stretch;
     position: static !important;
     width: 100% !important;

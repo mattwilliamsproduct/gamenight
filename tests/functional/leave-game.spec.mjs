@@ -44,17 +44,18 @@ async function showFive(page, mode) {
     navigateTo('game-screen');
     if (window.BPGSlice2) BPGSlice2.refresh('game');
   }, mode);
-  await expect(page.locator('#slice2-end-btn')).toBeVisible();
+  await expect(page.locator('#actions-btn')).toBeVisible();
 }
 
-test('the phone header reads Leave and opens the same three choices', async ({page}) => {
+test('the phone Actions menu opens the same three Leave game choices', async ({page}) => {
   await page.setViewportSize({width: 375, height: 812});
   await boot(page);
   await showFive(page, 'short');
-  await expect(page.locator('#slice2-end-btn')).toHaveText('Leave');
-  await expect(page.locator('#slice2-end-btn')).toHaveAttribute('aria-label', 'Leave game');
+  await expect(page.locator('#slice2-board-bar').getByRole('button', {name: 'Leave game', exact: true})).toHaveCount(0);
+  await expect(page.locator('#slice2-end-btn')).toHaveCount(0);
   await page.screenshot({path: `${SHOTS}/375-header-leave.png`});
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await expect(page.locator('#leave-save-later')).toBeVisible();
   await expect(page.locator('#leave-end-now')).toBeVisible();
   await expect(page.locator('#leave-keep-playing')).toBeVisible();
@@ -73,7 +74,8 @@ test('Keep playing changes nothing', async ({page}) => {
     rounds: currentGame.rounds.length,
     history: history.length
   }));
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-keep-playing').click();
   await expect(page.locator('#end-match-modal')).toHaveClass(/hidden/);
   const after = await page.evaluate(() => ({
@@ -88,7 +90,8 @@ test('Keep playing changes nothing', async ({page}) => {
 test('Save for later stays resumable after reload and stays out of results', async ({page}) => {
   await boot(page);
   await showFive(page, 'short');
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await expect(page.locator('#leave-count-yes')).toBeHidden();
   await page.locator('#leave-save-later').click();
   await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
@@ -122,7 +125,8 @@ test('Save for later stays resumable after reload and stays out of results', asy
 test('End game now on a short night can count the win without a score record', async ({page}) => {
   await boot(page);
   await showFive(page, 'short');
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await expect(page.locator('#leave-count-yes')).toBeVisible();
   await page.screenshot({path: `${SHOTS}/1440-count-this-result.png`});
@@ -163,7 +167,8 @@ test('End game now on a short night can count the win without a score record', a
 test('End game now can leave the short night uncounted', async ({page}) => {
   await boot(page);
   await showFive(page, 'short');
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-end-now').click();
   await page.locator('#leave-count-no').click();
   const skipped = await page.evaluate(() => {
@@ -192,7 +197,8 @@ test('End game now can leave the short night uncounted', async ({page}) => {
 test('End game now on a finished night does not ask and counts the score', async ({page}) => {
   await boot(page);
   await showFive(page, 'full');
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await expect(page.locator('#leave-count-yes')).toBeHidden();
   await page.locator('#leave-end-now').click();
   await expect(page.locator('#leave-count-yes')).toBeHidden();

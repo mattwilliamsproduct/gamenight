@@ -446,7 +446,7 @@ test('demo banner stays under open Settings and reserves layout space', async ({
   expect(open.barZ).toBeLessThan(open.modalZ);
 });
 
-test('Passports (12) is the demo cast and Records refreshes after Canasta reseed', async ({page}) => {
+test('Player Passports shows the demo cast and Records refreshes after Canasta reseed', async ({page}) => {
   page.on('dialog', (dialog) => dialog.accept());
   await openTryDemo(page);
   const first = await page.evaluate(() => {
@@ -461,7 +461,7 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
     'June', 'Marco', 'Iris', 'Quinn', 'Vera', 'Hugo'
   ]);
   expect(first.seated).toHaveLength(7);
-  expect(first.nav.some((label) => label === 'Player Passports (12)')).toBe(true);
+  expect(first.nav.some((label) => label === 'Player Passports')).toBe(true);
   // The Records nav no longer carries a count (Nov 15: it mixed counted and uncounted games).
   expect(first.nav).toContain('Records');
   expect(first.histLen).toBe(25);
@@ -488,7 +488,7 @@ test('Passports (12) is the demo cast and Records refreshes after Canasta reseed
   expect(after.histLen).toBe(25);
   expect(after.hasCanasta).toBe(true);
   expect(after.nav).toContain('Records');
-  expect(after.nav).toContain('Player Passports (12)');
+  expect(after.nav).toContain('Player Passports');
   expect(after.gn).toEqual([]);
 });
 

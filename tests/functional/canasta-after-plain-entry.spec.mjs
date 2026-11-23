@@ -30,7 +30,8 @@ test('phone Canasta after a Five Crowns entry still scrolls Went out and Cards l
   await expect(page.locator('#score-entry-modal')).toHaveClass(/score-entry-plain/);
   await page.locator('#score-entry-modal button[onclick="cancelScoreEntryModal()"]').click();
   await page.waitForFunction(() => document.getElementById('score-entry-modal').classList.contains('hidden'));
-  await page.locator('#slice2-end-btn').click();
+  await page.locator('#actions-btn').click();
+  await page.locator('#actions-save-end').click();
   await page.locator('#leave-save-later').click();
   await expect(page.locator('#home-screen')).toBeVisible();
 

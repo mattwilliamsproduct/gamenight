@@ -32,7 +32,7 @@ async function focusInside(page, name) {
 
 const CASES = [
   {name: 'Settings', open: async (p) => { await p.evaluate(() => goHome()); await p.locator('#top-nav .nav-btn[onclick*="openSettings"]').click(); }, trigger: '#top-nav .nav-btn[onclick*="openSettings"]', exit: /^Close$/},
-  {name: 'Leave game', open: (p) => p.locator('#slice2-end-btn').click(), trigger: '#slice2-end-btn', exit: /^(Close|Keep playing)$/},
+  {name: 'Leave game', open: async (p) => { await p.locator('#actions-btn').click(); await p.locator('#actions-save-end').click(); }, trigger: '#actions-btn', exit: /^(Close|Keep playing)$/},
   {name: 'Enter scores', open: (p) => p.locator('#slice2-enter-btn').click(), trigger: '#slice2-enter-btn', exit: /^Cancel$/},
   {name: 'Five Crowns', open: async (p) => { await p.locator('#actions-btn').click(); await p.locator('#actions-menu').getByRole('menuitem', {name: 'Rules'}).or(p.locator('#actions-menu button', {hasText: 'Rules'})).first().click(); }, trigger: '#actions-btn', exit: /^Close$/},
   {name: 'Audit log', open: async (p) => { await p.locator('#actions-btn').click(); await p.locator('#actions-audit-log-btn').click(); }, trigger: '#actions-btn', exit: /^Close$/}

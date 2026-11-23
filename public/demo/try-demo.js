@@ -377,7 +377,7 @@
   }
 
   function paintSettings() {
-    var body = document.querySelector('#settings-modal .bp-modal-body');
+    var body = document.querySelector('#settings-modal .settings-preferences');
     if (!body) return;
     var about = document.getElementById('bpg-try-demo-about');
     if (!about) {

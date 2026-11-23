@@ -150,7 +150,7 @@ test('phone scorecard keeps Js wild together and fits 3-digit totals', async ({p
     await expect(page.locator('#slice2-board-line')).not.toContainText(/[Ww]ild|Dealer/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/wild/);
     await expect(page.locator('#slice2-board-sub')).toContainText(/Dealer/);
-    await expect(page.locator('th.scorecard-col-now')).toHaveText('This round');
+    await expect(page.locator('th.scorecard-col-now')).toHaveText('Now');
     const nowClipped = await page.locator('th.scorecard-col-now').evaluate((el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
     expect(nowClipped).toBe(false);
     const overflow = await page.evaluate(() => {
@@ -332,7 +332,7 @@ test('1440 late Five Crowns shows every hand', async ({page}) => {
   expect(fit.ok, 'missing NOW').toBe(true);
   expect(fit.visible, `visible rounds ${fit.visible} of ${fit.total}`).toBe(fit.total);
   expect(fit.visible, 'late card lost a completed hand').toBeGreaterThanOrEqual(10);
-  expect(fit.label, 'current round header').toBe('This round');
+  expect(fit.label, 'current round header').toBe('Now');
   expect(fit.clipped, `NOW text clipped as ${fit.label}`).toBe(false);
   expect(fit.nowInside, 'NOW clipped on the late card').toBe(true);
   expect(fit.hintOn, 'trim hint on a card that should show every hand').toBe(false);

@@ -13,7 +13,8 @@ async function badgeFit(page) {
       const name = cell.querySelector('.dealer-player-label, .scoreboard-player-name');
       const nameBox = name ? name.getBoundingClientRect() : null;
       return {
-        text: (badge.textContent || '').replace(/\s+/g, ' ').trim(),
+        text: badge.textContent.trim(),
+        label: badge.getAttribute('aria-label'),
         name: (name?.textContent || '').replace(/\s+/g, ' ').trim(),
         badgeRight: badgeBox.right,
         badgeBottom: badgeBox.bottom,
@@ -62,9 +63,10 @@ test('Spin ready stays inside the player cell at 390 and 375', async ({page}) =>
       expect(rows.length, `${label} ${size.width} badges`).toBeGreaterThan(0);
       const longName = rows.find((row) => row.name.includes('Alexandria'));
       expect(longName, `${label} ${size.width} long name`).toBeTruthy();
-      expect(longName.text, `${label} ${size.width} Alexandria`).toContain('Spin ready');
+      expect(longName.label, `${label} ${size.width} Alexandria`).toContain('Spin ready');
       rows.forEach((row) => {
-        expect(row.text, `${label} ${size.width} ${row.name}`).toMatch(/Spin (ready|used)/);
+        expect(row.text).toBe('');
+        expect(row.label, `${label} ${size.width} ${row.name}`).toMatch(/Spin (ready|used)/);
         expect(row.badgeRight, `${label} ${size.width} ${row.name} badge`).toBeLessThanOrEqual(row.cellRight + 1);
         expect(row.badgeBottom, `${label} ${size.width} ${row.name} badge height`).toBeLessThanOrEqual(row.cellBottom + 1);
         expect(row.scoreLeft == null || row.badgeRight <= row.scoreLeft + 1, `${label} ${size.width} ${row.name} vs score`).toBeTruthy();
