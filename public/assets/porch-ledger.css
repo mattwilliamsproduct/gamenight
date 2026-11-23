@@ -995,10 +995,24 @@ html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row {
 }
 
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active {
-  background: color-mix(in srgb, var(--ledger-player) 12%, var(--ledger-paper)) !important;
-  border-color: color-mix(in srgb, var(--ledger-player) 40%, var(--ledger-line)) !important;
-  box-shadow: none !important;
+  background: var(--ledger-teal-wash) !important;
+  border-color: var(--ledger-teal) !important;
+  box-shadow: inset 0 0 0 1px var(--ledger-teal) !important;
 }
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-up-now {
+  display: none;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-up-now,
+html.porch-ledger.slice2-tv #score-entry-modal .hf-team-card.is-active .score-entry-up-now {
+  display: block;
+  color: var(--ledger-teal-deep);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
 
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-player-card,
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row.active .score-entry-player-card {
@@ -2506,6 +2520,22 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-r
   }
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-bidlike .score-entry-progress-seg { white-space: nowrap; }
 }
+
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-progress.score-entry-bid-tally {
+  font-weight: 750 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-progress.score-entry-bid-tally .score-entry-progress-seg:first-child {
+  color: var(--ledger-teal-deep);
+  font-size: clamp(16px, 2.2vw, 24px);
+  font-weight: 900;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal #score-entry-progress.score-entry-bid-tally[data-bid-balance="over"] .score-entry-progress-seg:nth-child(2) {
+  color: var(--rose);
+  font-weight: 900;
+}
+
 /* Phone board header: the sheet stays, the type returns to phone size so rows keep their room. */
 @media (max-width: 760px) {
   html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar {

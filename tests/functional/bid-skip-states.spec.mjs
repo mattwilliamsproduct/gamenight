@@ -64,7 +64,7 @@ for (const game of ['Wizard', '818']) {
     await key(page, '1');
     await page.locator('#score-entry-next-btn').click();
     await expect.poll(() => active(page)).toBe(b);
-    await expect(page.locator('#score-entry-progress')).toContainText('1 of 8 bids in');
+    await expect(page.locator('#score-entry-progress')).toContainText(game === 'Wizard' ? '1 of 3 tricks called' : '1 of 6 tricks called');
 
     // Go back to the entered seat and tap Skip: the bid stays and the next seat becomes active.
     await page.locator(`#score-entry-row-${a}`).click();
@@ -73,7 +73,7 @@ for (const game of ['Wizard', '818']) {
     await expect(page.locator(`#score-entry-value-${a}`)).toHaveText('1');
     expect(await page.evaluate((name) => scoreEntryModalState.values[name], a)).toBe('1');
     await expect.poll(() => active(page)).toBe(b);
-    await expect(page.locator('#score-entry-progress')).toContainText('1 of 8 bids in');
+    await expect(page.locator('#score-entry-progress')).toContainText(game === 'Wizard' ? '1 of 3 tricks called' : '1 of 6 tricks called');
     expect(await state(page, a)).toBe('confirmed');
 
     // Skip on a blank seat: marked skipped, not checked, not counted, and the next seat is active.
@@ -84,8 +84,8 @@ for (const game of ['Wizard', '818']) {
     await expect(page.locator(`#score-entry-row-${b}`)).toHaveClass(/is-skipped/);
     await expect(page.locator(`#score-entry-row-${b}`)).not.toHaveClass(/is-complete/);
     await expect(page.locator(`#score-entry-row-${b} .score-entry-row-status`)).not.toHaveText('✓');
-    await expect(page.locator('#score-entry-progress')).toContainText('1 of 8 bids in');
-    await expect(page.locator('#score-entry-progress')).toContainText('1 skipped');
+    await expect(page.locator('#score-entry-progress')).toContainText(game === 'Wizard' ? '1 of 3 tricks called' : '1 of 6 tricks called');
+    await expect(page.locator('#score-entry-progress')).not.toContainText(/skipped|bids in/);
 
     // Pending, skipped and entered look different. A missing bid never reads as 0.
     const looks = await page.evaluate(([entered, skipped, pending]) => {
@@ -164,4 +164,26 @@ test('Double-tapping Lock bids locks once and does not skip the tricks step', as
   await page.waitForTimeout(500);
   const after = await page.evaluate(() => ({phase: currentGame.wizardPhase, rounds: currentGame.rounds.length, bids: Object.keys(currentGame.currentBids || {}).length}));
   expect(after).toEqual({phase: 'scoring', rounds: 0, bids: 8});
+});
+
+
+test('Wizard highlights the active bid and totals tricks below, at, and above the limit', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  const [first, second, third] = await openBids(page, 'Wizard', 7);
+  const upNow = page.locator('.score-entry-row.active .score-entry-up-now');
+  const tally = page.locator('#score-entry-progress');
+  await expect(upNow).toBeVisible();
+  await expect(upNow.locator('..')).toContainText(first);
+  await key(page, '5');
+  await expect(tally).toHaveText('5 of 7 tricks called · 2 left');
+  await page.locator('#score-entry-next-btn').click();
+  await expect(upNow.locator('..')).toContainText(second);
+  await key(page, '2');
+  await expect(tally).toHaveText('7 of 7 tricks called · All tricks called');
+  await page.locator('#score-entry-next-btn').click();
+  await expect(upNow.locator('..')).toContainText(third);
+  await key(page, '2');
+  await expect(tally).toHaveText('9 of 7 tricks called · 2 over');
+  await expect(tally).toHaveAttribute('data-bid-balance', 'over');
+  await expect(page.locator('.score-entry-up-now:visible')).toHaveCount(1);
 });

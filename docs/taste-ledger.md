@@ -92,6 +92,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
 - A first-use empty table that says add a name, pick a game, then tap Start.
 - 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
+- Mark the current score-entry seat with a high-contrast row and Up now. In bidding, put the sum of tricks called and the remaining or overage count first.
 - Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
 - A scorecard with a stable readable max width, centered with the page column, identical before and after Round 1. Not edge to edge.
 - The scorecard table fills that same card before and after Round 1. A wide empty band beside a hugged table is not a width fix.

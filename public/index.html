@@ -10313,7 +10313,7 @@ button.dealer-name-indicator .dealer-player-label {
           <div id="game-over-section" class="hidden p-8 border-t hairline flex flex-col items-center gap-4" style="background:var(--emerald-bg);">
             <h3 class="font-display text-3xl" style="color:var(--emerald);">Match complete!</h3>
             <p id="game-over-copy" class="font-bold" style="color:var(--emerald);">You've reached the final round.</p>
-            <button type="button" onclick="requestLeaveGame()" class="btn-primary px-12 py-4 text-xl">Leave game</button>
+            <button type="button" onclick="if (currentGame && isMatchOver(currentGame)) commitEndGame()" class="btn-primary px-12 py-4 text-xl">See results</button>
           </div>
         </div>
       </div>
@@ -11261,7 +11261,7 @@ button.dealer-name-indicator .dealer-player-label {
         <div id="victory-subtitle" class="text-lg font-bold mb-4 hidden" style="color:#fef08a;"></div>
         <div id="victory-records" class="w-full space-y-2 mb-5"></div>
         <div id="victory-extra-actions" class="flex flex-col sm:flex-row gap-2 w-full mb-2">
-          <button onclick="runItBack()" class="btn-ghost flex-1 py-4 text-base font-bold">🔄 Run it back</button>
+          <button id="victory-rematch" type="button" onclick="runItBack()" class="btn-primary flex-1 py-4 text-base font-bold">Run it back</button>
           <button onclick="shareReceipt()" class="btn-ghost flex-1 py-4 text-base font-bold">📸 Share receipt</button>
         </div>
         <button id="victory-next" onclick="showLoserModal()" class="btn-primary w-full py-4 text-lg">Next →</button>
@@ -15840,7 +15840,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
   }
 
-  function commitGameStart(dealerOffsetOverride){
+  function commitGameStart(dealerOffsetOverride, saveOptions){
     const name = _pendingGameName;
     if(!name){ return; }
     _pendingGameName = null;
@@ -15879,12 +15879,12 @@ button.dealer-name-indicator .dealer-player-label {
       currentGame.rookBidAmountDraft = null;
       currentGame.rookOppTeamPointsDraft = null;
     }
-    saveData(); requestWakeLock();
     haptic([30, 60, 30, 60, 100]);
     const startDetail=name==='Hand and Foot'&&currentGame.handFoot
       ? `${name} · ${players.length} players · ${currentGame.handFoot.format} · ${getHandFootColumns(currentGame).join(' vs ')}`
       : `${name} · ${players.length} players`;
     addAuditEntry('Match started', startDetail);
+    saveData(saveOptions); requestWakeLock();
     goActiveMatch();
   }
 
@@ -19994,7 +19994,8 @@ ${isDealer
     row.classList.toggle('is-empty',status.state==='unentered');
     row.classList.toggle('is-skipped',status.state==='skipped');
     row.classList.toggle('is-missing',(status.state==='unentered'||status.state==='skipped')&&!!scoreEntryModalState.missing?.[player]);
-    row.setAttribute('aria-label',`${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${status.label}`);
+    const active=player===scoreEntryModalState.activePlayer;
+    row.setAttribute('aria-label',`${active?'Up now: ':''}${player}, total ${currentGame.totals?.[player]??0}, ${scoreEntryModalState.mode.valueLabel.toLowerCase()} ${status.label}`);
     row.querySelector('.score-entry-input-cell')?.setAttribute('data-entry-state', status.state);
     const valueEl=document.getElementById(`score-entry-value-${rookElementId(player)}`);
     if(valueEl){
@@ -20040,6 +20041,7 @@ ${isDealer
     const {mode}=scoreEntryModalState;
     const progress=document.getElementById('score-entry-progress');
     if(!progress)return;
+    progress.classList.toggle('score-entry-bid-tally',isScoreEntryBidMode(mode));
     const players=scoreEntryModalState.tablePlayers||scoreEntryModalState.players;
     if(mode.kind==='hand-foot'){
       const noun=currentGame.handFoot?.format==='teams'||(players[0]&&handFootMembersOf(currentGame, players[0]).length>1)?'teams':'players';
@@ -20067,7 +20069,10 @@ ${isDealer
       if(isScoreEntryBidMode(mode)){
         // 818 already locks a blank bid as 0. Say so, so a blank never looks like a hidden 0.
         const blankRule=currentGame.name==='818'&&entered<players.length?['blank bids lock as 0']:[];
-        setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} bids in`,...skippedPart,`total ${total}`,`${tricks} trick${tricks===1?'':'s'}`,...blankRule]);
+        const remaining=tricks-total;
+        const balance=remaining===0?'All tricks called':(remaining>0?`${remaining} left`:`${-remaining} over`);
+        progress.dataset.bidBalance=remaining<0?'over':(remaining===0?'exact':'under');
+        setScoreEntryProgressSegments(progress,[`${total} of ${tricks} trick${tricks===1?'':'s'} called`,balance,...blankRule]);
       } else {
         const blankRule=entered<players.length?['blank tricks count as 0']:[];
         setScoreEntryProgressSegments(progress,[`${entered} of ${players.length} tricks in`,...skippedPart,`total ${total}`,`need ${tricks}`,...blankRule]);
@@ -20408,10 +20413,11 @@ ${isDealer
       const context=hasContext
         ? `<div class="score-entry-context score-entry-stat"><div class="score-entry-meta-label">Bid</div><div class="score-entry-meta-value" style="color:var(--blue);">${bid}</div></div>`
         : '';
-      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${scoreEntryRowStateClass(entryStatus.state)}" aria-label="${escapeHtml(`${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
+      return `<button type="button" id="score-entry-row-${safe}" onclick="selectScoreEntryPlayer(${idx})" class="score-entry-row ${hasContext?'has-context':'no-context'} ${active?'active':''} ${isDealer?'is-dealer':''} ${scoreEntryRowStateClass(entryStatus.state)}" aria-label="${escapeHtml(`${active?'Up now: ':''}${p}, total ${currentGame.totals[p]??0}, ${mode.valueLabel.toLowerCase()} ${entryStatus.label}`)}">
         <div class="score-entry-player-card">
           ${getScoreEntryAvatarHtml(p)}
           <div class="score-entry-identity">
+            <span class="score-entry-up-now" aria-hidden="true">Up now</span>
             <div class="score-entry-name-line">
               <span class="score-entry-row-status" onclick="confirmScoreEntryRow(event, ${idx})" aria-hidden="true">${isComplete?'✓':(entryStatus.state==='skipped'?'–':'○')}</span>
               <div ${scoreEntryNameFitAttrs(p)}>${p}</div>
@@ -20454,7 +20460,7 @@ ${isDealer
     return `<article class="hf-team-card${active?' is-active':''}${phone?' is-phone-current':''}${handFootSideReady(entry)?' is-complete':''}" data-side="${escapeHtml(side)}">
       <header class="hf-team-id">
         <span class="hf-side-avatars">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
-        <div class="hf-side-names">${members.map(name=>escapeHtml(name)).join(' & ')||escapeHtml(side)}</div>
+        <div class="hf-side-names">${active?'<span class="score-entry-up-now">Up now</span> ':''}${members.map(name=>escapeHtml(name)).join(' & ')||escapeHtml(side)}</div>
         <div class="hf-match-total"><div class="score-entry-meta-label">Match</div><div class="hf-match-num">${handFootMatchTotal(side)}</div></div>
       </header>
       <div class="hf-num-row">
@@ -22178,6 +22184,7 @@ ${isDealer
   function endScreenCounts(data){
     return !!(data && window.BPGScorebook && BPGScorebook.countsForTallies && BPGScorebook.countsForTallies(data));
   }
+  let postgameRematch=null;
   function _presentVictoryModal(data, alerts){
     const counted=endScreenCounts(data);
     const outcome=window.BPGScorebook&&BPGScorebook.resolveOutcome?BPGScorebook.resolveOutcome(data):'';
@@ -22193,8 +22200,16 @@ ${isDealer
     if(noRounds) headline=L.noRounds;
     // No rounds means no result: nothing to share and nothing to run back.
     document.getElementById('victory-extra-actions')?.classList.toggle('hidden', noRounds);
+    const originalRoster=data?.originalRoster||Object.keys(data?.totals||{});
+    const roster=getActiveRoster({originalRoster, retired:data?.retired});
+    postgameRematch=!noRounds&&data&&BPGGames.seatLimit(data.game,roster.length).ok?{match:data,roster}:null;
+    document.getElementById('victory-rematch').classList.toggle('hidden',!postgameRematch);
     const nextBtn=document.getElementById('victory-next');
-    if(nextBtn) nextBtn.textContent=noRounds?'Done':'Next →';
+    if(nextBtn){
+      nextBtn.textContent=noRounds?'Done':'Next →';
+      nextBtn.classList.toggle('btn-primary',!postgameRematch);
+      nextBtn.classList.toggle('btn-ghost',!!postgameRematch);
+    }
     if(counted){
       const winners=uniqueResultNames(data&&data.winners).filter(name=>!retired.has(name));
       const losers=uniqueResultNames(currentLosers).filter(name=>!retired.has(name));
@@ -22238,6 +22253,7 @@ ${isDealer
   }
 
   function showLoserModal(){
+    postgameRematch=null;
     document.getElementById('victory-modal').classList.add('hidden');
     resetPostgameConfetti();
     const last=history[0];
@@ -22287,38 +22303,19 @@ ${isDealer
 
   /* ═══ RUN IT BACK ═══ */
   function runItBack(){
+    if(!postgameRematch||currentGame)return;
+    const {match,roster}=postgameRematch;
+    postgameRematch=null;
     document.getElementById('victory-modal').classList.add('hidden');
-    _postgameMontageData = null;
+    _postgameMontageData=null;
     resetPostgameConfetti();
     clearScorecardReceiptStash();
-    const lg=history[0]; if(!lg)return;
-    const roster=lg.originalRoster||Object.keys(lg.totals);
-      players=[...roster]; roster.forEach(p=>{if(!allPlayers.includes(p))allPlayers.push(p);});
-      let t={}; roster.forEach(p=>t[p]=0);
-      resetRecordChaseView();
-      currentGame={name:lg.game,originalRoster:[...roster],currentRound:1,rounds:[],totals:t,hailMaryUsed:[],lifePreserverHeld:[],lifePreserverHeldRound:1,retired:[],currentScoreDrafts:{}};
-      snapshotGameMaxRounds(currentGame, roster.length);
-      if(lg.game==='Wizard'){currentGame.wizardPhase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
-      if(lg.game==='818'){currentGame.eight18Phase='bidding';currentGame.currentBids={};currentGame.currentScoreDrafts={};}
-    if(lg.game==='Hand and Foot'&&lg.handFoot){
-      currentGame.handFoot=cloneHandFoot(lg.handFoot);
-      currentGame.totals={};
-      getHandFootColumns(currentGame).forEach(key=>{ currentGame.totals[key]=0; });
-    }
-    if(lg.game==='Rook'){
-      const prevCfg=lg.rookConfig||{winTarget:300,minBid:70,totalCounters:200};
-      currentGame.rookConfig={...prevCfg};
-      currentGame.rookPhase='bidSetup';
-      currentGame.rookHighBid=0;
-      currentGame.rookHighBidder=null;
-      currentGame.rookTrump=null;
-      currentGame.rookCalledCard=null;
-      currentGame.rookPartner=null;
-      currentGame.rookBidderCountersDraft=null;
-      currentGame.rookOppTeamPointsDraft=null;
-      currentGame.rookBidAmountDraft=null;
-    }
-    saveData({ fullPersist: true, syncCold: true }); requestWakeLock(); goActiveMatch();
+    players=roster.slice();
+    players.forEach(player=>{if(!allPlayers.includes(player))allPlayers.push(player);});
+    if(match.game==='Hand and Foot') window._handFootPendingConfig=cloneHandFoot(match.handFoot);
+    if(match.game==='Rook') window._rookPendingConfig=match.rookConfig;
+    _pendingGameName=match.game;
+    commitGameStart(0,{fullPersist:true,syncCold:true});
   }
 
   /* ═══ SHARE RECEIPT ═══ */

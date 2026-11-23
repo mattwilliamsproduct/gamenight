@@ -449,6 +449,16 @@ html.slice2-tv .s2-home-table .s2-panel-head #save-indicator.show {
     flex-direction: column;
   }
 
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid:has(> .s2-home-start-compact) {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  html.slice2-tv:not([data-bp-kb="1"]) .s2-home-grid:has(> .s2-home-start-compact) > .s2-panel {
+    align-self: start;
+    height: auto;
+    max-height: 100%;
+  }
+
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-panel-head,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-start .s2-panel-head,
   html.slice2-tv:not([data-bp-kb="1"]) .s2-home-table .s2-deck,

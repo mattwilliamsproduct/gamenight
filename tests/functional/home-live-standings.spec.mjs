@@ -426,3 +426,24 @@ test('parking an in-progress match leaves records alone and resume restores it',
   }));
   expect(reloaded).toEqual(restored);
 });
+
+
+test('four live standings and the collapsed Start panel hug their content', async ({page}) => {
+  for (const viewport of [{width: 1440, height: 1100}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
+    await page.setViewportSize(viewport);
+    await boot(page, '/');
+    await paintRoster(page, EIGHT.slice(0, 4), true);
+    const emptySpace = await page.evaluate(() => {
+      const box = selector => document.querySelector(selector).getBoundingClientRect();
+      return {
+        start: box('.s2-home-start-compact').bottom - box('[data-s2-action="reveal-picker"]').bottom,
+        scores: box('[data-s2-action="enter-round"]').top - box('.s2-standing:last-child').bottom
+      };
+    });
+    expect(emptySpace.start, `Start panel at ${viewport.width}px`).toBeLessThanOrEqual(24);
+    expect(emptySpace.scores, `Enter scores at ${viewport.width}px`).toBeLessThanOrEqual(28);
+    await page.getByRole('button', {name: 'Start another game', exact: true}).click();
+    await expect(page.locator('.s2-game')).toHaveCount(6);
+    await expect(page.locator('#slice2-start-btn')).toBeVisible();
+  }
+});

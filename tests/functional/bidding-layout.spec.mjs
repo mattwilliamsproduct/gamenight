@@ -43,8 +43,8 @@ for (const size of [{width: 1180, height: 820}, {width: 1024, height: 768}]) {
     expect(g.whoVisible).toBe(true);
     expect(g.who).toMatch(/^Bid for/);
     expect(g.who).toContain(g.active);
-    expect(g.progressText).toMatch(/0 of 8 bids in/);
-    expect(g.progressFs, 'bid count is large').toBeGreaterThanOrEqual(22);
+    expect(g.progressText).toMatch(/0 of 3 tricks called · 3 left/);
+    expect(g.progressFs, 'tricks-called tally is large').toBeGreaterThanOrEqual(22);
     expect(g.keypad.top - g.progress.bottom, 'progress sits right above the keypad').toBeLessThanOrEqual(16);
     expect(g.progress.left).toBeGreaterThanOrEqual(g.keypad.left - 2);
     expect(g.lock.top - g.keypad.bottom, 'Lock bids sits right under the keypad').toBeLessThanOrEqual(48);
@@ -63,7 +63,7 @@ for (const size of [{width: 820, height: 1180}, {width: 768, height: 1024}]) {
     for (const k of g.keys) { expect(k.h, k.t).toBeGreaterThanOrEqual(44); expect(k.w, k.t).toBeGreaterThanOrEqual(44); }
     expect(g.keypad.bottom, 'keypad is on screen').toBeLessThanOrEqual(size.height);
     expect(g.lock.bottom, 'Lock bids is on screen').toBeLessThanOrEqual(size.height);
-    expect(g.progressText).toMatch(/0 of 8 bids in/);
+    expect(g.progressText).toMatch(/0 of 3 tricks called · 3 left/);
   });
 }
 

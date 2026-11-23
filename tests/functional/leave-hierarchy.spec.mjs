@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openScenario} from '../helpers/qa.mjs';
 
 // bpg2 Phase 2: Leave game and Scratch are one hierarchy. Fictional names only.
 const FOUR = ['Hazel', 'Otis', 'Juniper', 'Rafael'];
@@ -135,4 +136,76 @@ test('an uncounted past night shows no 1st/1st/3rd and says it is not counted; D
   const del = card.locator('[data-s2-action="night-delete"]');
   await expect(del).toHaveText('Delete game');
   expect(await del.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(161, 38, 58)');
+});
+
+
+test('See results and Run it back use the final seating order and keep the saved result', async ({page}) => {
+  await boot(page);
+  const rounds = Array.from({length: 11}, (_, index) => ({
+    round: index + 1, scores: {Hazel: 1, Otis: 2, Juniper: 3, Rafael: 4}
+  }));
+  await liveGame(page, {
+    ...twoRounds, rounds, totals: {Hazel: 11, Otis: 22, Juniper: 33, Rafael: 44}
+  });
+  const finishedId = await page.evaluate(() => {
+    currentGame.retired = ['Otis'];
+    openReorderPlayersModal();
+    return currentGame.id;
+  });
+  const reorder = page.locator('#reorder-players-modal');
+  await reorder.getByRole('button', {name: 'Move up'}).last().click();
+  await reorder.getByRole('button', {name: /Apply|Save/}).click();
+  await page.getByRole('button', {name: 'See results'}).click();
+  await expect(page.locator('#victory-modal')).toBeVisible();
+  await page.getByRole('button', {name: 'Run it back', exact: true}).click();
+  await expect(page.locator('#slice2-board-line')).toContainText('Round 1 of 11');
+
+  const read = async () => page.evaluate((id) => {
+    const finished = history.find(match => match.id === id);
+    return {
+      id: currentGame.id,
+      roster: currentGame.originalRoster,
+      totals: currentGame.totals,
+      rounds: currentGame.rounds.length,
+      saved: finished && {totals: finished.totals, rounds: finished.rounds.length, retired: finished.retired}
+    };
+  }, finishedId);
+  const newMatch = await read();
+  expect(newMatch.id).not.toBe(finishedId);
+  expect(newMatch.roster).toEqual(['Hazel', 'Rafael', 'Juniper']);
+  expect(newMatch.totals).toEqual({Hazel: 0, Rafael: 0, Juniper: 0});
+  expect(newMatch.rounds).toBe(0);
+  expect(newMatch.saved).toEqual({
+    totals: {Hazel: 11, Otis: 22, Juniper: 33, Rafael: 44}, rounds: 11, retired: ['Otis']
+  });
+  await page.reload();
+  await page.waitForFunction(() => currentGame?.currentRound === 1);
+  expect(await read()).toEqual(newMatch);
+});
+
+
+test('Canasta Run it back keeps the same sides and clears the new scores', async ({page}) => {
+  await boot(page);
+  await openScenario(page, {scenario: 'canasta-house-round', surface: 'scorecard'});
+  const previous = await page.evaluate(() => {
+    const sides = currentGame.handFoot.sides;
+    currentGame.rounds = Array.from({length: 4}, (_, index) => ({
+      round: index + 1,
+      scores: Object.fromEntries(sides.flatMap((side, sideIndex) => side.members.map(name => [name, 100 * (sideIndex + 1)])))
+    }));
+    currentGame.currentRound = 5;
+    recomputeGameTotals(currentGame);
+    goActiveMatch();
+    return {roster: currentGame.originalRoster, teams: currentGame.handFoot};
+  });
+  await page.getByRole('button', {name: 'See results', exact: true}).click();
+  await page.getByRole('button', {name: 'Run it back', exact: true}).click();
+  const rematch = await page.evaluate(() => ({
+    name: currentGame.name, roster: currentGame.originalRoster, teams: currentGame.handFoot,
+    round: currentGame.currentRound, scores: Object.values(currentGame.totals),
+    savedRounds: history[0].rounds.length
+  }));
+  expect(rematch).toMatchObject({...previous, name: 'Hand and Foot', round: 1, savedRounds: 4});
+  expect(rematch.scores.length).toBeGreaterThan(0);
+  expect(rematch.scores.every(total => total === 0)).toBe(true);
 });
