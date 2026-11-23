@@ -18,7 +18,7 @@
     return (window.BPGGames && BPGGames.visibleGames()) || [];
   }
 
-  const HOME_PICKER_ORDER = ['Wizard', 'Hand and Foot', 'Flip 7 Vengeance', 'Five Crowns', 'Beat the Heat', '818'];
+  const HOME_PICKER_ORDER = ['Five Crowns', 'Wizard', 'Hand and Foot', 'Flip 7 Vengeance', 'Beat the Heat', '818'];
   function homePickerGames() {
     const gamesById = new Map(registryGames().map((game) => [game.id, game]));
     return HOME_PICKER_ORDER.map((id) => gamesById.get(id)).filter(Boolean);

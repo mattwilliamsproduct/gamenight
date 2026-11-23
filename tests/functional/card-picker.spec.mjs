@@ -303,17 +303,17 @@ test('Home shows the six decks in order with the approved picker covers', async 
   await expect(page.locator('#home-screen')).toBeVisible();
   const picker = page.locator('.s2-home-start');
   await expect(picker.locator('.s2-game-name')).toHaveText([
-    'Wizard', 'Canasta', 'Flip 7', 'Five Crowns', 'Beat the Heat', '818'
+    'Five Crowns', 'Wizard', 'Canasta', 'Flip 7', 'Beat the Heat', '818'
   ]);
   const covers = await picker.locator('.s2-card-photo').evaluateAll((nodes) => Promise.all(nodes.map(async (img) => {
     await img.decode();
     return img.getAttribute('src');
   })));
   expect(covers).toEqual([
+    './assets/cards/five-crowns-picker.webp',
     './assets/cards/wizard-picker.webp',
     './assets/cards/canasta.webp',
     './assets/cards/flip7-picker.webp',
-    './assets/cards/five-crowns-picker.webp',
     './assets/cards/beat-the-heat-picker.webp',
     './assets/cards/818.webp'
   ]);

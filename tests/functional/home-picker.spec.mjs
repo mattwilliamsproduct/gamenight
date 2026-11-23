@@ -8,7 +8,7 @@ test.beforeEach(async ({page}) => {
 });
 
 // Six Home decks in reading order. Rook remains available through the registry.
-const DECKS = ['Wizard', 'Hand and Foot', 'Flip 7 Vengeance', 'Five Crowns', 'Beat the Heat', '818'];
+const DECKS = ['Five Crowns', 'Wizard', 'Hand and Foot', 'Flip 7 Vengeance', 'Beat the Heat', '818'];
 const SAVED = ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay', 'Gus', 'Hal'];
 
 async function homeWith(page, saved, seated) {
