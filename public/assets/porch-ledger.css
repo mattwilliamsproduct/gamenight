@@ -3352,6 +3352,10 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame:is([data-card-art="fiv
   height: 100cqw;
   transform: translate(-50%, -50%) rotate(90deg);
 }
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="five"] .s2-card-photo {
+  width: 85.7cqw;
+  height: 120cqw;
+}
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   box-shadow: 0 0 0 3px #f9cf73 !important;
 }

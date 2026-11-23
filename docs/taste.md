@@ -15,7 +15,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 - Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.
 - Use shared page rails across Home, the live board, Records, and Passports. Use wider layouts for readable type and useful content, and give long Records sections the full grid width.
 - Keep the wild rank, dealer, name, place, and total readable across the room. Put place near the avatar and use the wheel icon with two quiet status colors.
-- Put first-use instructions beside Add player. Label the bench and ready players, make selection visible on the card face, and keep titles upright.
+- Put first-use instructions beside Add player. Label the bench and ready players, make selection visible on the card face, and keep titles upright. Give the Five Crowns logo enough width to read from across the room.
 - Give two-team Canasta readable team identities, adjacent totals, and a keypad sized for the entry form.
 - Start Passports with Photo and a short summary. Open the full career view on Details. Make room for Settings side by side on wide displays.
 - Buttons, modal labels, and player names use regular-width sentence case at a readable size. Names stay as typed. A long single name stays on one line: it shrinks or ends in an ellipsis, and it never splits mid-word. Phone nav buttons size to their words, so Player Passports stays one line at 13px or larger.
