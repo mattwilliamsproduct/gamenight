@@ -2870,93 +2870,111 @@
 
     /* ════════ LINEUP INTRO ════════ */
     #lineup-intro {
-      position: fixed; inset: 0; z-index: 195;
-      background: #000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: fixed;
+      inset: 0;
+      z-index: 195;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      justify-items: center;
+      gap: 12px;
       overflow: hidden;
-      padding: 2rem 1rem;
+      padding: clamp(16px, 3vh, 40px);
     }
     #lineup-intro.hidden { display: none; }
-    .intro-bg {
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, rgba(4,120,87,0.28) 0%, rgba(0,0,0,1) 72%);
-    }
-    .intro-header {
-      position: relative;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-weight: 800;
-      color: #fff;
-      font-size: clamp(2.5rem, 8.5vw, 5.5rem);
-      letter-spacing: -0.04em;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 50px rgba(4,120,87,0.45);
-      animation: introHeaderIn 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
-      opacity: 0;
+    .intro-stage {
+      width: min(100%, 90rem);
+      align-self: safe center;
+      max-height: 100%;
+      overflow-y: auto;
+      padding: 12px 2px;
       text-align: center;
-      line-height: 1;
+    }
+    #lineup-intro .intro-header {
+      color: #fff4df !important;
+      font-size: clamp(2.3rem, 5.4vw, 6rem);
+      line-height: 1.05;
+      margin: 6px 0 clamp(18px, 4vh, 44px);
+      animation: introFadeIn .5s ease-out both;
     }
     .intro-sub {
-      position: relative;
-      color: #34d399;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-weight: 800;
-      font-size: clamp(0.85rem, 1.8vw, 1.2rem);
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      margin-bottom: 2.5rem;
-      opacity: 0;
-      animation: introHeaderIn 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+      color: #ffdb83;
+      font-size: clamp(1.1rem, 2vw, 2rem);
+      font-weight: 850;
+      animation: introFadeIn .5s ease-out both;
     }
-    @keyframes introHeaderIn { to { opacity: 1; } }
+    @keyframes introFadeIn { from { opacity: 0; } to { opacity: 1; } }
     .intro-roster {
-      position: relative;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 1.5rem 1.75rem;
-      max-width: 95vw;
+      gap: clamp(10px, 1.35vw, 24px);
     }
     .intro-player {
       display: flex;
       flex-direction: column;
       align-items: center;
-      opacity: 0;
-      animation: introPlayerIn 0.65s cubic-bezier(0.16,1,0.3,1) forwards;
+      width: clamp(135px, 15vw, 234px);
+      min-width: 0;
+      padding: clamp(10px, 1.3vw, 24px);
+      border: 1px solid #dbc9a9;
+      border-radius: clamp(12px, 1.6vw, 24px);
+      background: #fff4df;
+      animation: introPlayerIn .5s ease-out both;
+    }
+    .intro-player.is-dealer {
+      border-color: #ffd985;
+      box-shadow: inset 0 0 0 2px #c6923b;
     }
     @keyframes introPlayerIn {
-      0% { opacity: 0; transform: translateY(30px) scale(0.7); filter: blur(10px); }
-      60% { opacity: 1; transform: translateY(-5px) scale(1.08); filter: blur(0); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .intro-player img {
-      width: clamp(70px, 11vw, 100px);
-      height: clamp(70px, 11vw, 100px);
+      width: clamp(64px, 9vw, 160px);
+      aspect-ratio: 1;
       border-radius: 50%;
-      border: 4px solid #fff;
-      box-shadow: 0 0 30px rgba(255,255,255,0.3);
       object-fit: cover;
+      border: 3px solid #0a5367;
     }
     .intro-player-name {
-      color: #fff;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #172d37;
+      font-weight: 850;
+      font-size: clamp(1.1rem, 2vw, 2.1rem);
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+      line-height: 1.15;
+    }
+    .intro-dealer {
+      color: #654315;
+      font-size: clamp(.8rem, 1.1vw, 1.15rem);
       font-weight: 800;
-      font-size: clamp(0.95rem, 1.8vw, 1.25rem);
-      margin-top: 0.75rem;
-      letter-spacing: -0.01em;
+      margin-top: 4px;
     }
     .intro-skip {
-      position: absolute;
-      bottom: 2rem;
-      color: rgba(255,255,255,0.35);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      cursor: pointer;
-      padding: 0.55rem 1.4rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff4df;
+      font-size: 1rem;
+      font-weight: 800;
+      min-width: 82px;
+      min-height: 44px;
+      padding: 8px 18px;
+      background: #102d58;
+      border: 1px solid #c6b795;
       border-radius: 999px;
+    }
+    #lineup-intro[data-dense] .intro-player {
+      width: clamp(85px, 11vw, 168px);
+      padding: 8px;
+    }
+    #lineup-intro[data-dense] .intro-player img { width: clamp(46px, 5.5vw, 90px); }
+    #lineup-intro[data-dense] .intro-player-name { font-size: clamp(.92rem, 1.45vw, 1.45rem); }
+    @media (max-width: 520px) {
+      #lineup-intro .intro-player { width: min(138px, calc((100% - 10px) / 2)); }
+      #lineup-intro[data-dense] .intro-player { width: min(98px, calc((100% - 20px) / 3)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #lineup-intro .intro-player,
+      #lineup-intro .intro-header,
+      #lineup-intro .intro-sub { animation: none; }
     }
 
     /* ════════ DEALER DICE ROLL ════════ */
@@ -5530,7 +5548,7 @@ button.dealer-name-indicator .dealer-player-label {
       overflow: visible;
       z-index: 6;
     }
-    .score-entry-value.is-confirmed-zero::after {
+    .score-entry-value.is-confirmed-value::after {
       content: "✓";
       margin-left: 0.16em;
       color: var(--emerald, #047857);
@@ -6622,12 +6640,7 @@ button.dealer-name-indicator .dealer-player-label {
       border-color: rgba(8,118,108,0.2);
       box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.5);
     }
-    #lineup-intro,
     #stat-montage { background: #073f3b; }
-    .intro-bg {
-      background: linear-gradient(145deg, rgba(231,111,81,0.42), transparent 38%), linear-gradient(180deg, #0b6159, #052f2c);
-    }
-    .intro-sub,
     .montage-label { color: #9ee6d8; }
     .montage-bg {
       background: linear-gradient(135deg, rgba(231,111,81,0.24), transparent 42%), linear-gradient(315deg, rgba(115,197,200,0.22), transparent 46%);
@@ -7627,12 +7640,7 @@ button.dealer-name-indicator .dealer-player-label {
       border-color: rgba(8,118,108,0.2);
       box-shadow: var(--shadow-lg), inset 0 4px 0 rgba(231,111,81,0.5);
     }
-    #lineup-intro,
     #stat-montage { background: #073f3b; }
-    .intro-bg {
-      background: linear-gradient(145deg, rgba(231,111,81,0.42), transparent 38%), linear-gradient(180deg, #0b6159, #052f2c);
-    }
-    .intro-sub,
     .montage-label { color: #9ee6d8; }
     .montage-bg {
       background: linear-gradient(135deg, rgba(231,111,81,0.24), transparent 42%), linear-gradient(315deg, rgba(115,197,200,0.22), transparent 46%);
@@ -8993,10 +9001,6 @@ button.dealer-name-indicator .dealer-player-label {
     #scorecard-modal .bp-modal-panel.surface-raised {
       background: #fffaf1;
     }
-    #lineup-intro {
-      background: #063f3a url('./theme/back-porch-resort.png') center / cover no-repeat;
-    }
-    .intro-bg { background: linear-gradient(180deg, rgba(3,50,47,0.5), rgba(2,34,32,0.86)); }
     .whammy-card,
     #victory-modal .surface-raised,
     #loser-modal .surface-raised {
@@ -10022,12 +10026,13 @@ button.dealer-name-indicator .dealer-player-label {
   <div id="save-indicator">✓ Saved on this device</div>
 
   <!-- Lineup Intro Overlay -->
-  <div id="lineup-intro" class="hidden">
-    <div class="intro-bg"></div>
-    <div class="intro-sub" id="intro-game-label">Back Porch Games</div>
-    <div class="intro-header" id="intro-header-text">Tonight's table</div>
-    <div class="intro-roster" id="intro-roster-list"></div>
-    <div class="intro-skip" onclick="dismissLineupIntro()">Skip ›</div>
+  <div id="lineup-intro" class="hidden" role="dialog" aria-modal="true" aria-labelledby="intro-header-text" aria-describedby="intro-game-label">
+    <div class="intro-stage">
+      <p class="intro-sub" id="intro-game-label">Back Porch Games</p>
+      <h1 class="intro-header font-display" id="intro-header-text">Tonight's table</h1>
+      <div class="intro-roster" id="intro-roster-list"></div>
+    </div>
+    <button type="button" class="intro-skip" onclick="dismissLineupIntro()" onkeydown="if(event.key==='Tab') event.preventDefault()">Skip</button>
   </div>
 
   <!-- Dealer Dice Roll Modal -->
@@ -16833,25 +16838,25 @@ ${isDealer
 
   function showLineupIntro(gameName, dealerOffsetToUse){
     _lineupIntroDealerOffset = (typeof dealerOffsetToUse === 'number') ? dealerOffsetToUse : null;
-    const cfg = configs[gameName];
     const intro=document.getElementById('lineup-intro');
     const gameLabel=document.getElementById('intro-game-label');
-    const header=document.getElementById('intro-header-text');
     const list=document.getElementById('intro-roster-list');
-    gameLabel.textContent = `${cfg?.emoji || ''} ${displayGameName(gameName)}`;
-    intro.onclick=null;
-    header.className='intro-header';
-    header.textContent="Tonight's table";
-    list.className='intro-roster';
-    list.innerHTML = players.map((p, i) => {
-      const delay = 0.45 + i * 0.18;
-      const fb = getAvatarFallback(p);
-      return `<div class="intro-player" style="animation-delay:${delay}s">
-        <img src="${getAvatarSrc(p)}" data-fb="${fb}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${p}">
-        <div class="intro-player-name">${p}</div>
+    const dealer=getCurrentDealerName({dealerOffset:_lineupIntroDealerOffset}, players);
+    gameLabel.textContent = displayGameName(gameName);
+    intro.toggleAttribute('data-dense', players.length > 8);
+    list.innerHTML = players.map((player, index) => {
+      const isDealer=player===dealer;
+      const delay=Math.min(index * 75, 650);
+      const fallback=escapeHtml(getAvatarFallback(player));
+      return `<div class="intro-player${isDealer?' is-dealer':''}" style="animation-delay:${delay}ms">
+        <img src="${escapeHtml(getAvatarSrc(player))}" data-fb="${fallback}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="">
+        <div class="intro-player-name">${escapeHtml(player)}</div>
+        ${isDealer?'<div class="intro-dealer">Deals first</div>':''}
       </div>`;
     }).join('');
     intro.classList.remove('hidden');
+    intro.querySelector('.intro-stage').scrollTop=0;
+    intro.querySelector('.intro-skip').focus({preventScroll:true});
     haptic([20, 40, 20]);
     const totalDuration = 900 + players.length * 180 + 1500;
     _lineupIntroTimeout = setTimeout(dismissLineupIntro, totalDuration);
@@ -16861,7 +16866,6 @@ ${isDealer
     if(_lineupIntroTimeout){ clearTimeout(_lineupIntroTimeout); _lineupIntroTimeout = null; }
     const intro=document.getElementById('lineup-intro');
     intro.classList.add('hidden');
-    intro.onclick=null;
     commitGameStart(_lineupIntroDealerOffset);
     _lineupIntroDealerOffset = null;
   }
@@ -18519,7 +18523,7 @@ ${isDealer
     if(!host)return;
     const colVars=['--scorecard-round-col','--scorecard-round-input','--scorecard-round-input-min','--scorecard-round-input-min-miss','--scorecard-round-input-max','--scorecard-round-input-pad-x','--scorecard-round-th-pad-x','--scorecard-col-input-font','--scorecard-now-col'];
     colVars.forEach(p=>host.style.removeProperty(p));
-    host.classList.remove('scorecard-fit-cols','scorecard-card-fit');
+    host.classList.remove('scorecard-fit-cols','scorecard-card-fit','scorecard-flex-now');
     const barReset=document.getElementById('slice2-board-bar');
     if(barReset){
       barReset.style.removeProperty('width');
@@ -18549,16 +18553,19 @@ ${isDealer
       const room=Math.max(32, wrap.clientWidth-leadWidth-8);
       host.classList.add('scorecard-fit-cols');
       const phoneNow=window.innerWidth<=760;
-      const nowPx=phoneNow?Math.floor(Math.min(120,Math.max(88,room))):(window.innerWidth>=1440?200:window.innerWidth>=1180?176:156);
-      const totalPx=phoneNow?88:(window.innerWidth>=1440?200:156);
-      host.style.setProperty('--scorecard-now-col',`${nowPx}px`);
+      const totalPx=phoneNow?88:(window.innerWidth>=1440?168:132);
+      if(phoneNow){
+        host.style.setProperty('--scorecard-now-col',`${Math.floor(Math.min(120,Math.max(88,room)))}px`);
+      }else{
+        host.classList.add('scorecard-flex-now');
+      }
       table.querySelectorAll('.scorecard-col-total').forEach((el)=>{
         el.style.setProperty('width',`${totalPx}px`,'important');
         el.style.setProperty('min-width',`${totalPx}px`,'important');
         el.style.setProperty('max-width',`${totalPx}px`,'important');
       });
       if(!phoneNow){
-        const playerMax=Math.max(220, Math.round(wrap.clientWidth*0.46));
+        const playerMax=Math.min(380, Math.max(220, Math.round(wrap.clientWidth*0.28)));
         table.querySelectorAll('.scorecard-col-player').forEach((el)=>{
           el.style.setProperty('width',`${playerMax}px`,'important');
           el.style.setProperty('max-width',`${playerMax}px`,'important');
@@ -18639,7 +18646,9 @@ ${isDealer
           el.style.setProperty('min-width','96px','important');
         });
         if(nowPresent) host.style.setProperty('--scorecard-now-col',`${nowCap}px`);
-        const totalCapFont=window.innerWidth>=1280?48:36;
+        const totalCapFont=currentGame?.name==='Five Crowns'
+          ? (window.innerWidth>=1280?56:44)
+          : (window.innerWidth>=1280?48:36);
         const currentTotal=parseFloat(host.style.getPropertyValue('--scorecard-total-font'))||totalCapFont;
         if(currentTotal>totalCapFont) host.style.setProperty('--scorecard-total-font',`${totalCapFont}px`);
         const bidTh=table.querySelector('thead th.scorecard-col-bid');
@@ -18671,6 +18680,13 @@ ${isDealer
     const col=handFoot
       ? Math.min(colMax, Math.max(rawCol < colFloor ? 24 : colFloor, rawCol))
       : Math.min(colMax, Math.max(26, rawCol>=colFloor ? rawCol : rawCol));
+    // Fixed-layout tables give the remaining width to the first auto column.
+    // With a short round history, let Now take that width and cap Player near Total.
+    if(!handFoot&&nowPresent&&wide&&leadForFit+nowForFit+visible.length*Math.floor(col)+120<wrap.clientWidth){
+      const playerWidth=Math.min(380, Math.round(wrap.clientWidth*0.28));
+      table.querySelectorAll('.scorecard-col-player').forEach(el=>el.style.setProperty('width',`${playerWidth}px`,'important'));
+      host.classList.add('scorecard-flex-now');
+    }
     const pad=handFoot?2:(col<42?2:col<64?3:col<80?5:6);
     const input=Math.max(26,col-(pad*2));
     let font;
@@ -20038,7 +20054,7 @@ ${isDealer
     if(valueEl){
       const shown=scoreEntryModalState.values?.[player];
       if(typeof shown!=='object') valueEl.textContent=shown!==''&&shown!=null?String(shown):'';
-      valueEl.classList.toggle('is-confirmed-zero', complete && String(shown??'')==='0');
+      valueEl.classList.toggle('is-confirmed-value', complete);
       valueEl.setAttribute('aria-label', `${scoreEntryModalState.mode.valueLabel}: ${status.label}`);
     }
     const indicator=row.querySelector('.score-entry-row-status');
@@ -20134,7 +20150,6 @@ ${isDealer
     const mode=scoreEntryModalState?.mode;
     const plain=scoreEntryUsesPlainPad(mode);
     const handFoot=mode?.kind==='hand-foot';
-    const bids=isScoreEntryBidMode(mode);
     modal?.classList.toggle('score-entry-plain', plain);
     const noMinus=plain&&!!(currentGame && window.BPGScorebook && BPGScorebook.playedScoreMustBeNonNegative(currentGame));
     modal?.classList.toggle('score-entry-no-minus', noMinus);
@@ -20150,14 +20165,7 @@ ${isDealer
       skip.setAttribute('aria-label','Skip');
       skip.onclick=()=>scoreEntrySkip();
     }
-    if(next&&scoreEntryModalState&&plain&&!bids&&!handFoot){
-      const player=scoreEntryModalState.activePlayer;
-      const blank=BPGScorebook.scoreEntryValueIsBlank(scoreEntryModalState.values?.[player]);
-      const skipped=!!scoreEntryModalState.skipped?.[player];
-      next.textContent=(blank&&!skipped)?'0 & Next':'Next';
-    } else if(next){
-      next.textContent='Next';
-    }
+    if(next) next.textContent='Next';
     const kicker=document.getElementById('score-entry-selected-kicker');
     if(kicker&&bidTrick&&!handFoot) kicker.textContent=isScoreEntryTrickMode(mode)?'Tricks for':'Bid for';
     placeScoreEntryProgress();
@@ -20465,7 +20473,7 @@ ${isDealer
           <div class="score-entry-stat score-entry-total"><div class="score-entry-meta-label">Total</div><div class="score-entry-meta-value">${currentGame.totals[p]??0}</div></div>
           ${context}
         </div>
-        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value${isComplete&&String(values[p]??'')==='0'?' is-confirmed-zero':''}" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}" aria-hidden="true">${escapeHtml(entryStatus.label)}</div></div>
+        <div class="score-entry-input-cell" data-entry-state="${entryStatus.state}"><div id="score-entry-value-${safe}" class="score-entry-value${isComplete?' is-confirmed-value':''}" role="text" aria-label="${escapeHtml(`${mode.valueLabel}: ${entryStatus.label}`)}">${values[p]!==''?values[p]:''}</div><div id="score-entry-status-${safe}" class="score-entry-confirm-status" data-entry-state="${entryStatus.state}" aria-hidden="true">${escapeHtml(entryStatus.label)}</div></div>
       </button>`;
     }).join('');
     document.getElementById('score-entry-rows').innerHTML=rows;

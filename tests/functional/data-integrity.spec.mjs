@@ -342,7 +342,7 @@ test('P1-05 Five Crowns, Flip 7, and Beat the Heat reject a negative played roun
   await expect(page.locator('#score-entry-value-Matt')).toHaveText('-5');
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await page.waitForTimeout(450);
-  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
+  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Cat')).toHaveText('0');
   await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
   await expect(page.locator('#score-entry-primary-btn')).toBeEnabled();
@@ -1288,22 +1288,28 @@ test('a blank score submits as 0 and matches a typed 0', async ({page})=>{
   await expect(alice).toHaveText('Not entered');
   await expect(page.locator('#score-entry-unconfirmed')).toHaveText(/Skip leaves a score blank/);
   await expect(page.locator('#score-entry-status-Bob')).not.toContainText('Suggested');
-  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
+  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   const aliceZero=await page.evaluate(()=>({
     value:scoreEntryModalState.values.Alice,
     acknowledged:scoreEntryModalState.acknowledged.Alice
   }));
   expect(aliceZero).toEqual({value:'0', acknowledged:true});
-  await expect(page.locator('#score-entry-value-Alice')).toHaveText('0');
+  const aliceValue=page.locator('#score-entry-value-Alice');
+  await expect(aliceValue).toHaveText('0');
+  await expect(aliceValue).toHaveClass(/is-confirmed-value/);
   await expect(page.locator('#score-entry-row-Alice')).toHaveClass(/is-complete/);
   await page.waitForTimeout(450);
-  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
+  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await expect(page.locator('#score-entry-value-Bob')).toHaveText('0');
   await expect(page.locator('#score-entry-status-Bob')).toContainText('Confirmed: 0');
   await (await entryKey(page,'4')).click();
+  const caraValue=page.locator('#score-entry-value-Cara');
+  await expect(caraValue).toHaveText('4');
+  await expect(caraValue).toHaveClass(/is-confirmed-value/);
   await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
   await page.waitForTimeout(450);
-  await page.locator('#score-entry-modal').getByRole('button',{name:'0 & Next', exact:true}).click();
+  await page.locator('#score-entry-modal').getByRole('button',{name:'Next', exact:true}).click();
+  await expect(caraValue).toHaveClass(/is-confirmed-value/);
   await shot(page,'slice1-blank-submits-zero');
   await page.locator('#score-entry-primary-btn').click();
   await expect(page.locator('#score-entry-modal')).toBeHidden();

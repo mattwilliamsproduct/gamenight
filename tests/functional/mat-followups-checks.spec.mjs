@@ -89,12 +89,12 @@ test('a phone with four players shows the whole last entry row', async ({page}) 
 });
 
 for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
-  test(`score entry reads in sentence case with 0 & Next and no 00 at ${size.width}`, async ({page}) => {
+  test(`score entry reads in sentence case with Next and no 00 at ${size.width}`, async ({page}) => {
     await startFourPlayerFiveCrowns(page, size);
     const modal = page.locator('#score-entry-modal');
     await expect(modal.getByRole('button', {name: 'Review scores', exact: true})).toBeVisible();
     await expect(modal.getByRole('button', {name: 'Submit scores', exact: true})).toBeVisible();
-    await expect(page.locator('#score-entry-next-btn')).toHaveText('0 & Next');
+    await expect(page.locator('#score-entry-next-btn')).toHaveText('Next');
     const keys = (await modal.locator('.score-entry-keypad button').allTextContents()).map((t) => t.trim());
     expect(keys).not.toContain('00');
   });
@@ -106,7 +106,7 @@ for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
     await openScenario(page, {scenario: 'home-party', surface: 'home'});
     const home = page.locator('#home-screen');
     await expect(home).toContainText('Start a new match');
-    await expect(home).toContainText(/Tonight's table · \d+ seated/);
+    await expect(home.locator('.s2-home-table')).toContainText("Tonight's table");
     await expect(home.getByRole('button', {name: 'Add player', exact: true})).toBeVisible();
     await expect(home).toContainText('Game instructions');
     const text = await home.innerText();

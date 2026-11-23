@@ -90,7 +90,7 @@ test('Pace stays hidden at 1440, delete removes a past night, and Skip replaces 
   await expect(page.locator('#score-entry-modal')).toBeVisible();
   await expect(page.locator('#score-entry-modal .score-entry-minus-key')).toBeHidden();
   await expect(page.locator('#score-entry-skip-slot')).toHaveText('Skip');
-  await expect(page.locator('#score-entry-next-btn')).toHaveText('0 & Next');
+  await expect(page.locator('#score-entry-next-btn')).toHaveText('Next');
   const span = await page.evaluate(() => {
     const zero = document.getElementById('score-entry-key-0').getBoundingClientRect();
     const seven = document.querySelector('#score-entry-modal .score-entry-keypad button[onclick="scoreEntryKey(\'7\')"]').getBoundingClientRect();

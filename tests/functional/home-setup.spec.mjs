@@ -181,3 +181,22 @@ test('bench checkboxes update the Add count in both directions and seat only the
   await expect(bench.getByRole('checkbox', {name: 'Bea', exact: true})).not.toBeChecked();
   await expect(page.getByRole('button', {name: 'Add player', exact: true})).toBeVisible();
 });
+
+test('the lineup marks the first dealer and Skip starts the displayed match', async ({page}) => {
+  await seedHome(page);
+  await page.evaluate(() => {
+    prefs.lineupIntro = true;
+    prefs.dealerRoll = false;
+  });
+  await page.getByRole('button', {name: 'Start Five Crowns', exact: true}).click();
+  const lineup = page.getByRole('dialog', {name: "Tonight's table"});
+  await expect(lineup).toHaveAccessibleDescription('Five Crowns');
+  await expect(lineup.locator('.intro-player')).toHaveCount(SEATED.length);
+  await expect(lineup.locator('.intro-player.is-dealer')).toContainText('Hazel');
+  const skip = lineup.getByRole('button', {name: 'Skip'});
+  await expect(skip).toBeFocused();
+  await skip.press('Enter');
+  await expect(lineup).toBeHidden();
+  await expect.poll(() => page.evaluate(() => getCurrentDealerName())).toBe('Hazel');
+  expect(await page.evaluate(() => currentGame.originalRoster)).toEqual(SEATED);
+});

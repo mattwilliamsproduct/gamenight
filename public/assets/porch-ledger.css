@@ -3066,8 +3066,8 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-board-sub {
 html.porch-ledger.slice2-tv .s2-board-context-wild {
   padding: 0.13em 0.54em;
   border-radius: 0.4em;
-  color: #211600;
-  background: #ffdb83;
+  color: #fff;
+  background: var(--ledger-teal-deep);
   font-size: 1.15em;
   font-weight: 900;
   white-space: nowrap;
@@ -3425,5 +3425,74 @@ html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .hf-match-num {
   }
   html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .scorecard-total-value {
     font-size: clamp(2.25rem, 3.7vw, 4.5rem) !important;
+  }
+}
+
+/* The lineup uses the same blue felt as the table. */
+html.porch-ledger.slice2-tv #lineup-intro {
+  background: #0b2c54;
+  background-image: radial-gradient(ellipse at center, #16447130, #04142ade), var(--felt-photo);
+  background-position: center;
+  background-size: cover;
+}
+
+/* Keep the live context alongside the match title when the header has room. */
+@media (min-width: 1180px) {
+  html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-title-row:has(.s2-board-context-wild) {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: baseline;
+    column-gap: clamp(16px, 2vw, 32px);
+    row-gap: 4px;
+  }
+
+  html.porch-ledger.slice2-tv #slice2-board-bar .s2-board-title-row:has(.s2-board-context-wild) #slice2-board-sub {
+    flex: 0 1 auto;
+    white-space: normal !important;
+  }
+
+  html.porch-ledger.slice2-tv #slice2-board-sub:has(.s2-board-context-wild) .s2-board-player-count-slot {
+    display: none;
+  }
+}
+
+/* Let Now take the spare space when round history is short so Total stays by Player. */
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv #scorecard-capture.scorecard-fit-cols.scorecard-flex-now .scorecard-col-now {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}
+
+@media (min-width: 1401px) {
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-layout {
+    grid-template-columns: minmax(0, 960px) minmax(320px, 420px);
+    gap: clamp(16px, 1.5vw, 28px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-panel,
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-panel.score-entry-many-players {
+    --score-entry-input-col: clamp(132px, 9vw, 168px);
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain :is(.score-entry-row, .score-entry-lane-label) {
+    grid-template-columns: minmax(0, 1fr) var(--score-entry-input-col) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain:not(:has(.score-entry-row:nth-child(7))) .score-entry-value {
+    min-height: 3.5rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-keypad .score-entry-key {
+    font-size: clamp(22px, 2vw, 32px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-keypad .score-entry-key:is(.subtle, .next) {
+    font-size: clamp(17px, 1.3vw, 24px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain.score-entry-reviewing .score-entry-layout {
+    grid-template-columns: minmax(0, 960px);
   }
 }

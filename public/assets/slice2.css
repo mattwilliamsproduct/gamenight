@@ -49,9 +49,6 @@ html.slice2-tv::before {
   pointer-events: none;
 }
 
-html.slice2-tv #lineup-intro {
-  background: #f6f1e7 none !important;
-}
 
 html.slice2-tv body:not(.active-match-view) .bp-app-shell {
   padding-top: calc(var(--bp-accent-line) + var(--bp-nav-gap));

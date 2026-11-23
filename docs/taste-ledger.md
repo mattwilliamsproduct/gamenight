@@ -24,7 +24,7 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - An unusual score asks Fix it or It's fine, save anyway. A hidden round column says which rounds are off to the left, in plain words.
 - Every Home game card has a soft border and a light shadow. The selected card uses a thicker primary border. It does not say Selected.
 - Home shows the newest unfinished game, with Resume. Older unfinished games stay in Records, marked Unfinished, with Resume.
-- Skip sits above Next. A blank score stays blank. 0 & Next stores a confirmed 0. Minus shows only when that game allows a negative score.
+- Skip sits above Next. A blank score stays blank. Next on a blank score stores a confirmed 0. Minus shows only when that game allows a negative score.
 - A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
 - Home is the f2c81a4 layout exactly (Matt, 2026-11-13 6:13 PM): ivory Tonight's table (360 wide) and Start a new match panels with the brass top edge, the 115px wordmark, six named decks three per row (Five Crowns, 818, Wizard / Flip 7, Beat the Heat, Canasta). The page background is Matt's own felt photo at cover. On a laptop the panels run nav edge to nav edge with one gap and the same top and bottom; the roster scrolls inside Tonight's table on whole rows with N more below, and Add sits outside the scroll.
 - The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
@@ -252,4 +252,6 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## 2026-11-22 MVP walkthrough
 
-- Keep names, totals and ordinal places prominent even when a small lineup leaves viewport space. Keep a separate spot by round and dealer for the active-player count.
+- Keep names, totals and ordinal places prominent. Keep the Total column close to Player when there are few rounds, and use the same centerline for Total and its values. The wild-card badge is white on teal and sits beside the round and dealer on wide screens. Keep a separate spot by round and dealer for the active-player count.
+
+- The lineup intro uses blue felt, large portraits and a clear first-dealer label. Skip stays reachable below the roster.
