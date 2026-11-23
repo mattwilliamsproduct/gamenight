@@ -92,43 +92,58 @@ test('8p long names still fit without overflow', async ({page}) => {
   }
 });
 
-test('a mid-match rename fits only that player and leaves the full name accessible', async ({page}) => {
-  await page.setViewportSize({width: 1920, height: 1080});
-  await page.goto('/?demo=try');
-  await page.waitForFunction(() => document.body.dataset.bpgTryDemo === 'on' && typeof goActiveMatch === 'function');
-  await page.evaluate(() => goActiveMatch());
-  const playerNames = page.locator('#scorecard-capture .scoreboard-player-name');
-  await expect(playerNames.filter({hasText: 'Theo'})).toBeVisible();
-  async function fontSizes() {
-    await page.evaluate(() => document.fonts.ready.then(() => new Promise(resolve => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    })));
-    return Object.fromEntries((await measure(page)).rows.map(row => [row.text, row.nameFont]));
-  }
-  const before = await fontSizes();
-  const fullName = 'Theodoruous Everlasting Featherstone';
-  await page.evaluate(name => renamePlayerEverywhere('Theo', name), fullName);
-  const renamed = playerNames.filter({hasText: fullName});
-  await expect(renamed).toBeVisible();
-  const after = await fontSizes();
-  const {Theo: original, ...unchangedBefore} = before;
-  const {[fullName]: fitted, ...unchangedAfter} = after;
-  expect(unchangedAfter).toEqual(unchangedBefore);
-  expect(fitted).toBeGreaterThanOrEqual(original * 0.78 - 1);
-  const cell = renamed.locator('xpath=ancestor::td');
-  await expect(cell).toHaveClass(/is-name-stacked/);
-  const overlap = await cell.evaluate(el => {
-    const name = el.querySelector('.scoreboard-player-name').getBoundingClientRect();
-    const wheel = el.querySelector('.wheel-badge').getBoundingClientRect();
-    const total = el.nextElementSibling.getBoundingClientRect();
-    return name.right > wheel.left + 1 || name.right > total.left + 1;
+for (const [width, height] of [[2092, 1322], [1920, 1080], [1024, 768], [390, 844]]) {
+  test(`a mid-match rename keeps names and avatars aligned at ${width}`, async ({page}) => {
+    await page.setViewportSize({width, height});
+    await page.goto('/?demo=try');
+    await page.waitForFunction(() => document.body.dataset.bpgTryDemo === 'on' && typeof goActiveMatch === 'function');
+    await page.evaluate(() => goActiveMatch());
+    const playerNames = page.locator('#scorecard-capture .scoreboard-player-name');
+    await expect(playerNames.filter({hasText: 'Theo'})).toBeVisible();
+    async function fontSizes() {
+      await page.evaluate(() => document.fonts.ready.then(() => new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      })));
+      return Object.fromEntries((await measure(page)).rows.map(row => [row.text, row.nameFont]));
+    }
+    const before = await fontSizes();
+    await page.evaluate(() => renamePlayerEverywhere('Theo', 'Michelle'));
+    const michelle = playerNames.filter({hasText: 'Michelle'});
+    await expect(michelle).toBeVisible();
+    await expect(michelle.locator('xpath=ancestor::td')).not.toHaveClass(/is-name-clipped/);
+    expect(await michelle.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+    const fullName = 'Theodoruous Everlasting Featherstone';
+    await page.evaluate(name => renamePlayerEverywhere('Michelle', name), fullName);
+    const renamed = playerNames.filter({hasText: fullName});
+    await expect(renamed).toBeVisible();
+    const after = await fontSizes();
+    const {Theo: original, ...unchangedBefore} = before;
+    const {[fullName]: fitted, ...unchangedAfter} = after;
+    expect(unchangedAfter).toEqual(unchangedBefore);
+    expect(fitted).toBe(original);
+    const cell = renamed.locator('xpath=ancestor::td');
+    const identities = await playerNames.evaluateAll(names => names.map(el => {
+      const avatar = el.closest('.scorecard-player-identity').querySelector('.scorecard-avatar-slot');
+      const a = avatar.getBoundingClientRect();
+      const b = el.getBoundingClientRect();
+      return {height: a.height, aligned: Math.abs(a.y + a.height / 2 - b.y - b.height / 2) < 5
+        && b.left >= a.right};
+    }));
+    expect(identities.every(item => item.aligned)).toBe(true);
+    expect(Math.max(...identities.map(item => item.height)) - Math.min(...identities.map(item => item.height))).toBeLessThanOrEqual(1);
+    const overlap = await cell.evaluate(el => {
+      const name = el.querySelector('.scoreboard-player-name').getBoundingClientRect();
+      const wheel = el.querySelector('.wheel-badge').getBoundingClientRect();
+      const total = el.nextElementSibling.getBoundingClientRect();
+      return name.right > wheel.left + 1 || name.right > total.left + 1;
+    });
+    expect(overlap).toBe(false);
+    await expect(cell).toHaveClass(/is-name-clipped/);
+    await renamed.focus();
+    const popover = page.locator('#scorecard-full-name');
+    await expect(popover).toBeVisible();
+    await expect(popover).toHaveText(fullName);
+    await renamed.press('Escape');
+    await expect(popover).toBeHidden();
   });
-  expect(overlap).toBe(false);
-  await expect(cell).toHaveClass(/is-name-clipped/);
-  await renamed.focus();
-  const popover = page.locator('#scorecard-full-name');
-  await expect(popover).toBeVisible();
-  await expect(popover).toHaveText(fullName);
-  await renamed.press('Escape');
-  await expect(popover).toBeHidden();
-});
+}

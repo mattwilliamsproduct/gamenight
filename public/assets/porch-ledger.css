@@ -187,7 +187,7 @@ html.porch-ledger.slice2-tv #score-entry-selected-name {
   max-width: 100%;
 }
 
-/* Keep a single line by default. The fit script enables wrapping for individual names. */
+/* Keep the player identity on a single line. */
 html.porch-ledger.slice2-tv #scorecard-capture .scoreboard-player-name,
 html.porch-ledger.slice2-tv #scorecard-capture .dealer-player-label {
   white-space: nowrap !important;
@@ -2442,21 +2442,6 @@ html.porch-ledger.slice2-tv body.active-match-view #slice2-score-note {
 html.porch-ledger.slice2-tv body.active-match-view #slice2-board-bar .s2-board-rule {
   background: var(--ledger-line) !important;
 }
-/* Phone: a long name wraps between words onto a second line instead of being cut off.
-   Canasta team names keep their own one-line rule. */
-@media (max-width: 760px) {
-  html.porch-ledger.slice2-tv #game-screen:not([data-game='Hand and Foot']) #scorecard-capture .scorecard-player-name-slot > span.scoreboard-player-name {
-    white-space: normal !important;
-    overflow-wrap: normal !important;
-    word-break: keep-all !important;
-    line-height: 1.12 !important;
-    text-overflow: clip !important;
-    display: -webkit-box !important;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-}
-
 /* ═══ Bidding (bpg2) ═══
    Wizard and 818 bids and tricks on iPad and up: whose turn it is, the progress, the keypad
    and Lock bids read as one group in the right column. The round context returns to the
@@ -3021,10 +3006,6 @@ html.porch-ledger.slice2-tv #rules-modal .bp-modal-panel {
     white-space: normal !important;
     line-height: 1.1 !important;
   }
-  .scorecard-name-word {
-    display: inline-block;
-    white-space: nowrap;
-  }
 }
 
 html.porch-ledger.slice2-tv :is(#rules-modal, #lp-picker-modal, #player-edit-modal, #avatar-modal, #add-player-modal) .bp-modal-panel {
@@ -3496,54 +3477,25 @@ html.porch-ledger.slice2-tv #lineup-intro {
   }
 }
 
-/* Long names use space in their own player cell before their type is reduced. */
-html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecard-player-name-slot .scoreboard-player-name {
-  min-width: 0 !important;
+/* Reserve a single flexible name lane after the fixed rank and avatar. */
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecard-avatar-slot {
+  flex: 0 0 auto !important;
 }
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-stacked .scorecard-player-identity {
-  display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center !important;
-  justify-items: start;
-  row-gap: 4px !important;
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecard-player-name-slot:not(:has(.hf-team-name)) {
+  flex: 1 1 0 !important;
+  overflow: hidden !important;
 }
-html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player[data-name-avatar] :is(.scorecard-avatar-slot, .avatar-img-sc) {
-  width: var(--scorecard-name-avatar) !important;
-  height: var(--scorecard-name-avatar) !important;
-}
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-stacked .scorecard-player-name-slot {
-  grid-column: 1 / -1;
-  width: 100%;
-}
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-wrapped .scorecard-player-name {
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-wrapped :is(span.scoreboard-player-name, .dealer-player-label) {
-  display: -webkit-box !important;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--scorecard-name-lines, 2);
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecard-player-name-slot :is(.scoreboard-player-name:not(.hf-team-name), .dealer-player-label:not(:has(.hf-team-line))) {
+  display: block !important;
   min-width: 0 !important;
   max-width: 100% !important;
   overflow: hidden !important;
-  white-space: normal !important;
-  overflow-wrap: normal !important;
-  line-height: 1.12 !important;
-}
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-wrapped .scorecard-name-word {
-  display: inline-block;
-  white-space: nowrap;
-}
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-clipped :is(span.scoreboard-player-name, .dealer-player-label) {
-  max-height: calc(var(--scorecard-name-lines, 2) * 1.12em);
-  overflow: hidden !important;
   text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1.18 !important;
 }
-html.porch-ledger.slice2-tv #scorecard-capture td.is-name-clipped.is-name-wrapped .scorecard-name-word {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: bottom;
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-col-player .scorecard-player-name-slot .scoreboard-player-name:not(.hf-team-name) {
+  flex: 0 1 auto !important;
 }
 #scorecard-full-name {
   position: fixed;

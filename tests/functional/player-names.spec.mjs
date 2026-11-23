@@ -15,7 +15,7 @@ test('Five Crowns first-round Michelle glyphs fit the name box', async ({page})=
   expect(fit.text).toBe('Michelle');
   expect(fit.scrollWidth,'Michelle should not be truncated').toBeLessThanOrEqual(fit.clientWidth+1);
   expect(fit.fontSize,'Michelle should remain readable').toBeGreaterThanOrEqual(14);
-  expect(fit.textOverflow,'live player names should never use an ellipsis').toBe('clip');
+  expect(fit.textOverflow,'longer names can use an ellipsis').toBe('ellipsis');
 });
 
 test('late five-player Wizard keeps Michelle letters unclipped', async ({page})=>{

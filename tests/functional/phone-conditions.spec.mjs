@@ -70,20 +70,21 @@ test('200% root font still shows June whole and the running total', async ({page
   expect(fit.playerWidth, 'player column does not collapse to the badge').toBeGreaterThan(80);
 });
 
-test('8-player long names stay whole on 390 Five Crowns', async ({page}) => {
+test('seven-player first-round names fit on one line at 390', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-name-fit-7&surface=scorecard', {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
-  const names = await page.evaluate(() => [...document.querySelectorAll('#scorecard-body .scoreboard-player-name')].map((el) => ({
-    text: (el.textContent || '').trim(),
-    overflow: getComputedStyle(el).textOverflow,
-    fits: el.scrollWidth <= el.clientWidth + 2
+  const names = page.locator('#scorecard-body .scoreboard-player-name');
+  expect(await names.count()).toBeGreaterThan(4);
+  const layout = await names.evaluateAll(rows => rows.map(name => ({
+    text: name.textContent.trim(),
+    oneLine: getComputedStyle(name).whiteSpace === 'nowrap',
+    fits: name.scrollWidth <= name.clientWidth + 1
   })));
-  expect(names.length).toBeGreaterThan(4);
-  names.forEach((row) => {
-    expect(row.overflow, row.text).not.toBe('ellipsis');
-    expect(row.fits, row.text).toBe(true);
-  });
+  for (const name of layout) {
+    expect(name.oneLine, name.text).toBe(true);
+    expect(name.fits, name.text).toBe(true);
+  }
 });
 
 test('1920 scoreboard keeps names and totals in layout (readability judged separately)', async ({page}) => {

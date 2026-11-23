@@ -18038,45 +18038,16 @@ ${isDealer
       const applyFit=()=>{
         // Row height follows the viewport. Keep type and avatars at a readable scale.
         const contentHeight=Math.min(rowHeight,contentMax);
-        // Names and ranks track row height with totals/rounds. Cap the avatar
-        // at ~2.5× the name size so it never dwarfs the label on tall 2–4p rows.
+        // Keep the identity lane readable without making one row depend on a player's name.
         const wideScreen=window.innerWidth>=1280;
-        const nameCap=phone?22:Math.min(wideScreen?64:56, contentHeight*0.37);
-        const playerFont=Math.max(phone?19:22, Math.min(nameCap, contentHeight*0.37));
-        let avatarCap=phone?28:Math.min(Math.round(playerFont*2.5), Math.round(contentHeight*0.55));
+        const nameCap=phone?21:wideScreen?40:29;
+        const playerFont=Math.max(phone?18:22,Math.min(nameCap,contentHeight*0.37));
+        const avatarCap=phone?26:wideScreen?60:44;
+        const avatarPx=Math.max(22,Math.min(avatarCap,Math.round(contentHeight*0.55)));
         const totalFont=Math.max(18,Math.min(phone?40:Math.min(120,contentHeight*0.7),contentHeight*0.62));
-        // Rank pill tracks the name but stays compact — a huge min-width stole
-        // the name slot on 2–4p TV rows and triggered width-crush to 12px.
-        let rankSize=Math.max(22, Math.min(Math.round(playerFont*0.72), Math.round(contentHeight*0.2)));
-        const rankFontFloor=phone?11:14;
-        const rankFont=Math.max(rankFontFloor, Math.min(playerFont*0.55, rankSize*0.48));
-        // Keep enough horizontal room for the scaled name; shrink avatar (then
-        // rank) before fitScorecardPlayerNames can crush type below the row fit.
-        root.querySelectorAll('.scoreboard-player-name').forEach(name=>name.style.removeProperty('font-size'));
-        const playerCell=root.querySelector('td.scorecard-col-player');
-        if(playerCell){
-          const cellStyle=getComputedStyle(playerCell);
-          const badge=playerCell.querySelector('.wheel-badge');
-          const badgeWidth=badge&&getComputedStyle(badge).display!=='none'?Math.ceil(badge.getBoundingClientRect().width)+8:0;
-          const cellInner=playerCell.clientWidth-(parseFloat(cellStyle.paddingLeft)||0)-(parseFloat(cellStyle.paddingRight)||0)-badgeWidth;
-          // Keep the roster geometry independent of player name length.
-          const nameNeed=Math.ceil(playerFont*2.8);
-          const gaps=16; // rank/avatar/name flex gaps + turbo slot slack
-          let avatar=Math.max(22, Math.min(contentHeight-8, avatarCap));
-          let budget=cellInner-nameNeed-gaps;
-          // A long single name ellipsizes. On a phone the avatar stays at the
-          // readable cap instead of shrinking until the dealer mark covers the face.
-          if(phone) budget=rankSize+avatar;
-          if(!phone && budget>0 && rankSize+avatar>budget){
-            avatar=Math.max(Math.round(playerFont*1.15), Math.min(avatar, budget-rankSize));
-            if(rankSize+avatar>budget){
-              rankSize=Math.max(22, budget-avatar);
-              avatar=Math.max(Math.round(playerFont*1.15), Math.min(avatar, budget-rankSize));
-            }
-            avatarCap=avatar;
-          }
-        }
-        let avatarPx=Math.max(22,Math.min(contentHeight-8,avatarCap));
+        const rankSize=Math.max(22,Math.min(Math.round(playerFont*0.72),Math.round(contentHeight*0.2)));
+        const rankFontFloor=phone?11:wideScreen&&rows.length<=4?16:14;
+        const rankFont=Math.max(rankFontFloor,Math.min(playerFont*0.55,rankSize*0.48));
         root.style.setProperty('--scorecard-row-height',`${Math.max(36,Math.floor(rowHeight))}px`);
         root.style.setProperty('--scorecard-row-pad-y',`${Math.max(1,Math.min(10,Math.round(contentHeight*0.04)))}px`);
         root.style.setProperty('--scorecard-player-font',`${playerFont.toFixed(1)}px`);
@@ -18176,73 +18147,16 @@ ${isDealer
       const slot=name.closest('.scorecard-player-name-slot');
       const label=scorecardNameChipEl(name);
       const dealer=label!==name;
-      cell.classList.remove('is-name-wrapped','is-name-stacked','is-name-clipped');
-      name.style.removeProperty('font-size');
-      label.style.removeProperty('font-size');
-      cell.removeAttribute('data-name-avatar');
-      cell.style.removeProperty('--scorecard-name-avatar');
-      cell.style.removeProperty('--scorecard-name-lines');
       if(!dealer && document.activeElement!==name) name.removeAttribute('tabindex');
       name.onfocus=null;
       name.onblur=null;
       name.onkeydown=null;
       if(!dealer) name.onclick=null;
 
-      const font=parseFloat(getComputedStyle(label).fontSize);
-      const rowHeight=parseFloat(root.style.getPropertyValue('--scorecard-row-height'))||cell.clientHeight;
-      const cellStyle=getComputedStyle(cell);
-      const padding=(parseFloat(cellStyle.paddingTop)||0)+(parseFloat(cellStyle.paddingBottom)||0);
-      const room=rowHeight-padding;
-      const fits=()=>{
-        const bounds=label.getBoundingClientRect();
-        return label.scrollWidth<=slot.clientWidth+1
-          && label.scrollWidth<=Math.max(label.clientWidth,bounds.width)+1
-          && label.scrollHeight<=Math.max(label.clientHeight,bounds.height)+Math.ceil(font*0.22)
-          && scorecardGlyphBox(label).right<=slot.getBoundingClientRect().right+1;
-      };
-      if(fits()) continue;
-
-      const avatarHeight=cell.querySelector('.scorecard-avatar-slot')?.getBoundingClientRect().height||0;
-      const minimumAvatar=window.innerWidth<=760?24:30;
-      const nameWidth=scorecardGlyphBox(label).width;
-      const deficit=nameWidth-slot.clientWidth;
-      if(deficit>0&&avatarHeight-deficit-3>=minimumAvatar){
-        cell.setAttribute('data-name-avatar','');
-        cell.style.setProperty('--scorecard-name-avatar',`${Math.floor(avatarHeight-deficit-3)}px`);
-        if(fits()) continue;
-        cell.removeAttribute('data-name-avatar');
-        cell.style.removeProperty('--scorecard-name-avatar');
-      }
-
-      if(room>=font*2.35) cell.classList.add('is-name-wrapped');
-      if(fits()) continue;
-
-      const stackRoom=room-12;
-      const gap=4;
-      if(avatarHeight&&stackRoom>=minimumAvatar+font*1.2+gap){
-        const lines=stackRoom>=minimumAvatar+font*2.35+gap?2:1;
-        const avatar=Math.min(avatarHeight, Math.floor(stackRoom-font*1.16*lines-gap));
-        cell.setAttribute('data-name-avatar','');
-        cell.style.setProperty('--scorecard-name-avatar',`${avatar}px`);
-        cell.style.setProperty('--scorecard-name-lines',lines);
-        cell.classList.add('is-name-wrapped','is-name-stacked');
-        if(fits()) continue;
-      }
-
-      // Adjust only this name, then clip at a readable floor if it still exceeds two lines.
-      const minimum=window.innerWidth<=760?12:Math.max(20, font*0.78);
-      for(let size=font-1;size>=minimum;size--){
-        const value=`${size}px`;
-        name.style.setProperty('font-size',value,'important');
-        label.style.setProperty('font-size',value,'important');
-        if(fits()) break;
-      }
-      if(fits()) continue;
-      if(window.innerWidth<=760 && font>=16){
-        name.style.setProperty('font-size','16px','important');
-        label.style.setProperty('font-size','16px','important');
-      }
-      cell.classList.add('is-name-clipped');
+      const clipped=label.scrollWidth>label.clientWidth+1
+        || scorecardGlyphBox(label).right>slot.getBoundingClientRect().right+1;
+      cell.classList.toggle('is-name-clipped',clipped);
+      if(!clipped) continue;
       if(!dealer){
         name.tabIndex=0;
         name.onclick=()=>{name.focus();showScorecardFullName(name);};
@@ -18568,7 +18482,7 @@ ${isDealer
     if(!handFoot&&window.innerWidth>900&&visible.length){
       const totalCap=window.innerWidth>=1280?144:124;
       const nowCap=nowPresent?144:0;
-      const playerFloor=260;
+      const playerFloor=wide?Math.min(380,Math.max(320,Math.round(wrap.clientWidth*0.22))):286;
       const slack=28;
       const room=wrap.clientWidth-playerFloor-totalCap-nowCap-slack;
       const fitCol=Math.floor(room/visible.length);
@@ -18621,7 +18535,7 @@ ${isDealer
     // Fixed-layout tables give the remaining width to the first auto column.
     // With a short round history, let Now take that width and cap Player near Total.
     if(!handFoot&&nowPresent&&wide&&leadForFit+nowForFit+visible.length*Math.floor(col)+120<wrap.clientWidth){
-      const playerWidth=Math.min(380, Math.round(wrap.clientWidth*0.28));
+      const playerWidth=Math.min(400, Math.max(320, Math.round(wrap.clientWidth*0.28)));
       table.querySelectorAll('.scorecard-col-player').forEach(el=>el.style.setProperty('width',`${playerWidth}px`,'important'));
       host.classList.add('scorecard-flex-now');
     }
@@ -19154,9 +19068,7 @@ ${isDealer
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?hfMembers.join(' & '):p;
-      const nameText=hfTeam?hfNameLines:String(p).split(/(\s+)/).map(word=>
-        /\S/.test(word)?`<span class="scorecard-name-word">${escapeHtml(word)}</span>`:escapeHtml(word)
-      ).join('');
+      const nameText=hfTeam?hfNameLines:escapeHtml(p);
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${nameText}</span></button>`
               : `<span class="${nameClass}">${nameText}</span>`}${retiredTag}`;

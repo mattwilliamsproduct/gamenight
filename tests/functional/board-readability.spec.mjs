@@ -3,7 +3,7 @@ import {expect, test} from '@playwright/test';
 // iPad and TV: the 8-player board uses the viewport with a modest felt margin, the header is one
 // opaque ivory sheet, and round, dealer and bidding context read at viewing distance.
 test.use({serviceWorkers: 'block'});
-const NAMES = ['Hazel', 'Otis', 'Juniper', 'Rafael', 'Bea', 'Silas', 'Marigold Fairweather', 'Teddy Abernathy'];
+const NAMES = ['Hazel', 'Otis', 'Juniper', 'Rafael', 'Bea', 'Silas', 'Michelle', 'Teddy'];
 
 async function seedWizard(page, names = NAMES, bigger = false) {
   await page.goto('/', {waitUntil: 'domcontentloaded'});
@@ -54,7 +54,7 @@ for (const [width, height] of [[1180, 820], [1024, 768], [1366, 1024], [1920, 10
   });
 }
 
-test('390 phone: long names wrap between words instead of being cut off', async ({page}) => {
+test('390 phone: familiar names fit on a single line', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await seedWizard(page);
   const names = await page.evaluate(() => [...document.querySelectorAll('#scorecard-capture .scoreboard-player-name')].map((el) => ({t: el.textContent.trim(), w: el.scrollWidth <= el.clientWidth + 2, h: el.scrollHeight <= el.clientHeight + 2})));
@@ -63,26 +63,22 @@ test('390 phone: long names wrap between words instead of being cut off', async 
 
 const LONG = ['Hazel', 'Otis', 'Juniper', 'Rafael', 'Bea', 'Silas', 'Wilhelmina Featherstonehaugh', 'Bartholomew Underhill-Quince'];
 for (const [width, height, bigger] of [[1180, 820, false], [1024, 768, false], [1024, 768, true], [390, 844, false], [390, 844, true]]) {
-  test(`8 players with long names at ${width}x${height}${bigger ? ' with bigger text' : ''}: every word whole, all rows readable`, async ({page}) => {
+  test(`long names stay on one line at ${width}x${height}${bigger ? ' with bigger text' : ''}`, async ({page}) => {
     await page.setViewportSize({width, height});
     await seedWizard(page, LONG, bigger);
-    const m = await page.evaluate(() => [...document.querySelectorAll('#scorecard-capture .scoreboard-player-name')].map((el) => {
-      const broken = []; const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        const text = node.textContent; let at = 0;
-        for (const word of text.split(/\s+/).filter(Boolean)) {
-          const start = text.indexOf(word, at); const r = document.createRange(); r.setStart(node, start); r.setEnd(node, start + word.length);
-          if (new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size > 1) broken.push(word);
-          at = start + word.length;
-        }
-      }
-      return {t: el.textContent.trim(), broken, fitsW: el.scrollWidth <= el.clientWidth + 2, fitsH: el.scrollHeight <= el.clientHeight + 2, fs: parseFloat(getComputedStyle(el).fontSize)};
-    }));
-    expect(m.length).toBe(8);
-    for (const n of m) {
-      expect(n.broken, `${n.t} breaks mid-word`).toEqual([]);
-      expect(n.fitsW && n.fitsH, `${n.t} is not cut off`).toBe(true);
-      expect(n.fs, n.t).toBeGreaterThanOrEqual(width >= 900 ? 18 : 12);
+    const names = page.locator('#scorecard-capture .scoreboard-player-name');
+    await expect(names).toHaveCount(8);
+    const styles = await names.evaluateAll(labels => labels.map(name => ({
+      text: name.textContent.trim(),
+      line: getComputedStyle(name).whiteSpace,
+      font: parseFloat(getComputedStyle(name).fontSize),
+      clipped: name.scrollWidth > name.clientWidth + 1,
+      ellipsis: getComputedStyle(name).textOverflow === 'ellipsis'
+    })));
+    for (const name of styles) {
+      expect(name.line, name.text).toBe('nowrap');
+      expect(name.font, name.text).toBeGreaterThanOrEqual(width >= 900 ? 20 : 16);
+      if (name.clipped) expect(name.ellipsis, name.text).toBe(true);
     }
   });
 }
