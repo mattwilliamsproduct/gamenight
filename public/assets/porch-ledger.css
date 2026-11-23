@@ -2802,7 +2802,7 @@ html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(
 @media (max-width: 600px) {
   /* Phone: the sample tip is one row (text beside Got it) so it no longer covers the logo under it. */
   html.porch-ledger #bpg-try-demo-tip { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 10px !important; padding: 6px 12px !important; }
-  html.porch-ledger #bpg-try-demo-tip > :first-child { flex: 1 1 auto; min-width: 0; font-size: 13px; line-height: 1.35; }
+  html.porch-ledger #bpg-try-demo-tip > :first-child { flex: 1 1 auto; min-width: 0; font-size: var(--bp-type-sm); line-height: 1.35; }
   html.porch-ledger #bpg-try-demo-tip button { flex: 0 0 auto; }
   html.porch-ledger.bpg-try-demo.bpg-try-demo-tip { --bp-demo-offset: 116px; padding-top: 116px !important; }
 }
@@ -3334,9 +3334,6 @@ html.porch-ledger.slice2-tv .s2-home-table .s2-pick:not(.is-on) {
   background: var(--ledger-paper) !important;
 }
 
-html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="818"] {
-  --bp-card-photo-filter: saturate(.7) hue-rotate(-13deg) brightness(.97);
-}
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
   box-shadow: 0 0 0 3px #f9cf73 !important;
 }
@@ -3401,14 +3398,14 @@ html.porch-ledger.slice2-tv #score-entry-modal.hf-basic-entry .hf-match-num {
     max-width: none !important;
   }
   html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture:has(#scorecard-body tr:nth-child(2):last-child) #scorecard-body td {
-    height: clamp(135px, 18vh, 205px);
+    height: clamp(96px, 12vh, 145px);
   }
   html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .scoreboard-player-name.hf-team-name {
     font-size: clamp(1.3rem, 2.15vw, 2.5rem) !important;
   }
   html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .hf-team-avatars .avatar-img-sc {
-    width: clamp(34px, 3.6vw, 62px) !important;
-    height: clamp(34px, 3.6vw, 62px) !important;
+    width: clamp(34px, 3.2vw, 48px) !important;
+    height: clamp(34px, 3.2vw, 48px) !important;
   }
   html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture .scorecard-total-value {
     font-size: clamp(2.25rem, 3.7vw, 4.5rem) !important;
@@ -3711,5 +3708,141 @@ html.porch-ledger.slice2-tv #score-entry-modal #score-entry-context {
 
   html.porch-ledger.slice2-tv #score-entry-modal.score-entry-plain .score-entry-keypad .score-entry-key:is(.subtle, .next) {
     font-size: clamp(20px, 1.35vw, 26px) !important;
+  }
+}
+
+/* Small labels that communicate a status or explain a control share the text scale. */
+html.porch-ledger.slice2-tv :is(.s2-home-table, .s2-board-line-row) #save-indicator,
+html.porch-ledger #bpg-try-demo-bar strong,
+html.porch-ledger #bpg-try-demo-tip,
+html.porch-ledger :is(.bpg-try-demo-entry-note, #bpg-try-demo-about p, #bpg-try-demo-backup-note) {
+  font-size: var(--bp-type-sm) !important;
+  line-height: 1.35 !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-table #save-indicator:not([hidden]) {
+  height: auto !important;
+  padding: 4px 10px !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html.porch-ledger #bpg-try-demo-bar button,
+html.porch-ledger #bpg-try-demo-tip button,
+html.porch-ledger #bpg-try-demo-about .bpg-kicker,
+html.porch-ledger #actions-menu .actions-menu-label,
+html.porch-ledger #end-match-modal .bp-leave-danger-note {
+  font-size: var(--bp-type-xs) !important;
+}
+
+html.porch-ledger.slice2-tv #reorder-players-modal .player-name-label {
+  color: var(--ledger-ink) !important;
+  font-size: clamp(1.3125rem, 2.25vw, 2rem) !important;
+  line-height: 1.2;
+  text-align: left;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal .wheel-shell {
+  flex-shrink: 0;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal .wheel-legend {
+  font-size: var(--bp-type-xs) !important;
+}
+
+#canasta-together {
+  width: 100%;
+  max-width: var(--bp-board-max);
+  box-sizing: border-box;
+  margin: 12px auto 0;
+  padding: clamp(1rem, 2vw, 1.75rem);
+  border: 1px solid var(--ledger-line);
+  border-radius: var(--ledger-radius-sheet);
+  background: var(--ledger-paper);
+  color: var(--ledger-ink);
+}
+
+#canasta-together:not(.hidden) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+#canasta-together h2 {
+  font-family: var(--ledger-type-display);
+  font-size: clamp(1.35rem, 2vw, 2.25rem);
+  line-height: 1.15;
+}
+
+#canasta-together p {
+  margin-top: 0.35em;
+  font-size: var(--bp-type-md);
+  color: var(--ledger-ink-soft);
+}
+
+#canasta-together .canasta-together-score {
+  font-size: clamp(1.15rem, 1.65vw, 1.85rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 899px), (max-height: 749px) {
+  #canasta-together:not(.hidden) {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) and (min-height: 650px) {
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture.canasta-singles-pair #scorecard-body td {
+    height: clamp(120px, 22dvh, 285px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture.canasta-singles-pair .scorecard-player-identity .scoreboard-player-name {
+    font-size: clamp(1.75rem, 2.8vw, 3.5rem) !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture.canasta-singles-pair .scorecard-player-identity .avatar-img-sc {
+    width: clamp(3.25rem, 5vw, 6.125rem) !important;
+    height: clamp(3.25rem, 5vw, 6.125rem) !important;
+  }
+
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture.canasta-singles-pair .scorecard-total-value {
+    font-size: clamp(2.5rem, 4.1vw, 5.75rem) !important;
+  }
+}
+
+@media (min-width: 900px) and (min-height: 750px) {
+  html.porch-ledger.slice2-tv body.active-match-view #game-screen[data-game="Hand and Foot"] #scorecard-capture.canasta-singles-pair:has(+ #canasta-together:not(.hidden)) #scorecard-body td {
+    height: clamp(120px, 18dvh, 225px) !important;
+  }
+}
+
+html.porch-ledger.slice2-tv :is(.s2-home-standings, .s2-home-table) .s2-dealer-tag:not(.s2-dealer-tag-empty),
+html.porch-ledger.slice2-tv #score-entry-modal :is(.score-entry-up-now, .score-entry-dealer-badge),
+html.porch-ledger.slice2-tv #score-entry-modal:not(.score-entry-hand-foot) .score-entry-meta-label {
+  font-size: var(--bp-type-xs) !important;
+}
+
+html.porch-ledger.slice2-tv #hall-of-fame-view :is(.s2-segment .s2-btn, .s2-shame-sub, .s2-rival-pick),
+html.porch-ledger #profiles-screen .profile-avatar-quick-btn,
+html.porch-ledger #settings-text-size-label,
+html.porch-ledger #life-preserver-help h4 {
+  font-size: var(--bp-type-sm) !important;
+}
+
+@media (min-width: 761px) {
+  html.porch-ledger #wheel-modal :is(#wheel-player-meta, #wheel-commit-line, #wheel-odds-line, #wheel-best-place) {
+    font-size: var(--bp-type-md) !important;
+  }
+
+  html.porch-ledger #wheel-modal .wheel-legend .wheel-legend-chip {
+    font-size: var(--bp-type-sm) !important;
   }
 }

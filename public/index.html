@@ -10334,6 +10334,7 @@ button.dealer-name-indicator .dealer-player-label {
             <button type="button" onclick="if (currentGame && isMatchOver(currentGame)) commitEndGame()" class="btn-primary px-12 py-4 text-xl">See results</button>
           </div>
         </div>
+        <section id="canasta-together" class="surface-raised hidden" aria-labelledby="canasta-together-title"></section>
       </div>
 
       <!-- Portrait: Podium + Records -->
@@ -11829,7 +11830,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function retiredBadgeMarkup(gameData, player){
     if(!player || !(gameData?.retired||[]).includes(player)) return '';
-    return `<span class="retired-badge">Left early</span>`;
+    return `<span class="scoreboard-rank-badge retired-badge">Left early</span>`;
   }
   const EIGHT18_ROUND_TRICKS = [8,7,6,5,4,3,2,1,2,3,4,5,6,7,8];
   function isEight18Game(game=currentGame){
@@ -17653,7 +17654,7 @@ ${isDealer
         </div>
         <span class="text-2xl w-10 font-mono-num shrink-0 text-center" style="color:var(--ink);">${i + 1}</span>
         ${getAvatarImg(p, 'avatar-img')}
-        <span class="player-name-label text-2xl truncate min-w-0 flex-1">${p}</span>
+        <span class="player-name-label text-2xl truncate min-w-0 flex-1" title="${escapeHtml(p)}">${escapeHtml(p)}</span>
       </div>
     `).join('');
   }
@@ -17942,6 +17943,37 @@ ${isDealer
       gnPerfEnd(trimTimer);
     }
   }
+  function paintCanastaTogether(game, roster){
+    const panel=document.getElementById('canasta-together');
+    const root=document.getElementById('scorecard-capture');
+    const singles=isHandFootGame(game)&&game.handFoot?.format==='singles'
+      &&roster.length===2&&game.originalRoster?.length===2;
+    root.classList.toggle('canasta-singles-pair',singles);
+    panel.classList.add('hidden');
+    panel.replaceChildren();
+    if(!singles||isMatchOver(game))return;
+    const [left,right]=roster;
+    const normalize=name=>String(name).trim().toLowerCase();
+    const pair=roster.map(normalize);
+    const matches=history.filter(match=>{
+      if(match.id===game.id||match.game!=='Hand and Foot'||!BPGScorebook.countsForScoreMagnitude(match)||!match.rounds?.length)return false;
+      const saved=match.originalRoster||match.players||[];
+      return (!match.handFoot?.format||match.handFoot.format==='singles')&&saved.length===2
+        &&pair.every(name=>saved.some(player=>normalize(player)===name));
+    });
+    if(!matches.length)return;
+    const latest=matches.reduce((newest,match)=>
+      (Date.parse(match.date)||0)>(Date.parse(newest.date)||0)?match:newest);
+    const total=name=>{
+      const entry=Object.entries(latest.totals||{}).find(([player])=>normalize(player)===normalize(name));
+      return entry&&Number.isFinite(Number(entry[1]))?Number(entry[1]).toLocaleString():'—';
+    };
+    panel.innerHTML=`<div><h2 id="canasta-together-title">Canasta together</h2>
+      <p>${matches.length} completed ${matches.length===1?'match':'matches'}</p></div>
+      <div><p>Last match</p><p class="canasta-together-score">${escapeHtml(left)} ${total(left)} <span aria-hidden="true">·</span> ${escapeHtml(right)} ${total(right)}</p></div>`;
+    panel.classList.remove('hidden');
+  }
+
   function fitActiveScorecardRows(){
     const fitTimer = gnPerfStart('GN scorecard row fit');
     try{
@@ -19135,6 +19167,7 @@ ${isDealer
     const bodyAssignTimer = gnPerfStart('GN renderGame dom assign');
     try{
       document.getElementById('scorecard-body').innerHTML=body;
+      paintCanastaTogether(currentGame,getActivePlayers(currentGame));
       renderRecordChasePanel(sortedP,cfg,leaderScore);
       if(rookPanel){rookPanel.classList.add('hidden');rookPanel.innerHTML='';}
     } finally {
@@ -23045,7 +23078,7 @@ ${isDealer
       const w=!!opts.winner;
       const left=!!opts.leftEarly;
       body+=`<tr class="${w?'leader-row':''}${left?' row-retired':''}">
-        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="retired-badge">Left early</span>':''}${lateJoinNoteMarkup(g,p)}</td>
+        <td data-sc-part="lead" class="scorecard-col-player player-name-label px-4 py-2 sticky left-0" style="background:${w?'var(--emerald-bg)':(left?'var(--surface-2)':'var(--surface)')};">${w?'🏆 ':''}${p}${left?' <span class="scoreboard-rank-badge retired-badge">Left early</span>':''}${lateJoinNoteMarkup(g,p)}</td>
         <td data-sc-part="lead" class="scorecard-col-total px-2 py-2 font-extrabold tv-stat-num font-mono-num ${w?'leader-text':''}"><span class="scorecard-total-value">${g.totals[p]??'—'}</span>${left?'':hiddenLifePreserverMarkup(g.rounds, historyVisibleRounds, p)}</td>`;
       g.rounds?.forEach((r,rIdx)=>{
         if(r.hailMaryBonus) return;

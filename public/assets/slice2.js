@@ -1015,38 +1015,21 @@
     const dialog = modal?.querySelector('.life-preserver-dialog');
     const shell = dialog?.querySelector('.wheel-shell');
     if (!modal || !dialog || !shell || modal.classList.contains('hidden')) return null;
-    const previous = parseFloat(shell.style.height);
-    shell.style.width = '';
-    shell.style.height = '';
+    // Measure the rendered panel with the wheel collapsed. The theme can cap
+    // the panel width independently of the available viewport.
+    shell.style.width = '0px';
+    shell.style.height = '0px';
     const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const gutter = 8;
-    const landscape = vw > vh;
-    const dialogW = Math.floor(landscape ? Math.min(vw - gutter, vh - gutter) : vw - gutter);
-    const dialogH = Math.floor(vh - gutter);
-    dialog.style.width = `${dialogW}px`;
-    dialog.style.maxWidth = `${dialogW}px`;
-    dialog.style.maxHeight = `${dialogH}px`;
-    dialog.style.minHeight = '';
+    const vh = window.visualViewport?.height || window.innerHeight;
     const cs = getComputedStyle(dialog);
-    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
-    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    let chrome = padY;
-    [...dialog.children].forEach((el) => {
-      if (el === shell || el.id === 'life-preserver-help') return;
-      if (el.classList.contains('hidden')) return;
-      const style = getComputedStyle(el);
-      if (style.display === 'none' || style.visibility === 'hidden') return;
-      if (style.position === 'absolute' || style.position === 'fixed') return;
-      const box = el.getBoundingClientRect();
-      if (box.height < 1) return;
-      chrome += box.height;
-      chrome += (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
-    });
-    const availW = Math.max(168, dialogW - padX);
-    const availH = Math.max(168, dialogH - chrome);
-    let size = Math.floor(Math.min(availW, availH));
-    if (Number.isFinite(previous) && previous > 0) size = Math.min(size, previous);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const borderY = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    const dialogW = dialog.clientWidth;
+    const dialogH = Math.min(vh - 8, parseFloat(cs.maxHeight) || vh - 8) - borderY;
+    const chrome = dialog.scrollHeight;
+    const availW = Math.max(0, dialogW - padX);
+    const availH = Math.max(0, dialogH - chrome);
+    let size = Math.floor(Math.min(availW, Math.max(144, availH - 8)));
     shell.style.width = `${size}px`;
     shell.style.height = `${size}px`;
     const contentOverflow = () => {
@@ -1064,10 +1047,9 @@
     for (let i = 0; i < 8; i++) {
       const overflow = contentOverflow();
       if (overflow <= 0) break;
-      size = Math.max(168, size - Math.ceil(overflow + 4));
+      size = Math.max(Math.min(144, availW), size - Math.ceil(overflow + 4));
       shell.style.width = `${size}px`;
       shell.style.height = `${size}px`;
-      chrome += overflow + 4;
     }
     return { size, chrome, vw, vh, availW, availH, dialogW, dialogH };
   }

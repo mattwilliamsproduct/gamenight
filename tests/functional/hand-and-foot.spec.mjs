@@ -93,6 +93,33 @@ for(const count of [3, 5]){
   });
 }
 
+test('two-player Canasta shows only completed singles history for the same pair', async ({page})=>{
+  await freshTable(page);
+  await startHandFoot(page, {names:['Ann','Bo'], format:'singles'});
+  await expect(page.locator('#canasta-together')).toBeHidden();
+  const row=page.locator('#scorecard-body tr').first();
+  expect((await row.boundingBox()).height).toBeGreaterThan(150);
+
+  await page.evaluate(()=>{
+    const rounds=Array.from({length:4},(_,i)=>({round:i+1,scores:{Ann:1280,Bo:1120}}));
+    const match={id:'pair',game:'Hand and Foot',date:'11/20/2026',completed:true,outcome:'finished',
+      originalRoster:['bo','ann'],totals:{ann:5120,bo:4480},rounds,handFoot:{format:'singles'}};
+    history=[
+      {...match,id:'team',handFoot:{format:'teams'}},
+      {...match,id:'paused',completed:false,outcome:'paused'},
+      {...match,id:'different',originalRoster:['Ann','Cy']},
+      match
+    ];
+    renderGame();
+  });
+  const panel=page.locator('#canasta-together');
+  await expect(panel).toContainText('1 completed match');
+  await expect(panel).toContainText('Ann 5,120 · Bo 4,480');
+  await page.setViewportSize({width:390,height:844});
+  await expect(panel).toBeHidden();
+  await expect(page.locator('#slice2-enter-btn')).toBeInViewport();
+});
+
 test('4 players are two pairs and 6 players are three pairs, and singles stay one column each', async ({page})=>{
   test.setTimeout(120000);
   await freshTable(page);
