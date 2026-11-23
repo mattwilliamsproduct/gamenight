@@ -9,7 +9,8 @@
       rook: './assets/cards/rook.webp'
     }),
     five: './assets/cards/five-crowns-picker.webp',
-    wizard: './assets/cards/wizard-picker.webp'
+    wizard: './assets/cards/wizard-picker.webp',
+    heat: './assets/cards/beat-the-heat-picker.webp'
   };
 
   function registryGames() {

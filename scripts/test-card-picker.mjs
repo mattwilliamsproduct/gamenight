@@ -16,6 +16,7 @@ const FACES = [
   'wizard-picker.webp',
   'flip7.webp',
   'beat-the-heat.webp',
+  'beat-the-heat-picker.webp',
   'canasta.webp',
   'rook.webp'
 ];
@@ -95,6 +96,6 @@ test('Home cards are 5:7 faces with no under-card copy and select-then-Start onl
   assert.doesNotMatch(svg, /THE GAME ISN|KINGS GO WILD|Cannei/);
   assert.doesNotMatch(js, /cardFillOn|CARD_FILL|cards\/fill\//);
   assert.match(js, /assets\/cards\/rook\.webp/);
-  assert.match(js, /assets\/cards\/beat-the-heat\.webp/);
+  assert.match(js, /assets\/cards\/beat-the-heat-picker\.webp/);
   assert.match(js, /assets\/cards\/five-crowns-picker\.webp/);
 });
