@@ -55,7 +55,7 @@ test('Start follows each game player range and leaves Wizard uncapped', () => {
   const index = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
   assert.match(index, /Call-your-partner Rook is usually played with 4-6 players\. Start anyway\?/);
   const slice = readFileSync(new URL('../public/assets/slice2.js', import.meta.url), 'utf8');
-  assert.match(slice, /seatLimit\(selected, seated \+ addPicks\.size, 'seat'\)/);
+  assert.match(slice, /seatLimit\??\.?\(selected, seated \+ count, 'seat'\)/);
   assert.match(slice, /seatLimit\(selected, seated\)/);
   ['Wizard', '818', 'Flip 7 Vengeance', 'Beat the Heat'].forEach((id) => {
     assert.equal(Games.seatLimit(id, 8).ok, true, `${id} stays startable at 8`);

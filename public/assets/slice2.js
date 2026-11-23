@@ -3,13 +3,13 @@
   const PICKER_FACES = {
     ...((window.BPGGames && BPGGames.CARD_FACES) || {
       '818': './assets/cards/818.webp',
-      wizard: './assets/cards/wizard.webp',
       flip7: './assets/cards/flip7.webp',
       heat: './assets/cards/beat-the-heat.webp',
       canasta: './assets/cards/canasta.webp',
       rook: './assets/cards/rook.webp'
     }),
-    five: './assets/cards/five-crowns-picker.webp'
+    five: './assets/cards/five-crowns-picker.webp',
+    wizard: './assets/cards/wizard-picker.webp'
   };
 
   function registryGames() {
@@ -402,28 +402,31 @@
     return `<button type="button" class="s2-avatar-edit" data-s2-action="edit-player" data-s2-player="${escapeHtml(player)}" aria-label="Edit ${escapeHtml(player)}">${getStreakAvatarHtml(player, 'avatar-img')}<span class="s2-edit-badge" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M10.6 2.6l2.8 2.8L6 12.8l-3.4.6.6-3.4z"/></svg></span></button>`;
   }
 
+  function benchSelectionState(seated) {
+    const count = addPicks.size;
+    const games = window.BPGGames;
+    const max = games?.seatLimit?.(selected, seated + count, 'seat');
+    const room = games?.seatLimit?.(selected, seated + count + 1, 'seat');
+    return {
+      label: count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player',
+      disabled: count > 0 && max?.ok === false,
+      canAddMore: room?.ok !== false,
+      note: games?.seatRoomMessage?.(selected, seated + count) || max?.message || room?.message || 'No room for another player.'
+    };
+  }
+
   function addPlayerPickerMarkup(bench, seated, seatsHtml) {
-    const max = window.BPGGames && typeof BPGGames.seatLimit === 'function'
-      ? BPGGames.seatLimit(selected, seated + addPicks.size, 'seat')
-      : { ok: true, message: '' };
-    const room = window.BPGGames && typeof BPGGames.seatLimit === 'function'
-      ? BPGGames.seatLimit(selected, seated + addPicks.size + 1, 'seat')
-      : { ok: true, message: '' };
-    const roomNote = window.BPGGames && typeof BPGGames.seatRoomMessage === 'function'
-      ? BPGGames.seatRoomMessage(selected, seated + addPicks.size)
-      : (max.message || room.message);
+    const selection = benchSelectionState(seated);
     const rows = bench.map((player) => {
       const on = addPicks.has(player);
-      const blocked = !on && !room.ok;
+      const blocked = !on && !selection.canAddMore;
       return `<label class="s2-pick${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}">
-        <input type="checkbox" data-s2-action="pick-add" data-s2-player="${escapeHtml(player)}"${on ? ' checked' : ''}${blocked ? ' disabled' : ''}>
+        <input type="checkbox" data-s2-action="pick-add" data-s2-player="${escapeHtml(player)}" aria-label="${escapeHtml(player)}"${on ? ' checked' : ''}${blocked ? ' disabled' : ''}>
         ${avatarEditButton(player)}
-        <span>${escapeHtml(player)}</span>
+        <span class="s2-pick-name">${escapeHtml(player)}</span>
         <span class="s2-pick-mark" aria-hidden="true">${on ? '✓' : ''}</span>
       </label>`;
     }).join('');
-    const count = addPicks.size;
-    const label = count ? `Add ${count} player${count === 1 ? '' : 's'}` : 'Add player';
     // Seated vs not seated read as two labelled groups (Matt, Nov 15).
     const benchHtml = bench.length
       ? `<h3 class="s2-roster-label" id="s2-bench-label">On the bench <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">Check names, then Add</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
@@ -435,7 +438,7 @@
       : `<div class="s2-roster" tabindex="0" role="region" aria-label="Seated and saved players">${seated ? `<h3 class="s2-roster-label" id="s2-seated-label">Ready to play <span class="s2-roster-count">${seated}</span></h3>` : ''}${seatsHtml}${benchHtml}</div><button type="button" class="s2-roster-more" data-s2-action="roster-more" hidden></button>`;
     return `<div class="s2-picker">
       ${!seated && !bench.length ? '' : rosterHtml}
-      ${!room.ok ? `<p class="s2-sub s2-limit-note">${escapeHtml(roomNote || 'No room for another player.')}</p>` : ''}
+      <p class="s2-sub s2-limit-note"${selection.canAddMore ? ' hidden' : ''}>${escapeHtml(selection.canAddMore ? '' : selection.note)}</p>
       <form class="s2-add" data-s2-action="add-form">
         <div class="player-suggest-wrap">
           <input id="quick-add-player" type="text" placeholder="Add someone new" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Add a player"
@@ -445,7 +448,7 @@
             onkeydown="handlePlayerSuggestKey(event,'home')">
           <div id="home-player-suggestions" class="player-suggest-menu hidden"></div>
         </div>
-        <button type="submit" class="s2-btn s2-btn-primary" aria-label="${escapeHtml(label)}"${count && !max.ok ? ' disabled' : ''}>${escapeHtml(label)}</button>
+        <button type="submit" class="s2-btn s2-btn-primary" ${selection.disabled ? 'disabled' : ''}>${escapeHtml(selection.label)}</button>
       </form>
     </div>`;
   }
@@ -453,7 +456,7 @@
   function filterAddPicker(query) {
     const q = String(query || '').trim().toLowerCase();
     document.querySelectorAll('.s2-pick').forEach((row) => {
-      const name = (row.querySelector('span')?.textContent || '').toLowerCase();
+      const name = (row.querySelector('.s2-pick-name')?.textContent || '').toLowerCase();
       row.hidden = !!(q && !name.includes(q));
     });
   }
@@ -493,6 +496,7 @@
     const live = table.currentGame;
     const seated = live ? getActivePlayers(live).length : table.players.length;
     const bench = table.allPlayers.filter((player) => !table.players.includes(player));
+    addPicks = new Set([...addPicks].filter(player => bench.includes(player)));
     const banner = table.currentGame ? (() => {
       const game = table.currentGame;
       const maxR = getMaxRoundsForGame(game);
@@ -1445,12 +1449,6 @@
       if (target.closest('.s2-chooser') && target.dataset.s2Action !== 'unfinished-close') return;
       unfinishedOpen = false;
       paintHome();
-    } else if (action === 'pick-add') {
-      const name = target.dataset.s2Player || target.closest('.s2-pick')?.querySelector('span')?.textContent || '';
-      if (!name) return;
-      if (addPicks.has(name)) addPicks.delete(name);
-      else addPicks.add(name);
-      paintHome();
     } else if (action === 'resume' || action === 'scorecard') {
       goActiveMatch();
     } else if (action === 'night-open' || action === 'night-scorecard') {
@@ -1541,7 +1539,26 @@
     const target = event.target.closest?.('[data-s2-action]');
     if (!target) return;
     const action = target.dataset.s2Action;
-    if (action === 'filter-game') {
+    if (action === 'pick-add') {
+      const picker = target.closest('.s2-picker');
+      if (!picker) return;
+      const checkboxes = [...picker.querySelectorAll('[data-s2-action="pick-add"]')];
+      addPicks = new Set(checkboxes.filter(input => input.checked).map(input => input.dataset.s2Player));
+      const selection = benchSelectionState(state().players.length);
+      checkboxes.forEach(input => {
+        const row = input.closest('.s2-pick');
+        input.disabled = !input.checked && !selection.canAddMore;
+        row.classList.toggle('is-on', input.checked);
+        row.classList.toggle('is-blocked', input.disabled);
+        row.querySelector('.s2-pick-mark').textContent = input.checked ? '✓' : '';
+      });
+      const button = picker.querySelector('.s2-add button[type="submit"]');
+      button.textContent = selection.label;
+      button.disabled = selection.disabled;
+      const note = picker.querySelector('.s2-limit-note');
+      note.hidden = selection.canAddMore;
+      note.textContent = selection.canAddMore ? '' : selection.note;
+    } else if (action === 'filter-game') {
       recordsGameFilter = target.value || '';
       paintRecords();
     } else if (action === 'filter-player') {

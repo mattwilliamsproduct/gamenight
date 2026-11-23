@@ -13,6 +13,7 @@ const FACES = [
   'five-crowns-picker.webp',
   '818.webp',
   'wizard.webp',
+  'wizard-picker.webp',
   'flip7.webp',
   'beat-the-heat.webp',
   'canasta.webp',

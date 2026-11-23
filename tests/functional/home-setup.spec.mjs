@@ -19,17 +19,18 @@ for (const [width, height] of [[1180, 820], [1024, 768], [390, 844]]) {
   test.describe(`${width}x${height}`, () => {
     test.use({viewport: {width, height}, hasTouch: true});
 
-    test('deck art is full strength; the selected deck shows a teal rim and a check', async ({page}) => {
+    test('the selected deck shows a teal rim and a check without dimming other decks', async ({page}) => {
       await seedHome(page);
       const cards = await page.evaluate(() => [...document.querySelectorAll('.s2-home .s2-game')].map((g) => {
         const photo = g.querySelector('.s2-card-photo');
         const cs = photo ? getComputedStyle(photo) : null;
-        return {selected: g.classList.contains('is-selected'), opacity: cs ? Number(cs.opacity) : 1, filter: cs ? cs.filter : 'none', check: !!g.querySelector('.s2-card-check')};
+        return {art: photo?.closest('.s2-card-frame')?.dataset.cardArt, selected: g.classList.contains('is-selected'), opacity: cs ? Number(cs.opacity) : 1, filter: cs ? cs.filter : 'none', check: !!g.querySelector('.s2-card-check')};
       }));
       expect(cards.length).toBeGreaterThan(3);
       for (const c of cards) {
         expect(c.opacity, 'no dimmed decks').toBe(1);
-        expect(c.filter).toBe('none');
+        if (c.art === '818') expect(c.filter).toContain('hue-rotate');
+        else expect(c.filter).toBe('none');
         expect(c.check, 'only the selected deck has a check').toBe(c.selected);
       }
       expect(cards.filter((c) => c.selected)).toHaveLength(1);
@@ -159,4 +160,24 @@ test.describe('empty Home', () => {
     await expect(home).not.toContainText(/\b1 players\b/);
     await expect(page.locator('#save-indicator')).toBeHidden();
   });
+});
+
+test('bench checkboxes update the Add count in both directions and seat only the checked player', async ({page}) => {
+  await seedHome(page);
+  const bench = page.locator('.s2-pick-list');
+  const bea = bench.getByRole('checkbox', {name: 'Bea', exact: true});
+  const silas = bench.getByRole('checkbox', {name: 'Silas', exact: true});
+  await bench.getByText('Bea', {exact: true}).click();
+  await silas.press('Space');
+  await expect(page.getByRole('button', {name: 'Add 2 players'})).toBeVisible();
+  await bea.press('Space');
+  await expect(bea).toBeFocused();
+  await expect(bea).not.toBeChecked();
+  await expect(silas).toBeChecked();
+  const add = page.getByRole('button', {name: 'Add 1 player'});
+  await expect(add).toBeVisible();
+  await add.click();
+  await expect(page.locator('.s2-seat-name').filter({hasText: 'Silas'})).toHaveCount(1);
+  await expect(bench.getByRole('checkbox', {name: 'Bea', exact: true})).not.toBeChecked();
+  await expect(page.getByRole('button', {name: 'Add player', exact: true})).toBeVisible();
 });

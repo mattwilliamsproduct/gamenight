@@ -298,14 +298,14 @@ test('phone wordmark stays readable and nav stays one row at 390 and 375', async
   }
 });
 
-test('Home loads the upright Five Crowns and default Heat faces', async ({page}) => {
+test('Home loads the portrait Five Crowns and Wizard covers', async ({page}) => {
   await page.goto('/?wipe=1', {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#home-screen')).toBeVisible();
   const defaults = await page.locator('.s2-home-start .s2-card-photo').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
   expect(defaults).toEqual(expect.arrayContaining([
     './assets/cards/beat-the-heat.webp',
     './assets/cards/five-crowns-picker.webp',
-    './assets/cards/wizard.webp',
+    './assets/cards/wizard-picker.webp',
     './assets/cards/canasta.webp'
   ]));
   // Rook has no Home deck (f2c81a4 picker); rook.webp stays for saved Rook nights.
