@@ -2841,7 +2841,10 @@ html.porch-ledger .bp-cloud-preview-notice::before { content: "☁"; color: var(
 
 /* ═══ Phase 3 · Home and setup (bpg2) ═══ */
 /* Decks: every deck's art at full strength; the selected deck gets the teal rim plus a check, never a dimmed neighbour. */
-html.porch-ledger.slice2-tv .s2-home-start .s2-game .s2-card-photo { opacity: 1 !important; filter: none !important; }
+html.porch-ledger.slice2-tv .s2-home-start .s2-game .s2-card-photo {
+  opacity: 1 !important;
+  filter: var(--bp-card-photo-filter, none) !important;
+}
 html.porch-ledger.slice2-tv .s2-home-start .s2-card-check {
   position: absolute; top: 8px; right: 8px; z-index: 5;
   width: 30px; height: 30px; border-radius: 999px;
@@ -3345,11 +3348,15 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="five"] 
 html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="wizard"] {
   background: #111f4a;
 }
+html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="818"] {
+  --bp-card-photo-filter: saturate(.7) hue-rotate(-13deg) brightness(.97);
+}
 html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame:is([data-card-art="five"], [data-card-art="wizard"]) .s2-card-photo {
   position: absolute;
   inset: 50% auto auto 50%;
   width: 71.4cqw;
   height: 100cqw;
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
   transform: translate(-50%, -50%) rotate(90deg);
 }
 html.porch-ledger.slice2-tv .s2-home-start .s2-card-frame[data-card-art="five"] .s2-card-photo {
