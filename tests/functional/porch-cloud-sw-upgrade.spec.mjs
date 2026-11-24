@@ -300,25 +300,46 @@ test('same-origin upgrade from main worker bypasses stale /api/sync cache and bl
     // 3. Activating the waiting RC service worker purges the old cache & legacy /api/sync entry
     const purged = await page.evaluate(async () => {
       const reg = await navigator.serviceWorker.getRegistration();
-      if (reg && !reg.waiting && !reg.installing) {
-        await reg.update();
-      }
-      if (reg && !reg.waiting && reg.installing) {
+      if (!reg) return { activated: false, oldCacheGone: false, remainingApi: ['no-registration'] };
+
+      async function waitForInstalled(worker) {
+        if (!worker || worker.state === 'installed' || worker.state === 'activated' || worker.state === 'redundant') return;
         await new Promise(resolve => {
-          const w = reg.installing;
-          if (!w || w.state === 'installed' || w.state === 'activated') { resolve(); return; }
-          w.addEventListener('statechange', () => {
-            if (w.state === 'installed' || w.state === 'activated') resolve();
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'installed' || worker.state === 'activated' || worker.state === 'redundant') resolve();
           });
         });
       }
-      if (reg && reg.waiting) {
-        const switched = new Promise(resolve => {
-          navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true });
+
+      if (!reg.waiting && !reg.installing) {
+        const found = new Promise(resolve => {
+          reg.addEventListener('updatefound', () => resolve(reg.installing), { once: true });
+          setTimeout(() => resolve(reg.installing || reg.waiting || null), 1500);
         });
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        await switched;
+        await reg.update();
+        await found;
       }
+      if (!reg.waiting && reg.installing) {
+        await waitForInstalled(reg.installing);
+      }
+
+      const target = reg.waiting;
+      if (!target) {
+        return { activated: false, oldCacheGone: false, remainingApi: ['no-waiting-worker'] };
+      }
+
+      const activated = new Promise(resolve => {
+        if (target.state === 'activated') { resolve(); return; }
+        target.addEventListener('statechange', () => {
+          if (target.state === 'activated' || target.state === 'redundant') resolve();
+        });
+      });
+      const switched = new Promise(resolve => {
+        navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true });
+      });
+      target.postMessage({ type: 'SKIP_WAITING' });
+      await Promise.all([switched, activated]);
+
       const names = await caches.keys();
       const remainingApi = [];
       for (const name of names) {
@@ -328,10 +349,12 @@ test('same-origin upgrade from main worker bypasses stale /api/sync cache and bl
         }
       }
       return {
+        activated: target.state === 'activated',
         oldCacheGone: !names.includes('back-porch-shell-old-main'),
         remainingApi
       };
     });
+    expect(purged.activated).toBe(true);
     expect(purged.oldCacheGone).toBe(true);
     expect(purged.remainingApi).toEqual([]);
   } finally {

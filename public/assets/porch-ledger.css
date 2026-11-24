@@ -4327,6 +4327,62 @@ html.porch-ledger.slice2-tv :is(
   touch-action: manipulation;
 }
 
+/* Widen reading, rules, audit, and avatar modals on tablet/desktop so they don't stretch into narrow scrolling columns. */
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv :is(#rules-modal, #life-preserver-rules-modal, #comeback-rules-modal) > .bp-modal-panel {
+    width: min(64rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+    max-width: min(64rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+    padding: 1.5rem 2rem 1.35rem !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) .bp-modal-panel > div.text-center {
+    padding-inline: 3rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) .bp-modal-body {
+    font-size: var(--bp-type-md) !important;
+    line-height: 1.44 !important;
+    padding: 0.9rem 1.35rem !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) :is(.life-preserver-rules-body, .comeback-rules-body) h4 {
+    margin: 0.72rem 0 0.25rem !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) :is(.life-preserver-rules-body, .comeback-rules-body) li {
+    margin: 0.18rem 0 !important;
+    line-height: 1.38 !important;
+  }
+
+  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) :is(.life-preserver-rules-live, .comeback-rules-live) {
+    margin: 0.65rem 0 0.35rem !important;
+    padding: 0.7rem 1rem 0.75rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #rules-modal #rules-content {
+    font-size: var(--bp-type-md) !important;
+    line-height: 1.5 !important;
+    padding: 1.15rem 1.5rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #audit-modal > .bp-modal-panel {
+    width: min(60rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+    max-width: min(60rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+  }
+
+  html.porch-ledger.slice2-tv #avatar-modal > .bp-modal-panel {
+    width: min(62rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+    max-width: min(62rem, calc(100vw - 2 * var(--bp-space-5))) !important;
+  }
+
+  html.porch-ledger.slice2-tv #avatar-modal #avatar-grid {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)) !important;
+    max-height: min(64dvh, 34rem) !important;
+    justify-items: center;
+  }
+}
+
 /* Guarantee >= 44px touch targets inside Canasta setup modal (clears subpixel 43.99px rounding on phone). */
 html.porch-ledger.slice2-tv #hand-foot-setup-modal :is(button, .hf-team-person),
 html.porch-ledger.slice2-tv #hand-foot-setup-modal .bp-match-actions > button {
