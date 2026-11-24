@@ -1,4 +1,4 @@
-const CACHE_NAME = 'back-porch-shell-local-1793898898146';
+const CACHE_NAME = 'back-porch-shell-local-1795492200000';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,7 +6,13 @@ const APP_SHELL = [
   './assets/app-utilities.css',
   './assets/fonts.css',
   './assets/slice2.css',
+  './assets/porch-ledger.css',
+  './assets/porch-felt.webp',
   './assets/card-picker.css',
+  './assets/fonts/bree-serif-400.woff2',
+  './assets/fonts/nunito-sans-500.woff2',
+  './assets/fonts/nunito-sans-700.woff2',
+  './assets/fonts/nunito-sans-800.woff2',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
   './assets/game-registry.js',

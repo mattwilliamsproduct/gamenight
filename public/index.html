@@ -12615,6 +12615,7 @@ button.dealer-name-indicator .dealer-player-label {
       persistInterruptedEntry();
       flushPendingSave();
       _persistGamenightState({ fullPersist: true, syncCold: true, flushDeferred: true });
+      if(typeof flushPorchPushOnHide === 'function') flushPorchPushOnHide();
       gnPerfFlushPersist();
     }
     else if(document.visibilityState === 'visible' && currentGame){
@@ -14132,6 +14133,8 @@ button.dealer-name-indicator .dealer-player-label {
   let _porchPushTimer=null;
   let _porchBusy=false;
   let _porchApplying=false;
+  let _porchDirty=false;
+  let _porchPullSucceeded=false;
   function canPorchCloud(){
     if(window.BPGTryDemo&&typeof BPGTryDemo.backupBlocked==='function'&&BPGTryDemo.backupBlocked()) return false;
     return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
@@ -14171,11 +14174,12 @@ button.dealer-name-indicator .dealer-player-label {
     }
     setPorchStatus('Password saved on this copy. Tap Save & sync if the status is stale.');
   }
-  async function porchRequest(method,body){
+  async function porchRequest(method,body,options){
     const key=getPorchKey();
     if(!canPorchCloud()||!key) throw Object.assign(new Error('no-cloud'),{status:0});
     const res=await fetch('/api/sync',{
       method,
+      keepalive:!!(options&&options.keepalive),
       headers:{
         'Content-Type':'application/json',
         'x-porch-key':key
@@ -14193,6 +14197,7 @@ button.dealer-name-indicator .dealer-player-label {
     try{
       setPorchStatus('Checking the porch cloud…');
       const data=await porchRequest('GET');
+      _porchPullSucceeded=true;
       if(!data.backup){
         setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
         return {empty:true};
@@ -14221,15 +14226,28 @@ button.dealer-name-indicator .dealer-player-label {
     }finally{
       _porchApplying=false;
       _porchBusy=false;
+      if(_porchDirty&&_porchPullSucceeded){
+        _porchDirty=false;
+        pushPorchCloud();
+      }
     }
   }
-  async function pushPorchCloud(){
+  async function pushPorchCloud(options){
     if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
-    if(_porchBusy) return;
+    const manual=!!(options&&options.manual);
+    if(!manual&&!_porchPullSucceeded){
+      _porchDirty=true;
+      return;
+    }
+    if(_porchBusy){
+      _porchDirty=true;
+      return;
+    }
     _porchBusy=true;
+    _porchDirty=false;
     try{
       const payload=BPGBackup.buildBackup(currentBackupState());
-      await porchRequest('PUT',payload);
+      await porchRequest('PUT',payload,{keepalive:!!(options&&options.keepalive)});
       const snap=BPGBackup.summarizeHistory(payload.history);
       setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
     }catch(error){
@@ -14238,12 +14256,26 @@ button.dealer-name-indicator .dealer-player-label {
       else setPorchStatus('Could not save to the porch cloud.');
     }finally{
       _porchBusy=false;
+      if(_porchDirty){
+        _porchDirty=false;
+        schedulePorchPush();
+      }
     }
   }
   function schedulePorchPush(){
     if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
     if(_porchPushTimer) clearTimeout(_porchPushTimer);
     _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
+  }
+  function flushPorchPushOnHide(){
+    if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
+    if(_porchPushTimer){
+      clearTimeout(_porchPushTimer);
+      _porchPushTimer=null;
+      pushPorchCloud({keepalive:true});
+    }else if(_porchDirty){
+      pushPorchCloud({keepalive:true});
+    }
   }
   async function savePorchPassword(){
     const input=document.getElementById('porch-cloud-key');
@@ -14256,8 +14288,8 @@ button.dealer-name-indicator .dealer-player-label {
     }
     setPorchKey(key);
     const pulled=await pullPorchCloud();
-    if(pulled&&pulled.empty) await pushPorchCloud();
-    else if(pulled) await pushPorchCloud();
+    if(pulled&&pulled.empty) await pushPorchCloud({manual:true});
+    else if(pulled) await pushPorchCloud({manual:true});
     if(currentGame) goActiveMatch();
     else goHome();
   }
