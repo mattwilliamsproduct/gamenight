@@ -15424,13 +15424,13 @@ button.dealer-name-indicator .dealer-player-label {
       spinner.style.transition=reduce?'transform 180ms ease-out':'transform 2.2s cubic-bezier(0.18, 0.82, 0.22, 1)';
       spinner.style.transform=`rotate(${(reduce?0:360*3)+landing}deg)`;
     }
-    if(window.BPGSlice2&&typeof BPGSlice2.highlightLifePreserverPocket==='function'){
-      BPGSlice2.highlightLifePreserverPocket(win);
-    }
     haptic([60, 80, 60, 80, 120]);
     _lifePreserverSpinTimer=setTimeout(()=>{
       _lifePreserverSpinTimer=null;
       if(spinToken!==_lifePreserverSpinToken)return;
+      if(window.BPGSlice2&&typeof BPGSlice2.highlightLifePreserverPocket==='function'){
+        BPGSlice2.highlightLifePreserverPocket(win);
+      }
       showLifePreserverResult(currentGame.lifePreserverLastResult);
     },lifePreserverSpinDuration());
   }
