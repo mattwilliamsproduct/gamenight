@@ -11,7 +11,8 @@ async function homeWithEightSeated(page) {
   const tip = page.locator('#bpg-try-demo-tip button');
   if (await tip.isVisible().catch(() => false)) await tip.click();
   if (await page.locator('body.active-match-view').count()) {
-    await page.locator('button:visible', {hasText: /^Leave( game)?$/}).first().click();
+    await page.locator('#actions-btn').click();
+    await page.locator('#actions-save-end').click();
     await page.locator('#leave-save-later').click();
   }
   await page.evaluate(()=>addPlayerToAll('Marco'));

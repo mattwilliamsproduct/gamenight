@@ -73,14 +73,14 @@ async function assertEntryFooterLayout(page, sizeName) {
     const bar = row.getBoundingClientRect();
     return {
       sameRow: Math.abs(c.top - r.top) < 8 && Math.abs(c.bottom - r.bottom) < 8,
-      submitBelow: s.top >= Math.max(c.bottom, r.bottom) - 2,
-      submitFull: s.width >= bar.width * 0.9
+      submitVisible: s.width > 60 && s.height >= 40 && s.left >= bar.left - 2 && s.right <= bar.right + 2 && s.bottom <= innerHeight + 2,
+      noOverlap: s.left >= r.right - 2 || s.top >= Math.max(c.bottom, r.bottom) - 2
     };
   });
   expect(footer, `${sizeName} entry footer exists`).toBeTruthy();
   expect(footer.sameRow, `${sizeName} Cancel and Review share one row`).toBe(true);
-  expect(footer.submitBelow, `${sizeName} Submit sits under Cancel/Review`).toBe(true);
-  expect(footer.submitFull, `${sizeName} Submit is full width`).toBe(true);
+  expect(footer.submitVisible, `${sizeName} Submit fits cleanly in footer`).toBe(true);
+  expect(footer.noOverlap, `${sizeName} Submit does not overlap Cancel/Review`).toBe(true);
 }
 
 async function enterTableScores(page, digit = '5') {

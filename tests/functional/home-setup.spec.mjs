@@ -29,8 +29,7 @@ for (const [width, height] of [[1180, 820], [1024, 768], [390, 844]]) {
       expect(cards.length).toBeGreaterThan(3);
       for (const c of cards) {
         expect(c.opacity, 'no dimmed decks').toBe(1);
-        if (c.art === '818') expect(c.filter).toContain('hue-rotate');
-        else expect(c.filter).toBe('none');
+        expect(c.filter).toBe('none');
         expect(c.check, 'only the selected deck has a check').toBe(c.selected);
       }
       expect(cards.filter((c) => c.selected)).toHaveLength(1);

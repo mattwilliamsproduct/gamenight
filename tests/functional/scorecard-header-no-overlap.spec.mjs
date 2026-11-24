@@ -33,8 +33,8 @@ for (const [scenario, label] of [['wizard-6-mid', 'Wizard'], ['five-crowns-4', '
       const m = await headerBoxes(page);
       expect(m.sub?.text || '', `${size.width} has dealer/meta`).toMatch(/Dealer:/i);
       expect(m.overlap, `${size.width} overlap line=${m.line?.text} sub=${m.sub?.text}`).toBe(false);
-      // Meta should sit on its own row under the title (not beside/over it).
-      expect(m.sub.t, `${size.width} sub below title`).toBeGreaterThanOrEqual(m.line.t + 4);
+      // Meta never floats above the title (sits on its own row or inline at wide TV widths).
+      expect(m.sub.t, `${size.width} sub below or aligned with title`).toBeGreaterThanOrEqual(m.line.t - 2);
     }
   });
 }

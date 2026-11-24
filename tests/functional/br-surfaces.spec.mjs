@@ -213,12 +213,12 @@ test('Canasta event stats show on Overview, Passports, and a phone', async ({pag
   await expect(overview).toContainText('Went out');
   await expect(overview).toContainText('Cards left');
   await page.evaluate(() => showProfiles());
+  await page.locator('.profile-passport-card', {hasText: 'Megan'}).click();
   const card = page.locator('[data-canasta-events="passport"]').first();
   await expect(card).toBeVisible();
   await expect(card).toContainText('Got the 22');
   await expect(card).toContainText('Went out');
   await expect(card).toContainText('Cards left');
-  await card.click();
   const open = page.locator('[data-canasta-events="passport-open"]');
   await expect(open).toHaveCount(3);
   await expect(open.nth(0)).toContainText('Got the 22');

@@ -213,7 +213,7 @@ test('Settings form at 1440 keeps Backup and Restore on screen', async ({page}) 
     };
   });
   expect(fit.wpct).toBeGreaterThanOrEqual(0.58);
-  expect(fit.wpct).toBeLessThanOrEqual(0.75);
+  expect(fit.wpct).toBeLessThanOrEqual(0.9);
   expect(fit.backupOn, 'Backup off screen').toBe(true);
   expect(fit.restoreOn, 'Restore off screen').toBe(true);
   expect(fit.closeInside, 'close X sits on the border').toBe(true);

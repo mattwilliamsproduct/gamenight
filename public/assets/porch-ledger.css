@@ -3226,9 +3226,10 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game-name {
     z-index: 1;
     left: -2px;
     bottom: -3px;
-    min-width: 22px !important;
-    font-size: 10px !important;
-    padding: 1px 2px !important;
+    min-width: 26px !important;
+    font-size: 13px !important;
+    line-height: 1.05 !important;
+    padding: 1px 4px !important;
   }
 
   html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-badge {
@@ -4153,7 +4154,6 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game:hover .s2-card-frame {
 }
 
 html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
-  transform: translateY(-3px);
   box-shadow: 0 0 0 3px #f4c663, 0 14px 24px -12px rgba(10, 62, 56, 0.55) !important;
 }
 
@@ -4161,12 +4161,34 @@ html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-name {
   text-decoration: none !important;
 }
 
-/* 4. Tabletop grounding shadows for cream ledger sheets resting on blue felt. */
-html.porch-ledger.slice2-tv :is(#top-nav, .s2-panel, #scorecard-capture, #slice2-board-bar, .s2-resume-strip) {
+/* 4. Tabletop grounding shadows for cream ledger sheets, Passports, and Records resting on blue felt. */
+html.porch-ledger.slice2-tv :is(
+  #top-nav,
+  .s2-panel,
+  #scorecard-capture,
+  #slice2-board-bar,
+  .s2-resume-strip,
+  #profiles-screen .profile-passport-card,
+  #profile-detail-view .surface-raised,
+  #history-screen .surface
+) {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.85),
     0 18px 36px -18px rgba(2, 16, 40, 0.65),
     0 2px 6px rgba(2, 16, 40, 0.22) !important;
+}
+
+/* Keep the "Saved on this device" indicator quiet on Home so 1st place leads the standings cleanly. */
+html.porch-ledger.slice2-tv :is(.s2-home-standings, .s2-home-table) #save-indicator {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 0 2px !important;
+  min-height: 0 !important;
+  font-size: var(--bp-type-xs) !important;
+  font-weight: 700 !important;
+  color: var(--ledger-muted) !important;
+  justify-content: flex-start !important;
 }
 
 /* 5. Readable Canasta MELD sub-header from 10 ft + unified Warm Porch brass Dealer pills. */
@@ -4195,9 +4217,87 @@ html.porch-ledger.slice2-tv :is(
   letter-spacing: 0.01em !important;
 }
 
-/* 6. Subtract to improve: hide empty radio circles on untouched Score / Bid Entry rows. */
+/* Keep the Dealer pill inline with the player name on tablet/TV so name & avatar stay vertically centered. */
+@media (min-width: 761px) {
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-player-name-slot {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #scorecard-capture .scorecard-dealer-label {
+    align-self: center !important;
+    flex: 0 0 auto;
+  }
+}
+
+/* 6. Keep untouched Score / Bid Entry status dots visually quiet while preserving the clickable quick-confirm 0 target. */
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row:not(.is-confirmed):not(.is-skipped) .score-entry-row-status {
-  display: none !important;
+  opacity: 0.14;
+  transition: opacity 120ms ease;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row:not(.is-confirmed):not(.is-skipped):is(:hover, .active) .score-entry-row-status {
+  opacity: 0.55;
+}
+
+/* 7. Warm Porch Ledger plaques for Victory & Last-Place post-game modals (fixes unreadable #fef08a subtitle & 10px kicker). */
+html.porch-ledger.slice2-tv #victory-modal .postgame-victory-card,
+html.porch-ledger.slice2-tv #loser-modal .postgame-loser-card {
+  background: linear-gradient(180deg, #fffcf6 0%, #f5ede0 100%) !important;
+  color: var(--ledger-ink) !important;
+  border: 2px solid var(--ledger-line) !important;
+  border-radius: 26px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 24px 60px -24px rgba(10, 26, 44, 0.65) !important;
+}
+
+html.porch-ledger.slice2-tv #victory-modal .postgame-victory-card {
+  border-top: 6px solid #c9922c !important;
+}
+
+html.porch-ledger.slice2-tv #loser-modal .postgame-loser-card {
+  border-top: 6px solid var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv #victory-modal .postgame-victory-card::before,
+html.porch-ledger.slice2-tv #loser-modal .postgame-loser-card::before {
+  opacity: 0.35;
+}
+
+html.porch-ledger.slice2-tv #victory-kicker,
+html.porch-ledger.slice2-tv #loser-kicker {
+  font-size: clamp(0.9rem, 1.15vw, 1.1rem) !important;
+  letter-spacing: 0.14em !important;
+  font-weight: 800 !important;
+}
+
+html.porch-ledger.slice2-tv #victory-kicker {
+  color: var(--ledger-brass) !important;
+}
+
+html.porch-ledger.slice2-tv #loser-kicker {
+  color: var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv #victory-names,
+html.porch-ledger.slice2-tv #loser-names {
+  font-family: var(--ledger-type-display) !important;
+  color: var(--ledger-ink) !important;
+  font-size: clamp(2.1rem, 3.4vw, 3.3rem) !important;
+  line-height: 1.12 !important;
+}
+
+html.porch-ledger.slice2-tv #victory-subtitle {
+  color: var(--ledger-teal-deep) !important;
+  font-size: clamp(1.1rem, 1.45vw, 1.4rem) !important;
+  font-weight: 800 !important;
+}
+
+html.porch-ledger.slice2-tv #loser-sub {
+  color: var(--ledger-ink-soft) !important;
+  font-size: clamp(1rem, 1.25vw, 1.2rem) !important;
 }
 
 /* Match Life Preserver / Comeback adjustment font to round scores (Nunito Sans) while keeping the blue pop. */

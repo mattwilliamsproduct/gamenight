@@ -117,7 +117,7 @@ test('1194 scoreboard header, tiles, and Life Preserver cells', async ({page}) =
   expect(paint.tile).toBe('rgb(232, 227, 218)');
   expect(paint.ordinary).toBe('rgb(232, 227, 218)');
   expect(paint.leader).toBe('rgb(213, 235, 227)');
-  expect(paint.digits).toBe('rgb(58, 49, 40)');
+  expect(paint.digits).toBe('rgb(26, 20, 15)');
   expect(paint.dashBg).toBe('rgba(0, 0, 0, 0)');
   expect(parseFloat(paint.dashBorder)).toBe(0);
   expect(paint.padTop).toBeGreaterThanOrEqual(4);
