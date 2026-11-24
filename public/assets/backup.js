@@ -245,12 +245,35 @@
     return { next, added, lines };
   }
 
+  function liveMatchProgress(game) {
+    const live = liveMatch(game);
+    if (!live) return { rounds: -1, round: -1, audit: -1 };
+    const rounds = Array.isArray(live.rounds) ? live.rounds.length : 0;
+    const round = Number.isFinite(Number(live.currentRound)) ? Number(live.currentRound) : rounds + 1;
+    const audit = Array.isArray(live.auditLog) ? live.auditLog.length : 0;
+    return { rounds, round, audit };
+  }
+
+  function isRemoteLiveMatchNewer(localGame, remoteGame) {
+    const localLive = liveMatch(localGame);
+    const remoteLive = liveMatch(remoteGame);
+    if (!remoteLive) return false;
+    if (!localLive) return true;
+    if (!sameLiveMatch(localLive, remoteLive)) return false;
+    const lp = liveMatchProgress(localLive);
+    const rp = liveMatchProgress(remoteLive);
+    if (rp.rounds !== lp.rounds) return rp.rounds > lp.rounds;
+    if (rp.round !== lp.round) return rp.round > lp.round;
+    if (rp.audit !== lp.audit) return rp.audit > lp.audit;
+    return false;
+  }
+
   function mergeCloud(local, remote) {
     if (!remote || typeof remote !== 'object') {
       return mergeBackup(local || {}, {});
     }
     const incoming = Object.assign({}, remote);
-    if (local?.currentGame && local.currentGame.name) {
+    if (local?.currentGame && local.currentGame.name && !isRemoteLiveMatchNewer(local.currentGame, remote.currentGame)) {
       delete incoming.currentGame;
     }
     return mergeBackup(local || {}, incoming);

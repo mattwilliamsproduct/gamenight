@@ -1,4 +1,4 @@
-const CACHE_NAME = 'back-porch-shell-local-1795492200000';
+const CACHE_NAME = 'back-porch-shell-local-1795530000000';
 const APP_SHELL = [
   './',
   './index.html',
@@ -37,8 +37,18 @@ self.addEventListener('activate', event => {
   event.waitUntil(Promise.all([
     self.clients.claim(),
     caches.keys().then(keys => Promise.all(
-      keys.filter(key => key.startsWith('back-porch-shell-') && key !== CACHE_NAME)
-        .map(key => caches.delete(key))
+      keys.map(async key => {
+        if(key.startsWith('back-porch-shell-') && key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+        const cache = await caches.open(key);
+        const requests = await cache.keys();
+        await Promise.all(
+          requests
+            .filter(req => new URL(req.url).pathname.startsWith('/api/'))
+            .map(req => cache.delete(req))
+        );
+      })
     ))
   ]));
 });
@@ -76,7 +86,7 @@ async function cachedAvatarFirst(event) {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
-  if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js')) return;
+  if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js') || url.pathname.startsWith('/api/')) return;
   if(request.destination === 'image' && url.pathname.includes('/avatars/')) {
     event.respondWith(cachedAvatarFirst(event));
     return;
