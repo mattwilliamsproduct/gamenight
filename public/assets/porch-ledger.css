@@ -4327,35 +4327,112 @@ html.porch-ledger.slice2-tv :is(
   touch-action: manipulation;
 }
 
+/* Back Porch Wheel rules: living-room TV scannability (live summary full-width on top, 2-col rules below on tablet/desktop). */
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-lead {
+  margin: 0 0 0.9rem !important;
+  font-size: 0.98rem !important;
+  line-height: 1.45 !important;
+  font-weight: 700 !important;
+  color: var(--bp-ink-soft) !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .life-preserver-rules-live {
+  margin: 0 0 1.1rem !important;
+  padding: 0.85rem 1.15rem !important;
+  border-radius: 0.95rem !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .life-preserver-rules-live ul {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0.3rem 0 0 !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .life-preserver-rules-live li {
+  margin: 0.28rem 0 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.48 !important;
+  font-weight: 600 !important;
+  color: var(--bp-ink-soft) !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .life-preserver-rules-body strong {
+  color: var(--bp-ink) !important;
+  font-weight: 800 !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.95rem;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-col h4 {
+  margin: 0 0 0.4rem !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.13em !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-col ul {
+  margin: 0 !important;
+  padding-left: 1.15rem !important;
+}
+
+html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-col li {
+  margin: 0.36rem 0 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.48 !important;
+  font-weight: 600 !important;
+  color: var(--bp-ink-soft) !important;
+}
+
 /* Widen reading, rules, audit, and avatar modals on tablet/desktop so they don't stretch into narrow scrolling columns. */
 @media (min-width: 761px) {
   html.porch-ledger.slice2-tv :is(#rules-modal, #life-preserver-rules-modal, #comeback-rules-modal) > .bp-modal-panel {
     width: min(64rem, calc(100vw - 2 * var(--bp-space-5))) !important;
     max-width: min(64rem, calc(100vw - 2 * var(--bp-space-5))) !important;
-    padding: 1.5rem 2rem 1.35rem !important;
+    padding: 1.65rem 2.15rem 1.6rem !important;
   }
 
   html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) .bp-modal-panel > div.text-center {
     padding-inline: 3rem !important;
-    margin-bottom: 0.85rem !important;
+    margin-bottom: 0.7rem !important;
   }
 
-  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) .bp-modal-body {
+  html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-lead {
+    text-align: center;
+    font-size: 1.02rem !important;
+    margin-bottom: 1.05rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #life-preserver-rules-modal .bp-modal-body {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    padding: 0.25rem 0.25rem 0.15rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #life-preserver-rules-modal .lp-rules-columns:not(.is-single) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  html.porch-ledger.slice2-tv #comeback-rules-modal .bp-modal-body {
     font-size: var(--bp-type-md) !important;
     line-height: 1.44 !important;
     padding: 0.9rem 1.35rem !important;
   }
 
-  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) :is(.life-preserver-rules-body, .comeback-rules-body) h4 {
+  html.porch-ledger.slice2-tv #comeback-rules-modal .comeback-rules-body h4 {
     margin: 0.72rem 0 0.25rem !important;
   }
 
-  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) :is(.life-preserver-rules-body, .comeback-rules-body) li {
+  html.porch-ledger.slice2-tv #comeback-rules-modal .comeback-rules-body li {
     margin: 0.18rem 0 !important;
     line-height: 1.38 !important;
   }
 
-  html.porch-ledger.slice2-tv :is(#life-preserver-rules-modal, #comeback-rules-modal) :is(.life-preserver-rules-live, .comeback-rules-live) {
+  html.porch-ledger.slice2-tv #comeback-rules-modal .comeback-rules-live {
     margin: 0.65rem 0 0.35rem !important;
     padding: 0.7rem 1rem 0.75rem !important;
   }

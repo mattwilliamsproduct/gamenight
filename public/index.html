@@ -13287,49 +13287,53 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function closeComebackExplain(){ closeModal('comeback-explain-modal'); }
 
+  function formatLifePreserverRuleBullet(text){
+    const raw=String(text||'');
+    const idx=raw.indexOf(':');
+    if(idx>0 && idx<28){
+      return `<strong>${escapeHtml(raw.slice(0,idx+1))}</strong>${escapeHtml(raw.slice(idx+1))}`;
+    }
+    return escapeHtml(raw);
+  }
   function lifePreserverRulesList(items){
-    return `<ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul>`;
+    return `<ul>${items.map(item=>`<li>${formatLifePreserverRuleBullet(item)}</li>`).join('')}</ul>`;
   }
   function renderLifePreserverRulesLive(live){
     if(!live)return '';
     const lines=[];
-    if(live.timingOpen){
-      lines.push(`${escapeHtml(live.roundLine)}. That gate is open.`);
+    if(live.playerCount<4){
+      lines.push(`<strong>Status:</strong> Locked (${live.playerCount} players — need 4+ players)`);
+    } else if(live.timingOpen){
+      const qualify=live.leaderPlayer && live.catchUp>0
+        ? ` · <strong>Qualify:</strong> ~${live.catchUp}+ behind ${escapeHtml(live.leaderPlayer)} (${live.leaderScore})`
+        : (live.leaderPlayer ? ` · <strong>Leader:</strong> ${escapeHtml(live.leaderPlayer)} (${live.leaderScore})` : '');
+      lines.push(`<strong>Status:</strong> Open (${escapeHtml(live.roundLine)})${qualify}`);
     } else {
-      lines.push(`${escapeHtml(live.roundLine)}. Opens after ${live.minRounds} ${escapeHtml(live.unit)}.`);
-    }
-    if(live.leaderPlayer){
-      const catchBit=live.catchUp>0?` You want to be about ${live.catchUp}+ behind them, with too few ${escapeHtml(live.unit)} left to catch them the normal way.`: '';
-      lines.push(`First place is ${escapeHtml(live.leaderPlayer)} at ${live.leaderScore}.${catchBit}`);
+      lines.push(`<strong>Status:</strong> Locked (${escapeHtml(live.roundLine)} — opens after ${live.minRounds} ${escapeHtml(live.unit)})`);
     }
     if(live.ready.length){
-      lines.push(`Ready to spin: ${escapeHtml(joinLiveNames(live.ready))}.`);
+      lines.push(`<strong>Ready to spin:</strong> ${escapeHtml(live.ready.join(', '))}`);
+    }
+    if(live.timingOpen && live.playerCount>=4){
+      const sign=live.winLow?'+':'−';
+      const closeEntries=live.notYet
+        .filter(entry=>entry && entry.reason!=='leading' && entry.reason!=='too-early' && entry.reason!=='too-few-players' && entry.reason!=='game-over')
+        .slice()
+        .sort((a,b)=>{
+          const ga=Number.isFinite(a.leaderGap)?a.leaderGap:Number.MAX_SAFE_INTEGER;
+          const gb=Number.isFinite(b.leaderGap)?b.leaderGap:Number.MAX_SAFE_INTEGER;
+          return ga-gb || String(a.player).localeCompare(String(b.player));
+        });
+      if(closeEntries.length){
+        const formatted=closeEntries.map(entry=>{
+          const gap=Number.isFinite(entry.leaderGap)?Math.round(entry.leaderGap):0;
+          return gap>0 ? `${entry.player} (${sign}${gap})` : entry.player;
+        });
+        lines.push(`<strong>Still too close:</strong> ${escapeHtml(formatted.join(', '))}`);
+      }
     }
     if(live.used.length){
-      lines.push(`Already used: ${escapeHtml(joinLiveNames(live.used))}.`);
-    }
-    const tooEarly=live.notYet.filter(entry=>entry.reason==='too-early');
-    const others=live.notYet.filter(entry=>entry.reason!=='too-early');
-    if(!live.timingOpen && tooEarly.length && !others.length){
-      lines.push('Nobody has one yet. The game is still too early.');
-    } else {
-      const groups=[];
-      others.forEach(entry=>{
-        let group=groups.find(item=>item.label===entry.label);
-        if(!group){
-          group={label:entry.label, entries:[]};
-          groups.push(group);
-        }
-        group.entries.push(entry);
-      });
-      groups.forEach(group=>{
-        const names=group.entries.map(entry=>{
-          const gap=Number.isFinite(entry.leaderGap)?entry.leaderGap:entry.packGap;
-          const showGap=Number.isFinite(gap)&&gap>0&&(entry.reason==='leader-gap'||entry.reason==='pack-gap'||entry.reason==='recovery-load');
-          return showGap ? `${entry.player} (${Math.round(gap)} behind 1st)` : entry.player;
-        });
-        lines.push(`${escapeHtml(joinLiveNames(names))}. ${escapeHtml(group.label)}.`);
-      });
+      lines.push(`<strong>Already used:</strong> ${escapeHtml(live.used.join(', '))}`);
     }
     return `<div class="life-preserver-rules-live"><h4>On this table</h4><ul>${lines.map(line=>`<li>${line}</li>`).join('')}</ul></div>`;
   }
@@ -13375,17 +13379,19 @@ button.dealer-name-indicator .dealer-player-label {
       : {rules:{supported:false,gameName:currentGame.name,lead:`${wheelCopy()?.name||'Wheel'} details are unavailable.`,how:[],wheel:[]},live:null};
     const rules=summary.rules||{};
     const title=document.getElementById('life-preserver-rules-title');
-    if(title) title.textContent=rules.supported?`How you get one in ${rules.gameName}`:(wheelCopy()?.name||'');
+    if(title) title.textContent=rules.supported?`How it works in ${rules.gameName}`:(wheelCopy()?.name||'');
     const parts=[];
-    if(rules.lead) parts.push(`<p>${escapeHtml(rules.lead)}</p>`);
+    if(rules.lead) parts.push(`<p class="lp-rules-lead">${escapeHtml(rules.lead)}</p>`);
+    if(summary.live) parts.push(renderLifePreserverRulesLive(summary.live));
+    const columns=[];
     if(rules.how?.length){
-      parts.push('<h4>You get one when</h4>');
-      parts.push(lifePreserverRulesList(rules.how.map(item=>escapeHtml(item))));
+      columns.push(`<div class="lp-rules-col"><h4>How you get one</h4>${lifePreserverRulesList(rules.how)}</div>`);
     }
-    parts.push(renderLifePreserverRulesLive(summary.live));
     if(rules.wheel?.length){
-      parts.push('<h4>What the wheel does</h4>');
-      parts.push(lifePreserverRulesList(rules.wheel.map(item=>escapeHtml(item))));
+      columns.push(`<div class="lp-rules-col"><h4>What it does</h4>${lifePreserverRulesList(rules.wheel)}</div>`);
+    }
+    if(columns.length){
+      parts.push(`<div class="lp-rules-columns${columns.length===1?' is-single':''}">${columns.join('')}</div>`);
     }
     const content=document.getElementById('life-preserver-rules-content');
     if(content) content.innerHTML=parts.join('');

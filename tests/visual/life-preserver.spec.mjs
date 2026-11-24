@@ -149,16 +149,16 @@ test('Actions menu explains how this game awards a Life Preserver', async ({page
   await expect(page.locator('#actions-life-preserver-btn')).toBeVisible();
   await page.evaluate(() => openLifePreserverRules());
   await expect(page.locator('#life-preserver-rules-modal')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#life-preserver-rules-title')).toHaveText('How you get one in Five Crowns');
+  await expect(page.locator('#life-preserver-rules-title')).toHaveText('How it works in Five Crowns');
   const body = page.locator('#life-preserver-rules-content');
-  await expect(body).toContainText('not in 1st');
-  await expect(body).toContainText('4 hands');
-  await expect(body).toContainText('Low score wins');
   await expect(body).toContainText('On this table');
+  await expect(body).toContainText('Status:');
+  await expect(body).toContainText('4+ hands');
+  await expect(body).toContainText('Low score wins');
   await expect(body).toContainText('Brick');
   await expect(body).toContainText('Linda');
   await expect(body).toContainText('Cannot tie or pass the leader');
-  await expect(body).toContainText('stays for this scoring period');
+  await expect(body).toContainText('current scoring round');
 });
 
 test('ending a match stashes a visible scorecard copy for Share Receipt', async ({page}, testInfo) => {

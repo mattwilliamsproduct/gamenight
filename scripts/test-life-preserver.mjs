@@ -568,28 +568,30 @@ test('Life Preserver slices stay mostly helpful in both score directions', () =>
 test('Life Preserver rules copy is plain language and game-specific', () => {
   const eight18 = LP.explainLifePreserverRules('818');
   assert.equal(eight18.supported, true);
-  assert.match(eight18.lead, /818/);
-  assert.ok(eight18.how.some(line => /4 rounds/.test(line)));
-  assert.ok(eight18.how.some(line => /not in 1st/.test(line)));
+  assert.equal(eight18.gameName, '818');
+  assert.match(eight18.lead, /Can never tie or pass 1st/);
+  assert.equal(eight18.how.length, 3);
+  assert.equal(eight18.wheel.length, 3);
+  assert.ok(eight18.how.some(line => /4\+ rounds/.test(line)));
+  assert.ok(eight18.how.some(line => /2nd can qualify/.test(line)));
   assert.ok(eight18.how.some(line => /made bids/.test(line)));
-  assert.ok(eight18.how.some(line => /stays for this scoring period/.test(line)));
-  assert.ok(eight18.how.some(line => /One spin per player per match/.test(line)));
+  assert.ok(eight18.how.some(line => /One per match/.test(line) && /current scoring round/.test(line)));
+  assert.ok(eight18.wheel.some(line => /High score wins: Good spins add points/.test(line)));
   assert.ok(eight18.wheel.some(line => /Cannot tie or pass the leader/.test(line)));
-  assert.ok(eight18.wheel.some(line => /37\.5% small help/.test(line) && /7\.5% no change/.test(line) && /20% a small setback/.test(line)));
+  assert.ok(eight18.wheel.some(line => /72\.5% help/.test(line) && /7\.5% do nothing/.test(line) && /20% hurt slightly/.test(line)));
   assert.ok(!eight18.wheel.some(line => /perfectly proportional/i.test(line)));
 
   const wizard = LP.explainLifePreserverRules('Wizard');
-  assert.ok(wizard.how.some(line => /50 to 90/.test(line)));
-  assert.ok(wizard.how.some(line => /20 or even 50 down/.test(line)));
+  assert.ok(wizard.how.some(line => /50–90 pt Wizard swing/.test(line)));
+  assert.ok(wizard.how.some(line => /quarter of the rounds/.test(line)));
 
   const crowns = LP.explainLifePreserverRules('Five Crowns');
-  assert.ok(crowns.how.some(line => /4 hands/.test(line)));
-  assert.ok(crowns.how.some(line => /Low score wins/.test(line)));
-  assert.ok(crowns.wheel.some(line => /subtracts/.test(line)));
+  assert.ok(crowns.how.some(line => /4\+ hands/.test(line)));
+  assert.ok(crowns.wheel.some(line => /Low score wins: Good spins subtract points/.test(line)));
 
   const flip7 = LP.explainLifePreserverRules('Flip 7 Vengeance');
-  assert.match(flip7.lead, /Flip 7/);
-  assert.ok(flip7.how.some(line => /two and a half strong banks/.test(line)));
+  assert.equal(flip7.gameName, 'Flip 7');
+  assert.ok(flip7.how.some(line => /2\.5 strong banks/.test(line)));
 
   const rook = LP.explainLifePreserverRules('Rook');
   assert.equal(rook.supported, false);

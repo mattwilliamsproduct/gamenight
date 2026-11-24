@@ -366,6 +366,11 @@
     return cfg.minScoringRounds;
   }
 
+  function formatOutcomePercent(weight) {
+    const pct = Math.round((Number(weight) || 0) * 1000) / 10;
+    return `${pct}%`;
+  }
+
   function explainLifePreserverRules(gameName) {
     const display = displayGameName(gameName);
     if (!SUPPORTED_GAMES.includes(gameName)) {
@@ -373,47 +378,51 @@
         supported: false,
         gameName: display,
         lead: `${display} does not use the ${BACK_PORCH_WHEEL.name}.`,
-        how: ['Keep playing this one without a rescue spin.'],
+        how: ['Keep playing this one without a comeback spin.'],
         wheel: []
       };
     }
+    const cfg = GAME_CONFIG[gameName];
     const unit = roundNoun(gameName, 2);
-    let timing = `Once 4 ${unit} are scored.`;
-    let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
-    const wheel = [
-      'The pockets look even. The real odds are 37.5% small help, 30% medium, 5% big, 7.5% no change, and 20% a small setback.',
-      'Most slices help. Some do nothing. A few hurt a little.',
-      'Cannot tie or pass the leader.'
-    ];
+    const helpPct = formatOutcomePercent(
+      (OUTCOME_TABLE.smallHelp || 0) + (OUTCOME_TABLE.mediumHelp || 0) + (OUTCOME_TABLE.bigHelp || 0)
+    );
+    const zeroPct = formatOutcomePercent(OUTCOME_TABLE.noChange || 0);
+    const setbackPct = formatOutcomePercent(OUTCOME_TABLE.smallSetback || 0);
+
+    let gate = `Table gate: 4+ players and 4+ ${unit} scored.`;
+    let gap = 'Way behind 1st: Far enough back that normal play won’t catch up (2nd can qualify if 1st is running away).';
 
     if (gameName === '818') {
-      timing = 'Once 4 rounds are scored.';
-      gap = 'You are far enough behind 1st that the remaining rounds cannot close it the normal way. In 818, about two made bids back with only a few rounds left is a big hole. 8 behind first is still a race.';
+      gate = 'Table gate: 4+ players and 4+ rounds scored.';
+      gap = 'Way behind 1st: Far enough back that a couple of made bids won’t close it (2nd can qualify if 1st is running away).';
     } else if (gameName === 'Wizard') {
-      timing = 'Once the first few rounds are scored (about a quarter of the game).';
-      gap = 'You are further behind 1st than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+      gate = 'Table gate: 4+ players and about a quarter of the rounds scored.';
+      gap = 'Way behind 1st: Deeper than a big 50–90 pt Wizard swing (2nd can qualify if 1st is running away).';
     } else if (gameName === 'Five Crowns') {
-      timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins. You are far enough behind 1st that a couple of clean hands probably will not catch them.';
-      wheel.unshift('A good spin subtracts points.');
+      gate = 'Table gate: 4+ players and 4+ hands scored.';
+      gap = 'Way behind 1st: Far enough back that a couple of good hands won’t catch up (2nd can qualify if 1st is running away).';
     } else if (gameName === 'Flip 7 Vengeance') {
-      timing = 'Once 4 rounds are scored.';
-      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind 1st.';
+      gate = 'Table gate: 4+ players and 4+ rounds scored.';
+      gap = 'Way behind 1st: About 2.5 strong banks behind 1st (2nd can qualify if 1st is running away).';
     }
 
     const how = [
-      'Four or more players at the table.',
-      timing,
-      'You are not in 1st. 2nd can get one too, but only if they are also too far back to catch the lead.',
+      gate,
       gap,
-      'You have not used yours yet. One spin per player per match.',
-      'Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.',
-      'If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.'
+      'One per match: Once unlocked, it stays available through the current scoring round.'
+    ];
+    const wheel = [
+      cfg && cfg.winLow
+        ? 'Low score wins: Good spins subtract points.'
+        : 'High score wins: Good spins add points.',
+      `Weighted odds: Slices look even, but ${helpPct} help, ${zeroPct} do nothing, and ${setbackPct} hurt slightly.`,
+      'No cheap wins: Cannot tie or pass the leader.'
     ];
     return {
       supported: true,
       gameName: display,
-      lead: `A one-time rescue if you are truly out of the hunt in ${display}, not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      lead: 'A one-time comeback spin when you’re truly out of the hunt. Can never tie or pass 1st.',
       how,
       wheel
     };
@@ -486,6 +495,7 @@
       rules,
       live: {
         playerCount: players.length,
+        winLow: !!(cfg && cfg.winLow),
         completed,
         maxRounds: game.name === 'Flip 7 Vengeance' ? null : maxRounds,
         minRounds,
