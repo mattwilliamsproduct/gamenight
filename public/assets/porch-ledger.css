@@ -4199,3 +4199,11 @@ html.porch-ledger.slice2-tv :is(
 html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row:not(.is-confirmed):not(.is-skipped) .score-entry-row-status {
   display: none !important;
 }
+
+/* Match Life Preserver / Comeback adjustment font to round scores (Nunito Sans) while keeping the blue pop. */
+html.porch-ledger.slice2-tv #scorecard-capture :is(.score-cell-life-preserver, .score-cell-comeback, .score-total-life-preserver) {
+  font-family: var(--ledger-type-text) !important;
+  font-weight: 800 !important;
+  font-variant-numeric: tabular-nums;
+  color: #0c4a6e;
+}
