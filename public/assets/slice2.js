@@ -429,8 +429,12 @@
       </label>`;
     }).join('');
     // Seated vs not seated read as two labelled groups (Matt, Nov 15).
+    const maxSeats = window.BPGGames?.gameById?.(selected)?.maxPlayers;
+    const benchHint = selection.canAddMore
+      ? 'Check names, then Add'
+      : (Number.isFinite(maxSeats) ? `Table full (${maxSeats} max)` : 'Table full');
     const benchHtml = bench.length
-      ? `<h3 class="s2-roster-label" id="s2-bench-label">On the bench <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">Check names, then Add</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
+      ? `<h3 class="s2-roster-label" id="s2-bench-label">On the bench <span class="s2-roster-count">${bench.length}</span><span class="s2-roster-hint">${escapeHtml(benchHint)}</span></h3><div class="s2-pick-list" role="group" aria-labelledby="s2-bench-label">${rows}</div>`
       : (seated ? '<p class="s2-sub">All saved players are seated.</p>' : '');
     // Tonight's table: seats and bench share one roster that scrolls inside
     // the panel on a laptop; Add stays below it, outside the scroll.
@@ -1534,17 +1538,21 @@
       ? LP.outcomeKey(slice)
       : (slice ? `${slice.kind}:${slice.adjustment}` : null);
     paintWheel();
-    if (slice && typeof LP.rotationDegreesForSlice === 'function') {
-      if (paintWheel._ballTimer) {
-        window.clearTimeout(paintWheel._ballTimer);
-        paintWheel._ballTimer = null;
-      }
-      const { orbit, ball } = ballNodes();
-      if (orbit) orbit.style.transition = 'none';
-      if (ball) ball.style.transition = 'none';
-      placeLifePreserverBall(LP.rotationDegreesForSlice(slice), 33.5, 1);
-      paintWheel.ballParked = true;
+  }
+
+  function settleLifePreserverBall(slice) {
+    const target = slice || paintWheel.highlightSlice || null;
+    const LP = window.BPGLifePreserver || {};
+    if (!target || typeof LP.rotationDegreesForSlice !== 'function') return;
+    if (paintWheel._ballTimer) {
+      window.clearTimeout(paintWheel._ballTimer);
+      paintWheel._ballTimer = null;
     }
+    const { orbit, ball } = ballNodes();
+    if (orbit) orbit.style.transition = 'none';
+    if (ball) ball.style.transition = 'none';
+    placeLifePreserverBall(LP.rotationDegreesForSlice(target), 33.5, 1);
+    paintWheel.ballParked = true;
   }
 
   function wheelLabelReport() {
@@ -2008,6 +2016,7 @@
     resetLifePreserverBall,
     placeLifePreserverBall,
     highlightLifePreserverPocket,
+    settleLifePreserverBall,
     filterAddPicker
   };
   if (document.readyState === 'complete') boot();

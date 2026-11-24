@@ -4110,24 +4110,12 @@ html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-ent
   display: block;
 }
 
-/* ── Craft polish pass: ledger cells, tactile keypad, card elevation, Canasta meld & Dealer consistency ── */
+/* ── Craft polish pass: tactile keypad, card elevation, Canasta meld & Dealer consistency ── */
 
-/* 1. Quiet gray fills on entered round cells so the board reads like a printed ledger,
-      while keeping a clear hover/focus wash so older rounds remain obviously tappable. */
-html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-round-td {
-  border-left: 1px solid rgba(92, 62, 36, 0.08);
-}
-
-html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered:not(.score-cell-miss) {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-
+/* 1. Keep the light rounded score tiles with a clear hover/focus wash so older rounds stay obviously tappable. */
 html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered:not(.score-cell-miss):is(:hover, :focus-visible) {
-  background: rgba(17, 120, 108, 0.1) !important;
+  background: rgba(17, 120, 108, 0.12) !important;
   border-color: rgba(17, 120, 108, 0.36) !important;
-  border-radius: 10px !important;
 }
 
 /* 2. Tactile keycap lip and press travel on Score / Bid Entry keypad. */
