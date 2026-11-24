@@ -2966,15 +2966,78 @@ html.porch-ledger #slice2-board-sub {
 
 
 html.porch-ledger.slice2-tv #wheel-modal .life-preserver-dialog {
-  width: min(calc(100vw - 24px), 42rem) !important;
-  max-width: min(calc(100vw - 24px), 42rem) !important;
+  width: min(calc(100vw - 24px), clamp(44rem, calc(100dvh - 5rem), 56rem)) !important;
+  max-width: min(calc(100vw - 24px), clamp(44rem, calc(100dvh - 5rem), 56rem)) !important;
   height: auto !important;
   max-height: calc(100dvh - 16px) !important;
   overflow-y: auto;
 }
 
+html.porch-ledger.slice2-tv #wheel-modal .wheel-commit-part {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal .wheel-commit-sep {
+  color: var(--ledger-muted);
+  padding-inline: 0.2em;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal :is(#wheel-player-meta, #wheel-commit-line, #wheel-odds-line, #wheel-game-line, #wheel-best-place) {
+  max-width: min(100%, 48rem) !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal #wheel-mode-label {
+  color: var(--ledger-teal-deep) !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal #wheel-player-meta {
+  color: var(--ledger-ink) !important;
+  font-weight: 800 !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal #wheel-commit-line {
+  color: var(--ledger-ink-soft) !important;
+  font-weight: 700 !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal :is(#wheel-game-line, #wheel-best-place) {
+  color: var(--ledger-muted) !important;
+}
+
 html.porch-ledger.slice2-tv #wheel-result-player {
-  font-size: clamp(1.55rem, 3vw, 2rem) !important;
+  font-size: clamp(1.65rem, 2.3vw, 2.4rem) !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-result {
+  width: min(100%, 30rem);
+  max-width: min(100%, 30rem);
+  margin-inline: auto;
+  text-align: center !important;
+  background: linear-gradient(180deg, #f6fbf8 0%, #e5f3ed 100%) !important;
+  border: 2px solid #88bfb3 !important;
+  border-top: 4px solid var(--ledger-teal-deep) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 14px 28px -16px rgba(12, 58, 52, 0.38),
+    0 2px 6px rgba(12, 58, 52, 0.1) !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal .wheel-shell::before {
+  box-shadow:
+    0 16px 32px -18px rgba(32, 16, 6, 0.55),
+    inset 0 0 0 2px rgba(72, 40, 16, 0.45) !important;
+}
+
+html.porch-ledger.slice2-tv #wheel-modal .wheel-ball {
+  width: 6.2%;
+  height: 6.2%;
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #faf2e1 48%, #d7bf93 84%, #9c7b48 100%) !important;
+  border: 1.5px solid rgba(255, 252, 244, 0.95) !important;
+  box-shadow:
+    0 4px 10px rgba(24, 12, 4, 0.55),
+    0 1px 2px rgba(24, 12, 4, 0.35),
+    inset 0 2px 3px rgba(255, 255, 255, 0.95) !important;
 }
 
 html.porch-ledger.slice2-tv #btn-spin:not(.hidden) {
@@ -3840,12 +3903,154 @@ html.porch-ledger #life-preserver-help h4 {
 }
 
 @media (min-width: 761px) {
-  html.porch-ledger #wheel-modal :is(#wheel-player-meta, #wheel-commit-line, #wheel-odds-line, #wheel-best-place) {
-    font-size: var(--bp-type-md) !important;
+  html.porch-ledger.slice2-tv #wheel-modal .life-preserver-dialog {
+    padding: 0.85rem 1.5rem 0.8rem !important;
   }
 
-  html.porch-ledger #wheel-modal .wheel-legend .wheel-legend-chip {
-    font-size: var(--bp-type-sm) !important;
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-mode-label {
+    font-size: clamp(1.1rem, 1.45vw, 1.45rem) !important;
+    line-height: 1.2 !important;
+    margin: 0 2.75rem 0.1rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-player-name {
+    font-size: clamp(1.9rem, 2.7vw, 2.85rem) !important;
+    line-height: 1.08 !important;
+    margin-bottom: 0.22rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-player-meta {
+    font-size: clamp(1.08rem, 1.35vw, 1.42rem) !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.14rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-commit-line,
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-odds-line {
+    font-size: clamp(1rem, 1.25vw, 1.3rem) !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal :is(#wheel-game-line, #wheel-best-place) {
+    font-size: clamp(0.95rem, 1.1vw, 1.15rem) !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.12rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal .wheel-legend {
+    gap: 0.45rem 1.1rem;
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal .wheel-legend .wheel-legend-chip {
+    font-size: clamp(0.95rem, 1.15vw, 1.2rem) !important;
+    gap: 0.45rem;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal .wheel-legend .wheel-legend-chip::before {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #btn-spin {
+    font-size: clamp(1.15rem, 1.5vw, 1.55rem) !important;
+    padding: 0.7rem 1.85rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #btn-life-preserver-help {
+    font-size: clamp(0.95rem, 1.1vw, 1.15rem) !important;
+    margin-top: 0.35rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-result {
+    margin-top: 0.65rem !important;
+    padding: 1.05rem 1.75rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-result .wheel-result-kicker {
+    font-size: clamp(0.85rem, 1vw, 1.05rem) !important;
+    letter-spacing: 0.14em !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-result-adjustment {
+    font-size: clamp(2.1rem, 3.1vw, 3.3rem) !important;
+    line-height: 1.12 !important;
+    margin-top: 0.12rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-result-total,
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-result-standing {
+    font-size: clamp(1.15rem, 1.5vw, 1.55rem) !important;
+    line-height: 1.3 !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-result .btn-primary {
+    width: auto !important;
+    min-width: min(100%, 16rem);
+    font-size: clamp(1.15rem, 1.45vw, 1.45rem) !important;
+    padding: 0.75rem 2.1rem !important;
+    margin-top: 0.85rem !important;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 700px) {
+  html.porch-ledger.slice2-tv #wheel-modal .life-preserver-dialog {
+    padding: 0.45rem 1rem 0.45rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-mode-label {
+    font-size: 0.98rem !important;
+    margin-bottom: 0.06rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-player-name {
+    font-size: clamp(1.35rem, 2vw, 1.65rem) !important;
+    margin-bottom: 0.08rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-player-meta {
+    font-size: 0.98rem !important;
+    margin-bottom: 0.06rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-commit-line {
+    font-size: 0.92rem !important;
+    margin-bottom: 0.1rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #btn-spin {
+    font-size: 1.05rem !important;
+    padding: 0.45rem 1.35rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html.porch-ledger.slice2-tv #wheel-modal .life-preserver-dialog {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-mode-label {
+    font-size: 0.95rem !important;
+    margin: 0 2.2rem 0.1rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-player-name {
+    font-size: clamp(1.45rem, 6vw, 1.85rem) !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-player-meta {
+    font-size: 0.95rem !important;
+    line-height: 1.25 !important;
+  }
+
+  html.porch-ledger.slice2-tv #wheel-modal #wheel-commit-line {
+    font-size: 0.85rem !important;
+    line-height: 1.25 !important;
   }
 }
 
@@ -3903,4 +4108,106 @@ html.porch-ledger.slice2-tv :is(#scorecard-capture, .s2-home-standings) .wheel-b
 
 html.porch-ledger.slice2-tv #score-entry-modal.score-entry-tablet-land.score-entry-managed-fit.score-entry-plain .score-entry-panel.score-entry-many-players #score-entry-context {
   display: block;
+}
+
+/* ── Craft polish pass: ledger cells, tactile keypad, card elevation, Canasta meld & Dealer consistency ── */
+
+/* 1. Quiet gray fills on entered round cells so the board reads like a printed ledger,
+      while keeping a clear hover/focus wash so older rounds remain obviously tappable. */
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-round-td {
+  border-left: 1px solid rgba(92, 62, 36, 0.08);
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered:not(.score-cell-miss) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.porch-ledger.slice2-tv #scorecard-capture td.scorecard-round-td .score-cell-stack:not(.has-comeback):not(.has-life-preserver) .score-cell-input.is-entered:not(.score-cell-miss):is(:hover, :focus-visible) {
+  background: rgba(17, 120, 108, 0.1) !important;
+  border-color: rgba(17, 120, 108, 0.36) !important;
+  border-radius: 10px !important;
+}
+
+/* 2. Tactile keycap lip and press travel on Score / Bid Entry keypad. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn {
+  box-shadow: 0 3px 0 #d8cab6, 0 4px 8px -4px rgba(28, 46, 38, 0.18) !important;
+  transition: transform 80ms ease, box-shadow 80ms ease !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key:active,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #d8cab6 !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key.next,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn[onclick*="numpadNext"] {
+  box-shadow: 0 3px 0 #063d37, 0 5px 12px -4px rgba(12, 92, 84, 0.35) !important;
+}
+
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-key.next:active,
+html.porch-ledger.slice2-tv #custom-numpad .numpad-btn[onclick*="numpadNext"]:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #063d37 !important;
+}
+
+/* 3. Grounded card deck shadows on Home + elevated selected deck without hyperlink underline. */
+html.porch-ledger.slice2-tv .s2-home-start .s2-game .s2-card-frame {
+  box-shadow: 0 8px 18px -10px rgba(14, 28, 44, 0.5), 0 2px 5px -1px rgba(14, 28, 44, 0.22) !important;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game:hover .s2-card-frame {
+  transform: translateY(-2px);
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-card-frame {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 3px #f4c663, 0 14px 24px -12px rgba(10, 62, 56, 0.55) !important;
+}
+
+html.porch-ledger.slice2-tv .s2-home-start .s2-game.is-selected .s2-game-name {
+  text-decoration: none !important;
+}
+
+/* 4. Tabletop grounding shadows for cream ledger sheets resting on blue felt. */
+html.porch-ledger.slice2-tv :is(#top-nav, .s2-panel, #scorecard-capture, #slice2-board-bar, .s2-resume-strip) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 18px 36px -18px rgba(2, 16, 40, 0.65),
+    0 2px 6px rgba(2, 16, 40, 0.22) !important;
+}
+
+/* 5. Readable Canasta MELD sub-header from 10 ft + unified Warm Porch brass Dealer pills. */
+html.porch-ledger.slice2-tv #game-screen[data-game='Hand and Foot'] #scorecard-capture .hf-meld-hint {
+  font-size: clamp(0.8125rem, 0.95vw, 0.95rem) !important;
+  font-weight: 800 !important;
+  color: var(--ledger-ink-soft) !important;
+  letter-spacing: 0.04em !important;
+  opacity: 1 !important;
+  margin-top: 2px;
+}
+
+html.porch-ledger.slice2-tv :is(
+  #scorecard-capture .scorecard-dealer-label,
+  .s2-home-standings .s2-dealer-tag:not(.s2-dealer-tag-empty),
+  .s2-home-table .s2-dealer-tag:not(.s2-dealer-tag-empty),
+  #score-entry-modal .score-entry-dealer-badge
+) {
+  background: var(--ledger-brass-soft) !important;
+  color: #5b3d14 !important;
+  border: 1px solid rgba(110, 78, 36, 0.24) !important;
+  border-radius: 999px !important;
+  padding: 0.16em 0.55em !important;
+  font-weight: 800 !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* 6. Subtract to improve: hide empty radio circles on untouched Score / Bid Entry rows. */
+html.porch-ledger.slice2-tv #score-entry-modal .score-entry-row:not(.is-confirmed):not(.is-skipped) .score-entry-row-status {
+  display: none !important;
 }

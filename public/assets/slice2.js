@@ -1055,83 +1055,214 @@
   }
 
   function paintWoodBowl(context, cx, cy, radius) {
-    const wood = context.createRadialGradient(cx - radius * 0.2, cy - radius * 0.24, radius * 0.08, cx, cy, radius);
-    wood.addColorStop(0, '#f6e7c8');
-    wood.addColorStop(0.38, '#e8c992');
-    wood.addColorStop(0.72, '#d3a86a');
-    wood.addColorStop(0.88, '#f3e6c8');
-    wood.addColorStop(0.95, '#c9955c');
-    wood.addColorStop(1, '#8d6236');
+    // Rich mahogany/walnut outer rim with warm bevel and recessed ball track
+    const rim = context.createRadialGradient(
+      cx - radius * 0.16,
+      cy - radius * 0.2,
+      radius * 0.12,
+      cx,
+      cy,
+      radius
+    );
+    rim.addColorStop(0, '#c8945e');
+    rim.addColorStop(0.74, '#9a6136');
+    rim.addColorStop(0.86, '#6e3e1f');
+    rim.addColorStop(0.91, '#a96f3e');
+    rim.addColorStop(0.955, '#5e3217');
+    rim.addColorStop(0.985, '#7c4824');
+    rim.addColorStop(1, '#3b1e0d');
     context.beginPath();
     context.arc(cx, cy, radius, 0, Math.PI * 2);
-    context.fillStyle = wood;
+    context.fillStyle = rim;
     context.fill();
+
+    // Crisp outer specular bevel
+    const bevel = context.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+    bevel.addColorStop(0, 'rgba(255, 236, 200, 0.52)');
+    bevel.addColorStop(0.45, 'rgba(218, 168, 108, 0.16)');
+    bevel.addColorStop(1, 'rgba(32, 14, 4, 0.55)');
     context.beginPath();
-    context.arc(cx, cy, radius * 0.985, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(143, 98, 52, 0.35)';
-    context.lineWidth = 10;
+    context.arc(cx, cy, radius * 0.988, 0, Math.PI * 2);
+    context.strokeStyle = bevel;
+    context.lineWidth = 9;
     context.stroke();
+
+    // Recessed ivory/maple ball track groove
+    const track = context.createRadialGradient(cx, cy, radius * 0.88, cx, cy, radius * 0.955);
+    track.addColorStop(0, '#5a3117');
+    track.addColorStop(0.28, '#b9834e');
+    track.addColorStop(0.62, '#e6c697');
+    track.addColorStop(0.86, '#9c6638');
+    track.addColorStop(1, '#4c2710');
     context.beginPath();
-    context.arc(cx, cy, radius * 0.91, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(255, 248, 232, 0.7)';
-    context.lineWidth = 14;
+    context.arc(cx, cy, radius * 0.922, 0, Math.PI * 2);
+    context.strokeStyle = track;
+    context.lineWidth = radius * 0.055;
     context.stroke();
-    [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((angle) => {
-      const r = radius * 0.955;
+
+    // Subtle brass pin deflectors at cardinal & diagonal points
+    [0, Math.PI / 4, Math.PI / 2, (Math.PI * 3) / 4, Math.PI, (Math.PI * 5) / 4, Math.PI * 1.5, (Math.PI * 7) / 4].forEach((angle, idx) => {
+      const major = idx % 2 === 0;
+      const r = radius * 0.952;
       const x = cx + Math.cos(angle) * r;
       const y = cy + Math.sin(angle) * r;
       context.save();
       context.translate(x, y);
       context.rotate(angle);
-      context.beginPath();
-      context.roundRect(-7, -5, 14, 10, 4);
-      context.fillStyle = '#fff8ea';
-      context.fill();
+      context.shadowColor = 'rgba(28, 14, 5, 0.55)';
+      context.shadowBlur = 4;
+      context.shadowOffsetY = 2;
+      const pinGrad = context.createLinearGradient(-8, -5, 8, 5);
+      pinGrad.addColorStop(0, '#fff4d4');
+      pinGrad.addColorStop(0.5, '#d9ab5a');
+      pinGrad.addColorStop(1, '#8c5e23');
+      context.fillStyle = pinGrad;
+      if (major) {
+        context.beginPath();
+        context.moveTo(0, -7);
+        context.lineTo(11, 0);
+        context.lineTo(0, 7);
+        context.lineTo(-11, 0);
+        context.closePath();
+        context.fill();
+      } else {
+        context.beginPath();
+        context.arc(0, 0, 4.5, 0, Math.PI * 2);
+        context.fill();
+      }
       context.restore();
     });
   }
 
   function paintCone(context, cx, cy, inner, hub) {
-    const cone = context.createRadialGradient(cx - hub * 0.28, cy - hub * 0.3, hub * 0.2, cx, cy, inner);
-    cone.addColorStop(0, '#fff7ea');
-    cone.addColorStop(0.55, '#f0ddb8');
-    cone.addColorStop(1, '#e2c48d');
+    // Warm sculpted maple/cream concave inner bowl
+    const cone = context.createRadialGradient(
+      cx - inner * 0.2,
+      cy - inner * 0.22,
+      hub * 0.35,
+      cx,
+      cy,
+      inner
+    );
+    cone.addColorStop(0, '#fffaf0');
+    cone.addColorStop(0.45, '#f2dfb9');
+    cone.addColorStop(0.78, '#d9b47a');
+    cone.addColorStop(0.93, '#b8894c');
+    cone.addColorStop(1, '#845929');
     context.beginPath();
     context.arc(cx, cy, inner, 0, Math.PI * 2);
     context.fillStyle = cone;
     context.fill();
-    [0.56, 0.44].forEach((frac, index) => {
+
+    // Inner cast shadow ring under the raised pocket ring
+    const lipShadow = context.createRadialGradient(cx, cy, inner * 0.88, cx, cy, inner);
+    lipShadow.addColorStop(0, 'rgba(66, 38, 14, 0)');
+    lipShadow.addColorStop(1, 'rgba(66, 38, 14, 0.38)');
+    context.beginPath();
+    context.arc(cx, cy, inner, 0, Math.PI * 2);
+    context.fillStyle = lipShadow;
+    context.fill();
+
+    // Subtle turned lathe grooves
+    [0.52, 0.42].forEach((frac, index) => {
       context.beginPath();
       context.arc(cx, cy, cx * frac, 0, Math.PI * 2);
-      context.strokeStyle = index ? 'rgba(201, 149, 86, 0.35)' : 'rgba(138, 106, 50, 0.28)';
-      context.lineWidth = index ? 3 : 5;
+      context.strokeStyle = index ? 'rgba(138, 94, 42, 0.28)' : 'rgba(110, 72, 28, 0.34)';
+      context.lineWidth = index ? 2.5 : 4;
+      context.stroke();
+      context.beginPath();
+      context.arc(cx, cy, cx * frac - 2, 0, Math.PI * 2);
+      context.strokeStyle = 'rgba(255, 248, 228, 0.42)';
+      context.lineWidth = 1.5;
       context.stroke();
     });
   }
 
   function paintTurret(context, cx, cy, hub) {
-    for (let i = 0; i < 3; i++) {
-      const angle = -Math.PI / 2 + i * ((Math.PI * 2) / 3);
+    // Soft ground shadow beneath turret & spindle arms
+    context.save();
+    context.shadowColor = 'rgba(54, 30, 12, 0.42)';
+    context.shadowBlur = 18;
+    context.shadowOffsetX = 4;
+    context.shadowOffsetY = 8;
+    context.beginPath();
+    context.arc(cx, cy, hub * 1.06, 0, Math.PI * 2);
+    context.fillStyle = '#7e5222';
+    context.fill();
+    context.restore();
+
+    // Four sculpted metallic brass spindle arms with rounded finials
+    for (let i = 0; i < 4; i++) {
+      const angle = -Math.PI / 2 + i * (Math.PI / 2);
+      const len = hub * 1.48;
+      context.save();
+      context.translate(cx, cy);
+      context.rotate(angle);
+      context.shadowColor = 'rgba(48, 26, 10, 0.36)';
+      context.shadowBlur = 7;
+      context.shadowOffsetY = 3;
+      const armGrad = context.createLinearGradient(0, -8, 0, 8);
+      armGrad.addColorStop(0, '#fff3cf');
+      armGrad.addColorStop(0.45, '#d5a454');
+      armGrad.addColorStop(1, '#7a4f1e');
       context.beginPath();
-      context.moveTo(cx + Math.cos(angle) * hub * 0.18, cy + Math.sin(angle) * hub * 0.18);
-      context.lineTo(cx + Math.cos(angle) * hub * 1.42, cy + Math.sin(angle) * hub * 1.42);
-      context.strokeStyle = 'rgba(143, 98, 52, 0.35)';
-      context.lineWidth = 14;
-      context.lineCap = 'round';
-      context.stroke();
+      context.roundRect(hub * 0.72, -6.5, len - hub * 0.72, 13, 6.5);
+      context.fillStyle = armGrad;
+      context.fill();
+
+      // Finial knob at tip of each arm
+      const knobGrad = context.createRadialGradient(len - 3, -3, 1.5, len, 0, 11);
+      knobGrad.addColorStop(0, '#fff8e2');
+      knobGrad.addColorStop(0.5, '#dfb05d');
+      knobGrad.addColorStop(1, '#7c511d');
+      context.beginPath();
+      context.arc(len, 0, 10.5, 0, Math.PI * 2);
+      context.fillStyle = knobGrad;
+      context.fill();
+      context.restore();
     }
-    const wood = context.createRadialGradient(cx - hub * 0.25, cy - hub * 0.3, hub * 0.1, cx, cy, hub * 1.05);
-    wood.addColorStop(0, '#fff6e4');
-    wood.addColorStop(0.45, '#e8c992');
-    wood.addColorStop(1, '#b88448');
+
+    // Stepped lathe-turned brass hub bezel
+    const outerBrass = context.createRadialGradient(cx - hub * 0.32, cy - hub * 0.34, hub * 0.08, cx, cy, hub * 1.12);
+    outerBrass.addColorStop(0, '#fff6db');
+    outerBrass.addColorStop(0.35, '#e5bb6c');
+    outerBrass.addColorStop(0.72, '#b07b36');
+    outerBrass.addColorStop(1, '#684116');
     context.beginPath();
     context.arc(cx, cy, hub * 1.08, 0, Math.PI * 2);
-    context.fillStyle = wood;
+    context.fillStyle = outerBrass;
     context.fill();
+
+    // Inner bevel groove
     context.beginPath();
-    context.arc(cx, cy, hub * 0.82, 0, Math.PI * 2);
-    context.fillStyle = '#0e7468';
+    context.arc(cx, cy, hub * 0.89, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(72, 42, 12, 0.55)';
+    context.lineWidth = 4;
+    context.stroke();
+
+    // Deep-teal enamel center medallion with glossy top-left sheen
+    const medallion = context.createRadialGradient(cx - hub * 0.28, cy - hub * 0.3, hub * 0.06, cx, cy, hub * 0.84);
+    medallion.addColorStop(0, '#2a9c8e');
+    medallion.addColorStop(0.45, '#117469');
+    medallion.addColorStop(0.85, '#094f47');
+    medallion.addColorStop(1, '#063732');
+    context.beginPath();
+    context.arc(cx, cy, hub * 0.84, 0, Math.PI * 2);
+    context.fillStyle = medallion;
     context.fill();
+
+    // Center brass cap stud
+    const stud = context.createRadialGradient(cx - hub * 0.08, cy - hub * 0.09, 2, cx, cy, hub * 0.24);
+    stud.addColorStop(0, '#fff8e4');
+    stud.addColorStop(0.48, '#deb05e');
+    stud.addColorStop(1, '#7c501c');
+    context.beginPath();
+    context.arc(cx, cy, hub * 0.22, 0, Math.PI * 2);
+    context.fillStyle = stud;
+    context.fill();
+    context.strokeStyle = 'rgba(64, 38, 12, 0.45)';
+    context.lineWidth = 2;
+    context.stroke();
   }
 
   function paintWheel() {
@@ -1171,72 +1302,121 @@
     const cy = canvas.height / 2;
     const bowl = cx * (Number(LP.WHEEL_BOWL_FRAC) || 1);
     const outer = cx * (Number(LP.WHEEL_OUTER_FRAC) || 0.88);
-    const inner = cx * (Number(LP.WHEEL_INNER_FRAC) || 0.7);
-    const fretInner = cx * (Number(LP.WHEEL_FRET_INNER_FRAC) || 0.36);
-    const hubR = cx * (Number(LP.WHEEL_HUB_FRAC) || 0.22);
+    const inner = cx * (Number(LP.WHEEL_INNER_FRAC) || 0.62);
+    const fretInner = cx * (Number(LP.WHEEL_FRET_INNER_FRAC) || 0.38);
+    const hubR = cx * (Number(LP.WHEEL_HUB_FRAC) || 0.23);
     const cssWidth = canvas.clientWidth || canvas.width;
     context.clearRect(0, 0, canvas.width, canvas.height);
     paintWoodBowl(context, cx, cy, bowl);
     paintCone(context, cx, cy, inner, hubR);
     let angle = -Math.PI / 2;
     const labels = [];
-    const highlightKey = paintWheel.highlightKey;
+    const highlightSlice = paintWheel.highlightSlice || null;
+    const isHighlighted = (slice) => {
+      if (!highlightSlice) return false;
+      if (slice === highlightSlice) return true;
+      return Number.isFinite(highlightSlice._start) && Number.isFinite(slice._start)
+        && Math.abs(slice._start - highlightSlice._start) < 0.0005;
+    };
+    let winningSlice = null;
     slices.forEach((slice) => {
       const arc = (displayOf(slice) / total) * Math.PI * 2;
       const kind = typeof LP.wheelSliceKind === 'function'
         ? LP.wheelSliceKind(slice)
         : (slice.kind || (slice.adjustment === 0 ? 'zero' : 'good'));
-      const key = typeof LP.outcomeKey === 'function' ? LP.outcomeKey(slice) : `${kind}:${slice.adjustment}`;
+      slice._start = angle;
+      slice._end = angle + arc;
       context.beginPath();
       context.arc(cx, cy, outer, angle, angle + arc);
       context.arc(cx, cy, inner, angle + arc, angle, true);
       context.closePath();
       context.fillStyle = slice.color || (kind === 'good' ? '#1a8a7a' : (kind === 'bad' ? '#d07a68' : '#8a8278'));
       context.fill();
-      if (highlightKey && key === highlightKey) {
-        context.save();
-        context.fillStyle = 'rgba(255, 248, 232, 0.32)';
+      if (isHighlighted(slice)) {
+        winningSlice = slice;
+      } else if (highlightSlice) {
+        context.fillStyle = 'rgba(20, 14, 8, 0.22)';
         context.fill();
-        context.strokeStyle = 'rgba(255, 246, 228, 0.95)';
-        context.lineWidth = 7;
-        context.stroke();
-        context.restore();
       }
-      slice._start = angle;
-      slice._end = angle + arc;
       angle += arc;
     });
+
+    // Subtle radial depth glaze across the pocket ring (cast shadow from outer wood rim)
+    const ringDepth = context.createRadialGradient(cx, cy, inner, cx, cy, outer);
+    ringDepth.addColorStop(0, 'rgba(18, 12, 6, 0.16)');
+    ringDepth.addColorStop(0.22, 'rgba(255, 248, 232, 0.06)');
+    ringDepth.addColorStop(0.84, 'rgba(255, 248, 232, 0)');
+    ringDepth.addColorStop(1, 'rgba(28, 14, 4, 0.26)');
+    context.beginPath();
+    context.arc(cx, cy, outer, 0, Math.PI * 2);
+    context.arc(cx, cy, inner, Math.PI * 2, 0, true);
+    context.closePath();
+    context.fillStyle = ringDepth;
+    context.fill();
+
+    // Metallic brass fret dividers
     angle = -Math.PI / 2;
     slices.forEach((slice) => {
       const arc = (displayOf(slice) / total) * Math.PI * 2;
       const x1 = cx + Math.cos(angle) * fretInner;
       const y1 = cy + Math.sin(angle) * fretInner;
-      const x2 = cx + Math.cos(angle) * (outer + 3);
-      const y2 = cy + Math.sin(angle) * (outer + 3);
+      const x2 = cx + Math.cos(angle) * (outer + 2);
+      const y2 = cy + Math.sin(angle) * (outer + 2);
       context.beginPath();
       context.moveTo(x1, y1);
       context.lineTo(x2, y2);
-      context.strokeStyle = 'rgba(143, 98, 52, 0.28)';
-      context.lineWidth = 4;
+      context.strokeStyle = 'rgba(72, 44, 16, 0.55)';
+      context.lineWidth = 4.5;
       context.stroke();
       context.beginPath();
       context.moveTo(x1, y1);
       context.lineTo(x2, y2);
-      context.strokeStyle = 'rgba(255, 248, 232, 0.88)';
+      context.strokeStyle = 'rgba(244, 212, 144, 0.92)';
       context.lineWidth = 2;
       context.stroke();
       angle += arc;
     });
+
+    // Outer & inner burnished brass bezel rings
     context.beginPath();
     context.arc(cx, cy, outer + 2, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(255, 246, 228, 0.95)';
-    context.lineWidth = 8;
+    context.strokeStyle = '#6b4218';
+    context.lineWidth = 9;
+    context.stroke();
+    context.beginPath();
+    context.arc(cx, cy, outer + 2, 0, Math.PI * 2);
+    context.strokeStyle = '#f2d38c';
+    context.lineWidth = 4.5;
+    context.stroke();
+
+    context.beginPath();
+    context.arc(cx, cy, inner, 0, Math.PI * 2);
+    context.strokeStyle = '#6b4218';
+    context.lineWidth = 7;
     context.stroke();
     context.beginPath();
     context.arc(cx, cy, inner, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(143, 98, 52, 0.28)';
-    context.lineWidth = 5;
+    context.strokeStyle = '#ecd08c';
+    context.lineWidth = 3;
     context.stroke();
+
+    // Unmistakable gold/cream glow on the single landed pocket
+    if (winningSlice) {
+      context.save();
+      context.beginPath();
+      context.arc(cx, cy, outer - 1, winningSlice._start, winningSlice._end);
+      context.arc(cx, cy, inner + 1, winningSlice._end, winningSlice._start, true);
+      context.closePath();
+      context.fillStyle = 'rgba(255, 232, 152, 0.34)';
+      context.fill();
+      context.shadowColor = 'rgba(255, 214, 96, 0.95)';
+      context.shadowBlur = 18;
+      context.strokeStyle = '#fff0b3';
+      context.lineWidth = 7;
+      context.stroke();
+      context.restore();
+    }
+
     slices.forEach((slice) => {
       const layout = typeof LP.labelLayout === 'function'
         ? LP.labelLayout(slice, {
@@ -1250,11 +1430,14 @@
         : null;
       if (!layout) return;
       labels.push(layout);
+      const isWin = winningSlice && slice === winningSlice;
       context.save();
       context.translate(layout.x, layout.y);
       context.rotate(layout.rotation);
       context.font = `900 ${layout.canvasFont}px "Nunito Sans", sans-serif`;
-      context.fillStyle = '#fff8ea';
+      context.fillStyle = isWin ? '#ffffff' : '#fff8ea';
+      context.shadowColor = isWin ? 'rgba(42, 24, 6, 0.72)' : 'rgba(12, 24, 22, 0.42)';
+      context.shadowBlur = isWin ? 5 : 3;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.fillText(layout.text, 0, 0);
@@ -1304,42 +1487,64 @@
     if (reduce) {
       orbit.style.transition = 'none';
       ball.style.transition = 'opacity 180ms ease-out';
-      placeLifePreserverBall(end, 39, 0);
+      placeLifePreserverBall(end, 33.5, 0);
       ball.offsetHeight;
-      placeLifePreserverBall(end, 39, 1);
+      placeLifePreserverBall(end, 33.5, 1);
       paintWheel.ballParked = true;
       return Promise.resolve();
     }
     const start = Number(paintWheel.ballAngle) || 0;
     const turns = 360 * 3 + end;
+    if (paintWheel._ballTimer) {
+      window.clearTimeout(paintWheel._ballTimer);
+      paintWheel._ballTimer = null;
+    }
     orbit.style.transition = 'transform 2.2s cubic-bezier(0.18, 0.82, 0.22, 1)';
     ball.style.transition = 'top 0.85s cubic-bezier(0.22, 0.9, 0.28, 1), opacity 120ms linear';
     placeLifePreserverBall(start, 46, 1);
     orbit.offsetHeight;
     placeLifePreserverBall(turns, 46, 1);
-    window.setTimeout(() => {
-      placeLifePreserverBall(turns, 39, 1);
+    paintWheel._ballTimer = window.setTimeout(() => {
+      paintWheel._ballTimer = null;
+      placeLifePreserverBall(turns, 33.5, 1);
       paintWheel.ballParked = true;
     }, 1680);
     return Promise.resolve();
   }
 
   function resetLifePreserverBall() {
+    if (paintWheel._ballTimer) {
+      window.clearTimeout(paintWheel._ballTimer);
+      paintWheel._ballTimer = null;
+    }
     const { orbit, ball } = ballNodes();
     if (orbit) orbit.style.transition = 'none';
     if (ball) ball.style.transition = 'none';
     paintWheel.ballParked = false;
     paintWheel.ballReady = true;
     paintWheel.highlightKey = null;
+    paintWheel.highlightSlice = null;
     placeLifePreserverBall(0, 46, 1);
   }
 
   function highlightLifePreserverPocket(slice) {
     const LP = window.BPGLifePreserver || {};
+    paintWheel.highlightSlice = slice || null;
     paintWheel.highlightKey = slice && typeof LP.outcomeKey === 'function'
       ? LP.outcomeKey(slice)
       : (slice ? `${slice.kind}:${slice.adjustment}` : null);
     paintWheel();
+    if (slice && typeof LP.rotationDegreesForSlice === 'function') {
+      if (paintWheel._ballTimer) {
+        window.clearTimeout(paintWheel._ballTimer);
+        paintWheel._ballTimer = null;
+      }
+      const { orbit, ball } = ballNodes();
+      if (orbit) orbit.style.transition = 'none';
+      if (ball) ball.style.transition = 'none';
+      placeLifePreserverBall(LP.rotationDegreesForSlice(slice), 33.5, 1);
+      paintWheel.ballParked = true;
+    }
   }
 
   function wheelLabelReport() {

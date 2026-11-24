@@ -10922,12 +10922,12 @@ button.dealer-name-indicator .dealer-player-label {
         <button type="button" onclick="closeWheel()" class="bp-modal-close absolute top-4 right-6 text-5xl leading-none font-light z-40" style="color:var(--muted);" aria-label="Close">&times;</button>
         <div id="wheel-mode-label" class="wheel-mode-label"></div>
         <h3 id="wheel-player-name" class="player-name-label text-4xl md:text-5xl mb-1"></h3>
-        <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1 max-w-md" style="color:var(--ink-2);"></p>
-        <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
-        <p id="wheel-commit-line" class="text-sm md:text-base font-semibold mb-1 max-w-md leading-snug" style="color:var(--ink-2);">Best help and largest setback show after the table is ready.</p>
-        <p id="wheel-odds-line" class="hidden text-sm md:text-base font-extrabold mb-1 max-w-md leading-snug" style="color:var(--ink-2);"></p>
-        <p id="wheel-best-place" class="hidden text-sm md:text-base font-semibold mb-3 max-w-md leading-snug" style="color:var(--ink-2);"></p>
-        <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 max-w-lg leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-player-meta" class="text-sm md:text-base font-extrabold mb-1" style="color:var(--ink-2);"></p>
+        <p id="wheel-game-line" class="text-sm md:text-base font-semibold mb-1 leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-commit-line" class="text-sm md:text-base font-semibold mb-1 leading-snug" style="color:var(--ink-2);">Best help and largest setback show after the table is ready.</p>
+        <p id="wheel-odds-line" class="hidden text-sm md:text-base font-extrabold mb-1 leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-best-place" class="hidden text-sm md:text-base font-semibold mb-3 leading-snug" style="color:var(--ink-2);"></p>
+        <p id="wheel-why-line" class="hidden text-sm md:text-base font-extrabold mb-5 leading-snug" style="color:var(--ink-2);"></p>
         <div class="wheel-shell">
           <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full rounded-full border-[4px]" style="border-color:#073f3b;box-shadow:var(--shadow-lg);"></canvas>
           <div id="wheel-spinner" class="wheel-spinner">
@@ -10946,7 +10946,7 @@ button.dealer-name-indicator .dealer-player-label {
         </div>
         <button id="btn-spin" onclick="spinWheel()" class="btn-primary py-3 px-6 font-display text-xl shrink-0">Use your one spin</button>
         <div id="wheel-result" class="hidden w-full mt-4 p-5 text-left rounded-2xl" style="background:var(--emerald-bg);border:1px solid var(--emerald-border);">
-          <div class="text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--emerald);">Landed result · Locked</div>
+          <div class="wheel-result-kicker text-[10px] font-extrabold uppercase tracking-[0.18em] mb-2" style="color:var(--emerald);">Landed result · Locked</div>
           <p id="wheel-result-player" class="player-name-label text-3xl md:text-4xl leading-tight" style="color:var(--ink);"></p>
           <p id="wheel-result-adjustment" class="font-display text-3xl md:text-5xl leading-tight" style="color:var(--ink);"></p>
           <p id="wheel-result-total" class="text-lg md:text-2xl font-extrabold mt-2 font-mono-num" style="color:var(--ink);"></p>
@@ -13419,7 +13419,7 @@ button.dealer-name-indicator .dealer-player-label {
     const commit=document.getElementById('wheel-commit-line');
     if(commit){
       const range=explained.rangeLine||'Best help and largest setback show after the table is ready.';
-      commit.innerHTML=range.replace(/ · /g,'<br>');
+      commit.innerHTML=range.split(' · ').map(part=>`<span class="wheel-commit-part">${escapeHtml(part)}</span>`).join('<span class="wheel-commit-sep" aria-hidden="true"> · </span>');
     }
     const odds=document.getElementById('wheel-odds-line');
     if(odds){
@@ -15220,6 +15220,9 @@ button.dealer-name-indicator .dealer-player-label {
         currentWheelRotation=landing;
         spinner.style.transform=`rotate(${currentWheelRotation}deg)`;
       }
+    }
+    if(window.BPGSlice2&&typeof BPGSlice2.sizeLifePreserverModal==='function'){
+      BPGSlice2.sizeLifePreserverModal();
     }
     drawWheel();
   }

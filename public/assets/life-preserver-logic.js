@@ -296,7 +296,8 @@
     const gameLine = winLow
       ? `${gameName}: lower scores win. Helpful spins subtract points.`
       : `${gameName}: higher scores win. Helpful spins add points.`;
-    const rangeLine = `Best help: ${formatSignedPoints(bestAdj)} points · Largest setback: ${formatSignedPoints(worstShown)} points`;
+    const pointWord = (n) => (Math.abs(Number(n) || 0) === 1 ? 'point' : 'points');
+    const rangeLine = `Best help: ${formatSignedPoints(bestAdj)} ${pointWord(bestAdj)} · Largest setback: ${formatSignedPoints(worstShown)} ${pointWord(worstShown)}`;
     const standingBit = playerScore == null
       ? `${leaderGap} behind 1st`
       : `total ${playerScore} · ${leaderGap} behind 1st`;
@@ -558,9 +559,9 @@
   const WHEEL_BOWL_FRAC = 1;
   const WHEEL_TRACK_FRAC = 0.93;
   const WHEEL_OUTER_FRAC = 0.88;
-  const WHEEL_INNER_FRAC = 0.70;
-  const WHEEL_FRET_INNER_FRAC = 0.36;
-  const WHEEL_HUB_FRAC = 0.22;
+  const WHEEL_INNER_FRAC = 0.62;
+  const WHEEL_FRET_INNER_FRAC = 0.38;
+  const WHEEL_HUB_FRAC = 0.23;
   const PROPOSED_OUTCOME_TABLE = Object.freeze({
     reallyGood: 0.30,
     good: 0.45,
@@ -937,7 +938,7 @@
     const end = Number.isFinite(slice?._end) ? slice._end : start;
     const arc = Math.max(end - start, 0);
     const mid = start + arc / 2;
-    const midR = (inner + outer) / 2;
+    const midR = inner + (outer - inner) * 0.56;
     const signed = formatSignedPoints(slice?.adjustment);
     const scale = canvasWidth / cssWidth;
     const chord = 2 * Math.sin(arc / 2) * midR;
@@ -947,9 +948,9 @@
     const chordCss = chord / scale;
     const radialCss = radial / scale;
     const targetCss = Math.max(8, Math.min(
-      cssWidth * 0.046,
-      radialCss * 0.62,
-      chordCss * (signed.length > 2 ? 0.58 : 0.68)
+      cssWidth * 0.044,
+      radialCss * 0.56,
+      chordCss * (signed.length > 2 ? 0.49 : 0.63)
     ));
     const cssFont = Math.max(8, Math.min(targetCss, chordCss * 0.7));
     const canvasFont = cssFont * scale;
@@ -1108,8 +1109,9 @@
     const winLow = !!detail.winLow;
     const helpful = adj * helpfulSign(winLow) > 0;
     const abs = Math.abs(adj);
+    const unit = abs === 1 ? 'point' : 'points';
     let headline = 'No change';
-    if (adj && helpful) headline = winLow ? `${abs} points off` : `+${abs} points`;
+    if (adj && helpful) headline = winLow ? `${abs} ${unit} off` : `+${abs} ${unit}`;
     else if (adj) headline = `${abs} point setback`;
     const totals = `${detail.beforeTotal} → ${detail.afterTotal}`;
     const beforeRank = Number(detail.beforeRank) || 0;
