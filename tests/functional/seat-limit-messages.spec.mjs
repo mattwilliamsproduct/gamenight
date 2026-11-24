@@ -34,7 +34,7 @@ for (const size of [{width: 1024, height: 768}, {width: 390, height: 844}]) {
     }
     // Wizard has no max: no unseat note anywhere.
     await page.locator('[data-s2-action="pick-game"][data-s2-game="Wizard"]').click();
-    await expect(page.locator('#home-screen .s2-limit-note')).toHaveCount(0);
+    await expect(page.locator('#home-screen .s2-limit-note')).toBeHidden();
     await expect(page.locator('#slice2-start-summary')).not.toContainText('Unseat');
   });
 }

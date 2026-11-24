@@ -12797,7 +12797,7 @@ button.dealer-name-indicator .dealer-player-label {
   function getAvatarImg(name,cls){
     const fb=getAvatarFallback(name);
     const ring=getColorRingClass(name);
-    return `<img src="${getAvatarSrc(name)}" class="${cls} ${ring}" data-fb="${fb}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
+    return `<img src="${getAvatarSrc(name)}" class="${cls} ${ring}" data-fb="${fb}" decoding="async" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
   }
 
   let warmedActiveAvatarKey='';
@@ -12815,12 +12815,20 @@ button.dealer-name-indicator .dealer-player-label {
       return img;
     });
   }
+  (function scheduleIdleAvatarWarm(){
+    const run=()=>{
+      const roster=currentGame?getActivePlayers(currentGame):[];
+      warmActivePlayerAvatars([...new Set([...roster, ...(players||[]), ...(allPlayers||[])])]);
+    };
+    if(typeof requestIdleCallback==='function') requestIdleCallback(run, {timeout: 2000});
+    else setTimeout(run, 400);
+  })();
 
   function getStreakAvatarHtml(name, cls){
     // Fire/ice effects removed. Color ring still supported.
     const fb=getAvatarFallback(name), src=getAvatarSrc(name);
     const ring = getColorRingClass(name);
-    const inner=`<img src="${src}" class="${cls} ${ring}" data-fb="${fb}" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
+    const inner=`<img src="${src}" class="${cls} ${ring}" data-fb="${fb}" decoding="async" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
     return `<div class="avatar-wrap">${inner}</div>`;
   }
 
@@ -14907,20 +14915,36 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   function buildAvatarGrid(){
-    const g=document.getElementById('avatar-grid'); g.innerHTML='';
+    const g=document.getElementById('avatar-grid');
+    if(!g) return;
     const cur=playerProfiles[editingPlayerProfile]?.avatar||'';
+    if(g.dataset.built==='1'){
+      g.querySelectorAll('img[data-avatar-file]').forEach(img=>{
+        img.classList.toggle('selected', img.dataset.avatarFile===cur);
+      });
+      return;
+    }
+    g.innerHTML='';
+    const frag=document.createDocumentFragment();
     availableAvatars.forEach(f=>{
       const img=document.createElement('img');
+      img.loading='lazy';
+      img.decoding='async';
+      img.width=80;
+      img.height=80;
+      img.dataset.avatarFile=f;
       img.src = `./avatars/${f}`;
       img.className=`avatar-picker-img ${cur===f?'selected':''}`;
       img.onclick=()=>selectAvatar(f);
       img.onerror=()=>img.style.display='none';
-      g.appendChild(img);
+      frag.appendChild(img);
     });
     const rem=document.createElement('div');
     rem.className='w-[80px] h-[80px] border-2 border-dashed rounded-2xl flex items-center justify-center text-xs font-bold cursor-pointer hover:opacity-70';
     rem.style.cssText='border-color:var(--hairline);color:var(--muted);';
-    rem.textContent='Remove'; rem.onclick=()=>selectAvatar(''); g.appendChild(rem);
+    rem.textContent='Remove'; rem.onclick=()=>selectAvatar(''); frag.appendChild(rem);
+    g.appendChild(frag);
+    g.dataset.built='1';
   }
   function selectAvatar(f){
     const editedName=editingPlayerProfile;
@@ -19875,7 +19899,7 @@ ${isDealer
   function getScoreEntryAvatarHtml(name, cls){
     const fb=getAvatarFallback(name);
     const ring=getColorRingClass(name);
-    return `<img src="${getAvatarSrc(name)}" class="${cls||'score-entry-avatar'} ${ring}" data-fb="${fb}" decoding="sync" fetchpriority="high" style="background:#e4e2dc url('${fb}') center/cover no-repeat;" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
+    return `<img src="${getAvatarSrc(name)}" class="${cls||'score-entry-avatar'} ${ring}" data-fb="${fb}" decoding="async" fetchpriority="high" style="background:#e4e2dc url('${fb}') center/cover no-repeat;" onerror="if(this.src!==this.dataset.fb){this.onerror=null;this.src=this.dataset.fb;}" alt="${name}">`;
   }
 
   function getScoreEntryDraftTotal(){

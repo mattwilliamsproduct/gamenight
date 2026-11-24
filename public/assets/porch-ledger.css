@@ -4300,6 +4300,39 @@ html.porch-ledger.slice2-tv #loser-sub {
   font-size: clamp(1rem, 1.25vw, 1.2rem) !important;
 }
 
+/* ── iPad Safari + AirPlay mirroring performance pass ── */
+/* Remove full-screen GPU backdrop-filter blurs on nav & modal scrims; use a rich felt scrim instead. */
+html.porch-ledger.slice2-tv #top-nav,
+html.porch-ledger.slice2-tv .bp-modal-viewport-shell > .absolute.inset-0,
+html.porch-ledger.slice2-tv .bp-modal-backdrop {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.porch-ledger.slice2-tv .bp-modal-viewport-shell > .absolute.inset-0 {
+  background: rgba(4, 16, 36, 0.64) !important;
+}
+
+/* Eliminate Safari double-tap-to-zoom delay on rapid iPad taps. */
+html.porch-ledger.slice2-tv :is(
+  button,
+  [role="button"],
+  .score-entry-key,
+  .numpad-btn,
+  .score-cell-input,
+  .score-entry-row,
+  .s2-btn,
+  .s2-pick
+) {
+  touch-action: manipulation;
+}
+
+/* Guarantee >= 44px touch targets inside Canasta setup modal (clears subpixel 43.99px rounding on phone). */
+html.porch-ledger.slice2-tv #hand-foot-setup-modal :is(button, .hf-team-person) {
+  min-width: 45px !important;
+  min-height: 45px !important;
+}
+
 /* Match Life Preserver / Comeback adjustment font to round scores (Nunito Sans) while keeping the blue pop. */
 html.porch-ledger.slice2-tv #scorecard-capture :is(.score-cell-life-preserver, .score-cell-comeback, .score-total-life-preserver) {
   font-family: var(--ledger-type-text) !important;

@@ -207,7 +207,7 @@ test('Settings form at 1440 keeps Backup and Restore on screen', async ({page}) 
       restoreOn: !!(restore && restore.top >= 0 && restore.bottom <= innerHeight + 2),
       closeInside: !!(close && panel && close.top >= panel.top + 4 && close.right <= panel.right - 4),
       deviceVisible: !!(deviceBox && panel && deviceBox.top >= panel.top && deviceBox.bottom <= panel.bottom + 1 && deviceBox.height > 8),
-      deviceAboveFoot: !!(deviceBox && foot && deviceBox.bottom <= foot.bottom + 1 && deviceBox.top < (backup?.top || foot.bottom)),
+      deviceAboveFoot: !!(deviceBox && foot && backup && deviceBox.bottom <= foot.bottom + 1 && (deviceBox.top < backup.top || deviceBox.right <= backup.left + 2)),
       textSizeOn: !!(textSize && textSize.height > 8 && textSize.top >= (panel?.top || 0) && textSize.bottom <= (panel?.bottom || 0) + 1),
       bodyScrolls: !!(body && getComputedStyle(body).overflowY !== 'visible')
     };

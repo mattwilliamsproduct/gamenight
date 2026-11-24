@@ -59,15 +59,12 @@ async function networkFirst(request, fallback) {
 async function cachedAvatarFirst(event) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(event.request);
-  const refresh = fetch(event.request).then(async response => {
-    if(response?.ok && response.type === 'basic') await cache.put(event.request, response.clone()).catch(() => {});
-    return response;
-  });
-  if(cached) {
-    event.waitUntil(refresh.catch(() => {}));
-    return cached;
+  if(cached) return cached;
+  const response = await fetch(event.request);
+  if(response?.ok && response.type === 'basic') {
+    await cache.put(event.request, response.clone()).catch(() => {});
   }
-  return refresh;
+  return response;
 }
 
 self.addEventListener('fetch', event => {
