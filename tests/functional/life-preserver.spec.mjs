@@ -68,8 +68,8 @@ test('drawn Life Preserver angles match slice weights', async ({page}) => {
   const goodWeight = goods.reduce((sum, slice) => sum + slice.weight, 0);
   const badWeight = bads.reduce((sum, slice) => sum + slice.weight, 0);
   const total = compared.reduce((sum, slice) => sum + slice.weight, 0);
-  expect(goodWeight / total).toBeGreaterThanOrEqual(0.75);
-  expect(badWeight / total).toBeLessThanOrEqual(0.125 + 1e-9);
+  expect(goodWeight / total).toBeGreaterThanOrEqual(0.72);
+  expect(badWeight / total).toBeLessThanOrEqual(0.20 + 1e-9);
 });
 
 test('Life Preserver roulette labels stay inside their slices', async ({page}) => {
@@ -118,7 +118,7 @@ test('?lp=proposed and BPG_LP_TABLE no longer switch the live wheel', async ({pa
   expect(mode.search).toContain('lp=proposed');
   const table = await page.evaluate(() => BPGLifePreserver.describePocketTable(getWheelSlices()));
   const help = table.outcomes.filter((row) => row.kind === 'good').reduce((sum, row) => sum + row.probability, 0);
-  expect(help, 'live table stays 45/30/5, not proposed 75/10/15').toBeCloseTo(0.80, 5);
+  expect(help, 'live table stays 37.5/30/5, not proposed 75/10/15').toBeCloseTo(0.725, 5);
 });
 
 test('Life Preserver reduced-motion result keeps labels inside slices', async ({page}) => {

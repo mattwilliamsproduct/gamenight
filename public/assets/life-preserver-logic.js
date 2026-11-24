@@ -90,14 +90,14 @@
     noChange: 5,
     smallSetback: 3
   });
-  // Live draw. Setback slices went from 3 to 5 of 40 (+67%, the modest rounding of +70%).
-  // The two extra slices come from no-change. Help stays 32 of 40 and 80% of the draw.
+  // Live draw. 3 modestly good pockets shifted to modest setbacks (40 pockets: 15/12/2/3/8).
+  // Total help is 29/40 (72.5%), no-change 3/40 (7.5%), and setback 8/40 (20% — 1 in 5 spins).
   const OUTCOME_TABLE = Object.freeze({
-    smallHelp: 0.45,
+    smallHelp: 0.375,
     mediumHelp: 0.30,
     bigHelp: 0.05,
     noChange: 0.075,
-    smallSetback: 0.125
+    smallSetback: 0.20
   });
 
   function clamp(value, min, max) {
@@ -381,7 +381,7 @@
     let timing = `Once 4 ${unit} are scored.`;
     let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
     const wheel = [
-      'The pockets look even. The real odds are 45% small help, 30% medium, 5% big, 7.5% no change, and 12.5% a small setback.',
+      'The pockets look even. The real odds are 37.5% small help, 30% medium, 5% big, 7.5% no change, and 20% a small setback.',
       'Most slices help. Some do nothing. A few hurt a little.',
       'Cannot tie or pass the leader.'
     ];
@@ -582,21 +582,21 @@
     pockets: 40,
     unit: 0.025,
     counts: Object.freeze({
-      smallHelp: 18,
+      smallHelp: 15,
       mediumHelp: 12,
       bigHelp: 2,
       noChange: 3,
-      smallSetback: 5
+      smallSetback: 8
     }),
     implied: Object.freeze({
-      smallHelp: 0.45,
+      smallHelp: 0.375,
       mediumHelp: 0.30,
       bigHelp: 0.05,
       noChange: 0.075,
-      smallSetback: 0.125
+      smallSetback: 0.20
     }),
     live: OUTCOME_TABLE,
-    note: 'Default visual plan. 5 setback slices of 40 (was 3). Help stays 32 of 40. No-change is 3. Draw matches those shares: 45/30/5/7.5/12.5. Setback amounts are unchanged.'
+    note: 'Default visual plan. 8 setback slices of 40 (20%, evenly spaced every 5 pockets). Help is 29 of 40 (72.5%). No-change is 3 (7.5%). Draw matches those shares: 37.5/30/5/7.5/20.'
   });
 
   function outcomeKey(slice) {
@@ -810,71 +810,107 @@
         outcome,
         key: outcome.outcomeKey || outcomeKey(outcome),
         kind: wheelSliceKind(outcome),
+        band: outcome.band || wheelSliceKind(outcome),
         color: outcome.color,
-        left: n,
         n,
         each: n ? (Number(outcome.weight) || 0) / n : 0,
         eachDisplay: n ? (Number(outcome.displayWeight) || Number(outcome.weight) || 0) / n : 0
       };
     }).filter((bag) => bag.n > 0);
     const total = bags.reduce((sum, bag) => sum + bag.n, 0);
-    const out = [];
-    const remaining = () => bags.reduce((sum, bag) => sum + bag.left, 0);
-    const score = (bag, last) => {
-      if (bag.left <= 0) return -1e9;
-      const placed = total - remaining();
-      const expected = bag.n * (placed + 1) / Math.max(total, 1);
-      const already = bag.n - bag.left;
-      let value = (expected - already) * 12;
-      if (last) {
-        if (bag.key === last.outcomeKey) value -= 90;
-        if (bag.color === last.color) value -= 22;
-        if (bag.kind === last.kind) value -= 8;
-        if (last.kind === 'bad' && bag.kind === 'bad') value -= 400;
+    if (!total) return [];
+
+    // Expand a group of bags into an interleaved sequence of slice objects so
+    // distinct magnitudes alternate cleanly (e.g. -1, -2, -1, -2...).
+    const expandInterleaved = (groupBags) => {
+      const queues = groupBags
+        .slice()
+        .sort((a, b) => b.n - a.n || Math.abs(b.outcome.adjustment) - Math.abs(a.outcome.adjustment))
+        .map((bag) => {
+          const items = [];
+          for (let i = 0; i < bag.n; i++) {
+            const slice = makeSlice(bag.outcome.adjustment, bag.kind, bag.color, bag.each);
+            slice.displayWeight = bag.eachDisplay;
+            slice.band = bag.outcome.band || null;
+            slice.outcomeKey = bag.key;
+            slice.segmentIndex = i;
+            slice.segmentCount = bag.n;
+            items.push(slice);
+          }
+          return items;
+        });
+      const result = [];
+      let more = true;
+      while (more) {
+        more = false;
+        queues.forEach((q) => {
+          if (q.length) {
+            result.push(q.shift());
+            more = true;
+          }
+        });
       }
-      return value;
+      return result;
     };
-    for (let i = 0; i < total; i++) {
-      const last = out[out.length - 1];
-      let best = null;
-      let bestScore = -1e12;
-      bags.forEach((bag) => {
-        const value = score(bag, last);
-        if (value > bestScore) {
-          bestScore = value;
-          best = bag;
+
+    const badBags = bags.filter((b) => b.kind === 'bad');
+    const zeroBags = bags.filter((b) => b.kind === 'zero');
+    const bigBags = bags.filter((b) => b.kind === 'good' && (b.band === 'bigHelp' || b.band === 'reallyGood'));
+    const mediumBags = bags.filter((b) => b.kind === 'good' && b.band === 'mediumHelp');
+    const smallBags = bags.filter((b) => b.kind === 'good' && !bigBags.includes(b) && !mediumBags.includes(b));
+
+    const slots = new Array(total).fill(null);
+
+    // Place a category at evenly spaced ring angles, snapping to the nearest open slot.
+    const placeOnRing = (items, offsetFrac) => {
+      if (!items.length) return;
+      const step = total / items.length;
+      items.forEach((item, k) => {
+        const ideal = Math.floor((k + offsetFrac) * step) % total;
+        let chosen = -1;
+        for (let d = 0; d < total; d++) {
+          const fwd = (ideal + d) % total;
+          if (!slots[fwd]) { chosen = fwd; break; }
+          const bwd = (ideal - d + total) % total;
+          if (!slots[bwd]) { chosen = bwd; break; }
         }
+        if (chosen >= 0) slots[chosen] = item;
       });
-      best.left -= 1;
-      const slice = makeSlice(best.outcome.adjustment, best.kind, best.color, best.each);
-      slice.displayWeight = best.eachDisplay;
-      slice.band = best.outcome.band || null;
-      slice.outcomeKey = best.key;
-      slice.segmentIndex = best.n - best.left - 1;
-      slice.segmentCount = best.n;
-      out.push(slice);
-    }
-    if (out.length > 2) {
-      const first = out[0];
-      const last = out[out.length - 1];
-      const wrapClash = first.outcomeKey === last.outcomeKey
-        || (first.kind === 'bad' && last.kind === 'bad');
-      if (wrapClash) {
-        for (let i = 1; i < out.length - 1; i++) {
-          const candidate = out[i];
-          const prev = out[i - 1];
-          const next = out[i + 1];
-          if (candidate.outcomeKey === first.outcomeKey) continue;
-          if (candidate.kind === 'bad' && last.kind === 'bad') continue;
-          if (prev.kind === 'bad' && last.kind === 'bad') continue;
-          if (next.kind === 'bad' && first.kind === 'bad') continue;
-          out[i] = last;
-          out[out.length - 1] = candidate;
-          break;
+    };
+
+    // Place a category evenly across whatever open slots remain.
+    const placeInOpen = (items) => {
+      if (!items.length) return;
+      const open = [];
+      for (let i = 0; i < total; i++) if (!slots[i]) open.push(i);
+      const step = open.length / items.length;
+      items.forEach((item, k) => {
+        const targetPos = Math.min(open.length - 1, Math.floor((k + 0.5) * step));
+        let chosen = -1;
+        for (let d = 0; d < open.length; d++) {
+          const fwd = targetPos + d;
+          if (fwd < open.length && !slots[open[fwd]]) { chosen = open[fwd]; break; }
+          const bwd = targetPos - d;
+          if (bwd >= 0 && !slots[open[bwd]]) { chosen = open[bwd]; break; }
         }
-      }
+        if (chosen >= 0) slots[chosen] = item;
+      });
+    };
+
+    // 1. Space setbacks evenly around the entire wheel (for 8/40: exact every 5 pockets).
+    placeOnRing(expandInterleaved(badBags), 0.5);
+    // 2. Space no-change pockets evenly (~120° apart for 3/40).
+    placeOnRing(expandInterleaved(zeroBags), 0.0);
+    // 3. Space big-help jackpots opposite each other (~180° apart for 2/40).
+    placeOnRing(expandInterleaved(bigBags), 0.25);
+    // 4. Space medium-help pockets evenly through the remaining open slots.
+    placeInOpen(expandInterleaved(mediumBags));
+    // 5. Fill remaining open slots with interleaved small-help pockets.
+    const smalls = expandInterleaved(smallBags);
+    for (let i = 0; i < total && smalls.length; i++) {
+      if (!slots[i]) slots[i] = smalls.shift();
     }
-    return out;
+    return slots.filter(Boolean);
   }
 
   function attachSliceArcs(slices) {
