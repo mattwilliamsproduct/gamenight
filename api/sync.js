@@ -45,14 +45,22 @@ async function redisCommand(command) {
 }
 
 function parseStored(result) {
-  if (result == null) return null;
-  if (typeof result === 'object') return result;
-  if (typeof result !== 'string') return null;
+  if (result === null || result === undefined) {
+    return { empty: true, corrupt: false, backup: null };
+  }
+  if (typeof result === 'object') {
+    if (!looksLikeBackup(result)) return { empty: false, corrupt: true, backup: null };
+    return { empty: false, corrupt: false, backup: result };
+  }
+  if (typeof result !== 'string') {
+    return { empty: false, corrupt: true, backup: null };
+  }
   try {
     const parsed = JSON.parse(result);
-    return parsed && typeof parsed === 'object' ? parsed : null;
+    if (!looksLikeBackup(parsed)) return { empty: false, corrupt: true, backup: null };
+    return { empty: false, corrupt: false, backup: parsed };
   } catch (error) {
-    return null;
+    return { empty: false, corrupt: true, backup: null };
   }
 }
 
@@ -71,11 +79,15 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'POST') {
       const stored = await redisCommand(['GET', BACKUP_KEY]);
+      const parsed = parseStored(stored?.result);
+      if (parsed.corrupt) {
+        return res.status(500).json({ ok: false, error: 'corrupt-backup' });
+      }
       return res.status(200).json({
         ok: true,
-        backup: parseStored(stored?.result)
+        backup: parsed.backup
       });
     }
 
@@ -93,6 +105,6 @@ module.exports = async function handler(req, res) {
     return res.status(502).json({ ok: false, error: 'store-failed' });
   }
 
-  res.setHeader('Allow', 'GET, PUT');
+  res.setHeader('Allow', 'GET, POST, PUT');
   return res.status(405).json({ ok: false, error: 'method' });
 };

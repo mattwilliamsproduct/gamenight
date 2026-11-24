@@ -268,6 +268,40 @@
     return false;
   }
 
+  function parseTimestampMs(value) {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
+    if (typeof value === 'string' && value.trim()) {
+      const asNum = Number(value);
+      if (Number.isFinite(asNum) && asNum > 0) return asNum;
+      const parsed = Date.parse(value);
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+    return 0;
+  }
+
+  function mergeCloudProfiles(localProfiles, remoteProfiles, remoteFallbackTs) {
+    const localMap = localProfiles && typeof localProfiles === 'object' ? localProfiles : {};
+    const remoteMap = remoteProfiles && typeof remoteProfiles === 'object' ? remoteProfiles : {};
+    const merged = Object.assign({}, localMap);
+    Object.keys(remoteMap).forEach(name => {
+      const remoteEntry = remoteMap[name];
+      if (!remoteEntry || typeof remoteEntry !== 'object') return;
+      const localEntry = localMap[name];
+      if (!localEntry || typeof localEntry !== 'object') {
+        merged[name] = Object.assign({}, remoteEntry);
+        return;
+      }
+      const localTs = parseTimestampMs(localEntry.updatedAt);
+      const remoteTs = parseTimestampMs(remoteEntry.updatedAt) || remoteFallbackTs;
+      if (localTs > 0 && (remoteTs === 0 || localTs >= remoteTs)) {
+        merged[name] = Object.assign({}, remoteEntry, localEntry);
+      } else {
+        merged[name] = Object.assign({}, localEntry, remoteEntry);
+      }
+    });
+    return merged;
+  }
+
   function mergeCloud(local, remote) {
     if (!remote || typeof remote !== 'object') {
       return mergeBackup(local || {}, {});
@@ -276,7 +310,10 @@
     if (local?.currentGame && local.currentGame.name && !isRemoteLiveMatchNewer(local.currentGame, remote.currentGame)) {
       delete incoming.currentGame;
     }
-    return mergeBackup(local || {}, incoming);
+    const result = mergeBackup(local || {}, incoming);
+    const remoteFallbackTs = parseTimestampMs(remote.savedAt) || parseTimestampMs(remote.exportedAt);
+    result.next.playerProfiles = mergeCloudProfiles(local?.playerProfiles, remote.playerProfiles, remoteFallbackTs);
+    return result;
   }
 
   const api = {

@@ -4328,9 +4328,11 @@ html.porch-ledger.slice2-tv :is(
 }
 
 /* Guarantee >= 44px touch targets inside Canasta setup modal (clears subpixel 43.99px rounding on phone). */
-html.porch-ledger.slice2-tv #hand-foot-setup-modal :is(button, .hf-team-person) {
-  min-width: 45px !important;
-  min-height: 45px !important;
+html.porch-ledger.slice2-tv #hand-foot-setup-modal :is(button, .hf-team-person),
+html.porch-ledger.slice2-tv #hand-foot-setup-modal .bp-match-actions > button {
+  min-width: 48px !important;
+  min-height: 48px !important;
+  flex-shrink: 0 !important;
 }
 
 /* Match Life Preserver / Comeback adjustment font to round scores (Nunito Sans) while keeping the blue pop. */

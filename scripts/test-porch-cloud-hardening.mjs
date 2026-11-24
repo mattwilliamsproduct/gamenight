@@ -20,6 +20,13 @@ function extractPorchCloudBlock() {
   return indexHtml.slice(start, end);
 }
 
+function extractCommitAvatarBlock() {
+  const start = indexHtml.indexOf('function commitPlayerAvatar(name, next){');
+  const end = indexHtml.indexOf('function placeholderSilhouetteFor(name){', start);
+  assert.ok(start > 0 && end > start, 'Could not locate commitPlayerAvatar in public/index.html');
+  return indexHtml.slice(start, end);
+}
+
 function createSwHarness(source, initialCaches = {}) {
   const listeners = {};
   const store = new Map();
@@ -52,7 +59,7 @@ function createSwHarness(source, initialCaches = {}) {
     };
   }
 
-  let fetchCalls = [];
+  const fetchCalls = [];
   const cachesApi = {
     async open(name) { return getOrCreateCache(name); },
     async keys() { return [...store.keys()]; },
@@ -95,6 +102,7 @@ function createPorchHarness(options = {}) {
   } else {
     storage.set('gn_porch_key', 'test-porch-secret');
   }
+  let passwordInputValue = storage.get('gn_porch_key') || '';
 
   const fetchCalls = [];
   const statusLog = [];
@@ -114,18 +122,24 @@ function createPorchHarness(options = {}) {
     allPlayers: options.allPlayers ? [...options.allPlayers] : ['Matt'],
     players: options.players ? [...options.players] : ['Matt'],
     history: options.history ? [...options.history] : [{ id: 1, game: 'Five Crowns', totals: { Matt: 30 } }],
-    playerProfiles: options.playerProfiles ? { ...options.playerProfiles } : { Matt: { avatar: 'old.png', color: 1 } },
+    playerProfiles: options.playerProfiles
+      ? JSON.parse(JSON.stringify(options.playerProfiles))
+      : { Matt: { avatar: 'old.png', color: 1 } },
     currentGame: options.currentGame !== undefined ? options.currentGame : null
   };
 
-  const block = extractPorchCloudBlock();
+  const porchBlock = extractPorchCloudBlock();
+  const avatarBlock = extractCommitAvatarBlock();
   const wrapper = `
     let allPlayers = __initState.allPlayers;
     let players = __initState.players;
     let history = __initState.history;
     let playerProfiles = __initState.playerProfiles;
     let currentGame = __initState.currentGame;
-    ${block}
+    let _lastPersistedState = {};
+    ${avatarBlock}
+    ${porchBlock}
+    __exports.commitPlayerAvatar = commitPlayerAvatar;
     __exports.pullPorchCloud = pullPorchCloud;
     __exports.pushPorchCloud = pushPorchCloud;
     __exports.schedulePorchPush = schedulePorchPush;
@@ -137,12 +151,14 @@ function createPorchHarness(options = {}) {
       busy: _porchBusy,
       dirty: _porchDirty,
       pullSucceeded: _porchPullSucceeded,
+      authPaused: _porchAuthPaused,
       applying: _porchApplying,
       hasTimer: !!_porchPushTimer
     });
     __exports.setFlags = (patch) => {
       if ('dirty' in patch) _porchDirty = patch.dirty;
       if ('pullSucceeded' in patch) _porchPullSucceeded = patch.pullSucceeded;
+      if ('authPaused' in patch) _porchAuthPaused = patch.authPaused;
       if ('busy' in patch) _porchBusy = patch.busy;
     };
     __exports.getState = () => ({ allPlayers, players, history, playerProfiles, currentGame });
@@ -177,6 +193,9 @@ function createPorchHarness(options = {}) {
     String,
     JSON,
     Error,
+    ensureScoreReserve() { return true; },
+    showAvatarPhotoStatus() {},
+    toast() {},
     document: {
       getElementById(id) {
         if (id === 'porch-cloud-status') {
@@ -184,7 +203,7 @@ function createPorchHarness(options = {}) {
             set textContent(v) { statusLog.push(v); }
           };
         }
-        if (id === 'porch-cloud-key') return { value: storage.get('gn_porch_key') || '' };
+        if (id === 'porch-cloud-key') return { value: passwordInputValue };
         return null;
       }
     },
@@ -217,6 +236,7 @@ function createPorchHarness(options = {}) {
     fetchCalls,
     statusLog,
     timers,
+    setPasswordInput: (val) => { passwordInputValue = val; },
     getCounts: () => ({ saveCalls, historyChangedCalls, navUpdatedCalls })
   };
 }
@@ -246,7 +266,6 @@ test('service worker bypasses /api/ GET requests and purges cached /api/ entries
       }
     });
 
-    // Activate should remove old shell cache AND purge /api/ entries from kept caches.
     const activateWaits = [];
     harness.listeners.activate({ waitUntil(p) { activateWaits.push(p); } });
     await Promise.all(activateWaits);
@@ -257,15 +276,13 @@ test('service worker bypasses /api/ GET requests and purges cached /api/ entries
     assert.equal(kept.has('https://cardknight.vercel.app/api/sync?_t=123'), false);
     assert.equal(kept.has('https://cardknight.vercel.app/assets/porch-ledger.css'), true);
 
-    // Fetch for /api/sync must not be intercepted or cached.
     let apiResponded = false;
     harness.listeners.fetch({
-      request: { method: 'GET', url: 'https://cardknight.vercel.app/api/sync?_t=999', destination: '' },
+      request: { method: 'GET', url: 'https://cardknight.vercel.app/api/sync', destination: '' },
       respondWith() { apiResponded = true; }
     });
     assert.equal(apiResponded, false, `${label} must not intercept /api/ GET requests`);
 
-    // Normal same-origin asset GET is still handled.
     let assetPromise = null;
     harness.listeners.fetch({
       request: { method: 'GET', url: 'https://cardknight.vercel.app/assets/porch-ledger.css', destination: 'style' },
@@ -276,8 +293,7 @@ test('service worker bypasses /api/ GET requests and purges cached /api/ entries
   }
 });
 
-test('pullPorchCloud busts SW cache, accepts explicit backup: null, and blocks malformed/missing responses', async () => {
-  // 1. Explicit backup: null unlocks auto-PUT
+test('pullPorchCloud uses POST /api/sync (no-store), accepts explicit backup: null, and blocks malformed/missing responses', async () => {
   const emptyHarness = createPorchHarness({
     fetch: async () => ({
       ok: true,
@@ -289,13 +305,13 @@ test('pullPorchCloud busts SW cache, accepts explicit backup: null, and blocks m
   assert.equal(emptyResult?.empty, true);
   assert.equal(emptyHarness.api.getFlags().pullSucceeded, true);
   assert.equal(emptyHarness.fetchCalls.length, 1);
-  assert.match(emptyHarness.fetchCalls[0].url, /^\/api\/sync\?_t=\d+$/);
+  assert.equal(emptyHarness.fetchCalls[0].url, '/api/sync');
+  assert.equal(emptyHarness.fetchCalls[0].init.method, 'POST');
   assert.equal(emptyHarness.fetchCalls[0].init.cache, 'no-store');
   await emptyHarness.api.pushPorchCloud();
   assert.equal(emptyHarness.fetchCalls.length, 2, 'auto-PUT should be allowed after explicit backup: null');
   assert.equal(emptyHarness.fetchCalls[1].init.method, 'PUT');
 
-  // 2. Malformed JSON leaves _porchPullSucceeded false and keeps auto-PUT blocked
   const badJsonHarness = createPorchHarness({
     fetch: async () => ({
       ok: true,
@@ -309,7 +325,6 @@ test('pullPorchCloud busts SW cache, accepts explicit backup: null, and blocks m
   assert.equal(badJsonHarness.fetchCalls.length, 1, 'auto-PUT must stay blocked after malformed JSON pull');
   assert.equal(badJsonHarness.api.getFlags().dirty, true);
 
-  // 3. Missing backup property or invalid non-null backup leaves _porchPullSucceeded false
   for (const body of [{ ok: true }, { ok: true, backup: {} }, { ok: true, backup: [] }, { ok: true, backup: 'bad' }]) {
     const h = createPorchHarness({
       fetch: async () => ({ ok: true, status: 200, async json() { return body; } })
@@ -320,7 +335,6 @@ test('pullPorchCloud busts SW cache, accepts explicit backup: null, and blocks m
 });
 
 test('pullPorchCloud applies remote merge when roster and game counts match but profile/avatar or live table is newer', async () => {
-  // Profile/avatar change only (same players, same history count)
   const avatarHarness = createPorchHarness({
     allPlayers: ['Matt'],
     players: ['Matt'],
@@ -350,7 +364,6 @@ test('pullPorchCloud applies remote merge when roster and game counts match but 
   assert.equal(avatarHarness.getCounts().saveCalls, 1);
   assert.equal(avatarHarness.api.getFlags().pullSucceeded, true);
 
-  // Newer live table on the same active match (same roster and history count)
   const liveHarness = createPorchHarness({
     allPlayers: ['Matt', 'Cat'],
     players: ['Matt', 'Cat'],
@@ -390,8 +403,67 @@ test('pullPorchCloud applies remote merge when roster and game counts match but 
   assert.equal(liveHarness.getCounts().navUpdatedCalls, 1);
 });
 
-test('failed PUT never loops in finally, skips retry on 401/403, and retries transient errors on reconnect', async () => {
-  // 1. Transient 502 keeps _porchDirty true with NO 2.5s timer loop; retries on reconnect
+test('offline avatar edit survives reconnect to older cloud copy and ships in the next PUT payload', async () => {
+  let online = false;
+  const olderSavedAt = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const putPayloads = [];
+
+  const harness = createPorchHarness({
+    allPlayers: ['Matt'],
+    players: ['Matt'],
+    history: [{ id: 1, game: 'Five Crowns', totals: { Matt: 30 } }],
+    playerProfiles: { Matt: { avatar: 'old-cloud-avatar.png', color: 1 } },
+    fetch: async (url, init) => {
+      if (!online) throw new Error('offline');
+      if (init.method === 'POST') {
+        return {
+          ok: true,
+          status: 200,
+          async json() {
+            return {
+              ok: true,
+              backup: {
+                savedAt: olderSavedAt,
+                allPlayers: ['Matt'],
+                players: ['Matt'],
+                history: [{ id: 1, game: 'Five Crowns', totals: { Matt: 30 } }],
+                playerProfiles: { Matt: { avatar: 'old-cloud-avatar.png', color: 1 } },
+                currentGame: null
+              }
+            };
+          }
+        };
+      }
+      if (init.method === 'PUT') {
+        putPayloads.push(JSON.parse(init.body));
+        return { ok: true, status: 200, async json() { return { ok: true, savedAt: new Date().toISOString() }; } };
+      }
+      throw new Error(`Unexpected method ${init.method}`);
+    }
+  });
+
+  // 1. Offline startup pull fails
+  assert.equal(await harness.api.pullPorchCloud(), null);
+  assert.equal(harness.api.getFlags().pullSucceeded, false);
+
+  // 2. Change avatar while offline via real commitPlayerAvatar()
+  assert.equal(harness.api.commitPlayerAvatar('Matt', 'fresh-offline-avatar.png'), true);
+  assert.equal(harness.api.getState().playerProfiles.Matt.avatar, 'fresh-offline-avatar.png');
+  assert.equal(harness.api.getFlags().dirty, true, 'offline avatar change marks Porch Cloud dirty');
+  assert.equal(putPayloads.length, 0, 'no PUT sent while offline before verified pull');
+
+  // 3. Reconnect to the older cloud copy -> pulls first, preserves new avatar, then sends PUT
+  online = true;
+  harness.api.retryPorchCloudOnReconnect();
+  await new Promise(resolve => setTimeout(resolve, 15));
+
+  assert.equal(harness.api.getState().playerProfiles.Matt.avatar, 'fresh-offline-avatar.png', 'new avatar must survive pull from older cloud copy');
+  assert.equal(putPayloads.length, 1, 'next PUT should flush automatically after verified pull');
+  assert.equal(putPayloads[0].playerProfiles.Matt.avatar, 'fresh-offline-avatar.png', 'PUT payload must contain the new offline avatar');
+  assert.equal(harness.api.getFlags().dirty, false);
+});
+
+test('failed PUT never loops in finally; 401/403 pauses auto-retries while preserving _porchDirty until password save', async () => {
   let putAttempt = 0;
   const transientHarness = createPorchHarness({
     fetch: async (url, init) => {
@@ -408,63 +480,80 @@ test('failed PUT never loops in finally, skips retry on 401/403, and retries tra
   transientHarness.api.setFlags({ pullSucceeded: true });
   await transientHarness.api.pushPorchCloud();
   assert.equal(transientHarness.api.getFlags().dirty, true, 'transient 502 should keep dirty flag');
+  assert.equal(transientHarness.api.getFlags().authPaused, false);
   assert.equal(transientHarness.timers.length, 0, 'failed PUT must not schedule a 2.5s retry loop');
 
-  // Reconnect triggers retry and clears dirty on success
   transientHarness.api.retryPorchCloudOnReconnect();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(putAttempt, 2);
   assert.equal(transientHarness.api.getFlags().dirty, false);
 
-  // 2. 401 / 403 auth failures never stay dirty and never retry on reconnect
   for (const status of [401, 403]) {
+    let acceptKey = 'fixed-secret';
     const authHarness = createPorchHarness({
-      fetch: async () => ({ ok: false, status, async json() { return { ok: false, error: 'bad-key' }; } })
+      porchKey: 'wrong-secret',
+      fetch: async (url, init) => {
+        if (init.headers['x-porch-key'] !== acceptKey) {
+          return { ok: false, status, async json() { return { ok: false, error: 'bad-key' }; } };
+        }
+        if (init.method === 'POST') {
+          return { ok: true, status: 200, async json() { return { ok: true, backup: null }; } };
+        }
+        return { ok: true, status: 200, async json() { return { ok: true, savedAt: '2026-11-24T12:00:00Z' }; } };
+      }
     });
     authHarness.api.setFlags({ pullSucceeded: true });
     await authHarness.api.pushPorchCloud();
-    assert.equal(authHarness.api.getFlags().dirty, false, `status ${status} must not remain dirty`);
+    assert.equal(authHarness.api.getFlags().dirty, true, `status ${status} must preserve _porchDirty`);
+    assert.equal(authHarness.api.getFlags().authPaused, true, `status ${status} must pause auto-retries`);
     assert.equal(authHarness.timers.length, 0, `status ${status} must not schedule retry timer`);
+
+    // Auto-retries stay paused on reconnect, hide, and schedule until explicit password save
     authHarness.api.retryPorchCloudOnReconnect();
+    authHarness.api.flushPorchPushOnHide();
+    authHarness.api.schedulePorchPush();
     await new Promise(resolve => setImmediate(resolve));
-    assert.equal(authHarness.fetchCalls.length, 1, `status ${status} must not retry on reconnect`);
+    assert.equal(authHarness.fetchCalls.length, 1, `status ${status} must stay paused until password save`);
+
+    // Explicit savePorchPassword() unpauses, pulls cleanly, and pushes the preserved local change
+    authHarness.setPasswordInput('fixed-secret');
+    await authHarness.api.savePorchPassword();
+    assert.equal(authHarness.api.getFlags().authPaused, false);
+    assert.equal(authHarness.api.getFlags().dirty, false);
+    assert.deepEqual(authHarness.fetchCalls.map(c => c.init.method), ['PUT', 'POST', 'PUT']);
   }
 });
 
-test('offline boot reconnect retries GET pull before draining queued PUT', async () => {
+test('offline boot reconnect retries POST pull before draining queued PUT', async () => {
   let online = false;
   const sequence = [];
   const harness = createPorchHarness({
     fetch: async (url, init) => {
       sequence.push(init.method);
       if (!online) throw new Error('network offline');
-      if (init.method === 'GET') {
+      if (init.method === 'POST') {
         return { ok: true, status: 200, async json() { return { ok: true, backup: null }; } };
       }
       return { ok: true, status: 200, async json() { return { ok: true, savedAt: '2026-11-24T12:00:00Z' }; } };
     }
   });
 
-  // Startup pull fails while offline
   assert.equal(await harness.api.pullPorchCloud(), null);
   assert.equal(harness.api.getFlags().pullSucceeded, false);
 
-  // Local edit attempts push while offline -> queued as dirty, no PUT sent
   await harness.api.pushPorchCloud();
-  assert.deepEqual(sequence, ['GET']);
+  assert.deepEqual(sequence, ['POST']);
   assert.equal(harness.api.getFlags().dirty, true);
 
-  // Connection returns -> reconnect pulls FIRST, then drains dirty PUT
   online = true;
   harness.api.retryPorchCloudOnReconnect();
   await new Promise(resolve => setTimeout(resolve, 10));
-  assert.deepEqual(sequence, ['GET', 'GET', 'PUT']);
+  assert.deepEqual(sequence, ['POST', 'POST', 'PUT']);
   assert.equal(harness.api.getFlags().pullSucceeded, true);
   assert.equal(harness.api.getFlags().dirty, false);
 });
 
 test('flushPorchPushOnHide only sets keepalive: true when serialized payload is under 60000 bytes', async () => {
-  // Small payload -> keepalive: true
   const smallHarness = createPorchHarness({
     fetch: async () => ({ ok: true, status: 200, async json() { return { ok: true }; } })
   });
@@ -474,7 +563,6 @@ test('flushPorchPushOnHide only sets keepalive: true when serialized payload is 
   assert.equal(smallHarness.fetchCalls.length, 1);
   assert.equal(smallHarness.fetchCalls[0].init.keepalive, true);
 
-  // Large payload (>= 60000 bytes) -> keepalive: false
   const bigPhoto = 'data:image/jpeg;base64,' + 'A'.repeat(65000);
   const largeHarness = createPorchHarness({
     playerProfiles: { Matt: { avatar: bigPhoto } },

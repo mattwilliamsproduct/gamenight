@@ -19,6 +19,7 @@ test('localhost does not call /api/sync, and a stubbed pull and push use the pro
       calls.push({
         url: String(url),
         method: opts && opts.method,
+        cache: opts && opts.cache,
         key: opts && opts.headers && opts.headers['x-porch-key'],
         body: opts && opts.body ? JSON.parse(opts.body) : null
       });
@@ -42,7 +43,8 @@ test('localhost does not call /api/sync, and a stubbed pull and push use the pro
   expect(hits, 'the stub replaced fetch, so the browser made no API request').toEqual([]);
   expect(result.host).not.toBe('cardknight.vercel.app');
   expect(result.calls.map((call) => call.url)).toEqual(['/api/sync', '/api/sync']);
-  expect(result.calls[0].method).toBe('GET');
+  expect(result.calls[0].method).toBe('POST');
+  expect(result.calls[0].cache).toBe('no-store');
   expect(result.calls[1].method).toBe('PUT');
   expect(result.calls[0].key).toBe('stub-porch');
   expect(result.calls[1].key).toBe('stub-porch');

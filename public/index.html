@@ -12753,14 +12753,18 @@ button.dealer-name-indicator .dealer-player-label {
     if(!name) return false;
     if(!playerProfiles[name]) playerProfiles[name]={};
     const previous=playerProfiles[name].avatar||'';
+    const previousUpdatedAt=playerProfiles[name].updatedAt;
     const value=next||'';
     if(previous===value) return true;
     playerProfiles[name].avatar=value;
+    playerProfiles[name].updatedAt=Date.now();
     try{
       const json=JSON.stringify(playerProfiles);
       localStorage.setItem(gnKey('gn_profiles'), json);
       if(!ensureScoreReserve()){
         playerProfiles[name].avatar=previous;
+        if(previousUpdatedAt===undefined) delete playerProfiles[name].updatedAt;
+        else playerProfiles[name].updatedAt=previousUpdatedAt;
         const reverted=JSON.stringify(playerProfiles);
         localStorage.setItem(gnKey('gn_profiles'), reverted);
         if(typeof _lastPersistedState==='object' && _lastPersistedState) _lastPersistedState.gn_profiles=reverted;
@@ -12771,9 +12775,12 @@ button.dealer-name-indicator .dealer-player-label {
         return false;
       }
       if(typeof _lastPersistedState==='object' && _lastPersistedState) _lastPersistedState.gn_profiles=json;
+      if(!_porchApplying && typeof schedulePorchPush==='function') schedulePorchPush();
       return true;
     }catch(error){
       playerProfiles[name].avatar=previous;
+      if(previousUpdatedAt===undefined) delete playerProfiles[name].updatedAt;
+      else playerProfiles[name].updatedAt=previousUpdatedAt;
       const message='That photo could not be saved on this device. The current picture stayed.';
       showAvatarPhotoStatus(message);
       toast(message, 'warning');
@@ -14141,6 +14148,7 @@ button.dealer-name-indicator .dealer-player-label {
   let _porchApplying=false;
   let _porchDirty=false;
   let _porchPullSucceeded=false;
+  let _porchAuthPaused=false;
   function canPorchCloud(){
     if(window.BPGTryDemo&&typeof BPGTryDemo.backupBlocked==='function'&&BPGTryDemo.backupBlocked()) return false;
     return location.hostname==='cardknight.vercel.app' && !GN_QA_MODE;
@@ -14206,14 +14214,13 @@ button.dealer-name-indicator .dealer-player-label {
       ?(options&&typeof options.serialized==='string'?options.serialized:JSON.stringify(body))
       :undefined;
     const useKeepalive=!!(options&&options.keepalive)&&(serialized===undefined||porchPayloadBytes(serialized)<60000);
-    const res=await fetch('/api/sync'+(method==='GET'?`?_t=${Date.now()}`:''),{
+    const headers={'x-porch-key':key};
+    if(method==='PUT') headers['Content-Type']='application/json';
+    const res=await fetch('/api/sync',{
       method,
-      cache:method==='GET'?'no-store':'default',
+      cache:'no-store',
       keepalive:useKeepalive,
-      headers:{
-        'Content-Type':'application/json',
-        'x-porch-key':key
-      },
+      headers,
       body:serialized
     });
     let data=null;
@@ -14229,17 +14236,20 @@ button.dealer-name-indicator .dealer-player-label {
     }
     return data;
   }
-  async function pullPorchCloud(){
+  async function pullPorchCloud(options){
     if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return null;
     if(_porchBusy) return null;
     _porchBusy=true;
     try{
       setPorchStatus('Checking the porch cloud…');
-      const data=await porchRequest('GET');
+      // Use POST for authenticated reads so any older production service worker
+      // (which intercepts all same-origin GETs) bypasses /api/sync completely.
+      const data=await porchRequest('POST');
       const pullCheck=validatePorchPullResponse(data);
       if(!pullCheck.valid){
         throw Object.assign(new Error('invalid-response'),{status:0,malformed:true});
       }
+      _porchAuthPaused=false;
       if(pullCheck.empty){
         _porchPullSucceeded=true;
         setPorchStatus('Cloud is empty. The next save from this copy will fill it.');
@@ -14269,14 +14279,16 @@ button.dealer-name-indicator .dealer-player-label {
       refreshBackupSummary();
       return {added,empty:false,profilesChanged,tableChanged,seatedChanged};
     }catch(error){
-      if(error.status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
-      else if(error.status===401||error.status===403) setPorchStatus('That porch password did not match.');
+      const status=Number(error&&error.status)||0;
+      if(status===401||status===403) _porchAuthPaused=true;
+      if(status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
+      else if(status===401||status===403) setPorchStatus('That porch password did not match.');
       else setPorchStatus('Could not reach the porch cloud.');
       return null;
     }finally{
       _porchApplying=false;
       _porchBusy=false;
-      if(_porchDirty&&_porchPullSucceeded){
+      if(_porchDirty&&_porchPullSucceeded&&!_porchAuthPaused&&!(options&&options.skipDrain)){
         _porchDirty=false;
         pushPorchCloud();
       }
@@ -14285,13 +14297,17 @@ button.dealer-name-indicator .dealer-player-label {
   async function pushPorchCloud(options){
     if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
     const manual=!!(options&&options.manual);
-    if(!manual&&!_porchPullSucceeded){
+    if(!manual&&(_porchAuthPaused||!_porchPullSucceeded)){
       _porchDirty=true;
       return;
     }
     if(_porchBusy){
       _porchDirty=true;
       return;
+    }
+    if(_porchPushTimer){
+      clearTimeout(_porchPushTimer);
+      _porchPushTimer=null;
     }
     _porchBusy=true;
     _porchDirty=false;
@@ -14301,20 +14317,25 @@ button.dealer-name-indicator .dealer-player-label {
       const serialized=options&&typeof options.serialized==='string'?options.serialized:JSON.stringify(payload);
       await porchRequest('PUT',payload,{keepalive:!!(options&&options.keepalive),serialized});
       pushSucceeded=true;
+      _porchAuthPaused=false;
       const snap=BPGBackup.summarizeHistory(payload.history);
       setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
     }catch(error){
       const status=Number(error&&error.status)||0;
       const isAuthFailure=status===401||status===403;
       const isTransient=!status||status>=500||status===408||status===429;
-      if(isAuthFailure) _porchDirty=false;
-      else if(isTransient) _porchDirty=true;
+      if(isAuthFailure){
+        _porchAuthPaused=true;
+        _porchDirty=true;
+      }else if(isTransient){
+        _porchDirty=true;
+      }
       if(status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
       else if(isAuthFailure) setPorchStatus('That porch password did not match.');
       else setPorchStatus('Could not save to the porch cloud.');
     }finally{
       _porchBusy=false;
-      if(pushSucceeded&&_porchDirty){
+      if(pushSucceeded&&_porchDirty&&!_porchAuthPaused){
         _porchDirty=false;
         schedulePorchPush();
       }
@@ -14322,11 +14343,16 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function schedulePorchPush(){
     if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
+    if(_porchAuthPaused||!_porchPullSucceeded){
+      _porchDirty=true;
+      return;
+    }
     if(_porchPushTimer) clearTimeout(_porchPushTimer);
     _porchPushTimer=setTimeout(()=>{_porchPushTimer=null;pushPorchCloud();},2500);
   }
   function flushPorchPushOnHide(){
     if(!canPorchCloud()||!getPorchKey()||_porchApplying||!window.BPGBackup) return;
+    if(_porchAuthPaused) return;
     const hadTimer=!!_porchPushTimer;
     if(_porchPushTimer){
       clearTimeout(_porchPushTimer);
@@ -14343,7 +14369,7 @@ button.dealer-name-indicator .dealer-player-label {
     pushPorchCloud({keepalive,payload,serialized});
   }
   function retryPorchCloudOnReconnect(){
-    if(!canPorchCloud()||!getPorchKey()||_porchApplying||_porchBusy) return;
+    if(!canPorchCloud()||!getPorchKey()||_porchApplying||_porchBusy||_porchAuthPaused) return;
     if(!_porchPullSucceeded){
       pullPorchCloud();
       return;
@@ -14362,8 +14388,9 @@ button.dealer-name-indicator .dealer-player-label {
       return;
     }
     setPorchKey(key);
+    _porchAuthPaused=false;
     _porchPullSucceeded=false;
-    const pulled=await pullPorchCloud();
+    const pulled=await pullPorchCloud({skipDrain:true});
     if(pulled) await pushPorchCloud({manual:true});
     if(currentGame) goActiveMatch();
     else goHome();
@@ -15105,6 +15132,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!editingPlayerProfile) return;
     if(!playerProfiles[editingPlayerProfile]) playerProfiles[editingPlayerProfile] = {};
     playerProfiles[editingPlayerProfile].color = colorIdx;
+    playerProfiles[editingPlayerProfile].updatedAt = Date.now();
     saveData({ fullPersist: true, syncCold: true });
     closeColorPicker();
     openProfileDetail(editingPlayerProfile);
