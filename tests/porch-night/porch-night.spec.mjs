@@ -54,7 +54,7 @@ test('one laptop porch night walks the shelf, scoring, places, and a local refre
   }));
   expect(fit.text).toBe('Michelle');
   expect(fit.overflow,'Michelle should stay whole').toBeLessThanOrEqual(1);
-  expect(fit.ellipsis).toBe('clip');
+  expect(fit.ellipsis).toBe('ellipsis');
 
   // 4. eight18-porch-lp
   await openScenario(page,{scenario:'eight18-porch-lp'});
