@@ -12197,6 +12197,10 @@ button.dealer-name-indicator .dealer-player-label {
     document.getElementById('pwa-update-notice')?.classList.add('flex');
   }
   function applyPwaUpdate(){
+    if(typeof persistInterruptedEntry==='function') persistInterruptedEntry();
+    if(typeof flushPendingSave==='function') flushPendingSave();
+    if(typeof _persistGamenightState==='function') _persistGamenightState({ fullPersist: true, syncCold: true, flushDeferred: true });
+    if(typeof flushPorchPushOnHide==='function') flushPorchPushOnHide();
     if(pwaRegistration?.waiting){
       pwaRefreshPending=true;
       pwaRegistration.waiting.postMessage({type:'SKIP_WAITING'});
@@ -12254,11 +12258,16 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   // ── Audit log (in-match action history) ──
+  function touchLiveMatch(game){
+    const target=game||currentGame;
+    if(target&&typeof target==='object') target.updatedAt=Date.now();
+  }
   function addAuditEntry(action, detail){
     if(!currentGame) return;
     if(!currentGame.auditLog) currentGame.auditLog = [];
     currentGame.auditLog.push({ ts: Date.now(), action, detail });
     if(currentGame.auditLog.length > 200) currentGame.auditLog = currentGame.auditLog.slice(-200);
+    touchLiveMatch(currentGame);
   }
   function formatAuditTime(ts){
     const d = new Date(ts);
@@ -12634,6 +12643,7 @@ button.dealer-name-indicator .dealer-player-label {
     persistInterruptedEntry();
     flushPendingSave();
     _persistGamenightState({ fullPersist: true, syncCold: true, flushDeferred: true });
+    if(typeof flushPorchPushOnHide === 'function') flushPorchPushOnHide();
     gnPerfFlushPersist();
   });
   function updateNavButton(){
@@ -14143,10 +14153,24 @@ button.dealer-name-indicator .dealer-player-label {
   }
 
   const GN_PORCH_KEY='gn_porch_key';
+  const GN_PORCH_DIRTY_KEY='gn_porch_dirty';
+  function readPersistedPorchDirty(){
+    try{return localStorage.getItem(gnKey(GN_PORCH_DIRTY_KEY))==='1';}catch(e){return false;}
+  }
+  function writePersistedPorchDirty(dirty){
+    try{
+      if(dirty) localStorage.setItem(gnKey(GN_PORCH_DIRTY_KEY),'1');
+      else localStorage.removeItem(gnKey(GN_PORCH_DIRTY_KEY));
+    }catch(e){}
+  }
+  function setPorchDirty(dirty){
+    _porchDirty=!!dirty;
+    writePersistedPorchDirty(_porchDirty);
+  }
   let _porchPushTimer=null;
   let _porchBusy=false;
   let _porchApplying=false;
-  let _porchDirty=false;
+  let _porchDirty=readPersistedPorchDirty();
   let _porchPullSucceeded=false;
   let _porchAuthPaused=false;
   function canPorchCloud(){
@@ -14258,7 +14282,7 @@ button.dealer-name-indicator .dealer-player-label {
       const localState=currentBackupState();
       const {next,added}=BPGBackup.mergeCloud(localState,pullCheck.backup);
       const profilesChanged=JSON.stringify(next.playerProfiles||{})!==JSON.stringify(localState.playerProfiles||{});
-      const tableChanged=!!(next.currentGame&&JSON.stringify(next.currentGame)!==JSON.stringify(localState.currentGame||null));
+      const tableChanged=JSON.stringify(next.currentGame||null)!==JSON.stringify(localState.currentGame||null);
       const seatedChanged=JSON.stringify(next.players||[])!==JSON.stringify(localState.players||[]);
       if(added.games||added.players||profilesChanged||tableChanged||seatedChanged){
         _porchApplying=true;
@@ -14266,8 +14290,7 @@ button.dealer-name-indicator .dealer-player-label {
         players=next.players;
         history=next.history;
         playerProfiles=next.playerProfiles;
-        if(tableChanged) currentGame=next.currentGame;
-        else if(!currentGame && next.currentGame) currentGame=next.currentGame;
+        if(tableChanged) currentGame=next.currentGame||null;
         if(added.games) markHistoryChanged();
         saveData({fullPersist:true,syncCold:true});
         _porchApplying=false;
@@ -14288,7 +14311,7 @@ button.dealer-name-indicator .dealer-player-label {
     }finally{
       _porchApplying=false;
       _porchBusy=false;
-      if(_porchDirty&&_porchPullSucceeded&&!_porchAuthPaused&&!(options&&options.skipDrain)){
+      if((_porchDirty||readPersistedPorchDirty())&&_porchPullSucceeded&&!_porchAuthPaused&&!(options&&options.skipDrain)){
         _porchDirty=false;
         pushPorchCloud();
       }
@@ -14298,11 +14321,11 @@ button.dealer-name-indicator .dealer-player-label {
     if(!canPorchCloud()||!getPorchKey()||!window.BPGBackup) return;
     const manual=!!(options&&options.manual);
     if(!manual&&(_porchAuthPaused||!_porchPullSucceeded)){
-      _porchDirty=true;
+      setPorchDirty(true);
       return;
     }
     if(_porchBusy){
-      _porchDirty=true;
+      setPorchDirty(true);
       return;
     }
     if(_porchPushTimer){
@@ -14311,6 +14334,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     _porchBusy=true;
     _porchDirty=false;
+    writePersistedPorchDirty(true);
     let pushSucceeded=false;
     try{
       const payload=options&&options.payload?options.payload:BPGBackup.buildBackup(currentBackupState());
@@ -14318,6 +14342,7 @@ button.dealer-name-indicator .dealer-player-label {
       await porchRequest('PUT',payload,{keepalive:!!(options&&options.keepalive),serialized});
       pushSucceeded=true;
       _porchAuthPaused=false;
+      if(!_porchDirty) writePersistedPorchDirty(false);
       const snap=BPGBackup.summarizeHistory(payload.history);
       setPorchStatus(`Saved to the porch cloud. ${snap.line}`);
     }catch(error){
@@ -14326,9 +14351,11 @@ button.dealer-name-indicator .dealer-player-label {
       const isTransient=!status||status>=500||status===408||status===429;
       if(isAuthFailure){
         _porchAuthPaused=true;
-        _porchDirty=true;
+        setPorchDirty(true);
       }else if(isTransient){
-        _porchDirty=true;
+        setPorchDirty(true);
+      }else{
+        setPorchDirty(false);
       }
       if(status===503) setPorchStatus('Cloud save is not turned on yet. Add the porch password in Vercel, then try again.');
       else if(isAuthFailure) setPorchStatus('That porch password did not match.');
@@ -14343,6 +14370,7 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function schedulePorchPush(){
     if(!canPorchCloud()||!getPorchKey()||_porchApplying) return;
+    writePersistedPorchDirty(true);
     if(_porchAuthPaused||!_porchPullSucceeded){
       _porchDirty=true;
       return;
@@ -14352,15 +14380,15 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function flushPorchPushOnHide(){
     if(!canPorchCloud()||!getPorchKey()||_porchApplying||!window.BPGBackup) return;
-    if(_porchAuthPaused) return;
+    if(_porchAuthPaused||_porchBusy) return;
     const hadTimer=!!_porchPushTimer;
     if(_porchPushTimer){
       clearTimeout(_porchPushTimer);
       _porchPushTimer=null;
     }
-    if(!hadTimer&&!_porchDirty) return;
+    if(!hadTimer&&!_porchDirty&&!readPersistedPorchDirty()) return;
     if(!_porchPullSucceeded){
-      _porchDirty=true;
+      setPorchDirty(true);
       return;
     }
     const payload=BPGBackup.buildBackup(currentBackupState());
@@ -14374,7 +14402,7 @@ button.dealer-name-indicator .dealer-player-label {
       pullPorchCloud();
       return;
     }
-    if(_porchDirty){
+    if(_porchDirty||readPersistedPorchDirty()){
       pushPorchCloud();
     }
   }
@@ -17518,6 +17546,8 @@ ${isDealer
     markHistoryChanged();
     resetRecordChaseView();
     currentGame={id:g.id,gameId:g.gameId||g.id,name:g.game,completed:g.completed===true,assistedMatch:g.assistedMatch===true,originalRoster:g.originalRoster||Object.keys(g.totals),currentRound:g.currentRound||(g.rounds.length+1),rounds:g.rounds||[],totals:g.totals||{},hailMaryUsed:g.hailMaryUsed||[],lifePreserverHeld:g.lifePreserverHeld||[],lifePreserverHeldRound:g.lifePreserverHeldRound||null,retired:g.retired||[],currentScoreDrafts:g.currentScoreDrafts||{},dealerOffset:g.dealerOffset||0,auditLog:g.auditLog||[]};
+    if(g.updatedAt) currentGame.updatedAt=g.updatedAt;
+    if(g.reopenedAt){ currentGame.reopenedAt=g.reopenedAt; currentGame.updatedAt=Math.max(Number(currentGame.updatedAt)||0, Number(g.reopenedAt)||0); }
     if(window.BPGScorebook) BPGScorebook.syncAssistedMatch(currentGame);
     if(window.BPGScorebook) BPGScorebook.ensureGameId(currentGame);
     if(Number.isFinite(g.maxRounds)&&g.maxRounds>0) currentGame.maxRounds=g.maxRounds;
@@ -17575,6 +17605,7 @@ ${isDealer
     const gp=getActivePlayers(currentGame);
     const idx=gp.indexOf(player); if(idx<0)return;
     currentGame.dealerOffset=(idx-(currentGame.currentRound-1)%gp.length+gp.length)%gp.length;
+    touchLiveMatch(currentGame);
     saveData(); closeDealerModal(); scheduleRender();
   }
 
@@ -17586,6 +17617,7 @@ ${isDealer
     if(fromIdx<0||toIdx<0)return;
     let t=currentGame.originalRoster[fromIdx];
     currentGame.originalRoster[fromIdx]=currentGame.originalRoster[toIdx]; currentGame.originalRoster[toIdx]=t;
+    touchLiveMatch(currentGame);
     saveData(); scheduleRender();
   }
 
@@ -17997,6 +18029,7 @@ ${isDealer
     }
     _reorderPlayersWorking = null;
     reorderModalDragCleanup();
+    touchLiveMatch(currentGame);
     saveData();
     scheduleRender();
     closeModal('reorder-players-modal');
@@ -22577,6 +22610,7 @@ ${isDealer
     const blocked=reopened&&BPGScorebook.historyReopenWouldReplaceActive(currentGame, match);
     const reopenCopy=BPGScorebook.historyReopenNotice(match.name||match.game, blocked);
     if(reopened&&!blocked&&!currentGame){
+      match.reopenedAt=Date.now();
       closeModal('scorecard-modal');
       resumeMatch(match.id,{force:true});
       toast(reopenCopy+' It is back on the table.');
@@ -22771,6 +22805,7 @@ ${isDealer
       finalizeHistoryCorrection(match, result);
       return;
     }
+    touchLiveMatch(match);
     syncSavedMatchFromGame(match);
     saveData({ fullPersist: true, syncCold: true });
     scheduleRender();
@@ -22806,6 +22841,7 @@ ${isDealer
     if(result.changed){
       if(window.BPGComeback) BPGComeback.syncComebackAfterScoreEdit(currentGame, currentGame.rounds[roundIndex], player);
       recomputeGameTotals(currentGame);
+      touchLiveMatch(currentGame);
       syncSavedMatchFromGame(currentGame);
       saveData({ fullPersist: true, syncCold: true });
       if(result.standing?.reopened) toast('The match is back under the line');

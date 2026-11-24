@@ -74,9 +74,22 @@ function createSwHarness(source, initialCaches = {}) {
   };
 
   let claimed = false;
+  let oldCachesPresentAtClaim = null;
+  let apiEntriesAtClaim = null;
   const selfObj = {
     location: { origin: 'https://cardknight.vercel.app' },
-    clients: { async claim() { claimed = true; } },
+    clients: {
+      async claim() {
+        oldCachesPresentAtClaim = [...store.keys()].filter(k => k === 'back-porch-shell-old-release');
+        apiEntriesAtClaim = [];
+        for (const bucket of store.values()) {
+          for (const url of bucket.keys()) {
+            if (new URL(url).pathname.startsWith('/api/')) apiEntriesAtClaim.push(url);
+          }
+        }
+        claimed = true;
+      }
+    },
     skipWaiting() {},
     addEventListener(type, fn) { listeners[type] = fn; }
   };
@@ -92,14 +105,20 @@ function createSwHarness(source, initialCaches = {}) {
     }
   };
   vm.runInNewContext(source, sandbox);
-  return { listeners, store, fetchCalls, wasClaimed: () => claimed };
+  return {
+    listeners,
+    store,
+    fetchCalls,
+    wasClaimed: () => claimed,
+    getClaimSnapshot: () => ({ oldCachesPresentAtClaim, apiEntriesAtClaim })
+  };
 }
 
 function createPorchHarness(options = {}) {
-  const storage = new Map();
+  const storage = options.sharedStorage || new Map();
   if (options.porchKey !== undefined) {
     storage.set('gn_porch_key', options.porchKey);
-  } else {
+  } else if (!storage.has('gn_porch_key')) {
     storage.set('gn_porch_key', 'test-porch-secret');
   }
   let passwordInputValue = storage.get('gn_porch_key') || '';
@@ -233,6 +252,7 @@ function createPorchHarness(options = {}) {
   vm.runInNewContext(wrapper, sandbox);
   return {
     api: exportsObj,
+    storage,
     fetchCalls,
     statusLog,
     timers,
@@ -270,6 +290,8 @@ test('service worker bypasses /api/ GET requests and purges cached /api/ entries
     harness.listeners.activate({ waitUntil(p) { activateWaits.push(p); } });
     await Promise.all(activateWaits);
     assert.equal(harness.wasClaimed(), true);
+    assert.deepEqual(harness.getClaimSnapshot().oldCachesPresentAtClaim, [], `${label} must delete old shell caches before clients.claim()`);
+    assert.deepEqual(harness.getClaimSnapshot().apiEntriesAtClaim, [], `${label} must purge cached /api/ entries before clients.claim()`);
     assert.equal(harness.store.has('back-porch-shell-old-release'), false);
     const kept = harness.store.get(activeCache);
     assert.equal(kept.has('https://cardknight.vercel.app/api/sync'), false);
@@ -573,4 +595,146 @@ test('flushPorchPushOnHide only sets keepalive: true when serialized payload is 
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(largeHarness.fetchCalls.length, 1);
   assert.equal(largeHarness.fetchCalls[0].init.keepalive, false);
+});
+
+test('pullPorchCloud never revives a finished match in either direction and clears stale local currentGame', async () => {
+  // Direction 1: finished locally, cloud still has stale in-progress currentGame for same ID
+  const localFinished = createPorchHarness({
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [{ id: 'fin-1', game: 'Five Crowns', completed: true, winners: ['Matt'], totals: { Matt: 10, Cat: 25 } }],
+    currentGame: null,
+    fetch: async () => ({
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          ok: true,
+          backup: {
+            allPlayers: ['Matt', 'Cat'],
+            players: ['Matt', 'Cat'],
+            history: [],
+            playerProfiles: {},
+            currentGame: { id: 'fin-1', name: 'Five Crowns', currentRound: 6, rounds: [] }
+          }
+        };
+      }
+    })
+  });
+  await localFinished.api.pullPorchCloud();
+  assert.equal(localFinished.api.getState().currentGame, null);
+
+  // Direction 2: finished in cloud, local still holds stale in-progress currentGame for same ID
+  const cloudFinished = createPorchHarness({
+    allPlayers: ['Matt', 'Cat'],
+    players: ['Matt', 'Cat'],
+    history: [],
+    currentGame: { id: 'fin-2', name: 'Five Crowns', currentRound: 6, rounds: [] },
+    fetch: async () => ({
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          ok: true,
+          backup: {
+            allPlayers: ['Matt', 'Cat'],
+            players: ['Matt', 'Cat'],
+            history: [{ id: 'fin-2', game: 'Five Crowns', completed: true, winners: ['Cat'], totals: { Matt: 40, Cat: 18 } }],
+            playerProfiles: {},
+            currentGame: null
+          }
+        };
+      }
+    })
+  });
+  const res2 = await cloudFinished.api.pullPorchCloud();
+  assert.equal(res2.tableChanged, true);
+  assert.equal(cloudFinished.api.getState().currentGame, null);
+  assert.equal(cloudFinished.getCounts().saveCalls, 1);
+  assert.equal(cloudFinished.getCounts().navUpdatedCalls, 1);
+});
+
+test('back-to-back hide/pagehide flushes do not double-send, and persisted dirty state survives reload to retry on reconnect', async () => {
+  const sharedStorage = new Map();
+  let resolvePut = null;
+  let failPut = true;
+
+  // 1. Back-to-back flushPorchPushOnHide() calls share _porchBusy and send only one PUT;
+  //    if that PUT fails right before reload, gn_porch_dirty stays persisted in localStorage.
+  const beforeReload = createPorchHarness({
+    sharedStorage,
+    allPlayers: ['Matt'],
+    players: ['Matt'],
+    history: [{ id: 1, game: 'Five Crowns', totals: { Matt: 30 } }],
+    playerProfiles: { Matt: { avatar: 'saved-before-reload.png', updatedAt: Date.now() } },
+    fetch: async (url, init) => {
+      if (init.method === 'PUT') {
+        await new Promise(resolve => { resolvePut = resolve; });
+        if (failPut) throw new Error('offline during reload flush');
+        return { ok: true, status: 200, async json() { return { ok: true }; } };
+      }
+      return { ok: true, status: 200, async json() { return { ok: true, backup: null }; } };
+    }
+  });
+  beforeReload.api.setFlags({ pullSucceeded: true });
+  beforeReload.api.schedulePorchPush();
+  assert.equal(sharedStorage.get('gn_porch_dirty'), '1', 'dirty flag should persist in localStorage separate from backup JSON');
+
+  // Simulate visibilitychange === 'hidden' followed immediately by pagehide / applyPwaUpdate
+  beforeReload.api.flushPorchPushOnHide();
+  beforeReload.api.flushPorchPushOnHide();
+  assert.equal(beforeReload.fetchCalls.length, 1, 'back-to-back hide/pagehide flushes must not double-send');
+
+  // Let the offline flush fail right before reload
+  resolvePut();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(sharedStorage.get('gn_porch_dirty'), '1', 'failed flush must keep gn_porch_dirty persisted across reload');
+
+  // 2. Simulate full page reload with the same localStorage (fresh JS memory)
+  const sequence = [];
+  const putPayloads = [];
+  const afterReload = createPorchHarness({
+    sharedStorage,
+    allPlayers: ['Matt'],
+    players: ['Matt'],
+    history: [{ id: 1, game: 'Five Crowns', totals: { Matt: 30 } }],
+    playerProfiles: { Matt: { avatar: 'saved-before-reload.png', updatedAt: Date.now() } },
+    fetch: async (url, init) => {
+      sequence.push(init.method);
+      if (init.method === 'POST') {
+        return {
+          ok: true,
+          status: 200,
+          async json() {
+            return {
+              ok: true,
+              backup: {
+                savedAt: new Date(Date.now() - 60000).toISOString(),
+                allPlayers: ['Matt'],
+                players: ['Matt'],
+                history: [{ id: 1, game: 'Five Crowns', totals: { Matt: 30 } }],
+                playerProfiles: { Matt: { avatar: 'old.png' } },
+                currentGame: null
+              }
+            };
+          }
+        };
+      }
+      if (init.method === 'PUT') {
+        putPayloads.push(JSON.parse(init.body));
+        return { ok: true, status: 200, async json() { return { ok: true, savedAt: new Date().toISOString() }; } };
+      }
+      throw new Error(`Unexpected method ${init.method}`);
+    }
+  });
+
+  assert.equal(afterReload.api.getFlags().dirty, true, 'reloaded page must restore _porchDirty from localStorage');
+  afterReload.api.retryPorchCloudOnReconnect();
+  await new Promise(resolve => setTimeout(resolve, 15));
+
+  assert.deepEqual(sequence, ['POST', 'PUT'], 'reloaded page must pull first and then retry the persisted dirty PUT');
+  assert.equal(putPayloads.length, 1);
+  assert.equal(putPayloads[0].playerProfiles.Matt.avatar, 'saved-before-reload.png');
+  assert.equal(Object.prototype.hasOwnProperty.call(putPayloads[0], 'gn_porch_dirty'), false, 'persisted dirty key must stay outside backup JSON schema');
+  assert.equal(sharedStorage.has('gn_porch_dirty'), false, 'gn_porch_dirty clears once PUT succeeds');
 });

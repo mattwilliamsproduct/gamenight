@@ -254,17 +254,25 @@
     return { rounds, round, audit };
   }
 
-  function isRemoteLiveMatchNewer(localGame, remoteGame) {
+  function isRemoteLiveMatchNewer(localGame, remoteGame, remoteFallbackTs) {
     const localLive = liveMatch(localGame);
     const remoteLive = liveMatch(remoteGame);
     if (!remoteLive) return false;
     if (!localLive) return true;
     if (!sameLiveMatch(localLive, remoteLive)) return false;
+    const localTs = parseTimestampMs(localLive.updatedAt);
+    const remoteTs = parseTimestampMs(remoteLive.updatedAt);
+    if (localTs > 0 && remoteTs > 0 && remoteTs !== localTs) {
+      return remoteTs > localTs;
+    }
+    if (localTs > 0 && remoteTs === 0 && remoteFallbackTs > 0 && remoteFallbackTs !== localTs) {
+      return remoteFallbackTs > localTs;
+    }
     const lp = liveMatchProgress(localLive);
     const rp = liveMatchProgress(remoteLive);
+    if (rp.audit !== lp.audit) return rp.audit > lp.audit;
     if (rp.rounds !== lp.rounds) return rp.rounds > lp.rounds;
     if (rp.round !== lp.round) return rp.round > lp.round;
-    if (rp.audit !== lp.audit) return rp.audit > lp.audit;
     return false;
   }
 
@@ -302,16 +310,91 @@
     return merged;
   }
 
+  function matchIdKey(match) {
+    if (!match || typeof match !== 'object') return null;
+    const id = match.id != null ? match.id : match.gameId;
+    return id != null && String(id) !== '' ? String(id) : null;
+  }
+
+  function isFinishedHistoryMatch(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (match.outcome === 'paused') return false;
+    if (match.completed === true || match.gameOver === true || match.endedEarly === true) return true;
+    if (Array.isArray(match.winners) && match.winners.length > 0) return true;
+    if (match.outcome && match.outcome !== 'paused') return true;
+    if (match.completed !== false && match.game && match.totals && typeof match.totals === 'object') return true;
+    return false;
+  }
+
+  function isIntentionallyReopened(localGame, remoteHistoryEntry, remoteFallbackTs) {
+    const reopenedTs = parseTimestampMs(localGame?.reopenedAt);
+    if (!reopenedTs) return false;
+    const remoteTs = parseTimestampMs(remoteHistoryEntry?.finishedAt)
+      || parseTimestampMs(remoteHistoryEntry?.completedAt)
+      || remoteFallbackTs;
+    return remoteTs === 0 || reopenedTs >= remoteTs;
+  }
+
   function mergeCloud(local, remote) {
     if (!remote || typeof remote !== 'object') {
       return mergeBackup(local || {}, {});
     }
+    const remoteFallbackTs = parseTimestampMs(remote.savedAt) || parseTimestampMs(remote.exportedAt);
+    const localHistory = Array.isArray(local?.history) ? local.history : [];
+    const remoteHistory = Array.isArray(remote?.history) ? remote.history : [];
+    const localFinishedIds = new Set(localHistory.filter(isFinishedHistoryMatch).map(matchIdKey).filter(Boolean));
+    const remoteFinishedById = new Map();
+    remoteHistory.forEach(match => {
+      if (!isFinishedHistoryMatch(match)) return;
+      const key = matchIdKey(match);
+      if (key && !remoteFinishedById.has(key)) remoteFinishedById.set(key, match);
+    });
+
+    const localLive = liveMatch(local?.currentGame);
+    const localLiveId = matchIdKey(localLive);
+    const localLiveFinishedInRemote = !!(
+      localLiveId
+      && remoteFinishedById.has(localLiveId)
+      && !isIntentionallyReopened(localLive, remoteFinishedById.get(localLiveId), remoteFallbackTs)
+    );
+    const localLiveFinishedLocally = !!(localLiveId && localFinishedIds.has(localLiveId));
+    const localLiveIsStaleFinished = localLiveFinishedLocally || localLiveFinishedInRemote;
+
+    const remoteLive = liveMatch(remote?.currentGame);
+    const remoteLiveId = matchIdKey(remoteLive);
+    const remoteLiveIsStaleFinished = !!(
+      remoteLiveId && (localFinishedIds.has(remoteLiveId) || remoteFinishedById.has(remoteLiveId))
+    );
+
+    const localForMerge = Object.assign({}, local || {});
+    if (localLiveIsStaleFinished) {
+      localForMerge.currentGame = null;
+    }
+
     const incoming = Object.assign({}, remote);
-    if (local?.currentGame && local.currentGame.name && !isRemoteLiveMatchNewer(local.currentGame, remote.currentGame)) {
+    if (remoteLiveIsStaleFinished) {
+      delete incoming.currentGame;
+    } else if (
+      localForMerge.currentGame
+      && localForMerge.currentGame.name
+      && !isRemoteLiveMatchNewer(localForMerge.currentGame, remote.currentGame, remoteFallbackTs)
+    ) {
       delete incoming.currentGame;
     }
-    const result = mergeBackup(local || {}, incoming);
-    const remoteFallbackTs = parseTimestampMs(remote.savedAt) || parseTimestampMs(remote.exportedAt);
+
+    const result = mergeBackup(localForMerge, incoming);
+    // If local intentionally reopened a finished match, keep it active and drop the stale finished copy.
+    if (localLive && localLiveId && remoteFinishedById.has(localLiveId) && !localLiveFinishedInRemote) {
+      result.next.history = result.next.history.filter(match => matchIdKey(match) !== localLiveId);
+    }
+    // Final invariant: never leave a finished match ID on the active table unless intentionally reopened.
+    const finalLiveId = matchIdKey(result.next.currentGame);
+    if (finalLiveId) {
+      const finishedInResult = result.next.history.find(match => matchIdKey(match) === finalLiveId && isFinishedHistoryMatch(match));
+      if (finishedInResult) {
+        result.next.currentGame = null;
+      }
+    }
     result.next.playerProfiles = mergeCloudProfiles(local?.playerProfiles, remote.playerProfiles, remoteFallbackTs);
     return result;
   }

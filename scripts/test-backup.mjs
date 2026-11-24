@@ -181,3 +181,236 @@ test('parseBackup rejects junk and accepts a v1 paste payload', () => {
   }));
   assert.equal(parsed.history[0].game, 'Beat the Heat');
 });
+
+test('cloud merge never revives a finished match in either direction while keeping a different live match and Resume/Reopen intact', () => {
+  // 1. Finished locally while cloud still holds stale in-progress currentGame for same ID
+  const finishedLocally = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [{ id: 'm-1', game: 'Five Crowns', completed: true, winners: ['Matt'], totals: { Matt: 12, Cat: 30 } }],
+      playerProfiles: {},
+      currentGame: null
+    },
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'm-1', name: 'Five Crowns', currentRound: 5, rounds: [{ round: 1, scores: { Matt: 0, Cat: 5 } }] }
+    }
+  );
+  assert.equal(finishedLocally.next.currentGame, null, 'stale cloud currentGame must not revive a locally finished match');
+
+  // 2. Finished in cloud while local still holds stale in-progress currentGame for same ID
+  const finishedInCloud = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'm-1', name: 'Five Crowns', currentRound: 5, rounds: [{ round: 1, scores: { Matt: 0, Cat: 5 } }] }
+    },
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [{ id: 'm-1', game: 'Five Crowns', completed: true, winners: ['Matt'], totals: { Matt: 12, Cat: 30 } }],
+      playerProfiles: {},
+      currentGame: null
+    }
+  );
+  assert.equal(finishedInCloud.next.currentGame, null, 'stale local currentGame must clear when match is finished in cloud');
+  assert.equal(finishedInCloud.next.history.some(h => h.id === 'm-1' && h.completed === true), true);
+
+  // 3. Different live match stays active on the table
+  const differentLive = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'm-2', name: 'Wizard', currentRound: 3, rounds: [{ round: 1, scores: { Matt: 20, Cat: 20 } }] }
+    },
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [{ id: 'm-1', game: 'Five Crowns', completed: true, winners: ['Matt'], totals: { Matt: 12, Cat: 30 } }],
+      playerProfiles: {},
+      currentGame: { id: 'm-1', name: 'Five Crowns', currentRound: 5, rounds: [] }
+    }
+  );
+  assert.equal(differentLive.next.currentGame?.id, 'm-2', 'a different live match must remain on the table');
+
+  // 4. Intentional Resume of a paused match stays active even if cloud still has the paused entry
+  const resumedPaused = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'm-3', name: 'Five Crowns', currentRound: 4, rounds: [] }
+    },
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [{ id: 'm-3', game: 'Five Crowns', outcome: 'paused', completed: false, gameOver: false, winners: [], totals: { Matt: 10, Cat: 15 } }],
+      playerProfiles: {},
+      currentGame: null
+    }
+  );
+  assert.equal(resumedPaused.next.currentGame?.id, 'm-3', 'resumed paused match must stay active');
+
+  // 5. Intentional Reopen of a finished match stays active over an older finished cloud entry
+  const reopenedMatch = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'm-4', name: 'Beat the Heat', currentRound: 5, rounds: [], reopenedAt: Date.now() }
+    },
+    {
+      savedAt: new Date(Date.now() - 60000).toISOString(),
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [{ id: 'm-4', game: 'Beat the Heat', completed: true, winners: ['Matt'], totals: { Matt: 40, Cat: 68 } }],
+      playerProfiles: {},
+      currentGame: null
+    }
+  );
+  assert.equal(reopenedMatch.next.currentGame?.id, 'm-4', 'intentionally reopened match must stay active');
+  assert.equal(reopenedMatch.next.history.some(h => h.id === 'm-4'), false, 'stale finished copy should not duplicate reopened match');
+});
+
+test('cloud merge protects local offline Undo and accepts genuinely newer cloud updates across pre-updatedAt copies', () => {
+  // (a1) Stale cloud snapshot (older updatedAt) cannot overwrite a local offline Undo
+  const undoWithTimestamps = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: {
+        id: 'undo-1',
+        name: 'Five Crowns',
+        currentRound: 3,
+        updatedAt: 20000,
+        rounds: [{ round: 1, scores: { Matt: 0, Cat: 5 } }, { round: 2, scores: { Matt: 4, Cat: 8 } }],
+        auditLog: [{ action: 'Match started' }, { action: 'R1' }, { action: 'R2' }, { action: 'R3' }, { action: 'R3 undone' }]
+      }
+    },
+    {
+      savedAt: new Date(10000).toISOString(),
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: {
+        id: 'undo-1',
+        name: 'Five Crowns',
+        currentRound: 4,
+        updatedAt: 10000,
+        rounds: [
+          { round: 1, scores: { Matt: 0, Cat: 5 } },
+          { round: 2, scores: { Matt: 4, Cat: 8 } },
+          { round: 3, scores: { Matt: 20, Cat: 12 } }
+        ],
+        auditLog: [{ action: 'Match started' }, { action: 'R1' }, { action: 'R2' }, { action: 'R3' }]
+      }
+    }
+  );
+  assert.equal(undoWithTimestamps.next.currentGame.rounds.length, 2, 'local offline undo must survive older timestamped cloud copy');
+  assert.equal(undoWithTimestamps.next.currentGame.currentRound, 3);
+
+  // (a2) Stale cloud snapshot predating updatedAt (no updatedAt, no savedAt) still loses to local undo via append-only auditLog
+  const undoVsLegacyCloud = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: {
+        id: 'undo-2',
+        name: 'Five Crowns',
+        currentRound: 3,
+        updatedAt: 20000,
+        rounds: [{ round: 1 }, { round: 2 }],
+        auditLog: [{ action: 'start' }, { action: 'R1' }, { action: 'R2' }, { action: 'R3' }, { action: 'R3 undone' }]
+      }
+    },
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: {
+        id: 'undo-2',
+        name: 'Five Crowns',
+        currentRound: 4,
+        rounds: [{ round: 1 }, { round: 2 }, { round: 3 }],
+        auditLog: [{ action: 'start' }, { action: 'R1' }, { action: 'R2' }, { action: 'R3' }]
+      }
+    }
+  );
+  assert.equal(undoVsLegacyCloud.next.currentGame.rounds.length, 2, 'local undo must survive untimestamped legacy cloud copy');
+
+  // (b1) Stale local match (with older updatedAt) accepts genuinely newer cloud update (with newer updatedAt)
+  const newerCloudBothTs = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'live-1', name: 'Five Crowns', currentRound: 2, updatedAt: 10000, rounds: [{ round: 1 }], auditLog: [{ action: 'R1' }] }
+    },
+    {
+      savedAt: new Date(25000).toISOString(),
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'live-1', name: 'Five Crowns', currentRound: 4, updatedAt: 25000, rounds: [{ round: 1 }, { round: 2 }, { round: 3 }], auditLog: [{ action: 'R1' }, { action: 'R2' }, { action: 'R3' }] }
+    }
+  );
+  assert.equal(newerCloudBothTs.next.currentGame.rounds.length, 3, 'stale local match must accept newer cloud match');
+
+  // (b2) Stale local match predating updatedAt accepts genuinely newer cloud update (with updatedAt)
+  const legacyLocalNewerCloud = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'live-2', name: 'Five Crowns', currentRound: 2, rounds: [{ round: 1 }], auditLog: [{ action: 'R1' }] }
+    },
+    {
+      savedAt: new Date(30000).toISOString(),
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'live-2', name: 'Five Crowns', currentRound: 4, updatedAt: 30000, rounds: [{ round: 1 }, { round: 2 }, { round: 3 }], auditLog: [{ action: 'R1' }, { action: 'R2' }, { action: 'R3' }] }
+    }
+  );
+  assert.equal(legacyLocalNewerCloud.next.currentGame.rounds.length, 3, 'legacy local match without updatedAt must accept newer cloud match');
+
+  // (b3) Stale local match (with updatedAt) accepts genuinely newer legacy cloud update (no updatedAt, newer savedAt)
+  const localTsNewerLegacyCloud = Backup.mergeCloud(
+    {
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'live-3', name: 'Five Crowns', currentRound: 2, updatedAt: 10000, rounds: [{ round: 1 }], auditLog: [{ action: 'R1' }] }
+    },
+    {
+      savedAt: new Date(30000).toISOString(),
+      allPlayers: ['Matt', 'Cat'],
+      players: ['Matt', 'Cat'],
+      history: [],
+      playerProfiles: {},
+      currentGame: { id: 'live-3', name: 'Five Crowns', currentRound: 3, rounds: [{ round: 1 }, { round: 2 }], auditLog: [{ action: 'R1' }, { action: 'R2' }] }
+    }
+  );
+  assert.equal(localTsNewerLegacyCloud.next.currentGame.rounds.length, 2, 'stale timestamped local match must accept newer legacy cloud update');
+});

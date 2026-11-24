@@ -1,4 +1,4 @@
-const CACHE_NAME = 'back-porch-shell-local-1795530000000';
+const CACHE_NAME = 'back-porch-shell-local-1795550000000';
 const APP_SHELL = [
   './',
   './index.html',
@@ -34,9 +34,9 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(Promise.all([
-    self.clients.claim(),
-    caches.keys().then(keys => Promise.all(
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
       keys.map(async key => {
         if(key.startsWith('back-porch-shell-') && key !== CACHE_NAME) {
           return caches.delete(key);
@@ -49,8 +49,9 @@ self.addEventListener('activate', event => {
             .map(req => cache.delete(req))
         );
       })
-    ))
-  ]));
+    );
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('message', event => {
