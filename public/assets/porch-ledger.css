@@ -4207,3 +4207,11 @@ html.porch-ledger.slice2-tv #scorecard-capture :is(.score-cell-life-preserver, .
   font-variant-numeric: tabular-nums;
   color: #0c4a6e;
 }
+
+html.porch-ledger.slice2-tv #scorecard-capture .score-sign {
+  display: inline;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  transform: none !important;
+  margin-inline: 0 !important;
+}
