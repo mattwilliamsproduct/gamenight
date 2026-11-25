@@ -166,7 +166,7 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
 
   await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams'});
+  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams', teamCount:3});
   expect(setup.sides).toBe(3);
   expect(setup.seats).toEqual(['Ann','Bo','Cy','Dee','Eve','Fay']);
   expect(setup.note).toMatch(/Three pairs/);
@@ -231,4 +231,86 @@ test('tapping the other team swaps the pair and leaves dealer order', async ({pa
     dealer:0,
     sides:['Ann & Cy','Bo & Dee']
   });
+});
+
+test('six-player Canasta defaults to 2 teams of 3, swaps seat 3, scores, and credits all 3 teammates', async ({page})=>{
+  test.setTimeout(120000);
+  await freshTable(page);
+  await seatPlayers(page, ['Ann','Bo','Cy','Dee','Eve','Fay']);
+  await openHandFootSetup(page);
+
+  await expect(page.locator('#hand-foot-split-toggle')).toBeVisible();
+  await expect(page.locator('#hf-split-2')).toHaveClass(/rook-opt-active/);
+  await expect(page.locator('#hf-split-2')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#hf-split-3')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#hand-foot-setup-note')).toHaveText('Two teams of three. All teammates keep the team score.');
+  await expect(page.locator('#hand-foot-setup-sides .hf-setup-side')).toHaveCount(2);
+  await expect(page.locator('#hand-foot-setup-sides .hf-team-person')).toHaveCount(6);
+
+  // Toggling to 3 pairs and back preserves all 6 players cleanly.
+  await page.locator('#hf-split-3').click();
+  await expect(page.locator('#hf-split-3')).toHaveClass(/rook-opt-active/);
+  await expect(page.locator('#hand-foot-setup-note')).toHaveText('Three pairs. Both partners keep the team score.');
+  await expect(page.locator('#hand-foot-setup-sides .hf-setup-side')).toHaveCount(3);
+  await page.locator('#hf-split-2').click();
+  await expect(page.locator('#hf-split-2')).toHaveClass(/rook-opt-active/);
+  await expect(page.locator('#hand-foot-setup-sides .hf-setup-side')).toHaveCount(2);
+
+  // Swap seat 3 (Cy) on Team 1 with seat 3 (Fay) on Team 2.
+  await page.locator('.hf-team-person[data-name="Cy"]').click();
+  await page.locator('.hf-team-person[data-name="Fay"]').click();
+  const seatsAfterSwap=await page.locator('.hf-team-person').evaluateAll(els=>els.map(el=>el.dataset.name));
+  expect(seatsAfterSwap).toEqual(['Ann','Bo','Fay','Dee','Eve','Cy']);
+
+  await page.getByRole('button', {name:/Start match/}).click();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  await expect(page.locator('#scorecard-body tr')).toHaveCount(2);
+  await expect(page.locator('#scorecard-body')).toContainText('Ann, Bo & Fay');
+  await expect(page.locator('#scorecard-body')).toContainText('Dee, Eve & Cy');
+
+  await playFourRounds(page, 'trios6');
+  const game=await readGame(page);
+  expect(game.handFoot.sides.map(side=>side.members)).toEqual([['Ann','Bo','Fay'],['Dee','Eve','Cy']]);
+  expect(game.rounds).toHaveLength(4);
+  expect(game.rounds[0].scores.Ann).toBe(2150);
+  expect(game.rounds[0].scores.Bo).toBe(2150);
+  expect(game.rounds[0].scores.Fay).toBe(2150);
+  expect(game.rounds[0].scores.Dee).toBe(280);
+  expect(game.rounds[0].scores.Eve).toBe(280);
+  expect(game.rounds[0].scores.Cy).toBe(280);
+  await expect(page.locator('#game-over-section')).toBeVisible();
+
+  await endMatch(page);
+  await expect(page.locator('#victory-names')).toContainText('Ann');
+  await expect(page.locator('#victory-names')).toContainText('Bo');
+  await expect(page.locator('#victory-names')).toContainText('Fay');
+
+  const history=await readHistory(page);
+  const saved=history.find(item=>item.game==='Hand and Foot' && item.originalRoster?.length===6);
+  expect(saved?.handFoot?.sides?.map(side=>side.members)).toEqual([['Ann','Bo','Fay'],['Dee','Eve','Cy']]);
+  expect((saved?.winners||[]).slice().sort()).toEqual(['Ann','Bo','Fay']);
+
+  // Verify Player Passports credit all 3 winning teammates with 1 win / 1 game and opponents with 0 wins / 1 game.
+  await page.evaluate(()=>{ if(typeof showProfiles==='function') showProfiles(); });
+  await expect(page.locator('#profiles-grid')).toBeVisible();
+  const passports=await page.evaluate(()=>{
+    const out={};
+    document.querySelectorAll('.profile-passport-card').forEach(card=>{
+      const name=card.querySelector('.profile-passport-name')?.textContent?.trim();
+      const stats=[...card.querySelectorAll('.profile-mini-stat')].map(el=>({
+        label:el.querySelector('span')?.textContent?.trim(),
+        value:el.querySelector('strong')?.textContent?.trim()
+      }));
+      const games=stats.find(row=>row.label==='Games');
+      const wins=stats.find(row=>row.label==='Wins');
+      if(name) out[name]={wins:Number(wins?.value), games:Number(games?.value)};
+    });
+    return out;
+  });
+  expect(passports.Ann).toEqual({wins:1, games:1});
+  expect(passports.Bo).toEqual({wins:1, games:1});
+  expect(passports.Fay).toEqual({wins:1, games:1});
+  expect(passports.Dee).toEqual({wins:0, games:1});
+  expect(passports.Eve).toEqual({wins:0, games:1});
+  expect(passports.Cy).toEqual({wins:0, games:1});
 });

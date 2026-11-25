@@ -48,6 +48,16 @@ test('porch night can score a full Hand and Foot table without calling the cloud
 
   await freshTable(page);
   setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams'});
+  expect(setup.sides).toBe(2);
+  expect(setup.note).toMatch(/Two teams of three/);
+  await playFourRounds(page, 'trios6');
+  game=await readGame(page);
+  expect(game.rounds).toHaveLength(4);
+  expect(game.handFoot.sides.every(side=>side.members.length===3)).toBe(true);
+  await endMatch(page);
+
+  await freshTable(page);
+  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams', teamCount:3});
   expect(setup.sides).toBe(3);
   expect(setup.note).toMatch(/Three pairs/);
   await playFourRounds(page, 'pairs6');

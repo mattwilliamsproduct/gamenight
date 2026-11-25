@@ -514,3 +514,66 @@ test('Left early score stays on the card at 1024, 1440, and 390', async ({page})
     expect(inView, `${viewport.width} Linda row in view`).toBe(true);
   }
 });
+
+test('six-player Canasta 2 teams of 3 stays tappable and unclipped on iPad landscape, TV, and 390px phone', async ({page}) => {
+  test.setTimeout(120000);
+  for (const viewport of [
+    {name: 'ipad-landscape', width: 1024, height: 768},
+    {name: 'tv', width: 1440, height: 900},
+    {name: 'phone', width: 390, height: 844}
+  ]) {
+    await page.setViewportSize({width: viewport.width, height: viewport.height});
+    await freshTable(page);
+    await seatPlayers(page, ['Megan', 'Mekelle', 'Mike', 'Vicki', 'Matt', 'Linda']);
+    await openHandFootSetup(page);
+
+    const setupAudit = await page.evaluate(() => {
+      const vw = window.innerWidth;
+      const modal = document.querySelector('#hand-foot-setup-modal .hf-setup-card');
+      const modalBox = modal?.getBoundingClientRect();
+      const targets = [...document.querySelectorAll('#hand-foot-setup-modal .hf-team-person, #hand-foot-setup-modal button')].map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 24),
+          width: r.width,
+          height: r.height,
+          left: r.left,
+          right: r.right
+        };
+      });
+      const small = targets.filter((t) => t.width < 44 || t.height < 44);
+      const clipped = targets.filter((t) => t.left < -1 || t.right > vw + 1);
+      const overflow = modal ? modal.scrollWidth - modal.clientWidth : 0;
+      return {
+        small,
+        clipped,
+        overflow,
+        modalRight: modalBox ? modalBox.right : 0,
+        vw,
+        sides: document.querySelectorAll('#hand-foot-setup-sides .hf-setup-side').length
+      };
+    });
+    expect(setupAudit.sides, `${viewport.name} 2x3 sides`).toBe(2);
+    expect(setupAudit.small, `${viewport.name} 2x3 small targets`).toEqual([]);
+    expect(setupAudit.clipped, `${viewport.name} 2x3 clipped targets`).toEqual([]);
+    expect(setupAudit.overflow, `${viewport.name} 2x3 modal horizontal overflow`).toBeLessThanOrEqual(2);
+
+    await page.getByRole('button', {name: /Start match/}).click();
+    await expect(page.locator('#game-screen')).toBeVisible();
+    await openScoreEntry(page);
+    await typeRound(page, [{basic: '1600', count: '450', got22: true, cardsLeft: '95'}]);
+    const entry = await entryProblems(page);
+    expect(entry, `${viewport.name} 2x3 entry`).toEqual([]);
+    if (viewport.name === 'phone') {
+      const active = await activeRowProblems(page);
+      expect(active, `${viewport.name} 2x3 active row`).toEqual([]);
+    }
+    await typeRound(page, [{basic: '300', count: '0', cardsLeft: '20'}]);
+    await submitEntry(page);
+    await playRound(page, [{basic: '0', count: '0', cardsLeft: '0'}, {basic: '0', count: '0', cardsLeft: '0'}]);
+    await playRound(page, [{basic: '100', count: '0', cardsLeft: '0'}, {basic: '0', count: '10', cardsLeft: '0'}]);
+    await playRound(page, [{basic: '0', count: '0', cardsLeft: '0'}, {basic: '0', count: '0', cardsLeft: '0'}]);
+    const card = await scorecardProblems(page);
+    expect(card.problems, `${viewport.name} 2x3 scorecard ${JSON.stringify(card.headers)}`).toEqual([]);
+  }
+});

@@ -943,3 +943,77 @@ test('an edited round total clears a breakdown that would no longer add up', () 
   assert.equal(cleared.cardsLeft, undefined);
   assert.equal(cleared.got22, undefined);
 });
+
+test('six-player Canasta supports both 2 teams of 3 and 3 pairs, swaps seat 3, and credits all 3 teammates', () => {
+  const Scorebook = require('../public/assets/scorebook.js');
+  const Records = require('../public/assets/records-logic.js');
+  const roster = ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'];
+
+  assert.equal(HF.canChooseTeamSplit(4), false);
+  assert.equal(HF.canChooseTeamSplit(6), true);
+  assert.equal(HF.defaultTeamSplit(6), 2);
+  assert.deepEqual(HF.defaultTeams(roster, 2), [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]);
+  assert.deepEqual(HF.defaultTeams(roster, 3), [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]);
+  assert.equal(HF.teamsCover(roster, [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]), true);
+  assert.equal(HF.teamsCover(roster, [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]), true);
+  assert.equal(HF.teamsCover(roster, [['Ann', 'Bo', 'Cy', 'Dee'], ['Eve', 'Fay']]), false);
+
+  const trios = HF.buildSides(roster, 'teams', null, { teamCount: 2 });
+  assert.equal(trios.length, 2);
+  assert.deepEqual(trios.map(side => side.key), ['Ann, Bo & Cy', 'Dee, Eve & Fay']);
+  assert.deepEqual(trios.map(side => side.members), [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]);
+
+  const threePairs = HF.buildSides(roster, 'teams', null, { teamCount: 3 });
+  assert.equal(threePairs.length, 3);
+  assert.deepEqual(threePairs.map(side => side.members), [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]);
+
+  // Swapping seat index 2 (third player on Team 1) with a player on Team 2 works cleanly.
+  const swapped = HF.swapPairMember([['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']], 0, 2, 'Fay');
+  assert.deepEqual(swapped, [['Ann', 'Bo', 'Fay'], ['Dee', 'Eve', 'Cy']]);
+  const swappedSides = HF.buildSides(roster, 'teams', swapped, { teamCount: 2 });
+  assert.deepEqual(swappedSides.map(side => side.key), ['Ann, Bo & Fay', 'Dee, Eve & Cy']);
+
+  // Scoring fans out to all 3 teammates and never stores the composite team label as a player key.
+  const round1 = HF.persistTeamRound(1, {
+    'Ann, Bo & Fay': { basic: 1500, count: 450, got22: true, wentOut: true, cardsLeft: 0 },
+    'Dee, Eve & Cy': { basic: 300, count: 120, got22: false, wentOut: false, cardsLeft: 20 }
+  }, swappedSides);
+  assert.equal(round1.scores.Ann, 2150);
+  assert.equal(round1.scores.Bo, 2150);
+  assert.equal(round1.scores.Fay, 2150);
+  assert.equal(round1.scores.Dee, 400);
+  assert.equal(round1.scores.Eve, 400);
+  assert.equal(round1.scores.Cy, 400);
+  assert.equal(round1.scores['Ann, Bo & Fay'], undefined);
+
+  const match = {
+    id: 'hf-trios-1',
+    game: 'Hand and Foot',
+    name: 'Hand and Foot',
+    date: '2026-11-24T20:00:00.000Z',
+    completed: true,
+    outcome: 'completed',
+    originalRoster: roster,
+    handFoot: { format: 'teams', sides: swappedSides },
+    rounds: [round1, round1, round1, round1],
+    totals: { Ann: 8600, Bo: 8600, Fay: 8600, Dee: 1600, Eve: 1600, Cy: 1600 },
+    winners: ['Ann', 'Bo', 'Fay']
+  };
+
+  assert.deepEqual(HF.recordedKeys(swappedSides).sort(), roster.slice().sort());
+  assert.deepEqual(
+    Scorebook.canastaTeamPlaces(match, ['Ann', 'Bo', 'Fay', 'Dee', 'Eve', 'Cy']).places,
+    { 'Ann, Bo & Fay': 1, 'Dee, Eve & Cy': 2, Ann: 1, Bo: 1, Fay: 1, Dee: 2, Eve: 2, Cy: 2 }
+  );
+  // Even if stored winners only had one teammate, withCanastaPartners credits all 3 teammates.
+  assert.deepEqual(
+    Records.eligibleWinners({ ...match, winners: ['Ann'] }).sort(),
+    ['Ann', 'Bo', 'Fay']
+  );
+  // Event totals and rename propagate across all 3 teammates.
+  assert.equal(HF.playerEventTotals([match], 'Fay').wentOut, 4);
+  assert.equal(HF.playerEventTotals([match], 'Fay').got22, 4);
+  const renamed = HF.renameMember(match.handFoot, 'Fay', 'Faith').config.sides;
+  assert.deepEqual(renamed[0].members, ['Ann', 'Bo', 'Faith']);
+  assert.equal(renamed[0].key, 'Ann, Bo & Faith');
+});

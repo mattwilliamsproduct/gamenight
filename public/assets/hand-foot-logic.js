@@ -54,6 +54,17 @@
     return count === 4 || count === 6;
   }
 
+  // 6-player Teams can split into 2 teams of 3 (default in the picker) or 3 pairs of 2.
+  function canChooseTeamSplit(count) {
+    return count === 6;
+  }
+
+  function defaultTeamSplit(count) {
+    if (count === 6) return 2;
+    if (count === 4) return 2;
+    return 0;
+  }
+
   function sideKey(members) {
     const names = (members || []).filter(Boolean);
     if (names.length <= 1) return names[0] || '';
@@ -69,14 +80,26 @@
     return pairs;
   }
 
-  function pairsCover(names, pairs) {
-    if (!Array.isArray(pairs) || pairs.length !== names.length / 2) return false;
+  // Split 6 players into 2 teams of 3 or 3 pairs of 2; 4 players stay 2 pairs of 2.
+  function defaultTeams(roster, teamCount) {
+    const names = (roster || []).filter(Boolean);
+    if (names.length === 6 && teamCount === 2) {
+      return [names.slice(0, 3), names.slice(3, 6)];
+    }
+    return defaultPairs(names);
+  }
+
+  function teamsCover(names, teams) {
+    if (!Array.isArray(teams) || teams.length < 2) return false;
+    if (names.length !== 4 && names.length !== 6) return false;
+    const expectedSize = names.length / teams.length;
+    if (expectedSize !== 2 && expectedSize !== 3) return false;
     const used = new Set();
-    for (let i = 0; i < pairs.length; i++) {
-      const pair = pairs[i];
-      if (!Array.isArray(pair) || pair.length !== 2) return false;
-      for (let s = 0; s < 2; s++) {
-        const name = pair[s];
+    for (let i = 0; i < teams.length; i++) {
+      const group = teams[i];
+      if (!Array.isArray(group) || group.length !== expectedSize) return false;
+      for (let s = 0; s < expectedSize; s++) {
+        const name = group[s];
         if (!name || used.has(name) || names.indexOf(name) === -1) return false;
         used.add(name);
       }
@@ -84,15 +107,24 @@
     return used.size === names.length;
   }
 
-  // 4 players are two pairs. 6 players are three pairs of 2.
-  // A custom pair list is used only when every name is in exactly one pair.
-  function buildSides(roster, format, pairs) {
+  function pairsCover(names, pairs) {
+    return teamsCover(names, pairs);
+  }
+
+  // 4 players are two pairs. 6 players can be 2 teams of 3 or 3 pairs of 2.
+  // A custom team list is used only when every name is in exactly one equal-sized team.
+  function buildSides(roster, format, pairs, options) {
     const names = (roster || []).filter(Boolean);
     const useTeams = format === 'teams' && (names.length === 4 || names.length === 6);
     if (!useTeams) {
       return names.map(name => ({ key: name, members: [name] }));
     }
-    const chosen = pairsCover(names, pairs) ? pairs : defaultPairs(names);
+    const requestedCount = options && (options.teamCount === 2 || options.teamCount === 3)
+      ? options.teamCount
+      : null;
+    const chosen = teamsCover(names, pairs)
+      ? pairs
+      : (requestedCount ? defaultTeams(names, requestedCount) : defaultPairs(names));
     return chosen.map(members => ({
       key: sideKey(members),
       members: members.slice()
@@ -100,10 +132,10 @@
   }
 
   // Moving a player into a seat swaps them with whoever sat there,
-  // so every name stays in exactly one pair.
+  // so every name stays in exactly one team (works for pairs and teams of 3).
   function swapPairMember(pairs, pairIndex, seat, name) {
     const next = (pairs || []).map(pair => (pair || []).slice());
-    if (!next[pairIndex] || (seat !== 0 && seat !== 1)) return next;
+    if (!Array.isArray(next[pairIndex]) || seat < 0 || seat >= next[pairIndex].length) return next;
     const current = next[pairIndex][seat];
     if (!name || current === name) return next;
     let fromPair = -1;
@@ -821,10 +853,15 @@
     usesStructuredScore,
     defaultFormat,
     canSwitchToSingles,
+    canChooseTeamSplit,
+    defaultTeamSplit,
     sideKey,
     defaultPairs,
+    defaultTeams,
+    teamsCover,
     buildSides,
     swapPairMember,
+    swapTeamMember: swapPairMember,
     parsePart,
     usesBasicCount,
     acceptCardsLeft,

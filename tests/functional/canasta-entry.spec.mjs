@@ -266,6 +266,16 @@ test('three and six Canasta cards scroll at full size with the keypad open', asy
   await freshTable(page);
   await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], format: 'teams'});
   await openScoreEntry(page);
+  const trioNormal = await entryMeasure(page);
+  expect(trioNormal.problems).toEqual([]);
+  expect(trioNormal.cols).toBe(2);
+  expect(trioNormal.cards).toBe(2);
+  expect(trioNormal.valuePx).toBeCloseTo(pairNormal.valuePx, 0);
+
+  await page.locator('#score-entry-modal button', {hasText: 'Cancel'}).click();
+  await freshTable(page);
+  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], format: 'teams', teamCount: 3});
+  await openScoreEntry(page);
   const threeNormal = await entryMeasure(page);
   expect(threeNormal.problems).toEqual([]);
   expect(threeNormal.cols).toBe(2);

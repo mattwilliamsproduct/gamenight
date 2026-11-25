@@ -10512,6 +10512,7 @@ button.dealer-name-indicator .dealer-player-label {
           <button type="button" id="hf-format-teams" onclick="handFootSetupFormat('teams')" class="rook-setup-btn py-2 px-5 rounded-xl text-sm font-extrabold border hairline transition-all">Teams</button>
           <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn py-2 px-5 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
         </div>
+        <div id="hand-foot-split-toggle" class="hidden hf-split-toggle" role="group" aria-label="Team split"></div>
         <p id="hand-foot-setup-order" aria-live="polite" class="hidden text-base font-semibold mb-3 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Tap a player, then someone on the other team to swap.</p>
         <div id="hand-foot-setup-sides" class="space-y-3"></div>
         <p id="hand-foot-setup-score" class="hidden text-base font-semibold mt-1 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Enter one score per team each round.</p>
@@ -16137,7 +16138,9 @@ button.dealer-name-indicator .dealer-player-label {
     const roster=players.filter(Boolean);
     const api=handFootApi();
     const format=api?api.defaultFormat(roster.length):'singles';
-    _hfSetup={roster, format, pairs:api?api.defaultPairs(roster):[]};
+    const teamCount=api&&typeof api.defaultTeamSplit==='function'?api.defaultTeamSplit(roster.length):2;
+    const pairs=api&&typeof api.defaultTeams==='function'?api.defaultTeams(roster, teamCount):(api?api.defaultPairs(roster):[]);
+    _hfSetup={roster, format, teamCount, pairs};
     renderHandFootSetup();
     const m=document.getElementById('hand-foot-setup-modal');
     m.classList.remove('hidden');
@@ -16151,13 +16154,29 @@ button.dealer-name-indicator .dealer-player-label {
     if(toggle) toggle.classList.remove('hidden');
     document.getElementById('hf-format-teams')?.classList.toggle('rook-opt-active', _hfSetup.format==='teams');
     document.getElementById('hf-format-singles')?.classList.toggle('rook-opt-active', _hfSetup.format==='singles');
+    const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
+    const canSplit=teamPairs&&(api&&typeof api.canChooseTeamSplit==='function'?api.canChooseTeamSplit(count):count===6);
+    const teamCount=canSplit?(_hfSetup.teamCount===3?3:2):2;
+    _hfSetup.teamCount=teamCount;
+    const splitToggle=document.getElementById('hand-foot-split-toggle');
+    if(splitToggle){
+      splitToggle.classList.toggle('hidden', !canSplit);
+      splitToggle.innerHTML=canSplit
+        ? `<button type="button" id="hf-split-2" onclick="handFootSetupSplit(2)" class="rook-setup-btn hf-split-btn${teamCount===2?' rook-opt-active':''}" aria-pressed="${teamCount===2?'true':'false'}">2 teams of 3</button><button type="button" id="hf-split-3" onclick="handFootSetupSplit(3)" class="rook-setup-btn hf-split-btn${teamCount===3?' rook-opt-active':''}" aria-pressed="${teamCount===3?'true':'false'}">3 pairs</button>`
+        : '';
+    }
     const note=document.getElementById('hand-foot-setup-note');
     const order=document.getElementById('hand-foot-setup-order');
     let noteText='Each player scores their own column.';
     if(_hfSetup.format==='teams'&&count===4) noteText='Two pairs. Both partners keep the team score.';
+    else if(_hfSetup.format==='teams'&&count===6&&teamCount===2) noteText='Two teams of three. All teammates keep the team score.';
     else if(_hfSetup.format==='teams'&&count===6) noteText='Three pairs. Both partners keep the team score.';
     if(note) note.textContent=noteText;
-    const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
+    if(teamPairs && (!_hfSetup.pairs || _hfSetup.pairs.length!==teamCount)){
+      const ordered=(_hfSetup.pairs||[]).flat().filter(Boolean);
+      const source=ordered.length===count?ordered:_hfSetup.roster;
+      _hfSetup.pairs=api&&typeof api.defaultTeams==='function'?api.defaultTeams(source, teamCount):(api?api.defaultPairs(source):[]);
+    }
     if(order){
       const pick=_hfSetup.swapPick;
       order.classList.toggle('hidden', !teamPairs);
@@ -16167,17 +16186,16 @@ button.dealer-name-indicator .dealer-player-label {
     }
     const scoreLine=document.getElementById('hand-foot-setup-score');
     if(scoreLine) scoreLine.classList.toggle('hidden', !teamPairs);
-    if(!_hfSetup.pairs) _hfSetup.pairs=api?api.defaultPairs(_hfSetup.roster):[];
-    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null, teamPairs?{teamCount}:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
     const box=document.getElementById('hand-foot-setup-sides');
     if(!box) return;
     if(teamPairs){
       const pick=_hfSetup.swapPick;
-      box.innerHTML=`<div class="hf-team-grid">${(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<section class="hf-setup-side" aria-label="Team ${pairIndex+1}">
+      const isTrios=(_hfSetup.pairs||[]).some(group=>group.length===3);
+      box.innerHTML=`<div class="hf-team-grid${isTrios?' hf-team-grid--trios':''}">${(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<section class="hf-setup-side" aria-label="Team ${pairIndex+1}">
         <div class="hf-team-kicker">Team ${pairIndex+1}</div>
         <div class="hf-team-people">
-          ${[0,1].map(seat=>{
-            const name=pair[seat];
+          ${pair.map((name,seat)=>{
             const on=!!(pick&&pick.pairIndex===pairIndex&&pick.seat===seat);
             const target=pick&&pick.pairIndex!==pairIndex;
             return `<button type="button" class="hf-team-person${on?' is-swap-from':target?' is-swap-target':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})"><span class="hf-team-portrait">${getAvatarImg(name,'avatar-img')}</span><span class="player-name-label">${escapeHtml(name)}</span></button>`;
@@ -16192,6 +16210,19 @@ button.dealer-name-indicator .dealer-player-label {
       </div>
     </section>`).join('')}</div>`;
   }
+  function handFootSetupSplit(teamCount){
+    if(!_hfSetup) return;
+    const api=handFootApi();
+    const nextCount=teamCount===3?3:2;
+    if(!(api&&typeof api.canChooseTeamSplit==='function'?api.canChooseTeamSplit(_hfSetup.roster.length):_hfSetup.roster.length===6)) return;
+    if(_hfSetup.format!=='teams') _hfSetup.format='teams';
+    const ordered=(_hfSetup.pairs||[]).flat().filter(Boolean);
+    const source=ordered.length===_hfSetup.roster.length?ordered:_hfSetup.roster;
+    _hfSetup.teamCount=nextCount;
+    _hfSetup.pairs=api&&typeof api.defaultTeams==='function'?api.defaultTeams(source, nextCount):(api?api.defaultPairs(source):[]);
+    _hfSetup.swapPick=null;
+    renderHandFootSetup();
+  }
   function handFootTapPerson(pairIndex, seat){
     if(!_hfSetup?.pairs) return;
     const previousFocus=document.activeElement?.matches('#hand-foot-setup-sides button.hf-team-person');
@@ -16201,11 +16232,12 @@ button.dealer-name-indicator .dealer-player-label {
       _hfSetup.pairs=handFootApi().swapPairMember(_hfSetup.pairs, pick.pairIndex, pick.seat, name);
       _hfSetup.swapPick=null;
     } else {
-      _hfSetup.swapPick=pick?.seat===seat?null:{pairIndex, seat};
+      _hfSetup.swapPick=pick&&pick.pairIndex===pairIndex&&pick.seat===seat?null:{pairIndex, seat};
     }
     renderHandFootSetup();
     if(previousFocus){
-      document.querySelectorAll('#hand-foot-setup-sides button.hf-team-person')[pairIndex*2+seat]?.focus({preventScroll:true});
+      const flatIndex=_hfSetup.pairs.slice(0, pairIndex).reduce((sum, group)=>sum+group.length, 0)+seat;
+      document.querySelectorAll('#hand-foot-setup-sides button.hf-team-person')[flatIndex]?.focus({preventScroll:true});
     }
   }
   function handFootSetupFormat(format){
@@ -16235,7 +16267,7 @@ button.dealer-name-indicator .dealer-player-label {
     if(!_hfSetup) return;
     const api=handFootApi();
     const teamPairs=_hfSetup.format==='teams'&&(_hfSetup.roster.length===4||_hfSetup.roster.length===6);
-    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null, teamPairs?{teamCount:_hfSetup.teamCount}:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
     if(sides.length<2){ toast('Need at least two score columns','warning'); return; }
     window._handFootPendingConfig={format:_hfSetup.format, sides};
     _handFootCancelSnapshotId=null;
@@ -19292,12 +19324,16 @@ ${isDealer
       const playerCellPad = 'px-5';
       const hfMembers=isHandFootGame(currentGame)?handFootMembersOf(currentGame,p):[];
       const hfTeam=hfMembers.length>1;
+      const hfTrio=hfMembers.length>=3;
       const avatarInner=hfTeam
-        ? `<span class="hf-team-avatars">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>`
+        ? `<span class="hf-team-avatars${hfTrio?' hf-team-trio':''}">${hfMembers.map(m=>getStreakAvatarHtml(m,'avatar-img-sc')).join('')}</span>`
         : getStreakAvatarHtml(p,'avatar-img-sc');
-      const hfNameLines=hfTeam?hfMembers.map((m,i)=>`<span class="hf-team-line">${escapeHtml(m)}${i<hfMembers.length-1?' &':''}</span>`).join(''):'';
-      const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${isLeader?'leader-text':''}`;
-      const nameLabel=hfTeam?hfMembers.join(' & '):p;
+      const hfNameLines=hfTeam?hfMembers.map((m,i)=>{
+        const sep=i<hfMembers.length-2?',':(i===hfMembers.length-2?' &':'');
+        return `<span class="hf-team-line">${escapeHtml(m)}${sep}</span>`;
+      }).join(''):'';
+      const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${hfTrio?'hf-team-trio ':''}${isLeader?'leader-text':''}`;
+      const nameLabel=hfTeam?(handFootApi()?.sideKey?handFootApi().sideKey(hfMembers):hfMembers.join(' & ')):p;
       const nameText=hfTeam?hfNameLines:escapeHtml(p);
       const nameInner=`${isDealer
   ? `<button type="button" onclick="openDealerModal()" class="dealer-name-indicator ${nameClass}" title="Dealer. Tap to change" aria-label="${escapeHtml(nameLabel)} is dealer. Tap to change"><span class="dealer-player-label">${nameText}</span></button>`
@@ -19725,7 +19761,9 @@ ${isDealer
   }
   function handFootSideLabel(key){
     const members=handFootMembersOf(currentGame, key);
-    return members.length?members.join(' & '):(key||'');
+    if(!members.length) return key||'';
+    const api=handFootApi();
+    return api&&typeof api.sideKey==='function'?api.sideKey(members):members.join(' & ');
   }
   function handFootMatchTotal(side){
     const members=handFootMembersOf(currentGame, side);
@@ -20593,10 +20631,11 @@ ${isDealer
     const blank=!line;
     const totalText=ready?String(math.total):(blank?'Not ready':'');
     const aria=blank?'Round total not ready':(ready?`Round total ${math.total}`:line);
-    return `<article class="hf-team-card${active?' is-active':''}${phone?' is-phone-current':''}${handFootSideReady(entry)?' is-complete':''}" data-side="${escapeHtml(side)}">
+    const sideDisplay=handFootSideLabel(side);
+    return `<article class="hf-team-card${active?' is-active':''}${phone?' is-phone-current':''}${handFootSideReady(entry)?' is-complete':''}${members.length>=3?' hf-team-card--trio':''}" data-side="${escapeHtml(side)}">
       <header class="hf-team-id">
-        <span class="hf-side-avatars">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
-        <div class="hf-side-names">${active?'<span class="score-entry-up-now">Up now</span> ':''}${members.map(name=>escapeHtml(name)).join(' & ')||escapeHtml(side)}</div>
+        <span class="hf-side-avatars${members.length>=3?' hf-side-avatars--trio':''}">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
+        <div class="hf-side-names">${active?'<span class="score-entry-up-now">Up now</span> ':''}${escapeHtml(sideDisplay)}</div>
         <div class="hf-match-total"><div class="score-entry-meta-label">Match</div><div class="hf-match-num">${handFootMatchTotal(side)}</div></div>
       </header>
       <div class="hf-num-row">
@@ -20628,10 +20667,10 @@ ${isDealer
       <div class="score-entry-meta-label">New total</div>
       <div class="hf-field-value${entry.total===''||entry.total==null?' hf-blank':''}">${typed}</div>
     </button>`:'';
-    return `<article class="hf-legacy-card${phone?' is-phone-current':''}" data-side="${escapeHtml(side)}">
+    return `<article class="hf-legacy-card${phone?' is-phone-current':''}${members.length>=3?' hf-team-card--trio':''}" data-side="${escapeHtml(side)}">
       <header class="hf-team-id">
-        <span class="hf-side-avatars">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
-        <div class="hf-side-names">${members.map(name=>escapeHtml(name)).join(' & ')||escapeHtml(side)}</div>
+        <span class="hf-side-avatars${members.length>=3?' hf-side-avatars--trio':''}">${members.map(name=>getScoreEntryAvatarHtml(name,'score-entry-avatar')).join('')}</span>
+        <div class="hf-side-names">${escapeHtml(handFootSideLabel(side))}</div>
         <div class="hf-match-total"><div class="score-entry-meta-label">Match</div><div class="hf-match-num">${handFootMatchTotal(side)}</div></div>
       </header>
         <div class="hf-saved-total">

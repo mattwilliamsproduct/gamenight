@@ -173,12 +173,13 @@ const SMALL_BASIC={basic:'100', count:'0', cardsLeft:'0'};
 export function roundsFor(kind){
   if(kind==='pairs2') return [HIGH, LOW];
   if(kind==='pairs4') return [HIGH, DIRTY];
+  if(kind==='trios6') return [HIGH, DIRTY];
   if(kind==='pairs6') return [HIGH, ZERO, CLEAN];
   if(kind==='singles4') return [HIGH, LOW, ZERO, SMALL_BASIC];
   return [HIGH, LOW, ZERO, SMALL_BASIC, TEN, CLEAN];
 }
 
-export async function startHandFoot(page, {names, format}){
+export async function startHandFoot(page, {names, format, teamCount}){
   await seatPlayers(page, names);
   if(names.length!==4 && names.length!==6){
     await startHandFootFromHome(page);
@@ -190,6 +191,8 @@ export async function startHandFoot(page, {names, format}){
   await openHandFootSetup(page);
   if(format==='singles'){
     await page.locator('#hf-format-singles').click();
+  }else if(names.length===6 && (teamCount===2 || teamCount===3)){
+    await page.locator(`#hf-split-${teamCount}`).click();
   }
   const setup=await page.evaluate(()=>({
     note:document.getElementById('hand-foot-setup-note')?.textContent||'',
