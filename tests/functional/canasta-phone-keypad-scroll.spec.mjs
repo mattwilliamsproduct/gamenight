@@ -45,7 +45,7 @@ test.beforeEach(async ({page}) => {
   await silencePorchPrompts(page);
   await page.setViewportSize({width: 390, height: 844});
   await freshTable(page);
-  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee'], format: 'teams'});
+  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee']});
   await openScoreEntry(page);
   await expect(page.locator('.hf-team-card.is-active .hf-num[data-field="basic"]')).toHaveClass(/active/);
 });

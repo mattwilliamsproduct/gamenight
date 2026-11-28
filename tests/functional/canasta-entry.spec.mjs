@@ -20,9 +20,9 @@ async function saveShot(page, name) {
   await page.screenshot({path: join(artifactDir, file), fullPage: false});
 }
 
-async function openCanasta(page, names, format) {
+async function openCanasta(page, names) {
   await freshTable(page);
-  await startHandFoot(page, {names, format});
+  await startHandFoot(page, {names});
   await openScoreEntry(page);
   await expect(page.locator('#score-entry-context')).toContainText(/Round 1 of 4 · Meld minimum 50/);
 }
@@ -49,7 +49,7 @@ test.beforeEach(async ({page}) => {
 test('iPad landscape shows the five Canasta inputs and blocks a blank round', async ({page}) => {
   test.setTimeout(120000);
   await page.setViewportSize({width: 1024, height: 768});
-  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee']);
   await expect(page.locator('.hf-team-card')).toHaveCount(2);
   await expect(page.locator('.hf-team-card.is-active .hf-total')).toHaveText('Not ready');
   await expect(page.locator('.hf-team-card.is-active .hf-total')).not.toContainText('—');
@@ -99,7 +99,7 @@ test('iPad landscape shows the five Canasta inputs and blocks a blank round', as
 
 test('a confirmed zero can submit and a blank cannot', async ({page}) => {
   await page.setViewportSize({width: 1024, height: 768});
-  await openCanasta(page, ['Ann', 'Bo'], 'singles');
+  await openCanasta(page, ['Ann', 'Bo']);
   await expect(page.locator('#score-entry-primary-btn')).toBeDisabled();
   await press(page, '0');
   await press(page, '0');
@@ -120,7 +120,7 @@ test('a confirmed zero can submit and a blank cannot', async ({page}) => {
 test('phone keeps entries when switching teams and reviews both totals', async ({page}) => {
   test.setTimeout(90000);
   await page.setViewportSize({width: 390, height: 844});
-  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee']);
   await expect(page.locator('.hf-team-card:visible')).toHaveCount(1);
   await press(page, '15');
   await page.getByRole('button', {name: 'Team 2', exact: true}).click();
@@ -149,7 +149,7 @@ test('a legacy round shows the saved total and edits only on purpose', async ({p
   test.setTimeout(90000);
   await page.setViewportSize({width: 1024, height: 768});
   await freshTable(page);
-  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee'], format: 'teams'});
+  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee']});
   await page.evaluate(() => {
     const oldAnn = {cleanCanastas: 2, dirtyCanastas: 1, goingOut: 1, cardPoints: 450, cardsLeft: 95, roundScore: 1111};
     const oldCy = {bonuses: 300, cardPoints: 0, cardsLeft: 20, legacy: true, roundScore: 111};
@@ -247,10 +247,10 @@ async function entryMeasure(page) {
   });
 }
 
-test('three and six Canasta cards scroll at full size with the keypad open', async ({page}) => {
+test('Canasta team and singles cards remain readable with the keypad open', async ({page}) => {
   test.setTimeout(120000);
   await page.setViewportSize({width: 1024, height: 768});
-  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee']);
   const pairNormal = await entryMeasure(page);
   expect(pairNormal.problems).toEqual([]);
   expect(pairNormal.cols).toBe(2);
@@ -264,7 +264,7 @@ test('three and six Canasta cards scroll at full size with the keypad open', asy
 
   await page.locator('#score-entry-modal button', {hasText: 'Cancel'}).click();
   await freshTable(page);
-  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], format: 'teams'});
+  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay']});
   await openScoreEntry(page);
   const trioNormal = await entryMeasure(page);
   expect(trioNormal.problems).toEqual([]);
@@ -274,45 +274,23 @@ test('three and six Canasta cards scroll at full size with the keypad open', asy
 
   await page.locator('#score-entry-modal button', {hasText: 'Cancel'}).click();
   await freshTable(page);
-  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], format: 'teams', teamCount: 3});
+  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve']});
   await openScoreEntry(page);
-  const threeNormal = await entryMeasure(page);
-  expect(threeNormal.problems).toEqual([]);
-  expect(threeNormal.cols).toBe(2);
-  expect(threeNormal.cards).toBe(3);
-  expect(threeNormal.scrolls).toBe(true);
-  expect(threeNormal.lastPast).toBe(true);
-  expect(threeNormal.valuePx).toBeCloseTo(pairNormal.valuePx, 0);
-  await saveShot(page, 'canasta-3teams-keypad-1024x768-normal-chromium');
+  const singlesNormal = await entryMeasure(page);
+  expect(singlesNormal.problems).toEqual([]);
+  expect(singlesNormal.cols).toBe(2);
+  expect(singlesNormal.cards).toBe(5);
+  expect(singlesNormal.scrolls).toBe(true);
+  expect(singlesNormal.lastPast).toBe(true);
+  expect(singlesNormal.valuePx).toBeCloseTo(pairNormal.valuePx, 0);
+  await saveShot(page, 'canasta-5singles-keypad-1024x768-normal-chromium');
   await setTextSize(page, 24);
-  const threeLarge = await entryMeasure(page);
-  expect(threeLarge.problems).toEqual([]);
-  expect(threeLarge.cols).toBe(2);
-  expect(threeLarge.scrolls).toBe(true);
-  expect(threeLarge.valuePx).toBeCloseTo(pairLarge.valuePx, 0);
-  expect(threeLarge.helpPx).toBeGreaterThan(16);
-  await saveShot(page, 'canasta-3teams-keypad-1024x768-largest-chromium');
-
-  await setTextSize(page, 16);
-  await page.locator('#score-entry-modal button', {hasText: 'Cancel'}).click();
-  await freshTable(page);
-  await startHandFoot(page, {names: ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], format: 'singles'});
-  await openScoreEntry(page);
-  const sixNormal = await entryMeasure(page);
-  expect(sixNormal.problems).toEqual([]);
-  expect(sixNormal.cols).toBe(2);
-  expect(sixNormal.cards).toBe(6);
-  expect(sixNormal.scrolls).toBe(true);
-  expect(sixNormal.lastPast).toBe(true);
-  expect(sixNormal.valuePx).toBeCloseTo(pairNormal.valuePx, 0);
-  await saveShot(page, 'canasta-6singles-keypad-1024x768-normal-chromium');
-  await setTextSize(page, 24);
-  const sixLarge = await entryMeasure(page);
-  expect(sixLarge.problems).toEqual([]);
-  expect(sixLarge.scrolls).toBe(true);
-  expect(sixLarge.valuePx).toBeCloseTo(pairLarge.valuePx, 0);
-  expect(sixLarge.helpPx).toBeGreaterThan(16);
-  await saveShot(page, 'canasta-6singles-keypad-1024x768-largest-chromium');
+  const singlesLarge = await entryMeasure(page);
+  expect(singlesLarge.problems).toEqual([]);
+  expect(singlesLarge.scrolls).toBe(true);
+  expect(singlesLarge.valuePx).toBeCloseTo(pairLarge.valuePx, 0);
+  expect(singlesLarge.helpPx).toBeGreaterThan(16);
+  await saveShot(page, 'canasta-5singles-keypad-1024x768-largest-chromium');
 });
 
 test('a Wizard cell tap opens bid, actual, and recalculated points', async ({page}) => {
@@ -374,7 +352,7 @@ test('WebKit and phone shots match the Chromium entry states', async () => {
   });
   const page = await context.newPage();
   await silencePorchPrompts(page);
-  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
+  await openCanasta(page, ['Ann', 'Bo', 'Cy', 'Dee']);
   await saveShot(page, 'canasta-empty-1024x768-webkit');
   await press(page, '1600');
   await press(page, '-40');

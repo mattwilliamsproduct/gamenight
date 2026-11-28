@@ -6,6 +6,6 @@ The 390 score sheet was still clipping. The score boxes ran under the scrollbar,
 
 Five Crowns and Beat the Heat have no minus. Their 0 spans the three cells on the bottom row, at the same height as the other keys. Flip 7 keeps 0 in one cell and minus across the next two.
 
-Canasta with four or six players opens Choose your teams. Teams and Singles show which is on. Each team is a card with a large portrait and a name. Tap a player, then someone on the other team, to swap. Six players are three teams. Dealer order stays the lineup order. There is no Pick who sits together line and no pair dropdown.
+Canasta with four or six players opens Choose your teams. Four play as two pairs and six play as two teams of three. Saved matches keep their recorded teams. Each team is a card with a large portrait and a name. Tap a player, then someone on the other team, to swap. Dealer order stays the lineup order. There is no Pick who sits together line and no pair dropdown.
 
 A live match on Home shows standings and a small Start another game button. That button reveals the game cards. Start still asks before it parks the match.

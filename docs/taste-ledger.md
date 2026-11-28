@@ -6,6 +6,8 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Game-night review order is iPad landscape, then laptop/desktop landscape, then phone.
+- Canasta setup goes straight to two swappable teams of two or three for four or six players.
 - Rook is off the Home picker (Matt, 2026-11-13 6:13 PM: six decks, f2c81a4). Do not add another way to start a Rook game. Rook's code, rules, setup (300, 500, or 1000; 300 selected), history, Records, and Passports stay.
 - Comeback Extra is the extra already stored on a night. The score cell shows it. Records names Most Comeback Extras In One Game and Biggest Comeback Extra. The live turbo script stays unloaded, the same as production.
 - Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.

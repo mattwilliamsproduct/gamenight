@@ -165,21 +165,13 @@ export async function readHistory(page){
 const HIGH={basic:'1600', count:'450', got22:true, cardsLeft:'0'};
 const LOW={basic:'0', count:'-40', cardsLeft:'10'};
 const DIRTY={basic:'300', count:'0', cardsLeft:'20'};
-const CLEAN={basic:'500', count:'0', cardsLeft:'0'};
-const ZERO={basic:'0', count:'0', cardsLeft:'0'};
-const TEN={basic:'0', count:'10', cardsLeft:'0'};
-const SMALL_BASIC={basic:'100', count:'0', cardsLeft:'0'};
 
 export function roundsFor(kind){
   if(kind==='pairs2') return [HIGH, LOW];
-  if(kind==='pairs4') return [HIGH, DIRTY];
-  if(kind==='trios6') return [HIGH, DIRTY];
-  if(kind==='pairs6') return [HIGH, ZERO, CLEAN];
-  if(kind==='singles4') return [HIGH, LOW, ZERO, SMALL_BASIC];
-  return [HIGH, LOW, ZERO, SMALL_BASIC, TEN, CLEAN];
+  return [HIGH, DIRTY];
 }
 
-export async function startHandFoot(page, {names, format, teamCount}){
+export async function startHandFoot(page, {names}){
   await seatPlayers(page, names);
   if(names.length!==4 && names.length!==6){
     await startHandFootFromHome(page);
@@ -189,11 +181,6 @@ export async function startHandFoot(page, {names, format, teamCount}){
     return {sides:match.handFoot.sides.length, seats:[], note:''};
   }
   await openHandFootSetup(page);
-  if(format==='singles'){
-    await page.locator('#hf-format-singles').click();
-  }else if(names.length===6 && (teamCount===2 || teamCount===3)){
-    await page.locator(`#hf-split-${teamCount}`).click();
-  }
   const setup=await page.evaluate(()=>({
     note:document.getElementById('hand-foot-setup-note')?.textContent||'',
     sides:document.querySelectorAll('#hand-foot-setup-sides .hf-setup-side').length,

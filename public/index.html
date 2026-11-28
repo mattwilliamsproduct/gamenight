@@ -5375,7 +5375,6 @@ button.dealer-name-indicator .dealer-player-label {
       box-shadow: 0 0 0 3px rgba(10, 92, 84, 0.28);
       background: #e7f4ef;
     }
-    #hand-foot-format-toggle .rook-setup-btn.rook-opt-active,
     #rook-setup-modal .rook-setup-btn.rook-opt-active {
       background: #0a5c54;
       color: #fff;
@@ -10508,14 +10507,9 @@ button.dealer-name-indicator .dealer-player-label {
           <h3 id="hand-foot-setup-title" class="font-display text-3xl">Choose your teams</h3>
           <p id="hand-foot-setup-note" class="text-base font-semibold mt-2" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;"></p>
         </div>
-        <div id="hand-foot-format-toggle" class="hidden flex justify-center gap-2 mb-4">
-          <button type="button" id="hf-format-teams" onclick="handFootSetupFormat('teams')" class="rook-setup-btn py-2 px-5 rounded-xl text-sm font-extrabold border hairline transition-all">Teams</button>
-          <button type="button" id="hf-format-singles" onclick="handFootSetupFormat('singles')" class="rook-setup-btn py-2 px-5 rounded-xl text-sm font-extrabold border hairline transition-all">Singles</button>
-        </div>
-        <div id="hand-foot-split-toggle" class="hidden hf-split-toggle" role="group" aria-label="Team split"></div>
-        <p id="hand-foot-setup-order" aria-live="polite" class="hidden text-base font-semibold mb-3 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Tap a player, then someone on the other team to swap.</p>
+        <p id="hand-foot-setup-order" aria-live="polite" class="text-base font-semibold mb-3 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Tap a player, then someone on the other team to swap.</p>
         <div id="hand-foot-setup-sides" class="space-y-3"></div>
-        <p id="hand-foot-setup-score" class="hidden text-base font-semibold mt-1 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Enter one score per team each round.</p>
+        <p id="hand-foot-setup-score" class="text-base font-semibold mt-1 leading-snug" style="color:var(--ink);font-family:'Nunito Sans',sans-serif;letter-spacing:0;">Enter one score per team each round.</p>
         <div class="bp-match-actions mt-6">
           <button type="button" onclick="cancelHandFootSetup()" class="btn-ghost font-extrabold">Back</button>
           <button type="button" onclick="commitHandFootSetup()" class="btn-primary font-extrabold">Start match →</button>
@@ -14439,7 +14433,7 @@ button.dealer-name-indicator .dealer-player-label {
     "Flip 7 Vengeance":`<div class="space-y-5"><p><strong>Quick idea:</strong> Push your luck by flipping cards, banking before you bust, and letting the vengeance cards stir the drink.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Highest total score wins.</li><li><strong>Flip:</strong> Keep revealing cards to build your round score.</li><li><strong>Bust:</strong> A duplicate number knocks your round score to 0 unless a saved effect protects you.</li><li><strong>Bank:</strong> Stop before busting to keep the points you have showing.</li><li><strong>Vengeance:</strong> Use your table's Flip 7 Vengeance card effects, then enter the final round score in the app.</li></ul></div>`,
     "Beat the Heat":`<div class="space-y-5"><p><strong>Quick idea:</strong> Stay cool by avoiding pepper heat. The app tracks heat, so low score is good.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> Lowest heat total wins.</li><li><strong>Play:</strong> Resolve cards from low to high into the table rows.</li><li><strong>Heat:</strong> If you take a row, count the pepper or heat symbols on those cards.</li><li><strong>Score:</strong> Enter each player's heat total for the round. Lower is better.</li><li><strong>Ending:</strong> The match ends as soon as any player reaches 66 heat. Lowest total wins.</li></ul></div>`,
     "Rook":`<div class="space-y-5"><p><strong>Quick idea:</strong> This scorekeeper supports your call-your-partner Rook flow: record the bid, name trump and the called card, then score the two teams.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Goal:</strong> First player to reach the configured target score wins.</li><li><strong>Bid:</strong> After the deal, choose who won the bid and enter the winning bid amount.</li><li><strong>Trump and call:</strong> The bidder names trump and calls a partner card, such as Rook, Black 1, or Yellow 14.</li><li><strong>Score:</strong> Enter the bid team's points. The app fills the other team's points based on your full-hand total setting.</li><li><strong>Set rule:</strong> If the bid team reaches the bid, each teammate scores the team total. If not, each teammate loses the bid. The other team scores its points.</li></ul></div>`,
-    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Four start as two pairs in lineup order. Six start as three pairs in lineup order. Three or five play singles. Four or six can switch to singles. The setup can still change those seats before round 1.</li><li><strong>Teams:</strong> A pair enters one set of numbers. Both players keep that round total and the same breakdown.</li><li><strong>Each round:</strong> Type Basic and Count. Basic is one total for red 3s, clean canastas, dirty canastas, and sevens canastas (1,500). Count is the card points. Got the 22 adds 100. Went out adds 100, and only one team can go out. Cards left is a positive number and is subtracted. Round total = Basic + Count + 100 if Got the 22 + 100 if Went out − Cards left. There is no all-wild canasta rule.</li><li><strong>Got the 22:</strong> Picking up the deck and getting 22 cards is +100 for that team. It is its own checkbox.</li><li><strong>Went out:</strong> +100 for the one team that goes out. That team's Cards left is 0.</li><li><strong>Card values:</strong> Jokers 50, 2s 20 (wild), aces 20, K/Q/J/10 = 10, 9 and below = 5 including 8s, 9s, and black 3s. Those points are typed in Count.</li><li><strong>Meld minimum:</strong> 50, then 90, then 110, then 150. That hint is on the round. You do not type it.</li></ul></div>`
+    "Hand and Foot":`<div class="space-y-5"><p><strong>Quick idea:</strong> Canasta, scored by the round. High score after four rounds wins. There is no bid.</p><ul class="list-disc pl-6 space-y-4"><li><strong>Players:</strong> 2 to 6. Two players play 1 versus 1. Three or five play singles. Four play as two pairs. Six play as two teams of three. You can swap teammates before round 1.</li><li><strong>Teams:</strong> Each team enters one set of numbers. Every teammate keeps the same round total and breakdown.</li><li><strong>Each round:</strong> Type Basic and Count. Basic is one total for red 3s, clean canastas, dirty canastas, and sevens canastas (1,500). Count is the card points. Got the 22 adds 100. Went out adds 100, and only one team can go out. Cards left is a positive number and is subtracted. Round total = Basic + Count + 100 if Got the 22 + 100 if Went out − Cards left. There is no all-wild canasta rule.</li><li><strong>Got the 22:</strong> Picking up the deck and getting 22 cards is +100 for that team. It is its own checkbox.</li><li><strong>Went out:</strong> +100 for the one team that goes out. That team's Cards left is 0.</li><li><strong>Card values:</strong> Jokers 50, 2s 20 (wild), aces 20, K/Q/J/10 = 10, 9 and below = 5 including 8s, 9s, and black 3s. Those points are typed in Count.</li><li><strong>Meld minimum:</strong> 50, then 90, then 110, then 150. That hint is on the round. You do not type it.</li></ul></div>`
   };
 
   /* ═══ PROFILES ═══ */
@@ -16063,7 +16057,7 @@ button.dealer-name-indicator .dealer-player-label {
       openRookSetupModal();
       return;
     }
-    if(name==='Hand and Foot' && handFootApi()?.canSwitchToSingles(roster.length)){
+    if(name==='Hand and Foot' && handFootApi()?.defaultFormat(roster.length)==='teams'){
       _handFootCancelSnapshotId=options?.parkedId||null;
       openHandFootSetupModal();
       return;
@@ -16094,8 +16088,10 @@ button.dealer-name-indicator .dealer-player-label {
       const api=handFootApi();
       const pending=window._handFootPendingConfig;
       window._handFootPendingConfig=null;
-      const format=pending?.format||(api?api.defaultFormat(players.length):'singles');
-      const sides=pending?.sides||(api?api.buildSides(players, format):players.map(p=>({key:p,members:[p]})));
+      const format=api?api.defaultFormat(players.length):'singles';
+      const sides=api
+        ? api.buildSides(players, format, pending?.sides?.map(side=>side.members))
+        : players.map(p=>({key:p,members:[p]}));
       currentGame.handFoot={format, sides};
       currentGame.totals={};
       sides.forEach(side=>{
@@ -16137,10 +16133,7 @@ button.dealer-name-indicator .dealer-player-label {
     }
     const roster=players.filter(Boolean);
     const api=handFootApi();
-    const format=api?api.defaultFormat(roster.length):'singles';
-    const teamCount=api&&typeof api.defaultTeamSplit==='function'?api.defaultTeamSplit(roster.length):2;
-    const pairs=api&&typeof api.defaultTeams==='function'?api.defaultTeams(roster, teamCount):(api?api.defaultPairs(roster):[]);
-    _hfSetup={roster, format, teamCount, pairs};
+    _hfSetup={roster, pairs:api.defaultTeams(roster)};
     renderHandFootSetup();
     const m=document.getElementById('hand-foot-setup-modal');
     m.classList.remove('hidden');
@@ -16148,80 +16141,29 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function renderHandFootSetup(){
     if(!_hfSetup) return;
-    const api=handFootApi();
     const count=_hfSetup.roster.length;
-    const toggle=document.getElementById('hand-foot-format-toggle');
-    if(toggle) toggle.classList.remove('hidden');
-    document.getElementById('hf-format-teams')?.classList.toggle('rook-opt-active', _hfSetup.format==='teams');
-    document.getElementById('hf-format-singles')?.classList.toggle('rook-opt-active', _hfSetup.format==='singles');
-    const teamPairs=_hfSetup.format==='teams'&&(count===4||count===6);
-    const canSplit=teamPairs&&(api&&typeof api.canChooseTeamSplit==='function'?api.canChooseTeamSplit(count):count===6);
-    const teamCount=canSplit?(_hfSetup.teamCount===3?3:2):2;
-    _hfSetup.teamCount=teamCount;
-    const splitToggle=document.getElementById('hand-foot-split-toggle');
-    if(splitToggle){
-      splitToggle.classList.toggle('hidden', !canSplit);
-      splitToggle.innerHTML=canSplit
-        ? `<button type="button" id="hf-split-2" onclick="handFootSetupSplit(2)" class="rook-setup-btn hf-split-btn${teamCount===2?' rook-opt-active':''}" aria-pressed="${teamCount===2?'true':'false'}">2 teams of 3</button><button type="button" id="hf-split-3" onclick="handFootSetupSplit(3)" class="rook-setup-btn hf-split-btn${teamCount===3?' rook-opt-active':''}" aria-pressed="${teamCount===3?'true':'false'}">3 pairs</button>`
-        : '';
-    }
     const note=document.getElementById('hand-foot-setup-note');
+    if(note) note.textContent=count===6
+      ? 'Two teams of three. All teammates keep the team score.'
+      : 'Two pairs. Both partners keep the team score.';
+    const pick=_hfSetup.swapPick;
     const order=document.getElementById('hand-foot-setup-order');
-    let noteText='Each player scores their own column.';
-    if(_hfSetup.format==='teams'&&count===4) noteText='Two pairs. Both partners keep the team score.';
-    else if(_hfSetup.format==='teams'&&count===6&&teamCount===2) noteText='Two teams of three. All teammates keep the team score.';
-    else if(_hfSetup.format==='teams'&&count===6) noteText='Three pairs. Both partners keep the team score.';
-    if(note) note.textContent=noteText;
-    if(teamPairs && (!_hfSetup.pairs || _hfSetup.pairs.length!==teamCount)){
-      const ordered=(_hfSetup.pairs||[]).flat().filter(Boolean);
-      const source=ordered.length===count?ordered:_hfSetup.roster;
-      _hfSetup.pairs=api&&typeof api.defaultTeams==='function'?api.defaultTeams(source, teamCount):(api?api.defaultPairs(source):[]);
-    }
-    if(order){
-      const pick=_hfSetup.swapPick;
-      order.classList.toggle('hidden', !teamPairs);
-      order.textContent=pick
-        ? `Tap a player on another team to swap with ${_hfSetup.pairs[pick.pairIndex][pick.seat]}.`
-        : 'Tap a player, then someone on the other team to swap.';
-    }
-    const scoreLine=document.getElementById('hand-foot-setup-score');
-    if(scoreLine) scoreLine.classList.toggle('hidden', !teamPairs);
-    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null, teamPairs?{teamCount}:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
+    if(order) order.textContent=pick
+      ? `Tap a player on another team to swap with ${_hfSetup.pairs[pick.pairIndex][pick.seat]}.`
+      : 'Tap a player, then someone on the other team to swap.';
     const box=document.getElementById('hand-foot-setup-sides');
     if(!box) return;
-    if(teamPairs){
-      const pick=_hfSetup.swapPick;
-      const isTrios=(_hfSetup.pairs||[]).some(group=>group.length===3);
-      box.innerHTML=`<div class="hf-team-grid${isTrios?' hf-team-grid--trios':''}">${(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<section class="hf-setup-side" aria-label="Team ${pairIndex+1}">
-        <div class="hf-team-kicker">Team ${pairIndex+1}</div>
-        <div class="hf-team-people">
-          ${pair.map((name,seat)=>{
-            const on=!!(pick&&pick.pairIndex===pairIndex&&pick.seat===seat);
-            const target=pick&&pick.pairIndex!==pairIndex;
-            return `<button type="button" class="hf-team-person${on?' is-swap-from':target?' is-swap-target':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})"><span class="hf-team-portrait">${getAvatarImg(name,'avatar-img')}</span><span class="player-name-label">${escapeHtml(name)}</span></button>`;
-          }).join('')}
-        </div>
-      </section>`).join('')}</div>`;
-      return;
-    }
-    box.innerHTML=`<div class="hf-team-grid">${sides.map(side=>`<section class="hf-setup-side">
+    const isTrios=(_hfSetup.pairs||[]).some(group=>group.length===3);
+    box.innerHTML=`<div class="hf-team-grid${isTrios?' hf-team-grid--trios':''}">${(_hfSetup.pairs||[]).map((pair,pairIndex)=>`<section class="hf-setup-side" aria-label="Team ${pairIndex+1}">
+      <div class="hf-team-kicker">Team ${pairIndex+1}</div>
       <div class="hf-team-people">
-        ${side.members.map(name=>`<div class="hf-team-person hf-solo-person"><span class="hf-team-portrait">${getAvatarImg(name,'avatar-img')}</span><span class="player-name-label">${escapeHtml(name)}</span></div>`).join('')}
+        ${pair.map((name,seat)=>{
+          const on=!!(pick&&pick.pairIndex===pairIndex&&pick.seat===seat);
+          const target=pick&&pick.pairIndex!==pairIndex;
+          return `<button type="button" class="hf-team-person${on?' is-swap-from':target?' is-swap-target':''}" data-name="${escapeHtml(name)}" aria-pressed="${on?'true':'false'}" aria-label="${escapeHtml(name)}, Team ${pairIndex+1}" onclick="handFootTapPerson(${pairIndex},${seat})"><span class="hf-team-portrait">${getAvatarImg(name,'avatar-img')}</span><span class="player-name-label">${escapeHtml(name)}</span></button>`;
+        }).join('')}
       </div>
     </section>`).join('')}</div>`;
-  }
-  function handFootSetupSplit(teamCount){
-    if(!_hfSetup) return;
-    const api=handFootApi();
-    const nextCount=teamCount===3?3:2;
-    if(!(api&&typeof api.canChooseTeamSplit==='function'?api.canChooseTeamSplit(_hfSetup.roster.length):_hfSetup.roster.length===6)) return;
-    if(_hfSetup.format!=='teams') _hfSetup.format='teams';
-    const ordered=(_hfSetup.pairs||[]).flat().filter(Boolean);
-    const source=ordered.length===_hfSetup.roster.length?ordered:_hfSetup.roster;
-    _hfSetup.teamCount=nextCount;
-    _hfSetup.pairs=api&&typeof api.defaultTeams==='function'?api.defaultTeams(source, nextCount):(api?api.defaultPairs(source):[]);
-    _hfSetup.swapPick=null;
-    renderHandFootSetup();
   }
   function handFootTapPerson(pairIndex, seat){
     if(!_hfSetup?.pairs) return;
@@ -16240,14 +16182,6 @@ button.dealer-name-indicator .dealer-player-label {
       document.querySelectorAll('#hand-foot-setup-sides button.hf-team-person')[flatIndex]?.focus({preventScroll:true});
     }
   }
-  function handFootSetupFormat(format){
-    if(!_hfSetup) return;
-    const api=handFootApi();
-    if(api&&!api.canSwitchToSingles(_hfSetup.roster.length)) return;
-    _hfSetup.format=format==='teams'?'teams':'singles';
-    _hfSetup.swapPick=null;
-    renderHandFootSetup();
-  }
   function closeHandFootSetupModal(){
     const m=document.getElementById('hand-foot-setup-modal');
     if(!m) return;
@@ -16265,11 +16199,8 @@ button.dealer-name-indicator .dealer-player-label {
   }
   function commitHandFootSetup(){
     if(!_hfSetup) return;
-    const api=handFootApi();
-    const teamPairs=_hfSetup.format==='teams'&&(_hfSetup.roster.length===4||_hfSetup.roster.length===6);
-    const sides=api?api.buildSides(_hfSetup.roster, _hfSetup.format, teamPairs?_hfSetup.pairs:null, teamPairs?{teamCount:_hfSetup.teamCount}:null):_hfSetup.roster.map(name=>({key:name,members:[name]}));
-    if(sides.length<2){ toast('Need at least two score columns','warning'); return; }
-    window._handFootPendingConfig={format:_hfSetup.format, sides};
+    const sides=handFootApi().buildSides(_hfSetup.roster, 'teams', _hfSetup.pairs);
+    window._handFootPendingConfig={sides};
     _handFootCancelSnapshotId=null;
     _hfSetup=null;
     closeHandFootSetupModal();
@@ -19331,7 +19262,7 @@ ${isDealer
       const hfNameLines=hfTeam?hfMembers.map((m,i)=>{
         const sep=i<hfMembers.length-2?',':(i===hfMembers.length-2?' &':'');
         return `<span class="hf-team-line">${escapeHtml(m)}${sep}</span>`;
-      }).join(''):'';
+      }).join(' '):'';
       const nameClass=`scoreboard-player-name font-jakarta font-bold text-3xl ${hfTeam?'hf-team-name ':''}${hfTrio?'hf-team-trio ':''}${isLeader?'leader-text':''}`;
       const nameLabel=hfTeam?(handFootApi()?.sideKey?handFootApi().sideKey(hfMembers):hfMembers.join(' & ')):p;
       const nameText=hfTeam?hfNameLines:escapeHtml(p);

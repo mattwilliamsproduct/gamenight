@@ -21,7 +21,7 @@ test.beforeEach(async ({page})=>{
 
 test('a 2-player Hand and Foot match scores four rounds, survives reload, and lands in records', async ({page})=>{
   await freshTable(page);
-  const setup=await startHandFoot(page, {names:['Ann','Bo'], format:'singles'});
+  const setup=await startHandFoot(page, {names:['Ann','Bo']});
   expect(setup.sides).toBe(2);
   expect(setup.seats).toEqual([]);
 
@@ -85,7 +85,7 @@ for(const count of [3, 5]){
   test(`Canasta starts straight into singles with ${count} players`, async ({page})=>{
     await freshTable(page);
     const names=['Ann','Bo','Cy','Dee','Eve'].slice(0,count);
-    const setup=await startHandFoot(page, {names, format:'singles'});
+    const setup=await startHandFoot(page, {names});
     expect(setup.sides).toBe(count);
     const game=await readGame(page);
     expect(game.handFoot.format).toBe('singles');
@@ -95,7 +95,7 @@ for(const count of [3, 5]){
 
 test('two-player Canasta shows only completed singles history for the same pair', async ({page})=>{
   await freshTable(page);
-  await startHandFoot(page, {names:['Ann','Bo'], format:'singles'});
+  await startHandFoot(page, {names:['Ann','Bo']});
   await expect(page.locator('#canasta-together')).toBeHidden();
   const row=page.locator('#scorecard-body tr').first();
   expect((await row.boundingBox()).height).toBeGreaterThan(150);
@@ -120,10 +120,10 @@ test('two-player Canasta shows only completed singles history for the same pair'
   await expect(page.locator('#slice2-enter-btn')).toBeInViewport();
 });
 
-test('4 players are two pairs and 6 players are three pairs, and singles stay one column each', async ({page})=>{
+test('four-player Canasta preserves team scores through reload and credits both winners', async ({page})=>{
   test.setTimeout(120000);
   await freshTable(page);
-  let setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee'], format:'teams'});
+  const setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee']});
   expect(setup.sides).toBe(2);
   expect(setup.seats).toEqual(['Ann','Bo','Cy','Dee']);
   expect(setup.note).toMatch(/Two pairs/);
@@ -149,57 +149,14 @@ test('4 players are two pairs and 6 players are three pairs, and singles stay on
   await playRound(page, [{basic:'0', count:'0', cardsLeft:'0'}, {basic:'0', count:'0', cardsLeft:'0'}]);
   await expect(page.locator('#game-over-section')).toBeVisible();
   await endMatch(page);
-  await expect(page.locator('#victory-names')).toBeVisible();
-  let history=await readHistory(page);
-  expect(history.some(item=>item.game==='Hand and Foot' && item.handFoot?.format==='teams' && item.rounds.length===4)).toBe(true);
-
-  await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee'], format:'singles'});
-  expect(setup.sides).toBe(4);
-  expect(setup.seats).toEqual([]);
-  expect(setup.note).toMatch(/own column/);
-  await playFourRounds(page, 'singles4');
-  game=await readGame(page);
-  expect(Object.keys(game.rounds[0].scores).sort()).toEqual(['Ann','Bo','Cy','Dee']);
-  expect(game.rounds).toHaveLength(4);
-  await endMatch(page);
-  await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
-
-  await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams', teamCount:3});
-  expect(setup.sides).toBe(3);
-  expect(setup.seats).toEqual(['Ann','Bo','Cy','Dee','Eve','Fay']);
-  expect(setup.note).toMatch(/Three pairs/);
-  await playFourRounds(page, 'pairs6');
-  game=await readGame(page);
-  expect(game.handFoot.sides).toHaveLength(3);
-  expect(game.handFoot.sides.every(side=>side.members.length===2)).toBe(true);
-  expect(game.rounds[0].scores.Ann).toBe(2150);
-  expect(game.rounds[0].scores.Eve).toBe(500);
-  expect(game.rounds[0].scores.Fay).toBe(500);
-  expect(game.rounds).toHaveLength(4);
-  await page.reload({waitUntil:'domcontentloaded'});
-  game=await readGame(page);
-  expect(game.currentRound).toBe(5);
-  await expect(page.locator('#game-over-section')).toBeVisible();
-  await endMatch(page);
-  history=await readHistory(page);
-  const six=history.find(item=>item.originalRoster?.length===6 && item.game==='Hand and Foot');
-  expect(six?.rounds).toHaveLength(4);
-  expect(six.handFoot.sides).toHaveLength(3);
-
-  await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'singles'});
-  expect(setup.sides).toBe(6);
-  expect(setup.seats).toEqual([]);
-  await playFourRounds(page, 'singles6');
-  game=await readGame(page);
-  expect(Object.keys(game.rounds[3].scores).sort()).toEqual(['Ann','Bo','Cy','Dee','Eve','Fay']);
-  expect(game.rounds).toHaveLength(4);
-  await endMatch(page);
-  await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
-  history=await readHistory(page);
-  expect(history.filter(item=>item.game==='Hand and Foot' && item.handFoot?.format==='singles' && item.originalRoster?.length===6)).toHaveLength(1);
+  await expect(page.locator('#victory-names')).toContainText('Ann');
+  await expect(page.locator('#victory-names')).toContainText('Bo');
+  const history=await readHistory(page);
+  const saved=history.find(item=>item.game==='Hand and Foot' && item.originalRoster?.length===4);
+  expect(saved?.rounds).toHaveLength(4);
+  expect(saved?.handFoot?.sides?.map(side=>side.members)).toEqual([['Ann','Bo'],['Cy','Dee']]);
+  expect((saved?.winners||[]).slice().sort()).toEqual(['Ann','Bo']);
+  await expectPassportCredit(page, ['Ann','Bo'], ['Cy','Dee']);
 });
 
 test('tapping the other team swaps the pair and leaves dealer order', async ({page})=>{
@@ -239,22 +196,10 @@ test('six-player Canasta defaults to 2 teams of 3, swaps seat 3, scores, and cre
   await seatPlayers(page, ['Ann','Bo','Cy','Dee','Eve','Fay']);
   await openHandFootSetup(page);
 
-  await expect(page.locator('#hand-foot-split-toggle')).toBeVisible();
-  await expect(page.locator('#hf-split-2')).toHaveClass(/rook-opt-active/);
-  await expect(page.locator('#hf-split-2')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('#hf-split-3')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#hand-foot-split-toggle, #hand-foot-format-toggle')).toHaveCount(0);
   await expect(page.locator('#hand-foot-setup-note')).toHaveText('Two teams of three. All teammates keep the team score.');
   await expect(page.locator('#hand-foot-setup-sides .hf-setup-side')).toHaveCount(2);
   await expect(page.locator('#hand-foot-setup-sides .hf-team-person')).toHaveCount(6);
-
-  // Toggling to 3 pairs and back preserves all 6 players cleanly.
-  await page.locator('#hf-split-3').click();
-  await expect(page.locator('#hf-split-3')).toHaveClass(/rook-opt-active/);
-  await expect(page.locator('#hand-foot-setup-note')).toHaveText('Three pairs. Both partners keep the team score.');
-  await expect(page.locator('#hand-foot-setup-sides .hf-setup-side')).toHaveCount(3);
-  await page.locator('#hf-split-2').click();
-  await expect(page.locator('#hf-split-2')).toHaveClass(/rook-opt-active/);
-  await expect(page.locator('#hand-foot-setup-sides .hf-setup-side')).toHaveCount(2);
 
   // Swap seat 3 (Cy) on Team 1 with seat 3 (Fay) on Team 2.
   await page.locator('.hf-team-person[data-name="Cy"]').click();
@@ -265,8 +210,7 @@ test('six-player Canasta defaults to 2 teams of 3, swaps seat 3, scores, and cre
   await page.getByRole('button', {name:/Start match/}).click();
   await expect(page.locator('#game-screen')).toBeVisible();
   await expect(page.locator('#scorecard-body tr')).toHaveCount(2);
-  await expect(page.locator('#scorecard-body')).toContainText('Ann, Bo & Fay');
-  await expect(page.locator('#scorecard-body')).toContainText('Dee, Eve & Cy');
+  await expect(page.locator('#scorecard-body .hf-team-name')).toHaveText(['Ann, Bo & Fay', 'Dee, Eve & Cy']);
 
   await playFourRounds(page, 'trios6');
   const game=await readGame(page);
@@ -290,7 +234,10 @@ test('six-player Canasta defaults to 2 teams of 3, swaps seat 3, scores, and cre
   expect(saved?.handFoot?.sides?.map(side=>side.members)).toEqual([['Ann','Bo','Fay'],['Dee','Eve','Cy']]);
   expect((saved?.winners||[]).slice().sort()).toEqual(['Ann','Bo','Fay']);
 
-  // Verify Player Passports credit all 3 winning teammates with 1 win / 1 game and opponents with 0 wins / 1 game.
+  await expectPassportCredit(page, ['Ann','Bo','Fay'], ['Dee','Eve','Cy']);
+});
+
+async function expectPassportCredit(page, winners, opponents){
   await page.evaluate(()=>{ if(typeof showProfiles==='function') showProfiles(); });
   await expect(page.locator('#profiles-grid')).toBeVisible();
   const passports=await page.evaluate(()=>{
@@ -307,10 +254,6 @@ test('six-player Canasta defaults to 2 teams of 3, swaps seat 3, scores, and cre
     });
     return out;
   });
-  expect(passports.Ann).toEqual({wins:1, games:1});
-  expect(passports.Bo).toEqual({wins:1, games:1});
-  expect(passports.Fay).toEqual({wins:1, games:1});
-  expect(passports.Dee).toEqual({wins:0, games:1});
-  expect(passports.Eve).toEqual({wins:0, games:1});
-  expect(passports.Cy).toEqual({wins:0, games:1});
-});
+  for(const name of winners) expect(passports[name], name).toEqual({wins:1, games:1});
+  for(const name of opponents) expect(passports[name], name).toEqual({wins:0, games:1});
+}

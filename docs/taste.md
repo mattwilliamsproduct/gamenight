@@ -10,6 +10,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ### Likes
 
+- Canasta setup goes straight to two swappable teams of two or three for four or six players.
 - Rook is off the Home picker (Matt, 2026-11-13 6:13 PM: six decks, f2c81a4). Do not add another way to start a Rook game. Rook's code, rules, setup (300, 500, or 1000; 300 selected), history, Records, and Passports stay.
 - Comeback Extra is the extra already stored on a night. The score cell shows it. Records names Most Comeback Extras In One Game and Biggest Comeback Extra. The live turbo script stays unloaded, the same as production.
 - Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.
@@ -271,7 +272,7 @@ Canonical list: [taste-ledger.md](taste-ledger.md). After every durable Matt cor
 
 ## Mobile
 
-- Prefer: a phone pass first (labels readable, nothing clipped). Scoring still happens on iPad landscape or the TV.
+- Review iPad landscape first. It is the game-night setup. Review laptop/desktop landscape second and phone third. Keep the phone usable while preserving iPad readability and touch targets.
 - Avoid: treating portrait as the scorecard. Portrait is a podium. Rotate back for the card.
 - Kill: keypad covering a row, a name cut off, Actions clipped by the match banner.
 - Kill: a keypad typing a score while the selected player is off-screen and unnamed.

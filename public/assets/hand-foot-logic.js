@@ -48,23 +48,6 @@
     return count === 4 || count === 6 ? 'teams' : 'singles';
   }
 
-  // 2 players are already 1v1, so teams and singles are the same shape.
-  // 4 and 6 are the even tables that can leave the default partnership.
-  function canSwitchToSingles(count) {
-    return count === 4 || count === 6;
-  }
-
-  // 6-player Teams can split into 2 teams of 3 (default in the picker) or 3 pairs of 2.
-  function canChooseTeamSplit(count) {
-    return count === 6;
-  }
-
-  function defaultTeamSplit(count) {
-    if (count === 6) return 2;
-    if (count === 4) return 2;
-    return 0;
-  }
-
   function sideKey(members) {
     const names = (members || []).filter(Boolean);
     if (names.length <= 1) return names[0] || '';
@@ -72,28 +55,17 @@
     return names.slice(0, -1).join(', ') + ' & ' + names[names.length - 1];
   }
 
-  // Adjacent seats: (1,2), (3,4), and for six also (5,6).
-  function defaultPairs(roster) {
+  function defaultTeams(roster) {
     const names = (roster || []).filter(Boolean);
-    const pairs = [];
-    for (let i = 0; i + 1 < names.length; i += 2) pairs.push([names[i], names[i + 1]]);
-    return pairs;
-  }
-
-  // Split 6 players into 2 teams of 3 or 3 pairs of 2; 4 players stay 2 pairs of 2.
-  function defaultTeams(roster, teamCount) {
-    const names = (roster || []).filter(Boolean);
-    if (names.length === 6 && teamCount === 2) {
-      return [names.slice(0, 3), names.slice(3, 6)];
-    }
-    return defaultPairs(names);
+    if (names.length !== 4 && names.length !== 6) return [];
+    const teamSize = names.length / 2;
+    return [names.slice(0, teamSize), names.slice(teamSize)];
   }
 
   function teamsCover(names, teams) {
-    if (!Array.isArray(teams) || teams.length < 2) return false;
+    if (!Array.isArray(teams) || teams.length !== 2) return false;
     if (names.length !== 4 && names.length !== 6) return false;
-    const expectedSize = names.length / teams.length;
-    if (expectedSize !== 2 && expectedSize !== 3) return false;
+    const expectedSize = names.length / 2;
     const used = new Set();
     for (let i = 0; i < teams.length; i++) {
       const group = teams[i];
@@ -107,24 +79,13 @@
     return used.size === names.length;
   }
 
-  function pairsCover(names, pairs) {
-    return teamsCover(names, pairs);
-  }
-
-  // 4 players are two pairs. 6 players can be 2 teams of 3 or 3 pairs of 2.
-  // A custom team list is used only when every name is in exactly one equal-sized team.
-  function buildSides(roster, format, pairs, options) {
+  // A new team match has two sides. Existing games keep their stored sides.
+  function buildSides(roster, format, teams) {
     const names = (roster || []).filter(Boolean);
-    const useTeams = format === 'teams' && (names.length === 4 || names.length === 6);
-    if (!useTeams) {
+    if (format !== 'teams' || defaultFormat(names.length) !== 'teams') {
       return names.map(name => ({ key: name, members: [name] }));
     }
-    const requestedCount = options && (options.teamCount === 2 || options.teamCount === 3)
-      ? options.teamCount
-      : null;
-    const chosen = teamsCover(names, pairs)
-      ? pairs
-      : (requestedCount ? defaultTeams(names, requestedCount) : defaultPairs(names));
+    const chosen = teamsCover(names, teams) ? teams : defaultTeams(names);
     return chosen.map(members => ({
       key: sideKey(members),
       members: members.slice()
@@ -852,11 +813,7 @@
     redThreesScore,
     usesStructuredScore,
     defaultFormat,
-    canSwitchToSingles,
-    canChooseTeamSplit,
-    defaultTeamSplit,
     sideKey,
-    defaultPairs,
     defaultTeams,
     teamsCover,
     buildSides,

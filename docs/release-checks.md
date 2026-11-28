@@ -1,6 +1,8 @@
 # Back Porch Release Checks
 
-Run these after UI-affecting work and before a production push:
+Run these after UI-affecting work and before a production push.
+
+Review iPad landscape first (1024 × 768 and 1194 × 834), then laptop/desktop landscape, then phone. In each viewport check modals, scoreboards, team and player labels, seating controls, and score entry. Check tap targets and keypad reach on touch viewports.
 
 1. Run `npm run build && npm run check`.
 2. Run `npm run test:functional` and `npm run test:porch-night`. Pull-request CI runs both automatically (syntax, unit checks, then laptop Chromium Playwright). Functional covers Wizard 6→7 rounds, Michelle name fit, the Actions menu, porch 818 Life Preserver +20, Beat the Heat staying open below 66, shared Wizard places, a Life Preserver mark on the card or beside Total, and `tests/functional/data-integrity.spec.mjs` (prefill replacement, a blank score submitting as 0, trick bounds, historical corrections including a retired 818 seat, incomplete Resume Match, legacy `gameId` backfill, assisted records, and same-match rename refusal). Porch-night walks home-party, wizard-scoring-8, five-crowns-name-fit-7, eight18-porch-lp, Beat the Heat close/over, postgame-race, and a localStorage refresh. Neither takes screenshots. Keep the CI job under 15 minutes.

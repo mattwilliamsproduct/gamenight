@@ -13,7 +13,7 @@ test('porch night can score a full Hand and Foot table without calling the cloud
   await silencePorchPrompts(page);
   await freshTable(page);
 
-  let setup=await startHandFoot(page, {names:['Ann','Bo'], format:'singles'});
+  let setup=await startHandFoot(page, {names:['Ann','Bo']});
   expect(setup.sides).toBe(2);
   await playRound(page, [
     {basic:'1600', count:'450', got22:true, cardsLeft:'95'},
@@ -31,7 +31,7 @@ test('porch night can score a full Hand and Foot table without calling the cloud
   await expect(page.locator('#victory-names')).toContainText('Ann Wins!');
 
   await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee'], format:'teams'});
+  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee']});
   expect(setup.sides).toBe(2);
   expect(setup.seats).toEqual(['Ann','Bo','Cy','Dee']);
   await playFourRounds(page, 'pairs4');
@@ -41,47 +41,22 @@ test('porch night can score a full Hand and Foot table without calling the cloud
   await endMatch(page);
 
   await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee'], format:'singles'});
-  expect(setup.sides).toBe(4);
-  await playFourRounds(page, 'singles4');
-  await endMatch(page);
-
-  await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams'});
+  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay']});
   expect(setup.sides).toBe(2);
   expect(setup.note).toMatch(/Two teams of three/);
   await playFourRounds(page, 'trios6');
   game=await readGame(page);
   expect(game.rounds).toHaveLength(4);
   expect(game.handFoot.sides.every(side=>side.members.length===3)).toBe(true);
-  await endMatch(page);
-
-  await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'teams', teamCount:3});
-  expect(setup.sides).toBe(3);
-  expect(setup.note).toMatch(/Three pairs/);
-  await playFourRounds(page, 'pairs6');
-  game=await readGame(page);
-  expect(game.rounds).toHaveLength(4);
-  expect(game.handFoot.sides.every(side=>side.members.length===2)).toBe(true);
   await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#game-over-section')).toBeVisible();
   await endMatch(page);
-
-  await freshTable(page);
-  setup=await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'singles'});
-  expect(setup.sides).toBe(6);
-  await playFourRounds(page, 'singles6');
-  game=await readGame(page);
-  expect(Object.keys(game.rounds[0].scores)).toHaveLength(6);
-  await endMatch(page);
-  await expect(page.locator('#victory-names')).toBeVisible();
-
   const history=await readHistory(page);
   const handFoot=history.filter(item=>item.game==='Hand and Foot');
   expect(handFoot).toHaveLength(1);
   expect(handFoot[0].rounds).toHaveLength(4);
-  expect(handFoot[0].handFoot.format).toBe('singles');
+  expect(handFoot[0].handFoot.format).toBe('teams');
+  expect(handFoot[0].winners.slice().sort()).toEqual(['Ann','Bo','Cy']);
   expect(handFoot[0].originalRoster).toEqual(['Ann','Bo','Cy','Dee','Eve','Fay']);
   expect(cloudHits).toEqual([]);
 });

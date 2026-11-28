@@ -22,11 +22,6 @@ test('player counts pick the locked default format', () => {
   assert.equal(HF.defaultFormat(4), 'teams');
   assert.equal(HF.defaultFormat(5), 'singles');
   assert.equal(HF.defaultFormat(6), 'teams');
-  assert.equal(HF.canSwitchToSingles(2), false);
-  assert.equal(HF.canSwitchToSingles(3), false);
-  assert.equal(HF.canSwitchToSingles(4), true);
-  assert.equal(HF.canSwitchToSingles(5), false);
-  assert.equal(HF.canSwitchToSingles(6), true);
 });
 
 test('teams are one score column and singles stay one per player', () => {
@@ -36,10 +31,10 @@ test('teams are one score column and singles stay one per player', () => {
   assert.equal(HF.scoringKeys(four).includes('Ann'), false);
 
   const six = HF.buildSides(['A', 'B', 'C', 'D', 'E', 'F'], 'teams');
-  assert.deepEqual(HF.scoringKeys(six), ['A & B', 'C & D', 'E & F']);
-  assert.equal(six.length, 3);
-  assert.equal(six[0].members.length, 2);
-  assert.equal(six.every(side => side.members.length === 2), true);
+  assert.deepEqual(HF.scoringKeys(six), ['A, B & C', 'D, E & F']);
+  assert.equal(six.length, 2);
+  assert.equal(six[0].members.length, 3);
+  assert.equal(six.every(side => side.members.length === 3), true);
 
   const singles = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'singles');
   assert.deepEqual(HF.scoringKeys(singles), ['Ann', 'Bo', 'Cy', 'Dee']);
@@ -57,10 +52,10 @@ test('two, four, and six players use the locked columns', () => {
   assert.deepEqual(HF.scoringKeys(HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'singles')), ['Ann', 'Bo', 'Cy', 'Dee']);
 
   const sixTeams = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], 'teams');
-  assert.deepEqual(HF.scoringKeys(sixTeams), ['Ann & Bo', 'Cy & Dee', 'Eve & Fay']);
-  assert.equal(sixTeams.length, 3);
-  assert.deepEqual(sixTeams[0].members, ['Ann', 'Bo']);
-  assert.deepEqual(sixTeams[2].members, ['Eve', 'Fay']);
+  assert.deepEqual(HF.scoringKeys(sixTeams), ['Ann, Bo & Cy', 'Dee, Eve & Fay']);
+  assert.equal(sixTeams.length, 2);
+  assert.deepEqual(sixTeams[0].members, ['Ann', 'Bo', 'Cy']);
+  assert.deepEqual(sixTeams[1].members, ['Dee', 'Eve', 'Fay']);
   assert.deepEqual(
     HF.scoringKeys(HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], 'singles')),
     ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay']
@@ -149,9 +144,9 @@ test('a team total is recorded for both teammates', () => {
   assert.deepEqual(HF.scoringKeys(sides), ['Ann & Bo', 'Cy & Dee']);
 
   const six = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], 'teams');
-  const sixTotals = { 'Ann & Bo': 40 };
-  assert.deepEqual(HF.recordedKeys(six, sixTotals), ['Ann', 'Bo']);
-  assert.equal(HF.recordedKeys(six, sixTotals).includes('Cy'), false);
+  const sixTotals = { 'Ann, Bo & Cy': 40 };
+  assert.deepEqual(HF.recordedKeys(six, sixTotals), ['Ann', 'Bo', 'Cy']);
+  assert.equal(HF.recordedKeys(six, sixTotals).includes('Dee'), false);
 
   const headsUp = HF.buildSides(['Ann', 'Bo'], 'singles');
   assert.deepEqual(HF.recordedKeys(headsUp, { Ann: -5, Bo: 12 }), ['Ann', 'Bo']);
@@ -325,23 +320,17 @@ test('an older three-field save keeps its score and does not invent canasta or r
   assert.equal(HF.sumFieldForMatch(mapped, 'roundScore').total, 90);
 });
 
-test('four players are two pairs and six players are three pairs you can re-seat', () => {
-  assert.deepEqual(HF.defaultPairs(['Ann', 'Bo', 'Cy', 'Dee']), [['Ann', 'Bo'], ['Cy', 'Dee']]);
-  assert.deepEqual(
-    HF.defaultPairs(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay']),
-    [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]
-  );
-  const swapped = HF.swapPairMember(
-    HF.defaultPairs(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay']),
-    0,
-    1,
-    'Eve'
-  );
-  assert.deepEqual(swapped, [['Ann', 'Eve'], ['Cy', 'Dee'], ['Bo', 'Fay']]);
-  const sides = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], 'teams', swapped);
-  assert.deepEqual(HF.scoringKeys(sides), ['Ann & Eve', 'Cy & Dee', 'Bo & Fay']);
+test('new matches form two teams and can swap seats between them', () => {
+  const roster = ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'];
+  assert.deepEqual(HF.defaultTeams(roster.slice(0, 4)), [['Ann', 'Bo'], ['Cy', 'Dee']]);
+  const trios = HF.defaultTeams(roster);
+  assert.deepEqual(trios, [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]);
+  const swapped = HF.swapPairMember(trios, 0, 1, 'Eve');
+  assert.deepEqual(swapped, [['Ann', 'Eve', 'Cy'], ['Dee', 'Bo', 'Fay']]);
+  const sides = HF.buildSides(roster, 'teams', swapped);
+  assert.deepEqual(HF.scoringKeys(sides), ['Ann, Eve & Cy', 'Dee, Bo & Fay']);
   assert.equal(new Set(sides.flatMap(side => side.members)).size, 6);
-  assert.equal(sides.every(side => side.members.length === 2), true);
+
   const broken = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams', [['Ann', 'Bo']]);
   assert.deepEqual(HF.scoringKeys(broken), ['Ann & Bo', 'Cy & Dee']);
   assert.deepEqual(
@@ -507,14 +496,14 @@ test('prove-it: each input and the computed round score persist per side', () =>
   );
 });
 
-test('prove-it: four players are two lineup pairs and six players are three', () => {
+test('prove-it: the lineup creates two pairs or two trios', () => {
   const four = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee'], 'teams');
   assert.equal(four.length, 2);
   assert.deepEqual(four.map(side => side.members), [['Ann', 'Bo'], ['Cy', 'Dee']]);
   const six = HF.buildSides(['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'], 'teams');
-  assert.equal(six.length, 3);
-  assert.deepEqual(six.map(side => side.members), [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]);
-  assert.equal(six.every(side => side.members.length === 2), true);
+  assert.equal(six.length, 2);
+  assert.deepEqual(six.map(side => side.members), [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]);
+  assert.equal(six.every(side => side.members.length === 3), true);
 
   const singles = HF.persistRound(1, {
     Ann: { canastas: 1, redThrees: 0, footPenalty: 0, cardPoints: 0 },
@@ -944,33 +933,25 @@ test('an edited round total clears a breakdown that would no longer add up', () 
   assert.equal(cleared.got22, undefined);
 });
 
-test('six-player Canasta supports both 2 teams of 3 and 3 pairs, swaps seat 3, and credits all 3 teammates', () => {
+test('six-player Canasta uses two trios, swaps seat 3, and credits all three teammates', () => {
   const Scorebook = require('../public/assets/scorebook.js');
   const Records = require('../public/assets/records-logic.js');
   const roster = ['Ann', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay'];
 
-  assert.equal(HF.canChooseTeamSplit(4), false);
-  assert.equal(HF.canChooseTeamSplit(6), true);
-  assert.equal(HF.defaultTeamSplit(6), 2);
-  assert.deepEqual(HF.defaultTeams(roster, 2), [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]);
-  assert.deepEqual(HF.defaultTeams(roster, 3), [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]);
-  assert.equal(HF.teamsCover(roster, [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]), true);
-  assert.equal(HF.teamsCover(roster, [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]), true);
+  const teams = [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']];
+  const legacyPairs = [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']];
+  assert.equal(HF.teamsCover(roster, teams), true);
+  assert.equal(HF.teamsCover(roster, legacyPairs), false);
   assert.equal(HF.teamsCover(roster, [['Ann', 'Bo', 'Cy', 'Dee'], ['Eve', 'Fay']]), false);
 
-  const trios = HF.buildSides(roster, 'teams', null, { teamCount: 2 });
-  assert.equal(trios.length, 2);
+  const trios = HF.buildSides(roster, 'teams', legacyPairs);
   assert.deepEqual(trios.map(side => side.key), ['Ann, Bo & Cy', 'Dee, Eve & Fay']);
-  assert.deepEqual(trios.map(side => side.members), [['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']]);
-
-  const threePairs = HF.buildSides(roster, 'teams', null, { teamCount: 3 });
-  assert.equal(threePairs.length, 3);
-  assert.deepEqual(threePairs.map(side => side.members), [['Ann', 'Bo'], ['Cy', 'Dee'], ['Eve', 'Fay']]);
+  assert.deepEqual(trios.map(side => side.members), teams);
 
   // Swapping seat index 2 (third player on Team 1) with a player on Team 2 works cleanly.
   const swapped = HF.swapPairMember([['Ann', 'Bo', 'Cy'], ['Dee', 'Eve', 'Fay']], 0, 2, 'Fay');
   assert.deepEqual(swapped, [['Ann', 'Bo', 'Fay'], ['Dee', 'Eve', 'Cy']]);
-  const swappedSides = HF.buildSides(roster, 'teams', swapped, { teamCount: 2 });
+  const swappedSides = HF.buildSides(roster, 'teams', swapped);
   assert.deepEqual(swappedSides.map(side => side.key), ['Ann, Bo & Fay', 'Dee, Eve & Cy']);
 
   // Scoring fans out to all 3 teammates and never stores the composite team label as a player key.

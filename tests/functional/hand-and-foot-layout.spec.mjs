@@ -227,7 +227,7 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
 
     if(viewport.name==='phone'){
       await freshTable(page);
-      await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve','Fay'], format:'singles'});
+      await startHandFoot(page, {names:['Ann','Bo','Cy','Dee','Eve']});
       await openScoreEntry(page);
       const scroll=await page.evaluate(()=>{
         const cards=[...document.querySelectorAll('#score-entry-modal .hf-team-card')];
@@ -244,9 +244,9 @@ test('phone and iPad Hand and Foot entry and scorecard stay tappable and fully v
           firstHeight:visible[0]?visible[0].getBoundingClientRect().height:0
         };
       });
-      expect(scroll.count).toBe(6);
+      expect(scroll.count).toBe(5);
       expect(scroll.visible).toBe(1);
-      expect(scroll.tabs).toBe(6);
+      expect(scroll.tabs).toBe(5);
       expect(scroll.firstHeight).toBeGreaterThan(120);
       expect(scroll.fieldBottom).toBeLessThanOrEqual(scroll.keypadTop+1);
     }
