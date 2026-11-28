@@ -1,17 +1,32 @@
-const CACHE_NAME = 'back-porch-shell-prod-1786902600001';
+const CACHE_NAME = 'back-porch-shell-local-1795550000000';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './assets/app-utilities.css',
   './assets/fonts.css',
+  './assets/slice2.css',
+  './assets/porch-ledger.css',
+  './assets/porch-felt.webp',
+  './assets/card-picker.css',
+  './assets/fonts/bree-serif-400.woff2',
+  './assets/fonts/nunito-sans-500.woff2',
+  './assets/fonts/nunito-sans-700.woff2',
+  './assets/fonts/nunito-sans-800.woff2',
   './assets/fonts/londrina-solid-400.woff2',
   './assets/backup.js',
+  './assets/game-registry.js',
+  './assets/hand-foot-logic.js',
   './assets/life-preserver-logic.js',
   './assets/scorebook.js',
+  './assets/records-logic.js',
+  './assets/avatar-photo.js',
+  './assets/slice2.js',
+  './demo/try-demo.js',
   './bp-icon-192.png',
   './bp-icon-512.png',
-  './bp-apple-touch-icon.png'
+  './bp-apple-touch-icon.png',
+  './assets/logo/back-porch-wordmark.png'
 ];
 
 self.addEventListener('install', event => {
@@ -19,13 +34,24 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(Promise.all([
-    self.clients.claim(),
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key.startsWith('back-porch-shell-') && key !== CACHE_NAME)
-        .map(key => caches.delete(key))
-    ))
-  ]));
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys.map(async key => {
+        if(key.startsWith('back-porch-shell-') && key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+        const cache = await caches.open(key);
+        const requests = await cache.keys();
+        await Promise.all(
+          requests
+            .filter(req => new URL(req.url).pathname.startsWith('/api/'))
+            .map(req => cache.delete(req))
+        );
+      })
+    );
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('message', event => {
@@ -50,21 +76,18 @@ async function networkFirst(request, fallback) {
 async function cachedAvatarFirst(event) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(event.request);
-  const refresh = fetch(event.request).then(async response => {
-    if(response?.ok && response.type === 'basic') await cache.put(event.request, response.clone()).catch(() => {});
-    return response;
-  });
-  if(cached) {
-    event.waitUntil(refresh.catch(() => {}));
-    return cached;
+  if(cached) return cached;
+  const response = await fetch(event.request);
+  if(response?.ok && response.type === 'basic') {
+    await cache.put(event.request, response.clone()).catch(() => {});
   }
-  return refresh;
+  return response;
 }
 
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
-  if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js')) return;
+  if(request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.endsWith('/sw.js') || url.pathname.startsWith('/api/')) return;
   if(request.destination === 'image' && url.pathname.includes('/avatars/')) {
     event.respondWith(cachedAvatarFirst(event));
     return;

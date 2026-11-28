@@ -1,6 +1,13 @@
 export async function openScenario(page, {scenario, surface='scorecard'}={}){
   await page.goto(`/?gnqa=1&gallery=0&scenario=${encodeURIComponent(scenario)}&surface=${encodeURIComponent(surface)}`, {waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.body.dataset.gnQaReady==='true');
+  await page.evaluate(()=>(document.fonts?.ready||Promise.resolve()).then(()=>new Promise((resolve)=>{
+    requestAnimationFrame(()=>requestAnimationFrame(resolve));
+  })));
+}
+
+export function enterRoundButton(page){
+  return page.locator('#slice2-enter-btn, #submit-action-btn').first();
 }
 
 export async function nextPaint(page, frames=3){

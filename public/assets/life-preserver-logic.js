@@ -2,6 +2,12 @@
   'use strict';
 
   const SUPPORTED_GAMES = Object.freeze(['818', 'Wizard', 'Five Crowns', 'Flip 7 Vengeance']);
+  // User-facing feature name. Swap this object to rename the wheel. Do not scatter the name.
+  const BACK_PORCH_WHEEL = Object.freeze({
+    name: 'Back Porch Wheel',
+    ready: 'Spin ready',
+    used: 'Spin used'
+  });
   const EIGHT18_ROUND_TRICKS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]);
   const RECOVERY_LOAD_THRESHOLD = 0.4;
   const EIGHT18_BID_BONUS = 10;
@@ -57,13 +63,42 @@
   };
 
   const COLORS = {
-    badStrong: '#991b1b',
-    badSoft: '#dc2626',
-    goodStrong: '#10b981',
-    goodMid: '#34d399',
-    goodSoft: '#6ee7b7',
-    zero: '#8a837e'
+    badStrong: '#b85a4c',
+    badSoft: '#d07a68',
+    goodStrong: '#0a5c54',
+    goodMid: '#0e7468',
+    goodSoft: '#1a8a7a',
+    zero: '#8a8278'
   };
+
+  // One tunable wheel. Odds stay here. Amounts are derived from each game's increment
+  // and then clamped by max helpful / max setback. Do not change eligibility here.
+  // Previous known-good draw, kept for comparison. 40 pockets were 18/12/2/5/3
+  // (32 help, 5 no-change, 3 setback). Setback was 8% of the draw and 3 of 40 slices.
+  const PREVIOUS_OUTCOME_TABLE = Object.freeze({
+    smallHelp: 0.45,
+    mediumHelp: 0.30,
+    bigHelp: 0.05,
+    noChange: 0.12,
+    smallSetback: 0.08
+  });
+  const PREVIOUS_POCKET_COUNTS = Object.freeze({
+    pockets: 40,
+    smallHelp: 18,
+    mediumHelp: 12,
+    bigHelp: 2,
+    noChange: 5,
+    smallSetback: 3
+  });
+  // Live draw. 3 modestly good pockets shifted to modest setbacks (40 pockets: 15/12/2/3/8).
+  // Total help is 29/40 (72.5%), no-change 3/40 (7.5%), and setback 8/40 (20% — 1 in 5 spins).
+  const OUTCOME_TABLE = Object.freeze({
+    smallHelp: 0.375,
+    mediumHelp: 0.30,
+    bigHelp: 0.05,
+    noChange: 0.075,
+    smallSetback: 0.20
+  });
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -172,14 +207,21 @@
     return winLow ? -1 : 1;
   }
 
-  function formatPointLabel(adjustment) {
-    if (!adjustment) return '0 Pts';
-    const sign = adjustment > 0 ? '+' : '−';
-    return `${sign}${Math.abs(adjustment)} Pts`;
+  function formatSignedPoints(adjustment) {
+    if (!adjustment) return '0';
+    return `${adjustment > 0 ? '+' : '−'}${Math.abs(adjustment)}`;
   }
 
-  function formatSignedPoints(adjustment) {
-    return formatPointLabel(adjustment).replace(/ Pts$/, '');
+  function formatPointLabel(adjustment) {
+    if (!adjustment) return '0 pts';
+    return `${formatSignedPoints(adjustment)} pts`;
+  }
+
+  function formatWheelLabel(adjustment, kind) {
+    const signed = formatSignedPoints(adjustment);
+    if (kind === 'zero' || !adjustment) return `${signed} · No change`;
+    if (kind === 'bad') return `${signed} · Setback`;
+    return `${signed} · Help`;
   }
 
   function ordinal(value) {
@@ -245,14 +287,33 @@
     const summary = place
       ? `${player} is ${place}, ${leaderBit}.`
       : `${player} is ${leaderBit}.`;
-    const wheelLine = `${player} is ${leaderGap} behind 1st. Best help ${bestShort}.`;
+    const adjustments = (offer.slices || []).map(slice => Number(slice.adjustment) || 0);
+    const bestAdj = sign * maxSafe;
+    const worstShown = adjustments.length
+      ? (sign > 0 ? Math.min(...adjustments) : Math.max(...adjustments))
+      : (-sign) * (Number(offer.maxSetback) || 0);
+    const playerScore = Number.isFinite(offer.playerScore) ? offer.playerScore : null;
+    const gameLine = winLow
+      ? `${gameName}: lower scores win. Helpful spins subtract points.`
+      : `${gameName}: higher scores win. Helpful spins add points.`;
+    const pointWord = (n) => (Math.abs(Number(n) || 0) === 1 ? 'point' : 'points');
+    const rangeLine = `Best help: ${formatSignedPoints(bestAdj)} ${pointWord(bestAdj)} · Largest setback: ${formatSignedPoints(worstShown)} ${pointWord(worstShown)}`;
+    const standingBit = playerScore == null
+      ? `${leaderGap} behind 1st`
+      : `total ${playerScore} · ${leaderGap} behind 1st`;
+    const wheelLine = `${player} ${standingBit}. ${rangeLine}`;
+    let bestPlaceLine = '';
+    if (Number.isFinite(offer.bestPlaceAfter) && Number.isFinite(offer.rank)) {
+      if (offer.bestPlaceAfter !== offer.rank) {
+        bestPlaceLine = `Best outcome would move you to ${ordinal(offer.bestPlaceAfter)}`;
+      }
+    }
     const bullets = [];
 
-    if (winLow) bullets.push(`${gameName} scores low, so a good spin subtracts points.`);
-    else bullets.push(`${gameName} scores high, so a good spin adds points.`);
+    bullets.push(`${gameLine} ${rangeLine}`);
 
     if (offer.gameName === 'Flip 7 Vengeance') {
-      bullets.push(`Flip 7 has no fixed finish line, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
+      bullets.push(`Flip 7 plays to 200, so the wheel is sized off a couple of strong hands and this ${leaderGap}-point hole behind 1st.`);
     } else if (Number.isFinite(remaining) && remaining > 0) {
       bullets.push(`There ${remaining === 1 ? 'is' : 'are'} ${remaining} ${roundNoun(offer.gameName, remaining)} left, and ordinary play is unlikely to catch 1st from ${leaderGap} back.`);
     } else {
@@ -260,13 +321,13 @@
     }
 
     if (binding === 'rank') {
-      bullets.push(`The biggest help is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
+      bullets.push(`Best is ${bestShort} because that is as far as ${player} can go without matching 1st. The spin always stays at least one step behind the lead.`);
     } else if (binding === 'game-cap') {
-      bullets.push(`The biggest help is ${bestShort} — ${gameName} will not give more than that in one spin. It still cannot match or pass 1st.`);
+      bullets.push(`Best is ${bestShort}. ${gameName} will not give more than that in one spin. Cannot tie or pass the leader.`);
     } else if (binding === 'rescue') {
-      bullets.push(`The biggest help is ${bestShort} — enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
+      bullets.push(`Best is ${bestShort}. That is enough to get back in the hunt after counting on a strong stretch of ordinary play, without matching 1st.`);
     } else {
-      bullets.push(`The biggest help is ${bestShort} — about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
+      bullets.push(`Best is ${bestShort}. That is about one strong remaining ${roundNoun(offer.gameName, 1)} in ${gameName}. It cannot match or pass 1st.`);
     }
 
     const lesser = [...new Set((offer.slices || [])
@@ -277,7 +338,7 @@
       .filter(magnitude => magnitude !== maxSafe)
       .map(magnitude => formatSignedPoints(sign * magnitude));
     if (lesser.length) {
-      bullets.push(`The other helpful slices are smaller shares of that same number: ${joinEnglish(lesser)}.`);
+      bullets.push(`Most helpful slices are small (${joinEnglish(lesser.slice(0, 2))}); a few are larger shares of the same best.`);
     }
     const setbacks = [...new Set((offer.slices || [])
       .filter(slice => (Number(slice.adjustment) || 0) * sign < 0)
@@ -293,7 +354,7 @@
       bullets.push(`The red slice is a modest setback of ${setbackShort}.`);
     }
 
-    return { summary, wheelLine, bullets, bindingLimit: binding };
+    return { summary, wheelLine, gameLine, rangeLine, bestPlaceLine, bullets, bindingLimit: binding };
   }
 
   function minScoringRoundsFor(game, players) {
@@ -305,53 +366,63 @@
     return cfg.minScoringRounds;
   }
 
+  function formatOutcomePercent(weight) {
+    const pct = Math.round((Number(weight) || 0) * 1000) / 10;
+    return `${pct}%`;
+  }
+
   function explainLifePreserverRules(gameName) {
     const display = displayGameName(gameName);
     if (!SUPPORTED_GAMES.includes(gameName)) {
       return {
         supported: false,
         gameName: display,
-        lead: `${display} does not use Life Preservers.`,
-        how: ['Keep playing this one without a rescue spin.'],
+        lead: `${display} does not use the ${BACK_PORCH_WHEEL.name}.`,
+        how: ['Keep playing this one without a comeback spin.'],
         wheel: []
       };
     }
+    const cfg = GAME_CONFIG[gameName];
     const unit = roundNoun(gameName, 2);
-    let timing = `Once 4 ${unit} are scored.`;
-    let gap = 'You are far enough behind 1st that normal play is unlikely to catch them.';
-    const wheel = [
-      'Most slices help. Some do nothing. A few hurt a little.',
-      'The best result can pull you back toward the lead. It cannot match or pass 1st — you always stay at least one point behind.'
-    ];
+    const helpPct = formatOutcomePercent(
+      (OUTCOME_TABLE.smallHelp || 0) + (OUTCOME_TABLE.mediumHelp || 0) + (OUTCOME_TABLE.bigHelp || 0)
+    );
+    const zeroPct = formatOutcomePercent(OUTCOME_TABLE.noChange || 0);
+    const setbackPct = formatOutcomePercent(OUTCOME_TABLE.smallSetback || 0);
+
+    let gate = `Table gate: 4+ players and 4+ ${unit} scored.`;
+    let gap = 'Way behind 1st: Far enough back that normal play won’t catch up (2nd can qualify if 1st is running away).';
 
     if (gameName === '818') {
-      timing = 'Once 4 rounds are scored.';
-      gap = 'You are far enough behind 1st that the remaining rounds cannot close it the normal way. In 818, about two made bids back with only a few rounds left is a big hole. 8 behind first is still a race.';
+      gate = 'Table gate: 4+ players and 4+ rounds scored.';
+      gap = 'Way behind 1st: Far enough back that a couple of made bids won’t close it (2nd can qualify if 1st is running away).';
     } else if (gameName === 'Wizard') {
-      timing = 'Once the first few rounds are scored (about a quarter of the game).';
-      gap = 'You are further behind 1st than a big Wizard round. Those can swing 50 to 90 points, so 20 or even 50 down can still be ordinary.';
+      gate = 'Table gate: 4+ players and about a quarter of the rounds scored.';
+      gap = 'Way behind 1st: Deeper than a big 50–90 pt Wizard swing (2nd can qualify if 1st is running away).';
     } else if (gameName === 'Five Crowns') {
-      timing = 'Once 4 hands are scored.';
-      gap = 'Low score wins. You are far enough behind 1st that a couple of clean hands probably will not catch them.';
-      wheel.unshift('A good spin subtracts points.');
+      gate = 'Table gate: 4+ players and 4+ hands scored.';
+      gap = 'Way behind 1st: Far enough back that a couple of good hands won’t catch up (2nd can qualify if 1st is running away).';
     } else if (gameName === 'Flip 7 Vengeance') {
-      timing = 'Once 4 rounds are scored.';
-      gap = 'Flip 7 has no set finish line. You need to be about two and a half strong banks behind 1st.';
+      gate = 'Table gate: 4+ players and 4+ rounds scored.';
+      gap = 'Way behind 1st: About 2.5 strong banks behind 1st (2nd can qualify if 1st is running away).';
     }
 
     const how = [
-      'Four or more players at the table.',
-      timing,
-      'You are not in 1st. 2nd can get one too, but only if they are also too far back to catch the lead.',
+      gate,
       gap,
-      'You have not used yours yet. One spin per player, per game.',
-      'Once it unlocks, it stays for this scoring period even if someone else takes theirs first. After the next scores go in, it can drop or come back until you take it.',
-      'If 1st is crushing the whole table, everyone who cannot catch them gets one. If only the last player is cooked, only they get one.'
+      'One per match: Once unlocked, it stays available through the current scoring round.'
+    ];
+    const wheel = [
+      cfg && cfg.winLow
+        ? 'Low score wins: Good spins subtract points.'
+        : 'High score wins: Good spins add points.',
+      `Weighted odds: Slices look even, but ${helpPct} help, ${zeroPct} do nothing, and ${setbackPct} hurt slightly.`,
+      'No cheap wins: Cannot tie or pass the leader.'
     ];
     return {
       supported: true,
       gameName: display,
-      lead: `A one-time rescue if you are truly out of the hunt in ${display} — not just having a bad ${roundNoun(gameName, 1)}. It cannot hand you the win.`,
+      lead: 'A one-time comeback spin when you’re truly out of the hunt. Can never tie or pass 1st.',
       how,
       wheel
     };
@@ -424,6 +495,7 @@
       rules,
       live: {
         playerCount: players.length,
+        winLow: !!(cfg && cfg.winLow),
         completed,
         maxRounds: game.name === 'Flip 7 Vengeance' ? null : maxRounds,
         minRounds,
@@ -445,6 +517,7 @@
   }
 
   function wheelSliceKind(slice) {
+    if (slice.kind === 'good' || slice.kind === 'bad' || slice.kind === 'zero') return slice.kind;
     if (slice._wheelKind) return slice._wheelKind;
     if (!slice.adjustment) return 'zero';
     return slice._wheelBad ? 'bad' : 'good';
@@ -452,51 +525,528 @@
 
   function stripWheelMeta(slice) {
     const { _wheelBad, _wheelKind, ...rest } = slice;
-    return rest;
+    return {
+      ...rest,
+      kind: slice.kind || _wheelKind || wheelSliceKind(slice)
+    };
   }
 
-  function alternateMagnitudes(slices) {
-    const sorted = [...slices].sort((a, b) => (
-      Math.abs(a.adjustment) - Math.abs(b.adjustment) || a.weight - b.weight
-    ));
-    const out = [];
-    let low = 0;
-    let high = sorted.length - 1;
-    while (low <= high) {
-      out.push(sorted[low++]);
-      if (low <= high) out.push(sorted[high--]);
-    }
-    return out;
+  function sliceDisplayWeight(slice) {
+    const display = Number(slice?.displayWeight);
+    if (Number.isFinite(display) && display > 0) return display;
+    return Number(slice?.weight) || 0;
   }
 
-  // Spread red/gray spacers around the wheel so helpful greens do not form one
-  // Pac-Man wedge. With more greens than spacers, one pair of greens may touch.
-  function arrangeWheelSlices(slices) {
-    const groups = { bad: [], zero: [], good: [] };
-    slices.forEach(slice => {
-      groups[wheelSliceKind(slice)].push(slice);
+  function sliceArcs(slices) {
+    const total = (slices || []).reduce((sum, slice) => sum + sliceDisplayWeight(slice), 0) || 1;
+    let angle = -Math.PI / 2;
+    return (slices || []).map((slice) => {
+      const fraction = sliceDisplayWeight(slice) / total;
+      const arc = fraction * Math.PI * 2;
+      const start = angle;
+      const end = angle + arc;
+      angle = end;
+      return {
+        adjustment: Number(slice.adjustment) || 0,
+        weight: Number(slice.weight) || 0,
+        displayWeight: sliceDisplayWeight(slice),
+        kind: wheelSliceKind(slice),
+        fraction,
+        start,
+        end,
+        arc
+      };
     });
-    groups.good = alternateMagnitudes(groups.good);
-    groups.bad = alternateMagnitudes(groups.bad);
+  }
 
-    const spacers = [];
-    const spacerTurns = Math.max(groups.bad.length, groups.zero.length);
-    for (let i = 0; i < spacerTurns; i++) {
-      if (i < groups.bad.length) spacers.push(groups.bad[i]);
-      if (i < groups.zero.length) spacers.push(groups.zero[i]);
-    }
-    if (!spacers.length) return groups.good.map(stripWheelMeta);
+  const ROULETTE_UNIT = 0.025;
+  const TARGET_POCKETS = 40;
+  const MIN_POCKETS = 20;
+  const MAX_POCKETS = 40;
+  const POCKET_WIDTH_SLOP = 0.25;
+  const VISUAL_SHARE_TOLERANCE = 0.03;
+  const MIN_SEGMENT_FRAC = ROULETTE_UNIT * (1 - POCKET_WIDTH_SLOP);
+  const WHEEL_BOWL_FRAC = 1;
+  const WHEEL_TRACK_FRAC = 0.93;
+  const WHEEL_OUTER_FRAC = 0.88;
+  const WHEEL_INNER_FRAC = 0.62;
+  const WHEEL_FRET_INNER_FRAC = 0.38;
+  const WHEEL_HUB_FRAC = 0.23;
+  const PROPOSED_OUTCOME_TABLE = Object.freeze({
+    reallyGood: 0.30,
+    good: 0.45,
+    noChange: 0.10,
+    smallSetback: 0.15
+  });
+  const PROPOSED_HELP_FRACTIONS = Object.freeze({
+    reallyGood: Object.freeze([0.45, 0.55, 0.65]),
+    good: Object.freeze([0.20, 0.30, 0.40])
+  });
+  const PROPOSED_SETBACK_MAX = Object.freeze({
+    '818': 4,
+    Wizard: 15,
+    'Five Crowns': 10,
+    'Flip 7 Vengeance': 5
+  });
+  const EQUAL_POCKET_OPTION = Object.freeze({
+    pockets: 40,
+    unit: 0.025,
+    counts: Object.freeze({
+      smallHelp: 15,
+      mediumHelp: 12,
+      bigHelp: 2,
+      noChange: 3,
+      smallSetback: 8
+    }),
+    implied: Object.freeze({
+      smallHelp: 0.375,
+      mediumHelp: 0.30,
+      bigHelp: 0.05,
+      noChange: 0.075,
+      smallSetback: 0.20
+    }),
+    live: OUTCOME_TABLE,
+    note: 'Default visual plan. 8 setback slices of 40 (20%, evenly spaced every 5 pockets). Help is 29 of 40 (72.5%). No-change is 3 (7.5%). Draw matches those shares: 37.5/30/5/7.5/20.'
+  });
 
-    const n = slices.length;
-    const placed = new Array(n).fill(null);
-    for (let i = 0; i < spacers.length; i++) {
-      placed[Math.floor((i * n) / spacers.length)] = spacers[i];
+  function outcomeKey(slice) {
+    return `${wheelSliceKind(slice)}:${Number(slice.adjustment) || 0}`;
+  }
+
+  function choosePocketCount(options) {
+    const explicit = Number(options?.pocketCount);
+    if (Number.isFinite(explicit) && explicit >= MIN_POCKETS && explicit <= MAX_POCKETS) {
+      return Math.round(explicit);
     }
-    let gi = 0;
-    for (let i = 0; i < n; i++) {
-      if (!placed[i]) placed[i] = groups.good[gi++];
+    const css = Number(options?.cssWidth);
+    if (Number.isFinite(css) && css > 0 && css < 340) return 24;
+    return TARGET_POCKETS;
+  }
+
+  function pocketCountFor(weight, target) {
+    const goal = Number(target) || TARGET_POCKETS;
+    const value = Number(weight) || 0;
+    if (value <= 0) return 0;
+    return Math.max(1, Math.round(value * goal));
+  }
+
+  function segmentCountFor(weight) {
+    return pocketCountFor(weight, TARGET_POCKETS);
+  }
+
+  function largestRemainderCounts(weights, total, minEach) {
+    const values = (weights || []).map((value) => Math.max(0, Number(value) || 0));
+    const sum = values.reduce((acc, value) => acc + value, 0) || 1;
+    const mins = values.map((value) => (value > 0 ? Math.max(1, Number(minEach) || 1) : 0));
+    let counts = values.map((value, index) => {
+      if (value <= 0) return 0;
+      return Math.max(mins[index], Math.floor((value / sum) * total));
+    });
+    let used = counts.reduce((acc, value) => acc + value, 0);
+    const remainders = values.map((value, index) => ({
+      index,
+      rem: value > 0 ? ((value / sum) * total) - counts[index] : -1
+    })).sort((a, b) => b.rem - a.rem);
+    let guard = 0;
+    while (used < total && remainders.length && guard < 80) {
+      const next = remainders[guard % remainders.length];
+      if (values[next.index] > 0) {
+        counts[next.index] += 1;
+        used += 1;
+      }
+      guard += 1;
     }
-    return placed.map(stripWheelMeta);
+    values.forEach((value, index) => {
+      if (value > 0 && counts[index] < 1) counts[index] = 1;
+    });
+    return counts;
+  }
+
+  function outcomeSpec(options) {
+    if (options?.table === 'proposed') {
+      return {
+        id: 'proposed',
+        oddsLine: '75% help · 10% no change · 15% small setback',
+        table: PROPOSED_OUTCOME_TABLE,
+        bands: [
+          { key: 'reallyGood', weight: PROPOSED_OUTCOME_TABLE.reallyGood, kind: 'good', role: 'reallyGood' },
+          { key: 'good', weight: PROPOSED_OUTCOME_TABLE.good, kind: 'good', role: 'good' },
+          { key: 'noChange', weight: PROPOSED_OUTCOME_TABLE.noChange, kind: 'zero', role: 'zero' },
+          { key: 'smallSetback', weight: PROPOSED_OUTCOME_TABLE.smallSetback, kind: 'bad', role: 'setback' }
+        ]
+      };
+    }
+    return {
+      id: 'current',
+      oddsLine: 'Most slices help. Some do nothing. A few hurt a little.',
+      table: OUTCOME_TABLE,
+      bands: [
+        { key: 'smallHelp', weight: OUTCOME_TABLE.smallHelp, kind: 'good', role: 'small' },
+        { key: 'mediumHelp', weight: OUTCOME_TABLE.mediumHelp, kind: 'good', role: 'medium' },
+        { key: 'bigHelp', weight: OUTCOME_TABLE.bigHelp, kind: 'good', role: 'big' },
+        { key: 'noChange', weight: OUTCOME_TABLE.noChange, kind: 'zero', role: 'zero' },
+        { key: 'smallSetback', weight: OUTCOME_TABLE.smallSetback, kind: 'bad', role: 'setback' }
+      ]
+    };
+  }
+
+  function layoutRoulettePockets(outcomes, options) {
+    const target = choosePocketCount(options);
+    const list = (outcomes || []).filter((item) => (Number(item.weight) || 0) > 0);
+    const groups = new Map();
+    list.forEach((item) => {
+      const band = item.band || wheelSliceKind(item);
+      if (!groups.has(band)) groups.set(band, { band, weight: 0, items: [] });
+      const group = groups.get(band);
+      group.weight += Number(item.weight) || 0;
+      group.items.push(item);
+    });
+    const bands = [...groups.values()];
+    const bandCounts = largestRemainderCounts(bands.map((band) => band.weight), target, 0);
+    bands.forEach((band, index) => {
+      band.pocketCount = Math.max(band.items.length, bandCounts[index] || 0);
+    });
+    return bands.flatMap((band) => {
+      const amountCounts = largestRemainderCounts(
+        band.items.map((item) => item.weight),
+        band.pocketCount,
+        1
+      );
+      const used = amountCounts.reduce((sum, value) => sum + value, 0) || 1;
+      return band.items.map((item, index) => {
+        const pockets = Math.max(1, amountCounts[index] || 1);
+        return {
+          ...item,
+          pocketCount: pockets,
+          displayWeight: (pockets / used) * band.weight,
+          band: band.band
+        };
+      });
+    });
+  }
+
+  function mergeEqualOutcomes(slices) {
+    const map = new Map();
+    (slices || []).forEach((slice) => {
+      const key = outcomeKey(slice);
+      if (!map.has(key)) {
+        map.set(key, {
+          ...stripWheelMeta(slice),
+          weight: 0,
+          outcomeKey: key
+        });
+      }
+      map.get(key).weight += Number(slice.weight) || 0;
+    });
+    return [...map.values()].filter((slice) => slice.weight > 0);
+  }
+
+  function assignOutcomeColors(outcomes) {
+    const goods = outcomes.filter((slice) => wheelSliceKind(slice) === 'good')
+      .sort((a, b) => Math.abs(a.adjustment) - Math.abs(b.adjustment));
+    const bads = outcomes.filter((slice) => wheelSliceKind(slice) === 'bad')
+      .sort((a, b) => Math.abs(a.adjustment) - Math.abs(b.adjustment));
+    const goodColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodStrong];
+    const badColors = [COLORS.badSoft, COLORS.badStrong];
+    goods.forEach((slice, index) => {
+      slice.color = goodColors[Math.min(index, goodColors.length - 1)];
+    });
+    bads.forEach((slice, index) => {
+      slice.color = badColors[Math.min(index, badColors.length - 1)];
+    });
+    outcomes.forEach((slice) => {
+      if (wheelSliceKind(slice) === 'zero') slice.color = COLORS.zero;
+    });
+    return outcomes;
+  }
+
+  function summarizeWheelOutcomes(slices) {
+    const merged = mergeEqualOutcomes(slices);
+    const total = merged.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0) || 1;
+    const visualTotal = (slices || []).reduce((sum, slice) => sum + sliceDisplayWeight(slice), 0) || 1;
+    return merged.map((slice) => {
+      const matching = (slices || []).filter((item) => outcomeKey(item) === slice.outcomeKey);
+      const segments = matching.length || Number(slice.pocketCount) || segmentCountFor(slice.weight);
+      const visual = matching.reduce((sum, item) => sum + sliceDisplayWeight(item), 0);
+      const probability = (Number(slice.weight) || 0) / total;
+      const visualShare = visual / visualTotal;
+      return {
+        outcomeKey: slice.outcomeKey,
+        adjustment: Number(slice.adjustment) || 0,
+        kind: wheelSliceKind(slice),
+        band: slice.band || matching[0]?.band || null,
+        label: formatSignedPoints(slice.adjustment),
+        probability,
+        visualShare,
+        visualDelta: visualShare - probability,
+        weight: Number(slice.weight) || 0,
+        segments,
+        pocketWidth: segments ? visualShare / segments : 0,
+        arcDegrees: visualShare * 360
+      };
+    }).sort((a, b) => a.adjustment - b.adjustment || a.kind.localeCompare(b.kind));
+  }
+
+  function describePocketTable(slices) {
+    const outcomes = summarizeWheelOutcomes(slices);
+    const totalPockets = outcomes.reduce((sum, outcome) => sum + outcome.segments, 0);
+    const avg = totalPockets ? 1 / totalPockets : 0;
+    const bands = new Map();
+    outcomes.forEach((outcome) => {
+      const key = outcome.band || outcome.kind;
+      if (!bands.has(key)) bands.set(key, { band: key, probability: 0, visualShare: 0, pockets: 0 });
+      const row = bands.get(key);
+      row.probability += outcome.probability;
+      row.visualShare += outcome.visualShare;
+      row.pockets += outcome.segments;
+    });
+    return {
+      pockets: totalPockets,
+      averageWidth: avg,
+      equalOption: EQUAL_POCKET_OPTION,
+      bands: [...bands.values()],
+      outcomes: outcomes.map((outcome) => ({
+        ...outcome,
+        widthEach: outcome.pocketWidth,
+        widthVsAverage: avg ? outcome.pocketWidth / avg - 1 : 0
+      }))
+    };
+  }
+
+  function arrangeRouletteSegments(outcomes) {
+    const bags = (outcomes || []).map((outcome) => {
+      const n = Math.max(1, Number(outcome.pocketCount) || segmentCountFor(outcome.weight));
+      return {
+        outcome,
+        key: outcome.outcomeKey || outcomeKey(outcome),
+        kind: wheelSliceKind(outcome),
+        band: outcome.band || wheelSliceKind(outcome),
+        color: outcome.color,
+        n,
+        each: n ? (Number(outcome.weight) || 0) / n : 0,
+        eachDisplay: n ? (Number(outcome.displayWeight) || Number(outcome.weight) || 0) / n : 0
+      };
+    }).filter((bag) => bag.n > 0);
+    const total = bags.reduce((sum, bag) => sum + bag.n, 0);
+    if (!total) return [];
+
+    // Expand a group of bags into an interleaved sequence of slice objects so
+    // distinct magnitudes alternate cleanly (e.g. -1, -2, -1, -2...).
+    const expandInterleaved = (groupBags) => {
+      const queues = groupBags
+        .slice()
+        .sort((a, b) => b.n - a.n || Math.abs(b.outcome.adjustment) - Math.abs(a.outcome.adjustment))
+        .map((bag) => {
+          const items = [];
+          for (let i = 0; i < bag.n; i++) {
+            const slice = makeSlice(bag.outcome.adjustment, bag.kind, bag.color, bag.each);
+            slice.displayWeight = bag.eachDisplay;
+            slice.band = bag.outcome.band || null;
+            slice.outcomeKey = bag.key;
+            slice.segmentIndex = i;
+            slice.segmentCount = bag.n;
+            items.push(slice);
+          }
+          return items;
+        });
+      const result = [];
+      let more = true;
+      while (more) {
+        more = false;
+        queues.forEach((q) => {
+          if (q.length) {
+            result.push(q.shift());
+            more = true;
+          }
+        });
+      }
+      return result;
+    };
+
+    const badBags = bags.filter((b) => b.kind === 'bad');
+    const zeroBags = bags.filter((b) => b.kind === 'zero');
+    const bigBags = bags.filter((b) => b.kind === 'good' && (b.band === 'bigHelp' || b.band === 'reallyGood'));
+    const mediumBags = bags.filter((b) => b.kind === 'good' && b.band === 'mediumHelp');
+    const smallBags = bags.filter((b) => b.kind === 'good' && !bigBags.includes(b) && !mediumBags.includes(b));
+
+    const slots = new Array(total).fill(null);
+
+    // Place a category at evenly spaced ring angles, snapping to the nearest open slot.
+    const placeOnRing = (items, offsetFrac) => {
+      if (!items.length) return;
+      const step = total / items.length;
+      items.forEach((item, k) => {
+        const ideal = Math.floor((k + offsetFrac) * step) % total;
+        let chosen = -1;
+        for (let d = 0; d < total; d++) {
+          const fwd = (ideal + d) % total;
+          if (!slots[fwd]) { chosen = fwd; break; }
+          const bwd = (ideal - d + total) % total;
+          if (!slots[bwd]) { chosen = bwd; break; }
+        }
+        if (chosen >= 0) slots[chosen] = item;
+      });
+    };
+
+    // Place a category evenly across whatever open slots remain.
+    const placeInOpen = (items) => {
+      if (!items.length) return;
+      const open = [];
+      for (let i = 0; i < total; i++) if (!slots[i]) open.push(i);
+      const step = open.length / items.length;
+      items.forEach((item, k) => {
+        const targetPos = Math.min(open.length - 1, Math.floor((k + 0.5) * step));
+        let chosen = -1;
+        for (let d = 0; d < open.length; d++) {
+          const fwd = targetPos + d;
+          if (fwd < open.length && !slots[open[fwd]]) { chosen = open[fwd]; break; }
+          const bwd = targetPos - d;
+          if (bwd >= 0 && !slots[open[bwd]]) { chosen = open[bwd]; break; }
+        }
+        if (chosen >= 0) slots[chosen] = item;
+      });
+    };
+
+    // 1. Space setbacks evenly around the entire wheel (for 8/40: exact every 5 pockets).
+    placeOnRing(expandInterleaved(badBags), 0.5);
+    // 2. Space no-change pockets evenly (~120° apart for 3/40).
+    placeOnRing(expandInterleaved(zeroBags), 0.0);
+    // 3. Space big-help jackpots opposite each other (~180° apart for 2/40).
+    placeOnRing(expandInterleaved(bigBags), 0.25);
+    // 4. Space medium-help pockets evenly through the remaining open slots.
+    placeInOpen(expandInterleaved(mediumBags));
+    // 5. Fill remaining open slots with interleaved small-help pockets.
+    const smalls = expandInterleaved(smallBags);
+    for (let i = 0; i < total && smalls.length; i++) {
+      if (!slots[i]) slots[i] = smalls.shift();
+    }
+    return slots.filter(Boolean);
+  }
+
+  function attachSliceArcs(slices) {
+    const arcs = sliceArcs(slices);
+    (slices || []).forEach((slice, index) => {
+      slice._start = arcs[index].start;
+      slice._end = arcs[index].end;
+    });
+    return slices || [];
+  }
+
+  function landingDegreesForSlice(slice, random) {
+    if (!slice || !Number.isFinite(slice._start) || !Number.isFinite(slice._end)) return 0;
+    const span = slice._end - slice._start;
+    if (span <= 0) return rotationDegreesForSlice(slice);
+    const inset = Math.min(Math.max(span * 0.18, span * 0.08), span * 0.35);
+    const lo = slice._start + inset;
+    const hi = slice._end - inset;
+    const draw = typeof random === 'function' ? Number(random()) : 0.5;
+    const t = Number.isFinite(draw) ? Math.min(Math.max(draw, 0), 1) : 0.5;
+    const angle = lo + (hi - lo) * t;
+    return ((angle + Math.PI / 2) * 180) / Math.PI;
+  }
+
+  function wheelAngleFromDegrees(degrees) {
+    return ((Number(degrees) || 0) * Math.PI) / 180 - Math.PI / 2;
+  }
+
+  function angleInArc(angle, start, end) {
+    const twoPi = Math.PI * 2;
+    let a = angle;
+    let s = start;
+    let e = end;
+    while (s < 0) {
+      s += twoPi;
+      a += twoPi;
+      e += twoPi;
+    }
+    while (a < s) a += twoPi;
+    return a <= e + 1e-6;
+  }
+
+  function pointInSlice(x, y, cx, cy, inner, outer, start, end, pad) {
+    const dx = x - cx;
+    const dy = y - cy;
+    const radius = Math.hypot(dx, dy);
+    const slack = Number.isFinite(pad) ? pad : 1.5;
+    if (radius < inner - slack || radius > outer + slack) return false;
+    return angleInArc(Math.atan2(dy, dx), start, end);
+  }
+
+  function labelLayout(slice, geometry) {
+    const geo = geometry || {};
+    const cx = Number(geo.cx) || 0;
+    const cy = Number(geo.cy) || 0;
+    const outer = Number(geo.outer) || 0;
+    const inner = Number(geo.inner) || 0;
+    const cssWidth = Number(geo.cssWidth) || outer * 2 || 1;
+    const canvasWidth = Number(geo.canvasWidth) || cssWidth;
+    const start = Number.isFinite(slice?._start) ? slice._start : -Math.PI / 2;
+    const end = Number.isFinite(slice?._end) ? slice._end : start;
+    const arc = Math.max(end - start, 0);
+    const mid = start + arc / 2;
+    const midR = inner + (outer - inner) * 0.56;
+    const signed = formatSignedPoints(slice?.adjustment);
+    const scale = canvasWidth / cssWidth;
+    const chord = 2 * Math.sin(arc / 2) * midR;
+    const radial = Math.max(outer - inner, 1);
+    const radialMode = false;
+    const tangentialMode = true;
+    const chordCss = chord / scale;
+    const radialCss = radial / scale;
+    const targetCss = Math.max(8, Math.min(
+      cssWidth * 0.044,
+      radialCss * 0.56,
+      chordCss * (signed.length > 2 ? 0.49 : 0.63)
+    ));
+    const cssFont = Math.max(8, Math.min(targetCss, chordCss * 0.7));
+    const canvasFont = cssFont * scale;
+    const textW = signed.length * canvasFont * 0.52;
+    const textH = canvasFont * 0.86;
+    const x = cx + Math.cos(mid) * midR;
+    const y = cy + Math.sin(mid) * midR;
+    const rotation = mid + Math.PI / 2;
+    const hw = textW / 2;
+    const hh = textH / 2;
+    const corners = [
+      { x: -hw, y: -hh },
+      { x: hw, y: -hh },
+      { x: hw, y: hh },
+      { x: -hw, y: hh }
+    ].map((point) => {
+      const cos = Math.cos(rotation);
+      const sin = Math.sin(rotation);
+      return {
+        x: x + point.x * cos - point.y * sin,
+        y: y + point.x * sin + point.y * cos
+      };
+    });
+    const pad = Math.max(1.25 * scale, 1);
+    const insideSegment = corners.every((point) => (
+      pointInSlice(point.x, point.y, cx, cy, inner, outer, start, end, pad)
+    ));
+    const insidePie = corners.every((point) => {
+      const radius = Math.hypot(point.x - cx, point.y - cy);
+      return radius <= outer + pad && radius >= Math.max(0, inner - pad);
+    });
+    return {
+      text: signed,
+      x,
+      y,
+      mid,
+      midR,
+      arc,
+      rotation,
+      radialMode,
+      tangentialMode,
+      canvasFont,
+      cssFont,
+      textW,
+      textH,
+      corners,
+      insideSegment,
+      insidePie,
+      kind: wheelSliceKind(slice || {})
+    };
   }
 
   function bestAllowedRankFor(_playerCount, _currentRank) {
@@ -538,68 +1088,212 @@
     return Math.max(increment, raw);
   }
 
-  function helpfulWeightFor(recoveryLoad) {
-    if (recoveryLoad >= 1) return 85;
-    if (recoveryLoad >= 0.55) return 75;
-    return 68;
+  function uniquePositive(values) {
+    return [...new Set(values.filter((value) => Number.isFinite(value) && value > 0))];
   }
 
-  function splitHelpfulWeights(helpfulWeight) {
-    const parts = [0.26, 0.22, 0.18, 0.21];
-    const weights = parts.map(part => Math.max(1, Math.round(helpfulWeight * part)));
-    weights.push(Math.max(1, helpfulWeight - weights.reduce((sum, weight) => sum + weight, 0)));
-    return weights;
+  function makeSlice(adjustment, kind, color, weight) {
+    return {
+      label: formatWheelLabel(adjustment, kind),
+      color,
+      adjustment,
+      weight: Number.isFinite(weight) ? weight : 1,
+      kind
+    };
   }
 
-  function splitWeight(totalWeight) {
-    if (totalWeight <= 1) return [Math.max(0, totalWeight)];
-    const first = Math.ceil(totalWeight / 2);
-    return [first, totalWeight - first];
+  function pickWeightedSlice(slices, random) {
+    const list = slices || [];
+    const total = list.reduce((sum, slice) => sum + (Number(slice.weight) || 0), 0);
+    if (!list.length || total <= 0) return null;
+    const draw = typeof random === 'function' ? Number(random()) : Math.random();
+    let roll = (Number.isFinite(draw) ? Math.min(Math.max(draw, 0), 0.999999) : 0) * total;
+    for (const slice of list) {
+      roll -= Number(slice.weight) || 0;
+      if (roll < 0) return slice;
+    }
+    return list[list.length - 1];
   }
 
-  function buildSlices(maxHelpful, maxSetback, winLow, increment, recoveryLoad) {
+  function packGapAfter(nextScore, leaderScore, winLow) {
+    return winLow ? nextScore - leaderScore : leaderScore - nextScore;
+  }
+
+  function buildLockedOutcome(offer, slice, totals, players) {
+    if (!offer || !slice) return null;
+    const player = offer.player;
+    const winLow = !!offer.winLow;
+    const adj = capLifePreserverAdjustment(slice.adjustment, offer);
+    const beforeTotal = Number(totals?.[player]) || 0;
+    const afterTotal = beforeTotal + adj;
+    const beforeRank = Number(offer.rank) || 0;
+    const afterRank = rankWithScore(player, afterTotal, players || [], totals || {}, winLow);
+    const leaderScore = Number.isFinite(offer.leaderScore)
+      ? offer.leaderScore
+      : (winLow
+        ? Math.min(...(players || []).map((name) => Number(totals?.[name]) || 0))
+        : Math.max(...(players || []).map((name) => Number(totals?.[name]) || 0)));
+    const leaderGapBefore = Number(offer.leaderGap) || 0;
+    const leaderGapAfter = packGapAfter(afterTotal, leaderScore, winLow);
+    return {
+      player,
+      adjustment: adj,
+      label: formatWheelLabel(adj, wheelSliceKind({ ...slice, adjustment: adj })),
+      beforeTotal,
+      afterTotal,
+      beforeRank,
+      afterRank,
+      leaderGapBefore,
+      leaderGapAfter,
+      winLow
+    };
+  }
+
+  function describeLifePreserverResult(detail) {
+    if (!detail) return { headline: '', totals: '', standing: '' };
+    const adj = Number(detail.adjustment) || 0;
+    const winLow = !!detail.winLow;
+    const helpful = adj * helpfulSign(winLow) > 0;
+    const abs = Math.abs(adj);
+    const unit = abs === 1 ? 'point' : 'points';
+    let headline = 'No change';
+    if (adj && helpful) headline = winLow ? `${abs} ${unit} off` : `+${abs} ${unit}`;
+    else if (adj) headline = `${abs} point setback`;
+    const totals = `${detail.beforeTotal} → ${detail.afterTotal}`;
+    const beforeRank = Number(detail.beforeRank) || 0;
+    const afterRank = Number(detail.afterRank) || 0;
+    let standing = '';
+    if (beforeRank && afterRank && beforeRank === afterRank) {
+      const gap = Number(detail.leaderGapAfter);
+      standing = Number.isFinite(gap)
+        ? `Stays ${ordinal(beforeRank)} · gap to leader ${gap >= (Number(detail.leaderGapBefore) || gap) ? 'is' : 'reduced to'} ${gap}`
+        : `Stays ${ordinal(beforeRank)}`;
+    } else if (beforeRank && afterRank) {
+      standing = `${ordinal(beforeRank)} → ${ordinal(afterRank)} place`;
+    }
+    return { headline, totals, standing };
+  }
+
+  function rotationDegreesForSlice(slice) {
+    if (!slice || !Number.isFinite(slice._start) || !Number.isFinite(slice._end)) return 0;
+    const mid = (slice._start + slice._end) / 2;
+    return ((mid + Math.PI / 2) * 180) / Math.PI;
+  }
+
+  function rewardStretch(options) {
+    const opts = options || {};
+    const remaining = Number(opts.remainingRounds);
+    if (remaining === 1) return 0;
+    const unit = Math.max(Number(opts.oneStrongRound) || 0, Number(opts.increment) || 1);
+    const gap = Math.max(0, Number(opts.leaderGap) || 0);
+    let stretch = clamp(gap / Math.max(unit * 4, 1) - 1, 0, 0.25);
+    if (remaining > 1 && remaining <= 3) stretch = Math.min(0.25, stretch + 0.08);
+    return stretch;
+  }
+
+  function bandMagnitudes(band, increment, maxHelpful, maxSetback, stretch) {
+    const step = Math.max(1, increment);
+    if (band === 'small') {
+      return uniquePositive([step, step * 2]).filter((value) => value <= maxHelpful);
+    }
+    if (band === 'medium') {
+      const values = [step * 6, step * 8].map((value) => (
+        floorToIncrement(value * (1 + stretch * 0.4), step)
+      ));
+      return uniquePositive(values).filter((value) => value > step * 2 && value < maxHelpful);
+    }
+    if (band === 'big') {
+      const base = floorToIncrement(Math.max(step * 12, maxHelpful * 0.8), step);
+      return uniquePositive([base, maxHelpful]).filter((value) => value > step * 2 && value <= maxHelpful);
+    }
+    if (band === 'setback') {
+      return uniquePositive([step, Math.min(maxSetback, step * 2)]).filter((value) => value <= maxSetback);
+    }
+    return [0];
+  }
+
+  function proposedHelpMagnitudes(role, increment, maxHelpful, leaderGap) {
+    const step = Math.max(1, increment);
+    const gap = Math.max(0, Number(leaderGap) || 0);
+    const modest = uniquePositive([step, step * 2]).filter((value) => value <= maxHelpful);
+    if (role === 'setback') return [];
+    if (gap < step) return modest.slice(0, 1);
+    const fractions = PROPOSED_HELP_FRACTIONS[role] || PROPOSED_HELP_FRACTIONS.good;
+    const capFrac = role === 'reallyGood' ? 0.65 : 0.40;
+    // Discrete pockets, equally likely inside the band, floored to the game increment.
+    const values = uniquePositive(fractions.map((frac) => (
+      floorToIncrement(Math.min(gap * frac, gap * capFrac, maxHelpful), step)
+    ))).filter((value) => value >= step && value <= maxHelpful && value < gap);
+    return values.length ? values : modest.filter((value) => value < gap || gap < step);
+  }
+
+  function slicesForBand(values, weight, kind, sign, colorFn, band) {
+    if (!values.length || weight <= 0) return [];
+    const each = weight / values.length;
+    return values.map((magnitude, index) => {
+      const adjustment = kind === 'zero' ? 0 : (kind === 'bad' ? -sign * magnitude : sign * magnitude);
+      const slice = makeSlice(adjustment, kind, colorFn(index), each);
+      slice.band = band;
+      return slice;
+    });
+  }
+
+  function buildSlices(maxHelpful, maxSetback, winLow, increment, options) {
+    const opts = options || {};
+    const spec = outcomeSpec(opts);
     const sign = helpfulSign(winLow);
-    const helpful = [0.25, 0.5, 0.5, 0.75, 1].map(percent => percentMagnitude(maxHelpful, percent, increment));
-    const setback = Math.max(increment, floorToIncrement(maxSetback, increment));
-    const smallSetback = Math.max(increment, floorToIncrement(setback / 2, increment));
-    const signedHelpful = helpful.map(magnitude => sign * magnitude);
-    const helpfulWeight = helpfulWeightFor(recoveryLoad);
-    const setbackWeight = recoveryLoad >= 1 ? 8 : 10;
-    const zeroWeight = Math.max(6, 100 - helpfulWeight - setbackWeight);
-    const helpfulWeights = splitHelpfulWeights(helpfulWeight);
-    const raw = [];
+    const maxH = Math.max(increment, floorToIncrement(maxHelpful, increment));
+    const maxB = Math.max(increment, floorToIncrement(maxSetback, increment));
+    const stretch = rewardStretch({ ...opts, increment });
+    const gap = Number(opts.leaderGap);
+    const magnitudes = {};
+    spec.bands.forEach((band) => {
+      if (band.role === 'zero') {
+        magnitudes[band.key] = [0];
+        return;
+      }
+      if (spec.id === 'proposed' && (band.role === 'good' || band.role === 'reallyGood')) {
+        magnitudes[band.key] = proposedHelpMagnitudes(band.role, increment, maxH, gap);
+        return;
+      }
+      if (band.role === 'setback') {
+        magnitudes[band.key] = bandMagnitudes('setback', increment, maxH, maxB, stretch);
+        return;
+      }
+      magnitudes[band.key] = bandMagnitudes(band.role, increment, maxH, maxB, stretch);
+    });
 
-    splitWeight(setbackWeight).forEach((weight, index) => {
-      const magnitude = index === 0 && smallSetback !== setback ? smallSetback : setback;
-      const adjustment = -sign * magnitude;
-      raw.push({
-        label: formatPointLabel(adjustment),
-        color: index === 0 && smallSetback !== setback ? COLORS.badSoft : COLORS.badStrong,
-        adjustment,
-        weight,
-        _wheelKind: 'bad'
-      });
-    });
-    splitWeight(zeroWeight).forEach(weight => {
-      raw.push({
-        label: '0 Pts',
-        color: COLORS.zero,
-        adjustment: 0,
-        weight,
-        _wheelKind: 'zero'
-      });
-    });
-    const helpfulColors = [COLORS.goodSoft, COLORS.goodMid, COLORS.goodMid, COLORS.goodStrong, COLORS.goodStrong];
-    signedHelpful.forEach((adjustment, index) => {
-      raw.push({
-        label: formatPointLabel(adjustment),
-        color: helpfulColors[index],
-        adjustment,
-        weight: helpfulWeights[index],
-        _wheelKind: 'good'
-      });
-    });
-    return arrangeWheelSlices(raw);
+    const bands = spec.bands.map((band) => ({ ...band }));
+    const helpBands = bands.filter((band) => band.kind === 'good');
+    for (let i = helpBands.length - 1; i >= 0; i--) {
+      if ((magnitudes[helpBands[i].key] || []).length) continue;
+      const foldInto = [...helpBands.slice(0, i)].reverse()
+        .find((band) => (magnitudes[band.key] || []).length);
+      if (foldInto) {
+        foldInto.weight += helpBands[i].weight;
+        helpBands[i].weight = 0;
+      }
+    }
+
+    const colorFor = (band, index) => {
+      if (band.kind === 'zero') return COLORS.zero;
+      if (band.kind === 'bad') return index ? COLORS.badStrong : COLORS.badSoft;
+      if (band.role === 'reallyGood' || band.role === 'big') return index ? COLORS.goodStrong : COLORS.goodMid;
+      if (band.role === 'medium' || band.role === 'good') return COLORS.goodMid;
+      return COLORS.goodSoft;
+    };
+
+    const raw = bands.flatMap((band) => slicesForBand(
+      magnitudes[band.key] || [],
+      band.weight,
+      band.kind,
+      sign,
+      (index) => colorFor(band, index),
+      band.key
+    ));
+    const merged = assignOutcomeColors(mergeEqualOutcomes(raw));
+    const laid = layoutRoulettePockets(merged, opts);
+    return arrangeRouletteSegments(laid);
   }
 
   function ineligible(reason, extras) {
@@ -809,8 +1503,12 @@
       });
     }
 
-    const maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
-    const wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
+    let maxSetback = Math.max(cfg.increment, floorToIncrement(oneStrongRound / 2, cfg.increment));
+    if (opts.table === 'proposed') {
+      const proposedSetback = PROPOSED_SETBACK_MAX[game.name] || (cfg.increment * 2);
+      maxSetback = Math.max(cfg.increment, floorToIncrement(proposedSetback, cfg.increment));
+    }
+    let wheelHelp = Math.max(maxSafeAdjustment, held ? cfg.increment : 0);
     if (wheelHelp < cfg.increment) {
       return ineligible('no-legal-help', {
         rank,
@@ -825,8 +1523,28 @@
         scoreIncrement: cfg.increment
       });
     }
-    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, recoveryLoad);
     const remainingRounds = game.name === 'Flip 7 Vengeance' ? null : remaining.length;
+    const spec = outcomeSpec(opts);
+    if (opts.table === 'proposed') {
+      const gapHelp = floorToIncrement(Math.min((Number(leaderGap) || 0) * 0.65, cfg.rescueMax, rankCap), cfg.increment);
+      wheelHelp = Math.max(cfg.increment, Math.min(gapHelp || cfg.increment, rankCap || gapHelp || cfg.increment));
+    }
+    const slices = buildSlices(wheelHelp, maxSetback, cfg.winLow, cfg.increment, {
+      recoveryLoad,
+      leaderGap,
+      remainingRounds,
+      oneStrongRound,
+      table: opts.table,
+      pocketCount: opts.pocketCount,
+      cssWidth: opts.cssWidth
+    });
+    const bestPlaceAfter = rankWithScore(
+      player,
+      playerScore + (helpfulSign(cfg.winLow) * wheelHelp),
+      players,
+      totals,
+      cfg.winLow
+    );
     const offer = {
       eligible: true,
       reason: 'ok',
@@ -836,7 +1554,10 @@
       playerCount: players.length,
       packPlayer: sorted[packRank - 1],
       leaderPlayer: sorted[0],
+      leaderScore,
+      playerScore,
       rank,
+      bestPlaceAfter,
       leaderGap,
       packGap,
       comebackUnit,
@@ -858,6 +1579,12 @@
       slices
     };
     offer.bindingLimit = resolveBindingLimit(offer);
+    offer.table = spec.id;
+    offer.oddsLine = spec.oddsLine;
+    if (opts.table === 'proposed') {
+      offer.maxSafeAdjustment = wheelHelp;
+      offer.proposed = true;
+    }
     return offer;
   }
 
@@ -893,6 +1620,7 @@
 
   const api = {
     SUPPORTED_GAMES,
+    BACK_PORCH_WHEEL,
     EIGHT18_ROUND_TRICKS,
     EIGHT18_BID_BONUS,
     RECOVERY_LOAD_THRESHOLD,
@@ -911,7 +1639,55 @@
     capLifePreserverAdjustment,
     rankWithScore,
     bestAllowedRankFor,
-    scoringRounds
+    scoringRounds,
+    PREVIOUS_OUTCOME_TABLE,
+    PREVIOUS_POCKET_COUNTS,
+    OUTCOME_TABLE,
+    PROPOSED_OUTCOME_TABLE,
+    PROPOSED_HELP_FRACTIONS,
+    PROPOSED_SETBACK_MAX,
+    COLORS,
+    ROULETTE_UNIT,
+    TARGET_POCKETS,
+    MIN_POCKETS,
+    MAX_POCKETS,
+    POCKET_WIDTH_SLOP,
+    VISUAL_SHARE_TOLERANCE,
+    MIN_SEGMENT_FRAC,
+    EQUAL_POCKET_OPTION,
+    WHEEL_BOWL_FRAC,
+    WHEEL_TRACK_FRAC,
+    WHEEL_OUTER_FRAC,
+    WHEEL_INNER_FRAC,
+    WHEEL_FRET_INNER_FRAC,
+    WHEEL_HUB_FRAC,
+    sliceArcs,
+    sliceDisplayWeight,
+    attachSliceArcs,
+    wheelSliceKind,
+    outcomeKey,
+    choosePocketCount,
+    pocketCountFor,
+    segmentCountFor,
+    largestRemainderCounts,
+    outcomeSpec,
+    layoutRoulettePockets,
+    proposedHelpMagnitudes,
+    mergeEqualOutcomes,
+    summarizeWheelOutcomes,
+    describePocketTable,
+    pickWeightedSlice,
+    buildLockedOutcome,
+    describeLifePreserverResult,
+    rotationDegreesForSlice,
+    landingDegreesForSlice,
+    wheelAngleFromDegrees,
+    angleInArc,
+    pointInSlice,
+    labelLayout,
+    buildSlices,
+    formatWheelLabel,
+    formatSignedPoints
   };
 
   root.BPGLifePreserver = api;

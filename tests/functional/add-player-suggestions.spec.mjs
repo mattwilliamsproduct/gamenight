@@ -14,11 +14,11 @@ async function seedKnownNames(page, {seated=['Megan','Matt','Mike'], midgame=fal
   },{seated,profiles:PROFILES,midgame});
 }
 
-test('mid-game Add Player typing m suggests only Michelle', async ({page})=>{
+test('mid-game Add player typing m suggests only Michelle', async ({page})=>{
   await openScenario(page,{scenario:'wizard-6-mid'});
   await seedKnownNames(page,{midgame:true});
   await page.getByRole('button',{name:/Actions/}).click();
-  await page.getByRole('button',{name:'Add Player Mid-Game',exact:true}).click();
+  await page.getByRole('button',{name:'Add player mid-game',exact:true}).click();
   await expect(page.locator('#add-player-modal')).not.toHaveClass(/hidden/);
   await page.locator('#midgame-add-player-input').fill('m');
   const labels=page.locator('#midgame-player-suggestions .player-name-label');
@@ -41,10 +41,57 @@ test('Home quick-add rejects a comma name without saving', async ({page})=>{
   await openScenario(page,{scenario:'home-party',surface:'home'});
   const before=await page.evaluate(()=>({allPlayers:[...allPlayers],players:[...players]}));
   await page.locator('#quick-add-player').fill('Megan,Matt');
-  await page.locator('#home-screen').getByRole('button',{name:'Add',exact:true}).click();
+  await page.locator('#home-screen form.s2-add').getByRole('button',{name:'Add player',exact:true}).click();
   await expect(page.locator('#home-player-name-error')).toBeVisible();
-  await expect(page.locator('#home-player-name-error')).toContainText('commas');
+  await expect(page.locator('#home-player-name-error')).toContainText(/commas/i);
   const after=await page.evaluate(()=>({allPlayers:[...allPlayers],players:[...players]}));
   expect(after).toEqual(before);
   expect(after.allPlayers.some(name=>String(name).includes(','))).toBe(false);
+});
+
+test('mid-game picker lists the bench before typing and confirms the chosen late join', async ({page})=>{
+  await openScenario(page,{scenario:'wizard-6-mid'});
+  const bench=['Iris','Nora','Owen','Ruby'];
+  const start=await page.evaluate(bench=>{
+    players=[...currentGame.originalRoster];
+    allPlayers=[...players,...bench];
+    playerProfiles={};
+    renderRoster();
+    const scores=players.map(name=>currentGame.totals[name]);
+    return Math.ceil(scores.reduce((sum,score)=>sum+score,0)/scores.length);
+  },bench);
+  await expect(page.locator('#bench-list .player-name-label')).toHaveText(bench);
+  await page.getByRole('button',{name:/Actions/}).click();
+  await page.getByRole('button',{name:'Add player mid-game',exact:true}).click();
+  const picker=page.locator('#midgame-player-suggestions');
+  await expect(picker.locator('.player-name-label')).toHaveText(bench);
+  await picker.getByRole('button',{name:'Nora',exact:true}).click();
+  await expect(page.locator('#midgame-add-confirm-copy')).toContainText(`Nora starts at ${start}`);
+  await page.locator('#midgame-add-confirm').getByRole('button',{name:'Add player'}).click();
+  await expect(page.locator('#add-player-modal')).toHaveClass(/hidden/);
+  expect(await page.evaluate(()=>({
+    total:currentGame.totals.Nora,
+    missed:BPGScorebook.missedRoundText(currentGame,'Nora',1)
+  }))).toEqual({total:start,missed:'Did not play'});
+});
+
+test('mid-game Add Player keeps the empty bench compact and leaves the new-name field ready', async ({page}) => {
+  await page.setViewportSize({width:1920,height:1080});
+  await openScenario(page,{scenario:'five-crowns-4'});
+  await page.evaluate(()=>{
+    allPlayers=[...currentGame.originalRoster];
+    players=allPlayers.slice();
+    playerProfiles={};
+  });
+
+  await page.getByRole('button',{name:/Actions/}).click();
+  await page.getByRole('button',{name:'Add player mid-game',exact:true}).click();
+  const modal=page.locator('#add-player-modal');
+  await expect(modal.getByText('No saved players available to add.')).toBeVisible();
+  await expect(modal.getByRole('textbox')).toBeVisible();
+  const size=await modal.locator('.bp-modal-panel').boundingBox();
+  expect(size.height).toBeLessThan(340);
+  await modal.getByRole('textbox').fill('Hazel');
+  await modal.getByRole('button',{name:'Add',exact:true}).click();
+  await expect(modal.locator('#midgame-add-confirm-copy')).toContainText('Hazel starts at');
 });

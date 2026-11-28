@@ -1,0 +1,211 @@
+[
+  {
+    "shot": "entry-8-390",
+    "panelRight": 372,
+    "cellRight": 340,
+    "progressRight": 359,
+    "progressText": "0 of 8 scores entered",
+    "progressOverflow": false,
+    "zeroW": 77,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "minusW": 157,
+    "skip": "Skip"
+  },
+  {
+    "shot": "entry-3-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "0 of 3 scores entered",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "entry-4-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "0 of 4 heats entered",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "zero-span-crowns",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 scores entered",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 123,
+    "sevenW": 112,
+    "sevenH": 123,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "zero-span-heat",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 heats entered",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 123,
+    "sevenW": 112,
+    "sevenH": 123,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "flip7-minus",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 scores entered",
+    "progressOverflow": false,
+    "zeroW": 112,
+    "zeroH": 123,
+    "sevenW": 112,
+    "sevenH": 123,
+    "minusW": 233,
+    "skip": "Skip"
+  },
+  {
+    "shot": "wizard-bid",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 bids entered · Bids total 0 · 1 trick this round",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 119,
+    "sevenW": 112,
+    "sevenH": 119,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "wizard-bid-tap",
+    "afterSkip": "",
+    "nextValue": "0"
+  },
+  {
+    "shot": "wizard-bid-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "1 of 4 bids entered · Bids total 0 · 1 trick this round",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "818-bid",
+    "panelRight": 993,
+    "cellRight": 475,
+    "progressRight": 978,
+    "progressText": "0 of 4 bids entered · Bids total 0 · 8 tricks this round",
+    "progressOverflow": false,
+    "zeroW": 354,
+    "zeroH": 119,
+    "sevenW": 112,
+    "sevenH": 119,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "818-bid-tap",
+    "before": "",
+    "afterSkip": ""
+  },
+  {
+    "shot": "818-bid-390",
+    "panelRight": 372,
+    "cellRight": 346,
+    "progressRight": 359,
+    "progressText": "0 of 4 bids entered · Bids total 0 · 8 tricks this round",
+    "progressOverflow": false,
+    "zeroW": 238,
+    "zeroH": 42,
+    "sevenW": 77,
+    "sevenH": 42,
+    "minusW": null,
+    "skip": "Skip"
+  },
+  {
+    "shot": "review-390",
+    "review": "Review the scores, then submit."
+  },
+  {
+    "shot": "teams",
+    "title": "Choose your teams",
+    "selects": 0,
+    "pick": false,
+    "order": "Tap a player, then someone on the other team to swap.",
+    "names": [
+      "Ann",
+      "Bo",
+      "Cy",
+      "Dee"
+    ]
+  },
+  {
+    "shot": "teams-swapped",
+    "swapped": [
+      "Ann",
+      "Cy",
+      "Bo",
+      "Dee"
+    ]
+  },
+  {
+    "shot": "cap-9999",
+    "text": "Canasta scores stop at 9,999.",
+    "beside": true
+  },
+  {
+    "shot": "apply-order",
+    "apply": "APPLY ORDER"
+  },
+  {
+    "shot": "live-home",
+    "hasButton": true,
+    "gridHidden": true
+  },
+  {
+    "shot": "recent-nights",
+    "recent": false
+  },
+  {
+    "shot": "toast",
+    "toast": "👑 Cat & Mike take the lead!"
+  },
+  {
+    "shot": "comeback",
+    "wizard": true,
+    "canasta": true
+  },
+  {
+    "shot": "spin-ready-390",
+    "rows": 3,
+    "ready": 2,
+    "inside": true
+  }
+]

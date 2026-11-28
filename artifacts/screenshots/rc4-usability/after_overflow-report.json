@@ -1,0 +1,1468 @@
+{
+  "prefix": "after",
+  "overflow": [
+    {
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "count": 2,
+      "seated": 2,
+      "table": {
+        "x": 80,
+        "y": 300.28125,
+        "w": 360,
+        "h": 600.578125,
+        "right": 440,
+        "bottom": 900.859375
+      },
+      "start": {
+        "x": 456,
+        "y": 300.28125,
+        "w": 904,
+        "h": 638.484375,
+        "right": 1360,
+        "bottom": 938.765625
+      },
+      "grid": {
+        "x": 97,
+        "y": 422.265625,
+        "w": 326,
+        "h": 118,
+        "right": 423,
+        "bottom": 540.265625
+      },
+      "nights": {
+        "x": 80,
+        "y": 954.765625,
+        "w": 1280,
+        "h": 397.421875,
+        "right": 1360,
+        "bottom": 1352.1875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "count": 3,
+      "seated": 3,
+      "table": {
+        "x": 80,
+        "y": 300.28125,
+        "w": 360,
+        "h": 610.578125,
+        "right": 440,
+        "bottom": 910.859375
+      },
+      "start": {
+        "x": 456,
+        "y": 300.28125,
+        "w": 904,
+        "h": 638.484375,
+        "right": 1360,
+        "bottom": 938.765625
+      },
+      "grid": {
+        "x": 97,
+        "y": 422.265625,
+        "w": 326,
+        "h": 182,
+        "right": 423,
+        "bottom": 604.265625
+      },
+      "nights": {
+        "x": 80,
+        "y": 954.765625,
+        "w": 1280,
+        "h": 397.421875,
+        "right": 1360,
+        "bottom": 1352.1875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "count": 4,
+      "seated": 4,
+      "table": {
+        "x": 80,
+        "y": 300.28125,
+        "w": 360,
+        "h": 674.578125,
+        "right": 440,
+        "bottom": 974.859375
+      },
+      "start": {
+        "x": 456,
+        "y": 300.28125,
+        "w": 904,
+        "h": 638.484375,
+        "right": 1360,
+        "bottom": 938.765625
+      },
+      "grid": {
+        "x": 97,
+        "y": 422.265625,
+        "w": 326,
+        "h": 246,
+        "right": 423,
+        "bottom": 668.265625
+      },
+      "nights": {
+        "x": 80,
+        "y": 990.859375,
+        "w": 1280,
+        "h": 397.421875,
+        "right": 1360,
+        "bottom": 1388.28125
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "count": 8,
+      "seated": 8,
+      "table": {
+        "x": 80,
+        "y": 300.28125,
+        "w": 360,
+        "h": 876.578125,
+        "right": 440,
+        "bottom": 1176.859375
+      },
+      "start": {
+        "x": 456,
+        "y": 300.28125,
+        "w": 904,
+        "h": 638.484375,
+        "right": 1360,
+        "bottom": 938.765625
+      },
+      "grid": {
+        "x": 97,
+        "y": 422.265625,
+        "w": 326,
+        "h": 502,
+        "right": 423,
+        "bottom": 924.265625
+      },
+      "nights": {
+        "x": 80,
+        "y": 1192.859375,
+        "w": 1280,
+        "h": 397.421875,
+        "right": 1360,
+        "bottom": 1590.28125
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "count": 9,
+      "seated": 9,
+      "table": {
+        "x": 80,
+        "y": 300.28125,
+        "w": 360,
+        "h": 886.578125,
+        "right": 440,
+        "bottom": 1186.859375
+      },
+      "start": {
+        "x": 456,
+        "y": 300.28125,
+        "w": 904,
+        "h": 638.484375,
+        "right": 1360,
+        "bottom": 938.765625
+      },
+      "grid": {
+        "x": 97,
+        "y": 422.265625,
+        "w": 326,
+        "h": 566,
+        "right": 423,
+        "bottom": 988.265625
+      },
+      "nights": {
+        "x": 80,
+        "y": 1202.859375,
+        "w": 1280,
+        "h": 397.421875,
+        "right": 1360,
+        "bottom": 1600.28125
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "count": 10,
+      "seated": 10,
+      "table": {
+        "x": 80,
+        "y": 300.28125,
+        "w": 360,
+        "h": 983.6875,
+        "right": 440,
+        "bottom": 1283.96875
+      },
+      "start": {
+        "x": 456,
+        "y": 300.28125,
+        "w": 904,
+        "h": 638.484375,
+        "right": 1360,
+        "bottom": 938.765625
+      },
+      "grid": {
+        "x": 97,
+        "y": 455.375,
+        "w": 326,
+        "h": 630,
+        "right": 423,
+        "bottom": 1085.375
+      },
+      "nights": {
+        "x": 80,
+        "y": 1299.96875,
+        "w": 1280,
+        "h": 397.421875,
+        "right": 1360,
+        "bottom": 1697.390625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "count": 2,
+      "seated": 2,
+      "table": {
+        "x": 24,
+        "y": 298.796875,
+        "w": 360,
+        "h": 600.578125,
+        "right": 384,
+        "bottom": 899.375
+      },
+      "start": {
+        "x": 400,
+        "y": 298.796875,
+        "w": 856,
+        "h": 604.796875,
+        "right": 1256,
+        "bottom": 903.59375
+      },
+      "grid": {
+        "x": 41,
+        "y": 420.78125,
+        "w": 326,
+        "h": 118,
+        "right": 367,
+        "bottom": 538.78125
+      },
+      "nights": {
+        "x": 24,
+        "y": 919.59375,
+        "w": 1232,
+        "h": 397.421875,
+        "right": 1256,
+        "bottom": 1317.015625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "count": 3,
+      "seated": 3,
+      "table": {
+        "x": 24,
+        "y": 298.796875,
+        "w": 360,
+        "h": 610.578125,
+        "right": 384,
+        "bottom": 909.375
+      },
+      "start": {
+        "x": 400,
+        "y": 298.796875,
+        "w": 856,
+        "h": 604.796875,
+        "right": 1256,
+        "bottom": 903.59375
+      },
+      "grid": {
+        "x": 41,
+        "y": 420.78125,
+        "w": 326,
+        "h": 182,
+        "right": 367,
+        "bottom": 602.78125
+      },
+      "nights": {
+        "x": 24,
+        "y": 925.375,
+        "w": 1232,
+        "h": 397.421875,
+        "right": 1256,
+        "bottom": 1322.796875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "count": 4,
+      "seated": 4,
+      "table": {
+        "x": 24,
+        "y": 298.796875,
+        "w": 360,
+        "h": 674.578125,
+        "right": 384,
+        "bottom": 973.375
+      },
+      "start": {
+        "x": 400,
+        "y": 298.796875,
+        "w": 856,
+        "h": 604.796875,
+        "right": 1256,
+        "bottom": 903.59375
+      },
+      "grid": {
+        "x": 41,
+        "y": 420.78125,
+        "w": 326,
+        "h": 246,
+        "right": 367,
+        "bottom": 666.78125
+      },
+      "nights": {
+        "x": 24,
+        "y": 989.375,
+        "w": 1232,
+        "h": 397.421875,
+        "right": 1256,
+        "bottom": 1386.796875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "count": 8,
+      "seated": 8,
+      "table": {
+        "x": 24,
+        "y": 298.796875,
+        "w": 360,
+        "h": 876.578125,
+        "right": 384,
+        "bottom": 1175.375
+      },
+      "start": {
+        "x": 400,
+        "y": 298.796875,
+        "w": 856,
+        "h": 604.796875,
+        "right": 1256,
+        "bottom": 903.59375
+      },
+      "grid": {
+        "x": 41,
+        "y": 420.78125,
+        "w": 326,
+        "h": 502,
+        "right": 367,
+        "bottom": 922.78125
+      },
+      "nights": {
+        "x": 24,
+        "y": 1191.375,
+        "w": 1232,
+        "h": 397.421875,
+        "right": 1256,
+        "bottom": 1588.796875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "count": 9,
+      "seated": 9,
+      "table": {
+        "x": 24,
+        "y": 298.796875,
+        "w": 360,
+        "h": 886.578125,
+        "right": 384,
+        "bottom": 1185.375
+      },
+      "start": {
+        "x": 400,
+        "y": 298.796875,
+        "w": 856,
+        "h": 604.796875,
+        "right": 1256,
+        "bottom": 903.59375
+      },
+      "grid": {
+        "x": 41,
+        "y": 420.78125,
+        "w": 326,
+        "h": 566,
+        "right": 367,
+        "bottom": 986.78125
+      },
+      "nights": {
+        "x": 24,
+        "y": 1201.375,
+        "w": 1232,
+        "h": 397.421875,
+        "right": 1256,
+        "bottom": 1598.796875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "count": 10,
+      "seated": 10,
+      "table": {
+        "x": 24,
+        "y": 298.796875,
+        "w": 360,
+        "h": 983.6875,
+        "right": 384,
+        "bottom": 1282.484375
+      },
+      "start": {
+        "x": 400,
+        "y": 298.796875,
+        "w": 856,
+        "h": 604.796875,
+        "right": 1256,
+        "bottom": 903.59375
+      },
+      "grid": {
+        "x": 41,
+        "y": 453.890625,
+        "w": 326,
+        "h": 630,
+        "right": 367,
+        "bottom": 1083.890625
+      },
+      "nights": {
+        "x": 24,
+        "y": 1298.484375,
+        "w": 1232,
+        "h": 397.421875,
+        "right": 1256,
+        "bottom": 1695.90625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "count": 2,
+      "seated": 2,
+      "table": {
+        "x": 24,
+        "y": 291.734375,
+        "w": 360,
+        "h": 595.71875,
+        "right": 384,
+        "bottom": 887.453125
+      },
+      "start": {
+        "x": 400,
+        "y": 291.734375,
+        "w": 600,
+        "h": 542.796875,
+        "right": 1000,
+        "bottom": 834.53125
+      },
+      "grid": {
+        "x": 41,
+        "y": 408.859375,
+        "w": 326,
+        "h": 118,
+        "right": 367,
+        "bottom": 526.859375
+      },
+      "nights": {
+        "x": 24,
+        "y": 903.453125,
+        "w": 976,
+        "h": 397.421875,
+        "right": 1000,
+        "bottom": 1300.875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "count": 3,
+      "seated": 3,
+      "table": {
+        "x": 24,
+        "y": 291.734375,
+        "w": 360,
+        "h": 605.71875,
+        "right": 384,
+        "bottom": 897.453125
+      },
+      "start": {
+        "x": 400,
+        "y": 291.734375,
+        "w": 600,
+        "h": 542.796875,
+        "right": 1000,
+        "bottom": 834.53125
+      },
+      "grid": {
+        "x": 41,
+        "y": 408.859375,
+        "w": 326,
+        "h": 182,
+        "right": 367,
+        "bottom": 590.859375
+      },
+      "nights": {
+        "x": 24,
+        "y": 913.453125,
+        "w": 976,
+        "h": 397.421875,
+        "right": 1000,
+        "bottom": 1310.875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "count": 4,
+      "seated": 4,
+      "table": {
+        "x": 24,
+        "y": 291.734375,
+        "w": 360,
+        "h": 669.71875,
+        "right": 384,
+        "bottom": 961.453125
+      },
+      "start": {
+        "x": 400,
+        "y": 291.734375,
+        "w": 600,
+        "h": 542.796875,
+        "right": 1000,
+        "bottom": 834.53125
+      },
+      "grid": {
+        "x": 41,
+        "y": 408.859375,
+        "w": 326,
+        "h": 246,
+        "right": 367,
+        "bottom": 654.859375
+      },
+      "nights": {
+        "x": 24,
+        "y": 977.453125,
+        "w": 976,
+        "h": 397.421875,
+        "right": 1000,
+        "bottom": 1374.875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "count": 8,
+      "seated": 8,
+      "table": {
+        "x": 24,
+        "y": 291.734375,
+        "w": 360,
+        "h": 871.71875,
+        "right": 384,
+        "bottom": 1163.453125
+      },
+      "start": {
+        "x": 400,
+        "y": 291.734375,
+        "w": 600,
+        "h": 542.796875,
+        "right": 1000,
+        "bottom": 834.53125
+      },
+      "grid": {
+        "x": 41,
+        "y": 408.859375,
+        "w": 326,
+        "h": 502,
+        "right": 367,
+        "bottom": 910.859375
+      },
+      "nights": {
+        "x": 24,
+        "y": 1179.453125,
+        "w": 976,
+        "h": 397.421875,
+        "right": 1000,
+        "bottom": 1576.875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "count": 9,
+      "seated": 9,
+      "table": {
+        "x": 24,
+        "y": 291.734375,
+        "w": 360,
+        "h": 881.71875,
+        "right": 384,
+        "bottom": 1173.453125
+      },
+      "start": {
+        "x": 400,
+        "y": 291.734375,
+        "w": 600,
+        "h": 542.796875,
+        "right": 1000,
+        "bottom": 834.53125
+      },
+      "grid": {
+        "x": 41,
+        "y": 408.859375,
+        "w": 326,
+        "h": 566,
+        "right": 367,
+        "bottom": 974.859375
+      },
+      "nights": {
+        "x": 24,
+        "y": 1189.453125,
+        "w": 976,
+        "h": 397.421875,
+        "right": 1000,
+        "bottom": 1586.875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "count": 10,
+      "seated": 10,
+      "table": {
+        "x": 24,
+        "y": 291.734375,
+        "w": 360,
+        "h": 945.71875,
+        "right": 384,
+        "bottom": 1237.453125
+      },
+      "start": {
+        "x": 400,
+        "y": 291.734375,
+        "w": 600,
+        "h": 542.796875,
+        "right": 1000,
+        "bottom": 834.53125
+      },
+      "grid": {
+        "x": 41,
+        "y": 408.859375,
+        "w": 326,
+        "h": 630,
+        "right": 367,
+        "bottom": 1038.859375
+      },
+      "nights": {
+        "x": 24,
+        "y": 1253.453125,
+        "w": 976,
+        "h": 397.421875,
+        "right": 1000,
+        "bottom": 1650.875
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "count": 2,
+      "seated": 2,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 369.21875,
+        "h": 566.78125,
+        "right": 379.609375,
+        "bottom": 924.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 940.40625,
+        "w": 369.21875,
+        "h": 566.703125,
+        "right": 379.609375,
+        "bottom": 1507.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 335.21875,
+        "h": 98,
+        "right": 362.609375,
+        "bottom": 563.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1523.109375,
+        "w": 369.21875,
+        "h": 543.296875,
+        "right": 379.609375,
+        "bottom": 2066.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "count": 3,
+      "seated": 3,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 369.21875,
+        "h": 566.78125,
+        "right": 379.609375,
+        "bottom": 924.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 940.40625,
+        "w": 369.21875,
+        "h": 566.703125,
+        "right": 379.609375,
+        "bottom": 1507.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 335.21875,
+        "h": 152,
+        "right": 362.609375,
+        "bottom": 617.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1523.109375,
+        "w": 369.21875,
+        "h": 543.296875,
+        "right": 379.609375,
+        "bottom": 2066.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "count": 4,
+      "seated": 4,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 369.21875,
+        "h": 620.78125,
+        "right": 379.609375,
+        "bottom": 978.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 994.40625,
+        "w": 369.21875,
+        "h": 566.703125,
+        "right": 379.609375,
+        "bottom": 1561.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 335.21875,
+        "h": 206,
+        "right": 362.609375,
+        "bottom": 671.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1577.109375,
+        "w": 369.21875,
+        "h": 543.296875,
+        "right": 379.609375,
+        "bottom": 2120.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "count": 8,
+      "seated": 8,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 369.21875,
+        "h": 782.78125,
+        "right": 379.609375,
+        "bottom": 1140.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 1156.40625,
+        "w": 369.21875,
+        "h": 566.703125,
+        "right": 379.609375,
+        "bottom": 1723.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 335.21875,
+        "h": 422,
+        "right": 362.609375,
+        "bottom": 887.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1739.109375,
+        "w": 369.21875,
+        "h": 543.296875,
+        "right": 379.609375,
+        "bottom": 2282.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "count": 9,
+      "seated": 9,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 369.21875,
+        "h": 782.78125,
+        "right": 379.609375,
+        "bottom": 1140.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 1156.40625,
+        "w": 369.21875,
+        "h": 566.703125,
+        "right": 379.609375,
+        "bottom": 1723.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 335.21875,
+        "h": 476,
+        "right": 362.609375,
+        "bottom": 941.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1739.109375,
+        "w": 369.21875,
+        "h": 543.296875,
+        "right": 379.609375,
+        "bottom": 2282.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "count": 10,
+      "seated": 10,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 369.21875,
+        "h": 836.78125,
+        "right": 379.609375,
+        "bottom": 1194.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 1210.40625,
+        "w": 369.21875,
+        "h": 566.703125,
+        "right": 379.609375,
+        "bottom": 1777.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 335.21875,
+        "h": 530,
+        "right": 362.609375,
+        "bottom": 995.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1793.109375,
+        "w": 369.21875,
+        "h": 543.296875,
+        "right": 379.609375,
+        "bottom": 2336.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "count": 2,
+      "seated": 2,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 354.21875,
+        "h": 566.78125,
+        "right": 364.609375,
+        "bottom": 924.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 940.40625,
+        "w": 354.21875,
+        "h": 552.703125,
+        "right": 364.609375,
+        "bottom": 1493.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 320.21875,
+        "h": 98,
+        "right": 347.609375,
+        "bottom": 563.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1509.109375,
+        "w": 354.21875,
+        "h": 543.296875,
+        "right": 364.609375,
+        "bottom": 2052.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "count": 3,
+      "seated": 3,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 354.21875,
+        "h": 566.78125,
+        "right": 364.609375,
+        "bottom": 924.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 940.40625,
+        "w": 354.21875,
+        "h": 552.703125,
+        "right": 364.609375,
+        "bottom": 1493.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 320.21875,
+        "h": 152,
+        "right": 347.609375,
+        "bottom": 617.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1509.109375,
+        "w": 354.21875,
+        "h": 543.296875,
+        "right": 364.609375,
+        "bottom": 2052.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "count": 4,
+      "seated": 4,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 354.21875,
+        "h": 620.78125,
+        "right": 364.609375,
+        "bottom": 978.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 994.40625,
+        "w": 354.21875,
+        "h": 552.703125,
+        "right": 364.609375,
+        "bottom": 1547.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 320.21875,
+        "h": 206,
+        "right": 347.609375,
+        "bottom": 671.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1563.109375,
+        "w": 354.21875,
+        "h": 543.296875,
+        "right": 364.609375,
+        "bottom": 2106.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "count": 8,
+      "seated": 8,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 354.21875,
+        "h": 782.78125,
+        "right": 364.609375,
+        "bottom": 1140.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 1156.40625,
+        "w": 354.21875,
+        "h": 552.703125,
+        "right": 364.609375,
+        "bottom": 1709.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 320.21875,
+        "h": 422,
+        "right": 347.609375,
+        "bottom": 887.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1725.109375,
+        "w": 354.21875,
+        "h": 543.296875,
+        "right": 364.609375,
+        "bottom": 2268.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "count": 9,
+      "seated": 9,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 354.21875,
+        "h": 782.78125,
+        "right": 364.609375,
+        "bottom": 1140.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 1156.40625,
+        "w": 354.21875,
+        "h": 552.703125,
+        "right": 364.609375,
+        "bottom": 1709.109375
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 320.21875,
+        "h": 476,
+        "right": 347.609375,
+        "bottom": 941.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1725.109375,
+        "w": 354.21875,
+        "h": 543.296875,
+        "right": 364.609375,
+        "bottom": 2268.40625
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    },
+    {
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "count": 10,
+      "seated": 10,
+      "table": {
+        "x": 10.390625,
+        "y": 357.625,
+        "w": 354.21875,
+        "h": 836.78125,
+        "right": 364.609375,
+        "bottom": 1194.40625
+      },
+      "start": {
+        "x": 10.390625,
+        "y": 1210.40625,
+        "w": 354.21875,
+        "h": 575.5,
+        "right": 364.609375,
+        "bottom": 1785.90625
+      },
+      "grid": {
+        "x": 27.390625,
+        "y": 465.8125,
+        "w": 320.21875,
+        "h": 530,
+        "right": 347.609375,
+        "bottom": 995.8125
+      },
+      "nights": {
+        "x": 10.390625,
+        "y": 1801.90625,
+        "w": 354.21875,
+        "h": 543.296875,
+        "right": 364.609375,
+        "bottom": 2345.203125
+      },
+      "seatOverflow": [],
+      "columnsGuess": 1,
+      "overlapStart": false,
+      "tableOverflowX": false,
+      "gridOverflowX": false,
+      "reproduced": false
+    }
+  ],
+  "shots": [
+    "artifacts/screenshots/rc4-usability/after_1440_home_4p.png",
+    "artifacts/screenshots/rc4-usability/after_1440_home_9p.png",
+    "artifacts/screenshots/rc4-usability/after_1440_table_2p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1440_table_3p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1440_table_4p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1440_table_8p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1440_table_9p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1440_table_10p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1440_records_overview.png",
+    "artifacts/screenshots/rc4-usability/after_1440_records_explore.png",
+    "artifacts/screenshots/rc4-usability/after_1440_passports_all.png",
+    "artifacts/screenshots/rc4-usability/after_1440_passports_wizard.png",
+    "artifacts/screenshots/rc4-usability/after_1440_scorecard_before_r1.png",
+    "artifacts/screenshots/rc4-usability/after_1440_scorecard_after_r1.png",
+    "artifacts/screenshots/rc4-usability/after_1440_end_match_confirm.png",
+    "artifacts/screenshots/rc4-usability/after_1440_inprogress_vs_history.png",
+    "artifacts/screenshots/rc4-usability/after_1280_home_4p.png",
+    "artifacts/screenshots/rc4-usability/after_1280_home_9p.png",
+    "artifacts/screenshots/rc4-usability/after_1280_table_2p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1280_table_3p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1280_table_4p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1280_table_8p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1280_table_9p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1280_table_10p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1280_records_overview.png",
+    "artifacts/screenshots/rc4-usability/after_1280_records_explore.png",
+    "artifacts/screenshots/rc4-usability/after_1280_passports_all.png",
+    "artifacts/screenshots/rc4-usability/after_1280_passports_wizard.png",
+    "artifacts/screenshots/rc4-usability/after_1280_scorecard_before_r1.png",
+    "artifacts/screenshots/rc4-usability/after_1280_scorecard_after_r1.png",
+    "artifacts/screenshots/rc4-usability/after_1280_end_match_confirm.png",
+    "artifacts/screenshots/rc4-usability/after_1280_inprogress_vs_history.png",
+    "artifacts/screenshots/rc4-usability/after_1024_home_4p.png",
+    "artifacts/screenshots/rc4-usability/after_1024_home_9p.png",
+    "artifacts/screenshots/rc4-usability/after_1024_table_2p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1024_table_3p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1024_table_4p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1024_table_8p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1024_table_9p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1024_table_10p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_1024_records_overview.png",
+    "artifacts/screenshots/rc4-usability/after_1024_records_explore.png",
+    "artifacts/screenshots/rc4-usability/after_1024_passports_all.png",
+    "artifacts/screenshots/rc4-usability/after_1024_passports_wizard.png",
+    "artifacts/screenshots/rc4-usability/after_1024_scorecard_before_r1.png",
+    "artifacts/screenshots/rc4-usability/after_1024_scorecard_after_r1.png",
+    "artifacts/screenshots/rc4-usability/after_1024_end_match_confirm.png",
+    "artifacts/screenshots/rc4-usability/after_1024_inprogress_vs_history.png",
+    "artifacts/screenshots/rc4-usability/after_390_home_4p.png",
+    "artifacts/screenshots/rc4-usability/after_390_home_9p.png",
+    "artifacts/screenshots/rc4-usability/after_390_table_2p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_390_table_3p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_390_table_4p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_390_table_8p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_390_table_9p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_390_table_10p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_390_records_overview.png",
+    "artifacts/screenshots/rc4-usability/after_390_records_explore.png",
+    "artifacts/screenshots/rc4-usability/after_390_passports_all.png",
+    "artifacts/screenshots/rc4-usability/after_390_passports_wizard.png",
+    "artifacts/screenshots/rc4-usability/after_390_scorecard_before_r1.png",
+    "artifacts/screenshots/rc4-usability/after_390_scorecard_after_r1.png",
+    "artifacts/screenshots/rc4-usability/after_390_end_match_confirm.png",
+    "artifacts/screenshots/rc4-usability/after_390_inprogress_vs_history.png",
+    "artifacts/screenshots/rc4-usability/after_375_home_4p.png",
+    "artifacts/screenshots/rc4-usability/after_375_home_9p.png",
+    "artifacts/screenshots/rc4-usability/after_375_table_2p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_375_table_3p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_375_table_4p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_375_table_8p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_375_table_9p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_375_table_10p_ok.png",
+    "artifacts/screenshots/rc4-usability/after_375_records_overview.png",
+    "artifacts/screenshots/rc4-usability/after_375_records_explore.png",
+    "artifacts/screenshots/rc4-usability/after_375_passports_all.png",
+    "artifacts/screenshots/rc4-usability/after_375_passports_wizard.png",
+    "artifacts/screenshots/rc4-usability/after_375_scorecard_before_r1.png",
+    "artifacts/screenshots/rc4-usability/after_375_scorecard_after_r1.png",
+    "artifacts/screenshots/rc4-usability/after_375_end_match_confirm.png",
+    "artifacts/screenshots/rc4-usability/after_375_inprogress_vs_history.png",
+    "artifacts/screenshots/rc4-usability/after_1440_nora_loses.png"
+  ]
+}

@@ -1,0 +1,80 @@
+import {mkdirSync} from 'node:fs';
+import {expect, test} from '@playwright/test';
+import {openTestView} from '../helpers/inject-book.mjs';
+
+const SHOT = process.env.EDGE_SHOT_DIR || 'test-results/functional-evidence/screenshots/edge-states';
+mkdirSync(SHOT, {recursive: true});
+
+async function openDemo(page, view) {
+  await page.addInitScript(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await openTestView(page, view);
+}
+
+test('empty home has Start and no sample-night CTA', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemo(page, 'empty-home');
+  await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#slice2-home')).toContainText(/Start a new match/);
+  await expect(page.locator('#slice2-home')).not.toContainText(/Try a sample night/i);
+  await expect(page.locator('#slice2-home .s2-btn-primary', {hasText: 'Resume'})).toHaveCount(0);
+  await page.screenshot({path: `${SHOT}/empty-home-390.png`, fullPage: false});
+});
+
+test('empty records is honest, not a blank crash', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemo(page, 'empty-records');
+  await expect(page.locator('#hall-of-fame-view')).toContainText(/No records yet/);
+  await expect(page.locator('#hall-of-fame-view')).toContainText(/Records start when a game finishes/);
+  await expect(page.locator('#hall-of-fame-view')).not.toContainText(/No record yet/);
+  await expect(page.locator('#hall-of-fame-view').getByRole('button', {name: 'Start a game'})).toBeVisible();
+  await page.screenshot({path: `${SHOT}/empty-records-390.png`, fullPage: false});
+});
+
+test('emoji name seats once; a second add does not duplicate the row', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemo(page, 'empty-home');
+  const usable = await page.evaluate(() => window.BPGScorebook.isUsablePlayerName('🔥June'));
+  expect(usable, 'scorebook accepts an emoji name').toBe(true);
+  await page.evaluate(() => {
+    const field = document.getElementById('quick-add-player') || document.getElementById('slice2-add-name');
+    if (field) field.value = '🔥June';
+    addPlayerToAll('🔥June');
+  });
+  await expect(page.locator('#slice2-home')).toContainText('🔥June');
+  await page.evaluate(() => addPlayerToAll('🔥June'));
+  const texts = (await page.locator('#slice2-home .s2-seat').allTextContents()).filter((text) => text.includes('🔥June'));
+  expect(texts.length, 'one seated emoji name').toBe(1);
+});
+
+test('Start with 0 players stays on home after the add-players alert', async ({page}) => {
+  let message = '';
+  page.on('dialog', async (dialog) => {
+    message = dialog.message();
+    await dialog.accept();
+  });
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemo(page, 'empty-home');
+  // docs/solutions/legacy-history-review.md: Start stays off until the minimum is met.
+  await expect(page.locator('#slice2-start-btn')).toBeDisabled();
+  await expect(page.locator('#home-screen')).not.toHaveClass(/hidden/);
+  expect(message).toBe('');
+});
+
+test('one seated player can start Five Crowns without a pageerror', async ({page}) => {
+  const errors = [];
+  page.on('dialog', (dialog) => dialog.accept());
+  page.on('pageerror', (err) => errors.push(String(err)));
+  await page.setViewportSize({width: 390, height: 844});
+  await openDemo(page, 'empty-home');
+  await page.locator('#quick-add-player, #slice2-add-name').fill('Solo');
+  await page.locator('#quick-add-player, #slice2-add-name').press('Enter');
+  await page.locator('#slice2-home [data-s2-action="pick-game"][data-s2-game="Five Crowns"]').click();
+  await page.locator('#slice2-start-btn').click();
+  await page.screenshot({path: `${SHOT}/one-player-390.png`, fullPage: false});
+  await expect(page.locator('#game-screen')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#scorecard-body')).toContainText('Solo');
+  expect(errors, errors.join('\n')).toEqual([]);
+});

@@ -6,6 +6,55 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 
 ## Likes
 
+- Game-night review order is iPad landscape, then laptop/desktop landscape, then phone.
+- Canasta setup goes straight to two swappable teams of two or three for four or six players.
+- Rook is off the Home picker (Matt, 2026-11-13 6:13 PM: six decks, f2c81a4). Do not add another way to start a Rook game. Rook's code, rules, setup (300, 500, or 1000; 300 selected), history, Records, and Passports stay.
+- Comeback Extra is the extra already stored on a night. The score cell shows it. Records names Most Comeback Extras In One Game and Biggest Comeback Extra. The live turbo script stays unloaded, the same as production.
+- Next is tall on every score pad. It covers the 1-2-3 row and the 0 row. View Pace is the same readable size as the other board controls.
+- Use shared page rails across Home, the live board, Records, and Passports. Use wider layouts for readable type and useful content, and give long Records sections the full grid width.
+- Keep the wild rank, dealer, name, place, and total readable across the room. Put place near the avatar and use the wheel icon with two quiet status colors.
+- Put first-use instructions beside Add player. Label the bench and ready players, make selection visible on the card face, and keep titles upright. Center the crown and subtitle on the purple Five Crowns picker cover and omit the packaging badges. Keep each deck recognizable and soften 818’s fluorescent yellow to warm gold. Use the vintage blue Wizard box cues in a portrait layout, with the gold wordmark and no age, player-count, or score-pad copy. Use one readable Home panel type scale and keep bench selection count in sync with the checkboxes.
+- Give two-team Canasta readable team identities, adjacent totals, and a keypad sized for the entry form.
+- Start Passports with Photo and a short summary. Open the full career view on Details. Make room for Settings side by side on wide displays.
+- Buttons, modal labels, and player names use regular-width sentence case at a readable size. Names stay as typed. A long single name stays on one line: it shrinks or ends in an ellipsis, and it never splits mid-word. Phone nav buttons size to their words, so Player Passports stays one line at 13px or larger.
+- No pad has a 00 key. When there is no minus, 0 fills that whole row. Spin ready sits fully inside the player cell, toward the right of the name.
+- A phone score box and the progress line sit inside the sheet. When a pad has no minus, 0 fills that whole row. Canasta teams are portrait cards you tap to swap. The full game picker stays visible on Home during an active match.
+- The score-entry sentence fits on one phone line. A too-big entry says so inside that player's score box.
+- The game-card edge is drawn on top of the cover, so Flip 7's white art still has a visible rim. The selected rim is thicker and teal.
+- A late player sees their starting score and confirms it before they join. A bad name is an inline message.
+- Popup headings are sentence case and a readable size. Settings says Match moments and On this device. The long restore explanation sits behind How restore works.
+- An unusual score asks Fix it or It's fine, save anyway. A hidden round column says which rounds are off to the left, in plain words.
+- Every Home game card has a soft border and a light shadow. The selected card uses a thicker primary border. It does not say Selected.
+- Home shows the newest unfinished game, with Resume. Older unfinished games stay in Records, marked Unfinished, with Resume.
+- Skip sits above Next. A blank score stays blank. Next on a blank score stores a confirmed 0. Minus shows only when that game allows a negative score.
+- A two-team Canasta card sits under the header and View Pace. Only the card's own height hugs the rows.
+- Home is the f2c81a4 layout exactly (Matt, 2026-11-13 6:13 PM): ivory Tonight's table (360 wide) and Start a new match panels with the brass top edge, the 115px wordmark, six named decks three per row (Five Crowns, 818, Wizard / Flip 7, Beat the Heat, Canasta). The page background is Matt's own felt photo at cover. On a laptop the panels run nav edge to nav edge with one gap and the same top and bottom; the roster scrolls inside Tonight's table on whole rows with N more below, and Add sits outside the scroll.
+- The phone bottom nav gives Home, Records, Player Passports, and Settings one line each, at 13px or larger, with a gap between them.
+- Biggest comeback is ranked inside each game. A Canasta deficit does not erase a Wizard comeback. Each row keeps that game's own points.
+- Phone nav, on top and on the bottom of a live match, says Player Passports and Settings. Settings stays a word.
+- A Canasta team name stays on one line (`Megan & Matt`) when the cell has room beside it. The live card ends at the last team row.
+- The wheel control sits toward the right of the player cell and does not cover the name.
+- A comeback uses the shelf name. A team win names both partners.
+- A Canasta round in progress is a labeled sum. A blank round says Not ready.
+- Canasta is 4 rounds. A legacy night with 4 saved rounds is complete. A game finished in the app is finished. A legacy night with fewer than 4 rounds, or with an ambiguous row, stays needs review. Matt, 7:13 PM ET, amendment 11.
+- The user-facing wheel name is Back Porch Wheel, from one constant.
+- Flip 7 finishes at 200. The decision is Nov 12, 7:10 PM ET.
+- Passport and Records special-round lines stay the plain sentences: Only player to score, Everyone made their bid, Everyone missed. The round modals stay WHAMMY!, NOLIE!, and CAMI WHAMMI!.
+- A saved night is judged from the rounds and totals already on it. Five Crowns is 11, 818 is the 15-round list, Wizard is 60 divided by that night's players, and Beat the Heat is 66. A short fixed game stays in history as Ended early and stays out of results until Count this result. That rule is already counting. The summary shows how it differs from the old stored-field rule, and the original night is not rewritten. Canasta is complete at 4 saved rounds. Fewer than 4, or an ambiguous row, stays needs review. Beat the Heat is complete only when a seated player reached 66. Flip 7 is a full game when a seated total reached 200 (Matt, Nov 12, 7:10 PM ET).
+- A dropdown chevron sits 14px in from the right edge. One arrow, on every select. The label keeps a gap before it. Passports sort reads Recent activity in full.
+- One Leave game choice: Save for later, End game now, or Keep playing. Save for later stays resumable and does not ask about wins. Count this result never puts a partial total into a full-game score record. Flip 7 Leave uses the seated 200 rule. A game that reached 200 does not ask. A game that ended under 200 says so.
+- Biggest single-game comeback comes from the round totals. Last at halfway, then won. It does not wait on Turbo.
+- A Hall of Fame tie names everyone who fits. Three names at 1024 stay on the line. The phone line may still say + 1 more.
+- Tied totals share a place and the next total skips. Two 2nds, then 4th. The individual-player scoreboard uses the page width and fills the visible space below the header. Keep names, totals, and avatars readable as rows grow.
+- Add Player Mid-Game is on. The start is the ceiling of the seated average, missed rounds say Did not play, and a departure does not change the Wizard length fixed at the start. Canasta and Rook keep their seats.
+- A restore file with an empty table leaves the match here. A different match in the file is saved here first. Neither match is discarded.
+- A player who left early keeps their score on the board. The place says Left early. That partial total is not a Passport best.
+- An uncounted ended-early night says Ended early. It does not name a winner or celebrate a score. Tied career lists share 1, 1, 3, and a closest margin of 0 names every tied player.
+- Wizard and 818 exact-bid stats count every round with a bid and the tricks taken, including a paused or ended-early night. A late-join starting adjustment does not count.
+- Two tabs do not overwrite each other. The tab with the older copy shows the newer match.
+- Matt's 12:23 PM ET go to preview Canasta (Hand and Foot) on the RC1 picker, with house rules in one `CANASTA_RULES` object and Rook hidden unless `?demo&games=rook`.
+- The dusk Canasta tile stays in both art sets until Matt picks a beach tile. Team names stay whole, with no ellipsis.
+- Add Player, Save & End, Audit, and the LP picker use the form modal token (`clamp(46rem, 62vw, 58rem)`), 18px inputs, and 56px suggestion rows.
 - Add Player suggestions stay one real name; a comma never becomes a player.
 - A real look at the changed screen before ready. Phone first, then iPad landscape and TV.
 - A name stays whole (NAME-FIT). The number just entered and the running total are fully visible on a phone-width check.
@@ -13,15 +62,198 @@ Seeded from Prefer, Avoid, and Kill in `docs/taste.md`. Product rules stay in `d
 - Small reversible slices that lock one invariant.
 - Compound after a ship into `AGENTS.md` or `docs/solutions/`.
 - Honest gap lists. Say what you did not look at.
+- A blank score is a fast zero. Next can leave the cell empty. Submit stores that blank as 0. A stored null for someone who was not in the hand stays null. A suggestion stays labeled until it is confirmed.
+- When a match is live, Resume is the single obvious primary. Starting another game says the table match is saved as incomplete.
+- Keep scoreboard names beside consistent avatars at a shared readable size. Reserve room for names like Michelle and use an ellipsis for longer names. Focus or tap a shortened name to see it in full.
+- Table leaves a live match without ending it. Resume brings back an unfinished entry draft.
+- Save & End is an outlined secondary. An unfinished match confirms, and Cancel stays on the scorecard.
+- Wheel wedges carry a readable signed number. A Help / No change / Setback legend under the wheel keeps the meaning without color.
+- A Life Preserver wheel that reads like roulette: labels live inside every slice, and rare outcomes get several small segments instead of one sliver.
+- A Life Preserver modal that uses the leftover viewport so the wheel and slice numbers can get big. Use Your One Spin stays on screen.
+- A Life Preserver that reads as a roulette bowl: narrow pockets, numbered rim, frets, turret, and a ball that settles.
+- A cute cream/teal toy roulette: equal-ish pockets that stay accurate-ish, a chunky numbered ring, and a ball that lands on the locked amount.
+- Scorecard places read as 1st, 2nd, 3rd in a real pill, not a faint 24px number.
+- Modals use most of the viewport from one shared size system. Scorecards go wide. Phone sheets stay reachable.
+- Home game art that is quiet and grown-up: one hero per game, cream/teal/coral, lots of negative space, no baked-in title text. A nav mark that stays a few flat shapes at 32px.
+- One player per Home seat row, with drag and small up/down, so Tonight's Table spends its height on people.
+- On a landscape iPad or laptop, Tonight's Table and Start a New Match share the height under the nav and end a margin above the viewport. Game art stays 5:7 and shrinks to fit. A short list stays capped. A long list scrolls inside the card. Start, Add Player, and the last fitted row stay fully on screen. Phone, portrait, and an open keyboard still scroll the page.
+- While a match is on the table, Home shows the live standings beside the game cards. Start asks before it parks the live match as unfinished.
+- Home does not keep a Recent nights list. An unfinished match shows as Resume unfinished, and View all lists the rest.
+- A photo the player sets is shrunk before it is saved, in the demo and in real games. A photo that cannot be saved leaves the previous portrait in place.
+- Recent nights carry a small place podium from the same ranking helper as Records, not a second story.
+- Canasta dusk is a cream heart stack and a teal back (hand and foot), sheet-only until Matt puts it on the shelf.
+- A leftover Standings updated toast leaves when the screen changes. Records is not a second scorecard toast.
+- One saved night reads `1 night`.
+- The dealer chip hugs the letters and stays a dealer mark, not a selected state. Life Preserver available is a small labeled LP chip.
+- `?demo` does nothing on the shipped app. Sample fixtures stay in Playwright.
+- `?demo=try` is a separate in-app sample. It uses `bpg_demo_*` and never writes `gn_*`.
+- Try a demo on the empty table is an outlined secondary with a one-line "data stays separate" note. Start stays the only primary. In the sample, the chip says sample data, not Saved on this device.
+- Try a demo uses a fictional porch (Nora, Owen, Priya, and the rest). The sample starts on silhouettes, never the QA character faces. A photo the player sets stays in the demo store and still shows.
+- iPad 1024 score entry keeps stacked name / total / score rows and a keypad that uses the leftover width.
+- Scorecard totals stay the hero. Names stay about half that size. Avatars stay 56 to 64px.
+- Life Preserver available is a small labeled LP chip, not a candy-stripe ring.
+- Championship Ledger hides Rook while Rook is hidden from the shelf.
+- Records shows Canasta for saved Hand and Foot nights, and shows Rook history when a completed Rook night exists, without putting Rook back on the start shelf.
+- Records keeps Overview · Explore records · Past nights. Final-score rows carry "Unassisted matches only" beside the number. Past nights and the live scorecard say Left early. Rivalries print the tie count. Life Preserver says places are measured right after the spin.
+- The 1024 match header is two clean rows. Saved sits on its own row and does not collide with wild or dealer copy.
+- Matt's card-picker faces on Home: upright 5:7 cards, no under-card labels, select then Start.
+- A first-use empty table that says add a name, pick a game, then tap Start.
+- 1024 Records Overview lays CAREER WINS, WIN RATE, and WIN STREAK across, not one stacked column.
+- Mark the current score-entry seat with a high-contrast row and Up now. In bidding, put the sum of tricks called and the remaining or overage count first.
+- Phone 8-player score entry keeps the active row above the keypad and at least four seats on screen when they fit. A shorter keypad on 375 is allowed.
+- A scorecard with a stable readable max width, centered with the page column, identical before and after Round 1. Not edge to edge.
+- The scorecard table fills that same card before and after Round 1. A wide empty band beside a hugged table is not a width fix.
+- The scoreboard back control says Home at every size, then Actions, then Enter Scores, and leaves the match on Resume. Save & End is last in Actions and still confirms. Five Crowns lines up with the score table.
+- One meaning for a Passport game filter: every number on screen is that game only. Players who have not played it are left out with a short note.
+- Demo sample records are computed by the real records code from seeded games. No planted numbers.
+- Sample games that produce a believable closest margin and plausible Wizard scores. A 134-point "closest" finish or a 1500 all-tricks Wizard night is fixture noise.
+- Leftover scorecard width goes to the player column. Total and round columns stay fixed. No tinted empty trailing band. Dealer names share the same fitted size as the rest of the column.
+- Displayed records, passport, and scorecard numbers use at most one decimal (1.7 avg). Passport chips are one-line sentences: Won the last match, Only player to score, twice.
+- One counting rule: Passports and the game tally count the same finished nights. Every tied winner gets a win. Unfinished nights are out of wins, win %, and games. Left-early players keep their scores and the game, never the win.
+- Home 5:7 cards stay slightly larger on desktop, not double (148px at 1440, 132px at 1280). Each Home panel is its own height. Start stays under the cards and on a laptop screen. Do not grow cards or stretch panels just to line up bottoms.
+- Phone wordmark large enough that GAMES is readable (about 110 to 130px wide) without wrapping the mobile nav.
+- On a phone scoreboard, Home, Actions, and Enter Scores sit on one row. Save & End stays in Actions. The app nav stays on screen. Every seated player can be reached by scrolling.
+- PWA and apple-touch icons are full-bleed: no white outside the rounded art. Maskable padding matches the art teal. The favicon stays frozen.
 
 ## Kills
 
+- A new Rook win target. Production already offers 300, 500, and 1000.
+- Loading `comeback-logic.js`. Production does not, and the check fails if the page does.
+- A porch sync from a preview, from localhost, or from Try demo. The live site is the only copy that talks to `/api/sync`.
+- Small condensed all-caps on buttons and labels: Teams, Back, Start match, Apply order, the score subhead, the progress line, and player names. A name broken mid-word. A dealer mark covering the face. Phone nav wrapping Player Passports onto two lines.
+- A 00 key on any pad. A Spin ready badge cut off by the score column.
+- A score box or progress line cut off by the phone edge. A lone 0 with empty keypad cells. Canasta pair dropdowns. A full game picker beside a live match.
+- A score-entry sentence that runs off the phone, or a cap note that covers the player's name.
+- A card border that sits under the cover art, so Flip 7's white face has no edge.
+- A browser alert for a name, or adding a late player before showing the starting score.
+- Small all-caps popup headings. An em dash in a sentence the player reads. Edit or Use score on an unusual-score check. A column hint written as an arrow plus round shorthand.
+
+
+- A Home game card with no edge, so Flip 7's white art disappears into the cream, or a Selected label on the card.
+- A View all button on Home, or dropping an older unfinished night.
+- A 00 key on score entry, or a minus key on Five Crowns or Beat the Heat.
+- Floating a short Canasta card in the middle of the cream, or letting the phone bottom-nav labels touch.
+- Comparing raw comeback points across games, so a Canasta 180 always outranks a Wizard 100.
+- A phone nav that says Profiles, or a Settings control that is only a gear.
+- Wrapping a Canasta team name onto two lines when `Megan & Matt` fits beside the avatars, or leaving a cream block under two team rows.
+- Squeezing three to six Canasta cards onto one iPad screen, or inventing Basic, Count, and bonuses on an older round. Three or more scroll at the same size as two teams. An older round says Older round · total only. Turning that round into components waits.
+- Zeroing every old night because a Flip 7 or Rook target was not stored on it. Canasta's 4-round config is not a history rule. A game's minimum does not lock the seat checkboxes.
 - A profile-name array dropped into a suggestion list as one item, so typing a letter offers a comma-joined fake player.
 - Calling ready without opening the real UI.
 - Ready-to-test language without a filled `docs/prove-it-packet.md`.
 - Overlap, uneven gaps, truncated text, or clipped menus.
+- A place badge so small Matt cannot see the number.
 - A keypad covering a row, a name cut off, or Actions clipped by the match banner.
+- A keypad typing a score while the selected player is off-screen and unnamed.
 - Truncated player names, or a control that no longer hugs the glyphs it labels.
 - Porch Club redesign work without Matt's visual sign-off.
 - Loading Turbos, or a second rescue beside Life Preserver.
 - Durable Matt feedback left only in chat.
+- A positive 818 miss, or a round with no stored bid, counted as an exact bid. A Life Preserver flag that stays on after the last spin is undone.
+- An unfinished history match still counting as a completed game.
+- "Warm Porch Ledger" as a user-facing subtitle.
+- A global Unassisted badge, or Shame copy that invents a card cause the book did not store.
+- Life Preserver copy that claims the wheel caused a later win.
+- Phone nav wrapping onto a second line, or Saved taking a nav slot.
+- A phone Home nav that still says Profiles, or a Settings control that is only a gear. The words are Player Passports and Settings, on one row, each on one line.
+- A cream band between the last phone score-entry row and the skip line. A short list shares that space, or the help line and the keypad sit against the rows.
+- A phone identity lock that lays Canasta team names beside the avatars and past the cell. Those names stay stacked. The clip test stays as written.
+- A 1024 Tonight's Table that scrolls the seated rows when four or five are seated. Those rows, and the first person on the bench, show whole. A longer list may scroll.
+- A phone score-entry DEALER chip beside the name when that cuts the name. The chip sits under the name. All four rows stay whole, with no cream band above the skip line.
+- A phone scorecard that squeezes R1 and This Round off the sheet, or leaves a cream block under four rows. Round pills stay readable. The sheet ends at the last row. This Round stays on the sheet or scrolls the way the base scorecard does.
+- A compact Tonight's Table name centered away from the badge. The name sits left, the same gap after the badge as the bench row, and Deals first sits right after the name.
+- A phone score-entry row whose total box is cut off. All four rows, including that total, show whole. The skip line can be one smaller line to make the room.
+- A phone round pill smaller than the earlier ledger sheet. The pill stays at least that tall, and the score stays readable.
+- A dark wood page, a flat swatch, or a patterned field behind the score numbers. The felt is the page; the pattern stays at the edge. Numbers sit on ivory. The felt is one photo at cover, not a drawn pattern.
+- A Home layout that drifts from f2c81a4 (bigger wordmark, wider table, a seventh deck, decks on a see-through mat, extra boxes around the heading, instructions, or summary), or a dark brown demo bar. The demo bar stays in the felt palette.
+- Casino lettering, chips, glossy green, heavy wood, or a spotlight on the mat. The Back Porch sign is the brand.
+- A selected game card ring thinner than the base 6px, or a ring that sits under the cover. The ring is at least that thick and paints on top of the art.
+- A phone nav label under 13px, or Player Passports on two lines in the match bar. Home, Records, Player Passports, and Settings stay one line at 13px or larger.
+- A phone page field that stops short of the right edge. The field runs to the screen edge. The scrollbar thumb does not paint a strip there.
+- Life Preserver header copy that says only the best help while the wheel still has negative slices.
+- Saved covering Dealer copy, or a parked chip that stays hidden while `.show` is on.
+- "Saved on this device" while Try a demo is on.
+- Porch names, or the sample cast shipping with character portraits. A picture the player chooses in the demo stays on that sample only.
+- `1 nights` on a single saved night.
+- iPad score entry rows collapsed into one overlapping strip.
+- 80px names and 120px avatars eating the round columns on a 4-seat TV card.
+- A scorecard card that stays wide while the table hugs after Round 1. Measure the visible table box, not only the card.
+- A stable-width card with a blank or tinted empty band at the end of every row. Leftover width belongs in the player column.
+- Raw float records such as `1.7272727272727273 pts`. Round displayed numbers to one decimal.
+- Cryptic Passport chips (`Nolie 2`, `All scored 2`, `W1`/`L1`, `Only one scored 2`) with no plain-language sentence.
+- A four-way tie announced as one person losing. A shared bottom is a shared result.
+- `1 WINS · 1 GAMES` or other plural-for-one Records copy.
+- Rook on the Championship Ledger while the shelf hides it.
+- Settings "This device" copy sitting under Backup / Restore, or a close X on the modal border.
+- Avatar rings in four colors that do not mean anything.
+- Standings updated still sitting on Records after Save & End.
+- Phone nav that runs Table, Records, and Profiles to the edge and drops the settings gear.
+- SELECTED PLAYER crowding the Scoring pill on phone entry.
+- A porch password or cloud sync control in Settings this release.
+- A Saved chip that does not say the write is on this device.
+- A browser `alert()` for score-entry or Restore errors.
+- Silently dropping retired seats from Records.
+- Exact bid chrome on Rook or any game that does not bid.
+- A Life Preserver wheel that paints helpful low-score slices red because they are negative.
+- A settings gear on the scorecard match header, or phone History sitting outside Actions.
+- A Life Preserver result that blanks the wheel, or "points on" for a higher-wins spin.
+- A setback callout that clips the + so +10 reads as 10 or as help.
+- A pointer knob sitting on the landed callout, or a short-laptop wheel so small that copy overlaps it.
+- Life Preserver labels outside the pie, callout pills, or leader lines.
+- A Life Preserver card that stays a small 280px tile on a laptop or TV while the screen around it is empty.
+- A Life Preserver that still looks like a pie chart with extra wedges.
+- A 4-digit Canasta cell that clips to `322(`, or 2-team rows stretched to ~135px with 120px avatars.
+- `Megan` clipped to `Mega` on a 390 Canasta card.
+- Add Player as a 412px chip on a laptop, or a tiny card on a phone.
+- Canasta Each clean / Each dirty / Each red 3 chips on Five Crowns or Wizard entry.
+- A casino-slick Life Preserver bowl, or a header chip that force-feeds the first eligible spin.
+- Six busy beach scenes that blur together, 818 numerals fighting the card title, or a muddy photo logo at nav size.
+- Dead leftover height between Tonight's Table and Start a New Match on laptop Home, or empty padding inside those cards instead of seats and game art.
+- A 1024 Home Start button below the fold with 6 seated, or an 8-player 1024 entry that hides rows behind a stacked keypad.
+- A Saved chip or NOW column that clips the card or scorecard edge.
+- Calling a Flip 7 zero round a bust on Records.
+- Developer-facing Records copy such as stored-halftime deficit, stored Turbo history, or "This is not a second dashboard".
+- A combined Life Preserver "pts adjusted" total across games, or counting incomplete spins on published Records rows.
+- Shipping TEMP demo-loading (`demo-seed`, `?demo`, `BPGDemoLiveGame`) on the launch host.
+- 1024 Records Overview stacked in one column with a dead half-screen.
+- `R11 · NOV` or any clipped current-round header.
+- A 390 entry subtitle in coral, or a player row sliding under the Scoring bar.
+- A teal outline on a non-active 8-player entry row.
+- Edit Seating plus Earlier/Later when the Home list can reorder in place.
+- A second ranking function for Recent nights, or a podium on an Incomplete night.
+- Adding Canasta to the game registry or Home picker from this art pass.
+- Reconstructing a dusk tile when the approved raster is in hand. Drop the file in byte-for-byte.
+- A scorecard that runs edge to edge before Round 1, then hugs content after it.
+- A Passport filter that still mixes other games into games, wins, win rate, streaks, or best score.
+- Passports and Records using two win counters. Matching totals alone is not a pass.
+- Stuffing leftover Home height into Tonight's Table seat cards. Seats stay compact. Empty space inside that panel is fine.
+- Planted demo record numbers that the real records functions did not compute.
+- Claiming a real-phone Safari check that Matt has not done.
+- Oversizing Home cards just to fill leftover desktop space so Start drops below the fold under Resume.
+- Shipping PWA or apple-touch icons with white corners iOS would unmask.
+- A phone wordmark so small GAMES is unreadable, or a header shot of the scorecard labeled as Home.
+- Clipping or internally scrolling Tonight's Table to hide seats or Add Player.
+- Stretching the two Home panels to equal height so Start drops below the laptop fold.
+- A phone scoreboard that clips seats past June and hides the app nav, with no scroll path.
+- A phone scoreboard back control that still says Table, or Save & End wrapped onto a second row.
+- The letters LP stacked inside the place number. The place stays the place. The control's name is Life Preserver.
+- A Rook bid amount labeled as a count of bids, or "1 made bids".
+- Winner confetti that paints opaque white tiles over the name, the results, or Next.
+- Two spin controls on the Life Preserver wheel. Use your one spin is the control. The center hub is not a second button.
+- The same Life Preserver status sentence printed twice.
+- A Saved chip on the Back Porch wordmark, or a Home seat sliding under the header. The chip stays in the player card. The header stays opaque and outside the scroller. The top-nav word for that page is Home. Sunset Champion stays TV-readable.
+- A Deals first badge clipped under the name. The row is tall enough for the name and the badge. A compact list does not paint one row over the next.
+- A 3-digit score clipped by a narrower tile. The digits stay the column size. The cell is wide enough, with padding, for the score and the adjustment.
+- A sticky nav that drops into a cream band or sits lower than Home. Same inset and top on every page. The card edge and shadow stay visible.
+- An Active Match pill that stays up while Home has no live match. Unfinished history is not the match on the table.
+- Starting a game outside that game's own player range. Five Crowns stops at 7. Wizard does not take a layout cap.
+- Shrinking score digits to unclip a Life Preserver cell. Give the cell height and padding. The adjustment stays a smaller blue second line.
+- A scoreboard header with Save & End beside Enter Scores. Save & End is last in Actions. The enter control says Enter Scores. The round stays in the header.
+- A sticky nav that goes flat, loses its inset, or lets the page and the green accent slide through it.
+- Landscape Home panels that run past the viewport, so Start, Add Player, the summary line, or the last row is sliced off the bottom. Size the panels to the space under the nav, leave a margin, and scroll the list inside the panel.
+
+## 2026-11-22 MVP walkthrough
+
+- Keep names, totals and ordinal places prominent. Keep the Total column close to Player when there are few rounds, and use the same centerline for Total and its values. The wild-card badge is white on teal and sits beside the round and dealer on wide screens. Keep a separate spot by round and dealer for the active-player count.
+
+- The lineup intro uses blue felt, large portraits and a clear first-dealer label. Skip stays reachable below the roster.

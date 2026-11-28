@@ -7,7 +7,8 @@
     '818',
     'Flip 7 Vengeance',
     'Beat the Heat',
-    'Rook'
+    'Rook',
+    'Hand and Foot'
   ]);
 
   function gameCounts(history) {
@@ -21,7 +22,9 @@
   }
 
   function displayGameName(name) {
+    if (root.BPGGames && typeof root.BPGGames.displayName === 'function') return root.BPGGames.displayName(name);
     if (name === 'Flip 7 Vengeance') return 'Flip 7';
+    if (name === 'Hand and Foot') return 'Canasta';
     return name || 'Unknown';
   }
 
@@ -85,15 +88,42 @@
     return data;
   }
 
+  function liveMatch(game) {
+    return game && typeof game === 'object' && (game.name || game.game) ? game : null;
+  }
+
+  function sameLiveMatch(a, b) {
+    const left = liveMatch(a);
+    const right = liveMatch(b);
+    if (!left || !right) return false;
+    const leftId = left.id != null ? left.id : left.gameId;
+    const rightId = right.id != null ? right.id : right.gameId;
+    if (leftId != null && rightId != null) return String(leftId) === String(rightId);
+    const leftName = left.name || left.game;
+    const rightName = right.name || right.game;
+    return !!(leftName && leftName === rightName);
+  }
+
+  function parkLiveMatch(game) {
+    const live = liveMatch(game);
+    if (!live) return null;
+    const parked = Object.assign({}, live);
+    parked.game = parked.game || parked.name;
+    parked.outcome = 'paused';
+    parked.completed = false;
+    parked.gameOver = false;
+    parked.winners = [];
+    parked.countResult = false;
+    return parked;
+  }
+
   function mergeBackup(current, incoming) {
     const next = {
       allPlayers: [...(current?.allPlayers || [])],
       players: [...(current?.players || [])],
       history: [...(current?.history || [])],
       playerProfiles: Object.assign({}, current?.playerProfiles || {}),
-      currentGame: Object.prototype.hasOwnProperty.call(incoming || {}, 'currentGame')
-        ? (incoming.currentGame || null)
-        : (current?.currentGame || null),
+      currentGame: liveMatch(current?.currentGame),
       prefs: incoming?.prefs && typeof incoming.prefs === 'object' ? incoming.prefs : current?.prefs || null,
       uiScale: incoming?.uiScale != null ? incoming.uiScale : current?.uiScale
     };
@@ -126,19 +156,247 @@
     if (incoming?.playerProfiles && typeof incoming.playerProfiles === 'object') {
       Object.assign(next.playerProfiles, incoming.playerProfiles);
     }
+    const incomingHasTable = !!(incoming && Object.prototype.hasOwnProperty.call(incoming, 'currentGame'));
+    const incomingLive = incomingHasTable ? liveMatch(incoming.currentGame) : null;
+    const localLive = liveMatch(current?.currentGame);
+    if (incomingLive && localLive && !sameLiveMatch(localLive, incomingLive)) {
+      const parked = parkLiveMatch(localLive);
+      const parkedId = parked.id != null ? parked.id : parked.gameId;
+      const already = parkedId != null && next.history.some(match => {
+        if (!match) return false;
+        return String(match.id) === String(parkedId) || String(match.gameId) === String(parkedId);
+      });
+      if (!already) {
+        next.history.unshift(parked);
+        added.games += 1;
+        const name = parked.game || 'Unknown';
+        added.byGame[name] = (added.byGame[name] || 0) + 1;
+      }
+      added.parked = true;
+      next.currentGame = incomingLive;
+    } else if (incomingLive) {
+      next.currentGame = incomingLive;
+    }
     added.device = summarizeHistory(next.history);
     return { next, added };
+  }
+
+  function listAdded(currentList, incomingList) {
+    const have = new Set((currentList || []).filter(Boolean));
+    const added = [];
+    (incomingList || []).forEach(name => {
+      if (name && !have.has(name) && !added.includes(name)) added.push(name);
+    });
+    return added;
+  }
+
+  function photoOverwriteNames(current, incoming) {
+    const cur = current?.playerProfiles || {};
+    const inc = incoming?.playerProfiles && typeof incoming.playerProfiles === 'object'
+      ? incoming.playerProfiles
+      : {};
+    return Object.keys(inc).filter(name => {
+      const next = inc[name] || {};
+      const prev = cur[name] || {};
+      const avatarChanged = String(next.avatar || '') !== String(prev.avatar || '');
+      const colorChanged = next.color != null && next.color !== prev.color;
+      return avatarChanged || colorChanged;
+    });
+  }
+
+  function restoreChangeLines(current, incoming) {
+    const { next, added } = mergeBackup(current, incoming);
+    const lines = [];
+    const players = listAdded(current?.allPlayers, incoming?.allPlayers);
+    lines.push(players.length
+      ? `Adds ${players.length} player${players.length === 1 ? '' : 's'}: ${players.join(', ')}.`
+      : 'Adds no new players.');
+    const seated = listAdded(current?.players, incoming?.players);
+    lines.push(seated.length
+      ? `Seats ${seated.join(', ')} tonight. People already seated stay seated.`
+      : 'Does not change who is seated tonight.');
+    lines.push(added.games
+      ? `Adds ${added.games} game${added.games === 1 ? '' : 's'}. A game already on this device with the same id stays as it is.`
+      : 'Adds no games. A game already on this device with the same id stays as it is.');
+    const incomingHasTable = !!(incoming && Object.prototype.hasOwnProperty.call(incoming, 'currentGame'));
+    const incomingLive = incomingHasTable ? liveMatch(incoming.currentGame) : null;
+    const localLive = liveMatch(current?.currentGame);
+    if (incomingLive && localLive && !sameLiveMatch(localLive, incomingLive)) {
+      lines.push(`Saves the match on this table, then puts ${incomingLive.name || incomingLive.game} on the table. Neither match is discarded.`);
+    } else if (incomingLive && !localLive) {
+      lines.push(`Puts ${incomingLive.name || incomingLive.game} on the table.`);
+    } else {
+      lines.push('Leaves the match on this table. An empty table in the file does not clear it.');
+    }
+    const photos = photoOverwriteNames(current, incoming);
+    lines.push(photos.length
+      ? `Overwrites photos for ${photos.join(', ')}.`
+      : 'Does not overwrite any photos.');
+    if (incoming && Number.isFinite(Number(incoming.uiScale))) {
+      lines.push(`Sets text size to ${Number(incoming.uiScale)}.`);
+    }
+    if (incoming?.prefs && typeof incoming.prefs === 'object') {
+      const bits = [];
+      if (typeof incoming.prefs.lineupIntro === 'boolean') bits.push(`lineup intro ${incoming.prefs.lineupIntro ? 'on' : 'off'}`);
+      if (typeof incoming.prefs.statMontage === 'boolean') bits.push(`path replay ${incoming.prefs.statMontage ? 'on' : 'off'}`);
+      if (typeof incoming.prefs.dealerRoll === 'boolean') bits.push(`dealer roll ${incoming.prefs.dealerRoll ? 'on' : 'off'}`);
+      if (bits.length) lines.push(`Sets ${bits.join(', ')}.`);
+    }
+    return { next, added, lines };
+  }
+
+  function liveMatchProgress(game) {
+    const live = liveMatch(game);
+    if (!live) return { rounds: -1, round: -1, audit: -1 };
+    const rounds = Array.isArray(live.rounds) ? live.rounds.length : 0;
+    const round = Number.isFinite(Number(live.currentRound)) ? Number(live.currentRound) : rounds + 1;
+    const audit = Array.isArray(live.auditLog) ? live.auditLog.length : 0;
+    return { rounds, round, audit };
+  }
+
+  function isRemoteLiveMatchNewer(localGame, remoteGame, remoteFallbackTs) {
+    const localLive = liveMatch(localGame);
+    const remoteLive = liveMatch(remoteGame);
+    if (!remoteLive) return false;
+    if (!localLive) return true;
+    if (!sameLiveMatch(localLive, remoteLive)) return false;
+    const localTs = parseTimestampMs(localLive.updatedAt);
+    const remoteTs = parseTimestampMs(remoteLive.updatedAt);
+    if (localTs > 0 && remoteTs > 0 && remoteTs !== localTs) {
+      return remoteTs > localTs;
+    }
+    if (localTs > 0 && remoteTs === 0 && remoteFallbackTs > 0 && remoteFallbackTs !== localTs) {
+      return remoteFallbackTs > localTs;
+    }
+    const lp = liveMatchProgress(localLive);
+    const rp = liveMatchProgress(remoteLive);
+    if (rp.audit !== lp.audit) return rp.audit > lp.audit;
+    if (rp.rounds !== lp.rounds) return rp.rounds > lp.rounds;
+    if (rp.round !== lp.round) return rp.round > lp.round;
+    return false;
+  }
+
+  function parseTimestampMs(value) {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
+    if (typeof value === 'string' && value.trim()) {
+      const asNum = Number(value);
+      if (Number.isFinite(asNum) && asNum > 0) return asNum;
+      const parsed = Date.parse(value);
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+    return 0;
+  }
+
+  function mergeCloudProfiles(localProfiles, remoteProfiles, remoteFallbackTs) {
+    const localMap = localProfiles && typeof localProfiles === 'object' ? localProfiles : {};
+    const remoteMap = remoteProfiles && typeof remoteProfiles === 'object' ? remoteProfiles : {};
+    const merged = Object.assign({}, localMap);
+    Object.keys(remoteMap).forEach(name => {
+      const remoteEntry = remoteMap[name];
+      if (!remoteEntry || typeof remoteEntry !== 'object') return;
+      const localEntry = localMap[name];
+      if (!localEntry || typeof localEntry !== 'object') {
+        merged[name] = Object.assign({}, remoteEntry);
+        return;
+      }
+      const localTs = parseTimestampMs(localEntry.updatedAt);
+      const remoteTs = parseTimestampMs(remoteEntry.updatedAt) || remoteFallbackTs;
+      if (localTs > 0 && (remoteTs === 0 || localTs >= remoteTs)) {
+        merged[name] = Object.assign({}, remoteEntry, localEntry);
+      } else {
+        merged[name] = Object.assign({}, localEntry, remoteEntry);
+      }
+    });
+    return merged;
+  }
+
+  function matchIdKey(match) {
+    if (!match || typeof match !== 'object') return null;
+    const id = match.id != null ? match.id : match.gameId;
+    return id != null && String(id) !== '' ? String(id) : null;
+  }
+
+  function isFinishedHistoryMatch(match) {
+    if (!match || typeof match !== 'object') return false;
+    if (match.outcome === 'paused') return false;
+    if (match.completed === true || match.gameOver === true || match.endedEarly === true) return true;
+    if (Array.isArray(match.winners) && match.winners.length > 0) return true;
+    if (match.outcome && match.outcome !== 'paused') return true;
+    if (match.completed !== false && match.game && match.totals && typeof match.totals === 'object') return true;
+    return false;
+  }
+
+  function isIntentionallyReopened(localGame, remoteHistoryEntry, remoteFallbackTs) {
+    const reopenedTs = parseTimestampMs(localGame?.reopenedAt);
+    if (!reopenedTs) return false;
+    const remoteTs = parseTimestampMs(remoteHistoryEntry?.finishedAt)
+      || parseTimestampMs(remoteHistoryEntry?.completedAt)
+      || remoteFallbackTs;
+    return remoteTs === 0 || reopenedTs >= remoteTs;
   }
 
   function mergeCloud(local, remote) {
     if (!remote || typeof remote !== 'object') {
       return mergeBackup(local || {}, {});
     }
+    const remoteFallbackTs = parseTimestampMs(remote.savedAt) || parseTimestampMs(remote.exportedAt);
+    const localHistory = Array.isArray(local?.history) ? local.history : [];
+    const remoteHistory = Array.isArray(remote?.history) ? remote.history : [];
+    const localFinishedIds = new Set(localHistory.filter(isFinishedHistoryMatch).map(matchIdKey).filter(Boolean));
+    const remoteFinishedById = new Map();
+    remoteHistory.forEach(match => {
+      if (!isFinishedHistoryMatch(match)) return;
+      const key = matchIdKey(match);
+      if (key && !remoteFinishedById.has(key)) remoteFinishedById.set(key, match);
+    });
+
+    const localLive = liveMatch(local?.currentGame);
+    const localLiveId = matchIdKey(localLive);
+    const localLiveFinishedInRemote = !!(
+      localLiveId
+      && remoteFinishedById.has(localLiveId)
+      && !isIntentionallyReopened(localLive, remoteFinishedById.get(localLiveId), remoteFallbackTs)
+    );
+    const localLiveFinishedLocally = !!(localLiveId && localFinishedIds.has(localLiveId));
+    const localLiveIsStaleFinished = localLiveFinishedLocally || localLiveFinishedInRemote;
+
+    const remoteLive = liveMatch(remote?.currentGame);
+    const remoteLiveId = matchIdKey(remoteLive);
+    const remoteLiveIsStaleFinished = !!(
+      remoteLiveId && (localFinishedIds.has(remoteLiveId) || remoteFinishedById.has(remoteLiveId))
+    );
+
+    const localForMerge = Object.assign({}, local || {});
+    if (localLiveIsStaleFinished) {
+      localForMerge.currentGame = null;
+    }
+
     const incoming = Object.assign({}, remote);
-    if (local?.currentGame && local.currentGame.name) {
+    if (remoteLiveIsStaleFinished) {
+      delete incoming.currentGame;
+    } else if (
+      localForMerge.currentGame
+      && localForMerge.currentGame.name
+      && !isRemoteLiveMatchNewer(localForMerge.currentGame, remote.currentGame, remoteFallbackTs)
+    ) {
       delete incoming.currentGame;
     }
-    return mergeBackup(local || {}, incoming);
+
+    const result = mergeBackup(localForMerge, incoming);
+    // If local intentionally reopened a finished match, keep it active and drop the stale finished copy.
+    if (localLive && localLiveId && remoteFinishedById.has(localLiveId) && !localLiveFinishedInRemote) {
+      result.next.history = result.next.history.filter(match => matchIdKey(match) !== localLiveId);
+    }
+    // Final invariant: never leave a finished match ID on the active table unless intentionally reopened.
+    const finalLiveId = matchIdKey(result.next.currentGame);
+    if (finalLiveId) {
+      const finishedInResult = result.next.history.find(match => matchIdKey(match) === finalLiveId && isFinishedHistoryMatch(match));
+      if (finishedInResult) {
+        result.next.currentGame = null;
+      }
+    }
+    result.next.playerProfiles = mergeCloudProfiles(local?.playerProfiles, remote.playerProfiles, remoteFallbackTs);
+    return result;
   }
 
   const api = {
@@ -149,7 +407,8 @@
     buildBackup,
     parseBackup,
     mergeBackup,
-    mergeCloud
+    mergeCloud,
+    restoreChangeLines
   };
 
   root.BPGBackup = api;

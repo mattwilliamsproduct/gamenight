@@ -11,7 +11,7 @@ function injectGalleryStyles(){
     .gn-qa-title{font-weight:900;font-size:15px}.gn-qa-kicker{font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#ef765d}
     .gn-qa-close{width:32px;height:32px;border:1px solid #d9d2c7;background:white;border-radius:6px;font-size:18px;line-height:1}
     .gn-qa-label{display:block;margin:9px 0 5px;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#6d6962}
-    .gn-qa-select{width:100%;height:42px;border:1px solid #c9ded9;border-radius:6px;background:#fff;padding:0 10px;font-weight:800;color:#073f3b}
+    .gn-qa-select{width:100%;height:42px;border:1px solid #c9ded9;border-radius:6px;background-color:#fff;padding-left:10px;font-weight:800;color:#073f3b}
     .gn-qa-copy{min-height:34px;margin:8px 0 10px;font-size:11px;line-height:1.45;color:#6d6962}
     .gn-qa-surfaces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
     .gn-qa-surface{min-height:40px;border:1px solid #c9ded9;border-radius:6px;background:#effaf7;padding:6px;font-size:10px;font-weight:800;color:#075e57}
@@ -29,7 +29,7 @@ function makeGallery(initialScenario,initialSurface){
   panel.innerHTML=`
     <div class="gn-qa-head"><div><div class="gn-qa-kicker">Development only</div><div class="gn-qa-title">Test-State Gallery</div></div><button class="gn-qa-close" type="button" title="Hide gallery" aria-label="Hide gallery">×</button></div>
     <label class="gn-qa-label" for="gn-qa-scenario">Scenario</label>
-    <select class="gn-qa-select" id="gn-qa-scenario">${Object.entries(QA_SCENARIOS).map(([id,item])=>`<option value="${id}">${item.label}</option>`).join('')}</select>
+    <select class="bp-select gn-qa-select" id="gn-qa-scenario">${Object.entries(QA_SCENARIOS).map(([id,item])=>`<option value="${id}">${item.label}</option>`).join('')}</select>
     <div class="gn-qa-copy"></div>
     <div class="gn-qa-label">Open surface</div>
     <div class="gn-qa-surfaces">${QA_SURFACES.map(surface=>`<button type="button" class="gn-qa-surface" data-surface="${surface.id}">${surface.label}</button>`).join('')}</div>

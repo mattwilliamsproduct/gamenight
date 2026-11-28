@@ -1,0 +1,23 @@
+/* Static concept. Apply over the Nov. 16 gallery board for a matched comparison. */
+html.slice2-tv body.active-match-view {
+  background: #dce8e3 !important;
+}
+html.slice2-tv body.active-match-view #scorecard-capture .scorecard-table {
+  height: auto !important;
+}
+html.slice2-tv body.active-match-view #scorecard-capture .scorecard-table tbody tr {
+  height: clamp(48px, 8vh, 92px) !important;
+}
+html.slice2-tv #scorecard-capture .scorecard-table tbody .scoreboard-player-name,
+html.slice2-tv #scorecard-capture .scorecard-table tbody .dealer-player-label {
+  font-size: clamp(17px, 2.4vw, 36px) !important;
+}
+html.slice2-tv #scorecard-capture .scorecard-table tbody .scorecard-total-value {
+  font-size: clamp(26px, 3.2vw, 48px) !important;
+}
+html.slice2-tv #scorecard-capture .scorecard-table tbody .scoreboard-rank-badge {
+  font-size: clamp(12px, 1.3vw, 19px) !important;
+}
+html.slice2-tv #scorecard-capture .scorecard-round-td .score-cell-input {
+  color: #516660;
+}

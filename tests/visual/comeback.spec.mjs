@@ -1,6 +1,7 @@
 import {expect,test} from '@playwright/test';
 
 test('Comeback chips explain the extra and do not offer a refuse button', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -20,6 +21,7 @@ test('Comeback chips explain the extra and do not offer a refuse button', async 
 });
 
 test('Actions menu explains how Comeback works in this game', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -45,8 +47,10 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
 
-  page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', {name: 'Save & End', exact: true}).click();
+  await page.locator('#leave-end-now').click();
+  const count = page.locator('#leave-count-yes');
+  if (await count.isVisible().catch(() => false)) await count.click();
   await expect(page.locator('#victory-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#game-screen')).toHaveClass(/hidden/);
 
@@ -69,6 +73,7 @@ test('ending a match stashes a visible scorecard copy for Share Receipt', async 
 });
 
 test('apostrophe names can still open the Comeback explanation', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -109,6 +114,7 @@ test('mid-game join after a legacy bonus round writes catch-up to the last scori
 });
 
 test('undo last round keeps Comeback chips for whoever is still stranded', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete Turbo UI. Production does not load comeback-logic.js.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -116,13 +122,13 @@ test('undo last round keeps Comeback chips for whoever is still stranded', async
 
   await page.getByRole('button', {name: /Actions/}).click();
   page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('button', {name: 'Undo Last Round', exact: true}).click();
+  await page.getByRole('button', {name: 'Undo last round', exact: true}).click();
 
   await expect(page.locator('#round-intel')).toContainText('Hand of 10');
   await expect(page.locator('button.scorecard-comeback-chip')).not.toHaveCount(0);
 });
 
-test('skipping a dealer roll does not steal the next game\'s Roll Die button', async ({page}, testInfo) => {
+test('skipping a dealer roll does not steal the next game\'s Roll die button', async ({page}, testInfo) => {
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.goto('/?gnqa=1&gallery=0&scenario=home-party&surface=home', {waitUntil: 'networkidle'});
   await page.waitForFunction(() => document.body.dataset.gnQaReady === 'true');
@@ -140,13 +146,14 @@ test('skipping a dealer roll does not steal the next game\'s Roll Die button', a
     showDealerRoll();
     return document.getElementById('dealer-roll-btn').textContent;
   });
-  expect(label).toContain('Roll Die');
+  expect(label).toContain('Roll die');
   await page.locator('#dealer-roll-btn').click();
   await expect(page.locator('#dealer-roll-modal')).not.toHaveClass(/hidden/);
   await expect(page.locator('#dealer-roll-btn')).toBeDisabled();
 });
 
-test('View Pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
+test('View pace restores full round columns after the viewport shrinks', async ({page}, testInfo) => {
+  test.skip(true, 'Obsolete View pace leftover. The pace panel is retired.');
   test.skip(testInfo.project.name !== 'laptop-chromium', 'Run the logic check once on laptop Chromium');
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/?gnqa=1&gallery=0&scenario=five-crowns-comeback&surface=scorecard', {waitUntil: 'networkidle'});

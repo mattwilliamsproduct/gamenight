@@ -1,0 +1,7 @@
+# RC2 Records labels
+
+What broke: Canasta nights saved as `Hand and Foot` never appeared on Records because `BPGRecords.GAMES` omitted that id. Several Explore rows used career or Shame labels for one-match maxima, combined Life Preserver points across games, and showed incomplete spins. Rook history stayed hidden with the start card.
+
+What fixed it: Records now lists Canasta from the existing Hand and Foot calculations. Equal record values keep every holder. Bid rows that are one-match maxima say so, and a single-match exact rate needs 5 classified bids. Rook bids won stays hidden. Winning streak and Wizard career exact-bid rate sit in Streaks / Bid accuracy. Life Preserver rows use completed matches only and stay per game, with places measured right after the spin. Hall of Fame is the populated ledger title. Past nights say Left early. Completed Rook nights show on Records without unhiding the start card. Nav stays Overview · Explore records · Past nights.
+
+What not to repeat: do not treat Hand and Foot as missing just because the shelf says Canasta. Do not label a single-match maximum career. Do not add Flip 7 bust copy for a stored zero. Do not invent a combined Life Preserver total across games. Do not wait for `?games=rook` to read a finished Rook night. Do not leave a 1024 Canasta header as one nowrap row with the rate bar. Do not keep a Retired badge that clips to RETIR.
